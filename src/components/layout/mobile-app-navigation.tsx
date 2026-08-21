@@ -214,7 +214,7 @@ export function MobileAppNavigation({
   useEffect(() => {
     const root = document.documentElement;
     const viewport = window.visualViewport;
-    const mobileQuery = window.matchMedia("(max-width: 767px)");
+    const compactShellQuery = window.matchMedia("(max-width: 1279px)");
     let stableViewportHeight = Math.max(
       window.innerHeight,
       document.documentElement.clientHeight,
@@ -241,7 +241,7 @@ export function MobileAppNavigation({
         // focus. Some Android/iOS browser modes overlay the keyboard without
         // resizing visualViewport, so waiting for a viewport delta leaves the
         // bottom nav/action rail floating over the focused field.
-        if (mobileQuery.matches && editable) root.dataset.mobileEditableFocus = "true";
+        if (compactShellQuery.matches && editable) root.dataset.mobileEditableFocus = "true";
         else delete root.dataset.mobileEditableFocus;
 
         // Android Chrome may resize both innerHeight and the visual viewport
@@ -252,9 +252,15 @@ export function MobileAppNavigation({
         }
 
         const viewportDelta = stableViewportHeight - visualHeight;
-        const keyboardOpen = mobileQuery.matches && editable && (viewportDelta > 120 || visualHeight < stableViewportHeight * 0.75);
-        if (keyboardOpen) root.dataset.mobileKeyboardOpen = "true";
-        else delete root.dataset.mobileKeyboardOpen;
+        const keyboardOpen = compactShellQuery.matches && editable && (viewportDelta > 120 || visualHeight < stableViewportHeight * 0.75);
+        if (keyboardOpen) {
+          const keyboardInset = Math.max(0, viewportDelta - (viewport?.offsetTop ?? 0));
+          root.dataset.mobileKeyboardOpen = "true";
+          root.style.setProperty("--sb-virtual-keyboard-inset", `${keyboardInset}px`);
+        } else {
+          delete root.dataset.mobileKeyboardOpen;
+          root.style.removeProperty("--sb-virtual-keyboard-inset");
+        }
       });
     };
 
@@ -262,7 +268,7 @@ export function MobileAppNavigation({
     document.addEventListener("focusout", updateKeyboardState);
     viewport?.addEventListener("resize", updateKeyboardState);
     viewport?.addEventListener("scroll", updateKeyboardState);
-    mobileQuery.addEventListener("change", updateKeyboardState);
+    compactShellQuery.addEventListener("change", updateKeyboardState);
     updateKeyboardState();
 
     return () => {
@@ -271,9 +277,10 @@ export function MobileAppNavigation({
       document.removeEventListener("focusout", updateKeyboardState);
       viewport?.removeEventListener("resize", updateKeyboardState);
       viewport?.removeEventListener("scroll", updateKeyboardState);
-      mobileQuery.removeEventListener("change", updateKeyboardState);
+      compactShellQuery.removeEventListener("change", updateKeyboardState);
       delete root.dataset.mobileKeyboardOpen;
       delete root.dataset.mobileEditableFocus;
+      root.style.removeProperty("--sb-virtual-keyboard-inset");
     };
   }, []);
 

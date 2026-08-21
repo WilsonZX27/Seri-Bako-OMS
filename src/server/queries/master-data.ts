@@ -33,12 +33,14 @@ export async function getSupplierItems(filters: Filters = {}) {
       return {
         ...row,
         supplier_name: supplier?.name ?? "-",
+        supplier_code: supplier?.supplier_code ?? "-",
+        supplier_group: supplier?.supplier_group ?? "-",
         item_code: item?.item_code ?? "-",
         item_name: item?.item_name ?? "-",
         base_unit: item?.base_unit ?? "-",
       };
     });
-    return filterAndSort(rows, filters, ["supplier_name", "supplier_item_code", "supplier_item_name", "item_code", "item_name", "purchase_uom"]);
+    return filterAndSort(rows, filters, ["supplier_name", "supplier_code", "supplier_group", "supplier_item_code", "supplier_item_name", "item_code", "item_name", "purchase_uom"]);
   }
 
   const supabase = await createClient();
@@ -48,7 +50,7 @@ export async function getSupplierItems(filters: Filters = {}) {
     .select("*")
     .is("deleted_at", null)
     .order("supplier_item_name", { ascending: true }),
-    supabase.from("suppliers").select("id, name"),
+    supabase.from("suppliers").select("id, name, supplier_code, supplier_group"),
     supabase.from("items").select("id, item_code, item_name, base_unit"),
   ]);
   if (error) throw new Error(error.message);
@@ -59,11 +61,13 @@ export async function getSupplierItems(filters: Filters = {}) {
   const rows = ((data ?? []) as Database["public"]["Tables"]["supplier_items"]["Row"][]).map((row) => ({
     ...row,
     supplier_name: supplierById.get(row.supplier_id)?.name ?? "-",
+    supplier_code: supplierById.get(row.supplier_id)?.supplier_code ?? "-",
+    supplier_group: supplierById.get(row.supplier_id)?.supplier_group ?? "-",
     item_code: itemById.get(row.item_id)?.item_code ?? "-",
     item_name: itemById.get(row.item_id)?.item_name ?? "-",
     base_unit: itemById.get(row.item_id)?.base_unit ?? "-",
   }));
-  return filterAndSort(rows, filters, ["supplier_name", "supplier_item_code", "supplier_item_name", "item_code", "item_name", "purchase_uom"]);
+  return filterAndSort(rows, filters, ["supplier_name", "supplier_code", "supplier_group", "supplier_item_code", "supplier_item_name", "item_code", "item_name", "purchase_uom"]);
 }
 
 export async function getSupplierItem(id: string) {

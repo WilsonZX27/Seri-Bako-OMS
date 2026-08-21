@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const supplierSchema = z.object({
   supplier_code: z.string().trim().max(64).optional().nullable(),
+  supplier_group: z.string().trim().max(96).optional().nullable(),
   name: z.string().trim().min(1, "Supplier name is required").max(160),
   contact_person: z.string().trim().max(160).optional().nullable(),
   phone: z.string().trim().max(48).optional().nullable(),

@@ -41,7 +41,7 @@ export default async function ItemsPage({
             supplier={filters.supplier}
             stockControl={filters.stock_control}
             lowStock={filters.low_stock}
-            placeholder="Search item code, name, category, supplier"
+            placeholder="Search item code, name, brand, category, supplier"
             categories={categories}
             suppliers={suppliers}
             showStatus={false}
@@ -74,7 +74,7 @@ export default async function ItemsPage({
                   <DataGridRow key={item.id} href={`/items/${item.id}`}>
                     <TableCell className="text-center"><TableActionLink href={`/items/${item.id}`} label={`Open ${item.item_name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                     <TableCell>{item.item_code}</TableCell>
-                    <TableCell className="font-medium">{item.item_name}</TableCell>
+                    <TableCell className="font-medium"><span className="block">{item.item_name}</span>{item.brand_name ? <span className="block text-xs font-normal text-muted-foreground">{item.brand_name}</span> : null}</TableCell>
                     <TableCell className="hidden lg:table-cell">{item.category}</TableCell>
                     <TableCell>{item.base_unit}</TableCell>
                     <TableCell className="hidden lg:table-cell">{item.supplier_name ?? "-"}</TableCell>
@@ -97,7 +97,7 @@ export default async function ItemsPage({
             </TableBody>
           </Table>
           <OperationalList ariaLabel="Items">
-            {itemsPage.rows.map((item) => <OperationalListRow key={item.id} href={`/items/${item.id}`} label={`Open ${item.item_name}`} primary={item.item_name} status={<Badge variant={item.status === "active" ? "success" : "secondary"}>{item.status}</Badge>} secondary={`${item.item_code} · ${item.category}`} meta={`${formatNumber(item.current_stock)} ${item.base_unit}`} />)}
+            {itemsPage.rows.map((item) => <OperationalListRow key={item.id} href={`/items/${item.id}`} label={`Open ${item.item_name}`} primary={item.item_name} status={<Badge variant={item.status === "active" ? "success" : "secondary"}>{item.status}</Badge>} secondary={`${item.item_code} · ${item.brand_name ? `${item.brand_name} · ` : ""}${item.category}`} meta={`${formatNumber(item.current_stock)} ${item.base_unit}`} />)}
             {!itemsPage.rows.length ? <EmptyState title={filtered ? "No records match these filters" : "No items yet"} description={filtered ? "Clear the filters or widen the search." : "Items appear here after they are created or imported."} action={filtered ? { href: "/items", label: "Clear filters" } : undefined} /> : null}
           </OperationalList>
           <PaginationControls page={itemsPage.page} totalPages={itemsPage.totalPages} totalRows={itemsPage.totalRows} searchParams={filters} />

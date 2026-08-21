@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { isMockMode } from "@/lib/mock-mode";
+import { normalizeUom } from "@/lib/uom";
 import { importEntities } from "@/lib/imports/config";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -163,8 +164,8 @@ function getItemImportValues(row: Record<string, string>, entity: ImportRequest[
       item_code: normalizeText(row["Item Code"]),
       item_name: normalizeText(row.Description),
       category: normalizeText(row["Item Group"]) || "Uncategorized",
-      base_uom: normalizeText(row["Base UOM"]),
-      purchase_uom: normalizeText(row["Base UOM"]),
+      base_uom: normalizeUom(row["Base UOM"]),
+      purchase_uom: normalizeUom(row["Base UOM"]),
       cost: null,
       safety_stock: 0,
       supplier_name: "",
@@ -182,8 +183,8 @@ function getItemImportValues(row: Record<string, string>, entity: ImportRequest[
     item_code: normalizeText(row.item_code),
     item_name: normalizeText(row.item_name),
     category: normalizeText(row.category),
-    base_uom: normalizeText(row.base_uom),
-    purchase_uom: normalizeText(row.purchase_uom) || normalizeText(row.base_uom),
+    base_uom: normalizeUom(row.base_uom),
+    purchase_uom: normalizeUom(row.purchase_uom) || normalizeUom(row.base_uom),
     cost: parseNumber(row.default_unit_cost ?? row.cost),
     safety_stock: parseNumber(row.safety_stock),
     supplier_name: normalizeText(row.supplier_name),
@@ -221,8 +222,8 @@ async function handleItemsImport(context: RouteContext, request: ImportRequest) 
     const itemCode = row.values.item_code;
     const itemName = row.values.item_name;
     const category = row.values.category;
-    const baseUom = row.values.base_uom;
-    const purchaseUom = row.values.purchase_uom || baseUom;
+    const baseUom = normalizeUom(row.values.base_uom);
+    const purchaseUom = normalizeUom(row.values.purchase_uom) || baseUom;
     const cost = row.values.cost;
     const safetyStock = row.values.safety_stock;
     const supplierPrice = row.values.supplier_price;
@@ -684,7 +685,7 @@ async function handleSupplierItemsImport(context: RouteContext, request: ImportR
       supplierByCode.get(normalizeLower(row.supplier_code)) ??
       supplierByName.get(normalizeLower(row.supplier_name));
     const item = itemByCode.get(normalizeLower(row.item_code));
-    const purchaseUom = normalizeText(row.purchase_uom);
+    const purchaseUom = normalizeUom(row.purchase_uom);
     const unitCost = parseNumber(row.unit_cost);
     const conversionRate = parseNumber(row.conversion_rate);
     const leadTime = parseNumber(row.lead_time_days);

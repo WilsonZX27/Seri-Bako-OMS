@@ -236,15 +236,15 @@ export function StockBalanceWorkspace({
                 {hasCreatePr ? (
                   <>
                     <div>
-                      <div className="flex items-baseline justify-between gap-2">
-                        <p className="text-xs font-semibold text-[var(--sb-text-muted)]">{basketRows.length} item{basketRows.length === 1 ? "" : "s"}</p>
-                        <p className="truncate text-[10px] text-[var(--sb-text-muted)]">{basketStorageReady ? "Saved on this device" : "Restoring..."}</p>
-                      </div>
+                      <dl className="grid grid-cols-3 gap-2 text-xs">
+                        <div><dt className="text-[10px] text-muted-foreground">Location</dt><dd className="truncate font-semibold">{createBranchId ? branchNameById.get(createBranchId) ?? "Unknown" : "Select"}</dd></div>
+                        <div><dt className="text-[10px] text-muted-foreground">Suppliers</dt><dd className="font-semibold tabular-nums">{supplierGroups.length || "—"}</dd></div>
+                        <div><dt className="text-[10px] text-muted-foreground">Items</dt><dd className="font-semibold tabular-nums">{basketRows.length}</dd></div>
+                      </dl>
                       {createRows.length > 0 && createRows.some((line) => !line.supplier_id) ? (
                         <p className="mt-1 text-xs text-destructive">Some selected items have no supplier mapping. Map them before creating PRs.</p>
                       ) : null}
                       {inactiveRows.length ? <p className="mt-1 text-xs text-destructive">Some selected items are no longer active. Remove them and add the current active item from Stock Balance before creating a PR.</p> : null}
-                      {supplierGroups.length > 1 ? <p className="mt-1 text-xs text-muted-foreground">Different suppliers will be split into {supplierGroups.length} separate PRs.</p> : null}
                     </div>
                     {selectableBranchIds.length > 1 ? (
                       <div>
@@ -422,13 +422,13 @@ export function StockBalanceWorkspace({
         aria-label={`Open PR basket${basketRows.length ? `, ${basketRows.length} selected` : ""}`}
       >
         <ShoppingCart className="h-5 w-5" aria-hidden="true" />
-        {basketRows.length ? <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[var(--sb-warning)] px-1 text-[10px] font-bold text-white">{basketRows.length}</span> : null}
+        {basketRows.length ? <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[var(--sb-surface-raised)] px-1 text-[10px] font-bold text-[var(--sb-green-900)] shadow-[0_1px_4px_rgb(6_44_31_/_0.18)]">{basketRows.length}</span> : null}
       </button> : null}
       {basketOpen ? <div className="fixed inset-0 z-[var(--sb-z-dialog)] xl:hidden">
         <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={() => setBasketOpen(false)} aria-label="Close PR basket" />
         <section className="sb-pr-basket-sheet sb-popover-surface absolute inset-x-0 bottom-0 flex max-h-[82dvh] flex-col overflow-hidden" role="dialog" aria-modal="true" aria-label="PR basket">
           <header className="flex min-h-14 items-center justify-between border-b border-[var(--sb-border-soft)] px-4">
-            <div className="min-w-0"><h2 className="text-base font-semibold text-[var(--sb-green-950)]">PR basket</h2><p className="text-xs text-[var(--sb-text-muted)]">{basketRows.length} selected item{basketRows.length === 1 ? "" : "s"} · {basketStorageReady ? "saved on this device" : "restoring…"}</p></div>
+            <div className="min-w-0"><h2 className="text-base font-semibold text-[var(--sb-green-950)]">PR basket</h2><p className="text-xs text-[var(--sb-text-muted)]">{createBranchId ? branchNameById.get(createBranchId) ?? "Unknown location" : "Select location"} · {supplierGroups.length || 0} supplier{supplierGroups.length === 1 ? "" : "s"} · {basketRows.length} item{basketRows.length === 1 ? "" : "s"}</p></div>
             <Button type="button" variant="ghost" size="icon" onClick={() => setBasketOpen(false)} aria-label="Close PR basket"><X className="h-5 w-5" /></Button>
           </header>
           <form action={createPurchaseRequestsFromBasket} className="flex min-h-0 flex-1 flex-col">

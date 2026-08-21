@@ -10,7 +10,7 @@ import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
 import { UrgencySelect } from "@/components/urgency-select";
 import type { ProcurementPriority } from "@/components/priority-badge";
-import { defaultUoms, normalizeUom } from "@/lib/uom";
+import { normalizeUom, uomOptionsForValues } from "@/lib/uom";
 import { getToday } from "@/lib/utils";
 import { ItemCombobox, type ItemComboboxOption } from "@/components/item-combobox";
 
@@ -26,6 +26,7 @@ export type BranchSupplierMappingOption = {
   supplier_name: string;
   unit_cost: number;
   purchase_uom: string;
+  conversion_to_base_uom: number | null;
   is_preferred: boolean;
 };
 type RequestLine = {
@@ -108,6 +109,7 @@ export function PurchaseRequestForm({
   const [requestSupplierId, setRequestSupplierId] = useState(initialRows.find((line) => line.supplierId)?.supplierId ?? "");
   const [validationError, setValidationError] = useState("");
   const [validationTarget, setValidationTarget] = useState<RequestValidationTarget>(null);
+  const [contextResetNotice, setContextResetNotice] = useState("");
   const [commentLineKey, setCommentLineKey] = useState<number | null>(null);
   const [neededByDate, setNeededByDate] = useState(initialNeededByDate ?? "");
   const [detailsOpen, setDetailsOpen] = useState(!(resolvedInitialBranchId && initialNeededByDate));
@@ -118,8 +120,12 @@ export function PurchaseRequestForm({
   const selectedBranchName = branches.find((branch) => branch.id === branchId)?.branch_name ?? "Select branch";
   const detailsComplete = Boolean(branchId && requestSupplierId);
   const supplierOptions = [...new Map(supplierMappings.filter((mapping) => mapping.branch_id === branchId).map((mapping) => [mapping.supplier_id, mapping])).values()].sort((a, b) => a.supplier_name.localeCompare(b.supplier_name));
-  const eligibleItemIds = new Set(supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.supplier_id === requestSupplierId).map((mapping) => mapping.item_id));
-  const selectableItems = items.filter((item) => eligibleItemIds.has(item.id));
+  const eligibleMappings = supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.supplier_id === requestSupplierId);
+  const mappingByItemId = new Map(eligibleMappings.map((mapping) => [mapping.item_id, mapping]));
+  const selectableItems = items.filter((item) => mappingByItemId.has(item.id)).map((item) => {
+    const mapping = mappingByItemId.get(item.id)!;
+    return { ...item, purchase_unit: mapping.purchase_uom || item.purchase_unit, supplier_name: mapping.supplier_name };
+  });
   const incompleteEnteredLines = lines.filter((line) => {
     const touched = Boolean(line.itemSearch.trim() || line.qty.trim() || line.uom.trim());
     return touched && (!line.itemSearch.trim() || !line.qty.trim() || !line.uom.trim());
@@ -135,14 +141,13 @@ export function PurchaseRequestForm({
     const knownSystemUoms = line.itemId
       ? []
       : items.flatMap((candidate) => [candidate.purchase_unit, candidate.base_unit]);
-    return [...new Set([
+    return uomOptionsForValues([
       line.uom,
       item?.purchase_unit,
       item?.base_unit,
       ...mappingsForLine(line).map((mapping) => mapping.purchase_uom),
       ...knownSystemUoms,
-      ...defaultUoms,
-    ].filter(Boolean).map((value) => normalizeUom(String(value))))];
+    ]);
   }
 
   function showValidationError(message: string, target: Exclude<RequestValidationTarget, null>) {
@@ -235,10 +240,12 @@ export function PurchaseRequestForm({
 
   function selectItem(key: number, value: string) {
     const query = value.trim().toLowerCase();
+    // Resolve only against the branch + supplier catalogue presented by the
+    // combobox. A typed exact code must never bypass that sourcing boundary.
     const selected =
-      items.find((item) => item.id === value) ??
-      items.find((item) => itemLabel(item).toLowerCase() === query) ??
-      items.find((item) => [item.item_code, item.item_name].filter(Boolean).some((candidate) => String(candidate).toLowerCase() === query));
+      selectableItems.find((item) => item.id === value) ??
+      selectableItems.find((item) => itemLabel(item).toLowerCase() === query) ??
+      selectableItems.find((item) => [item.item_code, item.item_name].filter(Boolean).some((candidate) => String(candidate).toLowerCase() === query));
 
     if (!selected) {
       updateLine(key, { itemSearch: value, itemId: "", supplierId: "", cost: "0" });
@@ -259,8 +266,10 @@ export function PurchaseRequestForm({
   }
 
   function changeBranch(nextBranchId: string) {
+    const clearedCount = lines.filter((line) => line.itemId || line.itemSearch.trim()).length;
     setBranchId(nextBranchId);
     setRequestSupplierId("");
+    setContextResetNotice(clearedCount ? `${clearedCount} request line${clearedCount === 1 ? " was" : "s were"} cleared because the location changed. Choose a supplier and items mapped to the new location.` : "");
     if (nextBranchId && neededByDate) setDetailsOpen(false);
     setLines((current) => current.map((line) => {
       return {
@@ -271,7 +280,10 @@ export function PurchaseRequestForm({
   }
 
   function changeRequestSupplier(nextSupplierId: string) {
+    const invalidLines = lines.filter((line) => (line.itemId || line.itemSearch.trim()) && !supplierMappings.some((candidate) => candidate.branch_id === branchId && candidate.supplier_id === nextSupplierId && candidate.item_id === line.itemId));
+    const nextSupplierName = supplierOptions.find((supplier) => supplier.supplier_id === nextSupplierId)?.supplier_name ?? "the selected supplier";
     setRequestSupplierId(nextSupplierId);
+    setContextResetNotice(invalidLines.length ? `${invalidLines.length} request line${invalidLines.length === 1 ? " was" : "s were"} cleared because ${nextSupplierName} does not supply the item at ${selectedBranchName}. Choose an item from this supplier’s mapped catalogue.` : "");
     setLines((current) => current.map((line) => {
       const mapping = supplierMappings.find((candidate) => candidate.branch_id === branchId && candidate.supplier_id === nextSupplierId && candidate.item_id === line.itemId);
       if (!mapping) return { ...line, itemId: "", itemSearch: "", supplierId: "", cost: "0", uom: "" };
@@ -364,6 +376,7 @@ export function PurchaseRequestForm({
               {validationError}
             </div>
           ) : null}
+          {contextResetNotice ? <div role="status" className="flex items-start justify-between gap-3 border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-3 py-2 text-xs text-[var(--sb-text)]"><p>{contextResetNotice}</p><button type="button" className="shrink-0 font-semibold text-primary hover:underline" onClick={() => setContextResetNotice("")} aria-label="Dismiss catalogue change notice">Dismiss</button></div> : null}
 
           <section data-purchase-request-workspace className="sb-work-surface overflow-hidden" onFocusCapture={() => { if (detailsComplete && !validationError) setDetailsOpen(false); }}>
             <div data-document-section-header className="flex items-center justify-between border-b bg-white px-3 py-2">
@@ -395,7 +408,7 @@ export function PurchaseRequestForm({
                       const selectedMapping = compatibleMappings.find((mapping) => mapping.supplier_id === line.supplierId)
                         ?? compatibleMappings.find((mapping) => mapping.is_preferred)
                         ?? compatibleMappings[0];
-                      return <p data-pr-line-supplier className="text-[11px] leading-4 text-muted-foreground">{selectedMapping?.supplier_name ?? "Supplier pending"}{selectedMapping?.is_preferred ? " · Preferred" : ""}</p>;
+                      return <p data-pr-line-supplier className="text-[11px] leading-4 text-muted-foreground">{selectedMapping?.supplier_name ?? "Supplier pending"}{selectedMapping?.is_preferred ? " · Preferred" : ""}{selectedMapping?.conversion_to_base_uom && selectedMapping.conversion_to_base_uom !== 1 ? ` · 1 ${selectedMapping.purchase_uom} = ${selectedMapping.conversion_to_base_uom} base` : ""}</p>;
                     })() : null}
                     <input type="hidden" name="line_item_id" value={line.itemId} />
                     <input type="hidden" name="line_description" value={line.itemSearch} />
@@ -424,7 +437,7 @@ export function PurchaseRequestForm({
                   </div>
                   {commentLineKey === line.key ? <Field label="Item comment" className="col-span-full"><Textarea name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} rows={2} placeholder="Add context for purchasing" /></Field> : <input type="hidden" name="line_remarks" value={line.remarks} />}
                   {line.itemId && mappingsForLine(line).length === 0 ? <div className="col-span-full grid min-w-0 gap-2 rounded-[var(--sb-radius-control)] border border-[var(--sb-danger)]/35 bg-[var(--sb-danger-bg)] px-3 py-2.5 text-xs text-[var(--sb-danger)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><div className="min-w-0"><p className="font-semibold">Supplier mapping required</p><p className="mt-0.5 leading-relaxed">This item has no active supplier route for the selected branch. Add the mapping before submitting so Purchasing knows who can supply it.</p></div><Button asChild type="button" variant="outline" size="sm" className="h-[var(--sb-control-height)] w-full border-[var(--sb-danger)]/50 text-xs text-[var(--sb-danger)] sm:w-auto"><Link href={`/supplier-items/new?itemId=${line.itemId}&branchId=${branchId}`}>Add supplier mapping</Link></Button></div> : null}
-                  {line.itemId && line.uom && mappingsForLine(line).length > 0 && !mappingsForLine(line).some((mapping) => normalizeUom(mapping.purchase_uom) === line.uom) ? <div className="col-span-full grid min-w-0 gap-2 rounded-[var(--sb-radius-control)] border border-[var(--sb-danger)]/35 bg-[var(--sb-danger-bg)] px-3 py-2 text-xs font-medium leading-relaxed text-[var(--sb-danger)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><p>No active supplier route uses {line.uom.toUpperCase()} for this branch. Choose the supplier UOM shown in the mapping, or update the mapping before submitting.</p><Link href={`/supplier-items/new?itemId=${line.itemId}&branchId=${branchId}`} className="inline-flex min-h-[var(--sb-control-height)] items-center justify-center font-semibold underline underline-offset-2 sm:justify-self-end">Update branch mapping</Link></div> : null}
+                  {line.itemId && line.uom && mappingsForLine(line).length > 0 && !mappingsForLine(line).some((mapping) => normalizeUom(mapping.purchase_uom) === line.uom) ? <div className="col-span-full grid min-w-0 gap-2 rounded-[var(--sb-radius-control)] border border-[var(--sb-danger)]/35 bg-[var(--sb-danger-bg)] px-3 py-2 text-xs font-medium leading-relaxed text-[var(--sb-danger)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><p>No active supplier route uses {line.uom.toUpperCase()} for this branch because no supplier purchasing term is configured for it. Update the supplier item to purchase in {line.uom.toUpperCase()} and enter its conversion to {items.find((item) => item.id === line.itemId)?.base_unit ?? "the Item Master base UOM"}; the GRN will convert the delivery into the company base unit.</p><Link href={`/supplier-items/new?itemId=${line.itemId}&branchId=${branchId}`} className="inline-flex min-h-[var(--sb-control-height)] items-center justify-center font-semibold underline underline-offset-2 sm:justify-self-end">Update branch mapping</Link></div> : null}
                   <input type="hidden" name="line_reason" value={line.reason} />
                 </div>
               ))}
@@ -459,6 +472,9 @@ export function PurchaseOrderForm({
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([""]);
   const [selectedItemUoms, setSelectedItemUoms] = useState<string[]>([""]);
   const [supplierId, setSupplierId] = useState("");
+  const [detailsOpen, setDetailsOpen] = useState(true);
+  const [orderDate, setOrderDate] = useState(getToday());
+  const [expectedDeliveryDate, setExpectedDeliveryDate] = useState("");
   const selectedItemPairs = selectedItemIds.map((itemId, index) => ({ itemId, index })).filter((row) => Boolean(row.itemId));
   const selectedItems = selectedItemPairs.map((row) => row.itemId);
   const mappingCoversItem = (itemId: string, index: number, candidateSupplierId: string) => {
@@ -471,11 +487,11 @@ export function PurchaseOrderForm({
   const selectedItemLabels = (rows: typeof uncoveredItems) => rows.map(({ itemId }) => items.find((item) => item.id === itemId)?.item_name ?? "Selected item");
   function uomOptions(itemId: string) {
     const item = items.find((candidate) => candidate.id === itemId);
-    return [...new Set([
+    return uomOptionsForValues([
       item?.purchase_unit,
       item?.base_unit,
       ...supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === itemId).map((mapping) => mapping.purchase_uom),
-    ].filter(Boolean).map((value) => normalizeUom(String(value))))];
+    ]);
   }
 
   function preferredUom(itemId: string) {
@@ -486,16 +502,17 @@ export function PurchaseOrderForm({
 
   return (
     <div className="min-w-0">
-        <form id="purchase-order-form" action={action} className="space-y-3">
-          <input type="hidden" name="po_no" value={poNo} />
-          <input type="hidden" name="idempotency_key" value={idempotencyKey} />
-          <input type="hidden" name="status" value="draft" />
-          <input type="hidden" name="approval_status" value="draft" />
-          <section data-purchase-order-form-surface className="sb-work-surface p-3 md:p-4">
-          <div className="mb-3 border-b border-[var(--sb-border-soft)] pb-2">
-            <h2 className="text-sm font-semibold text-[var(--sb-text)]">Order details</h2>
+        <form id="purchase-order-form" action={action} className="grid gap-3">
+          <input hidden type="hidden" name="po_no" value={poNo} />
+          <input hidden type="hidden" name="idempotency_key" value={idempotencyKey} />
+          <input hidden type="hidden" name="status" value="draft" />
+          <input hidden type="hidden" name="approval_status" value="draft" />
+          <section data-purchase-order-form-surface className="sb-work-surface overflow-hidden">
+          <div className="flex items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] bg-white px-3 py-2">
+            <div className="min-w-0"><h2 className="text-sm font-semibold text-[var(--sb-text)]">Order details</h2>{!detailsOpen ? <p className="mt-0.5 truncate text-xs text-muted-foreground">{branches.find((branch) => branch.id === branchId)?.branch_name ?? "Branch not set"} · {eligibleSuppliers.find((supplier) => supplier.supplier_id === supplierId)?.supplier_name ?? "Supplier not set"} · {orderDate}{expectedDeliveryDate ? ` → ${expectedDeliveryDate}` : ""}</p> : null}</div>
+            <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0" aria-expanded={detailsOpen} aria-label={detailsOpen ? "Collapse order details" : "Expand order details"} onClick={() => setDetailsOpen((current) => !current)}><ChevronDown className={`h-4 w-4 transition-transform motion-reduce:transition-none ${detailsOpen ? "rotate-180" : ""}`} aria-hidden="true" /></Button>
           </div>
-          <div data-purchase-order-setup className="grid grid-cols-2 gap-3 md:grid-cols-3">
+          <div data-purchase-order-setup className={`grid grid-cols-2 gap-3 p-3 md:grid-cols-3 md:p-4 ${detailsOpen ? "" : "hidden"}`}>
             <Field label="Branch" required>
               <SelectNative name="branch_id" value={branchId} onChange={(event) => { setBranchId(event.target.value); setSupplierId(""); }} required>
                 {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
@@ -509,10 +526,10 @@ export function PurchaseOrderForm({
             </Field>
               <div className="col-span-2 grid grid-cols-2 gap-3 border-t border-[var(--sb-border-soft)] pt-3 md:col-span-3 md:grid-cols-3">
                 <Field label="Order Date" required>
-                  <Input name="order_date" type="date" defaultValue={getToday()} required />
+                  <Input name="order_date" type="date" value={orderDate} onChange={(event) => setOrderDate(event.target.value)} required />
                 </Field>
                 <Field label="Expected Delivery">
-                  <Input name="expected_delivery_date" type="date" />
+                  <Input name="expected_delivery_date" type="date" value={expectedDeliveryDate} onChange={(event) => setExpectedDeliveryDate(event.target.value)} />
                 </Field>
                 <Field label="Remarks" className="col-span-2 md:col-span-3">
                   <Textarea name="remarks" placeholder="Supplier ordering remarks" />
@@ -522,16 +539,7 @@ export function PurchaseOrderForm({
           </section>
 
           <section data-purchase-order-lines className="sb-work-surface overflow-hidden">
-            <div className="flex items-center justify-between gap-3 border-b bg-white px-3 py-2">
-              <div>
-                <p className="text-xs font-semibold">Ordered Items</p>
-                <p className="text-xs text-muted-foreground">Add only the items included in this order.</p>
-              </div>
-              <Button type="button" variant="outline" size="sm" onClick={() => { setSelectedItemIds((current) => [...current, ""]); setSelectedItemUoms((current) => [...current, ""]); }} aria-label="Add order line">
-                <Plus className="h-4 w-4" />
-                Add line
-              </Button>
-            </div>
+            <div className="border-b bg-white px-3 py-2"><p className="text-xs font-semibold">Ordered Items</p></div>
             <div className="hidden grid-cols-[2fr_112px_112px_40px] gap-2 border-b bg-[var(--sb-surface-muted)] px-3 py-2 text-[11px] font-medium text-muted-foreground md:grid">
               <span>Item</span><span>Ordered Qty</span><span>Unit price</span><span aria-hidden="true" />
             </div>

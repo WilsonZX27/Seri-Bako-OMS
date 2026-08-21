@@ -56,7 +56,8 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
                   <label className="grid gap-1 text-xs">From date<Input name="from" type="date" defaultValue={effectiveFilters.from} aria-label="From date" /></label>
                   <label className="grid gap-1 text-xs">To date<Input name="to" type="date" defaultValue={effectiveFilters.to} aria-label="To date" /></label>
                 </FilterBarMore>
-                {filtered ? <Button asChild variant="secondary" className="sb-filter-submit"><Link href="/stock-card">Reset</Link></Button> : <Button type="submit" variant="secondary" className="sb-filter-submit">Apply</Button>}
+              <Button type="submit" variant="secondary" className="sb-filter-submit" data-list-action="primary">Apply</Button>
+              {filtered ? <Button asChild variant="secondary" className="sb-filter-submit" data-list-action="secondary"><Link href="/stock-card">Reset</Link></Button> : null}
               </FilterBar>
           </section>
 

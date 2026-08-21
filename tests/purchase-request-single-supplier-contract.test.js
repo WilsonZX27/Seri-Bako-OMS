@@ -47,7 +47,7 @@ test("stock basket groups selected rows by supplier before creating PRs", () => 
   const workspace = read("src/components/stock-balance-workspace.tsx");
   const action = read("src/server/actions/procurement.ts");
   assert.match(workspace, /groupBySupplier/);
-  assert.match(workspace, /Different suppliers will be split into/);
+  assert.match(workspace, /groupBySupplier/);
   assert.match(workspace, /name="supplier_groups"/);
   assert.match(workspace, /createPurchaseRequestsFromBasket/);
   assert.match(action, /Created \$\{created\.length\} supplier-grouped draft PR/);

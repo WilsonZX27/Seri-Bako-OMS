@@ -20,7 +20,7 @@ test("pending actions expose an exact total separately from the five displayed r
   assert.match(dashboard, /pendingApprovals: pendingApprovals\.items/);
 });
 
-test("Operational Pulse renders the same sources used by its total", () => {
+test("Today's work renders only actionable queues and leaves exceptions to their owner surface", () => {
   const dashboard = read("src/components/dashboard-workspace.tsx");
   const query = read("src/server/queries/dashboard.ts");
   const pulse = dashboard.match(/<section data-dashboard-command[\s\S]*?<\/section>/)?.[0] ?? "";
@@ -32,19 +32,21 @@ test("Operational Pulse renders the same sources used by its total", () => {
   assert.match(query, /wastage: input\.wastageUnavailable \? null : input\.wastage/);
   assert.match(query, /overdue_payables: input\.payablesAttentionUnavailable \? null : input\.overduePayables/);
   assert.match(dashboard, /const attentionSignals = \[/);
-  assert.match(pulse, /aria-label="Attention total breakdown"/);
+  assert.match(pulse, /aria-label="Today work breakdown"/);
   assert.match(pulse, /attentionSignals\.map/);
+  assert.doesNotMatch(pulse, /label: "Low stock"/);
+  assert.doesNotMatch(pulse, /label: "Wastage review"/);
   assert.doesNotMatch(pulse, />Receiving</);
   assert.doesNotMatch(pulse, />Recent requests</);
 });
 
-test("Operational Pulse stays compact and avoids duplicate owner-manager charts", () => {
+test("Today's work stays compact and role trends remain distinct", () => {
   const dashboard = read("src/components/dashboard-workspace.tsx");
 
-  assert.match(dashboard, /grid grid-cols-2[\s\S]*showFinance \? "sm:grid-cols-5" : "sm:grid-cols-4"/);
+  assert.match(dashboard, /grid grid-cols-2[\s\S]*showFinance \? "sm:grid-cols-3" : "sm:grid-cols-2"/);
   assert.match(dashboard, /min-h-12 min-w-0 items-center/);
   assert.match(dashboard, /col-span-2 sm:col-span-1/);
-  assert.match(dashboard, /!isOwner && !isManager \? <DashboardRoleMicroChart/);
+  assert.match(dashboard, /roleChartItems\.length \? <DashboardRoleMicroChart/);
   assert.match(dashboard, /focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/);
 });
 

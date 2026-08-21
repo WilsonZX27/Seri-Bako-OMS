@@ -7,7 +7,7 @@ import { SelectControl } from "@/components/ui/select-control";
 
 type StatusTab = string | { value: string; label: string };
 
-export function StatusTabs({ statuses, activeStatus, name }: { statuses: StatusTab[]; activeStatus?: string; name?: string }) {
+export function StatusTabs({ statuses, activeStatus, name, defaultStatus = "all" }: { statuses: StatusTab[]; activeStatus?: string; name?: string; defaultStatus?: string }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -15,7 +15,7 @@ export function StatusTabs({ statuses, activeStatus, name }: { statuses: StatusT
   const tabs = [{ value: "all", label: "All statuses" }, ...statuses.map((status) => typeof status === "string"
     ? { value: status, label: status.replaceAll("_", " ") }
     : status)];
-  const selected = activeStatus || "all";
+  const selected = activeStatus || defaultStatus;
 
   useLayoutEffect(() => {
     const keepActiveTabVisible = () => {
@@ -35,7 +35,10 @@ export function StatusTabs({ statuses, activeStatus, name }: { statuses: StatusT
   function hrefFor(value: string) {
     const params = new URLSearchParams(searchParams.toString());
     params.delete("page");
-    if (value === "all") params.delete("status");
+    if (value === "all") {
+      if (defaultStatus === "all") params.delete("status");
+      else params.set("status", "all");
+    }
     else params.set("status", value);
     const query = params.toString();
     return query ? `${pathname}?${query}` : pathname;

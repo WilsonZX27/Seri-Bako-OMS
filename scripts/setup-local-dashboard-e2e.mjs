@@ -7,8 +7,11 @@ function parseEnvValue(rawValue) {
   if ((value.startsWith("\"") && value.endsWith("\"")) || (value.startsWith("'") && value.endsWith("'"))) {
     return value.slice(1, -1);
   }
-  const commentIndex = value.indexOf("#");
-  return (commentIndex >= 0 ? value.slice(0, commentIndex) : value).trim();
+  // A literal `#` is valid in passwords and other opaque values. Treat it as
+  // a comment marker only when it follows whitespace, matching the browser
+  // server and Playwright config parsers.
+  const commentMatch = value.match(/\s+#/);
+  return (commentMatch?.index !== undefined ? value.slice(0, commentMatch.index) : value).trim();
 }
 const env = Object.fromEntries(fs.readFileSync(envFile, "utf8").split(/\r?\n/).filter((line) => line && !line.startsWith("#") && line.includes("=")).map((line) => {
   const index = line.indexOf("=");
@@ -35,6 +38,7 @@ const authCheck = createClient(localUrl, publishableKey, { auth: { persistSessio
 const includeMutationWorkflowFixture = process.env.TEST_MUTATE_WORKFLOW === "true";
 const includeStockCountFixture = process.argv.includes("--stock-count-fixture") || process.env.E2E_STOCK_COUNT_FIXTURE === "1" || includeMutationWorkflowFixture;
 const includeSupplierInvoiceFixture = process.argv.includes("--supplier-invoice-fixture") || process.env.E2E_SUPPLIER_INVOICE_FIXTURE === "1" || includeMutationWorkflowFixture;
+const includeAnnotationFixture = process.argv.includes("--annotation-fixture") || process.env.E2E_ANNOTATION_FIXTURE === "1";
 const accounts = [
   ["super_admin", "TEST_SUPER_ADMIN_EMAIL", "TEST_SUPER_ADMIN_PASSWORD"],
   ["finance", "TEST_FINANCE_EMAIL", "TEST_FINANCE_PASSWORD"],
@@ -114,6 +118,294 @@ for (const [roleCode, emailKey, passwordKey] of accounts) {
   await admin.from("staff_branches").delete().eq("staff_id", staff.id);
   await admin.from("staff_roles").insert({ staff_id: staff.id, role_id: role.id, branch_id: ["super_admin", "finance", "purchasing"].includes(roleCode) ? null : branch.id, is_primary: true, effective_from: new Date().toISOString().slice(0, 10) });
   await admin.from("staff_branches").insert({ staff_id: staff.id, branch_id: branch.id, access_level: "full", is_default: true });
+}
+
+if (includeAnnotationFixture) {
+  const today = new Date().toISOString().slice(0, 10);
+  const prId = "e2000000-0000-4000-8000-000000000001";
+  const prDocumentId = "e2000000-0000-4000-8000-000000000002";
+  const prLineId = "e2000000-0000-4000-8000-000000000003";
+  const prCommentId = "e2000000-0000-4000-8000-000000000004";
+  const outletRecordId = "e2000000-0000-4000-8000-000000000005";
+  const outletRecordLineId = "e2000000-0000-4000-8000-000000000006";
+  const rejectedPrId = "e2000000-0000-4000-8000-000000000007";
+  const rejectedDocumentId = "e2000000-0000-4000-8000-000000000008";
+  const rejectionActivityId = "e2000000-0000-4000-8000-000000000009";
+  const zeroDenominatorRecordId = "e2000000-0000-4000-8000-000000000010";
+  const zeroDenominatorLineId = "e2000000-0000-4000-8000-000000000011";
+  const missingSentRecordId = "e2000000-0000-4000-8000-000000000012";
+  const missingSentLineId = "e2000000-0000-4000-8000-000000000013";
+  const requesterId = staffByRole.get("kitchen");
+  const superAdminId = staffByRole.get("super_admin");
+  const managerId = staffByRole.get("manager");
+  if (!requesterId || !superAdminId || !managerId) throw new Error("Annotation fixture requires Kitchen, Manager, and Super Admin identities.");
+
+  let { data: reviewItem, error: reviewItemError } = await admin.from("items").select("id").eq("company_id", company.id).eq("item_code", "E2E-PR-UNMAPPED").maybeSingle();
+  if (reviewItemError) throw reviewItemError;
+  if (!reviewItem) {
+    const result = await admin.from("items").insert({
+      company_id: company.id,
+      item_code: "E2E-PR-UNMAPPED",
+      item_name: "Unmapped Review Ingredient",
+      category: "E2E fixture",
+      purchase_unit: "KG",
+      base_unit: "KG",
+      cost: 3.5,
+      safety_stock: 0,
+    }).select("id").single();
+    if (result.error) throw result.error;
+    reviewItem = result.data;
+  }
+  const reviewMappingCleanup = await admin.from("branch_supplier_items").delete().eq("branch_id", branch.id).eq("item_id", reviewItem.id);
+  if (reviewMappingCleanup.error) throw reviewMappingCleanup.error;
+
+  let { data: reviewSupplier, error: reviewSupplierError } = await admin.from("suppliers").select("id").eq("company_id", company.id).eq("supplier_code", "E2E-PR-SUP").maybeSingle();
+  if (reviewSupplierError) throw reviewSupplierError;
+  if (!reviewSupplier) {
+    const result = await admin.from("suppliers").insert({ company_id: company.id, supplier_code: "E2E-PR-SUP", name: "Local E2E Review Supplier", status: "active" }).select("id").single();
+    if (result.error) throw result.error;
+    reviewSupplier = result.data;
+  }
+
+  async function ensureMappedPrOption({ supplierCode, supplierName, itemCode, itemName, baseUnit, purchaseUom }) {
+    let { data: supplier, error: supplierError } = await admin.from("suppliers").select("id").eq("company_id", company.id).eq("supplier_code", supplierCode).maybeSingle();
+    if (supplierError) throw supplierError;
+    if (!supplier) {
+      const result = await admin.from("suppliers").insert({ company_id: company.id, supplier_code: supplierCode, name: supplierName, status: "active" }).select("id").single();
+      if (result.error) throw result.error;
+      supplier = result.data;
+    }
+    let { data: item, error: itemError } = await admin.from("items").select("id").eq("company_id", company.id).eq("item_code", itemCode).maybeSingle();
+    if (itemError) throw itemError;
+    if (!item) {
+      const result = await admin.from("items").insert({ company_id: company.id, item_code: itemCode, item_name: itemName, category: "E2E fixture", purchase_unit: purchaseUom, base_unit: baseUnit, cost: 2.5, safety_stock: 0 }).select("id").single();
+      if (result.error) throw result.error;
+      item = result.data;
+    }
+    let { data: supplierItem, error: supplierItemError } = await admin.from("supplier_items").select("id").eq("company_id", company.id).eq("supplier_id", supplier.id).eq("item_id", item.id).is("deleted_at", null).maybeSingle();
+    if (supplierItemError) throw supplierItemError;
+    if (!supplierItem) {
+      const result = await admin.from("supplier_items").insert({ company_id: company.id, supplier_id: supplier.id, item_id: item.id, supplier_item_code: `${supplierCode}-${itemCode}`, supplier_item_name: itemName, purchase_uom: purchaseUom, conversion_to_base_uom: purchaseUom === baseUnit ? 1 : 12, unit_cost: 2.5, moq: 1, lead_time_days: 1, status: "active" }).select("id").single();
+      if (result.error) throw result.error;
+      supplierItem = result.data;
+    }
+    const { data: branchMapping, error: branchMappingError } = await admin.from("branch_supplier_items").select("id").eq("branch_id", branch.id).eq("supplier_item_id", supplierItem.id).eq("item_id", item.id).is("deleted_at", null).maybeSingle();
+    if (branchMappingError) throw branchMappingError;
+    if (!branchMapping) {
+      const result = await admin.from("branch_supplier_items").insert({ branch_id: branch.id, supplier_item_id: supplierItem.id, item_id: item.id, is_preferred: true, status: "active" });
+      if (result.error) throw result.error;
+    }
+    return { supplier, item };
+  }
+
+  const alphaOption = await ensureMappedPrOption({ supplierCode: "E2E-SOURCE-A", supplierName: "Local E2E Source Alpha", itemCode: "E2E-SOURCE-A-ITEM", itemName: "Alpha Mapped Ingredient", baseUnit: "KG", purchaseUom: "CTN" });
+  const alphaSupplierIdentity = await admin.from("suppliers").update({ supplier_group: "E2E Alpha" }).eq("id", alphaOption.supplier.id);
+  if (alphaSupplierIdentity.error) throw alphaSupplierIdentity.error;
+  await ensureMappedPrOption({ supplierCode: "E2E-SOURCE-B", supplierName: "Local E2E Source Beta", itemCode: "E2E-SOURCE-B-ITEM", itemName: "Beta Mapped Ingredient", baseUnit: "KG", purchaseUom: "BAG" });
+  for (const suffix of ["1", "2", "10"]) {
+    const itemCode = `E2E-NAT-${suffix}`;
+    const { data: naturalItem, error: naturalItemError } = await admin.from("items").select("id").eq("company_id", company.id).eq("item_code", itemCode).maybeSingle();
+    if (naturalItemError) throw naturalItemError;
+    if (!naturalItem) {
+      const result = await admin.from("items").insert({ company_id: company.id, item_code: itemCode, item_name: `Natural Sort ${suffix}`, category: "E2E fixture", purchase_unit: "PACK", base_unit: "PACK", cost: 1, safety_stock: 0 });
+      if (result.error) throw result.error;
+    }
+  }
+  for (const [index, suffix] of ["1", "2", "10"].entries()) {
+    const requestId = `e2000000-0000-4000-8000-0000000000${20 + index}`;
+    const requestWrite = await admin.from("purchase_requests").upsert({
+      id: requestId,
+      company_id: company.id,
+      request_no: `E2E-SORT-PR/${suffix}`,
+      requested_by: requesterId,
+      request_date: today,
+      priority: "normal",
+      branch_id: branch.id,
+      status: "draft",
+      remarks: "Disposable natural PR number sort fixture.",
+      deleted_at: null,
+      created_by: requesterId,
+      updated_by: requesterId,
+    });
+    if (requestWrite.error) throw requestWrite.error;
+  }
+
+  for (const [index, stage] of ["admin_review", "finance_review", "ready_to_convert"].entries()) {
+    const stageRequestWrite = await admin.from("purchase_requests").upsert({
+      id: `e2000000-0000-4000-8000-0000000000${30 + index}`,
+      company_id: company.id,
+      request_no: `E2E-PR-STAGE-${stage.toUpperCase()}`,
+      requested_by: requesterId,
+      request_date: today,
+      priority: "normal",
+      branch_id: branch.id,
+      status: stage,
+      remarks: "Disposable workflow-stage color fixture.",
+      deleted_at: null,
+      created_by: requesterId,
+      updated_by: requesterId,
+    });
+    if (stageRequestWrite.error) throw stageRequestWrite.error;
+  }
+
+  const documentWrite = await admin.from("documents").upsert({
+    id: prDocumentId,
+    company_id: company.id,
+    document_no: "E2E-PR-GUIDED-REVIEW",
+    document_type: "purchase_request",
+    title: "Disposable guided review fixture",
+    status: "pending_approval",
+    approval_status: "pending",
+    current_step: "Manager Review",
+    related_entity_type: "purchase_request",
+    related_entity_id: prId,
+    created_by: requesterId,
+    updated_by: requesterId,
+  });
+  if (documentWrite.error) throw documentWrite.error;
+  const requestWrite = await admin.from("purchase_requests").upsert({
+    id: prId,
+    company_id: company.id,
+    document_id: prDocumentId,
+    request_no: "E2E-PR-GUIDED-REVIEW",
+    requested_by: requesterId,
+    request_date: today,
+    priority: "normal",
+    branch_id: branch.id,
+    status: "manager_review",
+    remarks: "Disposable local guided-review and comments fixture.",
+    deleted_at: null,
+    created_by: requesterId,
+    updated_by: requesterId,
+  });
+  if (requestWrite.error) throw requestWrite.error;
+  const lineWrite = await admin.from("purchase_request_lines").upsert({
+    id: prLineId,
+    purchase_request_id: prId,
+    item_id: reviewItem.id,
+    qty: 2,
+    uom: "KG",
+    estimated_unit_cost: 3.5,
+    suggested_supplier_id: null,
+    reason: "Local guided-review validation fixture.",
+  });
+  if (lineWrite.error) throw lineWrite.error;
+  const commentWrite = await admin.from("document_comments").upsert({
+    id: prCommentId,
+    document_id: prDocumentId,
+    comment_text: "Disposable local comment used to verify the complete portrait rail.",
+    created_by: superAdminId,
+    deleted_at: null,
+  });
+  if (commentWrite.error) throw commentWrite.error;
+
+  const rejectedDocumentWrite = await admin.from("documents").upsert({
+    id: rejectedDocumentId,
+    company_id: company.id,
+    document_no: "E2E-PR-REJECTED",
+    document_type: "purchase_request",
+    title: "Disposable rejected request fixture",
+    status: "rejected",
+    approval_status: "rejected",
+    current_step: "Manager Review",
+    related_entity_type: "purchase_request",
+    related_entity_id: rejectedPrId,
+    created_by: requesterId,
+    updated_by: managerId,
+  });
+  if (rejectedDocumentWrite.error) throw rejectedDocumentWrite.error;
+  const rejectedRequestWrite = await admin.from("purchase_requests").upsert({
+    id: rejectedPrId,
+    company_id: company.id,
+    document_id: rejectedDocumentId,
+    request_no: "E2E-PR-REJECTED",
+    requested_by: requesterId,
+    request_date: today,
+    priority: "normal",
+    branch_id: branch.id,
+    status: "rejected",
+    remarks: "Disposable local rejected-request fixture.",
+    deleted_at: null,
+    created_by: requesterId,
+    updated_by: managerId,
+  });
+  if (rejectedRequestWrite.error) throw rejectedRequestWrite.error;
+  const rejectionActivityWrite = await admin.from("activity_logs").upsert({
+    id: rejectionActivityId,
+    company_id: company.id,
+    entity_type: "document",
+    entity_id: rejectedDocumentId,
+    activity_type: "rejected",
+    message: "Purchase request rejected: Confirm the requested quantity and attach the kitchen usage note.",
+    metadata: { fixture: "annotation" },
+    created_by: managerId,
+  });
+  if (rejectionActivityWrite.error) throw rejectionActivityWrite.error;
+
+  let { data: outletBranch, error: outletBranchError } = await admin.from("branches").select("id").eq("company_id", company.id).eq("branch_code", "E2E-OUTLET").maybeSingle();
+  if (outletBranchError) throw outletBranchError;
+  if (!outletBranch) {
+    const result = await admin.from("branches").insert({ company_id: company.id, branch_code: "E2E-OUTLET", branch_name: "Local E2E Outlet", branch_type: "outlet", status: "active" }).select("id").single();
+    if (result.error) throw result.error;
+    outletBranch = result.data;
+  }
+  let { data: outletProduct, error: outletProductError } = await admin.from("products").select("id").eq("company_id", company.id).eq("product_code", "E2E-OUTLET-001").maybeSingle();
+  if (outletProductError) throw outletProductError;
+  if (!outletProduct) {
+    const result = await admin.from("products").insert({ company_id: company.id, product_code: "E2E-OUTLET-001", product_name: "Local E2E Daily Product", category: "E2E fixture", selling_unit: "PACK", display_order: 1, status: "active" }).select("id").single();
+    if (result.error) throw result.error;
+    outletProduct = result.data;
+  }
+  const conflictingRecord = await admin.from("outlet_daily_records").select("id").eq("branch_id", outletBranch.id).eq("record_date", today).neq("id", outletRecordId).maybeSingle();
+  if (conflictingRecord.error) throw conflictingRecord.error;
+  if (conflictingRecord.data) {
+    const cleanup = await admin.from("outlet_daily_records").delete().eq("id", conflictingRecord.data.id);
+    if (cleanup.error) throw cleanup.error;
+  }
+  const outletRecordWrite = await admin.from("outlet_daily_records").upsert({
+    id: outletRecordId,
+    company_id: company.id,
+    branch_id: outletBranch.id,
+    record_date: today,
+    status: "evening_completed",
+    submitted_by: superAdminId,
+    notes: "Disposable local completed trend fixture.",
+    created_by: superAdminId,
+    updated_by: superAdminId,
+  });
+  if (outletRecordWrite.error) throw outletRecordWrite.error;
+  const outletLineWrite = await admin.from("outlet_daily_record_lines").upsert({
+    id: outletRecordLineId,
+    record_id: outletRecordId,
+    product_id: outletProduct.id,
+    qty_sent: 12,
+    qty_sent_estimated: 12,
+    qty_sent_confirmed: true,
+    qty_sent_source: "authorized_confirmed",
+    morning_received_qty: 10,
+    morning_received_provided: true,
+    evening_leftover_qty: 2,
+    wastage_qty: 1,
+    wastage_reason: "unsold",
+    notes: "Disposable local completed trend line.",
+  });
+  if (outletLineWrite.error) throw outletLineWrite.error;
+
+  const priorDate = new Date(`${today}T00:00:00Z`);
+  priorDate.setUTCDate(priorDate.getUTCDate() - 1);
+  const priorDateText = priorDate.toISOString().slice(0, 10);
+  const zeroRecordWrite = await admin.from("outlet_daily_records").upsert({ id: zeroDenominatorRecordId, company_id: company.id, branch_id: outletBranch.id, record_date: priorDateText, status: "evening_completed", submitted_by: superAdminId, notes: "Disposable zero-denominator fixture.", created_by: superAdminId, updated_by: superAdminId });
+  if (zeroRecordWrite.error) throw zeroRecordWrite.error;
+  const zeroLineWrite = await admin.from("outlet_daily_record_lines").upsert({ id: zeroDenominatorLineId, record_id: zeroDenominatorRecordId, product_id: outletProduct.id, qty_sent: 1127, qty_sent_estimated: 1127, qty_sent_confirmed: true, qty_sent_source: "authorized_confirmed", morning_received_qty: 0, morning_received_provided: true, evening_leftover_qty: 0, wastage_qty: 0, wastage_reason: null, notes: "Confirmed zero received; percentage denominator is unavailable." });
+  if (zeroLineWrite.error) throw zeroLineWrite.error;
+
+  const missingDate = new Date(`${today}T00:00:00Z`);
+  missingDate.setUTCDate(missingDate.getUTCDate() - 2);
+  const missingDateText = missingDate.toISOString().slice(0, 10);
+  const missingRecordWrite = await admin.from("outlet_daily_records").upsert({ id: missingSentRecordId, company_id: company.id, branch_id: outletBranch.id, record_date: missingDateText, status: "evening_completed", submitted_by: superAdminId, notes: "Disposable missing Qty Sent fixture.", created_by: superAdminId, updated_by: superAdminId });
+  if (missingRecordWrite.error) throw missingRecordWrite.error;
+  const missingLineWrite = await admin.from("outlet_daily_record_lines").upsert({ id: missingSentLineId, record_id: missingSentRecordId, product_id: outletProduct.id, qty_sent: 0, qty_sent_estimated: null, qty_sent_confirmed: false, qty_sent_source: "unavailable", morning_received_qty: 8, morning_received_provided: true, evening_leftover_qty: 1, wastage_qty: 0, wastage_reason: null, notes: "Qty Sent deliberately missing for role-filter UAT." });
+  if (missingLineWrite.error) throw missingLineWrite.error;
 }
 
 if (includeMutationWorkflowFixture) {
@@ -315,7 +607,7 @@ if (includeSupplierInvoiceFixture) {
   if (stockWrite.error) throw stockWrite.error;
 }
 
-const fixtureLabels = [includeStockCountFixture ? "stock-count" : null, includeSupplierInvoiceFixture ? "supplier-invoice" : null, includeMutationWorkflowFixture ? "workflow-mutation" : null].filter(Boolean);
+const fixtureLabels = [includeStockCountFixture ? "stock-count" : null, includeSupplierInvoiceFixture ? "supplier-invoice" : null, includeMutationWorkflowFixture ? "workflow-mutation" : null, includeAnnotationFixture ? "annotation" : null].filter(Boolean);
 console.log(fixtureLabels.length
   ? `Created six disposable local dashboard identities and local-only ${fixtureLabels.join(" + ")} fixtures.`
   : "Created six disposable local dashboard identities without business records.");

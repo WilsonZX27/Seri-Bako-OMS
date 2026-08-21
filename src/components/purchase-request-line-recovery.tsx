@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
-import { normalizeUom } from "@/lib/uom";
+import { normalizeUom, uomOptionsForValues } from "@/lib/uom";
 import type { PurchaseRequestGuidedIssue } from "@/lib/purchase-request-readiness";
 
 type Mapping = {
@@ -19,6 +19,7 @@ type Mapping = {
   supplier_id: string;
   supplier_name: string;
   purchase_uom: string;
+  conversion_to_base_uom?: number | null;
 };
 type SupplierOption = { id: string; name: string };
 
@@ -40,11 +41,12 @@ export function PurchaseRequestLineRecovery({
   const [itemId, setItemId] = useState(line.item_id);
   const selectedItem = items.find((item) => item.id === itemId);
   const [query, setQuery] = useState(itemLabel);
-  const [uom, setUom] = useState(line.uom);
+  const [uom, setUom] = useState(normalizeUom(line.uom));
   const [supplierId, setSupplierId] = useState(line.suggested_supplier_id ?? suggestedSupplierId ?? "");
   const [mode, setMode] = useState<"update" | "replace" | "remove">("update");
   const compatibleMappings = mappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === itemId && normalizeUom(mapping.purchase_uom) === normalizeUom(uom));
   const itemMappings = mappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === itemId);
+  const uomOptions = uomOptionsForValues([uom, selectedItem?.purchase_unit, selectedItem?.base_unit, ...itemMappings.map((mapping) => mapping.purchase_uom)]);
   const supplierDirectory = new Map(suppliers.map((supplier) => [supplier.id, supplier]));
   for (const mapping of itemMappings) {
     if (!supplierDirectory.has(mapping.supplier_id)) supplierDirectory.set(mapping.supplier_id, { id: mapping.supplier_id, name: mapping.supplier_name });
@@ -76,9 +78,9 @@ export function PurchaseRequestLineRecovery({
             </section> : null}
             <Field label="Change type"><SelectNative value={mode} onChange={(event) => setMode(event.target.value as typeof mode)}><option value="update">Update this line</option><option value="replace">Replace item</option><option value="remove">Remove from this PR</option></SelectNative></Field>
             {mode !== "remove" ? <>
-              <Field label="Item"><ItemCombobox items={items} value={query} selectedItemId={itemId} ariaLabel="Replacement Item" onValueChange={(value) => { setQuery(value); setItemId(""); setSupplierId(""); }} onSelect={(item) => { setQuery(`${item.item_code} - ${item.item_name}`); setItemId(item.id); setUom(item.purchase_unit || item.base_unit); setSupplierId(""); }} /></Field>
-              <Field label="Quantity / UOM"><div className="grid grid-cols-[minmax(0,1fr)_minmax(7rem,.55fr)] gap-2"><Input name="qty" type="number" min="0.0001" step="0.0001" defaultValue={line.qty} aria-label="Quantity" required /><Input name="uom" value={uom} aria-label="Unit of measure" onChange={(event) => { setUom(event.target.value); setSupplierId(""); }} required /></div></Field>
-              <Field label="Supplier"><SelectNative name="supplier_id" value={supplierId} onChange={(event) => { const next = supplierOptions.find((supplier) => supplier.id === event.target.value); setSupplierId(event.target.value); if (next?.mapping) setUom(next.mapping.purchase_uom); }}><option value="">Needs supplier setup</option>{supplierOptions.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}{supplier.mapping ? ` · ${supplier.mapping.purchase_uom}` : " · Needs mapping"}</option>)}</SelectNative><div className="flex flex-wrap items-center justify-between gap-2">{!compatibleMappings.length ? <p className="min-w-0 flex-1 text-xs text-[var(--sb-danger)]">No active supplier mapping matches this branch, item, and UOM.</p> : <span />}{itemId ? <Link className="inline-flex min-h-[var(--sb-control-height)] items-center text-xs font-semibold text-primary underline underline-offset-2" href={`/supplier-items/new?item_id=${encodeURIComponent(itemId)}&branch_id=${encodeURIComponent(branchId)}&purchase_uom=${encodeURIComponent(uom)}`}>Create supplier mapping</Link> : null}</div></Field>
+              <Field label="Item"><ItemCombobox items={items} value={query} selectedItemId={itemId} ariaLabel="Replacement Item" onValueChange={(value) => { setQuery(value); setItemId(""); setSupplierId(""); }} onSelect={(item) => { setQuery(`${item.item_code} - ${item.item_name}`); setItemId(item.id); setUom(normalizeUom(item.purchase_unit || item.base_unit)); setSupplierId(""); }} /></Field>
+              <Field label="Quantity / UOM"><div className="grid grid-cols-[minmax(0,1fr)_minmax(7rem,.55fr)] gap-2"><Input name="qty" type="number" min="0.0001" step="0.0001" defaultValue={line.qty} aria-label="Quantity" required /><SelectNative name="uom" value={uom} aria-label="Unit of measure" onChange={(event) => { setUom(normalizeUom(event.target.value)); setSupplierId(""); }} required><option value="">Choose UOM</option>{uomOptions.map((option) => <option key={option} value={option}>{option}</option>)}</SelectNative></div></Field>
+              <Field label="Supplier"><SelectNative name="supplier_id" value={supplierId} onChange={(event) => { const next = supplierOptions.find((supplier) => supplier.id === event.target.value); setSupplierId(event.target.value); if (next?.mapping) setUom(normalizeUom(next.mapping.purchase_uom)); }}><option value="">Needs supplier setup</option>{supplierOptions.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}{supplier.mapping ? ` · ${normalizeUom(supplier.mapping.purchase_uom)}${supplier.mapping.conversion_to_base_uom && supplier.mapping.conversion_to_base_uom !== 1 ? ` → ${supplier.mapping.conversion_to_base_uom} base` : ""}` : " · Needs mapping"}</option>)}</SelectNative><div className="flex flex-wrap items-center justify-between gap-2">{!compatibleMappings.length ? <p className="min-w-0 flex-1 text-xs text-[var(--sb-danger)]">No active supplier mapping matches this branch, item, and UOM. Set the purchase UOM and its conversion to the Item Master base UOM before revalidating.</p> : <span />}{itemId ? <Link className="inline-flex min-h-[var(--sb-control-height)] items-center text-xs font-semibold text-primary underline underline-offset-2" href={`/supplier-items/new?item_id=${encodeURIComponent(itemId)}&branch_id=${encodeURIComponent(branchId)}&purchase_uom=${encodeURIComponent(uom)}`}>Create supplier mapping</Link> : null}</div></Field>
               <Field label="Estimated unit cost"><Input name="unit_cost" type="number" min="0" step="0.0001" defaultValue={line.estimated_unit_cost} /></Field>
               {selectedItem ? <p className="text-xs text-muted-foreground">Selected: {selectedItem.item_code} · {selectedItem.item_name}</p> : null}
               {!selectedItem ? <Button asChild type="button" variant="outline" className="w-full justify-start"><Link href="/items/new">Create new Item Master record</Link></Button> : null}

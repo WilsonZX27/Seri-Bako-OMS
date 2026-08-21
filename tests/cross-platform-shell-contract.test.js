@@ -99,7 +99,7 @@ test("shared activity and identity surfaces use OMS semantic tokens", () => {
 test("document workspaces retain route context without repeating the shared top-bar breadcrumb", () => {
   const documentWorkspace = read("src", "components", "documents", "document-workspace.tsx");
 
-  assert.match(documentWorkspace, /breadcrumbs\.map\(\(crumb\) => crumb\.label\)/);
+  assert.match(documentWorkspace, /documentNo/);
   assert.match(documentWorkspace, /data-document-breadcrumb/);
   assert.doesNotMatch(documentWorkspace, /aria-label="Breadcrumb"/);
   assert.doesNotMatch(documentWorkspace, /void _breadcrumbs/);

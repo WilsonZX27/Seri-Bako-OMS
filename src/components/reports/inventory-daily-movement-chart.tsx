@@ -65,7 +65,7 @@ export function InventoryDailyMovementChart({ points }: { points: InventoryDaily
     <div data-inventory-daily-movement-chart {...boundaryProps}>
       <div className="mb-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground" aria-hidden="true">
         <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 bg-[var(--sb-green-700)]" />Inbound entries</span>
-        <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 bg-[var(--sb-warning)]" />Outbound entries</span>
+        <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 bg-[var(--sb-text-muted)]" />Outbound entries</span>
       </div>
       <svg
         ref={chartRef}
@@ -123,7 +123,7 @@ export function InventoryDailyMovementChart({ points }: { points: InventoryDaily
           return <g key={point.transaction_date} aria-hidden="true" opacity={active ? 1 : 0.78}>
             {active ? <rect x={inset.left + groupWidth * index} y={inset.top} width={groupWidth} height={innerHeight} fill="var(--sb-surface-muted)" /> : null}
             <rect x={center - barWidth - 1} y={inset.top + innerHeight - inboundHeight} width={barWidth} height={Math.max(inboundHeight, point.inbound_entries ? 2 : 0)} fill="var(--sb-green-700)" />
-            <rect x={center + 1} y={inset.top + innerHeight - outboundHeight} width={barWidth} height={Math.max(outboundHeight, point.outbound_entries ? 2 : 0)} fill="var(--sb-warning)" />
+            <rect x={center + 1} y={inset.top + innerHeight - outboundHeight} width={barWidth} height={Math.max(outboundHeight, point.outbound_entries ? 2 : 0)} fill="var(--sb-text-muted)" />
           </g>;
         })}
         <rect x={inset.left} y={inset.top} width={innerWidth} height={innerHeight} fill="transparent" data-chart-hit-area />

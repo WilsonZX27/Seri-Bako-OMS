@@ -5,7 +5,10 @@ import { createPortal } from "react-dom";
 import { Input } from "@/components/ui/input";
 import type { Database } from "@/types/database";
 
-export type ItemComboboxOption = Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "purchase_unit" | "supplier_id" | "cost" | "status">;
+export type ItemComboboxOption = Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "purchase_unit" | "supplier_id" | "cost" | "status"> & {
+  brand_name?: string | null;
+  supplier_name?: string | null;
+};
 
 function searchTokens(value: string) {
   return value.normalize("NFKC").toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim().split(/\s+/).filter(Boolean);
@@ -14,7 +17,8 @@ function searchTokens(value: string) {
 export function itemMatchesSearch(item: ItemComboboxOption, query: string) {
   const tokens = searchTokens(query);
   if (!tokens.length) return false;
-  const searchable = searchTokens(`${item.item_code} ${item.item_name}`).join(" ");
+  const brandName = item.brand_name ?? "";
+  const searchable = searchTokens(`${item.item_code} ${item.item_name} ${brandName}`).join(" ");
   return tokens.every((token) => searchable.includes(token));
 }
 
@@ -35,10 +39,21 @@ export function ItemCombobox({ items, value, selectedItemId = "", onValueChange,
   const generatedId = useId();
   const listboxId = `item-combobox-${generatedId.replaceAll(":", "")}`;
   const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const anchorRef = useRef<HTMLDivElement>(null);
   const [listboxStyle, setListboxStyle] = useState<{ left: number; top: number; width: number; maxHeight: number } | null>(null);
   const matches = useMemo(() => items.filter((item) => itemMatchesSearch(item, value)).slice(0, 8), [items, value]);
   const showSuggestions = open && !selectedItemId && Boolean(value.trim());
+
+  useEffect(() => {
+    setActiveIndex((current) => matches.length ? Math.min(Math.max(current, 0), matches.length - 1) : -1);
+  }, [matches]);
+
+  const choose = (item: ItemComboboxOption) => {
+    onSelect(item);
+    setOpen(false);
+    setActiveIndex(-1);
+  };
 
   const positionListbox = useCallback(() => {
     const anchor = anchorRef.current;
@@ -86,18 +101,39 @@ export function ItemCombobox({ items, value, selectedItemId = "", onValueChange,
       aria-autocomplete="list"
       aria-expanded={showSuggestions}
       aria-controls={listboxId}
+      aria-activedescendant={showSuggestions && activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined}
       aria-invalid={ariaInvalid || undefined}
       autoComplete="off"
       placeholder={placeholder}
       className={`overflow-hidden text-ellipsis whitespace-nowrap ${className}`}
-      onFocus={() => setOpen(true)}
+      onFocus={() => { setOpen(true); setActiveIndex(matches.length ? 0 : -1); }}
       onBlur={() => setOpen(false)}
-      onChange={(event) => { setOpen(true); onValueChange(event.target.value); }}
+      onChange={(event) => { setOpen(true); setActiveIndex(0); onValueChange(event.target.value); }}
+      onKeyDown={(event) => {
+        if (event.key === "ArrowDown") {
+          event.preventDefault();
+          setOpen(true);
+          setActiveIndex((current) => matches.length ? (current + 1 + matches.length) % matches.length : -1);
+        } else if (event.key === "ArrowUp") {
+          event.preventDefault();
+          setOpen(true);
+          setActiveIndex((current) => matches.length ? (current - 1 + matches.length) % matches.length : -1);
+        } else if (event.key === "Enter" && showSuggestions && activeIndex >= 0 && matches[activeIndex]) {
+          event.preventDefault();
+          choose(matches[activeIndex]);
+        } else if (event.key === "Escape" && showSuggestions) {
+          event.preventDefault();
+          setOpen(false);
+          setActiveIndex(-1);
+        }
+      }}
     />
     {showSuggestions && listboxStyle ? createPortal(<div id={listboxId} role="listbox" className="fixed z-[var(--sb-z-dropdown)] overflow-y-auto rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white p-1 shadow-lg" style={{ left: listboxStyle.left, top: listboxStyle.top, width: listboxStyle.width, maxHeight: listboxStyle.maxHeight }}>
-      {matches.map((item) => <button key={item.id} type="button" role="option" aria-selected="false" className="flex w-full min-w-0 flex-col rounded-[calc(var(--sb-radius-control)-2px)] px-3 py-2 text-left hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-surface-muted)] focus-visible:outline-none" onMouseDown={(event) => event.preventDefault()} onClick={() => { onSelect(item); setOpen(false); }}>
-        <span className="truncate text-sm font-medium text-[var(--sb-text)]">{item.item_name}</span>
-        <span className="truncate text-xs text-[var(--sb-text-muted)]">{item.item_code} · {(item.purchase_unit || item.base_unit).toUpperCase()}</span>
+      {matches.map((item, index) => <button id={`${listboxId}-option-${index}`} key={item.id} type="button" role="option" aria-selected={activeIndex === index} className="flex w-full min-w-0 flex-col rounded-[calc(var(--sb-radius-control)-2px)] px-3 py-2 text-left hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-surface-muted)] focus-visible:outline-none aria-selected:bg-[var(--sb-surface-muted)]" onMouseEnter={() => setActiveIndex(index)} onMouseDown={(event) => event.preventDefault()} onClick={() => choose(item)}>
+         <span className="truncate text-sm font-medium text-[var(--sb-text)]">{item.item_name}</span>
+         {item.brand_name ? <span className="truncate text-xs text-[var(--sb-text-muted)]">{item.brand_name}</span> : null}
+         {item.supplier_name ? <span className="truncate text-xs font-medium text-[var(--sb-text-muted)]">Supplier · {item.supplier_name}</span> : null}
+        <span className="truncate text-xs text-[var(--sb-text-muted)]">{item.item_code} · Purchase {(item.purchase_unit || item.base_unit).toUpperCase()} · Base {item.base_unit.toUpperCase()}</span>
       </button>)}
       {!matches.length ? <p className="px-3 py-2 text-xs text-[var(--sb-text-muted)]">{emptyMessage}</p> : null}
     </div>, document.body) : null}

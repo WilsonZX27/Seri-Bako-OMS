@@ -4,7 +4,7 @@ const { test, expect } = require("@playwright/test");
 const { hasAccount, requireAccount } = require("./helpers");
 
 const roles = ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outlet"];
-const chartRoles = new Set(["finance", "purchasing", "kitchen"]);
+const chartRoles = new Set(["superAdmin", "finance", "manager", "purchasing", "kitchen"]);
 const evidence = path.join(process.cwd(), "test-results", "dashboard-current-role-viewport-matrix");
 
 async function measureHorizontalOverflow(page) {

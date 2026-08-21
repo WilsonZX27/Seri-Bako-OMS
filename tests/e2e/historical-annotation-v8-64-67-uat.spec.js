@@ -41,7 +41,7 @@ test("v8.64.67 wastage details clear when quantity returns to zero", async ({ pa
   await page.setViewportSize({ width: 1180, height: 820 });
   await page.goto("/outlet-daily-records/new", { waitUntil: "domcontentloaded" });
   const wastage = page.locator('input[name="wastage_qty"]').first();
-  await expect(wastage).toBeVisible({ timeout: 30_000 });
+  await expect(wastage, "Run setup-local-dashboard-e2e.mjs --annotation-fixture before this suite.").toBeVisible({ timeout: 30_000 });
   const line = wastage.locator("xpath=ancestor::div[.//input[@name='line_product_id']][1]");
   await wastage.fill("1");
   const reason = line.locator('select[name="wastage_reason"]');

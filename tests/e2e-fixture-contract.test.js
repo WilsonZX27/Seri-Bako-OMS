@@ -18,7 +18,7 @@ test("local Playwright role fixtures are explicit, disposable, and never enabled
   assert.match(config, /baseURL\s*=\s*startsLocalServer\s*\?\s*localBaseUrl\s*:/);
   assert.match(setup, /RUN_TENANT_BOUNDARY_E2E\s*!==\s*["']1["']/);
   assert.match(seed, /function parseEnvValue/);
-  assert.match(seed, /commentIndex/);
+  assert.match(seed, /commentMatch/);
   const localServer = read("scripts/playwright-local-server.mjs");
   assert.match(localServer, /function parseEnvValue/);
   assert.match(localServer, /commentIndex/);
@@ -28,6 +28,10 @@ test("local Playwright role fixtures are explicit, disposable, and never enabled
   assert.doesNotMatch(seed, /execFileSync/);
   assert.match(seed, /process\.env\.E2E_STOCK_COUNT_FIXTURE\s*===\s*["']1["']/);
   assert.match(seed, /process\.env\.E2E_SUPPLIER_INVOICE_FIXTURE\s*===\s*["']1["']/);
+  assert.match(seed, /process\.env\.E2E_ANNOTATION_FIXTURE\s*===\s*["']1["']/);
+  assert.match(seed, /--annotation-fixture/);
+  assert.match(seed, /E2E-PR-GUIDED-REVIEW/);
+  assert.match(seed, /E2E-OUTLET-001/);
   assert.match(seed, /E2E-GRN-INVOICE-OPEN/);
   assert.match(seed, /Disposable local Supplier Invoice UI fixture/);
 });

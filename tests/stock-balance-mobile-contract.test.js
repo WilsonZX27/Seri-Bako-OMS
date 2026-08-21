@@ -25,7 +25,7 @@ test("stock balance keeps PR preparation as a flat grouped rail, not nested card
 test("stock balance keeps query controls balanced and the desktop basket compact", () => {
   assert.match(source, /<FilterBar resultCount=\{totalRows\} resetHref="\/stock-balance"[\s\S]*className="sb-list-filters--balanced">/);
   assert.doesNotMatch(source, /md:max-w-sm|md:max-w-xs|md:max-w-44/);
-  assert.match(source, /Saved on this device/);
+  assert.doesNotMatch(source, /Saved on this device/);
   assert.match(source, /density="dense"/);
   assert.doesNotMatch(source, /\[&_button\]|\[&_input\]/);
   assert.match(source, /className="h-8 w-14 shrink-0/);
@@ -38,7 +38,7 @@ test("stock balance persists the PR basket across filter refreshes without trust
   assert.match(source, /window\.localStorage\.setItem\(basketStorageKey, JSON\.stringify\(basket\)\)/);
   assert.match(source, /window\.localStorage\.removeItem\(basketStorageKey\)/);
   assert.match(source, /typeof line\.item_id === "string"/);
-  assert.match(source, /Saved on this device/);
+  assert.doesNotMatch(source, /Saved on this device/);
   assert.match(source, /createPurchaseRequestsFromBasket/);
   assert.match(procurementAction, /ensureActorCanUsePurchaseRequestBranch/);
   assert.match(source, /item_status: line\.item_status === "active" \? "active" : "unknown"/);
@@ -50,7 +50,8 @@ test("stock balance persists the PR basket across filter refreshes without trust
 test("stock balance hydrates item images into compact rows and keeps common PR UOM choices", () => {
   const rows = fs.readFileSync(path.join(root, "src", "components", "stock-balance-table.tsx"), "utf8");
 
-  assert.match(inventoryQuery, /from\("items"\)\.select\("id, item_image_url"\)\.in\("id", itemIds\)/);
+  assert.match(inventoryQuery, /for \(let offset = 0; offset < itemIds\.length; offset \+= 100\)/);
+  assert.match(inventoryQuery, /itemIds\.slice\(offset, offset \+ 100\)/);
   assert.match(rows, /ItemThumbnail src=\{item\.image_url\}/);
   assert.match(source, /ItemThumbnail src=\{line\.image_url\}/);
   assert.match(source, /uomOptionsWithCurrent\(line\.uom\)/);

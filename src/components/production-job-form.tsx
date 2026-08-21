@@ -48,7 +48,7 @@ export function ProductionJobForm({
   const [recipeId, setRecipeId] = useState(recipes[0]?.id ?? "");
   const selectedRecipe = recipes.find((recipe) => recipe.id === recipeId) ?? null;
   const [plannedQty, setPlannedQty] = useState(selectedRecipe?.yield_qty ?? 1);
-  const [outputUom, setOutputUom] = useState(normalizeUom(selectedRecipe?.yield_unit) || "PCS");
+  const [outputUom, setOutputUom] = useState<string>(normalizeUom(selectedRecipe?.yield_unit) || "PCS");
   const [priority, setPriority] = useState<ProcurementPriority>("normal");
   const stockByBranchItem = useMemo(() => new Map(balances.map((row) => [`${row.branch_id}:${row.item_id}`, row.current_qty])), [balances]);
 

@@ -23,7 +23,7 @@ test("outlet insights distinguish unavailable from a successful empty result", (
   assert.match(trend, /unavailable \? "Unavailable"/);
   assert.match(trend, /Wastage trend unavailable/);
   assert.match(trend, /No completed records in the last 30 days/);
-  assert.match(completion, /unavailable \? "Unavailable"/);
+  assert.match(completion, /unavailable \|\| completionPercent === null \? "Not available"/);
   assert.match(completion, /Completion insight unavailable/);
   assert.match(completion, /No outlets in your current scope/);
 });

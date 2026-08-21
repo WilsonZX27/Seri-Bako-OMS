@@ -28,6 +28,12 @@ export function SupplierForm({ supplier, action, formId, showSubmit = true }: Su
           <Field label="Supplier Name" required>
             <Input name="name" defaultValue={supplier?.name ?? ""} required />
           </Field>
+          <div className="md:col-span-2">
+            <Field label="Item Group / Short Name">
+              <Input name="supplier_group" defaultValue={supplier?.supplier_group ?? ""} placeholder="Operator-facing short name" />
+            </Field>
+            <p className="mt-1 text-xs text-muted-foreground">Shown to operators for quick recognition. The AutoCount supplier code and official Supplier Name remain unchanged.</p>
+          </div>
         </div>
       </RecordSection>
 

@@ -15,12 +15,15 @@ test("mobile keyboard state is derived from visual viewport and editable focus",
   assert.match(navigation, /document\.documentElement\.clientHeight/);
 });
 
-test("mobile keyboard state hides fixed app chrome without changing desktop layout", () => {
+test("software keyboard keeps bottom navigation at the physical screen bottom across phone and tablet shells", () => {
   assert.match(design, /data-mobile-keyboard-open="true"[\s\S]*data-mobile-document-action/);
   assert.match(design, /data-mobile-create-fab/);
-  assert.match(design, /data-mobile-bottom-nav[\s\S]*visibility: hidden !important/);
+  assert.match(navigation, /max-width: 1279px/);
+  assert.match(navigation, /--sb-virtual-keyboard-inset/);
+  assert.match(design, /data-mobile-bottom-nav[\s\S]*translateY\(var\(--sb-virtual-keyboard-inset/);
+  assert.doesNotMatch(design, /data-mobile-keyboard-open="true"\][^{]*\[data-mobile-bottom-nav\][^{]*\{[^}]*visibility:\s*hidden/);
   assert.match(design, /data-mobile-editable-focus="true"/);
   assert.match(design, /visibility: hidden !important/);
   assert.match(design, /scroll-padding-bottom: 1rem/);
-  assert.match(design, /@media \(max-width: 767px\)/);
+  assert.match(design, /@media \(max-width: 1279px\)/);
 });

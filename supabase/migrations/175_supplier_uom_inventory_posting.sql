@@ -55,6 +55,7 @@ declare
   ret public.purchase_returns%rowtype;
   line public.purchase_return_lines%rowtype;
   grn_line public.goods_receiving_lines%rowtype;
+  po_line public.purchase_order_lines%rowtype;
   movement_id uuid;
   balance numeric;
   conversion numeric;
@@ -70,14 +71,14 @@ begin
   for line in select * from public.purchase_return_lines where purchase_return_id=ret.id order by id for update loop
     select * into grn_line from public.goods_receiving_lines where id=line.goods_receiving_line_id and goods_receiving_id=ret.goods_receiving_id for update;
     if grn_line.id is null or line.return_qty<=0 or line.return_qty>grn_line.received_qty-grn_line.returned_qty then raise exception 'Purchase return line is invalid.'; end if;
-    select coalesce(si.conversion_to_base_uom, case when upper(trim(i.base_unit))=upper(trim(po_line.uom)) then 1 else null end)
+    select coalesce(si.conversion_to_base_uom, case when upper(trim(i.base_unit))=upper(trim(pol.uom)) then 1 else null end)
       into conversion
     from public.goods_receivings gr
     join public.purchase_orders po on po.id=gr.purchase_order_id and po.company_id=actor.company_id
-    join public.purchase_order_lines po_line on po_line.id=grn_line.purchase_order_line_id and po_line.purchase_order_id=po.id
-    join public.items i on i.id=po_line.item_id and i.company_id=po.company_id and i.deleted_at is null
-    left join public.supplier_items si on si.company_id=po.company_id and si.supplier_id=po.supplier_id and si.item_id=po_line.item_id
-      and upper(trim(si.purchase_uom))=upper(trim(po_line.uom)) and si.status='active' and si.deleted_at is null
+    join public.purchase_order_lines pol on pol.id=grn_line.purchase_order_line_id and pol.purchase_order_id=po.id
+    join public.items i on i.id=pol.item_id and i.company_id=po.company_id and i.deleted_at is null
+    left join public.supplier_items si on si.company_id=po.company_id and si.supplier_id=po.supplier_id and si.item_id=pol.item_id
+      and upper(trim(si.purchase_uom))=upper(trim(pol.uom)) and si.status='active' and si.deleted_at is null
     where gr.id=ret.goods_receiving_id;
     if conversion is null or conversion <= 0 then raise exception 'Supplier UOM conversion is missing for item % and UOM %.', line.item_id, grn_line.uom; end if;
     base_return_qty := line.return_qty * conversion;

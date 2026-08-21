@@ -27,6 +27,7 @@ export async function createSupplier(formData: FormData) {
 
     const parsed = supplierSchema.parse({
       supplier_code: cleanText(formData.get("supplier_code")),
+      supplier_group: cleanText(formData.get("supplier_group")),
       name: formData.get("name"),
       contact_person: cleanText(formData.get("contact_person")),
       phone: cleanText(formData.get("phone")),
@@ -72,6 +73,7 @@ export async function updateSupplier(id: string, formData: FormData) {
 
   const parsed = supplierSchema.omit({ status: true }).parse({
     supplier_code: cleanText(formData.get("supplier_code")),
+    supplier_group: cleanText(formData.get("supplier_group")),
     name: formData.get("name"),
     contact_person: cleanText(formData.get("contact_person")),
     phone: cleanText(formData.get("phone")),

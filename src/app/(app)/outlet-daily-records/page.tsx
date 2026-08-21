@@ -31,19 +31,21 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
   let options: Awaited<ReturnType<typeof getOutletDailyFormOptions>>;
   let canCreate = false;
   let canExport = false;
+  let canViewSentGaps = false;
   let insights: [
     PromiseSettledResult<Awaited<ReturnType<typeof getOutletDailyDemandTrend>>>,
     PromiseSettledResult<Awaited<ReturnType<typeof getOutletDailyCompletionMatrix>>>,
   ];
   try {
-    [data, options, canCreate, canExport, insights] = await Promise.all([
+    [data, options, canCreate, canExport, canViewSentGaps, insights] = await Promise.all([
       getOutletDailyRecords(filters),
       getOutletDailyFormOptions(),
       hasPermission("outlet_daily_record.create"),
       hasPermission("outlet_daily_record.view"),
+      hasPermission("outlet_daily_record.view_all"),
       Promise.allSettled([
         getOutletDailyDemandTrend({ period: "30", branch: filters.branch }),
-        getOutletDailyCompletionMatrix({ branch: filters.branch }),
+        getOutletDailyCompletionMatrix({ branch: filters.branch, history_date: filters.history_date }),
       ]),
     ]);
   } catch (error) {
@@ -77,6 +79,7 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
     </>}>
       <div className="flex min-w-0 max-w-full flex-col gap-3 overflow-x-clip" data-outlet-daily-list-workspace>
         <div className="flex min-w-0 flex-col gap-3" data-outlet-daily-insights>
+          <div className="erp-surface flex flex-wrap items-end justify-between gap-3 px-3 py-2.5"><div><p className="text-sm font-semibold">Calendar history</p><p className="text-xs text-muted-foreground">Choose any date to review its seven-day outlet coverage.</p></div><form className="flex items-end gap-2"><label className="text-xs font-medium">Week ending<Input name="history_date" type="date" defaultValue={filters.history_date ?? data.summary.today} className="mt-1 h-9" /></label>{filters.branch ? <input type="hidden" name="branch" value={filters.branch} /> : null}<Button type="submit" variant="outline" size="sm">View dates</Button></form></div>
           <OutletDailyCompletionMatrix dates={completion?.dates ?? []} rows={completion?.rows ?? []} summary={completion?.summary ?? null} unavailable={!completion} canCreate={canCreate} showCoverageDetails={false} />
           <OutletDailyWastageChart points={trend?.daily ?? []} branch={filters.branch} unavailable={!trend} />
         </div>
@@ -91,12 +94,14 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
             <Input name="date" type="date" defaultValue={filters.date ?? ""} aria-label="Record date" className="sb-filter-date" />
             <SelectControl name="branch" value={filters.branch ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...options.branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
             <SelectControl name="status" value={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status, label: status.replaceAll("_", " ") }))]} />
-            {filtered ? <Button asChild variant="secondary"><Link href="/outlet-daily-records">Reset</Link></Button> : <Button type="submit" variant="secondary">Search</Button>}
+            {canViewSentGaps ? <SelectControl name="sent_state" value={filters.sent_state ?? "all"} ariaLabel="Qty sent state" options={[{ value: "all", label: "All Qty Sent" }, { value: "missing", label: "Qty Sent missing" }]} /> : null}
+              <Button type="submit" variant="secondary" data-list-action="primary">Search</Button>
+              {filtered ? <Button asChild variant="secondary" data-list-action="secondary"><Link href="/outlet-daily-records">Reset</Link></Button> : null}
           </FilterBar>
           <div className="sb-list-content-card overflow-hidden" data-mobile-list-content-card data-outlet-daily-record-list>
-        <Table className="sb-outlet-daily-table" mobileHidden aria-label="Outlet daily records" stickyColumn="first"><TableHeader><TableRow><TableHead>Action</TableHead><TableHead>Date</TableHead><TableHead>Outlet</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Received</TableHead><TableHead className="text-right">Wastage<br /><span className="font-normal text-muted-foreground">Wastage %</span></TableHead><TableHead>Submitted By</TableHead><TableHead>Updated</TableHead></TableRow></TableHeader><TableBody>
-           {data.rows.map((row) => <DataGridRow key={row.id} href={`/outlet-daily-records/${row.id}`} className={row.record_date === data.summary.today ? "bg-warning/5" : undefined}><TableCell><TableActionLink href={`/outlet-daily-records/${row.id}`} label={`Open ${row.branch_name} daily record`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell><TableCell><span className="whitespace-nowrap">{formatDateOnly(row.record_date)}</span>{row.record_date === data.summary.today ? <p className="text-xs font-medium text-warning">Today</p> : null}</TableCell><TableCell className="font-medium">{row.branch_name}</TableCell><TableCell><StatusBadge status={row.status} />{statusGuidance(row.status) ? <p className="mt-1 whitespace-nowrap text-xs text-muted-foreground">{statusGuidance(row.status)}</p> : null}</TableCell><TableCell className="text-right">{row.total_received === null ? <span className="text-warning" title="Receiving data is not verified yet">Unavailable</span> : row.received_zero_with_sent ? <span className="text-warning" title="Qty sent is recorded but no receipt quantity has been confirmed">0 · verify</span> : formatNumber(row.total_received)}</TableCell><TableCell className="text-right"><span className="block">{formatNumber(row.total_wastage)}</span><span className="block text-[11px] text-muted-foreground">{row.wastage_percent === null ? "Unavailable" : `${formatNumber(row.wastage_percent)}%`}</span></TableCell><TableCell>{row.submitted_by_name ?? "Draft"}</TableCell><TableCell className="whitespace-nowrap">{formatDateTime(row.updated_at).split(" ").map((part, index) => <span key={`${part}-${index}`} className={index === 0 ? "block" : "block text-xs text-muted-foreground"}>{part}</span>)}</TableCell></DataGridRow>)}
-          {!data.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={filtered ? "No daily records match these filters" : "No outlet daily records yet"} description={filtered ? "Reset the filters or widen the search." : "Daily receiving and wastage records will appear here."} action={filtered ? { href: "/outlet-daily-records", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
+        <Table className="sb-outlet-daily-table" mobileHidden aria-label="Outlet daily records" stickyColumn="first"><TableHeader><TableRow><TableHead>Action</TableHead><TableHead>Date</TableHead><TableHead>Outlet</TableHead><TableHead>Status</TableHead>{canViewSentGaps ? <TableHead>Qty Sent</TableHead> : null}<TableHead className="text-right">Received</TableHead><TableHead className="text-right">Wastage<br /><span className="font-normal text-muted-foreground">Wastage %</span></TableHead><TableHead>Submitted By</TableHead><TableHead>Updated</TableHead></TableRow></TableHeader><TableBody>
+           {data.rows.map((row) => <DataGridRow key={row.id} href={`/outlet-daily-records/${row.id}`} className={row.record_date === data.summary.today ? "bg-[var(--sb-success-soft)]" : undefined}><TableCell><TableActionLink href={`/outlet-daily-records/${row.id}`} label={`Open ${row.branch_name} daily record`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell><TableCell><span className="whitespace-nowrap">{formatDateOnly(row.record_date)}</span>{row.record_date === data.summary.today ? <p className="text-xs font-medium text-[var(--sb-success)]">Today</p> : null}</TableCell><TableCell className="font-medium">{row.branch_name}</TableCell><TableCell><StatusBadge status={row.status} />{statusGuidance(row.status) ? <p className="mt-1 whitespace-nowrap text-xs text-muted-foreground">{statusGuidance(row.status)}</p> : null}</TableCell>{canViewSentGaps ? <TableCell><StatusBadge status={row.qty_sent_state === "confirmed" ? "completed" : row.qty_sent_state === "draft" ? "in_progress" : "missing"} /><p className="mt-1 text-[11px] text-muted-foreground">{row.qty_sent_state === "confirmed" ? "Confirmed" : row.qty_sent_state === "draft" ? "Needs confirmation" : "Needs entry"}</p></TableCell> : null}<TableCell className="text-right">{row.total_received === null ? <span className="text-warning" title="Receiving data is not verified yet">Unavailable</span> : row.received_zero_with_sent ? <span className="text-warning" title="Qty sent is recorded but no receipt quantity has been confirmed">0 · verify</span> : formatNumber(row.total_received)}</TableCell><TableCell className="text-right"><span className="block">{formatNumber(row.total_wastage)}</span><span className="block text-[11px] text-muted-foreground">{row.wastage_percent === null ? "Unavailable" : `${formatNumber(row.wastage_percent)}%`}</span></TableCell><TableCell>{row.submitted_by_name ?? "Draft"}</TableCell><TableCell className="whitespace-nowrap">{formatDateTime(row.updated_at).split(" ").map((part, index) => <span key={`${part}-${index}`} className={index === 0 ? "block" : "block text-xs text-muted-foreground"}>{part}</span>)}</TableCell></DataGridRow>)}
+          {!data.rows.length ? <TableRow><TableCell colSpan={canViewSentGaps ? 9 : 8}><EmptyState title={filtered ? "No daily records match these filters" : "No outlet daily records yet"} description={filtered ? "Reset the filters or widen the search." : "Daily receiving and wastage records will appear here."} action={filtered ? { href: "/outlet-daily-records", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
         </TableBody></Table>
         <OperationalList ariaLabel="Outlet daily records">
           {data.rows.map((row) => <OperationalListRow
@@ -106,7 +111,7 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
             primary={<div><span>{row.branch_name}</span>{statusGuidance(row.status) ? <p className="text-[11px] font-normal text-[var(--sb-text-muted)]">{statusGuidance(row.status)}</p> : null}</div>}
             status={<StatusBadge status={row.status} />}
             secondary={`${formatDateOnly(row.record_date)}${row.record_date === data.summary.today ? " · Today" : ""}${row.total_wastage > 0 ? ` · ${formatNumber(row.total_wastage)} waste` : ""}`}
-            meta={row.total_received === null ? "Received unavailable · verify source data" : row.received_zero_with_sent ? "0 received · verify" : `${formatNumber(row.total_received)} received`}
+            meta={`${canViewSentGaps ? `Qty Sent ${row.qty_sent_state === "confirmed" ? "confirmed" : row.qty_sent_state === "draft" ? "needs confirmation" : "missing"} · ` : ""}${row.total_received === null ? "Received unavailable · verify source data" : row.received_zero_with_sent ? "0 received · verify" : `${formatNumber(row.total_received)} received`}`}
           />)}
           {!data.rows.length ? <EmptyState title={filtered ? "No daily records match these filters" : "No outlet daily records yet"} description={filtered ? "Reset the filters or widen the search." : "Daily receiving and wastage records will appear here."} action={filtered ? { href: "/outlet-daily-records", label: "Reset filters" } : undefined} /> : null}
         </OperationalList>

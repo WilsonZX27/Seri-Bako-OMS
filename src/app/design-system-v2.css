@@ -781,8 +781,8 @@ nav[aria-label="Pagination"] > span,
    values. Hide app chrome that would otherwise follow the resized visual
    viewport and cover the focused field. It returns as soon as focus leaves
    the editable control or the keyboard closes. */
-@media (max-width: 767px) {
-  html:is([data-mobile-keyboard-open="true"], [data-mobile-editable-focus="true"]) :where([data-mobile-app-nav], [data-mobile-bottom-nav], [data-mobile-document-action], [data-mobile-action-bar], [data-mobile-create-fab], .sb-mobile-action-bar) {
+@media (max-width: 1279px) {
+  html:is([data-mobile-keyboard-open="true"], [data-mobile-editable-focus="true"]) :where([data-mobile-document-action], [data-mobile-action-bar], [data-mobile-create-fab], .sb-mobile-action-bar) {
     visibility: hidden !important;
     pointer-events: none !important;
     transform: translateY(100%);
@@ -790,6 +790,15 @@ nav[aria-label="Pagination"] > span,
 
   html:is([data-mobile-keyboard-open="true"], [data-mobile-editable-focus="true"]) [data-center-workspace] main {
     scroll-padding-bottom: 1rem;
+  }
+
+  /* Fixed bars otherwise attach to the reduced visual viewport and jump above
+     the software keyboard. Translate the navigation by the measured keyboard
+     inset so it stays anchored to the physical screen bottom, behind the OS
+     keyboard, instead of consuming the remaining editing canvas. */
+  html[data-mobile-keyboard-open="true"] [data-mobile-bottom-nav] {
+    transform: translateY(var(--sb-virtual-keyboard-inset, 0px)) !important;
+    transition: none !important;
   }
 }
 
@@ -854,7 +863,8 @@ nav[aria-label="Pagination"] > span,
   .unified-list-filter-trigger svg { width: 1.125rem; height: 1.125rem; }
   .unified-list-filter-label { display: inline; font-size: .8125rem; font-weight: 700; white-space: nowrap; }
   .unified-list-filter-badge { position: absolute; top: -.35rem; right: -.35rem; min-width: 1.15rem; height: 1.15rem; padding: 0 .25rem; border-radius: 999px; background: var(--sb-green-900); color: white; font-size: .6875rem; font-weight: 700; line-height: 1.15rem; }
-  .unified-list-result { flex: 0 0 auto; margin: 0; color: var(--sb-text-muted); font-size: .75rem; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .unified-list-result { display: grid; flex: 0 0 auto; margin: 0; color: var(--sb-text-muted); font-size: .625rem; font-weight: 600; line-height: 1.05; text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .unified-list-result strong { color: var(--sb-text); font-size: .8125rem; }
   .unified-list-layer { position: fixed; inset: 0; z-index: 100; }
   .unified-list-backdrop { position: fixed; inset: 0; z-index: 100; background: rgb(10 31 25 / .5); }
   .unified-list-sheet { position: fixed; inset-inline: 0; bottom: 0; z-index: 101; display: grid; grid-template-rows: auto minmax(0,1fr) auto; max-height: min(85dvh, 40rem); overflow: hidden; padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom)); border-radius: var(--sb-panel-radius) var(--sb-panel-radius) 0 0; border: 1px solid var(--sb-border); background: var(--sb-surface-raised); box-shadow: 0 -1rem 3rem rgb(10 31 25 / .16); }
@@ -959,17 +969,6 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
   z-index: var(--sb-z-mobile-nav) !important;
   pointer-events: auto !important;
   visibility: visible !important;
-}
-
-/* The keyboard rule above intentionally hides fixed chrome while an editable
-   field owns the reduced visual viewport. Keep this override after the
-   canonical nav visibility rule so the bottom nav cannot float over the
-   on-screen keyboard on mobile browsers. */
-@media (max-width: 767px) {
-  html[data-design-layer="v2"][data-mobile-keyboard-open="true"] [data-mobile-bottom-nav] {
-    pointer-events: none !important;
-    visibility: hidden !important;
-  }
 }
 
 @media (max-width: 639px) {
@@ -1566,9 +1565,9 @@ html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, butto
   font-size: 0.75rem !important;
 }
 
-/* Established desktop ERP pattern: a 36px visual control rhythm. Tablet
-   remains touch-first at 44px until the explicit 36-vs-44 recommendation is
-   accepted; the outer hit area remains unchanged in either case. */
+/* Established ERP pattern: a 36px visual control rhythm on tablet and
+   desktop. Phones retain the larger touch-safe rhythm; tablet/desktop action
+   spacing remains generous so controls never collapse into one another. */
 @media (min-width: 1280px) {
   html[data-design-layer="v2"] {
     --sb-control-height: 2.25rem;
@@ -1599,8 +1598,39 @@ html[data-design-layer="v2"] [data-right-console] [data-console-section] :where(
   justify-content: center;
 }
 
+/* The user-facing visual height is shared across every non-phone viewport.
+   Keep this after the rail defaults above so route-level action sections cannot
+   drift back to 44px while the shared token is already 36px. */
+@media (min-width: 768px) {
+  html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, button, [role="combobox"], [data-select-control], .sb-status-filter, .sb-status-filter-control, .sb-filter-more, .sb-filter-more > summary),
+  html[data-design-layer="v2"] [data-right-console] [data-console-section] :where(a.inline-flex, button.inline-flex) {
+    height: 2.25rem !important;
+    min-height: 2.25rem !important;
+    max-height: 2.25rem !important;
+  }
+}
+
 html[data-design-layer="v2"] .sb-list-content-card {
   min-width: 0;
+}
+
+html[data-design-layer="v2"] .sb-filter-summary > span {
+  display: grid;
+  justify-items: center;
+  line-height: 1.05;
+}
+
+html[data-design-layer="v2"] .sb-filter-summary-count {
+  color: var(--sb-text);
+  font-size: .8125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+html[data-design-layer="v2"] .sb-filter-summary-label {
+  color: var(--sb-text-muted);
+  font-size: .625rem;
+  font-weight: 600;
 }
 
 /* The reference canvas keeps a calm reading width on desktop and landscape
@@ -1649,6 +1679,41 @@ html[data-design-layer="v2"] .sb-list-content-card {
     width: min(calc(100% - 3rem), 64rem);
     max-width: 64rem;
     margin-inline: auto;
+  }
+}
+
+/* Production Jobs has three contextual filters in addition to its query.
+   Portrait tablet gives those controls a deliberate second row instead of
+   compressing seven generated tracks into one unreadable strip. */
+@media (min-width: 768px) and (max-width: 1023px) and (orientation: portrait) {
+  html[data-design-layer="v2"] form.sb-list-query-card.sb-production-jobs-filters[data-tablet-query-layout="query"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card.sb-production-jobs-filters[data-tablet-query-layout="query"] > :where(input[type="search"], input[name="search"], input[placeholder*="Search"]) {
+    grid-column: 1 / span 2 !important;
+    grid-row: 1;
+    max-width: none !important;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card.sb-production-jobs-filters[data-tablet-query-layout="query"] > .unified-list-desktop-actions {
+    grid-column: 3 / -1 !important;
+    grid-row: 1;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card.sb-production-jobs-filters[data-tablet-query-layout="query"] > .sb-status-filter {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card.sb-production-jobs-filters[data-tablet-query-layout="query"] > [data-select-control] {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card.sb-production-jobs-filters[data-tablet-query-layout="query"] > .sb-filter-more {
+    grid-column: 3;
+    grid-row: 2;
   }
 }
 

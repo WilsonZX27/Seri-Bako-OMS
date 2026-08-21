@@ -139,14 +139,14 @@ export const getBranchSupplierMappingsForSelect = cache(async function getBranch
   if (!mappings) throw new Error("Branch supplier mappings returned no data.");
   const relationshipIds = [...new Set((mappings ?? []).map((row) => row.supplier_item_id))];
   const { data: relationships, error: relationshipsError } = relationshipIds.length
-    ? await supabase.from("supplier_items").select("id, supplier_id, item_id, unit_cost, purchase_uom, status").in("id", relationshipIds).eq("status", "active").is("deleted_at", null)
+    ? await supabase.from("supplier_items").select("id, supplier_id, item_id, unit_cost, purchase_uom, conversion_to_base_uom, status").in("id", relationshipIds).eq("status", "active").is("deleted_at", null)
     : { data: [], error: null };
   if (relationshipsError) throw new Error(relationshipsError.message);
   if (!relationships) throw new Error("Supplier item relationships returned no data.");
   const supplierIds = [...new Set((relationships ?? []).map((row) => row.supplier_id))];
   const { data: items, error: itemsError } = await supabase
     .from("items")
-    .select("id, company_id, purchase_unit, base_unit, supplier_id, cost, status")
+    .select("id, company_id, purchase_unit, base_unit, conversion_to_base_unit, supplier_id, cost, status")
     .eq("status", "active")
     .is("deleted_at", null);
   if (itemsError) throw new Error(itemsError.message);
@@ -181,6 +181,7 @@ export const getBranchSupplierMappingsForSelect = cache(async function getBranch
       supplier_name: supplier.name,
       unit_cost: relationship.unit_cost,
       purchase_uom: relationship.purchase_uom,
+      conversion_to_base_uom: relationship.conversion_to_base_uom,
       is_preferred: mapping.is_preferred,
     }];
   });
@@ -201,6 +202,9 @@ export const getBranchSupplierMappingsForSelect = cache(async function getBranch
         supplier_name: supplier.name,
         unit_cost: item.cost ?? 0,
         purchase_uom: item.purchase_unit ?? item.base_unit,
+        conversion_to_base_uom: item.purchase_unit && item.base_unit && item.purchase_unit.toUpperCase() === item.base_unit.toUpperCase()
+          ? (item.conversion_to_base_unit ?? 1)
+          : null,
         is_preferred: true,
       }));
   });
@@ -211,13 +215,13 @@ export const getItemsForSelect = cache(async function getItemsForSelect() {
   if (isMockMode()) {
     return mockItems
       .filter((item) => item.status === "active")
-      .map(({ id, item_code, item_name, base_unit, purchase_unit, supplier_id, cost, status }) => ({ id, item_code, item_name, base_unit, purchase_unit, supplier_id, cost, status }));
+      .map(({ id, item_code, item_name, brand_name, base_unit, purchase_unit, supplier_id, cost, status }) => ({ id, item_code, item_name, brand_name, base_unit, purchase_unit, supplier_id, cost, status }));
   }
 
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("items")
-    .select("id, item_code, item_name, base_unit, purchase_unit, supplier_id, cost, status")
+    .select("id, item_code, item_name, brand_name, base_unit, purchase_unit, supplier_id, cost, status")
     .eq("status", "active")
     .order("item_name", { ascending: true });
 

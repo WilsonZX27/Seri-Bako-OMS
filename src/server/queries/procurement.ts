@@ -126,12 +126,14 @@ function hydratePo(row: PurchaseOrder, lines: PurchaseOrderLine[]): PurchaseOrde
 export async function getPurchaseRequests(filters: Filters = {}) {
   if (isMockMode()) {
     const rows = mockPurchaseRequests.map((row) => hydratePr(row, mockPurchaseRequestLines));
-    return paginateRows(filterRows(rows, filters, ["request_no", "status", "priority", "branch_name", "remarks"], "updated_at"), filters.page, 12);
+    return paginateRows(filterRows(rows, filters, ["request_no", "status", "priority", "branch_name", "remarks"], "request_no"), filters.page, 12);
   }
 
   const supabase = await createClient();
   const page = pageNumber(filters.page);
-  const sort = safeSort(filters.sort, ["request_no", "request_date", "needed_by_date", "status", "updated_at"], "updated_at");
+  const sort = safeSort(filters.sort, ["request_no", "request_date", "needed_by_date", "status", "updated_at"], "request_no");
+  const databaseSort = sort === "request_no" ? "request_sort_key" : sort;
+  const ascending = filters.dir === "asc";
   let query = supabase
     .from("purchase_requests")
     .select("id, requested_by, request_no, request_date, required_date, priority, needed_by_date, branch_id, status, remarks, updated_at", { count: "exact" })
@@ -158,7 +160,8 @@ export async function getPurchaseRequests(filters: Filters = {}) {
     query = query.or(`request_no.ilike.%${search}%,remarks.ilike.%${search}%${branchClause}`);
   }
   const { data, error, count } = await query
-    .order(sort, { ascending: filters.dir !== "asc" })
+    .order(databaseSort, { ascending })
+    .order("id", { ascending })
     .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   if (error) throw new Error(error.message);
   if (!data || count === null) throw new Error("Purchase request list returned no data.");

@@ -140,11 +140,10 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   const pendingApprovalsHref = isFinance ? "/purchase-requests?status=finance_review" : isManager ? "/purchase-requests?status=manager_review" : isPurchasing ? "/purchase-requests?status=admin_review" : "/purchase-requests";
   const attentionSignals = [
     { key: "pending_approvals", label: "Pending approvals", value: summary.attentionSummary.sources.pending_approvals, href: pendingApprovalsHref, icon: ClipboardCheck },
-    { key: "low_stock", label: "Low stock", value: summary.attentionSummary.sources.low_stock, href: "/low-stock", icon: AlertTriangle },
     { key: "stock_count_due", label: "Stock count due", value: summary.attentionSummary.sources.stock_count_due, href: "/stock-counts", icon: CheckCircle2 },
-    { key: "wastage", label: "Wastage review", value: summary.attentionSummary.sources.wastage, href: "/stock-wastage?status=submitted", icon: AlertTriangle },
     ...(showFinance ? [{ key: "overdue_payables", label: "Overdue payables", value: summary.attentionSummary.sources.overdue_payables, href: "/supplier-invoices/aging?overdue=1", icon: ReceiptText }] : []),
   ];
+  const todayWorkCount = attentionSignals.reduce((sum, signal) => sum + (signal.value ?? 0), 0);
   const outletExceptionCount = summary.operationsControl?.outlet?.missing_evening ?? 0;
   const operationalExceptionCount = (summary.inventoryUnavailable ? 0 : summary.lowStockCount ?? 0) + (summary.wastageUnavailable ? 0 : summary.wastageAttention ?? 0) + outletExceptionCount;
   const operationalExceptionUnavailable = summary.inventoryUnavailable || summary.wastageUnavailable;
@@ -161,8 +160,8 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
           { key: "receiving", label: "Receiving today", value: summary.todayReceivingUnavailable ? null : summary.today.goodsReceiving, href: "/goods-receivings?date=today", definition: "Goods receiving records created today in the current scope.", tone: "active" },
           { key: "production_pending", label: "Production pending", value: summary.productionSummary ? summary.productionSummary.pendingApproval + summary.productionSummary.readyToPost : null, href: "/production/jobs", definition: "Production jobs awaiting approval or ready to post.", tone: "warning" },
           { key: "ingredient_shortage", label: "Ingredient shortages", value: summary.productionSummary?.ingredientShortages ?? null, href: "/production/jobs", definition: "Production jobs carrying a bounded ingredient-shortage exception.", tone: "critical" },
-          // Low stock is already the primary red signal in Operational pulse and
-          // the Exceptions panel. Keep this role chart about the next distinct
+          // Low stock is already the primary red signal in the Exceptions panel.
+          // Keep this role chart about the next distinct
           // queues instead of repeating the same exception a third time.
         ]
       : isPurchasing
@@ -296,18 +295,18 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
         <section data-dashboard-command className="sb-command-surface overflow-hidden rounded-[var(--sb-panel-radius)]">
           <div className="flex items-start justify-between gap-4 p-4 sm:p-5" data-dashboard-attention-summary>
             <div className="min-w-0">
-              <p className="text-xs font-medium text-white/85">Operational pulse</p>
+              <p className="text-xs font-medium text-white/85">Today&apos;s work</p>
               <h2
                 data-dashboard-attention-value
                 className="mt-1 max-w-xl text-lg font-semibold leading-6 tracking-[-0.02em] sm:text-xl sm:leading-7"
-                aria-label={summary.attentionSummary.state === "unavailable" ? `Attention summary unavailable because ${unavailableAttentionLabels.join(", ")} data could not be loaded` : `${summary.attentionSummary.total} items need attention`}
+                aria-label={summary.attentionSummary.state === "unavailable" ? `Work summary unavailable because ${unavailableAttentionLabels.join(", ")} data could not be loaded` : `${todayWorkCount} actions waiting`}
               >
-                {summary.attentionSummary.state === "unavailable" ? "Some queues are unavailable" : (summary.attentionSummary.total ?? 0) > 0 ? <><span className="tabular-nums">{summary.attentionSummary.total ?? 0}</span> items need attention</> : "No urgent exceptions"}
+                {summary.attentionSummary.state === "unavailable" ? "Some work queues are unavailable" : todayWorkCount > 0 ? <><span className="tabular-nums">{todayWorkCount}</span> actions waiting</> : "No work waiting"}
               </h2>
               {summary.attentionSummary.state === "unavailable" ? <p className="mt-1 text-[11px] leading-4 text-white/85">Unavailable: {unavailableAttentionLabels.join(", ")}</p> : null}
             </div>
           </div>
-          <div className={`grid grid-cols-2 divide-x divide-y divide-white/15 border-t border-white/15 ${showFinance ? "sm:grid-cols-5" : "sm:grid-cols-4"}`} data-dashboard-pulse-metrics aria-label="Attention total breakdown">
+          <div className={`grid grid-cols-2 divide-x divide-y divide-white/15 border-t border-white/15 ${showFinance ? "sm:grid-cols-3" : "sm:grid-cols-2"}`} data-dashboard-pulse-metrics aria-label="Today work breakdown">
             {attentionSignals.map((signal, index) => {
               const Icon = signal.icon;
               const unavailable = signal.value === null;
@@ -321,7 +320,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
           </div>
         </section>
 
-        {!isOwner && !isManager ? <DashboardRoleMicroChart title={isFinance ? "Payables due-date mix" : isKitchen ? "Kitchen work signals" : "Purchasing follow-up mix"} items={roleChartItems} /> : null}
+        {roleChartItems.length ? <DashboardRoleMicroChart title={isFinance ? "Payables due-date mix" : isKitchen ? "Kitchen work signals" : isPurchasing ? "Purchasing follow-up mix" : "Operational trend signals"} items={roleChartItems} /> : null}
 
         <QuickActionsCluster actions={quickActions} className="hidden lg:block xl:hidden" />
 

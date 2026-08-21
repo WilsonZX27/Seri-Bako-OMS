@@ -21,7 +21,10 @@ export default async function SuppliersPage({
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const filters = await searchParams;
-  const [page, permissions] = await Promise.all([getSuppliers(filters), getPermissionMap(["suppliers.create", "suppliers.manage", "imports.run"])]);
+  const defaultStatus = "active";
+  const activeStatus = filters.status ?? defaultStatus;
+  const queryFilters = { ...filters, status: activeStatus };
+  const [page, permissions] = await Promise.all([getSuppliers(queryFilters), getPermissionMap(["suppliers.create", "suppliers.manage", "imports.run"])]);
   const filtered = hasActiveFilters(filters);
   const canCreate = permissions["suppliers.create"];
   const emptyAction = filtered ? { href: "/suppliers", label: "Reset filters" } : canCreate ? { href: "/suppliers/new", label: "New supplier" } : undefined;
@@ -50,7 +53,7 @@ export default async function SuppliersPage({
       >
         {filters.success ? <div className="border border-[var(--sb-success)] bg-[var(--sb-success-bg)] p-3 text-sm text-[var(--sb-success)]">{filters.success}</div> : null}
         <div className="space-y-3">
-          <MasterDataFilters search={filters.search} status={filters.status} showStatus={false} leadingFilter={<StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]} activeStatus={filters.status} />} placeholder="Search supplier code, name, contact, phone, email" resultCount={page.totalRows} filtered={filtered} resetHref="/suppliers" />
+          <MasterDataFilters search={filters.search} status={activeStatus} showStatus={false} leadingFilter={<StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]} activeStatus={filters.status} defaultStatus={defaultStatus} />} placeholder="Search supplier code, name, contact, phone, email" resultCount={page.totalRows} filtered={filtered} resetHref="/suppliers" />
           <div className="sb-list-content-card overflow-hidden" data-mobile-list-content-card>
           <DataGridHint text="Pro-tip: Double-click any row to open the supplier." />
           <Table mobileHidden aria-label="Suppliers" stickyColumn="second">
@@ -70,7 +73,7 @@ export default async function SuppliersPage({
               {page.rows.map((supplier) => (
                 <DataGridRow key={supplier.id} href={`/suppliers/${supplier.id}`}>
                   <TableCell className="w-16 p-0 text-center"><TableActionLink href={`/suppliers/${supplier.id}`} label={`Open ${supplier.name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
-                  <TableCell><div className="font-medium">{supplier.supplier_group ?? supplier.supplier_code ?? "-"}</div>{supplier.supplier_code && supplier.supplier_code !== supplier.supplier_group ? <div className="text-[11px] text-muted-foreground" title="Internal AutoCount code">AutoCount {supplier.supplier_code}</div> : null}</TableCell>
+                  <TableCell><div className="font-medium">{supplier.supplier_group ?? supplier.supplier_code ?? "No short name"}</div>{supplier.supplier_code ? <div className="text-[11px] text-muted-foreground" title="AutoCount creditor code">AutoCount {supplier.supplier_code}</div> : <div className="text-[11px] text-[var(--sb-warning)]">AutoCount code missing</div>}</TableCell>
                   <TableCell className="font-medium">{supplier.name}</TableCell>
                   <TableCell className="hidden lg:table-cell">{supplier.contact_person ?? "-"}</TableCell>
                   <TableCell className="hidden md:table-cell">{supplier.phone ?? "-"}</TableCell>
@@ -95,7 +98,7 @@ export default async function SuppliersPage({
             </TableBody>
           </Table>
           <OperationalList ariaLabel="Suppliers">
-            {page.rows.map((supplier) => <OperationalListRow key={supplier.id} href={`/suppliers/${supplier.id}`} label={`Open ${supplier.name}`} primary={supplier.name} status={<Badge variant={supplier.status === "active" ? "success" : "secondary"}>{supplier.status}</Badge>} secondary={`${supplier.supplier_group ?? supplier.supplier_code ?? "No item group"}${supplier.supplier_code && supplier.supplier_code !== supplier.supplier_group ? ` · AutoCount ${supplier.supplier_code}` : ""} · ${supplier.contact_person ?? "No contact"}`} meta={supplier.payment_terms_days ? `${supplier.payment_terms_days} days` : undefined} />)}
+            {page.rows.map((supplier) => <OperationalListRow key={supplier.id} href={`/suppliers/${supplier.id}`} label={`Open ${supplier.name}`} primary={supplier.name} status={<Badge variant={supplier.status === "active" ? "success" : "secondary"}>{supplier.status}</Badge>} secondary={`${supplier.supplier_group ?? "No short name"} · ${supplier.supplier_code ? `AutoCount ${supplier.supplier_code}` : "AutoCount code missing"} · ${supplier.contact_person ?? "No contact"}`} meta={supplier.payment_terms_days ? `${supplier.payment_terms_days} days` : undefined} />)}
             {!page.rows.length ? <EmptyState title={filtered ? "No suppliers match these filters" : "No suppliers yet"} description={filtered ? "Reset the filters or widen the search." : "Suppliers appear after they are created or imported."} action={filtered ? emptyAction : undefined} /> : null}
           </OperationalList>
           <PaginationControls page={page.page} totalPages={page.totalPages} totalRows={page.totalRows} searchParams={filters} />

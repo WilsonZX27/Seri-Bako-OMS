@@ -13,7 +13,7 @@ test("supplier item identity always comes from AutoCount Item Master", () => {
 
   assert.doesNotMatch(form, /name="supplier_item_code"/);
   assert.doesNotMatch(form, /name="supplier_item_name"/);
-  assert.match(form, /use the selected Item Master&apos;s AutoCount code and name automatically/);
+  assert.match(form, /Owned by Item Master/);
   assert.match(action, /select\("item_code,item_name"\)/);
   assert.match(action, /supplier_item_code: item\.item_code/);
   assert.match(action, /supplier_item_name: item\.item_name/);

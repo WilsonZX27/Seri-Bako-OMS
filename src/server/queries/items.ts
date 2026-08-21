@@ -22,6 +22,7 @@ function filterItems<
     item_code: string;
     autocount_code: string | null;
     item_name: string;
+    brand_name?: string | null;
     category: string;
     supplier_id?: string | null;
     supplier_name?: string | null;
@@ -35,12 +36,12 @@ function filterItems<
   const status = filters.status && filters.status !== "all" ? filters.status : null;
   const category = filters.category && filters.category !== "all" ? filters.category : null;
   const supplier = filters.supplier && filters.supplier !== "all" ? filters.supplier : null;
-  const sort = filters.sort ?? "item_name";
+  const sort = filters.sort ?? "item_code";
   const dir = filters.dir === "desc" ? "desc" : "asc";
 
   return items.filter((item) => {
     const matchesSearch = search
-      ? [item.item_code, item.autocount_code ?? "", item.item_name, item.category, item.supplier_name ?? ""].some((value) =>
+      ? [item.item_code, item.autocount_code ?? "", item.item_name, item.brand_name ?? "", item.category, item.supplier_name ?? ""].some((value) =>
           value.toLowerCase().includes(search),
         )
       : true;
@@ -56,7 +57,9 @@ function filterItems<
     const isLowStock = Number(item.current_stock ?? 0) < Number(item.safety_stock ?? 0);
     const matchesLowStock = filters.low_stock === "yes" ? isLowStock : filters.low_stock === "no" ? !isLowStock : true;
     return matchesSearch && matchesStatus && matchesCategory && matchesSupplier && matchesStockControl && matchesLowStock;
-  }).sort((a, b) => compareTableValues(a[sort as keyof T], b[sort as keyof T], dir));
+  }).sort((a, b) => compareTableValues(a[sort as keyof T], b[sort as keyof T], dir)
+    || compareTableValues(a.item_code, b.item_code, "asc")
+    || compareTableValues(a.id, b.id, "asc"));
 }
 
 export async function getItems(filters: ItemFilters = {}) {
@@ -119,7 +122,7 @@ export async function getItemsWithStockPage(filters: ItemFilters = {}) {
       p_supplier_id: filters.supplier && filters.supplier !== "all" ? filters.supplier : null,
       p_stock_control: filters.stock_control ?? null,
       p_low_stock: filters.low_stock ?? null,
-      p_sort: filters.sort ?? "item_name",
+      p_sort: filters.sort ?? "item_code",
       p_direction: filters.dir === "desc" ? "desc" : "asc",
       p_page: page,
       p_page_size: 15,

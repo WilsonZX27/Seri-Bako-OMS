@@ -1,4 +1,4 @@
-import { AlertTriangle, BadgeCheck, CircleCheck, FileCheck2, Send, ShoppingCart, Trash2 } from "lucide-react";
+import { AlertTriangle, BadgeCheck, CircleCheck, CircleX, FileCheck2, Send, ShoppingCart, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,7 @@ import { NotFoundState } from "@/components/ui/system-states";
 import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { getPrWorkflowLabel, getPrWorkflowStep, PR_WORKFLOW_STEP_LABELS, PURCHASE_REQUEST_WORKFLOW_STEPS } from "@/lib/purchase-request-status";
-import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
+import { formatCurrency, formatDateOnly, formatDateTime, formatNumber } from "@/lib/utils";
 import {
   adminApprovePurchaseRequest,
   cancelPurchaseRequest,
@@ -125,6 +125,10 @@ export default async function PurchaseRequestDetailPage({
   const branches = branchesResult.status === "fulfilled" ? branchesResult.value : null;
   const documentBundle = documentBundleResult.status === "fulfilled" ? documentBundleResult.value : null;
   const documentBundleUnavailable = Boolean(request.document_id && documentBundleResult.status === "rejected");
+  const rejectionActivity = documentBundle?.activityLogs
+    .filter((activity) => activity.activity_type === "rejected")
+    .sort((left, right) => new Date(right.created_at).getTime() - new Date(left.created_at).getTime())[0] ?? null;
+  const rejectionReason = rejectionActivity?.message.replace(/^Purchase request rejected:\s*/i, "").trim() ?? "";
   const deletePreview = deletePreviewResult.status === "fulfilled" ? deletePreviewResult.value : null;
   const branchStock = branchStockResult.status === "fulfilled" ? branchStockResult.value : null;
   const stockByItemId = new Map((branchStock ?? []).map((stock) => [stock.itemId, stock]));
@@ -156,6 +160,10 @@ export default async function PurchaseRequestDetailPage({
     const diagnosis = readinessByLine.get(line.id);
     return diagnosis?.issue ? [{ line, diagnosis }] : [];
   });
+  const summarySuppliers = [...new Set(lines.map((line) => {
+    const readiness = readinessByLine.get(line.id);
+    return readiness?.supplierName ?? (line.suggested_supplier_id ? supplierById.get(line.suggested_supplier_id)?.name ?? null : null);
+  }).filter((name): name is string => Boolean(name)))];
   const canConvert = request.status === "ready_to_convert" && permissions["pr.convert_to_po"];
   const canReject =
     (request.status === "manager_review" && (roleCode === "manager" || isOwner) && (permissions["pr.manager_approve"] || permissions["pr.reject"])) ||
@@ -243,6 +251,18 @@ export default async function PurchaseRequestDetailPage({
           ) : null}
       {documentBundleUnavailable ? <Card className="document-surface shadow-none md:hidden"><CardContent className="p-3" role="status"><p className="text-sm font-semibold text-[var(--sb-warning)]">Document activity unavailable</p><p className="mt-1 text-xs text-muted-foreground">Attachments, comments, and timeline could not be loaded. Retry this page.</p></CardContent></Card> : null}
 
+      {request.status === "rejected" && rejectionActivity ? <Card className="border-[var(--sb-danger)]/45 bg-[var(--sb-danger-bg)] shadow-none" role="alert">
+        <CardContent className="flex items-start gap-3 p-3">
+          <CircleX className="mt-0.5 h-4 w-4 shrink-0 text-[var(--sb-danger)]" aria-hidden="true" />
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-[var(--sb-danger)]">Why this request was returned</p>
+            <p className="mt-1 text-sm leading-5 text-[var(--sb-text)]">{rejectionReason || "No rejection reason was recorded."}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{String(("created_by_name" in rejectionActivity ? rejectionActivity.created_by_name : null) ?? "Approver")} · {formatDateTime(rejectionActivity.created_at)}</p>
+            <p className="mt-2 text-xs font-medium text-[var(--sb-text)]">Next: correct the request, then submit it to Manager Review again.</p>
+          </div>
+        </CardContent>
+      </Card> : null}
+
       {blockingLineIssues.length ? <section id="pr-guided-issues" className="scroll-mt-32 rounded-[var(--sb-panel-radius)] bg-[var(--sb-warning-bg)] p-4" role="status">
         <div className="flex items-start gap-3"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--sb-warning)]" /><div><h2 className="text-sm font-semibold">{blockingLineIssues.length} item{blockingLineIssues.length === 1 ? " needs" : "s need"} attention before this review can continue</h2><p className="mt-1 text-xs text-muted-foreground">{recoveryAvailable ? `The PR remains saved in ${getPrWorkflowLabel(request.status)}. Open the warning icon on an affected row to use a mapped supplier, change UOM, select another supplier, replace the item, or remove that line. Other lines remain available.` : "The PR remains saved and readable. Guided repair setup is unavailable in this environment; ask an Owner to apply migration 170, then Retry this page. No line will be changed until setup is available."}</p></div></div>
       </section> : null}
@@ -250,12 +270,15 @@ export default async function PurchaseRequestDetailPage({
       <Card className="document-surface shadow-none">
             <CardContent className="space-y-3 p-4">
               <h2 className="text-[14px] font-semibold">Request Summary</h2>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-5">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3 lg:grid-cols-5">
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Request Date</p><p className="text-sm font-medium text-[var(--sb-text)]">{formatDateOnly(request.request_date)}</p></div>
+                <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Location</p><p className="text-sm font-medium text-[var(--sb-text)]">{branch?.branch_name ?? (branches ? "Unassigned" : "Unavailable")}</p></div>
+                <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Requested Lines</p><p className="text-sm font-medium text-[var(--sb-text)]">{requestedItemCount}</p></div>
+                <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Supplier</p><p className="text-sm font-medium text-[var(--sb-text)]">{summarySuppliers.length ? summarySuppliers.join(", ") : "Pending assignment"}</p></div>
+                {canViewCommercial ? <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Est. Total Cost</p><p className="text-sm font-medium text-[var(--sb-text)]">{formatCurrency(total)}</p></div> : null}
                 <div className="hidden" aria-hidden="true"><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Priority</p><PriorityBadge priority={request.priority} /></div>
                 {request.required_date ? <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Required Date</p><p className="text-sm font-medium text-[var(--sb-text)]">{formatDateOnly(request.required_date)}</p></div> : null}
                 {request.needed_by_date ? <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Needed By</p><p className="text-sm font-medium text-[var(--sb-text)]">{formatDateOnly(request.needed_by_date)}</p></div> : null}
-                {branch?.branch_name ? <div className="md:hidden"><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Branch</p><p className="text-sm font-medium text-[var(--sb-text)]">{branch.branch_name}</p></div> : !branches ? <div role="status" className="md:hidden"><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Branch</p><p className="text-sm font-medium text-[var(--sb-warning)]">Details unavailable</p></div> : null}
               </div>
               {request.urgency_reason ? <section aria-label="Urgency reason" className="border-t border-[var(--sb-border-soft)] pt-3"><h3 className="text-[11px] font-medium uppercase tracking-wide text-warning">Urgency reason</h3><p className="mt-1 whitespace-pre-wrap text-[13px] text-warning">{request.urgency_reason}</p></section> : null}
               {request.remarks ? <section aria-label="Remarks" className="border-t border-[var(--sb-border-soft)] pt-3"><h3 className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Remarks</h3><p className="mt-1 whitespace-pre-wrap text-[13px] leading-5 text-[var(--sb-text)]">{request.remarks}</p></section> : null}

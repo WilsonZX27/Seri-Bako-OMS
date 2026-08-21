@@ -23,6 +23,7 @@ export type OutletDailyRecordRow = RecordRow & {
   total_leftover: number;
   total_wastage: number;
   wastage_percent: number | null;
+  qty_sent_state: "confirmed" | "draft" | "missing";
 };
 
 export type OutletDailyDefaultLine = {
@@ -71,6 +72,11 @@ const totals = (lines: LineRow[]) => {
     total_leftover: totalLeftover,
     total_wastage: totalWastage,
     wastage_percent: totalReceived !== null && totalReceived > 0 ? (totalWastage / totalReceived) * 100 : null,
+    qty_sent_state: lines.length > 0 && lines.every((line) => line.qty_sent_source === "authorized_confirmed" || line.qty_sent_confirmed)
+      ? "confirmed" as const
+      : lines.some((line) => line.qty_sent_source === "authorized_draft")
+        ? "draft" as const
+        : "missing" as const,
   };
 };
 
@@ -263,6 +269,17 @@ async function loadRows(filters: Filters = {}) {
   const pageSize = 15;
   const requestedPage = Math.max(Number.parseInt(filters.page ?? "1", 10) || 1, 1);
   let query = db.from("outlet_daily_records").select("*", { count: "exact" });
+  if (filters.sent_state === "missing") {
+    const { data: sentMissingLines, error: sentMissingError } = await db
+      .from("outlet_daily_record_lines")
+      .select("record_id")
+      .in("qty_sent_source", ["unavailable", "legacy_unverified", "outlet_received_estimate"])
+      .limit(5000);
+    if (sentMissingError) throw new Error(sentMissingError.message);
+    const recordIds = [...new Set((sentMissingLines ?? []).map((line) => line.record_id))];
+    if (!recordIds.length) return { rows: [] as OutletDailyRecordRow[], totalRows: 0, page: 1, pageSize, totalPages: 1 };
+    query = query.in("id", recordIds);
+  }
   if (filters.date) query = query.eq("record_date", filters.date);
   if (filters.branch && filters.branch !== "all") query = query.eq("branch_id", filters.branch);
   if (filters.status && filters.status !== "all") query = query.eq("status", filters.status as RecordRow["status"]);
@@ -385,7 +402,7 @@ export async function getOutletDailyDemandTrend(filters: Filters = {}) {
 }
 
 export async function getOutletDailyCompletionMatrix(filters: Filters = {}) {
-  const end = todayInKualaLumpur();
+  const end = /^\d{4}-\d{2}-\d{2}$/.test(filters.history_date ?? "") ? filters.history_date! : todayInKualaLumpur();
   const start = shiftDate(end, -6);
   const options = await getOutletDailyFormOptions();
   const selectedBranchId = filters.branch && filters.branch !== "all" ? filters.branch : undefined;
@@ -609,7 +626,9 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
     completed_records: row.record_ids.size,
     low_sample: row.record_ids.size < 3,
   }));
-  const dailyRows = toRows(daysByDate, (id) => id).sort((left, right) => left.name.localeCompare(right.name));
+  // A zero denominator is not a 0% rate. Keep the record visible in the
+  // operational list as "Unavailable", but exclude it from rate trends.
+  const dailyRows = toRows(daysByDate, (id) => id).filter((row) => row.received > 0).sort((left, right) => left.name.localeCompare(right.name));
   return {
     filters: { period, status, branch: branchId ?? "all", product: productId ?? "all", start, end },
     branches,

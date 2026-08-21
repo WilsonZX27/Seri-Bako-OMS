@@ -23,3 +23,10 @@ test("bounded read model filters the period before its running window", () => {
   assert.match(migrationSource, /can_access_inventory_branch/);
   assert.match(migrationSource, /grant execute[\s\S]*to authenticated/);
 });
+
+test("forward inventory read repair keeps the bounded RPC explicit about tenant authorization", () => {
+  const repair = fs.readFileSync(path.join(root, "supabase/migrations/179_bound_inventory_read_rls_cost.sql"), "utf8");
+  assert.match(repair, /security definer/);
+  assert.match(repair, /can_access_inventory_branch/);
+  assert.match(repair, /notify pgrst/);
+});

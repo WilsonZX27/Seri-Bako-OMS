@@ -71,7 +71,8 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
               <SelectControl name="due" defaultValue={filters.due ?? "all"} ariaLabel="Due state" options={[{ value: "all", label: "All due states" }, { value: "overdue", label: "Overdue" }, { value: "due_7", label: "Due in 7 days" }, { value: "no_due", label: "No due date" }]} />
             </FilterBarMore>
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
-            {filtered ? <Button asChild variant="secondary"><Link href="/supplier-invoices">Reset</Link></Button> : <Button type="submit" variant="secondary">Search</Button>}
+            <Button type="submit" variant="secondary" data-list-action="primary">Search</Button>
+            {filtered ? <Button asChild variant="secondary" data-list-action="secondary"><Link href="/supplier-invoices">Reset</Link></Button> : null}
           </UnifiedListHeader>
           <div className="sb-list-content-card overflow-hidden" data-mobile-list-content-card>
             <Table mobileHidden aria-label="Supplier invoices" stickyColumn="second">

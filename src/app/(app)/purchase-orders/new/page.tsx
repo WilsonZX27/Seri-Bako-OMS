@@ -29,7 +29,7 @@ export default async function NewPurchaseOrderPage() {
         mobilePrimaryAction={createAction}
         tabletRailMode="split"
         sidePanel={
-          <div>
+          <div className="space-y-3">
             <ConsoleSection title="PO Actions">
               <div className="grid gap-2">
                 {createAction}

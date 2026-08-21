@@ -17,7 +17,7 @@ export type AutoCountStageRow = {
 };
 
 export type AutoCountIssue = {
-  code: "missing_required_file" | "missing_item_code" | "duplicate_item_code" | "missing_item_list_record" | "unknown_branch" | "incomplete_item" | "supplier_conflict";
+  code: "missing_required_file" | "missing_item_code" | "duplicate_item_code" | "missing_item_list_record" | "unknown_branch" | "incomplete_item" | "supplier_conflict" | "missing_supplier_reference";
   message: string;
   sourceFile?: string;
   sourceRow?: number;
@@ -154,12 +154,16 @@ export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchC
   }
 
   const supplierGroups = new Map<string, { refs: Map<string, string>; sourceFile: string; sourceRow: number }>();
+  const supplierGroupRows = new Map<string, Array<{ itemCode: string; sourceFile: string; sourceRow: number }>>();
   const creditorGroups = new Map<string, string>();
   for (const { row, file, rowNumber } of itemRows.values()) {
     const itemCode = get(row, "Item Code");
     const group = get(row, "Item Group");
     const baseUom = get(row, "Base UOM");
     const itemName = get(row, "Description");
+    // Brand is accepted only when the source export supplies an explicit
+    // Brand/Brand Name/品牌 column. Never infer it from the description.
+    const brandName = get(row, "Brand") || get(row, "Brand Name") || get(row, "品牌");
     const creditorCode = get(row, "Main Supplier");
     if (!group || !baseUom || !itemName) {
       blockingIssues.push(`${file} row ${rowNumber}: ${itemCode} requires Description, Base UOM, and Item Group.`);
@@ -168,6 +172,9 @@ export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchC
     }
     const groupKey = group.toLowerCase();
     const groupEntry = supplierGroups.get(groupKey) ?? { refs: new Map<string, string>(), sourceFile: file, sourceRow: rowNumber };
+    const groupRows = supplierGroupRows.get(groupKey) ?? [];
+    groupRows.push({ itemCode, sourceFile: file, sourceRow: rowNumber });
+    supplierGroupRows.set(groupKey, groupRows);
     if (creditorCode) {
       const priorGroup = creditorGroups.get(creditorCode.toLowerCase());
       if (priorGroup && priorGroup !== groupKey) {
@@ -190,7 +197,11 @@ export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchC
       normalized: {
         item_code: itemCode,
         item_name: itemName,
-        supplier_code: group,
+        brand_name: brandName || null,
+        // Never promote the operator-facing Item Group into an internal
+        // supplier identity. A blank creditor code remains a blocking source
+        // issue and is intentionally staged as blank for diagnostics only.
+        supplier_code: creditorCode,
         supplier_group: group,
         creditor_code: creditorCode || null,
         base_uom: baseUom,
@@ -203,10 +214,25 @@ export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchC
 
   for (const [groupKey, entry] of supplierGroups) {
     const group = [...itemRows.values()].map(({ row }) => get(row, "Item Group")).find((value) => value.toLowerCase() === groupKey) ?? groupKey.toUpperCase();
+    const groupRows = supplierGroupRows.get(groupKey) ?? [];
+    for (const groupRow of groupRows) {
+      const item = itemRows.get(groupRow.itemCode.toLowerCase());
+      const creditorCode = item ? get(item.row, "Main Supplier") : "";
+      if (creditorCode) continue;
+      blockingIssues.push(`${groupRow.sourceFile} row ${groupRow.sourceRow}: ${groupRow.itemCode} has no authoritative Main Supplier AutoCount code.`);
+      issueDetails.push({
+        code: "missing_supplier_reference",
+        message: `${groupRow.itemCode} uses Item Group ${group}, but no authoritative Main Supplier creditor code was supplied for this item.`,
+        sourceFile: groupRow.sourceFile,
+        sourceRow: groupRow.sourceRow,
+        itemCode: groupRow.itemCode,
+        resolution: "Add the authoritative AutoCount creditor code to Main Supplier and include that creditor in the Supplier List, then re-export both files. Do not use Item Group as a supplier identity.",
+      });
+    }
     const namedRefs = [...entry.refs].filter(([, name]) => name);
     const supplierName = namedRefs.length === 1 && entry.refs.size === 1 ? namedRefs[0][1] : group;
     const internalCode = [...entry.refs.keys()].sort((a, b) => a.localeCompare(b))[0] ?? group;
-    const rowWarnings = entry.refs.size === 0 ? ["No AutoCount creditor reference; supplier name uses Item Group."]
+    const rowWarnings = entry.refs.size === 0 ? ["No AutoCount creditor reference; confirmation is blocked until an authoritative supplier code is supplied."]
       : namedRefs.length !== entry.refs.size ? ["One or more Main Supplier codes were not found in the Supplier List."] : [];
     staged.set(`supplier|${groupKey}`, {
       entityType: "supplier", businessKey: group, sourceFile: entry.sourceFile, sourceRow: entry.sourceRow,
@@ -221,11 +247,13 @@ export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchC
     const branchCode = get(location.row, "Location");
     const item = itemRows.get(itemCode.toLowerCase());
     if (!item || !branchCodes.has(branchCode.toLowerCase())) continue;
-    const supplierCode = get(item.row, "Item Group");
+    const supplierCode = get(item.row, "Main Supplier");
+    const supplierGroup = get(item.row, "Item Group");
+    if (!supplierCode) continue;
     staged.set(`mapping|${branchCode.toLowerCase()}|${itemCode.toLowerCase()}`, {
       entityType: "branch_mapping", businessKey: `${branchCode}|${itemCode}`, sourceFile: location.file, sourceRow: location.rowNumber,
       normalized: {
-        branch_code: branchCode, item_code: itemCode, supplier_code: supplierCode, supplier_group: supplierCode,
+        branch_code: branchCode, item_code: itemCode, supplier_code: supplierCode, supplier_group: supplierGroup,
         source_qty: numberOrNull(get(location.row, "Qty")), source_total_cost: numberOrNull(get(location.row, "Total Cost")),
         source_average_cost: numberOrNull(get(location.row, "Average Cost Per Qty")),
       },

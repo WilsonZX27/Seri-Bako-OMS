@@ -72,7 +72,9 @@ test("duplicate suppliers merge recoverably and receive a live normalized-name g
   assert.match(migration, /create table if not exists public\.supplier_merge_audit/);
   assert.match(migration, /canonical_before jsonb not null/);
   assert.match(migration, /merged_before jsonb not null/);
-  assert.match(migration, /update public\.purchase_request_lines set suggested_supplier_id = canonical_supplier\.id/);
+  assert.match(migration, /update public\.purchase_request_lines[\s\S]*set suggested_supplier_id = canonical_supplier\.id/);
+  assert.match(migration, /supplier_merge_line_audit/);
+  assert.match(migration, /cleared_requires_supplier_mapping/);
   assert.match(migration, /update public\.purchase_orders set supplier_id = canonical_supplier\.id/);
   assert.match(migration, /update public\.supplier_items[\s\S]*set status = 'inactive', deleted_at = now\(\)/);
   assert.match(migration, /suppliers_company_normalized_name_active_idx/);
@@ -131,6 +133,33 @@ test("unknown branch and location item missing from Item List fail closed", () =
   assert.ok(analysis.blockingIssues.some((issue) => issue.includes("missing from the Item List")));
   assert.ok(analysis.issueDetails.some((issue) => issue.code === "missing_item_list_record" && issue.itemCode === "MISSING00001" && issue.sourceRow));
   assert.ok(analysis.issueDetails.some((issue) => issue.resolution.includes("newer Item List")));
+});
+
+test("item groups without an authoritative creditor reference fail closed", () => {
+  const { analyzeAutoCountFiles } = loadAnalyzer();
+  const files = JSON.parse(read("tests/fixtures/autocount-sanitized.json"));
+  files[1].rows[0]["Main Supplier"] = "";
+  const analysis = analyzeAutoCountFiles(files, ["CK-PNG"]);
+  assert.ok(analysis.blockingIssues.some((issue) => issue.includes("TEOWJOO00001 has no authoritative Main Supplier AutoCount code")));
+  assert.ok(analysis.issueDetails.some((issue) => issue.code === "missing_supplier_reference" && issue.itemCode === "TEOWJOO00001" && issue.sourceRow === 2));
+  assert.ok(analysis.issueDetails.some((issue) => issue.resolution.includes("Do not use Item Group as a supplier identity")));
+});
+
+test("branch mappings retain the creditor code and never use Item Group as supplier identity", () => {
+  const { analyzeAutoCountFiles } = loadAnalyzer();
+  const files = JSON.parse(read("tests/fixtures/autocount-sanitized.json"));
+  const analysis = analyzeAutoCountFiles(files, ["CK-PNG", "CK-PJS10"]);
+  const mapping = analysis.rows.find((row) => row.entityType === "branch_mapping");
+  assert.equal(mapping.normalized.supplier_code, "406-T009");
+  assert.equal(mapping.normalized.supplier_group, "TEOWJOO");
+  assert.notEqual(mapping.normalized.supplier_code, mapping.normalized.supplier_group);
+});
+
+test("AutoCount Confirm keeps the same creditor-reference guard at the database boundary", () => {
+  const migration = read("supabase/migrations/177_autocount_supplier_reference_guard.sql");
+  assert.match(migration, /jsonb_array_length\(coalesce\(row_record\.normalized->.*external_refs/);
+  assert.match(migration, /has no authoritative creditor reference/);
+  assert.match(migration, /errcode = ''23514''/);
 });
 
 test("AutoCount blocking UI explains the impact, source row, and recovery action", () => {

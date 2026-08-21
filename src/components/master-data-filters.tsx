@@ -79,14 +79,6 @@ export function MasterDataFilters({
     </>
   );
 
-  const action = filtered ? (
-    <Button asChild variant="secondary">
-      <Link href={resetHref}>Reset</Link>
-    </Button>
-  ) : (
-    <Button type="submit">Search</Button>
-  );
-
   return (
     <UnifiedListHeader
       resultCount={resultCount}
@@ -96,7 +88,8 @@ export function MasterDataFilters({
       className={`sb-list-filters--equal-controls${compactMobile ? " sb-list-filters--compact-mobile" : ""}`}
     >
       {controls}
-      {action}
+      <Button type="submit" className="w-full" data-list-action="primary">Search</Button>
+      {filtered ? <Button asChild variant="secondary" className="w-full" data-list-action="secondary"><Link href={resetHref}>Reset</Link></Button> : null}
     </UnifiedListHeader>
   );
 }

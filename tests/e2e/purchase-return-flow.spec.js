@@ -36,5 +36,5 @@ test("purchase return posts one supplier return stock movement", async ({ page }
   await expect(page.getByRole("button", { name: "Post return" })).toHaveCount(0);
 
   await page.goto(`/stock-transactions?search=${encodeURIComponent(returnNo)}`);
-  await expect(page.locator("tbody tr").filter({ hasText: "return to supplier" })).toHaveCount(1);
+  await expect(page.locator("tbody tr").filter({ hasText: /return to supplier/i })).toHaveCount(1);
 });

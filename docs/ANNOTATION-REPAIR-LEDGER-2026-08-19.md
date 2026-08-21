@@ -1,5 +1,158 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.108 portrait-tablet alignment follow-up
+
+Two new browser annotations are implemented locally. The Purchase Order form's hidden submission inputs now use the HTML `hidden` attribute and the visible surfaces use rendered-box grid gaps, preventing a false 12px offset before the first form surface; the form and tablet action rail therefore share one top edge. Production Jobs now opts into a scoped portrait-tablet two-row filter contract, keeping query and command together above Status, Branch, and More filters. Authenticated rendered UAT passes 19/19, including exact 820×1180 top-edge geometry, two-row filter geometry, and horizontal-overflow rejection. Final v8.64.108 evidence passes 833/833 unit/contracts, strict typecheck, lint, 79-route Production build, and `git diff --check`. These rows remain neither remote nor Production verified.
+
+## v8.64.107 workflow stage and keyboard follow-up
+
+New Production annotations are implemented locally in the shared primitives. `StatusBadge` assigns distinct muted tones to Manager Review, Purchasing Review, Finance Review, Ready to Convert, rejected, and awaiting-GRN/sent-to-supplier stages without using color as the only status signal. `MobileAppNavigation` now detects keyboard geometry across the complete phone/tablet shell up to 1279px, records the measured inset, and translates the fixed bottom navigation behind the OS keyboard so it does not rise into the reduced visual viewport. Authenticated rendered UAT passes 17/17, including distinct PR workflow tones and repeated 390×844 / 820×1180 keyboard-inset geometry checks. Final v8.64.107 evidence passes 832/832 unit/contracts, strict typecheck, lint, 79-route Production build, and `git diff --check`. This batch is not remote or Production verified.
+
+## v8.64.106 final local annotation surface closure
+
+The remaining four locally implemented rows now have authenticated rendered-page evidence. Supplier identity retains the official name and AutoCount code while exposing an explicitly labelled operator short name. Item detail action hierarchy passes at 390×844, 820×1180, 1180×820, and 1440×900 with one visible responsive surface and no horizontal overflow. Inventory movement colors and Procurement counters pass at 820×1180, 1180×820, and 1440×900 without borrowing danger or warning color for neutral data. The focused authenticated annotation suite passes 14/14. Final v8.64.106 static evidence passes 831/831 unit/contracts, strict typecheck, lint, 79-route Production build, and `git diff --check`. None of this promotes a row to remote or Production verified.
+
+## v8.64.105 natural PR register order
+
+Completion audit found that PostgREST `request_no desc` still sorted strings lexicographically before pagination. Migration 184 adds an immutable generated `request_sort_key` based on the shared natural-code function and a tenant-scoped partial index. The register maps Request sorting to this key while retaining the public `request_no` control and a same-direction ID tie-breaker. Local migration output reported migration 184 applied before the known PostHog shutdown timeout. Authenticated 390×844 UAT proves default `.../10, .../2, .../1`, explicit ascending `.../1, .../2, .../10`, the submitted-by hierarchy, and no horizontal overflow.
+
+The current-code historical regression rerun also passes 31/31 authenticated scenarios, including six role-specific Dashboards, PR/PO geometry at all four required viewports, stock registers at all four viewports, guided PR review, filter grammar, Outlet Daily, Staff, and structured PR validation. These are local UAT results, not linked or Production verification.
+
+v8.64.105 static evidence: 831/831 unit and contract tests, strict typecheck, lint, 79-route Production build, and `git diff --check` pass. The focused authenticated annotation suite passes 11/11. No result in this section changes the linked or Production evidence state.
+
+Read-only external refresh on 2026-08-21: both repository CLI and the previously compatible Supabase CLI 2.115.0 still fail at `Initialising login role` with `LegacyDbConfigLoginRoleNetworkError: TransportError`, so migrations 173–184 remain not remote verified. The public Production login HTML now renders footer `v8.64.101`; it has advanced from the earlier `v8.64.99` observation but still does not contain local v8.64.105. No authenticated Production workflow claim is made.
+
+## v8.64.104 interaction and sourcing-boundary closure
+
+Implemented locally: Item combobox Arrow/Enter/Escape operation and active-option semantics; PR suggestions identify Supplier, Purchase UOM, and Item Master Base UOM; typed exact item codes can no longer bypass the selected branch + supplier catalogue; branch/supplier changes explain cleared lines; rejected PRs show reason, actor, time, and correction step; PO details disclosure and one Add line ownership remain covered; zero-denominator Outlet records show `Unavailable` and are excluded from percentage trends. The disposable annotation fixture adds two mapped suppliers, natural-sort items, a rejected PR, a Qty Sent-missing record, and a confirmed zero-denominator record.
+
+Current evidence state: `implemented` and local UAT passed. v8.64.104 passes 830/830 unit/contracts, strict typecheck, lint, a 79-route Production build, and `git diff --check`. The new authenticated core-flow suite passes 10/10, covering Supplier Item keyboard/Base UOM ownership, PR supplier scoping and context reset, rejected PR guidance, natural Item Code order, PO disclosure, one Stock Balance basket owner at all four required viewports, and Outlet Qty Sent/zero-denominator role behavior. The current v8.64.105 section supersedes these local counts and records the external refresh; this historical batch itself was neither `remote verified` nor `production verified`.
+
+## v8.64.103 local UAT fixture closure
+
+The localhost-only fixture now creates one recoverable guided-review PR with a real document comment, one active Outlet product, and one completed Outlet Daily record with trusted Qty Sent/Received provenance. The five scenarios that previously depended on absent seed rows now pass 5/5: desktop and portrait guided review dialog, portrait Comments rail, conditional wastage reset, and portrait-tablet trend chart. The Manager Review role-boundary case also executes and passes 1/1 instead of skipping. These fixtures are idempotent, require `RUN_TENANT_BOUNDARY_E2E=1`, and never target a remote host.
+
+Read-only external evidence on 2026-08-21 remains intentionally separate: `supabase migration list --linked` still fails while initializing the login role with `LegacyDbConfigLoginRoleNetworkError`, so migrations 173–183 are not called remote verified. The public Production login page currently renders footer `v8.64.99`, not this local `v8.64.103` batch.
+
+## v8.64.102 annotation closure round — 31-comment register
+
+Status vocabulary: `implemented`, `awaiting UAT`, `blocked`, `remote verified`, and `production verified`. No entry in this batch is remote- or Production-verified yet.
+
+| # | Scope | Status | Evidence / remaining gate |
+|---:|---|---|---|
+| 1 | PR latest document order | implemented / local UAT passed | Migration 184 sorts generated natural request keys before pagination; 390px default and reversed directions passed. Linked migration remains open. |
+| 2 | PR rejected reason | implemented / local UAT passed | Main workspace shows latest reason, actor, time, and correction path; timeline remains audit truth. |
+| 3 | PR useful summary | implemented / local UAT passed | Date, location, lines, suppliers, and permitted estimated total are grouped in Request Summary. |
+| 4 | Document breadcrumb duplication | implemented / local UAT passed | Document workspace identity is the document number only. |
+| 5–6 | PO duplicate Add line/helper | implemented / local UAT passed | Header action and redundant helper removed; one line-area action remains. |
+| 7 | Non-semantic exception color | implemented / local role UAT passed | Dashboard signals no longer inherit warning color without an actionable warning. |
+| 8 | Dashboard duplication | implemented / local role UAT passed | Today’s work owns actionable tasks; exceptions and role trends own distinct metrics across the six-account dashboard suite. |
+| 9 | Supplier AutoCount code | implemented / Production data blocked | List always identifies the creditor code or explicitly says `AutoCount code missing`; BWY/CILANTRO values require real Production evidence. |
+| 10 | Supplier short name | implemented / local UAT passed | `supplier_group` is explicitly labelled and editable as Item Group / Short Name; formal name and creditor code remain authoritative. |
+| 11 | Searchable supplier item | implemented / local keyboard UAT passed | Native item select replaced by searchable name/code/brand combobox. |
+| 12 | Base UOM ownership | implemented / local UAT passed | Item Master Base UOM is read-only in mapping with an explicit Item Master link. |
+| 13 | Natural Item Code sorting | implemented / local UAT passed / linked migration blocked | UI fallback and migration 183 provide numeric natural order with a stable ID tie-breaker. |
+| 14 | Item action-rail rhythm | implemented / four-viewport local UAT passed | Primary, Sourcing, More Options, and Metadata retain one visible hierarchy with converged spacing and no overflow. |
+| 15,19 | Stock basket entry duplication/color | implemented / four-viewport local UAT passed | One responsive basket entry is visible per breakpoint; FAB uses brand-neutral styling. |
+| 16 | Filter density/count wrapping | implemented / four-viewport local UAT passed | Shared search/reset slot and two-line narrow record count are in shared components/CSS. |
+| 17–18 | Basket summary/noise | implemented / four-viewport local UAT passed | Summary is Location / Suppliers / Items; device and split-copy noise removed. |
+| 20 | Stock action gutter | implemented / four-viewport local UAT passed | Shared table/action spacing remains the authority and edge-clearance checks pass. |
+| 21 | Calendar history and Qty Sent gaps | implemented / local role UAT passed | History date changes the seven-day window; privileged sent-state filter and row status added. Edit audit remains on the existing authorized record workflow. |
+| 22 | Misleading 0% | implemented / local data UAT passed | A zero denominator displays Unavailable and is excluded from trends; real zero remains distinct. |
+| 23–25 | PR supplier identity/filter/urgency | implemented / local flow UAT passed | Supplier-scoped item choices, readable option metadata, server revalidation, and semantic urgency menu are retained. |
+| 26 | PO details disclosure | implemented / four-viewport local UAT passed | Collapsed summary shows branch, supplier, order, and delivery date; required fields remain visible through validation. |
+| 27 | Inventory chart gold | implemented / local viewport UAT passed | Outbound series uses neutral gray and inbound remains brand green at portrait tablet, landscape tablet, and desktop widths. |
+| 28 | Procurement metric convention | implemented / local viewport UAT passed | Nonzero queue values remain neutral at portrait tablet, landscape tablet, and desktop widths. |
+| 29 | Search/Reset shared position | implemented / local viewport UAT passed | Active filters swap Search for Reset in the same shared desktop command slot. |
+| 30 | PR structured validation | implemented / local failure-path UAT passed | Field/line validation and first-error focus are retained; generic-only failure is rejected. |
+| 31 | PR mobile hierarchy | implemented / 390px local UAT passed | Two-level rows use location/date, supplier/item count, submitted-by, status, and chevron. |
+
+Release gate: focused contracts, complete static gates, four viewports, six roles, linked migration 183, real supplier-code inspection, Production footer, and Production workflows must pass before any row is promoted to `production verified`.
+
+Local evidence on 2026-08-21: v8.64.103 passes 828/828 unit and contract tests, strict typecheck, lint, production build, and `git diff --check`. Migration 182 and 183 applied successfully to the isolated local Supabase database; the CLI then returned a telemetry shutdown timeout after reporting both migrations applied. Authenticated Dashboard/P0 browser coverage passed all executed scenarios across six roles and the 390×844, 820×1180, 1180×820, 1440×900 and wide-canvas checks. v8.64.103 removes the remaining fixture holes: the five formerly skipped guided-review/comment/outlet scenarios pass 5/5, and the Manager Review role-boundary scenario passes 1/1. None of this is linked, remote, or Production verification.
+
+## v8.64.101 visible PR rejection reason
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Rejected PR shows the entered reason in the main workspace | implemented / awaiting authenticated UAT | Detail page reads the latest `activity_type = rejected` event, strips the technical prefix, and shows the reason with actor and timestamp in an inline danger notice. Document Timeline remains the audit source. |
+
+## v8.64.100 canonical UOM selection
+
+| Gate | Status | Evidence |
+|---|---|---|
+| `BTL` and `BOTTLE` represent one UOM | implemented / awaiting linked migration and authenticated UAT | `normalizeUom` canonicalizes `BTL` to `BOTTLE`; supplier-item, PR-line repair, master-data writes, and import writes use the canonical value. Migration 182 safely canonicalizes legacy supplier/document rows without changing quantity, cost, or conversion factors. |
+| PR review UOM is controlled, includes `GUNI`, and is alphabetically ordered | implemented / awaiting authenticated viewport UAT | Guided review now uses a native dropdown sourced from current item UOMs, active supplier terms, and the shared catalogue. `GUNI` is included as a controlled option; free-text UOM entry is removed and options are sorted by initial letter. |
+
+## v8.64.99 unified route loading
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Dashboard, Outlet Daily, Stock Counts, and finance report preloader geometry | implemented / awaiting authenticated viewport UAT | All route-level loading boundaries now use the shared `PageLoadingState` with the same compact progress line, spinner size, status semantics, and spacing. Route-specific labels remain contextual. Local test, typecheck, lint, and build evidence pending this batch; browser/UAT remains separate. |
+| Oversized skeleton/centered-spinner initial states | implemented / awaiting authenticated viewport UAT | AP Aging, Cash Flow Forecast, Outlet Daily, and Stock Count loading boundaries no longer render independent skeleton bands or centered spinner layouts. |
+
+## v8.64.98 supplier UOM receiving conversion
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Purchase UOM and inventory base UOM are distinct | implemented / awaiting authenticated UAT | Supplier-item mappings already persist `purchase_uom` and `conversion_to_base_uom`; PR/PO continue to require the supplier purchase UOM, while Goods Receiving now presents the Item Master base UOM for operator entry and converts the submitted quantity back to the PO UOM for traceability. The atomic GRN posting path then converts the supplier quantity into base-unit inventory and divides unit cost by the same factor. Local evidence: `npm test` 818/818, typecheck, lint, and production build passed; browser/UAT is still pending. |
+| Missing CTN/BAG/TUB supplier terms are actionable | implemented / data or migration blocked until factor is supplied | PR readiness and line recovery now explain that a supplier item must be updated with the requested purchase UOM and an authoritative conversion to the Item Master base UOM; no packaging factor is invented. The current CHYI NING rows in the repository seed only prove KG terms, so CTN/BAG/TUB remain data blockers until the real supplier conversion is entered. |
+| Receiving without a supplier-to-base conversion | fail-closed / awaiting authenticated UAT | Receiving shows the missing conversion beside the affected line and disables base-unit entry. The server-side posting RPC retains its existing explicit `Supplier UOM conversion is missing` failure. |
+
+## v8.64.97 supplier identity relationship consolidation
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Duplicate suppliers with existing item relationships | implemented / awaiting linked migration and Production data verification | Migration 181 repoints supplier-item, branch mapping, item, request, PO, GRN, return, invoice, and external-reference relationships to one active canonical supplier, archives conflicts recoverably, and records each relationship change. This is not Production-verified until linked migration status and authenticated supplier/item queries confirm one operational identity. |
+| Supplier Items search by Item Group / AutoCount code | implemented / awaiting deployed viewport UAT | The server-side search projection now includes `supplier_group` and `supplier_code`; `400-C005` and `CHYINING` are searchable without changing the visible operator-facing Item Group convention. |
+
+## v8.64.96 active supplier identity view
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Duplicate suppliers visible after merge | implemented / awaiting deployed viewport UAT | Migration 173 left one active canonical supplier and retained inactive historical rows for recovery. The Supplier register now defaults to Active and keeps All statuses as an explicit option, so operators see one usable identity while audit history remains available. |
+
+## v8.64.95 structured brand migration compatibility repair
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Migration 176 Items workspace brand patch | implemented / awaiting linked migration retry and Production UAT | Remote push applied migrations 173–175, then migration 176 stopped because the `get_items_workspace` patch expected CRLF-specific function text. The repair uses a whitespace-tolerant SQL-shape patch and leaves the existing function guard in place. Local migration replay and full static gates must pass before the user retries `db push`; no Production claim is made yet. |
+
+## v8.64.94 supplier merge mapping guard repair
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Migration 173 duplicate supplier consolidation | implemented / awaiting linked migration and Production data verification | The first linked push attempt stopped because a bulk PR-line supplier update violated the branch/item mapping trigger (`A selected supplier is not mapped to this purchase request branch and item.`). The repair keeps the guard enabled, repoints only canonical mappings that match branch, item, and supplier UOM, and clears unresolved supplier references with `supplier_merge_line_audit` plus a visible repair remark. Local disposable `db reset` completed through migration 181; linked migration status and Production rows are not yet verified. |
+
+Do not mark this gate Production-verified from source, local reset, or the failed push. After the repaired migration is pushed, confirm linked migrations 173–180, then inspect audit rows and affected PR lines before retrying AutoCount Confirm.
+
+## v8.64.93 supplier identity and filter apply repair
+
+| Annotation | Status | Evidence / action |
+|---|---|---|
+| Supplier Items `BWYHOLDI00003` opened as QUIK instead of BWY Holdings | implemented / awaiting linked migration and Production UAT | Local seed audit found three active supplier-item rows for the same item/code: BWY placeholder, BWY Holdings creditor `406-B003`, and Quik `400-Q001`. Migration 180 keeps the recoverable canonical BWY Holdings relationship, retires the placeholder and exact Quik collision, and moves branch mappings before soft-archiving. Linked migration application remains unverified. |
+| Reset geometry and filter re-application | implemented / awaiting authenticated viewport UAT | Shared `MasterDataFilters` now keeps Search as the primary action and adds a same-height secondary Reset action when filters are active. The shared header reserves command tracks for both actions so selecting another filter no longer requires resetting first. |
+
+Batch evidence: `npm test` 813/813, typecheck, lint, production build, and the full local authenticated annotation rerun (18/18 across current, historical, reopened, and four viewport scenarios) passed. The new Supplier Items/Items browser comments were not called Production-verified: the public preview route still returned the Vercel login wall to direct verification, and `supabase migration list --linked` remained blocked by `LegacyDbConfigLoginRoleNetworkError` after the CLI login claim.
+
+## v8.64.92 annotation rerun evidence refresh
+
+All 18 current, historical, and reopened local authenticated browser scenarios reran after migration 179 with zero failures. This confirms local regression only; linked migration and Production deployment remain separate.
+
+## v8.64.91 bounded inventory read repair
+
+The local Purchasing mutation workflow posted a supplier return, but its Movement Ledger verification initially hit the fail-closed unavailable state because the bounded read RPC spent roughly 56 seconds in repeated authenticated RLS checks. Migration 179 changes only the bounded read function execution mode to `SECURITY DEFINER`; explicit `can_access_inventory_branch()` authorization remains inside the function. After local application, the same authenticated read returned the exact `ST-PRT/AUG26/004-4798` row in 58ms; this is local evidence only, not Production evidence.
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Purchasing Movement Ledger after supplier return | verified locally / linked migration and Production UAT pending | Local migration 179 applied; authenticated Purchasing RPC returned one exact return row in 58ms and the mutation suite passed. The linked project still cannot be read through the Management API, so no remote or Production claim is made. |
+
+The post-179 local authenticated annotation rerun completed all 18 current/historical/reopened browser scenarios with zero failures. This refreshes local evidence only; the observed Production artifact and linked migration state remain separate gates.
+
+## v8.64.90 workflow mutation gate repair
+
+The local authenticated mutation gate was corrected to exercise the visible reject trigger before filling its modal reason, to match the rendered return movement label case-insensitively, and to assert the exact changed stock-count item rather than unrelated variance lines in the same disposable count. This is test-evidence repair only; linked migration and Production UAT remain separate gates.
+
 This is an evidence ledger, not a completion claim. A build, source inspection, or unauthenticated route load does not prove a responsive or role workflow is accepted.
 
 Status vocabulary:
@@ -9,6 +162,56 @@ Status vocabulary:
 - `not verified`: no current evidence sufficient for acceptance.
 - `blocked`: a named dependency prevents verification.
 
+## v8.64.83 historical scope reconciliation
+
+The historical annotation scope is intentionally cumulative. No earlier screenshot batch is dropped when a newer batch is added:
+
+| Historical scope | Coverage retained | Current evidence boundary |
+|---|---|---|
+| 17-comment group | Shared list/filter/table density, Dashboard hierarchy and colors, PR creation/sourcing/actions, reject-dialog ordering, Outlet export/layout/table. Covered by `latest-annotation-polish-contract.test.js`, `round2-priority-annotations-contract.test.js`, the four-viewport register audit, and the reopened browser suite. | Local source/viewport evidence is retained; valid PR submission, full Outlet export mutation, role transitions, and Production UAT are not claimed. |
+| 34-comment group | Outlet chart/top bar/actions, Branch/table, AP Aging/PO/Recipe alignment, PR/Stock Balance/Supplier Items tables, role/login/right-rail issues. Covered by `historical-annotation-closure-contract.test.js`, `latest-annotation-polish-contract.test.js`, and the four-viewport register matrix. | Local geometry and contracts are retained; end-to-end maintenance, role workflow, and Production data evidence remain awaiting or blocked. |
+| 13-comment group (2026-08-20) | Dashboard unread badge, Imports rounding, AutoCount right rail, PR comments/dialog/Qty-UOM/supplier mapping, backdrop, 36px controls, PO chevron, PR section language. Covered by `annotation-v8-64-66-uat.spec.js`, `reopened-annotation-uat.spec.js`, and rows `UI-0820-01` through `UI-0820-13`. | Local authenticated evidence is retained for the exercised cases; Production deployment is still observed at v8.64.68 and cannot be called verified. |
+| Reopened defects | Dashboard duplicate queue, Outlet chart/rail, Staff register, PR inline validation. Covered by `reopened-annotation-uat.spec.js` and rows `UI-0819-R1` through `UI-0819-R4`. | Local authenticated checks are retained; Production recheck remains pending. |
+
+The v8.64.79 local authenticated run completed all 18 historical/current browser scenarios before this reconciliation. This updates stale wording below from “browser proof pending” to “verified locally / Production UAT pending” where the same evidence applies; it does not convert any local result into Production proof.
+
+## v8.64.84 supplier mapping fail-closed batch
+
+| Gate | Status | Evidence |
+|---|---|---|
+| AutoCount source rows without creditor identity | implemented / awaiting authenticated Preview UAT | Read-only analysis of the supplied 729-row Item List found 101 blank `Main Supplier` cells; six groups (`CHINA`, `FINISHED`, `FROMPNG`, `KWANKEE`, `OLDSUPP`, `PAHANG`) have no creditor reference anywhere, covering 86 rows. Of the 403 unique item codes present in the two Central Kitchen workbooks, 19 have a blank Main Supplier in the Item List. The analyzer now blocks each affected item row with a `missing_supplier_reference` issue and an exact repair action; it no longer treats Item Group as an internal supplier code. Existing groups with an authoritative creditor reference continue through staging. |
+
+## v8.64.85 AutoCount Confirm identity guard
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Direct/older ready jobs cannot bypass supplier identity validation | implemented / awaiting linked migration application and authenticated Confirm UAT | Migration 177 patches the atomic `apply_autocount_import_job` boundary to reject staged supplier rows whose `external_refs` array is empty, using a recoverable validation error. The source contract passes locally; linked migration application and a real authenticated Confirm remain unverified. |
+
+## v8.64.86 role workflow evidence batch
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Six scoped role workspaces | verified locally / Production UAT pending | Disposable authenticated Playwright checks passed for Super Admin, Finance, Manager, Purchasing, Kitchen, and Outlet (8 non-destructive scenarios). Each role retained one responsive workdesk and safe destinations. Production role UAT is not claimed. |
+| Manager approval mutation, manager reject mutation, and purchase-return/stock-count posting mutations | mixed: approval fixture awaiting; reject/return/count verified locally / Production UAT pending | With the explicitly enabled disposable local fixture, Manager reject, Purchasing purchase return, and Kitchen stock-count posting each passed after the visible modal/read-path repairs. Manager approval still lacks a named disposable fixture. No Production mutation is claimed. |
+
+## v8.64.87 Stock Balance reliability batch
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Stock Balance item-image hydration stays usable with many rows | verified locally / Production UAT pending | A local authenticated dynamic workflow surfaced an optional `URI too long` image query warning. The shared inventory query now reads image IDs in bounded batches of 100 and keeps the image read optional; the targeted contract passes. The dynamic workflow layout still passed at phone/tablet/desktop, while Production regression remains pending. |
+
+## v8.64.88 AutoCount mapping identity batch
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Branch mappings retain internal creditor code and display Item Group separately | implemented / awaiting linked migration and authenticated Preview UAT | The parser previously copied Item Group into `branch_mapping.normalized.supplier_code`; it now uses each item row's authoritative Main Supplier code and stores Item Group only in `supplier_group`. Missing per-item Main Supplier values create blocking, row-specific repair issues even when a sibling item in the same group has a creditor reference. Contract coverage passes 16/16. Linked Production migration/data and real Preview remain unverified. |
+
+## v8.64.89 supplier-UOM return mutation batch
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Purchase Return supplier-UOM posting reaches the conversion path | verified locally / linked migration and Production workflow UAT pending | The local mutation gate reproduced PostgreSQL `column reference "po_line.id" is ambiguous` in `post_purchase_return_atomic`. Migration 178 adds an idempotent forward patch that renames only the SQL JOIN alias to `pol`; local migration 178 applied and the authenticated Purchasing return mutation passed. No linked Production claim is made. |
+
 ## Historical screenshot groups reconciled — v8.64.67
 
 ### v8.64.74 current evidence reconciliation batch
@@ -16,6 +219,55 @@ Status vocabulary:
 | ID | Acceptance | Status | Evidence |
 |---|---|---|---|
 | UI-0821-13 | Stock-take PDF item-code coverage and brand/name evidence are recorded without treating local seed data as Production tally. | data reconciliation prepared / Production read blocked | Known-prefix extraction records 133 codes in the August PDF (128 local-seed matches, 5 local-seed gaps) and 127 codes in the PJS10 PDF (127 local-seed matches). Brand-like tokens remain in source descriptions; no structured brand mutation was performed. |
+
+### v8.64.75 current brand visibility batch
+
+| ID | Acceptance | Status | Evidence |
+|---|---|---|---|
+| UI-0821-14 | Kitchen users can see an item brand without relying on ambiguous AutoCount codes, and imports never guess a brand from a description. | implemented / awaiting linked migration and authenticated UAT | Migration 176 adds nullable `items.brand_name`, updates Item Master/detail/list/picker/search, and carries the field through operational item creation and AutoCount Confirm. The parser accepts only explicit `Brand`, `Brand Name`, or `品牌` headers; no description heuristic is present. Local migration execution and rollback-only Item/AutoCount RPC fixtures now pass. Existing rows remain blank until authoritative source data or an authorized edit supplies a value. Linked migration application, real import preview/confirm with a Brand column, and four-viewport kitchen UAT remain pending. |
+
+### v8.64.77 migration validation reconciliation
+
+| ID | Acceptance | Status | Evidence |
+|---|---|---|---|
+| UI-0821-16 | The prior tablet 44px choice is superseded by the later global 36px visual-height requirement. | superseded by UI-0821-15 | v8.64.76 applies the shared 36px visual rhythm to tablet/desktop query controls and right-rail actions; phone touch-safe controls remain larger. The stale v8.64.71 wording is retained only as history. |
+
+### v8.64.78 supplier UOM runtime reconciliation
+
+| ID | Acceptance | Status | Evidence |
+|---|---|---|---|
+| UI-0821-09 | PR/PO/GRN keeps supplier purchase UOM visible while inventory posting uses the item base/KG unit. | implemented / awaiting linked migration and authenticated workflow UAT | Corrected migration 175 declares the purchase-order line row used by return conversion. A rollback-only local PO → GRN fixture posted 2 CTN × 12 = 24 KG at RM10 per KG (RM240 total) and rolled back all rows. Linked migration application, authenticated PR/PO/GRN/return workflow, and Production verification remain pending. |
+| UI-0821-12 | Supplier UOM and internal base-unit cost semantics are explicit and fail closed when conversion is missing. | implemented / awaiting linked migration and authenticated workflow UAT | Local contract test plus the same rollback-only posting fixture prove conversion and cost normalization; no data was changed. Production migration/UAT are not claimed. |
+
+### v8.64.79 authenticated UAT fixture reconciliation
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Local authenticated annotation browser suites | verified locally / Production UAT pending | The disposable super-admin password contains a literal trailing `#`; the previous parser truncated it as a comment and caused `Invalid login credentials`. The parser now treats only whitespace-prefixed `#` as a comment marker, matching the other test parsers. After the fix, the 9 v8.64.66/67 annotation scenarios and 9 historical/reopened annotation scenarios each completed with exit code 0. This restores trustworthy local UAT setup but is not Production authentication evidence. |
+
+### v8.64.80 Production deployment audit
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Observed Production artifact | blocked / not deployed to observed host | Read-only `https://system.seribako.com.my/login` HTML includes footer `v8.64.68`, while the authorized branch remote is `4e924244` (v8.64.79). Vercel connector access returns project `404` and an empty project list for the configured team, so no deployment or post-deploy authenticated UAT is claimed. |
+
+### v8.64.81 supplier mapping data audit
+
+| Gate | Status | Evidence |
+|---|---|---|
+| All item and supplier mappings | data blocked / Production read pending | Read-only local mirror audit: 323 active items, 38 without an active supplier-item record; 425 active supplier-item records, 233 without an active branch mapping; 193 are mapped across CK-ALMA and CK-PJS10. Live normalized supplier-name duplicates are 0 after the recoverable merge contract. No mapping was fabricated because the intended supplier/branch cannot be proven from the source mirror. |
+
+### v8.64.82 Central Kitchen tally evidence
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Latest two Central Kitchen stock takes reconcile to OMS | data/Production read blocked | Read-only local mirror query found no 2026-08-19 Stock Count for CK-ALMA or CK-PJS10. Latest posted rows are `SC/AUG26/012` CK-ALMA on 2026-08-17 (147 lines) and `SC/AUG26/007` CK-PJS10 on 2026-08-06 (116 lines); inventory movements likewise stop at 2026-08-16 and 2026-08-06. The PDF values and names remain evidence inputs, not proof of OMS tally. |
+
+### v8.64.76 current control rhythm batch
+
+| ID | Acceptance | Status | Evidence |
+|---|---|---|---|
+| UI-0821-15 | Button, filter, textbox, and right-rail action visuals use one 36px height across tablet and desktop while phone touch controls remain accessible. | verified locally / Production UAT pending | Shared design-system authority applies 36px to tablet/desktop query controls and right-rail actions; phone controls retain 44px/48px touch-safe rules. The 18-scenario authenticated local annotation run exercised the four required viewports for the relevant surfaces. Production route-wide UAT remains pending. |
 
 ### v8.64.73 current workflow closure batch
 
@@ -40,7 +292,7 @@ Status vocabulary:
 | UI-0821-04 | Supplier duplicates use one canonical identity; AutoCount code is internal and Item Group is the visible label. | data-or-migration blocked | Import staging now separates `supplier_code` (AutoCount code) and `supplier_group` (Item Group). Migration 174 adds/backfills the column and keeps merge 173 recoverable. Linked migration application and Production row verification remain blocked by Supabase Management API login-role transport failure. |
 | UI-0821-05 | PR list filter grammar is shared and balanced; Production Jobs has inward tablet gutters. | implemented / awaiting Production viewport UAT | PR list adopts the shared balanced filter authority; Production Jobs changes from full to contained tablet canvas. |
 | UI-0821-06 | Stock Count portrait tablet search occupies its own row before filters/actions. | implemented / awaiting 820×1180 authenticated UAT | Shared filter class adds a portrait-query rule; no route-specific control markup was added. |
-| UI-0821-07 | Desktop controls are 36px; tablet choice remains explicit. | implemented / awaiting Production viewport UAT; tablet decision awaiting user | Desktop (>=1280px) shared token is 36px. Tablet remains 44px touch-first for now. Recommendation: 36px visual control with a separate >=44px hit area is the mature ERP/accessibility compromise; apply after user accepts. |
+| UI-0821-07 | Desktop controls are 36px; tablet choice remains explicit. | superseded by UI-0821-15 | This historical wording was replaced by the later global requirement for a 36px visual rhythm across tablet and desktop; see UI-0821-15 and v8.64.77 reconciliation. |
 | UI-0821-08 | Latest two Central Kitchen stock-take PDFs reconcile to OMS and naming includes kitchen brand visibility. | blocked by linked read-only Production data | Read-only extraction found 5 pages / 158 extracted lines in `AUGUST - Copy of 1608.pdf` and 5 pages / 132 extracted lines in `STOCK TAKE PJS10 CK - 19 Aug（副本）.pdf`. A known-prefix parser found 133 item codes in the first (128 present in the local seed mirror; missing `CHYINING00045`, `CHYINING00048`, `CHYINING00056`, `CHYINING00057`, `CHYINING00061`) and 127 in the second (127 present in the local seed mirror). Names visibly carry brand tokens such as CAP SAUH, BABAS, CHEK HUP, PENANG ANCHOR, and BRUGGEMAN, but the current Item Master has no structured brand field. This session lacks a valid authenticated Production tally query after the Supabase login-role transport failure, so no count, rename, or brand mapping was fabricated. |
 | UI-0821-09 | PR supplier UOM follows supplier purchase UOM while internal calculations remain base/KG. | implemented in data contract / awaiting workflow UAT | Existing `supplier_items.purchase_uom` and `conversion_to_base_uom` remain the purchase-facing route; Stock Count/inventory ledger stays base-unit authoritative. UI now explains incompatible supplier UOM instead of silently treating it as a mapping. Controlled PO/GRN conversion workflow still needs authenticated fixture verification. |
 
@@ -102,7 +354,7 @@ These rows reconcile the 13 comments captured from `system.seribako.com.my` on 2
 | UI-0820-08 | Guided PR review offers real supplier choices, not only `Needs supplier setup`. | verified locally / production awaiting UAT | Authenticated cloud-data mirror check confirmed the real supplier catalogue is non-empty and the selector contains options beyond `Needs supplier setup`. Production data recheck pending. |
 | UI-0820-09 | Guided PR review dialog uses a complete large working area. | verified locally at desktop and portrait tablet / phone and landscape tablet awaiting UAT | Authenticated checks confirmed width >900px at 1440×900 and >700px at 820×1180, bounded inside the viewport with the final Apply action visible. |
 | UI-0820-10 | All dialog/filter backdrops use a black translucent overlay, not green. | verified for guided PR and Filter More samples / production awaiting UAT | Native guided dialog computed backdrop is `rgba(0, 0, 0, 0.6)` at 820×1180 and 1440×900; shared Filter More overlay sampling also passed. Remaining uncommon dialogs are not claimed page-by-page. |
-| UI-0820-11 | Buttons, filters, and textboxes use a shared 36px visual height on tablet/desktop while phone stays touch-first. | verified for PR/PO sample / wider route UAT incomplete | Authenticated PR/PO checks passed at 390×844 (48px) and 820×1180, 1180×820, 1440×900 (36px), without page overflow. Full route sampling remains open. |
+| UI-0820-11 | Buttons, filters, and textboxes use a shared 36px visual height on tablet/desktop while phone stays touch-first. | verified locally for exercised routes / Production UAT pending | Authenticated PR/PO and historical register checks passed at 390×844 (48px) and 820×1180, 1180×820, 1440×900 (36px), without page overflow. Unexercised routes and Production remain open. |
 | UI-0820-12 | PO new has no unexplained 44px chevron/disclosure control. | verified locally / production awaiting UAT | Authenticated PO-new checks at all four required viewports found no disclosure/chevron control and no page overflow. |
 | UI-0820-13 | PR new Request details and Requested Items use one section/header language. | verified locally / production awaiting UAT | Authenticated PR-new checks at all four required viewports confirmed matching computed header backgrounds and stable control geometry. |
 

@@ -39,6 +39,10 @@ export function ItemForm({ item, suppliers, action, formId, showSubmit = true, c
           <Field label="Item Name" required>
             <Input name="item_name" defaultValue={item?.item_name ?? ""} required />
           </Field>
+          <Field label="Brand">
+            <Input name="brand_name" defaultValue={item?.brand_name ?? ""} placeholder="Optional authoritative brand" />
+            <p className="mt-1 text-xs text-muted-foreground">Only use a brand supplied by an authoritative source file.</p>
+          </Field>
           <Field label="Category" required>
             <Input name="category" defaultValue={item?.category ?? ""} placeholder="Flour, Dairy, Packaging" required />
           </Field>

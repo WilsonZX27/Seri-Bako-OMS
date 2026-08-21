@@ -87,7 +87,7 @@ export default async function ProcurementPage() {
               metrics={counters.map((counter) => ({
                 label: counter.label,
                 value: displayCounterValue(counter.value),
-                tone: counter.value !== null && counter.value > 0 && counter.label !== "Receiving today" && counter.label !== "Sent purchase orders" ? "warning" : "default",
+                tone: "default",
               }))}
               queueTitle="My work queue"
               queueDescription="Role-specific document states that may need action today."
@@ -99,7 +99,7 @@ export default async function ProcurementPage() {
                   description: presentation.description,
                   value: displayCounterValue(counter.value),
                   icon: presentation.icon,
-                  tone: counter.value !== null && counter.value > 0 && counter.label !== "Receiving today" && counter.label !== "Sent purchase orders" ? "warning" : "default",
+                  tone: "default",
                 };
               })}
               toolsTitle="Procurement tools"

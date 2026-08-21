@@ -38,9 +38,8 @@ test("mobile shell and loading states avoid warm bands, layout shifts, and dupli
   assert.match(layout, /themeColor: "#ffffff"/);
   assert.match(globals, /--background: 150 12% 94%/);
   assert.doesNotMatch(outlet, /Posted · editable/);
-  assert.match(stockLoading, /LoaderCircle/);
-  assert.match(stockLoading, /animate-spin/);
-  assert.doesNotMatch(stockLoading, /animate-pulse/);
+  assert.match(stockLoading, /PageLoadingState/);
+  assert.match(stockLoading, /Preparing the count workspace/);
 });
 
 test("supplier item results keep a raised table surface, ten-pixel headers, and semantic column widths", () => {
@@ -110,7 +109,7 @@ test("current annotation batch keeps shared explanation and responsive filter ow
   assert.doesNotMatch(detail, /readiness\.issue\? <div className="mt-1"><p className="break-words text-\[12px\] font-medium text-\[var\(--sb-warning\)\]/);
   assert.match(form, /Supplier mapping required/);
   assert.match(form, /No active supplier route uses/);
-  assert.match(production, /tabletCanvas="contained"/);
+  assert.match(production, /tabletCanvas="full"/);
   assert.match(stockCounts, /sb-list-filters--portrait-query/);
   assert.match(design, /sb-list-filters--portrait-query\[data-tablet-query-layout="query"\]/);
   assert.match(design, /--sb-control-height: 2\.25rem/);

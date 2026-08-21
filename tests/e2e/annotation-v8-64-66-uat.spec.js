@@ -1,5 +1,6 @@
 const { test, expect } = require("@playwright/test");
 const { hasAccount, login } = require("./helpers");
+const GUIDED_REVIEW_PR_ID = "e2000000-0000-4000-8000-000000000001";
 
 async function expectNoPageOverflow(page) {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -65,16 +66,19 @@ for (const viewport of [
 
     await page.goto("/purchase-orders/new", { waitUntil: "domcontentloaded" });
     await expect(page.locator("section[data-purchase-order-form-surface]")).toBeVisible({ timeout: 30_000 });
-    await expect(page.getByRole("button", { name: /collapse order details|expand order details/i })).toHaveCount(0);
+    const orderDisclosure = page.getByRole("button", { name: /collapse order details|expand order details/i });
+    await expect(orderDisclosure).toBeVisible();
+    await orderDisclosure.click();
+    await expect(orderDisclosure).toHaveAccessibleName(/expand order details/i);
     await expectNoPageOverflow(page);
   });
 }
 
 test("v8.64.66 guided PR review uses a large dialog, black backdrop, combined quantity/UOM, and real supplier options", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/purchase-requests/61be95af-707f-40fc-8022-644a8b98fd00", { waitUntil: "domcontentloaded" });
+  await page.goto(`/purchase-requests/${GUIDED_REVIEW_PR_ID}`, { waitUntil: "domcontentloaded" });
   const review = page.getByRole("button", { name: /^Review / }).first();
-  await expect(review).toBeVisible({ timeout: 30_000 });
+  await expect(review, "Run setup-local-dashboard-e2e.mjs --annotation-fixture before this suite.").toBeVisible({ timeout: 30_000 });
   await review.click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
@@ -90,9 +94,9 @@ test("v8.64.66 guided PR review uses a large dialog, black backdrop, combined qu
 
 test("v8.64.67 portrait PR rail exposes the complete Comments panel", async ({ page }) => {
   await page.setViewportSize({ width: 820, height: 1180 });
-  await page.goto("/purchase-requests/61be95af-707f-40fc-8022-644a8b98fd00", { waitUntil: "domcontentloaded" });
+  await page.goto(`/purchase-requests/${GUIDED_REVIEW_PR_ID}`, { waitUntil: "domcontentloaded" });
   const commentsHeading = page.getByRole("heading", { name: "Comments", exact: true });
-  await expect(commentsHeading).toBeVisible({ timeout: 30_000 });
+  await expect(commentsHeading, "Run setup-local-dashboard-e2e.mjs --annotation-fixture before this suite.").toBeVisible({ timeout: 30_000 });
   const section = commentsHeading.locator("xpath=ancestor::*[@data-console-section][1]");
   await section.locator('textarea[name="comment_text"]').scrollIntoViewIfNeeded();
   await expect(section.locator('textarea[name="comment_text"]')).toBeVisible();
@@ -104,9 +108,9 @@ test("v8.64.67 portrait PR rail exposes the complete Comments panel", async ({ p
 
 test("v8.64.67 portrait PR review dialog stays operable with a black backdrop", async ({ page }) => {
   await page.setViewportSize({ width: 820, height: 1180 });
-  await page.goto("/purchase-requests/61be95af-707f-40fc-8022-644a8b98fd00", { waitUntil: "domcontentloaded" });
+  await page.goto(`/purchase-requests/${GUIDED_REVIEW_PR_ID}`, { waitUntil: "domcontentloaded" });
   const review = page.getByRole("button", { name: /^Review / }).first();
-  await expect(review).toBeVisible({ timeout: 30_000 });
+  await expect(review, "Run setup-local-dashboard-e2e.mjs --annotation-fixture before this suite.").toBeVisible({ timeout: 30_000 });
   await review.click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();

@@ -10,6 +10,7 @@ import {
   mockSuppliers,
 } from "@/lib/mock-mode";
 import { todayInKualaLumpur } from "@/lib/business-date";
+import { normalizeUom } from "@/lib/uom";
 import { createClient } from "@/lib/supabase/server";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
 import type { Database } from "@/types/database";
@@ -42,6 +43,7 @@ export type EligiblePurchaseOrder = PurchaseOrder & {
 
 export type PurchaseOrderReceivingLine = PurchaseOrderLine & {
   item?: Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "item_image_url">;
+  conversion_to_base_uom: number | null;
   previously_received_qty: number;
   pending_qty: number;
 };
@@ -85,6 +87,7 @@ function toReceivingLine(line: PurchaseOrderLine): PurchaseOrderReceivingLine {
   return {
     ...line,
     item,
+    conversion_to_base_uom: item && normalizeUom(item.base_unit) === normalizeUom(line.uom) ? Number(item.conversion_to_base_unit ?? 1) : null,
     previously_received_qty: line.qty_received,
     pending_qty: Math.max(line.qty_ordered - line.qty_received - line.qty_cancelled, 0),
   };
@@ -301,21 +304,28 @@ export async function getPurchaseOrderForReceiving(id: string) {
   if (linesError) throw new Error(linesError.message);
   if (!order || !lines) throw new Error("Purchase order for receiving returned no data.");
   const itemIds = [...new Set(lines.map((line) => line.item_id))];
-  const [{ data: items, error: itemsError }, { data: supplier, error: supplierError }] = await Promise.all([
+  const [{ data: items, error: itemsError }, { data: supplier, error: supplierError }, { data: supplierItems, error: supplierItemsError }] = await Promise.all([
     itemIds.length
       ? supabase.from("items").select("id, item_code, item_name, base_unit, item_image_url").in("id", itemIds)
       : Promise.resolve({ data: [], error: null }),
     supabase.from("suppliers").select("id, name").eq("id", order.supplier_id).maybeSingle(),
+    itemIds.length
+      ? supabase.from("supplier_items").select("item_id, purchase_uom, conversion_to_base_uom").eq("supplier_id", order.supplier_id).in("item_id", itemIds).eq("status", "active").is("deleted_at", null)
+      : Promise.resolve({ data: [], error: null }),
   ]);
   if (itemsError) throw new Error(itemsError.message);
   if (supplierError) throw new Error(supplierError.message);
+  if (supplierItemsError) throw new Error(supplierItemsError.message);
   if ((itemIds.length > 0 && !items) || !supplier) throw new Error("Purchase order receiving related data returned no data.");
   const itemById = new Map(items.map((row) => [row.id, row]));
+  const supplierItemByItemId = new Map((supplierItems ?? []).map((row) => [`${row.item_id}|${normalizeUom(row.purchase_uom)}`, row]));
   return {
     order: { ...(order as PurchaseOrder), supplier_name: supplier?.name ?? null },
     lines: (lines as PurchaseOrderLine[]).map((line) => ({
       ...line,
       item: itemById.get(line.item_id),
+      conversion_to_base_uom: supplierItemByItemId.get(`${line.item_id}|${normalizeUom(line.uom)}`)?.conversion_to_base_uom
+        ?? (normalizeUom(itemById.get(line.item_id)?.base_unit) === normalizeUom(line.uom) ? 1 : null),
       previously_received_qty: line.qty_received,
       pending_qty: Math.max(line.qty_ordered - line.qty_received - line.qty_cancelled, 0),
     })),

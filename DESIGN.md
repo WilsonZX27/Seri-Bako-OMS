@@ -1,11 +1,155 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.108 (unreleased) - Portrait-tablet alignment and filter density
+
+Invisible form metadata must carry the HTML `hidden` attribute, and forms containing it use rendered-box grid gaps so spacing applies only between visible surfaces. Dense list filters on portrait tablets use two intentional rows rather than shrinking every control into one strip: the primary query and command remain the first row, with contextual filters grouped beneath at equal, readable widths.
+
+## v8.64.107 (unreleased) - Workflow stages and software keyboard
+
+Workflow color improves scanning but never replaces the status label: Manager is muted purple, Purchasing blue, Finance restrained gold, Ready to Convert teal, rejected red, and goods-receiving wait states brown. These tones are stage identities rather than warning severity. Fixed bottom navigation belongs to the physical device edge; when the visual viewport shrinks for a software keyboard, the bar translates behind the keyboard instead of rising above it and reducing the editing canvas.
+
+## v8.64.106 (unreleased) - Final local annotation surface closure
+
+Master-data helper copy must not break the programmatic relationship between a visible field label and its control. Responsive action hierarchy is evaluated on the currently visible rail, sheet, or console rather than hidden responsive duplicates. Inventory movement charts reserve brand green for inbound activity and neutral gray for outbound activity; ordinary Procurement counts remain neutral unless they communicate an actionable warning.
+
+## v8.64.105 (unreleased) - Natural PR register order
+
+Operator-facing document registers sort numeric runs by human expectation before pagination. Default ordering puts the newest PR number first; reversing the Request column produces the exact inverse order without changing the mobile information hierarchy or introducing a second sorting convention.
+
+## v8.64.104 (unreleased) - Sourcing boundary interaction closure
+
+Searchable catalogues use one keyboard model: visible focus, Arrow navigation, Enter selection, Escape dismissal, and stable option identity. Supplier-scoped suggestions show supplier and Purchase/Base UOM at the decision point. Context changes explain cleared rows; rejected documents put correction guidance in the primary reading flow. Missing or undefined ratios use explicit unavailable states and never borrow the visual language of a real zero.
+
+## v8.64.103 (unreleased) - Annotation UAT fixture closure
+
+Responsive acceptance uses explicit localhost-only content states instead of silently skipping empty fixtures. Guided review dialogs, portrait activity rails, conditional wastage controls, and tablet trend charts must render with realistic data while retaining the established four-viewport geometry and role permissions. Fixture content is evidence scaffolding only; it never becomes a Production design or data claim.
+
+## v8.64.102 (unreleased) - Annotation closure round
+
+Lists use one Search/Reset command position, compact count wrapping, icon-assisted mobile metadata, and stable action gutters. Document headers show one document identity; summaries prioritize who, where, how many, when, and value. Neutral information uses brand green or gray, while warning and danger remain reserved for actionable caution and blocking/destructive states. Disclosure controls reduce form density without concealing required errors. These rules refine the OMS design system rather than imitate macOS chrome.
+
+## v8.64.101 (unreleased) - Visible PR Rejection Reason
+
+Rejected PRs use an inline danger-state notice in the main document workspace, showing the reason, actor, and timestamp before the correction workflow. The right-rail Document Timeline remains the detailed audit surface.
+
+## v8.64.100 (unreleased) - Canonical UOM Selection
+
+UOM controls use canonical display values and alphabetically ordered controlled selection. Legacy `BTL` is treated as `BOTTLE`, while `GUNI` is a first-class option. PR review repair derives choices from the Item Master and active supplier terms so a new alias cannot be typed into the workflow.
+
+## v8.64.99 (unreleased) - Unified Page Loading
+
+Route loading boundaries share the same compact progress-line and spinner geometry through `PageLoadingState`. Page-specific labels preserve context without changing placement, scale, or motion between Dashboard, operational lists, and finance reports.
+
+## v8.64.98 (unreleased) - Supplier UOM Receiving Conversion
+
+Receiving lines present the company base UOM as the operator input while retaining the PO supplier UOM in the document and hidden submission payload. The conversion is visible beside each line, with an explicit blocked state when supplier-to-base terms are missing.
+
+## v8.64.97 (unreleased) - Supplier Identity Relationship Consolidation
+
+Supplier Items exposes both the operator-facing Item Group and internal AutoCount code as searchable identity context. Duplicate supplier rows are consolidated in data first; the UI does not pretend that a display filter alone is a merge.
+
+## v8.64.96 (unreleased) - Active Supplier Identity View
+
+Supplier master data opens on active operational identities. Historical inactive rows are discoverable through an explicit status choice rather than competing with the current supplier list.
+
+## v8.64.95 (unreleased) - Structured Brand Migration Compatibility Repair
+
+Brand visibility keeps the existing Items workspace contract; the migration repair changes only how the existing RPC definition is located and patched, preserving the established search and table presentation.
+
+## v8.64.94 (unreleased) - Supplier Merge Mapping Guard Repair
+
+Supplier merge failures are presented as recoverable mapping work, not hidden data mutation: valid lines keep the canonical supplier, while unresolved lines retain a visible repair remark and audit record. No UI state claims linked or Production verification.
+
+## v8.64.93 (unreleased) - Supplier Identity And Filter Apply Repair
+
+Supplier-item tables now show one canonical supplier identity after a recoverable merge, while shared list commands keep Search and Reset aligned at the same compact height. Selecting a different filter can be applied directly; no reset-only interaction is required.
+
+## v8.64.92 (unreleased) - Annotation Rerun Evidence Refresh
+
+The shared annotation surfaces retain the v8.64.91 interaction/read-path fixes after a complete local authenticated rerun; no per-page CSS exceptions were introduced.
+
+## v8.64.91 (unreleased) - Bounded Inventory Read RLS Repair
+
+Movement Ledger retains its explicit tenant/branch authorization contract while the bounded read avoids duplicate policy evaluation that made valid role reads appear unavailable.
+
+## v8.64.90 (unreleased) - Workflow Mutation Gate Repair
+
+Mutation evidence selectors follow the established dialog interaction pattern and target the exact inventory row, avoiding false failures from pre-existing fixture variances.
+
+## v8.64.89 (unreleased) - Supplier UOM Return Alias Repair
+
+Supplier-UOM return posting retains the existing supplier-facing quantity and base-unit accounting semantics; migration 178 only disambiguates the SQL alias used by the conversion lookup.
+
+## v8.64.88 (unreleased) - AutoCount Mapping Identity Guard
+
+AutoCount sourcing surfaces keep the internal creditor code and operator-facing Item Group as separate fields; branch mapping rows never promote a display label into an internal supplier identity.
+
+## v8.64.87 (unreleased) - Bounded Stock Balance Image Hydration
+
+Stock Balance image hydration is bounded in the server query rather than allowing one oversized request; this preserves the compact row presentation without changing inventory authority.
+
 > **Release authority:** the currently released application is `v8.64.55`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
 > `docs/DESIGN_SYSTEM.md` owns the current visual principles; this file retains
 > versioned implementation history and workspace rules.
+
+## v8.64.86 (unreleased) - Role Workflow Evidence Closure
+
+The local role workspace gate exercised the six scoped identities with one responsive workdesk and safe destinations. Non-destructive checks passed; destructive workflow checks remain opt-in and are not represented as completed evidence without a named disposable fixture.
+
+## v8.64.77 (unreleased) - Migration 176 Local SQL Validation
+
+- Migration 176's dynamic patches are newline-safe and preserve explicit brand values through both Item creation and AutoCount Confirm.
+
+## v8.64.78 (unreleased) - Supplier UOM Runtime Contract
+
+- Supplier purchase UOM remains visible on procurement documents while GRN posting converts quantity and unit cost through the supplier-item conversion into the item base unit.
+- A rollback-only local PO → GRN fixture proves 2 CTN × 12 = 24 KG and RM120 ÷ 12 = RM10 (RM240 total); the fixture is not Production evidence.
+
+## v8.64.79 (unreleased) - Authenticated Fixture Password Parsing
+
+- Local browser UAT fixtures preserve literal `#` characters in credentials and only treat a hash after whitespace as an inline comment marker.
+
+## v8.64.80 (unreleased) - Production Deployment Audit
+
+- Public Production login-page evidence currently reports footer `v8.64.68`; the pushed `v8.64.79` branch is therefore not deployed to the observed Production host.
+- Deployment remains an external gate until the authorized deployment project is reachable and a post-deploy authenticated regression is run.
+
+## v8.64.81 (unreleased) - Supplier Mapping Data Audit
+
+- The local cloud-data mirror contains 323 active items; 38 have no active supplier-item record.
+- It contains 425 active supplier-item records; 193 are mapped to CK-ALMA/CK-PJS10 and 233 have no active branch mapping. These are data gaps, not safe candidates for guessed mappings.
+
+## v8.64.82 (unreleased) - Central Kitchen Tally Evidence
+
+- The local mirror has no Stock Count dated 2026-08-19 for either Central Kitchen; the latest posted records are CK-ALMA on 2026-08-17 and CK-PJS10 on 2026-08-06.
+- PDF-to-OMS tally equality therefore remains blocked until the linked Production read is available.
+
+## v8.64.83 (unreleased) - Historical Annotation Scope Reconciliation
+
+- The 17-comment, 34-comment, and 13-comment annotation groups plus reopened defects remain cumulative design scope in the single repair ledger.
+- Local geometry/authenticated checks and source contracts are not substituted for linked migration, Production data, or Production UAT evidence.
+
+## v8.64.84 (unreleased) - Supplier Mapping Fail-Closed Validation
+
+- AutoCount Preview blocks rows whose Item Group has no authoritative Main Supplier creditor code and identifies the exact source row and repair action.
+- Item Group remains the operator-facing label; the internal supplier identity must come from an AutoCount creditor code.
+
+## v8.64.85 (unreleased) - AutoCount Confirm Identity Guard
+
+- The database Confirm boundary repeats the creditor-reference guard, so older staged jobs cannot promote a display Item Group into an internal supplier identity.
+
+## v8.64.76 (unreleased) - Cross-Viewport Control Rhythm
+
+- Shared query controls and right-rail actions use a 36px visual height from tablet through desktop.
+- Phone controls retain the larger touch-safe rhythm; no route-level tablet override may restore a 44px visual control.
+
+## v8.64.75 (unreleased) - Structured Brand Visibility
+
+- Item Master and item pickers show an optional authoritative `Brand` value.
+- AutoCount accepts Brand only from explicit `Brand`, `Brand Name`, or `品牌` columns; descriptions are never heuristically parsed.
 
 ## v8.64.70 (unreleased) - Supplier Identity And PR Review Repair
 

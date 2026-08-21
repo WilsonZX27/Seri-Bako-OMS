@@ -75,7 +75,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
         description="Create, approve, and post recipe-based production without changing stock until posting."
       />
       <WorkspaceGrid
-        tabletCanvas="contained"
+        tabletCanvas="full"
         hideMobileConsole={!canCreate}
         tabletRailMode="split"
         className="sb-portrait-tablet-rail"
@@ -108,7 +108,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
         </>}
       >
         <div className="space-y-3">
-            <FilterBar resultCount={jobs?.totalRows} resetHref="/production/jobs" filtered={filtered}>
+            <FilterBar className="sb-production-jobs-filters" resultCount={jobs?.totalRows} resetHref="/production/jobs" filtered={filtered}>
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search job no, recipe, output" />
               <StatusTabs statuses={jobStatuses.map(([value, label]) => ({ value, label }))} activeStatus={filters.status} />
               <SelectControl name={branches ? "branch_id" : undefined} defaultValue={branches ? filters.branch_id ?? "all" : "unavailable"} ariaLabel="Branch" disabled={!branches} options={branches ? [{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))] : [{ value: "unavailable", label: "Branch filter unavailable" }]} />

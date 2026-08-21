@@ -35,7 +35,7 @@ test("portrait tablet outlet workspace keeps its rail and a full-width chart", a
   await expect(rail).toBeVisible();
   const panel = page.locator("[data-outlet-wastage-chart-panel]");
   const chart = panel.locator("svg").first();
-  await expect(chart).toBeVisible();
+  await expect(chart, "Run setup-local-dashboard-e2e.mjs --annotation-fixture before this suite.").toBeVisible();
 
   const [workspaceBox, railBox, panelBox, chartBox] = await Promise.all([
     workspace.boundingBox(),

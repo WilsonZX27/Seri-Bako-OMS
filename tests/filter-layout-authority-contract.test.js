@@ -38,7 +38,8 @@ test("FilterBar geometry has one authoritative stylesheet", () => {
   assert.match(unifiedListHeader, /data-tablet-query-layout=\{tabletLayout\}/);
   assert.match(unifiedListHeader, /desktopControls\.length > 2[\s\S]*?"controls"/);
   assert.match(unifiedListHeader, /filterCount = desktopControls\.filter\(\(child\) => !isQueryControl\(child\)\)\.length/);
-  assert.match(unifiedListHeader, /2 \+ filterCount \+ \(hasCommandGroup \? 2 : 0\)/);
+  assert.match(unifiedListHeader, /commandTrackCount = Math\.max\(2, desktopActions\.length \+ \(typeof resultCount === "number" \? 1 : 0\)\)/);
+  assert.match(unifiedListHeader, /2 \+ filterCount \+ \(hasCommandGroup \? commandTrackCount : 0\)/);
   assert.match(designV2.slice(canonicalStart), /data-tablet-query-layout="controls"[\s\S]*?grid-column:\s*-3 \/ -1/);
 });
 
@@ -58,7 +59,7 @@ test("desktop filter overlays are mutually exclusive", () => {
 });
 
 test("desktop list actions keep the established Search then record-count order", () => {
-  const actionsStart = unifiedListHeader.indexOf('<div className="unified-list-desktop-actions">');
+  const actionsStart = unifiedListHeader.search(/<div\s+className="unified-list-desktop-actions"/);
   assert.notEqual(actionsStart, -1);
   const actionsEnd = unifiedListHeader.indexOf("</div>", actionsStart);
   const actions = unifiedListHeader.slice(actionsStart, actionsEnd);

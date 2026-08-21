@@ -84,7 +84,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
 
   const [productId, setProductId] = useState(recipe?.product_id ?? products[0]?.id ?? "");
   const [yieldQty, setYieldQty] = useState(Number(recipe?.yield_qty ?? 1));
-  const [yieldUnit, setYieldUnit] = useState(normalizeUom(recipe?.yield_unit ?? productById.get(productId)?.selling_unit) || "PCS");
+  const [yieldUnit, setYieldUnit] = useState<string>(normalizeUom(recipe?.yield_unit ?? productById.get(productId)?.selling_unit) || "PCS");
   const [lines, setLines] = useState<RecipeFormLine[]>(
     recipe?.lines.length
       ? recipe.lines.map((line) => {

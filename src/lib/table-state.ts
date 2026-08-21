@@ -7,9 +7,11 @@ export type PaginationResult<T> = {
 };
 
 export function compareTableValues(a: unknown, b: unknown, direction: string) {
-  const normalizedA = typeof a === "number" ? a : String(a ?? "").toLowerCase();
-  const normalizedB = typeof b === "number" ? b : String(b ?? "").toLowerCase();
-  const result = normalizedA > normalizedB ? 1 : normalizedA < normalizedB ? -1 : 0;
+  const normalizedA = typeof a === "number" ? a : String(a ?? "");
+  const normalizedB = typeof b === "number" ? b : String(b ?? "");
+  const result = typeof normalizedA === "number" && typeof normalizedB === "number"
+    ? normalizedA - normalizedB
+    : new Intl.Collator("en", { numeric: true, sensitivity: "base" }).compare(String(normalizedA), String(normalizedB));
   return direction === "desc" ? -result : result;
 }
 

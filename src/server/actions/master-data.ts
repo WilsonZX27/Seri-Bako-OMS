@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { isMockMode } from "@/lib/mock-mode";
+import { normalizeUom } from "@/lib/uom";
 import { createClient } from "@/lib/supabase/server";
 import { supplierItemSchema, uomConversionSchema } from "@/lib/validations/master-data";
 import { writeActivityLog } from "@/server/activity/log";
@@ -27,7 +28,7 @@ function supplierItemInput(formData: FormData) {
   const parsed = supplierItemInputSchema.parse({
     supplier_id: formData.get("supplier_id"),
     item_id: formData.get("item_id"),
-    purchase_uom: formData.get("purchase_uom"),
+    purchase_uom: normalizeUom(String(formData.get("purchase_uom") ?? "")),
     conversion_to_base_uom: formData.get("conversion_to_base_uom") ?? 1,
     unit_cost: formData.get("unit_cost") ?? 0,
     moq: formData.get("moq") ?? 0,
@@ -158,8 +159,8 @@ export async function restoreSupplierItem(id: string) {
 
 function uomPayload(formData: FormData) {
   return uomConversionSchema.parse({
-    from_uom: formData.get("from_uom"),
-    to_uom: formData.get("to_uom"),
+    from_uom: normalizeUom(String(formData.get("from_uom") ?? "")),
+    to_uom: normalizeUom(String(formData.get("to_uom") ?? "")),
     factor: formData.get("factor"),
     status: formData.get("status") ?? "active",
   });

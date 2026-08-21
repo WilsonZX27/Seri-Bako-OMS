@@ -881,6 +881,7 @@ export type Database = {
           item_code: string;
           autocount_code: string | null;
           item_name: string;
+          brand_name: string | null;
           category: string;
           purchase_unit: string;
           base_unit: string;
@@ -902,6 +903,7 @@ export type Database = {
           item_code: string;
           autocount_code?: string | null;
           item_name: string;
+          brand_name?: string | null;
           category: string;
           purchase_unit: string;
           base_unit: string;
@@ -1108,6 +1110,7 @@ export type Database = {
           company_id: string | null;
           document_id: string | null;
           request_no: string;
+          request_sort_key: string;
           requested_by: string | null;
           request_date: string;
           required_date: string | null;
@@ -1132,6 +1135,7 @@ export type Database = {
           company_id?: string | null;
           document_id?: string | null;
           request_no: string;
+          request_sort_key?: never;
           requested_by?: string | null;
           request_date?: string;
           required_date?: string | null;

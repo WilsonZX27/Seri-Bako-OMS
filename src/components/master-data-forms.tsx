@@ -1,4 +1,9 @@
+"use client";
+
+import Link from "next/link";
+import { useMemo, useState } from "react";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { ItemCombobox, type ItemComboboxOption } from "@/components/item-combobox";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -9,7 +14,7 @@ import type { Database } from "@/types/database";
 type SupplierItem = Database["public"]["Tables"]["supplier_items"]["Row"];
 type UomConversion = Database["public"]["Tables"]["uom_conversions"]["Row"];
 type Supplier = Pick<Database["public"]["Tables"]["suppliers"]["Row"], "id" | "name" | "supplier_code">;
-type Item = Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit">;
+type Item = ItemComboboxOption & { brand_name?: string | null };
 type Branch = Pick<Database["public"]["Tables"]["branches"]["Row"], "id" | "branch_code" | "branch_name">;
 
 export function SupplierItemForm({
@@ -35,6 +40,10 @@ export function SupplierItemForm({
   formId?: string;
   showSubmit?: boolean;
 }) {
+  const initialItem = items.find((item) => item.id === (supplierItem?.item_id ?? initialItemId)) ?? items[0];
+  const [selectedItemId, setSelectedItemId] = useState(initialItem?.id ?? "");
+  const [itemSearch, setItemSearch] = useState(initialItem ? `${initialItem.item_code} - ${initialItem.item_name}` : "");
+  const selectedItem = useMemo(() => items.find((item) => item.id === selectedItemId) ?? null, [items, selectedItemId]);
   return (
     <Card>
       <CardContent className="p-5">
@@ -50,17 +59,23 @@ export function SupplierItemForm({
             </SelectNative>
           </Field>
           <Field label="Item">
-            <SelectNative name="item_id" defaultValue={supplierItem?.item_id ?? initialItemId ?? items[0]?.id ?? ""} required>
-              {items.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.item_code} - {item.item_name}
-                </option>
-              ))}
-            </SelectNative>
+            <ItemCombobox
+              items={items}
+              name="item_id"
+              value={itemSearch}
+              selectedItemId={selectedItemId}
+              ariaLabel="Search Item Master by name, code, or brand"
+              placeholder="Search item name, code, or brand"
+              emptyMessage="No active Item Master record matches this search."
+              onValueChange={(value) => { setItemSearch(value); setSelectedItemId(""); }}
+              onSelect={(item) => { setSelectedItemId(item.id); setItemSearch(`${item.item_code} - ${item.item_name}`); }}
+            />
           </Field>
-          <div className="rounded-[var(--sb-radius-control)] border bg-[var(--sb-surface-muted)] px-3 py-2 text-sm text-muted-foreground md:col-span-1">
-            <p className="font-medium text-foreground">Item identity</p>
-            <p className="mt-1 text-xs">Supplier records use the selected Item Master&apos;s AutoCount code and name automatically.</p>
+          <div className="rounded-[var(--sb-radius-control)] border bg-[var(--sb-surface-muted)] px-3 py-2 text-sm text-muted-foreground md:col-span-1" aria-live="polite">
+            <p className="font-medium text-foreground">Base UOM</p>
+            <p className="mt-1 text-base font-semibold text-foreground">{selectedItem?.base_unit ?? "Select an item"}</p>
+            <p className="mt-1 text-xs">Owned by Item Master. Set Purchase UOM and the conversion below.</p>
+            {selectedItem ? <Link href={`/items/${selectedItem.id}`} className="mt-1 inline-flex text-xs font-semibold text-primary underline-offset-4 hover:underline">Open Item Master</Link> : null}
           </div>
           <Field label="Purchase UOM">
             <SelectNative name="purchase_uom" defaultValue={normalizeUom(supplierItem?.purchase_uom) || "KG"} required>

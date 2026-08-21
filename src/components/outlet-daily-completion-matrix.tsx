@@ -24,7 +24,7 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
   // the same exact-value preview.
   const [activeKey, setActiveKey] = useState("");
   const active = activeKey ? cells.find((cell) => `${cell.branch_id}:${cell.record_date}` === activeKey) ?? null : null;
-  const completionPercent = summary?.expected ? (summary.completed / summary.expected) * 100 : 0;
+  const completionPercent = summary?.expected ? (summary.completed / summary.expected) * 100 : null;
 
   return <section className="erp-surface isolate min-w-0 max-w-full overflow-hidden" aria-labelledby="outlet-completion-title" data-outlet-completion-matrix>
     <div className="flex flex-wrap items-end justify-between gap-2 border-b border-[var(--sb-border-soft)] px-3 py-2.5">
@@ -32,7 +32,7 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
         <h2 id="outlet-completion-title" className="text-sm font-semibold">7-day outlet completion</h2>
         <p className="text-xs text-muted-foreground">Expected outlet-days · explicit record status, not a lateness estimate</p>
       </div>
-      <p className="text-xs text-muted-foreground"><strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable ? "Unavailable" : `${formatNumber(completionPercent)}%`}</strong>{unavailable ? "" : " completed or reviewed"}</p>
+      <p className="text-xs text-muted-foreground"><strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable || completionPercent === null ? "Not available" : `${formatNumber(completionPercent)}%`}</strong>{unavailable || completionPercent === null ? "" : " completed or reviewed"}</p>
     </div>
     {unavailable ? <div className="px-4 py-8 text-center" role="status"><p className="text-sm font-medium">Completion insight unavailable</p><p className="mt-1 text-xs text-muted-foreground">The daily record list remains current. Retry this page to load outlet-day coverage.</p></div> : rows.length && summary ? <>
       <div className="grid grid-cols-[repeat(3,minmax(0,1fr))] divide-x divide-[var(--sb-border-soft)] border-b border-[var(--sb-border-soft)] sm:hidden" data-outlet-completion-phone-summary>

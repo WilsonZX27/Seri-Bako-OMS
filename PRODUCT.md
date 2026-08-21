@@ -1,6 +1,143 @@
 # Seri Bako Operations Management System
 
+### v8.64.108 (unreleased) — Portrait Tablet Form Alignment
+
+Purchase Order creation now aligns its form and action rail from the same top edge by using rendered-box grid gaps instead of sibling margins around hidden submission metadata. Production Jobs uses a deliberate two-row filter composition on portrait tablets: query and command first, then status, branch, and more filters at readable widths. This is local implementation evidence only; linked and Production verification remain separate gates.
+
+### v8.64.107 (unreleased) — Workflow Stage Scanning and Keyboard-Safe Navigation
+
+Workflow badges now use stable, restrained stage tones for Manager, Purchasing, Finance, Ready to Convert, rejection, and goods-receiving wait states while retaining explicit text labels as the source of meaning. On phone and touch-tablet shells, the shared bottom navigation measures the software-keyboard inset and remains anchored to the physical screen bottom behind the operating-system keyboard instead of jumping into the reduced editing viewport.
+
+### v8.64.106 (unreleased) — Final Local Annotation Surface Closure
+
+Supplier master data now exposes an explicitly labelled, editable operator short name without changing the AutoCount creditor code or official Supplier Name. Authenticated responsive acceptance also closes the remaining local-only evidence for Item action hierarchy, neutral Inventory movement colors, and Procurement counters. These are local implementation and UAT results only; linked migrations, real Production supplier data, Production footer, and Production workflows remain separate gates.
+
+### v8.64.105 (unreleased) — Natural PR Register Order
+
+Purchase Requests now use a generated natural document-number key at the database boundary before pagination, so `.../1, .../2, .../10` are reversible and predictable instead of lexicographic. The default remains latest number first and explicit column direction remains respected with a same-direction stable ID tie-breaker. Migration 184 is applied only to the isolated local database; linked and Production verification remain open.
+
+### v8.64.104 (unreleased) — Sourcing Boundary Interaction Closure
+
+Typed PR item codes now obey the same branch-and-supplier catalogue boundary as visible suggestions, with source, Purchase UOM, and Base UOM metadata. Item Master search is fully keyboard operable, rejected PRs show actor/time/next step, and zero-denominator Outlet days remain visible for correction without being misreported as a 0% trend. Local browser evidence is awaiting the complete release gate; linked and Production states remain separate.
+
+### v8.64.103 (unreleased) — Annotation UAT Fixture Closure
+
+The localhost-only authenticated fixture now supplies a guided PR review line, document comment, active Outlet product, and completed Outlet Daily trend record. Previously skipped PR dialog, portrait comment rail, wastage reset, trend chart, and Manager-versus-Purchasing authorization checks now execute against explicit disposable data. This strengthens local UAT evidence without changing linked migrations or claiming Production deployment; the observed Production login footer remains `v8.64.99`.
+
+### v8.64.102 (unreleased) — Annotation Closure Round
+
+The shared list command slot, document identity, semantic colors, procurement summaries, supplier identity, natural Item Code order, and role-gated Outlet Daily sent-state are converged around one operational convention. PR/PO and Stock Balance remove duplicate controls and explanatory noise; supplier-item mapping keeps Base UOM owned by Item Master. Local source is implemented, while authenticated viewport, linked migration, Production data, and Production footer verification remain separate gates.
+
+### v8.64.101 (unreleased) — Visible PR Rejection Reason
+
+Rejected purchase requests now surface the latest recorded rejection reason in the main workspace, with the rejecting actor and timestamp. The audit timeline remains the authoritative history; this prominent copy gives Kitchen and the requester an immediate correction path.
+
+### v8.64.100 (unreleased) — Canonical UOM Selection
+
+UOM values are canonicalized at the application boundary: `BTL` resolves to `BOTTLE`, and controlled choices include the operational `GUNI` unit. Guided PR-line repair uses a dropdown sourced from current item and supplier terms plus the shared UOM catalogue; free-text UOM entry is removed and options are alphabetically ordered.
+
+### v8.64.99 (unreleased) — Unified Page Loading
+
+All route-level loading boundaries use the shared PageLoadingState: one compact progress line, one spinner, and one status label. Route-specific copy remains contextual, while oversized skeleton bands and centered spinners are removed from the initial load state.
+
+### v8.64.98 (unreleased) — Supplier UOM Receiving Conversion
+
+Purchase requests and purchase orders retain the supplier's purchasing UOM (for example CTN, BAG, or TUB), while Goods Receiving accepts the configured Item Master base UOM (for example KG). The entered base quantity is converted back to the supplier UOM for document traceability, and the existing atomic posting path converts it into base-unit inventory using the approved supplier-item conversion. Missing conversions remain explicit blockers; the system never guesses packaging factors.
+
+### v8.64.97 (unreleased) — Supplier Identity Relationship Consolidation
+
+Duplicate supplier identities are consolidated at the data boundary: active supplier-item, branch, item, purchasing, and request references are repointed to one canonical active identity before duplicate rows are recoverably archived. Supplier Items search also accepts the operator-facing Item Group and internal AutoCount code.
+
+### v8.64.96 (unreleased) — Active Supplier Identity View
+
+Supplier registers default to active identities after recoverable duplicate merges. Inactive historical rows remain available through an explicit All statuses view, so operators see one usable supplier identity without losing audit history.
+
+### v8.64.95 (unreleased) — Structured Brand Migration Compatibility Repair
+
+The structured brand migration patches the Items workspace RPC by SQL shape rather than line-ending-specific source text, so linked projects with equivalent function definitions can apply the brand field safely. Remote migration and Production UAT remain separate gates.
+
+### v8.64.94 (unreleased) — Supplier Merge Mapping Guard Repair
+
+Duplicate supplier consolidation now respects the purchase-request branch/item/UOM mapping guard. Valid canonical mappings are repointed; unresolved lines are cleared with a recoverable line audit and an explicit repair remark instead of aborting the whole migration. Linked migration and Production data verification remain separate gates.
+
+### v8.64.93 (unreleased) — Supplier Identity And Filter Apply Repair
+
+Supplier-item identity reconciliation keeps the canonical AutoCount creditor code internal, exposes the operator-facing Item Group, and recoverably merges the legacy BWY placeholder and duplicate Quik supplier-item row. Shared list filters now keep Search as the primary command, expose a same-height Reset action, and allow a new filter selection to be submitted without first resetting. Local migration and contract evidence is complete; linked migration and Production UAT remain separate gates.
+
+### v8.64.92 (unreleased) — Annotation Rerun Evidence Refresh
+
+The full local authenticated current/historical/reopened annotation browser suite reran after the bounded inventory read repair: 18 of 18 scenarios passed. This is local evidence and does not change the linked Production deployment boundary.
+
+### v8.64.91 (unreleased) — Bounded Inventory Read RLS Repair
+
+The bounded Stock Card / Movement Ledger RPC keeps explicit branch authorization while avoiding duplicate per-row RLS evaluation under authenticated reads. This repairs the timeout path observed during the local Purchasing return workflow; linked Production evidence remains separate.
+
+### v8.64.90 (unreleased) — Workflow Mutation Gate Repair
+
+The disposable authenticated mutation gate now opens the rejection dialog before entering its required reason and asserts return/count movements by their exact target row. This repairs evidence collection only; it does not claim linked Production workflow verification.
+
+### v8.64.89 (unreleased) — Supplier UOM Return Alias Repair
+
+Forward migration 178 repairs the supplier-UOM purchase-return RPC where a PL/pgSQL `po_line` variable collided with a SQL JOIN alias. The patch is idempotent and changes no business arithmetic; it only makes the existing conversion lookup executable.
+
+### v8.64.88 (unreleased) — AutoCount Mapping Identity Guard
+
+AutoCount branch mappings now carry the per-item Main Supplier creditor code internally and retain Item Group only as the operator-facing display group. Items without an authoritative Main Supplier are blocked rather than inferred from a sibling row or group label.
+
+### v8.64.87 (unreleased) — Bounded Stock Balance Image Hydration
+
+Stock Balance now hydrates item images in bounded batches of 100 IDs, avoiding URI-too-long failures when a real page contains many distinct items. The image read remains optional and fail-closed; no balance value is synthesized from an image-read failure.
+
+### v8.64.86 (unreleased) — Role Workflow Evidence Closure
+
+The disposable local browser gate now covers the six scoped identities (Super Admin, Finance, Manager, Purchasing, Kitchen, and Outlet). Eight non-destructive workspace/filter scenarios passed; mutation scenarios remain explicitly skipped unless a named disposable fixture and mutation flag are supplied. This is local evidence only and does not prove Production role UAT.
+
 ## Product Overview
+
+### v8.64.77 (unreleased) — Migration 176 Local SQL Validation
+
+The local disposable Supabase database now executes migration 176 successfully. Rollback-only RPC fixtures confirm explicit Brand values survive Item creation and AutoCount Confirm; this remains local evidence and does not prove linked Production application.
+
+### v8.64.78 (unreleased) — Supplier UOM Runtime Contract
+
+The local posting path now has a rollback-only PO → GRN proof that supplier purchase UOM is converted to the item base unit and unit cost is divided by the same factor (2 CTN × 12 = 24 KG; RM120 ÷ 12 = RM10). Linked migration application and authenticated Production workflow UAT remain separate release gates.
+
+### v8.64.79 (unreleased) — Authenticated Fixture Password Parsing
+
+Local authenticated browser fixtures now preserve literal hash characters in test credentials, preventing false login failures during disposable UI/UAT runs. This changes test reliability only and does not claim Production authentication evidence.
+
+### v8.64.80 (unreleased) — Production Deployment Audit
+
+The observed Production login page still serves footer `v8.64.68`, while `codex/uiux-round2` is pushed through `v8.64.79`. Deployment and post-deploy authenticated regression remain blocked by the unavailable deployment project access.
+
+### v8.64.81 (unreleased) — Supplier Mapping Data Audit
+
+The local mirror audit found 38 active items without supplier-item identity and 233 active supplier-item records without a Central Kitchen branch mapping. Because the source does not prove the intended supplier/branch for those rows, the system keeps them as explicit data blockers rather than fabricating mappings.
+
+### v8.64.82 (unreleased) — Central Kitchen Tally Evidence
+
+The local mirror has no 19 Aug Stock Count for CK-ALMA or CK-PJS10; its latest posted counts are 17 Aug and 6 Aug respectively. The supplied PDFs cannot be declared tally-matched without the linked Production records.
+
+### v8.64.83 (unreleased) — Historical Annotation Scope Reconciliation
+
+All prior annotation groups remain in the single repair ledger: the 17-comment group, 34-comment group, 13-comment group, and reopened defects. Local contract/authenticated evidence is recorded separately from linked migration, Production data, and Production UAT; no historical item is treated as complete merely because a screenshot or local build passed.
+
+### v8.64.84 (unreleased) — Supplier Mapping Fail-Closed Validation
+
+AutoCount Preview now blocks Item Groups with no authoritative Main Supplier creditor code, reports each affected item/file/row, and tells the operator to repair the source export. Item Group remains a display label; it is never silently promoted into an internal supplier identity.
+
+### v8.64.85 (unreleased) — AutoCount Confirm Identity Guard
+
+The atomic Confirm RPC now rejects staged supplier groups that contain no authoritative AutoCount creditor reference, protecting direct or older ready jobs from bypassing the Preview validation.
+
+### v8.64.76 (unreleased) — Cross-Viewport Control Rhythm
+
+The shared control authority now keeps tablet and desktop filters, textboxes, selects, and right-rail actions at a 36px visual height. Phone controls retain the touch-safe height, and the ledger distinguishes visual geometry from authenticated viewport acceptance.
+
+### v8.64.75 (unreleased) — Structured Brand Visibility
+
+- Item brand is optional and source-backed. Migration 176 adds `brand_name` and carries it through Item Master, the workspace picker, and AutoCount Confirm.
+- Existing rows stay blank until an authoritative Brand column or authorized edit supplies a value; linked Production application and authenticated UAT remain separate gates.
 
 ### v8.64.74 (unreleased) — Stock Take Evidence Reconciliation
 
@@ -22,7 +159,7 @@
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `175`; this is not evidence that migration 175 is applied to the linked Production project.
+Repository migration authority: migrations reviewed through `184`; this is not evidence that migration 184 is applied to the linked Production project.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

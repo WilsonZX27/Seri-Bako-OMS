@@ -16,6 +16,20 @@ create table if not exists public.supplier_merge_audit (
 
 alter table public.supplier_merge_audit enable row level security;
 
+create table if not exists public.supplier_merge_line_audit (
+  id uuid primary key default gen_random_uuid(),
+  company_id uuid not null references public.companies(id),
+  purchase_request_line_id uuid not null references public.purchase_request_lines(id),
+  source_supplier_id uuid not null references public.suppliers(id),
+  canonical_supplier_id uuid not null references public.suppliers(id),
+  original_uom text not null,
+  resolution text not null,
+  created_at timestamptz not null default now(),
+  unique (purchase_request_line_id, source_supplier_id, canonical_supplier_id)
+);
+
+alter table public.supplier_merge_line_audit enable row level security;
+
 do $$
 declare
   duplicate_group record;
@@ -25,6 +39,8 @@ declare
   source_relationship public.supplier_items%rowtype;
   target_relationship public.supplier_items%rowtype;
   source_branch_relationship public.branch_supplier_items%rowtype;
+  request_line record;
+  line_resolution text;
 begin
   for duplicate_group in
     select company_id, upper(regexp_replace(trim(name), '\s+', ' ', 'g')) normalized_name
@@ -125,7 +141,90 @@ begin
       end loop;
 
       update public.supplier_external_references set supplier_id = canonical_supplier.id, updated_at = now() where supplier_id = duplicate_supplier.id;
-      update public.purchase_request_lines set suggested_supplier_id = canonical_supplier.id where suggested_supplier_id = duplicate_supplier.id;
+
+      -- Purchase-request lines have a deliberately strict trigger which checks
+      -- branch, item, and supplier-UOM mapping on every supplier change. Do not
+      -- disable that guard during a data repair. Repoint only lines for which
+      -- the canonical supplier is already valid; unresolved lines become an
+      -- explicit sourcing task while retaining the original supplier context in
+      -- both the audit row and the line remark.
+      for request_line in
+        select
+          prl.id,
+          pr.company_id,
+          prl.purchase_request_id,
+          prl.item_id,
+          prl.uom,
+          prl.remarks,
+          pr.branch_id
+        from public.purchase_request_lines prl
+        join public.purchase_requests pr on pr.id = prl.purchase_request_id
+        where prl.suggested_supplier_id = duplicate_supplier.id
+        order by prl.created_at, prl.id
+      loop
+        if exists (
+          select 1
+          from public.branch_supplier_items bsi
+          join public.supplier_items si on si.id = bsi.supplier_item_id and si.item_id = bsi.item_id
+          join public.suppliers s on s.id = si.supplier_id
+          where bsi.branch_id = request_line.branch_id
+            and bsi.item_id = request_line.item_id
+            and si.supplier_id = canonical_supplier.id
+            and upper(trim(si.purchase_uom)) = upper(trim(request_line.uom))
+            and bsi.status = 'active' and bsi.deleted_at is null
+            and si.status = 'active' and si.deleted_at is null
+            and s.status = 'active' and s.deleted_at is null
+        ) or exists (
+          select 1
+          from public.items i
+          join public.suppliers s on s.id = i.supplier_id
+          where i.id = request_line.item_id
+            and i.supplier_id = canonical_supplier.id
+            and i.status = 'active' and i.deleted_at is null
+            and s.status = 'active' and s.deleted_at is null
+            and upper(trim(coalesce(i.purchase_unit, i.base_unit))) = upper(trim(request_line.uom))
+            and not exists (
+              select 1 from public.branch_supplier_items bsi
+              where bsi.branch_id = request_line.branch_id
+                and bsi.item_id = request_line.item_id
+                and bsi.status = 'active' and bsi.deleted_at is null
+            )
+        ) then
+          line_resolution := 'repointed_to_canonical_supplier';
+          insert into public.supplier_merge_line_audit(
+            company_id, purchase_request_line_id, source_supplier_id,
+            canonical_supplier_id, original_uom, resolution
+          ) values (
+            request_line.company_id, request_line.id, duplicate_supplier.id,
+            canonical_supplier.id, request_line.uom, line_resolution
+          ) on conflict (purchase_request_line_id, source_supplier_id, canonical_supplier_id) do nothing;
+          update public.purchase_request_lines
+          set suggested_supplier_id = canonical_supplier.id, updated_at = now()
+          where id = request_line.id;
+        else
+          line_resolution := 'cleared_requires_supplier_mapping';
+          insert into public.supplier_merge_line_audit(
+            company_id, purchase_request_line_id, source_supplier_id,
+            canonical_supplier_id, original_uom, resolution
+          ) values (
+            request_line.company_id, request_line.id, duplicate_supplier.id,
+            canonical_supplier.id, request_line.uom, line_resolution
+          ) on conflict (purchase_request_line_id, source_supplier_id, canonical_supplier_id) do nothing;
+          update public.purchase_request_lines
+          set suggested_supplier_id = null,
+              remarks = left(concat_ws(
+                ' ',
+                nullif(trim(request_line.remarks), ''),
+                format('Supplier %s (%s) was merged; choose a mapped supplier for %s.', duplicate_supplier.name, duplicate_supplier.supplier_code, request_line.uom)
+              ), 2000),
+              updated_at = now()
+          where id = request_line.id;
+        end if;
+      end loop;
+
+      update public.purchase_requests
+      set assigned_supplier_id = canonical_supplier.id, updated_at = now()
+      where assigned_supplier_id = duplicate_supplier.id;
       update public.purchase_orders set supplier_id = canonical_supplier.id where supplier_id = duplicate_supplier.id;
       update public.goods_receivings set supplier_id = canonical_supplier.id where supplier_id = duplicate_supplier.id;
       update public.purchase_returns set supplier_id = canonical_supplier.id where supplier_id = duplicate_supplier.id;

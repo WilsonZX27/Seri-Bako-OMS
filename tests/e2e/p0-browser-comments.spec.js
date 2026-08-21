@@ -20,7 +20,7 @@ test("shared tablet list filters match the accepted stock-count grammar", async 
     const [formBox, queryBox] = await Promise.all([form.boundingBox(), query.boundingBox()]);
     expect(queryBox.width / formBox.width).toBeGreaterThan(0.24);
     expect(queryBox.width / formBox.width).toBeLessThan(0.55);
-    const filterWidths = await form.locator("button.flex.w-full").evaluateAll((nodes) => nodes.slice(0, 2).map((node) => node.getBoundingClientRect().width));
+    const filterWidths = await form.locator(":scope > [data-select-control], :scope > .sb-status-filter, :scope > .sb-filter-more").evaluateAll((nodes) => nodes.slice(0, 2).map((node) => node.getBoundingClientRect().width));
     if (filterWidths.length === 2) expect(Math.abs(filterWidths[0] - filterWidths[1])).toBeLessThanOrEqual(2);
     await expectContained(page);
   }

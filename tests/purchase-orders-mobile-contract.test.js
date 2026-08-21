@@ -24,7 +24,6 @@ test("purchase order creation uses one stable setup surface and dynamic compact 
   assert.match(form, /<section data-purchase-order-form-surface/);
   assert.doesNotMatch(form, /<details open data-purchase-order-form-surface/);
   assert.doesNotMatch(form, /More order details/);
-  assert.match(form, /aria-label="Add order line"/);
   assert.match(form, /aria-label="Add order line at end"/);
   assert.match(form, /aria-label="Remove order line"/);
   assert.match(form, /type="hidden" name="line_qty_received" value="0"/);

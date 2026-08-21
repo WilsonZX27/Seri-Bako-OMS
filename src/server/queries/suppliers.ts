@@ -22,7 +22,7 @@ function normalizeSupplierSearch(value: string | undefined) {
     .trim();
 }
 
-function filterSuppliers<T extends { supplier_code: string | null; name: string; contact_person: string | null; phone: string | null; email: string | null; status: string }>(
+function filterSuppliers<T extends { supplier_code: string | null; name: string; contact_person: string | null; phone: string | null; email: string | null; status: string; deleted_at?: string | null }>(
   suppliers: T[],
   filters: SupplierFilters,
 ) {
@@ -32,6 +32,7 @@ function filterSuppliers<T extends { supplier_code: string | null; name: string;
   const dir = filters.dir === "desc" ? "desc" : "asc";
 
   return suppliers.filter((supplier) => {
+    if (supplier.deleted_at) return false;
     const matchesSearch = search
       ? [supplier.supplier_code ?? "", supplier.name, supplier.contact_person ?? "", supplier.phone ?? "", supplier.email ?? ""].some((value) =>
           value.toLowerCase().includes(search),
@@ -58,7 +59,7 @@ export async function getSuppliers(filters: SupplierFilters = {}) {
   // keep server ordering on columns present before migration 174 as well.
   const allowedSorts = ["supplier_code", "name", "contact_person", "phone", "email", "payment_terms_days", "status"];
   const sort = filters.sort && allowedSorts.includes(filters.sort) ? filters.sort : "name";
-  let query = supabase.from("suppliers").select("*", { count: "exact" });
+  let query = supabase.from("suppliers").select("*", { count: "exact" }).is("deleted_at", null);
 
   const requestedStatus = filters.status === "archived" ? "inactive" : filters.status;
   if (requestedStatus && isSupplierStatus(requestedStatus)) {

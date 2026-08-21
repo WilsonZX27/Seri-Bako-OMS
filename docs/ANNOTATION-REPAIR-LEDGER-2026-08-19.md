@@ -1,5 +1,25 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.139 Production deployment boundary
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| The Production host is reachable and its deployed footer is known. | verified read-only / current release awaiting deployment | `Invoke-WebRequest https://system.seribako.com.my/login` returned HTTP 200 and footer `v8.64.137`. The current branch is v8.64.139, so this does not verify the current source or any authenticated role workflow. |
+| Production six-role, four-viewport regression is not falsely promoted. | awaiting Production deployment and authenticated UAT | No Production login or business mutation was attempted. Regression must run against the deployed current release after deployment. |
+| Footer and release records remain synchronized. | implemented | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.139. |
+
+The public endpoint check is read-only and is not Production workflow verification.
+
+## v8.64.138 linked migration verification
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| Linked Supabase migrations 185–190 are applied successfully. | remote verified / Production read-only regression awaiting UAT | User-provided complete `npx supabase db push` output shows `Applying migration 185...` through `Applying migration 190...` and ends with `Finished supabase db push.` The pg-delta certificate-cache warning occurred after SQL application and is recorded as a non-blocking catalog-cache issue. |
+| Production mutation remains outside this gate. | awaiting Production mutation UAT | No Production business records were mutated by this verification. Production read-only browser regression remains required for final closure. |
+| Footer and release records remain synchronized. | implemented | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.138. |
+
+The linked migration result is now verified from user-provided command evidence. It does not by itself prove authenticated Production UI behavior.
+
 ## v8.64.137 migration uniqueness guard
 
 | Acceptance | Status | Evidence / remaining gate |

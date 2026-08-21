@@ -1,5 +1,13 @@
 # Seri Bako Operations Management System
 
+### v8.64.139 (unreleased) — Production deployment boundary
+
+Read-only Production login verification returns HTTP 200 and serves footer `v8.64.137`; the current branch is `v8.64.139`. This proves the host is reachable but that the current linked-migration release is not yet deployed there. Authenticated Production regression remains pending and no mutation was attempted.
+
+### v8.64.138 (unreleased) — Linked migration verification
+
+The user-provided linked Supabase push completed migrations `185–190` successfully. The CLI emitted a non-blocking pg-delta catalog-cache certificate warning after applying the SQL; the command still ended with `Finished supabase db push.` Local and linked schema evidence are now separated from the remaining Production read-only regression gate.
+
 ### v8.64.137 (unreleased) — Migration uniqueness guard
 
 The contract suite now rejects duplicate numeric Supabase migration prefixes and requires the AutoCount repair to remain forward-only at migration 190. This prevents another `schema_migrations_pkey` collision before a linked push. Local evidence only; linked and Production gates remain separate.

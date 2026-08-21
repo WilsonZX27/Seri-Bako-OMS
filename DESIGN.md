@@ -1,5 +1,13 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.139 (unreleased) - Production deployment boundary
+
+The public Production login endpoint is reachable (HTTP 200) but still renders footer `v8.64.137`, while this branch is v8.64.139. Treat this as deployment evidence only; authenticated six-role regression cannot be claimed against an older deployed build. Footer remains the concise `v8.64.139` token.
+
+## v8.64.138 (unreleased) - Linked migration verification
+
+The linked project has now applied migrations 185 through 190. The pg-delta certificate-cache warning is recorded as a catalog-cache issue only; SQL application completed successfully. Footer remains the concise `v8.64.138` token. Production read-only regression is still a separate gate.
+
 ## v8.64.137 (unreleased) - Migration uniqueness guard
 
 The release contract now checks every `supabase/migrations` filename for a unique numeric version and protects the forward-only AutoCount repair at 190. Footer remains the concise `v8.64.137` token; this guard does not imply linked migration application.

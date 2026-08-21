@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.100 (unreleased) - Canonical UOM Selection
+
+UOM controls use canonical display values and alphabetically ordered controlled selection. Legacy `BTL` is treated as `BOTTLE`, while `GUNI` is a first-class option. PR review repair derives choices from the Item Master and active supplier terms so a new alias cannot be typed into the workflow.
+
 ## v8.64.99 (unreleased) - Unified Page Loading
 
 Route loading boundaries share the same compact progress-line and spinner geometry through `PageLoadingState`. Page-specific labels preserve context without changing placement, scale, or motion between Dashboard, operational lists, and finance reports.

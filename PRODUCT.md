@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.100 (unreleased) — Canonical UOM Selection
+
+UOM values are canonicalized at the application boundary: `BTL` resolves to `BOTTLE`, and controlled choices include the operational `GUNI` unit. Guided PR-line repair uses a dropdown sourced from current item and supplier terms plus the shared UOM catalogue; free-text UOM entry is removed and options are alphabetically ordered.
+
 ### v8.64.99 (unreleased) — Unified Page Loading
 
 All route-level loading boundaries use the shared PageLoadingState: one compact progress line, one spinner, and one status label. Route-specific copy remains contextual, while oversized skeleton bands and centered spinners are removed from the initial load state.
@@ -123,7 +127,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `181`; this is not evidence that migration 181 is applied to the linked Production project.
+Repository migration authority: migrations reviewed through `182`; this is not evidence that migration 182 is applied to the linked Production project.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

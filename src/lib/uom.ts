@@ -1,48 +1,57 @@
 export const defaultUoms = [
-  "KG",
-  "G",
-  "MG",
-  "TONNE",
-  "L",
-  "ML",
-  "GAL",
-  "PCS",
-  "UNIT",
-  "NOS",
-  "PAIR",
-  "DOZEN",
+  "BAG",
+  "BLOCK",
+  "BOTTLE",
   "BUNCH",
   "BOX",
-  "CTN",
-  "CASE",
-  "PACK",
-  "PKT",
-  "BAG",
-  "BOTTLE",
   "CAN",
-  "JAR",
-  "TIN",
-  "TRAY",
-  "SACHET",
-  "ROLL",
-  "SHEET",
-  "STICK",
-  "TONG",
+  "CASE",
   "CRATE",
-  "BLOCK",
-  "SLICE",
+  "CTN",
+  "DOZEN",
+  "G",
+  "GAL",
+  "GUNI",
+  "JAR",
+  "KG",
+  "L",
+  "MG",
+  "ML",
+  "NOS",
+  "PACK",
+  "PAIR",
+  "PCS",
+  "PKT",
   "PORTION",
+  "ROLL",
+  "SACHET",
+  "SHEET",
+  "SLICE",
+  "STICK",
+  "TIN",
+  "TONG",
+  "TONNE",
+  "TRAY",
   "TUB",
+  "UNIT",
 ] as const;
 
 export type DefaultUom = (typeof defaultUoms)[number];
 
+const uomAliases: Record<string, DefaultUom> = {
+  BTL: "BOTTLE",
+};
+
 export function normalizeUom(value: string | null | undefined) {
-  return String(value ?? "").trim().toUpperCase();
+  const normalized = String(value ?? "").trim().toUpperCase();
+  return uomAliases[normalized] ?? normalized;
 }
 
 export function uomOptionsWithCurrent(value: string | null | undefined) {
-  const normalized = normalizeUom(value);
-  if (!normalized || defaultUoms.includes(normalized as DefaultUom)) return defaultUoms;
-  return [normalized, ...defaultUoms];
+  return uomOptionsForValues([value]);
+}
+
+export function uomOptionsForValues(values: Array<string | null | undefined>) {
+  const current = values.map(normalizeUom).filter(Boolean);
+  return [...new Set([...current, ...defaultUoms])].sort((left, right) => left.localeCompare(right));
 }

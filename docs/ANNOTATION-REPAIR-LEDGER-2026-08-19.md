@@ -1,5 +1,12 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.100 canonical UOM selection
+
+| Gate | Status | Evidence |
+|---|---|---|
+| `BTL` and `BOTTLE` represent one UOM | implemented / awaiting linked migration and authenticated UAT | `normalizeUom` canonicalizes `BTL` to `BOTTLE`; supplier-item, PR-line repair, master-data writes, and import writes use the canonical value. Migration 182 safely canonicalizes legacy supplier/document rows without changing quantity, cost, or conversion factors. |
+| PR review UOM is controlled, includes `GUNI`, and is alphabetically ordered | implemented / awaiting authenticated viewport UAT | Guided review now uses a native dropdown sourced from current item UOMs, active supplier terms, and the shared catalogue. `GUNI` is included as a controlled option; free-text UOM entry is removed and options are sorted by initial letter. |
+
 ## v8.64.99 unified route loading
 
 | Gate | Status | Evidence |

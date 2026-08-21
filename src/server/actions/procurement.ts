@@ -579,13 +579,14 @@ export async function revisePurchaseRequestLine(id: string, formData: FormData) 
       expectedUpdatedAt: formData.get("expected_updated_at"),
     });
     const supabase = await createClient();
+    const replacementUom = payload.uom ? normalizeUom(payload.uom) : payload.uom;
     const { error } = await supabase.rpc("revise_purchase_request_line", {
       target_purchase_request_id: requestId,
       target_line_id: payload.lineId,
       revision_action: payload.action,
       replacement_item_id: payload.itemId,
       replacement_qty: payload.qty,
-      replacement_uom: payload.uom,
+      replacement_uom: replacementUom,
       replacement_supplier_id: payload.supplierId,
       replacement_unit_cost: payload.unitCost,
       revision_reason: payload.reason,

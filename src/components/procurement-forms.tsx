@@ -10,7 +10,7 @@ import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
 import { UrgencySelect } from "@/components/urgency-select";
 import type { ProcurementPriority } from "@/components/priority-badge";
-import { defaultUoms, normalizeUom } from "@/lib/uom";
+import { normalizeUom, uomOptionsForValues } from "@/lib/uom";
 import { getToday } from "@/lib/utils";
 import { ItemCombobox, type ItemComboboxOption } from "@/components/item-combobox";
 
@@ -136,14 +136,13 @@ export function PurchaseRequestForm({
     const knownSystemUoms = line.itemId
       ? []
       : items.flatMap((candidate) => [candidate.purchase_unit, candidate.base_unit]);
-    return [...new Set([
+    return uomOptionsForValues([
       line.uom,
       item?.purchase_unit,
       item?.base_unit,
       ...mappingsForLine(line).map((mapping) => mapping.purchase_uom),
       ...knownSystemUoms,
-      ...defaultUoms,
-    ].filter(Boolean).map((value) => normalizeUom(String(value))))];
+    ]);
   }
 
   function showValidationError(message: string, target: Exclude<RequestValidationTarget, null>) {
@@ -472,11 +471,11 @@ export function PurchaseOrderForm({
   const selectedItemLabels = (rows: typeof uncoveredItems) => rows.map(({ itemId }) => items.find((item) => item.id === itemId)?.item_name ?? "Selected item");
   function uomOptions(itemId: string) {
     const item = items.find((candidate) => candidate.id === itemId);
-    return [...new Set([
+    return uomOptionsForValues([
       item?.purchase_unit,
       item?.base_unit,
       ...supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === itemId).map((mapping) => mapping.purchase_uom),
-    ].filter(Boolean).map((value) => normalizeUom(String(value))))];
+    ]);
   }
 
   function preferredUom(itemId: string) {

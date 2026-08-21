@@ -1,5 +1,14 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.136 post-migration local workflow closure
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| Critical receiving and procurement workflows remain usable after migration 190 is applied. | verified locally / Production awaiting UAT | Fresh authenticated local browser rerun passed progressive receiving `3/3` (unknown, remembered, and floating UOM conversions) and the complete PR → PO → GRN/Delivery Order attachment/payment closure suite `3/3`. A separate first combined run exposed a transient Next dev hydration timing failure; the clean rerun passed without source changes. |
+| Footer and release records remain synchronized. | implemented | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.136. |
+
+This is local workflow evidence only. Linked migration and Production regression remain separate gates.
+
 ## v8.64.135 migration history reconciliation
 
 | Acceptance | Status | Evidence / remaining gate |

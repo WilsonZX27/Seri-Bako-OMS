@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.136 (unreleased) - Post-migration local workflow closure
+
+The local migration-190 browser rerun now covers the critical receiving and procurement path: progressive receiving `3/3` and PR → PO → GRN/attachment/payment `3/3`. A transient dev-hydration timing failure was isolated by a clean rerun and did not reproduce. Footer remains the concise `v8.64.136` token; this is not linked or Production verification.
+
 ## v8.64.135 (unreleased) - Migration history reconciliation
 
 Supabase migration versions are now unique in the repository. The linked project already owns version `171`; the duplicate AutoCount Confirm file was renumbered as forward-only migration `190`, preserving the original 171 history and preventing `schema_migrations_pkey` collisions. Footer remains the concise `v8.64.135` token. Linked application is still awaiting successful migration output.

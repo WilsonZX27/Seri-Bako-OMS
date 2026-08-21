@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.136 (unreleased) — Post-migration local workflow closure
+
+After local migration 190 was applied, the authenticated browser closure rerun passed progressive receiving `3/3` and the complete PR → PO → GRN/attachment/payment QA suite `3/3`. The first combined run exposed a transient Next dev hydration timing failure; the clean rerun passed without source changes. This remains local evidence only; linked migration and Production regression are separate gates.
+
 ### v8.64.135 (unreleased) — Migration history reconciliation
 
 The linked Supabase project already records migration version `171`, while the repository also carried a second, different `171_*` file. That duplicate made `db push --include-all` fail with a `schema_migrations_pkey` conflict. The already-applied migration remains immutable; the complete AutoCount Confirm replacement now runs forward at migration `190`. This is repository/local evidence only until a successful linked migration result is supplied.

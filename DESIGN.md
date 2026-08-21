@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.109 (unreleased) - PR to PO conversion error recovery
+
+Conversion forms keep the operator's AutoCount PO number after a failed submission and place one actionable error notice above the document content. The notice names the business condition, targets the PO number field when relevant, and never exposes database diagnostics. Successful and already-linked conversion outcomes remain explicit in the same right-rail action surface.
+
 ## v8.64.108 (unreleased) - Portrait-tablet alignment and filter density
 
 Invisible form metadata must carry the HTML `hidden` attribute, and forms containing it use rendered-box grid gaps so spacing applies only between visible surfaces. Dense list filters on portrait tablets use two intentional rows rather than shrinking every control into one strip: the primary query and command remain the first row, with contextual filters grouped beneath at equal, readable widths.

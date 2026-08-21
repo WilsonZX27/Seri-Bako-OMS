@@ -1,5 +1,15 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.109 PR to PO conversion repair
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| A valid AutoCount PO number converts a Ready to Convert PR without the idempotency constraint failure. | implemented / awaiting local migration and authenticated UAT | Migration 186 explicitly recreates the conversion RPC and writes `purchase_orders.idempotency_key`; PR/AUG26/013 still requires local migration application and authenticated conversion evidence. |
+| Conversion failures identify the exact condition, focus the PO number field, and preserve the entered value. | implemented / awaiting authenticated UAT | Server action maps stable conversion codes, redirects with a bounded `po_no`, and the detail form restores it through `ActionErrorNotice`. |
+| A PR cannot create two active POs and conversion audit records include source and idempotency metadata. | implemented / awaiting local migration and workflow UAT | The RPC locks the PR, checks existing links, uses the active-PO and idempotency indexes, and writes structured activity metadata. |
+
+Migration 186 is not remote or Production verified until the user applies it and provides successful linked migration evidence. Current dirty migration 185, Supabase `.temp`, seed, and local configuration files remain outside this repair batch.
+
 ## v8.64.108 portrait-tablet alignment follow-up
 
 Two new browser annotations are implemented locally. The Purchase Order form's hidden submission inputs now use the HTML `hidden` attribute and the visible surfaces use rendered-box grid gaps, preventing a false 12px offset before the first form surface; the form and tablet action rail therefore share one top edge. Production Jobs now opts into a scoped portrait-tablet two-row filter contract, keeping query and command together above Status, Branch, and More filters. Authenticated rendered UAT passes 19/19, including exact 820×1180 top-edge geometry, two-row filter geometry, and horizontal-overflow rejection. Final v8.64.108 evidence passes 833/833 unit/contracts, strict typecheck, lint, 79-route Production build, and `git diff --check`. These rows remain neither remote nor Production verified.

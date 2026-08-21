@@ -802,11 +802,15 @@ export async function closePurchaseOrder(id: string) {
 }
 
 export async function convertPurchaseRequestToPurchaseOrder(id: string, formData: FormData) {
+  const submittedPoNo = cleanText(formData.get("autocount_po_no")) ?? "";
+  const errorPath = submittedPoNo
+    ? `/purchase-requests/${id}?po_no=${encodeURIComponent(submittedPoNo.slice(0, 160))}`
+    : `/purchase-requests/${id}`;
   try {
     if (isMockMode()) redirect("/purchase-orders/po-mock-001");
     await requirePermission("pr.convert_to_po");
     const requestId = parsePurchaseRequestId(id);
-    const autocountPoNo = z.string().trim().min(1, "AutoCount PO Number is required.").max(160, "AutoCount PO Number must be 160 characters or fewer.").parse(cleanText(formData.get("autocount_po_no")) ?? "");
+    const autocountPoNo = z.string().trim().min(1, "AutoCount PO Number is required.").max(160, "AutoCount PO Number must be 160 characters or fewer.").parse(submittedPoNo);
     const supabase = await createClient();
     const profile = await identity();
     const { data, error } = await supabase.rpc("convert_purchase_request_to_purchase_order", {
@@ -827,6 +831,6 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string, formData
     safeRedirectWithMessage(`/purchase-orders/${result.purchase_order_id}`, "success", message);
   } catch (error) {
     rethrowRedirect(error);
-    safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not convert this purchase request."));
+    safeRedirectWithMessage(errorPath, "error", formatActionError(error, "Could not convert this purchase request."));
   }
 }

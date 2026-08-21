@@ -47,6 +47,45 @@ export function formatActionError(error: unknown, fallback = "Something went wro
   const kind = classifyActionError(error);
 
   if (!message) return fallback;
+  if (normalized.includes("po_number_required") || normalized.includes("autoCount po number is required".toLowerCase())) {
+    return "AutoCount PO Number is required.";
+  }
+  if (normalized.includes("po_number_already_used") || normalized.includes("this autocount po number is already used")) {
+    return "This AutoCount PO Number is already used. Enter a different number.";
+  }
+  if (normalized.includes("pr_not_ready")) {
+    return "This PR is no longer ready to convert. Refresh the page and check its current status.";
+  }
+  if (normalized.includes("pr_has_no_lines")) {
+    return "This PR has no item lines. Add at least one item before converting it.";
+  }
+  if (normalized.includes("pr_has_invalid_lines")) {
+    return "One or more PR item lines are no longer active. Return to the PR and replace the affected item.";
+  }
+  if (normalized.includes("pr_supplier_required")) {
+    return "Every PR item line needs a supplier before it can become a Purchase Order.";
+  }
+  if (normalized.includes("pr_has_multiple_suppliers")) {
+    return "This PR contains multiple suppliers. Split the request or keep one supplier before converting it.";
+  }
+  if (normalized.includes("supplier_not_active")) {
+    return "The selected supplier is inactive or unavailable in this company.";
+  }
+  if (normalized.includes("pr_branch_required")) {
+    return "Request branch is required before converting this PR.";
+  }
+  if (normalized.includes("pr_branch_invalid")) {
+    return "The request branch is no longer available in this company.";
+  }
+  if (
+    normalized.includes("idempotency_migration_pending")
+    || (normalized.includes("idempotency_key") && (normalized.includes("purchase_order") || normalized.includes("purchase order")))
+  ) {
+    return "Purchase Order conversion is not available because the database migration is pending. Please contact the Super Admin / Owner.";
+  }
+  if (normalized.includes("conversion_permission_denied") || normalized.includes("only the purchasing role")) {
+    return "You do not have permission to convert this PR to a Purchase Order.";
+  }
   if (normalized.includes("outlet_daily_active_branch_date_idx")) {
     return "This outlet already has a record for that date. Open it from the Outlet Daily Records list instead.";
   }

@@ -9,7 +9,6 @@ import { DocumentNumber } from "@/components/document-number";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { DocumentMoreOptions, MobileTaskSheet } from "@/components/documents/mobile-document-surfaces";
-import { StaleWorkflowRefresh } from "@/components/documents/stale-workflow-refresh";
 import { PriorityBadge } from "@/components/priority-badge";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { RejectActionForm } from "@/components/ui/reject-action-form";
@@ -41,6 +40,7 @@ import { PurchaseRequestLineResolutionForm } from "@/components/purchase-request
 import { logServerError } from "@/server/observability/logger";
 import { PurchaseRequestLineRecovery } from "@/components/purchase-request-line-recovery";
 import { diagnosePurchaseRequestSupplier } from "@/lib/purchase-request-readiness";
+import { ActionErrorNotice } from "@/components/action-error-notice";
 
 const prSteps = PURCHASE_REQUEST_WORKFLOW_STEPS.map((step) => ({
   key: step,
@@ -68,7 +68,7 @@ export default async function PurchaseRequestDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string; success?: string }>;
+  searchParams: Promise<{ error?: string; success?: string; po_no?: string }>;
 }) {
   const [{ id }, messageParams] = await Promise.all([params, searchParams]);
   const purchaseRequest = await getPurchaseRequest(id);
@@ -193,7 +193,7 @@ export default async function PurchaseRequestDetailPage({
       : canFinanceReview
           ? <ConfirmActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} label={<><BadgeCheck className="h-4 w-4" aria-hidden="true" />Approve as Finance</>} title="Approve this PR as Finance?" description="This marks the request ready for PO conversion." pendingLabel="Approving..." mobilePrimary />
           : canConvert
-            ? <MobileTaskSheet label="Prepare Purchase Order"><form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} className="space-y-2"><Input name="autocount_po_no" placeholder="AutoCount PO Number" required /><SubmitButton type="submit" pendingLabel="Converting..." className="w-full justify-center"><FileCheck2 className="h-4 w-4" aria-hidden="true" />Prepare Purchase Order</SubmitButton></form></MobileTaskSheet>
+            ? <MobileTaskSheet label="Prepare Purchase Order"><form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} className="space-y-2"><Input name="autocount_po_no" defaultValue={messageParams.po_no ?? ""} placeholder="AutoCount PO Number" required /><SubmitButton type="submit" pendingLabel="Converting..." className="w-full justify-center"><FileCheck2 className="h-4 w-4" aria-hidden="true" />Prepare Purchase Order</SubmitButton></form></MobileTaskSheet>
             : null;
 
   return (
@@ -223,7 +223,7 @@ export default async function PurchaseRequestDetailPage({
             </DocumentActionBar>
             {canConvert ? (
               <form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} className="mt-3 space-y-2" data-mobile-primary-action>
-                <Input name="autocount_po_no" placeholder="AutoCount PO Number" required />
+                <Input name="autocount_po_no" defaultValue={messageParams.po_no ?? ""} placeholder="AutoCount PO Number" required />
                 <SubmitButton type="submit" pendingLabel="Converting..." className="w-full justify-center"><FileCheck2 className="h-4 w-4" aria-hidden="true" />Convert to Purchase Order</SubmitButton>
               </form>
             ) : null}
@@ -241,11 +241,11 @@ export default async function PurchaseRequestDetailPage({
         </>
       }
     >
-      {messageParams.error || messageParams.success ? (
+      {messageParams.error ? <ActionErrorNotice message={messageParams.error} /> : null}
+      {messageParams.success ? (
             <Card>
-              <CardContent className={`p-3 text-xs ${messageParams.error ? "text-destructive" : "text-[var(--sb-success)]"}`}>
-                {messageParams.error ?? messageParams.success}
-                <StaleWorkflowRefresh message={messageParams.error} />
+              <CardContent className="p-3 text-xs text-[var(--sb-success)]">
+                {messageParams.success}
               </CardContent>
             </Card>
           ) : null}

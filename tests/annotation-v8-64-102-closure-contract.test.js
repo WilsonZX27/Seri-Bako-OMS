@@ -84,10 +84,10 @@ test("neutral analytics do not use warning gold", () => {
   assert.doesNotMatch(procurement, /counter\.value !== null && counter\.value > 0/);
 });
 
-test("release documents and footer share v8.64.108", () => {
-  assert.match(read("src", "lib", "app-version.ts"), /8\.64\.108/);
-  assert.match(read("PRODUCT.md"), /v8\.64\.108/);
-  assert.match(read("DESIGN.md"), /v8\.64\.108/);
+test("release documents and footer share the current v8.64.109 patch", () => {
+  assert.match(read("src", "lib", "app-version.ts"), /8\.64\.109/);
+  assert.match(read("PRODUCT.md"), /v8\.64\.109/);
+  assert.match(read("DESIGN.md"), /v8\.64\.109/);
   assert.match(read("docs", "ANNOTATION-REPAIR-LEDGER-2026-08-19.md"), /31-comment register/);
 });
 

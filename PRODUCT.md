@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.109 (unreleased) — PR to PO conversion repair
+
+Purchase Request conversion now recreates its database RPC explicitly, writes the required purchase-order idempotency key, keeps one active PO per PR, and records conversion source metadata. AutoCount PO number failures now identify the exact business issue, focus the field, and preserve the typed number after a failed attempt. Repository migrations reviewed through `186`; this is local source evidence only, and linked/Production verification remains separate.
+
 ### v8.64.108 (unreleased) — Portrait Tablet Form Alignment
 
 Purchase Order creation now aligns its form and action rail from the same top edge by using rendered-box grid gaps instead of sibling margins around hidden submission metadata. Production Jobs uses a deliberate two-row filter composition on portrait tablets: query and command first, then status, branch, and more filters at readable widths. This is local implementation evidence only; linked and Production verification remain separate gates.

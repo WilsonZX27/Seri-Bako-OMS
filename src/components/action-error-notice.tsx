@@ -17,6 +17,7 @@ const FIELD_TARGETS: Array<{ pattern: RegExp; selectors: string[] }> = [
   { pattern: /expected quantity/i, selectors: ["[name=\"theoretical_qty\"]"] },
   { pattern: /tolerance/i, selectors: ["[name=\"tolerance_percent\"]"] },
   { pattern: /supplier/i, selectors: ["[name=\"request_supplier_id\"]", "[name=\"supplier_id\"]"] },
+  { pattern: /autocount po number|po number/i, selectors: ["[name=\"autocount_po_no\"]"] },
   { pattern: /uom|unit of measure/i, selectors: ["[name=\"line_uom\"]", "[name=\"uom\"]"] },
   { pattern: /quantity/i, selectors: ["[name=\"line_qty\"]", "[name=\"qty\"]", "[name=\"quantity\"]", "[name=\"physical_qty\"]"] },
   { pattern: /reason/i, selectors: ["[name=\"reason\"]"] },

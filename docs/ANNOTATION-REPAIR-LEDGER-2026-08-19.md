@@ -435,7 +435,7 @@ The remaining rows below are intentionally retained as open gates. They require 
 | PR to PO conversion returns a stable result and never duplicates an active PO. | implemented / local transactional RPC test passed | Migration 186 is applied locally. A disposable ready-to-convert PR converted successfully, a second call returned the same PO with `already_existed=true`, and blank/not-ready assertions returned stable business codes. Linked/Production migration evidence remains open. |
 | GRN and return posting retain immutable Purchase/Base UOM snapshots. | implemented / awaiting authenticated mutation UAT | Local function definitions, snapshot columns, audit table, and grants are present; no Production mutation was performed. |
 
-The local Supabase migration ledger reports 184, 185, and 186. This is local-only evidence; it must not be promoted to `remote verified` or `production verified` without linked migration output and read-only Production regression.
+The local Supabase migration ledger reports 184, 185, 186, and 187. This is local-only evidence; it must not be promoted to `remote verified` or `production verified` without linked migration output and read-only Production regression.
 ## v8.64.111 receiving posting lock repair
 
 | Acceptance | Status | Evidence / remaining gate |
@@ -446,3 +446,4 @@ The local Supabase migration ledger reports 184, 185, and 186. This is local-onl
 | Acceptance | Status | Evidence / remaining gate |
 |---|---|---|
 | PO submit → approve → send advances both PO and linked document state. | implemented / local rollback E2E passed | Migration 187 replaces the invalid `pending` document enum assignment with `pending_approval`; a disposable local PO completed submit, approve, and send in one transaction and rolled back cleanly. Authenticated browser and Production regression remain open. |
+| AP Aging and Recipe mutation workflows have disposable local business fixtures. | blocked locally / static contracts passed | The local disposable database currently has zero recipes, recipe lines, supplier invoices, or goods receivings. The focused AP Aging, Recipe Costing, and PO transition contracts pass (18/18), but no mutation result is claimed until a rollback-only fixture seed is available. Production remains open. |

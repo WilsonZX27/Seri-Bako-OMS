@@ -127,6 +127,11 @@ test.describe("QA- procurement payment closure", () => {
       await admin.from("purchase_requests").delete().eq("id", created.prId);
       if (pr.data?.document_id) await admin.from("documents").delete().eq("id", pr.data.document_id);
     }
+    if (created.duplicatePrId) {
+      await admin.from("purchase_request_lines").delete().eq("purchase_request_id", created.duplicatePrId);
+      await admin.from("purchase_requests").delete().eq("id", created.duplicatePrId);
+      if (created.duplicateDocumentId) await admin.from("documents").delete().eq("id", created.duplicateDocumentId);
+    }
     await admin.from("branch_supplier_items").delete().eq("item_id", fixture.item);
     await admin.from("supplier_items").delete().eq("id", fixture.supplierItem);
     await admin.from("stock_transactions").delete().eq("id", fixture.opening);
@@ -205,13 +210,72 @@ test.describe("QA- procurement payment closure", () => {
     await page.goto(created.prUrl, { waitUntil: "domcontentloaded" });
     const convertForm = page.locator('form:visible').filter({ has: page.locator('input[name="autocount_po_no"]') }).first();
     await expect(convertForm).toBeVisible();
-    await convertForm.locator('input[name="autocount_po_no"]').fill(`QA-AUTOCOUNT-${fixture.suffix}-超长编号-中文`);
+    created.poNo = `QA-AUTOCOUNT-${fixture.suffix}-超长编号-中文`;
+    await convertForm.locator('input[name="autocount_po_no"]').fill(created.poNo);
     await convertForm.getByRole("button", { name: /Convert to Purchase Order/i }).click();
     await page.waitForURL(/\/purchase-orders\/[0-9a-f-]+/i, { timeout: 30_000, waitUntil: "domcontentloaded" });
     created.poUrl = page.url();
     created.poId = new URL(page.url()).pathname.split("/").pop();
     await expect(page.locator("body")).toContainText(/AutoCount PO Number/i);
     await expect(page.getByRole("button", { name: /Send to supplier/i }).first()).toBeVisible();
+
+    // Re-run the conversion boundary from the browser against a second
+    // disposable Ready to Convert PR. The RPC contract already proves
+    // idempotency transactionally; this verifies the operator sees the safe
+    // duplicate message and keeps the typed number after the redirect.
+    const duplicatePrId = crypto.randomUUID();
+    const duplicateDocumentId = crypto.randomUUID();
+    created.duplicatePrId = duplicatePrId;
+    created.duplicateDocumentId = duplicateDocumentId;
+    await must(admin.from("documents").insert({
+      id: duplicateDocumentId,
+      company_id: fixture.company,
+      document_no: `QA-DUP-PR-${fixture.suffix}`,
+      document_type: "purchase_request",
+      title: `QA duplicate PO conversion ${fixture.suffix}`,
+      status: "approved",
+      approval_status: "approved",
+      current_step: "Ready to Convert",
+      related_entity_type: "purchase_request",
+      related_entity_id: duplicatePrId,
+      created_by: fixture.kitchen,
+      updated_by: fixture.kitchen,
+    }), "duplicate PR document");
+    await must(admin.from("purchase_requests").insert({
+      id: duplicatePrId,
+      company_id: fixture.company,
+      document_id: duplicateDocumentId,
+      request_no: `QA-DUP-PR-${fixture.suffix}`,
+      requested_by: fixture.kitchen,
+      request_date: new Date().toISOString().slice(0, 10),
+      priority: "normal",
+      branch_id: fixture.branch,
+      status: "ready_to_convert",
+      remarks: "Disposable duplicate PO conversion boundary fixture.",
+      created_by: fixture.kitchen,
+      updated_by: fixture.kitchen,
+    }), "duplicate PR");
+    await must(admin.from("purchase_request_lines").insert({
+      purchase_request_id: duplicatePrId,
+      item_id: fixture.item,
+      qty: 1,
+      uom: "KG",
+      estimated_unit_cost: 12.34,
+      suggested_supplier_id: fixture.supplier,
+      reason: "Disposable duplicate PO conversion boundary fixture.",
+    }), "duplicate PR line");
+    await page.goto(`/purchase-requests/${duplicatePrId}`, { waitUntil: "domcontentloaded" });
+    const duplicateForm = page.locator('form:visible').filter({ has: page.locator('input[name="autocount_po_no"]') }).first();
+    await expect(duplicateForm).toBeVisible();
+    const duplicateInput = duplicateForm.locator('input[name="autocount_po_no"]');
+    await duplicateInput.fill(created.poNo);
+    await duplicateForm.getByRole("button", { name: /Convert to Purchase Order/i }).click();
+    await expect(page).toHaveURL(new RegExp(`/purchase-requests/${duplicatePrId}\\?.*po_no=`), { timeout: 30_000 });
+    await expect(page.locator("body")).toContainText(/This AutoCount PO Number is already used/i);
+    await expect(page.locator('input[name="autocount_po_no"]:visible')).toHaveValue(created.poNo);
+    await expect.poll(async () => (await admin.from("purchase_orders").select("id").eq("po_no", created.poNo).is("deleted_at", null)).data?.length ?? 0).toBe(1);
+
+    await page.goto(created.poUrl, { waitUntil: "domcontentloaded" });
 
     async function upload(label, name) {
       const uploadForm = page.locator('form:has(input[type="file"]):visible').first();

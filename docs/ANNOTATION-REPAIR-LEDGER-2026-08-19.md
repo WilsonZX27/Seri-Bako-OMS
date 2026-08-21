@@ -1,5 +1,15 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.132 PR-to-PO error feedback closure
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| A valid PR converts to one PO and a duplicate AutoCount PO number is rejected with actionable feedback. | verified locally / Production awaiting UAT | `qa-purchase-closure.spec.js` passed 3/3 against the disposable local Supabase fixture, including a second Ready to Convert PR: duplicate submission shows `This AutoCount PO Number is already used`, retains the entered value, and leaves exactly one active PO for that number. |
+| Conversion feedback is bounded and user-facing. | implemented | The browser assertion covers the field-level message and retained input; SQL/constraint details are not exposed. Production PR/AUG26/013 remains unclaimed. |
+| Footer and release records remain synchronized. | implemented | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.132. |
+
+This closes the dedicated local browser duplicate/error-feedback probe. It does not verify linked migrations or Production behavior; the user-provided `supabase db push` output still ends before a final success result.
+
 ## v8.64.131 closure ledger reconciliation
 
 | Current evidence authority | Superseded historical wording | Boundary that remains |
@@ -7,8 +17,8 @@
 | Guided PR line repair is locally mutation-verified by v8.64.128 (`annotation-v8-64-66-uat.spec.js`, 10/10 full file). | The older “Real guided PR repair — mutation UAT incomplete” row is historical and no longer describes the local fixture state. | Production mutation and linked/Production migration evidence remain unverified. |
 | Purchase Return now has authenticated local mutation evidence in v8.64.129; progressive receiving and immutable snapshots are locally verified in v8.64.125/129. | Older GRN/Return rows that say browser return UAT is open are retained as historical context only. | Production data and remote migration alignment remain open. |
 | AP Aging report interaction and phone geometry are locally verified 2/2 in v8.64.130. | The older “dedicated AP Aging report fixture/UAT remains open” wording is superseded for local report interaction. | Production report regression and linked migration status remain open. |
-| PR→PO success is authenticated locally in the 3/3 procurement closure and conversion RPC contract; duplicate/idempotency behavior is locally transactional. | Older local-only conversion rows remain accurate about the missing dedicated browser duplicate/error-feedback probe. | A focused browser probe for field-level PO conversion failure/retained input is still open; PR/AUG26/013 and Production are not claimed. |
-| Footer and release records remain synchronized. | Historical version notes remain immutable context. | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.131. |
+| PR→PO success is authenticated locally in the 3/3 procurement closure and conversion RPC contract; duplicate/idempotency behavior is locally transactional. | Older local-only conversion rows remain accurate about the missing dedicated browser duplicate/error-feedback probe. | The focused browser probe is now closed by v8.64.132; PR/AUG26/013 and Production are not claimed. |
+| Footer and release records remain synchronized. | Historical version notes remain immutable context. | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.132. |
 
 This reconciliation prevents historical ledger wording from being mistaken for current evidence. It does not mark any remote or Production item verified.
 

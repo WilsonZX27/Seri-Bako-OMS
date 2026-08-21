@@ -1,8 +1,12 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.132 (unreleased) - PR to PO error feedback closure
+
+PR conversion now has local browser evidence for both the success path and the duplicate AutoCount PO number path. Duplicate feedback is specific, the entered number remains in place for correction, and the interface does not expose database internals. Footer remains the concise `v8.64.132` token.
+
 ## v8.64.131 (unreleased) - Closure ledger reconciliation
 
-Release notes now point to the newest evidence instead of leaving older local-UAT wording ambiguous. This does not promote local browser evidence to linked or Production status; it only records the current audit authority and the one remaining dedicated PO conversion error-feedback probe. Footer remains the concise `v8.64.131` token.
+Release notes now point to the newest evidence instead of leaving older local-UAT wording ambiguous. This does not promote local browser evidence to linked or Production status; the dedicated PO conversion error-feedback probe is closed by v8.64.132. Footer remains the concise `v8.64.131` token.
 
 ## v8.64.130 (unreleased) - AP Aging report closure
 

@@ -1,6 +1,22 @@
+const fs = require("node:fs");
+const { createClient } = require("@supabase/supabase-js");
 const { test, expect } = require("@playwright/test");
 const { hasAccount, login } = require("./helpers");
 const GUIDED_REVIEW_PR_ID = "e2000000-0000-4000-8000-000000000001";
+
+function loadEnv() {
+  if (!fs.existsSync(".env.test.local")) return;
+  for (const line of fs.readFileSync(".env.test.local", "utf8").split(/\r?\n/)) {
+    const match = line.match(/^\s*([^#=]+)=(.*)$/);
+    if (match && !process.env[match[1].trim()]) process.env[match[1].trim()] = match[2].trim().replace(/^['"]|['"]$/g, "");
+  }
+}
+
+async function must(promise, label) {
+  const result = await promise;
+  if (result.error) throw new Error(`${label}: ${result.error.message}`);
+  return result.data;
+}
 
 async function expectNoPageOverflow(page) {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -120,4 +136,47 @@ test("v8.64.67 portrait PR review dialog stays operable with a black backdrop", 
   expect(box.height).toBeLessThanOrEqual(1180);
   expect(await dialog.evaluate((node) => getComputedStyle(node, "::backdrop").backgroundColor)).toBe("rgba(0, 0, 0, 0.6)");
   await expect(dialog.getByRole("button", { name: /apply and revalidate/i })).toBeVisible();
+});
+
+test("guided PR review applies a replacement and records the local mutation", async ({ page }) => {
+  test.skip(!hasAccount("superAdmin"), "Missing super-admin test credentials.");
+  test.skip(process.env.RUN_TENANT_BOUNDARY_E2E !== "1", "Guided review mutation is local-only.");
+  loadEnv();
+  const localUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  test.skip(!localUrl || !["127.0.0.1", "localhost"].includes(new URL(localUrl).hostname), "Guided review mutation is restricted to local Supabase.");
+  const admin = createClient(localUrl, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { autoRefreshToken: false, persistSession: false } });
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`/purchase-requests/${GUIDED_REVIEW_PR_ID}`, { waitUntil: "domcontentloaded" });
+  const review = page.getByRole("button", { name: /^Review / }).first();
+  await expect(review).toBeVisible({ timeout: 30_000 });
+  await review.click();
+
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await dialog.locator('select').first().selectOption("replace");
+  await dialog.getByRole("combobox", { name: "Replacement Item" }).fill("E2E-SOURCE-A-ITEM");
+  await expect(page.getByRole("option").filter({ hasText: "Alpha Mapped Ingredient" })).toBeVisible();
+  await dialog.getByRole("combobox", { name: "Replacement Item" }).press("Enter");
+  await dialog.locator('input[name="qty"]').fill("3");
+  const supplierOption = dialog.locator('select[name="supplier_id"] option').filter({ hasText: "Local E2E Source Alpha" }).first();
+  await expect(supplierOption).toHaveCount(1);
+  await dialog.locator('select[name="supplier_id"]').selectOption(await supplierOption.getAttribute("value"));
+  await dialog.locator('textarea[name="reason"]').fill("Confirm mapped supplier and controlled purchase UOM during local review.");
+  await dialog.getByRole("button", { name: /apply and revalidate/i }).click();
+
+  await expect(page).toHaveURL(new RegExp(`/purchase-requests/${GUIDED_REVIEW_PR_ID}(?:\\?.*)?$`), { timeout: 30_000 });
+  await expect(page.locator("body")).toContainText(/Request line updated and supplier readiness recalculated/i);
+
+  const line = await must(admin.from("purchase_request_lines").select("item_id,qty,uom,suggested_supplier_id").eq("id", "e2000000-0000-4000-8000-000000000003").single(), "guided review line");
+  const mappedItem = await must(admin.from("items").select("id").eq("item_code", "E2E-SOURCE-A-ITEM").single(), "mapped item");
+  const mappedSupplier = await must(admin.from("suppliers").select("id").eq("supplier_code", "E2E-SOURCE-A").single(), "mapped supplier");
+  expect(line.item_id).toBe(mappedItem.id);
+  expect(Number(line.qty)).toBe(3);
+  expect(line.uom).toBe("CTN");
+  expect(line.suggested_supplier_id).toBe(mappedSupplier.id);
+
+  const revisions = await must(admin.from("document_line_revisions").select("action,reason").eq("line_id", "e2000000-0000-4000-8000-000000000003").order("created_at", { ascending: false }).limit(1), "guided review revision");
+  expect(revisions[0]?.action).toBe("replace");
+  expect(revisions[0]?.reason).toMatch(/controlled purchase UOM/i);
 });

@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.128 (unreleased) — Guided PR review closure
+
+The disposable local audit now executes the guided Manager Review repair end to end: replacing an unmapped request line with an Item Master item, mapped supplier, controlled Purchase UOM, and revised quantity succeeds through the visible Apply action and is asserted in both the request line and immutable revision history. This is local evidence only; linked migration alignment and Production regression remain separate.
+
 ### v8.64.127 (unreleased) — Current local closure audit refresh
 
 After the retry-safe migration re-execution, the clean local production-like server again passed the full disposable Manager → Purchasing → Finance → Ready to Convert → PO/GRN/payment closure (3/3). This refresh strengthens local mutation evidence and does not promote any row to linked or Production verification.

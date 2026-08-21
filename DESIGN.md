@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.128 (unreleased) - Guided PR review closure
+
+The guided line-review dialog is now covered by a real local mutation: the reviewer chooses a replacement Item Master record, supplier, quantity, and UOM, submits one Apply action, and the resulting line plus revision record are checked in local Supabase. The change remains progressive review work and does not require Production master-data mutation. Footer remains the concise `v8.64.128` token.
+
 ## v8.64.127 (unreleased) - Current local closure audit refresh
 
 The current clean build retains the complete role-sequenced procurement workspace after migration re-execution: Manager, Purchasing, and Finance actions remain visible only to the correct role, and the downstream PO/GRN/payment path remains usable. Footer remains the concise `v8.64.127` token.

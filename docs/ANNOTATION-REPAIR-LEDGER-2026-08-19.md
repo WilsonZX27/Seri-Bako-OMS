@@ -1,5 +1,15 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.128 guided PR review mutation closure
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| Manager Review can repair a saved PR line without leaving the request or silently losing the original values. | verified locally / Production awaiting UAT | `annotation-v8-64-66-uat.spec.js` passed the disposable local mutation: replace the unmapped line with `E2E-SOURCE-A-ITEM`, select the mapped supplier and CTN UOM, apply the revised quantity, then assert the persisted line and `document_line_revisions` snapshot/reason in local Supabase. |
+| Guided repair remains bounded to local mutation evidence. | implemented | The test is fail-closed to `RUN_TENANT_BOUNDARY_E2E=1` and localhost Supabase; no Production records are changed or promoted. |
+| Footer and release records remain synchronized. | implemented | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.128. |
+
+This batch closes the previously unverified local Apply mutation path. Linked migration alignment, authoritative Production data, and six-role Production regression remain separate gates.
+
 ## v8.64.127 current local closure audit refresh
 
 | Acceptance | Status | Evidence / remaining gate |

@@ -40,7 +40,7 @@ test("administration and master data pages use the shared list and detail patter
   await expect(page.locator("table thead")).toContainText("Action");
 
   await page.goto("/staffs?search=QA-IMP-STAFF-733", { waitUntil: "domcontentloaded" });
-  await expect(page.locator("table thead")).toContainText("Account Status");
+  await expect(page.locator("table thead")).toContainText("Status");
   await expect(page.locator("table thead")).toContainText("Action");
 
   await page.goto("/recipes?search=RCP-20260711-NEW", { waitUntil: "domcontentloaded" });

@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.114 (unreleased) - Local workflow closure
+
+The closure batch records responsive and role-matrix evidence separately from Production claims. The local audit exercises the complete no-route procurement path, AP Aging visibility, master-data surfaces, and Outlet Daily missing-sent states while preserving the compact shared workspace rhythm.
+
 ## v8.64.113 (unreleased) - Progressive PR sourcing
 
 The PR form keeps one required Supplier suggestion, loads active suppliers independently of branch mappings, and does not hide the Item Master behind an existing supplier route. Item selection shows the known supplier and Purchase/Base UOM context; missing branch or supplier-item routes are explained inline as non-blocking Purchasing confirmation work during review.

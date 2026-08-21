@@ -1,8 +1,12 @@
 # Seri Bako Operations Management System
 
+### v8.64.114 (unreleased) — Local workflow closure
+
+The local six-role audit now covers the no-route PR→PO→GRN→Invoice→Payment→PO-close path, AP Aging visibility before payment, supplier/item/branch UX surfaces, Outlet Daily missing Qty Sent semantics, and the authenticated responsive checks available in the local suite. This is local evidence only; remote and Production verification remain separate.
+
 ### v8.64.113 (unreleased) — Progressive PR sourcing
 
-Purchase Requests keep Supplier as a required suggestion while allowing Item Master search before a supplier-item or branch route exists. Missing routes are provisional review work for Purchasing rather than a form-level or review-stage blocker; the supplier chooser includes active suppliers even before a branch route exists, while controlled UOM, quantity, and active-item validation remain enforced. Local authenticated QA with a deliberately unmapped supplier reached PR creation, three approval gates, PO conversion, send, GRN posting, and invoice draft creation; final invoice approval/payment remains UAT-pending because the local Next-dev browser context refreshed away during Finance actions.
+Purchase Requests keep Supplier as a required suggestion while allowing Item Master search before a supplier-item or branch route exists. Missing routes are provisional review work for Purchasing rather than a form-level or review-stage blocker; the supplier chooser includes active suppliers even before a branch route exists, while controlled UOM, quantity, and active-item validation remain enforced. Local authenticated QA with a deliberately unmapped supplier completed PR creation, three approval gates, PO conversion/send, GRN posting, Finance invoice approval, payment, and PO close. The disposable fixture now cleans its stock ledger lines as well as its documents.
 
 ### v8.64.112 (unreleased) — Purchase Order transition repair
 

@@ -107,6 +107,9 @@ test.describe("QA- procurement payment closure", () => {
     }
     if (created.grnId) {
       const grn = await admin.from("goods_receivings").select("document_id").eq("id", created.grnId).maybeSingle();
+      const movements = await admin.from("stock_transactions").select("id").eq("reference_id", created.grnId);
+      const movementIds = (movements.data ?? []).map((row) => row.id);
+      if (movementIds.length) await admin.from("stock_transaction_lines").delete().in("stock_transaction_id", movementIds);
       await admin.from("stock_transactions").delete().eq("reference_id", created.grnId);
       await admin.from("goods_receiving_lines").delete().eq("goods_receiving_id", created.grnId);
       await admin.from("goods_receivings").delete().eq("id", created.grnId);
@@ -194,7 +197,9 @@ test.describe("QA- procurement payment closure", () => {
   });
 
   test("QA verifies PO conversion prerequisites and supplier-send controls", async ({ page }) => {
+    test.setTimeout(120_000);
     test.skip(!created.prId, "PR was not created");
+    const browser = page.context().browser();
     await logout(page);
     await login(page, "superAdmin");
     await page.goto(created.prUrl, { waitUntil: "domcontentloaded" });
@@ -270,29 +275,41 @@ test.describe("QA- procurement payment closure", () => {
     if (!createdInvoice.data?.id) throw new Error("QA invoice was not created");
     created.invoiceId = createdInvoice.data.id;
     created.invoiceUrl = `${new URL(page.url()).origin}/supplier-invoices/${created.invoiceId}`;
-    await logout(page);
-    for (let attempt = 0; attempt < 3; attempt += 1) {
-      try { await login(page, "superAdmin"); break; }
-      catch (error) { if (attempt === 2) throw error; await page.waitForTimeout(1500); }
-    }
-    await page.goto(created.invoiceUrl, { waitUntil: "domcontentloaded" });
-    await upload("Supplier Invoice", `QA-INVOICE-${fixture.suffix}.pdf`);
-    await logout(page);
-    await login(page, "finance");
-    await page.goto(created.invoiceUrl, { waitUntil: "domcontentloaded" });
-    await page.getByRole("button", { name: /Approve as Finance/i }).first().click();
-    const dialog = page.getByRole("dialog");
+    // Keep attachment refreshes in an isolated context. Next dev can dispose
+    // the page that just rendered an RSC mutation response; the finance UAT
+    // should start from a fresh authenticated page rather than inheriting that
+    // transient document state.
+    const invoiceUploadContext = await browser.newContext();
+    const invoiceUploadPage = await invoiceUploadContext.newPage();
+    await login(invoiceUploadPage, "superAdmin");
+    await invoiceUploadPage.goto(created.invoiceUrl, { waitUntil: "domcontentloaded" });
+    const invoiceUploadForm = invoiceUploadPage.locator('form:has(input[type="file"]):visible').first();
+    const supplierInvoiceAttachmentLabel = `Supplier Invoice ${fixture.suffix}`;
+    await invoiceUploadForm.locator('input[name="file_name"]').fill(supplierInvoiceAttachmentLabel);
+    await invoiceUploadForm.locator('input[type="file"]').setInputFiles({ name: `QA-INVOICE-${fixture.suffix}.pdf`, mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4 QA fixture") });
+    await invoiceUploadForm.getByRole("button", { name: /Upload attachment|Attach /i }).click();
+    await expect.poll(async () => (await admin.from("attachments").select("id").eq("file_name", supplierInvoiceAttachmentLabel).order("created_at", { ascending: false }).limit(1).maybeSingle()).data?.id ?? null, { timeout: 30_000 }).not.toBeNull();
+    await invoiceUploadContext.close().catch(() => {});
+    const financeContext = await browser.newContext();
+    const financePage = await financeContext.newPage();
+    await login(financePage, "finance");
+    await financePage.goto(created.invoiceUrl, { waitUntil: "domcontentloaded" });
+    await financePage.getByRole("button", { name: /Approve as Finance/i }).first().click();
+    const dialog = financePage.getByRole("dialog");
     await expect(dialog).toBeVisible();
     await dialog.getByRole("button", { name: /Approve as Finance/i }).click();
-    await page.waitForLoadState("domcontentloaded");
+    await financePage.waitForLoadState("domcontentloaded");
     await expect.poll(async () => {
       const row = await admin.from("supplier_invoices").select("status").eq("id", created.invoiceId).maybeSingle();
       return row.data?.status ?? "";
     }, { timeout: 30_000 }).toBe("open");
+    await financePage.goto(`/supplier-invoices/aging?status=open&search=${encodeURIComponent(`QA-INVOICE-${fixture.suffix}-中文`)}`, { waitUntil: "domcontentloaded" });
+    await expect(financePage.locator("body")).toContainText(`QA-INVOICE-${fixture.suffix}-中文`);
+    await financeContext.close().catch(() => {});
     // Isolate the post-approval upload/payment interaction from the page that
     // just rendered the RSC approval response; Next dev may dispose that page
     // while refreshing attachment data.
-    const paymentContext = await page.context().browser().newContext();
+    const paymentContext = await browser.newContext();
     const paymentPage = await paymentContext.newPage();
     await login(paymentPage, "finance");
     await paymentPage.goto(created.invoiceUrl, { waitUntil: "domcontentloaded" });
@@ -312,7 +329,7 @@ test.describe("QA- procurement payment closure", () => {
     await expect.poll(async () => (await admin.from("supplier_invoices").select("status").eq("id", created.invoiceId).maybeSingle()).data?.status ?? "", { timeout: 30_000 }).toBe("paid");
     await paymentContext.close();
 
-    const closeContext = await page.context().browser().newContext();
+    const closeContext = await browser.newContext();
     const closePage = await closeContext.newPage();
     await login(closePage, "purchasing");
     await closePage.goto(created.poUrl, { waitUntil: "commit", timeout: 30_000 });

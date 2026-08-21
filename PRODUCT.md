@@ -1,5 +1,13 @@
 # Seri Bako Operations Management System
 
+### v8.64.97 (unreleased) — Supplier Identity Relationship Consolidation
+
+Duplicate supplier identities are consolidated at the data boundary: active supplier-item, branch, item, purchasing, and request references are repointed to one canonical active identity before duplicate rows are recoverably archived. Supplier Items search also accepts the operator-facing Item Group and internal AutoCount code.
+
+### v8.64.96 (unreleased) — Active Supplier Identity View
+
+Supplier registers default to active identities after recoverable duplicate merges. Inactive historical rows remain available through an explicit All statuses view, so operators see one usable supplier identity without losing audit history.
+
 ### v8.64.95 (unreleased) — Structured Brand Migration Compatibility Repair
 
 The structured brand migration patches the Items workspace RPC by SQL shape rather than line-ending-specific source text, so linked projects with equivalent function definitions can apply the brand field safely. Remote migration and Production UAT remain separate gates.
@@ -107,7 +115,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `180`; this is not evidence that migration 180 is applied to the linked Production project.
+Repository migration authority: migrations reviewed through `181`; this is not evidence that migration 181 is applied to the linked Production project.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

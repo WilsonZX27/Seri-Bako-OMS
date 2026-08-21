@@ -1,5 +1,18 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.97 supplier identity relationship consolidation
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Duplicate suppliers with existing item relationships | implemented / awaiting linked migration and Production data verification | Migration 181 repoints supplier-item, branch mapping, item, request, PO, GRN, return, invoice, and external-reference relationships to one active canonical supplier, archives conflicts recoverably, and records each relationship change. This is not Production-verified until linked migration status and authenticated supplier/item queries confirm one operational identity. |
+| Supplier Items search by Item Group / AutoCount code | implemented / awaiting deployed viewport UAT | The server-side search projection now includes `supplier_group` and `supplier_code`; `400-C005` and `CHYINING` are searchable without changing the visible operator-facing Item Group convention. |
+
+## v8.64.96 active supplier identity view
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Duplicate suppliers visible after merge | implemented / awaiting deployed viewport UAT | Migration 173 left one active canonical supplier and retained inactive historical rows for recovery. The Supplier register now defaults to Active and keeps All statuses as an explicit option, so operators see one usable identity while audit history remains available. |
+
 ## v8.64.95 structured brand migration compatibility repair
 
 | Gate | Status | Evidence |
@@ -10,7 +23,7 @@
 
 | Gate | Status | Evidence |
 |---|---|---|
-| Migration 173 duplicate supplier consolidation | implemented / awaiting linked migration and Production data verification | The first linked push attempt stopped because a bulk PR-line supplier update violated the branch/item mapping trigger (`A selected supplier is not mapped to this purchase request branch and item.`). The repair keeps the guard enabled, repoints only canonical mappings that match branch, item, and supplier UOM, and clears unresolved supplier references with `supplier_merge_line_audit` plus a visible repair remark. Local disposable `db reset` completed through migration 180; linked migration status and Production rows are not yet verified. |
+| Migration 173 duplicate supplier consolidation | implemented / awaiting linked migration and Production data verification | The first linked push attempt stopped because a bulk PR-line supplier update violated the branch/item mapping trigger (`A selected supplier is not mapped to this purchase request branch and item.`). The repair keeps the guard enabled, repoints only canonical mappings that match branch, item, and supplier UOM, and clears unresolved supplier references with `supplier_merge_line_audit` plus a visible repair remark. Local disposable `db reset` completed through migration 181; linked migration status and Production rows are not yet verified. |
 
 Do not mark this gate Production-verified from source, local reset, or the failed push. After the repaired migration is pushed, confirm linked migrations 173–180, then inspect audit rows and affected PR lines before retrying AutoCount Confirm.
 

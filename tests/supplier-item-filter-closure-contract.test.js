@@ -55,3 +55,35 @@ test("shared list routes do not replace Search with Reset after filtering", () =
     assert.doesNotMatch(source, /filtered \? <Button asChild variant="secondary"[\s\S]*: <Button type="submit"/, route);
   }
 });
+
+test("supplier register defaults to active identities while keeping an explicit all-status view", () => {
+  const statusTabs = read("src/components/status-tabs.tsx");
+  const suppliers = read("src/app/(app)/suppliers/page.tsx");
+  const query = read("src/server/queries/suppliers.ts");
+  assert.match(statusTabs, /defaultStatus = "all"/);
+  assert.match(statusTabs, /defaultStatus === "all"/);
+  assert.match(suppliers, /const defaultStatus = "active"/);
+  assert.match(suppliers, /defaultStatus=\{defaultStatus\}/);
+  assert.match(query, /\.is\("deleted_at", null\)/);
+});
+
+test("supplier-item search covers the operator group and internal AutoCount code", () => {
+  const query = read("src/server/queries/master-data.ts");
+  const page = read("src/app/(app)/supplier-items/page.tsx");
+  assert.match(query, /supplier_code: supplier\?\.supplier_code/);
+  assert.match(query, /supplier_group: supplier\?\.supplier_group/);
+  assert.match(query, /\["supplier_name", "supplier_code", "supplier_group"/);
+  assert.match(query, /select\("id, name, supplier_code, supplier_group"\)/);
+  assert.match(page, /Search supplier, AutoCount code, item group/);
+});
+
+test("supplier identity reconciliation repoints relationships before archiving duplicates", () => {
+  const migration = read("supabase/migrations/181_reconcile_supplier_identity_relationships.sql");
+  assert.match(migration, /supplier_identity_reconciliation_audit/);
+  assert.match(migration, /\(nullif\(trim\(s\.supplier_code\), ''\) is not null\) desc/);
+  assert.match(migration, /update public\.supplier_items\s+set supplier_id = canonical_supplier\.id/);
+  assert.match(migration, /update public\.branch_supplier_items/);
+  assert.match(migration, /update public\.purchase_orders/);
+  assert.match(migration, /update public\.items\s+set supplier_id = canonical_supplier\.id/);
+  assert.match(migration, /set status = 'inactive', deleted_at = coalesce\(deleted_at, now\(\)/);
+});

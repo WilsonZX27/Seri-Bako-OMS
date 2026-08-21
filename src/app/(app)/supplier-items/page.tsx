@@ -34,7 +34,7 @@ export default async function SupplierItemsPage({ searchParams }: { searchParams
     </>}>
       {filters.error || filters.success ? <div className={`border p-3 text-sm ${filters.error ? "border-destructive text-destructive" : "border-[var(--sb-success)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]"}`}>{filters.error ?? filters.success}</div> : null}
       <div className="space-y-3">
-        <MasterDataFilters search={filters.search} status={filters.status} supplier={filters.supplier} suppliers={suppliers.filter((supplier) => supplier.status === "active")} placeholder="Search supplier, item, supplier item code" resultCount={page.totalRows} filtered={filtered} resetHref="/supplier-items" />
+        <MasterDataFilters search={filters.search} status={filters.status} supplier={filters.supplier} suppliers={suppliers.filter((supplier) => supplier.status === "active")} placeholder="Search supplier, AutoCount code, item group, item, supplier item code" resultCount={page.totalRows} filtered={filtered} resetHref="/supplier-items" />
         <div className="sb-list-content-card overflow-hidden">
           <Table className="sb-supplier-items-table" mobileHidden aria-label="Supplier items" stickyColumn="second">
             <TableHeader><TableRow>
@@ -50,7 +50,7 @@ export default async function SupplierItemsPage({ searchParams }: { searchParams
             <TableBody>
               {page.rows.map((row) => <TableRow key={row.id}>
                     <TableCell className="w-16 p-0 text-center"><TableActionMenuPortal label={`Actions for ${row.supplier_item_code}`}><div className="grid min-w-36 gap-1"><Link href={`/supplier-items/${row.id}`} role="menuitem" className="rounded-[var(--sb-radius-control)] px-2 py-1.5 text-xs hover:bg-[var(--sb-surface-muted)]">Open</Link>{canUpdate ? <form action={deleteSupplierItem.bind(null, row.id)}><SubmitButton type="submit" variant="ghost" size="sm" className="w-full justify-start px-2 text-xs text-[var(--sb-danger)]" pendingLabel="Archiving...">Archive</SubmitButton></form> : null}</div></TableActionMenuPortal></TableCell>
-              <TableCell className="whitespace-normal break-words">{row.supplier_name}</TableCell>
+              <TableCell className="whitespace-normal break-words"><p className="font-medium">{row.supplier_name}</p><p className="text-xs text-muted-foreground">{row.supplier_group !== "-" ? row.supplier_group : row.supplier_code !== "-" ? row.supplier_code : "-"}{row.supplier_code !== "-" && row.supplier_code !== row.supplier_group ? ` · AutoCount ${row.supplier_code}` : ""}</p></TableCell>
               <TableCell className="whitespace-normal break-words"><p className="font-medium">{row.item_name}</p><p className="text-xs text-muted-foreground">{row.item_code}</p></TableCell>
               <TableCell><p className="font-medium">{row.purchase_uom}</p><p className="text-xs text-muted-foreground">1 {row.purchase_uom} = {formatNumber(row.conversion_to_base_uom)} base UOM</p></TableCell>
               <TableCell className="text-right">{formatCurrency(row.unit_cost)}</TableCell>
@@ -62,7 +62,7 @@ export default async function SupplierItemsPage({ searchParams }: { searchParams
             </TableBody>
           </Table>
           <OperationalList ariaLabel="Supplier items">
-            {page.rows.map((row) => <OperationalListRow key={row.id} href={`/supplier-items/${row.id}`} label={`Open ${row.supplier_item_code}`} primary={row.item_name} status={<Badge variant={row.status === "active" ? "success" : "secondary"}>{row.status}</Badge>} secondary={`${row.supplier_name} · ${row.supplier_item_code}`} meta={formatCurrency(row.unit_cost)} />)}
+            {page.rows.map((row) => <OperationalListRow key={row.id} href={`/supplier-items/${row.id}`} label={`Open ${row.supplier_item_code}`} primary={row.item_name} status={<Badge variant={row.status === "active" ? "success" : "secondary"}>{row.status}</Badge>} secondary={`${row.supplier_name} · ${row.supplier_group !== "-" ? row.supplier_group : row.supplier_code} · ${row.supplier_item_code}`} meta={formatCurrency(row.unit_cost)} />)}
             {!page.rows.length ? <EmptyState title={filtered ? "No supplier items match these filters" : "No supplier items yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier item terms appear after a supplier is linked to an item."} action={filtered ? emptyAction : undefined} /> : null}
           </OperationalList>
           <PaginationControls page={page.page} totalPages={page.totalPages} totalRows={page.totalRows} searchParams={filters} />

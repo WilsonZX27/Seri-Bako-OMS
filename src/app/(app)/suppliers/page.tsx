@@ -21,7 +21,10 @@ export default async function SuppliersPage({
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const filters = await searchParams;
-  const [page, permissions] = await Promise.all([getSuppliers(filters), getPermissionMap(["suppliers.create", "suppliers.manage", "imports.run"])]);
+  const defaultStatus = "active";
+  const activeStatus = filters.status ?? defaultStatus;
+  const queryFilters = { ...filters, status: activeStatus };
+  const [page, permissions] = await Promise.all([getSuppliers(queryFilters), getPermissionMap(["suppliers.create", "suppliers.manage", "imports.run"])]);
   const filtered = hasActiveFilters(filters);
   const canCreate = permissions["suppliers.create"];
   const emptyAction = filtered ? { href: "/suppliers", label: "Reset filters" } : canCreate ? { href: "/suppliers/new", label: "New supplier" } : undefined;
@@ -50,7 +53,7 @@ export default async function SuppliersPage({
       >
         {filters.success ? <div className="border border-[var(--sb-success)] bg-[var(--sb-success-bg)] p-3 text-sm text-[var(--sb-success)]">{filters.success}</div> : null}
         <div className="space-y-3">
-          <MasterDataFilters search={filters.search} status={filters.status} showStatus={false} leadingFilter={<StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]} activeStatus={filters.status} />} placeholder="Search supplier code, name, contact, phone, email" resultCount={page.totalRows} filtered={filtered} resetHref="/suppliers" />
+          <MasterDataFilters search={filters.search} status={activeStatus} showStatus={false} leadingFilter={<StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }]} activeStatus={filters.status} defaultStatus={defaultStatus} />} placeholder="Search supplier code, name, contact, phone, email" resultCount={page.totalRows} filtered={filtered} resetHref="/suppliers" />
           <div className="sb-list-content-card overflow-hidden" data-mobile-list-content-card>
           <DataGridHint text="Pro-tip: Double-click any row to open the supplier." />
           <Table mobileHidden aria-label="Suppliers" stickyColumn="second">

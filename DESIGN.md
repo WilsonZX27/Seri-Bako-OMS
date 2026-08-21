@@ -1,5 +1,13 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.97 (unreleased) - Supplier Identity Relationship Consolidation
+
+Supplier Items exposes both the operator-facing Item Group and internal AutoCount code as searchable identity context. Duplicate supplier rows are consolidated in data first; the UI does not pretend that a display filter alone is a merge.
+
+## v8.64.96 (unreleased) - Active Supplier Identity View
+
+Supplier master data opens on active operational identities. Historical inactive rows are discoverable through an explicit status choice rather than competing with the current supplier list.
+
 ## v8.64.95 (unreleased) - Structured Brand Migration Compatibility Repair
 
 Brand visibility keeps the existing Items workspace contract; the migration repair changes only how the existing RPC definition is located and patched, preserving the established search and table presentation.

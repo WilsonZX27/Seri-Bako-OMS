@@ -168,10 +168,8 @@ begin
     end if;
     select * into target_supplier_item from public.supplier_items where company_id = actor.company_id
       and supplier_id = target_supplier.id and item_id = target_item.id and deleted_at is null and status = 'active' limit 1;
-    if target_branch.id is null then raise exception 'Staged branch % is missing or inactive.', row_record.normalized->>'branch_code'; end if;
     if target_item.id is null then raise exception 'Staged item % is missing.', row_record.normalized->>'item_code'; end if;
     if target_supplier.id is null then raise exception 'Staged supplier % is missing.', row_record.normalized->>'supplier_code'; end if;
-    if target_supplier_item.id is null then raise exception 'Supplier item relationship for % and % is missing.', row_record.normalized->>'supplier_code', row_record.normalized->>'item_code'; end if;
     if target_supplier_item.id is null then
       insert into public.supplier_items(company_id, supplier_id, item_id, supplier_item_code, supplier_item_name, purchase_uom, conversion_to_base_uom, unit_cost, status, created_by)
       values (actor.company_id, target_supplier.id, target_item.id, target_item.item_code, target_item.item_name, target_item.base_unit, 1, 0, 'active', actor.id)
@@ -190,6 +188,9 @@ begin
       and lower(trim(supplier_code)) = lower(trim(row_record.normalized->>'supplier_code')) and deleted_at is null limit 1;
     select * into target_supplier_item from public.supplier_items where company_id = actor.company_id
       and supplier_id = target_supplier.id and item_id = target_item.id and deleted_at is null and status = 'active' limit 1;
+    if target_branch.id is null then raise exception 'Staged branch % is missing or inactive.', row_record.normalized->>'branch_code'; end if;
+    if target_supplier.id is null then raise exception 'Staged supplier % is missing.', row_record.normalized->>'supplier_code'; end if;
+    if target_supplier_item.id is null then raise exception 'Supplier item relationship for % and % is missing.', row_record.normalized->>'supplier_code', row_record.normalized->>'item_code'; end if;
     if not exists (select 1 from public.branch_supplier_items where branch_id = target_branch.id and supplier_item_id = target_supplier_item.id and deleted_at is null) then
       update public.branch_supplier_items set is_preferred = false, updated_at = now(), updated_by = actor.id
       where branch_id = target_branch.id and item_id = target_item.id and deleted_at is null and status = 'active';

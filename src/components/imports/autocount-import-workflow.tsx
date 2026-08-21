@@ -73,6 +73,7 @@ export function AutoCountImportWorkflow() {
   const blockers = preview?.blockingIssues ?? [];
   const issueDetails = preview?.issueDetails ?? [];
   const missingItemRecords = issueDetails.filter((issue) => issue.code === "missing_item_list_record");
+  const retryConfirm = Boolean(preview?.jobId && message);
   const rail = (
     <>
       <ConsoleSection title="Actions">
@@ -82,7 +83,7 @@ export function AutoCountImportWorkflow() {
           </Button>
         ) : (
           <Button type="button" onClick={confirmImport} disabled={!preview.jobId || blockers.length > 0 || Boolean(busy) || Boolean(result)} data-mobile-primary-action>
-            {busy === "confirm" ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />} Confirm once
+            {busy === "confirm" ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />} {retryConfirm ? "Retry confirm" : "Confirm once"}
           </Button>
         )}
         <Button type="button" variant="outline" onClick={() => { setFiles([]); setPreview(null); setResult(null); setMessage(null); }} disabled={Boolean(busy)}>Start over</Button>

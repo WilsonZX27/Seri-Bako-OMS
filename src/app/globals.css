@@ -61,8 +61,8 @@
   --sb-success-bg: #E6F4EC;
   --sb-danger: #B42318;
   --sb-danger-bg: #FDE8E8;
-  --sb-warning: var(--sb-danger);
-  --sb-warning-bg: var(--sb-danger-bg);
+  --sb-warning: #9A6700;
+  --sb-warning-bg: #FFF4CC;
   --sb-info: #245A9C;
   --sb-info-bg: #E8F1FF;
   --sb-neutral-bg: #EEECE6;

@@ -136,7 +136,10 @@ test("PR item catalogue is supplier-scoped, identifies its source, and explains 
   await supplier.selectOption({ label: "Local E2E Source Alpha" });
   const item = page.getByRole("combobox", { name: "Item for request line 1" });
   await item.fill("E2E-SOURCE-B-ITEM");
-  await expect(item).toHaveValue("E2E-SOURCE-B-ITEM");
+  // The combobox keeps the readable code + item name label after resolving an
+  // exact code. Assert the stable code prefix rather than discarding the
+  // operator-facing name that makes the selected line understandable.
+  await expect(item).toHaveValue(/^E2E-SOURCE-B-ITEM\s-\sBeta Mapped Ingredient$/);
   await expect(page.getByRole("option", { name: /Beta Mapped Ingredient/ })).toHaveCount(0);
 
   await item.fill("SOURCE-A");

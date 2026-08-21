@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.123 (unreleased) - Sourcing boundary and fresh role audit closure
+
+Supplier changes provide a clear context reset: stale lines are removed only when the selected branch-scoped supplier catalogue cannot provide them, and the notice explains that Item Master re-selection remains available. This keeps the request surface honest without turning missing supplier setup into a hard blocker. The fresh local evidence batch covers six roles and the required mobile/tablet/desktop annotation geometry. Footer remains the concise `v8.64.123` token.
+
 ## v8.64.122 (unreleased) - Recipe workflow and document transition closure
 
 Recipe detail keeps the role-specific Recipe Workflow controls distinct from the generic Document Approval panel. Browser acceptance targets the visible primary action for the current recipe state, avoiding ambiguous duplicate labels while preserving the shared audit timeline. The shared document transition function now qualifies approval-step columns so PL/pgSQL variables cannot shadow table fields. Footer remains the concise `v8.64.122` token.

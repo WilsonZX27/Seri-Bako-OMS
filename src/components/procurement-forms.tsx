@@ -294,13 +294,16 @@ export function PurchaseRequestForm({
   }
 
   function changeRequestSupplier(nextSupplierId: string) {
-    const pendingLines = lines.filter((line) => line.itemId && !supplierMappings.some((candidate) => candidate.branch_id === branchId && candidate.supplier_id === nextSupplierId && candidate.item_id === line.itemId));
     const nextSupplierName = supplierOptions.find((supplier) => supplier.supplier_id === nextSupplierId)?.supplier_name ?? "the selected supplier";
+    const clearedLines = lines.filter((line) => line.itemId && !supplierMappings.some((candidate) => candidate.branch_id === branchId && candidate.supplier_id === nextSupplierId && candidate.item_id === line.itemId));
     setRequestSupplierId(nextSupplierId);
-    setContextResetNotice(pendingLines.length ? `${pendingLines.length} request line${pendingLines.length === 1 ? " has" : "s have"} no confirmed route for ${nextSupplierName} at ${selectedBranchName}. Purchasing can confirm the supplier route during review.` : "");
+    setContextResetNotice(clearedLines.length
+      ? `${clearedLines.length} request line${clearedLines.length === 1 ? " was" : "s were"} cleared because ${nextSupplierName} does not supply ${clearedLines.length === 1 ? "the item" : "those items"} at ${selectedBranchName}. Choose an item from the mapped catalogue; Purchasing can confirm the supplier route during review.`
+      : "");
     setLines((current) => current.map((line) => {
       const mapping = supplierMappings.find((candidate) => candidate.branch_id === branchId && candidate.supplier_id === nextSupplierId && candidate.item_id === line.itemId);
       const item = items.find((candidate) => candidate.id === line.itemId);
+      if (!mapping && line.itemId) return { ...line, itemId: "", itemSearch: "", qty: "", uom: "", supplierId: "", cost: "0" };
       if (!mapping) return { ...line, supplierId: nextSupplierId, cost: String(item?.cost ?? line.cost), uom: normalizeUom(line.uom || item?.purchase_unit || item?.base_unit || "") };
       return { ...line, supplierId: nextSupplierId, cost: String(mapping.unit_cost), uom: normalizeUom(mapping.purchase_uom || line.uom) };
     }));

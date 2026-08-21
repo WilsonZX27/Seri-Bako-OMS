@@ -107,8 +107,8 @@ test("current annotation batch keeps shared explanation and responsive filter ow
   assert.match(detail, /Item \{index \+ 1\}/);
   assert.match(detail, /text-\[var\(--sb-danger\)\]/);
   assert.doesNotMatch(detail, /readiness\.issue\? <div className="mt-1"><p className="break-words text-\[12px\] font-medium text-\[var\(--sb-warning\)\]/);
-  assert.match(form, /Supplier mapping required/);
-  assert.match(form, /No active supplier route uses/);
+  assert.match(form, /Purchasing to confirm/);
+  assert.match(form, /Purchasing will confirm the/);
   assert.match(production, /tabletCanvas="full"/);
   assert.match(stockCounts, /sb-list-filters--portrait-query/);
   assert.match(design, /sb-list-filters--portrait-query\[data-tablet-query-layout="query"\]/);

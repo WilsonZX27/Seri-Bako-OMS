@@ -88,6 +88,13 @@ export function diagnosePurchaseRequestSupplier({
     };
   }
 
+  // A PR supplier is a suggested source, not proof that master-data setup is
+  // complete. Keep the request reviewable when the active supplier has no
+  // branch/item/UOM route yet; Purchasing confirms or creates that route later.
+  if (explicit && supplierIds.has(explicit)) {
+    return { supplierName: null, ready: true, issue: null, suggestedSupplierId: explicit };
+  }
+
   if (explicit && itemMappings.some((mapping) => mapping.supplier_id === explicit)) {
     return {
       supplierName: itemMappings.find((mapping) => mapping.supplier_id === explicit)?.supplier_name ?? null,

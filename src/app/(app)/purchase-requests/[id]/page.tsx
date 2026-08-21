@@ -291,10 +291,11 @@ export default async function PurchaseRequestDetailPage({
                 <div className="flex min-w-0 items-baseline gap-2"><h2 className="text-[14px] font-semibold">Requested Items</h2><span className="text-xs text-muted-foreground">{requestedItemCount} {requestedItemCount === 1 ? "item" : "items"}</span></div>
                 {canViewCommercial ? <p className="text-xs font-semibold">{formatCurrency(total)}</p> : null}
               </div>
-              {canEditDraft && items && supplierMappings && branches ? (
+              {canEditDraft && items && suppliers && supplierMappings && branches ? (
                 <>
                   <PurchaseRequestForm
                     items={items}
+                    suppliers={suppliers}
                     supplierMappings={supplierMappings}
                     branches={branches}
                     action={updateDraftPurchaseRequest.bind(null, request.id)}

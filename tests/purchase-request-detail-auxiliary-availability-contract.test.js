@@ -18,7 +18,7 @@ test("purchase-request detail preserves explicit auxiliary unavailable states", 
 });
 
 test("incomplete reference directories cannot expose a writable draft form", () => {
-  assert.match(page, /canEditDraft && items && supplierMappings && branches/);
+  assert.match(page, /canEditDraft && items && suppliers && supplierMappings && branches/);
   assert.match(page, /Draft editing unavailable/);
   assert.match(page, /Existing request lines remain read-only until you retry/);
   assert.match(page, /Item details unavailable/);

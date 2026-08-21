@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.113 (unreleased) - Progressive PR sourcing
+
+The PR form keeps one required Supplier suggestion, loads active suppliers independently of branch mappings, and does not hide the Item Master behind an existing supplier route. Item selection shows the known supplier and Purchase/Base UOM context; missing branch or supplier-item routes are explained inline as non-blocking Purchasing confirmation work during review.
+
 ## v8.64.112 (unreleased) - Purchase Order transition repair
 
 PO workflow transitions now share one valid document-state vocabulary. Submit, approve, and send retain the visible workflow language without surfacing database enum details.

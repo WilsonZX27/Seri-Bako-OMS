@@ -16,6 +16,7 @@ import { ItemCombobox, type ItemComboboxOption } from "@/components/item-combobo
 
 type ItemOption = ItemComboboxOption;
 type BranchOption = { id: string; branch_code: string; branch_name: string; status: string };
+type SupplierOption = { id: string; supplier_code: string | null; supplier_group?: string | null; name: string; status: string };
 export type BranchSupplierMappingOption = {
   id: string;
   branch_id: string;
@@ -60,6 +61,7 @@ function formatRequestQuantity(value: number, uom: string) {
 
 export function PurchaseRequestForm({
   items,
+  suppliers,
   supplierMappings,
   branches,
   initialBranchId,
@@ -77,6 +79,7 @@ export function PurchaseRequestForm({
   action,
 }: {
   items: ItemOption[];
+  suppliers: SupplierOption[];
   supplierMappings: BranchSupplierMappingOption[];
   branches: BranchOption[];
   initialBranchId?: string;
@@ -99,7 +102,7 @@ export function PurchaseRequestForm({
   const initialRows = initialLines?.length
     ? initialLines.map((line, index) => {
         const row = { ...createBlankLine(index), ...line, key: index };
-        const supplierStillValid = supplierMappings.some((mapping) => mapping.branch_id === resolvedInitialBranchId && mapping.item_id === row.itemId && mapping.supplier_id === row.supplierId && (!row.uom || normalizeUom(mapping.purchase_uom) === normalizeUom(row.uom)));
+        const supplierStillValid = !row.supplierId || suppliers.some((supplier) => supplier.id === row.supplierId);
         return supplierStillValid ? row : { ...row, supplierId: "" };
       })
     : [];
@@ -119,12 +122,23 @@ export function PurchaseRequestForm({
   const hasRequestItem = lines.some((line) => Boolean(line.itemSearch.trim()));
   const selectedBranchName = branches.find((branch) => branch.id === branchId)?.branch_name ?? "Select branch";
   const detailsComplete = Boolean(branchId && requestSupplierId);
-  const supplierOptions = [...new Map(supplierMappings.filter((mapping) => mapping.branch_id === branchId).map((mapping) => [mapping.supplier_id, mapping])).values()].sort((a, b) => a.supplier_name.localeCompare(b.supplier_name));
-  const eligibleMappings = supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.supplier_id === requestSupplierId);
-  const mappingByItemId = new Map(eligibleMappings.map((mapping) => [mapping.item_id, mapping]));
-  const selectableItems = items.filter((item) => mappingByItemId.has(item.id)).map((item) => {
-    const mapping = mappingByItemId.get(item.id)!;
-    return { ...item, purchase_unit: mapping.purchase_uom || item.purchase_unit, supplier_name: mapping.supplier_name };
+  const supplierOptions = [...new Map([
+    ...suppliers.map((supplier) => [supplier.id, { supplier_id: supplier.id, supplier_name: supplier.name }] as const),
+    ...supplierMappings.filter((mapping) => mapping.branch_id === branchId).map((mapping) => [mapping.supplier_id, { supplier_id: mapping.supplier_id, supplier_name: mapping.supplier_name }] as const),
+  ]).values()].sort((a, b) => a.supplier_name.localeCompare(b.supplier_name));
+  // The supplier on a PR is a suggested source, not a catalogue gate. Keep the
+  // complete Item Master searchable so an operator can raise a request before
+  // Purchasing has created the supplier/branch route. Existing mappings still
+  // enrich each option with the selected supplier's purchase UOM and name.
+  const selectableItems = items.map((item) => {
+    const itemMappings = supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === item.id);
+    const selectedSupplierMapping = itemMappings.find((mapping) => mapping.supplier_id === requestSupplierId);
+    const preferredMapping = selectedSupplierMapping ?? itemMappings.find((mapping) => mapping.is_preferred) ?? itemMappings[0];
+    return {
+      ...item,
+      purchase_unit: preferredMapping?.purchase_uom || item.purchase_unit,
+      supplier_name: selectedSupplierMapping?.supplier_name ?? preferredMapping?.supplier_name ?? item.supplier_name,
+    };
   });
   const incompleteEnteredLines = lines.filter((line) => {
     const touched = Boolean(line.itemSearch.trim() || line.qty.trim() || line.uom.trim());
@@ -260,7 +274,7 @@ export function PurchaseRequestForm({
       itemId: selected.id,
       itemSearch: itemLabel(selected),
       uom: normalizeUom(automaticMapping?.purchase_uom || selected.purchase_unit || selected.base_unit),
-      supplierId: automaticMapping?.supplier_id ?? "",
+      supplierId: requestSupplierId,
       cost: String(automaticMapping?.unit_cost ?? selected.cost ?? 0),
     });
   }
@@ -280,13 +294,14 @@ export function PurchaseRequestForm({
   }
 
   function changeRequestSupplier(nextSupplierId: string) {
-    const invalidLines = lines.filter((line) => (line.itemId || line.itemSearch.trim()) && !supplierMappings.some((candidate) => candidate.branch_id === branchId && candidate.supplier_id === nextSupplierId && candidate.item_id === line.itemId));
+    const pendingLines = lines.filter((line) => line.itemId && !supplierMappings.some((candidate) => candidate.branch_id === branchId && candidate.supplier_id === nextSupplierId && candidate.item_id === line.itemId));
     const nextSupplierName = supplierOptions.find((supplier) => supplier.supplier_id === nextSupplierId)?.supplier_name ?? "the selected supplier";
     setRequestSupplierId(nextSupplierId);
-    setContextResetNotice(invalidLines.length ? `${invalidLines.length} request line${invalidLines.length === 1 ? " was" : "s were"} cleared because ${nextSupplierName} does not supply the item at ${selectedBranchName}. Choose an item from this supplier’s mapped catalogue.` : "");
+    setContextResetNotice(pendingLines.length ? `${pendingLines.length} request line${pendingLines.length === 1 ? " has" : "s have"} no confirmed route for ${nextSupplierName} at ${selectedBranchName}. Purchasing can confirm the supplier route during review.` : "");
     setLines((current) => current.map((line) => {
       const mapping = supplierMappings.find((candidate) => candidate.branch_id === branchId && candidate.supplier_id === nextSupplierId && candidate.item_id === line.itemId);
-      if (!mapping) return { ...line, itemId: "", itemSearch: "", supplierId: "", cost: "0", uom: "" };
+      const item = items.find((candidate) => candidate.id === line.itemId);
+      if (!mapping) return { ...line, supplierId: nextSupplierId, cost: String(item?.cost ?? line.cost), uom: normalizeUom(line.uom || item?.purchase_unit || item?.base_unit || "") };
       return { ...line, supplierId: nextSupplierId, cost: String(mapping.unit_cost), uom: normalizeUom(mapping.purchase_uom || line.uom) };
     }));
   }
@@ -315,7 +330,7 @@ export function PurchaseRequestForm({
     const automaticMapping = currentMapping ?? compatibleMappings.find((mapping) => mapping.is_preferred) ?? compatibleMappings[0] ?? null;
     updateLine(key, {
       uom,
-      supplierId: automaticMapping?.supplier_id ?? "",
+      supplierId: requestSupplierId,
       cost: String(automaticMapping?.unit_cost ?? line.cost),
     });
   }
@@ -359,7 +374,7 @@ export function PurchaseRequestForm({
                 <option value="">Choose supplier</option>
                 {supplierOptions.map((supplier) => <option key={supplier.supplier_id} value={supplier.supplier_id}>{supplier.supplier_name}</option>)}
               </SelectNative>
-              {validationTarget?.field === "supplier" ? <p className="text-[11px] font-medium text-rose-700">Select the supplier before choosing items.</p> : null}
+              {validationTarget?.field === "supplier" ? <p className="text-[11px] font-medium text-rose-700">Choose the suggested supplier. Purchasing can confirm the final route during review.</p> : null}
             </Field>
             <Field label="Needed By">
               <Input name="needed_by_date" type="date" value={neededByDate} onChange={(event) => changeNeededByDate(event.target.value)} />
@@ -436,8 +451,8 @@ export function PurchaseRequestForm({
                     <Button type="button" variant="outline" size="icon" className="order-2 h-[var(--sb-control-height)] w-[var(--sb-control-height)] text-muted-foreground lg:col-start-4 lg:row-start-1" aria-label={`Add comment for ${line.itemSearch || "request line"}`} onClick={() => setCommentLineKey((current) => current === line.key ? null : line.key)}><MessageSquare className="h-4 w-4" /></Button>
                   </div>
                   {commentLineKey === line.key ? <Field label="Item comment" className="col-span-full"><Textarea name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} rows={2} placeholder="Add context for purchasing" /></Field> : <input type="hidden" name="line_remarks" value={line.remarks} />}
-                  {line.itemId && mappingsForLine(line).length === 0 ? <div className="col-span-full grid min-w-0 gap-2 rounded-[var(--sb-radius-control)] border border-[var(--sb-danger)]/35 bg-[var(--sb-danger-bg)] px-3 py-2.5 text-xs text-[var(--sb-danger)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><div className="min-w-0"><p className="font-semibold">Supplier mapping required</p><p className="mt-0.5 leading-relaxed">This item has no active supplier route for the selected branch. Add the mapping before submitting so Purchasing knows who can supply it.</p></div><Button asChild type="button" variant="outline" size="sm" className="h-[var(--sb-control-height)] w-full border-[var(--sb-danger)]/50 text-xs text-[var(--sb-danger)] sm:w-auto"><Link href={`/supplier-items/new?itemId=${line.itemId}&branchId=${branchId}`}>Add supplier mapping</Link></Button></div> : null}
-                  {line.itemId && line.uom && mappingsForLine(line).length > 0 && !mappingsForLine(line).some((mapping) => normalizeUom(mapping.purchase_uom) === line.uom) ? <div className="col-span-full grid min-w-0 gap-2 rounded-[var(--sb-radius-control)] border border-[var(--sb-danger)]/35 bg-[var(--sb-danger-bg)] px-3 py-2 text-xs font-medium leading-relaxed text-[var(--sb-danger)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><p>No active supplier route uses {line.uom.toUpperCase()} for this branch because no supplier purchasing term is configured for it. Update the supplier item to purchase in {line.uom.toUpperCase()} and enter its conversion to {items.find((item) => item.id === line.itemId)?.base_unit ?? "the Item Master base UOM"}; the GRN will convert the delivery into the company base unit.</p><Link href={`/supplier-items/new?itemId=${line.itemId}&branchId=${branchId}`} className="inline-flex min-h-[var(--sb-control-height)] items-center justify-center font-semibold underline underline-offset-2 sm:justify-self-end">Update branch mapping</Link></div> : null}
+                  {line.itemId && mappingsForLine(line).length === 0 ? <div className="col-span-full grid min-w-0 gap-2 rounded-[var(--sb-radius-control)] border border-[var(--sb-warning)]/35 bg-[var(--sb-warning-bg)] px-3 py-2.5 text-xs text-[var(--sb-warning)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><div className="min-w-0"><p className="font-semibold">Purchasing to confirm</p><p className="mt-0.5 leading-relaxed">No supplier route is configured for this branch yet. You can submit the request; Purchasing will confirm the supplier term during review.</p></div><Button asChild type="button" variant="outline" size="sm" className="h-[var(--sb-control-height)] w-full border-[var(--sb-warning)]/50 text-xs text-[var(--sb-warning)] sm:w-auto"><Link href={`/supplier-items/new?itemId=${line.itemId}&branchId=${branchId}`}>Open supplier mapping</Link></Button></div> : null}
+                  {line.itemId && line.uom && mappingsForLine(line).length > 0 && !mappingsForLine(line).some((mapping) => normalizeUom(mapping.purchase_uom) === line.uom) ? <div className="col-span-full grid min-w-0 gap-2 rounded-[var(--sb-radius-control)] border border-[var(--sb-warning)]/35 bg-[var(--sb-warning-bg)] px-3 py-2 text-xs font-medium leading-relaxed text-[var(--sb-warning)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><p>Purchasing will confirm the {line.uom.toUpperCase()} supplier term for this branch during review. The GRN will record the actual purchase UOM and convert it into the Item Master base UOM.</p><Link href={`/supplier-items/new?itemId=${line.itemId}&branchId=${branchId}`} className="inline-flex min-h-[var(--sb-control-height)] items-center justify-center font-semibold underline underline-offset-2 sm:justify-self-end">Open supplier mapping</Link></div> : null}
                   <input type="hidden" name="line_reason" value={line.reason} />
                 </div>
               ))}

@@ -128,10 +128,11 @@ function extractPurchaseRequest(formData: FormData) {
   });
   const requestSupplierId = cleanText(formData.get("request_supplier_id"));
   if (!requestSupplierId) throw new Error("Select a supplier before adding request items.");
-  if (parsed.lines.some((line) => line.suggested_supplier_id !== requestSupplierId)) {
+  const normalizedLines = parsed.lines.map((line) => ({ ...line, suggested_supplier_id: line.suggested_supplier_id || requestSupplierId }));
+  if (normalizedLines.some((line) => line.suggested_supplier_id !== requestSupplierId)) {
     throw new Error("Supplier selection is inconsistent: every requested item must use the selected PR supplier. Return to the form, choose one supplier, then select items offered by that supplier.");
   }
-  return { ...parsed, lineBranchIds };
+  return { ...parsed, lines: normalizedLines, lineBranchIds };
 }
 
 function extractPurchaseOrder(formData: FormData) {
@@ -203,7 +204,7 @@ async function ensureBranchSupplierSelections(
     if (!item || item.supplier_id !== line.suggested_supplier_id) return false;
     return normalizeUom(String(item.purchase_unit ?? item.base_unit ?? "")) === normalizeUom(String(line.uom ?? ""));
   };
-  if (selected.some((line) => !isValid(line))) {
+  if (selected.some((line) => !isValid(line)) && requireAll) {
     throw new Error("A selected supplier is not mapped to this branch, item, and unit of measure.");
   }
 }

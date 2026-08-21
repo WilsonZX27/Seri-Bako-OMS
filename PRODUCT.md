@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.113 (unreleased) — Progressive PR sourcing
+
+Purchase Requests keep Supplier as a required suggestion while allowing Item Master search before a supplier-item or branch route exists. Missing routes are provisional review work for Purchasing rather than a form-level or review-stage blocker; the supplier chooser includes active suppliers even before a branch route exists, while controlled UOM, quantity, and active-item validation remain enforced. Local authenticated QA with a deliberately unmapped supplier reached PR creation, three approval gates, PO conversion, send, GRN posting, and invoice draft creation; final invoice approval/payment remains UAT-pending because the local Next-dev browser context refreshed away during Finance actions.
+
 ### v8.64.112 (unreleased) — Purchase Order transition repair
 
 Purchase Order submit now writes the valid `pending_approval` document status, so the downstream PO workflow can move through submit, approve, and send without an enum error. Migration 187 is local-applied and rollback-tested; linked/Production verification remains separate.

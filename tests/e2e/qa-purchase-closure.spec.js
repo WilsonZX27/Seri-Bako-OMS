@@ -41,7 +41,7 @@ test.describe("QA- procurement payment closure", () => {
     const supplier = await must(admin.from("suppliers").insert({
       company_id: company,
       supplier_code: `QA-CLOSURE-SUP-${suffix}`,
-      name: `QA-供应商-${"长名称".repeat(90)}-<>&`,
+      name: `QA-供应商-${suffix}-${"长名称".repeat(90)}-<>&`,
       payment_terms_days: 30,
       status: "active",
     }).select("id,supplier_code").single(), "supplier");
@@ -73,15 +73,9 @@ test.describe("QA- procurement payment closure", () => {
       created_by: owner.id,
       updated_by: owner.id,
     }).select("id").single(), "supplier item");
-    await must(admin.from("branch_supplier_items").insert({
-      branch_id: branch.id,
-      supplier_item_id: supplierItem.id,
-      item_id: item.id,
-      is_preferred: true,
-      status: "active",
-      created_by: owner.id,
-      updated_by: owner.id,
-    }), "branch supplier mapping");
+    // Deliberately leave the branch route unconfigured. A PR supplier is a
+    // required suggestion, not a setup blocker; Purchasing confirms or creates
+    // the provisional route during review/PO confirmation.
     const opening = await must(admin.from("stock_transactions").insert({
       transaction_no: `QA-OPEN-${suffix}`,
       item_id: item.id,
@@ -142,6 +136,10 @@ test.describe("QA- procurement payment closure", () => {
     await page.setViewportSize({ width: 375, height: 812 });
     await login(page, "kitchen");
     await page.goto("/purchase-requests/new", { waitUntil: "domcontentloaded" });
+    // Supplier is a required request-level suggestion even when its branch
+    // route is still provisional. The item itself remains searchable from the
+    // Item Master and Purchasing confirms the route later.
+    await page.locator('select[name="request_supplier_id"]').selectOption(fixture.supplier);
     const itemInput = page.locator('input[role="combobox"][placeholder*="Search any words in item name or code"]').first();
     await expect(itemInput).toBeVisible();
     await itemInput.fill(fixture.itemCode);
@@ -157,7 +155,7 @@ test.describe("QA- procurement payment closure", () => {
     await expect(submitPr).toBeVisible();
     await expect(submitPr).toBeEnabled();
     await submitPr.click();
-    await page.waitForURL(/\/purchase-requests\/[0-9a-f-]+/i, { timeout: 30_000 });
+    await page.waitForURL(/\/purchase-requests\/[0-9a-f-]+/i, { timeout: 30_000, waitUntil: "domcontentloaded" });
     await expect(page.locator("body")).toContainText(/Manager Review/i);
     created.prUrl = page.url();
     created.prId = new URL(page.url()).pathname.split("/").pop();
@@ -204,7 +202,7 @@ test.describe("QA- procurement payment closure", () => {
     await expect(convertForm).toBeVisible();
     await convertForm.locator('input[name="autocount_po_no"]').fill(`QA-AUTOCOUNT-${fixture.suffix}-超长编号-中文`);
     await convertForm.getByRole("button", { name: /Convert to Purchase Order/i }).click();
-    await page.waitForURL(/\/purchase-orders\/[0-9a-f-]+/i, { timeout: 30_000 });
+    await page.waitForURL(/\/purchase-orders\/[0-9a-f-]+/i, { timeout: 30_000, waitUntil: "domcontentloaded" });
     created.poUrl = page.url();
     created.poId = new URL(page.url()).pathname.split("/").pop();
     await expect(page.locator("body")).toContainText(/AutoCount PO Number/i);

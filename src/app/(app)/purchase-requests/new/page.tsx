@@ -8,12 +8,13 @@ import { DocumentMoreOptions } from "@/components/documents/mobile-document-surf
 import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { createPurchaseRequest } from "@/server/actions/procurement";
 import { hasPermission } from "@/server/auth/permissions";
-import { getBranchesForSelect, getBranchSupplierMappingsForSelect, getCurrentProfile, getItemsForSelect } from "@/server/queries/common";
+import { getBranchesForSelect, getBranchSupplierMappingsForSelect, getCurrentProfile, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 
 export default async function NewPurchaseRequestPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams;
-  const [items, supplierMappings, branches, hasCommercialAccess, profile] = await Promise.all([
+  const [items, suppliers, supplierMappings, branches, hasCommercialAccess, profile] = await Promise.all([
     getItemsForSelect(),
+    getSuppliersForSelect(),
     getBranchSupplierMappingsForSelect(),
     getBranchesForSelect({ restrictToActorScope: true }),
     hasPermission("pr.view_all"),
@@ -76,6 +77,7 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
         />
         <PurchaseRequestForm
           items={items}
+          suppliers={suppliers}
           supplierMappings={supplierMappings}
           branches={branches}
           initialBranchId={selectedBranchId}

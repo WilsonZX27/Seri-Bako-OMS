@@ -1,8 +1,12 @@
 # Seri Bako Operations Management System
 
-### v8.64.139 (unreleased) — Production deployment boundary
+### v8.64.140 (unreleased) — Keyboard-safe tablet navigation
 
-Read-only Production login verification returns HTTP 200 and serves footer `v8.64.137`; the current branch is `v8.64.139`. This proves the host is reachable but that the current linked-migration release is not yet deployed there. Authenticated Production regression remains pending and no mutation was attempted.
+Tablet and iPadOS shells now keep the fixed bottom navigation attached to the physical screen edge while the software keyboard reduces the dynamic viewport. The CSS large/dynamic viewport delta is a fallback when visualViewport does not emit a resize event. Production remains at v8.64.139 until this patch is promoted; authenticated six-role regression and Production mutation UAT remain separate gates.
+
+### v8.64.139 (deployed) — Production deployment boundary
+
+Read-only Production route smoke reached 16 core paths with HTTP 200 and footer `v8.64.139`. This proves the deployed host is reachable and internally consistent; authenticated Production regression remains pending and no mutation was attempted.
 
 ### v8.64.138 (unreleased) — Linked migration verification
 

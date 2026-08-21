@@ -215,6 +215,7 @@ export function MobileAppNavigation({
     const root = document.documentElement;
     const viewport = window.visualViewport;
     const compactShellQuery = window.matchMedia("(max-width: 1279px)");
+    const isCompactShell = () => compactShellQuery.matches || root.dataset.touchTablet === "true";
     let stableViewportHeight = Math.max(
       window.innerHeight,
       document.documentElement.clientHeight,
@@ -241,7 +242,7 @@ export function MobileAppNavigation({
         // focus. Some Android/iOS browser modes overlay the keyboard without
         // resizing visualViewport, so waiting for a viewport delta leaves the
         // bottom nav/action rail floating over the focused field.
-        if (compactShellQuery.matches && editable) root.dataset.mobileEditableFocus = "true";
+        if (isCompactShell() && editable) root.dataset.mobileEditableFocus = "true";
         else delete root.dataset.mobileEditableFocus;
 
         // Android Chrome may resize both innerHeight and the visual viewport
@@ -252,7 +253,7 @@ export function MobileAppNavigation({
         }
 
         const viewportDelta = stableViewportHeight - visualHeight;
-        const keyboardOpen = compactShellQuery.matches && editable && (viewportDelta > 120 || visualHeight < stableViewportHeight * 0.75);
+        const keyboardOpen = isCompactShell() && editable && (viewportDelta > 120 || visualHeight < stableViewportHeight * 0.75);
         if (keyboardOpen) {
           const keyboardInset = Math.max(0, viewportDelta - (viewport?.offsetTop ?? 0));
           root.dataset.mobileKeyboardOpen = "true";

@@ -21,6 +21,8 @@ test("software keyboard keeps bottom navigation at the physical screen bottom ac
   assert.match(navigation, /max-width: 1279px/);
   assert.match(navigation, /--sb-virtual-keyboard-inset/);
   assert.match(design, /data-mobile-bottom-nav[\s\S]*translateY\(var\(--sb-virtual-keyboard-inset/);
+  assert.match(design, /100dvh\s*-\s*100lvh/);
+  assert.match(design, /data-touch-tablet="true"\]\[data-mobile-editable-focus="true"/);
   assert.doesNotMatch(design, /data-mobile-keyboard-open="true"\][^{]*\[data-mobile-bottom-nav\][^{]*\{[^}]*visibility:\s*hidden/);
   assert.match(design, /data-mobile-editable-focus="true"/);
   assert.match(design, /visibility: hidden !important/);

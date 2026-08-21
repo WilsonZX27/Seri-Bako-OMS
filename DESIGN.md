@@ -1,8 +1,12 @@
 # Seri Bako OMS responsive design standard
 
-## v8.64.139 (unreleased) - Production deployment boundary
+## v8.64.140 (unreleased) - Keyboard-safe tablet navigation
 
-The public Production login endpoint is reachable (HTTP 200) but still renders footer `v8.64.137`, while this branch is v8.64.139. Treat this as deployment evidence only; authenticated six-role regression cannot be claimed against an older deployed build. Footer remains the concise `v8.64.139` token.
+Touch-tablet and iPadOS shells keep the fixed bottom navigation at the physical screen edge while an editable field opens the software keyboard. The implementation combines visualViewport measurement with the `100lvh - 100dvh` CSS fallback for browsers that do not resize visualViewport. The bar stays behind the keyboard instead of consuming the reduced editing canvas. Footer remains the concise `v8.64.140` token; Production promotion and authenticated role regression remain pending.
+
+## v8.64.139 (deployed) - Production deployment boundary
+
+The public Production route smoke reached 16 core paths with HTTP 200 and footer `v8.64.139`. Treat this as deployment reachability evidence only; authenticated six-role regression and Production mutation validation remain pending. Footer remains the concise `v8.64.139` token.
 
 ## v8.64.138 (unreleased) - Linked migration verification
 

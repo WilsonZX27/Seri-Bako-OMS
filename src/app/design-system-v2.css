@@ -2076,6 +2076,22 @@ html[data-touch-tablet="true"] [data-app-topbar] > .hidden.min-w-0.items-center 
   display: flex !important;
 }
 
+/* iPadOS can keep the layout viewport wide while shrinking the dynamic
+   viewport for the software keyboard. In that mode the visual-viewport
+   listener may not emit a resize event, so use the browser's large/dynamic
+   viewport delta as a CSS fallback. A focused field is the guard: ordinary
+   browser chrome never moves the navigation during normal reading. The
+   negative bottom keeps the bar attached to the physical screen edge, behind
+   the keyboard, instead of letting fixed positioning follow the edit canvas. */
+@supports (height: 100dvh) and (height: 100lvh) {
+  html[data-mobile-editable-focus="true"] [data-mobile-bottom-nav],
+  html[data-touch-tablet="true"][data-mobile-editable-focus="true"] [data-mobile-bottom-nav] {
+    bottom: calc(100dvh - 100lvh) !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
 @media (max-width: 639px) {
   html[data-design-layer="v2"] form.sb-list-query-card {
     margin: 0;

@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.129 (unreleased) - Purchase Return workflow closure
+
+Purchase Return now has authenticated local browser evidence alongside the immutable GRN snapshot contract: the operator creates a draft from a posted GRN, refreshes the detail, posts the return, and sees the resulting supplier-return movement in the ledger. Footer remains the concise `v8.64.129` token.
+
 ## v8.64.128 (unreleased) - Guided PR review closure
 
 The guided line-review dialog is now covered by a real local mutation: the reviewer chooses a replacement Item Master record, supplier, quantity, and UOM, submits one Apply action, and the resulting line plus revision record are checked in local Supabase. The change remains progressive review work and does not require Production master-data mutation. Footer remains the concise `v8.64.128` token.

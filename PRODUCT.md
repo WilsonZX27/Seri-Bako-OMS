@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.129 (unreleased) — Purchase Return workflow closure
+
+The disposable local receiving fixture now passes the authenticated Purchase Return browser path: create and refresh the draft from a posted GRN, post the supplier return, and verify the single return movement in Stock Transactions. This is local evidence only; linked migration alignment and Production regression remain separate.
+
 ### v8.64.128 (unreleased) — Guided PR review closure
 
 The disposable local audit now executes the guided Manager Review repair end to end: replacing an unmapped request line with an Item Master item, mapped supplier, controlled Purchase UOM, and revised quantity succeeds through the visible Apply action and is asserted in both the request line and immutable revision history. This is local evidence only; linked migration alignment and Production regression remain separate.

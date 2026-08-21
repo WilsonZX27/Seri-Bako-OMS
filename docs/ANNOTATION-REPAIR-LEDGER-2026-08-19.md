@@ -1,5 +1,15 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.129 purchase return browser closure
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| Purchase Return uses the posted GRN snapshot and creates one supplier-return movement. | verified locally / Production awaiting UAT | `purchase-return-flow.spec.js` passed 1/1 against the disposable local supplier-invoice/GRN fixture: create and refresh the draft, post the return, confirm Posted, and find one matching `return to supplier` movement in Stock Transactions. |
+| Return evidence remains local-only and does not alter Production data. | implemented | The E2E is restricted to `RUN_TENANT_BOUNDARY_E2E=1`, uses localhost Supabase, and the fixture is disposable. |
+| Footer and release records remain synchronized. | implemented | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.129. |
+
+This batch closes the previously open authenticated local Purchase Return mutation path. Linked migration alignment, authoritative Production data, and Production regression remain separate gates.
+
 ## v8.64.128 guided PR review mutation closure
 
 | Acceptance | Status | Evidence / remaining gate |

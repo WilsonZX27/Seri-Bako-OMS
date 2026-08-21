@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.137 (unreleased) — Migration uniqueness guard
+
+The contract suite now rejects duplicate numeric Supabase migration prefixes and requires the AutoCount repair to remain forward-only at migration 190. This prevents another `schema_migrations_pkey` collision before a linked push. Local evidence only; linked and Production gates remain separate.
+
 ### v8.64.136 (unreleased) — Post-migration local workflow closure
 
 After local migration 190 was applied, the authenticated browser closure rerun passed progressive receiving `3/3` and the complete PR → PO → GRN/attachment/payment QA suite `3/3`. The first combined run exposed a transient Next dev hydration timing failure; the clean rerun passed without source changes. This remains local evidence only; linked migration and Production regression are separate gates.

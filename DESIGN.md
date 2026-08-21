@@ -1,8 +1,12 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.137 (unreleased) - Migration uniqueness guard
+
+The release contract now checks every `supabase/migrations` filename for a unique numeric version and protects the forward-only AutoCount repair at 190. Footer remains the concise `v8.64.137` token; this guard does not imply linked migration application.
+
 ## v8.64.136 (unreleased) - Post-migration local workflow closure
 
-The local migration-190 browser rerun now covers the critical receiving and procurement path: progressive receiving `3/3` and PR → PO → GRN/attachment/payment `3/3`. A transient dev-hydration timing failure was isolated by a clean rerun and did not reproduce. Footer remains the concise `v8.64.136` token; this is not linked or Production verification.
+The local migration-190 browser rerun now covers the critical receiving and procurement path: progressive receiving `3/3` and PR → PO → GRN/attachment/payment `3/3`. A transient dev-hydration timing failure was isolated by a clean rerun and did not reproduce. Footer remains the concise `v8.64.137` token; this is not linked or Production verification.
 
 ## v8.64.135 (unreleased) - Migration history reconciliation
 

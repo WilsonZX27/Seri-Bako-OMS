@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.122 (unreleased) - Recipe workflow and document transition closure
+
+Recipe detail keeps the role-specific Recipe Workflow controls distinct from the generic Document Approval panel. Browser acceptance targets the visible primary action for the current recipe state, avoiding ambiguous duplicate labels while preserving the shared audit timeline. The shared document transition function now qualifies approval-step columns so PL/pgSQL variables cannot shadow table fields. Footer remains the concise `v8.64.122` token.
+
 ## v8.64.121 (unreleased) - Master-data mutation closure
 
 The release gate now includes a browser-driven local master-data mutation path: create and edit Branch, Supplier, and Item, then verify the persisted records and soft-delete the disposable fixture. Footer remains the concise `v8.64.121` token.

@@ -1,5 +1,15 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.122 Recipe and document transition closure
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| Recipe create, edit, submit, approve, and activate complete as one workflow. | verified locally / Production awaiting UAT | `recipe-mutations-local.spec.js` passed 1/1 against the fresh local production server and local Supabase. The test selects the visible Recipe Workflow action, not the generic Document Approval button with the same label. |
+| Recipe and linked Document updates cannot silently diverge. | implemented / local evidence | `recipes.ts` now performs sequential `.select().single()` updates and raises a concrete error when either record is missing. Migration 188 qualifies `approval_steps.approval_id` references in `transition_document_atomic`. |
+| Release footer and records remain synchronized. | implemented | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.122. |
+
+This is local workflow evidence only. Remote migration 188, linked migration alignment, authoritative Production data, and six-role Production regression remain awaiting evidence.
+
 ## v8.64.121 master-data mutation closure
 
 | Acceptance | Status | Evidence / remaining gate |

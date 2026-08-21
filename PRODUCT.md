@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.122 (unreleased) — Recipe workflow and document transition closure
+
+The local production-like audit now creates, edits, submits, approves, and activates a disposable Recipe through the visible Recipe Workflow action at every state. Recipe and linked Document writes are sequential and fail loudly if either record cannot be updated, preventing the former silent half-transition. Migration 188 qualifies approval-step references in the shared document transition RPC and is applied only to the local Supabase stack; linked/Production verification remains open.
+
 ### v8.64.121 (unreleased) — Master-data mutation closure
 
 The fresh local production server passed the authenticated master-data mutation E2E: Super Admin created and edited a disposable Branch, Supplier, and Item, with database assertions and soft-delete cleanup. Existing local closure evidence remains: six-role routing/dashboard/workspace checks (20/20), PR → PO → GRN → invoice/payment closure (3/3), Costing/GRN/Outlet Daily/Purchase Return/Supplier Invoice surfaces (8 passed, 2 fixture-dependent skips), and administration/master-data responsive checks (2/2). This is local evidence only; linked migrations, real AutoCount creditor/UOM data, and Production regression remain separate gates.
@@ -203,7 +207,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `184`; this is not evidence that migration 184 is applied to the linked Production project.
+Repository migration authority: migrations reviewed through `188`; this is not evidence that migration 188 is applied to the linked Production project.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

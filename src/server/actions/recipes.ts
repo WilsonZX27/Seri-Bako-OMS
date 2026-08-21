@@ -268,14 +268,22 @@ async function updateRecipeStatus(id: string, status: RecipeStatus, approvalStat
     status === "archived" ? { archived_at: now } :
     {};
 
-  const [{ error }, { error: docError }] = await Promise.all([
-    supabase.from("recipes").update({ status, approval_status: approvalStatus, updated_by: profile?.id ?? null, ...stamp }).eq("id", recipeId),
-    recipe.document_id
-      ? supabase.from("documents").update({ status: documentStatus, approval_status: approvalStatus, current_step: step, updated_by: profile?.id ?? null }).eq("id", recipe.document_id)
-      : Promise.resolve({ error: null }),
-  ]);
-  if (error) throw new Error(error.message);
-  if (docError) throw new Error(docError.message);
+  const recipeUpdate = await supabase
+    .from("recipes")
+    .update({ status, approval_status: approvalStatus, updated_by: profile?.id ?? null, ...stamp })
+    .eq("id", recipeId)
+    .select("id,status,approval_status")
+    .single();
+  if (recipeUpdate.error) throw new Error(recipeUpdate.error.message);
+  if (recipe.document_id) {
+    const documentUpdate = await supabase
+      .from("documents")
+      .update({ status: documentStatus, approval_status: approvalStatus, current_step: step, updated_by: profile?.id ?? null })
+      .eq("id", recipe.document_id)
+      .select("id,status,approval_status")
+      .single();
+    if (documentUpdate.error) throw new Error(documentUpdate.error.message);
+  }
   if (recipe.document_id) await writeActivityLog({ entityType: "document", entityId: recipe.document_id, activityType: status, message });
   revalidatePath("/recipes");
   revalidatePath(`/recipes/${recipeId}`);

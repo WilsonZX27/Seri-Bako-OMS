@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.130 (unreleased) — AP Aging report closure
+
+The local AP Aging report now has fresh authenticated evidence for the distribution interaction and phone layout: keyboard/hover previews expose invoice context and the drill-through link, while the 393px touch view keeps all seven buckets directly labelled and inside the viewport. This is local evidence only; linked migration alignment and Production regression remain separate.
+
 ### v8.64.129 (unreleased) — Purchase Return workflow closure
 
 The disposable local receiving fixture now passes the authenticated Purchase Return browser path: create and refresh the draft from a posted GRN, post the supplier return, and verify the single return movement in Stock Transactions. This is local evidence only; linked migration alignment and Production regression remain separate.

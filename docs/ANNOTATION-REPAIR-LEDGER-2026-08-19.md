@@ -1,5 +1,15 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.130 AP Aging report closure
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| AP Aging buckets provide readable context, keyboard/touch previews, and filter drill-through. | verified locally / Production awaiting UAT | `outlet-wastage-chart-preview.spec.js` AP Aging checks passed 2/2: desktop hover/focus preview with a `not_due` drill-through link, plus the touch/phone surface with all seven buckets and bounded geometry. |
+| AP Aging evidence is scoped to the disposable local target. | implemented | The browser run used `RUN_TENANT_BOUNDARY_E2E=1`, the local Supabase fixture, and no Production mutation. |
+| Footer and release records remain synchronized. | implemented | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.130. |
+
+This batch strengthens the local AP Aging UAT gap. Linked migration alignment, authoritative Production data, and Production regression remain separate gates.
+
 ## v8.64.129 purchase return browser closure
 
 | Acceptance | Status | Evidence / remaining gate |

@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.130 (unreleased) - AP Aging report closure
+
+AP Aging now has a fresh local browser check for both desktop interaction and phone information density: bucket previews remain keyboard/touch accessible, drill-through links preserve the selected aging context, and the phone surface keeps all seven labels without horizontal overflow. Footer remains the concise `v8.64.130` token.
+
 ## v8.64.129 (unreleased) - Purchase Return workflow closure
 
 Purchase Return now has authenticated local browser evidence alongside the immutable GRN snapshot contract: the operator creates a draft from a posted GRN, refreshes the detail, posts the return, and sees the resulting supplier-return movement in the ledger. Footer remains the concise `v8.64.129` token.

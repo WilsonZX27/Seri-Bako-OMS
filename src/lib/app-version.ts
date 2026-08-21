@@ -1,6 +1,6 @@
-export const APP_VERSION = "8.64.100";
+export const APP_VERSION = "8.64.101";
 export const APP_SPRINT = `v${APP_VERSION}`;
-export const APP_RELEASE_TITLE = "Canonical UOM Selection";
+export const APP_RELEASE_TITLE = "Visible PR Rejection Reason";
 // Keep the shell footer concise; the detailed release title belongs in release
 // notes, not in a narrow navigation rail where it is clipped on small screens.
 export const APP_RELEASE_NOTE = APP_SPRINT;

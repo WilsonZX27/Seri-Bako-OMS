@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.101 (unreleased) — Visible PR Rejection Reason
+
+Rejected purchase requests now surface the latest recorded rejection reason in the main workspace, with the rejecting actor and timestamp. The audit timeline remains the authoritative history; this prominent copy gives Kitchen and the requester an immediate correction path.
+
 ### v8.64.100 (unreleased) — Canonical UOM Selection
 
 UOM values are canonicalized at the application boundary: `BTL` resolves to `BOTTLE`, and controlled choices include the operational `GUNI` unit. Guided PR-line repair uses a dropdown sourced from current item and supplier terms plus the shared UOM catalogue; free-text UOM entry is removed and options are alphabetically ordered.

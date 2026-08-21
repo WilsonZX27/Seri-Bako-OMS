@@ -1,5 +1,11 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.101 visible PR rejection reason
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Rejected PR shows the entered reason in the main workspace | implemented / awaiting authenticated UAT | Detail page reads the latest `activity_type = rejected` event, strips the technical prefix, and shows the reason with actor and timestamp in an inline danger notice. Document Timeline remains the audit source. |
+
 ## v8.64.100 canonical UOM selection
 
 | Gate | Status | Evidence |

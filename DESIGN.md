@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.101 (unreleased) - Visible PR Rejection Reason
+
+Rejected PRs use an inline danger-state notice in the main document workspace, showing the reason, actor, and timestamp before the correction workflow. The right-rail Document Timeline remains the detailed audit surface.
+
 ## v8.64.100 (unreleased) - Canonical UOM Selection
 
 UOM controls use canonical display values and alphabetically ordered controlled selection. Legacy `BTL` is treated as `BOTTLE`, while `GUNI` is a first-class option. PR review repair derives choices from the Item Master and active supplier terms so a new alias cannot be typed into the workflow.

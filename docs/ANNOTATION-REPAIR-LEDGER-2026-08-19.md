@@ -1,5 +1,11 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.95 structured brand migration compatibility repair
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Migration 176 Items workspace brand patch | implemented / awaiting linked migration retry and Production UAT | Remote push applied migrations 173–175, then migration 176 stopped because the `get_items_workspace` patch expected CRLF-specific function text. The repair uses a whitespace-tolerant SQL-shape patch and leaves the existing function guard in place. Local migration replay and full static gates must pass before the user retries `db push`; no Production claim is made yet. |
+
 ## v8.64.94 supplier merge mapping guard repair
 
 | Gate | Status | Evidence |

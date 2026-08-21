@@ -60,10 +60,25 @@ begin
     or position('row.item_name ilike' in definition) = 0 then
     raise exception 'get_items_workspace definition shape changed; brand migration is unsafe';
   end if;
-  definition := replace(definition, E'i.item_name,\r\n    i.category,', E'i.item_name,\r\n    i.brand_name,\r\n    i.category,');
-  definition := replace(definition,
-    E'row.item_name ilike ''%'' || trim(p_search) || ''%'' or\r\n      row.category ilike ''%'' || trim(p_search) || ''%'' or\r\n      coalesce(row.supplier_name, '''') ilike ''%'' || trim(p_search) || ''%''',
-    E'row.item_name ilike ''%'' || trim(p_search) || ''%'' or\r\n      coalesce(row.brand_name, '''') ilike ''%'' || trim(p_search) || ''%'' or\r\n      row.category ilike ''%'' || trim(p_search) || ''%'' or\r\n      coalesce(row.supplier_name, '''') ilike ''%'' || trim(p_search) || ''%''');
+  -- pg_get_functiondef normalizes source files to LF on some Postgres
+  -- versions, while older linked projects return CRLF. Match the SQL shape
+  -- rather than one particular line-ending/indentation representation.
+  definition := regexp_replace(
+    definition,
+    'i[.]item_name,[[:space:]]+i[.]category,',
+    'i.item_name, i.brand_name, i.category,',
+    1,
+    1,
+    'n'
+  );
+  definition := regexp_replace(
+    definition,
+    'row[.]category ilike',
+    'coalesce(row.brand_name, '''') ilike ''%'' || trim(p_search) || ''%'' or row.category ilike',
+    1,
+    1,
+    'n'
+  );
   if position('i.brand_name' in definition) = 0 or position('row.brand_name' in definition) = 0 then
     raise exception 'get_items_workspace brand patch did not apply';
   end if;

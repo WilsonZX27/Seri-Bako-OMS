@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.95 (unreleased) - Structured Brand Migration Compatibility Repair
+
+Brand visibility keeps the existing Items workspace contract; the migration repair changes only how the existing RPC definition is located and patched, preserving the established search and table presentation.
+
 ## v8.64.94 (unreleased) - Supplier Merge Mapping Guard Repair
 
 Supplier merge failures are presented as recoverable mapping work, not hidden data mutation: valid lines keep the canonical supplier, while unresolved lines retain a visible repair remark and audit record. No UI state claims linked or Production verification.

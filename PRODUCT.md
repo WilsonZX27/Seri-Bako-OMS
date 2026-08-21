@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.95 (unreleased) — Structured Brand Migration Compatibility Repair
+
+The structured brand migration patches the Items workspace RPC by SQL shape rather than line-ending-specific source text, so linked projects with equivalent function definitions can apply the brand field safely. Remote migration and Production UAT remain separate gates.
+
 ### v8.64.94 (unreleased) — Supplier Merge Mapping Guard Repair
 
 Duplicate supplier consolidation now respects the purchase-request branch/item/UOM mapping guard. Valid canonical mappings are repointed; unresolved lines are cleared with a recoverable line audit and an explicit repair remark instead of aborting the whole migration. Linked migration and Production data verification remain separate gates.

@@ -1,8 +1,8 @@
 # Seri Bako Operations Management System
 
-### v8.64.119 (unreleased) — Local production-like closure gate
+### v8.64.120 (unreleased) — Fresh local closure audit
 
-The local production build was rebuilt against the local Supabase stack and passed the authenticated closure matrix: six-role routing/dashboard/workspace checks (20/20), PR → PO → GRN → invoice/payment closure (3/3), Outlet Daily status/export/cost/return surfaces (7/7 plus one fixture-dependent skip), and administration/master-data responsive checks (2/2). This is local evidence only; linked migrations, real AutoCount creditor/UOM data, and Production regression remain separate gates.
+The fresh local production server on port 3005 removed stale-process false failures and passed the authenticated closure matrix: six-role routing/dashboard/workspace checks (20/20), PR → PO → GRN → invoice/payment closure (3/3), Costing/GRN/Outlet Daily/Purchase Return/Supplier Invoice surfaces (8 passed, 2 fixture-dependent skips), and administration/master-data responsive checks (2/2). This is local evidence only; linked migrations, real AutoCount creditor/UOM data, and Production regression remain separate gates.
 
 ### v8.64.118 (unreleased) — Local closure audit follow-up
 

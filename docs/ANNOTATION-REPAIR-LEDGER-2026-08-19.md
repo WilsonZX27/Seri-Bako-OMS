@@ -1,5 +1,16 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.120 fresh local closure audit
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| Production-like browser evidence is collected from a fresh server process. | implemented / local only | Port 3004 returned a stale generic error page; a fresh v8.64.119 build server on port 3005 passed the same authenticated routes without that overlay. |
+| Six-role routing, dashboard and responsive workspaces. | verified locally / Production awaiting UAT | Super Admin, Manager, Purchasing, Finance, Kitchen and Outlet: 20/20 passed. |
+| Core operational closure surfaces. | verified locally / Production awaiting UAT | Costing, GRN, Outlet Daily, Purchase Return and Supplier Invoice: 8 passed, 2 fixture-dependent skips; administration/master-data: 2/2. |
+| Footer and release records remain synchronized. | implemented | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.120. |
+
+The fresh-process result strengthens local evidence only. It does not verify linked migrations, Production data, real AutoCount codes/UOM coefficients, or Production mutation workflows.
+
 ## v8.64.119 local production-like closure gate
 
 | Acceptance | Status | Evidence / remaining gate |

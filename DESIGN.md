@@ -1,8 +1,8 @@
 # Seri Bako OMS responsive design standard
 
-## v8.64.119 (unreleased) - Production-like local closure
+## v8.64.120 (unreleased) - Fresh local closure audit
 
-The release gate now distinguishes development-overlay failures from product failures by rebuilding with the local Supabase URL and running the authenticated browser matrix against a production-like local server. The login helper waits for hydrated controls before interaction; this keeps responsive and role evidence deterministic without changing the product interaction grammar. Footer remains the concise `v8.64.119` token.
+The release gate now distinguishes stale server-process failures from product failures by running a fresh production server on port 3005 against the local Supabase URL. The clean rerun passed the role and workflow matrix; footer remains the concise `v8.64.120` token.
 
 ## v8.64.118 (unreleased) - Local closure audit follow-up
 

@@ -446,7 +446,7 @@ The local Supabase migration ledger reports 184, 185, 186, and 187. This is loca
 | Acceptance | Status | Evidence / remaining gate |
 |---|---|---|
 | PO submit → approve → send advances both PO and linked document state. | implemented / local rollback E2E passed | Migration 187 replaces the invalid `pending` document enum assignment with `pending_approval`; a disposable local PO completed submit, approve, and send in one transaction and rolled back cleanly. Authenticated browser and Production regression remain open. |
-| AP Aging and Recipe mutation workflows have disposable local business fixtures. | fixture available / mutation UAT incomplete | The local fixture now includes an active `E2E-RECIPE-001` with one costed line and a posted `E2E-GRN-INVOICE-OPEN` supplier-invoice source. The focused AP Aging, Recipe Costing, and PO transition contracts pass (18/18); full invoice approval/payment browser mutation remains open after a local Next-dev authentication refresh timeout. Production remains open. |
+| AP Aging and Recipe mutation workflows have disposable local business fixtures. | fixture available / mutation UAT incomplete | The local fixture includes an active `E2E-RECIPE-001` with one costed line. The supplier-invoice fixture is opt-in and was not present in the latest local database snapshot; the focused AP Aging, Recipe Costing, and PO transition contracts pass (18/18). Full invoice approval/payment browser mutation remains open after a local Next-dev authentication refresh timeout. Production remains open. |
 ## v8.64.113 progressive PR sourcing
 
 | Acceptance | Status | Evidence / remaining gate |

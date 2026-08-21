@@ -1,5 +1,15 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.126 migration 185 retry-safe closure
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| Migration 185 can be retried after a partial application without duplicate index/constraint failures. | verified locally / remote awaiting UAT | The unique index is `if not exists`; named receiving constraints are relation-aware and added only when absent. The complete migration was executed a second time against the local PostgreSQL stack with `ON_ERROR_STOP=1` and completed successfully. |
+| The migration re-execution preserves the progressive receiving behavior. | verified locally / Production awaiting UAT | After the direct re-run, a clean v8.64.125 production-like server passed `progressive-receiving-uom-local.spec.js` 3/3, including fixed, remembered, and floating conversions. |
+| Footer and release records remain synchronized. | implemented | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.126. |
+
+This is local schema and workflow evidence only. User-provided linked `db push` output and Production regression remain required for `remote verified` / `production verified`.
+
 ## v8.64.125 progressive receiving UOM local closure
 
 | Acceptance | Status | Evidence / remaining gate |

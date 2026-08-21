@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.126 (unreleased) - Progressive receiving migration closure
+
+The receiving migration is forward-only and retry-safe: schema additions tolerate an interrupted first application, while named constraints are added only when absent. Local PostgreSQL re-execution and the three authenticated UOM scenarios pass. Footer remains the concise `v8.64.126` token.
+
 ## v8.64.125 (unreleased) - Progressive receiving UOM closure
 
 Goods Receiving is purchase-UOM first and base-UOM explicit: known factors calculate the stock quantity, unknown packaging accepts the actual base quantity, and Remember is opt-in per line. Local authenticated coverage proves fixed and floating pack behavior without turning master-data setup into a pre-use blocker. Footer remains the concise `v8.64.125` token.

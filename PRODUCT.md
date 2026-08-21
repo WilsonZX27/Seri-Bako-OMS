@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.126 (unreleased) — Progressive receiving migration closure
+
+Migration 185 is now retry-safe for partial application: the supplier-UOM index uses an idempotent create, receiving checks are guarded by relation-aware constraint checks, and a direct second execution against the local PostgreSQL stack completed without errors. The clean local server still passes the three progressive UOM E2E scenarios. This is local evidence only; linked migration and Production regression remain separate.
+
 ### v8.64.125 (unreleased) — Progressive receiving UOM closure
 
 Authenticated local Supabase E2E now proves the receiving learning loop: unknown 2 CTN → 24 KG with an immutable snapshot and optional Remember, a later 1 CTN receipt auto-calculates 12 KG, and a floating 2 BAG → 17.4 KG receipt remains one-time without changing the supplier default. Base-unit stock quantities and normalized costs are asserted from the posted ledger. This is local evidence only; linked migrations and Production regression remain separate.

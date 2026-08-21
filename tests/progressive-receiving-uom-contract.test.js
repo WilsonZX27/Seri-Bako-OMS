@@ -19,6 +19,13 @@ test("progressive receiving persists immutable base snapshots and optional learn
   assert.match(migration, /conversion_source = proven\.source/);
 });
 
+test("progressive receiving migration can be retried after a partial apply", () => {
+  assert.match(migration, /create unique index if not exists supplier_items_supplier_item_uom_active_idx/);
+  assert.match(migration, /pg_constraint/);
+  assert.match(migration, /goods_receiving_lines_received_base_nonnegative/);
+  assert.match(migration, /goods_receiving_lines_conversion_snapshot_positive/);
+});
+
 test("Goods Receiving leads with Purchase UOM and supports unknown conversions at receipt", () => {
   assert.match(form, /label=\{`Received \(\$\{line\.uom\}\)`\} required/);
   assert.match(form, /name="line_received_base_qty"/);

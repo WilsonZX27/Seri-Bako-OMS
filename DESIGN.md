@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.134 (unreleased) - Progressive receiving snapshot closure
+
+The receiving flow now remains resilient when a browser cannot submit the derived factor: migration 189 derives the immutable Purchase-to-Base snapshot from the actual quantities at the line boundary, while invalid or missing base quantities still block posting with the existing actionable message. Local progressive receiving, Recipe, master-data, and Purchase Return mutation checks pass. Footer remains the concise `v8.64.134` token.
+
 ## v8.64.133 (unreleased) - Outlet Daily closure audit
 
 Outlet Daily now has fresh local browser evidence for its complete information architecture: detailed records and calendar completion, conditional wastage fields, one direct-post action, company-wide Qty Sent correction, dated detailed export, and bounded desktop/phone analytics. The clean rerun passed 19/19 after excluding a stale unstyled server. Footer remains the concise `v8.64.133` token.

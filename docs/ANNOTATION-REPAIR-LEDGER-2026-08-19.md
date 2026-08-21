@@ -1,5 +1,15 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.134 progressive receiving snapshot closure
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| Unknown Supplier UOM receipts derive and persist an immutable conversion snapshot from actual Purchase/Base quantities before posting. | verified locally / Production awaiting UAT | Forward-only migration 189 adds a database trigger that derives `received_base_qty / received_qty` (or the rejected equivalent) when the browser snapshot is absent. Local migration ledger records 189 and the authenticated progressive receiving suite passed `3/3` after application. |
+| The remaining high-risk local mutation workflows remain usable after the snapshot repair. | verified locally / Production awaiting UAT | Fresh local browser reruns passed master-data create/edit `1/1`, Recipe create/edit/submit/approve/activate `1/1`, and Purchase Return posting `1/1` with `TEST_MUTATE_WORKFLOW=true`. |
+| Footer and release records remain synchronized. | implemented | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, this ledger, migration 189, and its contract test are synchronized to v8.64.134. |
+
+This closes a real local database-boundary defect found during audit. Migration 189 is local-only until linked migration output is supplied; no remote or Production status is promoted.
+
 ## v8.64.133 Outlet Daily closure audit
 
 | Acceptance | Status | Evidence / remaining gate |

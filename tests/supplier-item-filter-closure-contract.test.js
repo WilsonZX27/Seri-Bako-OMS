@@ -14,6 +14,19 @@ test("supplier-item identity repair is recoverable and keeps BWY Holdings canoni
   assert.match(migration, /branch_supplier_items/);
 });
 
+test("duplicate supplier merge preserves the PR mapping guard and records unresolved lines", () => {
+  const migration = read("supabase/migrations/173_merge_duplicate_supplier_identities.sql");
+  assert.match(migration, /supplier_merge_line_audit/);
+  assert.match(migration, /repointed_to_canonical_supplier/);
+  assert.match(migration, /cleared_requires_supplier_mapping/);
+  assert.match(migration, /choose a mapped supplier/);
+  assert.doesNotMatch(migration, /session_replication_role/);
+  assert.doesNotMatch(
+    migration,
+    /update public\.purchase_request_lines\s+set suggested_supplier_id = canonical_supplier\.id\s+where suggested_supplier_id = duplicate_supplier\.id/,
+  );
+});
+
 test("master-data filters keep Search available after filtering and size Reset as a command", () => {
   const filters = read("src/components/master-data-filters.tsx");
   const header = read("src/components/common/UnifiedListHeader.tsx");

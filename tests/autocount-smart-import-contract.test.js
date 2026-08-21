@@ -72,7 +72,9 @@ test("duplicate suppliers merge recoverably and receive a live normalized-name g
   assert.match(migration, /create table if not exists public\.supplier_merge_audit/);
   assert.match(migration, /canonical_before jsonb not null/);
   assert.match(migration, /merged_before jsonb not null/);
-  assert.match(migration, /update public\.purchase_request_lines set suggested_supplier_id = canonical_supplier\.id/);
+  assert.match(migration, /update public\.purchase_request_lines[\s\S]*set suggested_supplier_id = canonical_supplier\.id/);
+  assert.match(migration, /supplier_merge_line_audit/);
+  assert.match(migration, /cleared_requires_supplier_mapping/);
   assert.match(migration, /update public\.purchase_orders set supplier_id = canonical_supplier\.id/);
   assert.match(migration, /update public\.supplier_items[\s\S]*set status = 'inactive', deleted_at = now\(\)/);
   assert.match(migration, /suppliers_company_normalized_name_active_idx/);

@@ -1,5 +1,13 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.94 supplier merge mapping guard repair
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Migration 173 duplicate supplier consolidation | implemented / awaiting linked migration and Production data verification | The first linked push attempt stopped because a bulk PR-line supplier update violated the branch/item mapping trigger (`A selected supplier is not mapped to this purchase request branch and item.`). The repair keeps the guard enabled, repoints only canonical mappings that match branch, item, and supplier UOM, and clears unresolved supplier references with `supplier_merge_line_audit` plus a visible repair remark. Local disposable `db reset` completed through migration 180; linked migration status and Production rows are not yet verified. |
+
+Do not mark this gate Production-verified from source, local reset, or the failed push. After the repaired migration is pushed, confirm linked migrations 173–180, then inspect audit rows and affected PR lines before retrying AutoCount Confirm.
+
 ## v8.64.93 supplier identity and filter apply repair
 
 | Annotation | Status | Evidence / action |

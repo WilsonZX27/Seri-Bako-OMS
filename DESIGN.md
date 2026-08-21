@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.94 (unreleased) - Supplier Merge Mapping Guard Repair
+
+Supplier merge failures are presented as recoverable mapping work, not hidden data mutation: valid lines keep the canonical supplier, while unresolved lines retain a visible repair remark and audit record. No UI state claims linked or Production verification.
+
 ## v8.64.93 (unreleased) - Supplier Identity And Filter Apply Repair
 
 Supplier-item tables now show one canonical supplier identity after a recoverable merge, while shared list commands keep Search and Reset aligned at the same compact height. Selecting a different filter can be applied directly; no reset-only interaction is required.

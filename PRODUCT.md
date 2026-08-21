@@ -1,8 +1,8 @@
 # Seri Bako Operations Management System
 
-### v8.64.120 (unreleased) — Fresh local closure audit
+### v8.64.121 (unreleased) — Master-data mutation closure
 
-The fresh local production server on port 3005 removed stale-process false failures and passed the authenticated closure matrix: six-role routing/dashboard/workspace checks (20/20), PR → PO → GRN → invoice/payment closure (3/3), Costing/GRN/Outlet Daily/Purchase Return/Supplier Invoice surfaces (8 passed, 2 fixture-dependent skips), and administration/master-data responsive checks (2/2). This is local evidence only; linked migrations, real AutoCount creditor/UOM data, and Production regression remain separate gates.
+The fresh local production server passed the authenticated master-data mutation E2E: Super Admin created and edited a disposable Branch, Supplier, and Item, with database assertions and soft-delete cleanup. Existing local closure evidence remains: six-role routing/dashboard/workspace checks (20/20), PR → PO → GRN → invoice/payment closure (3/3), Costing/GRN/Outlet Daily/Purchase Return/Supplier Invoice surfaces (8 passed, 2 fixture-dependent skips), and administration/master-data responsive checks (2/2). This is local evidence only; linked migrations, real AutoCount creditor/UOM data, and Production regression remain separate gates.
 
 ### v8.64.118 (unreleased) — Local closure audit follow-up
 

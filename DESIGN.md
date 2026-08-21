@@ -1,8 +1,8 @@
 # Seri Bako OMS responsive design standard
 
-## v8.64.120 (unreleased) - Fresh local closure audit
+## v8.64.121 (unreleased) - Master-data mutation closure
 
-The release gate now distinguishes stale server-process failures from product failures by running a fresh production server on port 3005 against the local Supabase URL. The clean rerun passed the role and workflow matrix; footer remains the concise `v8.64.120` token.
+The release gate now includes a browser-driven local master-data mutation path: create and edit Branch, Supplier, and Item, then verify the persisted records and soft-delete the disposable fixture. Footer remains the concise `v8.64.121` token.
 
 ## v8.64.118 (unreleased) - Local closure audit follow-up
 

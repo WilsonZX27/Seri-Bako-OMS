@@ -1,5 +1,15 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.121 master-data mutation closure
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| Branch, Supplier, and Item creation and maintenance are proven through the UI. | verified locally / Production awaiting UAT | `master-data-mutations-local.spec.js` passed 1/1 on the fresh local production server. Super Admin created all three records, edited each record, asserted persisted values through the local database, and soft-deleted the disposable fixture. |
+| Master-data mutation evidence is distinct from structure-only responsive evidence. | implemented | The new E2E uses real forms/server actions; service-role access is used only for company lookup, assertions, and cleanup. |
+| Footer and release records remain synchronized. | implemented | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.121. |
+
+This closes the local create/edit evidence gap only. Supplier-item mapping, authoritative AutoCount values, linked migrations, and Production regression remain separate gates.
+
 ## v8.64.120 fresh local closure audit
 
 | Acceptance | Status | Evidence / remaining gate |

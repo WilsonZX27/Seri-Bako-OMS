@@ -1,5 +1,9 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.117 wastage value summary
+
+The Outlet Daily right rail now exposes a role-gated “Today's wastage value” summary for company-wide roles. It uses active recipe cost snapshots, separates verified/partial/unavailable states, and never shows an invented zero when a product has no cost authority. Authenticated local Purchasing UAT passes the summary (`Unavailable` for the fixture without a recipe snapshot) alongside detailed export and Qty Sent correction. Production data and six-role regression remain open.
+
 ## v8.64.116 authenticated Outlet Daily export UAT
 
 The local Purchasing role now passes both the company-wide Qty Sent correction workflow and the detailed export download. The browser verifies `outlet-daily-records_<date>.csv`, product-line columns, Qty Sent provenance, wastage amount, and an explicit unavailable cost state for a fixture without a recipe snapshot. This remains local mutation/UAT evidence; no Production export or role mutation claim is made.

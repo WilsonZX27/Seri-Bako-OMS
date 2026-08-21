@@ -42,6 +42,14 @@ export type OutletDailyCompletionCell = {
   status: OutletDailyCompletionStatus;
 };
 
+export type OutletDailyWastageCostSummary = {
+  state: "verified" | "partial" | "unavailable";
+  amount: number | null;
+  wastage_qty: number;
+  priced_lines: number;
+  unavailable_lines: number;
+};
+
 const totals = (lines: LineRow[]) => {
   const totalSent = lines.reduce((sum, line) => sum + Number(line.qty_sent), 0);
   // `morning_received_qty` has a database default of 0. Its dedicated
@@ -331,6 +339,52 @@ export async function getOutletDailyRecords(filters: Filters = {}) {
       // fictitious review queue.
       posted_today: todayRows.filter((row) => ["evening_completed", "reviewed"].includes(row.status)).length,
     },
+  };
+}
+
+export async function getOutletDailyWastageCostSummary(recordDate = todayInKualaLumpur()): Promise<OutletDailyWastageCostSummary> {
+  const unavailable = { state: "unavailable" as const, amount: null, wastage_qty: 0, priced_lines: 0, unavailable_lines: 0 };
+  if (isMockMode() || !await hasPermission("outlet_daily_record.view_all")) return unavailable;
+  const db = await createClient();
+  const { data: records, error: recordError } = await db.from("outlet_daily_records").select("id").eq("record_date", recordDate).neq("status", "void");
+  if (recordError) throw new Error(recordError.message);
+  const recordIds = (records ?? []).map((record) => record.id);
+  if (!recordIds.length) return { ...unavailable, state: "verified" };
+  const { data: lines, error: lineError } = await db.from("outlet_daily_record_lines").select("product_id,wastage_qty").in("record_id", recordIds);
+  if (lineError) throw new Error(lineError.message);
+  const wastageLines = (lines ?? []).filter((line) => Number(line.wastage_qty) > 0);
+  if (!wastageLines.length) return { ...unavailable, state: "verified" };
+  const productIds = [...new Set(wastageLines.map((line) => line.product_id))];
+  const [{ data: recipes, error: recipeError }] = await Promise.all([
+    db.from("recipes").select("id,product_id").in("product_id", productIds).eq("status", "active").is("deleted_at", null),
+  ]);
+  if (recipeError) throw new Error(recipeError.message);
+  const recipeIds = (recipes ?? []).map((recipe) => recipe.id);
+  const { data: snapshots, error: snapshotError } = recipeIds.length
+    ? await db.from("recipe_cost_snapshots").select("recipe_id,snapshot_no,cost_per_finished_unit").in("recipe_id", recipeIds).order("snapshot_no", { ascending: false })
+    : { data: [], error: null };
+  if (snapshotError) throw new Error(snapshotError.message);
+  const recipeByProduct = new Map((recipes ?? []).map((recipe) => [recipe.product_id, recipe.id]));
+  const costByRecipe = new Map<string, number>();
+  for (const snapshot of snapshots ?? []) if (!costByRecipe.has(snapshot.recipe_id)) costByRecipe.set(snapshot.recipe_id, Number(snapshot.cost_per_finished_unit));
+  let amount = 0;
+  let pricedLines = 0;
+  let unavailableLines = 0;
+  let wastageQty = 0;
+  for (const line of wastageLines) {
+    const qty = Number(line.wastage_qty);
+    wastageQty += qty;
+    const recipeId = recipeByProduct.get(line.product_id);
+    const unitCost = recipeId ? costByRecipe.get(recipeId) : undefined;
+    if (unitCost === undefined || !Number.isFinite(unitCost)) unavailableLines += 1;
+    else { amount += qty * unitCost; pricedLines += 1; }
+  }
+  return {
+    state: unavailableLines === 0 ? "verified" : pricedLines === 0 ? "unavailable" : "partial",
+    amount: pricedLines ? Number(amount.toFixed(4)) : null,
+    wastage_qty: Number(wastageQty.toFixed(4)),
+    priced_lines: pricedLines,
+    unavailable_lines: unavailableLines,
   };
 }
 

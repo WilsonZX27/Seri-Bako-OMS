@@ -19,7 +19,7 @@ import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody,
 import { formatDateOnly, formatDateTime, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { hasPermission } from "@/server/auth/permissions";
-import { getOutletDailyCompletionMatrix, getOutletDailyDemandTrend, getOutletDailyFormOptions, getOutletDailyRecords } from "@/server/queries/outlet-daily-records";
+import { getOutletDailyCompletionMatrix, getOutletDailyDemandTrend, getOutletDailyFormOptions, getOutletDailyRecords, getOutletDailyWastageCostSummary } from "@/server/queries/outlet-daily-records";
 import { logServerError } from "@/server/observability/logger";
 
 const statuses = ["draft", "morning_recorded", "evening_completed", "reviewed", "void"];
@@ -32,17 +32,21 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
   let canCreate = false;
   let canExport = false;
   let canViewSentGaps = false;
+  let canViewWastageCost = false;
+  let wastageCost: Awaited<ReturnType<typeof getOutletDailyWastageCostSummary>>;
   let insights: [
     PromiseSettledResult<Awaited<ReturnType<typeof getOutletDailyDemandTrend>>>,
     PromiseSettledResult<Awaited<ReturnType<typeof getOutletDailyCompletionMatrix>>>,
   ];
   try {
-    [data, options, canCreate, canExport, canViewSentGaps, insights] = await Promise.all([
+    [data, options, canCreate, canExport, canViewSentGaps, canViewWastageCost, wastageCost, insights] = await Promise.all([
       getOutletDailyRecords(filters),
       getOutletDailyFormOptions(),
       hasPermission("outlet_daily_record.create"),
       hasPermission("outlet_daily_record.view"),
       hasPermission("outlet_daily_record.view_all"),
+      hasPermission("outlet_daily_record.view_all"),
+      getOutletDailyWastageCostSummary(),
       Promise.allSettled([
         getOutletDailyDemandTrend({ period: "30", branch: filters.branch }),
         getOutletDailyCompletionMatrix({ branch: filters.branch, history_date: filters.history_date }),
@@ -74,6 +78,7 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
         {canExport ? <OutletDailyExportDialog branches={options.branches} /> : null}
       </ConsoleSection>
       <ConsoleSection title="Today"><div className="space-y-2 text-xs"><p className="flex justify-between"><span>Records</span><strong>{data.summary.today_records}</strong></p><p className="flex justify-between"><span>Qty sent</span><strong>{formatNumber(data.summary.today_sent)}</strong></p><p className="flex justify-between"><span>Total received</span><strong className={data.summary.today_received_zero_with_sent > 0 ? "text-warning" : undefined}>{data.summary.today_received === null ? "Unavailable" : data.summary.today_received_zero_with_sent > 0 ? `${formatNumber(data.summary.today_received)} · verify` : formatNumber(data.summary.today_received)}</strong></p>{data.summary.today_received_unavailable > 0 ? <p className="text-[11px] text-warning">{data.summary.today_received_unavailable} record{data.summary.today_received_unavailable === 1 ? "" : "s"} still has unverified receiving data.</p> : null}{data.summary.today_received_zero_with_sent > 0 ? <p className="text-[11px] text-warning">{data.summary.today_received_zero_with_sent} record{data.summary.today_received_zero_with_sent === 1 ? "" : "s"} has sent stock but no confirmed receipt.</p> : null}<p className="flex justify-between"><span>Incomplete</span><strong>{data.summary.missing_evening}</strong></p></div></ConsoleSection>
+      {canViewWastageCost ? <ConsoleSection title="Today's wastage value"><div className="space-y-1 text-xs" data-outlet-wastage-cost-summary><p className="flex justify-between"><span>Costed amount</span><strong>{wastageCost.amount === null ? "Unavailable" : `RM ${wastageCost.amount.toFixed(2)}`}</strong></p><p className="text-[11px] text-muted-foreground">{wastageCost.state === "verified" ? `${wastageCost.priced_lines} costed line${wastageCost.priced_lines === 1 ? "" : "s"}` : wastageCost.state === "partial" ? `${wastageCost.unavailable_lines} line${wastageCost.unavailable_lines === 1 ? "" : "s"} missing recipe cost` : "No active recipe cost snapshot"}</p></div></ConsoleSection> : null}
       <ConsoleSection title="Completion"><p className="text-xs"><span className="text-muted-foreground">Posted today</span><br /><strong>{data.summary.posted_today}</strong></p></ConsoleSection>
       {completion?.summary ? <ConsoleSection title="7-day coverage"><div className="space-y-2 text-xs"><p className="flex justify-between"><span>Complete</span><strong>{completion.summary.completed}/{completion.summary.expected}</strong></p><p className="flex justify-between"><span>In progress</span><strong>{completion.summary.incomplete}</strong></p><p className="flex justify-between"><span>Missing</span><strong>{completion.summary.missing}</strong></p><p className="flex justify-between"><span>Void</span><strong>{completion.summary.voided}</strong></p></div></ConsoleSection> : null}
     </>}>

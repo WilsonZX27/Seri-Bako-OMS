@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.117 (unreleased) — Outlet wastage cost summary
+
+Company-wide operational roles now see a “Today’s wastage value” panel alongside Outlet Daily work. It multiplies recorded product wastage by the latest active recipe cost snapshot, reports partial or unavailable cost authority explicitly, and remains hidden from outlet-scoped users. This is local evidence only; Production data and role regression remain separate.
+
 ### v8.64.116 (unreleased) — Outlet Daily export UAT
 
 Authenticated local Purchasing UAT now downloads the detailed Outlet Daily CSV and verifies the dated filename, line-level product fields, Qty Sent provenance, wastage amount column, and explicit unavailable cost state. The companion company-wide Qty Sent correction workflow also passes when rerun. This is local evidence only; remote and Production verification remain separate.

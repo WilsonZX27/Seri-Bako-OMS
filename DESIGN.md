@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.117 (unreleased) - Outlet wastage cost summary
+
+Cost is a decision aid owned by the company-wide operations surface, not an outlet data-entry field. The right rail shows the current day's costed wastage only for permitted company-wide roles; active recipe snapshots are the sole product-cost authority, and missing or partial cost coverage is labelled rather than rendered as zero.
+
 ## v8.64.116 (unreleased) - Outlet Daily export UAT
 
 The export dialog now has authenticated local evidence for the full handoff: Purchasing receives a dated file with one product row per record line, provenance labels, and non-fabricated cost states. The same role can correct an unlocked Qty Sent/receiving record through the authorised RPC; the UI continues to keep that correction separate from the download action.

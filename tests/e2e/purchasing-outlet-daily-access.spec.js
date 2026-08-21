@@ -88,6 +88,8 @@ test.describe("Purchasing company-wide outlet daily access", () => {
     test.skip(!fixture, "Local Purchasing fixture was not created.");
     await login(page, "purchasing");
     await page.goto("/outlet-daily-records", { waitUntil: "domcontentloaded" });
+    await expect(page.locator("[data-right-console]").getByRole("heading", { name: "Today's wastage value", exact: true })).toBeVisible();
+    await expect(page.locator("[data-right-console] [data-outlet-wastage-cost-summary]")).toContainText("Unavailable");
     await page.getByRole("button", { name: "Export CSV" }).click();
     const modal = page.getByRole("dialog", { name: "Export outlet daily records" });
     await expect(modal).toBeVisible();

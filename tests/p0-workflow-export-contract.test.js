@@ -48,3 +48,14 @@ test("outlet daily export is permission-checked and preserves list filters", () 
   assert.match(route, /searchParams\.get\("to"\)/);
   assert.match(route, /searchParams\.get\("branches"\)/);
 });
+
+test("wastage cost summary is privileged and never treats missing recipe cost as zero", () => {
+  const page = read("src/app/(app)/outlet-daily-records/page.tsx");
+  const query = read("src/server/queries/outlet-daily-records.ts");
+  assert.match(page, /Today's wastage value/);
+  assert.match(page, /canViewWastageCost/);
+  assert.match(query, /getOutletDailyWastageCostSummary/);
+  assert.match(query, /outlet_daily_record\.view_all/);
+  assert.match(query, /state: unavailableLines === 0 \? "verified"/);
+  assert.match(query, /amount: pricedLines \? Number\(amount\.toFixed/);
+});

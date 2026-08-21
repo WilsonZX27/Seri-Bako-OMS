@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.98 (unreleased) — Supplier UOM Receiving Conversion
+
+Purchase requests and purchase orders retain the supplier's purchasing UOM (for example CTN, BAG, or TUB), while Goods Receiving accepts the configured Item Master base UOM (for example KG). The entered base quantity is converted back to the supplier UOM for document traceability, and the existing atomic posting path converts it into base-unit inventory using the approved supplier-item conversion. Missing conversions remain explicit blockers; the system never guesses packaging factors.
+
 ### v8.64.97 (unreleased) — Supplier Identity Relationship Consolidation
 
 Duplicate supplier identities are consolidated at the data boundary: active supplier-item, branch, item, purchasing, and request references are repointed to one canonical active identity before duplicate rows are recoverably archived. Supplier Items search also accepts the operator-facing Item Group and internal AutoCount code.

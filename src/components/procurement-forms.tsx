@@ -26,6 +26,7 @@ export type BranchSupplierMappingOption = {
   supplier_name: string;
   unit_cost: number;
   purchase_uom: string;
+  conversion_to_base_uom: number | null;
   is_preferred: boolean;
 };
 type RequestLine = {
@@ -395,7 +396,7 @@ export function PurchaseRequestForm({
                       const selectedMapping = compatibleMappings.find((mapping) => mapping.supplier_id === line.supplierId)
                         ?? compatibleMappings.find((mapping) => mapping.is_preferred)
                         ?? compatibleMappings[0];
-                      return <p data-pr-line-supplier className="text-[11px] leading-4 text-muted-foreground">{selectedMapping?.supplier_name ?? "Supplier pending"}{selectedMapping?.is_preferred ? " · Preferred" : ""}</p>;
+                      return <p data-pr-line-supplier className="text-[11px] leading-4 text-muted-foreground">{selectedMapping?.supplier_name ?? "Supplier pending"}{selectedMapping?.is_preferred ? " · Preferred" : ""}{selectedMapping?.conversion_to_base_uom && selectedMapping.conversion_to_base_uom !== 1 ? ` · 1 ${selectedMapping.purchase_uom} = ${selectedMapping.conversion_to_base_uom} base` : ""}</p>;
                     })() : null}
                     <input type="hidden" name="line_item_id" value={line.itemId} />
                     <input type="hidden" name="line_description" value={line.itemSearch} />
@@ -424,7 +425,7 @@ export function PurchaseRequestForm({
                   </div>
                   {commentLineKey === line.key ? <Field label="Item comment" className="col-span-full"><Textarea name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} rows={2} placeholder="Add context for purchasing" /></Field> : <input type="hidden" name="line_remarks" value={line.remarks} />}
                   {line.itemId && mappingsForLine(line).length === 0 ? <div className="col-span-full grid min-w-0 gap-2 rounded-[var(--sb-radius-control)] border border-[var(--sb-danger)]/35 bg-[var(--sb-danger-bg)] px-3 py-2.5 text-xs text-[var(--sb-danger)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><div className="min-w-0"><p className="font-semibold">Supplier mapping required</p><p className="mt-0.5 leading-relaxed">This item has no active supplier route for the selected branch. Add the mapping before submitting so Purchasing knows who can supply it.</p></div><Button asChild type="button" variant="outline" size="sm" className="h-[var(--sb-control-height)] w-full border-[var(--sb-danger)]/50 text-xs text-[var(--sb-danger)] sm:w-auto"><Link href={`/supplier-items/new?itemId=${line.itemId}&branchId=${branchId}`}>Add supplier mapping</Link></Button></div> : null}
-                  {line.itemId && line.uom && mappingsForLine(line).length > 0 && !mappingsForLine(line).some((mapping) => normalizeUom(mapping.purchase_uom) === line.uom) ? <div className="col-span-full grid min-w-0 gap-2 rounded-[var(--sb-radius-control)] border border-[var(--sb-danger)]/35 bg-[var(--sb-danger-bg)] px-3 py-2 text-xs font-medium leading-relaxed text-[var(--sb-danger)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><p>No active supplier route uses {line.uom.toUpperCase()} for this branch. Choose the supplier UOM shown in the mapping, or update the mapping before submitting.</p><Link href={`/supplier-items/new?itemId=${line.itemId}&branchId=${branchId}`} className="inline-flex min-h-[var(--sb-control-height)] items-center justify-center font-semibold underline underline-offset-2 sm:justify-self-end">Update branch mapping</Link></div> : null}
+                  {line.itemId && line.uom && mappingsForLine(line).length > 0 && !mappingsForLine(line).some((mapping) => normalizeUom(mapping.purchase_uom) === line.uom) ? <div className="col-span-full grid min-w-0 gap-2 rounded-[var(--sb-radius-control)] border border-[var(--sb-danger)]/35 bg-[var(--sb-danger-bg)] px-3 py-2 text-xs font-medium leading-relaxed text-[var(--sb-danger)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><p>No active supplier route uses {line.uom.toUpperCase()} for this branch because no supplier purchasing term is configured for it. Update the supplier item to purchase in {line.uom.toUpperCase()} and enter its conversion to {items.find((item) => item.id === line.itemId)?.base_unit ?? "the Item Master base UOM"}; the GRN will convert the delivery into the company base unit.</p><Link href={`/supplier-items/new?itemId=${line.itemId}&branchId=${branchId}`} className="inline-flex min-h-[var(--sb-control-height)] items-center justify-center font-semibold underline underline-offset-2 sm:justify-self-end">Update branch mapping</Link></div> : null}
                   <input type="hidden" name="line_reason" value={line.reason} />
                 </div>
               ))}

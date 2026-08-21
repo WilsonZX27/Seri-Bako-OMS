@@ -63,6 +63,7 @@ export function diagnosePurchaseRequestSupplier({
   const compatible = itemMappings.filter((mapping) => normalizeUom(mapping.purchase_uom) === normalizeUom(line.uom));
   const explicit = line.suggested_supplier_id;
   const explicitMapping = explicit ? compatible.find((mapping) => mapping.supplier_id === explicit) : null;
+  const baseUom = item?.base_unit ?? "base UOM";
 
   if (explicitMapping) return { supplierName: explicitMapping.supplier_name, ready: true, issue: null, suggestedSupplierId: explicit };
 
@@ -94,9 +95,9 @@ export function diagnosePurchaseRequestSupplier({
       suggestedSupplierId: explicit,
       issue: {
         code: "uom_mapping_missing", severity: "blocking", field: "uom",
-        message: `Supplier is mapped to this item, but not for ${line.uom}.`,
-        cause: "The PR UOM and the supplier purchase UOM do not match.",
-        recommendedAction: "Change the PR UOM or create the correct supplier-UOM mapping.",
+        message: `This supplier has no purchasing term for ${line.uom.toUpperCase()} yet.`,
+        cause: `The current supplier term uses ${itemMappings.find((mapping) => mapping.supplier_id === explicit)?.purchase_uom ?? "another UOM"}; the inventory base unit is ${baseUom}.`,
+        recommendedAction: `Update the supplier item to purchase in ${line.uom.toUpperCase()} and enter its conversion to ${baseUom}. Receiving can then be entered in ${baseUom} without changing the PO history.`,
         allowedActions: ["change_uom", "create_mapping", "select_supplier"], ownerRole: "Purchasing / Master Data",
       },
     };
@@ -151,9 +152,9 @@ export function diagnosePurchaseRequestSupplier({
     supplierName: null, ready: false, suggestedSupplierId: null,
     issue: hasOtherUom ? {
       code: "uom_mapping_missing", severity: "blocking", field: "uom",
-      message: `No supplier mapping supports ${line.uom}.`,
-      cause: "Supplier mappings exist for this item, but use a different purchase UOM.",
-      recommendedAction: "Change the UOM or create a supplier-UOM mapping.",
+       message: `No supplier purchasing term is configured for ${line.uom.toUpperCase()}.`,
+       cause: `The existing supplier term uses ${itemMappings[0]?.purchase_uom ?? "another UOM"}; inventory is controlled in ${baseUom}.`,
+       recommendedAction: `Create or update the supplier item with purchase UOM ${line.uom.toUpperCase()} and its conversion to ${baseUom}. The GRN will convert the delivered amount into ${baseUom}.`,
       allowedActions: ["change_uom", "create_mapping", "replace_item"], ownerRole: "Purchasing / Master Data",
     } : {
       code: "branch_mapping_missing", severity: "blocking", field: "supplier",

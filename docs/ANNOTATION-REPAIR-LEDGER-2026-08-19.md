@@ -1,5 +1,13 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.98 supplier UOM receiving conversion
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Purchase UOM and inventory base UOM are distinct | implemented / awaiting authenticated UAT | Supplier-item mappings already persist `purchase_uom` and `conversion_to_base_uom`; PR/PO continue to require the supplier purchase UOM, while Goods Receiving now presents the Item Master base UOM for operator entry and converts the submitted quantity back to the PO UOM for traceability. The atomic GRN posting path then converts the supplier quantity into base-unit inventory and divides unit cost by the same factor. Typecheck passed; browser/UAT is still pending. |
+| Missing CTN/BAG/TUB supplier terms are actionable | implemented / data or migration blocked until factor is supplied | PR readiness and line recovery now explain that a supplier item must be updated with the requested purchase UOM and an authoritative conversion to the Item Master base UOM; no packaging factor is invented. The current CHYI NING rows in the repository seed only prove KG terms, so CTN/BAG/TUB remain data blockers until the real supplier conversion is entered. |
+| Receiving without a supplier-to-base conversion | fail-closed / awaiting authenticated UAT | Receiving shows the missing conversion beside the affected line and disables base-unit entry. The server-side posting RPC retains its existing explicit `Supplier UOM conversion is missing` failure. |
+
 ## v8.64.97 supplier identity relationship consolidation
 
 | Gate | Status | Evidence |

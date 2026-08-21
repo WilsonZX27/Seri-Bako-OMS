@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.98 (unreleased) - Supplier UOM Receiving Conversion
+
+Receiving lines present the company base UOM as the operator input while retaining the PO supplier UOM in the document and hidden submission payload. The conversion is visible beside each line, with an explicit blocked state when supplier-to-base terms are missing.
+
 ## v8.64.97 (unreleased) - Supplier Identity Relationship Consolidation
 
 Supplier Items exposes both the operator-facing Item Group and internal AutoCount code as searchable identity context. Duplicate supplier rows are consolidated in data first; the UI does not pretend that a display filter alone is a merge.

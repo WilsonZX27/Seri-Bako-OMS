@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.131 (unreleased) - Closure ledger reconciliation
+
+Release notes now point to the newest evidence instead of leaving older local-UAT wording ambiguous. This does not promote local browser evidence to linked or Production status; it only records the current audit authority and the one remaining dedicated PO conversion error-feedback probe. Footer remains the concise `v8.64.131` token.
+
 ## v8.64.130 (unreleased) - AP Aging report closure
 
 AP Aging now has a fresh local browser check for both desktop interaction and phone information density: bucket previews remain keyboard/touch accessible, drill-through links preserve the selected aging context, and the phone surface keeps all seven labels without horizontal overflow. Footer remains the concise `v8.64.130` token.

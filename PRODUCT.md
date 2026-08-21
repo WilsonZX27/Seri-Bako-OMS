@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.131 (unreleased) — Closure ledger reconciliation
+
+The current closure ledger now distinguishes historical wording from current evidence: guided PR Apply, Purchase Return, AP Aging, progressive receiving, and the six-role procurement closure are locally verified where stated; linked/Production status remains separate. The remaining open local-specific item is dedicated browser verification of PR-to-PO duplicate/error feedback, while the local transactional RPC and successful conversion are already covered.
+
 ### v8.64.130 (unreleased) — AP Aging report closure
 
 The local AP Aging report now has fresh authenticated evidence for the distribution interaction and phone layout: keyboard/hover previews expose invoice context and the drill-through link, while the 393px touch view keeps all seven buckets directly labelled and inside the viewport. This is local evidence only; linked migration alignment and Production regression remain separate.

@@ -1,5 +1,17 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.131 closure ledger reconciliation
+
+| Current evidence authority | Superseded historical wording | Boundary that remains |
+|---|---|---|
+| Guided PR line repair is locally mutation-verified by v8.64.128 (`annotation-v8-64-66-uat.spec.js`, 10/10 full file). | The older “Real guided PR repair — mutation UAT incomplete” row is historical and no longer describes the local fixture state. | Production mutation and linked/Production migration evidence remain unverified. |
+| Purchase Return now has authenticated local mutation evidence in v8.64.129; progressive receiving and immutable snapshots are locally verified in v8.64.125/129. | Older GRN/Return rows that say browser return UAT is open are retained as historical context only. | Production data and remote migration alignment remain open. |
+| AP Aging report interaction and phone geometry are locally verified 2/2 in v8.64.130. | The older “dedicated AP Aging report fixture/UAT remains open” wording is superseded for local report interaction. | Production report regression and linked migration status remain open. |
+| PR→PO success is authenticated locally in the 3/3 procurement closure and conversion RPC contract; duplicate/idempotency behavior is locally transactional. | Older local-only conversion rows remain accurate about the missing dedicated browser duplicate/error-feedback probe. | A focused browser probe for field-level PO conversion failure/retained input is still open; PR/AUG26/013 and Production are not claimed. |
+| Footer and release records remain synchronized. | Historical version notes remain immutable context. | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.131. |
+
+This reconciliation prevents historical ledger wording from being mistaken for current evidence. It does not mark any remote or Production item verified.
+
 ## v8.64.130 AP Aging report closure
 
 | Acceptance | Status | Evidence / remaining gate |

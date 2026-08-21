@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.111 (unreleased) - Receiving posting lock repair
+
+The PO line remains read-only after approval/send for operators. Goods Receiving is the explicit workflow owner for advancing received quantity, using a transaction-local database guard that cannot be reached through ordinary line-edit forms.
+
 ## v8.64.110 (unreleased) - Progressive receiving UOM learning
 
 Goods Receiving leads with the physical supplier quantity. A known Purchase-UOM conversion renders Base-UOM as a calculated companion value; an unknown conversion keeps both quantities editable and offers an explicit Remember choice. The UI explains that the current delivery can proceed without pre-configuring every supplier item, while the immutable snapshot remains the inventory posting authority.

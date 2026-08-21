@@ -12,6 +12,8 @@ test("progressive receiving persists immutable base snapshots and optional learn
   assert.match(migration, /conversion_to_base_uom_snapshot numeric/);
   assert.match(migration, /remember_conversion boolean not null default false/);
   assert.match(migration, /supplier_uom_conversion_audit/);
+  assert.match(migration, /app\.purchase_receipt_posting/);
+  assert.match(migration, /transaction-local flag/);
   assert.match(migration, /if line\.received_qty>0 and \(line\.received_base_qty is null/);
   assert.match(migration, /if line\.remember_conversion then/);
   assert.match(migration, /conversion_source = proven\.source/);

@@ -436,3 +436,8 @@ The remaining rows below are intentionally retained as open gates. They require 
 | GRN and return posting retain immutable Purchase/Base UOM snapshots. | implemented / awaiting authenticated mutation UAT | Local function definitions, snapshot columns, audit table, and grants are present; no Production mutation was performed. |
 
 The local Supabase migration ledger reports 184, 185, and 186. This is local-only evidence; it must not be promoted to `remote verified` or `production verified` without linked migration output and read-only Production regression.
+## v8.64.111 receiving posting lock repair
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| A posted GRN can advance a committed PO line without reopening ordinary PO editing. | implemented / local rollback E2E passed | The committed-PO line trigger now permits only the transaction-local flag set inside the SECURITY DEFINER GRN posting RPC. A local disposable `2 CTN → 24 KG` GRN posted successfully, advanced the PO to received, and left no data after rollback. Authenticated browser mutation and Production remain open. |

@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.111 (unreleased) — Receiving posting lock repair
+
+Goods Receiving can now advance the received quantity on an approved or sent Purchase Order through its controlled posting transaction. Ordinary PO line edits remain locked; the posting RPC uses a transaction-local guard, then records the immutable Purchase/Base UOM snapshot and optional learned supplier conversion.
+
 ### v8.64.110 (unreleased) — Progressive receiving UOM learning
 
 Goods Receiving now accepts the supplier's actual Purchase UOM first, calculates Base UOM when a conversion is known, and lets the operator confirm both quantities when it is not. A confirmed conversion can be remembered for future deliveries without making master-data setup a prerequisite. Local Supabase migration 185 and the PR-to-PO repair migration 186 are applied and transaction-tested locally; linked/Production verification remains separate.

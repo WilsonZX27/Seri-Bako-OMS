@@ -441,3 +441,8 @@ The local Supabase migration ledger reports 184, 185, and 186. This is local-onl
 | Acceptance | Status | Evidence / remaining gate |
 |---|---|---|
 | A posted GRN can advance a committed PO line without reopening ordinary PO editing. | implemented / local rollback E2E passed | The committed-PO line trigger now permits only the transaction-local flag set inside the SECURITY DEFINER GRN posting RPC. A local disposable `2 CTN → 24 KG` GRN posted successfully, advanced the PO to received, and left no data after rollback. Authenticated browser mutation and Production remain open. |
+## v8.64.112 purchase-order transition repair
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| PO submit → approve → send advances both PO and linked document state. | implemented / local rollback E2E passed | Migration 187 replaces the invalid `pending` document enum assignment with `pending_approval`; a disposable local PO completed submit, approve, and send in one transaction and rolled back cleanly. Authenticated browser and Production regression remain open. |

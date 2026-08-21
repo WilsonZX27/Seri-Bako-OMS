@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.112 (unreleased) — Purchase Order transition repair
+
+Purchase Order submit now writes the valid `pending_approval` document status, so the downstream PO workflow can move through submit, approve, and send without an enum error. Migration 187 is local-applied and rollback-tested; linked/Production verification remains separate.
+
 ### v8.64.111 (unreleased) — Receiving posting lock repair
 
 Goods Receiving can now advance the received quantity on an approved or sent Purchase Order through its controlled posting transaction. Ordinary PO line edits remain locked; the posting RPC uses a transaction-local guard, then records the immutable Purchase/Base UOM snapshot and optional learned supplier conversion.
@@ -10,7 +14,7 @@ Goods Receiving now accepts the supplier's actual Purchase UOM first, calculates
 
 ### v8.64.109 (unreleased) — PR to PO conversion repair
 
-Purchase Request conversion now recreates its database RPC explicitly, writes the required purchase-order idempotency key, keeps one active PO per PR, and records conversion source metadata. AutoCount PO number failures now identify the exact business issue, focus the field, and preserve the typed number after a failed attempt. Repository migrations reviewed through `186`; this is local source evidence only, and linked/Production verification remains separate.
+Purchase Request conversion now recreates its database RPC explicitly, writes the required purchase-order idempotency key, keeps one active PO per PR, and records conversion source metadata. AutoCount PO number failures now identify the exact business issue, focus the field, and preserve the typed number after a failed attempt. Repository migrations reviewed through `187`; this is local source evidence only, and linked/Production verification remains separate.
 
 ### v8.64.108 (unreleased) — Portrait Tablet Form Alignment
 

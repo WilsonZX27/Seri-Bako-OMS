@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.112 (unreleased) - Purchase Order transition repair
+
+PO workflow transitions now share one valid document-state vocabulary. Submit, approve, and send retain the visible workflow language without surfacing database enum details.
+
 ## v8.64.111 (unreleased) - Receiving posting lock repair
 
 The PO line remains read-only after approval/send for operators. Goods Receiving is the explicit workflow owner for advancing received quantity, using a transaction-local database guard that cannot be reached through ordinary line-edit forms.

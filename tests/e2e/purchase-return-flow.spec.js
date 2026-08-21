@@ -32,6 +32,7 @@ test("purchase return posts one supplier return stock movement", async ({ page }
   await expect(post).toBeVisible();
   await post.click();
   await expect(post).toHaveCount(0, { timeout: 30_000 });
+  await expect(page.locator("main")).toContainText("Posted");
   await page.reload();
   await expect(page.getByRole("button", { name: "Post return" })).toHaveCount(0);
 

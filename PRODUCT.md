@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.115 (unreleased) — Detailed Outlet Daily export
+
+Outlet Daily exports now preserve line-level product detail, Qty Sent provenance, received/leftover/wastage quantities, wastage reasons, and dated filenames. Wastage amount is shown only when the authorised company-wide view has an active recipe cost snapshot; missing cost authority remains explicitly unavailable. The local fixture now carries a truthful 1:1 GRN conversion snapshot so Purchase Return posting can be tested from the immutable receiving record. This remains local evidence only; linked and Production verification are separate.
+
 ### v8.64.114 (unreleased) — Local workflow closure
 
 The local six-role audit now covers the no-route PR→PO→GRN→Invoice→Payment→PO-close path, AP Aging visibility before payment, supplier/item/branch UX surfaces, Outlet Daily missing Qty Sent semantics, and the authenticated responsive checks available in the local suite. This is local evidence only; remote and Production verification remain separate.

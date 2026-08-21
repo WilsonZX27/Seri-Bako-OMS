@@ -581,10 +581,10 @@ if (includeSupplierInvoiceFixture) {
   const { data: currentGrnLine, error: currentGrnLineError } = await admin.from("goods_receiving_lines").select("id").eq("goods_receiving_id", invoiceGrn.id).eq("item_id", invoiceItem.id).maybeSingle();
   if (currentGrnLineError) throw currentGrnLineError;
   if (!currentGrnLine) {
-    const result = await admin.from("goods_receiving_lines").insert({ goods_receiving_id: invoiceGrn.id, purchase_order_line_id: invoicePoLine.id, item_id: invoiceItem.id, ordered_qty: 10, pending_qty: 0, received_qty: 10, rejected_qty: 0, returned_qty: 0, uom: "KG", unit_cost: 4.25, remarks: "Disposable local Supplier Invoice UI fixture." });
+    const result = await admin.from("goods_receiving_lines").insert({ goods_receiving_id: invoiceGrn.id, purchase_order_line_id: invoicePoLine.id, item_id: invoiceItem.id, ordered_qty: 10, pending_qty: 0, received_qty: 10, received_base_qty: 10, rejected_qty: 0, rejected_base_qty: 0, conversion_to_base_uom_snapshot: 1, conversion_source: "e2e_fixture", returned_qty: 0, uom: "KG", unit_cost: 4.25, remarks: "Disposable local Supplier Invoice UI fixture." });
     if (result.error) throw result.error;
   } else {
-    const result = await admin.from("goods_receiving_lines").update({ received_qty: 10, rejected_qty: 0, returned_qty: 0 }).eq("id", currentGrnLine.id);
+    const result = await admin.from("goods_receiving_lines").update({ received_qty: 10, received_base_qty: 10, rejected_qty: 0, rejected_base_qty: 0, conversion_to_base_uom_snapshot: 1, conversion_source: "e2e_fixture", returned_qty: 0 }).eq("id", currentGrnLine.id);
     if (result.error) throw result.error;
   }
   const stockCleanup = await admin.from("stock_transactions").delete().eq("transaction_no", "E2E-GRN-INVOICE-STOCK");

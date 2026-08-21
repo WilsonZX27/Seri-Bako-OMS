@@ -37,7 +37,10 @@ test("outlet daily export is permission-checked and preserves list filters", () 
   assert.match(dialog, /selectedBranches/);
   assert.match(route, /hasPermission\("outlet_daily_record\.view"\)/);
   assert.match(route, /rowsToCsv\(exportRows\)/);
-  assert.match(route, /content-disposition.*outlet-daily-records\.csv/);
+  assert.match(route, /outlet-daily-records_\$\{exportDate\}/);
+  assert.match(route, /product_code/);
+  assert.match(route, /wastage_amount/);
+  assert.match(route, /wastage_cost_status/);
   assert.match(route, /searchParams\.get\("date"\)/);
   assert.match(route, /searchParams\.get\("branch"\)/);
   assert.match(route, /searchParams\.get\("status"\)/);

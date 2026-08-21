@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.115 (unreleased) - Detailed Outlet Daily export
+
+Export is a record ledger, not a summary-only download: each product line retains date, outlet, status, sent provenance, received/leftover/wastage values, reason, notes, and a dated filename. Wastage amount is a privileged company-wide view backed by the latest active recipe cost snapshot; absent cost authority is labelled unavailable instead of rendered as zero. A returnable local GRN fixture carries its immutable 1:1 conversion snapshot so return posting follows the same source-of-truth rule as production data.
+
 ## v8.64.114 (unreleased) - Local workflow closure
 
 The closure batch records responsive and role-matrix evidence separately from Production claims. The local audit exercises the complete no-route procurement path, AP Aging visibility, master-data surfaces, and Outlet Daily missing-sent states while preserving the compact shared workspace rhythm.

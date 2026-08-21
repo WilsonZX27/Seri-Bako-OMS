@@ -1,5 +1,13 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.115 detailed Outlet Daily export and return snapshot evidence
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| Outlet Daily export contains detailed product lines and a dated filename. | implemented / contract + local source verified / awaiting authenticated download UAT | CSV now exports one row per product line with Qty Sent provenance, received, leftover, wastage, reason, notes, and `outlet-daily-records_<date>.csv` or range filename. The old summary-only filename is removed. |
+| Wastage amount is visible only to company-wide operational roles and never fabricated when recipe cost authority is absent. | implemented / local source verified / awaiting role UAT | The export uses the latest active recipe cost snapshot, returns an explicit unavailable state when no snapshot exists, and keeps cost fields restricted outside `outlet_daily_record.view_all`. |
+| Purchase Return uses the immutable GRN conversion snapshot. | implemented / local mutation UAT passed | The disposable Supplier Invoice GRN fixture now stores `received_base_qty`, `conversion_to_base_uom_snapshot`, and source metadata; `purchase-return-flow.spec.js` posts one return movement successfully. Production data and migration linkage remain separate. |
+
 ## v8.64.109 PR to PO conversion repair
 
 | Acceptance | Status | Evidence / remaining gate |

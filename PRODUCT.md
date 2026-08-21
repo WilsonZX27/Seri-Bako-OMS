@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.127 (unreleased) — Current local closure audit refresh
+
+After the retry-safe migration re-execution, the clean local production-like server again passed the full disposable Manager → Purchasing → Finance → Ready to Convert → PO/GRN/payment closure (3/3). This refresh strengthens local mutation evidence and does not promote any row to linked or Production verification.
+
 ### v8.64.126 (unreleased) — Progressive receiving migration closure
 
 Migration 185 is now retry-safe for partial application: the supplier-UOM index uses an idempotent create, receiving checks are guarded by relation-aware constraint checks, and a direct second execution against the local PostgreSQL stack completed without errors. The clean local server still passes the three progressive UOM E2E scenarios. This is local evidence only; linked migration and Production regression remain separate.

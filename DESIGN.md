@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.127 (unreleased) - Current local closure audit refresh
+
+The current clean build retains the complete role-sequenced procurement workspace after migration re-execution: Manager, Purchasing, and Finance actions remain visible only to the correct role, and the downstream PO/GRN/payment path remains usable. Footer remains the concise `v8.64.127` token.
+
 ## v8.64.126 (unreleased) - Progressive receiving migration closure
 
 The receiving migration is forward-only and retry-safe: schema additions tolerate an interrupted first application, while named constraints are added only when absent. Local PostgreSQL re-execution and the three authenticated UOM scenarios pass. Footer remains the concise `v8.64.126` token.

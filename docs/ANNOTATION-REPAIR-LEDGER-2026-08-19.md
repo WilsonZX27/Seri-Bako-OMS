@@ -1,5 +1,14 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.127 current local closure audit refresh
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| Manager → Purchasing → Finance review gates and downstream PO/GRN/payment workflow remain usable after migration re-execution. | verified locally / Production awaiting UAT | `qa-purchase-closure.spec.js` passed 3/3 on the clean v8.64.126 production-like server. This current evidence supersedes the older “Manager approval fixture awaiting” wording for local mutation coverage; Production mutation remains unverified. |
+| Footer and release records remain synchronized. | implemented | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.127. |
+
+This is a local closure refresh only. Linked migration alignment, authoritative Production data, and six-role Production regression remain separate gates.
+
 ## v8.64.126 migration 185 retry-safe closure
 
 | Acceptance | Status | Evidence / remaining gate |

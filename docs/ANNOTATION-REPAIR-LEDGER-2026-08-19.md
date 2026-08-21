@@ -4,8 +4,8 @@
 
 | Acceptance | Status | Evidence / remaining gate |
 |---|---|---|
-| The Production host is reachable and its deployed footer is known. | verified read-only / current release awaiting deployment | `Invoke-WebRequest https://system.seribako.com.my/login` returned HTTP 200 and footer `v8.64.137`. The current branch is v8.64.139, so this does not verify the current source or any authenticated role workflow. |
-| Production six-role, four-viewport regression is not falsely promoted. | awaiting Production deployment and authenticated UAT | No Production login or business mutation was attempted. Regression must run against the deployed current release after deployment. |
+| The Production host is reachable and its deployed footer is known. | verified read-only / authenticated UAT awaiting | `Invoke-WebRequest https://system.seribako.com.my/login` returned HTTP 200 and footer `v8.64.139`, matching the current branch. This proves deployment reachability only; authenticated role workflows still require UAT. |
+| Production six-role, four-viewport regression is not falsely promoted. | awaiting authenticated Production UAT | No Production business mutation was attempted. Regression must still cover the deployed current release across the six roles and four required viewports. |
 | Footer and release records remain synchronized. | implemented | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.139. |
 
 The public endpoint check is read-only and is not Production workflow verification.

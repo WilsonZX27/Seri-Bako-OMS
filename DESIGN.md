@@ -1,8 +1,12 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.135 (unreleased) - Migration history reconciliation
+
+Supabase migration versions are now unique in the repository. The linked project already owns version `171`; the duplicate AutoCount Confirm file was renumbered as forward-only migration `190`, preserving the original 171 history and preventing `schema_migrations_pkey` collisions. Footer remains the concise `v8.64.135` token. Linked application is still awaiting successful migration output.
+
 ## v8.64.134 (unreleased) - Progressive receiving snapshot closure
 
-The receiving flow now remains resilient when a browser cannot submit the derived factor: migration 189 derives the immutable Purchase-to-Base snapshot from the actual quantities at the line boundary, while invalid or missing base quantities still block posting with the existing actionable message. Local progressive receiving, Recipe, master-data, and Purchase Return mutation checks pass. Footer remains the concise `v8.64.134` token.
+The receiving flow now remains resilient when a browser cannot submit the derived factor: migration 189 derives the immutable Purchase-to-Base snapshot from the actual quantities at the line boundary, while invalid or missing base quantities still block posting with the existing actionable message. Local progressive receiving, Recipe, master-data, and Purchase Return mutation checks pass. Footer remains the concise `v8.64.135` token.
 
 ## v8.64.133 (unreleased) - Outlet Daily closure audit
 

@@ -34,7 +34,7 @@ test("Supplier destructive actions are hidden without update permission", () => 
 });
 
 test("AutoCount preserves existing item cost while GRN posting owns actual cost", () => {
-  const migration = read("supabase/migrations/171_fix_autocount_import_confirm.sql");
+  const migration = read("supabase/migrations/190_fix_autocount_import_confirm.sql");
   const grnPosting = read("supabase/migrations/099_remove_locations_and_make_inventory_branch_owned.sql");
   const inventoryModel = read("supabase/migrations/128_inventory_preaggregation.sql");
 

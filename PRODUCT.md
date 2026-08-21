@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.135 (unreleased) — Migration history reconciliation
+
+The linked Supabase project already records migration version `171`, while the repository also carried a second, different `171_*` file. That duplicate made `db push --include-all` fail with a `schema_migrations_pkey` conflict. The already-applied migration remains immutable; the complete AutoCount Confirm replacement now runs forward at migration `190`. This is repository/local evidence only until a successful linked migration result is supplied.
+
 ### v8.64.134 (unreleased) — Progressive receiving snapshot closure
 
 Unknown pack-size receiving now has a database-side safety net: when actual Purchase and Base quantities are present, the local migration derives the conversion snapshot before stock posting and conversion audit. Fresh local evidence passed progressive receiving 3/3, master data 1/1, Recipe 1/1, and Purchase Return 1/1. This is local evidence only; linked migrations and Production regression remain separate.
@@ -94,7 +98,7 @@ Goods Receiving now accepts the supplier's actual Purchase UOM first, calculates
 
 ### v8.64.109 (unreleased) — PR to PO conversion repair
 
-Purchase Request conversion now recreates its database RPC explicitly, writes the required purchase-order idempotency key, keeps one active PO per PR, and records conversion source metadata. AutoCount PO number failures now identify the exact business issue, focus the field, and preserve the typed number after a failed attempt. Repository migrations reviewed through `189`; this is local source evidence only, and linked/Production verification remains separate.
+Purchase Request conversion now recreates its database RPC explicitly, writes the required purchase-order idempotency key, keeps one active PO per PR, and records conversion source metadata. AutoCount PO number failures now identify the exact business issue, focus the field, and preserve the typed number after a failed attempt. Repository migrations reviewed through `190`; this is local source evidence only, and linked/Production verification remains separate.
 
 ### v8.64.108 (unreleased) — Portrait Tablet Form Alignment
 
@@ -255,7 +259,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `189`; this is not evidence that migration 189 is applied to the linked Production project.
+Repository migration authority: migrations reviewed through `190`; this is not evidence that migration 190 is applied to the linked Production project.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

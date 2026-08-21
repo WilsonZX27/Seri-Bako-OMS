@@ -1,4 +1,10 @@
--- Repair AutoCount Confirm: migration 169 checked an uninitialised branch during item upsert
+-- Repair AutoCount Confirm after migration-history reconciliation.
+--
+-- The repository previously carried two different files with version 171. The
+-- linked project already records version 171, so this forward-only copy must
+-- not be replayed as another 171 migration. Keep the original 171 migration
+-- immutable and apply this complete function replacement at version 190.
+-- Migration 169 checked an uninitialised branch during item upsert
 -- and raised before it could create a missing supplier-item relationship.
 
 create or replace function public.apply_autocount_import_job(p_job_id uuid)

@@ -43,7 +43,7 @@ test("AutoCount application is atomic, tenant-scoped, permission checked, and in
 });
 
 test("AutoCount Confirm creates supplier-item sourcing before validating branch mappings", () => {
-  const repair = read("supabase/migrations/171_fix_autocount_import_confirm.sql");
+  const repair = read("supabase/migrations/190_fix_autocount_import_confirm.sql");
   const itemLoop = repair.slice(repair.indexOf("entity_type = 'item'"), repair.indexOf("entity_type = 'branch_mapping'"));
   const branchLoop = repair.slice(repair.indexOf("entity_type = 'branch_mapping'"), repair.indexOf("entity_type = 'uom_conversion'"));
   assert.match(itemLoop, /if target_supplier_item\.id is null then[\s\S]*insert into public\.supplier_items/);

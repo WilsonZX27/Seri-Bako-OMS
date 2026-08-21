@@ -4,7 +4,7 @@
 
 | Acceptance | Status | Evidence / remaining gate |
 |---|---|---|
-| Linked migration push no longer replays a duplicate version 171. | implemented locally / remote awaiting UAT | User-provided `npx supabase db push --include-all` reached the linked database but failed with `schema_migrations_pkey` because version `171` already exists. The repository duplicate `171_fix_autocount_import_confirm.sql` is now preserved as forward-only migration `190_fix_autocount_import_confirm.sql`; the original 171 migration remains immutable. User must rerun `npx supabase db push` after pulling this commit and provide successful output before `remote verified` can be claimed. |
+| Linked migration push no longer replays a duplicate version 171. | implemented locally / remote awaiting UAT | User-provided `npx supabase db push --include-all` reached the linked database but failed with `schema_migrations_pkey` because version `171` already exists. The repository duplicate `171_fix_autocount_import_confirm.sql` is now preserved as forward-only migration `190_fix_autocount_import_confirm.sql`; the original 171 migration remains immutable. Local `migration up --local` and `migration list --local` now apply and report 190 successfully. User must rerun `npx supabase db push` after pulling this commit and provide successful output before `remote verified` can be claimed. |
 | Footer and release records remain synchronized. | implemented | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, this ledger, migration 190, and AutoCount contract paths are synchronized to v8.64.135. |
 
 The duplicate-version repair is local source evidence only. No linked or Production migration status is promoted from the failed push.

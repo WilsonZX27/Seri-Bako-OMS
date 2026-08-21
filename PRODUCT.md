@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.99 (unreleased) — Unified Page Loading
+
+All route-level loading boundaries use the shared PageLoadingState: one compact progress line, one spinner, and one status label. Route-specific copy remains contextual, while oversized skeleton bands and centered spinners are removed from the initial load state.
+
 ### v8.64.98 (unreleased) — Supplier UOM Receiving Conversion
 
 Purchase requests and purchase orders retain the supplier's purchasing UOM (for example CTN, BAG, or TUB), while Goods Receiving accepts the configured Item Master base UOM (for example KG). The entered base quantity is converted back to the supplier UOM for document traceability, and the existing atomic posting path converts it into base-unit inventory using the approved supplier-item conversion. Missing conversions remain explicit blockers; the system never guesses packaging factors.

@@ -67,7 +67,8 @@ test("cash flow route has operational entry points, pagination and isolated stat
   assert.match(page, /PaginationControls/);
   assert.match(page, /Open and Partially Paid/);
   assert.match(errorPage, /Cash Flow Forecast is unavailable/);
-  assert.match(loadingPage, /aria-busy="true"/);
+  assert.match(loadingPage, /PageLoadingState/);
+  assert.match(loadingPage, /Loading cash flow forecast/);
 });
 
 test("cash flow keeps payable authority readable without narrow horizontal tables", () => {

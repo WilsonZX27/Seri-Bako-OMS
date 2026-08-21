@@ -15,16 +15,14 @@ test("continuous loading motion respects the operating-system reduced-motion pre
   assert.match(globals, /scroll-behavior: auto !important/);
 });
 
-test("finance report skeletons expose an atomic named loading status", () => {
+test("finance reports use the shared loading status", () => {
   for (const file of [
     "src/app/(app)/supplier-invoices/aging/loading.tsx",
     "src/app/(app)/supplier-invoices/cash-flow/loading.tsx",
   ]) {
     const source = read(file);
-    assert.match(source, /role="status"/);
-    assert.match(source, /aria-live="polite"/);
-    assert.match(source, /aria-atomic="true"/);
-    assert.match(source, /aria-busy="true"/);
-    assert.match(source, /<p className="sr-only">Loading [^<]+…<\/p>/);
+    assert.match(source, /PageLoadingState/);
+    assert.match(source, /@\/components\/ui\/system-states/);
+    assert.doesNotMatch(source, /animate-pulse/);
   }
 });

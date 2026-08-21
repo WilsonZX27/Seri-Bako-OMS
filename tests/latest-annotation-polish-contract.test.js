@@ -38,9 +38,8 @@ test("mobile shell and loading states avoid warm bands, layout shifts, and dupli
   assert.match(layout, /themeColor: "#ffffff"/);
   assert.match(globals, /--background: 150 12% 94%/);
   assert.doesNotMatch(outlet, /Posted · editable/);
-  assert.match(stockLoading, /LoaderCircle/);
-  assert.match(stockLoading, /animate-spin/);
-  assert.doesNotMatch(stockLoading, /animate-pulse/);
+  assert.match(stockLoading, /PageLoadingState/);
+  assert.match(stockLoading, /Preparing the count workspace/);
 });
 
 test("supplier item results keep a raised table surface, ten-pixel headers, and semantic column widths", () => {

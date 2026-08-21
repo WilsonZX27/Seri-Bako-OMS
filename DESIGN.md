@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.99 (unreleased) - Unified Page Loading
+
+Route loading boundaries share the same compact progress-line and spinner geometry through `PageLoadingState`. Page-specific labels preserve context without changing placement, scale, or motion between Dashboard, operational lists, and finance reports.
+
 ## v8.64.98 (unreleased) - Supplier UOM Receiving Conversion
 
 Receiving lines present the company base UOM as the operator input while retaining the PO supplier UOM in the document and hidden submission payload. The conversion is visible beside each line, with an explicit blocked state when supplier-to-base terms are missing.

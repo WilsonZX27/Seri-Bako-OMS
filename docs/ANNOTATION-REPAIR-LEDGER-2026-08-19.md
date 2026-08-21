@@ -1,5 +1,12 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.99 unified route loading
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Dashboard, Outlet Daily, Stock Counts, and finance report preloader geometry | implemented / awaiting authenticated viewport UAT | All route-level loading boundaries now use the shared `PageLoadingState` with the same compact progress line, spinner size, status semantics, and spacing. Route-specific labels remain contextual. Local test, typecheck, lint, and build evidence pending this batch; browser/UAT remains separate. |
+| Oversized skeleton/centered-spinner initial states | implemented / awaiting authenticated viewport UAT | AP Aging, Cash Flow Forecast, Outlet Daily, and Stock Count loading boundaries no longer render independent skeleton bands or centered spinner layouts. |
+
 ## v8.64.98 supplier UOM receiving conversion
 
 | Gate | Status | Evidence |

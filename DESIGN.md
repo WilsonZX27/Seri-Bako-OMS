@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.116 (unreleased) - Outlet Daily export UAT
+
+The export dialog now has authenticated local evidence for the full handoff: Purchasing receives a dated file with one product row per record line, provenance labels, and non-fabricated cost states. The same role can correct an unlocked Qty Sent/receiving record through the authorised RPC; the UI continues to keep that correction separate from the download action.
+
 ## v8.64.115 (unreleased) - Detailed Outlet Daily export
 
 Export is a record ledger, not a summary-only download: each product line retains date, outlet, status, sent provenance, received/leftover/wastage values, reason, notes, and a dated filename. Wastage amount is a privileged company-wide view backed by the latest active recipe cost snapshot; absent cost authority is labelled unavailable instead of rendered as zero. A returnable local GRN fixture carries its immutable 1:1 conversion snapshot so return posting follows the same source-of-truth rule as production data.

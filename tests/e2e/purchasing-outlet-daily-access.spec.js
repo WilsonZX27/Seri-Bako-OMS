@@ -1,5 +1,6 @@
 const { test, expect } = require("@playwright/test");
 const { createClient } = require("@supabase/supabase-js");
+const fs = require("node:fs/promises");
 const { login, requireAccount } = require("./helpers");
 
 const fixtureNote = "Disposable Purchasing outlet-daily access fixture.";
@@ -81,5 +82,24 @@ test.describe("Purchasing company-wide outlet daily access", () => {
     if (saved.error) throw saved.error;
     expect(Number(saved.data.morning_received_qty)).toBe(11);
     expect(saved.data.notes).toBe("Purchasing corrected");
+  });
+
+  test("downloads dated product-line detail instead of a summary-only CSV", async ({ page }) => {
+    test.skip(!fixture, "Local Purchasing fixture was not created.");
+    await login(page, "purchasing");
+    await page.goto("/outlet-daily-records", { waitUntil: "domcontentloaded" });
+    await page.getByRole("button", { name: "Export CSV" }).click();
+    const modal = page.getByRole("dialog", { name: "Export outlet daily records" });
+    await expect(modal).toBeVisible();
+    const downloadPromise = page.waitForEvent("download");
+    await modal.getByRole("link", { name: "Download CSV" }).click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toMatch(/^outlet-daily-records_\d{4}-\d{2}-\d{2}\.csv$/);
+    const csv = await fs.readFile(await download.path(), "utf8");
+    expect(csv).toContain("product_code");
+    expect(csv).toContain("qty_sent_source");
+    expect(csv).toContain("wastage_amount");
+    expect(csv).toContain("E2E-PURCH-ODR");
+    expect(csv).toContain("Unavailable");
   });
 });

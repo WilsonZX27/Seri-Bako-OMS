@@ -1,5 +1,9 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.116 authenticated Outlet Daily export UAT
+
+The local Purchasing role now passes both the company-wide Qty Sent correction workflow and the detailed export download. The browser verifies `outlet-daily-records_<date>.csv`, product-line columns, Qty Sent provenance, wastage amount, and an explicit unavailable cost state for a fixture without a recipe snapshot. This remains local mutation/UAT evidence; no Production export or role mutation claim is made.
+
 ## v8.64.115 detailed Outlet Daily export and return snapshot evidence
 
 | Acceptance | Status | Evidence / remaining gate |

@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.116 (unreleased) — Outlet Daily export UAT
+
+Authenticated local Purchasing UAT now downloads the detailed Outlet Daily CSV and verifies the dated filename, line-level product fields, Qty Sent provenance, wastage amount column, and explicit unavailable cost state. The companion company-wide Qty Sent correction workflow also passes when rerun. This is local evidence only; remote and Production verification remain separate.
+
 ### v8.64.115 (unreleased) — Detailed Outlet Daily export
 
 Outlet Daily exports now preserve line-level product detail, Qty Sent provenance, received/leftover/wastage quantities, wastage reasons, and dated filenames. Wastage amount is shown only when the authorised company-wide view has an active recipe cost snapshot; missing cost authority remains explicitly unavailable. The local fixture now carries a truthful 1:1 GRN conversion snapshot so Purchase Return posting can be tested from the immutable receiving record. This remains local evidence only; linked and Production verification are separate.

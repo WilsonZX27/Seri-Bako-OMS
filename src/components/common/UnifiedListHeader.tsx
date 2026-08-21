@@ -60,7 +60,10 @@ function isFilterMore(child: ReactNode) {
 
 function isAction(child: ReactNode) {
   const props = propsOf(child);
-  return props.type === "submit" || (props.asChild === true && props.variant === "secondary");
+  return props.type === "submit"
+    || props["data-list-action"] === "primary"
+    || props["data-list-action"] === "secondary"
+    || (props.asChild === true && (props.variant === "secondary" || props.variant === "outline"));
 }
 
 function isStatusTabs(child: ReactNode) {
@@ -263,18 +266,20 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
     // track and pushed the command group away from the filters.
     const filterCount = desktopControls.filter((child) => !isQueryControl(child)).length;
     const hasCommandGroup = desktopActions.length > 0 || typeof resultCount === "number";
-    const tabletColumns = Math.min(Math.max(2 + filterCount + (hasCommandGroup ? 2 : 0), 4), 8);
+    const commandTrackCount = Math.max(2, desktopActions.length + (typeof resultCount === "number" ? 1 : 0));
+    const tabletColumns = Math.min(Math.max(2 + filterCount + (hasCommandGroup ? commandTrackCount : 0), 4), 8);
     const tabletLayout = desktopControls.some(isQueryControl)
       ? "query"
       : desktopControls.length > 2
         ? "controls"
         : "compact";
-    const actionNodes = desktopActions.map((child) => {
+    const actionNodes = desktopActions.map((child, index) => {
       if (!isValidElement(child)) return child;
       const props = propsOf(child);
       return cloneElement(child as ReactElement<Record<string, unknown>>, {
         className: cn("unified-list-action", props.className as string),
-        "data-list-primary-action": true,
+        "data-list-primary-action": index === 0 ? true : undefined,
+        "data-list-secondary-action": index > 0 ? true : undefined,
       });
     });
     return <form
@@ -287,7 +292,10 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
     >
       {desktopControls}
       {desktopHidden}
-      <div className="unified-list-desktop-actions">
+      <div
+        className="unified-list-desktop-actions"
+        style={{ gridColumn: `-${commandTrackCount + 1} / -1` }}
+      >
         {actionNodes}
         {typeof resultCount === "number" ? <div className="sb-filter-summary" aria-live="polite"><span>{resultCount} {resultCount === 1 ? "record" : "records"}</span></div> : null}
       </div>

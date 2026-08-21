@@ -1,5 +1,14 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.93 supplier identity and filter apply repair
+
+| Annotation | Status | Evidence / action |
+|---|---|---|
+| Supplier Items `BWYHOLDI00003` opened as QUIK instead of BWY Holdings | implemented / awaiting linked migration and Production UAT | Local seed audit found three active supplier-item rows for the same item/code: BWY placeholder, BWY Holdings creditor `406-B003`, and Quik `400-Q001`. Migration 180 keeps the recoverable canonical BWY Holdings relationship, retires the placeholder and exact Quik collision, and moves branch mappings before soft-archiving. Linked migration application remains unverified. |
+| Reset geometry and filter re-application | implemented / awaiting authenticated viewport UAT | Shared `MasterDataFilters` now keeps Search as the primary action and adds a same-height secondary Reset action when filters are active. The shared header reserves command tracks for both actions so selecting another filter no longer requires resetting first. |
+
+Batch evidence: `npm test` 813/813, typecheck, lint, production build, and the full local authenticated annotation rerun (18/18 across current, historical, reopened, and four viewport scenarios) passed. The new Supplier Items/Items browser comments were not called Production-verified: the public preview route still returned the Vercel login wall to direct verification, and `supabase migration list --linked` remained blocked by `LegacyDbConfigLoginRoleNetworkError` after the CLI login claim.
+
 ## v8.64.92 annotation rerun evidence refresh
 
 All 18 current, historical, and reopened local authenticated browser scenarios reran after migration 179 with zero failures. This confirms local regression only; linked migration and Production deployment remain separate.

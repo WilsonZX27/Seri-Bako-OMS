@@ -83,7 +83,8 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
             <SelectControl name={branches ? "branch_id" : undefined} defaultValue={branches ? filters.branch_id ?? "all" : "unavailable"} ariaLabel="Branch" disabled={!branches} options={branches ? [{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))] : [{ value: "unavailable", label: "Branch filter unavailable" }]} />
             {!branches && filters.branch_id ? <input type="hidden" name="branch_id" value={filters.branch_id} /> : null}
             <SelectControl name="status" defaultValue={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status, label: status[0].toUpperCase() + status.slice(1) }))]} />
-            {filtered ? <Button asChild variant="secondary" className="sb-filter-submit"><Link href="/stock-counts">Reset</Link></Button> : <Button type="submit" className="sb-filter-submit">Search</Button>}
+                <Button type="submit" className="sb-filter-submit" data-list-action="primary">Search</Button>
+                {filtered ? <Button asChild variant="secondary" className="sb-filter-submit" data-list-action="secondary"><Link href="/stock-counts">Reset</Link></Button> : null}
             <FilterBarMore activeCount={Number(Boolean(filters.from)) + Number(Boolean(filters.to))} resetHref="/stock-counts"><Input name="from" type="date" defaultValue={filters.from ?? ""} aria-label="From date" /><Input name="to" type="date" defaultValue={filters.to ?? ""} aria-label="To date" /></FilterBarMore>
           </FilterBar>
         <div className="sb-list-content-card overflow-hidden" data-mobile-list-content-card>

@@ -91,7 +91,8 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
             <Input name="date" type="date" defaultValue={filters.date ?? ""} aria-label="Record date" className="sb-filter-date" />
             <SelectControl name="branch" value={filters.branch ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...options.branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
             <SelectControl name="status" value={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status, label: status.replaceAll("_", " ") }))]} />
-            {filtered ? <Button asChild variant="secondary"><Link href="/outlet-daily-records">Reset</Link></Button> : <Button type="submit" variant="secondary">Search</Button>}
+              <Button type="submit" variant="secondary" data-list-action="primary">Search</Button>
+              {filtered ? <Button asChild variant="secondary" data-list-action="secondary"><Link href="/outlet-daily-records">Reset</Link></Button> : null}
           </FilterBar>
           <div className="sb-list-content-card overflow-hidden" data-mobile-list-content-card data-outlet-daily-record-list>
         <Table className="sb-outlet-daily-table" mobileHidden aria-label="Outlet daily records" stickyColumn="first"><TableHeader><TableRow><TableHead>Action</TableHead><TableHead>Date</TableHead><TableHead>Outlet</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Received</TableHead><TableHead className="text-right">Wastage<br /><span className="font-normal text-muted-foreground">Wastage %</span></TableHead><TableHead>Submitted By</TableHead><TableHead>Updated</TableHead></TableRow></TableHeader><TableBody>

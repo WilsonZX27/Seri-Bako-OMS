@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.93 (unreleased) — Supplier Identity And Filter Apply Repair
+
+Supplier-item identity reconciliation keeps the canonical AutoCount creditor code internal, exposes the operator-facing Item Group, and recoverably merges the legacy BWY placeholder and duplicate Quik supplier-item row. Shared list filters now keep Search as the primary command, expose a same-height Reset action, and allow a new filter selection to be submitted without first resetting. Local migration and contract evidence is complete; linked migration and Production UAT remain separate gates.
+
 ### v8.64.92 (unreleased) — Annotation Rerun Evidence Refresh
 
 The full local authenticated current/historical/reopened annotation browser suite reran after the bounded inventory read repair: 18 of 18 scenarios passed. This is local evidence and does not change the linked Production deployment boundary.
@@ -95,7 +99,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `179`; this is not evidence that migration 179 is applied to the linked Production project.
+Repository migration authority: migrations reviewed through `180`; this is not evidence that migration 180 is applied to the linked Production project.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

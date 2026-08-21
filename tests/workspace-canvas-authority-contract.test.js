@@ -36,7 +36,8 @@ describe("workspace canvas regression", () => {
   test("tablet query controls stay bounded while the grid preserves breathing room", () => {
     assert.match(listHeader, /--sb-list-tablet-columns/);
     assert.match(listHeader, /filterCount = desktopControls\.filter\(\(child\) => !isQueryControl\(child\)\)\.length/);
-    assert.match(listHeader, /2 \+ filterCount \+ \(hasCommandGroup \? 2 : 0\)/);
+    assert.match(listHeader, /commandTrackCount = Math\.max\(2, desktopActions\.length \+ \(typeof resultCount === "number" \? 1 : 0\)\)/);
+    assert.match(listHeader, /2 \+ filterCount \+ \(hasCommandGroup \? commandTrackCount : 0\)/);
     assert.match(listHeader, /data-tablet-query-layout=\{tabletLayout\}/);
     assert.match(css, /repeat\(var\(--sb-list-tablet-columns, 4\), minmax\(0, 1fr\)\)/);
     assert.match(css, /data-tablet-query-layout="controls"/);

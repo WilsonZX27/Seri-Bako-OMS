@@ -86,7 +86,8 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, remarks" className="md:max-w-sm" />
               <SelectControl name="status" defaultValue={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status.value, label: status.label }))]} />
               <SelectControl name="priority" defaultValue={filters.priority ?? "all"} ariaLabel="Priority" options={[{ value: "all", label: "All priorities" }, { value: "critical", label: "Critical" }, { value: "urgent", label: "Urgent" }, { value: "normal", label: "Normal" }, { value: "low", label: "Low" }]} />
-              {filtered ? <Button asChild variant="secondary" className="sb-filter-submit shrink-0"><Link href="/purchase-requests">Reset</Link></Button> : <Button type="submit" variant="secondary" className="sb-filter-submit shrink-0">Search</Button>}
+              <Button type="submit" variant="secondary" className="sb-filter-submit shrink-0" data-list-action="primary">Search</Button>
+              {filtered ? <Button asChild variant="secondary" className="sb-filter-submit shrink-0" data-list-action="secondary"><Link href="/purchase-requests">Reset</Link></Button> : null}
             </FilterBar>
           <div className="sb-list-content-card overflow-hidden">
             <BulkSelectionProvider ids={requests?.rows.map((request) => request.id) ?? []} actionLabel="Delete selected" actionHint="Review selected requests before permanent deletion." selectionActions={<BulkPhaseOneDelete />}>

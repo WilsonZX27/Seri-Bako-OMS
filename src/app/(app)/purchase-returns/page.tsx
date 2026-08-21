@@ -58,7 +58,8 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search return, GRN, PO, supplier" className="md:max-w-sm" />
             <StatusTabs statuses={statuses} activeStatus={filters.status} />
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
-            {filtered ? <Button asChild variant="secondary"><Link href="/purchase-returns">Reset</Link></Button> : <Button type="submit">Search</Button>}
+            <Button type="submit" data-list-action="primary">Search</Button>
+            {filtered ? <Button asChild variant="secondary" data-list-action="secondary"><Link href="/purchase-returns">Reset</Link></Button> : null}
           </UnifiedListHeader>
           <div className="sb-list-content-card overflow-hidden" data-mobile-list-content-card>
             <Table mobileHidden stickyColumn="second" aria-label="Purchase returns">

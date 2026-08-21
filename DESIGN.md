@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.93 (unreleased) - Supplier Identity And Filter Apply Repair
+
+Supplier-item tables now show one canonical supplier identity after a recoverable merge, while shared list commands keep Search and Reset aligned at the same compact height. Selecting a different filter can be applied directly; no reset-only interaction is required.
+
 ## v8.64.92 (unreleased) - Annotation Rerun Evidence Refresh
 
 The shared annotation surfaces retain the v8.64.91 interaction/read-path fixes after a complete local authenticated rerun; no per-page CSS exceptions were introduced.

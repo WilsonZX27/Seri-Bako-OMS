@@ -1,5 +1,17 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.119 local production-like closure gate
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| Local production-like build uses the local Supabase URL and supports authenticated browser testing. | implemented / local only | Rebuilt with `NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:55431`, then served from a local production server; the mobile approval-sheet flow passed without the Next development overlay. Production URL and linked migration state were not touched. |
+| Six-role authentication, dashboard, and workspace surfaces remain reachable and role-scoped. | verified locally / Production awaiting UAT | Super Admin, Manager, Purchasing, Finance, Kitchen, and Outlet passed auth routing, dashboard role-awareness, and responsive workspace checks: 20/20. |
+| PR → PO → GRN → invoice/payment closure remains atomic and usable. | verified locally / Production awaiting UAT | Disposable local QA fixture completed Kitchen submit, Manager/Purchasing/Finance review, PO conversion/send, GRN, invoice approval, payment, and PO close: 3/3. |
+| Outlet Daily, GRN/return, export, and master-data responsive surfaces remain usable. | verified locally / Production awaiting UAT | Production-like local browser matrix passed 7/7 selected tests; one fixture-dependent test was skipped. Detailed dated Outlet CSV and role-gated wastage cost remain explicit. |
+| Current code/doc/footer release evidence is synchronized. | implemented | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.119. |
+
+The local gate is not a Production claim. Remote/linked migrations, BWY/CILANTRO authoritative creditor codes, CTN/BAG/TUB coefficients, and six-role Production regression remain `awaiting UAT` or `blocked` until authoritative evidence is supplied.
+
 ## v8.64.118 local closure rerun evidence
 
 The local browser rerun passes `costing-readiness-insights.spec.js` (1/1), `administration-master-data-ux.spec.js` (2/2), and `purchase-return-flow.spec.js` (1/1); the earlier parallel administration run had one transient `ERR_ABORTED` and passed when isolated. Local migration rows 183–187 are present in the disposable Supabase stack. No linked migration or Production claim is made.

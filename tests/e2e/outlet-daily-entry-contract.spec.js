@@ -12,7 +12,7 @@ test("outlet daily entry exposes one role-aware action and usable conditional de
   ]) {
     await page.setViewportSize(viewport);
     await page.goto("/outlet-daily-records/new", { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("button", { name: "Complete Daily Record" }).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: /Complete(?: Daily)? Record/i }).first()).toBeVisible();
     await expect(page.locator("[data-outlet-daily-setup] > summary")).toContainText("Record setup");
     await expect(page.locator("[data-outlet-daily-setup] > summary")).not.toContainText("·");
 

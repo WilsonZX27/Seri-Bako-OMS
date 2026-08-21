@@ -40,8 +40,12 @@ async function login(page, role) {
   let visibleError = null;
   for (let attempt = 0; attempt < 3; attempt += 1) {
     await page.goto("/login", { waitUntil: "domcontentloaded" });
-    await page.locator('input[name="email"]').fill(creds.email);
-    await page.locator('input[name="password"]').fill(creds.password);
+    const emailInput = page.locator('input[name="email"]');
+    const passwordInput = page.locator('input[name="password"]');
+    await emailInput.waitFor({ state: "visible", timeout: 15_000 });
+    await passwordInput.waitFor({ state: "visible", timeout: 15_000 });
+    await emailInput.fill(creds.email);
+    await passwordInput.fill(creds.password);
     await page.getByRole("button", { name: /sign in/i }).click();
     await Promise.race([
       page.waitForURL((url) => !["/login", "/"].includes(url.pathname), { timeout: 20_000 }).catch(() => null),

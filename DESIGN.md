@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.119 (unreleased) - Production-like local closure
+
+The release gate now distinguishes development-overlay failures from product failures by rebuilding with the local Supabase URL and running the authenticated browser matrix against a production-like local server. The login helper waits for hydrated controls before interaction; this keeps responsive and role evidence deterministic without changing the product interaction grammar. Footer remains the concise `v8.64.119` token.
+
 ## v8.64.118 (unreleased) - Local closure audit follow-up
 
 The closure gate records browser evidence by workflow surface: costing-readiness/AP/Recipe, master-data collections and responsive forms, Purchase Return snapshot posting, and Outlet Daily cost/export. Dated downloads derive their fallback date from the OMS Kuala Lumpur business calendar so a midnight UTC boundary cannot rename a local business day incorrectly.

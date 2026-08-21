@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.118 (unreleased) - Local closure audit follow-up
+
+The closure gate records browser evidence by workflow surface: costing-readiness/AP/Recipe, master-data collections and responsive forms, Purchase Return snapshot posting, and Outlet Daily cost/export. Dated downloads derive their fallback date from the OMS Kuala Lumpur business calendar so a midnight UTC boundary cannot rename a local business day incorrectly.
+
 ## v8.64.117 (unreleased) - Outlet wastage cost summary
 
 Cost is a decision aid owned by the company-wide operations surface, not an outlet data-entry field. The right rail shows the current day's costed wastage only for permitted company-wide roles; active recipe snapshots are the sole product-cost authority, and missing or partial cost coverage is labelled rather than rendered as zero.

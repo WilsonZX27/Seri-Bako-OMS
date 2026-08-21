@@ -3,6 +3,7 @@ import { rowsToCsv } from "@/server/backup/export";
 import { hasPermission } from "@/server/auth/permissions";
 import { createClient } from "@/lib/supabase/server";
 import { logServerError } from "@/server/observability/logger";
+import { todayInKualaLumpur } from "@/lib/business-date";
 
 export async function GET(request: Request) {
   if (!(await hasPermission("outlet_daily_record.view"))) {
@@ -124,7 +125,7 @@ export async function GET(request: Request) {
     }
 
     const safeDate = /^\d{4}-\d{2}-\d{2}$/;
-    const exportDate = date && safeDate.test(date) ? date : new Date().toISOString().slice(0, 10);
+    const exportDate = date && safeDate.test(date) ? date : todayInKualaLumpur();
     const filename = from && to && safeDate.test(from) && safeDate.test(to)
       ? `outlet-daily-records_${from}_to_${to}.csv`
       : `outlet-daily-records_${exportDate}.csv`;

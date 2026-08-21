@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.118 (unreleased) — Local closure audit follow-up
+
+Local browser reruns now pass the AP/Recipe costing-readiness surface, Item/Supplier/Branch administration surface, and immutable Purchase Return posting alongside the Outlet Daily cost/export workflows. Export fallback filenames use the Kuala Lumpur business date, not the machine UTC date. This remains local evidence only; linked/Production migration and six-role regression gates remain open.
+
 ### v8.64.117 (unreleased) — Outlet wastage cost summary
 
 Company-wide operational roles now see a “Today’s wastage value” panel alongside Outlet Daily work. It multiplies recorded product wastage by the latest active recipe cost snapshot, reports partial or unavailable cost authority explicitly, and remains hidden from outlet-scoped users. This is local evidence only; Production data and role regression remain separate.

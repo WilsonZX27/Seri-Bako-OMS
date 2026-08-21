@@ -1,5 +1,9 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.118 local closure rerun evidence
+
+The local browser rerun passes `costing-readiness-insights.spec.js` (1/1), `administration-master-data-ux.spec.js` (2/2), and `purchase-return-flow.spec.js` (1/1); the earlier parallel administration run had one transient `ERR_ABORTED` and passed when isolated. Local migration rows 183–187 are present in the disposable Supabase stack. No linked migration or Production claim is made.
+
 ## v8.64.117 wastage value summary
 
 The Outlet Daily right rail now exposes a role-gated “Today's wastage value” summary for company-wide roles. It uses active recipe cost snapshots, separates verified/partial/unavailable states, and never shows an invented zero when a product has no cost authority. Authenticated local Purchasing UAT passes the summary (`Unavailable` for the fixture without a recipe snapshot) alongside detailed export and Qty Sent correction. Production data and six-role regression remain open.

@@ -35,7 +35,7 @@ test("core error, empty, feedback, and mobile states stay usable", async ({ page
   await page.goto("/purchase-requests/new", { waitUntil: "domcontentloaded" });
   const submit = page.getByRole("button", { name: "Submit PR" });
   await submit.click();
-  await expect(page.getByRole("alert").filter({ hasText: "Could not create this purchase request" })).toBeVisible();
+  await expect(page.getByRole("alert").filter({ hasText: "Choose one supplier for this purchase request" })).toBeVisible();
 
   await page.goto("/production/jobs?search=PJ-00001", { waitUntil: "domcontentloaded" });
   const jobLink = page.locator('a[href^="/production/jobs/"][aria-label^="Open PJ-00001"]');

@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.124 (unreleased) - Fresh local workflow audit closure
+
+The closure suite now asserts the specific supplier validation message surfaced by the PR form and the remaining local workspace, receiving, Outlet Daily, administration, and responsive checks pass 12/12. Footer remains the concise `v8.64.124` token.
+
 ## v8.64.123 (unreleased) - Sourcing boundary and fresh role audit closure
 
 Supplier changes provide a clear context reset: stale lines are removed only when the selected branch-scoped supplier catalogue cannot provide them, and the notice explains that Item Master re-selection remains available. This keeps the request surface honest without turning missing supplier setup into a hard blocker. The fresh local evidence batch covers six roles and the required mobile/tablet/desktop annotation geometry. Footer remains the concise `v8.64.123` token.

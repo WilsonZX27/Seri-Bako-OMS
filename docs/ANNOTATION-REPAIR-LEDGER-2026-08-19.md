@@ -1,5 +1,15 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.124 fresh local workflow audit closure
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| Field-level PR validation remains specific and actionable. | verified locally / Production awaiting UAT | `experience-states.spec.js` now asserts the actual supplier-specific message (`Choose one supplier for this purchase request.`) and the test passes. |
+| Remaining workspace, receiving, Outlet Daily entry, administration, and responsive checks pass on the clean local production-like server. | verified locally / Production awaiting UAT | `document-workspaces-7-23-5-5.spec.js`, `goods-receiving-detail-responsive.spec.js`, `outlet-daily-entry-contract.spec.js`, and `administration-master-data-ux.spec.js`: 12/12 passed on port 3054. |
+| Footer and release records remain synchronized. | implemented | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.124. |
+
+This batch is local evidence only. Remote migration alignment, authoritative AutoCount data, and Production regression remain separate gates.
+
 ## v8.64.123 sourcing boundary and fresh local regression closure
 
 | Acceptance | Status | Evidence / remaining gate |

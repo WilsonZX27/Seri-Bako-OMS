@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.124 (unreleased) — Fresh local workflow audit closure
+
+The local production-like browser audit now includes the corrected field-level PR validation expectation and passed the remaining workspace, goods-receiving, Outlet Daily entry, administration, and responsive checks 12/12. This release record is local evidence only; linked migrations and Production regression remain separate.
+
 ### v8.64.123 (unreleased) — Sourcing boundary and fresh role audit closure
 
 Changing the suggested Supplier now clears existing request lines that are not supplied by the new branch-scoped catalogue and explains the reset in plain language. The Item Master remains available for a deliberate re-selection, so missing supplier setup is still progressive review work rather than a submission blocker. A fresh local production-like audit passed six-role routing/dashboard/workspaces (20/20), PR → PO → GRN → invoice/payment/close (3/3), Outlet Daily history/Qty Sent/export/wastage and report surfaces (18/18), master-data and Recipe mutations (2/2), remaining review/return/invoice forms (6/6), and annotation/P0/responsive coverage (26/26). This is local evidence only; linked migrations and Production regression remain separate.

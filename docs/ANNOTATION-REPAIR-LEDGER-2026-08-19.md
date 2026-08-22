@@ -8,6 +8,8 @@
 | Footer and release records remain synchronized. | implemented locally | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger carry v8.64.143. |
 | Production verification boundary. | awaiting linked/Production UAT | Migration 191 has not been represented as linked or Production verified. Production mutation remains outside the current authorization boundary. |
 
+The local progressive-receiving regression remains green after the Qty Sent guard: `progressive-receiving-uom-local.spec.js` reports `3/3` for unknown `2 CTN → 24 KG`, remembered conversion, and remember-off floating `2 BAG → 17.4 KG`. The Dashboard role audit test was also aligned with the current deduplicated workspace; its historical micro-chart assertion is intentionally no longer valid. These are local fixture results, not Production evidence.
+
 ## v8.64.142 dashboard snapshot cleanup
 
 | Acceptance | Status | Evidence / remaining gate |

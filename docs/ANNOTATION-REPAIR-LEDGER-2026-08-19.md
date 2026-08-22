@@ -2,7 +2,7 @@
 
 ## v8.64.147 Kitchen dispatch visibility closure (2026-08-22)
 
-- **Found in Production read-only UAT:** the authenticated Kitchen dashboard loads, but `/outlet-daily-records` and an existing outlet record remained at `Loading data...` on deployed footer v8.64.145. Source review shows Kitchen had the Qty Sent permission but not company-wide `outlet_daily_record.view_all`, so it could not reliably reach outlet records to perform its assigned step.
+- **Found in Production read-only UAT:** on deployed footer v8.64.145, Kitchen’s `/outlet-daily-records` showed `No outlets in your current scope` with Records/Qty Sent at zero at 390×844, 820×1180, and 1180×820; at 1440×900 it remained `Loading data...` after the read-only wait. An existing outlet record showed the same unresolved loading state. Source review shows Kitchen had the Qty Sent permission but not company-wide `outlet_daily_record.view_all`, so it could not reliably reach outlet records to perform its assigned step.
 - **Implemented (local):** forward-only migration 193 grants canonical `kitchen` both `outlet_daily_record.view_all` and `outlet_daily_record.qty_sent`, with idempotent role-permission insertion. `outlet_staff` is intentionally absent.
 - **Evidence boundary:** this is a local source patch until migration 193 is applied and the Kitchen read-only route is rerun in Production. No Production mutation was attempted; the active goal remains open.
 

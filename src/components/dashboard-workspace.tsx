@@ -169,12 +169,12 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
             { key: "receiving_followup", label: "Receiving follow-up", value: summary.receivingFollowupUnavailable ? null : summary.financeForecast.receivingNotInvoiced, href: "/goods-receivings", definition: "Bounded receiving records that still require downstream follow-up.", tone: "warning" },
             { key: "production_exception", label: "Production exceptions", value: summary.productionSummary ? summary.productionSummary.pendingApproval + summary.productionSummary.ingredientShortages : null, href: "/production/jobs", definition: "Production jobs pending approval plus ingredient-shortage exceptions.", tone: "warning" },
           ]
-        : [
-            { key: "stock_count", label: "Stock counts due", value: summary.stockCountDueUnavailable ? null : summary.today.stockCountDue, href: "/stock-counts", definition: "Stock counts currently due in the permitted scope.", tone: "warning" },
-            { key: "wastage", label: "Wastage attention", value: summary.wastageUnavailable ? null : summary.wastageAttention, href: "/stock-wastage?status=submitted", definition: "Draft or submitted wastage records requiring attention.", tone: "warning" },
-            { key: "outlet", label: "Outlet completion issues", value: summary.operationsControl ? outletExceptionCount : null, href: "/outlet-daily-records", definition: "Outlet records missing an evening completion.", tone: "critical" },
-            ...(isOwner ? [{ key: "overdue", label: "Overdue invoices", value: summary.payablesAttentionUnavailable ? null : summary.payablesAttention?.overdue_count ?? 0, href: "/supplier-invoices/aging?overdue=1", definition: "Outstanding supplier invoices past their due date.", tone: "critical" as const }] : []),
-          ];
+        : [];
+
+  // Owner and Manager already receive these signals in their canonical
+  // surfaces: Today&apos;s work, Exceptions, and Payables. Rendering a second
+  // trend card here repeated the same low-stock, stock-count, wastage, and
+  // outlet-completion numbers without adding a decision or new drill-through.
 
   const quickActions = isOutlet
     ? [

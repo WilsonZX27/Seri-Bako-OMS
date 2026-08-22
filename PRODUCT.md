@@ -1,6 +1,10 @@
 # Seri Bako Operations Management System
 
-### v8.64.140 (unreleased) — Keyboard-safe tablet navigation
+### v8.64.141 (unreleased) — Dashboard signal deduplication
+
+Owner and Manager dashboards no longer render a second Operational trend card that repeats the same stock-count, wastage, and outlet-completion values already owned by Today&apos;s work and Exceptions. Each signal now has one primary surface and one drill-through. Promote this patch before Production UAT; v8.64.140 remains the currently deployed release until promotion.
+
+### v8.64.140 (deployed) — Keyboard-safe tablet navigation
 
 Tablet and iPadOS shells now keep the fixed bottom navigation attached to the physical screen edge while the software keyboard reduces the dynamic viewport. The CSS large/dynamic viewport delta is a fallback when visualViewport does not emit a resize event. Production now serves v8.64.140; authenticated six-role regression and Production mutation UAT remain separate gates.
 

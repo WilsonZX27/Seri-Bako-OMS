@@ -1,5 +1,12 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.141 dashboard signal deduplication
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| Owner and Manager dashboards do not repeat the same exception metrics in a second trend card. | implemented locally / Production awaiting promotion | The duplicate Operational trend card is removed for the roles whose canonical Today&apos;s work and Exceptions surfaces already own stock-count, wastage, and outlet-completion signals. The focused contract and full static gate must pass before promotion. |
+| Footer and release records remain synchronized. | implemented locally | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.141. |
+
 ## v8.64.140 keyboard-safe tablet closure
 
 | Acceptance | Status | Evidence / remaining gate |

@@ -50,6 +50,16 @@ test("Today's work stays compact and role trends remain distinct", () => {
   assert.match(dashboard, /focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/);
 });
 
+test("Owner and Manager do not repeat exception signals in a second trend card", () => {
+  const dashboard = read("src/components/dashboard-workspace.tsx");
+  const roleChartBlock = dashboard.match(/const roleChartItems:[\s\S]*?\n\s*const quickActions/)?.[0] ?? "";
+
+  assert.match(roleChartBlock, /: \[\];/);
+  assert.doesNotMatch(roleChartBlock, /key: "stock_count"/);
+  assert.doesNotMatch(roleChartBlock, /key: "wastage"/);
+  assert.doesNotMatch(roleChartBlock, /key: "outlet"/);
+});
+
 test("pending actions expose their workflow state as a semantic status badge", () => {
   const dashboard = read("src/components/dashboard-workspace.tsx");
 

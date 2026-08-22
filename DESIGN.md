@@ -1,6 +1,10 @@
 # Seri Bako OMS responsive design standard
 
-## v8.64.140 (unreleased) - Keyboard-safe tablet navigation
+## v8.64.141 (unreleased) - Dashboard signal deduplication
+
+Owner and Manager dashboards no longer show a repeated Operational trend card for stock counts, wastage, or outlet completion. Those signals stay in Today&apos;s work and Exceptions, where the operator has one clear owner surface and one drill-through. Footer remains the concise `v8.64.141` token; Production promotion is required before UAT.
+
+## v8.64.140 (deployed) - Keyboard-safe tablet navigation
 
 Touch-tablet and iPadOS shells keep the fixed bottom navigation at the physical screen edge while an editable field opens the software keyboard. The implementation combines visualViewport measurement with the `100lvh - 100dvh` CSS fallback for browsers that do not resize visualViewport. The bar stays behind the keyboard instead of consuming the reduced editing canvas. Footer remains the concise `v8.64.140` token; Production is now promoted, while authenticated role regression remains pending.
 

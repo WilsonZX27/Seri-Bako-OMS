@@ -5,7 +5,7 @@
 | Acceptance | Status | Evidence / remaining gate |
 |---|---|---|
 | Tablet/iPadOS bottom navigation remains at the physical screen edge while the keyboard is open. | implemented locally / Production awaiting promotion | The shared mobile shell now treats touch tablets as compact shells and combines visualViewport measurement with a `100dvh - 100lvh` CSS fallback. The bar is moved behind the keyboard instead of following the reduced edit viewport. |
-| Current release records and footer remain synchronized. | implemented locally | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.140. Production currently remains v8.64.139 until promotion. |
+| Current release records and footer remain synchronized. | production deployed / authenticated UAT awaiting | Read-only `Invoke-WebRequest https://system.seribako.com.my/login` returned HTTP 200 with footer `v8.64.140`. `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger carry v8.64.140. |
 | Production six-role, four-viewport regression and mutation validation. | awaiting authenticated Production UAT | No Production business record was mutated by this patch. A signed-in role matrix and disposable mutation boundary are still required before any annotation can be marked production verified. |
 
 ## v8.64.139 Production deployment boundary

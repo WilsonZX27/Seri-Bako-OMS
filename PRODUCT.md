@@ -2,7 +2,7 @@
 
 ### v8.64.140 (unreleased) — Keyboard-safe tablet navigation
 
-Tablet and iPadOS shells now keep the fixed bottom navigation attached to the physical screen edge while the software keyboard reduces the dynamic viewport. The CSS large/dynamic viewport delta is a fallback when visualViewport does not emit a resize event. Production remains at v8.64.139 until this patch is promoted; authenticated six-role regression and Production mutation UAT remain separate gates.
+Tablet and iPadOS shells now keep the fixed bottom navigation attached to the physical screen edge while the software keyboard reduces the dynamic viewport. The CSS large/dynamic viewport delta is a fallback when visualViewport does not emit a resize event. Production now serves v8.64.140; authenticated six-role regression and Production mutation UAT remain separate gates.
 
 ### v8.64.139 (deployed) — Production deployment boundary
 

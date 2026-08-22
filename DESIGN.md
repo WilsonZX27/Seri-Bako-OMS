@@ -2,7 +2,7 @@
 
 ## v8.64.140 (unreleased) - Keyboard-safe tablet navigation
 
-Touch-tablet and iPadOS shells keep the fixed bottom navigation at the physical screen edge while an editable field opens the software keyboard. The implementation combines visualViewport measurement with the `100lvh - 100dvh` CSS fallback for browsers that do not resize visualViewport. The bar stays behind the keyboard instead of consuming the reduced editing canvas. Footer remains the concise `v8.64.140` token; Production promotion and authenticated role regression remain pending.
+Touch-tablet and iPadOS shells keep the fixed bottom navigation at the physical screen edge while an editable field opens the software keyboard. The implementation combines visualViewport measurement with the `100lvh - 100dvh` CSS fallback for browsers that do not resize visualViewport. The bar stays behind the keyboard instead of consuming the reduced editing canvas. Footer remains the concise `v8.64.140` token; Production is now promoted, while authenticated role regression remains pending.
 
 ## v8.64.139 (deployed) - Production deployment boundary
 

@@ -77,6 +77,11 @@ export function formatActionError(error: unknown, fallback = "Something went wro
   if (normalized.includes("pr_branch_invalid")) {
     return "The request branch is no longer available in this company.";
   }
+  if (normalized.includes("qty_sent_missing")) {
+    const safeMessage = message.replace(/^qty_sent_missing:\s*/i, "").trim();
+    if (safeMessage.length <= 220 && !/(supabase|postgres|constraint|sqlstate|violates)/i.test(safeMessage)) return safeMessage;
+    return "Qty Sent is missing. A Kitchen or authorised company-wide user must confirm Qty Sent before the outlet can complete this record.";
+  }
   if (
     normalized.includes("idempotency_migration_pending")
     || (normalized.includes("idempotency_key") && (normalized.includes("purchase_order") || normalized.includes("purchase order")))

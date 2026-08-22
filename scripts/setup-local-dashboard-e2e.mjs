@@ -349,6 +349,20 @@ if (includeAnnotationFixture) {
     if (result.error) throw result.error;
     outletBranch = result.data;
   }
+  // The disposable Outlet identity must be assigned to an outlet branch. The
+  // common role loop runs before the annotation fixture creates E2E-OUTLET,
+  // so repair that local-only assignment here for truthful Outlet UAT.
+  const outletStaffId = staffByRole.get("outlet_staff");
+  if (outletStaffId) {
+    const outletStaffUpdate = await admin.from("staffs").update({ default_branch_id: outletBranch.id }).eq("id", outletStaffId);
+    if (outletStaffUpdate.error) throw outletStaffUpdate.error;
+    const outletRoleUpdate = await admin.from("staff_roles").update({ branch_id: outletBranch.id }).eq("staff_id", outletStaffId);
+    if (outletRoleUpdate.error) throw outletRoleUpdate.error;
+    const outletBranchCleanup = await admin.from("staff_branches").delete().eq("staff_id", outletStaffId);
+    if (outletBranchCleanup.error) throw outletBranchCleanup.error;
+    const outletBranchAssignment = await admin.from("staff_branches").insert({ staff_id: outletStaffId, branch_id: outletBranch.id, access_level: "full", is_default: true });
+    if (outletBranchAssignment.error) throw outletBranchAssignment.error;
+  }
   let { data: outletProduct, error: outletProductError } = await admin.from("products").select("id").eq("company_id", company.id).eq("product_code", "E2E-OUTLET-001").maybeSingle();
   if (outletProductError) throw outletProductError;
   if (!outletProduct) {

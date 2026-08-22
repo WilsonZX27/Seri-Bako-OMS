@@ -7,11 +7,13 @@ const sql = read("supabase/migrations/064_outlet_daily_receiving_wastage.sql");
 const validationFix = read("supabase/migrations/065_fix_outlet_evening_completion_validation.sql");
 const hotfix = read("supabase/migrations/074_daily_record_recipe_access_product_order.sql");
 const actions = read("src/server/actions/outlet-daily-records.ts");
+const errorHandling = read("src/server/actions/error-handling.ts");
 const query = read("src/server/queries/outlet-daily-records.ts");
 const form = read("src/components/outlet-daily-record-form.tsx");
 const page = read("src/app/(app)/outlet-daily-records/page.tsx");
 const detail = read("src/app/(app)/outlet-daily-records/[id]/page.tsx");
 const inlineValidation = read("supabase/migrations/167_inline_outlet_daily_validation_context.sql");
+const qtySentGuard = read("supabase/migrations/191_guard_outlet_completion_qty_sent.sql");
 
 test("operational date reads use the Kuala Lumpur business day", () => {
   const date = read("src/lib/business-date.ts");
@@ -103,6 +105,15 @@ test("wastage validation preserves a safe product anchor for inline correction",
   assert.match(inlineValidation, /Wastage for "%" \(%\) cannot exceed received without a line remark/);
   assert.match(form, /const validationProductCode/);
   assert.match(form, /Boolean\(validationHint\)/);
+});
+
+test("Outlet completion cannot post while Qty Sent is missing", () => {
+  assert.match(qtySentGuard, /create or replace function public\.save_outlet_daily_record/);
+  assert.match(qtySentGuard, /p_target_status in \('morning_recorded','evening_completed'\)/);
+  assert.match(qtySentGuard, /QTY_SENT_MISSING: Qty Sent is missing for/);
+  assert.match(qtySentGuard, /qty_sent_confirmed into existing_sent_confirmed/);
+  assert.match(qtySentGuard, /Kitchen or authorised company-wide user must confirm Qty Sent/);
+  assert.match(errorHandling, /qty_sent_missing/);
 });
 
 test("concurrent outlet-day creation converges on the unique existing record", () => {

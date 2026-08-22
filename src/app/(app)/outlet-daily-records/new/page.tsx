@@ -33,7 +33,7 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
   const secondaryActions = <SubmitButton form={formId} name="target_status" value="draft" variant="outline" className="w-full gap-2" disabled={disabled}><Save className="h-4 w-4" aria-hidden="true" />Save Draft</SubmitButton>;
   const sidePanel = <>
     <DocumentActionSection description={canEnterOutlet ? "Complete the outlet record when today’s values are ready." : "Confirm the quantities sent to the outlet."} moreOptions={<div className="grid gap-3">{secondaryActions}</div>}>{primaryAction}</DocumentActionSection>
-    <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">Any invalid line will be highlighted before completion.</p></DocumentSideSection>
+    <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">Any invalid line will be highlighted before completion. Qty Sent must be confirmed by Kitchen or an authorised company-wide user first.</p></DocumentSideSection>
   </>;
 
   return <DocumentWorkspace

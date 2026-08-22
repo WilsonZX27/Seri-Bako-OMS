@@ -1,5 +1,13 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.143 local closure patch — Qty Sent completion guard
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| Outlet Daily cannot become Posted while Qty Sent is missing. | verified locally / linked migration awaiting | Forward-only migration 191 now requires every line to carry an authorised Qty Sent confirmation before `morning_recorded` or `evening_completed`; a missing line returns a bounded product-specific correction message. The previously observed fresh Outlet completion defect is fixed at the database boundary. Local migration 191 is applied and recorded; the authenticated Outlet browser guard passed on the disposable local fixture, and the full contract suite passed 849/849. |
+| Footer and release records remain synchronized. | implemented locally | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger carry v8.64.143. |
+| Production verification boundary. | awaiting linked/Production UAT | Migration 191 has not been represented as linked or Production verified. Production mutation remains outside the current authorization boundary. |
+
 ## v8.64.142 dashboard snapshot cleanup
 
 | Acceptance | Status | Evidence / remaining gate |

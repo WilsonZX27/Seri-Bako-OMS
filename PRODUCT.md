@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.143 (unreleased) — Qty Sent completion guard
+
+Outlet Daily cannot be marked Posted while any line lacks an authorised Qty Sent confirmation. A Kitchen or authorised company-wide operator must confirm every line first; an Outlet receives a bounded, product-anchored correction message instead of a false completed record. Local Supabase migration 191 and the contract guard are added. Repository migrations reviewed through `191`; this is local evidence only until the user applies migration 191 and Production read-only regression is rerun; the six-role mutation boundary remains awaiting Production mutation UAT.
+
 ### v8.64.142 (deployed) — Dashboard snapshot cleanup
 
 The role micro-chart consumer has been removed from the dashboard because Finance, Kitchen, and Purchasing snapshots repeated the same payables, receiving, production, and follow-up values already owned by their canonical panels. The standalone chart component remains available for a future release only when a distinct trend data source exists. Read-only Production smoke now reaches 15 audited routes with HTTP 200 and footer `v8.64.142`; authenticated six-role UAT remains pending.
@@ -126,7 +130,7 @@ Goods Receiving now accepts the supplier's actual Purchase UOM first, calculates
 
 ### v8.64.109 (unreleased) — PR to PO conversion repair
 
-Purchase Request conversion now recreates its database RPC explicitly, writes the required purchase-order idempotency key, keeps one active PO per PR, and records conversion source metadata. AutoCount PO number failures now identify the exact business issue, focus the field, and preserve the typed number after a failed attempt. Repository migrations reviewed through `190`; this is local source evidence only, and linked/Production verification remains separate.
+Purchase Request conversion now recreates its database RPC explicitly, writes the required purchase-order idempotency key, keeps one active PO per PR, and records conversion source metadata. AutoCount PO number failures now identify the exact business issue, focus the field, and preserve the typed number after a failed attempt. Repository migrations reviewed through `191`; this is local source evidence only, and linked/Production verification remains separate.
 
 ### v8.64.108 (unreleased) — Portrait Tablet Form Alignment
 
@@ -287,7 +291,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `190`; this is not evidence that migration 190 is applied to the linked Production project.
+Repository migration authority: migrations reviewed through `191`; this is not evidence that migration 191 is applied to the linked Production project.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

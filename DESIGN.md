@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.143 (unreleased) - Explicit Qty Sent readiness
+
+Outlet completion uses a truthful progressive disclosure boundary: the completion action remains available, but the server refuses to post until every line has an authorised Qty Sent fact. The error names the affected product and tells the operator which role can correct it. This prevents a disabled field from silently becoming numeric zero and keeps the daily record state aligned with the underlying data. Local migration 191 and contract evidence are not Production proof until linked migration and read-only regression are complete.
+
 ## v8.64.142 (deployed) - Dashboard snapshot cleanup
 
 Do not render a role micro-chart from the dashboard when its values duplicate Payables, Operational pipeline, or Exceptions. Canonical panels own the actionable signal and drill-through; a future trend card must bring a genuinely distinct, time-based data source. The standalone component is retained as a reusable candidate, but is not mounted in the current dashboard. Read-only Production smoke reaches 15 audited routes with footer `v8.64.142`; authenticated role regression remains pending.

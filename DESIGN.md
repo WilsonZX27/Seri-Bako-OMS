@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.147 (unreleased) - Kitchen dispatch visibility closure
+
+The Qty Sent step is owned by Kitchen, but ownership is not useful unless Kitchen can reach the outlet record. The role now receives company-wide Outlet Daily read visibility plus the dedicated Qty Sent permission; the Outlet role remains branch-scoped and read-only for dispatch quantities. This is a forward-only local patch after Production v8.64.145 showed the Kitchen route stuck at `Loading data...`; linked migration and Production promotion remain separate evidence gates.
+
 ## v8.64.146 (unreleased) - Qty Sent ownership and truthful totals
 
 Treat dispatch quantity as an operational fact, not an Outlet-entered estimate. The Qty Sent control stays disabled for Outlet staff and is enabled only through the dedicated Kitchen-and-above permission. When provenance is missing, summary cards say `Unavailable` with `Needs confirmation`; they never manufacture a business zero. Migration 192 is local/unreleased until linked migration application and Production promotion are evidenced.

@@ -1,10 +1,16 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.147 Kitchen dispatch visibility closure (2026-08-22)
+
+- **Found in Production read-only UAT:** the authenticated Kitchen dashboard loads, but `/outlet-daily-records` and an existing outlet record remained at `Loading data...` on deployed footer v8.64.145. Source review shows Kitchen had the Qty Sent permission but not company-wide `outlet_daily_record.view_all`, so it could not reliably reach outlet records to perform its assigned step.
+- **Implemented (local):** forward-only migration 193 grants canonical `kitchen` both `outlet_daily_record.view_all` and `outlet_daily_record.qty_sent`, with idempotent role-permission insertion. `outlet_staff` is intentionally absent.
+- **Evidence boundary:** this is a local source patch until migration 193 is applied and the Kitchen read-only route is rerun in Production. No Production mutation was attempted; the active goal remains open.
+
 ## v8.64.146 Qty Sent ownership and truthful totals (2026-08-22)
 
 - **Implemented (local):** Outlet Qty Sent fields remain disabled; server-side migration 191 rejects completion when any line lacks an authorised Qty Sent fact. Migration 192 grants `outlet_daily_record.qty_sent` to Manager, Purchasing, and Finance; Super Admin continues through its protected wildcard. Outlet is intentionally absent.
 - **Implemented (local):** Missing/unverified Qty Sent aggregates now remain `null` and render `Unavailable` / `Needs confirmation`; a persisted legacy zero is not presented as a confirmed dispatch total.
-- **Evidence boundary:** focused contract 26/26, full contract 853/853, typecheck, strict typecheck, lint, production build, and diff-check are local source evidence. Production Outlet read-only inspection still showed the old v8.64.142 surface (`Qty Sent 0` with blank disabled inputs), so v8.64.146 and migration 192 require promotion before Production recheck. No Production mutation was attempted.
+- **Evidence boundary:** focused contract 27/27 and full contract 854/854 pass; typecheck, strict typecheck, lint, production build, and diff-check also pass locally. Production Outlet read-only inspection showed deployed footer v8.64.145 with legacy `Qty Sent 0` and blank disabled inputs, so v8.64.147 and migrations 192–193 require promotion before Production recheck. No Production mutation was attempted.
 
 ## v8.64.145 Production identity and natural-sort audit
 

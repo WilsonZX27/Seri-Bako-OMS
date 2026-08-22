@@ -15,6 +15,7 @@ const detail = read("src/app/(app)/outlet-daily-records/[id]/page.tsx");
 const inlineValidation = read("supabase/migrations/167_inline_outlet_daily_validation_context.sql");
 const qtySentGuard = read("supabase/migrations/191_guard_outlet_completion_qty_sent.sql");
 const qtySentRoles = read("supabase/migrations/192_grant_qty_sent_to_kitchen_above.sql");
+const kitchenDailyVisibility = read("supabase/migrations/193_grant_kitchen_outlet_daily_visibility.sql");
 
 test("operational date reads use the Kuala Lumpur business day", () => {
   const date = read("src/lib/business-date.ts");
@@ -229,6 +230,14 @@ test("Qty Sent ownership is Kitchen and above, never Outlet", () => {
   assert.match(qtySentRoles, /on conflict \(role_id, permission_id\) do nothing/);
   assert.doesNotMatch(qtySentRoles, /outlet_staff/);
   assert.doesNotMatch(qtySentRoles, /kitchen_staff/);
+});
+
+test("Kitchen can see outlet daily records before confirming Qty Sent", () => {
+  assert.match(kitchenDailyVisibility, /r\.role_code = 'kitchen'/);
+  assert.match(kitchenDailyVisibility, /outlet_daily_record\.view_all/);
+  assert.match(kitchenDailyVisibility, /outlet_daily_record\.qty_sent/);
+  assert.match(kitchenDailyVisibility, /on conflict \(role_id, permission_id\) do nothing/);
+  assert.doesNotMatch(kitchenDailyVisibility, /outlet_staff/);
 });
 
 test("outlet list keeps updated date and time readable instead of concatenating them", () => {

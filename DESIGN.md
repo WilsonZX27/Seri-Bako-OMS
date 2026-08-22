@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.152 (unreleased) - Receiving to invoice progression
+
+Receiving keeps the business Purchase UOM visible while progressively learning the Base UOM conversion at the point of use. Invoice matching stays a flat, line-first selection surface with responsive disclosure on narrow screens; neither workflow requires an operator to navigate a hidden setup maze before seeing the next action.
+
 ## v8.64.151 (unreleased) - Quiet role-scoped detail loading
 
 Auxiliary detail data follows the viewer's capability boundary. Owner-only destructive previews are not fetched for ordinary roles, so a normal review page stays quiet and focused instead of surfacing backend authorization noise; the visible action hierarchy remains unchanged.

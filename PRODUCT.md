@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.152 (unreleased) — Receiving and invoice UAT closure
+
+Local downstream workflow evidence now covers progressive receiving UOM learning (known, remembered, and one-time floating conversions) plus the flat Supplier Invoice matching surface across phone and tablet orientations. These are disposable local mutations/read checks; Production GRN, Invoice, and payment mutation remain outside the current boundary.
+
 ### v8.64.151 (unreleased) — Role-scoped PR detail closure
 
 Purchase Request detail now resolves the Owner-only hard-delete preview only for Super Admin. Manager, Purchasing, Finance, Kitchen, and Outlet detail views no longer invoke a guaranteed-denied RPC or emit misleading permission errors during normal navigation. The deletion control remains unchanged for the Owner role.

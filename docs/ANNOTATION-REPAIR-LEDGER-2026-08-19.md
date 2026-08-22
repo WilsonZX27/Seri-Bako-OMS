@@ -1,5 +1,10 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.152 Receiving and invoice downstream UAT (2026-08-22)
+
+- **Evidence:** local progressive receiving suite passed `3/3`: unknown `2 CTN → 24 KG`, remembered conversion on the next receipt, and one-time floating `2 BAG → 17.4 KG` without default pollution. Supplier Invoice matching responsive audit passed `1/1` with phone line selection and tablet/laptop overflow checks.
+- **Boundary:** these are disposable local workflow proofs. Production GRN/Invoice/Payment mutation and authenticated four-viewport regression remain awaiting Production session and deployment; no Production mutation was attempted.
+
 ## v8.64.151 Role-scoped PR detail loading (2026-08-22)
 
 - **Found:** local PR workflow navigation passed, but Manager/Purchasing detail loads logged repeated `Owner / Super Admin access is required.` because the page fetched the hard-delete preview for every role.

@@ -14,6 +14,7 @@ const page = read("src/app/(app)/outlet-daily-records/page.tsx");
 const detail = read("src/app/(app)/outlet-daily-records/[id]/page.tsx");
 const inlineValidation = read("supabase/migrations/167_inline_outlet_daily_validation_context.sql");
 const qtySentGuard = read("supabase/migrations/191_guard_outlet_completion_qty_sent.sql");
+const qtySentRoles = read("supabase/migrations/192_grant_qty_sent_to_kitchen_above.sql");
 
 test("operational date reads use the Kuala Lumpur business day", () => {
   const date = read("src/lib/business-date.ts");
@@ -170,6 +171,17 @@ test("received totals never turn an unverified default zero into a business fact
   assert.match(form, /placeholder=\{receivedIsKnown \? undefined : "Not verified"\}/);
 });
 
+test("Qty Sent totals never turn an unavailable default zero into a business fact", () => {
+  assert.match(query, /total_sent: number \| null/);
+  assert.match(query, /const qtySentState = lines\.length > 0 && lines\.every/);
+  assert.match(query, /const totalSent = qtySentState === "confirmed"/);
+  assert.match(query, /totalReceived === 0 && totalSent !== null && totalSent > 0/);
+  assert.match(query, /todayRows\.every\(\(row\) => row\.total_sent !== null\)/);
+  assert.match(page, /data\.summary\.today_sent === null \? "Unavailable"/);
+  assert.match(detail, /record\.total_sent === null \? "Unavailable"/);
+  assert.match(detail, /Needs confirmation/);
+});
+
 test("outlet daily source failures never render an empty zero dashboard", () => {
   assert.match(page, /page\.outletDailyRecords\.source/);
   assert.match(page, /Outlet daily data unavailable/);
@@ -196,11 +208,27 @@ test("outlet daily detail fails closed when its record source cannot be verified
 
 test("outlet records flag a confirmed zero when stock was sent", () => {
   assert.match(query, /received_zero_with_sent: boolean/);
-  assert.match(query, /totalReceived === 0 && totalSent > 0/);
+  assert.match(query, /totalReceived === 0 && totalSent !== null && totalSent > 0/);
   assert.match(page, /0 · verify/);
   assert.match(page, /no confirmed receipt/);
   assert.match(detail, /Receipt check needed/);
   assert.match(detail, /record\.received_zero_with_sent/);
+});
+
+test("Outlet cannot enter Qty Sent; only the dedicated permission unlocks it", () => {
+  assert.match(detail, /getPermissionMap\(\["outlet_daily_record\.update", "outlet_daily_record\.qty_sent", "outlet_daily_record\.void"\]\)/);
+  assert.match(detail, /const canEditQtySent = !statusLocked && permissions\["outlet_daily_record\.qty_sent"\]/);
+  assert.match(form, /name="qty_sent"[\s\S]*disabled=\{locked \|\| !canEditQtySent\}/);
+  assert.match(qtySentGuard, /can_edit_sent boolean := public\.has_permission\('outlet_daily_record\.qty_sent'\)/);
+  assert.match(qtySentGuard, /if can_edit_sent then/);
+});
+
+test("Qty Sent ownership is Kitchen and above, never Outlet", () => {
+  assert.match(qtySentRoles, /r\.role_code in \('manager', 'purchasing', 'finance'\)/);
+  assert.match(qtySentRoles, /outlet_daily_record\.qty_sent/);
+  assert.match(qtySentRoles, /on conflict \(role_id, permission_id\) do nothing/);
+  assert.doesNotMatch(qtySentRoles, /outlet_staff/);
+  assert.doesNotMatch(qtySentRoles, /kitchen_staff/);
 });
 
 test("outlet list keeps updated date and time readable instead of concatenating them", () => {

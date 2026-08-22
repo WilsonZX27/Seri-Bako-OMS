@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.146 (unreleased) - Qty Sent ownership and truthful totals
+
+Treat dispatch quantity as an operational fact, not an Outlet-entered estimate. The Qty Sent control stays disabled for Outlet staff and is enabled only through the dedicated Kitchen-and-above permission. When provenance is missing, summary cards say `Unavailable` with `Needs confirmation`; they never manufacture a business zero. Migration 192 is local/unreleased until linked migration application and Production promotion are evidenced.
+
 ## v8.64.145 (unreleased) - Production identity and natural-sort audit
 
 Supplier identity keeps the official AutoCount code visible alongside the formal name and operator-facing short name; these roles are not conflated. The mapping form uses a searchable Item Master combobox and keeps Base UOM as a read-only master-data fact, while Purchase UOM remains the relationship-level choice. Item-code lists use natural numeric ordering so `10` follows `9`, not `1`. Production evidence is read-only until the current release is promoted and authenticated mutation UAT is separately authorised.

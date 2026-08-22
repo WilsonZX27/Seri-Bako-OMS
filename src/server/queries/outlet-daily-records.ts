@@ -16,7 +16,7 @@ type TrendTotals = { received: number; leftover: number; wastage: number; moveme
 export type OutletDailyRecordRow = RecordRow & {
   branch_name: string;
   submitted_by_name: string | null;
-  total_sent: number;
+  total_sent: number | null;
   total_received: number | null;
   received_state: "verified" | "unavailable";
   received_zero_with_sent: boolean;
@@ -51,7 +51,17 @@ export type OutletDailyWastageCostSummary = {
 };
 
 const totals = (lines: LineRow[]) => {
-  const totalSent = lines.reduce((sum, line) => sum + Number(line.qty_sent), 0);
+  const qtySentState = lines.length > 0 && lines.every((line) => line.qty_sent_source === "authorized_confirmed" || line.qty_sent_confirmed)
+    ? "confirmed" as const
+    : lines.some((line) => line.qty_sent_source === "authorized_draft")
+      ? "draft" as const
+      : "missing" as const;
+  // A database default of 0 is not proof that the kitchen sent zero. Only a
+  // fully authorised set of lines may produce a numeric operational total;
+  // missing or draft lines stay explicitly unavailable to every consumer.
+  const totalSent = qtySentState === "confirmed"
+    ? lines.reduce((sum, line) => sum + Number(line.qty_sent), 0)
+    : null;
   // `morning_received_qty` has a database default of 0. Its dedicated
   // provenance flag distinguishes an explicit zero from that transport
   // default. An empty line set, or an unproven default zero, must never be
@@ -69,7 +79,7 @@ const totals = (lines: LineRow[]) => {
   // but it is operationally suspicious when the same record says the kitchen
   // sent stock. Keep the value authoritative and surface the reconciliation
   // cue instead of silently presenting a healthy-looking zero.
-  const receivedZeroWithSent = totalReceived === 0 && totalSent > 0;
+  const receivedZeroWithSent = totalReceived === 0 && totalSent !== null && totalSent > 0;
   const totalLeftover = lines.reduce((sum, line) => sum + Number(line.evening_leftover_qty), 0);
   const totalWastage = lines.reduce((sum, line) => sum + Number(line.wastage_qty), 0);
   return {
@@ -80,11 +90,7 @@ const totals = (lines: LineRow[]) => {
     total_leftover: totalLeftover,
     total_wastage: totalWastage,
     wastage_percent: totalReceived !== null && totalReceived > 0 ? (totalWastage / totalReceived) * 100 : null,
-    qty_sent_state: lines.length > 0 && lines.every((line) => line.qty_sent_source === "authorized_confirmed" || line.qty_sent_confirmed)
-      ? "confirmed" as const
-      : lines.some((line) => line.qty_sent_source === "authorized_draft")
-        ? "draft" as const
-        : "missing" as const,
+    qty_sent_state: qtySentState,
   };
 };
 
@@ -327,7 +333,11 @@ export async function getOutletDailyRecords(filters: Filters = {}) {
     summary: {
       today,
       today_records: todayRows.length,
-      today_sent: todayRows.reduce((sum, row) => sum + row.total_sent, 0),
+      today_sent: todayRows.length === 0
+        ? 0
+        : todayRows.every((row) => row.total_sent !== null)
+          ? todayRows.reduce((sum, row) => sum + (row.total_sent ?? 0), 0)
+          : null,
       today_received: todayRows.length > 0 && todayRows.every((row) => row.total_received !== null)
         ? todayRows.reduce((sum, row) => sum + (row.total_received ?? 0), 0)
         : null,

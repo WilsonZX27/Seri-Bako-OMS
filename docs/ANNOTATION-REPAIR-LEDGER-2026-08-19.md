@@ -1,5 +1,14 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.145 Production identity and natural-sort audit
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| BWY and CILANTRO supplier identity remains trustworthy. | production verified (read-only) | Production `/suppliers` and CILANTRO detail show `AutoCount BWYHOLDI` / `AutoCount CILANTRO`, formal names, and independent short-name fields. No code was guessed or mutated; authoritative values are read-only evidence from the deployed database. |
+| Supplier Item mapping supports progressive setup. | production verified (read-only) | Production `/supplier-items/new` exposes a keyboard-searchable Item Master combobox, read-only Base UOM ownership, controlled Purchase UOM list, and a clear Item Master hand-off. No mapping was created. |
+| Items default natural numeric ordering. | production verified (read-only) | Production `/items?sort=item_code&dir=asc&page=1` returned item codes `1, 2, 3, 5, 6, 7, 9, 10, 11, 12, ...`; no lexical `1, 10, 11` defect observed. |
+| Footer and release records remain synchronized. | implemented locally | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger carry v8.64.145. Production currently still reports footer v8.64.142 on the inspected supplier detail, so promotion remains a separate gate. |
+
 ## v8.64.144 local closure patch — PR sourcing handoff clarity
 
 | Acceptance | Status | Evidence / remaining gate |

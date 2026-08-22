@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.145 (unreleased) - Production identity and natural-sort audit
+
+Supplier identity keeps the official AutoCount code visible alongside the formal name and operator-facing short name; these roles are not conflated. The mapping form uses a searchable Item Master combobox and keeps Base UOM as a read-only master-data fact, while Purchase UOM remains the relationship-level choice. Item-code lists use natural numeric ordering so `10` follows `9`, not `1`. Production evidence is read-only until the current release is promoted and authenticated mutation UAT is separately authorised.
+
 ## v8.64.144 (unreleased) - Explicit PR sourcing handoff
 
 When a saved PR contains non-catalog lines, the side rail keeps the approval action available but adds a warning with the affected count and the responsible next role. The copy distinguishes “approval can continue” from “matching is required before Finance/PO”, so progressive disclosure does not become silent workflow debt.

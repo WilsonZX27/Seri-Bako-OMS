@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.145 (unreleased) — Production identity and natural-sort audit
+
+Authenticated Production read-only checks confirm supplier identity surfaces expose `AutoCount` identifiers for BWY HOLDINGS (`BWYHOLDI`) and CILANTRO MAGNUS TRADING (`CILANTRO`) without overwriting the official supplier name or operator short name. The Supplier Item form provides a keyboard-searchable Item Master combobox, read-only Base UOM ownership, and controlled Purchase UOM options. The Items list returns natural item-code order (`1, 2, 3, 5, 6, 7, 9, 10, 11, ...`). These are read-only Production observations; no supplier or item mutation was performed.
+
 ### v8.64.144 (unreleased) — PR sourcing handoff clarity
 
 Purchase Request detail now explains unresolved non-catalog lines at the Validation / Next Step surface. Manager approval can continue as a non-blocking handoff, while Purchasing is explicitly told to match the affected lines before Finance review and PO conversion. The notice preserves progressive sourcing without hiding the next operational responsibility. Local and authenticated Production read-only evidence remain separate gates.

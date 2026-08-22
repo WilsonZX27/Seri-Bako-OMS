@@ -1,5 +1,12 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.154 Local workflow audit hardening (2026-08-22)
+
+- **Local mutation evidence:** progressive receiving UOM learning passed `3/3` (unknown 2 CTN → 24 KG, remembered conversion, floating 2 BAG → 17.4 KG snapshot); Stock Count, Stock Transfer, Stock Wastage, and Supplier Invoice mutation flows passed `6/6`; PR Manager/Purchasing workflow smoke passed `4/4`; Outlet Daily/P0/role/annotation responsive suites remain green from the preceding closure batch.
+- **Audit correction:** Manager review now opens through the explicit accessible `Open …` row action, which is deterministic across browser engines; the document number remains a non-link badge. Optional reset-local Movement Ledger fixtures are gated before fixture-specific assertions, preserving a verified empty state instead of inventing Sprint data.
+- **Boundary:** all evidence is local disposable database evidence. Production six-role authenticated regression, Production mutation UAT, and any remote migration claim remain separate; this batch does not mark them production verified.
+- **Footer:** `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, and `src/lib/app-version.ts` are synchronized to v8.64.154.
+
 ## v8.64.153 Qty Sent ownership closure (2026-08-22)
 
 - **Implemented:** Outlet Daily now labels Qty Sent as Kitchen-owned with an inline accessible explanation; Outlet Staff inputs remain disabled while Received and Wastage stay editable. The `save_outlet_daily_record` RPC continues to ignore unauthorised sent values.

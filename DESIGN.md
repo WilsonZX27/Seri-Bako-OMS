@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.154 (unreleased) - Local workflow audit hardening
+
+Workflow acceptance uses user-facing, accessible actions as deterministic evidence: Manager PR review opens through the explicit row action rather than relying on synthetic table double-click delivery. Optional movement-ledger fixture assertions are gated after the shared empty-state contract, preserving truthful unavailable/empty states. This hardens the audit without changing the product's visual language or hiding a real business failure; Production role and mutation verification remain a separate gate.
+
 ## v8.64.153 (unreleased) - Kitchen-owned dispatch quantity
 
 Outlet Daily makes ownership explicit at the field group: Qty Sent has a concise inline note and accessible description stating that Kitchen and authorised company-wide staff enter it; Outlet Staff see the control disabled while Received and Wastage remain available. The visual cue is informational, not a warning color, so workflow ownership is clear without implying an error.

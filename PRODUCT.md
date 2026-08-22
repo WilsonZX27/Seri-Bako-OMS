@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.154 (unreleased) — Local workflow audit hardening
+
+The local closure audit now exercises the remaining mutation surfaces instead of treating browser smoke as completion: PR Manager/Purchasing review navigation, Stock Count/Transfer/Wastage posting, progressive GRN UOM learning, Supplier Invoice payment, and Outlet Daily ownership. The Manager review test uses the explicit accessible row action, and optional reset-local ledger fixtures are skipped before fixture-specific assertions so a truthful empty ledger is not reported as a product failure. Local evidence is recorded separately from Production verification; the six-role Production mutation gate remains awaiting UAT.
+
 ### v8.64.153 (unreleased) — Qty Sent ownership closure
 
 Outlet Staff can view their daily record and enter Received/Wastage, but Qty Sent is visibly marked as Kitchen-owned and remains disabled. Kitchen and authorised company-wide roles can confirm dispatch quantities; the server RPC and RLS remain authoritative. Local disposable E2E now proves the Outlet UI and direct RPC cannot alter Qty Sent while Kitchen can confirm it. Production role regression remains a separate gate.

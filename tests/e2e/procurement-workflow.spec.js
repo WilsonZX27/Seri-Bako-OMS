@@ -16,9 +16,11 @@ test("manager opens a manager approval PR", async ({ page }) => {
   test.skip(await page.getByText(/No (purchase requests found|requests match these filters)/i).first().isVisible(), "No live Manager Review PR fixture is available.");
   const firstPr = page.locator("tbody tr").first();
   await expect(firstPr).toBeVisible();
-  // Purchase request rows are keyboard/double-click navigable grid rows; the
-  // document number is deliberately rendered as a non-link badge.
-  await firstPr.dblclick();
+  // The document number is deliberately rendered as a non-link badge, while
+  // the explicit row action is the deterministic keyboard/screen-reader path.
+  // Use it here instead of relying on a synthetic double-click on a <tr>,
+  // which is not consistently delivered by every browser engine.
+  await firstPr.getByRole("link", { name: /^Open / }).click();
   await expect(page).toHaveURL(/\/purchase-requests\//);
   await expect(page.getByRole("button", { name: /approve as manager/i })).toBeVisible();
 });

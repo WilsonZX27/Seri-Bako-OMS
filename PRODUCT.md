@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.151 (unreleased) — Role-scoped PR detail closure
+
+Purchase Request detail now resolves the Owner-only hard-delete preview only for Super Admin. Manager, Purchasing, Finance, Kitchen, and Outlet detail views no longer invoke a guaranteed-denied RPC or emit misleading permission errors during normal navigation. The deletion control remains unchanged for the Owner role.
+
 ### v8.64.150 (unreleased) — Six-role viewport audit closure
 
 The local six-role workdesk regression now runs the exact release matrix: 390×844, 820×1180, 1180×820, and 1440×900. Each role must retain its scoped dashboard, safe destinations, no horizontal overflow, and responsive action rail. This is local evidence; Production login, migration 194 application, and authenticated read-only regression remain separate gates.

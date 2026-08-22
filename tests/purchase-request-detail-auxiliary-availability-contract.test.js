@@ -49,3 +49,9 @@ test("non-catalog lines explain the non-blocking sourcing handoff", () => {
   assert.match(page, /These lines must be matched before the request can be converted to a purchase order/);
   assert.match(page, /role="status"/);
 });
+
+test("Owner-only delete preview is not invoked for ordinary workflow roles", () => {
+  assert.match(page, /const \[permissions, profile\] = await Promise\.all\(\[/);
+  assert.match(page, /const canManageDeletion = roleCode === "super_admin"/);
+  assert.match(page, /canManageDeletion \? getPhaseOneDeletePreview\("purchase_request", request\.id\) : Promise\.resolve\(null\)/);
+});

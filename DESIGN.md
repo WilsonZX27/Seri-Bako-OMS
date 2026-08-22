@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.151 (unreleased) - Quiet role-scoped detail loading
+
+Auxiliary detail data follows the viewer's capability boundary. Owner-only destructive previews are not fetched for ordinary roles, so a normal review page stays quiet and focused instead of surfacing backend authorization noise; the visible action hierarchy remains unchanged.
+
 ## v8.64.150 (unreleased) - Exact six-role viewport gate
 
 The responsive audit matrix is explicit rather than inferred from a width-only sweep: phone 390×844, portrait tablet 820×1180, landscape tablet 1180×820, and desktop 1440×900. The same role workspace must keep its hierarchy, fixed navigation behavior, action rail, and zero-overflow invariant at each orientation.

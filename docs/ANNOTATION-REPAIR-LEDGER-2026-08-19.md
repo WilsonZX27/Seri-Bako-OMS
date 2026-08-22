@@ -1,5 +1,11 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.151 Role-scoped PR detail loading (2026-08-22)
+
+- **Found:** local PR workflow navigation passed, but Manager/Purchasing detail loads logged repeated `Owner / Super Admin access is required.` because the page fetched the hard-delete preview for every role.
+- **Fixed:** identity is resolved before auxiliary reads; `getPhaseOneDeletePreview` is called only when `role_code === "super_admin"`. Ordinary roles keep a null/unavailable preview without a failed RPC.
+- **Evidence:** auxiliary contract 6/6, local PR workflow smoke 4/4 after the fix with no Owner-error logs. Production remains awaiting authenticated regression; no Production mutation was attempted.
+
 ## v8.64.150 Six-role exact viewport audit (2026-08-22)
 
 - **Implemented (local):** the six-role workdesk E2E now uses exactly `390×844`, `820×1180`, `1180×820`, and `1440×900`; a static contract protects the matrix.

@@ -77,18 +77,10 @@ export default async function PurchaseRequestDetailPage({
   }
   const { request, lines, unresolvedLines } = purchaseRequest;
   const requestedItemCount = lines.length + unresolvedLines.length;
-  const [auxiliaryResults, permissions, profile] = await Promise.all([
-    Promise.allSettled([
-      getPurchaseOrdersForRequest(id),
-      getItemsForSelect(),
-      getSuppliersForSelect(),
-      getBranchSupplierMappingsForSelect(),
-      getBranchesForSelect(),
-      request.document_id ? getDocumentBundle(request.document_id) : Promise.resolve(null),
-      getPhaseOneDeletePreview("purchase_request", request.id),
-      getPurchaseRequestBranchStock(request.branch_id, lines.map((line) => line.item_id)),
-      getRecoverableDocumentWorkflowAvailable(),
-    ]),
+  // Resolve identity before loading the Owner-only hard-delete preview. A
+  // non-owner must not invoke an RPC that is guaranteed to reject and pollute
+  // the page's normal auxiliary-error log.
+  const [permissions, profile] = await Promise.all([
     getPermissionMap([
       "purchase_request.create",
       "pr.submit",
@@ -103,6 +95,19 @@ export default async function PurchaseRequestDetailPage({
       "documents.attach",
     ]),
     getCurrentProfile(),
+  ]);
+  const roleCode = String(profile?.role_code ?? "").toLowerCase();
+  const canManageDeletion = roleCode === "super_admin";
+  const auxiliaryResults = await Promise.allSettled([
+    getPurchaseOrdersForRequest(id),
+    getItemsForSelect(),
+    getSuppliersForSelect(),
+    getBranchSupplierMappingsForSelect(),
+    getBranchesForSelect(),
+    request.document_id ? getDocumentBundle(request.document_id) : Promise.resolve(null),
+    canManageDeletion ? getPhaseOneDeletePreview("purchase_request", request.id) : Promise.resolve(null),
+    getPurchaseRequestBranchStock(request.branch_id, lines.map((line) => line.item_id)),
+    getRecoverableDocumentWorkflowAvailable(),
   ]);
   const [linkedOrdersResult, itemsResult, suppliersResult, supplierMappingsResult, branchesResult, documentBundleResult, deletePreviewResult, branchStockResult, recoveryCapabilityResult] = auxiliaryResults;
   for (const [result, source] of [
@@ -138,9 +143,7 @@ export default async function PurchaseRequestDetailPage({
   const supplierIds = suppliers ? new Set(suppliers.map((supplier) => supplier.id)) : null;
   const branch = branches?.find((row) => row.id === request.branch_id);
   const total = lines.reduce((sum, line) => sum + line.qty * line.estimated_unit_cost, 0);
-  const canViewCommercial = permissions["pr.view_all"] && !["kitchen", "kitchen_staff"].includes(String(profile?.role_code ?? "").toLowerCase());
-  const roleCode = String(profile?.role_code ?? "").toLowerCase();
-  const canManageDeletion = roleCode === "super_admin";
+  const canViewCommercial = permissions["pr.view_all"] && !["kitchen", "kitchen_staff"].includes(roleCode);
   const canSubmit = isStatus(request.status, "draft", "rejected", "returned") && permissions["pr.submit"];
   const canCancel = ["draft", "manager_review", "admin_review", "finance_review", "ready_to_convert"].includes(request.status) && permissions["pr.cancel"];
   const canEditDraft = request.status === "draft" && permissions["purchase_request.create"];

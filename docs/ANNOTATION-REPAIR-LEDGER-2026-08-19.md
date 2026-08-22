@@ -1,5 +1,12 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## Production read-only UAT checkpoint (2026-08-23)
+
+- **Authenticated evidence:** Chrome for Testing was connected through DevTools and six authorized roles were inspected at `390×844`, `820×1180`, `1180×820`, and `1440×900`. All checked dashboards reported `scrollWidth === clientWidth`; phone/portrait/landscape tablet navigation was fixed with `bottom=0`, and the 1440px desktop navigation was hidden. This proves shell geometry only, not workflow mutation.
+- **Role surfaces:** Manager opened a real Manager Review PR and exposed the Manager approval action without Finance actions; Purchasing opened PR/AUG26/014 with supplier/UOM attention rows and no horizontal overflow; Finance opened Supplier Invoices at 390px with its invoice/AP actions; Outlet Daily new for Outlet Staff kept every Qty Sent input disabled while Received/Wastage remained enabled.
+- **Deployed findings:** the Production footer is `v8.64.148`, behind local v8.64.155. Kitchen `/outlet-daily-records` reports `No outlets in your current scope` with zero records; Outlet `/dashboard` remained `Loading data...` at 390×844 and 820×1180 after a 7-second settle, while its direct daily-entry surface loaded. These findings keep the Production closure gate open and require the promoted build/migration regression to be rerun.
+- **Boundary:** no Production business mutation was executed. Local mutation evidence remains authoritative for Qty Sent ownership and progressive workflows; Production remains `awaiting UAT` for role workflow mutation, deployed version parity, Kitchen visibility, and Outlet dashboard loading.
+
 ## v8.64.155 Stock Count compact control fix (2026-08-23)
 
 - **Found:** local responsive audit exposed the first 390px Stock Count card squeezing the physical quantity input to approximately 25px between two 48px controls and the UOM label.

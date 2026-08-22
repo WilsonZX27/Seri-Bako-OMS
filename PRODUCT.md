@@ -4,6 +4,8 @@
 
 Stock Count quantity controls now preserve a readable 40px input on the 390px phone card: the +/- controls use the shared compact 40px touch target and the group closes its small-screen gap before the UOM label. Desktop and tablet rhythm remains unchanged. Local responsive evidence is required before this batch is considered complete; Production regression remains separate.
 
+Production read-only UAT is now connected through Chrome for Testing. The deployed host reports footer v8.64.148, so it is behind the local v8.64.155 source. Six authorized role dashboards were checked at 390×844, 820×1180, 1180×820, and 1440×900 with no horizontal overflow and correct fixed-navigation geometry. Kitchen still has no visible Outlet Daily scope on the deployed build, and Outlet phone/portrait dashboards can remain on Loading data; these are awaiting deployment/regression findings, not production verified.
+
 ### v8.64.154 (unreleased) — Local workflow audit hardening
 
 The local closure audit now exercises the remaining mutation surfaces instead of treating browser smoke as completion: PR Manager/Purchasing review navigation, Stock Count/Transfer/Wastage posting, progressive GRN UOM learning, Supplier Invoice payment, and Outlet Daily ownership. The Manager review test uses the explicit accessible row action, and optional reset-local ledger fixtures are skipped before fixture-specific assertions so a truthful empty ledger is not reported as a product failure. Local evidence is recorded separately from Production verification; the six-role Production mutation gate remains awaiting UAT.

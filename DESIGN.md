@@ -4,6 +4,8 @@
 
 On the 390px Stock Count surface, quantity entry keeps a minimum 40px readable field while +/- actions remain compact, consistent, and touchable. The UOM label stays visible without squeezing the primary value into a two-character sliver; the desktop/tablet control rhythm is preserved.
 
+The first authenticated Production UAT checkpoint confirms the responsive shell itself is contained across all six roles and four target viewports: phone and tablet navigation remains fixed at the physical bottom edge, while desktop hides it. The deployed footer is still v8.64.148; Kitchen scope and Outlet dashboard loading are recorded as deployment follow-up rather than papered over with local evidence.
+
 ## v8.64.154 (unreleased) - Local workflow audit hardening
 
 Workflow acceptance uses user-facing, accessible actions as deterministic evidence: Manager PR review opens through the explicit row action rather than relying on synthetic table double-click delivery. Optional movement-ledger fixture assertions are gated after the shared empty-state contract, preserving truthful unavailable/empty states. This hardens the audit without changing the product's visual language or hiding a real business failure; Production role and mutation verification remain a separate gate.

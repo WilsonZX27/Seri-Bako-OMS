@@ -223,6 +223,9 @@ test("Outlet cannot enter Qty Sent; only the dedicated permission unlocks it", (
   assert.match(detail, /getPermissionMap\(\["outlet_daily_record\.update", "outlet_daily_record\.qty_sent", "outlet_daily_record\.void"\]\)/);
   assert.match(detail, /const canEditQtySent = !statusLocked && permissions\["outlet_daily_record\.qty_sent"\]/);
   assert.match(form, /name="qty_sent"[\s\S]*disabled=\{locked \|\| !canEditQtySent\}/);
+  assert.match(form, /data-qty-sent-ownership/);
+  assert.match(form, /Only Kitchen and authorised company-wide staff can enter it/);
+  assert.match(form, /aria-describedby=\{!canEditQtySent \? "qty-sent-ownership-note"/);
   assert.match(qtySentGuard, /can_edit_sent boolean := public\.has_permission\('outlet_daily_record\.qty_sent'\)/);
   assert.match(qtySentGuard, /if can_edit_sent then/);
 });

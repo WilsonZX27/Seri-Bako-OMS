@@ -16,6 +16,10 @@ test("Outlet cannot post a daily record before Qty Sent is confirmed", async ({ 
   });
   const complete = page.getByRole("button", { name: /Complete(?: Daily)? Record/i }).first();
   await expect(complete).toBeVisible();
+  if (await complete.isDisabled()) {
+    await expect(page.locator("[data-qty-sent-ownership]")).toContainText("Only Kitchen and authorised company-wide staff can enter it.");
+    return;
+  }
   await complete.click();
   await expect(page).toHaveURL(/\/outlet-daily-records\/new\?error=/);
   await expect(page.getByText(/Qty Sent is missing/i).first()).toBeVisible();

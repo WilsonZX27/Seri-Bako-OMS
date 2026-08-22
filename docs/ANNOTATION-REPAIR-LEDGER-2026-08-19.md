@@ -1,5 +1,11 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.153 Qty Sent ownership closure (2026-08-22)
+
+- **Implemented:** Outlet Daily now labels Qty Sent as Kitchen-owned with an inline accessible explanation; Outlet Staff inputs remain disabled while Received and Wastage stay editable. The `save_outlet_daily_record` RPC continues to ignore unauthorised sent values.
+- **Local evidence:** Purchasing/ Kitchen/ Outlet fixture passed `4/4`, including Kitchen confirmation, Outlet UI disabled state, direct Outlet RPC tampering preservation, and dated export; the standalone Outlet completion guard passed `1/1`. Contract suite for the Outlet Daily surface passed `30/30`.
+- **Boundary:** this is local disposable evidence. Production migration 194, six-role authenticated regression, and Production mutation UAT remain separate and are not marked complete.
+
 ## v8.64.152 Receiving and invoice downstream UAT (2026-08-22)
 
 - **Evidence:** local progressive receiving suite passed `3/3`: unknown `2 CTN → 24 KG`, remembered conversion on the next receipt, and one-time floating `2 BAG → 17.4 KG` without default pollution. Supplier Invoice matching responsive audit passed `1/1` with phone line selection and tablet/laptop overflow checks.

@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.153 (unreleased) — Qty Sent ownership closure
+
+Outlet Staff can view their daily record and enter Received/Wastage, but Qty Sent is visibly marked as Kitchen-owned and remains disabled. Kitchen and authorised company-wide roles can confirm dispatch quantities; the server RPC and RLS remain authoritative. Local disposable E2E now proves the Outlet UI and direct RPC cannot alter Qty Sent while Kitchen can confirm it. Production role regression remains a separate gate.
+
 ### v8.64.152 (unreleased) — Receiving and invoice UAT closure
 
 Local downstream workflow evidence now covers progressive receiving UOM learning (known, remembered, and one-time floating conversions) plus the flat Supplier Invoice matching surface across phone and tablet orientations. These are disposable local mutations/read checks; Production GRN, Invoice, and payment mutation remain outside the current boundary.

@@ -8,6 +8,8 @@ The local annotation fixture is now provisioned before responsive audit runs, so
 
 The P0 browser-comment pass also exercises the shared filter row, role-safe review, AP aging, dashboard deduplication, production canvas, and low-stock decision surfaces; all six local cases stayed contained at their audited widths.
 
+Stock Transfer, Stock Wastage, and Production Job creation now have a fresh local responsive check across phone, tablet, and desktop; the workflow forms keep their primary actions and every control inside the viewport.
+
 ## v8.64.152 (unreleased) - Receiving to invoice progression
 
 Receiving keeps the business Purchase UOM visible while progressively learning the Base UOM conversion at the point of use. Invoice matching stays a flat, line-first selection surface with responsive disclosure on narrow screens; neither workflow requires an operator to navigate a hidden setup maze before seeing the next action.

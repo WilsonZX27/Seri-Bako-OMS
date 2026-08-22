@@ -7,6 +7,7 @@
 - **Boundary:** this is local disposable evidence. Production migration 194, six-role authenticated regression, and Production mutation UAT remain separate and are not marked complete.
 - **Audit refresh:** after running `scripts/setup-local-dashboard-e2e.mjs --annotation-fixture`, the core annotation suite passed `19/19` and the historical PR/UI suite passed `10/10`; the exact four-viewport role workdesk remains `6/6`. A previous empty-fixture failure is excluded from evidence.
 - **P0 follow-up:** historical density checks passed `5/5`; the six-case P0 browser-comment suite passed `6/6`. These are local disposable results only; Production authentication and mutation remain separate evidence states.
+- **Workflow responsive follow-up:** dynamic Stock Transfer, Stock Wastage, and Production Job forms passed `1/1` across local phone/tablet/desktop geometry. This does not expand the Production verification boundary.
 
 ## v8.64.152 Receiving and invoice downstream UAT (2026-08-22)
 

@@ -8,6 +8,8 @@ The refreshed local annotation audit now passes the 19-case core-flow suite and 
 
 The follow-up historical density suite passed `5/5`, and the P0 browser-comment regression passed `6/6` across filter grammar, role-safe PR review, procurement UOM, dashboard deduplication, AP aging, production canvas, Outlet Daily density, and low-stock decisions.
 
+The local dynamic workflow responsive audit also passed `1/1` across Stock Transfer, Stock Wastage, and Production Job forms at 390×844, 768×1024, and 1440×960 with no control overflow.
+
 ### v8.64.152 (unreleased) — Receiving and invoice UAT closure
 
 Local downstream workflow evidence now covers progressive receiving UOM learning (known, remembered, and one-time floating conversions) plus the flat Supplier Invoice matching surface across phone and tablet orientations. These are disposable local mutations/read checks; Production GRN, Invoice, and payment mutation remain outside the current boundary.

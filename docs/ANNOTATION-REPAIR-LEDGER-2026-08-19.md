@@ -1,5 +1,12 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.142 dashboard snapshot cleanup
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| Dashboard does not repeat role-specific snapshots already owned by canonical panels. | implemented locally / Production awaiting promotion | Finance, Kitchen, and Purchasing role micro-chart data was removed from the dashboard consumer because it repeated Payables, Operational pipeline, and Exceptions values. The standalone component remains unmounted until a genuinely distinct trend source exists. Focused contracts and the full local gate are required before promotion; authenticated six-role/four-viewport Production UAT remains open. |
+| Footer and release records remain synchronized. | implemented locally | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger carry v8.64.142. |
+
 ## v8.64.141 dashboard signal deduplication
 
 | Acceptance | Status | Evidence / remaining gate |

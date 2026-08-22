@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.142 (unreleased) - Dashboard snapshot cleanup
+
+Do not render a role micro-chart from the dashboard when its values duplicate Payables, Operational pipeline, or Exceptions. Canonical panels own the actionable signal and drill-through; a future trend card must bring a genuinely distinct, time-based data source. The standalone component is retained as a reusable candidate, but is not mounted in the current dashboard. Footer remains the concise `v8.64.142` token; Production promotion and authenticated role regression are pending.
+
 ## v8.64.141 (deployed) - Dashboard signal deduplication
 
 Owner and Manager dashboards no longer show a repeated Operational trend card for stock counts, wastage, or outlet completion. Those signals stay in Today&apos;s work and Exceptions, where the operator has one clear owner surface and one drill-through. Read-only Production route smoke now confirms footer `v8.64.141`; authenticated role regression remains pending.

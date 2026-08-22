@@ -40,24 +40,22 @@ test("Today's work renders only actionable queues and leaves exceptions to their
   assert.doesNotMatch(pulse, />Recent requests</);
 });
 
-test("Today's work stays compact and role trends remain distinct", () => {
+test("Today's work stays compact without a duplicate role snapshot card", () => {
   const dashboard = read("src/components/dashboard-workspace.tsx");
 
   assert.match(dashboard, /grid grid-cols-2[\s\S]*showFinance \? "sm:grid-cols-3" : "sm:grid-cols-2"/);
   assert.match(dashboard, /min-h-12 min-w-0 items-center/);
   assert.match(dashboard, /col-span-2 sm:col-span-1/);
-  assert.match(dashboard, /roleChartItems\.length \? <DashboardRoleMicroChart/);
+  assert.doesNotMatch(dashboard, /DashboardRoleMicroChart|roleChartItems/);
   assert.match(dashboard, /focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/);
 });
 
-test("Owner and Manager do not repeat exception signals in a second trend card", () => {
+test("Dashboard keeps each exception signal on its canonical owner surface", () => {
   const dashboard = read("src/components/dashboard-workspace.tsx");
-  const roleChartBlock = dashboard.match(/const roleChartItems:[\s\S]*?\n\s*const quickActions/)?.[0] ?? "";
 
-  assert.match(roleChartBlock, /: \[\];/);
-  assert.doesNotMatch(roleChartBlock, /key: "stock_count"/);
-  assert.doesNotMatch(roleChartBlock, /key: "wastage"/);
-  assert.doesNotMatch(roleChartBlock, /key: "outlet"/);
+  assert.match(dashboard, /data-dashboard-priority-group="exceptions"/);
+  assert.match(dashboard, /data-dashboard-activity-group/);
+  assert.doesNotMatch(dashboard, /Operational trend signals|Payables due-date mix|Kitchen work signals|Purchasing follow-up mix/);
 });
 
 test("pending actions expose their workflow state as a semantic status badge", () => {

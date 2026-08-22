@@ -5,14 +5,12 @@ const test = require("node:test");
 const read = (file) => fs.readFileSync(file, "utf8");
 const workspace = read("src/components/dashboard-workspace.tsx");
 const chart = read("src/components/dashboard-role-micro-chart.tsx");
-const roleChartBlock = workspace.match(/const roleChartItems:[\s\S]*?\n\s*const quickActions/)?.[0] ?? "";
 
-test("Dashboard adds at most one bounded role comparison and excludes Outlet Staff", () => {
-  assert.equal((workspace.match(/<DashboardRoleMicroChart/g) ?? []).length, 1);
+test("Dashboard does not render a duplicate role snapshot until a unique trend source exists", () => {
+  assert.equal((workspace.match(/<DashboardRoleMicroChart/g) ?? []).length, 0);
+  assert.doesNotMatch(workspace, /roleChartItems/);
   assert.match(workspace, /\{isOutlet \? \(/);
-  assert.match(workspace, /<DashboardRoleMicroChart[\s\S]*?<QuickActionsCluster/);
-  assert.match(roleChartBlock, /isFinance[\s\S]*isKitchen[\s\S]*isPurchasing/);
-  assert.doesNotMatch(roleChartBlock, /purchaseOrders\.length|urgentRequests\.length/);
+  assert.match(workspace, /<QuickActionsCluster/);
 });
 
 test("Dashboard role comparison preserves unavailable state and exact interaction", () => {
@@ -36,11 +34,7 @@ test("Dashboard role comparison uses stable severity order and explicit trust st
   assert.match(chart, /data-dashboard-signal-priority/);
 });
 
-test("Finance-only payables fields stay out of non-finance role branches", () => {
-  const financeBranch = roleChartBlock.match(/isFinance([\s\S]*?): isKitchen/)?.[1] ?? "";
-  const kitchenBranch = roleChartBlock.match(/: isKitchen([\s\S]*?): isPurchasing/)?.[1] ?? "";
-  const purchasingBranch = roleChartBlock.match(/: isPurchasing([\s\S]*?): \[/)?.[1] ?? "";
-  assert.match(financeBranch, /payablesAttention/);
-  assert.doesNotMatch(kitchenBranch, /payablesAttention|supplier-invoices/);
-  assert.doesNotMatch(purchasingBranch, /payablesAttention|supplier-invoices/);
+test("Role snapshot component remains available for a future unique trend surface", () => {
+  assert.match(chart, /export function DashboardRoleMicroChart/);
+  assert.match(chart, /Current request-time snapshot · record and item counts only/);
 });

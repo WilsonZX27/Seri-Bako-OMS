@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.150 (unreleased) — Six-role viewport audit closure
+
+The local six-role workdesk regression now runs the exact release matrix: 390×844, 820×1180, 1180×820, and 1440×900. Each role must retain its scoped dashboard, safe destinations, no horizontal overflow, and responsive action rail. This is local evidence; Production login, migration 194 application, and authenticated read-only regression remain separate gates.
+
 ### v8.64.149 (unreleased) — Kitchen Qty Sent visibility closure
 
 Kitchen can now reach company-wide Outlet Daily records before confirming dispatch quantities. The dedicated Qty Sent permission grant is preserved, while the Outlet Daily RLS policies use the outlet-specific access helper rather than the generic tenant branch helper; no unrelated Kitchen company-wide table access is broadened. Local disposable E2E remains the evidence boundary until migration 194 is applied and Production read-only regression is rerun.

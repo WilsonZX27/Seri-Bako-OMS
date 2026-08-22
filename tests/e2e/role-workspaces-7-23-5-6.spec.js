@@ -11,7 +11,15 @@ const roles = {
   kitchen: "Kitchen",
   outlet: "Outlet Staff",
 };
-const widths = [1440, 1024, 768, 430, 390, 360];
+// Keep this matrix aligned with the release gate. The two tablet orientations
+// are intentional: filter wrapping and the fixed bottom navigation behave
+// differently when height becomes the constrained axis.
+const viewports = [
+  { width: 390, height: 844 },
+  { width: 820, height: 1180 },
+  { width: 1180, height: 820 },
+  { width: 1440, height: 900 },
+];
 const evidence = path.join(process.cwd(), "test-results", "sprint-7-23-5-7");
 
 test.beforeAll(() => fs.mkdirSync(evidence, { recursive: true }));
@@ -25,8 +33,8 @@ for (const [role, roleLabel] of Object.entries(roles)) {
     page.on("console", (message) => { if (message.type() === "error") runtimeErrors.push(message.text()); });
     await login(page, role);
 
-    for (const width of widths) {
-      await page.setViewportSize({ width, height: 900 });
+    for (const viewport of viewports) {
+      await page.setViewportSize(viewport);
       await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
       await expect(page.locator("[data-dashboard-layout]")).toBeVisible();
       await expect(page.locator("[data-dashboard-user-name]:visible")).not.toBeEmpty();
@@ -34,9 +42,9 @@ for (const [role, roleLabel] of Object.entries(roles)) {
       await expect(page.locator("[data-dashboard-scope-label]:visible")).not.toBeEmpty();
       await expect(page.locator("body")).not.toContainText(/Application error|Internal Server Error|Page actions/i);
       expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(5);
-      if (width >= 1280) await expect(page.locator("[data-right-console]")).toBeVisible();
+      if (viewport.width >= 1280) await expect(page.locator("[data-right-console]")).toBeVisible();
       await page.screenshot({
-        path: path.join(evidence, `${role}-${width}.png`),
+        path: path.join(evidence, `${role}-${viewport.width}x${viewport.height}.png`),
         fullPage: true,
         mask: [page.locator("main strong"), page.locator("main .divide-y"), page.locator("main tbody")],
       });

@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.150 (unreleased) - Exact six-role viewport gate
+
+The responsive audit matrix is explicit rather than inferred from a width-only sweep: phone 390×844, portrait tablet 820×1180, landscape tablet 1180×820, and desktop 1440×900. The same role workspace must keep its hierarchy, fixed navigation behavior, action rail, and zero-overflow invariant at each orientation.
+
 ## v8.64.149 (unreleased) - Kitchen dispatch visibility closure
 
 The Kitchen path now has a complete disclosure chain: the role can see Outlet Daily records, the Qty Sent control is enabled, and Outlet-owned Received/Wastage fields remain disabled. The fix is scoped to Outlet Daily RLS policies through `can_access_outlet_daily_branch`; the generic company-branch helper is intentionally unchanged so Kitchen access does not spill into unrelated tenant surfaces.

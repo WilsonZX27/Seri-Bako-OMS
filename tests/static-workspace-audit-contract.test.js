@@ -21,3 +21,13 @@ test("dynamic detail audit covers the real tablet and laptop review widths", () 
   assert.match(source, /test\.setTimeout\(10 \* 60_000\)/);
   assert.match(source, /getAttribute\("aria-hidden"\) === "true"/);
 });
+
+test("six-role workdesk audit uses the release-gate viewport matrix", () => {
+  const source = fs.readFileSync(path.join(process.cwd(), "tests/e2e/role-workspaces-7-23-5-6.spec.js"), "utf8");
+  for (const viewport of [
+    "{ width: 390, height: 844 }",
+    "{ width: 820, height: 1180 }",
+    "{ width: 1180, height: 820 }",
+    "{ width: 1440, height: 900 }",
+  ]) assert.match(source, new RegExp(viewport.replace(/[{}]/g, "\\$&")));
+});

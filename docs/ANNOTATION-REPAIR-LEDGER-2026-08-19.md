@@ -4,6 +4,7 @@
 
 - **Implemented (local):** aligned the local/mock role matrix with the database grants: Kitchen, Manager, Purchasing, Finance, and the protected Super Admin path may confirm Qty Sent; Outlet Staff remain excluded. The Outlet form keeps Qty Sent disabled and the server RPC still ignores unauthorised sent values.
 - **Evidence:** the focused Outlet Daily contract now passes 28/28, including an explicit role-matrix assertion. This is source/local evidence only until v8.64.148 is promoted and the Kitchen/Outlet read-only Production regression is rerun.
+- **Local role coverage:** the disposable local fixture now includes Kitchen confirmation of Qty Sent while Received and Wastage inputs remain disabled; the database assertion verifies `authorized_confirmed` provenance and preserves the Outlet-owned values. The full static contract gate passes 856/856; live mutation execution still requires the local Supabase stack.
 - **Latest Production poll:** the authenticated Kitchen session still reports footer `v8.64.145` and `Loading data...` on `/outlet-daily-records`; no Production mutation was attempted. `npx supabase migration list --linked` also remains locally unverifiable because the CLI cannot write its user telemetry temp file (`EPERM`), so migrations 191–193 are not marked remote verified from this session.
 
 ## v8.64.147 Kitchen dispatch visibility closure (2026-08-22)

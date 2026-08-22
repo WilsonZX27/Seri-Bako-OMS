@@ -6,6 +6,7 @@ const { login, requireAccount } = require("./helpers");
 const fixtureNote = "Disposable Purchasing outlet-daily access fixture.";
 let admin = null;
 let purchasingDb = null;
+let kitchenDb = null;
 let fixture = null;
 
 test.describe("Purchasing company-wide outlet daily access", () => {
@@ -48,6 +49,11 @@ test.describe("Purchasing company-wide outlet daily access", () => {
     const lineResult = await admin.from("outlet_daily_record_lines").insert({ record_id: recordResult.data.id, product_id: productResult.data.id, qty_sent: 12, morning_received_qty: 10, evening_leftover_qty: 0, wastage_qty: 1, wastage_reason: "unsold", notes: "fixture" });
     if (lineResult.error) throw lineResult.error;
     fixture = { companyId, branch: branchResult.data, productId: productResult.data.id, recordId: recordResult.data.id, recordDate };
+
+    const kitchen = requireAccount("kitchen");
+    kitchenDb = createClient(localUrl, anonKey, { auth: { persistSession: false } });
+    const kitchenSignIn = await kitchenDb.auth.signInWithPassword(kitchen);
+    if (kitchenSignIn.error) throw kitchenSignIn.error;
   });
 
   test.afterAll(async () => {
@@ -56,6 +62,7 @@ test.describe("Purchasing company-wide outlet daily access", () => {
       if (cleanup.error) throw cleanup.error;
     }
     if (purchasingDb) await purchasingDb.auth.signOut();
+    if (kitchenDb) await kitchenDb.auth.signOut();
   });
 
   test("sees another outlet and can correct its unlocked record through the production RPC", async ({ page }) => {
@@ -103,5 +110,35 @@ test.describe("Purchasing company-wide outlet daily access", () => {
     expect(csv).toContain("wastage_amount");
     expect(csv).toContain("E2E-PURCH-ODR");
     expect(csv).toContain("Unavailable");
+  });
+
+  test("Kitchen confirms Qty Sent while Outlet-owned values stay read-only", async ({ page }) => {
+    test.skip(!fixture || !kitchenDb, "Local Kitchen fixture was not created.");
+    await login(page, "kitchen");
+    await page.goto(`/outlet-daily-records/${fixture.recordId}`, { waitUntil: "domcontentloaded" });
+    const sent = page.getByRole("spinbutton", { name: /Purchasing Access Product qty sent/i });
+    const received = page.getByRole("spinbutton", { name: /Purchasing Access Product received/i });
+    const wastage = page.getByRole("spinbutton", { name: /Purchasing Access Product wastage/i });
+    await expect(sent).toBeEnabled();
+    await expect(received).toBeDisabled();
+    await expect(wastage).toBeDisabled();
+    await expect(page.getByRole("button", { name: /Save Qty Sent/i })).toBeVisible();
+
+    const saveResult = await kitchenDb.rpc("save_outlet_daily_record", {
+      p_record_id: fixture.recordId,
+      p_branch_id: fixture.branch.id,
+      p_record_date: fixture.recordDate,
+      p_target_status: "evening_completed",
+      p_lines: [{ product_id: fixture.productId, qty_sent: 14, morning_received_qty: 0, evening_leftover_qty: 0, wastage_qty: 0, wastage_reason: null, notes: null }],
+      p_notes: fixtureNote,
+    });
+    expect(saveResult.error, saveResult.error?.message).toBeNull();
+    const saved = await admin.from("outlet_daily_record_lines").select("qty_sent,qty_sent_confirmed,qty_sent_source,morning_received_qty,wastage_qty").eq("record_id", fixture.recordId).eq("product_id", fixture.productId).single();
+    if (saved.error) throw saved.error;
+    expect(Number(saved.data.qty_sent)).toBe(14);
+    expect(saved.data.qty_sent_confirmed).toBe(true);
+    expect(saved.data.qty_sent_source).toBe("authorized_confirmed");
+    expect(Number(saved.data.morning_received_qty)).toBe(10);
+    expect(Number(saved.data.wastage_qty)).toBe(1);
   });
 });

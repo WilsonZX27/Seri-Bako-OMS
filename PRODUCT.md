@@ -2,7 +2,7 @@
 
 ### v8.64.148 (unreleased) — Qty Sent role boundary closure
 
-The local and mock permission matrices now match the database contract: Kitchen, Manager, Purchasing, Finance, and the protected Super Admin path may confirm Qty Sent; Outlet Staff never receive that permission. Kitchen also retains company-wide Outlet Daily visibility so the dispatch step is reachable. The Qty Sent field stays disabled for Outlet users and the server RPC remains authoritative.
+The local and mock permission matrices now match the database contract: Kitchen, Manager, Purchasing, Finance, and the protected Super Admin path may confirm Qty Sent; Outlet Staff never receive that permission. Kitchen also retains company-wide Outlet Daily visibility so the dispatch step is reachable. The Qty Sent field stays disabled for Outlet users and the server RPC remains authoritative. The disposable local E2E fixture now exercises Kitchen confirmation while keeping Received and Wastage read-only.
 
 ### v8.64.147 (unreleased) — Kitchen dispatch visibility closure
 

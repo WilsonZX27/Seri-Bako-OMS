@@ -2,7 +2,7 @@
 
 ## v8.64.148 (unreleased) - Qty Sent role boundary closure
 
-The permission matrix is now consistent across Production grants and local/mock mode: Kitchen, Manager, Purchasing, Finance, and Super Admin can confirm dispatch quantities; Outlet Staff cannot. The disabled Qty Sent control remains visible for orientation, while the server-side permission check is the final authority.
+The permission matrix is now consistent across Production grants and local/mock mode: Kitchen, Manager, Purchasing, Finance, and Super Admin can confirm dispatch quantities; Outlet Staff cannot. The disabled Qty Sent control remains visible for orientation, while the server-side permission check is the final authority. The local role fixture also verifies that Kitchen cannot edit Outlet-owned Received or Wastage values.
 
 ## v8.64.147 (unreleased) - Kitchen dispatch visibility closure
 

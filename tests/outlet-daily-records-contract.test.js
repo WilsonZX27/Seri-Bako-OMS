@@ -17,6 +17,7 @@ const qtySentGuard = read("supabase/migrations/191_guard_outlet_completion_qty_s
 const qtySentRoles = read("supabase/migrations/192_grant_qty_sent_to_kitchen_above.sql");
 const kitchenDailyVisibility = read("supabase/migrations/193_grant_kitchen_outlet_daily_visibility.sql");
 const permissions = read("src/server/auth/permissions.ts");
+const outletDailyE2e = read("tests/e2e/purchasing-outlet-daily-access.spec.js");
 
 test("operational date reads use the Kuala Lumpur business day", () => {
   const date = read("src/lib/business-date.ts");
@@ -248,6 +249,14 @@ test("the role matrix keeps Qty Sent ownership above Outlet in local and mock mo
   }
   const outletBlock = permissions.match(/outlet_staff: \[([\s\S]*?)\]/)?.[1] ?? "";
   assert.doesNotMatch(outletBlock, /outlet_daily_record\.qty_sent/);
+});
+
+test("the local role fixture covers Kitchen Qty Sent ownership without outlet-value writes", () => {
+  assert.match(outletDailyE2e, /Kitchen confirms Qty Sent while Outlet-owned values stay read-only/);
+  assert.match(outletDailyE2e, /getByRole\("spinbutton", \{ name: \/Purchasing Access Product qty sent/);
+  assert.match(outletDailyE2e, /expect\(received\)\.toBeDisabled\(\)/);
+  assert.match(outletDailyE2e, /expect\(wastage\)\.toBeDisabled\(\)/);
+  assert.match(outletDailyE2e, /qty_sent_source\)\.toBe\("authorized_confirmed"\)/);
 });
 
 test("outlet list keeps updated date and time readable instead of concatenating them", () => {

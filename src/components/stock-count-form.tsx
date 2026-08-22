@@ -452,9 +452,9 @@ export function StockCountForm({
                       {hasPhysical ? <><span className="block whitespace-nowrap">{variance > 0 ? "+" : ""}{formatQuantity(variance)}</span><span className="block text-[10px] font-normal">{formatVariancePercent(percent)}</span></> : <span className="font-normal">—</span>}
                     </div>
 
-                    <div className="order-3 col-span-2 flex min-w-0 items-center justify-end gap-2 lg:col-span-1 lg:justify-self-stretch">
+                    <div className="order-3 col-span-2 flex min-w-0 items-center justify-end gap-1 sm:gap-2 lg:col-span-1 lg:justify-self-stretch">
                         <div className="flex min-w-0 flex-1 overflow-hidden rounded-sm border border-[var(--sb-border)] bg-[var(--sb-surface)]">
-                          <button type="button" className="flex h-12 w-12 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)] sm:h-10 sm:w-10" onClick={() => adjustPhysicalQty(line.item_id, -1)} aria-label={`Decrease physical quantity for ${line.item_name}`}><Minus className="h-4 w-4" /></button>
+                          <button type="button" className="flex h-10 w-10 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, -1)} aria-label={`Decrease physical quantity for ${line.item_name}`}><Minus className="h-4 w-4" /></button>
                         <Input
                           id={`physical-${line.item_id}`}
                           name="line_physical_qty"
@@ -467,9 +467,9 @@ export function StockCountForm({
                           required
                            aria-label={`Counted quantity for ${line.item_name}`}
                           placeholder={line.prefill_source === "unavailable" ? "Enter count" : "0.00"}
-                           className="h-12 w-full min-w-0 flex-1 rounded-none border-0 px-2 text-center text-[13px] font-semibold tabular-nums shadow-none focus-visible:ring-inset [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none sm:h-10"
+                           className="h-10 w-full min-w-10 flex-1 rounded-none border-0 px-1 text-center text-[13px] font-semibold tabular-nums shadow-none focus-visible:ring-inset [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         />
-                          <button type="button" className="flex h-12 w-12 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)] sm:h-10 sm:w-10" onClick={() => adjustPhysicalQty(line.item_id, 1)} aria-label={`Increase physical quantity for ${line.item_name}`}><Plus className="h-4 w-4" /></button>
+                          <button type="button" className="flex h-10 w-10 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, 1)} aria-label={`Increase physical quantity for ${line.item_name}`}><Plus className="h-4 w-4" /></button>
                         </div>
                       <span className="shrink-0 text-[11px] text-muted-foreground">{line.uom}</span>
                     </div>

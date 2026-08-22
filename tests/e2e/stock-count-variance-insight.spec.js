@@ -48,7 +48,10 @@ test.describe("Stock Count variance insight", () => {
       await page.goto("/stock-counts", { waitUntil: "domcontentloaded" });
       const insight = page.locator("[data-stock-count-variance-insights]");
       await expect(insight).toBeVisible();
-      await expect(insight).toContainText("2 occurrences");
+      const insightSummary = await insight.innerText();
+      const occurrenceMatch = insightSummary.match(/(\d+) occurrences/);
+      expect(occurrenceMatch, "variance insight must expose a recurrence count").toBeTruthy();
+      expect(Number(occurrenceMatch[1]), "the two disposable fixture counts must remain represented").toBeGreaterThanOrEqual(2);
       const chart = insight.locator("[data-interactive-line-chart]");
       await expect(chart).toBeVisible();
       await chart.locator("svg").focus();

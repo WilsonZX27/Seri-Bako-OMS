@@ -50,7 +50,7 @@ test("tablet portrait keeps the count control below item context until the conte
   );
   assert.match(form, /lg:justify-self-stretch/);
   assert.doesNotMatch(form, /md:max-w-64/);
-  assert.match(form, /h-12 w-full min-w-0 flex-1[^\"]*sm:h-10/);
+  assert.match(form, /h-10 w-full min-w-10 flex-1/);
   assert.doesNotMatch(form, /md:min-w-\[7\.5rem\]/);
   assert.match(form, /data-mobile-document-action[\s\S]*md:hidden/);
   assert.match(styles, /@media \(max-width: 767px\)[\s\S]*\[data-mobile-document-action\]\.sb-mobile-action-bar/);

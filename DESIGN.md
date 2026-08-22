@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.155 (unreleased) - Stock Count compact control fix
+
+On the 390px Stock Count surface, quantity entry keeps a minimum 40px readable field while +/- actions remain compact, consistent, and touchable. The UOM label stays visible without squeezing the primary value into a two-character sliver; the desktop/tablet control rhythm is preserved.
+
 ## v8.64.154 (unreleased) - Local workflow audit hardening
 
 Workflow acceptance uses user-facing, accessible actions as deterministic evidence: Manager PR review opens through the explicit row action rather than relying on synthetic table double-click delivery. Optional movement-ledger fixture assertions are gated after the shared empty-state contract, preserving truthful unavailable/empty states. This hardens the audit without changing the product's visual language or hiding a real business failure; Production role and mutation verification remain a separate gate.

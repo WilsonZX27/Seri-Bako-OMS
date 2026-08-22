@@ -1,5 +1,12 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.155 Stock Count compact control fix (2026-08-23)
+
+- **Found:** local responsive audit exposed the first 390px Stock Count card squeezing the physical quantity input to approximately 25px between two 48px controls and the UOM label.
+- **Fixed:** quantity +/- actions now use the shared compact 40px target on the phone card, the small-screen gap is reduced, and the value input has a 40px minimum. UOM remains visible; tablet/desktop layout keeps its existing rhythm.
+- **Evidence:** Stock Count responsive now passes after the fix; the variance insight contract was hardened to assert the fixture-backed recurrence count is at least two rather than assuming a clean database has exactly two occurrences. The touch-target contract now protects the new compact control geometry. Production is not inferred from local evidence.
+- **Footer:** all product/design/version files are being synchronized to v8.64.155.
+
 ## v8.64.154 Local workflow audit hardening (2026-08-22)
 
 - **Local mutation evidence:** progressive receiving UOM learning passed `3/3` (unknown 2 CTN → 24 KG, remembered conversion, floating 2 BAG → 17.4 KG snapshot); Stock Count, Stock Transfer, Stock Wastage, and Supplier Invoice mutation flows passed `6/6`; PR Manager/Purchasing workflow smoke passed `4/4`; Outlet Daily/P0/role/annotation responsive suites remain green from the preceding closure batch.

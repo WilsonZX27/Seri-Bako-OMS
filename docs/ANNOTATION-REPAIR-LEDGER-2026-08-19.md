@@ -10,6 +10,8 @@
 
 The local progressive-receiving regression remains green after the Qty Sent guard: `progressive-receiving-uom-local.spec.js` reports `3/3` for unknown `2 CTN → 24 KG`, remembered conversion, and remember-off floating `2 BAG → 17.4 KG`. The Dashboard role audit test was also aligned with the current deduplicated workspace; its historical micro-chart assertion is intentionally no longer valid. These are local fixture results, not Production evidence.
 
+The local master-data and recipe mutation fixtures also report `passed / failedTests: []`: Super Admin created and edited Branch, Supplier, and Item records; then created, edited, submitted, approved, and activated a Recipe. Playwright cleanup required an explicit stop after the successful run; no source failure was reported.
+
 ## v8.64.142 dashboard snapshot cleanup
 
 | Acceptance | Status | Evidence / remaining gate |

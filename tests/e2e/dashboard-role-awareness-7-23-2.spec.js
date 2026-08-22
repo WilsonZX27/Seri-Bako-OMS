@@ -4,7 +4,6 @@ const { test, expect } = require("@playwright/test");
 const { hasAccount, requireAccount } = require("./helpers");
 
 const roles = ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outlet"];
-const chartRoles = new Set(["superAdmin", "finance", "manager", "purchasing", "kitchen"]);
 const evidence = path.join(process.cwd(), "test-results", "dashboard-current-role-viewport-matrix");
 
 async function measureHorizontalOverflow(page) {
@@ -47,16 +46,11 @@ for (const role of roles) {
       await expect(page.locator("[data-dashboard-role-micro-chart]")).toHaveCount(0);
       await expect(page.getByRole("heading", { name: "Today's completion" })).toBeVisible();
       await expect(page.locator("[data-dashboard-quick-actions] a")).toHaveCount(3);
-    }
-    if (chartRoles.has(role)) {
-      const roleChart = page.locator("[data-dashboard-role-micro-chart]");
-      await expect(roleChart).toHaveCount(1);
-      const firstSignal = roleChart.getByRole("button").first();
-      await firstSignal.focus();
-      await expect(roleChart.locator("[data-dashboard-role-chart-preview]")).toBeVisible();
-      await expect(roleChart.locator("[data-dashboard-role-chart-preview]").getByRole("link", { name: "Open" })).toHaveCount(1);
     } else {
+      await expect(page.locator("[data-dashboard-command]")).toBeVisible();
       await expect(page.locator("[data-dashboard-role-micro-chart]")).toHaveCount(0);
+      await expect(page.locator("[data-dashboard-pulse-metrics]")).toBeVisible();
+      await expect(page.locator("[data-dashboard-quick-actions] a")).toHaveCount(3);
     }
 
     for (const [width, height, label] of [[390, 844, "mobile"], [820, 1180, "tablet"], [1440, 900, "desktop"]]) {
@@ -88,12 +82,8 @@ test("Dashboard survives partial-data and long-label visual stress states", asyn
   await signIn(page, "finance");
   await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
   await expect(page.locator("[data-dashboard-command]")).toBeVisible();
-  // The chart selects its first known signal on mount. Choose the next signal
-  // so this test proves a real interaction rather than clicking the already
-  // selected default and expecting a state transition that cannot occur.
-  const hydratedSignal = page.locator("[data-dashboard-role-micro-chart]").getByRole("button").nth(1);
-  await hydratedSignal.click();
-  await expect(hydratedSignal).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator("[data-dashboard-role-micro-chart]")).toHaveCount(0);
+  await expect(page.locator("[data-dashboard-pulse-metrics]")).toBeVisible();
 
   const applyStressState = () => page.evaluate(() => {
     document.querySelectorAll("[data-dashboard-stress-detail]").forEach((node) => node.remove());

@@ -6,6 +6,8 @@ Outlet Staff can view their daily record and enter Received/Wastage, but Qty Sen
 
 The refreshed local annotation audit now passes the 19-case core-flow suite and the 10-case historical PR/UI suite after provisioning the disposable annotation fixture. These results cover supplier/item identity, natural sorting, PR/PO disclosure, semantic stage colors, keyboard-safe navigation, basket ownership, and Outlet Daily visibility; they remain local evidence only.
 
+The follow-up historical density suite passed `5/5`, and the P0 browser-comment regression passed `6/6` across filter grammar, role-safe PR review, procurement UOM, dashboard deduplication, AP aging, production canvas, Outlet Daily density, and low-stock decisions.
+
 ### v8.64.152 (unreleased) — Receiving and invoice UAT closure
 
 Local downstream workflow evidence now covers progressive receiving UOM learning (known, remembered, and one-time floating conversions) plus the flat Supplier Invoice matching surface across phone and tablet orientations. These are disposable local mutations/read checks; Production GRN, Invoice, and payment mutation remain outside the current boundary.

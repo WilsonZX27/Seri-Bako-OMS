@@ -4,6 +4,8 @@
 
 Outlet Daily makes ownership explicit at the field group: Qty Sent has a concise inline note and accessible description stating that Kitchen and authorised company-wide staff enter it; Outlet Staff see the control disabled while Received and Wastage remain available. The visual cue is informational, not a warning color, so workflow ownership is clear without implying an error.
 
+The local annotation fixture is now provisioned before responsive audit runs, so identity, disclosure, color, keyboard, basket, and Outlet Daily screens are evaluated against real disposable records rather than empty-state assumptions. Core and historical annotation suites passed without changing the established product vocabulary.
+
 ## v8.64.152 (unreleased) - Receiving to invoice progression
 
 Receiving keeps the business Purchase UOM visible while progressively learning the Base UOM conversion at the point of use. Invoice matching stays a flat, line-first selection surface with responsive disclosure on narrow screens; neither workflow requires an operator to navigate a hidden setup maze before seeing the next action.

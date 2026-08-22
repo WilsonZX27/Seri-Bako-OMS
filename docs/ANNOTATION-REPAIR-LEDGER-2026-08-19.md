@@ -5,6 +5,7 @@
 - **Implemented:** Outlet Daily now labels Qty Sent as Kitchen-owned with an inline accessible explanation; Outlet Staff inputs remain disabled while Received and Wastage stay editable. The `save_outlet_daily_record` RPC continues to ignore unauthorised sent values.
 - **Local evidence:** Purchasing/ Kitchen/ Outlet fixture passed `4/4`, including Kitchen confirmation, Outlet UI disabled state, direct Outlet RPC tampering preservation, and dated export; the standalone Outlet completion guard passed `1/1`. Contract suite for the Outlet Daily surface passed `30/30`.
 - **Boundary:** this is local disposable evidence. Production migration 194, six-role authenticated regression, and Production mutation UAT remain separate and are not marked complete.
+- **Audit refresh:** after running `scripts/setup-local-dashboard-e2e.mjs --annotation-fixture`, the core annotation suite passed `19/19` and the historical PR/UI suite passed `10/10`; the exact four-viewport role workdesk remains `6/6`. A previous empty-fixture failure is excluded from evidence.
 
 ## v8.64.152 Receiving and invoice downstream UAT (2026-08-22)
 

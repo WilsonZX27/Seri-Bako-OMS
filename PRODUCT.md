@@ -4,6 +4,8 @@
 
 Outlet Staff can view their daily record and enter Received/Wastage, but Qty Sent is visibly marked as Kitchen-owned and remains disabled. Kitchen and authorised company-wide roles can confirm dispatch quantities; the server RPC and RLS remain authoritative. Local disposable E2E now proves the Outlet UI and direct RPC cannot alter Qty Sent while Kitchen can confirm it. Production role regression remains a separate gate.
 
+The refreshed local annotation audit now passes the 19-case core-flow suite and the 10-case historical PR/UI suite after provisioning the disposable annotation fixture. These results cover supplier/item identity, natural sorting, PR/PO disclosure, semantic stage colors, keyboard-safe navigation, basket ownership, and Outlet Daily visibility; they remain local evidence only.
+
 ### v8.64.152 (unreleased) — Receiving and invoice UAT closure
 
 Local downstream workflow evidence now covers progressive receiving UOM learning (known, remembered, and one-time floating conversions) plus the flat Supplier Invoice matching surface across phone and tablet orientations. These are disposable local mutations/read checks; Production GRN, Invoice, and payment mutation remain outside the current boundary.

@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.148 (unreleased) — Qty Sent role boundary closure
+
+The local and mock permission matrices now match the database contract: Kitchen, Manager, Purchasing, Finance, and the protected Super Admin path may confirm Qty Sent; Outlet Staff never receive that permission. Kitchen also retains company-wide Outlet Daily visibility so the dispatch step is reachable. The Qty Sent field stays disabled for Outlet users and the server RPC remains authoritative.
+
 ### v8.64.147 (unreleased) — Kitchen dispatch visibility closure
 
 Kitchen now receives the company-wide Outlet Daily visibility required to inspect outlet records and confirm Qty Sent before an Outlet submits its own receiving and wastage values. The new forward-only migration 193 is additive and idempotent; Outlet Staff remain outside `view_all` and `qty_sent`. Production read-only UAT on the deployed v8.64.145 surface exposed the previous Kitchen loading/visibility gap; no Production mutation was attempted.

@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.148 (unreleased) - Qty Sent role boundary closure
+
+The permission matrix is now consistent across Production grants and local/mock mode: Kitchen, Manager, Purchasing, Finance, and Super Admin can confirm dispatch quantities; Outlet Staff cannot. The disabled Qty Sent control remains visible for orientation, while the server-side permission check is the final authority.
+
 ## v8.64.147 (unreleased) - Kitchen dispatch visibility closure
 
 The Qty Sent step is owned by Kitchen, but ownership is not useful unless Kitchen can reach the outlet record. The role now receives company-wide Outlet Daily read visibility plus the dedicated Qty Sent permission; the Outlet role remains branch-scoped and read-only for dispatch quantities. This is a forward-only local patch after Production v8.64.145 showed the Kitchen route stuck at `Loading data...`; linked migration and Production promotion remain separate evidence gates.

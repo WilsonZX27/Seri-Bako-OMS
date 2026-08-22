@@ -1,5 +1,10 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.148 Qty Sent role boundary closure (2026-08-22)
+
+- **Implemented (local):** aligned the local/mock role matrix with the database grants: Kitchen, Manager, Purchasing, Finance, and the protected Super Admin path may confirm Qty Sent; Outlet Staff remain excluded. The Outlet form keeps Qty Sent disabled and the server RPC still ignores unauthorised sent values.
+- **Evidence:** the focused Outlet Daily contract now passes 28/28, including an explicit role-matrix assertion. This is source/local evidence only until v8.64.148 is promoted and the Kitchen/Outlet read-only Production regression is rerun.
+
 ## v8.64.147 Kitchen dispatch visibility closure (2026-08-22)
 
 - **Found in Production read-only UAT:** on deployed footer v8.64.145, Kitchen’s `/outlet-daily-records` showed `No outlets in your current scope` with Records/Qty Sent at zero at 390×844, 820×1180, and 1180×820; at 1440×900 it remained `Loading data...` after the read-only wait. An existing outlet record showed the same unresolved loading state. Source review shows Kitchen had the Qty Sent permission but not company-wide `outlet_daily_record.view_all`, so it could not reliably reach outlet records to perform its assigned step.

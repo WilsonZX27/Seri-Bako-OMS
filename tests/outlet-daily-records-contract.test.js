@@ -16,6 +16,7 @@ const inlineValidation = read("supabase/migrations/167_inline_outlet_daily_valid
 const qtySentGuard = read("supabase/migrations/191_guard_outlet_completion_qty_sent.sql");
 const qtySentRoles = read("supabase/migrations/192_grant_qty_sent_to_kitchen_above.sql");
 const kitchenDailyVisibility = read("supabase/migrations/193_grant_kitchen_outlet_daily_visibility.sql");
+const permissions = read("src/server/auth/permissions.ts");
 
 test("operational date reads use the Kuala Lumpur business day", () => {
   const date = read("src/lib/business-date.ts");
@@ -238,6 +239,15 @@ test("Kitchen can see outlet daily records before confirming Qty Sent", () => {
   assert.match(kitchenDailyVisibility, /outlet_daily_record\.qty_sent/);
   assert.match(kitchenDailyVisibility, /on conflict \(role_id, permission_id\) do nothing/);
   assert.doesNotMatch(kitchenDailyVisibility, /outlet_staff/);
+});
+
+test("the role matrix keeps Qty Sent ownership above Outlet in local and mock mode", () => {
+  for (const role of ["finance", "manager", "purchasing", "kitchen"]) {
+    const roleBlock = permissions.match(new RegExp(`${role}: \\[([\\s\\S]*?)\\]`))?.[1] ?? "";
+    assert.match(roleBlock, /outlet_daily_record\.qty_sent/);
+  }
+  const outletBlock = permissions.match(/outlet_staff: \[([\s\S]*?)\]/)?.[1] ?? "";
+  assert.doesNotMatch(outletBlock, /outlet_daily_record\.qty_sent/);
 });
 
 test("outlet list keeps updated date and time readable instead of concatenating them", () => {

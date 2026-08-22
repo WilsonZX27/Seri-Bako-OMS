@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.149 (unreleased) - Kitchen dispatch visibility closure
+
+The Kitchen path now has a complete disclosure chain: the role can see Outlet Daily records, the Qty Sent control is enabled, and Outlet-owned Received/Wastage fields remain disabled. The fix is scoped to Outlet Daily RLS policies through `can_access_outlet_daily_branch`; the generic company-branch helper is intentionally unchanged so Kitchen access does not spill into unrelated tenant surfaces.
+
 ## v8.64.148 (unreleased) - Qty Sent role boundary closure
 
 The permission matrix is now consistent across Production grants and local/mock mode: Kitchen, Manager, Purchasing, Finance, and Super Admin can confirm dispatch quantities; Outlet Staff cannot. The disabled Qty Sent control remains visible for orientation, while the server-side permission check is the final authority. The local role fixture also verifies that Kitchen cannot edit Outlet-owned Received or Wastage values.

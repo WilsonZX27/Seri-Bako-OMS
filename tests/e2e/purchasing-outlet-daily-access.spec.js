@@ -124,6 +124,14 @@ test.describe("Purchasing company-wide outlet daily access", () => {
     await expect(wastage).toBeDisabled();
     await expect(page.getByRole("button", { name: /Save Qty Sent/i })).toBeVisible();
 
+    const beforeSave = await admin
+      .from("outlet_daily_record_lines")
+      .select("morning_received_qty,wastage_qty")
+      .eq("record_id", fixture.recordId)
+      .eq("product_id", fixture.productId)
+      .single();
+    if (beforeSave.error) throw beforeSave.error;
+
     const saveResult = await kitchenDb.rpc("save_outlet_daily_record", {
       p_record_id: fixture.recordId,
       p_branch_id: fixture.branch.id,
@@ -138,7 +146,7 @@ test.describe("Purchasing company-wide outlet daily access", () => {
     expect(Number(saved.data.qty_sent)).toBe(14);
     expect(saved.data.qty_sent_confirmed).toBe(true);
     expect(saved.data.qty_sent_source).toBe("authorized_confirmed");
-    expect(Number(saved.data.morning_received_qty)).toBe(10);
-    expect(Number(saved.data.wastage_qty)).toBe(1);
+    expect(Number(saved.data.morning_received_qty)).toBe(Number(beforeSave.data.morning_received_qty));
+    expect(Number(saved.data.wastage_qty)).toBe(Number(beforeSave.data.wastage_qty));
   });
 });

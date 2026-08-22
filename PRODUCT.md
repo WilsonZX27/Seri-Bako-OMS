@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.149 (unreleased) — Kitchen Qty Sent visibility closure
+
+Kitchen can now reach company-wide Outlet Daily records before confirming dispatch quantities. The dedicated Qty Sent permission grant is preserved, while the Outlet Daily RLS policies use the outlet-specific access helper rather than the generic tenant branch helper; no unrelated Kitchen company-wide table access is broadened. Local disposable E2E remains the evidence boundary until migration 194 is applied and Production read-only regression is rerun.
+
 ### v8.64.148 (unreleased) — Qty Sent role boundary closure
 
 The local and mock permission matrices now match the database contract: Kitchen, Manager, Purchasing, Finance, and the protected Super Admin path may confirm Qty Sent; Outlet Staff never receive that permission. Kitchen also retains company-wide Outlet Daily visibility so the dispatch step is reachable. The Qty Sent field stays disabled for Outlet users and the server RPC remains authoritative. The disposable local E2E fixture now exercises Kitchen confirmation while keeping Received and Wastage read-only.
@@ -22,7 +26,7 @@ Purchase Request detail now explains unresolved non-catalog lines at the Validat
 
 ### v8.64.143 (unreleased) — Qty Sent completion guard
 
-Outlet Daily cannot be marked Posted while any line lacks an authorised Qty Sent confirmation. A Kitchen or authorised company-wide operator must confirm every line first; an Outlet receives a bounded, product-anchored correction message instead of a false completed record. Local Supabase migrations 191–193 now guard completion, grant Qty Sent ownership to Kitchen-and-above roles, and give Kitchen the visibility required to use it. Repository migrations reviewed through `193`; this is local evidence only until the user applies migrations 191–193 and Production read-only regression is rerun; the six-role mutation boundary remains awaiting Production mutation UAT.
+Outlet Daily cannot be marked Posted while any line lacks an authorised Qty Sent confirmation. A Kitchen or authorised company-wide operator must confirm every line first; an Outlet receives a bounded, product-anchored correction message instead of a false completed record. Local Supabase migrations 191–194 now guard completion, grant Qty Sent ownership to Kitchen-and-above roles, give Kitchen the visibility required to use it, and scope the Outlet Daily RLS repair without broadening generic tenant access. Repository migrations reviewed through `194`; this is local evidence only until the user applies migrations 191–194 and Production read-only regression is rerun; the six-role mutation boundary remains awaiting Production mutation UAT.
 
 ### v8.64.142 (deployed) — Dashboard snapshot cleanup
 
@@ -311,7 +315,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `193`; this is not evidence that migrations 191, 192, or 193 are applied to the linked Production project.
+Repository migration authority: migrations reviewed through `194`; this is not evidence that migrations 191–194 are applied to the linked Production project.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

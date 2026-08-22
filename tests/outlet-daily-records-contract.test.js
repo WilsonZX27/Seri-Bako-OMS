@@ -16,6 +16,7 @@ const inlineValidation = read("supabase/migrations/167_inline_outlet_daily_valid
 const qtySentGuard = read("supabase/migrations/191_guard_outlet_completion_qty_sent.sql");
 const qtySentRoles = read("supabase/migrations/192_grant_qty_sent_to_kitchen_above.sql");
 const kitchenDailyVisibility = read("supabase/migrations/193_grant_kitchen_outlet_daily_visibility.sql");
+const kitchenDailyRls = read("supabase/migrations/194_fix_kitchen_outlet_daily_rls_scope.sql");
 const permissions = read("src/server/auth/permissions.ts");
 const outletDailyE2e = read("tests/e2e/purchasing-outlet-daily-access.spec.js");
 
@@ -240,6 +241,14 @@ test("Kitchen can see outlet daily records before confirming Qty Sent", () => {
   assert.match(kitchenDailyVisibility, /outlet_daily_record\.qty_sent/);
   assert.match(kitchenDailyVisibility, /on conflict \(role_id, permission_id\) do nothing/);
   assert.doesNotMatch(kitchenDailyVisibility, /outlet_staff/);
+});
+
+test("Kitchen visibility is scoped to Outlet Daily instead of broadening tenant RLS", () => {
+  assert.match(kitchenDailyRls, /drop policy if exists "tenant outlet daily records"/);
+  assert.match(kitchenDailyRls, /public\.can_access_outlet_daily_branch\(branch_id\)/);
+  assert.match(kitchenDailyRls, /drop policy if exists "tenant outlet daily record lines"/);
+  assert.match(kitchenDailyRls, /public\.can_access_outlet_daily_branch\(r\.branch_id\)/);
+  assert.doesNotMatch(kitchenDailyRls, /can_access_company_branch\(/);
 });
 
 test("the role matrix keeps Qty Sent ownership above Outlet in local and mock mode", () => {

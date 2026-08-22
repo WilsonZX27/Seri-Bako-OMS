@@ -40,3 +40,12 @@ test("request detail resolves current branch supplier mappings for legacy lines"
   assert.match(page, /PurchaseRequestLineRecovery/);
   assert.doesNotMatch(page, /No supplier suggested/);
 });
+
+test("non-catalog lines explain the non-blocking sourcing handoff", () => {
+  assert.match(page, /unresolvedSourcingNotice/);
+  assert.match(page, /still need a Purchasing match/);
+  assert.match(page, /Manager approval can continue; Purchasing must match these lines before Finance review/);
+  assert.match(page, /Resolve these lines before sending the request to Finance review/);
+  assert.match(page, /These lines must be matched before the request can be converted to a purchase order/);
+  assert.match(page, /role="status"/);
+});

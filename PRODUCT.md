@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.64.144 (unreleased) — PR sourcing handoff clarity
+
+Purchase Request detail now explains unresolved non-catalog lines at the Validation / Next Step surface. Manager approval can continue as a non-blocking handoff, while Purchasing is explicitly told to match the affected lines before Finance review and PO conversion. The notice preserves progressive sourcing without hiding the next operational responsibility. Local and authenticated Production read-only evidence remain separate gates.
+
 ### v8.64.143 (unreleased) — Qty Sent completion guard
 
 Outlet Daily cannot be marked Posted while any line lacks an authorised Qty Sent confirmation. A Kitchen or authorised company-wide operator must confirm every line first; an Outlet receives a bounded, product-anchored correction message instead of a false completed record. Local Supabase migration 191 and the contract guard are added. Repository migrations reviewed through `191`; this is local evidence only until the user applies migration 191 and Production read-only regression is rerun; the six-role mutation boundary remains awaiting Production mutation UAT.

@@ -1,5 +1,12 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## v8.64.144 local closure patch — PR sourcing handoff clarity
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| Non-catalog PR lines explain the non-blocking handoff before approval. | verified locally / Production read-only observed, deployment pending | The PR detail side rail now names the unresolved count and explains whether Purchasing must match lines before Finance review or PO conversion. Production Manager read-only inspection of PR/AUG26/018 exposed the previous ambiguity: 11 `Purchasing match required` lines with only “Manager approves the purchase need.” A focused contract test now protects the new wording. No Production mutation was performed. |
+| Footer and release records remain synchronized. | implemented locally | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger carry v8.64.144. |
+
 ## v8.64.143 local closure patch — Qty Sent completion guard
 
 | Acceptance | Status | Evidence / remaining gate |

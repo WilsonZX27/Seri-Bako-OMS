@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.64.144 (unreleased) - Explicit PR sourcing handoff
+
+When a saved PR contains non-catalog lines, the side rail keeps the approval action available but adds a warning with the affected count and the responsible next role. The copy distinguishes “approval can continue” from “matching is required before Finance/PO”, so progressive disclosure does not become silent workflow debt.
+
 ## v8.64.143 (unreleased) - Explicit Qty Sent readiness
 
 Outlet completion uses a truthful progressive disclosure boundary: the completion action remains available, but the server refuses to post until every line has an authorised Qty Sent fact. The error names the affected product and tells the operator which role can correct it. This prevents a disabled field from silently becoming numeric zero and keeps the daily record state aligned with the underlying data. Local migration 191 and contract evidence are not Production proof until linked migration and read-only regression are complete.

@@ -184,6 +184,21 @@ export default async function PurchaseRequestDetailPage({
     {deleteControl}
   </div> : null;
   const nextStep = prSteps.find((step) => step.key === getPrWorkflowStep(request.status))?.description;
+  const unresolvedSourcingNotice = unresolvedLines.length ? (
+    <div className="flex items-start gap-2 rounded-[var(--sb-radius-control)] bg-[var(--sb-warning-bg)] p-2.5" role="status">
+      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--sb-warning)]" aria-hidden="true" />
+      <div className="min-w-0">
+        <p className="text-xs font-semibold text-[var(--sb-text)]">{unresolvedLines.length} item{unresolvedLines.length === 1 ? "" : "s"} still need a Purchasing match.</p>
+        <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">
+          {request.status === "manager_review"
+            ? "Manager approval can continue; Purchasing must match these lines before Finance review."
+            : request.status === "admin_review"
+              ? "Resolve these lines before sending the request to Finance review."
+              : "These lines must be matched before the request can be converted to a purchase order."}
+        </p>
+      </div>
+    </div>
+  ) : null;
   const mobilePrimaryAction = canSubmit
     ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..."><Send className="h-4 w-4" aria-hidden="true" />Submit PR</DocumentActionForm>
     : canManagerReview
@@ -229,7 +244,12 @@ export default async function PurchaseRequestDetailPage({
             ) : null}
             {!hasPrimaryAction ? <p className="text-xs text-muted-foreground">You can view this document, but there is no workflow action available for your role or this status.</p> : null}
           </DocumentActionSection>
-          <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{nextStep ?? "No further workflow step is available."}</p></DocumentSideSection>
+          <DocumentSideSection title="Validation / Next Step">
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground">{nextStep ?? "No further workflow step is available."}</p>
+              {unresolvedSourcingNotice}
+            </div>
+          </DocumentSideSection>
           {documentBundle ? (
             <>
               <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supporting Attachments" defaultLabel="Purchase Request Attachment" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} />

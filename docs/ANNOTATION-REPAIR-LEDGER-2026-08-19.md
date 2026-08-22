@@ -11,6 +11,8 @@
 
 | Production Outlet Daily blocks Posted while Qty Sent is missing. | awaiting migration 191 / Production UAT | Read-only Production list still contains `Posted` rows with `Qty Sent: Missing` and `Needs entry` (including the current Outlet test record). This is the exact pre-191 behavior; the local guard is not claimed as deployed until migration 191 is applied and the same read-only check is rerun. |
 
+Read-only downstream Production checks also remain coherent: PR list defaults to natural latest document order (`PR/AUG26/019`, `018`, `017`, …), PR/AUG26/019 shows the requested-line summary and links to `TEST-PO-PR019-20260822`, PO detail has one visible phone action rail with `Send to Supplier` (not clicked because it is an external side effect), and GRN new shows Purchase UOM/Base UOM inputs plus the required Delivery Order-before-posting guidance. PR new exposes readable Supplier, searchable item combobox, controlled UOM, and urgency controls with `overflow=0` at the inspected phone viewport. These checks are read-only and current deployment evidence only.
+
 ## v8.64.143 local closure patch — Qty Sent completion guard
 
 | Acceptance | Status | Evidence / remaining gate |

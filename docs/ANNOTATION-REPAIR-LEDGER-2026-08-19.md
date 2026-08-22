@@ -4,8 +4,8 @@
 
 | Acceptance | Status | Evidence / remaining gate |
 |---|---|---|
-| Dashboard does not repeat role-specific snapshots already owned by canonical panels. | implemented locally / Production awaiting promotion | Finance, Kitchen, and Purchasing role micro-chart data was removed from the dashboard consumer because it repeated Payables, Operational pipeline, and Exceptions values. The standalone component remains unmounted until a genuinely distinct trend source exists. Focused dashboard contracts passed 9/9; the full local suite passed 848/848, strict typecheck, lint, and production build passed. Authenticated six-role/four-viewport Production UAT remains open. |
-| Footer and release records remain synchronized. | implemented locally | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger carry v8.64.142. |
+| Dashboard does not repeat role-specific snapshots already owned by canonical panels. | production deployed / authenticated UAT awaiting | Finance, Kitchen, and Purchasing role micro-chart data was removed from the dashboard consumer because it repeated Payables, Operational pipeline, and Exceptions values. The standalone component remains unmounted until a genuinely distinct trend source exists. Focused dashboard contracts passed 9/9; the full local suite passed 848/848, strict typecheck, lint, and production build passed. Read-only Production smoke reaches 15 audited routes with HTTP 200 and footer `v8.64.142`; authenticated six-role/four-viewport UAT remains open. |
+| Footer and release records remain synchronized. | production deployed | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger carry v8.64.142. |
 
 ## v8.64.141 dashboard signal deduplication
 

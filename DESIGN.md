@@ -1,8 +1,8 @@
 # Seri Bako OMS responsive design standard
 
-## v8.64.142 (unreleased) - Dashboard snapshot cleanup
+## v8.64.142 (deployed) - Dashboard snapshot cleanup
 
-Do not render a role micro-chart from the dashboard when its values duplicate Payables, Operational pipeline, or Exceptions. Canonical panels own the actionable signal and drill-through; a future trend card must bring a genuinely distinct, time-based data source. The standalone component is retained as a reusable candidate, but is not mounted in the current dashboard. Footer remains the concise `v8.64.142` token; Production promotion and authenticated role regression are pending.
+Do not render a role micro-chart from the dashboard when its values duplicate Payables, Operational pipeline, or Exceptions. Canonical panels own the actionable signal and drill-through; a future trend card must bring a genuinely distinct, time-based data source. The standalone component is retained as a reusable candidate, but is not mounted in the current dashboard. Read-only Production smoke reaches 15 audited routes with footer `v8.64.142`; authenticated role regression remains pending.
 
 ## v8.64.141 (deployed) - Dashboard signal deduplication
 

@@ -7,6 +7,10 @@
 | Non-catalog PR lines explain the non-blocking handoff before approval. | verified locally / Production read-only observed, deployment pending | The PR detail side rail now names the unresolved count and explains whether Purchasing must match lines before Finance review or PO conversion. Production Manager read-only inspection of PR/AUG26/018 exposed the previous ambiguity: 11 `Purchasing match required` lines with only “Manager approves the purchase need.” A focused contract test now protects the new wording. No Production mutation was performed. |
 | Footer and release records remain synchronized. | implemented locally | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger carry v8.64.144. |
 
+| Production six-role dashboard matrix is role-scoped and responsive. | production verified (read-only) | Super Admin, Manager, Purchasing, Finance, Kitchen, and Outlet sessions were each inspected at 390×844, 820×1180, 1180×820, and 1440×900. Every viewport reported `overflow=0`; compact viewports kept one `position: fixed` bottom nav at `bottom=0`, desktop hid it; role actions remained scoped (Manager review/receiving/count, Purchasing PR/PO/receiving, Finance PR/invoices/stock, Kitchen request/production/receiving, Outlet daily record/history/activity, Owner approval/AP/count). No mutation was performed in this matrix. |
+
+| Production Outlet Daily blocks Posted while Qty Sent is missing. | awaiting migration 191 / Production UAT | Read-only Production list still contains `Posted` rows with `Qty Sent: Missing` and `Needs entry` (including the current Outlet test record). This is the exact pre-191 behavior; the local guard is not claimed as deployed until migration 191 is applied and the same read-only check is rerun. |
+
 ## v8.64.143 local closure patch — Qty Sent completion guard
 
 | Acceptance | Status | Evidence / remaining gate |

@@ -4,7 +4,7 @@
 
 - **Found in local E2E:** Kitchen had the dedicated `view_all` and `qty_sent` role grants, but the tenant closure policy still called the generic `can_access_company_branch` helper, whose company-wide role allow-list intentionally excludes Kitchen. The record detail therefore failed closed with an empty source and Qty Sent never rendered.
 - **Implemented (local):** migration 194 replaces only the two Outlet Daily read policies and routes them through `can_access_outlet_daily_branch`; no generic tenant helper or unrelated table policy is broadened. Outlet Staff remains branch-scoped and without Qty Sent permission.
-- **Evidence:** migration replay applied 001–194 locally; the first local run had 2/3 tests pass and exposed this RLS gap. The Kitchen test remains a required rerun after the policy fix. Production footer/migration state is not inferred from this local result and no Production mutation was attempted.
+- **Evidence:** migration replay applied 001–194 locally; the first local run had 2/3 tests pass and exposed this RLS gap, then the fixed local rerun passed 3/3. The six-role permission suite passed 8/8, and the six-role responsive workdesk suite passed 6/6 across its compact and desktop widths. Production footer/migration state is not inferred from this local result and no Production mutation was attempted.
 
 ## v8.64.148 Qty Sent role boundary closure (2026-08-22)
 

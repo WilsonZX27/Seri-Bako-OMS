@@ -1,8 +1,8 @@
 # Seri Bako OMS responsive design standard
 
-## v8.64.141 (unreleased) - Dashboard signal deduplication
+## v8.64.141 (deployed) - Dashboard signal deduplication
 
-Owner and Manager dashboards no longer show a repeated Operational trend card for stock counts, wastage, or outlet completion. Those signals stay in Today&apos;s work and Exceptions, where the operator has one clear owner surface and one drill-through. Footer remains the concise `v8.64.141` token; Production promotion is required before UAT.
+Owner and Manager dashboards no longer show a repeated Operational trend card for stock counts, wastage, or outlet completion. Those signals stay in Today&apos;s work and Exceptions, where the operator has one clear owner surface and one drill-through. Read-only Production route smoke now confirms footer `v8.64.141`; authenticated role regression remains pending.
 
 ## v8.64.140 (deployed) - Keyboard-safe tablet navigation
 

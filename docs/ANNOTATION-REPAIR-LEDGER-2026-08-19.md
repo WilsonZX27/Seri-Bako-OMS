@@ -4,8 +4,8 @@
 
 | Acceptance | Status | Evidence / remaining gate |
 |---|---|---|
-| Owner and Manager dashboards do not repeat the same exception metrics in a second trend card. | implemented locally / Production awaiting promotion | The duplicate Operational trend card is removed for the roles whose canonical Today&apos;s work and Exceptions surfaces already own stock-count, wastage, and outlet-completion signals. The focused contract and full static gate must pass before promotion. |
-| Footer and release records remain synchronized. | implemented locally | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.141. |
+| Owner and Manager dashboards do not repeat the same exception metrics in a second trend card. | production deployed / authenticated UAT awaiting | The duplicate Operational trend card is removed for the roles whose canonical Today&apos;s work and Exceptions surfaces already own stock-count, wastage, and outlet-completion signals. Read-only Production route smoke now reaches the audited pages with HTTP 200 and footer `v8.64.141`; screenshot-level authenticated regression remains pending. |
+| Footer and release records remain synchronized. | production deployed | `PRODUCT.md`, `DESIGN.md`, `package.json`, `package-lock.json`, `src/lib/app-version.ts`, and this ledger now carry v8.64.141. |
 
 ## v8.64.140 keyboard-safe tablet closure
 

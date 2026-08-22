@@ -1,8 +1,8 @@
 # Seri Bako Operations Management System
 
-### v8.64.141 (unreleased) — Dashboard signal deduplication
+### v8.64.141 (deployed) — Dashboard signal deduplication
 
-Owner and Manager dashboards no longer render a second Operational trend card that repeats the same stock-count, wastage, and outlet-completion values already owned by Today&apos;s work and Exceptions. Each signal now has one primary surface and one drill-through. Promote this patch before Production UAT; v8.64.140 remains the currently deployed release until promotion.
+Owner and Manager dashboards no longer render a second Operational trend card that repeats the same stock-count, wastage, and outlet-completion values already owned by Today&apos;s work and Exceptions. Each signal now has one primary surface and one drill-through. Production route smoke now serves footer `v8.64.141`; authenticated six-role UAT remains separate.
 
 ### v8.64.140 (deployed) — Keyboard-safe tablet navigation
 

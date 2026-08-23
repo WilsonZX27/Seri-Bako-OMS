@@ -1,10 +1,24 @@
 # Seri Bako Operations Management System
 
+## Current closure policy (2026-08-23)
+
+Production UAT mutation is now Owner-authorized only when it is traceable, isolated, recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, and cleaned up after verification. Historical release notes that describe Production mutation as unauthorized remain historical evidence and are superseded by this current policy.
+
+### v8.64.156 (unreleased) — Converted PO cleanup boundary
+
+Converted purchase orders that have not been sent or posted now retain the audited `Delete unposted order` action. This keeps the normal cancellation path available for operator corrections and traceable UAT cleanup; it does not permit cancellation after supplier sending, receiving, or accounting impact.
+
+### Production UAT checkpoint (2026-08-23, current evidence)
+
+The authorized Production mutation run completed the real PR workflow for the isolated fixture `PR/AUG26/020`: WILSON created and submitted it, TEST MANAGER completed Manager Review, TEST PURCHASE completed Purchasing Review and converted it, and TEST-FINANCE completed Finance Review. The resulting approved PO is `UAT-20260823-PO-001` (`4fac5716-8c99-46a3-8ed3-80c015804bc6`), still unsent and unreceived. No inventory, GRN, invoice, payment, or supplier-send effect was created. The record remains explicitly retained in the UAT manifest until the v8.64.156 audited cancellation action is promoted; this is not a production-verified cleanup or a v9 trigger. The local release is ready, but repository permissions currently prevent staging/commit/push from this session.
+
 ### v8.64.155 (unreleased) — Stock Count compact control fix
 
 Stock Count quantity controls now preserve a readable 40px input on the 390px phone card: the +/- controls use the shared compact 40px touch target and the group closes its small-screen gap before the UOM label. Desktop and tablet rhythm remains unchanged. Local responsive evidence is required before this batch is considered complete; Production regression remains separate.
 
-Production read-only UAT is now connected through Chrome for Testing. The deployed host reports footer v8.64.148, so it is behind the local v8.64.155 source. Six authorized role dashboards were checked at 390×844, 820×1180, 1180×820, and 1440×900 with no horizontal overflow and correct fixed-navigation geometry. Kitchen still has no visible Outlet Daily scope on the deployed build, and Outlet phone/portrait dashboards can remain on Loading data; these are awaiting deployment/regression findings, not production verified.
+The earlier read-only checkpoint below recorded the then-deployed v8.64.148 surface; it is historical evidence and is superseded for current status by the authenticated UAT checkpoint above. The remaining closure gate still includes promoted-version parity, Kitchen scope, Outlet loading, and safe cleanup of the isolated UAT PO.
+
+Local E2E fixture hygiene: the disposable records and six local test identities used for this closure audit were removed from the local Supabase target after verification. `scripts/cleanup-local-e2e.mjs` is local-only and refuses non-local database URLs; no Production data was mutated.
 
 ### v8.64.154 (unreleased) — Local workflow audit hardening
 

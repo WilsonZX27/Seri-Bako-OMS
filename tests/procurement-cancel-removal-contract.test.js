@@ -22,4 +22,5 @@ test("unposted procurement cancellation removes active work through dedicated RP
   assert.match(actions, /rpc\("cancel_purchase_order_atomic"/);
   assert.match(prDetail, /Delete unposted request/);
   assert.match(poDetail, /Delete unposted order/);
+  assert.match(poDetail, /const canCancel = \["draft", "pending_approval", "approved"\]\.includes\(order\.status\)/);
 });

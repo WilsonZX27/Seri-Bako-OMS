@@ -57,7 +57,10 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
     (order.status === "approved" && permissions["po.send"]) ||
     (["sent", "partial_received"].includes(order.status) && permissions["po.receive"]);
   const canReject = !fromApprovedPr && order.status === "pending_approval" && permissions["po.approve"];
-  const canCancel = !fromApprovedPr && ["draft", "pending_approval", "approved"].includes(order.status) && permissions["purchase_order.cancel"];
+  // A PO converted from an approved PR is still unposted work until it is sent.
+  // Keep the audited cancellation path available so traceable UAT and operator
+  // corrections do not require a hidden database-only cleanup.
+  const canCancel = ["draft", "pending_approval", "approved"].includes(order.status) && permissions["purchase_order.cancel"];
   const canClose = ["partial_received", "received"].includes(order.status) && permissions["purchase_order.close"];
   const secondaryActions = canCancel || canReject || canClose ? <div className="space-y-2">{canCancel ? <DocumentActionForm action={cancelPurchaseOrder.bind(null, order.id)} pendingLabel="Deleting unposted order..." variant="destructive">Delete unposted order</DocumentActionForm> : null}{canReject ? <DocumentActionForm action={rejectPurchaseOrder.bind(null, order.id)} pendingLabel="Rejecting..." variant="destructive">Reject purchase order</DocumentActionForm> : null}{canClose ? <DocumentActionForm action={closePurchaseOrder.bind(null, order.id)} pendingLabel="Closing..." variant="outline">Close purchase order</DocumentActionForm> : null}</div> : null;
   const nextStep = (fromApprovedPr ? convertedPoSteps : poSteps).find((step) => step.key === order.status)?.description;

@@ -1,11 +1,32 @@
 # Annotation Repair Ledger — 2026-08-19
 
-## Production read-only UAT checkpoint (2026-08-23)
+## Current closure policy (2026-08-23)
+
+- The Owner has now authorized traceable Production mutation for UAT. This supersedes older historical notes that said Production mutation was not authorized, but it does not erase those historical evidence boundaries.
+- Production test data must use the manifest at `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, dedicated `UAT-20260823-*` identifiers or explicit `PRODUCTION-UAT` remarks, and a cleanup result before the related ledger row can be marked `production verified`.
+- Posted inventory, accounting, payment, and real operational records remain protected. If a mutation cannot be reversed or safely cleaned, stop and report it.
+
+## v8.64.156 Converted PO cleanup boundary (2026-08-23)
+
+- **Found in Production UAT:** a PR-converted, approved, unsent PO hid `Delete unposted order` because the detail page treated every converted PR as non-cancellable, even though the audited cancellation RPC already accepts approved unposted POs.
+- **Fixed locally:** the action rail now exposes the existing status-gated cancellation path for `draft`, `pending_approval`, and `approved` POs, including converted PR POs. Sending, receiving, and posted/accounting states remain protected.
+- **Evidence boundary:** Production UAT created `UAT-20260823-PO-001` from `PR/AUG26/020`; it was not sent or received. Cleanup is pending local source promotion because the deployed Production footer changed during this run and the new action is not yet deployed.
+- **Current run result:** the authenticated sequence WILSON → TEST MANAGER → TEST PURCHASE → TEST-FINANCE completed PR creation, Manager Review, Purchasing Review, Finance Review, and conversion. The PO is retained only as an isolated, unsent, unreceived UAT record; it is not marked `production verified` until audited cancellation and zero-row cleanup evidence are available.
+- **Release gate:** local source, docs, contract suite, typecheck, lint, build, and diff-check are ready, but this worktree cannot create `.git/index.lock` (`Permission denied`), so v8.64.156 has not been staged, committed, pushed, or promoted from this session.
+
+## Local E2E fixture cleanup (2026-08-23)
+
+- **Completed:** removed the disposable local E2E business records created for this closure run, including PR/document fixtures, Outlet Daily records, receiving/invoice/return support, stock count/transfer/wastage dependencies, E2E supplier/item/product/branch records, and the six local test identities with their staff/audit dependencies.
+- **Safety boundary:** cleanup ran only against `NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:55431`; `scripts/cleanup-local-e2e.mjs` refuses non-local targets. No Production rows, accounts, or business documents were deleted.
+- **Verification:** cleanup was rerun idempotently and returned zero remaining fixture rows. Local E2E fixtures are now absent; future local audits must explicitly reprovision them and clean them again after use.
+- **Evidence state:** this is test-data hygiene, not Production verification. The Production UAT boundary below remains unchanged.
+
+## Earlier Production read-only UAT checkpoint (2026-08-23; historical, superseded for current status)
 
 - **Authenticated evidence:** Chrome for Testing was connected through DevTools and six authorized roles were inspected at `390×844`, `820×1180`, `1180×820`, and `1440×900`. All checked dashboards reported `scrollWidth === clientWidth`; phone/portrait/landscape tablet navigation was fixed with `bottom=0`, and the 1440px desktop navigation was hidden. This proves shell geometry only, not workflow mutation.
 - **Role surfaces:** Manager opened a real Manager Review PR and exposed the Manager approval action without Finance actions; Purchasing opened PR/AUG26/014 with supplier/UOM attention rows and no horizontal overflow; Finance opened Supplier Invoices at 390px with its invoice/AP actions; Outlet Daily new for Outlet Staff kept every Qty Sent input disabled while Received/Wastage remained enabled.
-- **Deployed findings:** the Production footer is `v8.64.148`, behind local v8.64.155. Kitchen `/outlet-daily-records` reports `No outlets in your current scope` with zero records; Outlet `/dashboard` remained `Loading data...` at 390×844 and 820×1180 after a 7-second settle, while its direct daily-entry surface loaded. These findings keep the Production closure gate open and require the promoted build/migration regression to be rerun.
-- **Boundary:** no Production business mutation was executed. Local mutation evidence remains authoritative for Qty Sent ownership and progressive workflows; Production remains `awaiting UAT` for role workflow mutation, deployed version parity, Kitchen visibility, and Outlet dashboard loading.
+- **Deployed findings:** this checkpoint observed the then-deployed footer `v8.64.148`, behind local v8.64.155. Kitchen `/outlet-daily-records` reported `No outlets in your current scope` with zero records; Outlet `/dashboard` remained `Loading data...` at 390×844 and 820×1180 after a 7-second settle, while its direct daily-entry surface loaded. These findings remain valid historical regression evidence and require a fresh check after the promoted build/migration.
+- **Boundary:** the checkpoint itself was read-only. The later traceable mutation run is recorded in the current v8.64.156 entry above; Production remains open for promoted-version parity, Kitchen visibility, Outlet dashboard loading, and safe UAT cleanup.
 
 ## v8.64.155 Stock Count compact control fix (2026-08-23)
 

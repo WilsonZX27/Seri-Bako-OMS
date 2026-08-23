@@ -10,7 +10,7 @@ The PO action rail keeps `Delete unposted order` visible for converted PR purcha
 
 ## v8.64.157 (unreleased) - Kitchen Outlet Daily branch visibility
 
-Kitchen's Outlet Daily workdesk now has a narrow RLS read path for active outlet branch labels, gated by the existing `outlet_daily_record.view_all` permission and company scope. This repairs the branch-list prerequisite without broadening generic branch administration. Production migration 195 is applied and the four-viewport Kitchen Qty Sent read-only check passes; only the v8.64.157 footer deployment remains pending.
+Kitchen's Outlet Daily workdesk now has a narrow RLS read path for active outlet branch labels, gated by the existing `outlet_daily_record.view_all` permission and company scope. This repairs the branch-list prerequisite without broadening generic branch administration. Production migration 195, v8.64.157 deployment, and the four-viewport Kitchen Qty Sent read-only check all pass.
 
 ## Production UAT checkpoint (2026-08-23, current evidence)
 
@@ -22,7 +22,7 @@ On the 390px Stock Count surface, quantity entry keeps a minimum 40px readable f
 
 The first authenticated Production UAT checkpoint confirms the responsive shell itself is contained across all six roles and four target viewports: phone and tablet navigation remains fixed at the physical bottom edge, while desktop hides it. The earlier v8.64.148 footer observation is retained as historical evidence; current closure still requires promoted-version parity, Kitchen scope, Outlet dashboard loading, and UAT cleanup.
 
-Test-data hygiene: the local disposable E2E records and six test identities used by the audit were removed after verification. `scripts/cleanup-local-e2e.mjs` is guarded to `127.0.0.1`/`localhost` and cannot target Production. The current Production read-only batch confirms four-viewport dashboard geometry for Owner, Manager, Purchasing, Finance, and Outlet; Kitchen is stable but its only account is scoped to central kitchens, so Outlet Daily correctly reports no outlet scope until an authorised outlet assignment exists.
+Test-data hygiene: the local disposable E2E records and six test identities used by the audit were removed after verification. `scripts/cleanup-local-e2e.mjs` is guarded to `127.0.0.1`/`localhost` and cannot target Production. The current Production read-only batch confirms four-viewport dashboard/workspace geometry for all six roles; Kitchen sees the outlet matrix and can edit only Qty Sent while Outlet Staff remain unable to edit it.
 
 ## v8.64.154 (unreleased) - Local workflow audit hardening
 

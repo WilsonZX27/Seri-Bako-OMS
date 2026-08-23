@@ -10,7 +10,7 @@ Converted purchase orders that have not been sent or posted now retain the audit
 
 ### v8.64.157 (unreleased) — Kitchen Outlet Daily branch visibility
 
-Kitchen already owned the explicit Outlet Daily visibility and Qty Sent permissions, but the tenant `branches` RLS policy filtered Kitchen out before the form could resolve outlet labels. Migration 195 adds a narrow, company-scoped read policy for `branch_type = 'outlet'` gated only by `outlet_daily_record.view_all`; it does not grant generic branch administration. Production migration application and Kitchen four-viewport Qty Sent read-only UAT now pass; the deployed footer remains v8.64.156 until the v8.64.157 app deployment completes.
+Kitchen already owned the explicit Outlet Daily visibility and Qty Sent permissions, but the tenant `branches` RLS policy filtered Kitchen out before the form could resolve outlet labels. Migration 195 adds a narrow, company-scoped read policy for `branch_type = 'outlet'` gated only by `outlet_daily_record.view_all`; it does not grant generic branch administration. Production migration application, v8.64.157 deployment, and Kitchen four-viewport Qty Sent read-only UAT now pass.
 
 ### Production UAT checkpoint (2026-08-23, current evidence)
 
@@ -20,7 +20,7 @@ The authorized Production mutation run completed the real PR workflow for the is
 
 Stock Count quantity controls now preserve a readable 40px input on the 390px phone card: the +/- controls use the shared compact 40px touch target and the group closes its small-screen gap before the UOM label. Desktop and tablet rhythm remains unchanged. Local responsive evidence is required before this batch is considered complete; Production regression remains separate.
 
-The earlier read-only checkpoint below recorded the then-deployed v8.64.148 surface; it is historical evidence and is superseded for current status by the authenticated UAT checkpoint above. The current six-role read-only batch confirms Owner, Manager, Purchasing, Finance, and Outlet dashboards at all four target viewports with no horizontal overflow or settled loading state; Outlet Daily also keeps Qty Sent unavailable to Outlet Staff. Kitchen's Outlet Daily surface is geometrically stable but has no outlet scope because the only Production Kitchen account is assigned to the two central kitchens, not an outlet. This is a real Production assignment gate, not a reason to fabricate `production verified` or broaden permissions in code.
+The earlier read-only checkpoint below recorded the then-deployed v8.64.148 surface; it is historical evidence and is superseded for current status by the authenticated UAT checkpoint above. The current six-role read-only batch confirms Owner, Manager, Purchasing, Finance, Kitchen, and Outlet dashboards/workspaces at all four target viewports with no horizontal overflow or settled loading state. Outlet Daily keeps Qty Sent unavailable to Outlet Staff; Kitchen sees the outlet matrix and has 51 enabled Qty Sent controls while Received/Wastage remain read-only. No Production business values were changed during this final check.
 
 Local E2E fixture hygiene: the disposable records and six local test identities used for this closure audit were removed from the local Supabase target after verification. `scripts/cleanup-local-e2e.mjs` is local-only and refuses non-local database URLs; no Production data was mutated.
 

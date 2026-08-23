@@ -391,7 +391,7 @@ thead th {
 }
 
 tbody tr {
-  transition: background-color 120ms ease, box-shadow 120ms ease;
+  transition: background-color var(--sb-motion-fast) ease, box-shadow var(--sb-motion-fast) ease;
 }
 
 tbody tr:hover {

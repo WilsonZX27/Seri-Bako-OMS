@@ -25,6 +25,10 @@ Kitchen's Outlet Daily workdesk now has a narrow RLS read path for active outlet
 
 Page headers use the shared display token with optical sizing and a calmer supporting-copy treatment. The scale is intentionally modest so operational density and touch targets remain unchanged; this batch does not alter workflow authority or status semantics. Local Owner, Manager, Purchasing, Finance, Kitchen, and Outlet checks passed at all four target viewports with no horizontal overflow; mobile navigation remained fixed. Production remains on v8.64.157 until promotion and post-deploy verification.
 
+### v9 batch 02 — Motion and interaction preference (implemented; local acceptance passed)
+
+Shared table feedback now consumes the v9 motion token; the reduced-motion media contract keeps operational state visible while removing animation. The CSS-only change preserves the batch 01 six-role × four-viewport geometry evidence. No workflow, permission, or data behavior changes are included.
+
 ## Production UAT checkpoint (2026-08-23, current evidence)
 
 The isolated Production fixture `PR/AUG26/020` completed the intended review sequence (Manager, Purchasing, Finance) and converted to approved unsent PO `UAT-20260823-PO-001`. After main deployment, the PO was removed through the audited cancellation affordance at 09:31 MYT; the PR remains as audit history. No send, receiving, invoice, payment, or inventory mutation was performed. Historical read-only notes remain historical and do not block current work; this fixture's cleanup is now verified, while the broader six-role workflow gate remains open.

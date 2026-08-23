@@ -27,6 +27,13 @@
 - **Local evidence:** full contract suite `860/860`, TypeScript typecheck, lint, and production build pass after the CSS-only implementation. Disposable local Owner, Manager, Purchasing, Finance, Kitchen, and Outlet sessions were checked at `390×844`, `820×1180`, `1180×820`, and `1440×900`: no horizontal overflow was observed and the primary mobile navigation computed to `position: fixed` at every size. Purchase Requests page-header typography was also checked at all four sizes (`21.6px` phone through `24.288px` desktop).
 - **Evidence boundary:** this is local source evidence only. The v8.64.157 Production surface remains unchanged; Production promotion and a fresh read-only regression are still required before this batch can be marked remote or production verified.
 
+## v9 batch 02 — Motion and interaction preference (implemented; local acceptance passed)
+
+- **Scope:** consume the shared motion token for table feedback; preserve the existing reduced-motion behavior.
+- **Boundary:** visual-only; workflow state, permissions, data, and footer release version remain unchanged.
+- **Local evidence:** focused contract `tests/v9-motion-token-contract.test.js` passes; full contract suite passes `861/861`, typecheck, lint, build, and diff-check are green. Because this is a transition-token-only change, the batch 01 six-role × four-viewport geometry evidence remains valid; no Production surface was changed.
+- **Evidence boundary:** v8.64.157 remains the deployed release; v9 batch 02 is local/audit-branch only until promoted and rechecked.
+
 ## v8.64.156 Converted PO cleanup boundary (2026-08-23)
 
 - **Found in Production UAT:** a PR-converted, approved, unsent PO hid `Delete unposted order` because the detail page treated every converted PR as non-cancellable, even though the audited cancellation RPC already accepts approved unposted POs.

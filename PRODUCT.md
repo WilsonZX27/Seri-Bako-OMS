@@ -28,6 +28,10 @@ Shared table state transitions now consume the v9 motion token, while the existi
 
 Dashboard identity and panel headings now consume shared type tokens so role context reads as one deliberate hierarchy across the shell. Local Owner, Manager, Purchasing, Finance, Kitchen, and Outlet dashboards passed all four target viewports with no horizontal overflow; the fixed mobile navigation remained fixed and identity text stayed within the responsive clamp. This is visual-only; role data, metric ownership, and workflow actions are unchanged. Production remains on v8.64.157 until promotion.
 
+### v9 Production visual checkpoint (2026-08-23)
+
+The accepted v9 visual batches are now on `main` and served by Production. Owner, Manager, Purchasing, Finance, Kitchen, and Outlet dashboards passed `390×844`, `820×1180`, `1180×820`, and `1440×900` read-only checks with no horizontal overflow, no settled loading state, and fixed mobile navigation. The Production Purchase Requests page-header also passed all four viewports (`21.6px` phone through `24.288px` desktop). Footer remains `v8.64.157`; no business data was mutated.
+
 ### v9 batch 04 — Advanced visualization audit (accepted; no code change)
 
 The existing interactive trend surface already follows the v9 chart contract: neutral/brand semantic colors, hover and touch selection, keyboard arrow/Home/End navigation, a bounded tooltip, and a screen-reader data list. No duplicate chart layer was introduced; this preserves one source of truth for operational trends while keeping the v8.64 business semantics intact.

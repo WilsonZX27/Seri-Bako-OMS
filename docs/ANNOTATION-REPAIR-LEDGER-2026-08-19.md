@@ -41,6 +41,13 @@
 - **Local evidence:** focused v9 contract passes; full contract suite passes `862/862`, typecheck, lint, build, and diff-check are green. Owner, Manager, Purchasing, Finance, Kitchen, and Outlet dashboard sessions passed `390×844`, `820×1180`, `1180×820`, and `1440×900` with `overflow=false`; primary mobile navigation remained `position: fixed` and dashboard identity typography resolved from `18px` phone to `19.6px` desktop. Disposable identities were removed after verification.
 - **Evidence boundary:** v8.64.157 remains the deployed release; this v9 batch is local/audit-branch only until promoted and rechecked.
 
+## v9 Production visual checkpoint (2026-08-23)
+
+- **Deployment:** accepted v9 visual commits reached `main` at `64378676`; Production serves footer `v8.64.157`.
+- **Read-only evidence:** Owner, Manager, Purchasing, Finance, Kitchen, and Outlet dashboards passed `390×844`, `820×1180`, `1180×820`, and `1440×900` with `overflow=false`, no settled `Loading data...`, and mobile navigation computed as `fixed`. Production Purchase Requests page-header passed the same four sizes with `21.6px`–`24.288px` computed heading scale.
+- **Mutation boundary:** no Production business data, workflow status, inventory, or accounting values were changed during this v9 deployment check.
+- **State:** v9 visual batches are `production verified` for the checked dashboard/header surfaces. The advanced chart audit remains a no-code contract check; no new chart surface was deployed.
+
 ## v9 batch 04 — Advanced visualization audit (accepted; no code change)
 
 - **Scope:** audit the existing interactive line chart against the v9 visualization contract.

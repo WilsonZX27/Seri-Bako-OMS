@@ -33,6 +33,10 @@ Shared table feedback now consumes the v9 motion token; the reduced-motion media
 
 Dashboard identity and panel headings use shared tokens for a calmer role-first reading order. Local six-role × four-viewport dashboard checks passed with no horizontal overflow and fixed mobile navigation. The change is visual-only and does not alter metric ownership, role visibility, or workflow actions; Production remains on v8.64.157.
 
+### v9 Production visual checkpoint (2026-08-23)
+
+The v9 visual batches are deployed on `main`. Six Production roles passed dashboard checks at all four target viewports with no horizontal overflow or settled loading state; mobile navigation remained fixed. Purchase Requests page-header typography also passed all four sizes. Footer remains `v8.64.157`, and this checkpoint was read-only.
+
 ### v9 batch 04 — Advanced visualization audit (accepted; no code change)
 
 The established interactive line chart is retained as the canonical trend surface: it offers hover/touch/keyboard inspection, readable tooltip placement, accessible point data, and green/neutral semantic styling. Avoiding a second chart abstraction keeps the product simpler and the data meaning stable.

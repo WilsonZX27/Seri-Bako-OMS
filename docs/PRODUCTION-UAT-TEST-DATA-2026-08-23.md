@@ -16,7 +16,7 @@ On 2026-08-23 the Owner authorized traceable Production mutation for UAT. This d
 
 | Run | Surface | Identifier / remark | Actor | Created at | Record IDs | Cleanup | Status |
 |---|---|---|---|---|---|---|---|
-| 2026-08-23 | PR → Manager → Purchasing → Finance → PO | `PRODUCTION-UAT \| UAT-20260823-PR-001 \| Draft-only \| Cleanup required`; PO `UAT-20260823-PO-001` | WILSON → TEST MANAGER → TEST PURCHASE → TEST-FINANCE | 2026-08-23 01:18–01:29 MYT | PR `PR/AUG26/020`, id `1e6ab4b0-9238-4735-b928-6054435335e0`; PO id `4fac5716-8c99-46a3-8ed3-80c015804bc6` | pending v8.64.156 promotion / audited cancellation; do not send or receive | retained temporarily — cleanup pending |
+| 2026-08-23 | PR → Manager → Purchasing → Finance → PO | `PRODUCTION-UAT \| UAT-20260823-PR-001 \| Draft-only \| Cleanup required`; PO `UAT-20260823-PO-001` | WILSON → TEST MANAGER → TEST PURCHASE → TEST-FINANCE | 2026-08-23 01:18–01:29 MYT | PR `PR/AUG26/020`, id `1e6ab4b0-9238-4735-b928-6054435335e0`; PO id `4fac5716-8c99-46a3-8ed3-80c015804bc6` | PO cancelled at 2026-08-23 09:31 MYT through deployed audited `Delete unposted order`; no send/receive/invoice/payment/inventory effect. PR remains as an audit record with `Converted to PO` status. | cleanup completed; audit retained |
 
 ## Evidence boundary
 

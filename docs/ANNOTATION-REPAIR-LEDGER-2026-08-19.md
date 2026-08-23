@@ -6,13 +6,22 @@
 - Production test data must use the manifest at `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, dedicated `UAT-20260823-*` identifiers or explicit `PRODUCTION-UAT` remarks, and a cleanup result before the related ledger row can be marked `production verified`.
 - Posted inventory, accounting, payment, and real operational records remain protected. If a mutation cannot be reversed or safely cleaned, stop and report it.
 
+## Production six-role responsive regression checkpoint (2026-08-23; current evidence)
+
+- **Owner, Manager, Purchasing, Finance:** authenticated dashboards passed `390×844`, `820×1180`, `1180×820`, and `1440×900` with role-correct content, `overflow=0`, and no settled `Loading data...` state.
+- **Outlet:** the same four dashboard viewports passed; the four Outlet Daily new-record viewports passed with `Qty Sent` explicitly unavailable to Outlet Staff while Received/Wastage remain available.
+- **Kitchen:** the same four Outlet Daily viewports passed geometry/loading checks, but all showed `No outlets in your current scope`. The only Production Kitchen account is `TEST KITCHEN`, role `Kitchen`, assigned to `CK @ ALMA` and `CK @ PJS10`; those are central kitchens, not outlets. This is a production master-data assignment gate, not a code permission failure proven by the current evidence.
+- **Migration evidence:** the user-provided `supabase db push --include-all` output confirms migrations `191`–`194` were applied. The CLI emitted a pg-delta catalog-cache certificate warning after applying SQL; no linked migration-list verification is claimed.
+- **State:** `awaiting Production master-data assignment + Kitchen Qty Sent workflow UAT`; no row is marked `production verified` from this checkpoint. Outlet dashboard loading reported in the earlier daemon batch is not reproducible in the fresh single-session checks (navigation settled in approximately 1–2 seconds at landscape tablet/desktop).
+
 ## v8.64.156 Converted PO cleanup boundary (2026-08-23)
 
 - **Found in Production UAT:** a PR-converted, approved, unsent PO hid `Delete unposted order` because the detail page treated every converted PR as non-cancellable, even though the audited cancellation RPC already accepts approved unposted POs.
 - **Fixed locally:** the action rail now exposes the existing status-gated cancellation path for `draft`, `pending_approval`, and `approved` POs, including converted PR POs. Sending, receiving, and posted/accounting states remain protected.
-- **Evidence boundary:** Production UAT created `UAT-20260823-PO-001` from `PR/AUG26/020`; it was not sent or received. Cleanup is pending local source promotion because the deployed Production footer changed during this run and the new action is not yet deployed.
-- **Current run result:** the authenticated sequence WILSON → TEST MANAGER → TEST PURCHASE → TEST-FINANCE completed PR creation, Manager Review, Purchasing Review, Finance Review, and conversion. The PO is retained only as an isolated, unsent, unreceived UAT record; it is not marked `production verified` until audited cancellation and zero-row cleanup evidence are available.
-- **Release gate:** local source, docs, contract suite, typecheck, lint, build, and diff-check are ready, but this worktree cannot create `.git/index.lock` (`Permission denied`), so v8.64.156 has not been staged, committed, pushed, or promoted from this session.
+- **Evidence boundary:** Production UAT created `UAT-20260823-PO-001` from `PR/AUG26/020`; it was not sent or received. After commit `7494e30b` reached Production, the approved unsent PO was cancelled through the audited action at 09:31 MYT.
+- **Current run result:** the authenticated sequence WILSON → TEST MANAGER → TEST PURCHASE → TEST-FINANCE completed PR creation, Manager Review, Purchasing Review, Finance Review, and conversion. The PO no longer exists as an active order; PR/AUG26/020 remains only as an audit history row. No inventory, GRN, invoice, payment, or supplier-send effect occurred.
+- **Release gate:** local source, docs, contract suite, typecheck, lint, build, and diff-check are green for the deployed v8.64.156 source. This fixture cleanup is verified; the broader six-role workflow gate remains open.
+- **Post-push verification:** commit `7494e30b` reached Production after main deployment. The authenticated Purchasing session exposed `Delete unposted order`; it was executed at 09:31 MYT. The active PO disappeared from the PO list, while PR/AUG26/020 remains only as an auditable converted-request history row. No send, receiving, invoice, payment, or inventory effect occurred.
 
 ## Local E2E fixture cleanup (2026-08-23)
 

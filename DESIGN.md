@@ -10,7 +10,7 @@ The PO action rail keeps `Delete unposted order` visible for converted PR purcha
 
 ## Production UAT checkpoint (2026-08-23, current evidence)
 
-The isolated Production fixture `PR/AUG26/020` completed the intended review sequence (Manager, Purchasing, Finance) and converted to approved unsent PO `UAT-20260823-PO-001`. The design boundary is explicit: no send, receiving, invoice, payment, or inventory mutation was performed. The record is retained and traceable in the UAT manifest until the audited v8.64.156 cancellation affordance is promoted; historical read-only notes remain historical and do not block current work. Local release validation is green, while repository permissions currently prevent staging/commit/push from this session.
+The isolated Production fixture `PR/AUG26/020` completed the intended review sequence (Manager, Purchasing, Finance) and converted to approved unsent PO `UAT-20260823-PO-001`. After main deployment, the PO was removed through the audited cancellation affordance at 09:31 MYT; the PR remains as audit history. No send, receiving, invoice, payment, or inventory mutation was performed. Historical read-only notes remain historical and do not block current work; this fixture's cleanup is now verified, while the broader six-role workflow gate remains open.
 
 ## v8.64.155 (unreleased) - Stock Count compact control fix
 
@@ -18,7 +18,7 @@ On the 390px Stock Count surface, quantity entry keeps a minimum 40px readable f
 
 The first authenticated Production UAT checkpoint confirms the responsive shell itself is contained across all six roles and four target viewports: phone and tablet navigation remains fixed at the physical bottom edge, while desktop hides it. The earlier v8.64.148 footer observation is retained as historical evidence; current closure still requires promoted-version parity, Kitchen scope, Outlet dashboard loading, and UAT cleanup.
 
-Test-data hygiene: the local disposable E2E records and six test identities used by the audit were removed after verification. `scripts/cleanup-local-e2e.mjs` is guarded to `127.0.0.1`/`localhost` and cannot target Production.
+Test-data hygiene: the local disposable E2E records and six test identities used by the audit were removed after verification. `scripts/cleanup-local-e2e.mjs` is guarded to `127.0.0.1`/`localhost` and cannot target Production. The current Production read-only batch confirms four-viewport dashboard geometry for Owner, Manager, Purchasing, Finance, and Outlet; Kitchen is stable but its only account is scoped to central kitchens, so Outlet Daily correctly reports no outlet scope until an authorised outlet assignment exists.
 
 ## v8.64.154 (unreleased) - Local workflow audit hardening
 

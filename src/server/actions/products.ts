@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { isMockMode } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { productSchema } from "@/lib/validations/product";
+import { normalizeUom } from "@/lib/uom";
 import { requirePermissionOrRedirect } from "@/server/actions/error-handling";
 import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 import { uploadMasterDataImage } from "@/server/storage/master-data-image";
@@ -35,7 +36,7 @@ function payload(formData: FormData) {
     product_name: formData.get("product_name"),
     category: formData.get("category"),
     display_order: formData.get("display_order") || 9999,
-    selling_unit: formData.get("selling_unit"),
+    selling_unit: normalizeUom(String(formData.get("selling_unit") ?? "")),
     status: formData.get("status") ?? "active",
   });
 }
@@ -45,7 +46,7 @@ function packagingPayload(productId: string, formData: FormData) {
   return packagingSchema.parse({
     product_id: productId,
     packaging_name: packagingName || "Default Pack",
-    selling_uom: String(formData.get("packaging_selling_uom") ?? "").trim() || String(formData.get("selling_unit") ?? "").trim(),
+    selling_uom: normalizeUom(String(formData.get("packaging_selling_uom") ?? "")) || normalizeUom(String(formData.get("selling_unit") ?? "")),
     units_per_pack: Number(formData.get("units_per_pack") ?? 1),
     min_order_qty: 1,
     price: Number(formData.get("price") ?? 0),

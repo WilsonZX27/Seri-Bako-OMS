@@ -13,6 +13,7 @@ export function PurchaseRequestLineResolutionForm({ action, items, unresolvedLin
 }) {
   const [query, setQuery] = useState("");
   const [selectedItemId, setSelectedItemId] = useState("");
+  const [confirmed, setConfirmed] = useState(false);
 
   return <form action={action} className={compact ? "flex min-w-[18rem] items-center gap-2" : "grid gap-2"}>
     <input type="hidden" name="unresolved_line_id" value={unresolvedLineId} />
@@ -24,9 +25,10 @@ export function PurchaseRequestLineResolutionForm({ action, items, unresolvedLin
       ariaLabel={`Match ${description} to Item Master`}
       placeholder="Search Item Master by any words"
       emptyMessage="No Item Master match. Keep this line unresolved or create the item first."
-      onValueChange={(value) => { setQuery(value); setSelectedItemId(""); }}
-      onSelect={(item) => { setQuery(`${item.item_code} - ${item.item_name}`); setSelectedItemId(item.id); }}
+      onValueChange={(value) => { setQuery(value); setSelectedItemId(""); setConfirmed(false); }}
+      onSelect={(item) => { setQuery(`${item.item_code} - ${item.item_name}`); setSelectedItemId(item.id); setConfirmed(false); }}
     />
-    <SubmitButton type="submit" size="sm" pendingLabel="Matching..." disabled={!selectedItemId} className={compact ? undefined : "w-full"}>{compact ? "Match" : "Match to Item Master"}</SubmitButton>
+    {selectedItemId ? <label className="flex items-start gap-2 text-xs text-muted-foreground"><input type="checkbox" className="mt-0.5 h-4 w-4" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} /><span>Use this item for this branch. If it has no stock history yet, link it at zero stock without creating an inventory movement.</span></label> : null}
+    <SubmitButton type="submit" size="sm" pendingLabel="Matching..." disabled={!selectedItemId || !confirmed} className={compact ? undefined : "w-full"}>{compact ? "Confirm match" : "Confirm item match"}</SubmitButton>
   </form>;
 }

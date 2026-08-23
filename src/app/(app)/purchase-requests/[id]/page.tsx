@@ -173,7 +173,7 @@ export default async function PurchaseRequestDetailPage({
     (request.status === "admin_review" && (roleCode === "purchasing" || isOwner) && (permissions["pr.admin_review"] || permissions["pr.reject"])) ||
     (request.status === "finance_review" && (roleCode === "finance" || isOwner) && (permissions["pr.finance_review"] || permissions["pr.reject"]));
   const hasPrimaryAction = canSubmit || canManagerReview || canAdminReview || canFinanceReview || canConvert;
-  const deleteControl = canManageDeletion && !canCancel ? (deletePreview?.eligible ? <DangerConfirmForm action={hardDeletePhaseOne.bind(null, "purchase_request", request.id)} title={`Permanently delete ${request.request_no}?`} description="This cannot be undone. Purchase request lines will be removed; the document number will remain consumed." warning="Type the exact request number to continue." checkboxLabel="I understand this permanently deletes the eligible request." confirmWord={deletePreview.confirmation} buttonLabel="Delete purchase request" pendingLabel="Deleting..." /> : <BlockedDestructiveAction buttonLabel="Delete purchase request" title={`Cannot delete ${request.request_no}`} description="Permanent deletion is blocked by the current status or linked records." recommendation={deletePreview ? Object.entries(deletePreview.dependencies).filter(([, count]) => count > 0).map(([key, count]) => `${key}: ${count}`).join("; ") : "Dependency preview unavailable."} />) : null;
+  const deleteControl = canManageDeletion && !canCancel ? (deletePreview?.eligible ? <DangerConfirmForm action={hardDeletePhaseOne.bind(null, "purchase_request", request.id)} title={`Permanently delete ${request.request_no}?`} description="This cannot be undone. Purchase request lines will be removed; the document number will remain consumed." checkboxLabel="I understand this permanently deletes the eligible request." confirmWord={deletePreview.confirmation} buttonLabel="Delete purchase request" pendingLabel="Deleting..." /> : <BlockedDestructiveAction buttonLabel="Delete purchase request" title={`Cannot delete ${request.request_no}`} description="Permanent deletion is blocked by the current status or linked records." recommendation={deletePreview ? Object.entries(deletePreview.dependencies).filter(([, count]) => count > 0).map(([key, count]) => `${key}: ${count}`).join("; ") : "Dependency preview unavailable."} />) : null;
   const saveDraftAction = canEditDraft ? <SubmitButton form="purchase-request-form" type="submit" pendingLabel="Saving..." className="w-full justify-center">Save draft changes</SubmitButton> : null;
   const secondaryActions = saveDraftAction || canCancel || canReject || deleteControl ? <div className="space-y-2">
     {saveDraftAction}
@@ -229,7 +229,7 @@ export default async function PurchaseRequestDetailPage({
       mobileMoreOptions={secondaryActions ? <DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions> : null}
       sidePanel={
         <>
-          <DocumentActionSection description="Only the next valid workflow action is shown." moreOptions={secondaryActions}>
+          <DocumentActionSection moreOptions={secondaryActions}>
             <DocumentActionBar>
               {canSubmit ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..." mobilePrimary><Send className="h-4 w-4" aria-hidden="true" />Submit to Manager Review</DocumentActionForm> : null}
               {canManagerReview ? blockingLineIssues.length ? <Button asChild className="w-full"><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <ConfirmActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} label={<><CircleCheck className="h-4 w-4" aria-hidden="true" />Approve as Manager</>} title="Approve this PR as Manager?" description="This moves the request to Purchasing Review." pendingLabel="Approving..." mobilePrimary /> : null}
@@ -245,7 +245,7 @@ export default async function PurchaseRequestDetailPage({
                 <SubmitButton type="submit" pendingLabel="Converting..." className="w-full justify-center"><FileCheck2 className="h-4 w-4" aria-hidden="true" />Convert to Purchase Order</SubmitButton>
               </form>
             ) : null}
-            {!hasPrimaryAction ? <p className="text-xs text-muted-foreground">You can view this document, but there is no workflow action available for your role or this status.</p> : null}
+            {!hasPrimaryAction && !secondaryActions ? <p className="text-xs text-muted-foreground">No action is required at this stage.</p> : null}
           </DocumentActionSection>
           <DocumentSideSection title="Validation / Next Step">
             <div className="space-y-2">
@@ -264,7 +264,8 @@ export default async function PurchaseRequestDetailPage({
         </>
       }
     >
-      {messageParams.error ? <ActionErrorNotice message={messageParams.error} /> : null}
+      {messageParams.error && !/not active or available to this branch/i.test(messageParams.error) ? <ActionErrorNotice message={messageParams.error} /> : null}
+      {messageParams.error && /not active or available to this branch/i.test(messageParams.error) ? <Card className="document-surface shadow-none"><CardContent className="p-3 text-sm"><p className="font-semibold">This item has no inventory history at this branch yet.</p><p className="mt-1 text-xs text-muted-foreground">Select it again to confirm the match. A zero-stock item can be linked without creating inventory movement.</p></CardContent></Card> : null}
       {messageParams.success ? (
             <Card>
               <CardContent className="p-3 text-xs text-[var(--sb-success)]">
@@ -297,8 +298,8 @@ export default async function PurchaseRequestDetailPage({
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Request Date</p><p className="text-sm font-medium text-[var(--sb-text)]">{formatDateOnly(request.request_date)}</p></div>
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Location</p><p className="text-sm font-medium text-[var(--sb-text)]">{branch?.branch_name ?? (branches ? "Unassigned" : "Unavailable")}</p></div>
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Requested Lines</p><p className="text-sm font-medium text-[var(--sb-text)]">{requestedItemCount}</p></div>
-                <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Supplier</p><p className="text-sm font-medium text-[var(--sb-text)]">{summarySuppliers.length ? summarySuppliers.join(", ") : "Pending assignment"}</p></div>
                 {canViewCommercial ? <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Est. Total Cost</p><p className="text-sm font-medium text-[var(--sb-text)]">{formatCurrency(total)}</p></div> : null}
+                <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Supplier</p><p className="text-sm font-medium text-[var(--sb-text)]">{summarySuppliers.length ? summarySuppliers.join(", ") : "Needs supplier mapping"}</p></div>
                 <div className="hidden" aria-hidden="true"><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Priority</p><PriorityBadge priority={request.priority} /></div>
                 {request.required_date ? <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Required Date</p><p className="text-sm font-medium text-[var(--sb-text)]">{formatDateOnly(request.required_date)}</p></div> : null}
                 {request.needed_by_date ? <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Needed By</p><p className="text-sm font-medium text-[var(--sb-text)]">{formatDateOnly(request.needed_by_date)}</p></div> : null}

@@ -40,6 +40,8 @@ export type DefaultUom = (typeof defaultUoms)[number];
 
 const uomAliases: Record<string, DefaultUom> = {
   BTL: "BOTTLE",
+  PIECE: "PCS",
+  PIECES: "PCS",
 };
 
 export function normalizeUom(value: string | null | undefined) {

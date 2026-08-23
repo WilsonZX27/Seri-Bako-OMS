@@ -12,6 +12,7 @@ import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody,
 import { hasActiveFilters, paginateRows } from "@/lib/table-state";
 import { getProducts } from "@/server/queries/products";
 import { getPermissionMap } from "@/server/auth/permissions";
+import { normalizeUom } from "@/lib/uom";
 
 export default async function ProductsPage({
   searchParams,
@@ -63,7 +64,7 @@ export default async function ProductsPage({
                     <TableCell>{product.product_code}</TableCell>
                     <TableCell className="font-medium">{product.product_name}</TableCell>
                     <TableCell>{product.category}</TableCell>
-                    <TableCell>{product.selling_unit}</TableCell>
+                    <TableCell>{normalizeUom(product.selling_unit)}</TableCell>
                     <TableCell>
                       <Badge variant={product.status === "active" ? "success" : "secondary"}>{product.status}</Badge>
                     </TableCell>
@@ -77,7 +78,7 @@ export default async function ProductsPage({
               </TableBody>
             </Table>
           <OperationalList ariaLabel="Products">
-            {productsPage.rows.map((product) => <OperationalListRow key={product.id} href={`/products/${product.id}`} label={`Open ${product.product_name}`} primary={product.product_name} status={<Badge variant={product.status === "active" ? "success" : "secondary"}>{product.status}</Badge>} secondary={`${product.product_code} · ${product.category}`} meta={product.selling_unit} />)}
+            {productsPage.rows.map((product) => <OperationalListRow key={product.id} href={`/products/${product.id}`} label={`Open ${product.product_name}`} primary={product.product_name} status={<Badge variant={product.status === "active" ? "success" : "secondary"}>{product.status}</Badge>} secondary={`${product.product_code} · ${product.category}`} meta={normalizeUom(product.selling_unit)} />)}
             {!productsPage.rows.length ? <EmptyState title={filtered ? "No products match these filters" : "No products yet"} description={filtered ? "Reset the filters or widen the search." : "Products appear after finished goods are created or imported."} action={filtered ? emptyAction : undefined} /> : null}
           </OperationalList>
           <PaginationControls page={productsPage.page} totalPages={productsPage.totalPages} totalRows={productsPage.totalRows} searchParams={filters} />

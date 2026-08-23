@@ -2005,18 +2005,24 @@ html[data-design-layer="v2"] table[data-ui-table] > thead > tr > th {
   }
 
   html[data-design-layer="v2"] .sb-outlet-daily-table {
-    min-width: 50rem;
+    min-width: 44rem;
     table-layout: fixed;
   }
 
   html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(1) { width: 2.5rem; }
   html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(2) { width: 5.5rem; }
-  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(3) { width: 12rem; }
-  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(4) { width: 8.5rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(3) { width: 9rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(4) { width: 7rem; }
   html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(5) { width: 5.5rem; }
-  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(6) { width: 6.5rem; }
-  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(7) { width: 7rem; }
-  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(8) { width: 6.5rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(6) { width: 5.5rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(7) { width: 6rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(8) { width: 6rem; }
+
+  html[data-design-layer="v2"] .sb-filter-summary-count,
+  html[data-design-layer="v2"] .unified-list-result strong {
+    font-size: .75rem;
+    font-weight: 500;
+  }
   html[data-design-layer="v2"] .sb-outlet-daily-table td:nth-child(3),
   html[data-design-layer="v2"] .sb-outlet-daily-table td:nth-child(7) {
     white-space: normal;

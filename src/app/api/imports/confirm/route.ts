@@ -399,7 +399,7 @@ async function handleProductsImport(context: RouteContext, request: ImportReques
       product_code: productCode,
       product_name: normalizeText(row.product_name),
       category: normalizeText(row.category),
-      selling_unit: normalizeText(row.selling_unit),
+      selling_unit: normalizeUom(row.selling_unit),
       status: (parseBooleanFlag(row.active, true) ? "active" : "inactive") as ItemStatus,
     };
 

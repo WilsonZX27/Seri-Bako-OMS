@@ -57,8 +57,9 @@ export function PurchaseRequestLineRecovery({
   }));
 
   return <>
-    <Button type="button" variant={issue ? "outline" : "ghost"} size="icon" className="h-9 w-9 shrink-0" onClick={() => dialogRef.current?.showModal()} aria-label={`Review ${itemLabel}`}>
+    <Button type="button" variant="outline" size="sm" className="h-9 shrink-0 gap-1.5 px-2.5" onClick={() => dialogRef.current?.showModal()} aria-label={`Edit ${itemLabel}`}>
       {issue ? <AlertTriangle className="h-4 w-4 text-[var(--sb-danger)]" /> : <PencilLine className="h-4 w-4" />}
+      <span>Edit line</span>
     </Button>
     <dialog ref={dialogRef} data-supplier-catalogue-count={suppliers.length} data-supplier-option-count={supplierOptions.length} className="m-auto h-[min(92dvh,56rem)] w-[min(60rem,calc(100vw-2rem))] max-w-none overflow-hidden rounded-[var(--sb-panel-radius)] border-0 bg-transparent p-0 shadow-2xl backdrop:bg-black/60 open:flex" onClose={() => setMode("update")}>
       <div className="flex h-full w-full flex-col bg-[var(--sb-surface)]">

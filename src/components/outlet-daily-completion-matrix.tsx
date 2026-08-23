@@ -41,7 +41,7 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
         <div className="px-3 py-2.5"><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Missing</p><p className="mt-0.5 text-base font-semibold tabular-nums">{summary.missing}</p></div>
       </div>
       <div id="outlet-completion-detail">
-      <div className="flex flex-wrap gap-x-3 gap-y-1 px-3 pt-2 text-[11px] text-muted-foreground" aria-hidden="true">
+      <div className="flex flex-wrap justify-end gap-x-3 gap-y-1 px-3 pt-2 text-[11px] text-muted-foreground" aria-hidden="true">
         {(["missing", "draft", "evening_completed", "reviewed", "void"] as const).map((status) => <span key={status} className="inline-flex items-center gap-1"><span className={`grid h-4 w-4 place-items-center border text-[9px] font-bold ${stateMeta[status].className}`}>{stateMeta[status].short}</span>{status === "draft" ? "In progress" : stateMeta[status].label}</span>)}
       </div>
       <div className="relative isolate block w-full max-w-full overflow-x-auto overscroll-x-contain bg-[var(--sb-surface)] px-3 py-2" tabIndex={0} aria-label="Outlet completion matrix" data-outlet-completion-scrollport>

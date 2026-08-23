@@ -13,7 +13,7 @@ test("outlet daily records validate header, status, line cardinality, and quanti
   assert.match(source, /outletDailyStatusSchema = z\.enum\(\["draft", "morning_recorded", "evening_completed"\]\)/);
   assert.match(source, /payload = extractOutletDailyPayload\(formData\)/);
   assert.match(source, /p_lines: payload\.lines/);
-  assert.match(source, /Restricted users submit no received field/);
+  assert.match(source, /Roles without outlet-value permission submit no received field/);
   assert.match(source, /morning_received_provided: received\[index\] != null/);
   assert.match(provenanceMigration, /alter column morning_received_provided drop expression/);
   assert.match(provenanceMigration, /morning_received_provided, evening_leftover_qty/);

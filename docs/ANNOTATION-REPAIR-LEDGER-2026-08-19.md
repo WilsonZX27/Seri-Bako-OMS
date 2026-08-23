@@ -6,6 +6,14 @@
 - Production test data must use the manifest at `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, dedicated `UAT-20260823-*` identifiers or explicit `PRODUCTION-UAT` remarks, and a cleanup result before the related ledger row can be marked `production verified`.
 - Posted inventory, accounting, payment, and real operational records remain protected. If a mutation cannot be reversed or safely cleaned, stop and report it.
 
+## v8.64.158 Outlet Daily Qty Sent handoff (local closure)
+
+- **Finding:** the missing-Qty-Sent completion error could make Outlet operators think Received/Wastage entry was blocked, even though those fields belong to the Outlet.
+- **Fixed:** Outlet entry keeps Received/Wastage editable, the new-record and draft-detail primary action saves an entry as draft while Kitchen confirms Qty Sent, and the error/next-step copy explicitly separates data entry from completion.
+- **Server boundary:** migrations 191–195 still reject `morning_recorded`/`evening_completed` until every line has an authorised Qty Sent confirmation; no permission or completion guard was weakened.
+- **Evidence:** Outlet Daily contract suite passes `32/32`; TypeScript typecheck passes. No Production or local business data was mutated by this fix.
+- **State:** `implemented`, awaiting local browser regression and Production promotion/read-only verification; not yet `production verified`.
+
 ## Production six-role responsive regression checkpoint (2026-08-23; current evidence)
 
 - **Owner, Manager, Purchasing, Finance:** authenticated dashboards passed `390×844`, `820×1180`, `1180×820`, and `1440×900` with role-correct content, `overflow=0`, and no settled `Loading data...` state.

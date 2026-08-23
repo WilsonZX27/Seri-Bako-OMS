@@ -1,6 +1,6 @@
-export const APP_VERSION = "8.64.157";
+export const APP_VERSION = "8.64.158";
 export const APP_SPRINT = `v${APP_VERSION}`;
-export const APP_RELEASE_TITLE = "Converted PO Cleanup Boundary";
+export const APP_RELEASE_TITLE = "Outlet Daily Entry Handoff";
 // Keep the shell footer concise; the detailed release title belongs in release
 // notes, not in a narrow navigation rail where it is clipped on small screens.
 export const APP_RELEASE_NOTE = APP_SPRINT;

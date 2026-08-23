@@ -4,6 +4,10 @@
 
 Production UAT mutation is now Owner-authorized only when it is traceable, isolated, recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, and cleaned up after verification. Historical release notes that describe Production mutation as unauthorized remain historical evidence and are superseded by this current policy.
 
+### v8.64.158 (unreleased) — Outlet entry while Qty Sent is pending
+
+Outlet Staff can enter Received and Wastage even when Kitchen has not yet confirmed Qty Sent. The primary action saves the entry as a draft, while completion remains unavailable until every line has an authorised Qty Sent confirmation. The server-side completion guard remains authoritative, and the error copy now explains the safe next step instead of implying that line entry is blocked.
+
 ### v8.64.156 (unreleased) — Converted PO cleanup boundary
 
 Converted purchase orders that have not been sent or posted now retain the audited `Delete unposted order` action. This keeps the normal cancellation path available for operator corrections and traceable UAT cleanup; it does not permit cancellation after supplier sending, receiving, or accounting impact.

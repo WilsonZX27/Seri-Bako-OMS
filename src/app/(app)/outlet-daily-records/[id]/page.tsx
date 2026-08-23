@@ -47,10 +47,14 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
   const statusLocked = ["reviewed", "void"].includes(record.status);
   const canEditOutletValues = !statusLocked && permissions["outlet_daily_record.update"];
   const canEditQtySent = !statusLocked && permissions["outlet_daily_record.qty_sent"];
+  const qtySentConfirmed = record.qty_sent_state === "confirmed";
+  const outletCanComplete = canEditOutletValues && (qtySentConfirmed || canEditQtySent);
   const locked = !canEditOutletValues && !canEditQtySent;
   const formId = "outlet-daily-record-form";
   const canVoid = record.status !== "void" && permissions["outlet_daily_record.void"];
-  const nextStep = record.status === "draft"
+  const nextStep = record.status === "draft" && canEditOutletValues && !canEditQtySent && !qtySentConfirmed
+    ? "Enter Received and Wastage now, then save this entry as draft. Kitchen or an authorised company-wide user must confirm Qty Sent before completion."
+    : record.status === "draft"
     ? "Central Kitchen records Qty Sent. Outlet Staff then confirms Received and Wastage."
     : record.status === "morning_recorded"
       ? "Confirm Received and record Wastage, then complete the daily record."
@@ -62,8 +66,10 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
   const voidAction = voidOutletDailyRecord.bind(null, record.id);
 
   const editPrimary = canEditOutletValues && record.status === "draft"
-    ? <SubmitButton form={formId} name="target_status" value="morning_recorded">Confirm Received</SubmitButton>
-    : canEditOutletValues && record.status === "morning_recorded"
+    ? outletCanComplete
+      ? <SubmitButton form={formId} name="target_status" value="morning_recorded">Confirm Received</SubmitButton>
+      : <SubmitButton form={formId} name="target_status" value="draft" pendingLabel="Saving entry…">Save Outlet Entry</SubmitButton>
+    : outletCanComplete && record.status === "morning_recorded"
       ? <SubmitButton form={formId} name="target_status" value="evening_completed" className="gap-2"><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Post Daily Record</SubmitButton>
       : canEditOutletValues && record.status === "evening_completed"
         ? <SubmitButton form={formId} name="target_status" value="evening_completed" className="gap-2"><Save className="h-4 w-4" aria-hidden="true" />Save Changes</SubmitButton>
@@ -72,8 +78,8 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
           : null;
   const primaryAction = editPrimary;
   const secondaryActions = <>
-    {canEditOutletValues && record.status === "draft" ? <><SubmitButton form={formId} name="target_status" value="draft" variant="outline">Save Draft</SubmitButton><SubmitButton form={formId} name="target_status" value="evening_completed" variant="outline">Post Daily Record</SubmitButton></> : null}
-    {canEditOutletValues && record.status === "morning_recorded" ? <SubmitButton form={formId} name="target_status" value="morning_recorded" variant="outline">Save Changes</SubmitButton> : null}
+    {canEditOutletValues && record.status === "draft" ? <><SubmitButton form={formId} name="target_status" value="draft" variant="outline">Save Draft</SubmitButton>{outletCanComplete ? <SubmitButton form={formId} name="target_status" value="evening_completed" variant="outline">Post Daily Record</SubmitButton> : null}</> : null}
+    {outletCanComplete && canEditOutletValues && record.status === "morning_recorded" ? <SubmitButton form={formId} name="target_status" value="morning_recorded" variant="outline">Save Changes</SubmitButton> : null}
     {canVoid ? <form action={voidAction} className="grid gap-2"><Field label="Void reason"><Input name="reason" required placeholder="Required reason" /></Field><SubmitButton variant="outline" className="text-destructive hover:text-destructive" pendingLabel="Voiding…">Void Record</SubmitButton></form> : null}
   </>;
   const hasSecondaryActions = Boolean(canVoid || canEditOutletValues && ["draft", "morning_recorded"].includes(record.status));
@@ -97,6 +103,7 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
   >
     {messages.success ? <Card><CardContent className="p-3 text-sm text-success">{messages.success}</CardContent></Card> : null}
     <ActionErrorNotice message={messages.error} />
+    {canEditOutletValues && !canEditQtySent && !qtySentConfirmed && record.status === "draft" ? <Card className="border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)]"><CardContent className="p-3 text-sm"><p className="font-medium">You can enter Received and Wastage now.</p><p className="mt-1 text-muted-foreground">Save the entry as draft while Kitchen confirms Qty Sent. Completion will become available after all lines are confirmed.</p></CardContent></Card> : null}
     {record.received_state === "unavailable" ? <Card className="border-warning/40 bg-warning/10"><CardContent className="p-3 text-sm"><p className="font-medium text-warning">Received quantity unavailable</p><p className="mt-1 text-muted-foreground">The record loaded, but one or more receiving values are not verified. No zero has been substituted.</p></CardContent></Card> : null}
     {record.received_zero_with_sent ? <Card className="border-warning/40 bg-warning/10"><CardContent className="p-3 text-sm"><p className="font-medium text-warning">Receipt check needed</p><p className="mt-1 text-muted-foreground">Qty Sent is recorded, but Received is 0. Confirm whether the outlet received nothing or the receipt entry is incomplete.</p></CardContent></Card> : null}
     {statusLocked ? <Card className="border-warning/40 bg-warning/10"><CardContent className="p-3 text-sm font-medium">{record.status === "reviewed" ? "Reviewed and locked" : "Void and locked"} — normal editing is unavailable.</CardContent></Card> : null}

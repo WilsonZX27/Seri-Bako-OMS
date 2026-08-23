@@ -231,6 +231,16 @@ test("Outlet cannot enter Qty Sent; only the dedicated permission unlocks it", (
   assert.match(qtySentGuard, /if can_edit_sent then/);
 });
 
+test("missing Qty Sent keeps Outlet entry editable and changes completion into a draft save", () => {
+  const newPage = read("src/app/(app)/outlet-daily-records/new/page.tsx");
+  assert.match(form, /name="morning_received_qty"[\s\S]*disabled=\{locked \|\| !canEditOutletValues\}/);
+  assert.match(form, /name="wastage_qty"[\s\S]*disabled=\{locked \|\| !canEditOutletValues\}/);
+  assert.match(newPage, /needsKitchenQtySent = canEnterOutlet && !canEditQtySent/);
+  assert.match(newPage, /value="draft"[\s\S]*Save Outlet Entry/);
+  assert.match(newPage, /Received and Wastage remain editable/);
+  assert.match(errorHandling, /You can still enter Received and Wastage and save this record as a draft/);
+});
+
 test("Qty Sent ownership is Kitchen and above, never Outlet", () => {
   assert.match(qtySentRoles, /r\.role_code in \('manager', 'purchasing', 'finance'\)/);
   assert.match(qtySentRoles, /outlet_daily_record\.qty_sent/);

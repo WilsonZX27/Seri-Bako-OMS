@@ -1,7 +1,7 @@
 const { test, expect } = require("@playwright/test");
 const { hasAccount, login } = require("./helpers");
 
-test("Outlet cannot post a daily record before Qty Sent is confirmed", async ({ page }) => {
+test("Outlet can enter Received/Wastage while Qty Sent is pending, but saves as draft", async ({ page }) => {
   test.skip(!hasAccount("outlet"), "Missing Outlet test credentials.");
   await login(page, "outlet");
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -14,15 +14,12 @@ test("Outlet cannot post a daily record before Qty Sent is confirmed", async ({ 
     input.value = "2026-08-23";
     input.dispatchEvent(new Event("change", { bubbles: true }));
   });
-  const complete = page.getByRole("button", { name: /Complete(?: Daily)? Record/i }).first();
-  await expect(complete).toBeVisible();
-  if (await complete.isDisabled()) {
-    await expect(page.locator("[data-qty-sent-ownership]")).toContainText("Only Kitchen and authorised company-wide staff can enter it.");
-    return;
-  }
-  await complete.click();
-  await expect(page).toHaveURL(/\/outlet-daily-records\/new\?error=/);
-  await expect(page.getByText(/Qty Sent is missing/i).first()).toBeVisible();
-  await expect(page.getByText(/Kitchen or authorised company-wide user must confirm Qty Sent/i).first()).toBeVisible();
-  await expect(page.locator("body")).not.toContainText(/Outlet daily record saved\./i);
+  await expect(page.locator("[data-qty-sent-ownership]")).toContainText("Only Kitchen and authorised company-wide staff can enter it.");
+  await expect(page.locator('input[name="morning_received_qty"]').first()).toBeEnabled();
+  await expect(page.locator('input[name="wastage_qty"]').first()).toBeEnabled();
+  const saveEntry = page.getByRole("button", { name: "Save Outlet Entry" }).first();
+  await expect(saveEntry).toBeVisible();
+  await saveEntry.click();
+  await expect(page).toHaveURL(/\/outlet-daily-records\/[^?]+\?success=/);
+  await expect(page.getByText(/You can enter Received and Wastage now/i).first()).toBeVisible();
 });

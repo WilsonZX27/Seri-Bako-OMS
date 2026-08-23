@@ -4,6 +4,10 @@
 
 Production UAT mutation is allowed only for isolated, traceable test records recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`. Posted inventory/accounting effects and real operational records remain outside disposable testing; historical notes are retained but this policy is the current authority.
 
+## v8.64.158 (unreleased) - Outlet Daily handoff clarity
+
+Qty Sent ownership is communicated independently from Outlet data entry. When the dispatch quantity is unavailable, Received and Wastage controls remain enabled for Outlet Staff, the primary action becomes `Save Outlet Entry`, and completion guidance names Kitchen as the next owner. The blocking server validation is preserved; the UI no longer turns a completion prerequisite into an input lock.
+
 ## v8.64.156 (unreleased) - Converted PO cleanup boundary
 
 The PO action rail keeps `Delete unposted order` visible for converted PR purchase orders while they remain approved and unsent. The existing status-gated RPC remains the authority, so the action disappears after sending or receiving and does not create a destructive shortcut around posted work.

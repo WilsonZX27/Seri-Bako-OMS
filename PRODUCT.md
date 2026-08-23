@@ -8,9 +8,13 @@ Production UAT mutation is now Owner-authorized only when it is traceable, isola
 
 Converted purchase orders that have not been sent or posted now retain the audited `Delete unposted order` action. This keeps the normal cancellation path available for operator corrections and traceable UAT cleanup; it does not permit cancellation after supplier sending, receiving, or accounting impact.
 
-### v8.64.157 (unreleased) — Kitchen Outlet Daily branch visibility
+### v8.64.157 (deployed) — Kitchen Outlet Daily branch visibility
 
 Kitchen already owned the explicit Outlet Daily visibility and Qty Sent permissions, but the tenant `branches` RLS policy filtered Kitchen out before the form could resolve outlet labels. Migration 195 adds a narrow, company-scoped read policy for `branch_type = 'outlet'` gated only by `outlet_daily_record.view_all`; it does not grant generic branch administration. Production migration application, v8.64.157 deployment, and Kitchen four-viewport Qty Sent read-only UAT now pass.
+
+## v9 design direction (baseline, 2026-08-23)
+
+v9 upgrades the shared OMS experience in controlled batches: stronger typographic hierarchy, calmer information density, role-adaptive work surfaces, and subtle state transitions. It keeps the Seri Bako green identity and operational vocabulary; it does not imitate macOS chrome, hide business labels behind icons, or change workflow authority while visual work is in progress. Every v9 batch must retain the v8.64 four-viewport and six-role acceptance matrix, semantic color rules, fixed mobile/tablet bottom navigation, and explicit unavailable/error states.
 
 ### Production UAT checkpoint (2026-08-23, current evidence)
 

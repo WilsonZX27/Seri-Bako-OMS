@@ -8,9 +8,18 @@ Production UAT mutation is allowed only for isolated, traceable test records rec
 
 The PO action rail keeps `Delete unposted order` visible for converted PR purchase orders while they remain approved and unsent. The existing status-gated RPC remains the authority, so the action disappears after sending or receiving and does not create a destructive shortcut around posted work.
 
-## v8.64.157 (unreleased) - Kitchen Outlet Daily branch visibility
+## v8.64.157 (deployed) - Kitchen Outlet Daily branch visibility
 
 Kitchen's Outlet Daily workdesk now has a narrow RLS read path for active outlet branch labels, gated by the existing `outlet_daily_record.view_all` permission and company scope. This repairs the branch-list prerequisite without broadening generic branch administration. Production migration 195, v8.64.157 deployment, and the four-viewport Kitchen Qty Sent read-only check all pass.
+
+## v9 design baseline (2026-08-23)
+
+- **Hierarchy:** page title → current work/decision → supporting context → audit detail. Icons assist scanning but never replace a readable label.
+- **Density:** reduce repeated chrome and vertical waste before reducing touch targets; preserve 44px touch hit areas on phone/tablet and the fixed bottom navigation at the physical device edge.
+- **Navigation:** one canonical destination per action; role-aware quick actions stay visible, while secondary detail uses progressive disclosure.
+- **Visual language:** Seri Bako green remains the action color; neutral gray carries ordinary analytics; warning/danger colors stay reserved for actionable caution or blocking/destructive states.
+- **Motion:** use short, state-oriented transitions only for disclosure, loading, and confirmation; no decorative motion in data-entry workflows.
+- **Acceptance:** every v9 surface is checked at 390×844, 820×1180, 1180×820, and 1440×900 across all six roles before promotion.
 
 ## Production UAT checkpoint (2026-08-23, current evidence)
 

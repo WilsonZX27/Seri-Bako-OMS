@@ -33,6 +33,10 @@ Shared table feedback now consumes the v9 motion token; the reduced-motion media
 
 Dashboard identity and panel headings use shared tokens for a calmer role-first reading order. Local six-role × four-viewport dashboard checks passed with no horizontal overflow and fixed mobile navigation. The change is visual-only and does not alter metric ownership, role visibility, or workflow actions; Production remains on v8.64.157.
 
+### v9 batch 04 — Advanced visualization audit (accepted; no code change)
+
+The established interactive line chart is retained as the canonical trend surface: it offers hover/touch/keyboard inspection, readable tooltip placement, accessible point data, and green/neutral semantic styling. Avoiding a second chart abstraction keeps the product simpler and the data meaning stable.
+
 ## Production UAT checkpoint (2026-08-23, current evidence)
 
 The isolated Production fixture `PR/AUG26/020` completed the intended review sequence (Manager, Purchasing, Finance) and converted to approved unsent PO `UAT-20260823-PO-001`. After main deployment, the PO was removed through the audited cancellation affordance at 09:31 MYT; the PR remains as audit history. No send, receiving, invoice, payment, or inventory mutation was performed. Historical read-only notes remain historical and do not block current work; this fixture's cleanup is now verified, while the broader six-role workflow gate remains open.

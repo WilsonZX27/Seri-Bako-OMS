@@ -28,6 +28,10 @@ Shared table state transitions now consume the v9 motion token, while the existi
 
 Dashboard identity and panel headings now consume shared type tokens so role context reads as one deliberate hierarchy across the shell. Local Owner, Manager, Purchasing, Finance, Kitchen, and Outlet dashboards passed all four target viewports with no horizontal overflow; the fixed mobile navigation remained fixed and identity text stayed within the responsive clamp. This is visual-only; role data, metric ownership, and workflow actions are unchanged. Production remains on v8.64.157 until promotion.
 
+### v9 batch 04 — Advanced visualization audit (accepted; no code change)
+
+The existing interactive trend surface already follows the v9 chart contract: neutral/brand semantic colors, hover and touch selection, keyboard arrow/Home/End navigation, a bounded tooltip, and a screen-reader data list. No duplicate chart layer was introduced; this preserves one source of truth for operational trends while keeping the v8.64 business semantics intact.
+
 ### Production UAT checkpoint (2026-08-23, current evidence)
 
 The authorized Production mutation run completed the real PR workflow for the isolated fixture `PR/AUG26/020`: WILSON created and submitted it, TEST MANAGER completed Manager Review, TEST PURCHASE completed Purchasing Review and converted it, and TEST-FINANCE completed Finance Review. After main deployment, the approved unsent PO `UAT-20260823-PO-001` (`4fac5716-8c99-46a3-8ed3-80c015804bc6`) was removed through the audited cancellation action at 09:31 MYT. No inventory, GRN, invoice, payment, or supplier-send effect was created; the PR remains only as an audit history row. The local release and Production cleanup are now verified for this fixture; this does not by itself close the remaining six-role workflow gates or trigger v9.

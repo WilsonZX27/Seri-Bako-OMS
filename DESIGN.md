@@ -21,9 +21,9 @@ Kitchen's Outlet Daily workdesk now has a narrow RLS read path for active outlet
 - **Motion:** use short, state-oriented transitions only for disclosure, loading, and confirmation; no decorative motion in data-entry workflows.
 - **Acceptance:** every v9 surface is checked at 390×844, 820×1180, 1180×820, and 1440×900 across all six roles before promotion.
 
-### v9 batch 01 — Shared type hierarchy (in progress)
+### v9 batch 01 — Shared type hierarchy (implemented; local acceptance passed)
 
-Page headers use the shared display token with optical sizing and a calmer supporting-copy treatment. The scale is intentionally modest so operational density and touch targets remain unchanged; this batch does not alter workflow authority or status semantics.
+Page headers use the shared display token with optical sizing and a calmer supporting-copy treatment. The scale is intentionally modest so operational density and touch targets remain unchanged; this batch does not alter workflow authority or status semantics. Local Owner, Manager, Purchasing, Finance, Kitchen, and Outlet checks passed at all four target viewports with no horizontal overflow; mobile navigation remained fixed. Production remains on v8.64.157 until promotion and post-deploy verification.
 
 ## Production UAT checkpoint (2026-08-23, current evidence)
 

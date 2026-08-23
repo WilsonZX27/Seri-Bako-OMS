@@ -16,9 +16,9 @@ Kitchen already owned the explicit Outlet Daily visibility and Qty Sent permissi
 
 v9 upgrades the shared OMS experience in controlled batches: stronger typographic hierarchy, calmer information density, role-adaptive work surfaces, and subtle state transitions. It keeps the Seri Bako green identity and operational vocabulary; it does not imitate macOS chrome, hide business labels behind icons, or change workflow authority while visual work is in progress. Every v9 batch must retain the v8.64 four-viewport and six-role acceptance matrix, semantic color rules, fixed mobile/tablet bottom navigation, and explicit unavailable/error states.
 
-### v9 batch 01 — Shared type hierarchy (in progress)
+### v9 batch 01 — Shared type hierarchy (implemented; local acceptance passed)
 
-The shared shell now owns a display scale for page identity, a readable supporting-copy scale, optical font sizing, and restrained motion tokens. The change is visual-only and remains on the v8.64.157 release baseline until the full v9 batch is accepted.
+The shared shell now owns a display scale for page identity, a readable supporting-copy scale, optical font sizing, and restrained motion tokens. The change is visual-only. Local six-role × four-viewport checks found no horizontal overflow, and the fixed mobile navigation stayed fixed at every target size. The release footer remains v8.64.157 until this batch is promoted and rechecked in Production.
 
 ### Production UAT checkpoint (2026-08-23, current evidence)
 

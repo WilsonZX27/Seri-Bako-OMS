@@ -20,11 +20,12 @@
 - **Repair:** migration 195 adds only `company_id = current_staff_company_id()`, `branch_type = 'outlet'`, and `outlet_daily_record.view_all` gated branch reads. No `branches.create`, `branches.update`, or generic Kitchen branch access is added.
 - **Evidence:** contract suite `tests/outlet-daily-records-contract.test.js` passes 31/31 including the new policy contract. Production migration 195, v8.64.157 deployment, and the four-viewport Kitchen Qty Sent read-only flow are passing; no Production business values were mutated in this check.
 
-## v9 batch 01 — Shared type hierarchy (in progress)
+## v9 batch 01 — Shared type hierarchy (implemented; local acceptance passed)
 
 - **Scope:** shared page-header display scale, supporting-copy hierarchy, optical font sizing, and motion tokens only.
-- **Boundary:** package/footer remain v8.64.157 until this v9 batch completes its four-viewport and six-role visual acceptance; no workflow, permission, data, or status behavior changes are included.
-- **Local evidence:** full contract suite `860/860` and TypeScript typecheck pass after the CSS-only implementation.
+- **Boundary:** package/footer remain v8.64.157 because this batch is not promoted to Production; no workflow, permission, data, or status behavior changes are included.
+- **Local evidence:** full contract suite `860/860`, TypeScript typecheck, lint, and production build pass after the CSS-only implementation. Disposable local Owner, Manager, Purchasing, Finance, Kitchen, and Outlet sessions were checked at `390×844`, `820×1180`, `1180×820`, and `1440×900`: no horizontal overflow was observed and the primary mobile navigation computed to `position: fixed` at every size. Purchase Requests page-header typography was also checked at all four sizes (`21.6px` phone through `24.288px` desktop).
+- **Evidence boundary:** this is local source evidence only. The v8.64.157 Production surface remains unchanged; Production promotion and a fresh read-only regression are still required before this batch can be marked remote or production verified.
 
 ## v8.64.156 Converted PO cleanup boundary (2026-08-23)
 

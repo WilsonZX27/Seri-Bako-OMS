@@ -920,9 +920,14 @@ nav[aria-label="Pagination"] > span,
     pointer-events: auto !important;
   }
 
-  html[data-design-layer="v2"] [data-mobile-bottom-nav] :where(a, button) {
-    pointer-events: auto !important;
-  }
+html[data-design-layer="v2"] [data-mobile-bottom-nav] :where(a, button) {
+  pointer-events: auto !important;
+  transition: background-color var(--sb-motion-fast) ease, color var(--sb-motion-fast) ease, transform var(--sb-motion-fast) ease;
+}
+
+html[data-design-layer="v2"] [data-mobile-bottom-nav] :where(a, button):active {
+  transform: scale(0.98);
+}
 }
 /* --------------------------------------------------------------------------
    Canonical convergence contract

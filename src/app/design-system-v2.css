@@ -254,12 +254,17 @@ body::-webkit-scrollbar {
 }
 
 [data-page-header] h1 {
+  font-size: var(--sb-text-display);
+  font-weight: 650;
+  line-height: var(--sb-leading-tight);
   letter-spacing: -0.025em;
   overflow-wrap: anywhere;
 }
 
 [data-page-header] p {
   max-width: 48rem;
+  color: var(--sb-text-muted);
+  font-size: var(--sb-text-body);
 }
 
 .erp-surface:hover {

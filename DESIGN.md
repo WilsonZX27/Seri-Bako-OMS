@@ -21,6 +21,10 @@ Kitchen's Outlet Daily workdesk now has a narrow RLS read path for active outlet
 - **Motion:** use short, state-oriented transitions only for disclosure, loading, and confirmation; no decorative motion in data-entry workflows.
 - **Acceptance:** every v9 surface is checked at 390×844, 820×1180, 1180×820, and 1440×900 across all six roles before promotion.
 
+### v9 batch 01 — Shared type hierarchy (in progress)
+
+Page headers use the shared display token with optical sizing and a calmer supporting-copy treatment. The scale is intentionally modest so operational density and touch targets remain unchanged; this batch does not alter workflow authority or status semantics.
+
 ## Production UAT checkpoint (2026-08-23, current evidence)
 
 The isolated Production fixture `PR/AUG26/020` completed the intended review sequence (Manager, Purchasing, Finance) and converted to approved unsent PO `UAT-20260823-PO-001`. After main deployment, the PO was removed through the audited cancellation affordance at 09:31 MYT; the PR remains as audit history. No send, receiving, invoice, payment, or inventory mutation was performed. Historical read-only notes remain historical and do not block current work; this fixture's cleanup is now verified, while the broader six-role workflow gate remains open.

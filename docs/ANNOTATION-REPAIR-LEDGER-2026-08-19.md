@@ -14,11 +14,17 @@
 - **Migration evidence:** the authorized `supabase db push --include-all` output confirms migration `195_allow_kitchen_outlet_branch_read.sql` applied successfully. The CLI emitted only the known pg-delta catalog-cache certificate warning after applying SQL; no linked migration-list verification is claimed.
 - **State:** Kitchen scope and Qty Sent ownership are now Production-verified read-only, and the Production HTML returns footer `v8.64.157` after `origin/main` reached `11362b9f`. Outlet dashboard loading reported in the earlier daemon batch is not reproducible in the fresh single-session checks (navigation settled in approximately 1–2 seconds at landscape tablet/desktop).
 
-## v8.64.157 Kitchen branch visibility repair (local pending promotion)
+## v8.64.157 Kitchen branch visibility repair (deployed)
 
 - **Root cause:** the generic `tenant branches read` policy calls `can_access_company_branch`, whose company-wide role allow-list intentionally excludes Kitchen. The existing 193/194 grants therefore could not make the Kitchen form resolve outlet branch options.
 - **Repair:** migration 195 adds only `company_id = current_staff_company_id()`, `branch_type = 'outlet'`, and `outlet_daily_record.view_all` gated branch reads. No `branches.create`, `branches.update`, or generic Kitchen branch access is added.
 - **Evidence:** contract suite `tests/outlet-daily-records-contract.test.js` passes 31/31 including the new policy contract. Production migration 195, v8.64.157 deployment, and the four-viewport Kitchen Qty Sent read-only flow are passing; no Production business values were mutated in this check.
+
+## v9 batch 01 — Shared type hierarchy (in progress)
+
+- **Scope:** shared page-header display scale, supporting-copy hierarchy, optical font sizing, and motion tokens only.
+- **Boundary:** package/footer remain v8.64.157 until this v9 batch completes its four-viewport and six-role visual acceptance; no workflow, permission, data, or status behavior changes are included.
+- **Local evidence:** full contract suite `860/860` and TypeScript typecheck pass after the CSS-only implementation.
 
 ## v8.64.156 Converted PO cleanup boundary (2026-08-23)
 

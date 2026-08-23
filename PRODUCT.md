@@ -16,6 +16,10 @@ Kitchen already owned the explicit Outlet Daily visibility and Qty Sent permissi
 
 v9 upgrades the shared OMS experience in controlled batches: stronger typographic hierarchy, calmer information density, role-adaptive work surfaces, and subtle state transitions. It keeps the Seri Bako green identity and operational vocabulary; it does not imitate macOS chrome, hide business labels behind icons, or change workflow authority while visual work is in progress. Every v9 batch must retain the v8.64 four-viewport and six-role acceptance matrix, semantic color rules, fixed mobile/tablet bottom navigation, and explicit unavailable/error states.
 
+### v9 batch 01 — Shared type hierarchy (in progress)
+
+The shared shell now owns a display scale for page identity, a readable supporting-copy scale, optical font sizing, and restrained motion tokens. The change is visual-only and remains on the v8.64.157 release baseline until the full v9 batch is accepted.
+
 ### Production UAT checkpoint (2026-08-23, current evidence)
 
 The authorized Production mutation run completed the real PR workflow for the isolated fixture `PR/AUG26/020`: WILSON created and submitted it, TEST MANAGER completed Manager Review, TEST PURCHASE completed Purchasing Review and converted it, and TEST-FINANCE completed Finance Review. After main deployment, the approved unsent PO `UAT-20260823-PO-001` (`4fac5716-8c99-46a3-8ed3-80c015804bc6`) was removed through the audited cancellation action at 09:31 MYT. No inventory, GRN, invoice, payment, or supplier-send effect was created; the PR remains only as an audit history row. The local release and Production cleanup are now verified for this fixture; this does not by itself close the remaining six-role workflow gates or trigger v9.

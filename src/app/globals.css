@@ -68,6 +68,11 @@
   --sb-neutral-bg: #EEECE6;
   --sb-neutral-text: #5E665F;
   --sb-font-sans: "Segoe UI Variable", Aptos, "SF Pro Text", ui-sans-serif, system-ui, sans-serif;
+  /* v9 type scale: compact enough for operations, with a deliberate display
+     step so page identity is visible before the work surface begins. */
+  --sb-text-display: clamp(1.35rem, 1.14rem + 0.42vw, 1.75rem);
+  --sb-text-title: 1.125rem;
+  --sb-text-label: 0.6875rem;
   --sb-text-page: 1.125rem;
   --sb-text-section: 0.875rem;
   --sb-text-body: 0.8125rem;
@@ -80,6 +85,8 @@
   --sb-space-4: 1rem;
   --sb-space-5: 1.25rem;
   --sb-space-6: 1.5rem;
+  --sb-space-7: 2rem;
+  --sb-space-8: 2.5rem;
   --sb-control-height: 2.75rem;
   --sb-topbar-height: 3rem;
   --sb-mobile-nav-height: 4rem;
@@ -96,6 +103,8 @@
   --sb-z-backdrop: 100;
   --sb-z-dialog: 101;
   --sb-z-toast: 70;
+  --sb-motion-fast: 120ms;
+  --sb-motion-standard: 180ms;
   --app-bg: var(--sb-bg);
   --workspace-bg: #f4f5f2;
   --rail-bg: #fbfcfa;
@@ -138,9 +147,11 @@ body {
 body {
   @apply bg-background text-foreground antialiased;
   font-family: var(--sb-font-sans);
+  font-optical-sizing: auto;
   font-size: 14px;
   line-height: var(--sb-leading-body);
   color: var(--sb-text);
+  text-rendering: optimizeLegibility;
 }
 
 /* Media must remain inside every responsive workspace, including imported content. */

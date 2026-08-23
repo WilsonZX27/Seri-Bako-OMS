@@ -10,7 +10,7 @@ The PO action rail keeps `Delete unposted order` visible for converted PR purcha
 
 ## v8.64.157 (unreleased) - Kitchen Outlet Daily branch visibility
 
-Kitchen's Outlet Daily workdesk now has a narrow RLS read path for active outlet branch labels, gated by the existing `outlet_daily_record.view_all` permission and company scope. This repairs the branch-list prerequisite without broadening generic branch administration; migration 195 must be applied before Production can be rechecked.
+Kitchen's Outlet Daily workdesk now has a narrow RLS read path for active outlet branch labels, gated by the existing `outlet_daily_record.view_all` permission and company scope. This repairs the branch-list prerequisite without broadening generic branch administration. Production migration 195 is applied and the four-viewport Kitchen Qty Sent read-only check passes; only the v8.64.157 footer deployment remains pending.
 
 ## Production UAT checkpoint (2026-08-23, current evidence)
 

@@ -10,7 +10,7 @@ Converted purchase orders that have not been sent or posted now retain the audit
 
 ### v8.64.157 (unreleased) — Kitchen Outlet Daily branch visibility
 
-Kitchen already owns the explicit Outlet Daily visibility and Qty Sent permissions, but the tenant `branches` RLS policy still filtered Kitchen out before the form could resolve outlet labels. Migration 195 adds a narrow, company-scoped read policy for `branch_type = 'outlet'` gated only by `outlet_daily_record.view_all`; it does not grant generic branch administration. Production application and Kitchen Qty Sent UAT remain pending.
+Kitchen already owned the explicit Outlet Daily visibility and Qty Sent permissions, but the tenant `branches` RLS policy filtered Kitchen out before the form could resolve outlet labels. Migration 195 adds a narrow, company-scoped read policy for `branch_type = 'outlet'` gated only by `outlet_daily_record.view_all`; it does not grant generic branch administration. Production migration application and Kitchen four-viewport Qty Sent read-only UAT now pass; the deployed footer remains v8.64.156 until the v8.64.157 app deployment completes.
 
 ### Production UAT checkpoint (2026-08-23, current evidence)
 

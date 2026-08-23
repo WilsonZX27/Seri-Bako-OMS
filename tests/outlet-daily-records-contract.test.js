@@ -17,6 +17,7 @@ const qtySentGuard = read("supabase/migrations/191_guard_outlet_completion_qty_s
 const qtySentRoles = read("supabase/migrations/192_grant_qty_sent_to_kitchen_above.sql");
 const kitchenDailyVisibility = read("supabase/migrations/193_grant_kitchen_outlet_daily_visibility.sql");
 const kitchenDailyRls = read("supabase/migrations/194_fix_kitchen_outlet_daily_rls_scope.sql");
+const kitchenOutletBranchRead = read("supabase/migrations/195_allow_kitchen_outlet_branch_read.sql");
 const permissions = read("src/server/auth/permissions.ts");
 const outletDailyE2e = read("tests/e2e/purchasing-outlet-daily-access.spec.js");
 
@@ -252,6 +253,14 @@ test("Kitchen visibility is scoped to Outlet Daily instead of broadening tenant 
   assert.match(kitchenDailyRls, /drop policy if exists "tenant outlet daily record lines"/);
   assert.match(kitchenDailyRls, /public\.can_access_outlet_daily_branch\(r\.branch_id\)/);
   assert.doesNotMatch(kitchenDailyRls, /can_access_company_branch\(/);
+});
+
+test("Kitchen can resolve outlet branch labels without generic branch access", () => {
+  assert.match(kitchenOutletBranchRead, /drop policy if exists "tenant kitchen outlet branches read"/);
+  assert.match(kitchenOutletBranchRead, /branch_type = 'outlet'/);
+  assert.match(kitchenOutletBranchRead, /outlet_daily_record\.view_all/);
+  assert.match(kitchenOutletBranchRead, /current_staff_company_id\(\)/);
+  assert.doesNotMatch(kitchenOutletBranchRead, /branches\.update|branches\.create/);
 });
 
 test("the role matrix keeps Qty Sent ownership above Outlet in local and mock mode", () => {

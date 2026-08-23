@@ -1,4 +1,4 @@
-export const APP_VERSION = "8.64.156";
+export const APP_VERSION = "8.64.157";
 export const APP_SPRINT = `v${APP_VERSION}`;
 export const APP_RELEASE_TITLE = "Converted PO Cleanup Boundary";
 // Keep the shell footer concise; the detailed release title belongs in release

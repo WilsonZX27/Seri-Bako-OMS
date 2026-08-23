@@ -8,6 +8,10 @@ Production UAT mutation is allowed only for isolated, traceable test records rec
 
 The PO action rail keeps `Delete unposted order` visible for converted PR purchase orders while they remain approved and unsent. The existing status-gated RPC remains the authority, so the action disappears after sending or receiving and does not create a destructive shortcut around posted work.
 
+## v8.64.157 (unreleased) - Kitchen Outlet Daily branch visibility
+
+Kitchen's Outlet Daily workdesk now has a narrow RLS read path for active outlet branch labels, gated by the existing `outlet_daily_record.view_all` permission and company scope. This repairs the branch-list prerequisite without broadening generic branch administration; migration 195 must be applied before Production can be rechecked.
+
 ## Production UAT checkpoint (2026-08-23, current evidence)
 
 The isolated Production fixture `PR/AUG26/020` completed the intended review sequence (Manager, Purchasing, Finance) and converted to approved unsent PO `UAT-20260823-PO-001`. After main deployment, the PO was removed through the audited cancellation affordance at 09:31 MYT; the PR remains as audit history. No send, receiving, invoice, payment, or inventory mutation was performed. Historical read-only notes remain historical and do not block current work; this fixture's cleanup is now verified, while the broader six-role workflow gate remains open.

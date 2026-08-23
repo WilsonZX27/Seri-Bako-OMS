@@ -14,6 +14,12 @@
 - **Migration evidence:** the user-provided `supabase db push --include-all` output confirms migrations `191`–`194` were applied. The CLI emitted a pg-delta catalog-cache certificate warning after applying SQL; no linked migration-list verification is claimed.
 - **State:** `awaiting Production master-data assignment + Kitchen Qty Sent workflow UAT`; no row is marked `production verified` from this checkpoint. Outlet dashboard loading reported in the earlier daemon batch is not reproducible in the fresh single-session checks (navigation settled in approximately 1–2 seconds at landscape tablet/desktop).
 
+## v8.64.157 Kitchen branch visibility repair (local pending promotion)
+
+- **Root cause:** the generic `tenant branches read` policy calls `can_access_company_branch`, whose company-wide role allow-list intentionally excludes Kitchen. The existing 193/194 grants therefore could not make the Kitchen form resolve outlet branch options.
+- **Repair:** migration 195 adds only `company_id = current_staff_company_id()`, `branch_type = 'outlet'`, and `outlet_daily_record.view_all` gated branch reads. No `branches.create`, `branches.update`, or generic Kitchen branch access is added.
+- **Evidence:** contract suite `tests/outlet-daily-records-contract.test.js` passes 31/31 including the new policy contract. Production still reports no Kitchen outlet scope because migration 195 has not yet been applied there; do not mark the related ledger row `production verified` until the user applies the migration and the four-viewport Kitchen Qty Sent flow is rerun.
+
 ## v8.64.156 Converted PO cleanup boundary (2026-08-23)
 
 - **Found in Production UAT:** a PR-converted, approved, unsent PO hid `Delete unposted order` because the detail page treated every converted PR as non-cancellable, even though the audited cancellation RPC already accepts approved unposted POs.

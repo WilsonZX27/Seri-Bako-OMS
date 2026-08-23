@@ -8,6 +8,10 @@ Production UAT mutation is now Owner-authorized only when it is traceable, isola
 
 Converted purchase orders that have not been sent or posted now retain the audited `Delete unposted order` action. This keeps the normal cancellation path available for operator corrections and traceable UAT cleanup; it does not permit cancellation after supplier sending, receiving, or accounting impact.
 
+### v8.64.157 (unreleased) — Kitchen Outlet Daily branch visibility
+
+Kitchen already owns the explicit Outlet Daily visibility and Qty Sent permissions, but the tenant `branches` RLS policy still filtered Kitchen out before the form could resolve outlet labels. Migration 195 adds a narrow, company-scoped read policy for `branch_type = 'outlet'` gated only by `outlet_daily_record.view_all`; it does not grant generic branch administration. Production application and Kitchen Qty Sent UAT remain pending.
+
 ### Production UAT checkpoint (2026-08-23, current evidence)
 
 The authorized Production mutation run completed the real PR workflow for the isolated fixture `PR/AUG26/020`: WILSON created and submitted it, TEST MANAGER completed Manager Review, TEST PURCHASE completed Purchasing Review and converted it, and TEST-FINANCE completed Finance Review. After main deployment, the approved unsent PO `UAT-20260823-PO-001` (`4fac5716-8c99-46a3-8ed3-80c015804bc6`) was removed through the audited cancellation action at 09:31 MYT. No inventory, GRN, invoice, payment, or supplier-send effect was created; the PR remains only as an audit history row. The local release and Production cleanup are now verified for this fixture; this does not by itself close the remaining six-role workflow gates or trigger v9.
@@ -72,7 +76,7 @@ Purchase Request detail now explains unresolved non-catalog lines at the Validat
 
 ### v8.64.143 (unreleased) — Qty Sent completion guard
 
-Outlet Daily cannot be marked Posted while any line lacks an authorised Qty Sent confirmation. A Kitchen or authorised company-wide operator must confirm every line first; an Outlet receives a bounded, product-anchored correction message instead of a false completed record. Local Supabase migrations 191–194 now guard completion, grant Qty Sent ownership to Kitchen-and-above roles, give Kitchen the visibility required to use it, and scope the Outlet Daily RLS repair without broadening generic tenant access. Repository migrations reviewed through `194`; this is local evidence only until the user applies migrations 191–194 and Production read-only regression is rerun; the six-role mutation boundary remains awaiting Production mutation UAT.
+Outlet Daily cannot be marked Posted while any line lacks an authorised Qty Sent confirmation. A Kitchen or authorised company-wide operator must confirm every line first; an Outlet receives a bounded, product-anchored correction message instead of a false completed record. Local Supabase migrations 191–195 now guard completion, grant Qty Sent ownership to Kitchen-and-above roles, give Kitchen the visibility required to use it, and scope the Outlet Daily RLS repair without broadening generic tenant access. Repository migrations reviewed through `195`; this is local evidence only until the user applies migrations 191–195 and Production read-only regression is rerun; the six-role mutation boundary remains awaiting Production mutation UAT.
 
 ### v8.64.142 (deployed) — Dashboard snapshot cleanup
 
@@ -361,7 +365,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `194`; this is not evidence that migrations 191–194 are applied to the linked Production project.
+Repository migration authority: migrations reviewed through `195`; this is not evidence that migrations 191–195 are applied to the linked Production project.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

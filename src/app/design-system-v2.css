@@ -267,6 +267,19 @@ body::-webkit-scrollbar {
   font-size: var(--sb-text-body);
 }
 
+[data-dashboard-user-name] {
+  font-size: var(--sb-text-identity) !important;
+  font-weight: 650 !important;
+  line-height: var(--sb-leading-tight);
+}
+
+[data-dashboard-panel] > :first-child :where(h2, h3) {
+  font-size: var(--sb-text-section);
+  font-weight: 650;
+  line-height: var(--sb-leading-tight);
+  letter-spacing: -0.01em;
+}
+
 .erp-surface:hover {
   border-color: var(--sb-border);
 }

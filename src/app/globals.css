@@ -71,6 +71,7 @@
   /* v9 type scale: compact enough for operations, with a deliberate display
      step so page identity is visible before the work surface begins. */
   --sb-text-display: clamp(1.35rem, 1.14rem + 0.42vw, 1.75rem);
+  --sb-text-identity: clamp(1.125rem, 1rem + 0.25vw, 1.375rem);
   --sb-text-title: 1.125rem;
   --sb-text-label: 0.6875rem;
   --sb-text-page: 1.125rem;

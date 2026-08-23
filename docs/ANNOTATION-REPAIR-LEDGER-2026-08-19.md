@@ -34,6 +34,13 @@
 - **Local evidence:** focused contract `tests/v9-motion-token-contract.test.js` passes; full contract suite passes `861/861`, typecheck, lint, build, and diff-check are green. Because this is a transition-token-only change, the batch 01 six-role × four-viewport geometry evidence remains valid; no Production surface was changed.
 - **Evidence boundary:** v8.64.157 remains the deployed release; v9 batch 02 is local/audit-branch only until promoted and rechecked.
 
+## v9 batch 03 — Dashboard identity and panel hierarchy (implemented; local acceptance passed)
+
+- **Scope:** apply shared identity and section-heading tokens to the role-adaptive dashboard.
+- **Boundary:** visual-only; role data, metric ownership, permissions, workflows, and footer release version remain unchanged.
+- **Local evidence:** focused v9 contract passes; full contract suite passes `862/862`, typecheck, lint, build, and diff-check are green. Owner, Manager, Purchasing, Finance, Kitchen, and Outlet dashboard sessions passed `390×844`, `820×1180`, `1180×820`, and `1440×900` with `overflow=false`; primary mobile navigation remained `position: fixed` and dashboard identity typography resolved from `18px` phone to `19.6px` desktop. Disposable identities were removed after verification.
+- **Evidence boundary:** v8.64.157 remains the deployed release; this v9 batch is local/audit-branch only until promoted and rechecked.
+
 ## v8.64.156 Converted PO cleanup boundary (2026-08-23)
 
 - **Found in Production UAT:** a PR-converted, approved, unsent PO hid `Delete unposted order` because the detail page treated every converted PR as non-cancellable, even though the audited cancellation RPC already accepts approved unposted POs.

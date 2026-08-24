@@ -33,7 +33,8 @@ test("stock count keeps setup separate from one continuous phone work surface", 
   assert.match(source, /data-stock-count-line-list/);
   assert.match(source, /data-stock-count-line/);
   assert.match(source, /\{visibleLines\.length\}<\/strong> items shown/);
-  assert.match(source, /displayIndexByItemId = new Map\(lines\.map\(\(line, index\) => \[line\.item_id, index \+ 1\]\)\)/);
+  assert.match(source, /visibleLines\.map\(\(line, visibleIndex\)/);
+  assert.match(source, /const displayIndex = visibleIndex \+ 1/);
   assert.match(source, /aria-label=\{`Item \$\{displayIndex\}`\}/);
   assert.match(source, /line\.adjusted \? "bg-\[var\(--sb-green-100\)\]"/);
   assert.match(source, /lg:grid-cols-\[minmax\(12rem,1fr\)_5rem_minmax\(14rem,17rem\)\]/);

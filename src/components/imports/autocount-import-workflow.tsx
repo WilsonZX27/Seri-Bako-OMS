@@ -26,6 +26,17 @@ type ConfirmResult = Record<string, number>;
 
 const typeLabels = { supplier_list: "Supplier List", item_list: "Item List", location_snapshot: "Location Snapshot" } as const;
 
+async function readJsonResponse<T extends { ok: boolean; message?: string }>(response: Response): Promise<T> {
+  const contentType = response.headers.get("content-type") ?? "";
+  if (!contentType.toLowerCase().includes("application/json")) {
+    if (response.status === 401 || response.redirected || response.url.includes("/login")) {
+      throw new Error("Your session expired. Sign in again, then retry Review import; your selected files remain here.");
+    }
+    throw new Error(`The import service returned an unexpected response (${response.status}). Retry; no OMS records were changed.`);
+  }
+  return await response.json() as T;
+}
+
 export function AutoCountImportWorkflow() {
   const [files, setFiles] = useState<AutoCountParsedFile[]>([]);
   const [preview, setPreview] = useState<PreviewResponse | null>(null);
@@ -51,7 +62,7 @@ export function AutoCountImportWorkflow() {
     setBusy("preview"); setMessage(null); setResult(null);
     try {
       const response = await fetch("/api/imports/autocount/preview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ files }) });
-      const payload = await response.json() as PreviewResponse;
+      const payload = await readJsonResponse<PreviewResponse>(response);
       if (!response.ok || !payload.ok) throw new Error(payload.message ?? "Could not prepare the import preview.");
       setPreview(payload);
     } catch (error) { setMessage(error instanceof Error ? error.message : "Could not prepare the import preview."); }
@@ -63,7 +74,7 @@ export function AutoCountImportWorkflow() {
     setBusy("confirm"); setMessage(null);
     try {
       const response = await fetch("/api/imports/autocount/confirm", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jobId: preview.jobId }) });
-      const payload = await response.json() as { ok: boolean; message?: string; result?: ConfirmResult };
+      const payload = await readJsonResponse<{ ok: boolean; message?: string; result?: ConfirmResult }>(response);
       if (!response.ok || !payload.ok) throw new Error(payload.message ?? "The import could not be confirmed.");
       setResult(payload.result ?? {});
     } catch (error) { setMessage(error instanceof Error ? error.message : "The import could not be confirmed."); }

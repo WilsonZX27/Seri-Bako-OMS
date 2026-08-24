@@ -4,6 +4,7 @@ import { compareTableValues, paginateRows } from "@/lib/table-state";
 import { shiftBusinessDate, todayInKualaLumpur } from "@/lib/business-date";
 import { logServerError, logServerWarning } from "@/server/observability/logger";
 import { getStockBalanceDetails } from "@/server/queries/inventory";
+import { looseSupabase } from "@/lib/supabase/loose";
 import type { Database } from "@/types/database";
 
 type Filters = Record<string, string | undefined>;
@@ -344,17 +345,18 @@ export async function getStockCount(id: string) {
     const lines = mockStockCountLines
       .filter((line) => line.stock_count_id === id)
       .sort((left, right) => Number((left as StockCountLine & { line_position?: number }).line_position ?? 0) - Number((right as StockCountLine & { line_position?: number }).line_position ?? 0))
-      .map((line) => ({ ...line, item: mockItems.find((item) => item.id === line.item_id) }));
+      .map((line) => ({ ...line, item: mockItems.find((item) => item.id === line.item_id), retirement: null }));
     return { count: hydrateCount(count as StockCount, mockStockCountLines as StockCountLine[]), lines, revisions: [], revisionsAvailable: false };
   }
   const supabase = await createClient();
-  const [{ data, error }, { data: lines, error: linesError }, { data: revisions, error: revisionsError }] = await Promise.all([
+  const [{ data, error }, { data: lines, error: linesError }, { data: revisions, error: revisionsError }, { data: retirements, error: retirementsError }] = await Promise.all([
     // Removed unposted counts must not remain addressable through a stale detail URL.
     // Their activity/audit rows remain available through the activity log, while the
     // operational document itself is no longer treated as active work.
     supabase.from("stock_counts").select("*").eq("id", id).is("deleted_at", null).single(),
     supabase.from("stock_count_lines").select("*").eq("stock_count_id", id).order("line_position", { ascending: true }).order("id", { ascending: true }),
     supabase.from("document_line_revisions").select("*").eq("document_type", "stock_count").eq("document_id", id).order("created_at", { ascending: true }),
+    looseSupabase(supabase).from("stock_count_item_retirements").select("stock_count_line_id,item_id,reason,note,actual_qty,status").eq("stock_count_id", id).in("status", ["pending", "applied"]),
   ]);
   if (error) {
     if (error.code === "PGRST116") throw new StockCountNotFoundError();
@@ -379,6 +381,7 @@ export async function getStockCount(id: string) {
   if (branchError) throw new Error(branchError.message);
   if (count.branch_id && !branch) throw new Error("Stock Count detail returned incomplete branch data.");
   const itemById = new Map((items ?? []).map((row) => [row.id, row]));
+  const retirementRows = (retirementsError ? [] : retirements ?? []) as Array<{ stock_count_line_id: string; item_id: string; reason: "used_up" | "wrong_or_duplicate_code" | "branch_no_longer_uses" | "other"; note: string; actual_qty: number; status: "pending" | "applied" }>;
   return {
     count: {
       ...count,
@@ -387,18 +390,30 @@ export async function getStockCount(id: string) {
       line_count: ownLines.length,
       high_variance_count: ownLines.filter((line) => Math.abs(line.variance_percent) > count.tolerance_percent).length,
     },
-    lines: ownLines.map((line) => ({ ...line, item: itemById.get(line.item_id) })),
+    lines: ownLines.map((line) => ({
+      ...line,
+      item: itemById.get(line.item_id),
+      retirement: retirementRows.find((retirement) => retirement.stock_count_line_id === line.id) ?? null,
+    })),
     revisions: revisionsError ? [] : revisions ?? [],
     revisionsAvailable: !revisionsError,
   };
 }
 
 export async function getStockCountSeedLines(branchId?: string) {
-  const balances = await getStockBalanceDetails({
-    page: "all",
-    view: "branch",
-    branch_id: branchId,
-  });
+  if (!branchId) return [];
+  const balances = isMockMode()
+    ? await getStockBalanceDetails({ page: "all", view: "branch", branch_id: branchId })
+    : await (async () => {
+        const scopedClient = await createClient();
+        const { data, error } = await looseSupabase(scopedClient)
+          .from("stock_count_eligible_items")
+          .select("item_id,item_code,item_name,branch_id,current_qty,last_movement,base_unit")
+          .eq("branch_id", branchId)
+          .order("item_name", { ascending: true })
+          .order("item_id", { ascending: true });
+        return { rows: (data ?? []) as Array<{ item_id: string; item_code: string; item_name: string; branch_id: string; current_qty: number; last_movement: string | null; base_unit: string }>, error: error?.message ?? null };
+      })();
   if (balances.error) {
     // A failed balance read must stop the count from opening with an empty
     // or zero-filled sheet. The operator can retry once the source is back.

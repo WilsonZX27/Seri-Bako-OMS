@@ -37,6 +37,7 @@ export type LooseQuery<T extends Record<string, unknown> = Record<string, unknow
 
 export type LooseSupabase = {
   from: <T extends Record<string, unknown> = Record<string, unknown>>(table: string) => LooseQuery<T>;
+  rpc: (fn: string, args?: Record<string, unknown>) => Promise<{ data: unknown; error: LooseError }>;
 };
 
 export function looseSupabase(client: unknown) {

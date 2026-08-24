@@ -4,6 +4,10 @@
 
 Production UAT mutation is allowed only for isolated, traceable test records recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`. Posted inventory/accounting effects and real operational records remain outside disposable testing; historical notes are retained but this policy is the current authority.
 
+## v8.64.165 (unreleased) - Branch Stock Count lifecycle
+
+Stock Count row identity remains the item code while the visible ordinal follows the current sorted/filtered list. Retirement is a standard modal task rather than an inline deletion: the current line stays countable, the dialog states the after-posting consequence, requires a structured reason plus operational note, and repeats the final physical quantity. A pending row receives one compact status pill and a reversible `Keep active` action. Item detail owns the durable branch lifecycle record and restore path. Expired AutoCount sessions use explicit JSON/auth messaging rather than exposing parser errors. The four-viewport and role-aware release gates remain required before deployment.
+
 ## v8.64.164 (unreleased) - Explicit consequence and compact document controls
 
 Destructive actions use one familiar modal grammar: red trigger, consequence-focused title, neutral escape action, and explicit red confirmation. Attachment upload composes file choice and upload on one row, while existing attachments use icon affordances without a duplicate Download action. Mobile PR work rows align identity, context, commercial data, status, and amount through shared two-column operational grids. Cancelled purchase orders remain discoverable and expose Restore only as a guarded secondary action.

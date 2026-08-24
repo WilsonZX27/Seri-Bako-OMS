@@ -11,6 +11,7 @@ import { classifyActionError, formatActionError, requireAnyPermissionOrRedirect,
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { logServerWarning } from "@/server/observability/logger";
 import { getStockCountSeedLines } from "@/server/queries/stock-counts";
+import { looseSupabase } from "@/lib/supabase/loose";
 import { z } from "zod";
 
 const stockCountIdSchema = z.uuid("Invalid stock count identifier.");
@@ -66,6 +67,35 @@ function extractStockCount(formData: FormData) {
   });
 }
 
+function extractRetirementRequests(formData: FormData) {
+  const itemIds = formData.getAll("line_item_id").map(String);
+  const enabled = formData.getAll("line_retire_after_count").map(String);
+  const reasons = formData.getAll("line_retirement_reason").map(String);
+  const notes = formData.getAll("line_retirement_note").map(String);
+  const quantities = formData.getAll("line_physical_qty").map(String);
+  return itemIds.flatMap((itemId, index) => enabled[index] === "true" ? [{
+    item_id: z.string().uuid().parse(itemId),
+    reason: z.enum(["used_up", "wrong_or_duplicate_code", "branch_no_longer_uses", "other"]).parse(reasons[index]),
+    note: z.string().trim().min(3).max(1_000).parse(notes[index]),
+    actual_qty: z.coerce.number().min(0).max(1_000_000).parse(quantities[index]),
+  }] : []);
+}
+
+async function syncRetirementRequests(stockCountId: string, formData: FormData, lineIdsByItem?: Map<string, string>) {
+  const requests = extractRetirementRequests(formData);
+  const supabase = await createClient();
+  let resolvedLineIds = lineIdsByItem;
+  if (!resolvedLineIds) {
+    const { data, error } = await supabase.from("stock_count_lines").select("id,item_id").eq("stock_count_id", stockCountId);
+    if (error || !data) throw new Error(error?.message ?? "Stock Count retirement lines are unavailable.");
+    resolvedLineIds = new Map(data.map((line) => [line.item_id, line.id]));
+  }
+  const retirements = requests.map((request) => ({ ...request, line_id: resolvedLineIds?.get(request.item_id) }));
+  if (retirements.some((request) => !request.line_id)) throw new Error("A retirement request no longer matches this Stock Count. Refresh and try again.");
+  const { error } = await looseSupabase(supabase).rpc("sync_stock_count_item_retirements", { p_stock_count_id: stockCountId, p_retirements: retirements });
+  if (error) throw new Error(error.message);
+}
+
 async function createStockCountRecord(formData: FormData) {
   const payload = extractStockCount(formData);
   if (isMockMode()) return "stock-count-draft";
@@ -83,6 +113,7 @@ async function createStockCountRecord(formData: FormData) {
   if (error) throw new Error(error.message);
   const created = data as { id: string } | null;
   if (!created?.id) throw new Error("Stock count creation did not return an identifier.");
+  await syncRetirementRequests(created.id, formData);
   revalidateWorkspaceState(["/stock-counts"]);
   return created.id;
 }
@@ -105,6 +136,7 @@ async function updateStockCountDraftRecord(id: string, formData: FormData, optio
     });
     if (error) throw new Error(error.message);
     if (!(data as { id?: string } | null)?.id) throw new Error("Draft save did not return an identifier.");
+    await syncRetirementRequests(countId, formData, new Map(payload.lines.map((line, index) => [line.item_id, lineIds[index]])));
   }
   if (options.revalidate !== false) revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`]);
   return countId;

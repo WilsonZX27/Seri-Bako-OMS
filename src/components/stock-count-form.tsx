@@ -2,7 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AlertTriangle, CalendarDays, ChevronDown, ListFilter, MapPin, Minus, Plus, Search } from "lucide-react";
+import { AlertTriangle, CalendarDays, ChevronDown, ListFilter, MapPin, Minus, Plus, Search, Archive } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ModalShell } from "@/components/ui/modal-shell";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
@@ -22,9 +24,11 @@ type SeedLine = {
   prefill_source: "last_posted_count" | "ledger_balance" | "unavailable";
   uom: string;
   remarks?: string | null;
+  retirement?: { reason: RetirementReason; note: string; actual_qty: number; status: "pending" | "applied" } | null;
 };
 
-type SeedLineInput = SeedLine & { physicalQty: string; remarks: string; initialPhysicalQty: string; adjusted: boolean };
+type RetirementReason = "used_up" | "wrong_or_duplicate_code" | "branch_no_longer_uses" | "other";
+type SeedLineInput = SeedLine & { physicalQty: string; remarks: string; initialPhysicalQty: string; adjusted: boolean; retireAfterCount: boolean; retirementReason: RetirementReason | ""; retirementNote: string };
 type AutosaveState = "idle" | "recovered" | "saving" | "saved" | "error";
 const STOCK_COUNT_SORT_KEY = "seri-bako:stock-count-sort";
 const MAX_AUTOSAVE_RETRIES = 3;
@@ -62,7 +66,7 @@ function quantityInputValue(value: number, uom: string) {
 
 function makeEditableLine(line: SeedLine): SeedLineInput {
   const physicalQty = line.physical_qty === null ? "" : quantityInputValue(line.physical_qty, line.uom);
-  return { ...line, physicalQty, initialPhysicalQty: physicalQty, remarks: line.remarks ?? "", adjusted: false };
+  return { ...line, physicalQty, initialPhysicalQty: physicalQty, remarks: line.remarks ?? "", adjusted: false, retireAfterCount: line.retirement?.status === "pending", retirementReason: line.retirement?.reason ?? "", retirementNote: line.retirement?.note ?? "" };
 }
 
 function formatVariancePercent(percent: number | null) {
@@ -120,6 +124,11 @@ export function StockCountForm({
   const [search, setSearch] = useState("");
   const [showAdjustedOnly, setShowAdjustedOnly] = useState(false);
   const [sortBy, setSortBy] = useState<"name" | "code">("code");
+  const [retirementItemId, setRetirementItemId] = useState<string | null>(null);
+  const [retirementReason, setRetirementReason] = useState<RetirementReason>("used_up");
+  const [retirementNote, setRetirementNote] = useState("");
+  const retirementTriggerRef = useRef<HTMLButtonElement>(null);
+  const retirementCancelRef = useRef<HTMLButtonElement>(null);
   // Keep the settings content present on the first render so desktop/tablet
   // users never lose the optional count note while the viewport media query
   // synchronises. The media-query effect below collapses it on phone widths.
@@ -288,6 +297,24 @@ export function StockCountForm({
     setLines((current) => current.map((line) => (line.item_id === itemId ? { ...line, physicalQty: nextPhysicalQty, adjusted: nextPhysicalQty !== line.initialPhysicalQty } : line)));
   }
 
+  function openRetirement(line: SeedLineInput) {
+    setRetirementItemId(line.item_id);
+    setRetirementReason(line.retirementReason || "used_up");
+    setRetirementNote(line.retirementNote);
+  }
+
+  function confirmRetirement() {
+    if (!retirementItemId || retirementNote.trim().length < 3) return;
+    markDirty();
+    setLines((current) => current.map((line) => line.item_id === retirementItemId ? { ...line, retireAfterCount: true, retirementReason, retirementNote: retirementNote.trim() } : line));
+    setRetirementItemId(null);
+  }
+
+  function cancelRetirement(itemId: string) {
+    markDirty();
+    setLines((current) => current.map((line) => line.item_id === itemId ? { ...line, retireAfterCount: false, retirementReason: "", retirementNote: "" } : line));
+  }
+
   function normalizePhysicalQty(itemId: string) {
     setLines((current) => current.map((line) => {
       if (line.item_id !== itemId) return line;
@@ -309,10 +336,6 @@ export function StockCountForm({
 
   const adjustedCount = lines.filter((line) => line.adjusted).length;
   const needsPhysicalCount = lines.filter((line) => line.physicalQty.trim() === "").length;
-  // Keep the operator's position anchored to the authoritative seed order.
-  // Filtering or switching Name/Code sort must not make the same item appear
-  // to change identity (for example, item 47 becoming item 1).
-  const displayIndexByItemId = new Map(lines.map((line, index) => [line.item_id, index + 1]));
   const normalizedSearch = search.trim().toLowerCase();
   const visibleLines = lines
     .filter((line) => {
@@ -416,6 +439,9 @@ export function StockCountForm({
                 <input name="line_physical_qty" value={line.physicalQty} readOnly />
                 <input name="line_uom" value={line.uom} readOnly />
                 <input name="line_remarks" value={line.remarks} readOnly />
+                <input name="line_retire_after_count" value={String(line.retireAfterCount)} readOnly />
+                <input name="line_retirement_reason" value={line.retirementReason} readOnly />
+                <input name="line_retirement_note" value={line.retirementNote} readOnly />
               </div>
             ))}
           </div>
@@ -427,8 +453,8 @@ export function StockCountForm({
               <p className="text-xs font-semibold">Count</p>
             </div>
             <div className="grid grid-cols-2 gap-2 p-2 sm:block sm:divide-y sm:gap-0 sm:p-0">
-              {visibleLines.map((line) => {
-                const displayIndex = displayIndexByItemId.get(line.item_id) ?? 0;
+              {visibleLines.map((line, visibleIndex) => {
+                const displayIndex = visibleIndex + 1;
                 const hasPhysical = line.physicalQty.trim() !== "";
                 const physical = hasPhysical ? toNumber(line.physicalQty) : 0;
                 const variance = physical - line.theoretical_qty;
@@ -445,6 +471,7 @@ export function StockCountForm({
                         <p className="break-words text-[13px] font-medium leading-tight text-slate-800">{line.item_name}</p>
                         <p className="min-w-0 break-all text-[10px] leading-3 tracking-[0.01em] text-slate-400">{line.item_code}</p>
                         <p className="mt-1 hidden text-[10px] leading-3 text-muted-foreground sm:block">{line.prefill_source === "unavailable" ? "No prior ledger balance · enter count" : `Starting balance · ${formatQuantity(line.theoretical_qty)} ${line.uom}`}</p>
+                        {line.retireAfterCount ? <div className="mt-2 flex flex-wrap items-center gap-2"><span className="rounded-full bg-[var(--sb-warning-bg)] px-2 py-1 text-[10px] font-semibold text-[var(--sb-warning-text)]">Retires after posting</span><button type="button" className="text-[10px] font-medium text-muted-foreground underline" onClick={() => cancelRetirement(line.item_id)}>Keep active</button></div> : <button ref={retirementTriggerRef} type="button" className="mt-2 inline-flex min-h-8 items-center gap-1 text-[10px] font-medium text-muted-foreground hover:text-foreground" onClick={() => openRetirement(line)}><Archive className="h-3.5 w-3.5" />Retire after this count</button>}
                       </div>
                     </div>
 
@@ -479,6 +506,9 @@ export function StockCountForm({
                     <input type="hidden" name="line_theoretical_qty" value={line.theoretical_qty} />
                     <input type="hidden" name="line_uom" value={line.uom} />
                     <input type="hidden" name="line_remarks" value={line.remarks} readOnly />
+                    <input type="hidden" name="line_retire_after_count" value={String(line.retireAfterCount)} readOnly />
+                    <input type="hidden" name="line_retirement_reason" value={line.retirementReason} readOnly />
+                    <input type="hidden" name="line_retirement_note" value={line.retirementNote} readOnly />
                   </div>
                 );
               })}
@@ -495,6 +525,17 @@ export function StockCountForm({
             </div>
           </div>
           </section>
+
+          <ModalShell open={Boolean(retirementItemId)} onClose={() => setRetirementItemId(null)} titleId="stock-count-retirement-title" triggerRef={retirementTriggerRef} initialFocusRef={retirementCancelRef} className="max-w-md">
+            <h2 id="stock-count-retirement-title" className="flex items-center gap-2 text-base font-semibold"><Archive className="h-4 w-4" />Retire item after this count</h2>
+            <p className="mt-2 text-sm text-muted-foreground">The item stays in this final count. After posting, it will be removed from future Stock Counts for this branch and Purchasing and Finance will be notified.</p>
+            <div className="mt-4 space-y-4">
+              <Field label="Retirement reason"><SelectNative value={retirementReason} onChange={(event) => setRetirementReason(event.target.value as RetirementReason)}><option value="used_up">Used up and no longer required</option><option value="wrong_or_duplicate_code">Wrong or duplicate item code</option><option value="branch_no_longer_uses">This branch no longer uses it</option><option value="other">Other</option></SelectNative></Field>
+              <Field label="What happened and what Purchasing should update"><Textarea value={retirementNote} onChange={(event) => setRetirementNote(event.target.value)} minLength={3} maxLength={1000} required placeholder="Explain why this item is retiring and any AutoCount correction needed." /></Field>
+              <p className="rounded-[var(--sb-control-radius)] bg-[var(--sb-surface-muted)] p-3 text-xs text-muted-foreground">Final actual stock: <strong className="text-foreground">{formatQuantity(toNumber(lines.find((line) => line.item_id === retirementItemId)?.physicalQty ?? 0))} {lines.find((line) => line.item_id === retirementItemId)?.uom ?? ""}</strong>. Change the count field first if this is not correct.</p>
+              <div className="flex justify-end gap-2"><Button ref={retirementCancelRef} type="button" variant="outline" onClick={() => setRetirementItemId(null)}>Keep active</Button><Button type="button" disabled={retirementNote.trim().length < 3} onClick={confirmRetirement}>Retire after posting</Button></div>
+            </div>
+          </ModalShell>
 
           {showSubmit ? (
             <div

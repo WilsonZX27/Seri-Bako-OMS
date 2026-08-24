@@ -6,6 +6,18 @@
 - Production test data must use the manifest at `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, dedicated `UAT-20260823-*` identifiers or explicit `PRODUCTION-UAT` remarks, and a cleanup result before the related ledger row can be marked `production verified`.
 - Posted inventory, accounting, payment, and real operational records remain protected. If a mutation cannot be reversed or safely cleaned, stop and report it.
 
+## Batch 2026-08-24 — PJS Stock Count identity and lifecycle
+
+Batch authority: browser comments and attached PJS/ALMA/AutoCount screenshots supplied on 2026-08-24. Current state is `implemented; local verified` by 882 contracts, strict typecheck, lint, production build, and local migration/catalog read-back. Migration 203 application to local Supabase is confirmed; authenticated Kitchen/Purchasing/Finance/Owner viewport UAT, remote migration application, deployment, and Production verification remain pending.
+
+| # | URL | Role / viewport | Expected behavior | State |
+|---:|---|---|---|---|
+| 1 | `/stock-counts/new` | Kitchen / 820×1180 | visible ordinal follows current sort; item code remains identity | implemented |
+| 2 | `/stock-counts/new?branch_id=PJS` | Kitchen / all four | `OIYIN00012` and `OIYIN00006` enter eligible scope when exact canonical PJS records exist | implemented + migration 203 |
+| 3 | `/stock-counts/:id` | Kitchen / all four | retirement dialog requires category, note and final count; line remains until posting | implemented + migration 203 |
+| 4 | `/items/:id` | permitted roles / all four | durable branch lifecycle and restore record | implemented + migration 203 |
+| 5 | `/imports/autocount` | Purchasing / all four | expired/non-JSON response produces actionable retry message rather than JSON parse text | implemented |
+
 ## Batch 2026-08-24 — responsive and correction workflow annotations
 
 Batch authority: the 28 browser comments supplied on 2026-08-24. Screenshot references are the numbered browser-comment images in that batch. Roles below describe the required UAT actor, not proof already obtained. Current state for every row is `implemented; local verified` by 871 contracts, strict typecheck, lint and production build. Authenticated role/viewport UAT, remote migration 201 verification, deployment and Production verification remain pending.

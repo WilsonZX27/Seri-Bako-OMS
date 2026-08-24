@@ -54,6 +54,9 @@ export async function updateSession(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   if (!authUserId) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ ok: false, message: "Your session expired. Sign in again, then retry; no OMS records were changed." }, { status: 401 });
+    }
     const decision = resolveAuthRoute({ pathname, authenticated: false, staffStatus: null, mustChangePassword: false, routeProtected: false, routeAllowed: false, firstPermittedRoute: null });
     return decision ? redirectWithCookies(request, response, decision.destination) : response;
   }
@@ -111,5 +114,8 @@ export async function updateSession(request: NextRequest) {
     routeAllowed,
     firstPermittedRoute,
   });
+  if (decision && pathname.startsWith("/api/")) {
+    return NextResponse.json({ ok: false, message: permissionCodes && !routeAllowed ? "You do not have permission to use this operation." : "Your session is no longer active. Sign in again, then retry." }, { status: permissionCodes && !routeAllowed ? 403 : 401 });
+  }
   return decision ? redirectWithCookies(request, response, decision.destination) : response;
 }

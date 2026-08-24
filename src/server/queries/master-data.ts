@@ -2,6 +2,7 @@ import { isMockMode, mockItems, mockSupplierItems, mockSuppliers, mockUomConvers
 import { createClient } from "@/lib/supabase/server";
 import { compareTableValues } from "@/lib/table-state";
 import type { Database } from "@/types/database";
+import { looseSupabase } from "@/lib/supabase/loose";
 
 type Filters = Record<string, string | undefined>;
 
@@ -148,4 +149,40 @@ export async function getItemSourcingReadiness(itemId: string): Promise<ItemSour
     supplierItems: resolvedSupplierItems,
     branchMappings: resolvedBranchMappings,
   };
+}
+
+export async function getItemStockCountLifecycle(itemId: string) {
+  if (isMockMode()) return [];
+  const supabase = await createClient();
+  const { data, error } = await looseSupabase(supabase).from("branch_stock_count_items")
+    .select("id,branch_id,status,retirement_reason,retirement_note,last_physical_qty,retired_at,restored_at,retired_stock_count_id")
+    .eq("item_id", itemId).order("updated_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  const rows = (data ?? []) as Array<{ id: string; branch_id: string; status: string; retirement_reason: string | null; retirement_note: string | null; last_physical_qty: number | null; retired_at: string | null; restored_at: string | null; retired_stock_count_id: string | null }>;
+  const branchIds = [...new Set(rows.map((row) => row.branch_id))];
+  const branches = branchIds.length ? await supabase.from("branches").select("id,branch_code,branch_name").in("id", branchIds) : { data: [], error: null };
+  if (branches.error) throw new Error(branches.error.message);
+  const branchById = new Map((branches.data ?? []).map((branch) => [branch.id, branch]));
+  return rows.map((row) => ({ ...row, branch: branchById.get(row.branch_id) ?? null }));
+}
+
+export async function getItemStockCountRetirementHistory(itemId: string) {
+  if (isMockMode()) return [];
+  const supabase = await createClient();
+  const { data, error } = await looseSupabase(supabase).from("stock_count_item_retirements")
+    .select("id,branch_id,stock_count_id,reason,note,actual_qty,status,requested_by,created_at,applied_at")
+    .eq("item_id", itemId).order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  const rows = (data ?? []) as Array<{ id: string; branch_id: string; stock_count_id: string; reason: string; note: string; actual_qty: number; status: string; requested_by: string; created_at: string; applied_at: string | null }>;
+  const branchIds = [...new Set(rows.map((row) => row.branch_id))];
+  const staffIds = [...new Set(rows.map((row) => row.requested_by))];
+  const [branches, staffs] = await Promise.all([
+    branchIds.length ? supabase.from("branches").select("id,branch_code,branch_name").in("id", branchIds) : Promise.resolve({ data: [], error: null }),
+    staffIds.length ? supabase.from("staffs").select("id,full_name").in("id", staffIds) : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (branches.error) throw new Error(branches.error.message);
+  if (staffs.error) throw new Error(staffs.error.message);
+  const branchById = new Map((branches.data ?? []).map((branch) => [branch.id, branch]));
+  const staffById = new Map((staffs.data ?? []).map((staff) => [staff.id, staff]));
+  return rows.map((row) => ({ ...row, branch: branchById.get(row.branch_id) ?? null, requestedBy: staffById.get(row.requested_by) ?? null }));
 }

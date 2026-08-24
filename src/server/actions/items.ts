@@ -10,6 +10,7 @@ import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 import { uploadMasterDataImage } from "@/server/storage/master-data-image";
 import { writeActivityLog } from "@/server/activity/log";
 import { z } from "zod";
+import { looseSupabase } from "@/lib/supabase/loose";
 
 const editableItemSchema = itemSchema.omit({ status: true });
 
@@ -199,5 +200,24 @@ export async function restoreItem(id: string) {
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/items/${id}`, "error", formatActionError(error, "Could not restore this item."));
+  }
+}
+
+export async function restoreBranchStockCountItem(itemId: string, scopeId: string, formData: FormData) {
+  try {
+    await requirePermissionOrRedirect("stock_count.update", `/items/${itemId}`);
+    const parsedItemId = parseItemId(itemId);
+    const parsedScopeId = z.string().uuid().parse(scopeId);
+    const reason = z.string().trim().min(3).max(1_000).parse(formData.get("reason"));
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const { error } = await looseSupabase(supabase).rpc("restore_branch_stock_count_item", { p_scope_id: parsedScopeId, p_reason: reason });
+      if (error) throw new Error(error.message);
+    }
+    revalidatePath(`/items/${parsedItemId}`);
+    safeRedirectWithMessage(`/items/${parsedItemId}`, "success", "Item restored to this branch's next Stock Count.");
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/items/${itemId}`, "error", formatActionError(error, "Could not restore this branch item."));
   }
 }

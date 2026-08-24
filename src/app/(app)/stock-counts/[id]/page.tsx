@@ -90,6 +90,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
     prefill_source: "ledger_balance" as const,
     uom: line.uom,
     remarks: line.remarks,
+    retirement: line.retirement,
   }));
 
   return (

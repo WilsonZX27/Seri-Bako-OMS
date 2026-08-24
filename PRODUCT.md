@@ -4,6 +4,10 @@
 
 Production UAT mutation is now Owner-authorized only when it is traceable, isolated, recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, and cleaned up after verification. Historical release notes that describe Production mutation as unauthorized remain historical evidence and are superseded by this current policy.
 
+### v8.64.165 (unreleased) — Branch Stock Count item lifecycle
+
+Stock Count eligibility is now branch-owned and includes active mapped items even before their first ledger movement. Kitchen can mark an item to retire after the current count, with a required category, explanation, and final physical quantity; posting preserves the final inventory evidence, retires the item only from future counts for that branch, records the lifecycle on Item detail, and notifies Purchasing and Finance. New mappings activate future-count scope without silently reactivating a retired item. Visible row numbers follow the current Name/Code view. AutoCount APIs return JSON for expired sessions and the client refuses HTML responses with an actionable sign-in-and-retry message. Migration 203 and the application are locally implemented; authenticated role/viewport UAT, remote migration application, deployment, and Production verification remain pending.
+
 ### v8.64.164 (unreleased) — Safe procurement actions and compact document tools
 
 Destructive actions now open a visible danger confirmation dialog across document, production, stock, profile, attachment, recipe, and master-data surfaces. Cancelled unposted purchase orders remain in the Cancelled register and can be restored when no downstream record or replacement PO conflicts; migration 202 owns the server-authoritative recovery contract. PR attachments use one compact upload row and icon actions, Purchasing sees an explicit required AutoCount PO number, PR/Dashboard mobile rows share one aligned composition, and Add Line searches item-code-ordered items scoped to the selected supplier. These changes are locally implemented; migration 202 deployment, authenticated role/viewport UAT, application deployment, and Production verification remain open.
@@ -417,7 +421,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `202`; linked Production application and cleanup evidence is recorded in the current closure sections and repair ledger. Migration 201 is remotely applied; migration 202 remains repository-only until remote application is verified.
+Repository migration authority: migrations reviewed through `203`; linked Production application and cleanup evidence is recorded in the current closure sections and repair ledger. Migration 201 is remotely applied; migrations 202–203 remain repository-only until remote application is verified.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

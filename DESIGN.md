@@ -4,6 +4,10 @@
 
 Production UAT mutation is allowed only for isolated, traceable test records recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`. Posted inventory/accounting effects and real operational records remain outside disposable testing; historical notes are retained but this policy is the current authority.
 
+## v8.64.162 (unreleased) - Production UAT cleanup closure
+
+The disposable Production UAT PR is removed through the same guarded Owner deletion boundary used by the interface, not through an unscoped table delete. The cleanup migration requires the exact UUID, request number, `PRODUCTION-UAT` marker, inactive downstream PO state, and active original Owner identity before it can execute; it is a no-op everywhere the exact fixture is absent.
+
 ## v8.64.161 (unreleased) - Procurement closure and receiving setup
 
 The PR-to-PO-to-Goods-Receiving journey is exercised as one continuous role-aware browser workflow. On Goods Receiving creation, the required receiving setup is open by default even when the PO is preselected; operators can collapse it only after the Delivery Order context is visible. This avoids a pre-hydration tap race that made the required field appear unavailable on touch devices.

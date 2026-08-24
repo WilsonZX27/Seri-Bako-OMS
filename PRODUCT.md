@@ -4,6 +4,10 @@
 
 Production UAT mutation is now Owner-authorized only when it is traceable, isolated, recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, and cleaned up after verification. Historical release notes that describe Production mutation as unauthorized remain historical evidence and are superseded by this current policy.
 
+### v8.64.162 (unreleased) — Production UAT cleanup closure
+
+Production migrations 196–199 are applied and the remote migration dry-run reports no pending work. Migration 200 performs an exact, marker-guarded, idempotent cleanup of the single manifested `PR/AUG26/020` fixture through the existing Owner hard-delete RPC, preserving its permanent deletion tombstone. Production read-back confirms the PR is absent from search and unavailable at its former URL.
+
 ### v8.64.161 (unreleased) — Procurement closure verification
 
 The isolated PR-to-stock workflow now verifies Kitchen submission, Manager approval, Purchasing AutoCount PO entry, Finance approval, PO conversion and supplier sending, Goods Receiving draft/attachment, and final inventory posting in one repeatable browser scenario. Goods Receiving keeps its required setup and Delivery Order Number visible on first render so a preselected PO cannot hide the next required action before hydration.
@@ -405,7 +409,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `199`; this is not evidence that migration 199 is applied to the linked Production project.
+Repository migration authority: migrations reviewed through `200`; linked Production application and cleanup evidence is recorded in the current closure sections and repair ledger.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

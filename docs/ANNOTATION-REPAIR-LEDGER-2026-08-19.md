@@ -6,13 +6,20 @@
 - Production test data must use the manifest at `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, dedicated `UAT-20260823-*` identifiers or explicit `PRODUCTION-UAT` remarks, and a cleanup result before the related ledger row can be marked `production verified`.
 - Posted inventory, accounting, payment, and real operational records remain protected. If a mutation cannot be reversed or safely cleaned, stop and report it.
 
+## v8.64.162 Production migration and UAT cleanup closure
+
+- **Remote migrations:** 196, 197, 198, 199, and the guarded cleanup migration 200 applied successfully; the follow-up linked dry-run reports `Remote database is up to date` after 196–199, and migration 200 completed without SQL error.
+- **Cleanup:** exact manifested PR `PR/AUG26/020` / `1e6ab4b0-9238-4735-b928-6054435335e0` was permanently removed through `hard_delete_phase_one`. The already-cancelled PO remains only as an audit row with no active workflow or inventory/accounting effect.
+- **Production read-back:** Purchasing search contains neither the request number nor UUID link; the former detail URL renders `Purchase request not available` (`1/1` browser verification passed).
+- **State:** migration and UAT cleanup are `production verified`; the wider PR-to-stock mutation journey remains locally verified, not Production mutation verified.
+
 ## v8.64.161 PR to PO to Goods Receiving verification (local closure)
 
 - **Finding:** a preselected PO collapsed the required Goods Receiving setup before hydration. An early phone tap could be lost, leaving Delivery Order Number apparently unavailable and blocking smooth continuation.
 - **Fixed:** receiving setup is visible on first render and remains operator-collapsible after the required context is shown.
 - **Workflow evidence:** the isolated browser fixture completes PR submit, Manager approval, Purchasing AutoCount PO entry, Finance approval, PO conversion, duplicate-number protection, supplier sending, GRN creation/draft/attachment, and final stock posting; `3/3` scenarios pass and clean up their fixture.
 - **Release evidence:** TypeScript, ESLint, `865/865` contract tests, and the production build pass. Production read-only role and permission checks pass `8/8`; no Production business record was mutated, so the full chain is not claimed `production verified`.
-- **State:** `implemented` and locally verified; awaiting deployment, migration-199 confirmation, and traceable Production UAT.
+- **State:** `implemented`, deployed, and locally workflow-verified. Production role/read checks and migrations pass; the full Production mutation chain was not rerun.
 
 ## v8.64.160 Outlet Daily iPhone scroll repair (local closure)
 
@@ -25,9 +32,9 @@
 
 - **Fixed locally:** Dashboard newest-first ordering and PR summary fields; Purchasing submitter visibility and PO-send grant; deterministic three-line mobile PR rows; compact PR line editor; summary supplier span; repeated supplier-column removal; audited add-line action; mandatory Purchasing AutoCount PO number; Finance progression guard for pending revisions; compact Outlet Daily `View`; single-step Outlet Daily posting.
 - **Database dependency:** migration 199 adds the narrow requester-identity policy, Purchasing `po.send`, AutoCount PO storage, pending-revision guard, and audited add-line RPC.
-- **Test-data cleanup:** PR/AUG26/020 is confirmed in the Production UAT manifest, but no Production service-role or reusable authenticated browser session is available in this workspace. PR/AUG26/019 has not yet been proven to be disposable. Neither is claimed deleted.
-- **Evidence:** TypeScript typecheck and ESLint pass. Production migration, deployment, role UAT, responsive browser UAT, and test-data deletion remain outstanding.
-- **State:** `implemented` locally; not `remote verified` or `production verified`.
+- **Test-data cleanup:** manifested `PR/AUG26/020` is permanently deleted by guarded migration 200; its cancelled PO remains only as an audit row. `PR/AUG26/019` was never proven disposable and was not touched.
+- **Evidence:** Production v8.64.161, migrations 196–200, read-only role matrix `8/8`, and exact UAT cleanup read-back are verified. The full Production mutation workflow was not rerun.
+- **State:** deployed and migration-verified; individual Production mutation steps remain bounded by the evidence above.
 
 ## v8.64.158 Outlet Daily Qty Sent handoff (local closure)
 

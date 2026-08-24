@@ -4,6 +4,10 @@
 
 Production UAT mutation is allowed only for isolated, traceable test records recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`. Posted inventory/accounting effects and real operational records remain outside disposable testing; historical notes are retained but this policy is the current authority.
 
+## v8.64.170 (unreleased) - Progressive daily entry and actionable trust states
+
+Outlet Daily treats the workday as progressive entry rather than a single terminal form. Users with Outlet value access can save Received as draft, return later for Wastage, and post only when ready. Missing receipt provenance is expressed as a concrete pending line count and recovery instruction, not a generic unavailable label. Purchase Order side rails remove explanatory copy that repeats the action, attachment, or revision surface itself.
+
 ## v8.64.169 (unreleased) - Operational information rhythm
 
 PR work queues use visible field labels and identical fixed tracks across the register and Dashboard, so scanning does not depend on icon recognition or variable content width. Long suppliers truncate inside their owned track. Stock Count keeps the ordinal as the row anchor and places a standard ellipsis menu directly beneath it; retirement remains a deliberate dialog task. Movement Ledger prioritizes transaction and item identity through wider fixed columns and intentional horizontal scroll. Neutral cancellation, danger confirmation, and attachment upload now maintain distinct action hierarchy.

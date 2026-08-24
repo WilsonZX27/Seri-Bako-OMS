@@ -19,6 +19,7 @@ export type OutletDailyRecordRow = RecordRow & {
   total_sent: number | null;
   total_received: number | null;
   received_state: "verified" | "unavailable";
+  received_pending_lines: number;
   received_zero_with_sent: boolean;
   total_leftover: number;
   total_wastage: number;
@@ -75,6 +76,7 @@ const totals = (lines: LineRow[], operationalProductIds?: Set<string>) => {
     return explicitlyProvided && Number.isFinite(received) ? received : null;
   });
   const receivedState = operationalLines.length > 0 && receivedValues.every((value) => value !== null) ? "verified" as const : "unavailable" as const;
+  const receivedPendingLines = receivedValues.filter((value) => value === null).length;
   const totalReceived = receivedState === "verified"
     ? receivedValues.reduce<number>((sum, value) => sum + (value ?? 0), 0)
     : null;
@@ -89,6 +91,7 @@ const totals = (lines: LineRow[], operationalProductIds?: Set<string>) => {
     total_sent: totalSent,
     total_received: totalReceived,
     received_state: receivedState,
+    received_pending_lines: receivedPendingLines,
     received_zero_with_sent: receivedZeroWithSent,
     total_leftover: totalLeftover,
     total_wastage: totalWastage,

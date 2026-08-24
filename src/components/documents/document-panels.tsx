@@ -210,7 +210,6 @@ export function ApprovalPanel({ document, approval, approvalSteps }: { document:
 export function RevisionPanel({ revisions }: { revisions: Revision[] }) {
   return (
     <ConsoleSection title="Revision History">
-        {revisions.length <= 1 ? <p className="mb-2 text-[11px] leading-4 text-muted-foreground">A new revision is recorded when document details or workflow state change.</p> : null}
         <div className="divide-y rounded-[2px] border">
           {revisions.map((revision) => (
             <div key={revision.id} className="p-3">

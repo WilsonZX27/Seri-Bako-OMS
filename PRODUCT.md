@@ -4,6 +4,10 @@
 
 Production UAT mutation is now Owner-authorized only when it is traceable, isolated, recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, and cleaned up after verification. Historical release notes that describe Production mutation as unauthorized remain historical evidence and are superseded by this current policy.
 
+### v8.64.170 (unreleased) — PO restore and Outlet draft progress
+
+Cancelled Purchase Order restoration now casts validated recovery values to their PostgreSQL enum types before updating PO and Document state. Outlet Daily supports a repeatable same-day draft workflow: Received may be entered and saved in the afternoon, the record remains editable, and Wastage can be completed later before posting. Unverified receiving is displayed as an exact pending food-line count rather than an unexplained Unavailable state. Redundant Purchase Order attachment, no-action, and revision helper copy remains removed. Migration 205 is remotely applied and the linked dry-run is current; application deployment and authenticated workflow UAT remain separate.
+
 ### v8.64.169 (unreleased) — Operational row and action refinement
 
 Purchase Request and Dashboard queues now share one labelled, fixed-track information grid for location, supplier, date, user, item count, and estimated cost. Stock Count moves branch retirement behind a More menu below the visible row number while preserving the pending lifecycle state. Movement Ledger owns wider fixed columns with horizontal scrolling instead of compressing business identity. Cancel remains visually neutral; destructive triggers no longer duplicate a visible Confirm label; Purchase Order attachments use the shared Supporting Attachments grammar with an empty operator-owned label and one Upload action. Local verification does not constitute deployment or authenticated browser UAT.
@@ -437,7 +441,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `204`; linked Production application and cleanup evidence is recorded in the current closure sections and repair ledger. Migrations 201–204 are remotely applied; application deployment and authenticated workflow evidence remain separate.
+Repository migration authority: migrations reviewed through `205`; linked Production application and cleanup evidence is recorded in the current closure sections and repair ledger. Migrations 201–205 are remotely applied; application deployment plus authenticated workflow evidence remain separate.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

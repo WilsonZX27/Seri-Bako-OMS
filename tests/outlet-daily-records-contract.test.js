@@ -167,6 +167,7 @@ test("received totals never turn an unverified default zero into a business fact
   assert.match(query, /\.range\(start, start \+ pageSize - 1\)/);
   assert.match(query, /\.in\("record_id", recordIds\)/);
   assert.match(query, /received_state: "verified" \| "unavailable"/);
+  assert.match(query, /received_pending_lines: number/);
   assert.match(query, /total_received: number \| null/);
   assert.match(query, /today_received_unavailable/);
   assert.match(query, /todayRows\.length > 0 && todayRows\.every/);
@@ -183,7 +184,7 @@ test("Qty Sent totals never turn an unavailable default zero into a business fac
   assert.match(query, /totalReceived === 0 && totalSent !== null && totalSent > 0/);
   assert.match(query, /todayRows\.every\(\(row\) => row\.total_sent !== null\)/);
   assert.match(page, /data\.summary\.today_sent === null \? "Unavailable"/);
-  assert.match(detail, /record\.total_sent === null \? "Unavailable"/);
+  assert.match(detail, /record\.total_sent === null \? "Pending"/);
   assert.match(detail, /Needs confirmation/);
 });
 

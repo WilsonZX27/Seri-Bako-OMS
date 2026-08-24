@@ -13,7 +13,7 @@ test("PR attachments use one compact action row and icon-only file actions", () 
   assert.doesNotMatch(panels, />Download</);
   assert.match(panels, /<Eye/);
   assert.match(panels, /Revision \{revision\.revision_no\}/);
-  assert.match(panels, /A new revision is recorded/);
+  assert.doesNotMatch(panels, /A new revision is recorded/);
 });
 
 test("destructive actions use a visible confirmation boundary", () => {

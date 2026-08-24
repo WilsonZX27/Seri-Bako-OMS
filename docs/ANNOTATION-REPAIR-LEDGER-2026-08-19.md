@@ -1032,6 +1032,16 @@ Production screenshots initiated this batch. The statuses below describe source 
 | 6 | PO detail / 1440x900 | PO attachments use Supporting Attachments, an empty label, and one Upload action. | implemented / attachment UAT pending |
 | 7 | PO detail / 1440x900 | Redundant no-workflow explanatory copy is removed. | implemented |
 | 8 | PO detail / 1440x900 | Destructive triggers omit the duplicate inline Confirm word; dialog owns confirmation. | implemented |
+
+## 2026-08-24 PO restore and progressive Outlet entry — v8.64.170
+
+| Comment | Route / viewport | Acceptance | Status |
+|---|---|---|---|
+| 1 | PO detail / 1469x918 | Restore writes validated values using explicit PO, approval, and document enum casts. | implemented / migration 205 remotely applied / authenticated restore UAT pending |
+| 2, 4 | PO detail / 1469x918 | Attachment explanation and redundant no-workflow copy are absent. | implemented in v8.64.169 / deployment pending |
+| 3 | PO detail / 1469x918 | Revision History omits generic revision helper copy. | implemented |
+| 5 | Outlet Daily list / 1440x900 | Unverified Received shows the exact number of pending food lines and Wastage explains the dependency. | implemented / data UAT pending |
+| 6 | Outlet Daily detail / 1440x900 | Staff can save afternoon Received as draft and return later to add Wastage before posting. | implemented / role UAT pending |
 ## v8.64.111 receiving posting lock repair
 
 | Acceptance | Status | Evidence / remaining gate |

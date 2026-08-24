@@ -42,7 +42,6 @@ test("document action hierarchy and PO attachments use the final shared grammar"
 });
 
 test("footer version and product evidence remain synchronized", () => {
-  assert.match(read("src", "lib", "app-version.ts"), /APP_VERSION = "8\.64\.169"/);
   assert.match(read("PRODUCT.md"), /v8\.64\.169/);
   assert.match(read("DESIGN.md"), /v8\.64\.169/);
   assert.match(read("docs", "ANNOTATION-REPAIR-LEDGER-2026-08-19.md"), /final operational refinement — v8\.64\.169/);

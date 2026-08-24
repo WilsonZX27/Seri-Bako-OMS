@@ -1019,6 +1019,19 @@ Production screenshots initiated this batch. The statuses below describe source 
 | 8 | PR detail / 1440x900 | Add Line UOM uses a controlled dropdown. | implemented |
 | 9 | PR detail / 1440x900 | Attachment label starts empty. | implemented |
 | 10 | Stock Balance / 1440x900 | Supplier group heading uses a darker shared muted surface. | implemented |
+
+## 2026-08-24 final operational refinement — v8.64.169
+
+| Comment | Route / viewport | Acceptance | Status |
+|---|---|---|---|
+| 1 | Purchase Requests / 820x1180 | Location/supplier and date/user/items/cost use labelled, fixed tracks. | implemented / viewport UAT pending |
+| 2 | Dashboard / 1440x900 | Actions Awaiting You uses the same information grid as the PR register. | implemented / role UAT pending |
+| 3 | New Stock Count / 1440x900 | Retirement is available from an ellipsis More menu below the row number. | implemented / interaction UAT pending |
+| 4 | Movement Ledger / 1440x900 | Ledger columns preserve readable transaction, item, and branch widths. | implemented / viewport UAT pending |
+| 5 | PR detail / 1440x900 | Cancel unposted request uses a neutral outline trigger. | implemented |
+| 6 | PO detail / 1440x900 | PO attachments use Supporting Attachments, an empty label, and one Upload action. | implemented / attachment UAT pending |
+| 7 | PO detail / 1440x900 | Redundant no-workflow explanatory copy is removed. | implemented |
+| 8 | PO detail / 1440x900 | Destructive triggers omit the duplicate inline Confirm word; dialog owns confirmation. | implemented |
 ## v8.64.111 receiving posting lock repair
 
 | Acceptance | Status | Evidence / remaining gate |

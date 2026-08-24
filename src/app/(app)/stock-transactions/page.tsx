@@ -142,7 +142,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
             {activeFilterChips.map((chip) => <span key={chip} className="max-w-full truncate">{chip}</span>)}
           </div> : null}
           <div className="sb-list-content-card overflow-hidden">
-            <Table mobileHidden aria-label="Stock movement ledger" stickyColumn="second">
+            <Table className="sb-stock-movement-ledger" mobileHidden aria-label="Stock movement ledger" stickyColumn="second">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-16 text-center">Action</TableHead>

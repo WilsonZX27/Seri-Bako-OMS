@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AlertTriangle, CalendarDays, ChevronDown, ListFilter, MapPin, Minus, Plus, Search, Archive } from "lucide-react";
+import { AlertTriangle, Archive, CalendarDays, ChevronDown, ListFilter, MapPin, Minus, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModalShell } from "@/components/ui/modal-shell";
 import { Field } from "@/components/ui/field";
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
+import { TableActionMenuPortal } from "@/components/ui/table-action-menu-portal";
 import { formatDateOnly, formatQuantity, formatQuantityInput, getToday } from "@/lib/utils";
 import type { StockCountAutosaveResult } from "@/server/actions/stock-counts";
 
@@ -466,12 +467,19 @@ export function StockCountForm({
                     className={`grid min-h-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-2 rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)] px-3 py-3 ${line.adjusted ? "bg-[var(--sb-green-100)]" : line.prefill_source === "unavailable" ? "bg-[var(--sb-warning-bg)]" : "bg-[var(--sb-surface)]"} sm:min-h-14 sm:items-center sm:gap-x-2 sm:gap-y-1.5 sm:rounded-none sm:border-0 sm:border-b sm:px-4 sm:py-2 md:min-h-14 lg:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] lg:gap-4 xl:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]`}
                   >
                     <div className="order-1 flex min-w-0 items-start gap-2">
-                      <span className="mt-0.5 inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-[var(--sb-surface-muted)] px-1 text-[10px] font-semibold tabular-nums text-muted-foreground" aria-label={`Item ${displayIndex}`}>{displayIndex}</span>
+                      <div className="flex w-7 shrink-0 flex-col items-center gap-0.5">
+                        <span className="mt-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--sb-surface-muted)] px-1 text-[10px] font-semibold tabular-nums text-muted-foreground" aria-label={`Item ${displayIndex}`}>{displayIndex}</span>
+                        <TableActionMenuPortal label={`More options for ${line.item_name}`} className="[&_button]:!h-7 [&_button]:!w-7">
+                          <button ref={retirementTriggerRef} type="button" role="menuitem" className="flex w-full items-center rounded-sm px-3 py-2 text-left text-xs font-medium hover:bg-[var(--sb-surface-muted)]" onClick={() => line.retireAfterCount ? cancelRetirement(line.item_id) : openRetirement(line)}>
+                            {line.retireAfterCount ? "Keep active" : "Retire after this count"}
+                          </button>
+                        </TableActionMenuPortal>
+                      </div>
                       <div className="min-w-0">
                         <p className="break-words text-[13px] font-medium leading-tight text-slate-800">{line.item_name}</p>
                         <p className="min-w-0 break-all text-[10px] leading-3 tracking-[0.01em] text-slate-400">{line.item_code}</p>
                         <p className="mt-1 hidden text-[10px] leading-3 text-muted-foreground sm:block">{line.prefill_source === "unavailable" ? "No prior ledger balance · enter count" : `Starting balance · ${formatQuantity(line.theoretical_qty)} ${line.uom}`}</p>
-                        {line.retireAfterCount ? <div className="mt-2 flex flex-wrap items-center gap-2"><span className="rounded-full bg-[var(--sb-warning-bg)] px-2 py-1 text-[10px] font-semibold text-[var(--sb-warning-text)]">Retires after posting</span><button type="button" className="text-[10px] font-medium text-muted-foreground underline" onClick={() => cancelRetirement(line.item_id)}>Keep active</button></div> : <button ref={retirementTriggerRef} type="button" className="mt-2 inline-flex min-h-8 items-center gap-1 text-[10px] font-medium text-muted-foreground hover:text-foreground" onClick={() => openRetirement(line)}><Archive className="h-3.5 w-3.5" />Retire after this count</button>}
+                        {line.retireAfterCount ? <div className="mt-2"><span className="rounded-full bg-[var(--sb-warning-bg)] px-2 py-1 text-[10px] font-semibold text-[var(--sb-warning-text)]">Retires after posting</span></div> : null}
                       </div>
                     </div>
 

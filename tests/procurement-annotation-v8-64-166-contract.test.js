@@ -8,8 +8,8 @@ test("PR and Dashboard operational rows use stable aligned tracks", () => {
   const list = read("src/app/(app)/purchase-requests/page.tsx");
   const dashboard = read("src/components/dashboard-workspace.tsx");
   for (const source of [list, dashboard]) {
-    assert.match(source, /grid-cols-2/);
-    assert.match(source, /grid-cols-4/);
+    assert.match(source, /data-pr-context-grid/);
+    assert.match(source, /data-pr-metrics-grid/);
     assert.match(source, /title=\{(?:supplierLabel|row\.supplier_names\.join)/);
   }
 });

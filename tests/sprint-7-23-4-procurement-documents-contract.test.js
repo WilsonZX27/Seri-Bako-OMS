@@ -51,7 +51,7 @@ test("PO preparation and shared attachments expose stage-specific evidence", () 
   const po = source("src/app/(app)/purchase-orders/[id]/page.tsx");
   const attachment = source("src/components/documents/document-panels.tsx");
   assert.match(po, /AutoCount PO Number/);
-  assert.match(po, /Attach Purchase Order/);
+  assert.match(po, /title="Supporting Attachments" uploadLabel="Upload"/);
   assert.match(attachment, /presentation.*inline/s);
   assert.match(attachment, /locked after approval or posting/);
 });

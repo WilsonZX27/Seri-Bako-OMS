@@ -52,11 +52,6 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
   const supplier = suppliers.find((row) => row.id === order.supplier_id);
   const branch = branches.find((row) => row.id === order.branch_id);
   const total = lines.reduce((sum, line) => sum + line.qty_ordered * line.unit_price, 0);
-  const hasPrimaryAction =
-    (!fromApprovedPr && order.status === "draft" && permissions["po.submit"]) ||
-    (!fromApprovedPr && order.status === "pending_approval" && permissions["po.approve"]) ||
-    (order.status === "approved" && permissions["po.send"]) ||
-    (["sent", "partial_received"].includes(order.status) && permissions["po.receive"]);
   const canReject = !fromApprovedPr && order.status === "pending_approval" && permissions["po.approve"];
   // A PO converted from an approved PR is still unposted work until it is sent.
   // Keep the audited cancellation path available so traceable UAT and operator
@@ -71,7 +66,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
     : !fromApprovedPr && order.status === "pending_approval" && permissions["po.approve"]
       ? <ConfirmActionForm action={approvePurchaseOrder.bind(null, order.id)} label="Approve as Manager" title="Approve this purchase order as Manager?" description="This makes the purchase order ready to send to the supplier." pendingLabel="Approving..." mobilePrimary />
       : order.status === "approved" && permissions["po.send"]
-        ? <MobileTaskSheet label="Send to Supplier"><div className="space-y-3">{documentBundle ? <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Purchase Order file" description="Attach the AutoCount or supplier-facing PO before sending." defaultLabel="Purchase Order" uploadLabel="Attach Purchase Order" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /> : null}<DocumentActionForm action={sendPurchaseOrder.bind(null, order.id)} pendingLabel="Sending...">Send to Supplier</DocumentActionForm></div></MobileTaskSheet>
+        ? <MobileTaskSheet label="Send to Supplier"><div className="space-y-3">{documentBundle ? <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supporting Attachments" uploadLabel="Upload" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /> : null}<DocumentActionForm action={sendPurchaseOrder.bind(null, order.id)} pendingLabel="Sending...">Send to Supplier</DocumentActionForm></div></MobileTaskSheet>
         : ["sent", "partial_received"].includes(order.status) && permissions["po.receive"]
           ? <DocumentActionLink href={`/goods-receivings/new?po_id=${order.id}`}>Record Receiving &amp; Attach DO</DocumentActionLink>
           : null;
@@ -99,12 +94,11 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
               {order.status === "approved" && permissions["po.send"] ? <DocumentActionForm action={sendPurchaseOrder.bind(null, order.id)} pendingLabel="Sending..." mobilePrimary>Send to supplier</DocumentActionForm> : null}
               {["sent", "partial_received"].includes(order.status) && permissions["po.receive"] ? <div data-mobile-primary-action><DocumentActionLink href={`/goods-receivings/new?po_id=${order.id}`} variant="outline">Receive goods</DocumentActionLink></div> : null}
             </DocumentActionBar>
-            {!hasPrimaryAction ? <p className="text-sm text-muted-foreground">You can view this document, but there is no workflow action available for your role or this status.</p> : null}
           </DocumentActionSection>
           <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{nextStep ?? "No further workflow step is available."}</p></DocumentSideSection>
           {documentBundle ? (
             <>
-              <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Purchase Order Attachment" description="Attach the AutoCount or supplier-facing PO during preparation and sending." defaultLabel="Purchase Order" uploadLabel="Attach Purchase Order" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} />
+              <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supporting Attachments" uploadLabel="Upload" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} />
               <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
               <DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} />
               <RevisionPanel revisions={documentBundle.revisions} />

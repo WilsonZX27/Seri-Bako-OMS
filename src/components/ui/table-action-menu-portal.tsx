@@ -52,7 +52,9 @@ export function TableActionMenuPortal({ label, children, className }: { label: s
       {open && position && typeof document !== "undefined" ? createPortal(
         <>
           <button type="button" className="fixed inset-0 z-[var(--sb-z-dropdown)] cursor-default" aria-label="Close actions" onClick={() => setOpen(false)} />
-          <div role="menu" className="sb-popover-surface fixed z-[calc(var(--sb-z-dropdown)+1)] min-w-40 rounded-[var(--sb-panel-radius)] p-1" style={position}>
+          <div role="menu" className="sb-popover-surface fixed z-[calc(var(--sb-z-dropdown)+1)] min-w-40 rounded-[var(--sb-panel-radius)] p-1" style={position} onClick={(event) => {
+            if ((event.target as HTMLElement).closest("button, a")) setOpen(false);
+          }}>
             {children}
           </div>
         </>,

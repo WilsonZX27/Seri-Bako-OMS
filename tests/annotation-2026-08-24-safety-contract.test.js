@@ -54,11 +54,11 @@ test("PR and Dashboard mobile rows share the aligned operational composition", (
   const list = read("src/app/(app)/purchase-requests/page.tsx");
   const dashboard = read("src/components/dashboard-workspace.tsx");
   for (const source of [list, dashboard]) {
-    assert.match(source, /grid-cols-2/);
-    assert.match(source, /grid-cols-4/);
-    assert.match(source, /MapPin/);
-    assert.match(source, /CalendarDays/);
-    assert.match(source, /Package/);
+    assert.match(source, /data-pr-context-grid/);
+    assert.match(source, /data-pr-metrics-grid/);
+    assert.match(source, />Location</);
+    assert.match(source, />Supplier</);
+    assert.match(source, />Est\. cost</);
   }
 });
 

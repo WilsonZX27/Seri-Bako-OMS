@@ -4,6 +4,10 @@
 
 Production UAT mutation is now Owner-authorized only when it is traceable, isolated, recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, and cleaned up after verification. Historical release notes that describe Production mutation as unauthorized remain historical evidence and are superseded by this current policy.
 
+### v8.64.169 (unreleased) — Operational row and action refinement
+
+Purchase Request and Dashboard queues now share one labelled, fixed-track information grid for location, supplier, date, user, item count, and estimated cost. Stock Count moves branch retirement behind a More menu below the visible row number while preserving the pending lifecycle state. Movement Ledger owns wider fixed columns with horizontal scrolling instead of compressing business identity. Cancel remains visually neutral; destructive triggers no longer duplicate a visible Confirm label; Purchase Order attachments use the shared Supporting Attachments grammar with an empty operator-owned label and one Upload action. Local verification does not constitute deployment or authenticated browser UAT.
+
 ### v8.64.168 (unreleased) — Outlet Daily table and form refinement
 
 Outlet Daily keeps Date readable by using the correct two-column sticky lead band, provides server-authoritative Date, Outlet status, and Updated sorting, distinguishes Posted from Draft with semantic success/neutral tones, and removes redundant missing-state helper copy. Wastage details remain inside their line instead of creating horizontal overflow. PR review uses a controlled UOM selector and starts attachment labels empty. Stock Balance supplier group headings use the shared muted surface rather than a floating white label. Local verification does not constitute deployment or authenticated browser UAT.

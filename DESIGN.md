@@ -4,6 +4,10 @@
 
 Production UAT mutation is allowed only for isolated, traceable test records recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`. Posted inventory/accounting effects and real operational records remain outside disposable testing; historical notes are retained but this policy is the current authority.
 
+## v8.64.169 (unreleased) - Operational information rhythm
+
+PR work queues use visible field labels and identical fixed tracks across the register and Dashboard, so scanning does not depend on icon recognition or variable content width. Long suppliers truncate inside their owned track. Stock Count keeps the ordinal as the row anchor and places a standard ellipsis menu directly beneath it; retirement remains a deliberate dialog task. Movement Ledger prioritizes transaction and item identity through wider fixed columns and intentional horizontal scroll. Neutral cancellation, danger confirmation, and attachment upload now maintain distinct action hierarchy.
+
 ## v8.64.168 (unreleased) - Operational table legibility
 
 Outlet Daily uses Action plus Date as its sticky lead band; Date retains a readable fixed track while the remaining columns scroll. Sortable headers use the shared arrow affordance and preserve active filters. Posted uses the success tone while Draft remains neutral. Wastage controls stack inside their owned details track at desktop widths, preventing Chrome horizontal overscroll. Form vocabularies stay controlled: PR UOM is a select, attachment labels begin blank, and supplier grouping uses the muted surface token.

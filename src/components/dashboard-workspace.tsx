@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowUpRight, Boxes, Building2, CalendarDays, CheckCircle2, ClipboardCheck, ClipboardList, Clock3, Factory, FileText, LockKeyhole, MapPin, Package, PackageCheck, ReceiptText, ShoppingCart, UserRound } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, Boxes, CheckCircle2, ClipboardCheck, ClipboardList, Clock3, Factory, FileText, LockKeyhole, PackageCheck, ReceiptText, ShoppingCart, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
@@ -304,15 +304,15 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                 >
                   <strong className="min-w-0 truncate font-mono">{row.document_no}</strong>
                   <StatusBadge status={row.step.toLowerCase().replaceAll(" ", "_")} className="shrink-0" />
-                  <span className="col-span-2 grid min-w-0 grid-cols-2 items-center gap-x-3 text-[11px] text-muted-foreground">
-                    <span className="inline-flex min-w-0 items-center gap-1"><MapPin className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{row.branch_name ?? "Unassigned"}</span></span>
-                    <span className="inline-flex min-w-0 items-center gap-1" title={row.supplier_names.join(", ")}><Building2 className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{row.supplier_names.join(", ") || "Supplier pending"}</span></span>
+                  <span data-pr-context-grid className="col-span-2 grid min-w-0 grid-cols-[minmax(0,0.8fr)_minmax(0,1.35fr)] gap-x-4 text-[11px]">
+                    <span className="min-w-0"><span className="block text-[9px] font-semibold uppercase tracking-[0.06em] text-[var(--sb-text-soft)]">Location</span><span className="block truncate text-muted-foreground">{row.branch_name ?? "Unassigned"}</span></span>
+                    <span className="min-w-0" title={row.supplier_names.join(", ")}><span className="block text-[9px] font-semibold uppercase tracking-[0.06em] text-[var(--sb-text-soft)]">Supplier</span><span className="block truncate text-muted-foreground">{row.supplier_names.join(", ") || "Supplier pending"}</span></span>
                   </span>
-                  <span className="col-span-2 grid min-w-0 grid-cols-4 items-center gap-x-2 text-[11px] text-muted-foreground">
-                    <span className="inline-flex min-w-0 items-center gap-1"><CalendarDays className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{row.age_label}</span></span>
-                    <span className="inline-flex min-w-0 items-center gap-1"><UserRound className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{row.submitted_by_name ?? "—"}</span></span>
-                    <span className="inline-flex min-w-0 items-center gap-1"><Package className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{row.line_count} items</span></span>
-                    <span className="min-w-0 truncate font-medium tabular-nums">{formatCurrency(row.estimated_total)}</span>
+                  <span data-pr-metrics-grid className="col-span-2 grid min-w-0 grid-cols-[minmax(4.8rem,0.85fr)_minmax(4.5rem,0.8fr)_minmax(4rem,0.65fr)_minmax(5.8rem,0.9fr)] gap-x-3 text-[11px] text-muted-foreground">
+                    <span className="min-w-0"><span className="block text-[9px] font-semibold uppercase tracking-[0.06em] text-[var(--sb-text-soft)]">Date</span><span className="block truncate">{row.age_label}</span></span>
+                    <span className="min-w-0"><span className="block text-[9px] font-semibold uppercase tracking-[0.06em] text-[var(--sb-text-soft)]">User</span><span className="block truncate">{row.submitted_by_name ?? "—"}</span></span>
+                    <span className="min-w-0"><span className="block text-[9px] font-semibold uppercase tracking-[0.06em] text-[var(--sb-text-soft)]">Items</span><span className="block truncate tabular-nums">{row.line_count}</span></span>
+                    <span className="min-w-0 text-right"><span className="block text-[9px] font-semibold uppercase tracking-[0.06em] text-[var(--sb-text-soft)]">Est. cost</span><span className="block truncate font-medium tabular-nums">{formatCurrency(row.estimated_total)}</span></span>
                   </span>
                 </Link>
               ))}

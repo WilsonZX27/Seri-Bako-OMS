@@ -43,13 +43,12 @@ export function DangerConfirmForm({
         type="button"
         variant="destructive"
         onClick={() => setOpen(true)}
-        className="w-full justify-between"
+        className="w-full justify-start"
       >
         <span className="flex items-center gap-2">
           <AlertTriangle className="h-4 w-4" />
           {buttonLabel}
         </span>
-        <span className="text-xs text-[var(--sb-danger)]">Confirm</span>
       </Button>
       <ModalShell open={open} onClose={() => setOpen(false)} titleId={titleId} triggerRef={triggerRef} initialFocusRef={cancelRef}>
             <header className="mb-4">

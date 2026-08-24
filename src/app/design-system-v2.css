@@ -2074,6 +2074,32 @@ html[data-design-layer="v2"] table[data-ui-table] > thead > tr > th {
     vertical-align: top;
   }
 
+  html[data-design-layer="v2"] .sb-stock-movement-ledger {
+    min-width: 85rem;
+    table-layout: fixed;
+  }
+
+  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(1) { width: 2.5rem; }
+  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(2) { width: 11rem; }
+  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(3) { width: 7.5rem; }
+  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(4) { width: 7rem; }
+  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(5) { width: 13rem; }
+  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(6) { width: 9rem; }
+  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(7),
+  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(8),
+  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(9) { width: 5rem; }
+  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(10) { width: 5rem; }
+  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(11) { width: 7.5rem; }
+  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(12) { width: 8rem; }
+
+  html[data-design-layer="v2"] .sb-stock-movement-ledger td:nth-child(2),
+  html[data-design-layer="v2"] .sb-stock-movement-ledger td:nth-child(5),
+  html[data-design-layer="v2"] .sb-stock-movement-ledger td:nth-child(6) {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    vertical-align: top;
+  }
+
   html[data-design-layer="v2"] .sb-outlet-daily-table {
     min-width: 44rem;
     table-layout: fixed;

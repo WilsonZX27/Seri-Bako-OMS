@@ -186,7 +186,7 @@ export default async function PurchaseRequestDetailPage({
     {saveDraftAction}
     {canReject ? <RejectActionForm action={rejectPurchaseRequest.bind(null, request.id)} /> : null}
     {canCancel ? (
-      <DocumentActionForm action={cancelPurchaseRequest.bind(null, request.id)} pendingLabel="Removing..." variant="destructive">
+      <DocumentActionForm action={cancelPurchaseRequest.bind(null, request.id)} pendingLabel="Removing..." variant="outline">
         <Trash2 className="h-4 w-4" aria-hidden="true" />
         Cancel unposted request
       </DocumentActionForm>

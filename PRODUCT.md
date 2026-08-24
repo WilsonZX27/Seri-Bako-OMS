@@ -4,6 +4,10 @@
 
 Production UAT mutation is now Owner-authorized only when it is traceable, isolated, recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, and cleaned up after verification. Historical release notes that describe Production mutation as unauthorized remain historical evidence and are superseded by this current policy.
 
+### v8.64.166 (unreleased) — Procurement alignment and explicit selection
+
+Purchase Request and Dashboard operational rows now use stable two-column context and four-column date/user/quantity/cost alignment, with supplier names constrained to one ellipsized line. PR entry shows its selected supplier in the collapsed quick view, searches only exact branch-and-supplier mappings, and never converts typed text into a selected item without an explicit click or keyboard confirmation. Attachments use one Upload label, omit MIME noise, and align actions beside uploader/time. Returned-request feedback uses the shared icon vocabulary, one readable type scale, a subtle danger surface, and a full Malaysia timestamp. Purchasing and Finance may send approved POs; Owner-only permanent deletion is available for cancelled POs only when receiving, return, and invoice history are absent, with a permanent tombstone. Migration 204 and UI are locally implemented; remote migration application, deployment, and authenticated four-viewport UAT remain separate.
+
 ### v8.64.165 (unreleased) — Branch Stock Count item lifecycle
 
 Stock Count eligibility is now branch-owned and includes active mapped items even before their first ledger movement. Kitchen can mark an item to retire after the current count, with a required category, explanation, and final physical quantity; posting preserves the final inventory evidence, retires the item only from future counts for that branch, records the lifecycle on Item detail, and notifies Purchasing and Finance. New mappings activate future-count scope without silently reactivating a retired item. Visible row numbers follow the current Name/Code view. AutoCount APIs return JSON for expired sessions and the client refuses HTML responses with an actionable sign-in-and-retry message. Migration 203 and the application are locally implemented; authenticated role/viewport UAT, remote migration application, deployment, and Production verification remain pending.
@@ -421,7 +425,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `203`; linked Production application and cleanup evidence is recorded in the current closure sections and repair ledger. Migration 201 is remotely applied; migrations 202–203 remain repository-only until remote application is verified.
+Repository migration authority: migrations reviewed through `204`; linked Production application and cleanup evidence is recorded in the current closure sections and repair ledger. Migrations 201–203 are remotely applied; migration 204 remains repository-only until remote application is verified.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

@@ -1,4 +1,4 @@
-import { AlertTriangle, BadgeCheck, CircleCheck, CircleX, FileCheck2, Send, ShoppingCart, Trash2 } from "lucide-react";
+import { AlertTriangle, BadgeCheck, CircleCheck, CircleX, Clock, FileCheck2, MessageSquare, Send, ShoppingCart, Trash2, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -282,15 +282,13 @@ export default async function PurchaseRequestDetailPage({
           ) : null}
       {documentBundleUnavailable ? <Card className="document-surface shadow-none md:hidden"><CardContent className="p-3" role="status"><p className="text-sm font-semibold text-[var(--sb-warning)]">Document activity unavailable</p><p className="mt-1 text-xs text-muted-foreground">Attachments, comments, and timeline could not be loaded. Retry this page.</p></CardContent></Card> : null}
 
-      {request.status === "rejected" && rejectionActivity ? <Card className="border-[var(--sb-danger)]/45 bg-[#ffd1d1] shadow-none" role="alert">
+      {request.status === "rejected" && rejectionActivity ? <Card className="border-[var(--sb-danger)]/40 bg-[var(--sb-danger-bg)] shadow-none" role="alert">
         <CardContent className="flex items-start gap-3 p-3">
           <CircleX className="mt-0.5 h-4 w-4 shrink-0 text-[var(--sb-danger)]" aria-hidden="true" />
           <div className="min-w-0">
             <p className="text-sm font-semibold text-[var(--sb-danger)]">Why this request was returned</p>
-            <p className="mt-2 text-sm leading-5 text-[var(--sb-text)]">💬 Comment: {rejectionReason || "No rejection reason was recorded."}</p>
-            <p className="mt-1 text-xs text-[var(--sb-text)]">👤 Rejected by {String(("created_by_name" in rejectionActivity ? rejectionActivity.created_by_name : null) ?? "Approver")}</p>
-            <p className="mt-1 text-xs text-[var(--sb-text)]">🕐 {formatDateTime(rejectionActivity.created_at)}</p>
-            <p className="mt-2 text-xs font-medium text-[var(--sb-text)]">Correct the request, save it, then submit it to Manager Review again.</p>
+            <div className="mt-2 space-y-1.5 text-sm leading-5 text-[var(--sb-text)]"><p className="flex items-start gap-2"><MessageSquare className="mt-0.5 h-4 w-4 shrink-0 text-[var(--sb-danger)]" /><span>Comment: {rejectionReason || "No rejection reason was recorded."}</span></p><p className="flex items-center gap-2"><UserRound className="h-4 w-4 shrink-0 text-[var(--sb-danger)]" /><span>Rejected by {String(("created_by_name" in rejectionActivity ? rejectionActivity.created_by_name : null) ?? "Approver")}</span></p><p className="flex items-center gap-2"><Clock className="h-4 w-4 shrink-0 text-[var(--sb-danger)]" /><span>{formatDateTime(rejectionActivity.created_at)}</span></p></div>
+            <p className="mt-2 text-sm font-medium leading-5 text-[var(--sb-text)]">Correct the request, save it, then submit it to Manager Review again.</p>
           </div>
         </CardContent>
       </Card> : null}
@@ -303,7 +301,7 @@ export default async function PurchaseRequestDetailPage({
             <CardContent className="space-y-3 p-4">
               <h2 className="text-[14px] font-semibold">Request Summary</h2>
               <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
-                <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Request Date</p><p className="text-sm font-medium text-[var(--sb-text)]">{formatDateOnly(request.request_date)}</p></div>
+                <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Request Date</p><p className="text-sm font-medium text-[var(--sb-text)]">{formatDateTime(request.created_at)}</p></div>
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Location</p><p className="text-sm font-medium text-[var(--sb-text)]">{branch?.branch_name ?? (branches ? "Unassigned" : "Unavailable")}</p></div>
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Submitted By</p><p className="text-sm font-medium text-[var(--sb-text)]">{request.requested_by_name ?? "—"}</p></div>
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Requested Lines</p><p className="text-sm font-medium text-[var(--sb-text)]">{requestedItemCount}</p></div>

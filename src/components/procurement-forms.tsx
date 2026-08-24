@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { type FormEvent, useEffect, useRef, useState } from "react";
-import { CalendarDays, ChevronDown, MapPin, MessageSquare, Minus, Plus, X } from "lucide-react";
+import { Building2, CalendarDays, ChevronDown, MapPin, MessageSquare, Minus, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -126,20 +126,14 @@ export function PurchaseRequestForm({
     ...suppliers.map((supplier) => [supplier.id, { supplier_id: supplier.id, supplier_name: supplier.name }] as const),
     ...supplierMappings.filter((mapping) => mapping.branch_id === branchId).map((mapping) => [mapping.supplier_id, { supplier_id: mapping.supplier_id, supplier_name: mapping.supplier_name }] as const),
   ]).values()].sort((a, b) => a.supplier_name.localeCompare(b.supplier_name));
-  // The supplier on a PR is a suggested source, not a catalogue gate. Keep the
-  // complete Item Master searchable so an operator can raise a request before
-  // Purchasing has created the supplier/branch route. Existing mappings still
-  // enrich each option with the selected supplier's purchase UOM and name.
-  const selectableItems = items.map((item) => {
-    const itemMappings = supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === item.id);
-    const selectedSupplierMapping = itemMappings.find((mapping) => mapping.supplier_id === requestSupplierId);
-    const preferredMapping = selectedSupplierMapping ?? itemMappings.find((mapping) => mapping.is_preferred) ?? itemMappings[0];
+  const selectableItems = requestSupplierId ? items.filter((item) => supplierMappings.some((mapping) => mapping.branch_id === branchId && mapping.supplier_id === requestSupplierId && mapping.item_id === item.id)).map((item) => {
+    const selectedSupplierMapping = supplierMappings.find((mapping) => mapping.branch_id === branchId && mapping.supplier_id === requestSupplierId && mapping.item_id === item.id);
     return {
       ...item,
-      purchase_unit: preferredMapping?.purchase_uom || item.purchase_unit,
-      supplier_name: selectedSupplierMapping?.supplier_name ?? preferredMapping?.supplier_name ?? item.supplier_name,
+      purchase_unit: selectedSupplierMapping?.purchase_uom || item.purchase_unit,
+      supplier_name: selectedSupplierMapping?.supplier_name ?? item.supplier_name,
     };
-  });
+  }) : [];
   const incompleteEnteredLines = lines.filter((line) => {
     const touched = Boolean(line.itemSearch.trim() || line.qty.trim() || line.uom.trim());
     return touched && (!line.itemSearch.trim() || !line.qty.trim() || !line.uom.trim());
@@ -279,6 +273,10 @@ export function PurchaseRequestForm({
     });
   }
 
+  function updateItemSearch(key: number, value: string) {
+    updateLine(key, { itemSearch: value, itemId: "", supplierId: "", cost: "0", uom: "" });
+  }
+
   function changeBranch(nextBranchId: string) {
     const clearedCount = lines.filter((line) => line.itemId || line.itemSearch.trim()).length;
     setBranchId(nextBranchId);
@@ -356,6 +354,7 @@ export function PurchaseRequestForm({
                 {!detailsOpen ? (
                   <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                     <span className="inline-flex min-w-0 items-center gap-1"><MapPin className="h-3.5 w-3.5 shrink-0" /><span className="break-words">{selectedBranchName}</span></span>
+                    <span className="inline-flex min-w-0 items-center gap-1"><Building2 className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{supplierOptions.find((supplier) => supplier.supplier_id === requestSupplierId)?.supplier_name ?? "Supplier not set"}</span></span>
                     <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5 shrink-0" />{neededByDate || "Date not set"}</span>
                     <span className="font-medium capitalize text-[var(--sb-text)]">{priority}</span>
                   </div>
@@ -419,7 +418,7 @@ export function PurchaseRequestForm({
                   <span data-pr-line-number className="grid h-10 place-items-center self-start lg:hidden"><span className="grid h-6 w-6 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] text-[11px] font-semibold tabular-nums text-[var(--sb-text-muted)]">{index + 1}</span></span>
                   <div data-pr-line-item className="col-span-2 col-start-2 min-w-0 space-y-2 lg:col-span-1 lg:col-start-1">
                     <Field label="Item" required labelClassName="sr-only">
-                      <div data-pr-field="item"><ItemCombobox items={selectableItems} value={line.itemSearch} selectedItemId={line.itemId} ariaLabel={`Item for request line ${index + 1}`} ariaInvalid={validationTarget?.field === "item" && validationTarget.lineKey === line.key} className={validationTarget?.field === "item" && validationTarget.lineKey === line.key ? "border-rose-500 ring-2 ring-rose-200" : ""} inputRef={line.key === lines[0]?.key ? firstItemInputRef : undefined} onValueChange={(value) => { setValidationError(""); setValidationTarget(null); selectItem(line.key, value); }} onSelect={(item) => { setValidationError(""); setValidationTarget(null); selectItem(line.key, item.id); }} /></div>
+                      <div data-pr-field="item"><ItemCombobox items={selectableItems} value={line.itemSearch} selectedItemId={line.itemId} ariaLabel={`Item for request line ${index + 1}`} ariaInvalid={validationTarget?.field === "item" && validationTarget.lineKey === line.key} className={validationTarget?.field === "item" && validationTarget.lineKey === line.key ? "border-rose-500 ring-2 ring-rose-200" : ""} inputRef={line.key === lines[0]?.key ? firstItemInputRef : undefined} emptyMessage="No item is mapped to this supplier at this branch." onValueChange={(value) => { setValidationError(""); setValidationTarget(null); updateItemSearch(line.key, value); }} onSelect={(item) => { setValidationError(""); setValidationTarget(null); selectItem(line.key, item.id); }} /></div>
                     </Field>
                     {line.itemId && mappingsForLine(line).some((mapping) => !line.uom || normalizeUom(mapping.purchase_uom) === line.uom) ? (() => {
                       const compatibleMappings = mappingsForLine(line).filter((mapping) => !line.uom || normalizeUom(mapping.purchase_uom) === line.uom);

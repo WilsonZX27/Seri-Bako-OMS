@@ -6,6 +6,20 @@
 - Production test data must use the manifest at `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, dedicated `UAT-20260823-*` identifiers or explicit `PRODUCTION-UAT` remarks, and a cleanup result before the related ledger row can be marked `production verified`.
 - Posted inventory, accounting, payment, and real operational records remain protected. If a mutation cannot be reversed or safely cleaned, stop and report it.
 
+## Batch 2026-08-24 — procurement alignment and explicit selection
+
+Batch authority: browser comments 1–15 supplied on 2026-08-24 for Purchase Requests, Dashboard, Purchase Orders, attachments, and returned-request feedback. Current state is `implemented; local verified` by 886 contracts, strict typecheck, lint, production build, and local migration application. Migration 204 is locally applied; remote application, deployment, and authenticated role/four-viewport UAT remain pending.
+
+| # | URL | Role / viewport | Expected behavior | State |
+|---:|---|---|---|---|
+| 1–2 | `/purchase-requests` | operational / 820×1180 | location/supplier and date/user/item qty/cost use fixed aligned tracks; long supplier text truncates | implemented |
+| 3–5 | `/purchase-requests/new` | requester / 820×1180 | collapsed supplier quick view; only selected branch/supplier mappings; typed text never auto-selects | implemented |
+| 6 | `/dashboard` | reviewer / 820×1180 | pending PR context and four metrics share the same alignment contract | implemented |
+| 7 | `/purchase-orders/:id` | Purchasing, Finance / 1440×900 | approved POs expose Send to supplier when role permission is present | implemented + migration 204 |
+| 8–10 | `/purchase-requests/:id` | permitted / 1440×900 | upload action says Upload; MIME line removed; view/remove icons sit beside uploader/time | implemented |
+| 11 | `/purchase-orders/:id` | Owner / all four | cancelled PO can be permanently deleted only without GRN/return/invoice history and leaves tombstone | implemented + migration 204 |
+| 12–15 | `/purchase-requests/:id` | requester/reviewer / all four | unified Lucide icons, full timestamp, subtle danger background, consistent type scale | implemented |
+
 ## Batch 2026-08-24 — PJS Stock Count identity and lifecycle
 
 Batch authority: browser comments and attached PJS/ALMA/AutoCount screenshots supplied on 2026-08-24. Current state is `implemented; local verified` by 882 contracts, strict typecheck, lint, production build, and local migration/catalog read-back. Migration 203 application to local Supabase is confirmed; authenticated Kitchen/Purchasing/Finance/Owner viewport UAT, remote migration application, deployment, and Production verification remain pending.

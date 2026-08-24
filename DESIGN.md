@@ -4,6 +4,10 @@
 
 Production UAT mutation is allowed only for isolated, traceable test records recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`. Posted inventory/accounting effects and real operational records remain outside disposable testing; historical notes are retained but this policy is the current authority.
 
+## v8.64.166 (unreleased) - Procurement alignment and explicit selection
+
+Compact procurement rows now behave as a deliberate data grid: location/supplier occupy the first row and date/user/item quantity/estimated cost share fixed second-row tracks. Long supplier text truncates without shifting neighboring data. Supplier selection owns the PR item catalogue, item choice remains explicit, attachments use a compact metadata/action row, and rejection feedback uses consistent Lucide icons, typography, spacing, and semantic danger tokens. Cancelled PO permanent deletion remains an Owner-only guarded action rather than an ordinary workflow button.
+
 ## v8.64.165 (unreleased) - Branch Stock Count lifecycle
 
 Stock Count row identity remains the item code while the visible ordinal follows the current sorted/filtered list. Retirement is a standard modal task rather than an inline deletion: the current line stays countable, the dialog states the after-posting consequence, requires a structured reason plus operational note, and repeats the final physical quantity. A pending row receives one compact status pill and a reversible `Keep active` action. Item detail owns the durable branch lifecycle record and restore path. Expired AutoCount sessions use explicit JSON/auth messaging rather than exposing parser errors. The four-viewport and role-aware release gates remain required before deployment.

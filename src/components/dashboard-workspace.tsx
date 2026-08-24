@@ -304,15 +304,15 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                 >
                   <strong className="min-w-0 truncate font-mono">{row.document_no}</strong>
                   <StatusBadge status={row.step.toLowerCase().replaceAll(" ", "_")} className="shrink-0" />
-                  <span className="col-span-2 grid min-w-0 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 text-[11px] text-muted-foreground">
+                  <span className="col-span-2 grid min-w-0 grid-cols-2 items-center gap-x-3 text-[11px] text-muted-foreground">
                     <span className="inline-flex min-w-0 items-center gap-1"><MapPin className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{row.branch_name ?? "Unassigned"}</span></span>
-                    <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5 shrink-0" />{row.age_label}</span>
-                    <span className="inline-flex min-w-0 items-center gap-1"><UserRound className="h-3.5 w-3.5 shrink-0" /><span className="max-w-20 truncate">{row.submitted_by_name ?? "—"}</span></span>
+                    <span className="inline-flex min-w-0 items-center gap-1" title={row.supplier_names.join(", ")}><Building2 className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{row.supplier_names.join(", ") || "Supplier pending"}</span></span>
                   </span>
-                  <span className="col-span-2 grid min-w-0 grid-cols-[minmax(0,1fr)_auto_auto] items-start gap-x-3 text-[11px] text-muted-foreground">
-                    <span className="inline-flex min-w-0 items-start gap-1" title={row.supplier_names.join(", ")}><Building2 className="mt-0.5 h-3.5 w-3.5 shrink-0" /><span className="truncate">{row.supplier_names.join(", ") || "Supplier pending"}</span></span>
-                    <span className="inline-flex items-center gap-1"><Package className="h-3.5 w-3.5 shrink-0" />{row.line_count} {row.line_count === 1 ? "item" : "items"}</span>
-                    <span className="text-right font-medium tabular-nums">{formatCurrency(row.estimated_total)}</span>
+                  <span className="col-span-2 grid min-w-0 grid-cols-4 items-center gap-x-2 text-[11px] text-muted-foreground">
+                    <span className="inline-flex min-w-0 items-center gap-1"><CalendarDays className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{row.age_label}</span></span>
+                    <span className="inline-flex min-w-0 items-center gap-1"><UserRound className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{row.submitted_by_name ?? "—"}</span></span>
+                    <span className="inline-flex min-w-0 items-center gap-1"><Package className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{row.line_count} items</span></span>
+                    <span className="min-w-0 truncate font-medium tabular-nums">{formatCurrency(row.estimated_total)}</span>
                   </span>
                 </Link>
               ))}

@@ -6,13 +6,15 @@ import path from "node:path";
 const root = process.cwd();
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
-test("PR Item Master search is not blocked by a missing supplier route", () => {
+test("PR Item search is constrained to the selected branch and supplier route", () => {
   const form = read("src/components/procurement-forms.tsx");
   const action = read("src/server/actions/procurement.ts");
   const newPage = read("src/app/(app)/purchase-requests/new/page.tsx");
   const readiness = read("src/lib/purchase-request-readiness.ts");
 
-  assert.match(form, /const selectableItems = items\.map/);
+  assert.match(form, /const selectableItems = requestSupplierId \? items\.filter/);
+  assert.match(form, /mapping\.branch_id === branchId && mapping\.supplier_id === requestSupplierId/);
+  assert.match(form, /function updateItemSearch/);
   assert.match(form, /suppliers\.map\(\(supplier\) =>/);
   assert.match(form, /Purchasing can confirm the supplier route during review/);
   assert.match(form, /supplierId: requestSupplierId/);

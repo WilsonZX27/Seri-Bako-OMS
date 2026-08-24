@@ -114,20 +114,19 @@ export async function AttachmentPanel({
       <div className="space-y-3">
         {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
         {resolvedCanManage ? (
-          <AttachmentUploadForm action={addDocumentAttachment.bind(null, documentId)} defaultLabel={defaultLabel} submitLabel={uploadLabel} />
+          <AttachmentUploadForm action={addDocumentAttachment.bind(null, documentId)} defaultLabel={defaultLabel} submitLabel={uploadLabel ?? "Upload"} />
         ) : null}
         <div className="divide-y border-t">
           {attachments.map((attachment) => (
-            <div key={attachment.id} className="grid gap-2 py-3">
-              <div className="flex items-start gap-3">
+            <div key={attachment.id} className="flex min-w-0 items-start gap-3 py-3">
+              <div className="flex min-w-0 flex-1 items-start gap-3">
                 <FileText className="mt-0.5 h-4 w-4 text-muted-foreground" />
-                <div>
+                <div className="min-w-0">
                   <p className="break-words text-xs font-medium">{attachment.file_name}</p>
-                  <p className="text-xs text-muted-foreground">{attachment.file_type ?? "File"}</p>
                   <p className="text-xs text-muted-foreground">Uploaded by {actorLabel(attachment.uploaded_by_name)} - {formatDateTime(attachment.created_at)}</p>
                 </div>
               </div>
-              <div className="flex items-center justify-end gap-1">
+              <div className="flex shrink-0 items-center gap-1">
                 {attachment.storage_path || attachment.file_url ? <Button asChild variant="ghost" size="icon" className="h-8 w-8"><a href={`/api/attachments/${attachment.id}`} target="_blank" rel="noreferrer" aria-label={`View ${attachment.file_name}`} title="View attachment"><Eye className="h-4 w-4" /></a></Button> : <Button type="button" variant="ghost" size="icon" disabled className="h-8 w-8" aria-label="File unavailable"><FileText className="h-4 w-4" /></Button>}
                 {canRemoveAttachments ? <AttachmentRemoveAction action={archiveDocumentAttachment.bind(null, documentId, attachment.id)} fileName={attachment.file_name} /> : null}
               </div>

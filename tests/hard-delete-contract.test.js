@@ -31,7 +31,7 @@ test("single-record permanent deletion validates its action boundary before call
   const action = read("src/server/actions/hard-delete.ts");
 
   assert.match(action, /hardDeleteInputSchema/);
-  assert.match(action, /z\.enum\(\["purchase_request", "supplier", "item", "product", "recipe"\]\)/);
+  assert.match(action, /z\.enum\(\["purchase_request", "purchase_order", "supplier", "item", "product", "recipe"\]\)/);
   assert.match(action, /z\.string\(\)\.uuid/);
   assert.match(action, /max\(64, "The confirmation is invalid\."\)/);
   assert.match(action, /hardDeleteInputSchema\.parse/);

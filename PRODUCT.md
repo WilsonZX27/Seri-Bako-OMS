@@ -4,6 +4,10 @@
 
 Production UAT mutation is now Owner-authorized only when it is traceable, isolated, recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, and cleaned up after verification. Historical release notes that describe Production mutation as unauthorized remain historical evidence and are superseded by this current policy.
 
+### v8.64.161 (unreleased) — Procurement closure verification
+
+The isolated PR-to-stock workflow now verifies Kitchen submission, Manager approval, Purchasing AutoCount PO entry, Finance approval, PO conversion and supplier sending, Goods Receiving draft/attachment, and final inventory posting in one repeatable browser scenario. Goods Receiving keeps its required setup and Delivery Order Number visible on first render so a preselected PO cannot hide the next required action before hydration.
+
 ### v8.64.160 (unreleased) — Reliable long-form mobile scrolling
 
 Long Outlet Daily entry forms now preserve vertical pan gestures across their dense input grid and reserve the full fixed-action height plus iPhone safe area. The final product lines can scroll completely above the action rail without changing the browser-level document scrolling contract.

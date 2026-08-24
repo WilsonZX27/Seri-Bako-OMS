@@ -27,7 +27,11 @@ export function GoodsReceivingForm({
 }) {
   const router = useRouter();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
-  const [setupOpen, setSetupOpen] = useState(() => !selectedOrder);
+  // Keep required receiving context visible on first render. A preselected PO
+  // previously collapsed this section before hydration, so an early tap on
+  // "Expand receiving setup" could be lost and the Delivery Order field
+  // appeared unavailable. Operators may still collapse it after reviewing.
+  const [setupOpen, setSetupOpen] = useState(true);
   const [receivedDate, setReceivedDate] = useState(() => getToday());
   const [deliveryOrderNo, setDeliveryOrderNo] = useState("");
   const [branchId, setBranchId] = useState(() => selectedOrder?.branch_id ?? branches[0]?.id ?? "");
@@ -51,7 +55,7 @@ export function GoodsReceivingForm({
   }, [lines]);
 
   useEffect(() => {
-    setSetupOpen(!hasSelectedOrder);
+    setSetupOpen(true);
     if (hasSelectedOrder) setBranchId(selectedBranchId);
   }, [hasSelectedOrder, selectedBranchId]);
 

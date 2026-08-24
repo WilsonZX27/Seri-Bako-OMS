@@ -4,6 +4,10 @@
 
 Production UAT mutation is allowed only for isolated, traceable test records recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`. Posted inventory/accounting effects and real operational records remain outside disposable testing; historical notes are retained but this policy is the current authority.
 
+## v8.64.161 (unreleased) - Procurement closure and receiving setup
+
+The PR-to-PO-to-Goods-Receiving journey is exercised as one continuous role-aware browser workflow. On Goods Receiving creation, the required receiving setup is open by default even when the PO is preselected; operators can collapse it only after the Delivery Order context is visible. This avoids a pre-hydration tap race that made the required field appear unavailable on touch devices.
+
 ## v8.64.160 (unreleased) - Mobile long-form scroll clearance
 
 Dense Outlet Daily quantity rows explicitly permit vertical touch panning, while document workspaces reserve eight rem plus the device safe area for the fixed action rail. The document remains the mobile scroll owner so Safari browser chrome can still collapse normally.

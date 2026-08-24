@@ -6,6 +6,14 @@
 - Production test data must use the manifest at `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, dedicated `UAT-20260823-*` identifiers or explicit `PRODUCTION-UAT` remarks, and a cleanup result before the related ledger row can be marked `production verified`.
 - Posted inventory, accounting, payment, and real operational records remain protected. If a mutation cannot be reversed or safely cleaned, stop and report it.
 
+## v8.64.161 PR to PO to Goods Receiving verification (local closure)
+
+- **Finding:** a preselected PO collapsed the required Goods Receiving setup before hydration. An early phone tap could be lost, leaving Delivery Order Number apparently unavailable and blocking smooth continuation.
+- **Fixed:** receiving setup is visible on first render and remains operator-collapsible after the required context is shown.
+- **Workflow evidence:** the isolated browser fixture completes PR submit, Manager approval, Purchasing AutoCount PO entry, Finance approval, PO conversion, duplicate-number protection, supplier sending, GRN creation/draft/attachment, and final stock posting; `3/3` scenarios pass and clean up their fixture.
+- **Release evidence:** TypeScript, ESLint, `865/865` contract tests, and the production build pass. Production read-only role and permission checks pass `8/8`; no Production business record was mutated, so the full chain is not claimed `production verified`.
+- **State:** `implemented` and locally verified; awaiting deployment, migration-199 confirmation, and traceable Production UAT.
+
 ## v8.64.160 Outlet Daily iPhone scroll repair (local closure)
 
 - **Finding:** the fixed mobile action rail reserved less height than it occupied on an iPhone safe-area viewport, and the dense input grid did not explicitly yield vertical pan gestures.

@@ -28,3 +28,10 @@ test("Goods Receiving keeps the no-PO empty state in the same continuous surface
   const form = read("src", "components", "goods-receiving-form.tsx");
   assert.match(form, /data-goods-receiving-empty className="sb-work-surface p-8 text-center"/);
 });
+
+test("Goods Receiving keeps required setup visible on first render", () => {
+  const form = read("src", "components", "goods-receiving-form.tsx");
+  assert.match(form, /const \[setupOpen, setSetupOpen\] = useState\(true\)/);
+  assert.match(form, /input[\s\S]*name="delivery_order_no"/);
+  assert.doesNotMatch(form, /useState\(\(\) => !selectedOrder\)/);
+});

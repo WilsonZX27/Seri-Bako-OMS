@@ -190,8 +190,12 @@ test.describe("QA- procurement payment closure", () => {
     await logout(page);
     await login(page, "purchasing");
     await page.goto(created.prUrl, { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("button", { name: /Approve as Purchasing/i }).first()).toBeVisible();
-    await confirm("Approve as Purchasing");
+    created.poNo = `QA-AUTOCOUNT-${fixture.suffix}-超长编号-中文`;
+    const purchasingReviewForm = page.locator('form:visible').filter({ has: page.locator('input[name="autocount_po_no"]') }).first();
+    await expect(purchasingReviewForm).toBeVisible();
+    await purchasingReviewForm.locator('input[name="autocount_po_no"]').fill(created.poNo);
+    await purchasingReviewForm.getByRole("button", { name: /Send to Finance Review/i }).click();
+    await page.waitForLoadState("domcontentloaded");
     await expect.poll(status).toBe("finance_review");
 
     await logout(page);
@@ -210,7 +214,6 @@ test.describe("QA- procurement payment closure", () => {
     await page.goto(created.prUrl, { waitUntil: "domcontentloaded" });
     const convertForm = page.locator('form:visible').filter({ has: page.locator('input[name="autocount_po_no"]') }).first();
     await expect(convertForm).toBeVisible();
-    created.poNo = `QA-AUTOCOUNT-${fixture.suffix}-超长编号-中文`;
     await convertForm.locator('input[name="autocount_po_no"]').fill(created.poNo);
     await convertForm.getByRole("button", { name: /Convert to Purchase Order/i }).click();
     await page.waitForURL(/\/purchase-orders\/[0-9a-f-]+/i, { timeout: 30_000, waitUntil: "domcontentloaded" });
@@ -303,7 +306,6 @@ test.describe("QA- procurement payment closure", () => {
     const receivingSetupToggle = page.locator('button[aria-controls="goods-receiving-setup-fields"]');
     const deliveryOrderInput = page.locator('input[name="delivery_order_no"]:not([type="hidden"])');
     await expect(receivingSetupToggle).toBeVisible();
-    if (await page.locator('input[name="delivery_order_no"]:not([type="hidden"])').count() === 0) await receivingSetupToggle.click();
     await expect(deliveryOrderInput).toBeVisible();
     await deliveryOrderInput.fill(`QA-DO-${fixture.suffix}-中文`);
     await page.locator('input[name="line_received_qty"]').first().fill("2");

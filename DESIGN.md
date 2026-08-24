@@ -4,6 +4,10 @@
 
 Production UAT mutation is allowed only for isolated, traceable test records recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`. Posted inventory/accounting effects and real operational records remain outside disposable testing; historical notes are retained but this policy is the current authority.
 
+## v8.64.159 (unreleased) - Purchasing information density and alignment
+
+The mobile PR row is a fixed three-line composition: document/status, location/date/submitter, then item count/supplier with deterministic icon columns and truncation. PR detail gives the summary supplier a two-column, four-line allowance, removes the repeated line-level supplier column, uses an icon-only edit affordance, and narrows the editor. Dashboard action rows add the commercial summary without changing workflow ownership. Outlet Daily shortens the mobile date action to `View` and removes competing draft actions.
+
 ## v8.64.158 (unreleased) - Outlet Daily handoff clarity
 
 Qty Sent ownership is communicated independently from Outlet data entry. When the dispatch quantity is unavailable, Received and Wastage controls remain enabled for Outlet Staff, the primary action becomes `Save Outlet Entry`, and completion guidance names Kitchen as the next owner. The blocking server validation is preserved; the UI no longer turns a completion prerequisite into an input lock.

@@ -6,6 +6,14 @@
 - Production test data must use the manifest at `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, dedicated `UAT-20260823-*` identifiers or explicit `PRODUCTION-UAT` remarks, and a cleanup result before the related ledger row can be marked `production verified`.
 - Posted inventory, accounting, payment, and real operational records remain protected. If a mutation cannot be reversed or safely cleaned, stop and report it.
 
+## v8.64.159 Purchasing and Outlet Daily annotation repair (local closure)
+
+- **Fixed locally:** Dashboard newest-first ordering and PR summary fields; Purchasing submitter visibility and PO-send grant; deterministic three-line mobile PR rows; compact PR line editor; summary supplier span; repeated supplier-column removal; audited add-line action; mandatory Purchasing AutoCount PO number; Finance progression guard for pending revisions; compact Outlet Daily `View`; single-step Outlet Daily posting.
+- **Database dependency:** migration 199 adds the narrow requester-identity policy, Purchasing `po.send`, AutoCount PO storage, pending-revision guard, and audited add-line RPC.
+- **Test-data cleanup:** PR/AUG26/020 is confirmed in the Production UAT manifest, but no Production service-role or reusable authenticated browser session is available in this workspace. PR/AUG26/019 has not yet been proven to be disposable. Neither is claimed deleted.
+- **Evidence:** TypeScript typecheck and ESLint pass. Production migration, deployment, role UAT, responsive browser UAT, and test-data deletion remain outstanding.
+- **State:** `implemented` locally; not `remote verified` or `production verified`.
+
 ## v8.64.158 Outlet Daily Qty Sent handoff (local closure)
 
 - **Finding:** the missing-Qty-Sent completion error could make Outlet operators think Received/Wastage entry was blocked, even though those fields belong to the Outlet.

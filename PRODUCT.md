@@ -4,6 +4,10 @@
 
 Production UAT mutation is now Owner-authorized only when it is traceable, isolated, recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, and cleaned up after verification. Historical release notes that describe Production mutation as unauthorized remain historical evidence and are superseded by this current policy.
 
+### v8.64.159 (unreleased) — Purchasing workdesk correction
+
+Pending PRs are ordered newest-first and expose supplier, item count, submitter, and estimated cost on the Dashboard. Purchasing can identify submitters, add or revise request lines with an audit record, must record the AutoCount PO number before Finance Review, and can send approved POs to suppliers. Pending line revisions block Finance/PO progression. Outlet Daily removes the draft choice and presents one posting action only after Kitchen Qty Sent is complete.
+
 ### v8.64.158 (unreleased) — Outlet entry while Qty Sent is pending
 
 Outlet Staff can enter Received and Wastage even when Kitchen has not yet confirmed Qty Sent. The primary action saves the entry as a draft, while completion remains unavailable until every line has an authorised Qty Sent confirmation. The server-side completion guard remains authoritative, and the error copy now explains the safe next step instead of implying that line entry is blocked.
@@ -393,7 +397,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `195`; this is not evidence that migrations 191–195 are applied to the linked Production project.
+Repository migration authority: migrations reviewed through `199`; this is not evidence that migration 199 is applied to the linked Production project.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

@@ -67,8 +67,8 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
 
   const editPrimary = canEditOutletValues && record.status === "draft"
     ? outletCanComplete
-      ? <SubmitButton form={formId} name="target_status" value="morning_recorded">Confirm Received</SubmitButton>
-      : <SubmitButton form={formId} name="target_status" value="draft" pendingLabel="Saving entry…">Save Outlet Entry</SubmitButton>
+      ? <SubmitButton form={formId} name="target_status" value="evening_completed" className="gap-2"><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Post Daily Record</SubmitButton>
+      : null
     : outletCanComplete && record.status === "morning_recorded"
       ? <SubmitButton form={formId} name="target_status" value="evening_completed" className="gap-2"><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Post Daily Record</SubmitButton>
       : canEditOutletValues && record.status === "evening_completed"
@@ -78,11 +78,10 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
           : null;
   const primaryAction = editPrimary;
   const secondaryActions = <>
-    {canEditOutletValues && record.status === "draft" ? <><SubmitButton form={formId} name="target_status" value="draft" variant="outline">Save Draft</SubmitButton>{outletCanComplete ? <SubmitButton form={formId} name="target_status" value="evening_completed" variant="outline">Post Daily Record</SubmitButton> : null}</> : null}
     {outletCanComplete && canEditOutletValues && record.status === "morning_recorded" ? <SubmitButton form={formId} name="target_status" value="morning_recorded" variant="outline">Save Changes</SubmitButton> : null}
     {canVoid ? <form action={voidAction} className="grid gap-2"><Field label="Void reason"><Input name="reason" required placeholder="Required reason" /></Field><SubmitButton variant="outline" className="text-destructive hover:text-destructive" pendingLabel="Voiding…">Void Record</SubmitButton></form> : null}
   </>;
-  const hasSecondaryActions = Boolean(canVoid || canEditOutletValues && ["draft", "morning_recorded"].includes(record.status));
+  const hasSecondaryActions = Boolean(canVoid || canEditOutletValues && record.status === "morning_recorded");
 
   const sidePanel = <>
     {primaryAction || hasSecondaryActions ? <DocumentActionSection moreOptions={hasSecondaryActions ? <div className="grid gap-2">{secondaryActions}</div> : undefined}>{primaryAction ?? <p className="text-xs text-muted-foreground">No primary action is available for this status.</p>}</DocumentActionSection> : null}
@@ -103,7 +102,7 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
   >
     {messages.success ? <Card><CardContent className="p-3 text-sm text-success">{messages.success}</CardContent></Card> : null}
     <ActionErrorNotice message={messages.error} />
-    {canEditOutletValues && !canEditQtySent && !qtySentConfirmed && record.status === "draft" ? <Card className="border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)]"><CardContent className="p-3 text-sm"><p className="font-medium">You can enter Received and Wastage now.</p><p className="mt-1 text-muted-foreground">Save the entry as draft while Kitchen confirms Qty Sent. Completion will become available after all lines are confirmed.</p></CardContent></Card> : null}
+    {canEditOutletValues && !canEditQtySent && !qtySentConfirmed && record.status === "draft" ? <Card className="border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)]"><CardContent className="p-3 text-sm"><p className="font-medium">Waiting for Kitchen Qty Sent.</p><p className="mt-1 text-muted-foreground">This record can be posted in one step after all Qty Sent values are confirmed.</p></CardContent></Card> : null}
     {record.received_state === "unavailable" ? <Card className="border-warning/40 bg-warning/10"><CardContent className="p-3 text-sm"><p className="font-medium text-warning">Received quantity unavailable</p><p className="mt-1 text-muted-foreground">The record loaded, but one or more receiving values are not verified. No zero has been substituted.</p></CardContent></Card> : null}
     {record.received_zero_with_sent ? <Card className="border-warning/40 bg-warning/10"><CardContent className="p-3 text-sm"><p className="font-medium text-warning">Receipt check needed</p><p className="mt-1 text-muted-foreground">Qty Sent is recorded, but Received is 0. Confirm whether the outlet received nothing or the receipt entry is incomplete.</p></CardContent></Card> : null}
     {statusLocked ? <Card className="border-warning/40 bg-warning/10"><CardContent className="p-3 text-sm font-medium">{record.status === "reviewed" ? "Reviewed and locked" : "Void and locked"} — normal editing is unavailable.</CardContent></Card> : null}

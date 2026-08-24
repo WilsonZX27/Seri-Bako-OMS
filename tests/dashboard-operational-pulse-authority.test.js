@@ -11,7 +11,8 @@ test("pending actions expose an exact total separately from the five displayed r
   const dashboard = read("src/server/queries/dashboard.ts");
 
   assert.match(pending, /type PendingActionSnapshot = \{[\s\S]*total: number \| null;[\s\S]*unavailable: boolean/);
-  assert.match(pending, /select\("id, request_no, branch_id, status, updated_at, branches\(branch_name\)", \{ count: "exact" \}\)/);
+  assert.match(pending, /select\("id, request_no, branch_id, requested_by, status, updated_at, branches\(branch_name\)", \{ count: "exact" \}\)/);
+  assert.match(pending, /order\("updated_at", \{ ascending: false \}\)/);
   assert.match(pending, /total: unavailable \? null : results\.reduce\(\(sum, result\) => sum \+ \(result\.count \?\? 0\), 0\)/);
   assert.match(pending, /items[\s\S]*\.slice\(0, limit\)/);
   assert.match(dashboard, /getCurrentUserPendingActionSnapshot\(5\)/);

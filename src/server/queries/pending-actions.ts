@@ -13,6 +13,11 @@ export type PendingAction = {
   step: string;
   branch_name: string | null;
   age_label: string;
+  updated_at: string;
+  supplier_names: string[];
+  line_count: number;
+  submitted_by_name: string | null;
+  estimated_total: number;
 };
 
 export type PendingActionSnapshot = {
@@ -59,10 +64,10 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
     filters.map(async (filter) => {
       let query = supabase
         .from("purchase_requests")
-        .select("id, request_no, branch_id, status, updated_at, branches(branch_name)", { count: "exact" })
+        .select("id, request_no, branch_id, requested_by, status, updated_at, branches(branch_name)", { count: "exact" })
         .eq("status", filter.status)
         .is("deleted_at", null)
-        .order("updated_at", { ascending: true })
+        .order("updated_at", { ascending: false })
         .limit(limit);
 
       if (!canSeeAllBranches) {
@@ -80,9 +85,25 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
         return { items: [] as PendingAction[], count: null, unavailable: true };
       }
 
+      const requestIds = data.map((row) => row.id);
+      const requesterIds = [...new Set(data.map((row) => row.requested_by).filter((value): value is string => Boolean(value)))];
+      const [lineResult, requesterResult] = await Promise.all([
+        requestIds.length ? supabase.from("purchase_request_lines").select("purchase_request_id, qty, estimated_unit_cost, suggested_supplier_id").in("purchase_request_id", requestIds) : Promise.resolve({ data: [], error: null }),
+        requesterIds.length ? supabase.from("staffs").select("id, full_name").in("id", requesterIds) : Promise.resolve({ data: [], error: null }),
+      ]);
+      if (lineResult.error) logServerWarning(lineResult.error, { source: "pending-actions.lines" });
+      if (requesterResult.error) logServerWarning(requesterResult.error, { source: "pending-actions.requesters" });
+      const lines = lineResult.data ?? [];
+      const supplierIds = [...new Set(lines.map((line) => line.suggested_supplier_id).filter((value): value is string => Boolean(value)))];
+      const supplierResult = supplierIds.length ? await supabase.from("suppliers").select("id, name").in("id", supplierIds) : { data: [], error: null };
+      if (supplierResult.error) logServerWarning(supplierResult.error, { source: "pending-actions.suppliers" });
+      const supplierById = new Map((supplierResult.data ?? []).map((supplier) => [supplier.id, supplier.name]));
+      const requesterById = new Map((requesterResult.data ?? []).map((staff) => [staff.id, staff.full_name]));
+
       const items = data.map((row) => {
         const branch = row.branches as { branch_name?: string | null } | { branch_name?: string | null }[] | null;
         const branchName = Array.isArray(branch) ? branch[0]?.branch_name : branch?.branch_name;
+        const requestLines = lines.filter((line) => line.purchase_request_id === row.id);
         return {
           id: `pr-${filter.status}-${row.id}`,
           document_no: row.request_no,
@@ -91,6 +112,11 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
           step: filter.step,
           branch_name: branchName ?? null,
           age_label: ageLabel(row.updated_at),
+          updated_at: row.updated_at,
+          supplier_names: [...new Set(requestLines.map((line) => line.suggested_supplier_id ? supplierById.get(line.suggested_supplier_id) : null).filter((value): value is string => Boolean(value)))],
+          line_count: requestLines.length,
+          submitted_by_name: row.requested_by ? requesterById.get(row.requested_by) ?? null : null,
+          estimated_total: requestLines.reduce((sum, line) => sum + Number(line.qty) * Number(line.estimated_unit_cost), 0),
         };
       });
       return { items, count, unavailable: false };
@@ -100,11 +126,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
   const unavailable = results.some((result) => result.unavailable);
   const items = results
     .flatMap((result) => result.items)
-    .sort((a, b) => {
-      const aDays = Number.parseInt(a.age_label, 10) || 0;
-      const bDays = Number.parseInt(b.age_label, 10) || 0;
-      return bDays - aDays;
-    })
+    .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
     .slice(0, limit);
   return {
     items,

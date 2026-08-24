@@ -16,6 +16,7 @@ import { z } from "zod";
 import type { ApprovalStatus, PurchaseOrderStatus } from "@/types/database";
 import { getCurrentUserScope } from "@/server/queries/notifications";
 import { normalizeUom } from "@/lib/uom";
+import { looseSupabase } from "@/lib/supabase/loose";
 
 function cleanText(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
@@ -515,9 +516,15 @@ export async function managerApprovePurchaseRequest(id: string) {
   }
 }
 
-export async function adminApprovePurchaseRequest(id: string) {
+export async function adminApprovePurchaseRequest(id: string, formData: FormData) {
   try {
     if (isMockMode()) return;
+    await requirePermission("pr.admin_review");
+    const autocountPoNo = z.string().trim().min(1, "AutoCount PO Number is required before Finance Review.").max(160).parse(formData.get("autocount_po_no"));
+    const requestId = parsePurchaseRequestId(id);
+    const supabase = await createClient();
+    const { error: poNumberError } = await supabase.rpc("set_purchase_request_autocount_po_no" as never, { target_purchase_request_id: requestId, target_po_no: autocountPoNo } as never);
+    if (poNumberError) throw new Error(poNumberError.message);
     const pr = await transitionPurchaseRequest(id, "admin_approve");
     const splitCount = pr.split_requests?.length ?? 1;
     const message = splitCount > 1
@@ -811,8 +818,10 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string, formData
     if (isMockMode()) redirect("/purchase-orders/po-mock-001");
     await requirePermission("pr.convert_to_po");
     const requestId = parsePurchaseRequestId(id);
-    const autocountPoNo = z.string().trim().min(1, "AutoCount PO Number is required.").max(160, "AutoCount PO Number must be 160 characters or fewer.").parse(submittedPoNo);
     const supabase = await createClient();
+    const { data: storedRequest, error: storedRequestError } = await looseSupabase(supabase).from("purchase_requests").select("autocount_po_no").eq("id", requestId).maybeSingle();
+    if (storedRequestError) throw new Error(storedRequestError.message);
+    const autocountPoNo = z.string().trim().min(1, "AutoCount PO Number is required.").max(160, "AutoCount PO Number must be 160 characters or fewer.").parse(submittedPoNo || String(storedRequest?.autocount_po_no ?? ""));
     const profile = await identity();
     const { data, error } = await supabase.rpc("convert_purchase_request_to_purchase_order", {
       target_purchase_request_id: requestId,
@@ -833,5 +842,38 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string, formData
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(errorPath, "error", formatActionError(error, "Could not convert this purchase request."));
+  }
+}
+
+export async function addPurchaseRequestLineDuringReview(id: string, formData: FormData) {
+  try {
+    if (isMockMode()) return;
+    await requirePermission("pr.admin_review");
+    const requestId = parsePurchaseRequestId(id);
+    const payload = z.object({
+      itemId: z.string().uuid("Select an item."),
+      qty: z.coerce.number().positive().max(1_000_000),
+      uom: z.string().trim().min(1).max(32),
+      supplierId: z.string().uuid().nullable(),
+      unitCost: z.coerce.number().min(0).max(1_000_000_000),
+      reason: z.string().trim().min(3, "Explain why this line is being added.").max(1_000),
+      idempotencyKey: z.string().uuid(),
+    }).parse({
+      itemId: formData.get("item_id"), qty: formData.get("qty"), uom: formData.get("uom"),
+      supplierId: cleanText(formData.get("supplier_id")), unitCost: formData.get("unit_cost") ?? "0",
+      reason: formData.get("reason"), idempotencyKey: formData.get("idempotency_key"),
+    });
+    const supabase = await createClient();
+    const { error } = await supabase.rpc("add_purchase_request_line_during_review" as never, {
+      target_purchase_request_id: requestId, target_item_id: payload.itemId, target_qty: payload.qty,
+      target_uom: normalizeUom(payload.uom), target_supplier_id: payload.supplierId,
+      target_unit_cost: payload.unitCost, change_reason: payload.reason, request_idempotency_key: payload.idempotencyKey,
+    } as never);
+    if (error) throw new Error(error.message);
+    revalidateWorkspaceState([`/purchase-requests/${requestId}`, "/purchase-requests"]);
+    safeRedirectWithMessage(`/purchase-requests/${requestId}`, "success", "Line added. The addition is recorded in revision history.");
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not add this purchase request line."));
   }
 }

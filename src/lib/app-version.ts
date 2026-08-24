@@ -1,4 +1,4 @@
-export const APP_VERSION = "8.64.158";
+export const APP_VERSION = "8.64.159";
 export const APP_SPRINT = `v${APP_VERSION}`;
 export const APP_RELEASE_TITLE = "Outlet Daily Entry Handoff";
 // Keep the shell footer concise; the detailed release title belongs in release

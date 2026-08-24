@@ -19,6 +19,7 @@ import { getPrWorkflowLabel, getPrWorkflowStep, PR_WORKFLOW_STEP_LABELS, PURCHAS
 import { formatCurrency, formatDateOnly, formatDateTime, formatNumber } from "@/lib/utils";
 import {
   adminApprovePurchaseRequest,
+  addPurchaseRequestLineDuringReview,
   cancelPurchaseRequest,
   updateDraftPurchaseRequest,
   convertPurchaseRequestToPurchaseOrder,
@@ -207,7 +208,7 @@ export default async function PurchaseRequestDetailPage({
     : canManagerReview
       ? blockingLineIssues.length ? <Button asChild><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <ConfirmActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} label={<><CircleCheck className="h-4 w-4" aria-hidden="true" />Approve as Manager</>} title="Approve this PR as Manager?" description="This moves the request to Purchasing Review." pendingLabel="Approving..." mobilePrimary />
       : canAdminReview
-        ? blockingLineIssues.length ? <Button asChild><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <ConfirmActionForm action={adminApprovePurchaseRequest.bind(null, request.id)} label={<><ShoppingCart className="h-4 w-4" aria-hidden="true" />Approve as Purchasing</>} title="Approve this PR as Purchasing?" description="This moves the request to Finance Review." pendingLabel="Approving..." mobilePrimary />
+        ? blockingLineIssues.length ? <Button asChild><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <MobileTaskSheet label="Approve as Purchasing"><form action={adminApprovePurchaseRequest.bind(null, request.id)} className="space-y-2"><Input name="autocount_po_no" placeholder="AutoCount PO Number" required /><SubmitButton className="w-full justify-center" pendingLabel="Approving..."><ShoppingCart className="h-4 w-4" aria-hidden="true" />Send to Finance Review</SubmitButton></form></MobileTaskSheet>
       : canFinanceReview
           ? <ConfirmActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} label={<><BadgeCheck className="h-4 w-4" aria-hidden="true" />Approve as Finance</>} title="Approve this PR as Finance?" description="This marks the request ready for PO conversion." pendingLabel="Approving..." mobilePrimary />
           : canConvert
@@ -233,7 +234,7 @@ export default async function PurchaseRequestDetailPage({
             <DocumentActionBar>
               {canSubmit ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..." mobilePrimary><Send className="h-4 w-4" aria-hidden="true" />Submit to Manager Review</DocumentActionForm> : null}
               {canManagerReview ? blockingLineIssues.length ? <Button asChild className="w-full"><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <ConfirmActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} label={<><CircleCheck className="h-4 w-4" aria-hidden="true" />Approve as Manager</>} title="Approve this PR as Manager?" description="This moves the request to Purchasing Review." pendingLabel="Approving..." mobilePrimary /> : null}
-              {canAdminReview ? blockingLineIssues.length ? <Button asChild className="w-full"><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <ConfirmActionForm action={adminApprovePurchaseRequest.bind(null, request.id)} label={<><ShoppingCart className="h-4 w-4" aria-hidden="true" />Approve as Purchasing</>} title="Approve this PR as Purchasing?" description="This moves the request to Finance Review." pendingLabel="Approving..." mobilePrimary /> : null}
+              {canAdminReview ? blockingLineIssues.length ? <Button asChild className="w-full"><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <form action={adminApprovePurchaseRequest.bind(null, request.id)} className="space-y-2"><Input name="autocount_po_no" placeholder="AutoCount PO Number" aria-label="AutoCount PO Number" required /><SubmitButton className="w-full justify-center" pendingLabel="Approving..."><ShoppingCart className="h-4 w-4" aria-hidden="true" />Send to Finance Review</SubmitButton></form> : null}
               {canFinanceReview ? <ConfirmActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} label={<><BadgeCheck className="h-4 w-4" aria-hidden="true" />Approve as Finance</>} title="Approve this PR as Finance?" description="This marks the request ready for PO conversion." pendingLabel="Approving..." mobilePrimary /> : null}
               {request.status === "converted_to_po" && linkedPurchaseOrders?.[0] ? (
                 <Button asChild className="w-full justify-center"><a href={`/purchase-orders/${linkedPurchaseOrders[0].id}`}><FileCheck2 className="h-4 w-4" aria-hidden="true" />Open PO</a></Button>
@@ -299,7 +300,7 @@ export default async function PurchaseRequestDetailPage({
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Location</p><p className="text-sm font-medium text-[var(--sb-text)]">{branch?.branch_name ?? (branches ? "Unassigned" : "Unavailable")}</p></div>
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Requested Lines</p><p className="text-sm font-medium text-[var(--sb-text)]">{requestedItemCount}</p></div>
                 {canViewCommercial ? <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Est. Total Cost</p><p className="text-sm font-medium text-[var(--sb-text)]">{formatCurrency(total)}</p></div> : null}
-                <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Supplier</p><p className="text-sm font-medium text-[var(--sb-text)]">{summarySuppliers.length ? summarySuppliers.join(", ") : "Needs supplier mapping"}</p></div>
+                <div className="col-span-2 sm:col-span-1 lg:col-span-2"><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Supplier</p><p className="line-clamp-4 text-sm font-medium text-[var(--sb-text)]" title={summarySuppliers.join(", ")}>{summarySuppliers.length ? summarySuppliers.join(", ") : "Needs supplier mapping"}</p></div>
                 <div className="hidden" aria-hidden="true"><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Priority</p><PriorityBadge priority={request.priority} /></div>
                 {request.required_date ? <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Required Date</p><p className="text-sm font-medium text-[var(--sb-text)]">{formatDateOnly(request.required_date)}</p></div> : null}
                 {request.needed_by_date ? <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Needed By</p><p className="text-sm font-medium text-[var(--sb-text)]">{formatDateOnly(request.needed_by_date)}</p></div> : null}
@@ -315,6 +316,7 @@ export default async function PurchaseRequestDetailPage({
                 <div className="flex min-w-0 items-baseline gap-2"><h2 className="text-[14px] font-semibold">Requested Items</h2><span className="text-xs text-muted-foreground">{requestedItemCount} {requestedItemCount === 1 ? "item" : "items"}</span></div>
                 {canViewCommercial ? <p className="text-xs font-semibold">{formatCurrency(total)}</p> : null}
               </div>
+              {canAdminReview && items && suppliers ? <details className="mb-3 rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] p-3"><summary className="cursor-pointer text-sm font-semibold">Add request line</summary><form action={addPurchaseRequestLineDuringReview.bind(null, request.id)} className="mt-3 grid gap-3 sm:grid-cols-2"><input type="hidden" name="idempotency_key" value={crypto.randomUUID()} /><label className="space-y-1 text-xs font-medium">Item<select name="item_id" required className="h-10 w-full rounded-[var(--sb-radius-control)] border bg-background px-3 text-sm"><option value="">Select item</option>{items.map((item) => <option key={item.id} value={item.id}>{item.item_code} - {item.item_name}</option>)}</select></label><label className="space-y-1 text-xs font-medium">Supplier<select name="supplier_id" className="h-10 w-full rounded-[var(--sb-radius-control)] border bg-background px-3 text-sm"><option value="">Use mapped supplier</option>{suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}</select></label><label className="space-y-1 text-xs font-medium">Quantity<Input name="qty" type="number" min="0.0001" step="any" required /></label><label className="space-y-1 text-xs font-medium">UOM<Input name="uom" required maxLength={32} /></label>{canViewCommercial ? <label className="space-y-1 text-xs font-medium">Est. unit cost<Input name="unit_cost" type="number" min="0" step="0.01" defaultValue="0" required /></label> : <input type="hidden" name="unit_cost" value="0" />}<label className="space-y-1 text-xs font-medium sm:col-span-2">Reason<Input name="reason" required minLength={3} maxLength={1000} placeholder="Why is this line being added?" /></label><SubmitButton className="sm:col-span-2" pendingLabel="Adding…">Add line</SubmitButton></form></details> : null}
               {canEditDraft && items && suppliers && supplierMappings && branches ? (
                 <>
                   <PurchaseRequestForm
@@ -366,7 +368,6 @@ export default async function PurchaseRequestDetailPage({
                         <TableRow>
                           <TableHead className="w-12 text-center">#</TableHead>
                           <TableHead>Item</TableHead>
-                           <TableHead>Supplier</TableHead>
                            <TableHead className="whitespace-nowrap text-right">Qty / UOM</TableHead>
                            <TableHead>Current branch stock</TableHead>
                            {canViewCommercial ? <TableHead className="text-right">Est. Cost</TableHead> : null}
@@ -378,13 +379,11 @@ export default async function PurchaseRequestDetailPage({
                         {lines.map((line, index) => {
                           const item = itemById.get(line.item_id);
                           const readiness = readinessByLine.get(line.id)!;
-                          const supplierName = readiness.supplierName ?? (line.suggested_supplier_id ? supplierById.get(line.suggested_supplier_id)?.name ?? null : null);
                           const stock = stockByItemId.get(line.item_id);
                           return (
                             <TableRow key={line.id} data-guided-issue={readiness.issue?.code}>
                               <TableCell className="text-center text-xs tabular-nums text-muted-foreground">{index + 1}</TableCell>
                               <TableCell><p className="font-medium">{!items ? "Item details unavailable" : item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground">{!items ? `Reference ${line.item_id}` : item?.item_code ?? "No item code"}</p></TableCell>
-                              <TableCell>{readiness.issue ? <div><p className="font-medium text-[var(--sb-danger)]">{supplierName ?? readiness.issue.message}</p><p className="mt-0.5 max-w-[28ch] text-[11px] text-muted-foreground">Next: {readiness.issue.recommendedAction}</p></div> : <span className="text-muted-foreground">{supplierName ?? "Mapped supplier"}</span>}</TableCell>
                               <TableCell className="whitespace-nowrap text-right">{formatNumber(line.qty)} {line.uom}</TableCell>
                               <TableCell>{stock ? <div><p className="font-medium">{formatNumber(stock.quantity)} {stock.uom}</p><p className="text-[11px] text-muted-foreground">As of {formatDateOnly(stock.asOf)} · {stock.source}</p></div> : <div><p className="font-medium text-[var(--sb-warning)]">Stock unavailable</p><Button asChild variant="ghost" size="sm" className="h-auto p-0 text-xs"><a href={`/purchase-requests/${request.id}`}>Retry</a></Button></div>}</TableCell>
                               {canViewCommercial ? <TableCell className="text-right">{formatCurrency(line.estimated_unit_cost)}</TableCell> : null}
@@ -396,11 +395,11 @@ export default async function PurchaseRequestDetailPage({
                         {unresolvedLines.map((line, index) => <TableRow key={line.id}>
                           <TableCell className="text-center text-xs tabular-nums text-muted-foreground">{lines.length + index + 1}</TableCell>
                           <TableCell><p className="font-medium">{line.requested_description}</p><p className="text-xs font-medium text-[var(--sb-danger)]">Non-catalog item · Purchasing match required</p></TableCell>
-                          <TableCell>{canAdminReview && items ? <PurchaseRequestLineResolutionForm action={resolvePurchaseRequestUnresolvedLine.bind(null, request.id)} items={items} unresolvedLineId={line.id} description={line.requested_description} compact /> : <span className="text-muted-foreground">Not sourced yet</span>}</TableCell>
                           <TableCell className="whitespace-nowrap text-right">{formatNumber(line.requested_qty)} {line.requested_uom}</TableCell>
                           <TableCell><span className="text-muted-foreground">Available after item match</span></TableCell>
                           {canViewCommercial ? <TableCell className="text-right">—</TableCell> : null}
                           <TableCell>{line.remarks ?? "-"}</TableCell>
+                          {canRepairReviewLines ? <TableCell>{canAdminReview && items ? <PurchaseRequestLineResolutionForm action={resolvePurchaseRequestUnresolvedLine.bind(null, request.id)} items={items} unresolvedLineId={line.id} description={line.requested_description} compact /> : null}</TableCell> : null}
                         </TableRow>)}
                       </TableBody>
                   </Table>
@@ -412,7 +411,7 @@ export default async function PurchaseRequestDetailPage({
                       const stock = stockByItemId.get(line.item_id);
                       return <div key={line.id} role="listitem" data-guided-issue={readiness.issue?.code} className="min-w-0 py-3 text-[13px]">
                         <div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="text-[11px] font-semibold tabular-nums text-muted-foreground">Item {index + 1}</p><p className="break-words font-semibold">{!items ? "Item details unavailable" : item?.item_name ?? line.item_id}</p><p className="text-[12px] text-muted-foreground">{!items ? `Reference ${line.item_id}` : item?.item_code ?? "No item code"}</p></div><div className="flex shrink-0 items-center gap-2"><p className="font-semibold">{formatNumber(line.qty)} {line.uom}</p>{canRepairReviewLines && items && suppliers && supplierMappings && request.branch_id ? <PurchaseRequestLineRecovery action={revisePurchaseRequestLine.bind(null, request.id)} line={line} itemLabel={`${item?.item_code ?? ""} - ${item?.item_name ?? line.item_id}`} items={items} mappings={supplierMappings} suppliers={suppliers} branchId={request.branch_id} issue={readiness.issue} suggestedSupplierId={readiness.suggestedSupplierId} /> : null}</div></div>
-                        {readiness.issue ? <div className="mt-1"><p className="break-words text-[12px] font-medium text-[var(--sb-danger)]">{supplierName ?? readiness.issue.message}</p><p className="text-[11px] text-muted-foreground">Next: {readiness.issue.recommendedAction}</p></div> : <p className="mt-1 break-words text-[12px] text-muted-foreground">Supplier: {supplierName ?? "Mapped supplier"}</p>}
+                        {readiness.issue ? <div className="mt-1"><p className="break-words text-[12px] font-medium text-[var(--sb-danger)]">{supplierName ?? readiness.issue.message}</p><p className="text-[11px] text-muted-foreground">Next: {readiness.issue.recommendedAction}</p></div> : null}
                         {stock ? <p className="mt-1 text-[12px] text-muted-foreground">Current branch stock: <span className="font-medium text-foreground">{formatNumber(stock.quantity)} {stock.uom}</span> · As of {formatDateOnly(stock.asOf)}</p> : <p className="mt-1 text-[12px] font-medium text-[var(--sb-warning)]">Current branch stock unavailable · <a className="underline" href={`/purchase-requests/${request.id}`}>Retry</a></p>}
                         {line.reason ? <p className="mt-1 break-words text-[12px] text-muted-foreground">{line.reason}</p> : null}{canViewCommercial ? <p className="mt-1 text-right text-[12px] font-medium">{formatCurrency(line.estimated_unit_cost)} / {line.uom}</p> : null}
                       </div>;

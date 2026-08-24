@@ -91,7 +91,7 @@ test("production follow-up keeps PR review compact and low stock semantically cr
   assert.match(detail, />Qty \/ UOM</);
   assert.match(detail, /formatNumber\(line\.qty\)\} \{line\.uom\}/);
   assert.doesNotMatch(detail, /<TableHead className="text-right">Qty<\/TableHead>/);
-  assert.match(recovery, /w-\[min\(60rem,calc\(100vw-2rem\)\)\]/);
+  assert.match(recovery, /w-\[min\(42rem,calc\(100vw-2rem\)\)\]/);
   assert.match(actions, /expectedUpdatedAt: z\.string\(\)\.datetime\(\{ offset: true \}\)/);
   assert.match(dashboard, /label="Low stock"[\s\S]*alertTone="critical"/);
 });

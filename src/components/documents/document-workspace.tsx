@@ -18,6 +18,7 @@ type Crumb = {
 export function DocumentWorkspace({
   breadcrumbs,
   documentNo,
+  documentIdentity,
   title,
   status,
   priority,
@@ -39,6 +40,7 @@ export function DocumentWorkspace({
 }: {
   breadcrumbs: Crumb[];
   documentNo: string;
+  documentIdentity?: ReactNode;
   title?: string | null;
   status: string;
   priority?: string | null;
@@ -74,7 +76,7 @@ export function DocumentWorkspace({
           <div className="min-w-0">
             <div className={cn("min-w-0", isNewDocument ? "min-h-7" : "flex min-h-8 flex-wrap items-center gap-2")}>
               {isNewDocument ? <DocumentContextSummary title={title} status={status} branch={branch} date={mobileContextDate} mobileStatusOnly={mobileStatusOnly} /> : <>
-              {!isNewDocument ? <DocumentNumber value={documentNo} size="lg" className="max-w-[min(100%,18rem)] break-all text-[16px] sm:text-lg" /> : null}
+              {!isNewDocument ? documentIdentity ?? <DocumentNumber value={documentNo} size="lg" className="max-w-[min(100%,18rem)] break-all text-[16px] sm:text-lg" /> : null}
               {priority ? <PriorityBadge priority={priority} /> : null}
               {branch ? <span className="ml-auto hidden min-w-0 items-center justify-end gap-1.5 whitespace-nowrap text-right text-xs text-muted-foreground md:flex"><MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="truncate">{branch}</span></span> : null}
               </>}

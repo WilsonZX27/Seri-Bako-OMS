@@ -79,9 +79,8 @@ export function formatActionError(error: unknown, fallback = "Something went wro
   }
   if (normalized.includes("qty_sent_missing")) {
     const safeMessage = message.replace(/^qty_sent_missing:\s*/i, "").trim();
-    const guidance = " You can still enter Received and Wastage and save this record as a draft. Completion is available after Kitchen or an authorised company-wide user confirms Qty Sent.";
-    if (safeMessage.length <= 220 && !/(supabase|postgres|constraint|sqlstate|violates)/i.test(safeMessage)) return `${safeMessage}${guidance}`;
-    return `Qty Sent is missing.${guidance}`;
+    if (safeMessage.length <= 220 && !/(supabase|postgres|constraint|sqlstate|violates)/i.test(safeMessage)) return safeMessage;
+    return "Enter Qty Sent before confirming this record.";
   }
   if (
     normalized.includes("idempotency_migration_pending")

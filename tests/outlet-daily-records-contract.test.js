@@ -197,7 +197,7 @@ test("outlet daily source failures never render an empty zero dashboard", () => 
 test("outlet daily list aggregates line rows by record before rendering", () => {
   assert.match(query, /const linesByRecord = new Map<string, LineRow\[\]>\(\)/);
   assert.match(query, /linesByRecord\.get\(line\.record_id\)/);
-  assert.match(query, /totals\(linesByRecord\.get\(record\.id\) \?\? \[\]\)/);
+  assert.match(query, /totals\(linesByRecord\.get\(record\.id\) \?\? \[\], operationalProductIds\)/);
   assert.doesNotMatch(query, /totals\(\(lines \?\? \[\]\) as LineRow\[\]\)\.filter\(\(line\) => line\.record_id === record\.id\)/);
 });
 
@@ -238,7 +238,8 @@ test("missing Qty Sent keeps Outlet entry editable and changes completion into a
   assert.match(newPage, /needsKitchenQtySent = canEnterOutlet && !canEditQtySent/);
   assert.match(newPage, /value="draft"[\s\S]*Save Outlet Entry/);
   assert.match(newPage, /Received and Wastage remain editable/);
-  assert.match(errorHandling, /You can still enter Received and Wastage and save this record as a draft/);
+  assert.match(errorHandling, /Enter Qty Sent before confirming this record/);
+  assert.doesNotMatch(errorHandling, /You can still enter Received and Wastage and save this record as a draft/);
 });
 
 test("Qty Sent ownership is Kitchen and above, never Outlet", () => {

@@ -242,7 +242,7 @@ export function StockBalanceWorkspace({
                           <div key={branchId} className="space-y-2 py-2.5 first:pt-0 last:pb-0">
                             {(isCreateBranch ? groupBySupplier(lines) : [["preview", lines]] as const).map(([supplierId, supplierLines]) => (
                               <div key={`${branchId}-${supplierId}`} className="space-y-1.5">
-                                {isCreateBranch ? <p className="rounded-[var(--sb-control-radius)] bg-white px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--sb-text)] shadow-[var(--sb-shadow-xs)]">{supplierLines[0]?.supplier_name ?? "Unassigned supplier"}</p> : null}
+                                {isCreateBranch ? <p className="rounded-[var(--sb-control-radius)] bg-[var(--sb-surface-muted)] px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--sb-text)]">{supplierLines[0]?.supplier_name ?? "Unassigned supplier"}</p> : null}
                                 {supplierLines.map((line) => {
                               const key = rowKey(line);
                               return (

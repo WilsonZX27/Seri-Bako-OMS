@@ -16,7 +16,7 @@ export function StatusBadge({ status, className }: { status: string; className?:
   const stageClassName = workflowTone[normalized];
   const variant = stageClassName
     ? "secondary"
-    : ["approved", "posted", "completed", "ready", "closed", "converted", "converted_to_po", "sent", "active", "available", "dispatched", "paid"].includes(normalized)
+    : ["approved", "posted", "completed", "evening_completed", "ready", "closed", "converted", "converted_to_po", "sent", "active", "available", "dispatched", "paid"].includes(normalized)
     ? "success"
     : ["rejected", "cancelled", "void", "critical", "short", "suspended", "inactive", "disabled", "archived"].includes(normalized)
       ? "danger"

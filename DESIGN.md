@@ -4,6 +4,14 @@
 
 Production UAT mutation is allowed only for isolated, traceable test records recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`. Posted inventory/accounting effects and real operational records remain outside disposable testing; historical notes are retained but this policy is the current authority.
 
+## v8.64.168 (unreleased) - Operational table legibility
+
+Outlet Daily uses Action plus Date as its sticky lead band; Date retains a readable fixed track while the remaining columns scroll. Sortable headers use the shared arrow affordance and preserve active filters. Posted uses the success tone while Draft remains neutral. Wastage controls stack inside their owned details track at desktop widths, preventing Chrome horizontal overscroll. Form vocabularies stay controlled: PR UOM is a select, attachment labels begin blank, and supplier grouping uses the muted surface token.
+
+## v8.64.167 (unreleased) - Outlet Daily operational hierarchy
+
+Outlet Daily owns a route-specific document identity instead of repeating the shared location badge. Desktop keeps branch and date on one line; phone uses a 14px branch line and moves the date intact to the next line. The Today rail leads with record count and groups Dispatch, Receiving, Posted, and Incomplete outcomes with dividers and subordinate warnings. Missing Qty Sent copy stays concise because workflow explanation belongs to the validation surface, not the error banner.
+
 ## v8.64.166 (unreleased) - Procurement alignment and explicit selection
 
 Compact procurement rows now behave as a deliberate data grid: location/supplier occupy the first row and date/user/item quantity/estimated cost share fixed second-row tracks. Long supplier text truncates without shifting neighboring data. Supplier selection owns the PR item catalogue, item choice remains explicit, attachments use a compact metadata/action row, and rejection feedback uses consistent Lucide icons, typography, spacing, and semantic danger tokens. Cancelled PO permanent deletion remains an Owner-only guarded action rather than an ordinary workflow button.
@@ -2227,3 +2235,9 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 
 - Outlet Daily list aggregation indexes line rows by record before calculating totals. This removes repeated full-line scans as the record history grows, while preserving the fail-closed rule for unverified receiving values.
 - The read path continues to distinguish verified zero, suspicious zero with sent stock, and unavailable receiving data; performance work must not weaken those states.
+
+## v8.64.167 — Outlet Daily hierarchy and responsive identity
+
+- The Outlet Daily document header suppresses the generic duplicate location badge. Its branch/date identity stays on one desktop line; on phone the branch is 14px and the date owns the following line so neither value becomes an accidental wrap fragment.
+- The Today rail leads with record count, then separates Dispatch, Receiving, and completion outcomes with labels and dividers. Supporting warnings remain subordinate to their metric instead of competing as peer rows.
+- Qty Sent validation copy is concise and action-oriented; workflow explanation remains in the dedicated validation surface.

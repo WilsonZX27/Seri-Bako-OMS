@@ -49,8 +49,8 @@ test("technical tables use the shared pinned lead band without overlap", () => {
   }
   assert.match(
     read("src/app/(app)/outlet-daily-records/page.tsx"),
-    /stickyColumn="third"/,
-    "outlet daily records: action, date, and outlet remain fixed while metrics scroll",
+    /stickyColumn="second"/,
+    "outlet daily records: action and readable date remain fixed while location and metrics scroll",
   );
   assert.match(
     read("src/app/(app)/purchase-requests/page.tsx"),

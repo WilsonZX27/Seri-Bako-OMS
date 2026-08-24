@@ -49,7 +49,7 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
   const canEditOutletValues = !statusLocked && permissions["outlet_daily_record.update"];
   const canEditQtySent = !statusLocked && permissions["outlet_daily_record.qty_sent"];
   const qtySentConfirmed = record.qty_sent_state === "confirmed";
-  const outletCanComplete = canEditOutletValues && (qtySentConfirmed || canEditQtySent);
+  const outletCanComplete = canEditOutletValues && qtySentConfirmed;
   const locked = !canEditOutletValues && !canEditQtySent;
   const formId = "outlet-daily-record-form";
   const canVoid = record.status !== "void" && permissions["outlet_daily_record.void"];
@@ -66,10 +66,12 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
           : "This record is void and locked.";
   const voidAction = voidOutletDailyRecord.bind(null, record.id);
 
-  const editPrimary = canEditOutletValues && record.status === "draft"
-    ? outletCanComplete
-      ? <SubmitButton form={formId} name="target_status" value="evening_completed" className="gap-2"><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Post Daily Record</SubmitButton>
-      : null
+  const editPrimary = record.status === "draft" && canEditQtySent && !qtySentConfirmed
+    ? <SubmitButton form={formId} name="target_status" value="morning_recorded" className="gap-2"><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Confirm Qty Sent</SubmitButton>
+    : canEditOutletValues && record.status === "draft"
+      ? outletCanComplete
+        ? <SubmitButton form={formId} name="target_status" value="evening_completed" className="gap-2"><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Post Daily Record</SubmitButton>
+        : <SubmitButton form={formId} name="target_status" value="draft" className="gap-2"><Save className="h-4 w-4" aria-hidden="true" />Save Draft</SubmitButton>
     : outletCanComplete && record.status === "morning_recorded"
       ? <SubmitButton form={formId} name="target_status" value="evening_completed" className="gap-2"><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Post Daily Record</SubmitButton>
       : canEditOutletValues && record.status === "evening_completed"
@@ -92,9 +94,9 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
   return <DocumentWorkspace
     breadcrumbs={[{ label: "Outlet Daily Records", href: "/outlet-daily-records" }, { label: formatDateOnly(record.record_date) }]}
     documentNo={`${record.branch_name} · ${formatDateOnly(record.record_date)}`}
+    documentIdentity={<p className="min-w-0 font-mono text-[14px] font-semibold leading-5 text-[var(--sb-text)] sm:whitespace-nowrap sm:text-[16px]"><span className="block truncate sm:inline">{record.branch_name}</span><span className="block whitespace-nowrap sm:inline"> · {formatDateOnly(record.record_date)}</span></p>}
     title="Outlet Daily Record"
     status={record.status}
-    branch={record.branch_name}
     workflowSteps={dailySteps}
     currentStatus={["reviewed", "void"].includes(record.status) ? "evening_completed" : record.status}
     sidePanel={sidePanel}

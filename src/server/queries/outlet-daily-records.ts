@@ -50,7 +50,10 @@ export type OutletDailyWastageCostSummary = {
   unavailable_lines: number;
 };
 
-const totals = (lines: LineRow[]) => {
+const isPackagingCategory = (category: string | null | undefined) => category?.trim().toLowerCase() === "packaging";
+
+const totals = (lines: LineRow[], operationalProductIds?: Set<string>) => {
+  const operationalLines = operationalProductIds ? lines.filter((line) => operationalProductIds.has(line.product_id)) : lines;
   const qtySentState = lines.length > 0 && lines.every((line) => line.qty_sent_source === "authorized_confirmed" || line.qty_sent_confirmed)
     ? "confirmed" as const
     : lines.some((line) => line.qty_sent_source === "authorized_draft")
@@ -66,12 +69,12 @@ const totals = (lines: LineRow[]) => {
   // provenance flag distinguishes an explicit zero from that transport
   // default. An empty line set, or an unproven default zero, must never be
   // rendered as a real operational total.
-  const receivedValues = lines.map((line) => {
+  const receivedValues = operationalLines.map((line) => {
     const received = Number(line.morning_received_qty);
     const explicitlyProvided = receivedValueIsTrusted(line);
     return explicitlyProvided && Number.isFinite(received) ? received : null;
   });
-  const receivedState = lines.length > 0 && receivedValues.every((value) => value !== null) ? "verified" as const : "unavailable" as const;
+  const receivedState = operationalLines.length > 0 && receivedValues.every((value) => value !== null) ? "verified" as const : "unavailable" as const;
   const totalReceived = receivedState === "verified"
     ? receivedValues.reduce<number>((sum, value) => sum + (value ?? 0), 0)
     : null;
@@ -81,7 +84,7 @@ const totals = (lines: LineRow[]) => {
   // cue instead of silently presenting a healthy-looking zero.
   const receivedZeroWithSent = totalReceived === 0 && totalSent !== null && totalSent > 0;
   const totalLeftover = lines.reduce((sum, line) => sum + Number(line.evening_leftover_qty), 0);
-  const totalWastage = lines.reduce((sum, line) => sum + Number(line.wastage_qty), 0);
+  const totalWastage = operationalLines.reduce((sum, line) => sum + Number(line.wastage_qty), 0);
   return {
     total_sent: totalSent,
     total_received: totalReceived,
@@ -250,7 +253,7 @@ async function hydrateRows(db: Awaited<ReturnType<typeof createClient>>, records
   if (!records.length) return [] as OutletDailyRecordRow[];
   const recordIds = records.map((record) => record.id);
   const branchIds = [...new Set(records.map((record) => record.branch_id))];
-  const staffIds = [...new Set(records.flatMap((record) => record.submitted_by ? [record.submitted_by] : []))];
+  const staffIds = [...new Set(records.flatMap((record) => [record.submitted_by, record.updated_by, record.created_by].filter((value): value is string => Boolean(value))))];
   const [{ data: lines, error: linesError }, { data: branches, error: branchesError }, staffResult] = await Promise.all([
     db.from("outlet_daily_record_lines").select("*").in("record_id", recordIds),
     db.from("branches").select("id,branch_name").in("id", branchIds),
@@ -262,6 +265,10 @@ async function hydrateRows(db: Awaited<ReturnType<typeof createClient>>, records
   if (branchesError) throw new Error(branchesError.message);
   if (staffResult.error) throw new Error(staffResult.error.message);
   if (!lines || !branches || !staffResult.data) throw new Error("Outlet daily record details returned no data.");
+  const productIds = [...new Set(lines.map((line) => line.product_id))];
+  const { data: products, error: productsError } = productIds.length ? await db.from("products").select("id,category").in("id", productIds) : { data: [], error: null };
+  if (productsError) throw new Error(productsError.message);
+  const operationalProductIds = new Set((products ?? []).filter((product) => !isPackagingCategory(product.category)).map((product) => product.id));
   const branchNames = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
   const staffNames = new Map((staffResult.data ?? []).map((row) => [row.id, row.full_name]));
   const linesByRecord = new Map<string, LineRow[]>();
@@ -273,8 +280,8 @@ async function hydrateRows(db: Awaited<ReturnType<typeof createClient>>, records
   return records.map((record) => ({
     ...record,
     branch_name: branchNames.get(record.branch_id) ?? "Unknown outlet",
-    submitted_by_name: record.submitted_by ? staffNames.get(record.submitted_by) ?? null : null,
-    ...totals(linesByRecord.get(record.id) ?? []),
+    submitted_by_name: staffNames.get(record.submitted_by ?? record.updated_by ?? record.created_by ?? "") ?? null,
+    ...totals(linesByRecord.get(record.id) ?? [], operationalProductIds),
   }));
 }
 
@@ -297,10 +304,13 @@ async function loadRows(filters: Filters = {}) {
   if (filters.date) query = query.eq("record_date", filters.date);
   if (filters.branch && filters.branch !== "all") query = query.eq("branch_id", filters.branch);
   if (filters.status && filters.status !== "all") query = query.eq("status", filters.status as RecordRow["status"]);
+  const sortColumns = { date: "record_date", outlet: "status", updated: "updated_at" } as const;
+  const sortColumn = sortColumns[filters.sort as keyof typeof sortColumns] ?? "record_date";
+  const ascending = filters.dir === "asc";
   const start = (requestedPage - 1) * pageSize;
   const { data, error, count } = await query
-    .order("record_date", { ascending: false })
-    .order("updated_at", { ascending: false })
+    .order(sortColumn, { ascending })
+    .order(sortColumn === "updated_at" ? "record_date" : "updated_at", { ascending: false })
     .range(start, start + pageSize - 1);
   if (error) throw new Error(error.message);
   if (!data || count === null) throw new Error("Outlet daily record list returned no data.");
@@ -623,6 +633,7 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
   branchId?: string;
   productId?: string;
 }) {
+  const operationalProductIds = new Set(products.filter((product) => !isPackagingCategory(product.category)).map((product) => product.id));
   const candidateReliable = records.filter((record) => ["evening_completed", "reviewed"].includes(record.status) && (status === "all" || record.status === status));
   const linesByRecord = new Map<string, LineRow[]>();
   for (const line of lines) {
@@ -631,11 +642,11 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
     linesByRecord.set(line.record_id, recordLines);
   }
   const reliable = candidateReliable.filter((record) => {
-    const recordLines = linesByRecord.get(record.id) ?? [];
+    const recordLines = (linesByRecord.get(record.id) ?? []).filter((line) => operationalProductIds.has(line.product_id));
     return recordLines.length > 0 && recordLines.every(receivedValueIsTrusted);
   });
   const reliableIds = new Set(reliable.map((record) => record.id));
-  const trendLines = lines.filter((line) => reliableIds.has(line.record_id) && (!productId || line.product_id === productId));
+  const trendLines = lines.filter((line) => operationalProductIds.has(line.product_id) && reliableIds.has(line.record_id) && (!productId || line.product_id === productId));
   const branchNames = new Map(branches.map((branch) => [branch.id, branch.branch_name]));
   const productNames = new Map(products.map((product) => [product.id, product.product_name]));
   const recordById = new Map(records.map((record) => [record.id, record]));

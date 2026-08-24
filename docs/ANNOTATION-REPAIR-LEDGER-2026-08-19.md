@@ -992,6 +992,33 @@ This is a new batch and does not rewrite the preceding 28-comment evidence. Sour
 | 14 | PR detail / 1440x900 | Add Line searches supplier-scoped items ordered by item code. | implemented / authenticated data UAT pending |
 
 Required Production evidence remains: Purchasing/Finance role transition, PO cancel/restore with a disposable fixture, PR mobile 430px alignment, 820/1180/1440 responsive checks, and migration 202 remote application/read-back.
+
+## 2026-08-24 Outlet Daily follow-up — v8.64.167
+
+Production screenshots initiated this batch. The statuses below describe source implementation only; authenticated role and viewport UAT remain separate.
+
+| Comment | Route / viewport | Acceptance | Status |
+|---|---|---|---|
+| 1 | Outlet Daily list / 1440x900 | Submitted By resolves draft ownership through submitted, updated, then created user. | implemented / data UAT pending |
+| 2 | Outlet Daily detail / 1440x900 | Qty Sent is confirmed before Post and missing-data copy is concise. | implemented / role UAT pending |
+| 3, 4 | Outlet Daily detail / 1440x900 | Generic and duplicate location badges are removed from this route. | implemented |
+| 5 | Outlet Daily detail / 1440x900 | Branch and date stay on one line. | implemented / viewport UAT pending |
+| 6 | Outlet Daily detail / 393x852 | Branch is 14px and date starts on the following line. | implemented / viewport UAT pending |
+| 7 | Outlet Daily list analytics / 1440x900 | Packaging is excluded from Received and Wastage Rate aggregation. | implemented / fixture UAT pending |
+| 8 | Outlet Daily list rail / 1440x900 | Today uses Records, Dispatch, Receiving, Posted, and Incomplete hierarchy. | implemented / viewport UAT pending |
+
+## 2026-08-24 Outlet Daily and procurement refinement — v8.64.168
+
+| Comment | Route / viewport | Acceptance | Status |
+|---|---|---|---|
+| 1, 7 | Outlet Daily detail / Chrome 1440x900 | Wastage details stay within the line and do not create horizontal overscroll or trailing blank canvas. | implemented / Chrome UAT pending |
+| 2 | Outlet Daily list / 1440x900 | Date remains readable in the sticky lead band. | implemented / viewport UAT pending |
+| 3 | Outlet Daily list / 1440x900 | Posted is success-toned while Draft remains neutral. | implemented |
+| 4 | Outlet Daily list / 1440x900 | Date, Outlet status, and Updated are sortable with filter-preserving headers. | implemented / data UAT pending |
+| 5, 6 | Outlet Daily list / 1440x900 | Missing helper copy is hidden and Outlet Progress is labelled Outlet. | implemented |
+| 8 | PR detail / 1440x900 | Add Line UOM uses a controlled dropdown. | implemented |
+| 9 | PR detail / 1440x900 | Attachment label starts empty. | implemented |
+| 10 | Stock Balance / 1440x900 | Supplier group heading uses a darker shared muted surface. | implemented |
 ## v8.64.111 receiving posting lock repair
 
 | Acceptance | Status | Evidence / remaining gate |

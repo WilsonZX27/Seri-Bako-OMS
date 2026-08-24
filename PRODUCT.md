@@ -4,6 +4,14 @@
 
 Production UAT mutation is now Owner-authorized only when it is traceable, isolated, recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, and cleaned up after verification. Historical release notes that describe Production mutation as unauthorized remain historical evidence and are superseded by this current policy.
 
+### v8.64.168 (unreleased) — Outlet Daily table and form refinement
+
+Outlet Daily keeps Date readable by using the correct two-column sticky lead band, provides server-authoritative Date, Outlet status, and Updated sorting, distinguishes Posted from Draft with semantic success/neutral tones, and removes redundant missing-state helper copy. Wastage details remain inside their line instead of creating horizontal overflow. PR review uses a controlled UOM selector and starts attachment labels empty. Stock Balance supplier group headings use the shared muted surface rather than a floating white label. Local verification does not constitute deployment or authenticated browser UAT.
+
+### v8.64.167 (unreleased) — Outlet Daily ownership and food-only metrics
+
+Outlet Daily draft rows resolve the responsible user through submitted, updated, then created ownership. Qty Sent is confirmed as its own Kitchen/company-wide step before posting, while Outlet may keep saving Received and Wastage as a draft. Packaging stays editable on the record but is excluded from Received and Wastage Rate analytics. The detail identity removes the duplicate location, stays on one line on desktop, and uses a 14px branch line followed by the date on phone; Today metrics now have explicit Dispatch, Receiving, and completion hierarchy. Local verification does not constitute deployment or authenticated Production UAT.
+
 ### v8.64.166 (unreleased) — Procurement alignment and explicit selection
 
 Purchase Request and Dashboard operational rows now use stable two-column context and four-column date/user/quantity/cost alignment, with supplier names constrained to one ellipsized line. PR entry shows its selected supplier in the collapsed quick view, searches only exact branch-and-supplier mappings, and never converts typed text into a selected item without an explicit click or keyboard confirmation. Attachments use one Upload label, omit MIME noise, and align actions beside uploader/time. Returned-request feedback uses the shared icon vocabulary, one readable type scale, a subtle danger surface, and a full Malaysia timestamp. Purchasing and Finance may send approved POs; Owner-only permanent deletion is available for cancelled POs only when receiving, return, and invoice history are absent, with a permanent tombstone. Migration 204 is remotely applied and the linked dry-run is current; application deployment and authenticated four-viewport UAT remain separate.
@@ -1176,3 +1184,10 @@ A module is considered operationally complete when its intended core workflow ha
 - `DEPLOYMENT.md` — production deployment, environment, migration, and recovery procedures.
 - `ARCHITECTURE.md` — application architecture, data rules, permissions, and technical boundaries.
 - `DESIGN.md` — application shell, page skeletons, visual system, components, and interaction standards.
+
+## v8.64.167 — Outlet Daily ownership and food-only metrics
+
+- Outlet Daily draft rows identify the latest responsible user using submitted, updated, then created ownership; a draft no longer appears anonymous merely because it has not been posted.
+- Qty Sent confirmation is a distinct Kitchen/company-wide step. A user with both permissions must confirm Qty Sent before the record can be posted; Outlet users may continue saving Received and Wastage as a draft.
+- Packaging remains editable on the operational record but is excluded from Received and Wastage Rate analytics because it is not food output.
+- Outlet Daily detail uses a route-specific compact identity: one line on desktop, and a 14px branch line followed by the date on phone.

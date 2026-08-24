@@ -232,7 +232,7 @@ export default async function PurchaseRequestDetailPage({
       workflowSteps={prSteps}
       currentStatus={getPrWorkflowStep(request.status)}
       mobilePrimaryAction={mobilePrimaryAction}
-      mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supporting Attachments" defaultLabel="Purchase Request Attachment" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /></> : null}
+      mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supporting Attachments" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /></> : null}
       mobileMoreOptions={secondaryActions ? <DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions> : null}
       sidePanel={
         <>
@@ -262,7 +262,7 @@ export default async function PurchaseRequestDetailPage({
           </DocumentSideSection>
           {documentBundle ? (
             <>
-              <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supporting Attachments" defaultLabel="Purchase Request Attachment" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} />
+               <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supporting Attachments" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} />
               <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
               <DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} />
               <RevisionPanel revisions={documentBundle.revisions} />

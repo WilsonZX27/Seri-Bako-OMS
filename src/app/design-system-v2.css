@@ -1801,6 +1801,15 @@ html[data-design-layer="v2"] .sb-outlet-daily-table th:nth-last-child(3) { width
 html[data-design-layer="v2"] .sb-outlet-daily-table th:nth-last-child(2) { width: 7.5rem; }
 html[data-design-layer="v2"] .sb-outlet-daily-table th:nth-last-child(1) { width: 7.25rem; }
 
+html[data-design-layer="v2"] .sb-outlet-daily-table td:has([data-status="missing"]) > p {
+  display: none;
+}
+
+html[data-design-layer="v2"] [data-outlet-daily-lines] {
+  max-width: 100%;
+  contain: inline-size;
+}
+
 /* Split workspaces keep their action/context rail on portrait tablets too.
    The shared query grammar below gives the main canvas a predictable compact
    grid, so hiding the rail is no longer needed to avoid collisions. */

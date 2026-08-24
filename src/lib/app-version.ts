@@ -1,6 +1,6 @@
-export const APP_VERSION = "8.64.166";
+export const APP_VERSION = "8.64.168";
 export const APP_SPRINT = `v${APP_VERSION}`;
-export const APP_RELEASE_TITLE = "Procurement Alignment And Explicit Selection";
+export const APP_RELEASE_TITLE = "Outlet Daily Table And Form Refinement";
 // Keep the shell footer concise; the detailed release title belongs in release
 // notes, not in a narrow navigation rail where it is clipped on small screens.
 export const APP_RELEASE_NOTE = APP_SPRINT;

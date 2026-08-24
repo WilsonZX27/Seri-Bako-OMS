@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { type ReactNode } from "react";
+import { type ReactNode, useId, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { LoaderCircle } from "lucide-react";
+import { AlertTriangle, LoaderCircle } from "lucide-react";
 import { Button, type ButtonProps } from "@/components/ui/button";
+import { ModalShell } from "@/components/ui/modal-shell";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { cn } from "@/lib/utils";
 
 export function DocumentActionBar({ children, className }: { children: ReactNode; className?: string }) {
@@ -23,6 +25,20 @@ export function DocumentActionForm({
   pendingLabel?: string;
   mobilePrimary?: boolean;
 } & ButtonProps) {
+  const [confirming, setConfirming] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null);
+  const titleId = useId();
+  if (buttonProps.variant === "destructive") {
+    return <div className="w-full" data-mobile-primary-action={mobilePrimary || undefined}>
+      <Button ref={triggerRef} type="button" variant="destructive" className={cn("w-full justify-center", buttonProps.className)} disabled={buttonProps.disabled} onClick={() => setConfirming(true)}>{children}</Button>
+      <ModalShell open={confirming} onClose={() => setConfirming(false)} titleId={titleId} triggerRef={triggerRef} initialFocusRef={cancelRef} className="max-w-md">
+        <h2 id={titleId} className="flex items-center gap-2 text-base font-semibold text-[var(--sb-danger)]"><AlertTriangle className="h-4 w-4" />Confirm destructive action</h2>
+        <p className="mt-2 text-sm text-muted-foreground">This action removes, cancels, rejects, or voids operational work. Review the record before continuing.</p>
+        <form action={action} className="mt-4 flex justify-end gap-2"><Button ref={cancelRef} type="button" variant="outline" onClick={() => setConfirming(false)}>Keep record</Button><SubmitButton variant="destructive" pendingLabel={pendingLabel}>{children}</SubmitButton></form>
+      </ModalShell>
+    </div>;
+  }
   return (
     <form action={action} className="w-full" data-mobile-primary-action={mobilePrimary || undefined}>
       <DocumentActionSubmitButton pendingLabel={pendingLabel} {...buttonProps}>

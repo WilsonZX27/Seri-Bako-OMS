@@ -18,12 +18,12 @@ test("purchase request rejection is a reason-first dialog instead of an inline a
   assert.doesNotMatch(detail, /Rejection remarks required/);
 });
 
-test("document actions keep delete neutral and primary workflow actions icon-led", () => {
+test("document actions keep deletion visibly destructive and primary workflow actions icon-led", () => {
   const detail = read("src/app/(app)/purchase-requests/[id]/page.tsx");
   const confirm = read("src/components/ui/confirm-action-form.tsx");
 
   assert.match(confirm, /label: ReactNode/);
-  assert.match(detail, /variant="secondary"[\s\S]*Trash2/);
+  assert.match(detail, /variant="destructive"[\s\S]*Trash2/);
   for (const icon of ["Send", "BadgeCheck", "ShoppingCart", "FileCheck2"]) assert.match(detail, new RegExp(icon));
 });
 

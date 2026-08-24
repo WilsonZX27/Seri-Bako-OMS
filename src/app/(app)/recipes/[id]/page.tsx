@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { DestructiveActionDialog } from "@/components/ui/destructive-action-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { RecordActionPanel, RecordWorkspace } from "@/components/record-workspace";
@@ -50,15 +51,12 @@ export default async function RecipeDetailPage({
               {permissions["recipes.approve"] && recipe.status === "pending_approval" ? (
                 <>
                   <form action={approveRecipe.bind(null, recipe.id)}><SubmitButton type="submit" className="w-full" pendingLabel="Approving..." data-mobile-primary-action>Approve</SubmitButton></form>
-                  <form action={rejectRecipe.bind(null, recipe.id)} className="grid gap-2">
-                    <input name="remarks" className="h-9 rounded-[2px] border bg-background px-3 text-sm" placeholder="Rejection remarks required" required />
-                    <SubmitButton type="submit" variant="destructive" pendingLabel="Rejecting...">Reject Recipe</SubmitButton>
-                  </form>
+                  <DestructiveActionDialog action={rejectRecipe.bind(null, recipe.id)} label="Reject Recipe" title="Reject this recipe?" description="The recipe will return to its owner for correction and cannot progress until resubmitted." pendingLabel="Rejecting..."><input name="remarks" className="h-9 w-full rounded-[2px] border bg-background px-3 text-sm" placeholder="Rejection remarks required" required /></DestructiveActionDialog>
                 </>
               ) : null}
               {permissions["recipes.approve"] && recipe.status === "approved" ? <form action={activateRecipe.bind(null, recipe.id)}><SubmitButton type="submit" className="w-full" pendingLabel="Activating..." data-mobile-primary-action>Activate</SubmitButton></form> : null}
               {permissions["recipes.create"] && recipe.status === "active" ? <form action={createNewRecipeVersion.bind(null, recipe.id)}><SubmitButton type="submit" variant="outline" className="w-full" pendingLabel="Creating...">New Version</SubmitButton></form> : null}
-              {permissions["recipes.archive"] && ["active", "approved"].includes(recipe.status) ? <form action={archiveRecipe.bind(null, recipe.id)}><SubmitButton type="submit" variant="ghost" className="w-full" pendingLabel="Archiving...">Archive</SubmitButton></form> : null}
+              {permissions["recipes.archive"] && ["active", "approved"].includes(recipe.status) ? <DestructiveActionDialog action={archiveRecipe.bind(null, recipe.id)} label="Archive Recipe" title="Archive this recipe?" description="The recipe will leave active operational use. Its history remains available." pendingLabel="Archiving..." /> : null}
               {permissions["recipes.archive"] ? <PhaseOneDeleteAction recordType="recipe" recordId={recipe.id} label="recipe" /> : null}
             </RecordActionPanel>
             <RecordActionPanel title="Recipe Metadata">

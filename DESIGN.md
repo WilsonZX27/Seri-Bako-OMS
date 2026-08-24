@@ -4,6 +4,10 @@
 
 Production UAT mutation is allowed only for isolated, traceable test records recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`. Posted inventory/accounting effects and real operational records remain outside disposable testing; historical notes are retained but this policy is the current authority.
 
+## v8.64.164 (unreleased) - Explicit consequence and compact document controls
+
+Destructive actions use one familiar modal grammar: red trigger, consequence-focused title, neutral escape action, and explicit red confirmation. Attachment upload composes file choice and upload on one row, while existing attachments use icon affordances without a duplicate Download action. Mobile PR work rows align identity, context, commercial data, status, and amount through shared two-column operational grids. Cancelled purchase orders remain discoverable and expose Restore only as a guarded secondary action.
+
 ## v8.64.163 (unreleased) - Portrait operational density and correction surfaces
 
 The 820px portrait contract uses the shared contained workspace rather than route-specific full-width canvases. Query controls place search on its own row and keep status/action labels on one line. Dashboard and PR rows use compact two-line operational compositions; document rails remain contextual instead of becoming an uninterrupted long column. PR item correction moves long guidance into dialogs, uses a single viewport presentation, and marks only actionable problem rows with the shared danger tint. Basket supplier groups use distinct surfaces while the basket itself has one immutable branch until cleared. Outlet Daily retains its 390px list and gives 820px and wider screens an explicit column contract rather than reducing type size.

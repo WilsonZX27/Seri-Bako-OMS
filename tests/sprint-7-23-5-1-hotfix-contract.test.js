@@ -11,7 +11,7 @@ test("PR review filters and actions are deterministic and role explicit", () => 
   assert.match(query, /status === "in_review" \? \["manager_review", "admin_review", "finance_review"\]/);
   assert.match(query, /if \(statusGroup\.length === 1\) query = query\.eq\("status"/);
   assert.match(query, /if \(statusGroup\.length > 1\) query = query\.in\("status"/);
-  for (const role of ["Manager", "Purchasing", "Finance"]) assert.match(page, new RegExp(`Approve as ${role}`));
+  for (const label of ["Approve as Manager", "Complete Purchasing Review", "Approve as Finance"]) assert.match(page, new RegExp(label));
   assert.match(page, /ConfirmActionForm/);
   assert.doesNotMatch(page, />Review PR</);
   assert.doesNotMatch(list, /<label[^>]*>Priority/);

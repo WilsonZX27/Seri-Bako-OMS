@@ -371,11 +371,11 @@ export async function getPurchaseOrders(filters: Filters = {}) {
   const sort = safeSort(filters.sort, ["po_no", "order_date", "expected_delivery_date", "status", "updated_at"], "updated_at");
   let query = supabase
     .from("purchase_orders")
-    .select("id, supplier_id, po_no, order_date, expected_delivery_date, status, approval_status, remarks, updated_at", { count: "exact" })
-    .is("deleted_at", null);
+    .select("id, supplier_id, po_no, order_date, expected_delivery_date, status, approval_status, remarks, updated_at, deleted_at", { count: "exact" });
   const status = filters.status && filters.status !== "all" ? filters.status : null;
   const search = searchFilter(filters.search);
   if (status) query = query.eq("status", status as PurchaseOrder["status"]);
+  if (status !== "cancelled") query = query.is("deleted_at", null);
   if (search) query = query.or(`po_no.ilike.%${search}%,remarks.ilike.%${search}%`);
   const { data, error, count } = await query.order(sort, { ascending: filters.dir !== "asc" }).range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   if (error) throw new Error(error.message);
@@ -409,7 +409,8 @@ export async function getPurchaseOrderSummary() {
 
   const supabase = await createClient();
   const count = (status?: PurchaseOrder["status"]) => {
-    let query = supabase.from("purchase_orders").select("id", { count: "exact", head: true }).is("deleted_at", null);
+    let query = supabase.from("purchase_orders").select("id", { count: "exact", head: true });
+    if (status !== "cancelled") query = query.is("deleted_at", null);
     if (status) query = query.eq("status", status);
     return query;
   };

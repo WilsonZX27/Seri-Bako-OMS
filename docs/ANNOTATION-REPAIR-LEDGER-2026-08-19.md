@@ -947,6 +947,25 @@ The remaining rows below are intentionally retained as open gates. They require 
 | GRN and return posting retain immutable Purchase/Base UOM snapshots. | implemented / GRN authenticated mutation passed, return UAT open | Local function definitions, snapshot columns, audit table, and grants are present; the QA browser workflow posted a GRN and local rollback transaction coverage passed. Purchase Return browser mutation and Production remain open. |
 
 The local Supabase migration ledger reports 184, 185, 186, and 187. This is local-only evidence; it must not be promoted to `remote verified` or `production verified` without linked migration output and read-only Production regression.
+
+## 2026-08-24 follow-up annotation batch — v8.64.164
+
+This is a new batch and does not rewrite the preceding 28-comment evidence. Source screenshots came from the named Production URLs; implementation and local tests do not constitute Production verification.
+
+| Comment | Route / viewport | Acceptance | Status |
+|---|---|---|---|
+| 1, 7, 8 | PR detail / 1440x900 | Attachment selector says Add Attachment, has no redundant heading, and shares one row with Upload. | implemented |
+| 2, 3 | PR detail / 1440x900 | Existing attachment actions use View/Remove icons; Download is removed. | implemented |
+| 4 | PR detail / 1440x900 | Revision 1 explains that future document/workflow changes create revisions. | implemented |
+| 5 | PR detail / 1440x900 | Purchasing Review explicitly requires AutoCount PO Number before Finance Review. | implemented |
+| 6 | PR detail / 1440x900 | Delete/cancel and all audited destructive actions open a danger confirmation dialog. | implemented / local verification pending |
+| 9 | PR detail / 430x932 | Prepare Purchase Order is styled as the primary mobile task. | implemented |
+| 10, 11 | PR list and Dashboard / 430x932 | Both use the same aligned compact operational PR row. | implemented / viewport UAT pending |
+| 12 | PO register / 1440x900 | Cancelled POs remain discoverable and can be restored when safe. | implemented; migration 202 deployment pending |
+| 13 | Outlet Daily / 1440x900 | Submitted By uses an intentional two-line header. | implemented |
+| 14 | PR detail / 1440x900 | Add Line searches supplier-scoped items ordered by item code. | implemented / authenticated data UAT pending |
+
+Required Production evidence remains: Purchasing/Finance role transition, PO cancel/restore with a disposable fixture, PR mobile 430px alignment, 820/1180/1440 responsive checks, and migration 202 remote application/read-back.
 ## v8.64.111 receiving posting lock repair
 
 | Acceptance | Status | Evidence / remaining gate |

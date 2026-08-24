@@ -1,11 +1,12 @@
 "use client";
 
-import { ImageIcon, Trash2, Upload } from "lucide-react";
+import { ImageIcon, Upload } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { DestructiveActionDialog } from "@/components/ui/destructive-action-dialog";
 
 type CompanyLogoFormProps = {
   companyId: string;
@@ -80,15 +81,10 @@ export function CompanyLogoForm({
             </div>
           ) : null}
         </form>
-        {logoUrl ? (
-          <form id={removeFormId} action={removeAction} className="flex justify-end">
-            {showActions ? (
-              <SubmitButton type="submit" variant="outline" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">
-                <Trash2 className="h-4 w-4" />
-                Remove
-              </SubmitButton>
-            ) : null}
-          </form>
+        {logoUrl && showActions ? (
+          <div id={removeFormId} className="flex justify-end">
+            <DestructiveActionDialog action={removeAction} label="Remove logo" title="Remove company logo?" description="The current company logo will no longer appear in the application." pendingLabel="Removing..." compact />
+          </div>
         ) : null}
       </CardContent>
     </Card>

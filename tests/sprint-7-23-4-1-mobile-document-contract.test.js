@@ -32,7 +32,7 @@ test("procurement documents use focused mobile workflow and exact primary action
   assert.match(mobile, /flex min-w-0 items-center gap-1 md:hidden/);
   assert.match(mobile, /h-8 min-h-8/);
   assert.match(pr, />Submit PR</);
-  for (const label of ["Approve as Manager", "Approve as Purchasing", "Approve as Finance"]) assert.match(pr, new RegExp(label));
+  for (const label of ["Approve as Manager", "Complete Purchasing Review", "Approve as Finance"]) assert.match(pr, new RegExp(label));
   assert.match(pr, /Prepare Purchase Order/);
   assert.match(po, /Send to Supplier/);
   assert.match(po, /Record Receiving &amp; Attach DO/);

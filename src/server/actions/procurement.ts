@@ -845,6 +845,23 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string, formData
   }
 }
 
+export async function restorePurchaseOrder(id: string) {
+  try {
+    await requirePermission("purchase_order.cancel");
+    if (isMockMode()) return;
+    const purchaseOrderId = parsePurchaseOrderId(id);
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("restore_cancelled_purchase_order_atomic" as never, { p_purchase_order_id: purchaseOrderId } as never);
+    if (error) throw new Error(error.message);
+    const order = data as unknown as { po_no: string };
+    revalidateWorkspaceState(["/purchase-orders", `/purchase-orders/${purchaseOrderId}`]);
+    safeRedirectWithMessage(`/purchase-orders/${purchaseOrderId}`, "success", `${order.po_no} restored to active work.`);
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/purchase-orders/${id}`, "error", formatActionError(error, "Could not restore this purchase order."));
+  }
+}
+
 export async function addPurchaseRequestLineDuringReview(id: string, formData: FormData) {
   try {
     if (isMockMode()) return;

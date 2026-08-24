@@ -11,7 +11,7 @@ import { DocumentMoreOptions } from "@/components/documents/mobile-document-surf
 import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
 import { PriorityBadge } from "@/components/priority-badge";
 import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
-import { approvePurchaseOrder, cancelPurchaseOrder, closePurchaseOrder, rejectPurchaseOrder, sendPurchaseOrder, submitPurchaseOrder } from "@/server/actions/procurement";
+import { approvePurchaseOrder, cancelPurchaseOrder, closePurchaseOrder, rejectPurchaseOrder, restorePurchaseOrder, sendPurchaseOrder, submitPurchaseOrder } from "@/server/actions/procurement";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getBranchesForSelect, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
@@ -62,7 +62,8 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
   // corrections do not require a hidden database-only cleanup.
   const canCancel = ["draft", "pending_approval", "approved"].includes(order.status) && permissions["purchase_order.cancel"];
   const canClose = ["partial_received", "received"].includes(order.status) && permissions["purchase_order.close"];
-  const secondaryActions = canCancel || canReject || canClose ? <div className="space-y-2">{canCancel ? <DocumentActionForm action={cancelPurchaseOrder.bind(null, order.id)} pendingLabel="Deleting unposted order..." variant="destructive">Delete unposted order</DocumentActionForm> : null}{canReject ? <DocumentActionForm action={rejectPurchaseOrder.bind(null, order.id)} pendingLabel="Rejecting..." variant="destructive">Reject purchase order</DocumentActionForm> : null}{canClose ? <DocumentActionForm action={closePurchaseOrder.bind(null, order.id)} pendingLabel="Closing..." variant="outline">Close purchase order</DocumentActionForm> : null}</div> : null;
+  const canRestore = order.status === "cancelled" && order.approval_status === "cancelled" && permissions["purchase_order.cancel"];
+  const secondaryActions = canCancel || canReject || canClose || canRestore ? <div className="space-y-2">{canCancel ? <DocumentActionForm action={cancelPurchaseOrder.bind(null, order.id)} pendingLabel="Cancelling order..." variant="destructive">Cancel purchase order</DocumentActionForm> : null}{canRestore ? <ConfirmActionForm action={restorePurchaseOrder.bind(null, order.id)} label="Restore purchase order" title={`Restore ${order.po_no}?`} description="The cancelled order will return to its previous unposted workflow state. Restoration is blocked if a replacement PO or downstream record exists." pendingLabel="Restoring..." /> : null}{canReject ? <DocumentActionForm action={rejectPurchaseOrder.bind(null, order.id)} pendingLabel="Rejecting..." variant="destructive">Reject purchase order</DocumentActionForm> : null}{canClose ? <DocumentActionForm action={closePurchaseOrder.bind(null, order.id)} pendingLabel="Closing..." variant="outline">Close purchase order</DocumentActionForm> : null}</div> : null;
   const nextStep = (fromApprovedPr ? convertedPoSteps : poSteps).find((step) => step.key === order.status)?.description;
   const mobilePrimaryAction = !fromApprovedPr && order.status === "draft" && permissions["po.submit"]
     ? <DocumentActionForm action={submitPurchaseOrder.bind(null, order.id)} pendingLabel="Submitting...">Submit Purchase Order</DocumentActionForm>

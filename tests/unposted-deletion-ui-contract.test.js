@@ -20,7 +20,7 @@ test("every operational document exposes an explicit delete action before postin
 
   for (const route of routes) {
     const source = read("src", "app", "(app)", ...route);
-    assert.match(source, /Delete (?:draft|unposted|purchase|return|production|transfer|wastage|stock)/, route.join("/"));
+    assert.match(source, /(?:Delete|Cancel) (?:draft|unposted|purchase|return|production|transfer|wastage|stock)/, route.join("/"));
     assert.match(source, /deleted_at|cancel[A-Z]|delete[A-Z]/, `${route.join("/")} keeps an audited removal path`);
   }
 });

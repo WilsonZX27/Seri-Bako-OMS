@@ -8,7 +8,7 @@ import { DocumentMoreOptions } from "@/components/documents/mobile-document-surf
 import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { SubmitButton } from "@/components/ui/submit-button";
+import { DestructiveActionDialog } from "@/components/ui/destructive-action-dialog";
 import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatDateOnly, formatDateTime, formatNumber } from "@/lib/utils";
@@ -52,7 +52,7 @@ export default async function ProductionJobDetailPage({
   const canReject = ["submitted", "approved"].includes(job.status) && permissions["production.reject"];
   const hasPrimaryAction = canSubmit || canApprove || canPost;
   const deleteControl = <BlockedDestructiveAction buttonLabel="Delete production job" title={`Cannot delete ${job.production_job_no}`} description="Posted production has material consumption and output movements." recommendation="Posted jobs require a controlled stock correction; physical deletion is prohibited." />;
-  const secondaryActions = canReject || canCancel ? <div className="space-y-2">{canReject ? <form action={rejectProductionJob.bind(null, job.id)} className="space-y-2"><Input name="remarks" placeholder="Rejection remarks required" required /><SubmitButton type="submit" pendingLabel="Rejecting..." variant="destructive" className="w-full">Reject Production Job</SubmitButton></form> : null}{canCancel ? <DocumentActionForm action={cancelProductionJob.bind(null, job.id)} pendingLabel="Deleting unposted job..." variant="outline" className="text-destructive hover:text-destructive">Delete unposted job</DocumentActionForm> : null}{job.status === "posted" ? deleteControl : null}</div> : deleteControl;
+  const secondaryActions = canReject || canCancel ? <div className="space-y-2">{canReject ? <DestructiveActionDialog action={rejectProductionJob.bind(null, job.id)} label="Reject Production Job" title="Reject this production job?" description="The job will return for correction and cannot progress until resubmitted." pendingLabel="Rejecting..."><Input name="remarks" placeholder="Rejection remarks required" required /></DestructiveActionDialog> : null}{canCancel ? <DocumentActionForm action={cancelProductionJob.bind(null, job.id)} pendingLabel="Deleting unposted job..." variant="destructive">Delete unposted job</DocumentActionForm> : null}{job.status === "posted" ? deleteControl : null}</div> : deleteControl;
   const mobilePrimaryAction = canSubmit ? <DocumentActionForm action={submitProductionJob.bind(null, job.id)} pendingLabel="Submitting...">Submit Production Job</DocumentActionForm> : canApprove ? <ConfirmActionForm action={approveProductionJob.bind(null, job.id)} label="Approve as Manager" title="Approve this production job as Manager?" description="This makes the production job ready to post to stock." pendingLabel="Approving..." mobilePrimary /> : canPost ? <DocumentActionForm action={postProductionJob.bind(null, job.id)} pendingLabel="Posting...">Post Production to Stock</DocumentActionForm> : null;
 
   return (

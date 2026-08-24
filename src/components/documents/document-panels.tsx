@@ -1,9 +1,10 @@
-import { CheckCircle2, Clock, FileText, MessageSquare, Paperclip, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, Eye, FileText, MessageSquare, Paperclip, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { DestructiveActionDialog } from "@/components/ui/destructive-action-dialog";
 import { AttachmentUploadForm } from "@/components/documents/attachment-upload-form";
 import { AttachmentRemoveAction } from "@/components/documents/attachment-remove-action";
 import { EmptyAttachmentState, EmptyTimelineState } from "@/components/ui/system-states";
@@ -126,8 +127,8 @@ export async function AttachmentPanel({
                   <p className="text-xs text-muted-foreground">Uploaded by {actorLabel(attachment.uploaded_by_name)} - {formatDateTime(attachment.created_at)}</p>
                 </div>
               </div>
-              <div className="grid gap-2">
-                {attachment.storage_path || attachment.file_url ? <div className="grid grid-cols-2 gap-2"><Button asChild variant="outline" size="sm" className="w-full justify-center"><a href={`/api/attachments/${attachment.id}`} target="_blank" rel="noreferrer">View</a></Button><Button asChild variant="outline" size="sm" className="w-full justify-center"><a href={`/api/attachments/${attachment.id}?download=1`}>Download</a></Button></div> : <Button type="button" variant="outline" size="sm" disabled className="w-full justify-center">File unavailable</Button>}
+              <div className="flex items-center justify-end gap-1">
+                {attachment.storage_path || attachment.file_url ? <Button asChild variant="ghost" size="icon" className="h-8 w-8"><a href={`/api/attachments/${attachment.id}`} target="_blank" rel="noreferrer" aria-label={`View ${attachment.file_name}`} title="View attachment"><Eye className="h-4 w-4" /></a></Button> : <Button type="button" variant="ghost" size="icon" disabled className="h-8 w-8" aria-label="File unavailable"><FileText className="h-4 w-4" /></Button>}
                 {canRemoveAttachments ? <AttachmentRemoveAction action={archiveDocumentAttachment.bind(null, documentId, attachment.id)} fileName={attachment.file_name} /> : null}
               </div>
             </div>
@@ -182,16 +183,13 @@ export function ApprovalPanel({ document, approval, approvalSteps }: { document:
         <div className="grid gap-2">
           <form action={submitDocument.bind(null, document.id)}><SubmitButton type="submit" pendingLabel="Sending..." className="w-full justify-center">Submit for approval</SubmitButton></form>
           <form action={postDocument.bind(null, document.id)}><SubmitButton type="submit" variant="outline" pendingLabel="Posting..." className="w-full justify-center">Post</SubmitButton></form>
-          <form action={cancelDocument.bind(null, document.id)}><SubmitButton type="submit" variant="ghost" pendingLabel="Processing..." className="w-full justify-center">Cancel</SubmitButton></form>
+          <DestructiveActionDialog action={cancelDocument.bind(null, document.id)} label="Cancel" title="Cancel this document?" description="The document will stop progressing through its current workflow." pendingLabel="Cancelling..." />
         </div>
         <form action={approveDocument.bind(null, document.id)} className="grid gap-2">
           <Input name="remarks" placeholder="Approval remarks" />
           <SubmitButton type="submit" pendingLabel="Approving..." className="w-full justify-center">Approve</SubmitButton>
         </form>
-        <form action={rejectDocument.bind(null, document.id)} className="grid gap-2">
-          <Input name="remarks" placeholder="Rejection remarks required" required />
-          <SubmitButton type="submit" variant="destructive" pendingLabel="Rejecting..." className="w-full justify-center">Reject</SubmitButton>
-        </form>
+        <DestructiveActionDialog action={rejectDocument.bind(null, document.id)} label="Reject" title="Reject this document?" description="The document will return for correction and cannot progress until resubmitted." pendingLabel="Rejecting..."><Input name="remarks" placeholder="Rejection remarks required" required /></DestructiveActionDialog>
         <div className="rounded-[2px] border">
           {approvalSteps.map((step) => (
             <div key={step.id} className="flex flex-col gap-1 border-b p-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">
@@ -213,6 +211,7 @@ export function ApprovalPanel({ document, approval, approvalSteps }: { document:
 export function RevisionPanel({ revisions }: { revisions: Revision[] }) {
   return (
     <ConsoleSection title="Revision History">
+        {revisions.length <= 1 ? <p className="mb-2 text-[11px] leading-4 text-muted-foreground">A new revision is recorded when document details or workflow state change.</p> : null}
         <div className="divide-y rounded-[2px] border">
           {revisions.map((revision) => (
             <div key={revision.id} className="p-3">

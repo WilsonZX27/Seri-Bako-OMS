@@ -85,7 +85,7 @@ test("workflow actions are explicit, confirmed, permission-derived and secondary
   const production = app("production/jobs/[id]");
   const daily = app("outlet-daily-records/[id]");
 
-  for (const actor of ["Manager", "Purchasing", "Finance"]) assert.match(pr, new RegExp(`Approve as ${actor}`));
+  for (const label of ["Approve as Manager", "Complete Purchasing Review", "Approve as Finance"]) assert.match(pr, new RegExp(label));
   assert.match(po, /Approve as Manager/);
   assert.match(invoice, /Approve as Finance/);
   assert.match(production, /Approve as Manager/);

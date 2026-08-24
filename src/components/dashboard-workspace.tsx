@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowUpRight, Boxes, CheckCircle2, ClipboardCheck, ClipboardList, Clock3, Factory, FileText, LockKeyhole, PackageCheck, ReceiptText, ShoppingCart, UserRound } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, Boxes, Building2, CalendarDays, CheckCircle2, ClipboardCheck, ClipboardList, Clock3, Factory, FileText, LockKeyhole, MapPin, Package, PackageCheck, ReceiptText, ShoppingCart, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
@@ -302,19 +302,17 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                   href={row.href}
                   className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-3 py-2 text-xs hover:bg-[var(--sb-surface-muted)]"
                 >
-                  <span className="min-w-0">
-                    <strong className="block truncate font-mono">{row.document_no}</strong>
-                    <span className="mt-1 flex min-w-0 items-center gap-1.5">
-                      <StatusBadge status={row.step.toLowerCase().replaceAll(" ", "_")} className="shrink-0" />
-                      {row.branch_name ? <span className="truncate text-muted-foreground">{row.branch_name}</span> : null}
-                    </span>
+                  <strong className="min-w-0 truncate font-mono">{row.document_no}</strong>
+                  <StatusBadge status={row.step.toLowerCase().replaceAll(" ", "_")} className="shrink-0" />
+                  <span className="col-span-2 grid min-w-0 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 text-[11px] text-muted-foreground">
+                    <span className="inline-flex min-w-0 items-center gap-1"><MapPin className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{row.branch_name ?? "Unassigned"}</span></span>
+                    <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5 shrink-0" />{row.age_label}</span>
+                    <span className="inline-flex min-w-0 items-center gap-1"><UserRound className="h-3.5 w-3.5 shrink-0" /><span className="max-w-20 truncate">{row.submitted_by_name ?? "—"}</span></span>
                   </span>
-                  <span className="shrink-0 text-[11px] text-muted-foreground">{row.age_label}</span>
-                  <span className="col-span-2 grid min-w-0 grid-cols-[minmax(0,1.5fr)_auto_minmax(0,.8fr)_auto] items-start gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
-                    <span className="whitespace-normal break-words" title={row.supplier_names.join(", ")}>{row.supplier_names.join(", ") || "Supplier pending"}</span>
-                    <span>{row.line_count} {row.line_count === 1 ? "item" : "items"}</span>
-                    <span className="truncate">{row.submitted_by_name ?? "Unknown submitter"}</span>
-                    <span className="text-right tabular-nums">{formatCurrency(row.estimated_total)}</span>
+                  <span className="col-span-2 grid min-w-0 grid-cols-[minmax(0,1fr)_auto_auto] items-start gap-x-3 text-[11px] text-muted-foreground">
+                    <span className="inline-flex min-w-0 items-start gap-1" title={row.supplier_names.join(", ")}><Building2 className="mt-0.5 h-3.5 w-3.5 shrink-0" /><span className="truncate">{row.supplier_names.join(", ") || "Supplier pending"}</span></span>
+                    <span className="inline-flex items-center gap-1"><Package className="h-3.5 w-3.5 shrink-0" />{row.line_count} {row.line_count === 1 ? "item" : "items"}</span>
+                    <span className="text-right font-medium tabular-nums">{formatCurrency(row.estimated_total)}</span>
                   </span>
                 </Link>
               ))}

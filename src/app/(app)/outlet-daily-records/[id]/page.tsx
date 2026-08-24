@@ -8,6 +8,7 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { DestructiveActionDialog } from "@/components/ui/destructive-action-dialog";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { sortProductsForDisplay } from "@/lib/product-order";
@@ -79,7 +80,7 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
   const primaryAction = editPrimary;
   const secondaryActions = <>
     {outletCanComplete && canEditOutletValues && record.status === "morning_recorded" ? <SubmitButton form={formId} name="target_status" value="morning_recorded" variant="outline">Save Changes</SubmitButton> : null}
-    {canVoid ? <form action={voidAction} className="grid gap-2"><Field label="Void reason"><Input name="reason" required placeholder="Required reason" /></Field><SubmitButton variant="outline" className="text-destructive hover:text-destructive" pendingLabel="Voiding…">Void Record</SubmitButton></form> : null}
+    {canVoid ? <DestructiveActionDialog action={voidAction} label="Void Record" title="Void this outlet daily record?" description="The record will leave active operational totals but remain in the audit trail." pendingLabel="Voiding…"><Field label="Void reason" required><Input name="reason" required placeholder="Explain why this record is being voided" /></Field></DestructiveActionDialog> : null}
   </>;
   const hasSecondaryActions = Boolean(canVoid || canEditOutletValues && record.status === "morning_recorded");
 

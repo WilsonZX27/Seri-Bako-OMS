@@ -9,6 +9,7 @@ import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from 
 import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { DocumentMoreOptions, MobileTaskSheet } from "@/components/documents/mobile-document-surfaces";
 import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
+import { DestructiveActionDialog } from "@/components/ui/destructive-action-dialog";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { SupplierInvoiceForm } from "@/components/supplier-invoice-form";
@@ -77,7 +78,7 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
     ? <ConfirmActionForm action={approveSupplierInvoice.bind(null, invoice.id)} label="Approve as Finance" title="Approve this supplier invoice as Finance?" description="This locks the invoice totals and opens it for payment." pendingLabel="Approving..." mobilePrimary />
     : <div><Button type="button" disabled className="w-full">Approve as Finance</Button><p className="mt-2 text-xs text-muted-foreground">Attach the supplier invoice before Finance approval.</p></div>;
   const mobilePrimaryAction = canApprove ? approvalAction : canSave ? <SubmitButton form="supplier-invoice-form" pendingLabel="Saving..." className="w-full justify-center">Save Draft</SubmitButton> : canPay ? <MobileTaskSheet label="Record Payment"><PaymentForm invoiceId={invoice.id} balance={invoice.balance_due} idempotencyKey={paymentKey} /></MobileTaskSheet> : null;
-  const secondaryActions = (canSave && canApprove) || canVoid ? <div className="space-y-2">{canSave && canApprove ? <SubmitButton form="supplier-invoice-form" pendingLabel="Saving..." variant="outline" className="w-full justify-center">Save Draft</SubmitButton> : null}{canVoid ? <form action={voidSupplierInvoice.bind(null, invoice.id)} className="grid gap-2"><Textarea name="reason" placeholder="Required void reason" required /><SubmitButton variant="destructive" pendingLabel="Voiding..." className="w-full justify-center">Void Invoice</SubmitButton></form> : null}</div> : null;
+  const secondaryActions = (canSave && canApprove) || canVoid ? <div className="space-y-2">{canSave && canApprove ? <SubmitButton form="supplier-invoice-form" pendingLabel="Saving..." variant="outline" className="w-full justify-center">Save Draft</SubmitButton> : null}{canVoid ? <DestructiveActionDialog action={voidSupplierInvoice.bind(null, invoice.id)} label="Void Invoice" title="Void this supplier invoice?" description="The invoice will be removed from payable work while its audit history remains." pendingLabel="Voiding..."><Textarea name="reason" placeholder="Required void reason" required /></DestructiveActionDialog> : null}</div> : null;
   return (
     <DocumentWorkspace
       breadcrumbs={[{ label: "Procurement", href: "/procurement" }, { label: "Supplier Invoices", href: "/supplier-invoices" }, { label: invoice.invoice_no }]}

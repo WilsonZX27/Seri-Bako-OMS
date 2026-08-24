@@ -4,6 +4,7 @@ import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { DestructiveActionDialog } from "@/components/ui/destructive-action-dialog";
 import { getRoleDisplayLabel } from "@/lib/roles";
 import { changeOwnPassword, removeOwnAvatar, updateOwnProfile, uploadOwnAvatar } from "@/server/actions/account";
 import { getCurrentProfile } from "@/server/queries/common";
@@ -32,7 +33,7 @@ export default async function AccountPage() {
         <p className="text-xs text-muted-foreground">PNG, JPG, or WebP. Maximum 2MB.</p>
         <SubmitButton className="w-full" pendingLabel="Uploading...">Upload picture</SubmitButton>
       </form>
-      {account?.avatar_url ? <form action={removeOwnAvatar} className="pt-1"><SubmitButton variant="outline" className="w-full" pendingLabel="Removing...">Remove picture</SubmitButton></form> : null}
+      {account?.avatar_url ? <div className="pt-1"><DestructiveActionDialog action={removeOwnAvatar} label="Remove picture" title="Remove profile picture?" description="The current profile picture will be removed from your account." pendingLabel="Removing..." /></div> : null}
     </ConsoleSection>
     <ConsoleSection title="Access">
       <p className="text-xs leading-5 text-muted-foreground">Role and branch access are managed by an authorized administrator from Users &amp; Staff.</p>

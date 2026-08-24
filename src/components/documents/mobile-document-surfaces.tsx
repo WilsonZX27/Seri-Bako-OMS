@@ -102,8 +102,8 @@ export function MobileActivityAndFiles({ children }: { children: ReactNode }) {
   return <div data-mobile-activity-files className="md:hidden"><MobileSheet label="Activity & files" title="Activity & files">{children}</MobileSheet></div>;
 }
 
-export function MobileTaskSheet({ label, children }: { label: string; children: ReactNode }) {
-  return <MobileSheet label={label} title={label}>{children}</MobileSheet>;
+export function MobileTaskSheet({ label, children, primary = false }: { label: string; children: ReactNode; primary?: boolean }) {
+  return <MobileSheet label={label} title={label} triggerClassName={primary ? "border-[var(--sb-green-800)] bg-[var(--sb-green-800)] text-white hover:bg-[var(--sb-green-700)]" : undefined}>{children}</MobileSheet>;
 }
 
 export function DocumentMoreOptions({ children, defaultOpen = true, triggerClassName }: { children: ReactNode; defaultOpen?: boolean; triggerClassName?: string }) {

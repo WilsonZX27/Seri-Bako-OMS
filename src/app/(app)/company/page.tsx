@@ -1,6 +1,7 @@
 import { CompanyForm } from "@/components/foundation-forms";
 import { CompanyLogoForm } from "@/components/company-logo-form";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { DestructiveActionDialog } from "@/components/ui/destructive-action-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -29,7 +30,7 @@ export default async function CompanyPage({
               <div className="grid gap-2">
                 <SubmitButton type="submit" form="company-form" className="w-full" pendingLabel="Saving..." data-mobile-primary-action>Save Company</SubmitButton>
                 <SubmitButton type="submit" form="company-logo-upload-form" variant="outline" className="w-full" pendingLabel="Uploading...">Upload Logo</SubmitButton>
-                {company.logo_url ? <SubmitButton type="submit" form="company-logo-remove-form" variant="ghost" className="w-full" pendingLabel="Removing...">Remove Logo</SubmitButton> : null}
+                {company.logo_url ? <DestructiveActionDialog action={removeCompanyLogo} label="Remove Logo" title="Remove company logo?" description="The current company logo will no longer appear in the application." pendingLabel="Removing..." /> : null}
               </div>
             </ConsoleSection>
             <ConsoleSection title="Profile Summary">

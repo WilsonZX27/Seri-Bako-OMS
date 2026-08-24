@@ -2,6 +2,7 @@ import { AlertTriangle, BadgeCheck, CircleCheck, CircleX, FileCheck2, Send, Shop
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Field } from "@/components/ui/field";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DocumentActionBar, DocumentActionForm } from "@/components/document-action-bar";
 import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
@@ -169,6 +170,10 @@ export default async function PurchaseRequestDetailPage({
     const readiness = readinessByLine.get(line.id);
     return readiness?.supplierName ?? (line.suggested_supplier_id ? supplierById.get(line.suggested_supplier_id)?.name ?? null : null);
   }).filter((name): name is string => Boolean(name)))];
+  const selectedSupplierIds = [...new Set(lines.map((line) => readinessByLine.get(line.id)?.suggestedSupplierId ?? line.suggested_supplier_id).filter((supplierId): supplierId is string => Boolean(supplierId)))];
+  const addLineItemIds = new Set((supplierMappings ?? []).filter((mapping) => mapping.branch_id === request.branch_id && selectedSupplierIds.includes(mapping.supplier_id)).map((mapping) => mapping.item_id));
+  const addLineItems = (items ?? []).filter((item) => addLineItemIds.has(item.id)).sort((left, right) => left.item_code.localeCompare(right.item_code, undefined, { numeric: true, sensitivity: "base" }));
+  const addLineSuppliers = (suppliers ?? []).filter((supplier) => selectedSupplierIds.includes(supplier.id));
   const canConvert = request.status === "ready_to_convert" && permissions["pr.convert_to_po"];
   const canReject =
     (request.status === "manager_review" && (roleCode === "manager" || isOwner) && (permissions["pr.manager_approve"] || permissions["pr.reject"])) ||
@@ -181,9 +186,9 @@ export default async function PurchaseRequestDetailPage({
     {saveDraftAction}
     {canReject ? <RejectActionForm action={rejectPurchaseRequest.bind(null, request.id)} /> : null}
     {canCancel ? (
-      <DocumentActionForm action={cancelPurchaseRequest.bind(null, request.id)} pendingLabel="Removing..." variant="secondary">
+      <DocumentActionForm action={cancelPurchaseRequest.bind(null, request.id)} pendingLabel="Removing..." variant="destructive">
         <Trash2 className="h-4 w-4" aria-hidden="true" />
-        Delete unposted request
+        Cancel unposted request
       </DocumentActionForm>
     ) : null}
     {deleteControl}
@@ -209,11 +214,11 @@ export default async function PurchaseRequestDetailPage({
     : canManagerReview
       ? blockingLineIssues.length ? <Button asChild><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <ConfirmActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} label={<><CircleCheck className="h-4 w-4" aria-hidden="true" />Approve as Manager</>} title="Approve this PR as Manager?" description="This moves the request to Purchasing Review." pendingLabel="Approving..." mobilePrimary />
       : canAdminReview
-        ? blockingLineIssues.length ? <Button asChild><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <MobileTaskSheet label="Approve as Purchasing"><form action={adminApprovePurchaseRequest.bind(null, request.id)} className="space-y-2"><Input name="autocount_po_no" placeholder="AutoCount PO Number" required /><SubmitButton className="w-full justify-center" pendingLabel="Approving..."><ShoppingCart className="h-4 w-4" aria-hidden="true" />Send to Finance Review</SubmitButton></form></MobileTaskSheet>
+        ? blockingLineIssues.length ? <Button asChild><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <MobileTaskSheet label="Complete Purchasing Review" primary><form action={adminApprovePurchaseRequest.bind(null, request.id)} className="space-y-3"><Field label="AutoCount PO Number" required><Input name="autocount_po_no" placeholder="Enter the number from AutoCount" required /></Field><p className="text-xs text-muted-foreground">Required before this request can move to Finance Review.</p><SubmitButton className="w-full justify-center" pendingLabel="Approving..."><ShoppingCart className="h-4 w-4" aria-hidden="true" />Send to Finance Review</SubmitButton></form></MobileTaskSheet>
       : canFinanceReview
           ? <ConfirmActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} label={<><BadgeCheck className="h-4 w-4" aria-hidden="true" />Approve as Finance</>} title="Approve this PR as Finance?" description="This marks the request ready for PO conversion." pendingLabel="Approving..." mobilePrimary />
           : canConvert
-            ? <MobileTaskSheet label="Prepare Purchase Order"><form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} className="space-y-2"><Input name="autocount_po_no" defaultValue={messageParams.po_no ?? ""} placeholder="AutoCount PO Number" required /><SubmitButton type="submit" pendingLabel="Converting..." className="w-full justify-center"><FileCheck2 className="h-4 w-4" aria-hidden="true" />Prepare Purchase Order</SubmitButton></form></MobileTaskSheet>
+            ? <MobileTaskSheet label="Prepare Purchase Order" primary><form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} className="space-y-2"><Input name="autocount_po_no" defaultValue={messageParams.po_no ?? ""} placeholder="AutoCount PO Number" required /><SubmitButton type="submit" pendingLabel="Converting..." className="w-full justify-center"><FileCheck2 className="h-4 w-4" aria-hidden="true" />Prepare Purchase Order</SubmitButton></form></MobileTaskSheet>
             : null;
 
   return (
@@ -235,7 +240,7 @@ export default async function PurchaseRequestDetailPage({
             <DocumentActionBar>
               {canSubmit ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..." mobilePrimary><Send className="h-4 w-4" aria-hidden="true" />Submit to Manager Review</DocumentActionForm> : null}
               {canManagerReview ? blockingLineIssues.length ? <Button asChild className="w-full"><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <ConfirmActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} label={<><CircleCheck className="h-4 w-4" aria-hidden="true" />Approve as Manager</>} title="Approve this PR as Manager?" description="This moves the request to Purchasing Review." pendingLabel="Approving..." mobilePrimary /> : null}
-              {canAdminReview ? blockingLineIssues.length ? <Button asChild className="w-full"><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <form action={adminApprovePurchaseRequest.bind(null, request.id)} className="space-y-2"><Input name="autocount_po_no" placeholder="AutoCount PO Number" aria-label="AutoCount PO Number" required /><SubmitButton className="w-full justify-center" pendingLabel="Approving..."><ShoppingCart className="h-4 w-4" aria-hidden="true" />Send to Finance Review</SubmitButton></form> : null}
+              {canAdminReview ? blockingLineIssues.length ? <Button asChild className="w-full"><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <form action={adminApprovePurchaseRequest.bind(null, request.id)} className="space-y-3"><Field label="AutoCount PO Number" required><Input name="autocount_po_no" placeholder="Enter the number from AutoCount" required /></Field><p className="text-[11px] leading-4 text-muted-foreground">Required before Finance Review.</p><SubmitButton className="w-full justify-center" pendingLabel="Approving..."><ShoppingCart className="h-4 w-4" aria-hidden="true" />Send to Finance Review</SubmitButton></form> : null}
               {canFinanceReview ? <ConfirmActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} label={<><BadgeCheck className="h-4 w-4" aria-hidden="true" />Approve as Finance</>} title="Approve this PR as Finance?" description="This marks the request ready for PO conversion." pendingLabel="Approving..." mobilePrimary /> : null}
               {request.status === "converted_to_po" && linkedPurchaseOrders?.[0] ? (
                 <Button asChild className="w-full justify-center"><a href={`/purchase-orders/${linkedPurchaseOrders[0].id}`}><FileCheck2 className="h-4 w-4" aria-hidden="true" />Open PO</a></Button>
@@ -420,7 +425,7 @@ export default async function PurchaseRequestDetailPage({
                     })}
                     {unresolvedLines.map((line, index) => <div key={line.id} role="listitem" className="min-w-0 py-3 text-[13px]"><div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="text-[11px] font-semibold tabular-nums text-muted-foreground">Item {lines.length + index + 1}</p><p className="break-words font-semibold">{line.requested_description}</p><p className="text-[12px] font-medium text-[var(--sb-danger)]">Non-catalog item · Purchasing match required</p></div><p className="shrink-0 font-semibold">{formatNumber(line.requested_qty)} {line.requested_uom}</p></div>{line.remarks ? <p className="mt-1 text-[12px] text-muted-foreground">{line.remarks}</p> : null}{canAdminReview && items ? <div className="mt-2"><PurchaseRequestLineResolutionForm action={resolvePurchaseRequestUnresolvedLine.bind(null, request.id)} items={items} unresolvedLineId={line.id} description={line.requested_description} /></div> : null}</div>)}
                   </div>
-                  {canAdminReview && items && suppliers ? <div className="mt-3"><AddPurchaseRequestLineDialog action={addPurchaseRequestLineDuringReview.bind(null, request.id)} items={items} suppliers={suppliers} canViewCommercial={canViewCommercial} /></div> : null}
+                  {canAdminReview && items && suppliers && supplierMappings ? <div className="mt-3"><AddPurchaseRequestLineDialog action={addPurchaseRequestLineDuringReview.bind(null, request.id)} items={addLineItems} suppliers={addLineSuppliers} canViewCommercial={canViewCommercial} /></div> : null}
                 </>
               )}
             </CardContent>

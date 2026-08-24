@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { SubmitButton } from "@/components/ui/submit-button";
+import { DestructiveActionDialog } from "@/components/ui/destructive-action-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
@@ -49,7 +49,7 @@ export default async function SupplierItemsPage({ searchParams }: { searchParams
             </TableRow></TableHeader>
             <TableBody>
               {page.rows.map((row) => <TableRow key={row.id}>
-                    <TableCell className="w-16 p-0 text-center"><TableActionMenuPortal label={`Actions for ${row.supplier_item_code}`}><div className="grid min-w-36 gap-1"><Link href={`/supplier-items/${row.id}`} role="menuitem" className="rounded-[var(--sb-radius-control)] px-2 py-1.5 text-xs hover:bg-[var(--sb-surface-muted)]">Open</Link>{canUpdate ? <form action={deleteSupplierItem.bind(null, row.id)}><SubmitButton type="submit" variant="ghost" size="sm" className="w-full justify-start px-2 text-xs text-[var(--sb-danger)]" pendingLabel="Archiving...">Archive</SubmitButton></form> : null}</div></TableActionMenuPortal></TableCell>
+                    <TableCell className="w-16 p-0 text-center"><TableActionMenuPortal label={`Actions for ${row.supplier_item_code}`}><div className="grid min-w-36 gap-1"><Link href={`/supplier-items/${row.id}`} role="menuitem" className="rounded-[var(--sb-radius-control)] px-2 py-1.5 text-xs hover:bg-[var(--sb-surface-muted)]">Open</Link>{canUpdate ? <DestructiveActionDialog action={deleteSupplierItem.bind(null, row.id)} label="Archive" title="Archive this supplier item?" description="It will no longer be available for new purchasing selections. Existing records remain unchanged." pendingLabel="Archiving..." compact /> : null}</div></TableActionMenuPortal></TableCell>
               <TableCell className="whitespace-normal break-words"><p className="font-medium">{row.supplier_name}</p><p className="text-xs text-muted-foreground">{row.supplier_group !== "-" ? row.supplier_group : row.supplier_code !== "-" ? row.supplier_code : "-"}{row.supplier_code !== "-" && row.supplier_code !== row.supplier_group ? ` · AutoCount ${row.supplier_code}` : ""}</p></TableCell>
               <TableCell className="whitespace-normal break-words"><p className="font-medium">{row.item_name}</p><p className="text-xs text-muted-foreground">{row.item_code}</p></TableCell>
               <TableCell><p className="font-medium">{row.purchase_uom}</p><p className="text-xs text-muted-foreground">1 {row.purchase_uom} = {formatNumber(row.conversion_to_base_uom)} base UOM</p></TableCell>

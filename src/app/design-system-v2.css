@@ -1719,19 +1719,40 @@ html[data-design-layer="v2"] .sb-filter-summary-label {
    Portrait tablet gives those controls a deliberate second row instead of
    compressing seven generated tracks into one unreadable strip. */
 @media (min-width: 768px) and (max-width: 1023px) and (orientation: portrait) {
+  html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout="query"] {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout="query"] > :where(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"]) {
+    grid-column: 1 / -1 !important;
+    grid-row: 1;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout="query"] > :where([data-select-control], .sb-status-filter, .sb-filter-more) {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+
+  html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout="query"] :where(button, [role="combobox"], summary) {
+    white-space: nowrap;
+  }
+
   html[data-design-layer="v2"] form.sb-list-query-card.sb-production-jobs-filters[data-tablet-query-layout="query"] {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   }
 
   html[data-design-layer="v2"] form.sb-list-query-card.sb-production-jobs-filters[data-tablet-query-layout="query"] > :where(input[type="search"], input[name="search"], input[placeholder*="Search"]) {
-    grid-column: 1 / span 2 !important;
+    grid-column: 1 / -1 !important;
     grid-row: 1;
     max-width: none !important;
   }
 
   html[data-design-layer="v2"] form.sb-list-query-card.sb-production-jobs-filters[data-tablet-query-layout="query"] > .unified-list-desktop-actions {
-    grid-column: 3 / -1 !important;
-    grid-row: 1;
+    grid-column: 4 !important;
+    grid-row: 2;
   }
 
   html[data-design-layer="v2"] form.sb-list-query-card.sb-production-jobs-filters[data-tablet-query-layout="query"] > .sb-status-filter {
@@ -1749,6 +1770,36 @@ html[data-design-layer="v2"] .sb-filter-summary-label {
     grid-row: 2;
   }
 }
+
+@media (min-width: 768px) and (max-width: 1023px) and (orientation: portrait) {
+  html[data-design-layer="v2"] [data-dashboard-primary-column],
+  html[data-design-layer="v2"] [data-dashboard-secondary-column] {
+    gap: .75rem;
+  }
+
+  html[data-design-layer="v2"] [data-dashboard-panel] > :last-child {
+    min-height: 0;
+    padding: .75rem;
+  }
+
+  html[data-design-layer="v2"] [data-dashboard-exceptions] > a {
+    min-height: 3.75rem;
+    padding: .5rem;
+  }
+}
+
+html[data-design-layer="v2"] .sb-outlet-daily-table {
+  table-layout: fixed;
+  min-width: 58rem;
+}
+
+html[data-design-layer="v2"] .sb-outlet-daily-table th:nth-child(1) { width: 3.25rem; }
+html[data-design-layer="v2"] .sb-outlet-daily-table th:nth-child(2) { width: 6.25rem; }
+html[data-design-layer="v2"] .sb-outlet-daily-table th:nth-child(3) { width: 10rem; }
+html[data-design-layer="v2"] .sb-outlet-daily-table th:nth-last-child(4) { width: 6rem; }
+html[data-design-layer="v2"] .sb-outlet-daily-table th:nth-last-child(3) { width: 7rem; }
+html[data-design-layer="v2"] .sb-outlet-daily-table th:nth-last-child(2) { width: 7.5rem; }
+html[data-design-layer="v2"] .sb-outlet-daily-table th:nth-last-child(1) { width: 7.25rem; }
 
 /* Split workspaces keep their action/context rail on portrait tablets too.
    The shared query grammar below gives the main canvas a predictable compact

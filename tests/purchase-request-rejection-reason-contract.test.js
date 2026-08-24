@@ -10,5 +10,5 @@ test("rejected purchase requests show the latest recorded reason in the main wor
   assert.match(page, /Why this request was returned/);
   assert.match(page, /created_by_name/);
   assert.match(page, /formatDateTime\(rejectionActivity\.created_at\)/);
-  assert.match(page, /correct the request, then submit it to Manager Review again/);
+  assert.match(page, /Correct the request, save it, then submit it to Manager Review again/);
 });

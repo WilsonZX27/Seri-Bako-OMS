@@ -4,6 +4,10 @@
 
 Production UAT mutation is now Owner-authorized only when it is traceable, isolated, recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, and cleaned up after verification. Historical release notes that describe Production mutation as unauthorized remain historical evidence and are superseded by this current policy.
 
+### v8.64.163 (unreleased) — Annotation layout and correction closure
+
+Portrait tablet workspaces now share a contained canvas and a two-row, no-wrap query contract. Purchase Requests gain a six-field summary, compact operational rows, clear rejection context, submitter-owned correction and dialog-based line entry; migration 201 keeps rejected/returned edits server-authoritative without advancing workflow. Stock Balance enforces a single-branch basket and filters restored browser state against accessible branches. Items hides operational Category presentation, and Outlet Daily separates Kitchen Qty Sent from Outlet Progress with readable column widths. These changes are implemented locally; authenticated role/viewport UAT, remote migration application, deployment and Production verification remain outstanding.
+
 ### v8.64.162 (unreleased) — Production UAT cleanup closure
 
 Production migrations 196–199 are applied and the remote migration dry-run reports no pending work. Migration 200 performs an exact, marker-guarded, idempotent cleanup of the single manifested `PR/AUG26/020` fixture through the existing Owner hard-delete RPC, preserving its permanent deletion tombstone. Production read-back confirms the PR is absent from search and unavailable at its former URL.
@@ -409,7 +413,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `200`; linked Production application and cleanup evidence is recorded in the current closure sections and repair ledger.
+Repository migration authority: migrations reviewed through `201`; linked Production application and cleanup evidence is recorded in the current closure sections and repair ledger. Migration 201 is repository-only until remote application is verified.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

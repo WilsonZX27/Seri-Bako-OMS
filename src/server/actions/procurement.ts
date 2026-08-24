@@ -399,12 +399,12 @@ export async function updateDraftPurchaseRequest(id: string, formData: FormData)
     const supabase = await createClient();
     const { data: request, error: requestError } = await supabase
       .from("purchase_requests")
-      .select("id, status, request_no, branch_id")
+      .select("id, status, request_no, branch_id, requested_by")
       .eq("id", requestId)
       .single();
     if (requestError) throw new Error(requestError.message);
     if (!request) throw new Error("Purchase request not found.");
-    if (request.status !== "draft") throw new Error("Only draft purchase requests can be edited.");
+    if (!["draft", "rejected", "returned"].includes(request.status)) throw new Error("Only draft, rejected, or returned purchase requests can be edited.");
     if (!request.branch_id || payload.branch_id !== request.branch_id) throw new Error("The purchase request branch cannot be changed while editing a draft.");
     await ensureActiveItems(payload.lines.map((line) => line.item_id), request.branch_id, payload.lineBranchIds);
     await ensureBranchSupplierSelections(request.branch_id, payload.lines, false);

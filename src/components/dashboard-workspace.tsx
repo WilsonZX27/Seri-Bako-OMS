@@ -300,7 +300,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                 <Link prefetch={false}
                   key={row.id}
                   href={row.href}
-                  className="grid min-h-16 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-3 py-2 text-xs hover:bg-[var(--sb-surface-muted)]"
+                  className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-3 py-2 text-xs hover:bg-[var(--sb-surface-muted)]"
                 >
                   <span className="min-w-0">
                     <strong className="block truncate font-mono">{row.document_no}</strong>
@@ -310,8 +310,8 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                     </span>
                   </span>
                   <span className="shrink-0 text-[11px] text-muted-foreground">{row.age_label}</span>
-                  <span className="col-span-2 grid min-w-0 grid-cols-2 gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground sm:grid-cols-4">
-                    <span className="truncate" title={row.supplier_names.join(", ")}>{row.supplier_names.join(", ") || "Supplier pending"}</span>
+                  <span className="col-span-2 grid min-w-0 grid-cols-[minmax(0,1.5fr)_auto_minmax(0,.8fr)_auto] items-start gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+                    <span className="whitespace-normal break-words" title={row.supplier_names.join(", ")}>{row.supplier_names.join(", ") || "Supplier pending"}</span>
                     <span>{row.line_count} {row.line_count === 1 ? "item" : "items"}</span>
                     <span className="truncate">{row.submitted_by_name ?? "Unknown submitter"}</span>
                     <span className="text-right tabular-nums">{formatCurrency(row.estimated_total)}</span>

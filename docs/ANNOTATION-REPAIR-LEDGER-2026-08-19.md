@@ -6,6 +6,43 @@
 - Production test data must use the manifest at `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, dedicated `UAT-20260823-*` identifiers or explicit `PRODUCTION-UAT` remarks, and a cleanup result before the related ledger row can be marked `production verified`.
 - Posted inventory, accounting, payment, and real operational records remain protected. If a mutation cannot be reversed or safely cleaned, stop and report it.
 
+## Batch 2026-08-24 — responsive and correction workflow annotations
+
+Batch authority: the 28 browser comments supplied on 2026-08-24. Screenshot references are the numbered browser-comment images in that batch. Roles below describe the required UAT actor, not proof already obtained. Current state for every row is `implemented; local verified` by 871 contracts, strict typecheck, lint and production build. Authenticated role/viewport UAT, remote migration 201 verification, deployment and Production verification remain pending.
+
+| # | URL | Role / viewport | Expected behavior | State |
+|---:|---|---|---|---|
+| 1 | `/purchase-requests` | operational user / 390, 820 | compact horizontal PR row | implemented |
+| 2 | `/production/jobs` | production user / 820 portrait | shared contained width | implemented |
+| 3 | `/purchase-requests` | operational user / 820 portrait | two-row filters; no wrapped labels | implemented |
+| 4 | `/dashboard` | operational user / 820 portrait | compact dashboard composition | implemented |
+| 5 | `/dashboard` | operational user / 820 portrait | two-line pending PR rows | implemented |
+| 6 | `/dashboard` | operational user / 820 portrait | compact exception tiles | implemented |
+| 7 | `/purchase-requests/:id` | PR roles / 820 portrait | contextual, non-continuous task rail | implemented |
+| 8 | `/purchase-requests/:id` | PR roles / 820 portrait | six-field summary with submitter | implemented |
+| 9 | `/purchase-requests/:id` | PR roles / compact | short stock quantity/date copy | implemented |
+| 10 | `/purchase-requests/:id` | submitter / 820 portrait | compact item row and edit affordance | implemented |
+| 11 | `/purchase-requests/:id` | submitter / 820 portrait | Add line button opens dialog after items | implemented |
+| 12 | `/items` | item viewer / all | Category hidden from operational register | implemented |
+| 13 | `/stock-balance` | PR creator / all | no basket branch heading; second branch blocked | implemented |
+| 14 | `/stock-balance` | PR creator / 1440 | distinct supplier group surfaces | implemented |
+| 15 | `/purchase-requests/:id` | PR roles / 1440 | full supplier text without clamp | implemented |
+| 16 | `/purchase-requests/:id` | rejected submitter / all | left-aligned danger rejection summary | implemented |
+| 17 | `/purchase-requests/:id` | PR roles / all | truthful no-count or retry state | implemented |
+| 18 | `/purchase-requests/:id` | PR roles / all | no `OMS stock ledger` wording | implemented |
+| 19 | `/purchase-requests/:id` | PR roles / 820 | no redundant `Confirm` label | implemented |
+| 20 | `/purchase-requests/:id` | PR roles / 820 | one item presentation; no leaked error card | implemented |
+| 21 | `/purchase-requests/:id` | PR roles / 1440 | rejection alert not duplicated in rail | implemented |
+| 22 | `/purchase-requests/:id` | original submitter / all | rejected/returned request is editable | implemented + migration 201 |
+| 23 | `/purchase-requests/:id` | PR roles / all | invalid row receives danger background | implemented |
+| 24 | `/purchase-requests/:id` | PR roles / 900 portrait | long repair guidance only in dialog | implemented |
+| 25 | `/purchase-requests` | operational user / 1440 | empty Needed By is omitted | implemented |
+| 26 | `/outlet-daily-records` | permitted roles / 820+ | explicit readable column widths | implemented |
+| 27 | `/outlet-daily-records` | permitted roles / 1440 | empty submitter is `—`, never Draft | implemented |
+| 28 | `/outlet-daily-records` | Outlet/Kitchen/company / 820+ | Qty Sent precedes Outlet Progress | implemented |
+
+Security acceptance remains separate: a single-branch account must be authenticated against list, search, pagination, direct URL/RPC and restored local storage before branch isolation is called verified. Migration 201 must be applied remotely before rejected/returned correction can be called remote verified. No row in this batch is Production verified merely because source, contracts or build pass.
+
 ## v8.64.162 Production migration and UAT cleanup closure
 
 - **Remote migrations:** 196, 197, 198, 199, and the guarded cleanup migration 200 applied successfully; the follow-up linked dry-run reports `Remote database is up to date` after 196–199, and migration 200 completed without SQL error.

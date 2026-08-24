@@ -29,7 +29,8 @@ test("line revisions are tenant scoped, idempotent, audited, and concurrency che
     const pr = read("src/app/(app)/purchase-requests/[id]/page.tsx");
     const stockCount = read("src/app/(app)/stock-counts/[id]/page.tsx");
     assert.match(pr, /Review \{blockingLineIssues\.length\} item issue/);
-    assert.match(pr, /Stock unavailable/);
+    assert.match(pr, /No stock count recorded for this branch yet/);
+    assert.doesNotMatch(pr, /OMS stock ledger/);
     assert.match(pr, /PurchaseRequestLineRecovery/);
     assert.match(stockCount, /Progress is saved/);
     assert.match(stockCount, /StockCountLineRecovery/);

@@ -278,7 +278,11 @@ export async function getPurchaseRequest(id: string) {
   if (unresolvedLinesError) throw new Error(unresolvedLinesError.message);
   if (!data) return null;
   if (!lines || !unresolvedLines) throw new Error("Purchase request detail returned incomplete data.");
-  return { request: data as PurchaseRequest, lines: lines as PurchaseRequestLine[], unresolvedLines: unresolvedLines as PurchaseRequestUnresolvedLine[] };
+  const { data: requester, error: requesterError } = data.requested_by
+    ? await supabase.from("staffs").select("full_name").eq("id", data.requested_by).maybeSingle()
+    : { data: null, error: null };
+  if (requesterError) throw new Error(requesterError.message);
+  return { request: { ...(data as PurchaseRequest), requested_by_name: requester?.full_name ?? null }, lines: lines as PurchaseRequestLine[], unresolvedLines: unresolvedLines as PurchaseRequestUnresolvedLine[] };
 }
 
 export type PurchaseRequestBranchStock = {
@@ -286,7 +290,6 @@ export type PurchaseRequestBranchStock = {
   quantity: number;
   uom: string;
   asOf: string;
-  source: "OMS stock ledger";
 };
 
 export async function getPurchaseRequestBranchStock(branchId: string | null, itemIds: string[]) {
@@ -309,7 +312,6 @@ export async function getPurchaseRequestBranchStock(branchId: string | null, ite
     quantity: row.current_qty,
     uom: row.base_unit,
     asOf: row.updated_at,
-    source: "OMS stock ledger" as const,
   }));
 }
 

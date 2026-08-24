@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ShoppingCart, Trash2, X } from "lucide-react";
+import { AlertTriangle, ShoppingCart, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
@@ -82,7 +82,7 @@ export function StockBalanceWorkspace({
   const [basket, setBasket] = useState<Record<string, BasketLine>>({});
   const [basketStorageReady, setBasketStorageReady] = useState(false);
   const [basketOpen, setBasketOpen] = useState(false);
-  const [requestedBranchId, setRequestedBranchId] = useState("");
+  const [branchConflict, setBranchConflict] = useState<{ current: string; attempted: string } | null>(null);
   const [idempotencyKey] = useState(() => crypto.randomUUID());
 
   const branchNameById = useMemo(() => new Map<string, string>(branches.map((branch) => [branch.id, branch.branch_name])), [branches]);
@@ -99,18 +99,20 @@ export function StockBalanceWorkspace({
         setBasket({});
       } else {
         const parsed = JSON.parse(raw) as Record<string, BasketLine>;
+        const accessibleBranchIds = new Set(branches.map((branch) => branch.id));
         const restored = Object.fromEntries(Object.entries(parsed).filter(([key, line]) => (
           Boolean(key) && Boolean(line) && typeof line.item_id === "string" && typeof line.item_name === "string"
-          && typeof line.qty === "string" && typeof line.uom === "string"
-        )).map(([key, line]) => [key, { ...line, item_status: line.item_status === "active" ? "active" : "unknown" }]).slice(0, 500));
-        setBasket(restored);
+          && typeof line.qty === "string" && typeof line.uom === "string" && Boolean(line.branch_id) && accessibleBranchIds.has(line.branch_id as string)
+        )).map(([key, line]) => [key, { ...line, item_status: line.item_status === "active" ? "active" : "unknown" }]).slice(0, 500)) as Record<string, BasketLine>;
+        const firstBranch = Object.values(restored)[0]?.branch_id;
+        setBasket(Object.fromEntries(Object.entries(restored).filter(([, line]) => line.branch_id === firstBranch)));
       }
     } catch {
       setBasket({});
     } finally {
       setBasketStorageReady(true);
     }
-  }, [basketStorageKey]);
+  }, [basketStorageKey, branches]);
 
   useEffect(() => {
     if (!basketStorageReady) return;
@@ -125,10 +127,7 @@ export function StockBalanceWorkspace({
   const basketRows = useMemo(() => Object.values(basket), [basket]);
   const basketByBranch = useMemo(() => groupBasketRows(basketRows), [basketRows]);
   const selectableBranchIds = useMemo(() => Array.from(basketByBranch.keys()).filter((branchId) => branchId !== "unassigned"), [basketByBranch]);
-  const createBranchId = useMemo(() => {
-    if (requestedBranchId && requestedBranchId !== "unassigned" && basketByBranch.has(requestedBranchId)) return requestedBranchId;
-    return "";
-  }, [requestedBranchId, basketByBranch]);
+  const createBranchId = selectableBranchIds.length === 1 ? selectableBranchIds[0] : "";
   const createRows = useMemo(() => (createBranchId ? basketByBranch.get(createBranchId) ?? [] : []), [createBranchId, basketByBranch]);
   const supplierGroups = useMemo(() => groupBySupplier(createRows), [createRows]);
   const basketPayload = useMemo(() => supplierGroups.filter(([supplierId]) => supplierId !== "unassigned").map(([supplierId, lines]) => ({
@@ -139,21 +138,6 @@ export function StockBalanceWorkspace({
   const canCreatePr = hasCreatePr && createRows.length > 0 && inactiveRows.length === 0 && createRows.every((line) => Boolean(line.supplier_id));
 
   const inBasket = useMemo(() => new Set(Object.keys(basket)), [basket]);
-  const selectableBranchSet = useMemo(() => new Set(selectableBranchIds), [selectableBranchIds]);
-
-  useEffect(() => {
-    if (selectableBranchIds.length === 1) {
-      setRequestedBranchId(selectableBranchIds[0]);
-      return;
-    }
-    if (!selectableBranchSet.has(requestedBranchId)) {
-      setRequestedBranchId("");
-    }
-    if (selectableBranchIds.length === 0) {
-      setRequestedBranchId("");
-    }
-  }, [selectableBranchIds, selectableBranchSet, requestedBranchId]);
-
   useEffect(() => {
     if (!basketOpen) return;
     const root = document.documentElement;
@@ -185,6 +169,11 @@ export function StockBalanceWorkspace({
   function toggleBasket(row: StockBalanceRow) {
     if (row.item_status !== "active") return;
     const key = rowKey(row);
+    const lockedBranchId = basketRows[0]?.branch_id ?? null;
+    if (!basket[key] && lockedBranchId && row.branch_id !== lockedBranchId) {
+      setBranchConflict({ current: branchNameById.get(lockedBranchId) ?? "Current branch", attempted: row.branch_name ?? "Another branch" });
+      return;
+    }
     setBasket((current) => {
       if (current[key]) {
         const next = { ...current };
@@ -246,38 +235,14 @@ export function StockBalanceWorkspace({
                       ) : null}
                       {inactiveRows.length ? <p className="mt-1 text-xs text-destructive">Some selected items are no longer active. Remove them and add the current active item from Stock Balance before creating a PR.</p> : null}
                     </div>
-                    {selectableBranchIds.length > 1 ? (
-                      <div>
-                        <label className="text-xs font-semibold text-[var(--sb-text-muted)]" htmlFor="pr-branch-select">
-                          Prepare PR for branch
-                            </label>
-                            <SelectNative
-                              id="pr-branch-select"
-                              value={requestedBranchId}
-                              className="mt-2 w-full"
-                              onChange={(event) => setRequestedBranchId(event.target.value)}
-                            >
-                              <option value="">Select branch</option>
-                          {selectableBranchIds.map((branchId) => {
-                                const branchName = branchNameById.get(branchId) ?? "Unknown branch";
-                                return <option key={branchId} value={branchId}>{branchName}</option>;
-                              })}
-                        </SelectNative>
-                      </div>
-                    ) : null}
-                    {selectableBranchIds.length > 1 && !createBranchId ? (
-                      <p className="rounded-md border border-dashed px-2 py-1 text-xs text-muted-foreground">Select a branch above to include rows in this PR.</p>
-                    ) : null}
                     <div className="max-h-80 divide-y divide-[var(--sb-border-soft)] overflow-y-auto border-y border-[var(--sb-border-soft)]">
                       {Array.from(basketByBranch.entries()).map(([branchId, lines]) => {
-                        const branchName = branchId === "unassigned" ? "Unassigned branch" : branchNameById.get(branchId) ?? "Unknown branch";
                         const isCreateBranch = branchId === createBranchId;
                         return (
                           <div key={branchId} className="space-y-2 py-2.5 first:pt-0 last:pb-0">
-                            <p className="text-xs font-semibold text-[var(--sb-text-muted)]">{branchName}</p>
                             {(isCreateBranch ? groupBySupplier(lines) : [["preview", lines]] as const).map(([supplierId, supplierLines]) => (
                               <div key={`${branchId}-${supplierId}`} className="space-y-1.5">
-                                {isCreateBranch ? <p className="border-b border-[var(--sb-border-soft)] pb-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--sb-text-muted)]">{supplierLines[0]?.supplier_name ?? "Unassigned supplier"}</p> : null}
+                                {isCreateBranch ? <p className="rounded-[var(--sb-control-radius)] bg-white px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--sb-text)] shadow-[var(--sb-shadow-xs)]">{supplierLines[0]?.supplier_name ?? "Unassigned supplier"}</p> : null}
                                 {supplierLines.map((line) => {
                               const key = rowKey(line);
                               return (
@@ -318,11 +283,7 @@ export function StockBalanceWorkspace({
                                         <input type="hidden" name="line_remarks" value="" />
                                       </div>
                                     </>
-                                  ) : (
-                                    <p className="text-[11px] text-muted-foreground">
-                                      Select this branch above to include the row in Create PR.
-                                    </p>
-                                  )}
+                                  ) : null}
                                 </div>
                               );
                                 })}
@@ -440,15 +401,6 @@ export function StockBalanceWorkspace({
             <input type="hidden" name="branch_id" value={createBranchId} />
             <input type="hidden" name="supplier_groups" value={JSON.stringify(basketPayload)} />
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3">
-              {selectableBranchIds.length > 1 ? (
-                <div className="mb-3">
-                  <label className="text-xs font-semibold text-[var(--sb-text-muted)]" htmlFor="mobile-pr-branch-select">Prepare PR for branch</label>
-                  <SelectNative id="mobile-pr-branch-select" value={requestedBranchId} className="mt-1.5 w-full" onChange={(event) => setRequestedBranchId(event.target.value)}>
-                    <option value="">Select branch</option>
-                    {selectableBranchIds.map((branchId) => <option key={branchId} value={branchId}>{branchNameById.get(branchId) ?? "Unknown branch"}</option>)}
-                  </SelectNative>
-                </div>
-              ) : null}
               {basketRows.length ? basketRows.map((line) => {
                 const key = rowKey(line);
                 const activeBranch = normalizeBranchId(line.branch_id) === createBranchId;
@@ -463,7 +415,7 @@ export function StockBalanceWorkspace({
                       <SelectNative aria-label={`UOM for ${line.item_name}`} value={line.uom} onChange={(event) => updateUom(key, event.target.value)} className="h-10 w-20 shrink-0 px-2 text-xs">
                         {uomOptionsWithCurrent(line.uom).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
                       </SelectNative>
-                    </div> : <p className="text-xs text-[var(--sb-text-muted)]">Select {line.branch_name ?? "this branch"} above to include this item.</p>}
+                    </div> : null}
                   </article>
                 );
               }) : <p className="py-10 text-center text-sm text-[var(--sb-text-muted)]">Add an item from Stock Balance to prepare a PR.</p>}
@@ -476,6 +428,7 @@ export function StockBalanceWorkspace({
           </form>
         </section>
       </div> : null}
+      {branchConflict ? <div className="fixed inset-0 z-[var(--sb-z-dialog)] grid place-items-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-label="One branch per PR basket"><div className="w-full max-w-sm rounded-[var(--sb-panel-radius)] bg-white p-4 shadow-xl"><div className="flex items-start gap-3"><AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[var(--sb-warning)]" /><div><h2 className="font-semibold">One branch per PR basket</h2><p className="mt-1 text-sm text-muted-foreground">This basket already contains items from {branchConflict.current}. Remove them before adding an item from {branchConflict.attempted}.</p></div></div><Button type="button" className="mt-4 w-full" onClick={() => setBranchConflict(null)}>Keep current basket</Button></div></div> : null}
     </>
   );
 }

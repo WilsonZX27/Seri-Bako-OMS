@@ -109,7 +109,7 @@ test("current annotation batch keeps shared explanation and responsive filter ow
   assert.doesNotMatch(detail, /readiness\.issue\? <div className="mt-1"><p className="break-words text-\[12px\] font-medium text-\[var\(--sb-warning\)\]/);
   assert.match(form, /Purchasing to confirm/);
   assert.match(form, /Purchasing will confirm the/);
-  assert.match(production, /tabletCanvas="full"/);
+  assert.match(production, /tabletCanvas="contained"/);
   assert.match(stockCounts, /sb-list-filters--portrait-query/);
   assert.match(design, /sb-list-filters--portrait-query\[data-tablet-query-layout="query"\]/);
   assert.match(design, /--sb-control-height: 2\.25rem/);

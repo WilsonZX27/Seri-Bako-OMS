@@ -100,7 +100,7 @@ test("PO and production portrait-tablet layouts keep deliberate alignment", () =
   assert.match(po, /<input hidden type="hidden" name="po_no"/);
   assert.match(po, /id="purchase-order-form"[^>]+className="grid gap-3"/);
   assert.match(jobs, /sb-production-jobs-filters/);
-  assert.match(css, /sb-production-jobs-filters[\s\S]{0,300}repeat\(3, minmax\(0, 1fr\)\)/);
+  assert.match(css, /sb-production-jobs-filters[\s\S]{0,300}repeat\(4, minmax\(0, 1fr\)\)/);
 });
 
 test("typed PR item codes cannot bypass the selected sourcing catalogue", () => {

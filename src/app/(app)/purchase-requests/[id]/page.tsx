@@ -38,6 +38,7 @@ import { getPhaseOneDeletePreview } from "@/server/queries/hard-delete";
 import { hardDeletePhaseOne } from "@/server/actions/hard-delete";
 import { PurchaseRequestForm } from "@/components/procurement-forms";
 import { PurchaseRequestLineResolutionForm } from "@/components/purchase-request-line-resolution-form";
+import { AddPurchaseRequestLineDialog } from "@/components/add-purchase-request-line-dialog";
 import { logServerError } from "@/server/observability/logger";
 import { PurchaseRequestLineRecovery } from "@/components/purchase-request-line-recovery";
 import { diagnosePurchaseRequestSupplier } from "@/lib/purchase-request-readiness";
@@ -147,8 +148,8 @@ export default async function PurchaseRequestDetailPage({
   const canViewCommercial = permissions["pr.view_all"] && !["kitchen", "kitchen_staff"].includes(roleCode);
   const canSubmit = isStatus(request.status, "draft", "rejected", "returned") && permissions["pr.submit"];
   const canCancel = ["draft", "manager_review", "admin_review", "finance_review", "ready_to_convert"].includes(request.status) && permissions["pr.cancel"];
-  const canEditDraft = request.status === "draft" && permissions["purchase_request.create"];
   const isOwner = roleCode === "super_admin";
+  const canEditRequest = isStatus(request.status, "draft", "rejected", "returned") && permissions["purchase_request.create"] && (profile?.id === request.requested_by || isOwner);
   const canManagerReview = request.status === "manager_review" && permissions["pr.manager_approve"] && (roleCode === "manager" || isOwner);
   const canAdminReview = request.status === "admin_review" && permissions["pr.admin_review"] && (roleCode === "purchasing" || isOwner);
   const canFinanceReview = request.status === "finance_review" && permissions["pr.finance_review"] && (roleCode === "finance" || isOwner);
@@ -175,7 +176,7 @@ export default async function PurchaseRequestDetailPage({
     (request.status === "finance_review" && (roleCode === "finance" || isOwner) && (permissions["pr.finance_review"] || permissions["pr.reject"]));
   const hasPrimaryAction = canSubmit || canManagerReview || canAdminReview || canFinanceReview || canConvert;
   const deleteControl = canManageDeletion && !canCancel ? (deletePreview?.eligible ? <DangerConfirmForm action={hardDeletePhaseOne.bind(null, "purchase_request", request.id)} title={`Permanently delete ${request.request_no}?`} description="This cannot be undone. Purchase request lines will be removed; the document number will remain consumed." checkboxLabel="I understand this permanently deletes the eligible request." confirmWord={deletePreview.confirmation} buttonLabel="Delete purchase request" pendingLabel="Deleting..." /> : <BlockedDestructiveAction buttonLabel="Delete purchase request" title={`Cannot delete ${request.request_no}`} description="Permanent deletion is blocked by the current status or linked records." recommendation={deletePreview ? Object.entries(deletePreview.dependencies).filter(([, count]) => count > 0).map(([key, count]) => `${key}: ${count}`).join("; ") : "Dependency preview unavailable."} />) : null;
-  const saveDraftAction = canEditDraft ? <SubmitButton form="purchase-request-form" type="submit" pendingLabel="Saving..." className="w-full justify-center">Save draft changes</SubmitButton> : null;
+  const saveDraftAction = canEditRequest ? <SubmitButton form="purchase-request-form" type="submit" pendingLabel="Saving..." className="w-full justify-center">Save request changes</SubmitButton> : null;
   const secondaryActions = saveDraftAction || canCancel || canReject || deleteControl ? <div className="space-y-2">
     {saveDraftAction}
     {canReject ? <RejectActionForm action={rejectPurchaseRequest.bind(null, request.id)} /> : null}
@@ -276,14 +277,15 @@ export default async function PurchaseRequestDetailPage({
           ) : null}
       {documentBundleUnavailable ? <Card className="document-surface shadow-none md:hidden"><CardContent className="p-3" role="status"><p className="text-sm font-semibold text-[var(--sb-warning)]">Document activity unavailable</p><p className="mt-1 text-xs text-muted-foreground">Attachments, comments, and timeline could not be loaded. Retry this page.</p></CardContent></Card> : null}
 
-      {request.status === "rejected" && rejectionActivity ? <Card className="border-[var(--sb-danger)]/45 bg-[var(--sb-danger-bg)] shadow-none" role="alert">
+      {request.status === "rejected" && rejectionActivity ? <Card className="border-[var(--sb-danger)]/45 bg-[#ffd1d1] shadow-none" role="alert">
         <CardContent className="flex items-start gap-3 p-3">
           <CircleX className="mt-0.5 h-4 w-4 shrink-0 text-[var(--sb-danger)]" aria-hidden="true" />
           <div className="min-w-0">
             <p className="text-sm font-semibold text-[var(--sb-danger)]">Why this request was returned</p>
-            <p className="mt-1 text-sm leading-5 text-[var(--sb-text)]">{rejectionReason || "No rejection reason was recorded."}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{String(("created_by_name" in rejectionActivity ? rejectionActivity.created_by_name : null) ?? "Approver")} · {formatDateTime(rejectionActivity.created_at)}</p>
-            <p className="mt-2 text-xs font-medium text-[var(--sb-text)]">Next: correct the request, then submit it to Manager Review again.</p>
+            <p className="mt-2 text-sm leading-5 text-[var(--sb-text)]">💬 Comment: {rejectionReason || "No rejection reason was recorded."}</p>
+            <p className="mt-1 text-xs text-[var(--sb-text)]">👤 Rejected by {String(("created_by_name" in rejectionActivity ? rejectionActivity.created_by_name : null) ?? "Approver")}</p>
+            <p className="mt-1 text-xs text-[var(--sb-text)]">🕐 {formatDateTime(rejectionActivity.created_at)}</p>
+            <p className="mt-2 text-xs font-medium text-[var(--sb-text)]">Correct the request, save it, then submit it to Manager Review again.</p>
           </div>
         </CardContent>
       </Card> : null}
@@ -295,12 +297,13 @@ export default async function PurchaseRequestDetailPage({
       <Card className="document-surface shadow-none">
             <CardContent className="space-y-3 p-4">
               <h2 className="text-[14px] font-semibold">Request Summary</h2>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3 lg:grid-cols-5">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Request Date</p><p className="text-sm font-medium text-[var(--sb-text)]">{formatDateOnly(request.request_date)}</p></div>
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Location</p><p className="text-sm font-medium text-[var(--sb-text)]">{branch?.branch_name ?? (branches ? "Unassigned" : "Unavailable")}</p></div>
+                <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Submitted By</p><p className="text-sm font-medium text-[var(--sb-text)]">{request.requested_by_name ?? "—"}</p></div>
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Requested Lines</p><p className="text-sm font-medium text-[var(--sb-text)]">{requestedItemCount}</p></div>
                 {canViewCommercial ? <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Est. Total Cost</p><p className="text-sm font-medium text-[var(--sb-text)]">{formatCurrency(total)}</p></div> : null}
-                <div className="col-span-2 sm:col-span-1 lg:col-span-2"><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Supplier</p><p className="line-clamp-4 text-sm font-medium text-[var(--sb-text)]" title={summarySuppliers.join(", ")}>{summarySuppliers.length ? summarySuppliers.join(", ") : "Needs supplier mapping"}</p></div>
+                <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Supplier</p><p className="whitespace-normal break-words text-sm font-medium text-[var(--sb-text)]">{summarySuppliers.length ? summarySuppliers.join(", ") : "Needs supplier mapping"}</p></div>
                 <div className="hidden" aria-hidden="true"><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Priority</p><PriorityBadge priority={request.priority} /></div>
                 {request.required_date ? <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Required Date</p><p className="text-sm font-medium text-[var(--sb-text)]">{formatDateOnly(request.required_date)}</p></div> : null}
                 {request.needed_by_date ? <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Needed By</p><p className="text-sm font-medium text-[var(--sb-text)]">{formatDateOnly(request.needed_by_date)}</p></div> : null}
@@ -316,8 +319,7 @@ export default async function PurchaseRequestDetailPage({
                 <div className="flex min-w-0 items-baseline gap-2"><h2 className="text-[14px] font-semibold">Requested Items</h2><span className="text-xs text-muted-foreground">{requestedItemCount} {requestedItemCount === 1 ? "item" : "items"}</span></div>
                 {canViewCommercial ? <p className="text-xs font-semibold">{formatCurrency(total)}</p> : null}
               </div>
-              {canAdminReview && items && suppliers ? <details className="mb-3 rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] p-3"><summary className="cursor-pointer text-sm font-semibold">Add request line</summary><form action={addPurchaseRequestLineDuringReview.bind(null, request.id)} className="mt-3 grid gap-3 sm:grid-cols-2"><input type="hidden" name="idempotency_key" value={crypto.randomUUID()} /><label className="space-y-1 text-xs font-medium">Item<select name="item_id" required className="h-10 w-full rounded-[var(--sb-radius-control)] border bg-background px-3 text-sm"><option value="">Select item</option>{items.map((item) => <option key={item.id} value={item.id}>{item.item_code} - {item.item_name}</option>)}</select></label><label className="space-y-1 text-xs font-medium">Supplier<select name="supplier_id" className="h-10 w-full rounded-[var(--sb-radius-control)] border bg-background px-3 text-sm"><option value="">Use mapped supplier</option>{suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}</select></label><label className="space-y-1 text-xs font-medium">Quantity<Input name="qty" type="number" min="0.0001" step="any" required /></label><label className="space-y-1 text-xs font-medium">UOM<Input name="uom" required maxLength={32} /></label>{canViewCommercial ? <label className="space-y-1 text-xs font-medium">Est. unit cost<Input name="unit_cost" type="number" min="0" step="0.01" defaultValue="0" required /></label> : <input type="hidden" name="unit_cost" value="0" />}<label className="space-y-1 text-xs font-medium sm:col-span-2">Reason<Input name="reason" required minLength={3} maxLength={1000} placeholder="Why is this line being added?" /></label><SubmitButton className="sm:col-span-2" pendingLabel="Adding…">Add line</SubmitButton></form></details> : null}
-              {canEditDraft && items && suppliers && supplierMappings && branches ? (
+              {canEditRequest && items && suppliers && supplierMappings && branches ? (
                 <>
                   <PurchaseRequestForm
                     items={items}
@@ -362,7 +364,7 @@ export default async function PurchaseRequestDetailPage({
                 </>
               ) : (
                 <>
-                  {canEditDraft ? <div role="status" className="mb-3 border-l-2 border-[var(--sb-warning)] pl-3"><p className="text-sm font-semibold">Draft editing unavailable</p><p className="mt-1 text-xs text-muted-foreground">Item, supplier-route, or branch options could not be loaded. Existing request lines remain read-only until you retry.</p></div> : null}
+                  {canEditRequest ? <div role="status" className="mb-3 rounded-[var(--sb-control-radius)] bg-[var(--sb-warning-soft)] p-3"><p className="text-sm font-semibold">Request editing unavailable</p><p className="mt-1 text-xs text-muted-foreground">Item, supplier-route, or branch options could not be loaded. Existing request lines remain read-only until you retry.</p></div> : null}
                   <Table mobileHidden aria-label="Requested items">
                       <TableHeader>
                         <TableRow>
@@ -381,11 +383,11 @@ export default async function PurchaseRequestDetailPage({
                           const readiness = readinessByLine.get(line.id)!;
                           const stock = stockByItemId.get(line.item_id);
                           return (
-                            <TableRow key={line.id} data-guided-issue={readiness.issue?.code}>
+                              <TableRow key={line.id} data-guided-issue={readiness.issue?.code} className={readiness.issue ? "bg-[var(--sb-danger-bg)]" : undefined}>
                               <TableCell className="text-center text-xs tabular-nums text-muted-foreground">{index + 1}</TableCell>
                               <TableCell><p className="font-medium">{!items ? "Item details unavailable" : item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground">{!items ? `Reference ${line.item_id}` : item?.item_code ?? "No item code"}</p></TableCell>
                               <TableCell className="whitespace-nowrap text-right">{formatNumber(line.qty)} {line.uom}</TableCell>
-                              <TableCell>{stock ? <div><p className="font-medium">{formatNumber(stock.quantity)} {stock.uom}</p><p className="text-[11px] text-muted-foreground">As of {formatDateOnly(stock.asOf)} · {stock.source}</p></div> : <div><p className="font-medium text-[var(--sb-warning)]">Stock unavailable</p><Button asChild variant="ghost" size="sm" className="h-auto p-0 text-xs"><a href={`/purchase-requests/${request.id}`}>Retry</a></Button></div>}</TableCell>
+                              <TableCell>{stock ? <div><p className="font-medium">{formatNumber(stock.quantity)} {stock.uom}</p><p className="text-[11px] text-muted-foreground">{formatDateOnly(stock.asOf)}</p></div> : <div><p className="font-medium text-[var(--sb-warning)]">No stock count recorded for this branch yet</p><Button asChild variant="ghost" size="sm" className="h-auto p-0 text-xs"><a href={`/purchase-requests/${request.id}`}>Retry stock data</a></Button></div>}</TableCell>
                               {canViewCommercial ? <TableCell className="text-right">{formatCurrency(line.estimated_unit_cost)}</TableCell> : null}
                               <TableCell>{line.reason ?? "-"}</TableCell>
                               {canRepairReviewLines && items && suppliers && supplierMappings && request.branch_id ? <TableCell><PurchaseRequestLineRecovery action={revisePurchaseRequestLine.bind(null, request.id)} line={line} itemLabel={`${item?.item_code ?? ""} - ${item?.item_name ?? line.item_id}`} items={items} mappings={supplierMappings} suppliers={suppliers} branchId={request.branch_id} issue={readiness.issue} suggestedSupplierId={readiness.suggestedSupplierId} /></TableCell> : canRepairReviewLines ? <TableCell><Button asChild variant="outline" size="sm"><a href={`/purchase-requests/${request.id}`}>Retry</a></Button></TableCell> : null}
@@ -409,15 +411,16 @@ export default async function PurchaseRequestDetailPage({
                       const readiness = readinessByLine.get(line.id)!;
                       const supplierName = readiness.supplierName ?? (line.suggested_supplier_id ? supplierById.get(line.suggested_supplier_id)?.name ?? null : null);
                       const stock = stockByItemId.get(line.item_id);
-                      return <div key={line.id} role="listitem" data-guided-issue={readiness.issue?.code} className="min-w-0 py-3 text-[13px]">
+                      return <div key={line.id} role="listitem" data-guided-issue={readiness.issue?.code} className={readiness.issue ? "min-w-0 bg-[var(--sb-danger-bg)] px-2 py-3 text-[13px]" : "min-w-0 py-3 text-[13px]"}>
                         <div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="text-[11px] font-semibold tabular-nums text-muted-foreground">Item {index + 1}</p><p className="break-words font-semibold">{!items ? "Item details unavailable" : item?.item_name ?? line.item_id}</p><p className="text-[12px] text-muted-foreground">{!items ? `Reference ${line.item_id}` : item?.item_code ?? "No item code"}</p></div><div className="flex shrink-0 items-center gap-2"><p className="font-semibold">{formatNumber(line.qty)} {line.uom}</p>{canRepairReviewLines && items && suppliers && supplierMappings && request.branch_id ? <PurchaseRequestLineRecovery action={revisePurchaseRequestLine.bind(null, request.id)} line={line} itemLabel={`${item?.item_code ?? ""} - ${item?.item_name ?? line.item_id}`} items={items} mappings={supplierMappings} suppliers={suppliers} branchId={request.branch_id} issue={readiness.issue} suggestedSupplierId={readiness.suggestedSupplierId} /> : null}</div></div>
-                        {readiness.issue ? <div className="mt-1"><p className="break-words text-[12px] font-medium text-[var(--sb-danger)]">{supplierName ?? readiness.issue.message}</p><p className="text-[11px] text-muted-foreground">Next: {readiness.issue.recommendedAction}</p></div> : null}
-                        {stock ? <p className="mt-1 text-[12px] text-muted-foreground">Current branch stock: <span className="font-medium text-foreground">{formatNumber(stock.quantity)} {stock.uom}</span> · As of {formatDateOnly(stock.asOf)}</p> : <p className="mt-1 text-[12px] font-medium text-[var(--sb-warning)]">Current branch stock unavailable · <a className="underline" href={`/purchase-requests/${request.id}`}>Retry</a></p>}
+                        {readiness.issue ? <div className="mt-1"><p className="break-words text-[12px] font-medium text-[var(--sb-danger)]">{supplierName ?? readiness.issue.message}</p></div> : null}
+                        {stock ? <p className="mt-1 text-[12px] text-muted-foreground"><span className="font-medium text-foreground">{formatNumber(stock.quantity)} {stock.uom}</span> · {formatDateOnly(stock.asOf)}</p> : <p className="mt-1 text-[12px] font-medium text-[var(--sb-warning)]">No stock count recorded for this branch yet · <a className="underline" href={`/purchase-requests/${request.id}`}>Retry stock data</a></p>}
                         {line.reason ? <p className="mt-1 break-words text-[12px] text-muted-foreground">{line.reason}</p> : null}{canViewCommercial ? <p className="mt-1 text-right text-[12px] font-medium">{formatCurrency(line.estimated_unit_cost)} / {line.uom}</p> : null}
                       </div>;
                     })}
                     {unresolvedLines.map((line, index) => <div key={line.id} role="listitem" className="min-w-0 py-3 text-[13px]"><div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="text-[11px] font-semibold tabular-nums text-muted-foreground">Item {lines.length + index + 1}</p><p className="break-words font-semibold">{line.requested_description}</p><p className="text-[12px] font-medium text-[var(--sb-danger)]">Non-catalog item · Purchasing match required</p></div><p className="shrink-0 font-semibold">{formatNumber(line.requested_qty)} {line.requested_uom}</p></div>{line.remarks ? <p className="mt-1 text-[12px] text-muted-foreground">{line.remarks}</p> : null}{canAdminReview && items ? <div className="mt-2"><PurchaseRequestLineResolutionForm action={resolvePurchaseRequestUnresolvedLine.bind(null, request.id)} items={items} unresolvedLineId={line.id} description={line.requested_description} /></div> : null}</div>)}
                   </div>
+                  {canAdminReview && items && suppliers ? <div className="mt-3"><AddPurchaseRequestLineDialog action={addPurchaseRequestLineDuringReview.bind(null, request.id)} items={items} suppliers={suppliers} canViewCommercial={canViewCommercial} /></div> : null}
                 </>
               )}
             </CardContent>

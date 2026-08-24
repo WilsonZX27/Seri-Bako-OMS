@@ -4,6 +4,10 @@
 
 Production UAT mutation is allowed only for isolated, traceable test records recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`. Posted inventory/accounting effects and real operational records remain outside disposable testing; historical notes are retained but this policy is the current authority.
 
+## v8.64.160 (unreleased) - Mobile long-form scroll clearance
+
+Dense Outlet Daily quantity rows explicitly permit vertical touch panning, while document workspaces reserve eight rem plus the device safe area for the fixed action rail. The document remains the mobile scroll owner so Safari browser chrome can still collapse normally.
+
 ## v8.64.159 (unreleased) - Purchasing information density and alignment
 
 The mobile PR row is a fixed three-line composition: document/status, location/date/submitter, then item count/supplier with deterministic icon columns and truncation. PR detail gives the summary supplier a two-column, four-line allowance, removes the repeated line-level supplier column, uses an icon-only edit affordance, and narrows the editor. Dashboard action rows add the commercial summary without changing workflow ownership. Outlet Daily shortens the mobile date action to `View` and removes competing draft actions.

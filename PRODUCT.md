@@ -4,6 +4,10 @@
 
 Production UAT mutation is now Owner-authorized only when it is traceable, isolated, recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, and cleaned up after verification. Historical release notes that describe Production mutation as unauthorized remain historical evidence and are superseded by this current policy.
 
+### v8.64.160 (unreleased) — Reliable long-form mobile scrolling
+
+Long Outlet Daily entry forms now preserve vertical pan gestures across their dense input grid and reserve the full fixed-action height plus iPhone safe area. The final product lines can scroll completely above the action rail without changing the browser-level document scrolling contract.
+
 ### v8.64.159 (unreleased) — Purchasing workdesk correction
 
 Pending PRs are ordered newest-first and expose supplier, item count, submitter, and estimated cost on the Dashboard. Purchasing can identify submitters, add or revise request lines with an audit record, must record the AutoCount PO number before Finance Review, and can send approved POs to suppliers. Pending line revisions block Finance/PO progression. Outlet Daily removes the draft choice and presents one posting action only after Kitchen Qty Sent is complete.

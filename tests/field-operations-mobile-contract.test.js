@@ -199,9 +199,12 @@ test("supplier invoice matching uses editable phone lines instead of a nine-colu
 test("outlet daily entry keeps three compact quantities in one phone row and reveals wastage details conditionally", () => {
   const source = read("src/components/outlet-daily-record-form.tsx");
   const page = read("src/app/(app)/outlet-daily-records/new/page.tsx");
+  const design = read("src/app/design-system-v2.css");
 
   assert.match(source, /data-outlet-daily-setup/);
   assert.match(source, /data-outlet-daily-lines/);
+  assert.match(source, /data-long-mobile-form/);
+  assert.match(source, /touch-pan-y/);
   assert.match(source, /grid grid-cols-3 items-end gap-2 p-3/);
   assert.match(source, /showWastageDetails = Number\(wastage \|\| 0\) > 0/);
   assert.match(source, /className="h-10 min-w-0 px-2 text-center tabular-nums"/);
@@ -210,6 +213,8 @@ test("outlet daily entry keeps three compact quantities in one phone row and rev
   assert.match(source, /aria-label=\{`Add remarks for \$\{product\.product_name\}`\}/);
   assert.match(page, />Confirm Qty Sent<\/SubmitButton>/);
   assert.doesNotMatch(page, />Confirm Received<\/SubmitButton>/);
+  assert.match(design, /body:has\(\[data-mobile-document-action\]\) \[data-long-mobile-form\][\s\S]*padding-bottom: calc\(2rem \+ env\(safe-area-inset-bottom\)\)/);
+  assert.match(design, /body:has\(\[data-mobile-document-action\]\) main#main-content[\s\S]*padding-bottom: calc\(8rem \+ env\(safe-area-inset-bottom\)\)/);
 });
 
 test("recipe BOM editing replaces the phone table with input-first continuous ingredient lines", () => {

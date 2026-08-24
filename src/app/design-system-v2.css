@@ -679,7 +679,16 @@ nav[aria-label="Pagination"] > span,
   }
 
   html:has([data-mobile-document-action]) #main-content {
-    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+    padding-bottom: calc(8rem + env(safe-area-inset-bottom));
+    scroll-padding-bottom: calc(8rem + env(safe-area-inset-bottom));
+  }
+
+  body:has([data-mobile-document-action]) [data-long-mobile-form] {
+    padding-bottom: calc(2rem + env(safe-area-inset-bottom));
+  }
+
+  [data-outlet-daily-lines] :where(input, select, button, label) {
+    touch-action: pan-y;
   }
 
   [data-mobile-document-action] {
@@ -908,7 +917,8 @@ nav[aria-label="Pagination"] > span,
   }
 
   body:has([data-mobile-document-action]) main#main-content {
-    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+    padding-bottom: calc(8rem + env(safe-area-inset-bottom));
+    scroll-padding-bottom: calc(8rem + env(safe-area-inset-bottom));
   }
 
   html[data-mobile-action-page="true"] main#main-content {

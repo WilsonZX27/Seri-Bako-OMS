@@ -6,6 +6,13 @@
 - Production test data must use the manifest at `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, dedicated `UAT-20260823-*` identifiers or explicit `PRODUCTION-UAT` remarks, and a cleanup result before the related ledger row can be marked `production verified`.
 - Posted inventory, accounting, payment, and real operational records remain protected. If a mutation cannot be reversed or safely cleaned, stop and report it.
 
+## v8.64.160 Outlet Daily iPhone scroll repair (local closure)
+
+- **Finding:** the fixed mobile action rail reserved less height than it occupied on an iPhone safe-area viewport, and the dense input grid did not explicitly yield vertical pan gestures.
+- **Fixed:** Outlet Daily long forms add safe bottom clearance, quantity controls preserve `pan-y`, and shared document-action pages reserve eight rem plus the device safe area.
+- **Evidence:** static mobile interaction contract, TypeScript, ESLint, and production build are required before promotion. No Production data was mutated.
+- **State:** `implemented` locally; awaiting deployment and physical iPhone UAT.
+
 ## v8.64.159 Purchasing and Outlet Daily annotation repair (local closure)
 
 - **Fixed locally:** Dashboard newest-first ordering and PR summary fields; Purchasing submitter visibility and PO-send grant; deterministic three-line mobile PR rows; compact PR line editor; summary supplier span; repeated supplier-column removal; audited add-line action; mandatory Purchasing AutoCount PO number; Finance progression guard for pending revisions; compact Outlet Daily `View`; single-step Outlet Daily posting.

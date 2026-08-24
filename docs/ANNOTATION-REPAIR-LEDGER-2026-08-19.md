@@ -8,7 +8,7 @@
 
 ## Batch 2026-08-24 — procurement alignment and explicit selection
 
-Batch authority: browser comments 1–15 supplied on 2026-08-24 for Purchase Requests, Dashboard, Purchase Orders, attachments, and returned-request feedback. Current state is `implemented; local verified` by 886 contracts, strict typecheck, lint, production build, and local migration application. Migration 204 is locally applied; remote application, deployment, and authenticated role/four-viewport UAT remain pending.
+Batch authority: browser comments 1–15 supplied on 2026-08-24 for Purchase Requests, Dashboard, Purchase Orders, attachments, and returned-request feedback. Current state is `implemented; local verified; migration remotely applied` by 886 contracts, strict typecheck, lint, production build, local migration application, linked migration apply, and a clean linked dry-run. Application deployment and authenticated role/four-viewport UAT remain pending.
 
 | # | URL | Role / viewport | Expected behavior | State |
 |---:|---|---|---|---|

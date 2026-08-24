@@ -6,7 +6,7 @@ Production UAT mutation is now Owner-authorized only when it is traceable, isola
 
 ### v8.64.166 (unreleased) — Procurement alignment and explicit selection
 
-Purchase Request and Dashboard operational rows now use stable two-column context and four-column date/user/quantity/cost alignment, with supplier names constrained to one ellipsized line. PR entry shows its selected supplier in the collapsed quick view, searches only exact branch-and-supplier mappings, and never converts typed text into a selected item without an explicit click or keyboard confirmation. Attachments use one Upload label, omit MIME noise, and align actions beside uploader/time. Returned-request feedback uses the shared icon vocabulary, one readable type scale, a subtle danger surface, and a full Malaysia timestamp. Purchasing and Finance may send approved POs; Owner-only permanent deletion is available for cancelled POs only when receiving, return, and invoice history are absent, with a permanent tombstone. Migration 204 and UI are locally implemented; remote migration application, deployment, and authenticated four-viewport UAT remain separate.
+Purchase Request and Dashboard operational rows now use stable two-column context and four-column date/user/quantity/cost alignment, with supplier names constrained to one ellipsized line. PR entry shows its selected supplier in the collapsed quick view, searches only exact branch-and-supplier mappings, and never converts typed text into a selected item without an explicit click or keyboard confirmation. Attachments use one Upload label, omit MIME noise, and align actions beside uploader/time. Returned-request feedback uses the shared icon vocabulary, one readable type scale, a subtle danger surface, and a full Malaysia timestamp. Purchasing and Finance may send approved POs; Owner-only permanent deletion is available for cancelled POs only when receiving, return, and invoice history are absent, with a permanent tombstone. Migration 204 is remotely applied and the linked dry-run is current; application deployment and authenticated four-viewport UAT remain separate.
 
 ### v8.64.165 (unreleased) — Branch Stock Count item lifecycle
 
@@ -425,7 +425,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `204`; linked Production application and cleanup evidence is recorded in the current closure sections and repair ledger. Migrations 201–203 are remotely applied; migration 204 remains repository-only until remote application is verified.
+Repository migration authority: migrations reviewed through `204`; linked Production application and cleanup evidence is recorded in the current closure sections and repair ledger. Migrations 201–204 are remotely applied; application deployment and authenticated workflow evidence remain separate.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

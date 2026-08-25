@@ -1042,6 +1042,14 @@ Production screenshots initiated this batch. The statuses below describe source 
 | 3 | PO detail / 1469x918 | Revision History omits generic revision helper copy. | implemented |
 | 5 | Outlet Daily list / 1440x900 | Unverified Received shows the exact number of pending food lines and Wastage explains the dependency. | implemented / data UAT pending |
 | 6 | Outlet Daily detail / 1440x900 | Staff can save afternoon Received as draft and return later to add Wastage before posting. | implemented / role UAT pending |
+
+## 2026-08-25 Stock Count draft reliability — v8.64.171
+
+| Comment | Route / viewport | Acceptance | Status |
+|---|---|---|---|
+| 1 | New Stock Count / iPhone screenshot | Progress distinguishes completed counts from loaded rows; unfinished work stays locally recoverable without a false server save failure. | implemented / authenticated mobile UAT pending |
+| 1 | New Stock Count / iPhone screenshot | A changed server scope or starting balance does not turn untouched recovered values into mass adjustments. | implemented / current browser local-storage regression pending |
+| 1 | New and draft Stock Count / all viewports | Tolerance is absent; exact variance remains visible and the legacy persistence field is fixed at zero. | implemented / responsive and reporting regression pending |
 ## v8.64.111 receiving posting lock repair
 
 | Acceptance | Status | Evidence / remaining gate |

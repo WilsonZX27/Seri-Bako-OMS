@@ -28,7 +28,7 @@ export const stockCountSchema = z.object({
   count_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Count date must use YYYY-MM-DD"),
   branch_id: z.string().uuid("Branch is required"),
   status: z.literal("draft").optional(),
-  tolerance_percent: z.coerce.number().min(0).max(100, "Tolerance cannot exceed 100%").default(2),
+  tolerance_percent: z.literal(0).default(0),
   remarks: z.string().trim().max(2_000, "Count note is too long").optional().nullable(),
   lines: z.array(stockCountLineSchema).min(1, "Stock count must have at least one line").max(500, "A stock count cannot contain more than 500 lines"),
 }).superRefine((value, context) => {

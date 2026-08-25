@@ -4,6 +4,10 @@
 
 Production UAT mutation is now Owner-authorized only when it is traceable, isolated, recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, and cleaned up after verification. Historical release notes that describe Production mutation as unauthorized remain historical evidence and are superseded by this current policy.
 
+### v8.64.171 (unreleased) — Reliable Stock Count draft progress
+
+Stock Count now reports completed and remaining physical counts instead of labelling every loaded row as ready. Incomplete work is retained locally without calling the server autosave endpoint, so an expected unfinished count no longer appears as a save failure. Versioned recovery snapshots distinguish explicit edits from an unchanged historical prefill, preventing a refreshed branch scope or starting balance from manufacturing hundreds of false adjustments. The operator tolerance setting is removed; exact quantity and variance evidence remains visible while the legacy database field is written as zero for compatibility. Local focused tests and typecheck passed; authenticated mobile UAT, deployment, and Production verification remain separate.
+
 ### v8.64.170 (unreleased) — PO restore and Outlet draft progress
 
 Cancelled Purchase Order restoration now casts validated recovery values to their PostgreSQL enum types before updating PO and Document state. Outlet Daily supports a repeatable same-day draft workflow: Received may be entered and saved in the afternoon, the record remains editable, and Wastage can be completed later before posting. Unverified receiving is displayed as an exact pending food-line count rather than an unexplained Unavailable state. Redundant Purchase Order attachment, no-action, and revision helper copy remains removed. Migration 205 is remotely applied and the linked dry-run is current; application deployment and authenticated workflow UAT remain separate.

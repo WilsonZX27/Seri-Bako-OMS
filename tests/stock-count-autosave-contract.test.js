@@ -46,6 +46,12 @@ test("stock count form keeps a local recovery snapshot and reports server save s
   assert.match(form, /retryAttempts\.current < MAX_AUTOSAVE_RETRIES/);
   assert.match(form, /role="status"/);
   assert.match(form, /aria-live="polite"/);
+  assert.match(form, /Progress saved on this device/);
+  assert.match(form, /physicalValues\.some\(\(value\) => value\.trim\(\) === ""\)/);
+  assert.match(form, /completedCount\} of \{lines\.length\} counted/);
+  assert.match(form, /version: 2/);
+  assert.match(form, /saved\.physicalQty === saved\.initialPhysicalQty/);
+  assert.doesNotMatch(form, /values ready/);
   assert.doesNotMatch(detail, /mobileWorkflowTrailing/);
   assert.doesNotMatch(detail, /StockCountAutosaveStatus/);
   assert.match(detail, /canEdit && canPost \? "grid-cols-2" : "grid-cols-1"/);

@@ -49,7 +49,7 @@ test("stock count branch switching and PR basket preserve branch context", () =>
   const balance = read("src/components/stock-balance-workspace.tsx");
   const basketButtons = read("src/components/stock-balance-table.tsx");
   assert.match(countForm, /setLines\(seedLines\.map/);
-  assert.match(countForm, /\[selectedBranchId, seedLines, initialCountDate, initialTolerance, initialRemarks\]/);
+  assert.match(countForm, /\[selectedBranchId, seedLines, initialCountDate, initialRemarks\]/);
   assert.match(balance, /name="line_branch_id" value=\{line\.branch_id \?\? ""\}/);
   assert.doesNotMatch(basketButtons, /onPointerDown=\{\(event\) => \{\s*event\.preventDefault\(\);/);
 });

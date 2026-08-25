@@ -29,5 +29,5 @@ test("stock count validation bounds untrusted form payloads", () => {
   assert.match(schema, /max\(500, "A stock count cannot contain more than 500 lines"\)/);
   assert.match(schema, /Count date must use YYYY-MM-DD/);
   assert.match(schema, /Each item can appear only once in a stock count/);
-  assert.match(schema, /Tolerance cannot exceed 100%/);
+  assert.match(schema, /tolerance_percent: z\.literal\(0\)\.default\(0\)/);
 });

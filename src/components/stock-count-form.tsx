@@ -30,16 +30,16 @@ type SeedLine = {
 
 type RetirementReason = "used_up" | "wrong_or_duplicate_code" | "branch_no_longer_uses" | "other";
 type SeedLineInput = SeedLine & { physicalQty: string; remarks: string; initialPhysicalQty: string; adjusted: boolean; retireAfterCount: boolean; retirementReason: RetirementReason | ""; retirementNote: string };
-type AutosaveState = "idle" | "recovered" | "saving" | "saved" | "error";
+type AutosaveState = "idle" | "local" | "recovered" | "saving" | "saved" | "error";
 const STOCK_COUNT_SORT_KEY = "seri-bako:stock-count-sort";
 const MAX_AUTOSAVE_RETRIES = 3;
 const AUTOSAVE_DEBOUNCE_MS = 12_000;
 type LocalDraftSnapshot = {
+  version: 2;
   branchId: string;
   countDate: string;
-  tolerance: string;
   remarks: string;
-  lines: Array<{ itemId: string; physicalQty: string; remarks: string }>;
+  lines: Array<{ itemId: string; physicalQty: string; initialPhysicalQty: string; remarks: string }>;
   savedLocallyAt: string;
 };
 
@@ -85,7 +85,6 @@ export function StockCountForm({
   formId,
   showSubmit = true,
   initialCountDate,
-  initialTolerance = 2,
   initialRemarks,
   autosaveAction,
   draftId,
@@ -97,13 +96,11 @@ export function StockCountForm({
   formId?: string;
   showSubmit?: boolean;
   initialCountDate?: string;
-  initialTolerance?: number;
   initialRemarks?: string | null;
   autosaveAction?: (formData: FormData) => Promise<StockCountAutosaveResult>;
   draftId?: string;
 }) {
   const router = useRouter();
-  const tolerance = 2;
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const formRef = useRef<HTMLFormElement>(null);
   const hasUserEdited = useRef(false);
@@ -116,7 +113,6 @@ export function StockCountForm({
     seedLines.map(makeEditableLine),
   );
   const [countDate, setCountDate] = useState(initialCountDate ?? getToday());
-  const [toleranceValue, setToleranceValue] = useState(String(initialTolerance ?? tolerance));
   const [countRemarks, setCountRemarks] = useState(initialRemarks ?? "");
   const [dirtyRevision, setDirtyRevision] = useState(0);
   const [autosaveState, setAutosaveState] = useState<AutosaveState>("idle");
@@ -151,13 +147,12 @@ export function StockCountForm({
     setSearch("");
     setShowAdjustedOnly(false);
     setCountDate(initialCountDate ?? getToday());
-    setToleranceValue(String(initialTolerance ?? tolerance));
     setCountRemarks(initialRemarks ?? "");
     hasUserEdited.current = false;
     setAutosaveState("idle");
     setAutosaveError("");
     setAutosaveRetryable(true);
-  }, [selectedBranchId, seedLines, initialCountDate, initialTolerance, initialRemarks]);
+  }, [selectedBranchId, seedLines, initialCountDate, initialRemarks]);
 
   useEffect(() => {
     const storedSort = window.localStorage.getItem(STOCK_COUNT_SORT_KEY);
@@ -183,22 +178,33 @@ export function StockCountForm({
       const raw = window.localStorage.getItem(localStorageKey);
       if (!raw) return;
       const snapshot = JSON.parse(raw) as LocalDraftSnapshot;
-      if (snapshot.branchId !== resolvedBranchId) return;
+      if (snapshot.version !== 2 || snapshot.branchId !== resolvedBranchId) {
+        window.localStorage.removeItem(localStorageKey);
+        return;
+      }
       const savedLines = new Map(snapshot.lines.map((line) => [line.itemId, line]));
-      if (seedLines.some((line) => !savedLines.has(line.item_id))) return;
+      if (snapshot.lines.length !== seedLines.length || seedLines.some((line) => !savedLines.has(line.item_id))) {
+        window.localStorage.removeItem(localStorageKey);
+        return;
+      }
       setLines(seedLines.map((line) => {
         const editable = makeEditableLine(line);
         const saved = savedLines.get(line.item_id);
         if (!saved) return editable;
+        // When the server-side starting balance changed, do not turn an old
+        // untouched prefill into a false user adjustment. Explicit edits are
+        // preserved because they differ from the snapshot's original value.
+        const physicalQty = saved.physicalQty === saved.initialPhysicalQty
+          ? editable.physicalQty
+          : saved.physicalQty;
         return {
           ...editable,
-          physicalQty: saved.physicalQty,
+          physicalQty,
           remarks: saved.remarks,
-          adjusted: saved.physicalQty !== editable.initialPhysicalQty,
+          adjusted: physicalQty !== editable.initialPhysicalQty,
         };
       }));
       setCountDate(snapshot.countDate);
-      setToleranceValue(snapshot.tolerance);
       setCountRemarks(snapshot.remarks);
       hasUserEdited.current = true;
       setAutosaveState("recovered");
@@ -210,6 +216,14 @@ export function StockCountForm({
 
   const saveDraft = useCallback(async (revision: number) => {
     if (!autosaveAction || !formRef.current || !hasUserEdited.current || revision <= lastSavedRevision.current) return true;
+    const formData = new FormData(formRef.current);
+    const physicalValues = formData.getAll("line_physical_qty").map(String);
+    if (!physicalValues.length || physicalValues.some((value) => value.trim() === "")) {
+      setAutosaveState("local");
+      setAutosaveError("");
+      setAutosaveRetryable(true);
+      return true;
+    }
     if (retryRevision.current !== revision) {
       retryRevision.current = revision;
       retryAttempts.current = 0;
@@ -219,7 +233,7 @@ export function StockCountForm({
     setAutosaveError("");
     setAutosaveRetryable(true);
     try {
-      const result = await autosaveAction(new FormData(formRef.current));
+      const result = await autosaveAction(formData);
       if (sequence !== saveSequence.current) return result.ok;
       if (!result.ok || !result.id) {
         setAutosaveState("error");
@@ -261,11 +275,11 @@ export function StockCountForm({
   useEffect(() => {
     if (!hasUserEdited.current || dirtyRevision <= lastSavedRevision.current) return;
     const snapshot: LocalDraftSnapshot = {
+      version: 2,
       branchId: resolvedBranchId,
       countDate,
-      tolerance: toleranceValue,
       remarks: countRemarks,
-      lines: lines.map((line) => ({ itemId: line.item_id, physicalQty: line.physicalQty, remarks: line.remarks })),
+      lines: lines.map((line) => ({ itemId: line.item_id, physicalQty: line.physicalQty, initialPhysicalQty: line.initialPhysicalQty, remarks: line.remarks })),
       savedLocallyAt: new Date().toISOString(),
     };
     window.localStorage.setItem(localStorageKey, JSON.stringify(snapshot));
@@ -274,7 +288,7 @@ export function StockCountForm({
     // immediately, so this delay never risks losing the user's work.
     const timer = window.setTimeout(() => void saveDraft(dirtyRevision), AUTOSAVE_DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
-  }, [countDate, countRemarks, dirtyRevision, lines, localStorageKey, resolvedBranchId, saveDraft, toleranceValue]);
+  }, [countDate, countRemarks, dirtyRevision, lines, localStorageKey, resolvedBranchId, saveDraft]);
 
   useEffect(() => {
     const flushWhenHidden = () => {
@@ -337,6 +351,7 @@ export function StockCountForm({
 
   const adjustedCount = lines.filter((line) => line.adjusted).length;
   const needsPhysicalCount = lines.filter((line) => line.physicalQty.trim() === "").length;
+  const completedCount = lines.length - needsPhysicalCount;
   const normalizedSearch = search.trim().toLowerCase();
   const visibleLines = lines
     .filter((line) => {
@@ -355,7 +370,9 @@ export function StockCountForm({
     : autosaveState === "saved"
       ? "Saved"
       : autosaveState === "recovered"
-          ? "Recovered unsaved changes"
+        ? "Recovered unsaved changes"
+        : autosaveState === "local"
+          ? "Progress saved on this device"
           : autosaveState === "error"
           ? autosaveRetryable
             ? "Save failed — retrying"
@@ -367,6 +384,7 @@ export function StockCountForm({
       <div>
         <form ref={formRef} id={formId} action={action} className={showSubmit ? "space-y-3 pb-28 xl:pb-0" : "space-y-3"}>
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
+          <input type="hidden" name="tolerance_percent" value="0" />
           <section data-stock-count-setup className="erp-surface overflow-hidden rounded-[var(--sb-panel-radius)] border bg-[var(--sb-surface)] p-3 md:p-4">
             <input type="hidden" name="branch_id" value={resolvedBranchId} />
             <button type="button" data-stock-count-details-toggle className="flex min-h-12 w-full min-w-0 items-start justify-between gap-3 text-left" aria-expanded={settingsOpen} onClick={() => setSettingsOpen((current) => !current)}>
@@ -390,12 +408,11 @@ export function StockCountForm({
               <div className="hidden min-w-0 items-center justify-between gap-3 rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-3 md:flex" aria-live="polite">
                 <div className="min-w-0">
                   <p className={`text-xs font-medium ${autosaveState === "error" ? "text-destructive" : autosaveState === "saved" ? "text-[var(--sb-green-900)]" : "text-muted-foreground"}`} title={autosaveError || autosaveLabel}>{autosaveLabel}</p>
-                  <p className="text-xs text-muted-foreground">{lines.length} values ready · {adjustedCount} adjusted</p>
+                  <p className="text-xs text-muted-foreground">{completedCount} of {lines.length} counted · {adjustedCount} adjusted</p>
                 </div>
                 <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{countComplete ? "Ready to save" : `${needsPhysicalCount} need${needsPhysicalCount === 1 ? "s" : ""} a physical count`}</span>
               </div>
-              <div className="grid gap-2 sm:grid-cols-2 lg:col-span-2">
-                <Field label="Tolerance %"><Input name="tolerance_percent" type="number" min="0" step="0.01" value={toleranceValue} onChange={(event) => { setToleranceValue(event.target.value); markDirty(); }} required /></Field>
+              <div className="grid gap-2 lg:col-span-2">
                 {branches.length > 1 ? <Field label="Branch"><SelectNative name="branch_selector" value={selectedBranchId ?? branches[0]?.id ?? ""} onChange={(event) => selectBranch(event.target.value)}><option value="">Select branch</option>{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}</SelectNative></Field> : <p data-stock-count-branch-lock className="self-end pb-2 text-xs text-muted-foreground">Branch locked to {branches[0]?.branch_name ?? "assigned kitchen"}.</p>}
               </div>
               <div className="lg:col-span-2"><Textarea name="remarks" value={countRemarks} onChange={(event) => { setCountRemarks(event.target.value); markDirty(); }} className="min-h-16" placeholder="Count note (optional)" /></div>
@@ -559,8 +576,8 @@ export function StockCountForm({
                 >
                   {autosaveLabel}
                 </span>
-                <span className="text-sm font-semibold tabular-nums">{lines.length} values ready</span>
-                <span className="text-xs tabular-nums text-muted-foreground">{adjustedCount} adjusted{autosaveError ? ` · ${autosaveError}` : ""}</span>
+                <span className="text-sm font-semibold tabular-nums">{completedCount} of {lines.length} counted</span>
+                <span className="text-xs tabular-nums text-muted-foreground">{needsPhysicalCount ? `${needsPhysicalCount} remaining` : `${adjustedCount} adjusted`}{autosaveError ? ` · ${autosaveError}` : ""}</span>
               </div>
               <SubmitButton type="submit" disabled={!countComplete} className="h-12 w-auto min-w-32 shrink-0 px-5" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Save draft</SubmitButton>
             </div>

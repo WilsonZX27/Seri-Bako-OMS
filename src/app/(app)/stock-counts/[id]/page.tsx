@@ -129,7 +129,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
         </>
       }
     >
-      {canEdit ? <StockCountForm formId={formId} branches={branches} selectedBranchId={count.branch_id ?? undefined} seedLines={editableLines} action={updateStockCountDraft.bind(null, count.id)} autosaveAction={autosaveStockCountDraft.bind(null, count.id)} draftId={count.id} showSubmit={false} initialCountDate={count.count_date} initialTolerance={count.tolerance_percent} initialRemarks={count.remarks} /> : null}
+      {canEdit ? <StockCountForm formId={formId} branches={branches} selectedBranchId={count.branch_id ?? undefined} seedLines={editableLines} action={updateStockCountDraft.bind(null, count.id)} autosaveAction={autosaveStockCountDraft.bind(null, count.id)} draftId={count.id} showSubmit={false} initialCountDate={count.count_date} initialRemarks={count.remarks} /> : null}
 
       {!canEdit ? <Card>
         <CardContent className="space-y-4 p-5">

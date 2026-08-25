@@ -53,7 +53,9 @@ function extractStockCount(formData: FormData) {
     count_no: formData.get("count_no"),
     count_date: formData.get("count_date"),
     branch_id: formData.get("branch_id"),
-    tolerance_percent: formData.get("tolerance_percent") ?? 2,
+    // Variance remains visible as exact evidence; Stock Count no longer uses
+    // an operator-defined acceptance threshold.
+    tolerance_percent: 0,
     remarks: formData.get("remarks"),
     lines: itemIds
       .map((itemId, index) => ({

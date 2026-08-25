@@ -107,3 +107,14 @@ test("stock count item positions follow the current visible order while item cod
   assert.doesNotMatch(form, /displayIndexByItemId/);
   assert.match(form, /aria-label=\{`Item \$\{displayIndex\}`\}/);
 });
+
+test("stock count uses exact variance without an operator tolerance setting", () => {
+  const form = read("src", "components", "stock-count-form.tsx");
+  const action = read("src", "server", "actions", "stock-counts.ts");
+  const validation = read("src", "lib", "validations", "stock-count.ts");
+
+  assert.doesNotMatch(form, /Tolerance %/);
+  assert.match(form, /name="tolerance_percent" value="0"/);
+  assert.match(action, /tolerance_percent: 0/);
+  assert.match(validation, /tolerance_percent: z\.literal\(0\)\.default\(0\)/);
+});

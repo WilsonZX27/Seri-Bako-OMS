@@ -2249,3 +2249,10 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - The Outlet Daily document header suppresses the generic duplicate location badge. Its branch/date identity stays on one desktop line; on phone the branch is 14px and the date owns the following line so neither value becomes an accidental wrap fragment.
 - The Today rail leads with record count, then separates Dispatch, Receiving, and completion outcomes with labels and dividers. Supporting warnings remain subordinate to their metric instead of competing as peer rows.
 - Qty Sent validation copy is concise and action-oriented; workflow explanation remains in the dedicated validation surface.
+
+## v8.64.171 (unreleased) — Truthful Stock Count progress
+
+- A loaded Stock Count row is not automatically a ready value. Progress copy states `completed of total counted` and the remaining quantity count.
+- Incomplete counting remains recoverable on the device without presenting a server failure or retry loop. Server autosave begins only when every physical quantity is present.
+- Recovery snapshots are versioned and retain each line's original prefill. If the server baseline changes, an untouched old prefill follows the new baseline; an explicit operator edit remains intact.
+- Stock Count has no operator-defined tolerance. Exact theoretical, physical, absolute variance, and variance percentage remain the review evidence.

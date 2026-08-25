@@ -1,5 +1,11 @@
 # Seri Bako OMS responsive design standard
 
+## v8.65.1 (unreleased) — Actionable Stock Count conflicts
+
+- A snapshot conflict names the affected item and shows starting versus current balance; it never orders an unexplained full recount.
+- The physical count remains saved. The error copy distinguishes a genuine concurrent movement from a form-data loss or validation failure.
+- Posting remains fail-closed: the UI does not silently rebase a variance or infer a new business quantity.
+
 ## v8.65.0 (unreleased) — Reliability states
 
 - Successfully recovered transient failures use a short neutral confirmation, never a red error surface.

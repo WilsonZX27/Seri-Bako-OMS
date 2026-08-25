@@ -31,6 +31,12 @@ function formatStockCountPostingError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error ?? "");
   const normalized = message.toLowerCase();
 
+  const snapshotConflict = message.match(/STOCK_SNAPSHOT_CONFLICT\|([^|]+)\|([^|]+)\|([^|]+)\|([^|\n]+)/i);
+  if (snapshotConflict) {
+    const [, itemCode, itemName, startingBalance, currentBalance] = snapshotConflict;
+    return `Stock moved for ${itemCode} ${itemName}: starting balance ${startingBalance}, current balance ${currentBalance}. Your physical count is saved; review this item before posting.`;
+  }
+
   if (normalized.includes("missing permission: stock_count.post")) return "You do not have permission to confirm and post stock counts.";
   if (normalized.includes("only draft or legacy pending stock counts")) return "This stock count is no longer pending and cannot be posted.";
   if (normalized.includes("stock changed since this draft was created")) return "Stock changed after this count was started. Refresh the count and recount before posting.";

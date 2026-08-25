@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.65.1 (unreleased) — Stock Count balance authority repair
+
+Stock Count posting now uses the same canonical parent-or-line movement balance as the count seed and inventory summary. Multi-line GRN, transfer and other documents no longer create a false snapshot-conflict error merely because their quantities live on `stock_transaction_lines`. Genuine movements after a draft began still block posting, but the operator now sees the affected item code/name plus starting and current balances; the saved physical count remains intact. Migration 207 must be applied before the runtime fix is Production-active, and authenticated posting UAT remains separate evidence.
+
 ### v8.65.0 (unreleased) — Reliability v5 foundation
 
 OMS introduces a tenant-scoped reliability foundation without silently changing business facts. Safe reads use a bounded transient-only retry and short circuit breaker; writes remain unretried unless their workflow already owns an idempotency key and server-authoritative result. Stock Count creation is the first tracked-operation pilot, while autosave failures create grouped Owner incidents without blocking device recovery. An Owner-only System Health workspace separates recovered signals from action-required incidents, with three-occurrence or fifteen-minute escalation. Migration 206, authenticated role/viewport UAT, staged deployment and Production observation remain separate release gates.
@@ -453,7 +457,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `206`; linked Production application and cleanup evidence is recorded in the current closure sections and repair ledger. Migrations 201–205 are remotely applied; migration 206 is dry-run verified but not applied, and application deployment plus authenticated workflow evidence remain separate.
+Repository migration authority: migrations reviewed through `207`; linked Production application and cleanup evidence is recorded in the current closure sections and repair ledger. Migrations 201–205 are remotely applied; migrations 206–207 are dry-run verified but not applied, and application deployment plus authenticated workflow evidence remain separate.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

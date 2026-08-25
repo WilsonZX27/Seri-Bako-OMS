@@ -1,5 +1,11 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## Production incident repair — v8.65.1
+
+- `SC/AUG26/015` exposed a false Stock Count snapshot conflict: the seed read model correctly used parent-or-line movement rows, while migration 110 posting summed parent transaction headers only.
+- Migration 207 introduces one canonical item/branch balance function for posting and preserves the existing atomic lock/post boundary. Genuine conflicts now identify item code/name and both balances without clearing the physical draft.
+- Evidence boundary: source and contract verification are local. Migration application, deployment, authenticated retry of the affected draft and Production verification remain pending.
+
 ## Reliability v5 — v8.65.0
 
 - Full-system reliability audit requested on 25/08/2026 is tracked in `docs/SYSTEM-RELIABILITY-V5-AUDIT-2026-08-25.md`.

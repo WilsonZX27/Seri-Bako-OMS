@@ -1,5 +1,22 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-08-26 — v9 full-system local audit closure
+
+The inherited v9 implementation was completed without reopening the accepted product decisions. The local production-mode runner passed all 52 shards across 99 routes, six authenticated roles, and four fixed viewports. It checks route authority, runtime/page errors, horizontal overflow, icon accessible names, touch targets, heading/copy density, reduced motion, hidden native scrollbars, and scroll-edge affordance. The owned Playwright server also exits cleanly after authenticated teardown. Screenshot references below are ignored local artifacts; each viewport folder-equivalent contains 93 Owner route captures.
+
+| URL | Role | Viewport | Screenshot | Expected behavior | Evidence state |
+|---|---|---:|---|---|---|
+| `/dashboard` | Owner | 390×844 | `test-results/v9-full-system-uat/mobile-390--dashboard.png` | Compact hierarchy, named icon actions, 36px touch controls, no native scrollbar, edge cue only when scrollable | locally verified |
+| `/dashboard` | Owner | 820×1180 | `test-results/v9-full-system-uat/tablet-820--dashboard.png` | Intentional portrait composition with unwrapped controls and restrained heading scale | locally verified |
+| `/dashboard` | Owner | 1180×820 | `test-results/v9-full-system-uat/landscape-1180--dashboard.png` | Dense landscape workspace without accidental page overflow | locally verified |
+| `/dashboard` | Owner | 1440×900 | `test-results/v9-full-system-uat/desktop-1440--dashboard.png` | Mature desktop information hierarchy and stable shared table authority | locally verified |
+| 99-route matrix | Owner, Finance, Manager, Purchasing, Kitchen, Outlet | all four | Owner route captures use the same four filename prefixes above | Allowed routes render; denied routes fail closed; role boundaries and UI quality gates remain strict | 52/52 local shards passed |
+
+- Implemented: v9 route/role/viewport matrix and fail-closed environment guards; authenticated teardown; fixed typography/motion/table authority; hidden-scrollbar edge affordance; safe JSON parsing; detail not-found authority; audit-log and role-permission migrations 216–218; fault-injection and schema coverage gates.
+- Locally verified: production-mode authenticated matrix `52/52`; 372 Owner screenshots; `976/976` contracts; strict typecheck; ESLint; production build; local migration dry-run up to date; local schema through migration 218 (`85` RLS tables, `6` views, `144` SECURITY DEFINER functions).
+- Awaiting authenticated UAT: the Production-like clone prepare/verify/destroy harness cannot run without the source database password.
+- Production verified: no. Source, local migrations, tests, build, and screenshots do not prove deployment or Production behavior.
+
 ## 2026-08-25 — Production UAT environment identity closure
 
 - Root cause of the misleading Owner-auth failure was environment composition: `.env.test.local` supplied a loopback Supabase URL while the intended target was Production. WILSON's Production Staff/Auth link was not broken.

@@ -12,11 +12,12 @@ import { deleteSupplier, restoreSupplier, updateSupplier } from "@/server/action
 import { getSupplier } from "@/server/queries/suppliers";
 import { PhaseOneDeleteAction } from "@/components/phase-one-delete-action";
 import { hasPermission } from "@/server/auth/permissions";
+import { detailOrNotFound } from "@/server/queries/detail";
 
 export default async function EditSupplierPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; success?: string }> }) {
   const { id } = await params;
   const messages = await searchParams;
-  const [supplier, canUpdate] = await Promise.all([getSupplier(id), hasPermission("suppliers.update")]);
+  const [supplier, canUpdate] = await Promise.all([detailOrNotFound(getSupplier(id)), hasPermission("suppliers.update")]);
   const lifecycleAction = !canUpdate ? null : supplier.status === "inactive" ? (
     <form action={restoreSupplier.bind(null, id)}><SubmitButton type="submit" className="w-full" pendingLabel="Restoring...">Restore Supplier</SubmitButton></form>
   ) : (

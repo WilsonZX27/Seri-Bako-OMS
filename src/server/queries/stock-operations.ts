@@ -6,6 +6,7 @@ import { actorDisplayName, resolveActorDisplayMap } from "@/server/actors/displa
 import { getStockBalanceDetails } from "@/server/queries/inventory";
 import type { Database } from "@/types/database";
 import { requireReadCount, requireReadRows } from "@/server/queries/common";
+import { requireDetailRow } from "@/server/queries/detail";
 
 type Filters = Record<string, string | undefined>;
 type Transfer = Database["public"]["Tables"]["stock_transfers"]["Row"];
@@ -111,20 +112,19 @@ export async function getStockTransfers(filters: Filters = {}) {
 
 export async function getStockTransfer(id: string) {
   if (isMockMode()) {
-    const transfer = mockStockTransfers.find((row) => row.id === id);
-    if (!transfer) throw new Error("Mock transfer not found");
+    const transfer = requireDetailRow(mockStockTransfers.find((row) => row.id === id), "Stock transfer", id);
     const lines = mockStockTransferLines.filter((line) => line.stock_transfer_id === id).map((line) => ({ ...line, received_quantity: 0, item: mockItems.find((item) => item.id === line.item_id) }));
     return { transfer: { ...transfer, from_branch_name: mockBranches.find((branch) => branch.id === transfer.from_branch_id)?.branch_name ?? null, to_branch_name: mockBranches.find((branch) => branch.id === transfer.to_branch_id)?.branch_name ?? null, line_count: lines.length }, lines };
   }
   const supabase = await createClient();
   const [{ data, error }, { data: lines, error: linesError }] = await Promise.all([
-    supabase.from("stock_transfers").select("*").eq("id", id).single(),
+    supabase.from("stock_transfers").select("*").eq("id", id).maybeSingle(),
     supabase.from("stock_transfer_lines").select("*").eq("stock_transfer_id", id),
   ]);
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(`Stock transfer lines could not be loaded: ${linesError.message}`);
   const trustedLines = requireReadRows(lines, "Stock transfer detail lines");
-  const transfer = data as Transfer;
+  const transfer = requireDetailRow(data, "Stock transfer", id) as Transfer;
   const itemIds = [...new Set(trustedLines.map((line) => line.item_id))];
   const branchIds = [...new Set([transfer.from_branch_id, transfer.to_branch_id].filter((branchId): branchId is string => Boolean(branchId)))];
   const [{ data: items, error: itemsError }, { data: branches, error: branchesError }] = await Promise.all([
@@ -189,20 +189,19 @@ export async function getStockWastage(filters: Filters = {}) {
 
 export async function getStockWastageDetail(id: string) {
   if (isMockMode()) {
-    const wastage = mockStockWastage.find((row) => row.id === id);
-    if (!wastage) throw new Error("Mock wastage not found");
+    const wastage = requireDetailRow(mockStockWastage.find((row) => row.id === id), "Stock wastage", id);
     const lines = mockStockWastageLines.filter((line) => line.stock_wastage_id === id).map((line) => ({ ...line, item: mockItems.find((item) => item.id === line.item_id) }));
     return { wastage: { ...wastage, branch_name: mockBranches.find((branch) => branch.id === wastage.branch_id)?.branch_name ?? null, line_count: lines.length }, lines };
   }
   const supabase = await createClient();
   const [{ data, error }, { data: lines, error: linesError }] = await Promise.all([
-    supabase.from("stock_wastage").select("*").eq("id", id).single(),
+    supabase.from("stock_wastage").select("*").eq("id", id).maybeSingle(),
     supabase.from("stock_wastage_lines").select("*").eq("stock_wastage_id", id),
   ]);
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(`Wastage lines could not be loaded: ${linesError.message}`);
   const trustedLines = requireReadRows(lines, "Stock wastage detail lines");
-  const wastage = data as Wastage;
+  const wastage = requireDetailRow(data, "Stock wastage", id) as Wastage;
   const itemIds = [...new Set(trustedLines.map((line) => line.item_id))];
   const [{ data: items, error: itemsError }, { data: branches, error: branchesError }] = await Promise.all([
     itemIds.length

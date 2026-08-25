@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { requireDetailRow } from "@/server/queries/detail";
 import { isMockMode, mockSuppliers } from "@/lib/mock-mode";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
 import type { SupplierStatus } from "@/types/database";
@@ -88,14 +89,11 @@ export async function getSuppliers(filters: SupplierFilters = {}) {
 
 export async function getSupplier(id: string) {
   if (isMockMode()) {
-    const supplier = mockSuppliers.find((row) => row.id === id);
-    if (!supplier) throw new Error("Mock supplier not found");
-    return supplier;
+    return requireDetailRow(mockSuppliers.find((row) => row.id === id), "Supplier", id);
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.from("suppliers").select("*").eq("id", id).single();
+  const { data, error } = await supabase.from("suppliers").select("*").eq("id", id).maybeSingle();
   if (error) throw new Error(error.message);
-  if (!data) throw new Error("Supplier detail returned no data.");
-  return data;
+  return requireDetailRow(data, "Supplier", id);
 }

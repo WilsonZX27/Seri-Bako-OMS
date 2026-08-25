@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { randomUUID } = require("crypto");
 const { defineConfig } = require("@playwright/test");
 
 function loadEnvFile(filePath) {
@@ -24,9 +25,12 @@ function loadEnvFile(filePath) {
 loadEnvFile(path.join(__dirname, ".env.test.local"));
 
 const localPort = process.env.PLAYWRIGHT_LOCAL_PORT || "3000";
-const localBaseUrl = `http://127.0.0.1:${localPort}`;
+const localBaseUrl = `http://localhost:${localPort}`;
 const startsLocalServer = process.env.RUN_TENANT_BOUNDARY_E2E === "1" && process.env.PW_MANUAL_SERVER !== "1";
 const usesLocalRoleFixture = process.env.RUN_TENANT_BOUNDARY_E2E === "1";
+if (startsLocalServer && !process.env.PLAYWRIGHT_SERVER_SHUTDOWN_TOKEN) {
+  process.env.PLAYWRIGHT_SERVER_SHUTDOWN_TOKEN = randomUUID();
+}
 // When this process owns the local server, that server is the only valid audit
 // target. A stale TEST_BASE_URL from .env.test.local must never send the browser
 // to a different dev session while Playwright waits on localBaseUrl.
@@ -47,6 +51,7 @@ module.exports = defineConfig({
   // local suite. This removes hidden dependence on a developer manually running
   // a setup command while keeping remote and production targets untouched.
   globalSetup: usesLocalRoleFixture ? "./tests/e2e/local-role-fixture-global-setup.cjs" : undefined,
+  globalTeardown: startsLocalServer ? "./tests/e2e/local-server-global-teardown.cjs" : undefined,
   timeout: 45_000,
   // The local Supabase fetch adapter deliberately serializes requests. Running
   // several authenticated browser workers against it creates an artificial
@@ -57,8 +62,9 @@ module.exports = defineConfig({
   webServer: startsLocalServer ? {
     command: "node scripts/playwright-local-server.mjs",
     url: `${localBaseUrl}/login`,
-    reuseExistingServer: true,
-    gracefulShutdown: { signal: "SIGINT", timeout: 1_000 },
+    // An owned audit target prevents a stale localhost process from silently
+    // serving a different build or Supabase environment.
+    reuseExistingServer: false,
     timeout: 120_000,
     env: {
       ...process.env,

@@ -38,7 +38,8 @@ test("goods-receiving list fails closed when a related label source cannot be ve
 test("goods-receiving summary and detail never coerce null payloads into zero", () => {
   assert.match(source, /Goods receiving summary returned no data/);
   assert.match(source, /Goods receiving summary returned an incomplete result/);
-  assert.match(detail, /if \(!data \|\| !lines\) throw new Error\("Goods receiving detail returned no data\."\)/);
+  assert.match(detail, /const receiving = requireDetailRow\(data, "Goods receiving", id\)/);
+  assert.match(detail, /if \(!lines\) throw new Error\("Goods receiving detail lines returned no data\."\)/);
   assert.match(detail, /Goods receiving detail related data returned no data/);
 });
 

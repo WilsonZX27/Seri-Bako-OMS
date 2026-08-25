@@ -50,7 +50,7 @@ export function resolveAuthRoute(state: AuthRouteState): AuthRouteDecision {
     return { destination: landingPage(state), reason: "authenticated-landing" };
   }
   if (state.routeProtected && !state.routeAllowed) {
-    return { destination: landingPage(state), reason: "route-not-permitted" };
+    return { destination: "/access-status?reason=route-not-permitted", reason: "route-not-permitted" };
   }
   return null;
 }

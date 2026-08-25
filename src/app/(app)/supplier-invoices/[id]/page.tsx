@@ -20,6 +20,7 @@ import { getDocumentBundle } from "@/server/queries/documents";
 import { getApAgingReport } from "@/server/queries/ap-aging";
 import { getPostedGrnsForInvoice, getSupplierInvoice } from "@/server/queries/supplier-invoices";
 import { logServerError } from "@/server/observability/logger";
+import { detailOrNotFound } from "@/server/queries/detail";
 
 const invoiceSteps = [
   { key: "draft", label: "Draft", description: "Invoice details can be edited." },
@@ -43,7 +44,7 @@ function PaymentForm({ invoiceId, balance, idempotencyKey }: { invoiceId: string
 export default async function SupplierInvoiceDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; success?: string }> }) {
   const [{ id }, messageParams] = await Promise.all([params, searchParams]);
   const [{ invoice, payments, lines, linkedPos, linkedGrns }, permissions] = await Promise.all([
-    getSupplierInvoice(id),
+    detailOrNotFound(getSupplierInvoice(id)),
     getPermissionMap(["supplier_invoice.create", "supplier_invoice.approve", "supplier_invoice.pay", "supplier_invoice.void", "documents.attach"]),
   ]);
   const agingRequested = permissions["supplier_invoice.pay"] && ["open", "partially_paid"].includes(invoice.status) && invoice.balance_due > 0;

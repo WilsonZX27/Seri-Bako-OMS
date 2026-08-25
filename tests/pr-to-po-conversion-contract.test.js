@@ -12,7 +12,7 @@ test("PR to PO migration writes an idempotency key and preserves one active PO p
   assert.match(migration, /add column if not exists idempotency_key uuid/);
   assert.match(migration, /purchase_orders_idempotency_key_idx/);
   assert.match(migration, /purchase_request_id = request_row\.id/);
-  assert.match(migration, /idempotency_key\n\s*\) values/);
+  assert.match(migration, /idempotency_key\r?\n\s*\) values/);
   assert.match(migration, /conversion_idempotency_key/);
   assert.match(migration, /return query select existing_order\.id/);
   assert.match(migration, /PO_NUMBER_ALREADY_USED/);

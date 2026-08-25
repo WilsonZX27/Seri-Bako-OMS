@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.65.6 (unreleased) — V9 compact system authority
+
+The four release viewports are fixed at 390×844, 820×1180, 1180×820, and 1440×900. Native scrollbars remain hidden by product decision; genuinely scrollable regions instead expose a restrained edge affordance. Shared fixed typography, medium-weight identity headings, compact copy, 36px minimum touch controls, accessible names for icon-only actions, deliberate table overflow, and reduced-motion behavior are automated release authority rather than route-specific exceptions. The 99-route, six-role local matrix passed 52/52 shards and produced 93 Owner screenshots per viewport. These artifacts are local design evidence, not deployment or Production verification.
+
 ## v8.65.5 (unreleased) — UAT trust boundary
 
 Production evidence must fail closed before sign-in when the app host, Supabase project, explicit confirmation, or env file does not match the declared target. Environment identity is part of the operator-facing safety model: a successful workflow against localhost cannot be presented as Production evidence, and Production mutation must never inherit local service credentials.

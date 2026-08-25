@@ -4,6 +4,7 @@ import { compareTableValues } from "@/lib/table-state";
 import type { Database } from "@/types/database";
 import { getCurrentProfile } from "@/server/queries/common";
 import { getApAgingReport } from "@/server/queries/ap-aging";
+import { requireDetailRow } from "@/server/queries/detail";
 
 type Filters = Record<string, string | undefined>;
 type SupplierInvoice = Database["public"]["Tables"]["supplier_invoices"]["Row"];
@@ -232,14 +233,14 @@ export async function getPostedGrnsForInvoice(supplierId?: string, excludeInvoic
 export async function getSupplierInvoice(id: string) {
   const supabase = await createClient();
   const [{ data: row, error }, { data: payments, error: paymentsError }, { data: lines, error: linesError }] = await Promise.all([
-    supabase.from("supplier_invoices").select("*").eq("id", id).single(),
+    supabase.from("supplier_invoices").select("*").eq("id", id).maybeSingle(),
     supabase.from("supplier_invoice_payments").select("*").eq("supplier_invoice_id", id).order("created_at", { ascending: true }),
     supabase.from("supplier_invoice_lines").select("*").eq("supplier_invoice_id", id).order("created_at"),
   ]);
   if (error) throw new Error(error.message);
   if (paymentsError) throw new Error(paymentsError.message);
   if (linesError) throw new Error(linesError.message);
-  const invoice = row as SupplierInvoice;
+  const invoice = requireDetailRow(row, "Supplier invoice", id) as SupplierInvoice;
   const invoiceLines = (lines ?? []) as SupplierInvoiceLine[];
   const itemIds = [...new Set(invoiceLines.map((line) => line.item_id))];
   const poIds = [...new Set([invoice.purchase_order_id, ...invoiceLines.map((line) => line.purchase_order_id)].filter((value): value is string => Boolean(value)))];

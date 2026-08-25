@@ -27,6 +27,8 @@ type BackupDataset = {
 export const BACKUP_DATASETS: readonly BackupDataset[] = [
   { table: "companies", classification: "company_id filtered", column: "id" },
   { table: "branches", classification: "company_id filtered", column: "company_id" },
+  { table: "locations", classification: "excluded", reason: "Retired legacy location table removed by migration 099 after inventory ownership moved to branches." },
+  { table: "branch_supply_routes", classification: "company_id filtered", column: "company_id" },
   { table: "staffs", classification: "company_id filtered", column: "company_id" },
   { table: "profiles", classification: "excluded", reason: "Auth-profile identity metadata is not tenant business content; staff records are the authoritative company-scoped identity export." },
   { table: "roles", classification: "company_id filtered", column: "company_id" },
@@ -34,11 +36,18 @@ export const BACKUP_DATASETS: readonly BackupDataset[] = [
   { table: "role_permissions", classification: "parent-company filtered", column: "role_id", parent: "roles" },
   { table: "staff_roles", classification: "parent-company filtered", column: "staff_id", parent: "staffs" },
   { table: "staff_branches", classification: "parent-company filtered", column: "staff_id", parent: "staffs" },
+  { table: "staff_locations", classification: "excluded", reason: "Retired legacy staff-location mapping removed by migration 100; staff branch access is authoritative." },
   { table: "staff_permission_overrides", classification: "parent-company filtered", column: "staff_id", parent: "staffs" },
   { table: "items", classification: "company_id filtered", column: "company_id" },
   { table: "products", classification: "company_id filtered", column: "company_id" },
   { table: "suppliers", classification: "company_id filtered", column: "company_id" },
   { table: "supplier_items", classification: "company_id filtered", column: "company_id" },
+  { table: "supplier_external_references", classification: "company_id filtered", column: "company_id" },
+  { table: "supplier_merge_audit", classification: "company_id filtered", column: "company_id", cursorColumn: "merged_at" },
+  { table: "supplier_merge_line_audit", classification: "company_id filtered", column: "company_id" },
+  { table: "supplier_item_merge_audit", classification: "company_id filtered", column: "company_id", cursorColumn: "merged_at" },
+  { table: "supplier_identity_reconciliation_audit", classification: "company_id filtered", column: "company_id" },
+  { table: "supplier_uom_conversion_audit", classification: "company_id filtered", column: "company_id", cursorColumn: "changed_at" },
   { table: "uom_conversions", classification: "company_id filtered", column: "company_id" },
   { table: "product_packaging", classification: "parent-company filtered", column: "product_id", parent: "products" },
   { table: "branch_supplier_items", classification: "branch/company relation filtered", column: "branch_id", parent: "branches" },
@@ -47,6 +56,8 @@ export const BACKUP_DATASETS: readonly BackupDataset[] = [
   { table: "recipe_cost_snapshots", classification: "parent-company filtered", column: "recipe_id", parent: "recipes" },
   { table: "purchase_requests", classification: "company_id filtered", column: "company_id" },
   { table: "purchase_request_lines", classification: "parent-company filtered", column: "purchase_request_id", parent: "purchase_requests" },
+  { table: "purchase_request_stock_holds", classification: "parent-company filtered", column: "purchase_request_id", parent: "purchase_requests" },
+  { table: "purchase_request_unresolved_lines", classification: "parent-company filtered", column: "purchase_request_id", parent: "purchase_requests" },
   { table: "purchase_orders", classification: "company_id filtered", column: "company_id" },
   { table: "purchase_order_lines", classification: "parent-company filtered", column: "purchase_order_id", parent: "purchase_orders" },
   { table: "goods_receivings", classification: "company_id filtered", column: "company_id" },
@@ -58,8 +69,16 @@ export const BACKUP_DATASETS: readonly BackupDataset[] = [
   { table: "supplier_invoice_payments", classification: "company_id filtered", column: "company_id" },
   { table: "stock_counts", classification: "company_id filtered", column: "company_id" },
   { table: "stock_count_lines", classification: "parent-company filtered", column: "stock_count_id", parent: "stock_counts" },
+  { table: "branch_stock_count_items", classification: "company_id filtered", column: "company_id" },
+  { table: "stock_count_item_retirements", classification: "company_id filtered", column: "company_id" },
+  { table: "stock_count_reconciliations", classification: "company_id filtered", column: "company_id", cursorColumn: "reconciled_at" },
+  { table: "stock_count_voids", classification: "company_id filtered", column: "company_id", cursorColumn: "voided_at" },
+  { table: "item_correction_suggestions", classification: "company_id filtered", column: "company_id" },
   { table: "stock_transfers", classification: "company_id filtered", column: "company_id" },
   { table: "stock_transfer_lines", classification: "parent-company filtered", column: "stock_transfer_id", parent: "stock_transfers" },
+  { table: "stock_transfer_reservations", classification: "company_id filtered", column: "company_id", cursorColumn: "reserved_at" },
+  { table: "stock_transfer_receipts", classification: "company_id filtered", column: "company_id" },
+  { table: "stock_transfer_receipt_lines", classification: "parent-company filtered", column: "receipt_id", parent: "stock_transfer_receipts" },
   { table: "stock_wastage", classification: "company_id filtered", column: "company_id" },
   { table: "stock_wastage_lines", classification: "parent-company filtered", column: "stock_wastage_id", parent: "stock_wastage" },
   { table: "stock_transactions", classification: "branch/company relation filtered", column: "branch_id", parent: "branches" },
@@ -72,6 +91,7 @@ export const BACKUP_DATASETS: readonly BackupDataset[] = [
   { table: "documents", classification: "company_id filtered", column: "company_id" },
   { table: "document_comments", classification: "parent-company filtered", column: "document_id", parent: "documents" },
   { table: "document_revisions", classification: "parent-company filtered", column: "document_id", parent: "documents" },
+  { table: "document_line_revisions", classification: "company_id filtered", column: "company_id" },
   { table: "approvals", classification: "company_id filtered", column: "company_id" },
   { table: "approval_steps", classification: "parent-company filtered", column: "approval_id", parent: "approvals" },
   { table: "attachments", classification: "company_id filtered", column: "company_id", optional: "attachments" },
@@ -79,10 +99,20 @@ export const BACKUP_DATASETS: readonly BackupDataset[] = [
   { table: "notification_recipients", classification: "parent-company filtered", column: "notification_id", parent: "notifications", optional: "logs" },
   { table: "activity_logs", classification: "company_id filtered", column: "company_id", optional: "logs" },
   { table: "audit_logs", classification: "company_id filtered", column: "company_id", optional: "logs" },
+  { table: "operation_requests", classification: "company_id filtered", column: "company_id", optional: "logs" },
+  { table: "system_incidents", classification: "company_id filtered", column: "company_id", optional: "logs" },
+  { table: "system_incident_events", classification: "company_id filtered", column: "company_id", optional: "logs" },
+  { table: "draft_revisions", classification: "company_id filtered", column: "company_id", optional: "logs" },
+  { table: "autocount_import_jobs", classification: "company_id filtered", column: "company_id", optional: "logs" },
+  { table: "autocount_import_files", classification: "company_id filtered", column: "company_id", optional: "logs" },
+  { table: "autocount_import_rows", classification: "company_id filtered", column: "company_id", optional: "logs" },
   { table: "document_sequences", classification: "company_id filtered", column: "company_id" },
   { table: "document_sequence_periods", classification: "company_id filtered", column: "company_id" },
   { table: "user_preferences", classification: "company_id filtered", column: "company_id" },
   { table: "permanent_deletion_tombstones", classification: "company_id filtered", column: "company_id", cursorColumn: "deleted_at" },
+  { table: "stock_balances_summary", classification: "excluded", reason: "Rebuildable inventory read model; the posted ledger is the source of truth and the summary is refreshed after restore." },
+  { table: "inventory_daily_summary", classification: "excluded", reason: "Rebuildable daily inventory read model; restore the posted ledger and regenerate this summary." },
+  { table: "barcode_mappings", classification: "excluded", reason: "Retired legacy table removed by migration 091; retained here only so the migration inventory remains explicitly classified." },
   { table: "auth.users", classification: "excluded", reason: "Authentication identities and credentials are not business-backup content." },
   { table: "storage.objects", classification: "excluded", reason: "File bodies and storage internals are excluded; scoped attachment metadata is included separately." },
 ] as const;
@@ -260,7 +290,7 @@ export async function generateSystemBackupZip(options: { includeLogs?: boolean; 
 
   files.unshift({ name: "manifest.json", content: JSON.stringify(manifest, null, 2) });
   try {
-    await db.from("audit_logs").insert({
+    const { error: auditError } = await db.from("audit_logs").insert({
       company_id: access.actor.companyId,
       entity_type: "system_backup",
       entity_id: access.actor.staffId,
@@ -268,6 +298,7 @@ export async function generateSystemBackupZip(options: { includeLogs?: boolean; 
       new_values: { correlation_id: correlationId, table_count: tableResults.filter((row) => row.included).length, generated_at: generatedAt },
       created_by: access.actor.staffId,
     });
+    if (auditError) throw auditError;
   } catch (error) {
     logServerError(error, { source: "backup.audit-log", requestId: correlationId, actorId: access.actor.staffId, companyId: access.actor.companyId });
   }

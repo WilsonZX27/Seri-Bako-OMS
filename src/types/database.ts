@@ -24,6 +24,12 @@ export type StockWastageReason = "expired" | "damaged" | "spoiled" | "production
 export type OutletDailyRecordStatus = "draft" | "morning_recorded" | "evening_completed" | "reviewed" | "void";
 export type OutletDailyWastageReason = "unsold" | "damaged" | "expired" | "quality_issue" | "staff_meal" | "other";
 export type RecipeStatus = "draft" | "pending_approval" | "approved" | "active" | "rejected" | "archived";
+type TableDefinition<Row extends Record<string, unknown>> = {
+  Row: Row;
+  Insert: Partial<Row>;
+  Update: Partial<Row>;
+  Relationships: [];
+};
 export type StockTransactionType =
   | "opening_balance"
   | "purchase"
@@ -2153,6 +2159,83 @@ export type Database = {
         Relationships: [];
       };
     };
+      branch_stock_count_items: TableDefinition<{
+        branch_id: string; branch_note: string | null; company_id: string; created_at: string; created_by: string | null;
+        id: string; item_id: string; last_action: string | null; last_action_at: string | null; last_action_by: string | null;
+        last_action_stock_count_id: string | null; last_physical_qty: number | null; pending_stock_count_id: string | null;
+        restored_at: string | null; restored_by: string | null; retired_at: string | null; retired_by: string | null;
+        retired_stock_count_id: string | null; retirement_note: string | null; retirement_reason: string | null;
+        status: string; updated_at: string; updated_by: string | null;
+      }>;
+      item_correction_suggestions: TableDefinition<{
+        branch_id: string; company_id: string; created_at: string; id: string; item_id: string; resolved_at: string | null;
+        status: string; stock_count_id: string | null; suggested_by: string; suggestion: string;
+      }>;
+      permanent_deletion_tombstones: TableDefinition<{
+        actor_id: string | null; actor_name: string | null; company_id: string | null; deleted_at: string; deletion_reason: string;
+        dependency_summary: Json; display_label: string; id: string; record_id: string; record_number: string | null;
+        record_type: string; sanitized_snapshot: Json;
+      }>;
+      production_job_ingredient_lines: TableDefinition<{
+        actual_qty: number | null; created_at: string; id: string; item_code: string | null; item_id: string;
+        item_name: string | null; line_cost: number | null; production_job_id: string; remarks: string | null;
+        required_qty: number; stock_available_qty: number | null; unit_cost: number | null; uom: string | null;
+        variance_qty: number | null;
+      }>;
+      production_job_output_lines: TableDefinition<{
+        actual_qty: number | null; created_at: string; id: string; item_id: string | null; line_cost: number | null;
+        output_code: string | null; output_name: string | null; planned_qty: number; product_id: string | null;
+        production_job_id: string; remarks: string | null; unit_cost: number | null; uom: string | null;
+      }>;
+      production_jobs: TableDefinition<{
+        actual_output_qty: number | null; branch_id: string; cancelled_at: string | null; cancelled_by: string | null;
+        company_id: string | null; created_at: string; created_by: string | null; deleted_at: string | null;
+        document_id: string | null; id: string; idempotency_key: string | null; output_item_id: string | null;
+        output_uom: string | null; planned_output_qty: number; posted_at: string | null; posted_by: string | null;
+        priority: string | null; product_id: string | null; production_date: string; production_job_no: string;
+        recipe_id: string; rejected_at: string | null; rejected_by: string | null; remarks: string | null;
+        status: string; stock_transaction_id: string | null; updated_at: string; updated_by: string | null;
+      }>;
+      purchase_request_stock_holds: TableDefinition<{
+        branch_id: string; created_at: string; id: string; item_id: string; purchase_request_id: string;
+        quantity_inventory: number; status: string;
+      }>;
+      stock_count_item_retirements: TableDefinition<{
+        actual_qty: number; applied_at: string | null; branch_id: string; company_id: string; created_at: string;
+        id: string; item_id: string; note: string; reason: string; requested_by: string; status: string;
+        stock_count_id: string; stock_count_line_id: string; updated_at: string;
+      }>;
+      stock_count_reconciliations: TableDefinition<{
+        branch_id: string; company_id: string; final_variance_qty: number; id: string; item_id: string;
+        movement_qty: number; physical_qty: number; posting_balance: number; reconciled_at: string; reconciled_by: string;
+        snapshot_balance: number; stock_count_id: string; stock_count_line_id: string;
+      }>;
+      supplier_identity_reconciliation_audit: TableDefinition<{
+        action: string; canonical_supplier_id: string; company_id: string; created_at: string; id: string;
+        merged_supplier_id: string; relation_before: Json; relation_id: string; relation_type: string;
+      }>;
+      supplier_item_merge_audit: TableDefinition<{
+        canonical_before: Json; canonical_supplier_item_id: string; company_id: string; id: string; merge_reason: string;
+        merged_at: string; merged_before: Json; merged_supplier_item_id: string;
+      }>;
+      supplier_merge_audit: TableDefinition<{
+        canonical_before: Json; canonical_supplier_id: string; company_id: string; id: string; merge_reason: string;
+        merged_at: string; merged_before: Json; merged_supplier_id: string;
+      }>;
+      supplier_merge_line_audit: TableDefinition<{
+        canonical_supplier_id: string; company_id: string; created_at: string; id: string; original_uom: string;
+        purchase_request_line_id: string; resolution: string; source_supplier_id: string;
+      }>;
+      supplier_uom_conversion_audit: TableDefinition<{
+        after_conversion: number; base_uom: string; before_conversion: number | null; changed_at: string;
+        changed_by: string | null; company_id: string; goods_receiving_id: string | null;
+        goods_receiving_line_id: string | null; id: string; item_id: string; purchase_uom: string; source: string;
+        supplier_id: string;
+      }>;
+      user_preferences: TableDefinition<{
+        company_id: string | null; created_at: string; id: string; preference_key: string; preference_value: Json;
+        updated_at: string; user_id: string | null;
+      }>;
     Views: {
       stock_balances_view: {
         Row: {

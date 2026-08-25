@@ -44,9 +44,12 @@ test("Kitchen retirement dialog requires category and explanation and retains th
 test("AutoCount API failures remain JSON and the client rejects HTML safely", () => {
   const middleware = read("src", "lib", "supabase", "middleware.ts");
   const workflow = read("src", "components", "imports", "autocount-import-workflow.tsx");
+  const parser = read("src", "lib", "http", "read-json-response.ts");
   assert.match(middleware, /pathname\.startsWith\("\/api\/"\)/);
   assert.match(middleware, /NextResponse\.json[\s\S]*status: 401/);
   assert.match(workflow, /readJsonResponse/);
-  assert.match(workflow, /content-type/);
+  assert.match(parser, /headers\.get\("content-type"\)/);
+  assert.match(parser, /!contentType\.includes\("application\/json"\)/);
   assert.match(workflow, /Your session expired/);
+  assert.match(parser, /response\.status === 401 \|\| response\.redirected/);
 });

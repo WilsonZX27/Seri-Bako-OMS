@@ -17,6 +17,7 @@ import { getBranchesForSelect, getItemsForSelect, getSuppliersForSelect } from "
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getPurchaseOrder, getPurchaseRequestForOrder } from "@/server/queries/procurement";
 import { PhaseOneDeleteAction } from "@/components/phase-one-delete-action";
+import { detailOrNotFound } from "@/server/queries/detail";
 
 const poSteps = [
   { key: "draft", label: "Draft", description: "Order is being prepared." },
@@ -39,7 +40,7 @@ const convertedPoSteps = [
 export default async function PurchaseOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const [{ order, lines }, items, suppliers, branches, permissions] = await Promise.all([
-    getPurchaseOrder(id),
+    detailOrNotFound(getPurchaseOrder(id)),
     getItemsForSelect(),
     getSuppliersForSelect(),
     getBranchesForSelect(),

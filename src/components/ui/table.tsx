@@ -14,9 +14,20 @@ import { cn } from "@/lib/utils";
 export function Table({ className, mobileHidden = false, compactUntil = "xl", stickyColumn = "first", ...props }: React.TableHTMLAttributes<HTMLTableElement> & { mobileHidden?: boolean; compactUntil?: "md" | "xl" | "2xl"; stickyColumn?: "none" | "first" | "second" | "third" }) {
   const regionRef = React.useRef<HTMLDivElement>(null);
   const [scrolled, setScrolled] = React.useState(false);
+  const [overflowState, setOverflowState] = React.useState<"none" | "start" | "middle" | "end">("none");
 
   const updateScrollState = React.useCallback(() => {
-    setScrolled((regionRef.current?.scrollLeft ?? 0) > 2);
+    const region = regionRef.current;
+    const left = region?.scrollLeft ?? 0;
+    const remaining = region ? region.scrollWidth - region.clientWidth - left : 0;
+    setScrolled(left > 2);
+    setOverflowState(!region || region.scrollWidth <= region.clientWidth + 2
+      ? "none"
+      : left <= 2
+        ? "start"
+        : remaining <= 2
+          ? "end"
+          : "middle");
   }, []);
 
   React.useEffect(() => {
@@ -25,11 +36,12 @@ export function Table({ className, mobileHidden = false, compactUntil = "xl", st
     if (!region || typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver(updateScrollState);
     observer.observe(region);
+    if (region.firstElementChild) observer.observe(region.firstElementChild);
     return () => observer.disconnect();
   }, [updateScrollState]);
 
   return (
-    <div ref={regionRef} onScroll={updateScrollState} className={cn("sb-table-region sb-scrollbar-none", mobileHidden && (compactUntil === "2xl" ? "hidden 2xl:block" : compactUntil === "xl" ? "hidden xl:block" : "hidden md:block"))} data-sticky-column={stickyColumn} data-scrolled={scrolled ? "true" : "false"} role="region" aria-label={props["aria-label"] ?? "Data table"} tabIndex={0}>
+    <div ref={regionRef} onScroll={updateScrollState} className={cn("sb-table-region sb-scrollbar-none", mobileHidden && (compactUntil === "2xl" ? "hidden 2xl:block" : compactUntil === "xl" ? "hidden xl:block" : "hidden md:block"))} data-sticky-column={stickyColumn} data-scrolled={scrolled ? "true" : "false"} data-overflow-state={overflowState} role="region" aria-label={props["aria-label"] ?? "Data table"} tabIndex={0}>
       <table data-ui-table="true" className={cn("w-full caption-bottom text-xs", className)} {...props} />
     </div>
   );
@@ -66,11 +78,11 @@ export function OperationalListRow({ href, label, primary, status, statusMeta, s
   };
   const className = "grid min-h-16 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-3 py-2.5 hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)]";
   const renderContent = (withTrailing: boolean) => <>
-      <div className="min-w-0 text-[13px] font-semibold leading-5">{primary}</div>
+      <div className="min-w-0 text-[13px] font-medium leading-5">{primary}</div>
       <div className="flex items-start justify-self-end gap-2 whitespace-nowrap">
         <div className="flex min-w-0 flex-col items-end gap-1">
           {status}
-          {statusMeta ? <div className="text-right text-[11px] font-semibold text-[var(--sb-text)]">{statusMeta}</div> : null}
+          {statusMeta ? <div className="text-right text-[11px] font-medium text-[var(--sb-text)]">{statusMeta}</div> : null}
         </div>
         {withTrailing ? (trailing ?? (href ? <ChevronRight className="mt-1 h-4 w-4 text-[var(--sb-text-soft)]" /> : null)) : null}
       </div>
@@ -113,7 +125,7 @@ export function TableHead({ className, children, "aria-label": ariaLabel, ...pro
       aria-label={ariaLabel ?? (isActionColumn ? "Actions" : undefined)}
       data-table-action-head={isActionColumn ? "true" : undefined}
       className={cn(
-        "h-9 overflow-hidden align-middle text-[10px] font-semibold text-[var(--sb-text-muted)]",
+        "h-9 overflow-hidden align-middle text-[10px] font-medium text-[var(--sb-text-muted)]",
         !isActionColumn && "min-w-24 whitespace-nowrap px-3 text-left",
         className,
         isActionColumn && "!w-10 !min-w-10 !max-w-10 !px-0 text-center",

@@ -12,6 +12,7 @@ import { cancelStockTransfer, receiveStockTransfer, rejectStockTransfer, startSt
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getStockTransfer } from "@/server/queries/stock-operations";
 import { getPermissionMap } from "@/server/auth/permissions";
+import { detailOrNotFound } from "@/server/queries/detail";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -26,7 +27,7 @@ const transferSteps = [
 
 export default async function StockTransferDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [{ transfer, lines }, permissions] = await Promise.all([getStockTransfer(id), getPermissionMap(["stock_transfer.update", "stock_transfer.post", "stock_transfer.cancel"])]);
+  const [{ transfer, lines }, permissions] = await Promise.all([detailOrNotFound(getStockTransfer(id)), getPermissionMap(["stock_transfer.update", "stock_transfer.post", "stock_transfer.cancel"])]);
   const bundle = transfer.document_id ? await getDocumentBundle(transfer.document_id) : null;
   const canStart = transfer.status === "draft" && permissions["stock_transfer.update"];
   const canPost = transfer.status === "in_transit" && permissions["stock_transfer.post"];

@@ -18,6 +18,7 @@ import { getPermissionMap } from "@/server/auth/permissions";
 import { getOutletDailyActivity, getOutletDailyFormOptions, getOutletDailyRecord } from "@/server/queries/outlet-daily-records";
 import { logServerError } from "@/server/observability/logger";
 import { CheckCircle2, Save } from "lucide-react";
+import { detailOrNotFound } from "@/server/queries/detail";
 
 const dailySteps = [
   { key: "draft", label: "Qty Sent", description: "Central Kitchen records the quantity sent." },
@@ -27,8 +28,9 @@ const dailySteps = [
 
 export default async function OutletDailyRecordDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const [{ id }, messages] = await Promise.all([params, searchParams]);
+  const detail = await detailOrNotFound(getOutletDailyRecord(id));
   const source = await Promise.all([
-    getOutletDailyRecord(id),
+    Promise.resolve(detail),
     getOutletDailyFormOptions(),
     getPermissionMap(["outlet_daily_record.update", "outlet_daily_record.qty_sent", "outlet_daily_record.void"]),
     getOutletDailyActivity(id),

@@ -6,10 +6,11 @@ import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { deleteUomConversion, restoreUomConversion, updateUomConversion } from "@/server/actions/master-data";
 import { getUomConversion } from "@/server/queries/master-data";
+import { detailOrNotFound } from "@/server/queries/detail";
 
 export default async function EditUomConversionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const conversion = await getUomConversion(id);
+  const conversion = await detailOrNotFound(getUomConversion(id));
   const formId = "uom-conversion-edit-form";
   const lifecycleAction = conversion.deleted_at ? (
     <form action={restoreUomConversion.bind(null, id)}><SubmitButton type="submit" className="w-full" pendingLabel="Restoring...">Restore conversion</SubmitButton></form>

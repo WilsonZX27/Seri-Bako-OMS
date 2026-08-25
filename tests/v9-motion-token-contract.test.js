@@ -12,7 +12,9 @@ test("v9 table motion uses the shared token and preserves reduced-motion behavio
 
 test("v9 dashboard identity and panel headings use shared type tokens", () => {
   const globals = fs.readFileSync("src/app/globals.css", "utf8");
-  assert.match(globals, /--sb-text-identity:\s*clamp\(/);
+  assert.match(globals, /--sb-text-identity:\s*1\.25rem/);
+  assert.match(globals, /--sb-text-section:\s*0\.875rem/);
+  assert.doesNotMatch(globals, /--sb-text-(?:display|identity|title|page|section):\s*clamp\(/);
   assert.match(designSystem, /\[data-dashboard-user-name\][\s\S]*font-size: var\(--sb-text-identity\)/);
   assert.match(designSystem, /\[data-dashboard-panel\] > :first-child[\s\S]*font-size: var\(--sb-text-section\)/);
 });

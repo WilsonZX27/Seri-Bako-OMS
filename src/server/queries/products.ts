@@ -1,5 +1,6 @@
 import { isMockMode, mockProductPackaging, mockProducts } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
+import { requireDetailRow } from "@/server/queries/detail";
 import type { ItemStatus } from "@/types/database";
 import { sortProductsForDisplay } from "@/lib/product-order";
 import { requireReadRows } from "@/server/queries/common";
@@ -85,13 +86,11 @@ export async function getProductPackaging(productId: string) {
 
 export async function getProduct(id: string) {
   if (isMockMode()) {
-    const product = mockProducts.find((row) => row.id === id);
-    if (!product) throw new Error("Mock product not found");
-    return product;
+    return requireDetailRow(mockProducts.find((row) => row.id === id), "Product", id);
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.from("products").select("*").eq("id", id).single();
+  const { data, error } = await supabase.from("products").select("*").eq("id", id).maybeSingle();
   if (error) throw new Error(error.message);
-  return data;
+  return requireDetailRow(data, "Product", id);
 }

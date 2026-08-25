@@ -13,6 +13,7 @@ import { cancelGoodsReceiving, postGoodsReceiving } from "@/server/actions/goods
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getGoodsReceiving } from "@/server/queries/goods-receivings";
+import { detailOrNotFound } from "@/server/queries/detail";
 
 const grnSteps = [
   { key: "draft", label: "Draft", description: "Receiving is being checked." },
@@ -23,7 +24,7 @@ const grnSteps = [
 export default async function GoodsReceivingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const [{ receiving, lines }, permissions] = await Promise.all([
-    getGoodsReceiving(id),
+    detailOrNotFound(getGoodsReceiving(id)),
     getPermissionMap(["grn.post", "goods_receiving.cancel", "documents.attach"]),
   ]);
   const documentBundle = receiving.document_id ? await getDocumentBundle(receiving.document_id) : null;

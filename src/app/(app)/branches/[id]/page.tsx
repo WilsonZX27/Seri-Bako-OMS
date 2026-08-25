@@ -11,6 +11,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { formatDateTime } from "@/lib/utils";
 import { deleteBranch, restoreBranch, updateBranch, updateBranchSupplyRoutes } from "@/server/actions/foundation";
 import { getBranch, getBranchSupplyRouteContext, getCompaniesForSelect } from "@/server/queries/foundation";
+import { detailOrNotFound } from "@/server/queries/detail";
 import { hasPermission } from "@/server/auth/permissions";
 import { redirect } from "next/navigation";
 
@@ -18,7 +19,7 @@ export default async function EditBranchPage({ params, searchParams }: { params:
   const { id } = await params;
   if (!(await hasPermission("branches.update"))) redirect("/branches");
   const messages = await searchParams;
-  const [branch, companies, supplyRouteContext] = await Promise.all([getBranch(id), getCompaniesForSelect(), getBranchSupplyRouteContext()]);
+  const [branch, companies, supplyRouteContext] = await Promise.all([detailOrNotFound(getBranch(id)), getCompaniesForSelect(), getBranchSupplyRouteContext()]);
   const lifecycleAction = branch.deleted_at ? (
     <form action={restoreBranch.bind(null, id)}><SubmitButton type="submit" className="w-full" pendingLabel="Restoring...">Restore Branch</SubmitButton></form>
   ) : (

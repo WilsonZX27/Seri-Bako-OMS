@@ -360,7 +360,7 @@ export function PurchaseRequestForm({
                   </div>
                 ) : null}
               </div>
-              <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0" aria-expanded={detailsOpen} aria-label={detailsOpen ? "Collapse request details" : "Expand request details"} onClick={() => setDetailsOpen((open) => !open)}>
+              <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" aria-expanded={detailsOpen} aria-label={detailsOpen ? "Collapse request details" : "Expand request details"} onClick={() => setDetailsOpen((open) => !open)}>
                 <ChevronDown className={`h-4 w-4 transition-transform ${detailsOpen ? "rotate-180" : ""}`} />
               </Button>
             </div>
@@ -460,7 +460,7 @@ export function PurchaseRequestForm({
               ))}
             </div>
             <div className="flex justify-end border-t border-[var(--sb-border-soft)] px-3 py-2">
-              <Button type="button" variant="outline" size="sm" className="h-8 px-2.5" onClick={addLine} aria-label="Add request line">
+              <Button type="button" variant="outline" size="sm" className="h-9 px-2.5" onClick={addLine} aria-label="Add request line">
                 <Plus className="h-4 w-4" />
                 Add line
               </Button>
@@ -527,7 +527,7 @@ export function PurchaseOrderForm({
           <section data-purchase-order-form-surface className="sb-work-surface overflow-hidden">
           <div className="flex items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] bg-white px-3 py-2">
             <div className="min-w-0"><h2 className="text-sm font-semibold text-[var(--sb-text)]">Order details</h2>{!detailsOpen ? <p className="mt-0.5 truncate text-xs text-muted-foreground">{branches.find((branch) => branch.id === branchId)?.branch_name ?? "Branch not set"} · {eligibleSuppliers.find((supplier) => supplier.supplier_id === supplierId)?.supplier_name ?? "Supplier not set"} · {orderDate}{expectedDeliveryDate ? ` → ${expectedDeliveryDate}` : ""}</p> : null}</div>
-            <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0" aria-expanded={detailsOpen} aria-label={detailsOpen ? "Collapse order details" : "Expand order details"} onClick={() => setDetailsOpen((current) => !current)}><ChevronDown className={`h-4 w-4 transition-transform motion-reduce:transition-none ${detailsOpen ? "rotate-180" : ""}`} aria-hidden="true" /></Button>
+            <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" aria-expanded={detailsOpen} aria-label={detailsOpen ? "Collapse order details" : "Expand order details"} onClick={() => setDetailsOpen((current) => !current)}><ChevronDown className={`h-4 w-4 transition-transform motion-reduce:transition-none ${detailsOpen ? "rotate-180" : ""}`} aria-hidden="true" /></Button>
           </div>
           <div data-purchase-order-setup className={`grid grid-cols-2 gap-3 p-3 md:grid-cols-3 md:p-4 ${detailsOpen ? "" : "hidden"}`}>
             <Field label="Branch" required>

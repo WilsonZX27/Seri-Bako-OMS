@@ -7,6 +7,7 @@ import { getCanonicalDocumentHref } from "@/lib/document-routing";
 import { formatStatusLabel } from "@/lib/status-label";
 import { formatDateTime } from "@/lib/utils";
 import { getDocumentBundle } from "@/server/queries/documents";
+import { detailOrNotFound } from "@/server/queries/detail";
 
 const documentSteps = [
   { key: "draft", label: "Draft", description: "Document is being prepared." },
@@ -24,7 +25,7 @@ export default async function DocumentDetailPage({
   searchParams: Promise<{ error?: string; success?: string }>;
 }) {
   const { id } = await params;
-  const [messageParams, bundle] = await Promise.all([searchParams, getDocumentBundle(id)]);
+  const [messageParams, bundle] = await Promise.all([searchParams, detailOrNotFound(getDocumentBundle(id))]);
   const document = bundle.document;
   const canonicalHref = getCanonicalDocumentHref(document);
   if (canonicalHref !== `/documents/${document.id}`) {

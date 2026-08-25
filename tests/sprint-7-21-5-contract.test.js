@@ -31,5 +31,5 @@ test("Administration is canonical and the retired Settings route is absent", () 
   assert.equal(fs.existsSync("src/app/(app)/administration/page.tsx"), true);
   assert.equal(fs.existsSync("src/app/(app)/settings/page.tsx"), false);
   assert.match(read("src/components/layout/breadcrumbs.tsx"), /label: "Administration", href: "\/administration"/);
-  assert.match(read("src/server/auth/route-permissions.ts"), /"\/administration": \["company\.read", "staffs\.read", "roles\.read", "items\.view", "imports\.create"\]/);
+  assert.match(read("src/server/auth/route-permissions.ts"), /"\/administration": \["company\.read", "staffs\.read", "roles\.read", "items\.view", "imports\.create", "branches\.read"\]/);
 });

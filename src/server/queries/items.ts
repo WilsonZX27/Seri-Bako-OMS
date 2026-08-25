@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { requireDetailRow } from "@/server/queries/detail";
 import { isMockMode, mockItems, mockSuppliers } from "@/lib/mock-mode";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
 import { getStockBalances } from "@/server/queries/inventory";
@@ -174,14 +175,11 @@ export async function getItemsWithStockPage(filters: ItemFilters = {}) {
 
 export async function getItem(id: string) {
   if (isMockMode()) {
-    const item = mockItems.find((row) => row.id === id);
-    if (!item) throw new Error("Mock item not found");
-    return item;
+    return requireDetailRow(mockItems.find((row) => row.id === id), "Item", id);
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.from("items").select("*").eq("id", id).single();
+  const { data, error } = await supabase.from("items").select("*").eq("id", id).maybeSingle();
   if (error) throw new Error(error.message);
-  if (!data) throw new Error("Item detail returned no data.");
-  return data;
+  return requireDetailRow(data, "Item", id);
 }

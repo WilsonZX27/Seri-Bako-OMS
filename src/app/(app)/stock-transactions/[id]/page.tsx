@@ -11,6 +11,7 @@ import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getStockTransaction } from "@/server/queries/inventory";
+import { detailOrNotFound } from "@/server/queries/detail";
 
 function statusVariant(status: string) {
   if (status === "posted") return "success";
@@ -35,7 +36,7 @@ function relatedHref(type: string | null, id: string | null) {
 
 export default async function StockTransactionDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const transaction = await getStockTransaction(id);
+  const transaction = await detailOrNotFound(getStockTransaction(id));
   const documentBundle = transaction.document_id ? await getDocumentBundle(transaction.document_id) : null;
   const movementQty = Math.max(transaction.quantity_in, transaction.quantity_out);
   const sourceHref = relatedHref(transaction.reference_type, transaction.reference_id);

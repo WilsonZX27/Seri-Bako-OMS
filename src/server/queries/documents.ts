@@ -9,6 +9,7 @@ import {
   mockProfile,
 } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
+import { requireDetailRow } from "@/server/queries/detail";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
 import { actorDisplayName, resolveActorDisplayMap } from "@/server/actors/display";
 import type { Database } from "@/types/database";
@@ -115,18 +116,18 @@ export async function getDocuments(filters: DocumentFilters = {}) {
 
 export async function getDocument(id: string) {
   if (isMockMode()) {
-    const document = mockDocuments.find((row) => row.id === id);
-    if (!document) throw new Error("Mock document not found");
+    const document = requireDetailRow(mockDocuments.find((row) => row.id === id), "Document", id);
     return { ...document, created_by_name: mockProfile.full_name };
   }
   const supabase = await createClient();
-  const { data, error } = await supabase.from("documents").select("*").eq("id", id).single();
+  const { data, error } = await supabase.from("documents").select("*").eq("id", id).maybeSingle();
   if (error) throw new Error(error.message);
-  const displayMap = await resolveActorDisplayMap([data.created_by, data.updated_by]);
+  const document = requireDetailRow(data, "Document", id);
+  const displayMap = await resolveActorDisplayMap([document.created_by, document.updated_by]);
   return {
-    ...(data as DocumentRow),
-    created_by_name: actorDisplayName(displayMap, data.created_by),
-    updated_by_name: actorDisplayName(displayMap, data.updated_by),
+    ...(document as DocumentRow),
+    created_by_name: actorDisplayName(displayMap, document.created_by),
+    updated_by_name: actorDisplayName(displayMap, document.updated_by),
   };
 }
 

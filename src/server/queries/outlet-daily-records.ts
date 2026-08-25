@@ -3,6 +3,7 @@ import { todayInKualaLumpur } from "@/lib/business-date";
 import { createClient } from "@/lib/supabase/server";
 import { hasPermission } from "@/server/auth/permissions";
 import { getCurrentProfile, requireReadRows } from "@/server/queries/common";
+import { requireDetailRow } from "@/server/queries/detail";
 import type { Database } from "@/types/database";
 import { compareProductDisplayOrder, sortProductsForDisplay } from "@/lib/product-order";
 
@@ -427,7 +428,7 @@ export async function getOutletDailyRecord(id: string) {
   if (isMockMode()) throw new Error("Outlet daily records require migration 064.");
   const db = await createClient();
   const [{ data: record, error }, { data: lines, error: linesError }, { data: branches, error: branchesError }, { data: products, error: productsError }, { data: staffs, error: staffsError }] = await Promise.all([
-    db.from("outlet_daily_records").select("*").eq("id", id).single(),
+    db.from("outlet_daily_records").select("*").eq("id", id).maybeSingle(),
     db.from("outlet_daily_record_lines").select("*").eq("record_id", id),
     db.from("branches").select("id,branch_name"),
     db.from("products").select("id,product_code,product_name,category,selling_unit,status,display_order"),
@@ -438,7 +439,7 @@ export async function getOutletDailyRecord(id: string) {
   if (branchesError) throw new Error(branchesError.message);
   if (productsError) throw new Error(productsError.message);
   if (staffsError) throw new Error(staffsError.message);
-  const typedRecord = record as RecordRow;
+  const typedRecord = requireDetailRow(record, "Outlet daily record", id) as RecordRow;
   const typedLines = requireReadRows(lines, "Outlet daily record lines") as LineRow[];
   const trustedBranches = requireReadRows(branches, "Outlet daily record branches");
   const trustedProducts = requireReadRows(products, "Outlet daily record products");

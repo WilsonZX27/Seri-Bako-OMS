@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { requireDetailRow } from "@/server/queries/detail";
 import { getCurrentProfile } from "@/server/queries/common";
 import { hasUniqueValidAuthLink, listAuthUserSummaries } from "@/server/auth/admin-users";
 import { getRoleDisplayLabel, sortRolesForDisplay, SYSTEM_ROLE_CODES } from "@/lib/roles";
@@ -83,15 +84,13 @@ export async function getBranches(filters: Filters = {}) {
 
 export async function getBranch(id: string) {
   if (isMockMode()) {
-    const branch = mockBranches.find((row) => row.id === id);
-    if (!branch) throw new Error("Mock branch not found");
-    return branch;
+    return requireDetailRow(mockBranches.find((row) => row.id === id), "Branch", id);
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.from("branches").select("*").eq("id", id).single();
+  const { data, error } = await supabase.from("branches").select("*").eq("id", id).maybeSingle();
   if (error) throw new Error(error.message);
-  return data;
+  return requireDetailRow(data, "Branch", id);
 }
 
 export async function getBranchSupplyRouteContext() {
@@ -182,16 +181,15 @@ export async function getStaffs(filters: Filters = {}) {
 
 export async function getStaff(id: string) {
   if (isMockMode()) {
-    const staff = mockStaffs.find((row) => row.id === id);
-    if (!staff) throw new Error("Mock staff not found");
-    return staff;
+    return requireDetailRow(mockStaffs.find((row) => row.id === id), "Staff", id);
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.from("staffs").select("*").eq("id", id).single();
+  const { data, error } = await supabase.from("staffs").select("*").eq("id", id).maybeSingle();
   if (error) throw new Error(error.message);
+  const staff = requireDetailRow(data, "Staff", id);
   const authUsers = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ? await listAuthUserSummaries() : [];
-  return { ...data, auth_link_valid: hasUniqueValidAuthLink(data, authUsers) };
+  return { ...staff, auth_link_valid: hasUniqueValidAuthLink(staff, authUsers) };
 }
 
 export async function getStaffAccess(staffId: string) {
@@ -369,22 +367,21 @@ export async function getDocumentSequences(filters: Filters = {}) {
 
 export async function getDocumentSequence(id: string) {
   if (isMockMode()) {
-    const sequence = mockDocumentSequences.find((row) => row.id === id);
-    if (!sequence) throw new Error("Mock document sequence not found");
-    return sequence;
+    return requireDetailRow(mockDocumentSequences.find((row) => row.id === id), "Document sequence", id);
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.from("document_sequences").select("*").eq("id", id).single();
+  const { data, error } = await supabase.from("document_sequences").select("*").eq("id", id).maybeSingle();
   if (error) throw new Error(error.message);
-  const currentPeriod = sequencePeriod(data.reset_frequency).start;
+  const sequence = requireDetailRow(data, "Document sequence", id);
+  const currentPeriod = sequencePeriod(sequence.reset_frequency).start;
   const { data: period, error: periodError } = await supabase
     .from("document_sequence_periods")
     .select("next_number")
-    .eq("company_id", data.company_id)
-    .eq("document_type", data.document_type)
+    .eq("company_id", sequence.company_id)
+    .eq("document_type", sequence.document_type)
     .eq("period_start", currentPeriod)
     .maybeSingle();
   if (periodError) throw new Error(periodError.message);
-  return { ...data, next_number: period?.next_number ?? 1 };
+  return { ...sequence, next_number: period?.next_number ?? 1 };
 }

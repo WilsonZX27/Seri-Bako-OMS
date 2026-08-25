@@ -147,7 +147,7 @@ export function InventoryDailyMovementChart({ points }: { points: InventoryDaily
       </div>
 
       <details className="mt-2 border-t border-[var(--sb-border-soft)] pt-2 text-xs">
-        <summary className="cursor-pointer font-medium text-primary">Daily data · {formatNumber(totals.all)} posted entries</summary>
+        <summary className="flex min-h-9 cursor-pointer items-center font-medium text-primary">Daily data · {formatNumber(totals.all)} posted entries</summary>
         <div className="mt-2 max-h-64 overflow-y-auto">
           <div className="divide-y divide-[var(--sb-border-soft)] sm:hidden" role="list" aria-label="Daily posted inventory movement entries" data-inventory-movement-daily-list>
             {points.map((point) => <div key={point.transaction_date} className="grid gap-2 py-2.5 first:pt-0" role="listitem">

@@ -8,10 +8,11 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { deleteProduct, restoreProduct } from "@/server/actions/products";
 import { PhaseOneDeleteAction } from "@/components/phase-one-delete-action";
+import { detailOrNotFound } from "@/server/queries/detail";
 
 export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [product, packaging] = await Promise.all([getProduct(id), getProductPackaging(id)]);
+  const [product, packaging] = await Promise.all([detailOrNotFound(getProduct(id)), getProductPackaging(id)]);
   const formId = "product-edit-form";
 
   return (

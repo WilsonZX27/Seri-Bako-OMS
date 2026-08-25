@@ -15,6 +15,7 @@ import { getRecipe } from "@/server/queries/recipes";
 import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
 import { PhaseOneDeleteAction } from "@/components/phase-one-delete-action";
 import { getPermissionMap } from "@/server/auth/permissions";
+import { detailOrNotFound } from "@/server/queries/detail";
 
 function imageFallback(label: string) {
   return (
@@ -32,7 +33,7 @@ export default async function RecipeDetailPage({
   searchParams: Promise<{ error?: string; success?: string }>;
 }) {
   const { id } = await params;
-  const [messageParams, recipe, permissions] = await Promise.all([searchParams, getRecipe(id), getPermissionMap(["recipes.create", "recipes.update", "recipes.submit", "recipes.approve", "recipes.archive"])]);
+  const [messageParams, recipe, permissions] = await Promise.all([searchParams, detailOrNotFound(getRecipe(id)), getPermissionMap(["recipes.create", "recipes.update", "recipes.submit", "recipes.approve", "recipes.archive"])]);
   const documentBundle = recipe.document_id ? await getDocumentBundle(recipe.document_id) : null;
 
   return (

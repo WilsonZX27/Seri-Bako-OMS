@@ -7,5 +7,5 @@ test("local browser sessions isolate their Next output from production builds", 
   const localServer = fs.readFileSync("scripts/playwright-local-server.mjs", "utf8");
 
   assert.match(config, /distDir: process\.env\.NEXT_DIST_DIR \|\| "\.next"/);
-  assert.match(localServer, /NEXT_DIST_DIR: "\.next-playwright"/);
+  assert.match(localServer, /NEXT_DIST_DIR: production \? "\.next-playwright-production" : "\.next-playwright"/);
 });

@@ -8,11 +8,12 @@ import { ActionErrorNotice } from "@/components/action-error-notice";
 import { deleteSupplierItem, restoreSupplierItem, updateSupplierItem } from "@/server/actions/master-data";
 import { getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 import { getSupplierItem } from "@/server/queries/master-data";
+import { detailOrNotFound } from "@/server/queries/detail";
 
 export default async function EditSupplierItemPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { id } = await params;
   const notices = await searchParams;
-  const [supplierItem, suppliers, items] = await Promise.all([getSupplierItem(id), getSuppliersForSelect(), getItemsForSelect()]);
+  const [supplierItem, suppliers, items] = await Promise.all([detailOrNotFound(getSupplierItem(id)), getSuppliersForSelect(), getItemsForSelect()]);
   const formId = "supplier-item-edit-form";
   const lifecycleAction = supplierItem.deleted_at ? (
     <form action={restoreSupplierItem.bind(null, id)}><SubmitButton type="submit" className="w-full" pendingLabel="Restoring...">Restore supplier item</SubmitButton></form>

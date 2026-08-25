@@ -10,12 +10,13 @@ import { updateRecipe } from "@/server/actions/recipes";
 import { getProducts } from "@/server/queries/products";
 import { getRecipe, getRecipeIngredientOptions } from "@/server/queries/recipes";
 import { requirePermission } from "@/server/auth/permissions";
+import { detailOrNotFound } from "@/server/queries/detail";
 
 export default async function EditRecipePage({ params }: { params: Promise<{ id: string }> }) {
   await requirePermission("recipes.update");
   const { id } = await params;
   const [recipe, products, items] = await Promise.all([
-    getRecipe(id),
+    detailOrNotFound(getRecipe(id)),
     getProducts({ status: "active" }),
     getRecipeIngredientOptions(),
   ]);

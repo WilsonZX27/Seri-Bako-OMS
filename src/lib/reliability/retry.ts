@@ -14,9 +14,12 @@ const CIRCUIT_OPEN_MS = 15_000;
 const CIRCUIT_THRESHOLD = 3;
 
 export class CircuitOpenError extends Error {
-  constructor(readonly circuitKey: string) {
+  readonly circuitKey: string;
+
+  constructor(circuitKey: string) {
     super("This service is recovering. Try again shortly.");
     this.name = "CircuitOpenError";
+    this.circuitKey = circuitKey;
   }
 }
 

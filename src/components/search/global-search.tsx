@@ -6,6 +6,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { readJsonResponse } from "@/lib/http/read-json-response";
 import { ModalShell } from "@/components/ui/modal-shell";
 import { searchableNavItems } from "@/components/layout/nav-items";
 
@@ -77,7 +78,7 @@ export function GlobalSearch({
       try {
         const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`, { signal: controller.signal });
         if (!response.ok) throw new Error("Search request failed.");
-        const payload = (await response.json()) as { results?: SearchResult[] };
+        const payload = await readJsonResponse<{ results?: SearchResult[] }>(response);
         if (active) setResults([...navResults, ...(payload.results ?? [])]);
       } catch (error) {
         // A cancelled request is expected while the user is typing. For any

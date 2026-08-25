@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
 import type { Database } from "@/types/database";
 import { requireReadRows } from "@/server/queries/common";
+import { requireDetailRow } from "@/server/queries/detail";
 
 type Filters = Record<string, string | undefined>;
 type PurchaseReturn = Database["public"]["Tables"]["purchase_returns"]["Row"];
@@ -153,12 +154,12 @@ export async function getGoodsReceivingForReturn(id: string) {
 export async function getPurchaseReturn(id: string) {
   const supabase = await createClient();
   const [{ data: row, error }, { data: lines, error: linesError }] = await Promise.all([
-    supabase.from("purchase_returns").select("*").eq("id", id).single(),
+    supabase.from("purchase_returns").select("*").eq("id", id).maybeSingle(),
     supabase.from("purchase_return_lines").select("*").eq("purchase_return_id", id),
   ]);
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(linesError.message);
-  const returnRow = row as PurchaseReturn;
+  const returnRow = requireDetailRow(row, "Purchase return", id) as PurchaseReturn;
   const returnLines = requireReadRows(lines, "Purchase return detail lines") as PurchaseReturnLine[];
   const itemIds = [...new Set(returnLines.map((line) => line.item_id))];
   const [itemsResult, grnResult, poResult, supplierResult, branchResult, stocksResult] = await Promise.all([
@@ -184,10 +185,10 @@ export async function getPurchaseReturn(id: string) {
   return {
     purchaseReturn: {
       ...returnRow,
-      grn_no: grnById.get(row.goods_receiving_id) ?? null,
-      po_no: poById.get(row.purchase_order_id) ?? null,
-      supplier_name: supplierById.get(row.supplier_id) ?? null,
-      branch_name: row.branch_id ? branchById.get(row.branch_id) ?? null : null,
+      grn_no: grnById.get(returnRow.goods_receiving_id) ?? null,
+      po_no: poById.get(returnRow.purchase_order_id) ?? null,
+      supplier_name: supplierById.get(returnRow.supplier_id) ?? null,
+      branch_name: returnRow.branch_id ? branchById.get(returnRow.branch_id) ?? null : null,
     },
     lines: returnLines.map((line) => ({ ...line, item: itemById.get(line.item_id) })),
     stockTransactions: stocks ?? [],

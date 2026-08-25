@@ -68,10 +68,10 @@
   --sb-neutral-bg: #EEECE6;
   --sb-neutral-text: #5E665F;
   --sb-font-sans: "Segoe UI Variable", Aptos, "SF Pro Text", ui-sans-serif, system-ui, sans-serif;
-  /* v9 type scale: compact enough for operations, with a deliberate display
-     step so page identity is visible before the work surface begins. */
-  --sb-text-display: clamp(1.35rem, 1.14rem + 0.42vw, 1.75rem);
-  --sb-text-identity: clamp(1.125rem, 1rem + 0.25vw, 1.375rem);
+  /* v9 type scale uses fixed, intentional steps. Responsive composition owns
+     wrapping and space; typography does not continuously resize itself. */
+  --sb-text-display: 1.5rem;
+  --sb-text-identity: 1.25rem;
   --sb-text-title: 1.125rem;
   --sb-text-label: 0.6875rem;
   --sb-text-page: 1.125rem;
@@ -104,8 +104,8 @@
   --sb-z-backdrop: 100;
   --sb-z-dialog: 101;
   --sb-z-toast: 70;
-  --sb-motion-fast: 120ms;
-  --sb-motion-standard: 180ms;
+  --sb-motion-fast: 160ms;
+  --sb-motion-standard: 220ms;
   --app-bg: var(--sb-bg);
   --workspace-bg: #f4f5f2;
   --rail-bg: #fbfcfa;
@@ -227,7 +227,7 @@ summary {
 
 .sb-section-label {
   font-size: var(--sb-text-meta);
-  @apply font-semibold text-muted-foreground;
+  @apply font-medium text-muted-foreground;
 }
 
 .sb-icon-tile {
@@ -329,7 +329,7 @@ input[type="date"]::-webkit-date-and-time-value {
   background: var(--sb-green-900);
   color: var(--sb-text-inverse);
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .sb-filter-more-backdrop { display: none; }
@@ -371,7 +371,7 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 .sb-filter-more-header { border-bottom: 1px solid var(--sb-border-soft); }
-.sb-filter-more-header h2 { font-size: 0.875rem; font-weight: 650; }
+.sb-filter-more-header h2 { font-size: 0.875rem; font-weight: 500; }
 .sb-filter-more-header p,
 .sb-filter-more-help { color: var(--sb-text-muted); font-size: 0.75rem; }
 .sb-filter-more-fields { display: grid; gap: 0.5rem; padding: 0.75rem; }

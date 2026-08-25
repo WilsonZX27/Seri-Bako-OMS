@@ -10,8 +10,9 @@ const detail = source.slice(
 );
 
 test("stock transaction detail only loads its referenced item and branch", () => {
-  assert.match(detail, /\.eq\("id", data\.item_id\)\.maybeSingle\(\)/);
-  assert.match(detail, /\.eq\("id", data\.branch_id\)\.maybeSingle\(\)/);
+  assert.match(detail, /const transaction = requireDetailRow\(data, "Stock transaction", id\)/);
+  assert.match(detail, /\.eq\("id", transaction\.item_id\)\.maybeSingle\(\)/);
+  assert.match(detail, /\.eq\("id", transaction\.branch_id\)\.maybeSingle\(\)/);
   assert.doesNotMatch(detail, /new Map/);
 });
 

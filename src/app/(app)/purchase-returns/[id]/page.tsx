@@ -11,6 +11,7 @@ import { cancelPurchaseReturn, postPurchaseReturn } from "@/server/actions/purch
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getPurchaseReturn } from "@/server/queries/purchase-returns";
+import { detailOrNotFound } from "@/server/queries/detail";
 
 const steps = [
   { key: "draft", label: "Draft", description: "Return is being prepared." },
@@ -21,7 +22,7 @@ const steps = [
 export default async function PurchaseReturnDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const [{ id }, filters] = await Promise.all([params, searchParams]);
   const [{ purchaseReturn, lines, stockTransactions }, permissions] = await Promise.all([
-    getPurchaseReturn(id),
+    detailOrNotFound(getPurchaseReturn(id)),
     getPermissionMap(["purchase_return.post", "purchase_return.cancel"]),
   ]);
   const documentBundle = purchaseReturn.document_id ? await getDocumentBundle(purchaseReturn.document_id) : null;

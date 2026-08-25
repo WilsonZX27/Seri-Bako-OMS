@@ -17,6 +17,7 @@ import { hasPermission } from "@/server/auth/permissions";
 import { getCurrentProfile } from "@/server/queries/common";
 import { readTemporaryPasswordHandoff } from "@/server/auth/temporary-password-handoff";
 import { getBranches, getCompaniesForSelect, getRoles, getStaff, getStaffAccess, getStaffPermissionAccess } from "@/server/queries/foundation";
+import { detailOrNotFound } from "@/server/queries/detail";
 
 export default async function EditStaffPage({
   params,
@@ -28,7 +29,7 @@ export default async function EditStaffPage({
   const { id } = await params;
   const [messageParams, staff, access, companies, branches, allRoles, profile, temporaryPassword] = await Promise.all([
     searchParams,
-    getStaff(id),
+    detailOrNotFound(getStaff(id)),
     getStaffAccess(id),
     getCompaniesForSelect(),
     getBranches({ status: "active" }),

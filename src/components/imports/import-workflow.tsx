@@ -10,6 +10,7 @@ import { SelectNative } from "@/components/ui/select-native";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { readJsonResponse } from "@/lib/http/read-json-response";
 import { formatDateTime } from "@/lib/utils";
 
 type RowState = { index: number; values: Record<string, string>; errors: string[] };
@@ -397,7 +398,10 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
           rows: validRows.map((row) => row.values),
         }),
       });
-      const payload = (await response.json()) as ImportResult;
+      const payload = await readJsonResponse<ImportResult>(response, {
+        sessionExpired: "Your session expired. Sign in again, then retry; the current rows remain on this page.",
+        unexpectedResponse: `The import service returned an unexpected response (${response.status}). Retry; no records were changed.`,
+      });
       setResult(payload);
       setMessage(payload.message);
       if (payload.ok) {

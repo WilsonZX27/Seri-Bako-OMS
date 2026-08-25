@@ -15,6 +15,7 @@ import { createClient } from "@/lib/supabase/server";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
 import type { Database } from "@/types/database";
 import { getCurrentUserScope } from "@/server/queries/notifications";
+import { requireDetailRow } from "@/server/queries/detail";
 
 type Filters = Record<string, string | undefined>;
 type PurchaseRequest = Database["public"]["Tables"]["purchase_requests"]["Row"];
@@ -422,8 +423,7 @@ export async function getPurchaseOrderSummary() {
 
 export async function getPurchaseOrder(id: string) {
   if (isMockMode()) {
-    const row = mockPurchaseOrders.find((item) => item.id === id);
-    if (!row) throw new Error("Mock purchase order not found");
+    const row = requireDetailRow(mockPurchaseOrders.find((item) => item.id === id), "Purchase order", id);
     const lines = mockPurchaseOrderLines.filter((line) => line.purchase_order_id === id).map((line) => {
       const item = mockItems.find((itemRow) => itemRow.id === line.item_id);
       return { ...line, item, qty_pending: line.qty_ordered - line.qty_received - line.qty_cancelled };
@@ -432,14 +432,15 @@ export async function getPurchaseOrder(id: string) {
   }
   const supabase = await createClient();
   const [{ data, error }, { data: lines, error: linesError }] = await Promise.all([
-    supabase.from("purchase_orders").select("*").eq("id", id).single(),
+    supabase.from("purchase_orders").select("*").eq("id", id).maybeSingle(),
     supabase.from("purchase_order_lines").select("*").eq("purchase_order_id", id),
   ]);
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(linesError.message);
-  if (!data || !lines) throw new Error("Purchase order detail returned no data.");
+  const order = requireDetailRow(data, "Purchase order", id);
+  if (!lines) throw new Error("Purchase order detail lines returned no data.");
   return {
-    order: data as PurchaseOrder,
+    order: order as PurchaseOrder,
     lines: (lines as PurchaseOrderLine[]).map((line) => ({ ...line, qty_pending: line.qty_ordered - line.qty_received - line.qty_cancelled })),
   };
 }

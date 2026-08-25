@@ -9,6 +9,7 @@ import { formatDateOnly, formatNumber } from "@/lib/utils";
 import { cancelStockWastage, postStockWastage, rejectStockWastage } from "@/server/actions/stock-operations";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getStockWastageDetail } from "@/server/queries/stock-operations";
+import { detailOrNotFound } from "@/server/queries/detail";
 
 const wastageSteps = [
   { key: "draft", label: "Draft", description: "Wastage is being prepared." },
@@ -21,7 +22,7 @@ const recommendsEvidence = (reason: string) => ["damaged", "expired", "supplier_
 
 export default async function StockWastageDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { wastage, lines } = await getStockWastageDetail(id);
+  const { wastage, lines } = await detailOrNotFound(getStockWastageDetail(id));
   const bundle = wastage.document_id ? await getDocumentBundle(wastage.document_id) : null;
   const evidenceMissing = recommendsEvidence(wastage.reason) && !bundle?.attachments.length;
   const canAct = wastage.status === "draft";

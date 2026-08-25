@@ -62,7 +62,7 @@ test("inactive, missing, unassigned, denied-dashboard, signed-out, and stale-coo
   assert.deepEqual(follow("/dashboard", () => ({ authenticated: true, staffStatus: "disabled", mustChangePassword: false, routeProtected: true, routeAllowed: false, firstPermittedRoute: null })), ["/dashboard", "/access-status"]);
   assert.deepEqual(follow("/dashboard", () => ({ authenticated: true, staffStatus: null, mustChangePassword: false, routeProtected: true, routeAllowed: false, firstPermittedRoute: null })), ["/dashboard", "/access-status"]);
   assert.deepEqual(follow("/dashboard", () => ({ authenticated: true, staffStatus: "active", mustChangePassword: false, routeProtected: true, routeAllowed: false, firstPermittedRoute: null })), ["/dashboard", "/access-status"]);
-  assert.deepEqual(follow("/dashboard", (pathname) => ({ authenticated: true, staffStatus: "active", mustChangePassword: false, routeProtected: true, routeAllowed: pathname === "/purchase-requests", firstPermittedRoute: "/purchase-requests" })), ["/dashboard", "/purchase-requests"]);
+  assert.deepEqual(follow("/dashboard", (pathname) => ({ authenticated: true, staffStatus: "active", mustChangePassword: false, routeProtected: true, routeAllowed: pathname === "/purchase-requests", firstPermittedRoute: "/purchase-requests" })), ["/dashboard", "/access-status"]);
   assert.deepEqual(follow("/dashboard", () => ({ authenticated: false, staffStatus: null, mustChangePassword: false, routeProtected: true, routeAllowed: false, firstPermittedRoute: null })), ["/dashboard", "/login"]);
 });
 
@@ -74,4 +74,13 @@ test("middleware preserves refreshed cookies and guards identical-path redirects
   const middleware = fs.readFileSync("src/lib/supabase/middleware.ts", "utf8");
   assert.match(middleware, /url\.pathname === request\.nextUrl\.pathname/);
   assert.match(middleware, /response\.cookies\.getAll\(\)/);
+});
+
+test("route denial is explicit and does not masquerade as a signed-out session", () => {
+  const resolver = fs.readFileSync("src/server/auth/route-resolver.ts", "utf8");
+  const status = fs.readFileSync("src/app/(auth)/access-status/page.tsx", "utf8");
+  assert.match(resolver, /destination: "\/access-status\?reason=route-not-permitted"/);
+  assert.match(status, /You do not have permission to open this workspace or action/);
+  assert.match(status, /Return to Dashboard/);
+  assert.doesNotMatch(status, /auth\.getUser\(\)/);
 });

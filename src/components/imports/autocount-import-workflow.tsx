@@ -7,6 +7,7 @@ import { ConsoleSection } from "@/components/layout/right-console";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Notice } from "@/components/ui/system-states";
+import { readJsonResponse } from "@/lib/http/read-json-response";
 import { parseAutoCountWorkbook } from "@/lib/imports/autocount-xlsx";
 import type { AutoCountIssue, AutoCountParsedFile } from "@/lib/imports/autocount";
 
@@ -25,17 +26,6 @@ type PreviewResponse = { ok: boolean; message?: string; jobId?: string; status?:
 type ConfirmResult = Record<string, number>;
 
 const typeLabels = { supplier_list: "Supplier List", item_list: "Item List", location_snapshot: "Location Snapshot" } as const;
-
-async function readJsonResponse<T extends { ok: boolean; message?: string }>(response: Response): Promise<T> {
-  const contentType = response.headers.get("content-type") ?? "";
-  if (!contentType.toLowerCase().includes("application/json")) {
-    if (response.status === 401 || response.redirected || response.url.includes("/login")) {
-      throw new Error("Your session expired. Sign in again, then retry Review import; your selected files remain here.");
-    }
-    throw new Error(`The import service returned an unexpected response (${response.status}). Retry; no OMS records were changed.`);
-  }
-  return await response.json() as T;
-}
 
 export function AutoCountImportWorkflow() {
   const [files, setFiles] = useState<AutoCountParsedFile[]>([]);
@@ -62,7 +52,10 @@ export function AutoCountImportWorkflow() {
     setBusy("preview"); setMessage(null); setResult(null);
     try {
       const response = await fetch("/api/imports/autocount/preview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ files }) });
-      const payload = await readJsonResponse<PreviewResponse>(response);
+      const payload = await readJsonResponse<PreviewResponse>(response, {
+        sessionExpired: "Your session expired. Sign in again, then retry Review import; your selected files remain here.",
+        unexpectedResponse: `The import service returned an unexpected response (${response.status}). Retry; no OMS records were changed.`,
+      });
       if (!response.ok || !payload.ok) throw new Error(payload.message ?? "Could not prepare the import preview.");
       setPreview(payload);
     } catch (error) { setMessage(error instanceof Error ? error.message : "Could not prepare the import preview."); }
@@ -74,7 +67,10 @@ export function AutoCountImportWorkflow() {
     setBusy("confirm"); setMessage(null);
     try {
       const response = await fetch("/api/imports/autocount/confirm", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jobId: preview.jobId }) });
-      const payload = await readJsonResponse<{ ok: boolean; message?: string; result?: ConfirmResult }>(response);
+      const payload = await readJsonResponse<{ ok: boolean; message?: string; result?: ConfirmResult }>(response, {
+        sessionExpired: "Your session expired. Sign in again, then retry confirmation; the prepared preview remains available.",
+        unexpectedResponse: `The import service returned an unexpected response (${response.status}). Retry confirmation; no duplicate import was created.`,
+      });
       if (!response.ok || !payload.ok) throw new Error(payload.message ?? "The import could not be confirmed.");
       setResult(payload.result ?? {});
     } catch (error) { setMessage(error instanceof Error ? error.message : "The import could not be confirmed."); }

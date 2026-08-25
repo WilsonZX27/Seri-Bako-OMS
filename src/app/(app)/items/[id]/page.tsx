@@ -15,11 +15,12 @@ import { getItem, getItemsWithStock } from "@/server/queries/items";
 import { getItemSourcingReadiness, getItemStockCountLifecycle, getItemStockCountRetirementHistory } from "@/server/queries/master-data";
 import { hasPermission } from "@/server/auth/permissions";
 import { PhaseOneDeleteAction } from "@/components/phase-one-delete-action";
+import { detailOrNotFound } from "@/server/queries/detail";
 
 export default async function EditItemPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; success?: string }> }) {
   const { id } = await params;
   const messages = await searchParams;
-  const [item, suppliers, itemBalances, canCreateSupplier, sourcing, stockCountLifecycle, stockCountRetirementHistory] = await Promise.all([getItem(id), getSuppliersForSelect(), getItemsWithStock(), hasPermission("suppliers.create"), getItemSourcingReadiness(id), getItemStockCountLifecycle(id), getItemStockCountRetirementHistory(id)]);
+  const [item, suppliers, itemBalances, canCreateSupplier, sourcing, stockCountLifecycle, stockCountRetirementHistory] = await Promise.all([detailOrNotFound(getItem(id)), getSuppliersForSelect(), getItemsWithStock(), hasPermission("suppliers.create"), getItemSourcingReadiness(id), getItemStockCountLifecycle(id), getItemStockCountRetirementHistory(id)]);
   const balance = itemBalances.find((row) => row.id === id);
   const sourcingHref = sourcing.status === "master_only" ? `/supplier-items/new?itemId=${id}` : `/supplier-items?search=${encodeURIComponent(item.item_code)}`;
   const sourcingAction = sourcing.status === "master_only" ? "Add supplier mapping" : "Review sourcing";

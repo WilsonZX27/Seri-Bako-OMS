@@ -1,5 +1,6 @@
 import { isMockMode, mockItems, mockSupplierItems, mockSuppliers, mockUomConversions } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
+import { requireDetailRow } from "@/server/queries/detail";
 import { compareTableValues } from "@/lib/table-state";
 import type { Database } from "@/types/database";
 import { looseSupabase } from "@/lib/supabase/loose";
@@ -73,14 +74,12 @@ export async function getSupplierItems(filters: Filters = {}) {
 
 export async function getSupplierItem(id: string) {
   if (isMockMode()) {
-    const row = mockSupplierItems.find((item) => item.id === id);
-    if (!row) throw new Error("Mock supplier item not found");
-    return row;
+    return requireDetailRow(mockSupplierItems.find((item) => item.id === id), "Supplier item", id);
   }
   const supabase = await createClient();
-  const { data, error } = await supabase.from("supplier_items").select("*").eq("id", id).single();
+  const { data, error } = await supabase.from("supplier_items").select("*").eq("id", id).maybeSingle();
   if (error) throw new Error(error.message);
-  return data;
+  return requireDetailRow(data, "Supplier item", id);
 }
 
 export async function getUomConversions(filters: Filters = {}) {
@@ -95,14 +94,12 @@ export async function getUomConversions(filters: Filters = {}) {
 
 export async function getUomConversion(id: string) {
   if (isMockMode()) {
-    const row = mockUomConversions.find((item) => item.id === id);
-    if (!row) throw new Error("Mock UOM conversion not found");
-    return row;
+    return requireDetailRow(mockUomConversions.find((item) => item.id === id), "UOM conversion", id);
   }
   const supabase = await createClient();
-  const { data, error } = await supabase.from("uom_conversions").select("*").eq("id", id).single();
+  const { data, error } = await supabase.from("uom_conversions").select("*").eq("id", id).maybeSingle();
   if (error) throw new Error(error.message);
-  return data;
+  return requireDetailRow(data, "UOM conversion", id);
 }
 
 export type ItemSourcingReadiness = {

@@ -10,6 +10,7 @@ import {
   mockStockTransactions,
 } from "@/lib/mock-mode";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
+import { requireDetailRow } from "@/server/queries/detail";
 import type { Database } from "@/types/database";
 
 type Filters = Record<string, string | undefined>;
@@ -621,24 +622,24 @@ export async function getStockBalances() {
 
 export async function getStockTransaction(id: string) {
   if (isMockMode()) {
-    const row = mockStockTransactions.find((transaction) => transaction.id === id);
-    if (!row) throw new Error("Mock stock transaction not found");
+    const row = requireDetailRow(mockStockTransactions.find((transaction) => transaction.id === id), "Stock transaction", id);
     return hydrateTransaction(row as StockTransaction);
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.from("stock_transactions").select("*").eq("id", id).single();
+  const { data, error } = await supabase.from("stock_transactions").select("*").eq("id", id).maybeSingle();
   if (error) throw new Error(error.message);
+  const transaction = requireDetailRow(data, "Stock transaction", id);
   const [{ data: item, error: itemError }, { data: branch, error: branchError }] = await Promise.all([
-    supabase.from("items").select("id, item_code, item_name, base_unit, item_image_url").eq("id", data.item_id).maybeSingle(),
-    data.branch_id
-      ? supabase.from("branches").select("id, branch_name").eq("id", data.branch_id).maybeSingle()
+    supabase.from("items").select("id, item_code, item_name, base_unit, item_image_url").eq("id", transaction.item_id).maybeSingle(),
+    transaction.branch_id
+      ? supabase.from("branches").select("id, branch_name").eq("id", transaction.branch_id).maybeSingle()
       : Promise.resolve({ data: null, error: null }),
   ]);
   if (itemError) throw new Error(itemError.message);
   if (branchError) throw new Error(branchError.message);
   return {
-    ...data,
+    ...transaction,
     item,
     branch,
   };

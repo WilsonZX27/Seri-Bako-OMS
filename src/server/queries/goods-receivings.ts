@@ -13,6 +13,7 @@ import { todayInKualaLumpur } from "@/lib/business-date";
 import { normalizeUom } from "@/lib/uom";
 import { createClient } from "@/lib/supabase/server";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
+import { requireDetailRow } from "@/server/queries/detail";
 import type { Database } from "@/types/database";
 
 type Filters = Record<string, string | undefined>;
@@ -183,8 +184,7 @@ export async function getGoodsReceivingSummary() {
 
 export async function getGoodsReceiving(id: string) {
   if (isMockMode()) {
-    const row = mockGoodsReceivings.find((item) => item.id === id);
-    if (!row) throw new Error("Mock goods receiving not found");
+    const row = requireDetailRow(mockGoodsReceivings.find((item) => item.id === id), "Goods receiving", id);
     const lines = mockGoodsReceivingLines
       .filter((line) => line.goods_receiving_id === id)
       .map((line) => ({ ...line, item: mockItems.find((item) => item.id === line.item_id) }));
@@ -192,13 +192,13 @@ export async function getGoodsReceiving(id: string) {
   }
   const supabase = await createClient();
   const [{ data, error }, { data: lines, error: linesError }] = await Promise.all([
-    supabase.from("goods_receivings").select("*").eq("id", id).single(),
+    supabase.from("goods_receivings").select("*").eq("id", id).maybeSingle(),
     supabase.from("goods_receiving_lines").select("*").eq("goods_receiving_id", id),
   ]);
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(linesError.message);
-  if (!data || !lines) throw new Error("Goods receiving detail returned no data.");
-  const receiving = data as GoodsReceiving;
+  const receiving = requireDetailRow(data, "Goods receiving", id) as GoodsReceiving;
+  if (!lines) throw new Error("Goods receiving detail lines returned no data.");
   const itemIds = [...new Set(lines.map((line) => line.item_id))];
   const [
     { data: items, error: itemsError },

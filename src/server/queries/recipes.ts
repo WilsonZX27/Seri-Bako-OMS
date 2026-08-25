@@ -4,6 +4,7 @@ import { requirePermission } from "@/server/auth/permissions";
 import { sortProductsForDisplay } from "@/lib/product-order";
 import type { Database } from "@/types/database";
 import { requireReadCount, requireReadRows } from "@/server/queries/common";
+import { requireDetailRow } from "@/server/queries/detail";
 
 type RecipeRow = Database["public"]["Tables"]["recipes"]["Row"];
 type RecipeLineRow = Database["public"]["Tables"]["recipe_lines"]["Row"];
@@ -264,14 +265,13 @@ export async function getRecipeSummary() {
 export async function getRecipe(id: string) {
   await requirePermission("recipes.view");
   if (isMockMode()) {
-    const recipe = mockRecipes.find((row) => row.id === id);
-    if (!recipe) throw new Error("Mock recipe not found");
+    const recipe = requireDetailRow(mockRecipes.find((row) => row.id === id), "Recipe", id);
     return buildRecipeDetail(recipe, mockProducts, mockRecipeLines, mockItems, mockProductPackaging, mockRecipeCostSnapshots);
   }
 
   const supabase = await createClient();
   const [recipe, products, lines, items, packaging, snapshots, stockBalances] = await Promise.all([
-    supabase.from("recipes").select("*").eq("id", id).single(),
+    supabase.from("recipes").select("*").eq("id", id).maybeSingle(),
     supabase.from("products").select("*").is("deleted_at", null),
     supabase.from("recipe_lines").select("*").eq("recipe_id", id),
     supabase.from("items").select("*").is("deleted_at", null),
@@ -286,7 +286,7 @@ export async function getRecipe(id: string) {
   }
 
   return buildRecipeDetail(
-    recipe.data,
+    requireDetailRow(recipe.data, "Recipe", id),
     requireReadRows(products.data, "Recipe products"),
     requireReadRows(lines.data, "Recipe lines"),
     requireReadRows(items.data, "Recipe ingredients"),

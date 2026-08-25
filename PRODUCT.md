@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.65.6 (unreleased) — V9 local system audit closure
+
+The v9 release gate now exercises 99 routes across Owner, Finance, Manager, Purchasing, Kitchen, and Outlet at 390×844, 820×1180, 1180×820, and 1440×900. It fails closed on route authority, runtime/page errors, horizontal overflow, inaccessible icon actions, undersized touch controls, verbose or oversized headings, visible native scrollbars, missing scroll-edge affordance, and reduced-motion regressions. The owned Playwright server now shuts down through an authenticated same-origin endpoint, so a completed browser run exits cleanly instead of being confused with a product failure. Migrations 216–218 reconcile the canonical audit-log schema and the intended Finance/Manager read and authoring boundaries. Local authenticated UAT passed 52/52 shards; Production-like authenticated UAT is still awaiting the source database password, and nothing in this release is claimed Production verified.
+
 ### v8.65.5 (unreleased) — Production UAT environment guard
 
 Production UAT now requires an explicit environment file, confirmed Production intent, the canonical `system.seribako.com.my` origin, a non-loopback Supabase host, and an exact expected project reference before authentication or mutation begins. Local and Production credentials can no longer be silently combined. The exact cancelled test PO cleanup completed through the Owner-only guarded RPC after migrations 209–215 were applied; authenticated verification found zero remaining records and restored the source PR to `ready_to_convert`.
@@ -465,7 +469,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `215`; linked Production application and cleanup evidence is recorded in the current closure sections and repair ledger. Migrations 201–208 are remotely applied; migrations 209–215 remain unapplied repository work. Application deployment, public runtime availability, and authenticated workflow evidence remain separate gates.
+Repository migration authority: migrations reviewed through `218`; linked Production application and cleanup evidence through migration 215 is recorded in the current closure sections and repair ledger. Migrations 216–218 are locally applied and schema-verified only. Linked application, public runtime availability, and authenticated Production-like workflow evidence remain separate gates.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

@@ -30,7 +30,7 @@ test("procurement documents use focused mobile workflow and exact primary action
   assert.doesNotMatch(mobile, /grid w-full max-w-56/);
   assert.match(mobile, /max-w-20/);
   assert.match(mobile, /flex min-w-0 items-center gap-1 md:hidden/);
-  assert.match(mobile, /h-8 min-h-8/);
+  assert.match(mobile, /h-9 min-h-9/);
   assert.match(pr, />Submit PR</);
   for (const label of ["Approve as Manager", "Complete Purchasing Review", "Approve as Finance"]) assert.match(pr, new RegExp(label));
   assert.match(pr, /Prepare Purchase Order/);

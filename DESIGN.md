@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.65.4 (unreleased) — Reliability boundary
+
+Dangerous cleanup remains a narrow Owner workflow: dependency preview, exact identity confirmation, server-side execution, and a retained tombstone. Database compatibility fixes must preserve the current UI and role grammar rather than re-expose retired Location, barcode, or legacy identity concepts. A local build or migration file is implementation evidence; linked migration and authenticated workflow evidence are reported separately.
+
 ## v8.65.1 (unreleased) — Actionable Stock Count conflicts
 
 - A snapshot conflict names the affected item and shows starting versus current balance; it never orders an unexplained full recount.

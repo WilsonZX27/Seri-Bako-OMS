@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.65.4 (unreleased) — Database executable stability closure
+
+The cancelled-PO Owner cleanup path now cooperates with committed-line immutability through a transaction-local, RPC-only bypass after dependency and typed-confirmation checks. Executable schema lint is clean: obsolete Location, barcode, recipe identity, notification-column, and Production/Item ambiguity references are repaired without weakening tenant or workflow guards. Migrations 211–215 are locally applied and lint-clean; linked Production application and authenticated mutation UAT remain separate gates.
+
 ### v8.65.1 (unreleased) — Stock Count balance authority repair
 
 Stock Count posting now uses the same canonical parent-or-line movement balance as the count seed and inventory summary. Multi-line GRN, transfer and other documents no longer create a false snapshot-conflict error merely because their quantities live on `stock_transaction_lines`. Genuine movements after a draft began still block posting, but the operator now sees the affected item code/name plus starting and current balances; the saved physical count remains intact. Migration 207 must be applied before the runtime fix is Production-active, and authenticated posting UAT remains separate evidence.
@@ -457,7 +461,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `210`; linked Production application and cleanup evidence is recorded in the current closure sections and repair ledger. Migrations 201–208 are remotely applied; migrations 209–210 remain unapplied repository work. Application deployment, public runtime availability, and authenticated workflow evidence remain separate gates.
+Repository migration authority: migrations reviewed through `215`; linked Production application and cleanup evidence is recorded in the current closure sections and repair ledger. Migrations 201–208 are remotely applied; migrations 209–215 remain unapplied repository work. Application deployment, public runtime availability, and authenticated workflow evidence remain separate gates.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

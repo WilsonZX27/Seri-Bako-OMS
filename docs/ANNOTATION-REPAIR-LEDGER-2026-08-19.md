@@ -1,5 +1,10 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-08-25 — Cancelled PO cleanup and database stability closure
+
+- Exact Production target `TEST-PO-PR016-20260822` was authenticated and previewed as cancelled with zero GR, Return, and Invoice dependencies. Execution exposed a conflict between the Owner hard-delete RPC and committed-line trigger; no deletion occurred.
+- Migrations 211–215 add the narrow RPC-only bypass and close all executable schema lint errors/warnings. Local contract tests, migration apply, schema lint, typecheck, lint, and build are implementation evidence only. Linked migration application, final deletion verification, and authenticated role/viewport UAT remain pending explicit Production deployment approval.
+
 ## Production incident repair — v8.65.1
 
 - `SC/AUG26/015` exposed a false Stock Count snapshot conflict: the seed read model correctly used parent-or-line movement rows, while migration 110 posting summed parent transaction headers only.

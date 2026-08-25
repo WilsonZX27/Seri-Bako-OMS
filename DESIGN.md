@@ -2267,12 +2267,13 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 - The Today rail leads with record count, then separates Dispatch, Receiving, and completion outcomes with labels and dividers. Supporting warnings remain subordinate to their metric instead of competing as peer rows.
 - Qty Sent validation copy is concise and action-oriented; workflow explanation remains in the dedicated validation surface.
 
-## v8.65.2 (unreleased) — Calm operational hierarchy
+## v8.65.2 (deployed; authenticated UAT pending) — Calm operational hierarchy
 
 - Dashboard work queues use flat divided lists and compact contextual lines instead of labels repeated inside nested cards. Important work remains first; operational metrics are supporting evidence.
 - Purchase Request mobile rows use three stable reading lines: identity/status, branch/supplier, then date/user/items/value. Workflow labels stay short enough to remain on one line.
 - Stock Count exposes one primary posting action. Add item and destructive controls live under More; item-specific branch settings remain behind the row's three-dot action.
 - Posting-time inventory movement is a non-blocking attention state, not a destructive red error. The follow-up surface explains the original baseline, posting baseline, physical count and final variance without altering Kitchen's entry.
+- Release evidence is intentionally bounded: commit `4f79fda5` and migration `208` are deployed, while authenticated role and four-viewport visual acceptance remain pending.
 
 ## v8.64.171 (unreleased) — Truthful Stock Count progress
 

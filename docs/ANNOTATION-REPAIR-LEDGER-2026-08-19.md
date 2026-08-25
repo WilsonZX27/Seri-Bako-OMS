@@ -1073,10 +1073,12 @@ Production screenshots initiated this batch. The statuses below describe source 
 
 | Comment group | Route / viewport | Acceptance | Status |
 |---|---|---|---|
-| Dashboard 1, 10 | Dashboard / responsive | Work hierarchy is flatter, pending PR rows are compact, and duplicate nested-card treatment is reduced. | implemented / authenticated role and viewport UAT pending |
-| PR 6–16, 20 | Purchase Requests / responsive | PR line writes enforce one canonical Supplier; workflow labels are compact; rejection and no-stock copy are corrected; mobile rows use a three-line hierarchy. | implemented / migration 208 and authenticated UAT pending |
-| Stock Count 3–5, 17–19 | Stock Counts / responsive | Daily variance moves to the rail, one primary post action remains, movement is reconciled without replacing physical count, and Kitchen can add or update branch scope with audit notifications. | implemented / migration 208 and authenticated Kitchen UAT pending |
+| Dashboard 1, 10 | Dashboard / responsive | Work hierarchy is flatter, pending PR rows are compact, and duplicate nested-card treatment is reduced. | deployed at `4f79fda5` / authenticated role and viewport UAT pending |
+| PR 6–16, 20 | Purchase Requests / responsive | PR line writes enforce one canonical Supplier; workflow labels are compact; rejection and no-stock copy are corrected; mobile rows use a three-line hierarchy. | deployed with migration 208 / authenticated UAT pending |
+| Stock Count 3–5, 17–19 | Stock Counts / responsive | Daily variance moves to the rail, one primary post action remains, movement is reconciled without replacing physical count, and Kitchen can add or update branch scope with audit notifications. | deployed with migration 208 / authenticated Kitchen UAT pending |
 | PO 2 | Purchase Orders / production data | Only exact, dependency-audited TEST/UAT IDs may be removed. | audit required / no production deletion performed |
+
+Deployment evidence (25 August 2026): `main` and `codex/uiux-round2` resolved to `4f79fda5`; Vercel reported the deployment successful; linked `supabase db push` applied migration `208`, and the follow-up dry-run reported the remote database up to date. The public production origin redirects unauthenticated traffic to login and `/api/health` returns protected JSON `401`. These checks establish deployment and public availability only, not authenticated role or responsive Production UAT.
 ## v8.64.111 receiving posting lock repair
 
 | Acceptance | Status | Evidence / remaining gate |

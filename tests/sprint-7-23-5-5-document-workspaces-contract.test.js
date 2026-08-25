@@ -97,7 +97,7 @@ test("workflow actions are explicit, confirmed, permission-derived and secondary
   for (const route of detailRoutes) {
     const source = app(route);
     const primary = source.indexOf("DocumentActionSection");
-    const validation = source.indexOf('title="Validation / Next Step"');
+    const validation = Math.max(source.indexOf('title="Validation / Next Step"'), source.indexOf('title="Next step"'));
     assert.ok(primary >= 0 && validation > primary, `${route}: primary precedes validation`);
     assert.doesNotMatch(source, /DocumentSideSection title="More Options"/, `${route}: secondary actions are not detached`);
   }

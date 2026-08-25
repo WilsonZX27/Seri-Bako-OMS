@@ -38,10 +38,10 @@ test("returned requests can be corrected without silently advancing workflow", (
 test("PR read-only items show short actionable states in one presentation", () => {
   const detail = read("src/app/(app)/purchase-requests/[id]/page.tsx");
   const query = read("src/server/queries/procurement.ts");
-  assert.match(detail, /No stock count recorded for this branch yet/);
+  assert.match(detail, /No branch stock history yet/);
   assert.doesNotMatch(detail, /Next: Create or update/);
   assert.doesNotMatch(query, /OMS stock ledger/);
-  assert.match(detail, /bg-\[var\(--sb-danger-bg\)\]/);
+  assert.match(detail, /New or not previously counted/);
 });
 
 test("register and basket presentations enforce the new operational contract", () => {

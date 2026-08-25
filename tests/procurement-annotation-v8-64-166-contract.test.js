@@ -4,14 +4,12 @@ const fs = require("node:fs");
 
 const read = (path) => fs.readFileSync(path, "utf8");
 
-test("PR and Dashboard operational rows use stable aligned tracks", () => {
+test("PR and Dashboard operational rows use stable compact tracks", () => {
   const list = read("src/app/(app)/purchase-requests/page.tsx");
   const dashboard = read("src/components/dashboard-workspace.tsx");
-  for (const source of [list, dashboard]) {
-    assert.match(source, /data-pr-context-grid/);
-    assert.match(source, /data-pr-metrics-grid/);
-    assert.match(source, /title=\{(?:supplierLabel|row\.supplier_names\.join)/);
-  }
+  assert.match(list, /title=\{supplierLabel\}/);
+  assert.match(dashboard, /title=\{row\.supplier_names\.join/);
+  for (const source of [list, dashboard]) assert.doesNotMatch(source, /data-pr-context-grid|data-pr-metrics-grid/);
 });
 
 test("PR item entry is supplier scoped and selection remains explicit", () => {

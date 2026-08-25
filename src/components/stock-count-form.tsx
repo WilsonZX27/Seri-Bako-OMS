@@ -12,6 +12,8 @@ import { SelectNative } from "@/components/ui/select-native";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { TableActionMenuPortal } from "@/components/ui/table-action-menu-portal";
+import { BranchStockCountSettingDialog, ItemCorrectionSuggestionDialog } from "@/components/stock-count-scope-actions";
+import { StockCountLineRecovery } from "@/components/stock-count-line-recovery";
 import { formatDateOnly, formatQuantity, formatQuantityInput, getToday } from "@/lib/utils";
 import type { StockCountAutosaveResult } from "@/server/actions/stock-counts";
 
@@ -89,6 +91,10 @@ export function StockCountForm({
   initialRemarks,
   autosaveAction,
   draftId,
+  branchSettingAction,
+  itemCorrectionAction,
+  lineRevisionAction,
+  itemCatalog = [],
 }: {
   branches: BranchOption[];
   selectedBranchId?: string;
@@ -100,6 +106,10 @@ export function StockCountForm({
   initialRemarks?: string | null;
   autosaveAction?: (formData: FormData) => Promise<StockCountAutosaveResult>;
   draftId?: string;
+  branchSettingAction?: (itemId: string, formData: FormData) => Promise<void>;
+  itemCorrectionAction?: (itemId: string, formData: FormData) => Promise<void>;
+  lineRevisionAction?: (formData: FormData) => Promise<void>;
+  itemCatalog?: Array<{ id: string; item_code: string; item_name: string; base_unit: string }>;
 }) {
   const router = useRouter();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
@@ -528,6 +538,9 @@ export function StockCountForm({
                           <button ref={retirementTriggerRef} type="button" role="menuitem" className="flex w-full items-center rounded-sm px-3 py-2 text-left text-xs font-medium hover:bg-[var(--sb-surface-muted)]" onClick={() => line.retireAfterCount ? cancelRetirement(line.item_id) : openRetirement(line)}>
                             {line.retireAfterCount ? "Keep active" : "Retire after this count"}
                           </button>
+                          {lineRevisionAction && line.line_id ? <StockCountLineRecovery action={lineRevisionAction} line={{ id: line.line_id, item_id: line.item_id, physical_qty: toNumber(line.physicalQty), uom: line.uom }} items={itemCatalog} reviewMode={false} menuTrigger /> : null}
+                          {itemCorrectionAction ? <ItemCorrectionSuggestionDialog itemName={line.item_name} itemCode={line.item_code} action={itemCorrectionAction.bind(null, line.item_id)} /> : null}
+                          {branchSettingAction ? <BranchStockCountSettingDialog itemName={line.item_name} included action={branchSettingAction.bind(null, line.item_id)} /> : null}
                         </TableActionMenuPortal>
                       </div>
                       <div className="min-w-0">

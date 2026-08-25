@@ -24,7 +24,7 @@ test("stock count keeps an explicit cancel path for unposted autosaved work", ()
   assert.match(detail, /const canCancel = \(count\.status === "draft" \|\| isLegacyPending\)/);
   assert.match(detail, /buttonLabel="Cancel stock count"/);
   assert.match(detail, /preserving its audit history/);
-  assert.match(detail, /const secondaryActions = cancelControl \|\| deleteControl/);
+  assert.match(detail, /const secondaryActions = addItemControl \|\| cancelControl \|\| deleteControl/);
 });
 
 test("stock count form keeps a local recovery snapshot and reports server save state", () => {
@@ -65,7 +65,8 @@ test("stock count form keeps a local recovery snapshot and reports server save s
   assert.doesNotMatch(form, /disabled=\{!countComplete\}/);
   assert.doesNotMatch(detail, /mobileWorkflowTrailing/);
   assert.doesNotMatch(detail, /StockCountAutosaveStatus/);
-  assert.match(detail, /canEdit && canPost \? "grid-cols-2" : "grid-cols-1"/);
+  assert.match(detail, /mobilePrimaryAction = hasPrimaryAction/);
+  assert.match(detail, /label="Post count"/);
   assert.match(actions, /autosaveStockCountDraft[\s\S]*updateStockCountDraftRecord\(id, formData, \{ revalidate: false \}\)/);
 });
 

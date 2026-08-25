@@ -270,8 +270,8 @@ test("posted production and stock count details keep reconciliation authority of
   assert.match(production, /data-production-job-output-list/);
   assert.match(stockCount, /<Table mobileHidden aria-label="Posted stock count lines">/);
   assert.match(stockCount, /data-posted-stock-count-lines/);
-  assert.match(stockCount, /Math\.abs\(line\.variance_percent\) > count\.tolerance_percent/);
-  assert.match(stockCount, /Variance exceeds tolerance; remarks were not recorded/);
+  assert.match(stockCount, /Number\(line\.variance_qty\) !== 0/);
+  assert.doesNotMatch(stockCount, /Variance exceeds tolerance/);
 });
 
 test("remaining operational details replace narrow audit tables without dropping authority", () => {

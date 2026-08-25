@@ -12,12 +12,12 @@ export const PURCHASE_REQUEST_WORKFLOW_STEPS = [
 export type PurchaseRequestWorkflowStep = (typeof PURCHASE_REQUEST_WORKFLOW_STEPS)[number];
 
 export const PR_WORKFLOW_STEP_LABELS: Record<PurchaseRequestWorkflowStep, string> = {
-  draft: "Draft PR",
-  manager_review: "Manager Review",
-  admin_review: "Purchasing Review",
-  finance_review: "Finance Review",
-  ready_to_convert: "Ready to Convert",
-  converted_to_po: "Converted to PO",
+  draft: "Draft",
+  manager_review: "Manager",
+  admin_review: "Purchasing",
+  finance_review: "Finance",
+  ready_to_convert: "Ready",
+  converted_to_po: "Converted",
 };
 
 export const PR_NEXT_STATUS_BY_ACTION = {

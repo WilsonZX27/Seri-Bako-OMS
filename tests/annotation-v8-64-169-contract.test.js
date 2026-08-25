@@ -6,14 +6,14 @@ const test = require("node:test");
 const root = path.resolve(__dirname, "..");
 const read = (...parts) => fs.readFileSync(path.join(root, ...parts), "utf8");
 
-test("PR register and Dashboard use the same labelled operational tracks", () => {
+test("PR register and Dashboard use the same compact operational tracks", () => {
   const register = read("src", "app", "(app)", "purchase-requests", "page.tsx");
   const dashboard = read("src", "components", "dashboard-workspace.tsx");
-  for (const source of [register, dashboard]) {
-    assert.match(source, /data-pr-context-grid/);
-    assert.match(source, /data-pr-metrics-grid/);
-    for (const label of ["Location", "Supplier", "Date", "User", "Items", "Est. cost"]) assert.match(source, new RegExp(`>${label}<`));
-  }
+  assert.match(register, /supplierLabel/);
+  assert.match(register, /request\.line_count\} items/);
+  assert.match(dashboard, /row\.supplier_names\.join/);
+  assert.match(dashboard, /row\.line_count\} items/);
+  for (const source of [register, dashboard]) assert.doesNotMatch(source, /data-pr-context-grid|data-pr-metrics-grid/);
 });
 
 test("Stock Count retirement is owned by a More menu below the ordinal", () => {

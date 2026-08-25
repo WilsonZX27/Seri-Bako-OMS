@@ -48,7 +48,7 @@ test("Today's work stays compact without a duplicate role snapshot card", () => 
   assert.match(dashboard, /min-h-12 min-w-0 items-center/);
   assert.match(dashboard, /col-span-2 sm:col-span-1/);
   assert.doesNotMatch(dashboard, /DashboardRoleMicroChart|roleChartItems/);
-  assert.match(dashboard, /focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/);
+  assert.match(dashboard, /focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/);
 });
 
 test("Dashboard keeps each exception signal on its canonical owner surface", () => {

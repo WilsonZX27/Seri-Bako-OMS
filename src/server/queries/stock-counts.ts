@@ -346,10 +346,10 @@ export async function getStockCount(id: string) {
       .filter((line) => line.stock_count_id === id)
       .sort((left, right) => Number((left as StockCountLine & { line_position?: number }).line_position ?? 0) - Number((right as StockCountLine & { line_position?: number }).line_position ?? 0))
       .map((line) => ({ ...line, item: mockItems.find((item) => item.id === line.item_id), retirement: null }));
-    return { count: hydrateCount(count as StockCount, mockStockCountLines as StockCountLine[]), lines, revisions: [], revisionsAvailable: false };
+    return { count: hydrateCount(count as StockCount, mockStockCountLines as StockCountLine[]), lines, revisions: [], revisionsAvailable: false, reconciliations: [] };
   }
   const supabase = await createClient();
-  const [{ data, error }, { data: lines, error: linesError }, { data: revisions, error: revisionsError }, { data: retirements, error: retirementsError }] = await Promise.all([
+  const [{ data, error }, { data: lines, error: linesError }, { data: revisions, error: revisionsError }, { data: retirements, error: retirementsError }, { data: reconciliations, error: reconciliationsError }] = await Promise.all([
     // Removed unposted counts must not remain addressable through a stale detail URL.
     // Their activity/audit rows remain available through the activity log, while the
     // operational document itself is no longer treated as active work.
@@ -357,6 +357,7 @@ export async function getStockCount(id: string) {
     supabase.from("stock_count_lines").select("*").eq("stock_count_id", id).order("line_position", { ascending: true }).order("id", { ascending: true }),
     supabase.from("document_line_revisions").select("*").eq("document_type", "stock_count").eq("document_id", id).order("created_at", { ascending: true }),
     looseSupabase(supabase).from("stock_count_item_retirements").select("stock_count_line_id,item_id,reason,note,actual_qty,status").eq("stock_count_id", id).in("status", ["pending", "applied"]),
+    looseSupabase(supabase).from("stock_count_reconciliations").select("stock_count_line_id,item_id,snapshot_balance,posting_balance,movement_qty,physical_qty,final_variance_qty,reconciled_at").eq("stock_count_id", id),
   ]);
   if (error) {
     if (error.code === "PGRST116") throw new StockCountNotFoundError();
@@ -397,6 +398,7 @@ export async function getStockCount(id: string) {
     })),
     revisions: revisionsError ? [] : revisions ?? [],
     revisionsAvailable: !revisionsError,
+    reconciliations: reconciliationsError ? [] : reconciliations ?? [],
   };
 }
 

@@ -7,11 +7,12 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { StockCountForm } from "@/components/stock-count-form";
 import { StockCountLineRecovery } from "@/components/stock-count-line-recovery";
+import { AddStockCountItemDialog } from "@/components/stock-count-scope-actions";
 import { Button } from "@/components/ui/button";
 import { BlockedDestructiveAction, DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDateOnly, formatQuantity } from "@/lib/utils";
-import { autosaveStockCountDraft, cancelStockCount, deleteStockCount, postStockCount, resolveStockCountLineRevision, reviseStockCountLine, saveAndPostStockCount, updateStockCountDraft } from "@/server/actions/stock-counts";
+import { addItemToStockCount, autosaveStockCountDraft, cancelStockCount, deleteStockCount, postStockCount, resolveStockCountLineRevision, reviseStockCountLine, saveAndPostStockCount, suggestStockCountItemCorrection, updateBranchStockCountItem, updateStockCountDraft } from "@/server/actions/stock-counts";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getBranchesForSelect, getItemsForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
@@ -31,7 +32,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
     if (error instanceof StockCountNotFoundError) notFound();
     throw error;
   });
-  const [{ count, lines, revisions, revisionsAvailable }, permissions, branches, items] = await Promise.all([
+  const [{ count, lines, revisions, revisionsAvailable, reconciliations }, permissions, branches, items] = await Promise.all([
     stockCountPromise,
     getPermissionMap(["stock_count.update", "stock_count.cancel", "stock_count.post"]),
     getBranchesForSelect(),
@@ -39,7 +40,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
   ]);
   const pendingRevisions = revisions.filter((revision) => revision.status === "pending");
   const documentBundle = count.document_id ? await getDocumentBundle(count.document_id) : null;
-  const highVarianceLines = lines.filter((line) => Math.abs(line.variance_percent) > count.tolerance_percent);
+  const adjustedLines = lines.filter((line) => Number(line.variance_qty) !== 0);
   const isLegacyPending = legacyPendingStatuses.has(count.status);
   const canPost = (count.status === "draft" || isLegacyPending) && permissions["stock_count.post"] && pendingRevisions.length === 0;
   const canEdit = count.status === "draft" && permissions["stock_count.update"];
@@ -71,15 +72,11 @@ export default async function StockCountDetailPage({ params }: { params: Promise
       pendingLabel="Cancelling..."
     />
   ) : null;
-  const secondaryActions = cancelControl || deleteControl ? <div className="space-y-2">{cancelControl}{deleteControl}</div> : null;
+  const addItemControl = canEdit ? <AddStockCountItemDialog items={items} existingItemIds={lines.map((line) => line.item_id)} action={addItemToStockCount.bind(null, count.id)} /> : null;
+  const secondaryActions = addItemControl || cancelControl || deleteControl ? <div className="space-y-2">{addItemControl}{cancelControl}{deleteControl}</div> : null;
   const postAction = canEdit ? saveAndPostStockCount.bind(null, count.id) : postStockCount.bind(null, count.id);
   const confirmAction = canPost ? <ConfirmActionForm action={postAction} formId={canEdit ? formId : undefined} label="Confirm & Post Count" title="Post this stock count?" description={`${lines.filter((line) => line.variance_qty !== 0).length} adjusted lines will update the branch stock ledger. Your latest entries will be saved before posting. This cannot be undone.`} pendingLabel="Saving & posting..." mobilePrimary /> : null;
-  const mobilePrimaryAction = hasPrimaryAction ? (
-    <div className={`grid gap-2 ${canEdit && canPost ? "grid-cols-2" : "grid-cols-1"}`}>
-      {canEdit ? <SubmitButton form={formId} className="w-full" pendingLabel="Saving...">Save draft</SubmitButton> : null}
-      {confirmAction}
-    </div>
-  ) : null;
+  const mobilePrimaryAction = hasPrimaryAction ? <div>{confirmAction ?? (canEdit ? <SubmitButton form={formId} className="w-full" pendingLabel="Saving...">Save draft</SubmitButton> : null)}</div> : null;
   const editableLines = lines.map((line) => ({
     line_id: line.id,
     item_id: line.item_id,
@@ -92,6 +89,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
     remarks: line.remarks,
     retirement: line.retirement,
   }));
+  const reconciliationRows = reconciliations as Array<{ item_id: string; snapshot_balance: number; posting_balance: number; movement_qty: number; physical_qty: number; final_variance_qty: number }>;
 
   return (
     <DocumentWorkspace
@@ -109,15 +107,14 @@ export default async function StockCountDetailPage({ params }: { params: Promise
         <>
           <DocumentActionSection description="Only valid stock count actions are shown." moreOptions={secondaryActions} collapseMoreOptions>
             {hasPrimaryAction ? (
-              <DocumentActionBar className={canEdit && canPost ? "grid-cols-2" : undefined}>
-                {canEdit ? <SubmitButton form={formId} className="w-full" pendingLabel="Saving...">Save draft</SubmitButton> : null}
-                {canPost ? <ConfirmActionForm action={postAction} formId={canEdit ? formId : undefined} label="Confirm & Post Count" title="Post this stock count?" description={`${lines.filter((line) => line.variance_qty !== 0).length} adjusted lines will update the branch stock ledger. Your latest entries will be saved before posting. This cannot be undone.`} pendingLabel="Saving & posting..." /> : null}
+              <DocumentActionBar>
+                {canPost ? <ConfirmActionForm action={postAction} formId={canEdit ? formId : undefined} label="Post count" title="Post this stock count?" description={`${lines.filter((line) => line.variance_qty !== 0).length} adjusted lines will update the branch stock ledger. Inventory movements made during counting will be reconciled automatically without changing the physical quantities.`} pendingLabel="Saving & posting..." /> : canEdit ? <SubmitButton form={formId} className="w-full" pendingLabel="Saving...">Save draft</SubmitButton> : null}
               </DocumentActionBar>
             ) : (
               <p className="text-sm text-muted-foreground">You can view this count, but there is no workflow action available for your role or this status.</p>
             )}
           </DocumentActionSection>
-          <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{count.status === "draft" ? "Save the physical quantities, then confirm and post. The server checks that stock has not moved since this snapshot." : isLegacyPending ? "This historical pending count is locked for editing. Confirm and post it to finish the inventory reconciliation, or cancel it if permitted." : "Posted counts remain read-only; use a new count for a correction."}</p></DocumentSideSection>
+          <DocumentSideSection title="Next step"><p className="text-xs text-muted-foreground">{count.status === "draft" ? "Enter the physical quantities and post when complete. If inventory moved during counting, the system keeps your physical count and records the reconciliation for follow-up." : isLegacyPending ? "Confirm and post this historical count, or cancel it if permitted." : "Posted counts are read-only. Reconciliation notices remain in the document history."}</p></DocumentSideSection>
           {documentBundle ? (
             <>
               <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} />
@@ -129,7 +126,15 @@ export default async function StockCountDetailPage({ params }: { params: Promise
         </>
       }
     >
-      {canEdit ? <StockCountForm formId={formId} branches={branches} selectedBranchId={count.branch_id ?? undefined} seedLines={editableLines} action={updateStockCountDraft.bind(null, count.id)} autosaveAction={autosaveStockCountDraft.bind(null, count.id)} draftId={count.id} showSubmit={false} initialCountDate={count.count_date} initialRemarks={count.remarks} /> : null}
+      {reconciliationRows.length ? <section className="erp-surface border border-[var(--sb-warning)]/40 bg-[var(--sb-warning-bg)] p-4" role="status">
+        <h2 className="text-sm font-semibold">Inventory changed during this count</h2>
+        <p className="mt-1 text-xs text-muted-foreground">Kitchen&apos;s physical quantities were preserved. The posting baseline was refreshed atomically and the differences below remain available for follow-up.</p>
+        <div className="mt-3 divide-y divide-[var(--sb-border-soft)]">{reconciliationRows.map((entry) => {
+          const line = lines.find((candidate) => candidate.item_id === entry.item_id);
+          return <div key={entry.item_id} className="grid gap-1 py-2 text-xs sm:grid-cols-[minmax(0,1fr)_repeat(4,auto)] sm:items-center sm:gap-5"><p className="font-medium">{line?.item?.item_code} · {line?.item?.item_name}</p><p><span className="text-muted-foreground">Started</span> {formatQuantity(entry.snapshot_balance)}</p><p><span className="text-muted-foreground">Posted baseline</span> {formatQuantity(entry.posting_balance)}</p><p><span className="text-muted-foreground">Physical</span> {formatQuantity(entry.physical_qty)}</p><p className="font-semibold"><span className="font-normal text-muted-foreground">Variance</span> {formatQuantity(entry.final_variance_qty)}</p></div>;
+        })}</div>
+      </section> : null}
+      {canEdit ? <StockCountForm formId={formId} branches={branches} selectedBranchId={count.branch_id ?? undefined} seedLines={editableLines} action={updateStockCountDraft.bind(null, count.id)} autosaveAction={autosaveStockCountDraft.bind(null, count.id)} branchSettingAction={updateBranchStockCountItem.bind(null, count.id)} itemCorrectionAction={suggestStockCountItemCorrection.bind(null, count.id)} lineRevisionAction={reviseStockCountLine.bind(null, count.id)} itemCatalog={items} draftId={count.id} showSubmit={false} initialCountDate={count.count_date} initialRemarks={count.remarks} /> : null}
 
       {!canEdit ? <Card>
         <CardContent className="space-y-4 p-5">
@@ -137,8 +142,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
             <div className="grid gap-4 md:grid-cols-4">
             <div><p className="text-xs uppercase text-muted-foreground">Date</p><p className="font-medium">{formatDateOnly(count.count_date)}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{count.branch_name ?? "-"}</p></div>
-            <div><p className="text-xs uppercase text-muted-foreground">Tolerance</p><p className="font-medium">{formatQuantity(count.tolerance_percent)}%</p></div>
-            <div><p className="text-xs uppercase text-muted-foreground">High Variance</p><p className="font-medium">{highVarianceLines.length}</p></div>
+            <div><p className="text-xs uppercase text-muted-foreground">Adjusted lines</p><p className="font-medium">{adjustedLines.length}</p></div>
           </div>
           {count.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{count.remarks}</p> : null}
         </CardContent>
@@ -166,7 +170,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
               </TableHeader>
               <TableBody>
                 {lines.map((line) => {
-                  const high = Math.abs(line.variance_percent) > count.tolerance_percent;
+                  const high = Number(line.variance_qty) !== 0;
                   return (
                     <TableRow key={line.id} className={high ? "bg-warning/10" : ""}>
                       <TableCell><p className="font-medium">{line.item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground">{line.item?.item_code}</p></TableCell>
@@ -175,7 +179,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
                       <TableCell className="text-right">{formatQuantity(line.variance_qty)}</TableCell>
                       <TableCell className={`text-right ${high ? "font-semibold text-warning" : ""}`}>{formatQuantity(line.variance_percent)}%</TableCell>
                       <TableCell>{line.uom}</TableCell>
-                      <TableCell>{line.remarks ?? (high ? "Remarks required" : "-")}</TableCell>
+                      <TableCell>{line.remarks ?? "-"}</TableCell>
                       {isLegacyPending && permissions["stock_count.post"] && revisionsAvailable ? <TableCell><StockCountLineRecovery action={reviseStockCountLine.bind(null, count.id)} line={line} items={items} reviewMode /></TableCell> : null}
                     </TableRow>
                   );
@@ -184,12 +188,12 @@ export default async function StockCountDetailPage({ params }: { params: Promise
           </Table>
           <div className="divide-y xl:hidden" role="list" aria-label="Posted stock count lines" data-posted-stock-count-lines>
             {lines.map((line) => {
-              const high = Math.abs(line.variance_percent) > count.tolerance_percent;
+              const high = Number(line.variance_qty) !== 0;
               return (
                 <article key={line.id} className={`space-y-3 py-4 first:pt-1 last:pb-1 ${high ? "bg-[var(--sb-warning-bg)] px-3" : ""}`} role="listitem">
                   <div className="flex items-start justify-between gap-4"><div className="min-w-0"><h3 className="font-medium leading-snug">{line.item?.item_name ?? line.item_id}</h3><p className="mt-0.5 text-xs text-muted-foreground">{line.item?.item_code}</p></div><div className="flex shrink-0 items-start gap-2 text-right"><div><strong>{formatQuantity(line.physical_qty)} {line.uom}</strong><p className={`text-xs ${high ? "font-semibold text-[var(--sb-warning)]" : "text-muted-foreground"}`}>{formatQuantity(line.variance_qty)} · {formatQuantity(line.variance_percent)}%</p></div>{isLegacyPending && permissions["stock_count.post"] && revisionsAvailable ? <StockCountLineRecovery action={reviseStockCountLine.bind(null, count.id)} line={line} items={items} reviewMode /> : null}</div></div>
-                  <dl className="grid grid-cols-2 gap-4 rounded-md bg-secondary/35 p-3 text-xs"><div><dt className="text-muted-foreground">Theoretical</dt><dd className="mt-1 font-medium">{formatQuantity(line.theoretical_qty)} {line.uom}</dd></div><div><dt className="text-muted-foreground">Tolerance</dt><dd className="mt-1 font-medium">{formatQuantity(count.tolerance_percent)}%</dd></div></dl>
-                  {line.remarks ? <p className="text-xs"><span className="text-muted-foreground">Remarks:</span> {line.remarks}</p> : high ? <p className="text-xs font-medium text-[var(--sb-warning)]">Variance exceeds tolerance; remarks were not recorded.</p> : null}
+                  <dl className="grid grid-cols-2 gap-4 rounded-md bg-secondary/35 p-3 text-xs"><div><dt className="text-muted-foreground">Starting balance</dt><dd className="mt-1 font-medium">{formatQuantity(line.theoretical_qty)} {line.uom}</dd></div><div><dt className="text-muted-foreground">Variance</dt><dd className="mt-1 font-medium">{formatQuantity(line.variance_qty)} {line.uom}</dd></div></dl>
+                  {line.remarks ? <p className="text-xs"><span className="text-muted-foreground">Remarks:</span> {line.remarks}</p> : null}
                 </article>
               );
             })}

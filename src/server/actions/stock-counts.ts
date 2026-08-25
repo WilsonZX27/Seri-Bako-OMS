@@ -258,6 +258,71 @@ export async function reviseStockCountLine(id: string, formData: FormData) {
   }
 }
 
+export async function addItemToStockCount(id: string, formData: FormData) {
+  await requireAnyPermissionOrRedirect(["stock_count.create", "stock_count.update"], `/stock-counts/${id}`);
+  try {
+    const countId = stockCountIdSchema.parse(id);
+    const payload = z.object({
+      itemId: z.string().uuid(),
+      reason: z.string().trim().min(3).max(1_000),
+      idempotencyKey: z.string().uuid(),
+    }).parse({ itemId: formData.get("item_id"), reason: formData.get("reason"), idempotencyKey: formData.get("idempotency_key") });
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const { error } = await looseSupabase(supabase).rpc("add_item_to_stock_count", {
+        p_stock_count_id: countId, p_item_id: payload.itemId, p_reason: payload.reason, p_idempotency_key: payload.idempotencyKey,
+      });
+      if (error) throw new Error(error.message);
+    }
+    revalidateWorkspaceState([`/stock-counts/${countId}`, "/stock-counts", "/notifications", "/activity"]);
+    safeRedirectWithMessage(`/stock-counts/${countId}`, "success", "Item added to this count and future branch Stock Counts. Enter its physical quantity before posting.");
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/stock-counts/${id}`, "error", formatActionError(error, "Could not add this item to the Stock Count."));
+  }
+}
+
+export async function updateBranchStockCountItem(id: string, itemId: string, formData: FormData) {
+  await requireAnyPermissionOrRedirect(["stock_count.create", "stock_count.update"], `/stock-counts/${id}`);
+  try {
+    const countId = stockCountIdSchema.parse(id);
+    const parsedItemId = z.string().uuid().parse(itemId);
+    const payload = z.object({ included: z.enum(["true", "false"]), note: z.string().trim().min(3).max(1_000) })
+      .parse({ included: formData.get("included"), note: formData.get("note") });
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const { error } = await looseSupabase(supabase).rpc("update_branch_stock_count_item", {
+        p_stock_count_id: countId, p_item_id: parsedItemId, p_included: payload.included === "true", p_note: payload.note,
+      });
+      if (error) throw new Error(error.message);
+    }
+    revalidateWorkspaceState([`/stock-counts/${countId}`, "/stock-counts", "/notifications", "/activity"]);
+    safeRedirectWithMessage(`/stock-counts/${countId}`, "success", payload.included === "true" ? "Item included in future branch Stock Counts." : "Item removed from future branch Stock Counts. It remains in this current count.");
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/stock-counts/${id}`, "error", formatActionError(error, "Could not update this branch item setting."));
+  }
+}
+
+export async function suggestStockCountItemCorrection(id: string, itemId: string, formData: FormData) {
+  await requireAnyPermissionOrRedirect(["stock_count.create", "stock_count.update"], `/stock-counts/${id}`);
+  try {
+    const countId = stockCountIdSchema.parse(id);
+    const parsedItemId = z.string().uuid().parse(itemId);
+    const suggestion = z.string().trim().min(3).max(1_000).parse(formData.get("suggestion"));
+    if (!isMockMode()) {
+      const supabase = await createClient();
+      const { error } = await looseSupabase(supabase).rpc("suggest_stock_count_item_correction", { p_stock_count_id: countId, p_item_id: parsedItemId, p_suggestion: suggestion });
+      if (error) throw new Error(error.message);
+    }
+    revalidateWorkspaceState([`/stock-counts/${countId}`, "/notifications", "/activity"]);
+    safeRedirectWithMessage(`/stock-counts/${countId}`, "success", "Item correction suggestion sent to Owner, Purchasing and Finance. The Item Master was not changed.");
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/stock-counts/${id}`, "error", formatActionError(error, "Could not send this item correction suggestion."));
+  }
+}
+
 export async function resolveStockCountLineRevision(id: string, revisionId: string, formData: FormData) {
   await requirePermissionOrRedirect("stock_count.post", `/stock-counts/${id}`);
   try {

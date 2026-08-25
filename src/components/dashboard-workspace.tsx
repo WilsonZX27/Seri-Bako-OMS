@@ -263,10 +263,10 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
         ) : (
         <div data-dashboard-layout className="grid gap-4 lg:grid-cols-12 lg:items-start">
           <div className="space-y-4 lg:col-span-6">
-        <section data-dashboard-command className="sb-command-surface overflow-hidden rounded-[var(--sb-panel-radius)]">
+        <section data-dashboard-command className="overflow-hidden border-b border-[var(--sb-border-soft)] bg-transparent">
           <div className="flex items-start justify-between gap-4 p-4 sm:p-5" data-dashboard-attention-summary>
             <div className="min-w-0">
-              <p className="text-xs font-medium text-white/85">Today&apos;s work</p>
+              <p className="text-xs font-medium text-muted-foreground">Today&apos;s work</p>
               <h2
                 data-dashboard-attention-value
                 className="mt-1 max-w-xl text-lg font-semibold leading-6 tracking-[-0.02em] sm:text-xl sm:leading-7"
@@ -274,18 +274,18 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               >
                 {summary.attentionSummary.state === "unavailable" ? "Some work queues are unavailable" : todayWorkCount > 0 ? <><span className="tabular-nums">{todayWorkCount}</span> actions waiting</> : "No work waiting"}
               </h2>
-              {summary.attentionSummary.state === "unavailable" ? <p className="mt-1 text-[11px] leading-4 text-white/85">Unavailable: {unavailableAttentionLabels.join(", ")}</p> : null}
+              {summary.attentionSummary.state === "unavailable" ? <p className="mt-1 text-[11px] leading-4 text-muted-foreground">Unavailable: {unavailableAttentionLabels.join(", ")}</p> : null}
             </div>
           </div>
-          <div className={`grid grid-cols-2 divide-x divide-y divide-white/15 border-t border-white/15 ${showFinance ? "sm:grid-cols-3" : "sm:grid-cols-2"}`} data-dashboard-pulse-metrics aria-label="Today work breakdown">
+          <div className={`grid grid-cols-2 divide-x divide-y divide-[var(--sb-border-soft)] border-t border-[var(--sb-border-soft)] ${showFinance ? "sm:grid-cols-3" : "sm:grid-cols-2"}`} data-dashboard-pulse-metrics aria-label="Today work breakdown">
             {attentionSignals.map((signal, index) => {
               const Icon = signal.icon;
               const unavailable = signal.value === null;
               const isLastOddPhoneSignal = attentionSignals.length % 2 === 1 && index === attentionSignals.length - 1;
-              return <Link key={signal.key} prefetch={false} href={signal.href} className={`group flex min-h-12 min-w-0 items-center gap-2 px-3 py-2 transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white ${isLastOddPhoneSignal ? "col-span-2 sm:col-span-1" : ""} ${signal.value !== null && signal.value > 0 ? "bg-white/[0.08]" : ""}`}>
-                <Icon className="h-3.5 w-3.5 shrink-0 text-white/80" aria-hidden="true" />
-                <span className="min-w-0 flex-1 truncate text-[11px] font-medium leading-4 text-white/85">{signal.label}</span>
-                <strong className={unavailable ? "shrink-0 text-[9px] font-semibold uppercase tracking-[0.06em] text-white/80" : "shrink-0 text-lg font-semibold tabular-nums"}>{unavailable ? "Unavailable" : signal.value}</strong>
+              return <Link key={signal.key} prefetch={false} href={signal.href} className={`group flex min-h-12 min-w-0 items-center gap-2 px-3 py-2 transition-colors hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${isLastOddPhoneSignal ? "col-span-2 sm:col-span-1" : ""}`}>
+                <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                <span className="min-w-0 flex-1 truncate text-[11px] font-medium leading-4 text-muted-foreground">{signal.label}</span>
+                <strong className={unavailable ? "shrink-0 text-[10px] font-semibold text-muted-foreground" : "shrink-0 text-lg font-semibold tabular-nums"}>{unavailable ? "Unavailable" : signal.value}</strong>
               </Link>;
             })}
           </div>
@@ -295,25 +295,17 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
 
         <Panel title={isKitchen ? "Purchase request progress" : "Actions awaiting you"}>
           {summary.pendingApprovals.length ? (
-            <div className="divide-y rounded-[var(--sb-radius-control)] border bg-[var(--workspace-bg)]">
+            <div className="divide-y divide-[var(--sb-border-soft)]">
               {summary.pendingApprovals.map((row: DashboardSummary["pendingApprovals"][number]) => (
                 <Link prefetch={false}
                   key={row.id}
                   href={row.href}
-                  className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-3 py-2 text-xs hover:bg-[var(--sb-surface-muted)]"
+                  className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 py-2.5 text-xs hover:bg-[var(--sb-surface-muted)]"
                 >
                   <strong className="min-w-0 truncate font-mono">{row.document_no}</strong>
                   <StatusBadge status={row.step.toLowerCase().replaceAll(" ", "_")} className="shrink-0" />
-                  <span data-pr-context-grid className="col-span-2 grid min-w-0 grid-cols-[minmax(0,0.8fr)_minmax(0,1.35fr)] gap-x-4 text-[11px]">
-                    <span className="min-w-0"><span className="block text-[9px] font-semibold uppercase tracking-[0.06em] text-[var(--sb-text-soft)]">Location</span><span className="block truncate text-muted-foreground">{row.branch_name ?? "Unassigned"}</span></span>
-                    <span className="min-w-0" title={row.supplier_names.join(", ")}><span className="block text-[9px] font-semibold uppercase tracking-[0.06em] text-[var(--sb-text-soft)]">Supplier</span><span className="block truncate text-muted-foreground">{row.supplier_names.join(", ") || "Supplier pending"}</span></span>
-                  </span>
-                  <span data-pr-metrics-grid className="col-span-2 grid min-w-0 grid-cols-[minmax(4.8rem,0.85fr)_minmax(4.5rem,0.8fr)_minmax(4rem,0.65fr)_minmax(5.8rem,0.9fr)] gap-x-3 text-[11px] text-muted-foreground">
-                    <span className="min-w-0"><span className="block text-[9px] font-semibold uppercase tracking-[0.06em] text-[var(--sb-text-soft)]">Date</span><span className="block truncate">{row.age_label}</span></span>
-                    <span className="min-w-0"><span className="block text-[9px] font-semibold uppercase tracking-[0.06em] text-[var(--sb-text-soft)]">User</span><span className="block truncate">{row.submitted_by_name ?? "—"}</span></span>
-                    <span className="min-w-0"><span className="block text-[9px] font-semibold uppercase tracking-[0.06em] text-[var(--sb-text-soft)]">Items</span><span className="block truncate tabular-nums">{row.line_count}</span></span>
-                    <span className="min-w-0 text-right"><span className="block text-[9px] font-semibold uppercase tracking-[0.06em] text-[var(--sb-text-soft)]">Est. cost</span><span className="block truncate font-medium tabular-nums">{formatCurrency(row.estimated_total)}</span></span>
-                  </span>
+                  <span className="col-span-2 flex min-w-0 items-center gap-2 text-[11px] text-muted-foreground"><span className="shrink-0">{row.branch_name ?? "Unassigned"}</span><span>·</span><span className="truncate" title={row.supplier_names.join(", ")}>{row.supplier_names.join(", ") || "Supplier pending"}</span></span>
+                  <span className="col-span-2 flex min-w-0 items-center justify-between gap-3 text-[11px] text-muted-foreground"><span className="truncate">{row.age_label} · {row.submitted_by_name ?? "—"}</span><span className="shrink-0 tabular-nums">{row.line_count} items · <strong className="font-medium text-foreground">{formatCurrency(row.estimated_total)}</strong></span></span>
                 </Link>
               ))}
             </div>

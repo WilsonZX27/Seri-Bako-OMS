@@ -457,7 +457,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `207`; linked Production application and cleanup evidence is recorded in the current closure sections and repair ledger. Migrations 201–205 are remotely applied; migrations 206–207 are dry-run verified but not applied, and application deployment plus authenticated workflow evidence remain separate.
+Repository migration authority: migrations reviewed through `208`; linked Production application and cleanup evidence is recorded in the current closure sections and repair ledger. Migrations 201–205 are remotely applied; migrations 206–208 are local-reset verified but not applied remotely, and application deployment plus authenticated workflow evidence remain separate.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 
@@ -1208,6 +1208,12 @@ A module is considered operationally complete when its intended core workflow ha
 - `DEPLOYMENT.md` — production deployment, environment, migration, and recovery procedures.
 - `ARCHITECTURE.md` — application architecture, data rules, permissions, and technical boundaries.
 - `DESIGN.md` — application shell, page skeletons, visual system, components, and interaction standards.
+
+## v8.65.2 (unreleased) — Kitchen-owned Stock Count continuity
+
+- Kitchen physical quantities remain authoritative when inventory moves during an open count. Posting reconciles against the latest locked branch balance, preserves the physical entry, and records the original baseline, posting baseline, movement and final variance for follow-up.
+- Kitchen may add an active Item Master record to an open draft. The action adds one blank physical-count line and activates the item for future counts at that branch, with activity history and Owner/Purchasing/Finance notifications.
+- Branch Stock Count inclusion is operationally editable by Kitchen without changing global Item Master identity or historical ledger facts. PR line writes are constrained to the request's canonical Supplier at the database boundary.
 
 ## v8.64.167 — Outlet Daily ownership and food-only metrics
 

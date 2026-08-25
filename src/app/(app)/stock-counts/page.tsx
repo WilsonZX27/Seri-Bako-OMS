@@ -20,7 +20,7 @@ import { getBranchesForSelect } from "@/server/queries/common";
 import { getStockCountSummary, getStockCounts, getStockCountVarianceInsight } from "@/server/queries/stock-counts";
 import { logServerError } from "@/server/observability/logger";
 import { StockCountExportDialog } from "@/components/stock-count-export-dialog";
-import { StockCountVarianceInsights } from "@/components/reports/stock-count-variance-insights";
+import { StockCountVarianceDaily, StockCountVarianceInsights } from "@/components/reports/stock-count-variance-insights";
 
 // Stock Count has one active workflow: Draft → Confirm & Post. Legacy states
 // remain readable in the table, but are intentionally not promoted as filters.
@@ -75,6 +75,7 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
       rightRail={<div className="space-y-3 [&>section]:overflow-hidden [&>section]:rounded-[var(--sb-panel-radius)] [&>section]:border [&>section]:border-[var(--sb-border-soft)] [&>section]:bg-card [&>section]:shadow-[var(--sb-shadow-card)]" data-tablet-split-actions data-stock-count-tablet-rail>
       <ConsoleSection title="Actions"><div className="grid gap-2" data-export-href={exportHref}>{canCreate ? <Button asChild className="w-full" data-mobile-primary-action><Link href="/stock-counts/new"><Plus className="h-4 w-4" />New Stock Count</Link></Button> : null}{branches ? <StockCountExportDialog branches={branches} defaultFrom={filters.from} defaultTo={filters.to} /> : <div role="status"><Button type="button" variant="outline" className="w-full" disabled>Export unavailable</Button><p className="mt-1.5 text-xs text-muted-foreground">Branch options could not be loaded. Retry before exporting.</p></div>}</div></ConsoleSection>
       <ConsoleSection title="Stock Count Summary">{summaryResult.unavailable ? <div role="status"><p className="text-xs font-semibold text-[var(--sb-warning)]">Unavailable</p><p className="mt-1 text-xs text-muted-foreground">The current count queue remains independent. Retry to load totals.</p></div> : summary ? <dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{summary.total}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Draft</dt><dd className="font-semibold">{summary.draft}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Posted</dt><dd className="font-semibold">{summary.posted}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Cancelled</dt><dd className="font-semibold">{summary.cancelled}</dd></div></dl> : null}</ConsoleSection>
+      <StockCountVarianceDaily insight={varianceInsight} />
     </div>}>
       <div className="space-y-3" data-tablet-main-list>
           <StockCountVarianceInsights insight={varianceInsight} />

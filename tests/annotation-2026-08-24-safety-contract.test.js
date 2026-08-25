@@ -50,16 +50,14 @@ test("Purchasing review explicitly requires the AutoCount PO number", () => {
   assert.match(actions, /const autocountPoNo = z\.string\(\)\.trim\(\)\.min\(1/);
 });
 
-test("PR and Dashboard mobile rows share the aligned operational composition", () => {
+test("PR and Dashboard mobile rows share a compact three-line operational composition", () => {
   const list = read("src/app/(app)/purchase-requests/page.tsx");
   const dashboard = read("src/components/dashboard-workspace.tsx");
-  for (const source of [list, dashboard]) {
-    assert.match(source, /data-pr-context-grid/);
-    assert.match(source, /data-pr-metrics-grid/);
-    assert.match(source, />Location</);
-    assert.match(source, />Supplier</);
-    assert.match(source, />Est\. cost</);
-  }
+  assert.match(list, /secondary=\{<span className="flex min-w-0 items-center gap-2/);
+  assert.match(list, /detail=\{<span className="flex min-w-0 items-center justify-between/);
+  assert.match(dashboard, /row\.branch_name \?\? "Unassigned"/);
+  assert.match(dashboard, /row\.line_count\} items/);
+  for (const source of [list, dashboard]) assert.doesNotMatch(source, /data-pr-context-grid|data-pr-metrics-grid/);
 });
 
 test("PR line picker is supplier-scoped, item-code ordered, and searchable", () => {

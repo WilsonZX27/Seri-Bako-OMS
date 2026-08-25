@@ -1068,6 +1068,15 @@ Production screenshots initiated this batch. The statuses below describe source 
 | Comment | Route / viewport | Acceptance | Status |
 |---|---|---|---|
 | 1 | New Stock Count / iPhone screenshot | Save remains actionable; an incomplete attempt explains the exact missing count, filters to missing rows, scrolls to the first row, focuses its quantity input, and exposes inline accessible errors. | implemented / authenticated iPhone UAT pending |
+
+## 2026-08-25 Strict UX and Stock Count scope — v8.65.2
+
+| Comment group | Route / viewport | Acceptance | Status |
+|---|---|---|---|
+| Dashboard 1, 10 | Dashboard / responsive | Work hierarchy is flatter, pending PR rows are compact, and duplicate nested-card treatment is reduced. | implemented / authenticated role and viewport UAT pending |
+| PR 6–16, 20 | Purchase Requests / responsive | PR line writes enforce one canonical Supplier; workflow labels are compact; rejection and no-stock copy are corrected; mobile rows use a three-line hierarchy. | implemented / migration 208 and authenticated UAT pending |
+| Stock Count 3–5, 17–19 | Stock Counts / responsive | Daily variance moves to the rail, one primary post action remains, movement is reconciled without replacing physical count, and Kitchen can add or update branch scope with audit notifications. | implemented / migration 208 and authenticated Kitchen UAT pending |
+| PO 2 | Purchase Orders / production data | Only exact, dependency-audited TEST/UAT IDs may be removed. | audit required / no production deletion performed |
 ## v8.64.111 receiving posting lock repair
 
 | Acceptance | Status | Evidence / remaining gate |

@@ -4,6 +4,10 @@
 
 Production UAT mutation is now Owner-authorized only when it is traceable, isolated, recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, and cleaned up after verification. Historical release notes that describe Production mutation as unauthorized remain historical evidence and are superseded by this current policy.
 
+### v8.64.172 (unreleased) — Guided Stock Count completion
+
+Stock Count keeps its primary Save action available when physical quantities are incomplete. Submission validates the whole frozen scope, presents an exact missing-item summary, switches the list to the missing rows, then scrolls and focuses the first required quantity. Missing rows receive inline accessible error state, while Show all returns to the complete count. This follows the established validation-summary plus first-invalid-focus pattern instead of leaving staff with an unexplained disabled button. Local focused tests, typecheck, and lint passed; authenticated mobile interaction UAT, deployment, and Production verification remain separate.
+
 ### v8.64.171 (unreleased) — Reliable Stock Count draft progress
 
 Stock Count now reports completed and remaining physical counts instead of labelling every loaded row as ready. Incomplete work is retained locally without calling the server autosave endpoint, so an expected unfinished count no longer appears as a save failure. Versioned recovery snapshots distinguish explicit edits from an unchanged historical prefill, preventing a refreshed branch scope or starting balance from manufacturing hundreds of false adjustments. Pre-version snapshots remain recoverable: matching item quantities are retained, retired old lines are ignored, and newly scoped lines use the current source value. The operator tolerance setting is removed; exact quantity and variance evidence remains visible while the legacy database field is written as zero for compatibility. Local focused tests and typecheck passed; authenticated mobile UAT, deployment, and Production verification remain separate.

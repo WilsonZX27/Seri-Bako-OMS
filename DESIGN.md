@@ -4,6 +4,10 @@
 
 Production UAT mutation is allowed only for isolated, traceable test records recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`. Posted inventory/accounting effects and real operational records remain outside disposable testing; historical notes are retained but this policy is the current authority.
 
+## v8.64.172 (unreleased) - Guided Stock Count completion
+
+Incomplete Stock Count validation follows a familiar enterprise-form sequence: the primary action remains available, submission shows an error summary, the work list narrows to missing rows, and focus moves to the first invalid quantity. Each missing row exposes `aria-invalid` and an associated error description. The operator can return to all items without losing entered values; validation does not substitute zero or bypass the server authority.
+
 ## v8.64.170 (unreleased) - Progressive daily entry and actionable trust states
 
 Outlet Daily treats the workday as progressive entry rather than a single terminal form. Users with Outlet value access can save Received as draft, return later for Wastage, and post only when ready. Missing receipt provenance is expressed as a concrete pending line count and recovery instruction, not a generic unavailable label. Purchase Order side rails remove explanatory copy that repeats the action, attachment, or revision surface itself.

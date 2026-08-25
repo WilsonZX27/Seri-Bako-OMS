@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { FormEvent } from "react";
 import { AlertTriangle, Archive, CalendarDays, ChevronDown, ListFilter, MapPin, Minus, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModalShell } from "@/components/ui/modal-shell";
@@ -120,6 +121,8 @@ export function StockCountForm({
   const [autosaveRetryable, setAutosaveRetryable] = useState(true);
   const [search, setSearch] = useState("");
   const [showAdjustedOnly, setShowAdjustedOnly] = useState(false);
+  const [showMissingOnly, setShowMissingOnly] = useState(false);
+  const [validationAttempted, setValidationAttempted] = useState(false);
   const [sortBy, setSortBy] = useState<"name" | "code">("code");
   const [retirementItemId, setRetirementItemId] = useState<string | null>(null);
   const [retirementReason, setRetirementReason] = useState<RetirementReason>("used_up");
@@ -146,6 +149,8 @@ export function StockCountForm({
     setLines(seedLines.map(makeEditableLine));
     setSearch("");
     setShowAdjustedOnly(false);
+    setShowMissingOnly(false);
+    setValidationAttempted(false);
     setCountDate(initialCountDate ?? getToday());
     setCountRemarks(initialRemarks ?? "");
     hasUserEdited.current = false;
@@ -312,6 +317,22 @@ export function StockCountForm({
     setLines((current) => current.map((line) => (line.item_id === itemId ? { ...line, physicalQty: nextPhysicalQty, adjusted: nextPhysicalQty !== line.initialPhysicalQty } : line)));
   }
 
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    const firstMissing = lines.find((line) => line.physicalQty.trim() === "");
+    if (!firstMissing) return;
+
+    event.preventDefault();
+    setValidationAttempted(true);
+    setSearch("");
+    setShowAdjustedOnly(false);
+    setShowMissingOnly(true);
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+      const input = document.getElementById(`physical-${firstMissing.item_id}`);
+      input?.scrollIntoView({ behavior: "smooth", block: "center" });
+      input?.focus({ preventScroll: true });
+    }));
+  }
+
   function openRetirement(line: SeedLineInput) {
     setRetirementItemId(line.item_id);
     setRetirementReason(line.retirementReason || "used_up");
@@ -355,6 +376,7 @@ export function StockCountForm({
   const normalizedSearch = search.trim().toLowerCase();
   const visibleLines = lines
     .filter((line) => {
+      if (showMissingOnly && line.physicalQty.trim() !== "") return false;
       if (showAdjustedOnly && !line.adjusted) return false;
       if (!normalizedSearch) return true;
       return `${line.item_name} ${line.item_code}`.toLowerCase().includes(normalizedSearch);
@@ -382,7 +404,7 @@ export function StockCountForm({
   return (
     <div className="min-w-0">
       <div>
-        <form ref={formRef} id={formId} action={action} className={showSubmit ? "space-y-3 pb-28 xl:pb-0" : "space-y-3"}>
+        <form ref={formRef} id={formId} action={action} noValidate onSubmit={handleSubmit} className={showSubmit ? "space-y-3 pb-28 xl:pb-0" : "space-y-3"}>
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="tolerance_percent" value="0" />
           <section data-stock-count-setup className="erp-surface overflow-hidden rounded-[var(--sb-panel-radius)] border bg-[var(--sb-surface)] p-3 md:p-4">
@@ -421,11 +443,21 @@ export function StockCountForm({
 
           <section data-stock-count-workspace className="erp-surface overflow-hidden rounded-[var(--sb-panel-radius)] border bg-[var(--sb-surface)]">
 
+          {validationAttempted && needsPhysicalCount > 0 ? (
+            <div role="alert" className="m-3 flex items-start gap-2 rounded-[var(--sb-control-radius)] border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <div className="min-w-0">
+                <p className="font-semibold">{needsPhysicalCount} item{needsPhysicalCount === 1 ? "" : "s"} still need a count</p>
+                <p className="mt-0.5 text-xs">Complete the highlighted item{needsPhysicalCount === 1 ? "" : "s"}. The first missing quantity is focused below.</p>
+              </div>
+            </div>
+          ) : null}
+
           <div className="flex items-center gap-2 border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-3 md:bg-transparent md:px-3 md:pt-3">
             <label className="relative min-w-0 flex-1">
               <span className="sr-only">Find an item</span>
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-              <Input value={search} onChange={(event) => setSearch(event.target.value)} className="pl-9" placeholder="Find item name or code" />
+            <Input value={search} onChange={(event) => { setSearch(event.target.value); setShowMissingOnly(false); }} className="pl-9" placeholder="Find item name or code" />
             </label>
             <SelectNative aria-label="Sort items" value={sortBy} onChange={(event) => setSortBy(event.target.value as "name" | "code")} className="h-[var(--sb-control-height)] w-[4.75rem] shrink-0 px-2 text-xs">
               <option value="name">Name</option>
@@ -434,12 +466,18 @@ export function StockCountForm({
             <button
               type="button"
               className="inline-flex h-[var(--sb-control-height)] min-w-11 shrink-0 items-center justify-center gap-1.5 border border-[var(--sb-border)] bg-[var(--sb-surface)] px-2.5 text-sm font-medium hover:bg-[var(--sb-surface-muted)]"
-              aria-pressed={showAdjustedOnly}
-              onClick={() => setShowAdjustedOnly((current) => !current)}
+              aria-pressed={showAdjustedOnly || showMissingOnly}
+              onClick={() => {
+                if (showMissingOnly) {
+                  setShowMissingOnly(false);
+                  return;
+                }
+                setShowAdjustedOnly((current) => !current);
+              }}
             >
               <ListFilter className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline">{showAdjustedOnly ? "Show all items" : `Show adjusted (${adjustedCount})`}</span>
-              <span className="text-xs tabular-nums sm:hidden">{showAdjustedOnly ? "All" : adjustedCount}</span>
+              <span className="hidden sm:inline">{showMissingOnly || showAdjustedOnly ? "Show all items" : `Show adjusted (${adjustedCount})`}</span>
+              <span className="text-xs tabular-nums sm:hidden">{showMissingOnly ? `Missing ${needsPhysicalCount}` : showAdjustedOnly ? "All" : adjustedCount}</span>
             </button>
           </div>
 
@@ -481,7 +519,7 @@ export function StockCountForm({
                   <div
                     key={line.item_id}
                     data-stock-count-line
-                    className={`grid min-h-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-2 rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)] px-3 py-3 ${line.adjusted ? "bg-[var(--sb-green-100)]" : line.prefill_source === "unavailable" ? "bg-[var(--sb-warning-bg)]" : "bg-[var(--sb-surface)]"} sm:min-h-14 sm:items-center sm:gap-x-2 sm:gap-y-1.5 sm:rounded-none sm:border-0 sm:border-b sm:px-4 sm:py-2 md:min-h-14 lg:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] lg:gap-4 xl:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]`}
+                    className={`grid min-h-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-2 rounded-[var(--sb-control-radius)] border px-3 py-3 ${validationAttempted && !hasPhysical ? "border-destructive/50 bg-destructive/10" : line.adjusted ? "border-[var(--sb-border-soft)] bg-[var(--sb-green-100)]" : line.prefill_source === "unavailable" ? "border-[var(--sb-border-soft)] bg-[var(--sb-warning-bg)]" : "border-[var(--sb-border-soft)] bg-[var(--sb-surface)]"} sm:min-h-14 sm:items-center sm:gap-x-2 sm:gap-y-1.5 sm:rounded-none sm:border-x-0 sm:border-t-0 sm:px-4 sm:py-2 md:min-h-14 lg:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] lg:gap-4 xl:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]`}
                   >
                     <div className="order-1 flex min-w-0 items-start gap-2">
                       <div className="flex w-7 shrink-0 flex-col items-center gap-0.5">
@@ -517,6 +555,8 @@ export function StockCountForm({
                           onChange={(event) => updatePhysicalQty(line.item_id, event.target.value)}
                           onBlur={() => normalizePhysicalQty(line.item_id)}
                           required
+                          aria-invalid={validationAttempted && !hasPhysical}
+                          aria-describedby={validationAttempted && !hasPhysical ? `physical-error-${line.item_id}` : undefined}
                            aria-label={`Counted quantity for ${line.item_name}`}
                           placeholder={line.prefill_source === "unavailable" ? "Enter count" : "0.00"}
                            className="h-10 w-full min-w-10 flex-1 rounded-none border-0 px-1 text-center text-[13px] font-semibold tabular-nums shadow-none focus-visible:ring-inset [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
@@ -524,6 +564,7 @@ export function StockCountForm({
                           <button type="button" className="flex h-10 w-10 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, 1)} aria-label={`Increase physical quantity for ${line.item_name}`}><Plus className="h-4 w-4" /></button>
                         </div>
                       <span className="shrink-0 text-[11px] text-muted-foreground">{line.uom}</span>
+                      {validationAttempted && !hasPhysical ? <span id={`physical-error-${line.item_id}`} className="sr-only">Physical count required</span> : null}
                     </div>
 
                     <input type="hidden" name="line_item_id" value={line.item_id} />
@@ -579,7 +620,7 @@ export function StockCountForm({
                 <span className="text-sm font-semibold tabular-nums">{completedCount} of {lines.length} counted</span>
                 <span className="text-xs tabular-nums text-muted-foreground">{needsPhysicalCount ? `${needsPhysicalCount} remaining` : `${adjustedCount} adjusted`}{autosaveError ? ` · ${autosaveError}` : ""}</span>
               </div>
-              <SubmitButton type="submit" disabled={!countComplete} className="h-12 w-auto min-w-32 shrink-0 px-5" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Save draft</SubmitButton>
+              <SubmitButton type="submit" className="h-12 w-auto min-w-32 shrink-0 px-5" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Save draft</SubmitButton>
             </div>
           ) : null}
         </form>

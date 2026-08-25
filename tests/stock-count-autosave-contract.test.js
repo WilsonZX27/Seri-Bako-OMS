@@ -56,6 +56,13 @@ test("stock count form keeps a local recovery snapshot and reports server save s
   assert.doesNotMatch(form, /snapshot\.lines\.length !== seedLines\.length/);
   assert.match(form, /saved\.physicalQty === saved\.initialPhysicalQty/);
   assert.doesNotMatch(form, /values ready/);
+  assert.match(form, /onSubmit=\{handleSubmit\}/);
+  assert.match(form, /setShowMissingOnly\(true\)/);
+  assert.match(form, /scrollIntoView\(\{ behavior: "smooth", block: "center" \}\)/);
+  assert.match(form, /input\?\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(form, /still need a count/);
+  assert.match(form, /aria-invalid=\{validationAttempted && !hasPhysical\}/);
+  assert.doesNotMatch(form, /disabled=\{!countComplete\}/);
   assert.doesNotMatch(detail, /mobileWorkflowTrailing/);
   assert.doesNotMatch(detail, /StockCountAutosaveStatus/);
   assert.match(detail, /canEdit && canPost \? "grid-cols-2" : "grid-cols-1"/);

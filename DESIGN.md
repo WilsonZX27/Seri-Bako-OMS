@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v8.65.5 (unreleased) — UAT trust boundary
+
+Production evidence must fail closed before sign-in when the app host, Supabase project, explicit confirmation, or env file does not match the declared target. Environment identity is part of the operator-facing safety model: a successful workflow against localhost cannot be presented as Production evidence, and Production mutation must never inherit local service credentials.
+
 ## v8.65.4 (unreleased) — Reliability boundary
 
 Dangerous cleanup remains a narrow Owner workflow: dependency preview, exact identity confirmation, server-side execution, and a retained tombstone. Database compatibility fixes must preserve the current UI and role grammar rather than re-expose retired Location, barcode, or legacy identity concepts. A local build or migration file is implementation evidence; linked migration and authenticated workflow evidence are reported separately.

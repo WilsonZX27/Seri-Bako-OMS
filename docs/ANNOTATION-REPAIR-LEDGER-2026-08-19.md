@@ -1,5 +1,11 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-08-25 — Production UAT environment identity closure
+
+- Root cause of the misleading Owner-auth failure was environment composition: `.env.test.local` supplied a loopback Supabase URL while the intended target was Production. WILSON's Production Staff/Auth link was not broken.
+- Migrations 209–215 were applied to the linked Production project. `TEST-PO-PR016-20260822` passed authenticated Owner preview with zero GR/Return/Invoice dependencies, was deleted once through `hard_delete_phase_one`, and returned zero records by UUID and PO number; source `PR/AUG26/016` returned to `ready_to_convert`.
+- `scripts/check-uat-environment.mjs` now rejects missing env files, loopback Production targets, unconfirmed Production runs, unexpected app hosts and Supabase project-ref mismatches before authentication or mutation.
+
 ## 2026-08-25 — Cancelled PO cleanup and database stability closure
 
 - Exact Production target `TEST-PO-PR016-20260822` was authenticated and previewed as cancelled with zero GR, Return, and Invoice dependencies. Execution exposed a conflict between the Owner hard-delete RPC and committed-line trigger; no deletion occurred.

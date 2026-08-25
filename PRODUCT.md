@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.65.5 (unreleased) — Production UAT environment guard
+
+Production UAT now requires an explicit environment file, confirmed Production intent, the canonical `system.seribako.com.my` origin, a non-loopback Supabase host, and an exact expected project reference before authentication or mutation begins. Local and Production credentials can no longer be silently combined. The exact cancelled test PO cleanup completed through the Owner-only guarded RPC after migrations 209–215 were applied; authenticated verification found zero remaining records and restored the source PR to `ready_to_convert`.
+
 ### v8.65.4 (unreleased) — Database executable stability closure
 
 The cancelled-PO Owner cleanup path now cooperates with committed-line immutability through a transaction-local, RPC-only bypass after dependency and typed-confirmation checks. Executable schema lint is clean: obsolete Location, barcode, recipe identity, notification-column, and Production/Item ambiguity references are repaired without weakening tenant or workflow guards. Migrations 211–215 are locally applied and lint-clean; linked Production application and authenticated mutation UAT remain separate gates.

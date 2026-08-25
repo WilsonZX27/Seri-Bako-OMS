@@ -1,6 +1,6 @@
 {
   "name": "seri-bako-ops",
-  "version": "8.65.4",
+  "version": "8.65.5",
   "private": true,
   "scripts": {
     "dev": "node --use-system-ca node_modules/next/dist/bin/next dev",
@@ -14,6 +14,7 @@
     "test:e2e": "playwright test",
     "test:e2e:tenant-backup-local": "node --env-file=.env.test.local node_modules/@playwright/test/cli.js test tests/e2e/tenant-backup-isolation-local.spec.js --reporter=line",
     "test:gate2-owner-concurrency": "node scripts/gate2-owner-concurrency.mjs",
+    "uat:guard": "node scripts/check-uat-environment.mjs",
     "codex:orchestrate": "node tools/codex-orchestrator/cli.ts",
     "codex:orchestrator:test": "node --test tools/codex-orchestrator/*.test.ts"
   },

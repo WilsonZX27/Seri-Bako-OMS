@@ -2254,5 +2254,5 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 
 - A loaded Stock Count row is not automatically a ready value. Progress copy states `completed of total counted` and the remaining quantity count.
 - Incomplete counting remains recoverable on the device without presenting a server failure or retry loop. Server autosave begins only when every physical quantity is present.
-- Recovery snapshots are versioned and retain each line's original prefill. If the server baseline changes, an untouched old prefill follows the new baseline; an explicit operator edit remains intact.
+- Recovery snapshots are versioned and retain each line's original prefill. If the server baseline changes, an untouched old prefill follows the new baseline; an explicit operator edit remains intact. Pre-version snapshots preserve matching quantities without claiming they are adjustments, ignore removed scope lines, and seed newly added scope lines from the server.
 - Stock Count has no operator-defined tolerance. Exact theoretical, physical, absolute variance, and variance percentage remain the review evidence.

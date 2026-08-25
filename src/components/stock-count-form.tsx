@@ -35,11 +35,11 @@ const STOCK_COUNT_SORT_KEY = "seri-bako:stock-count-sort";
 const MAX_AUTOSAVE_RETRIES = 3;
 const AUTOSAVE_DEBOUNCE_MS = 12_000;
 type LocalDraftSnapshot = {
-  version: 2;
+  version?: 2;
   branchId: string;
   countDate: string;
   remarks: string;
-  lines: Array<{ itemId: string; physicalQty: string; initialPhysicalQty: string; remarks: string }>;
+  lines: Array<{ itemId: string; physicalQty: string; initialPhysicalQty?: string; remarks: string }>;
   savedLocallyAt: string;
 };
 
@@ -178,15 +178,12 @@ export function StockCountForm({
       const raw = window.localStorage.getItem(localStorageKey);
       if (!raw) return;
       const snapshot = JSON.parse(raw) as LocalDraftSnapshot;
-      if (snapshot.version !== 2 || snapshot.branchId !== resolvedBranchId) {
+      if (snapshot.branchId !== resolvedBranchId) {
         window.localStorage.removeItem(localStorageKey);
         return;
       }
+      const isLegacySnapshot = snapshot.version !== 2;
       const savedLines = new Map(snapshot.lines.map((line) => [line.itemId, line]));
-      if (snapshot.lines.length !== seedLines.length || seedLines.some((line) => !savedLines.has(line.item_id))) {
-        window.localStorage.removeItem(localStorageKey);
-        return;
-      }
       setLines(seedLines.map((line) => {
         const editable = makeEditableLine(line);
         const saved = savedLines.get(line.item_id);
@@ -194,14 +191,17 @@ export function StockCountForm({
         // When the server-side starting balance changed, do not turn an old
         // untouched prefill into a false user adjustment. Explicit edits are
         // preserved because they differ from the snapshot's original value.
-        const physicalQty = saved.physicalQty === saved.initialPhysicalQty
+        const physicalQty = !isLegacySnapshot && saved.physicalQty === saved.initialPhysicalQty
           ? editable.physicalQty
           : saved.physicalQty;
         return {
           ...editable,
           physicalQty,
           remarks: saved.remarks,
-          adjusted: physicalQty !== editable.initialPhysicalQty,
+          // Legacy snapshots did not record their original prefill, so there is
+          // no honest way to label the recovered value as a user adjustment.
+          // Preserve it, but wait for the next explicit edit before marking it.
+          adjusted: isLegacySnapshot ? false : physicalQty !== editable.initialPhysicalQty,
         };
       }));
       setCountDate(snapshot.countDate);

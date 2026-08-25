@@ -50,6 +50,10 @@ test("stock count form keeps a local recovery snapshot and reports server save s
   assert.match(form, /physicalValues\.some\(\(value\) => value\.trim\(\) === ""\)/);
   assert.match(form, /completedCount\} of \{lines\.length\} counted/);
   assert.match(form, /version: 2/);
+  assert.match(form, /const isLegacySnapshot = snapshot\.version !== 2/);
+  assert.match(form, /adjusted: isLegacySnapshot \? false/);
+  assert.doesNotMatch(form, /snapshot\.version !== 2 \|\| snapshot\.branchId/);
+  assert.doesNotMatch(form, /snapshot\.lines\.length !== seedLines\.length/);
   assert.match(form, /saved\.physicalQty === saved\.initialPhysicalQty/);
   assert.doesNotMatch(form, /values ready/);
   assert.doesNotMatch(detail, /mobileWorkflowTrailing/);

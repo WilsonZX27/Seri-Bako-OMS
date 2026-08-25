@@ -1048,7 +1048,7 @@ Production screenshots initiated this batch. The statuses below describe source 
 | Comment | Route / viewport | Acceptance | Status |
 |---|---|---|---|
 | 1 | New Stock Count / iPhone screenshot | Progress distinguishes completed counts from loaded rows; unfinished work stays locally recoverable without a false server save failure. | implemented / authenticated mobile UAT pending |
-| 1 | New Stock Count / iPhone screenshot | A changed server scope or starting balance does not turn untouched recovered values into mass adjustments. | implemented / current browser local-storage regression pending |
+| 1 | New Stock Count / iPhone screenshot | A changed server scope or starting balance does not turn untouched recovered values into mass adjustments; pre-version local drafts preserve matching quantities across deployment. | implemented / current browser local-storage regression pending |
 | 1 | New and draft Stock Count / all viewports | Tolerance is absent; exact variance remains visible and the legacy persistence field is fixed at zero. | implemented / responsive and reporting regression pending |
 ## v8.64.111 receiving posting lock repair
 

@@ -8,15 +8,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { StockCountForm } from "@/components/stock-count-form";
 import { StockCountLineRecovery } from "@/components/stock-count-line-recovery";
 import { AddStockCountItemDialog } from "@/components/stock-count-scope-actions";
+import { StockCountVoidDialog } from "@/components/stock-count-void-dialog";
 import { Button } from "@/components/ui/button";
-import { BlockedDestructiveAction, DangerConfirmForm } from "@/components/ui/danger-confirm-form";
+import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatDateOnly, formatQuantity } from "@/lib/utils";
-import { addItemToStockCount, autosaveStockCountDraft, cancelStockCount, deleteStockCount, postStockCount, resolveStockCountLineRevision, reviseStockCountLine, saveAndPostStockCount, suggestStockCountItemCorrection, updateBranchStockCountItem, updateStockCountDraft } from "@/server/actions/stock-counts";
+import { addItemToStockCount, autosaveStockCountDraft, cancelStockCount, postStockCount, resolveStockCountLineRevision, reviseStockCountLine, saveAndPostStockCount, updateStockCountDraft, voidStockCount } from "@/server/actions/stock-counts";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getBranchesForSelect, getItemsForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
-import { getStockCount } from "@/server/queries/stock-counts";
+import { getStockCount, getStockCountVoidPreview } from "@/server/queries/stock-counts";
 import { StockCountNotFoundError } from "@/server/queries/stock-counts";
 import { notFound } from "next/navigation";
 
@@ -46,20 +47,11 @@ export default async function StockCountDetailPage({ params }: { params: Promise
   const canEdit = count.status === "draft" && permissions["stock_count.update"];
   // Any count that has not posted inventory can still be safely removed from
   // active work. Posted counts are the immutable audit boundary.
-  const canDeleteByStatus = count.status !== "posted";
-  const canDelete = canDeleteByStatus && (permissions["stock_count.update"] || permissions["stock_count.cancel"]);
   const canCancel = (count.status === "draft" || isLegacyPending) && permissions["stock_count.cancel"];
-  const hasPrimaryAction = canPost || canEdit;
+  const canVoid = count.status === "posted" && permissions["stock_count.cancel"];
+  const voidPreview = canVoid ? await getStockCountVoidPreview(count.id) : null;
+  const hasPrimaryAction = canPost || canEdit || canVoid;
   const formId = `stock-count-edit-${count.id}`;
-  const deleteLabel = count.status === "draft" ? "Delete draft" : "Delete unposted count";
-  const deleteControl = canDelete
-    ? <DangerConfirmForm action={deleteStockCount.bind(null, count.id)} buttonLabel={deleteLabel} title={`${deleteLabel} ${count.count_no}?`} description="This removes the unposted count from active work. Its audit activity remains available." checkboxLabel="I understand this removes the Stock Count from active records." warning="Only posted counts are protected because they already changed the stock ledger." confirmWord={count.count_no} pendingLabel="Deleting..." />
-    : <BlockedDestructiveAction
-      buttonLabel="Delete stock count"
-      title={canDeleteByStatus ? `Delete permission required for ${count.count_no}` : `Cannot delete ${count.count_no}`}
-      description={canDeleteByStatus ? "This unposted count can be removed, but your role does not have the required Stock Count delete permission." : "This count has already been posted to the stock ledger."}
-      recommendation={canDeleteByStatus ? "Ask an Owner to grant Stock Count update or cancel permission." : "Posted counts remain immutable. Create a new count for any correction."}
-    />;
   const cancelControl = canCancel ? (
     <DangerConfirmForm
       action={cancelStockCount.bind(null, count.id)}
@@ -70,13 +62,15 @@ export default async function StockCountDetailPage({ params }: { params: Promise
       warning="No stock ledger movement will be posted."
       confirmWord={count.count_no}
       pendingLabel="Cancelling..."
+      triggerVariant="outline"
     />
   ) : null;
   const addItemControl = canEdit ? <AddStockCountItemDialog items={items} existingItemIds={lines.map((line) => line.item_id)} action={addItemToStockCount.bind(null, count.id)} /> : null;
-  const secondaryActions = addItemControl || cancelControl || deleteControl ? <div className="space-y-2">{addItemControl}{cancelControl}{deleteControl}</div> : null;
+  const secondaryActions = cancelControl ? <div className="space-y-2">{cancelControl}</div> : null;
   const postAction = canEdit ? saveAndPostStockCount.bind(null, count.id) : postStockCount.bind(null, count.id);
   const confirmAction = canPost ? <ConfirmActionForm action={postAction} formId={canEdit ? formId : undefined} label="Confirm & Post Count" title="Post this stock count?" description={`${lines.filter((line) => line.variance_qty !== 0).length} adjusted lines will update the branch stock ledger. Your latest entries will be saved before posting. This cannot be undone.`} pendingLabel="Saving & posting..." mobilePrimary /> : null;
-  const mobilePrimaryAction = hasPrimaryAction ? <div>{confirmAction ?? (canEdit ? <SubmitButton form={formId} className="w-full" pendingLabel="Saving...">Save draft</SubmitButton> : null)}</div> : null;
+  const voidControl = canVoid && voidPreview ? <StockCountVoidDialog action={voidStockCount.bind(null, count.id)} preview={voidPreview} /> : null;
+  const mobilePrimaryAction = hasPrimaryAction ? <div>{confirmAction ?? (canEdit ? <SubmitButton form={formId} className="w-full" pendingLabel="Saving...">Save draft</SubmitButton> : voidControl)}</div> : null;
   const editableLines = lines.map((line) => ({
     line_id: line.id,
     item_id: line.item_id,
@@ -105,15 +99,14 @@ export default async function StockCountDetailPage({ params }: { params: Promise
       mobileMoreOptions={<DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions>}
       sidePanel={
         <>
-          <DocumentActionSection description="Only valid stock count actions are shown." moreOptions={secondaryActions} collapseMoreOptions>
+          {hasPrimaryAction || canCancel ? <DocumentActionSection description={canVoid ? "Reversal preserves the original count and creates equal opposite ledger movements." : undefined}>
             {hasPrimaryAction ? (
               <DocumentActionBar>
-                {canPost ? <ConfirmActionForm action={postAction} formId={canEdit ? formId : undefined} label="Post count" title="Post this stock count?" description={`${lines.filter((line) => line.variance_qty !== 0).length} adjusted lines will update the branch stock ledger. Inventory movements made during counting will be reconciled automatically without changing the physical quantities.`} pendingLabel="Saving & posting..." /> : canEdit ? <SubmitButton form={formId} className="w-full" pendingLabel="Saving...">Save draft</SubmitButton> : null}
+                {canPost ? <ConfirmActionForm action={postAction} formId={canEdit ? formId : undefined} label="Post count" title="Post this stock count?" description={`${lines.filter((line) => line.variance_qty !== 0).length} adjusted lines will update the branch stock ledger. Inventory movements made during counting will be reconciled automatically without changing the physical quantities.`} pendingLabel="Saving & posting..." /> : canEdit ? <SubmitButton form={formId} className="w-full" pendingLabel="Saving...">Save draft</SubmitButton> : voidControl}
+                {canCancel ? cancelControl : null}
               </DocumentActionBar>
-            ) : (
-              <p className="text-sm text-muted-foreground">You can view this count, but there is no workflow action available for your role or this status.</p>
-            )}
-          </DocumentActionSection>
+            ) : null}
+          </DocumentActionSection> : null}
           <DocumentSideSection title="Next step"><p className="text-xs text-muted-foreground">{count.status === "draft" ? "Enter the physical quantities and post when complete. If inventory moved during counting, the system keeps your physical count and records the reconciliation for follow-up." : isLegacyPending ? "Confirm and post this historical count, or cancel it if permitted." : "Posted counts are read-only. Reconciliation notices remain in the document history."}</p></DocumentSideSection>
           {documentBundle ? (
             <>
@@ -134,7 +127,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
           return <div key={entry.item_id} className="grid gap-1 py-2 text-xs sm:grid-cols-[minmax(0,1fr)_repeat(4,auto)] sm:items-center sm:gap-5"><p className="font-medium">{line?.item?.item_code} · {line?.item?.item_name}</p><p><span className="text-muted-foreground">Started</span> {formatQuantity(entry.snapshot_balance)}</p><p><span className="text-muted-foreground">Posted baseline</span> {formatQuantity(entry.posting_balance)}</p><p><span className="text-muted-foreground">Physical</span> {formatQuantity(entry.physical_qty)}</p><p className="font-semibold"><span className="font-normal text-muted-foreground">Variance</span> {formatQuantity(entry.final_variance_qty)}</p></div>;
         })}</div>
       </section> : null}
-      {canEdit ? <StockCountForm formId={formId} branches={branches} selectedBranchId={count.branch_id ?? undefined} seedLines={editableLines} action={updateStockCountDraft.bind(null, count.id)} autosaveAction={autosaveStockCountDraft.bind(null, count.id)} branchSettingAction={updateBranchStockCountItem.bind(null, count.id)} itemCorrectionAction={suggestStockCountItemCorrection.bind(null, count.id)} lineRevisionAction={reviseStockCountLine.bind(null, count.id)} itemCatalog={items} draftId={count.id} showSubmit={false} initialCountDate={count.count_date} initialRemarks={count.remarks} /> : null}
+      {canEdit ? <StockCountForm formId={formId} branches={branches} selectedBranchId={count.branch_id ?? undefined} seedLines={editableLines} action={updateStockCountDraft.bind(null, count.id)} autosaveAction={autosaveStockCountDraft.bind(null, count.id)} lineRevisionAction={reviseStockCountLine.bind(null, count.id)} itemCatalog={items} addItemControl={addItemControl} draftId={count.id} showSubmit={false} initialCountDate={count.count_date} initialRemarks={count.remarks} /> : null}
 
       {!canEdit ? <Card>
         <CardContent className="space-y-4 p-5">

@@ -16,6 +16,7 @@ type DangerConfirmFormProps = {
   confirmWord?: string;
   buttonLabel: string;
   pendingLabel: string;
+  triggerVariant?: "destructive" | "outline";
 };
 
 export function DangerConfirmForm({
@@ -27,6 +28,7 @@ export function DangerConfirmForm({
   confirmWord,
   buttonLabel,
   pendingLabel,
+  triggerVariant = "destructive",
 }: DangerConfirmFormProps) {
   const [open, setOpen] = useState(false);
   const [checked, setChecked] = useState(false);
@@ -41,7 +43,7 @@ export function DangerConfirmForm({
       <Button
         ref={triggerRef}
         type="button"
-        variant="destructive"
+        variant={triggerVariant}
         onClick={() => setOpen(true)}
         className="w-full justify-start"
       >

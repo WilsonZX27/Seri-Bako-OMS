@@ -12,10 +12,10 @@ import { DestructiveActionDialog } from "@/components/ui/destructive-action-dial
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { sortProductsForDisplay } from "@/lib/product-order";
-import { formatDateOnly, formatNumber } from "@/lib/utils";
+import { formatDateOnly, formatDateTime, formatNumber } from "@/lib/utils";
 import { saveOutletDailyRecord, voidOutletDailyRecord } from "@/server/actions/outlet-daily-records";
 import { getPermissionMap } from "@/server/auth/permissions";
-import { getOutletDailyFormOptions, getOutletDailyRecord } from "@/server/queries/outlet-daily-records";
+import { getOutletDailyActivity, getOutletDailyFormOptions, getOutletDailyRecord } from "@/server/queries/outlet-daily-records";
 import { logServerError } from "@/server/observability/logger";
 import { CheckCircle2, Save } from "lucide-react";
 
@@ -31,6 +31,7 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
     getOutletDailyRecord(id),
     getOutletDailyFormOptions(),
     getPermissionMap(["outlet_daily_record.update", "outlet_daily_record.qty_sent", "outlet_daily_record.void"]),
+    getOutletDailyActivity(id),
   ]).catch((error) => {
     logServerError(error, { source: "page.outletDailyRecords.detail" });
     return null;
@@ -41,7 +42,7 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
       <Card role="status"><CardContent className="p-5"><EmptyState title="Outlet daily record unavailable" description="The record could not be verified right now. Retry before editing or interpreting any quantity." action={{ href: `/outlet-daily-records/${encodeURIComponent(id)}`, label: "Retry record" }} /></CardContent></Card>
     </WorkspaceGrid>
   </>;
-  const [{ record, lines }, options, permissions] = source;
+  const [{ record, lines }, options, permissions, activities] = source;
   const productMap = new Map(options.products.map((product) => [product.id, product]));
   for (const line of lines) if (line.product) productMap.set(line.product.id, line.product);
   const products = sortProductsForDisplay([...productMap.values()]);
@@ -90,6 +91,7 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
   const sidePanel = <>
     {primaryAction || hasSecondaryActions ? <DocumentActionSection moreOptions={hasSecondaryActions ? <div className="grid gap-2">{secondaryActions}</div> : undefined}>{primaryAction ?? <p className="text-xs text-muted-foreground">No primary action is available for this status.</p>}</DocumentActionSection> : null}
     <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{nextStep}</p><p className="text-xs text-muted-foreground">Wastage needs a reason. Quantity exceptions require a remark.</p></DocumentSideSection>
+    <DocumentSideSection title="Activity"><div className="divide-y divide-[var(--sb-border-soft)]">{activities.length ? activities.map((activity) => <div key={activity.id} className="py-2 text-xs"><p className="font-medium">{activity.message}</p><p className="mt-1 text-muted-foreground">{activity.actor_name} · {formatDateTime(activity.created_at)}</p></div>) : <p className="py-2 text-xs text-muted-foreground">No changes recorded yet.</p>}</div></DocumentSideSection>
   </>;
 
   return <DocumentWorkspace

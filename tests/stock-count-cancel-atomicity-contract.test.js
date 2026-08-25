@@ -34,10 +34,10 @@ test("Stock Count cancellation uses one forward-only atomic RPC", () => {
   assert.match(action, /safeRedirectWithMessage\("\/stock-counts", "success", "Draft Stock Count cancelled/);
 });
 
-test("Stock Count unposted work exposes explicit cancel and delete exits", () => {
+test("Stock Count unposted work exposes audited cancel without ordinary hard delete", () => {
   const detail = read("src/app/(app)/stock-counts/[id]/page.tsx");
-  assert.match(detail, /Delete draft/);
   assert.match(detail, /Cancel stock count/);
-  assert.match(detail, /const secondaryActions = addItemControl \|\| cancelControl \|\| deleteControl/);
+  assert.doesNotMatch(detail, /Delete draft/);
+  assert.match(detail, /triggerVariant="outline"/);
   assert.match(detail, /preserving its audit history/);
 });

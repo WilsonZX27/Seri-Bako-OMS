@@ -8,7 +8,7 @@ const read = (...parts) => fs.readFileSync(path.join(root, ...parts), "utf8");
 
 test("Stock Count exposes only the current workflow states in its filter", () => {
   const page = read("src", "app", "(app)", "stock-counts", "page.tsx");
-  assert.match(page, /const statuses = \["draft", "posted", "cancelled"\]/);
+  assert.match(page, /const statuses = \["draft", "posted", "voided", "cancelled"\]/);
   assert.match(page, /legacy states[\s\S]*remain readable/i);
   assert.doesNotMatch(page, /const statuses = \["draft", "submitted", "reviewed"/);
   assert.doesNotMatch(page, />In review<\/dt>/);

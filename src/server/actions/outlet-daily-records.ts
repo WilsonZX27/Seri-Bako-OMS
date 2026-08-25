@@ -6,6 +6,7 @@ import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRe
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { hasPermission, requirePermission } from "@/server/auth/permissions";
 import { z } from "zod";
+import { writeActivityLog } from "@/server/activity/log";
 
 const values = (formData: FormData, name: string) => formData.getAll(name).map(String);
 const outletDailyStatusSchema = z.enum(["draft", "morning_recorded", "evening_completed"]);
@@ -83,6 +84,8 @@ export async function saveOutletDailyRecord(formData: FormData) {
   } else await requirePermissionOrRedirect("outlet_daily_record.create", "/outlet-daily-records/new");
   try {
     const db = await createClient();
+    const beforeLines = recordId ? await db.from("outlet_daily_record_lines").select("product_id,qty_sent,morning_received_qty,morning_received_provided,wastage_qty,wastage_reason,notes").eq("record_id", recordId) : { data: [], error: null };
+    if (beforeLines.error) throw new Error(beforeLines.error.message);
     if (!recordId) {
       const { data: existing, error: existingError } = await db
         .from("outlet_daily_records")
@@ -119,6 +122,19 @@ export async function saveOutletDailyRecord(formData: FormData) {
     }
     if (error) throw new Error(error.message);
     if (!data) throw new Error("Outlet daily record was not saved.");
+    await writeActivityLog({
+      entityType: "outlet_daily_record",
+      entityId: String(data),
+      activityType: recordId ? "updated" : "created",
+      message: recordId ? "Outlet daily values updated" : "Outlet daily record created",
+      metadata: {
+        target_status: payload.target_status,
+        changed_lines: payload.lines.map((line) => {
+          const before = beforeLines.data?.find((candidate) => candidate.product_id === line.product_id);
+          return { product_id: line.product_id, before: before ? { qty_sent: before.qty_sent, received: before.morning_received_provided ? before.morning_received_qty : null, wastage: before.wastage_qty, reason: before.wastage_reason, comment: before.notes } : null, after: { qty_sent: line.qty_sent, received: line.morning_received_provided ? line.morning_received_qty : null, wastage: line.wastage_qty, reason: line.wastage_reason, comment: line.notes } };
+        }),
+      },
+    });
     revalidateWorkspaceState(["/outlet-daily-records", `/outlet-daily-records/${data}`]);
     redirect(`/outlet-daily-records/${data}?success=${encodeURIComponent("Outlet daily record saved.")}`);
   } catch (error) {

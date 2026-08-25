@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { FormEvent } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { AlertTriangle, Archive, CalendarDays, ChevronDown, ListFilter, MapPin, Minus, Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModalShell } from "@/components/ui/modal-shell";
@@ -12,7 +12,6 @@ import { SelectNative } from "@/components/ui/select-native";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { TableActionMenuPortal } from "@/components/ui/table-action-menu-portal";
-import { BranchStockCountSettingDialog, ItemCorrectionSuggestionDialog } from "@/components/stock-count-scope-actions";
 import { StockCountLineRecovery } from "@/components/stock-count-line-recovery";
 import { formatDateOnly, formatQuantity, formatQuantityInput, getToday } from "@/lib/utils";
 import type { StockCountAutosaveResult } from "@/server/actions/stock-counts";
@@ -91,10 +90,9 @@ export function StockCountForm({
   initialRemarks,
   autosaveAction,
   draftId,
-  branchSettingAction,
-  itemCorrectionAction,
   lineRevisionAction,
   itemCatalog = [],
+  addItemControl,
 }: {
   branches: BranchOption[];
   selectedBranchId?: string;
@@ -106,10 +104,9 @@ export function StockCountForm({
   initialRemarks?: string | null;
   autosaveAction?: (formData: FormData) => Promise<StockCountAutosaveResult>;
   draftId?: string;
-  branchSettingAction?: (itemId: string, formData: FormData) => Promise<void>;
-  itemCorrectionAction?: (itemId: string, formData: FormData) => Promise<void>;
   lineRevisionAction?: (formData: FormData) => Promise<void>;
   itemCatalog?: Array<{ id: string; item_code: string; item_name: string; base_unit: string }>;
+  addItemControl?: ReactNode;
 }) {
   const router = useRouter();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
@@ -535,12 +532,10 @@ export function StockCountForm({
                       <div className="flex w-7 shrink-0 flex-col items-center gap-0.5">
                         <span className="mt-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--sb-surface-muted)] px-1 text-[10px] font-semibold tabular-nums text-muted-foreground" aria-label={`Item ${displayIndex}`}>{displayIndex}</span>
                         <TableActionMenuPortal label={`More options for ${line.item_name}`} className="[&_button]:!h-7 [&_button]:!w-7">
+                          {lineRevisionAction && line.line_id ? <StockCountLineRecovery action={lineRevisionAction} line={{ id: line.line_id, item_id: line.item_id, physical_qty: toNumber(line.physicalQty), uom: line.uom }} items={itemCatalog} reviewMode={false} menuTrigger /> : null}
                           <button ref={retirementTriggerRef} type="button" role="menuitem" className="flex w-full items-center rounded-sm px-3 py-2 text-left text-xs font-medium hover:bg-[var(--sb-surface-muted)]" onClick={() => line.retireAfterCount ? cancelRetirement(line.item_id) : openRetirement(line)}>
                             {line.retireAfterCount ? "Keep active" : "Retire after this count"}
                           </button>
-                          {lineRevisionAction && line.line_id ? <StockCountLineRecovery action={lineRevisionAction} line={{ id: line.line_id, item_id: line.item_id, physical_qty: toNumber(line.physicalQty), uom: line.uom }} items={itemCatalog} reviewMode={false} menuTrigger /> : null}
-                          {itemCorrectionAction ? <ItemCorrectionSuggestionDialog itemName={line.item_name} itemCode={line.item_code} action={itemCorrectionAction.bind(null, line.item_id)} /> : null}
-                          {branchSettingAction ? <BranchStockCountSettingDialog itemName={line.item_name} included action={branchSettingAction.bind(null, line.item_id)} /> : null}
                         </TableActionMenuPortal>
                       </div>
                       <div className="min-w-0">
@@ -591,6 +586,7 @@ export function StockCountForm({
                   </div>
                 );
               })}
+              {addItemControl ? <div className="flex min-h-28 items-center justify-center rounded-[var(--sb-control-radius)] border border-dashed border-[var(--sb-green-700)] bg-[var(--sb-green-50)] p-3 sm:min-h-20 sm:rounded-none sm:border-x-0 sm:border-t-0 [&_button]:h-full [&_button]:w-full [&_button]:justify-center [&_button]:border-0 [&_button]:bg-transparent [&_button]:shadow-none">{addItemControl}</div> : null}
               {!lines.length ? (
                 <div className="flex items-center gap-2 px-3 py-2 text-xs text-warning">
                   <AlertTriangle className="h-4 w-4" />

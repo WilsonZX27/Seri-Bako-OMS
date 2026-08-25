@@ -13,7 +13,6 @@ test("every operational document exposes an explicit delete action before postin
     ["purchase-orders", "[id]", "page.tsx"],
     ["purchase-returns", "[id]", "page.tsx"],
     ["production", "jobs", "[id]", "page.tsx"],
-    ["stock-counts", "[id]", "page.tsx"],
     ["stock-transfers", "[id]", "page.tsx"],
     ["stock-wastage", "[id]", "page.tsx"],
   ];
@@ -25,10 +24,10 @@ test("every operational document exposes an explicit delete action before postin
   }
 });
 
-test("posted work remains an explicit audit boundary", () => {
+test("posted Stock Counts reverse through an explicit immutable audit boundary", () => {
   const stockCount = read("src", "app", "(app)", "stock-counts", "[id]", "page.tsx");
   const receiving = read("src", "app", "(app)", "goods-receivings", "[id]", "page.tsx");
-  assert.match(stockCount, /count\.status !== "posted"/);
-  assert.match(stockCount, /Posted counts remain immutable/);
+  assert.match(stockCount, /count\.status === "posted"/);
+  assert.match(stockCount, /StockCountVoidDialog/);
   assert.match(receiving, /receiving\.status === "posted"/);
 });

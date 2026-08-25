@@ -457,7 +457,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `208`; linked Production application and cleanup evidence is recorded in the current closure sections and repair ledger. Migrations 201–208 are remotely applied. Application deployment, public runtime availability, and authenticated workflow evidence remain separate gates.
+Repository migration authority: migrations reviewed through `210`; linked Production application and cleanup evidence is recorded in the current closure sections and repair ledger. Migrations 201–208 are remotely applied; migrations 209–210 remain unapplied repository work. Application deployment, public runtime availability, and authenticated workflow evidence remain separate gates.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 
@@ -1222,3 +1222,9 @@ A module is considered operationally complete when its intended core workflow ha
 - Qty Sent confirmation is a distinct Kitchen/company-wide step. A user with both permissions must confirm Qty Sent before the record can be posted; Outlet users may continue saving Received and Wastage as a draft.
 - Packaging remains editable on the operational record but is excluded from Received and Wastage Rate analytics because it is not food output.
 - Outlet Daily detail uses a route-specific compact identity: one line on desktop, and a 14px branch line followed by the date on phone.
+## v8.65.3 (unreleased) — Final operational UX convergence
+
+- Posted Stock Counts now use an explicit, server-previewed `Void & Reverse` flow. The original count and movements remain, reversal movements are idempotent, and stale previews cannot execute.
+- Draft actions converge on Post and audited Cancel; Add Item is the final dashed line tile and row options are limited to Replace, Remove, and Retire.
+- Purchase Request and Dashboard queues share the same field order; PO workflow copy and permanent-delete confirmation are shorter and clearer.
+- Outlet Daily exposes `In progress / Ready to post / Posted`, gives Reason and Comment deliberate responsive widths, and records actor plus per-product before/after activity.

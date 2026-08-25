@@ -18,7 +18,7 @@ export type GoodsReceivingStatus = "draft" | "posted" | "cancelled";
 export type PurchaseReturnStatus = "draft" | "posted" | "cancelled";
 export type SupplierInvoiceStatus = "draft" | "open" | "partially_paid" | "paid" | "void";
 export type StockTransactionStatus = "draft" | "posted" | "cancelled";
-export type StockCountStatus = "draft" | "submitted" | "reviewed" | "approved" | "posted" | "rejected" | "cancelled";
+export type StockCountStatus = "draft" | "submitted" | "reviewed" | "approved" | "posted" | "voided" | "rejected" | "cancelled";
 export type StockOperationStatus = "draft" | "submitted" | "approved" | "in_transit" | "posted" | "completed" | "rejected" | "cancelled";
 export type StockWastageReason = "expired" | "damaged" | "spoiled" | "production_loss" | "missing" | "staff_meal" | "sampling" | "supplier_claim" | "other";
 export type OutletDailyRecordStatus = "draft" | "morning_recorded" | "evening_completed" | "reviewed" | "void";
@@ -1892,6 +1892,12 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["stock_transaction_lines"]["Insert"]>;
         Relationships: [];
       };
+      stock_count_voids: {
+        Row: { id: string; company_id: string; stock_count_id: string; movement_fingerprint: string; adjustment_line_count: number; reversed_quantity_in: number; reversed_quantity_out: number; reason: string; idempotency_key: string; voided_by: string; voided_at: string };
+        Insert: { id?: string; company_id: string; stock_count_id: string; movement_fingerprint: string; adjustment_line_count: number; reversed_quantity_in?: number; reversed_quantity_out?: number; reason: string; idempotency_key: string; voided_by: string; voided_at?: string };
+        Update: Partial<Database["public"]["Tables"]["stock_count_voids"]["Insert"]>;
+        Relationships: [];
+      };
       stock_counts: {
         Row: {
           id: string;
@@ -2284,6 +2290,8 @@ export type Database = {
       };
     };
     Functions: {
+      preview_stock_count_void: { Args: { p_stock_count_id: string }; Returns: Json };
+      void_stock_count_atomic: { Args: { p_stock_count_id: string; p_reason: string; p_expected_fingerprint: string; p_idempotency_key: string }; Returns: Json };
       record_system_incident: {
         Args: { p_fingerprint: string; p_module: string; p_safe_code: string; p_safe_message: string; p_route?: string | null; p_branch_id?: string | null; p_severity?: string; p_operation_id?: string | null; p_event_type?: string; p_recommended_action?: string | null };
         Returns: string;

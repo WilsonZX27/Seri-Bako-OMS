@@ -24,6 +24,21 @@ export type StockCountLineRow = StockCountLine & {
   item?: Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit" | "item_image_url">;
 };
 
+export async function getStockCountVoidPreview(id: string) {
+  if (isMockMode()) return { fingerprint: "mock", adjustment_line_count: 0, reverse_quantity_in: 0, reverse_quantity_out: 0 };
+  const supabase = await createClient();
+  const { data, error } = await looseSupabase(supabase).rpc("preview_stock_count_void", { p_stock_count_id: id });
+  if (error) throw new Error(error.message);
+  const preview = data as { fingerprint?: string; adjustment_line_count?: number; reverse_quantity_in?: number; reverse_quantity_out?: number } | null;
+  if (!preview?.fingerprint) throw new Error("Stock Count reversal preview is unavailable.");
+  return {
+    fingerprint: preview.fingerprint,
+    adjustment_line_count: Number(preview.adjustment_line_count ?? 0),
+    reverse_quantity_in: Number(preview.reverse_quantity_in ?? 0),
+    reverse_quantity_out: Number(preview.reverse_quantity_out ?? 0),
+  };
+}
+
 export type StockCountSeedLine = {
   item_id: string;
   item_code: string;

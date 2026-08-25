@@ -9,7 +9,7 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 test("outlet daily rows retain the next operational step and wastage signal on phones", () => {
   const source = read("src/app/(app)/outlet-daily-records/page.tsx");
 
-  assert.match(source, /statusGuidance\(row\.status\)/);
+  assert.match(source, /outletProgress\(row\)/);
   assert.match(source, /row\.total_wastage > 0/);
   assert.match(source, /formatNumber\(row\.total_received\)\} received/);
 });

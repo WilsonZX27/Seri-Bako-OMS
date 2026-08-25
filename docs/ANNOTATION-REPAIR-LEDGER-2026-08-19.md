@@ -1102,3 +1102,9 @@ Deployment evidence (25 August 2026): `main` and `codex/uiux-round2` resolved to
 |---|---|---|
 | PR item selection can begin from Item Master before a supplier route exists, while Supplier remains required. | implemented / local browser and contract evidence | Item picker now searches all active Item Master rows, the supplier chooser includes all active suppliers, and the selected Supplier is stored as a provisional suggestion. Missing route validation is non-blocking for PR create/update and review, while supplier-grouped stock-basket creation remains strict. A deliberate no-route local QA fixture completed PR creation, Manager/Purchasing/Finance approval, PO conversion/send, GRN creation/posting, Finance invoice approval, payment, and PO close (3/3 browser tests); disposable ledger rows are now cleaned in afterAll. Production remains open. |
 ## v8.64.146 — Qty Sent ownership and truthful totals (2026-08-22)
+## 2026-08-25 Final UX convergence — v8.65.3
+
+- Stock Count: two-row portrait-tablet filters; started time; no empty action copy; Post/Cancel or Void; server-previewed atomic reversal; Add Item tile; Replace/Remove/Retire only.
+- Procurement: PR and Dashboard information order aligned; correction dialog progressively reveals fields; PO `Ready to Send`; compact permanent-delete confirmation; wider movement type.
+- Outlet Daily: user-facing completeness status, compact Reason/Comment composition, distinctive Today badge, aligned summary hierarchy, and an actor/time/before-after Activity rail.
+- Evidence boundary: source implementation and local gates are reported separately from migration application, authenticated role/viewport UAT, deployment, and production verification.

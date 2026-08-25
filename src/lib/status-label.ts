@@ -20,7 +20,7 @@ const statusLabels: Record<string, string> = {
   finance_review: "Finance Review",
   manager_review: "Manager Review",
   ready_to_convert: "Ready to Convert",
-  ready_to_send_supplier: "Ready to Send Supplier",
+  ready_to_send_supplier: "Ready to Send",
   sent_to_supplier: "Sent to Supplier",
   in_production: "In Production",
   in_transit: "In Transit",

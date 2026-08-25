@@ -366,6 +366,34 @@ export async function cancelStockCount(id: string) {
   safeRedirectWithMessage("/stock-counts", "success", "Draft Stock Count cancelled and removed from active work.");
 }
 
+export async function voidStockCount(id: string, formData: FormData) {
+  await requirePermissionOrRedirect("stock_count.cancel", `/stock-counts/${id}`);
+  try {
+    const countId = stockCountIdSchema.parse(id);
+    const payload = z.object({
+      reason: z.string().trim().min(3).max(1000),
+      expected_fingerprint: z.string().min(1),
+      idempotency_key: z.uuid(),
+    }).parse(Object.fromEntries(formData));
+    if (isMockMode()) safeRedirectWithMessage(`/stock-counts/${countId}`, "error", "Mock mode cannot reverse inventory movements.");
+    const supabase = await createClient();
+    const { data, error } = await looseSupabase(supabase).rpc("void_stock_count_atomic", {
+      p_stock_count_id: countId,
+      p_reason: payload.reason,
+      p_expected_fingerprint: payload.expected_fingerprint,
+      p_idempotency_key: payload.idempotency_key,
+    });
+    if (error) throw new Error(error.message);
+    if (!(data as { id?: string } | null)?.id) throw new Error("Stock Count reversal did not return an identifier.");
+    revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`, "/dashboard", "/activity"]);
+    revalidatePath("/inventory"); revalidatePath("/stock-balance"); revalidatePath("/stock-card"); revalidatePath("/stock-transactions");
+    safeRedirectWithMessage(`/stock-counts/${countId}`, "success", "Stock Count voided. Equal reversal movements were posted and the original audit trail was preserved.");
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/stock-counts/${id}`, "error", formatActionError(error, "This Stock Count could not be voided and reversed."));
+  }
+}
+
 export async function deleteStockCount(id: string, formData: FormData) {
   void formData;
   await requireAnyPermissionOrRedirect(["stock_count.update", "stock_count.cancel"], `/stock-counts/${id}`);

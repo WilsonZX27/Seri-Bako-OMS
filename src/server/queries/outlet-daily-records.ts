@@ -13,6 +13,18 @@ type TrendPeriod = "7" | "30" | "month";
 type TrendStatus = "all" | "evening_completed" | "reviewed";
 type TrendTotals = { received: number; leftover: number; wastage: number; movement: number };
 
+export async function getOutletDailyActivity(recordId: string) {
+  if (isMockMode()) return [];
+  const db = await createClient();
+  const { data, error } = await db.from("activity_logs").select("id,activity_type,message,metadata,created_at,created_by").eq("entity_type", "outlet_daily_record").eq("entity_id", recordId).order("created_at", { ascending: false }).limit(40);
+  if (error) throw new Error(error.message);
+  const actorIds = [...new Set((data ?? []).map((entry) => entry.created_by).filter(Boolean))] as string[];
+  const actors = actorIds.length ? await db.from("staffs").select("id,full_name").in("id", actorIds) : { data: [], error: null };
+  if (actors.error) throw new Error(actors.error.message);
+  const names = new Map((actors.data ?? []).map((actor) => [actor.id, actor.full_name]));
+  return (data ?? []).map((entry) => ({ ...entry, actor_name: entry.created_by ? names.get(entry.created_by) ?? "Staff" : "System" }));
+}
+
 export type OutletDailyRecordRow = RecordRow & {
   branch_name: string;
   submitted_by_name: string | null;

@@ -148,7 +148,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
                   <TableHead className="w-16 text-center">Action</TableHead>
                   <SortableHead label="Transaction No" column="transaction_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Date/time" column="transaction_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <SortableHead label="Type" column="transaction_type" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <SortableHead className="min-w-36" label="Type" column="transaction_type" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>Item</TableHead>
                   <TableHead>Branch</TableHead>
                   <TableHead className="text-right">In</TableHead>
@@ -167,7 +167,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
                     </TableCell>
                     <TableCell className="font-medium">{row.transaction_no}</TableCell>
                     <TableCell>{formatDateOnly(row.transaction_date)}</TableCell>
-                    <TableCell><Badge variant="secondary">{movementLabel(row.transaction_type)}</Badge></TableCell>
+                    <TableCell className="min-w-36"><Badge variant="secondary" className="max-w-none whitespace-normal text-left leading-4">{movementLabel(row.transaction_type)}</Badge></TableCell>
                     <TableCell className="font-medium">{row.item_code}<p className="text-xs text-muted-foreground">{row.item_name}</p></TableCell>
                     <TableCell>{row.branch_name ?? "-"}</TableCell>
                     <TableCell className="text-right">{row.quantity_in ? formatNumber(row.quantity_in) : "-"}</TableCell>

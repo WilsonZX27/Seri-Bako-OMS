@@ -89,7 +89,7 @@ test("outlet completion does not create a fictitious review queue", () => {
   const page = read("src/app/(app)/outlet-daily-records/page.tsx");
   assert.match(query, /posted_today: todayRows\.filter\(\(row\) => \["evening_completed", "reviewed"\]\.includes\(row\.status\)\)\.length/);
   assert.match(page, /Posted today/);
-  assert.doesNotMatch(page, /Ready to post/);
+  assert.match(page, /Ready to post/);
 });
 
 test("new outlet daily saves route existing outlet-days back to their authoritative record", () => {

@@ -69,6 +69,7 @@ export const informationArchitecture: readonly IaItem[] = [
   { href: "/administration/master-data-cleanup", label: "Master Data Cleanup", group: "administration", icon: "check", roles: MASTER_DATA, permission: "items.view", administrationCard: "Review master-data quality issues." },
   { href: "/imports", label: "Imports", group: "administration", icon: "upload", roles: MASTER_DATA, permission: "imports.create", administrationCard: "Import approved master-data templates with validation." },
   { href: "/administration/backups", label: "System Backup", group: "administration", icon: "archive", roles: OWNER, permission: "settings.manage", administrationCard: "Download an owner-only local ZIP export." },
+  { href: "/administration/system-health", label: "System Health", group: "administration", icon: "gauge", roles: OWNER, permission: "settings.manage", administrationCard: "Review reliability signals, automatic recovery, and unresolved incidents." },
 ] as const;
 
 export function isIaItemVisible(item: IaItem, role: UserRole, permissionMap?: Record<string, boolean>) {

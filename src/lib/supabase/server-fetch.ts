@@ -22,13 +22,21 @@ function release() {
 export async function limitedServerFetch(input: RequestInfo | URL, init?: RequestInit) {
   const target = input instanceof Request ? input.url : input.toString();
   const hostname = new URL(target).hostname;
-  if (hostname !== "127.0.0.1" && hostname !== "localhost") return fetch(input, { ...init, cache: "no-store" });
+  const method = (init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();
+  const execute = () => fetch(input, { ...init, cache: "no-store" });
+  const safeRead = method === "GET" || method === "HEAD";
+  const fetchWithPolicy = () => reliabilityFlags.readRetry && safeRead
+    ? withReadRetry(execute, { circuitKey: `supabase:${hostname}` })
+    : execute();
+  if (hostname !== "127.0.0.1" && hostname !== "localhost") return fetchWithPolicy();
   await acquire();
   try {
     // Supabase reads back operational state immediately after an atomic mutation.
     // Do not let the local Next fetch cache replay the pre-posting transfer detail.
-    return await fetch(input, { ...init, cache: "no-store" });
+    return await fetchWithPolicy();
   } finally {
     release();
   }
 }
+import { reliabilityFlags } from "@/lib/reliability/flags";
+import { withReadRetry } from "@/lib/reliability/retry";

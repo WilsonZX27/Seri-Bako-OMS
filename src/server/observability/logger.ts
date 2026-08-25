@@ -1,4 +1,13 @@
-type LogContext = { requestId?: string; actorId?: string | null; companyId?: string | null; source?: string };
+export type LogContext = {
+  requestId?: string;
+  operationId?: string;
+  actorId?: string | null;
+  companyId?: string | null;
+  branchId?: string | null;
+  module?: string;
+  errorCode?: string;
+  source?: string;
+};
 
 function redact(value: unknown): unknown {
   if (value instanceof Error) return { name: value.name, message: value.message.slice(0, 240) };

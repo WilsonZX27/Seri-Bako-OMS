@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { hasPermission } from "@/server/auth/permissions";
 import { logServerError } from "@/server/observability/logger";
+import { operationFailure, type OperationFailure } from "@/lib/reliability/operation-result";
 
 export type ActionErrorKind =
   | "permission_denied"
@@ -135,6 +136,19 @@ export function formatActionError(error: unknown, fallback = "Something went wro
   }
   if (message.length <= 160 && !/(supabase|postgres|constraint|sqlstate|violates)/i.test(message)) return message;
   return fallback;
+}
+
+export function toOperationFailure(error: unknown, fallback = "Something went wrong. Please try again.", operationId?: string): OperationFailure {
+  const kind = classifyActionError(error);
+  const retryable = kind === "database_unavailable" || kind === "operation_failed" || kind === "unknown_error";
+  return operationFailure({
+    operationId,
+    code: kind,
+    severity: kind === "permission_denied" || kind === "validation_failed" ? "warning" : "error",
+    retryable,
+    recoveryAction: kind === "validation_failed" ? "review_fields" : retryable ? "retry" : "contact_owner",
+    userMessage: formatActionError(error, fallback),
+  });
 }
 
 /**

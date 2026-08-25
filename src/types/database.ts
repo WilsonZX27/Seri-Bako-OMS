@@ -482,6 +482,30 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["document_sequence_periods"]["Insert"]>;
         Relationships: [];
       };
+      operation_requests: {
+        Row: { id: string; company_id: string; operation_id: string; idempotency_key: string; request_fingerprint: string; module: string; action: string; status: string; safe_result: Json | null; error_code: string | null; business_data_changed: boolean; actor_staff_id: string; branch_id: string | null; started_at: string; completed_at: string | null; created_at: string };
+        Insert: { id?: string; company_id: string; operation_id?: string; idempotency_key: string; request_fingerprint: string; module: string; action: string; status?: string; safe_result?: Json | null; error_code?: string | null; business_data_changed?: boolean; actor_staff_id: string; branch_id?: string | null; started_at?: string; completed_at?: string | null; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["operation_requests"]["Insert"]>;
+        Relationships: [];
+      };
+      system_incidents: {
+        Row: { id: string; company_id: string; fingerprint: string; module: string; route: string | null; branch_id: string | null; severity: string; status: string; safe_code: string; safe_message: string; recommended_action: string | null; occurrence_count: number; recovery_attempts: number; first_seen_at: string; last_seen_at: string; recovered_at: string | null; acknowledged_at: string | null; acknowledged_by: string | null; created_at: string; updated_at: string };
+        Insert: { id?: string; company_id: string; fingerprint: string; module: string; route?: string | null; branch_id?: string | null; severity?: string; status?: string; safe_code: string; safe_message: string; recommended_action?: string | null; occurrence_count?: number; recovery_attempts?: number; first_seen_at?: string; last_seen_at?: string; recovered_at?: string | null; acknowledged_at?: string | null; acknowledged_by?: string | null; created_at?: string; updated_at?: string };
+        Update: Partial<Database["public"]["Tables"]["system_incidents"]["Insert"]>;
+        Relationships: [];
+      };
+      system_incident_events: {
+        Row: { id: string; company_id: string; incident_id: string; operation_id: string | null; event_type: string; attempt_no: number | null; business_data_changed: boolean; safe_metadata: Json | null; actor_staff_id: string | null; created_at: string };
+        Insert: { id?: string; company_id: string; incident_id: string; operation_id?: string | null; event_type: string; attempt_no?: number | null; business_data_changed?: boolean; safe_metadata?: Json | null; actor_staff_id?: string | null; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["system_incident_events"]["Insert"]>;
+        Relationships: [];
+      };
+      draft_revisions: {
+        Row: { id: string; company_id: string; actor_staff_id: string; branch_id: string | null; draft_type: string; draft_key: string; scope_fingerprint: string; revision: number; safe_payload: Json; expires_at: string; created_at: string; updated_at: string };
+        Insert: { id?: string; company_id: string; actor_staff_id: string; branch_id?: string | null; draft_type: string; draft_key: string; scope_fingerprint: string; revision?: number; safe_payload?: Json; expires_at?: string; created_at?: string; updated_at?: string };
+        Update: Partial<Database["public"]["Tables"]["draft_revisions"]["Insert"]>;
+        Relationships: [];
+      };
       activity_logs: {
         Row: {
           id: string;
@@ -2260,6 +2284,14 @@ export type Database = {
       };
     };
     Functions: {
+      record_system_incident: {
+        Args: { p_fingerprint: string; p_module: string; p_safe_code: string; p_safe_message: string; p_route?: string | null; p_branch_id?: string | null; p_severity?: string; p_operation_id?: string | null; p_event_type?: string; p_recommended_action?: string | null };
+        Returns: string;
+      };
+      acknowledge_system_incident: {
+        Args: { p_incident_id: string };
+        Returns: undefined;
+      };
       revise_purchase_request_line: {
         Args: {
           target_purchase_request_id: string;

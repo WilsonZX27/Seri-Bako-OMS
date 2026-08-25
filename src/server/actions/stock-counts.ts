@@ -13,6 +13,9 @@ import { logServerWarning } from "@/server/observability/logger";
 import { getStockCountSeedLines } from "@/server/queries/stock-counts";
 import { looseSupabase } from "@/lib/supabase/loose";
 import { z } from "zod";
+import { beginTrackedOperation, completeTrackedOperation } from "@/server/reliability/operations";
+import { recordSystemIncident } from "@/server/reliability/incidents";
+import { createOperationId } from "@/lib/reliability/operation-result";
 
 const stockCountIdSchema = z.uuid("Invalid stock count identifier.");
 export type StockCountAutosaveResult = {
@@ -21,6 +24,7 @@ export type StockCountAutosaveResult = {
   savedAt?: string;
   error?: string;
   retryable?: boolean;
+  operationId?: string;
 };
 
 function formatStockCountPostingError(error: unknown) {
@@ -108,14 +112,27 @@ async function createStockCountRecord(formData: FormData) {
     throw new Error("All items for the selected branch must be included in the stock count.");
   }
   const idempotencyKey = z.uuid().parse(String(formData.get("idempotency_key") ?? ""));
+  const tracked = await beginTrackedOperation({
+    idempotencyKey,
+    module: "stock_count",
+    action: "create_draft",
+    branchId: payload.branch_id,
+    request: { count_date: payload.count_date, branch_id: payload.branch_id, remarks: payload.remarks ?? null, lines: payload.lines },
+  });
+  const priorResult = tracked.existing?.safe_result as { id?: string } | null;
+  if (tracked.existing?.status === "succeeded" && priorResult?.id) return priorResult.id;
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("create_stock_count_atomic", {
     p_payload: { ...payload, idempotency_key: idempotencyKey },
   });
-  if (error) throw new Error(error.message);
+  if (error) {
+    await completeTrackedOperation(tracked.operationId, { status: "failed", errorCode: classifyActionError(new Error(error.message)) });
+    throw new Error(error.message);
+  }
   const created = data as { id: string } | null;
   if (!created?.id) throw new Error("Stock count creation did not return an identifier.");
   await syncRetirementRequests(created.id, formData);
+  await completeTrackedOperation(tracked.operationId, { status: "succeeded", safeResult: { id: created.id }, businessDataChanged: true });
   revalidateWorkspaceState(["/stock-counts"]);
   return created.id;
 }
@@ -167,31 +184,39 @@ export async function updateStockCountDraft(id: string, formData: FormData) {
 }
 
 export async function autosaveNewStockCount(formData: FormData): Promise<StockCountAutosaveResult> {
+  const operationId = createOperationId();
   try {
     await requirePermission("stock_count.create");
     const id = await createStockCountRecord(formData);
-    return { ok: true, id, savedAt: new Date().toISOString() };
+    return { ok: true, id, savedAt: new Date().toISOString(), operationId };
   } catch (error) {
     const kind = classifyActionError(error);
+    const userMessage = formatActionError(error, "Autosave failed. Your changes remain on this device.");
+    await recordSystemIncident({ module: "stock_count", code: kind, message: userMessage, route: "/stock-counts/new", operationId, eventType: "failed", recommendedAction: "Retry after connection recovery; the device snapshot remains available." });
     return {
       ok: false,
-      error: formatActionError(error, "Autosave failed. Your changes remain on this device."),
+      error: userMessage,
       retryable: kind === "database_unavailable" || kind === "operation_failed" || kind === "unknown_error",
+      operationId,
     };
   }
 }
 
 export async function autosaveStockCountDraft(id: string, formData: FormData): Promise<StockCountAutosaveResult> {
+  const operationId = createOperationId();
   try {
     await requirePermission("stock_count.update");
     const countId = await updateStockCountDraftRecord(id, formData, { revalidate: false });
-    return { ok: true, id: countId, savedAt: new Date().toISOString() };
+    return { ok: true, id: countId, savedAt: new Date().toISOString(), operationId };
   } catch (error) {
     const kind = classifyActionError(error);
+    const userMessage = formatActionError(error, "Autosave failed. Your changes remain on this device.");
+    await recordSystemIncident({ module: "stock_count", code: kind, message: userMessage, route: `/stock-counts/${id}`, operationId, eventType: "failed", recommendedAction: "Retry after connection recovery; the device snapshot remains available." });
     return {
       ok: false,
-      error: formatActionError(error, "Autosave failed. Your changes remain on this device."),
+      error: userMessage,
       retryable: kind === "database_unavailable" || kind === "operation_failed" || kind === "unknown_error",
+      operationId,
     };
   }
 }

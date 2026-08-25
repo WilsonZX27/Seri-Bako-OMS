@@ -1,5 +1,11 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## Reliability v5 — v8.65.0
+
+- Full-system reliability audit requested on 25/08/2026 is tracked in `docs/SYSTEM-RELIABILITY-V5-AUDIT-2026-08-25.md`.
+- Implemented source foundation: structured operation result, bounded GET/HEAD retry, circuit protection, tenant incident schema/RLS, Owner System Health, safe health API, feature flags, and Stock Count tracked-create/autosave incident pilot.
+- Evidence boundary: migration 206, Preview fault injection, authenticated six-role/four-viewport UAT, 48-hour observation and Production verification remain pending.
+
 ## Current closure policy (2026-08-23)
 
 - The Owner has now authorized traceable Production mutation for UAT. This supersedes older historical notes that said Production mutation was not authorized, but it does not erase those historical evidence boundaries.

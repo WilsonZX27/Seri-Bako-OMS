@@ -1,5 +1,12 @@
 # Seri Bako OMS responsive design standard
 
+## v8.65.0 (unreleased) — Reliability states
+
+- Successfully recovered transient failures use a short neutral confirmation, never a red error surface.
+- Unresolved failures retain the operator's input, state what cannot continue, and provide one concrete recovery action plus an operation reference.
+- System Health is Owner-only. Recovered fingerprints remain quiet and auditable; action-required incidents carry semantic danger status without changing the established surface, type, radius or icon vocabulary.
+- Reliability controls do not introduce decorative cards or novel interaction patterns; validation summary, first-invalid focus, badges and right-rail detail remain the shared product grammar.
+
 ## Current closure policy (2026-08-23)
 
 Production UAT mutation is allowed only for isolated, traceable test records recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`. Posted inventory/accounting effects and real operational records remain outside disposable testing; historical notes are retained but this policy is the current authority.

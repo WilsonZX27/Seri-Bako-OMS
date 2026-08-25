@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.65.0 (unreleased) — Reliability v5 foundation
+
+OMS introduces a tenant-scoped reliability foundation without silently changing business facts. Safe reads use a bounded transient-only retry and short circuit breaker; writes remain unretried unless their workflow already owns an idempotency key and server-authoritative result. Stock Count creation is the first tracked-operation pilot, while autosave failures create grouped Owner incidents without blocking device recovery. An Owner-only System Health workspace separates recovered signals from action-required incidents, with three-occurrence or fifteen-minute escalation. Migration 206, authenticated role/viewport UAT, staged deployment and Production observation remain separate release gates.
+
 ## Current closure policy (2026-08-23)
 
 Production UAT mutation is now Owner-authorized only when it is traceable, isolated, recorded in `docs/PRODUCTION-UAT-TEST-DATA-2026-08-23.md`, and cleaned up after verification. Historical release notes that describe Production mutation as unauthorized remain historical evidence and are superseded by this current policy.
@@ -449,7 +453,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `205`; linked Production application and cleanup evidence is recorded in the current closure sections and repair ledger. Migrations 201–205 are remotely applied; application deployment plus authenticated workflow evidence remain separate.
+Repository migration authority: migrations reviewed through `206`; linked Production application and cleanup evidence is recorded in the current closure sections and repair ledger. Migrations 201–205 are remotely applied; migration 206 is dry-run verified but not applied, and application deployment plus authenticated workflow evidence remain separate.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

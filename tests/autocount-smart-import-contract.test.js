@@ -135,14 +135,17 @@ test("unknown branch and location item missing from Item List fail closed", () =
   assert.ok(analysis.issueDetails.some((issue) => issue.resolution.includes("newer Item List")));
 });
 
-test("item groups without an authoritative creditor reference fail closed", () => {
+test("items without Main Supplier remain importable Item Master data", () => {
   const { analyzeAutoCountFiles } = loadAnalyzer();
   const files = JSON.parse(read("tests/fixtures/autocount-sanitized.json"));
   files[1].rows[0]["Main Supplier"] = "";
   const analysis = analyzeAutoCountFiles(files, ["CK-PNG"]);
-  assert.ok(analysis.blockingIssues.some((issue) => issue.includes("TEOWJOO00001 has no authoritative Main Supplier AutoCount code")));
-  assert.ok(analysis.issueDetails.some((issue) => issue.code === "missing_supplier_reference" && issue.itemCode === "TEOWJOO00001" && issue.sourceRow === 2));
-  assert.ok(analysis.issueDetails.some((issue) => issue.resolution.includes("Do not use Item Group as a supplier identity")));
+  assert.equal(analysis.blockingIssues.length, 0);
+  assert.ok(analysis.warnings.some((warning) => warning.includes("TEOWJOO") && warning.includes("Item Master data will import")));
+  const item = analysis.rows.find((row) => row.entityType === "item" && row.businessKey === "TEOWJOO00001");
+  assert.equal(item.normalized.supplier_code, "");
+  assert.ok(!analysis.rows.some((row) => row.entityType === "supplier" && row.businessKey === "TEOWJOO"));
+  assert.ok(!analysis.rows.some((row) => row.entityType === "branch_mapping" && row.normalized.item_code === "TEOWJOO00001"));
 });
 
 test("branch mappings retain the creditor code and never use Item Group as supplier identity", () => {
@@ -155,7 +158,7 @@ test("branch mappings retain the creditor code and never use Item Group as suppl
   assert.notEqual(mapping.normalized.supplier_code, mapping.normalized.supplier_group);
 });
 
-test("AutoCount Confirm keeps the same creditor-reference guard at the database boundary", () => {
+test("AutoCount Confirm rejects legacy staged supplier groups with no creditor reference", () => {
   const migration = read("supabase/migrations/177_autocount_supplier_reference_guard.sql");
   assert.match(migration, /jsonb_array_length\(coalesce\(row_record\.normalized->.*external_refs/);
   assert.match(migration, /has no authoritative creditor reference/);
@@ -169,6 +172,16 @@ test("AutoCount blocking UI explains the impact, source row, and recovery action
   assert.match(workflow, /Item List may be older than the Location export/);
   assert.match(workflow, /What is wrong/);
   assert.match(workflow, /How to fix/);
+});
+
+test("AutoCount picker supports drag and drop and versions preview reuse semantics", () => {
+  const workflow = read("src/components/imports/autocount-import-workflow.tsx");
+  const preview = read("src/app/api/imports/autocount/preview/route.ts");
+  assert.match(workflow, /onDragEnter/);
+  assert.match(workflow, /onDragOver/);
+  assert.match(workflow, /onDrop=\{handleDrop\}/);
+  assert.match(workflow, /Drop or choose AutoCount/);
+  assert.match(preview, /autocount-v2:/);
 });
 
 test("AutoCount setup failures are actionable and do not expose PostgREST schema details", () => {

@@ -39,7 +39,7 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
               </CardContent>
             </Card>
           ) : null}
-          <div className="overflow-hidden rounded-[2px] border bg-card">
+          <div className="overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)] shadow-[var(--sb-shadow-panel)]">
             <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search branch code, name, or type" statuses={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }]} showStatus={false} leadingFilter={<StatusTabs statuses={["active", "archived"]} activeStatus={filters.status} />} resultCount={branches.length} filtered={filtered} resetHref="/branches" />
             <BulkSelectionProvider ids={branches.map((branch) => branch.id)} action={isArchivedView ? restoreBranches : archiveBranches} fieldName="branch_id" canAct={canUpdate} actionLabel={isArchivedView ? "Restore selected" : "Archive selected"} actionVariant={isArchivedView ? "default" : "destructive"} confirmMessage={isArchivedView ? "Restore the selected branches to active operations?" : "Archive the selected branches? They will be removed from active lists while preserving their history."} actionHint={isArchivedView ? "Restore archived branches only when they are ready for daily operations." : "Archive branches only after confirming they are no longer used by daily operations."}>
               {/* Active view keeps the canonical action={archiveBranches} contract; archived view swaps in restoreBranches. */}
@@ -60,7 +60,7 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className="bg-[var(--sb-surface-raised)]">
                   {branches.map((branch) => (
                     <DataGridRow key={branch.id} href={canUpdate ? `/branches/${branch.id}` : "/branches"}>
                         {canUpdate ? <TableSelectionCell>

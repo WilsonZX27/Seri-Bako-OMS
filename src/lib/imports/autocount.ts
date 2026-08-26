@@ -153,8 +153,7 @@ export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchC
     locationsByItem.set(itemCode.toLowerCase(), list);
   }
 
-  const supplierGroups = new Map<string, { refs: Map<string, string>; sourceFile: string; sourceRow: number }>();
-  const supplierGroupRows = new Map<string, Array<{ itemCode: string; sourceFile: string; sourceRow: number }>>();
+  const supplierGroups = new Map<string, { refs: Map<string, string>; sourceFile: string; sourceRow: number; missingRefs: number }>();
   const creditorGroups = new Map<string, string>();
   for (const { row, file, rowNumber } of itemRows.values()) {
     const itemCode = get(row, "Item Code");
@@ -171,10 +170,7 @@ export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchC
       continue;
     }
     const groupKey = group.toLowerCase();
-    const groupEntry = supplierGroups.get(groupKey) ?? { refs: new Map<string, string>(), sourceFile: file, sourceRow: rowNumber };
-    const groupRows = supplierGroupRows.get(groupKey) ?? [];
-    groupRows.push({ itemCode, sourceFile: file, sourceRow: rowNumber });
-    supplierGroupRows.set(groupKey, groupRows);
+    const groupEntry = supplierGroups.get(groupKey) ?? { refs: new Map<string, string>(), sourceFile: file, sourceRow: rowNumber, missingRefs: 0 };
     if (creditorCode) {
       const priorGroup = creditorGroups.get(creditorCode.toLowerCase());
       if (priorGroup && priorGroup !== groupKey) {
@@ -183,6 +179,8 @@ export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchC
       }
       creditorGroups.set(creditorCode.toLowerCase(), groupKey);
       groupEntry.refs.set(creditorCode, supplierNames.get(creditorCode.toLowerCase()) ?? "");
+    } else {
+      groupEntry.missingRefs += 1;
     }
     supplierGroups.set(groupKey, groupEntry);
 
@@ -199,8 +197,8 @@ export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchC
         item_name: itemName,
         brand_name: brandName || null,
         // Never promote the operator-facing Item Group into an internal
-        // supplier identity. A blank creditor code remains a blocking source
-        // issue and is intentionally staged as blank for diagnostics only.
+        // supplier identity. Main Supplier is optional Item Master metadata;
+        // a blank value imports the item without creating a supplier mapping.
         supplier_code: creditorCode,
         supplier_group: group,
         creditor_code: creditorCode || null,
@@ -214,26 +212,17 @@ export function analyzeAutoCountFiles(files: AutoCountParsedFile[], knownBranchC
 
   for (const [groupKey, entry] of supplierGroups) {
     const group = [...itemRows.values()].map(({ row }) => get(row, "Item Group")).find((value) => value.toLowerCase() === groupKey) ?? groupKey.toUpperCase();
-    const groupRows = supplierGroupRows.get(groupKey) ?? [];
-    for (const groupRow of groupRows) {
-      const item = itemRows.get(groupRow.itemCode.toLowerCase());
-      const creditorCode = item ? get(item.row, "Main Supplier") : "";
-      if (creditorCode) continue;
-      blockingIssues.push(`${groupRow.sourceFile} row ${groupRow.sourceRow}: ${groupRow.itemCode} has no authoritative Main Supplier AutoCount code.`);
-      issueDetails.push({
-        code: "missing_supplier_reference",
-        message: `${groupRow.itemCode} uses Item Group ${group}, but no authoritative Main Supplier creditor code was supplied for this item.`,
-        sourceFile: groupRow.sourceFile,
-        sourceRow: groupRow.sourceRow,
-        itemCode: groupRow.itemCode,
-        resolution: "Add the authoritative AutoCount creditor code to Main Supplier and include that creditor in the Supplier List, then re-export both files. Do not use Item Group as a supplier identity.",
-      });
+    if (entry.refs.size === 0) {
+      warnings.push(`${group}: ${entry.missingRefs} item${entry.missingRefs === 1 ? " has" : "s have"} no Main Supplier. Item Master data will import; supplier mappings will be skipped.`);
+      continue;
     }
     const namedRefs = [...entry.refs].filter(([, name]) => name);
     const supplierName = namedRefs.length === 1 && entry.refs.size === 1 ? namedRefs[0][1] : group;
-    const internalCode = [...entry.refs.keys()].sort((a, b) => a.localeCompare(b))[0] ?? group;
-    const rowWarnings = entry.refs.size === 0 ? ["No AutoCount creditor reference; confirmation is blocked until an authoritative supplier code is supplied."]
-      : namedRefs.length !== entry.refs.size ? ["One or more Main Supplier codes were not found in the Supplier List."] : [];
+    const internalCode = [...entry.refs.keys()].sort((a, b) => a.localeCompare(b))[0];
+    const rowWarnings = [
+      ...(namedRefs.length !== entry.refs.size ? ["One or more Main Supplier codes were not found in the Supplier List."] : []),
+      ...(entry.missingRefs ? [`${entry.missingRefs} item${entry.missingRefs === 1 ? " has" : "s have"} no Main Supplier; those items will import without supplier mappings.`] : []),
+    ];
     staged.set(`supplier|${groupKey}`, {
       entityType: "supplier", businessKey: group, sourceFile: entry.sourceFile, sourceRow: entry.sourceRow,
       normalized: { supplier_code: internalCode, supplier_group: group, supplier_name: supplierName, external_refs: [...entry.refs].map(([code, name]) => ({ code, name })) },

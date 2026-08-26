@@ -30,7 +30,9 @@ export async function POST(request: Request) {
   const { data: branches, error: branchError } = await supabase.from("branches").select("branch_code").eq("company_id", profile.company_id).eq("status", "active").is("deleted_at", null);
   if (branchError || !branches) return NextResponse.json({ ok: false, message: "Branch references are temporarily unavailable. Retry this import; no OMS records were changed." }, { status: 503 });
 
-  const contentHash = parsed.data.files.map((file) => file.hash).sort().join(":");
+  // Version the analysis identity so files staged under older validation
+  // semantics are never silently reused after an importer rule correction.
+  const contentHash = `autocount-v2:${parsed.data.files.map((file) => file.hash).sort().join(":")}`;
   const { data: existing, error: existingError } = await supabase.from("autocount_import_jobs").select("id, status, summary, blocking_issues").eq("company_id", profile.company_id).eq("content_hash", contentHash).in("status", ["staging", "ready", "completed"]).maybeSingle();
   if (existingError) {
     const failure = formatAutoCountInfrastructureError(existingError);

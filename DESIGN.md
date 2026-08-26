@@ -1,5 +1,14 @@
 # Seri Bako OMS responsive design standard
 
+## v8.65.13 (unreleased) — Operational identity and import honesty
+
+- A PO-line UOM is transactional data, not a new supplier-item identity. Reuse the canonical supplier + item relationship across PO UOMs; conversion must not manufacture a duplicate sourcing row.
+- Optional source metadata stays optional. A blank AutoCount Main Supplier imports the Item Master without fabricating a supplier from Item Group and without blocking unrelated valid item data.
+- Drag-and-drop upload is a real input path, not decorative copy. The full dashed target accepts multiple `.xlsx` files, exposes a restrained active state, and retains the native file picker as the keyboard-accessible path.
+- A right rail presents one primary decision per state. Secondary reset appears only after work exists and aligns to the same full-width control grid.
+- Dense registers sit on an explicit raised data surface so rows read as one operational object against the application canvas; mobile retains the same surface hierarchy without adding nested cards.
+- Production verification names the business records and their final states. A deployed migration or a passing unit test alone does not prove a live workflow repair.
+
 ## v8.65.12 (unreleased) — Preserve the real operational identifier
 
 - Do not ask an operator to add punctuation to a real AutoCount PO Number merely to bypass an OMS uniqueness collision.

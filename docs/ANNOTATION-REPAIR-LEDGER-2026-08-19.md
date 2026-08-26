@@ -1,5 +1,22 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-08-26 — v8.65.13 Production PO closure and AutoCount source-file repair
+
+The generic duplicate error was reproduced through the authenticated Production RPC with full Postgres diagnostics. Both PRs failed on `supplier_items_supplier_code_active_idx`, not on PO number or document ownership. The PO-line guard required a matching purchase UOM before reusing a supplier-item row, while the Item Master identity trigger normalized any provisional row back to the same item code. Migration 223 removes UOM from supplier-item identity lookup and keeps the branch relationship upsert idempotent.
+
+| Surface / source | Role / viewport | Finding | Resolution | Evidence state |
+|---|---|---|---|---|
+| PR/AUG26/023 | Purchasing / Production API | PO-000201 failed on existing supplier-item `OIYIN00002` | Reuse supplier + item relationship across PO UOMs | Production verified: converted PR and approved PO read back |
+| PR/AUG26/025 | Purchasing / Production API | PO-000208 failed on existing supplier-item `QUIKGROC00016` | Same shared trigger repair | Production verified: converted PR and approved PO read back |
+| `Item Code list as at 26.08.2026.xlsx` | source workbook / `Sheet!A1:K738` | 102 blank Main Supplier cells were incorrectly promoted to blockers | Import 737 Item Master rows; skip only supplier/mapping creation for blank references | locally verified against the actual workbook |
+| `/imports/autocount` | Owner / 1440×900 | Upload target did not accept drop; Actions were cramped and reset was visible before work existed | Multi-file drop handler, active drop state, full-width stateful rail actions | authenticated localhost interaction and screenshots inspected |
+| `/branches` | Owner / 1440×900 and 390×844 | Result rows lacked a clear data surface against the canvas | Explicit raised table/list surface with shared border and panel shadow | authenticated localhost screenshots inspected |
+
+- Implemented: migration 223, supplier-item reuse contract, optional Main Supplier analysis, versioned preview reuse, drag-and-drop upload, compact action rail, Branches result surface, and version 8.65.13.
+- Locally verified: 27 focused contracts, strict typecheck, `V9_SCHEMA_OK` at migration 223 (`85` RLS tables, `6` views, `146` fixed-search-path SECURITY DEFINER functions), real-workbook analysis, and inspected localhost screenshots.
+- Production verified: migration 223 applied; PR/AUG26/023 is `converted_to_po` with approved PO-000201; PR/AUG26/025 is `converted_to_po` with approved PO-000208.
+- Awaiting authenticated UAT: deploy v8.65.13 application UI, then confirm the complete Supplier + Item + Location AutoCount job through one Production Preview and Confirm. The actual Item List alone correctly remains blocked only because the other required export types are absent.
+
 ## 2026-08-26 — v8.65.12 orphan PO document follow-up
 
 Authenticated Production retries proved that migration 221 still reached the generic unique-document boundary for both reported PRs. The remaining shape is an active PO document number left by the historical non-atomic workflow without a corresponding Purchase Order row.

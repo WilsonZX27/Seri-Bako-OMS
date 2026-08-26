@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { AlertTriangle, CheckCircle2, Clock3, FileSpreadsheet, LoaderCircle, ShieldCheck, Upload } from "lucide-react";
+import { useState, type DragEvent } from "react";
+import { AlertTriangle, CheckCircle2, Clock3, FileSpreadsheet, LoaderCircle, RotateCcw, ShieldCheck, Upload } from "lucide-react";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ export function AutoCountImportWorkflow() {
   const [result, setResult] = useState<ConfirmResult | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState<"parsing" | "preview" | "confirm" | null>(null);
+  const [dragActive, setDragActive] = useState(false);
 
   async function selectFiles(selected: FileList | null) {
     if (!selected?.length) return;
@@ -62,6 +63,12 @@ export function AutoCountImportWorkflow() {
     finally { setBusy(null); }
   }
 
+  function handleDrop(event: DragEvent<HTMLLabelElement>) {
+    event.preventDefault();
+    setDragActive(false);
+    if (!busy) void selectFiles(event.dataTransfer.files);
+  }
+
   async function confirmImport() {
     if (!preview?.jobId) return;
     setBusy("confirm"); setMessage(null);
@@ -84,16 +91,18 @@ export function AutoCountImportWorkflow() {
   const rail = (
     <>
       <ConsoleSection title="Actions">
-        {!preview ? (
-          <Button type="button" onClick={createPreview} disabled={!files.length || Boolean(busy)} data-mobile-primary-action>
+        <div className="grid gap-2">
+          {!preview ? (
+          <Button type="button" className="w-full" onClick={createPreview} disabled={!files.length || Boolean(busy)} data-mobile-primary-action>
             {busy === "preview" ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />} Review import
           </Button>
         ) : (
-          <Button type="button" onClick={confirmImport} disabled={!preview.jobId || blockers.length > 0 || Boolean(busy) || Boolean(result)} data-mobile-primary-action>
+          <Button type="button" className="w-full" onClick={confirmImport} disabled={!preview.jobId || blockers.length > 0 || Boolean(busy) || Boolean(result)} data-mobile-primary-action>
             {busy === "confirm" ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />} {retryConfirm ? "Retry confirm" : "Confirm once"}
           </Button>
         )}
-        <Button type="button" variant="outline" onClick={() => { setFiles([]); setPreview(null); setResult(null); setMessage(null); }} disabled={Boolean(busy)}>Start over</Button>
+          {files.length || preview || result || message ? <Button type="button" className="w-full" variant="outline" onClick={() => { setFiles([]); setPreview(null); setResult(null); setMessage(null); }} disabled={Boolean(busy)}><RotateCcw className="h-4 w-4" />Start over</Button> : null}
+        </div>
       </ConsoleSection>
       {message ? <ConsoleSection title="Import error"><Notice tone="error" title="Import could not continue">{message}</Notice></ConsoleSection> : null}
       <ConsoleSection title="Import status">
@@ -114,10 +123,16 @@ export function AutoCountImportWorkflow() {
           <CardDescription>Choose one Supplier List, one Item List, and any number of Location Snapshot workbooks in the same selection. No OMS template is required.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <label className="flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-[var(--sb-panel-radius)] border border-dashed border-[var(--sb-border)] bg-[var(--sb-surface-muted)] px-4 py-6 text-center focus-within:ring-2 focus-within:ring-[var(--sb-green-700)]">
+          <label
+            className={`flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-[var(--sb-panel-radius)] border border-dashed px-4 py-6 text-center transition-colors focus-within:ring-2 focus-within:ring-[var(--sb-green-700)] ${dragActive ? "border-[var(--sb-green-700)] bg-[var(--sb-success-bg)]" : "border-[var(--sb-border)] bg-[var(--sb-surface-muted)]"}`}
+            onDragEnter={(event) => { event.preventDefault(); if (!busy) setDragActive(true); }}
+            onDragOver={(event) => { event.preventDefault(); if (!busy) event.dataTransfer.dropEffect = "copy"; }}
+            onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragActive(false); }}
+            onDrop={handleDrop}
+          >
             {busy === "parsing" ? <LoaderCircle className="h-6 w-6 animate-spin text-[var(--sb-green-800)]" /> : <Upload className="h-6 w-6 text-[var(--sb-green-800)]" />}
-            <span className="text-sm font-semibold">Choose AutoCount .xlsx files</span>
-            <span className="text-xs text-[var(--sb-text-muted)]">The first worksheet is identified by its column headers.</span>
+            <span className="text-sm font-semibold">{dragActive ? "Drop files to add them" : "Drop or choose AutoCount .xlsx files"}</span>
+            <span className="text-xs text-[var(--sb-text-muted)]">Multiple files accepted · identified by column headers</span>
             <input type="file" accept=".xlsx" multiple className="sr-only" onChange={(event) => void selectFiles(event.target.files)} disabled={Boolean(busy)} />
           </label>
           {files.length ? <div className="divide-y rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)]">

@@ -6,6 +6,7 @@ const migration = fs.readFileSync("supabase/migrations/186_fix_pr_to_po_conversi
 const handoffMigration = fs.readFileSync("supabase/migrations/220_finance_po_handoff_and_send_permission.sql", "utf8");
 const recoveryMigration = fs.readFileSync("supabase/migrations/221_legacy_pr_po_reconciliation.sql", "utf8");
 const orphanRecoveryMigration = fs.readFileSync("supabase/migrations/222_reuse_orphan_po_document.sql", "utf8");
+const supplierMappingReuseMigration = fs.readFileSync("supabase/migrations/223_fix_po_supplier_mapping_reuse.sql", "utf8");
 const action = fs.readFileSync("src/server/actions/procurement.ts", "utf8");
 const errorHandling = fs.readFileSync("src/server/actions/error-handling.ts", "utf8");
 const detailPage = fs.readFileSync("src/app/(app)/purchase-requests/[id]/page.tsx", "utf8");
@@ -38,6 +39,18 @@ test("legacy PR to PO recovery preserves Purchasing's saved AutoCount number aft
   assert.match(orphanRecoveryMigration, /PO_DOCUMENT_OWNED_BY_ANOTHER_ORDER/);
   assert.match(orphanRecoveryMigration, /Recovered orphan purchase order document/);
   assert.match(orphanRecoveryMigration, /orphan_po_document_recovery/);
+});
+
+test("PO conversion reuses supplier-item identity across purchase UOMs", () => {
+  assert.match(supplierMappingReuseMigration, /ensure_provisional_purchase_order_mapping/);
+  assert.match(supplierMappingReuseMigration, /supplier_id = po\.supplier_id/);
+  assert.match(supplierMappingReuseMigration, /item_id = new\.item_id/);
+  const lookup = supplierMappingReuseMigration.slice(
+    supplierMappingReuseMigration.indexOf("select id into relationship_id"),
+    supplierMappingReuseMigration.indexOf("if relationship_id is null"),
+  );
+  assert.doesNotMatch(lookup, /purchase_uom/);
+  assert.match(supplierMappingReuseMigration, /on conflict \(branch_id, supplier_item_id\) do update/);
 });
 
 test("Finance approval creates the PO atomically from Purchasing's saved number", () => {

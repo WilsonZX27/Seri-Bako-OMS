@@ -1,5 +1,11 @@
 # Seri Bako Operations Management System
 
+### v8.65.13 (unreleased) — PO mapping idempotency and truthful AutoCount import
+
+The two reported PR failures were not PO-number collisions. Authenticated Production RPC diagnostics identified `supplier_items_supplier_code_active_idx`: the PO-line guard searched supplier-item relationships by purchase UOM, then attempted to insert a second relationship that Item Master identity normalized to the same supplier/item code. Migration 223 now reuses the canonical supplier + item relationship across PO UOMs and keeps branch availability idempotent. It was applied to Production on 26 August 2026; PR/AUG26/023 converted to approved PO-000201 and PR/AUG26/025 converted to approved PO-000208, and both PR/PO relationships were read back through the authenticated Production API.
+
+AutoCount `Main Supplier` is optional Item Master metadata. Blank cells import the Item Master but create no supplier or branch-supplier mapping; `Item Group` is never promoted into a supplier identity. Preview analysis is versioned so an older staged job cannot preserve obsolete blocker semantics. The supplied 26 August workbook stages all 737 items; its 102 blank Main Supplier cells are non-blocking notes, while genuinely missing Supplier List and Location Snapshot files remain blocking. The upload surface accepts multi-file drag and drop, its rail uses one clear full-width action hierarchy, and Branches uses an explicit raised data surface on desktop and mobile.
+
 ### v8.65.12 (unreleased) — Orphan PO document recovery
 
 Legacy PR conversion now reuses an active Purchase Order document when the old non-atomic workflow created that document but never created its `purchase_orders` row. The real AutoCount number is preserved, the existing document audit trail receives a recovery revision, and PO header, lines, PR status and activity are committed in one transaction. A document that belongs to another record remains fail-closed with a specific message. Migration 222 is locally reset and schema-verified; Production application and authenticated read-back of PR/AUG26/023 and PR/AUG26/025 remain separate gates.
@@ -493,7 +499,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `222`; linked Production application and cleanup evidence through migration 221 is recorded in the current closure sections and repair ledger. Migration 222 reuses an orphan active PO document only when no Purchase Order owns it, preserving the AutoCount number and audit history. Linked application, public runtime availability, and authenticated Production-like workflow evidence remain separate gates.
+Repository migration authority: migrations reviewed through `223`; Production migration 223 and the authenticated conversion/read-back of PR/AUG26/023 → PO-000201 and PR/AUG26/025 → PO-000208 are recorded in the current closure section and repair ledger. Application deployment, public runtime version, and the AutoCount multi-file confirmation workflow remain separate gates.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

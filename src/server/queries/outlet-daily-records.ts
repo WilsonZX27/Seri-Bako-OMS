@@ -14,6 +14,34 @@ type TrendPeriod = "7" | "30" | "month";
 type TrendStatus = "all" | "evening_completed" | "reviewed";
 type TrendTotals = { received: number; leftover: number; wastage: number; movement: number };
 
+type ActivityMetadata = {
+  changed_lines?: Array<{ fields?: unknown; before?: unknown; after?: unknown }>;
+  notes_changed?: boolean;
+  previous_status?: string | null;
+  target_status?: string | null;
+};
+
+function activityDisplayMessage(message: string, metadata: unknown) {
+  if (message !== "Outlet daily values updated" || !metadata || typeof metadata !== "object") return message;
+  const detail = metadata as ActivityMetadata;
+  const fields = new Set((detail.changed_lines ?? []).flatMap((line) => {
+    if (Array.isArray(line.fields)) return line.fields.filter((field): field is string => typeof field === "string");
+    if (!line.before || !line.after || typeof line.before !== "object" || typeof line.after !== "object") return [];
+    const before = line.before as Record<string, unknown>;
+    const after = line.after as Record<string, unknown>;
+    return Object.keys(after).filter((field) => JSON.stringify(before[field] ?? null) !== JSON.stringify(after[field] ?? null));
+  }));
+  const labels = [
+    fields.has("qty_sent") ? "Qty Sent" : null,
+    fields.has("received") ? "Received" : null,
+    fields.has("leftover") ? "Leftover" : null,
+    fields.has("wastage") || fields.has("reason") ? "Wastage" : null,
+    fields.has("comment") || detail.notes_changed ? "Notes" : null,
+    detail.previous_status !== detail.target_status ? "Status" : null,
+  ].filter((label): label is string => Boolean(label));
+  return labels.length ? `${labels.join(" · ")} updated` : message;
+}
+
 export async function getOutletDailyActivity(recordId: string) {
   if (isMockMode()) return [];
   const db = await createClient();
@@ -23,11 +51,22 @@ export async function getOutletDailyActivity(recordId: string) {
   const actors = actorIds.length ? await db.from("staffs").select("id,full_name").in("id", actorIds) : { data: [], error: null };
   if (actors.error) throw new Error(actors.error.message);
   const names = new Map((actors.data ?? []).map((actor) => [actor.id, actor.full_name]));
-  return (data ?? []).map((entry) => ({ ...entry, actor_name: entry.created_by ? names.get(entry.created_by) ?? "Staff" : "System" }));
+  const normalized = (data ?? []).map((entry) => ({
+    ...entry,
+    display_message: activityDisplayMessage(entry.message, entry.metadata),
+    actor_name: entry.created_by ? names.get(entry.created_by) ?? "Staff" : "System",
+  }));
+  return normalized.filter((entry, index) => {
+    const newer = normalized[index - 1];
+    if (!newer || newer.created_by !== entry.created_by || newer.display_message !== entry.display_message) return true;
+    const secondsApart = Math.abs(new Date(newer.created_at).getTime() - new Date(entry.created_at).getTime()) / 1_000;
+    return secondsApart > 60 || JSON.stringify(newer.metadata) !== JSON.stringify(entry.metadata);
+  });
 }
 
 export type OutletDailyRecordRow = RecordRow & {
   branch_name: string;
+  created_by_name: string | null;
   submitted_by_name: string | null;
   total_sent: number | null;
   total_received: number | null;
@@ -296,6 +335,7 @@ async function hydrateRows(db: Awaited<ReturnType<typeof createClient>>, records
   return records.map((record) => ({
     ...record,
     branch_name: branchNames.get(record.branch_id) ?? "Unknown outlet",
+    created_by_name: staffNames.get(record.created_by ?? "") ?? null,
     submitted_by_name: staffNames.get(record.submitted_by ?? record.updated_by ?? record.created_by ?? "") ?? null,
     ...totals(linesByRecord.get(record.id) ?? [], operationalProductIds),
   }));
@@ -449,6 +489,7 @@ export async function getOutletDailyRecord(id: string) {
     record: {
       ...typedRecord,
       branch_name: trustedBranches.find((branch) => branch.id === typedRecord.branch_id)?.branch_name ?? "Unknown outlet",
+      created_by_name: trustedStaffs.find((staff) => staff.id === typedRecord.created_by)?.full_name ?? null,
       submitted_by_name: trustedStaffs.find((staff) => staff.id === typedRecord.submitted_by)?.full_name ?? null,
       reviewed_by_name: trustedStaffs.find((staff) => staff.id === typedRecord.reviewed_by)?.full_name ?? null,
       ...totals(typedLines),

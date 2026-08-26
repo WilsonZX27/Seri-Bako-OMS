@@ -9,8 +9,8 @@ declare
   policyless_tables text;
 begin
   select max(version) into latest_migration from supabase_migrations.schema_migrations;
-  if latest_migration <> '219' then
-    raise exception 'Expected migration 219, found %', coalesce(latest_migration, '(none)');
+  if latest_migration <> '220' then
+    raise exception 'Expected migration 220, found %', coalesce(latest_migration, '(none)');
   end if;
 
   select string_agg(tablename, ', ' order by tablename) into unsafe_tables
@@ -104,6 +104,10 @@ begin
     ) then
     raise exception 'Stock Count posting/void contract is incomplete.';
   end if;
+
+  if to_regprocedure('public.finance_approve_purchase_request_to_order(uuid)') is null then
+    raise exception 'Finance approval to PO handoff is missing.';
+  end if;
 end
 $$;
 
@@ -124,6 +128,40 @@ begin
       )
   ) then
     raise exception 'Finance master-data read alignment is incomplete.';
+  end if;
+
+  if exists (
+    select 1
+    from public.roles r
+    where r.role_code = 'purchasing' and r.status = 'active' and r.deleted_at is null
+      and exists (
+        select 1
+        from public.permissions p
+        where p.permission_code in ('po.send', 'purchase_order.send')
+          and not exists (
+            select 1 from public.role_permissions rp
+            where rp.role_id = r.id and rp.permission_id = p.id
+          )
+      )
+  ) then
+    raise exception 'Purchasing PO-send permission aliases are incomplete.';
+  end if;
+
+  if exists (
+    select 1
+    from public.roles r
+    where r.role_code = 'finance' and r.status = 'active' and r.deleted_at is null
+      and exists (
+        select 1
+        from public.permissions p
+        where p.permission_code = 'pr.convert_to_po'
+          and not exists (
+            select 1 from public.role_permissions rp
+            where rp.role_id = r.id and rp.permission_id = p.id
+          )
+      )
+  ) then
+    raise exception 'Finance atomic PO-conversion permission is incomplete.';
   end if;
 
   if exists (

@@ -35,6 +35,26 @@ function nullableText(value: string | undefined) {
   return text.length ? text : null;
 }
 
+type DailyValueSnapshot = {
+  qty_sent: number | null;
+  received: number | null;
+  leftover: number;
+  wastage: number;
+  reason: string | null;
+  comment: string | null;
+};
+
+const sameDailyValue = (left: unknown, right: unknown) => {
+  if (left == null || right == null) return left == null && right == null;
+  if (typeof left === "number" || typeof right === "number") return Number(left) === Number(right);
+  return String(left) === String(right);
+};
+
+function changedDailyFields(before: DailyValueSnapshot | null, after: DailyValueSnapshot) {
+  if (!before) return ["qty_sent", "received", "leftover", "wastage", "reason", "comment"];
+  return (Object.keys(after) as (keyof DailyValueSnapshot)[]).filter((field) => !sameDailyValue(before[field], after[field]));
+}
+
 function extractOutletDailyPayload(formData: FormData) {
   const productIds = values(formData, "line_product_id");
   if (productIds.length > 500) throw new Error("A daily record is limited to 500 product lines.");
@@ -84,8 +104,12 @@ export async function saveOutletDailyRecord(formData: FormData) {
   } else await requirePermissionOrRedirect("outlet_daily_record.create", "/outlet-daily-records/new");
   try {
     const db = await createClient();
-    const beforeLines = recordId ? await db.from("outlet_daily_record_lines").select("product_id,qty_sent,morning_received_qty,morning_received_provided,wastage_qty,wastage_reason,notes").eq("record_id", recordId) : { data: [], error: null };
+    const [beforeLines, beforeRecord] = recordId ? await Promise.all([
+      db.from("outlet_daily_record_lines").select("product_id,qty_sent,morning_received_qty,morning_received_provided,evening_leftover_qty,wastage_qty,wastage_reason,notes").eq("record_id", recordId),
+      db.from("outlet_daily_records").select("status,notes").eq("id", recordId).maybeSingle(),
+    ]) : [{ data: [], error: null }, { data: null, error: null }];
     if (beforeLines.error) throw new Error(beforeLines.error.message);
+    if (beforeRecord.error) throw new Error(beforeRecord.error.message);
     if (!recordId) {
       const { data: existing, error: existingError } = await db
         .from("outlet_daily_records")
@@ -122,19 +146,53 @@ export async function saveOutletDailyRecord(formData: FormData) {
     }
     if (error) throw new Error(error.message);
     if (!data) throw new Error("Outlet daily record was not saved.");
-    await writeActivityLog({
-      entityType: "outlet_daily_record",
-      entityId: String(data),
-      activityType: recordId ? "updated" : "created",
-      message: recordId ? "Outlet daily values updated" : "Outlet daily record created",
-      metadata: {
-        target_status: payload.target_status,
-        changed_lines: payload.lines.map((line) => {
-          const before = beforeLines.data?.find((candidate) => candidate.product_id === line.product_id);
-          return { product_id: line.product_id, before: before ? { qty_sent: before.qty_sent, received: before.morning_received_provided ? before.morning_received_qty : null, wastage: before.wastage_qty, reason: before.wastage_reason, comment: before.notes } : null, after: { qty_sent: line.qty_sent, received: line.morning_received_provided ? line.morning_received_qty : null, wastage: line.wastage_qty, reason: line.wastage_reason, comment: line.notes } };
-        }),
-      },
+    const changedLines = payload.lines.flatMap((line) => {
+      const stored = beforeLines.data?.find((candidate) => candidate.product_id === line.product_id);
+      const before: DailyValueSnapshot | null = stored ? {
+        qty_sent: stored.qty_sent,
+        received: stored.morning_received_provided ? stored.morning_received_qty : null,
+        leftover: stored.evening_leftover_qty,
+        wastage: stored.wastage_qty,
+        reason: stored.wastage_reason,
+        comment: stored.notes,
+      } : null;
+      const after: DailyValueSnapshot = {
+        qty_sent: line.qty_sent,
+        received: line.morning_received_provided ? line.morning_received_qty : null,
+        leftover: line.evening_leftover_qty,
+        wastage: line.wastage_qty,
+        reason: line.wastage_reason,
+        comment: line.notes,
+      };
+      const fields = changedDailyFields(before, after);
+      return fields.length ? [{ product_id: line.product_id, fields, before, after }] : [];
     });
+    const statusChanged = Boolean(recordId && beforeRecord.data?.status !== payload.target_status);
+    const notesChanged = Boolean(recordId && (beforeRecord.data?.notes ?? null) !== payload.notes);
+    if (!recordId || changedLines.length || statusChanged || notesChanged) {
+      const fieldNames = new Set(changedLines.flatMap((line) => line.fields));
+      const labels = [
+        fieldNames.has("qty_sent") ? "Qty Sent" : null,
+        fieldNames.has("received") ? "Received" : null,
+        fieldNames.has("leftover") ? "Leftover" : null,
+        fieldNames.has("wastage") || fieldNames.has("reason") ? "Wastage" : null,
+        fieldNames.has("comment") || notesChanged ? "Notes" : null,
+        statusChanged ? "Status" : null,
+      ].filter((label): label is string => Boolean(label));
+      const changeLabel = labels.length ? labels.join(" · ") : "Record";
+      await writeActivityLog({
+        entityType: "outlet_daily_record",
+        entityId: String(data),
+        activityType: recordId ? "updated" : "created",
+        message: recordId ? `${changeLabel} updated` : "Outlet daily record created",
+        metadata: {
+          target_status: payload.target_status,
+          previous_status: beforeRecord.data?.status ?? null,
+          changed_lines: changedLines,
+          notes_changed: notesChanged,
+        },
+      });
+    }
     revalidateWorkspaceState(["/outlet-daily-records", `/outlet-daily-records/${data}`]);
     redirect(`/outlet-daily-records/${data}?success=${encodeURIComponent("Outlet daily record saved.")}`);
   } catch (error) {

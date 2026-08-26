@@ -58,7 +58,7 @@ const prSteps = PURCHASE_REQUEST_WORKFLOW_STEPS.map((step) => ({
           : step === "finance_review"
             ? "Finance checks budget and invoice readiness."
             : step === "ready_to_convert"
-              ? "Ready to convert to purchase order."
+              ? "Legacy handoff needs PO creation to finish."
               : "Purchase order has been created.",
 }));
 
@@ -218,9 +218,9 @@ export default async function PurchaseRequestDetailPage({
       : canAdminReview
         ? blockingLineIssues.length ? <Button asChild><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <MobileTaskSheet label="Complete Purchasing Review" primary><form action={adminApprovePurchaseRequest.bind(null, request.id)} className="space-y-3"><Field label="AutoCount PO Number" required><Input name="autocount_po_no" placeholder="Enter the number from AutoCount" required /></Field><p className="text-xs text-muted-foreground">Required before this request can move to Finance Review.</p><SubmitButton className="w-full justify-center" pendingLabel="Approving..."><ShoppingCart className="h-4 w-4" aria-hidden="true" />Send to Finance Review</SubmitButton></form></MobileTaskSheet>
       : canFinanceReview
-          ? <ConfirmActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} label={<><BadgeCheck className="h-4 w-4" aria-hidden="true" />Approve as Finance</>} title="Approve this PR as Finance?" description="This marks the request ready for PO conversion." pendingLabel="Approving..." mobilePrimary />
+          ? <ConfirmActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} label={<><BadgeCheck className="h-4 w-4" aria-hidden="true" />Approve as Finance</>} title="Approve and create the PO?" description={`Finance approval will create ${request.autocount_po_no ?? "the saved AutoCount PO"} and make it ready to send.`} pendingLabel="Approving..." mobilePrimary />
           : canConvert
-            ? <MobileTaskSheet label="Prepare Purchase Order" primary><form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} className="space-y-2"><Input name="autocount_po_no" defaultValue={messageParams.po_no ?? ""} placeholder="AutoCount PO Number" required /><SubmitButton type="submit" pendingLabel="Converting..." className="w-full justify-center"><FileCheck2 className="h-4 w-4" aria-hidden="true" />Prepare Purchase Order</SubmitButton></form></MobileTaskSheet>
+            ? <MobileTaskSheet label="Finish PO creation" primary><form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} className="space-y-2"><Field label="Saved AutoCount PO Number"><Input name="autocount_po_no" defaultValue={messageParams.po_no ?? request.autocount_po_no ?? ""} placeholder="AutoCount PO Number" required /></Field><p className="text-xs text-muted-foreground">Legacy recovery only. Correct the saved number here if AutoCount assigned a different one.</p><SubmitButton type="submit" pendingLabel="Finishing..." className="w-full justify-center"><FileCheck2 className="h-4 w-4" aria-hidden="true" />Finish PO creation</SubmitButton></form></MobileTaskSheet>
             : null;
 
   return (
@@ -243,15 +243,16 @@ export default async function PurchaseRequestDetailPage({
               {canSubmit ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..." mobilePrimary><Send className="h-4 w-4" aria-hidden="true" />Submit to Manager Review</DocumentActionForm> : null}
               {canManagerReview ? blockingLineIssues.length ? <Button asChild className="w-full"><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <ConfirmActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} label={<><CircleCheck className="h-4 w-4" aria-hidden="true" />Approve as Manager</>} title="Approve this PR as Manager?" description="This moves the request to Purchasing Review." pendingLabel="Approving..." mobilePrimary /> : null}
               {canAdminReview ? blockingLineIssues.length ? <Button asChild className="w-full"><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <form action={adminApprovePurchaseRequest.bind(null, request.id)} className="space-y-3"><Field label="AutoCount PO Number" required><Input name="autocount_po_no" placeholder="Enter the number from AutoCount" required /></Field><p className="text-[11px] leading-4 text-muted-foreground">Required before Finance Review.</p><SubmitButton className="w-full justify-center" pendingLabel="Approving..."><ShoppingCart className="h-4 w-4" aria-hidden="true" />Send to Finance Review</SubmitButton></form> : null}
-              {canFinanceReview ? <ConfirmActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} label={<><BadgeCheck className="h-4 w-4" aria-hidden="true" />Approve as Finance</>} title="Approve this PR as Finance?" description="This marks the request ready for PO conversion." pendingLabel="Approving..." mobilePrimary /> : null}
+              {canFinanceReview ? <ConfirmActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} label={<><BadgeCheck className="h-4 w-4" aria-hidden="true" />Approve as Finance</>} title="Approve and create the PO?" description={`Finance approval will create ${request.autocount_po_no ?? "the saved AutoCount PO"} and make it ready to send.`} pendingLabel="Approving..." mobilePrimary /> : null}
               {request.status === "converted_to_po" && linkedPurchaseOrders?.[0] ? (
                 <Button asChild className="w-full justify-center"><a href={`/purchase-orders/${linkedPurchaseOrders[0].id}`}><FileCheck2 className="h-4 w-4" aria-hidden="true" />Open PO</a></Button>
               ) : null}
             </DocumentActionBar>
             {canConvert ? (
               <form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} className="mt-3 space-y-2" data-mobile-primary-action>
-                <Input name="autocount_po_no" defaultValue={messageParams.po_no ?? ""} placeholder="AutoCount PO Number" required />
-                <SubmitButton type="submit" pendingLabel="Converting..." className="w-full justify-center"><FileCheck2 className="h-4 w-4" aria-hidden="true" />Convert to Purchase Order</SubmitButton>
+                <Field label="Saved AutoCount PO Number"><Input name="autocount_po_no" defaultValue={messageParams.po_no ?? request.autocount_po_no ?? ""} placeholder="AutoCount PO Number" required /></Field>
+                <p className="text-[11px] leading-4 text-muted-foreground">Legacy recovery only. Correct this only if AutoCount assigned a different number.</p>
+                <SubmitButton type="submit" pendingLabel="Finishing..." className="w-full justify-center"><FileCheck2 className="h-4 w-4" aria-hidden="true" />Finish PO creation</SubmitButton>
               </form>
             ) : null}
             {!hasPrimaryAction && !secondaryActions ? <p className="text-xs text-muted-foreground">No action is required at this stage.</p> : null}

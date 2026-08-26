@@ -1159,6 +1159,7 @@ export type Database = {
           idempotency_key: string | null;
           split_root_purchase_request_id: string | null;
           assigned_supplier_id: string | null;
+          autocount_po_no: string | null;
         };
         Insert: {
           id?: string;
@@ -1184,6 +1185,7 @@ export type Database = {
           idempotency_key?: string | null;
           split_root_purchase_request_id?: string | null;
           assigned_supplier_id?: string | null;
+          autocount_po_no?: string | null;
         };
         Update: Partial<Database["public"]["Tables"]["purchase_requests"]["Insert"]>;
         Relationships: [];
@@ -2726,6 +2728,19 @@ export type Database = {
           purchase_request_no: string;
           already_existed: boolean;
         }>;
+      };
+      finance_approve_purchase_request_to_order: {
+        Args: { target_purchase_request_id: string };
+        Returns: Array<{
+          purchase_order_id: string;
+          purchase_order_no: string;
+          purchase_request_no: string;
+          already_existed: boolean;
+        }>;
+      };
+      set_purchase_request_autocount_po_no: {
+        Args: { target_purchase_request_id: string; target_po_no: string };
+        Returns: undefined;
       };
       save_supplier_invoice_draft: {
         Args: {

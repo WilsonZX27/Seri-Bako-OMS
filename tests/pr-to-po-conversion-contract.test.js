@@ -3,6 +3,7 @@ import fs from "node:fs";
 import test from "node:test";
 
 const migration = fs.readFileSync("supabase/migrations/186_fix_pr_to_po_conversion.sql", "utf8");
+const handoffMigration = fs.readFileSync("supabase/migrations/220_finance_po_handoff_and_send_permission.sql", "utf8");
 const action = fs.readFileSync("src/server/actions/procurement.ts", "utf8");
 const errorHandling = fs.readFileSync("src/server/actions/error-handling.ts", "utf8");
 const detailPage = fs.readFileSync("src/app/(app)/purchase-requests/[id]/page.tsx", "utf8");
@@ -18,12 +19,28 @@ test("PR to PO migration writes an idempotency key and preserves one active PO p
   assert.match(migration, /PO_NUMBER_ALREADY_USED/);
 });
 
-test("PR to PO action preserves the typed AutoCount number after an error", () => {
+test("legacy PR to PO recovery preserves Purchasing's saved AutoCount number after an error", () => {
   assert.match(action, /submittedPoNo = cleanText\(formData\.get\("autocount_po_no"\)\)/);
   assert.match(action, /po_no=\$\{encodeURIComponent\(submittedPoNo\.slice\(0, 160\)\)\}/);
-  assert.match(detailPage, /defaultValue=\{messageParams\.po_no \?\? ""\}/);
+  assert.match(detailPage, /defaultValue=\{messageParams\.po_no \?\? request\.autocount_po_no \?\? ""\}/);
+  assert.match(detailPage, /Legacy recovery only/);
   assert.match(detailPage, /ActionErrorNotice message=\{messageParams\.error\}/);
   assert.match(errorNotice, /autocount po number\|po number/);
+});
+
+test("Finance approval creates the PO atomically from Purchasing's saved number", () => {
+  assert.match(handoffMigration, /finance_approve_purchase_request_to_order/);
+  assert.match(handoffMigration, /perform public\.transition_purchase_request\(request_row\.id, 'finance_approve', null\)/);
+  assert.match(handoffMigration, /from public\.convert_purchase_request_to_purchase_order\(/);
+  assert.match(handoffMigration, /request_row\.autocount_po_no/);
+  assert.match(action, /rpc\("finance_approve_purchase_request_to_order"/);
+  assert.match(action, /is ready to send/);
+  assert.doesNotMatch(detailPage, /marks the request ready for PO conversion/);
+});
+
+test("PO send accepts both canonical permission codes for Purchasing", () => {
+  assert.match(handoffMigration, /permission_code in \('po\.send', 'purchase_order\.send'\)/);
+  assert.match(handoffMigration, /has_any_permission\(array\['po\.send','purchase_order\.send'\]\)/);
 });
 
 test("PR to PO conversion errors are actionable and do not expose database diagnostics", () => {

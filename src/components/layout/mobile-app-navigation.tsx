@@ -376,7 +376,7 @@ export function MobileAppNavigation({
             <header className="flex min-h-14 items-center justify-between border-b border-[var(--sb-border-soft)] px-4">
               <div className="min-w-0">
                 <h2 id={titleId} className="truncate text-sm font-semibold text-[var(--sb-green-950)]">{companyName}</h2>
-                <p className="text-xs text-[var(--sb-text-muted)]">All permitted workspaces</p>
+                <p className="text-xs text-[var(--sb-text-muted)]">Choose a workspace</p>
               </div>
               <Button type="button" variant="ghost" size="icon" aria-label="Close navigation" onClick={() => setMoreOpen(false)}>
                 <X className="h-5 w-5" />

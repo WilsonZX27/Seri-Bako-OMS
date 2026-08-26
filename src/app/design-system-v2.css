@@ -955,7 +955,7 @@ html[data-design-layer="v2"] [data-dashboard-command] {
 }
 
 html[data-design-layer="v2"] [data-dashboard-command] [data-dashboard-attention-summary] {
-  background: #e5eee9;
+  background: #d7e7df;
 }
 
 html[data-design-layer="v2"] [data-dashboard-command] [data-dashboard-pulse-metrics] {

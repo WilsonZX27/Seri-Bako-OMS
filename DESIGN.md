@@ -1,5 +1,13 @@
 # Seri Bako OMS responsive design standard
 
+## v8.65.10 (unreleased) — Workflow clarity and audit hierarchy
+
+- Finance approval is one operator decision: it consumes Purchasing's saved AutoCount number, creates the PO atomically, and lands on the ready-to-send Purchase Order. Normal flow never asks for the same identifier twice.
+- A legacy `ready_to_convert` record may expose a narrowly labelled recovery form. It must say that correction is exceptional and preserve the saved number; it is not presented as the normal next stage.
+- Outlet Daily activity titles name the business fact that changed—Received, Wastage, Qty Sent, Leftover, Notes, or Status. Identical no-op saves do not become timeline entries, and creation identity is always visible.
+- Dashboard attention uses a clearly visible but restrained sage field without gradients, thick side tabs, dark hero treatment, or nested cards. Removing a metric must also rebalance the grid so no empty column remains.
+- Navigation helper copy describes the next action in ordinary language. “Choose a workspace” replaces permission-model terminology that an operator should not need to decode.
+
 ## v8.65.9 (unreleased) — Canvas fit and verified-empty density
 
 - Hidden native scrollbars never imply a decorative fade. A table that genuinely needs horizontal travel remains a named, focusable region; common desktop registers should first fit the available shared canvas by assigning deliberate column measures.

@@ -6,7 +6,7 @@ const sql = fs.readFileSync("supabase/uat/verify_v9_schema.sql", "utf8");
 const runner = fs.readFileSync("scripts/v9/verify-local-schema.mjs", "utf8");
 
 test("v9 local schema gate validates migration, RLS, views and function safety", () => {
-  assert.match(sql, /latest_migration <> '219'/);
+  assert.match(sql, /latest_migration <> '220'/);
   assert.match(sql, /not rowsecurity/);
   assert.match(sql, /SECURITY DEFINER functions without a fixed search_path/);
   assert.match(sql, /security_invoker=true/);

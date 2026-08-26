@@ -319,7 +319,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
         {!isOutlet ? (
           <div className="order-2 space-y-4" data-dashboard-activity-group>
             <Panel title={isPurchasing ? "Purchasing pipeline" : isKitchen ? "Production and receiving" : "Operational pipeline"}>
-              <div className="grid grid-cols-3 divide-x divide-[var(--sb-border-soft)]">
+              <div className={`grid ${isPurchasing ? "grid-cols-2" : "grid-cols-3"} divide-x divide-[var(--sb-border-soft)]`}>
                 <Metric
                   href="/purchase-orders"
                   label={isPurchasing ? "PO preparation / sending" : "Recent purchase orders"}
@@ -350,7 +350,6 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                   variant="tile"
                   density="compact"
                 />
-                {isPurchasing ? <Metric href="/administration/master-data-cleanup" label="Master-data follow-up" value="Review" icon={Boxes} variant="tile" density="compact" /> : null}
               </div>
             </Panel>
           </div>

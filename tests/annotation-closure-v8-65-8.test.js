@@ -12,7 +12,7 @@ test("dashboard mobile groups retain padding and a deliberate sage hierarchy", (
   assert.match(dashboard, /data-dashboard-panel-body/);
   assert.match(dashboard, /gap-y-1 px-3 py-2\.5/);
   assert.match(design, /\[data-dashboard-panel\] > :last-child\s*\{[\s\S]*padding:\s*0\.5rem;[\s\S]*background:\s*#f4f7f5/);
-  assert.match(design, /\[data-dashboard-attention-summary\]\s*\{[\s\S]*background:\s*#e5eee9/);
+  assert.match(design, /\[data-dashboard-attention-summary\]\s*\{[\s\S]*background:\s*#d7e7df/);
   assert.match(dashboard, /grid grid-cols-3 divide-x[^\n]+data-dashboard-quick-actions/);
   assert.doesNotMatch(dashboard, /data-dashboard-quick-actions[\s\S]{0,900}hover:-translate-y/);
 });

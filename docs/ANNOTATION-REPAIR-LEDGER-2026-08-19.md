@@ -1,5 +1,22 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-08-26 — v8.65.10 Production workflow incident repair
+
+The Production screenshots exposed a real split-brain workflow rather than an isolated copy defect. Purchasing stored the AutoCount number, Finance advanced the PR to `ready_to_convert`, and a second conversion form asked for the same number again. The PO-send button also accepted a permission alias that the database transition rejected. Migration 220 closes both boundaries without modifying the reported Production records directly.
+
+| URL | Role / viewport | Finding | Resolution | Evidence state |
+|---|---|---|---|---|
+| `/dashboard` | Purchasing / 1440×900 | Attention sage was too faint; master-data follow-up was not operational work | Stronger restrained sage band; removed tile and rebalanced Purchasing pipeline to two columns | authenticated localhost matrix and screenshots inspected at all four fixed viewports |
+| mobile navigation sheet | authenticated role / 1180×820 | “All permitted workspaces” exposed permission terminology | Replaced with “Choose a workspace” | authenticated localhost matrix passed |
+| `/purchase-requests/:id` | Purchasing → Finance / 1440×900 | AutoCount PO number was requested twice and duplicate failure stranded the PR | Finance approval and PO creation share one RPC transaction; normal flow jumps to the ready-to-send PO; legacy records retain explicit correction/recovery | authenticated localhost mutation reached converted PO; duplicate-number recovery verified |
+| `/purchase-orders/:id` | Purchasing / 1440×900 | Send button was visible but database rejected the alias permission | Purchasing owns both permission aliases and the transition checks both | authenticated localhost Purchasing send verified |
+| `/outlet-daily-records/:id` | authorised role / 1440×900 | Generic saves repeated and Received/Wastage changes were indistinguishable; creator could be absent | Log only actual changed fields, derive meaningful historical titles, fold identical rapid duplicates, and add creator identity fallback | implemented; contract and type verification passed |
+
+- Implemented: application version `8.65.10`, migration 220, atomic Finance-to-PO action, legacy PO-number recovery, canonical PO-send aliases, meaningful Outlet activity, Dashboard cleanup, and navigation copy.
+- Locally verified: clean reset applied migrations 001–220 and the dry-run reports the database up to date; `V9_SCHEMA_OK` reports 85 RLS tables, 6 views and 145 fixed-search-path SECURITY DEFINER functions. `991/991` contracts, strict typecheck, ESLint and the local-env Production build pass. The authenticated procurement closure passed `3/3`, including Kitchen create, Manager approval, Purchasing review, Finance atomic PO creation, duplicate-number recovery guard and Purchasing Send. The affected Dashboard, PR, PO and Outlet Daily routes passed `12/12` across Owner, Finance and Purchasing at 390×844, 820×1180, 1180×820 and 1440×900; the generated screenshots were manually inspected.
+- Awaiting authenticated UAT: Production-like clone UAT (source DB password unavailable), deployment of migration 220, and read-back or repair of the reported Production PR/PO records.
+- Production verified: no. The screenshots prove the existing defect; local migration and browser evidence do not prove the Production deployment or repair its current data.
+
 ## 2026-08-26 — v8.65.9 authenticated localhost visual audit
 
 The current `a2a3` worktree was opened through the owned localhost Playwright server and reviewed from newly captured screenshots. The first pass correctly exposed a stale harness rule: desktop PR and Outlet Daily failed only because the runner still required the scrollbar-edge affordance that the Owner rejected. The screenshots also exposed issues that a source-only review missed: avoidable desktop table travel, clipped 820px request fields, a large zero-activity Inventory chart, and Quick Actions still reading as three floating cards.

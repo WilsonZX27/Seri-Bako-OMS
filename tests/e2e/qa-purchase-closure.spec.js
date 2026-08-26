@@ -73,9 +73,13 @@ test.describe("QA- procurement payment closure", () => {
       created_by: owner.id,
       updated_by: owner.id,
     }).select("id").single(), "supplier item");
-    // Deliberately leave the branch route unconfigured. A PR supplier is a
-    // required suggestion, not a setup blocker; Purchasing confirms or creates
-    // the provisional route during review/PO confirmation.
+    await must(admin.from("branch_supplier_items").insert({
+      branch_id: branch.id,
+      supplier_item_id: supplierItem.id,
+      item_id: item.id,
+      is_preferred: true,
+      status: "active",
+    }).select("id").single(), "branch supplier item");
     const opening = await must(admin.from("stock_transactions").insert({
       transaction_no: `QA-OPEN-${suffix}`,
       item_id: item.id,
@@ -144,15 +148,19 @@ test.describe("QA- procurement payment closure", () => {
     await page.setViewportSize({ width: 375, height: 812 });
     await login(page, "kitchen");
     await page.goto("/purchase-requests/new", { waitUntil: "domcontentloaded" });
+    await page.waitForLoadState("networkidle");
     // Supplier is a required request-level suggestion even when its branch
     // route is still provisional. The item itself remains searchable from the
     // Item Master and Purchasing confirms the route later.
     await page.locator('select[name="request_supplier_id"]').selectOption(fixture.supplier);
+    await expect(page.locator('select[name="request_supplier_id"]')).toHaveValue(fixture.supplier);
     const itemInput = page.locator('input[role="combobox"][placeholder*="Search any words in item name or code"]').first();
     await expect(itemInput).toBeVisible();
     await itemInput.fill(fixture.itemCode);
-    // Exact code entry is intentionally accepted immediately by the combobox;
-    // the dropdown is only needed for fuzzy matches and closes after selection.
+    await expect(page.getByRole("option", { name: new RegExp(fixture.itemCode, "i") })).toBeVisible();
+    await itemInput.press("Enter");
+    // Typed text is only a query. Explicitly choosing the highlighted result
+    // proves the hidden item identity cannot be bypassed by free text.
     await expect(page.locator('input[name="line_item_id"]').first()).toHaveValue(fixture.item);
     await page.locator('input[name="line_qty"]').first().fill("2");
     await page.locator('select[name="line_uom"]').first().selectOption("KG");
@@ -202,25 +210,25 @@ test.describe("QA- procurement payment closure", () => {
     await login(page, "finance");
     await page.goto(created.prUrl, { waitUntil: "domcontentloaded" });
     await confirm("Approve as Finance");
-    await expect.poll(status).toBe("ready_to_convert");
+    await page.waitForURL(/\/purchase-orders\/[0-9a-f-]+/i, { timeout: 30_000, waitUntil: "domcontentloaded" });
+    await expect.poll(status).toBe("converted_to_po");
+    created.poUrl = page.url();
+    created.poId = new URL(page.url()).pathname.split("/").pop();
+    await expect(page.locator("body")).toContainText(/ready to send|Send to supplier/i);
   });
 
-  test("QA verifies PO conversion prerequisites and supplier-send controls", async ({ page }) => {
+  test("QA verifies legacy conversion recovery and Purchasing supplier-send controls", async ({ page }) => {
     test.setTimeout(120_000);
     test.skip(!created.prId, "PR was not created");
     const browser = page.context().browser();
     await logout(page);
-    await login(page, "superAdmin");
-    await page.goto(created.prUrl, { waitUntil: "domcontentloaded" });
-    const convertForm = page.locator('form:visible').filter({ has: page.locator('input[name="autocount_po_no"]') }).first();
-    await expect(convertForm).toBeVisible();
-    await convertForm.locator('input[name="autocount_po_no"]').fill(created.poNo);
-    await convertForm.getByRole("button", { name: /Convert to Purchase Order/i }).click();
-    await page.waitForURL(/\/purchase-orders\/[0-9a-f-]+/i, { timeout: 30_000, waitUntil: "domcontentloaded" });
-    created.poUrl = page.url();
-    created.poId = new URL(page.url()).pathname.split("/").pop();
+    await login(page, "purchasing");
+    await page.goto(created.poUrl, { waitUntil: "domcontentloaded" });
     await expect(page.locator("body")).toContainText(/AutoCount PO Number/i);
     await expect(page.getByRole("button", { name: /Send to supplier/i }).first()).toBeVisible();
+
+    await logout(page);
+    await login(page, "superAdmin");
 
     // Re-run the conversion boundary from the browser against a second
     // disposable Ready to Convert PR. The RPC contract already proves
@@ -272,7 +280,7 @@ test.describe("QA- procurement payment closure", () => {
     await expect(duplicateForm).toBeVisible();
     const duplicateInput = duplicateForm.locator('input[name="autocount_po_no"]');
     await duplicateInput.fill(created.poNo);
-    await duplicateForm.getByRole("button", { name: /Convert to Purchase Order/i }).click();
+    await duplicateForm.getByRole("button", { name: /Finish PO creation/i }).click();
     await expect(page).toHaveURL(new RegExp(`/purchase-requests/${duplicatePrId}\\?.*po_no=`), { timeout: 30_000 });
     await expect(page.locator("body")).toContainText(/This AutoCount PO Number is already used/i);
     await expect(page.locator('input[name="autocount_po_no"]:visible')).toHaveValue(created.poNo);
@@ -284,7 +292,7 @@ test.describe("QA- procurement payment closure", () => {
       const uploadForm = page.locator('form:has(input[type="file"]):visible').first();
       await uploadForm.locator('input[name="file_name"]').fill(label);
       await uploadForm.locator('input[type="file"]').setInputFiles({ name, mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4 QA fixture") });
-      await uploadForm.getByRole("button", { name: /Upload attachment|Attach /i }).click();
+      await uploadForm.locator('button[type="submit"]').click();
       try {
         await expect(page.locator("body")).toContainText(new RegExp(`${label} uploaded`, "i"), { timeout: 15_000 });
       } catch (error) {
@@ -296,6 +304,9 @@ test.describe("QA- procurement payment closure", () => {
     }
 
     await upload("Purchase Order", `QA-PO-${fixture.suffix}.pdf`);
+    await logout(page);
+    await login(page, "purchasing");
+    await page.goto(created.poUrl, { waitUntil: "domcontentloaded" });
     await page.getByRole("button", { name: /Send to supplier/i }).first().click();
     await page.waitForLoadState("domcontentloaded");
     await expect(page.locator("body")).toContainText(/Sent to Supplier|Sent/i);

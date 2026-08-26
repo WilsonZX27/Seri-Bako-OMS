@@ -613,8 +613,29 @@ export async function revisePurchaseRequestLine(id: string, formData: FormData) 
 export async function financeApprovePurchaseRequest(id: string) {
   try {
     if (isMockMode()) return;
-    const pr = await transitionPurchaseRequest(id, "finance_approve");
-    safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${pr.request_no} Finance Review completed. Purchase request is ready to convert.`);
+    await requirePermission("pr.finance_review");
+    const requestId = parsePurchaseRequestId(id);
+    const supabase = await createClient();
+    const { data, error } = await looseSupabase(supabase).rpc("finance_approve_purchase_request_to_order", {
+      target_purchase_request_id: requestId,
+    });
+    if (error) throw new Error(error.message);
+    const result = Array.isArray(data) ? data[0] : null;
+    if (!result?.purchase_order_id || !result?.purchase_order_no || !result?.purchase_request_no) {
+      throw new Error("Finance approval returned no purchase order.");
+    }
+    if (!result.already_existed) {
+      const profile = await identity();
+      await createPurchaseOrderCreatedNotification({
+        poId: String(result.purchase_order_id),
+        poNo: String(result.purchase_order_no),
+        prNo: String(result.purchase_request_no),
+        companyId: profile?.company_id ?? null,
+        staffId: profile?.id ?? null,
+      });
+    }
+    revalidateWorkspaceState([`/purchase-requests/${requestId}`, "/purchase-orders"]);
+    safeRedirectWithMessage(`/purchase-orders/${result.purchase_order_id}`, "success", `Finance approved ${result.purchase_request_no}. ${result.purchase_order_no} is ready to send.`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not approve this purchase request."));
@@ -822,6 +843,13 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string, formData
     const { data: storedRequest, error: storedRequestError } = await looseSupabase(supabase).from("purchase_requests").select("autocount_po_no").eq("id", requestId).maybeSingle();
     if (storedRequestError) throw new Error(storedRequestError.message);
     const autocountPoNo = z.string().trim().min(1, "AutoCount PO Number is required.").max(160, "AutoCount PO Number must be 160 characters or fewer.").parse(submittedPoNo || String(storedRequest?.autocount_po_no ?? ""));
+    if (submittedPoNo && submittedPoNo !== String(storedRequest?.autocount_po_no ?? "")) {
+      const { error: correctionError } = await looseSupabase(supabase).rpc("set_purchase_request_autocount_po_no", {
+        target_purchase_request_id: requestId,
+        target_po_no: autocountPoNo,
+      });
+      if (correctionError) throw new Error(correctionError.message);
+    }
     const profile = await identity();
     const { data, error } = await supabase.rpc("convert_purchase_request_to_purchase_order", {
       target_purchase_request_id: requestId,

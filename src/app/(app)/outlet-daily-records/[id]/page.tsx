@@ -48,6 +48,19 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
   const productMap = new Map(options.products.map((product) => [product.id, product]));
   for (const line of lines) if (line.product) productMap.set(line.product.id, line.product);
   const products = sortProductsForDisplay([...productMap.values()]);
+  const activityItems = activities.some((activity) => activity.activity_type === "created") ? activities : [
+    ...activities,
+    {
+      id: `created-${record.id}`,
+      activity_type: "created",
+      message: "Outlet daily record created",
+      display_message: "Outlet daily record created",
+      metadata: null,
+      created_at: record.created_at,
+      created_by: record.created_by,
+      actor_name: record.created_by_name ?? "Staff",
+    },
+  ].sort((left, right) => new Date(right.created_at).getTime() - new Date(left.created_at).getTime());
   const statusLocked = ["reviewed", "void"].includes(record.status);
   const canEditOutletValues = !statusLocked && permissions["outlet_daily_record.update"];
   const canEditQtySent = !statusLocked && permissions["outlet_daily_record.qty_sent"];
@@ -93,7 +106,7 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
   const sidePanel = <>
     {primaryAction || hasSecondaryActions ? <DocumentActionSection moreOptions={hasSecondaryActions ? <div className="grid gap-2">{secondaryActions}</div> : undefined}>{primaryAction ?? <p className="text-xs text-muted-foreground">No primary action is available for this status.</p>}</DocumentActionSection> : null}
     <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{nextStep}</p><p className="text-xs text-muted-foreground">Wastage needs a reason. Quantity exceptions require a remark.</p></DocumentSideSection>
-    <DocumentSideSection title="Activity"><div className="divide-y divide-[var(--sb-border-soft)]">{activities.length ? activities.map((activity) => <div key={activity.id} className="py-2 text-xs"><p className="font-medium">{activity.message}</p><p className="mt-1 text-muted-foreground">{activity.actor_name} · {formatDateTime(activity.created_at)}</p></div>) : <p className="py-2 text-xs text-muted-foreground">No changes recorded yet.</p>}</div></DocumentSideSection>
+    <DocumentSideSection title="Activity"><div className="divide-y divide-[var(--sb-border-soft)]">{activityItems.map((activity) => <div key={activity.id} className="py-2 text-xs"><p className="font-medium">{activity.display_message}</p><p className="mt-1 text-muted-foreground">{activity.actor_name} · {formatDateTime(activity.created_at)}</p></div>)}</div></DocumentSideSection>
   </>;
 
   return <DocumentWorkspace

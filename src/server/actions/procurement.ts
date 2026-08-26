@@ -840,18 +840,9 @@ export async function convertPurchaseRequestToPurchaseOrder(id: string, formData
     await requirePermission("pr.convert_to_po");
     const requestId = parsePurchaseRequestId(id);
     const supabase = await createClient();
-    const { data: storedRequest, error: storedRequestError } = await looseSupabase(supabase).from("purchase_requests").select("autocount_po_no").eq("id", requestId).maybeSingle();
-    if (storedRequestError) throw new Error(storedRequestError.message);
-    const autocountPoNo = z.string().trim().min(1, "AutoCount PO Number is required.").max(160, "AutoCount PO Number must be 160 characters or fewer.").parse(submittedPoNo || String(storedRequest?.autocount_po_no ?? ""));
-    if (submittedPoNo && submittedPoNo !== String(storedRequest?.autocount_po_no ?? "")) {
-      const { error: correctionError } = await looseSupabase(supabase).rpc("set_purchase_request_autocount_po_no", {
-        target_purchase_request_id: requestId,
-        target_po_no: autocountPoNo,
-      });
-      if (correctionError) throw new Error(correctionError.message);
-    }
+    const autocountPoNo = z.string().trim().min(1, "AutoCount PO Number is required.").max(160, "AutoCount PO Number must be 160 characters or fewer.").parse(submittedPoNo);
     const profile = await identity();
-    const { data, error } = await supabase.rpc("convert_purchase_request_to_purchase_order", {
+    const { data, error } = await supabase.rpc("finish_legacy_purchase_request_to_order", {
       target_purchase_request_id: requestId,
       target_po_no: autocountPoNo,
     });

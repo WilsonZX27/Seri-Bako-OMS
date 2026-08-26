@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.65.11 (unreleased) — Legacy PR-to-PO reconciliation
+
+Historical PRs stranded in `ready_to_convert` now finish through one guarded reconciliation action. If the PO is already linked to the same PR, the workflow completes idempotently. An unlinked PO may be attached only when company, branch, supplier and active state match exactly; a PO owned by another PR or business order remains blocked with a specific operator message. Correcting a legacy AutoCount number and creating the PO occur in the same database function, so the Ready stage no longer calls the Purchasing-only number RPC. Migration 221 and deployment are required before the two reported Production PRs can be verified or repaired.
+
 ### v8.65.10 (unreleased) — Atomic Finance-to-PO handoff
 
 Finance approval now creates the approved Purchase Order in the same database transaction using the AutoCount PO Number already recorded by Purchasing. A duplicate or invalid number rolls the approval back, so the PR cannot remain in a half-approved `ready_to_convert` state; historical records already in that state retain one clearly labelled recovery action. Purchasing can send an approved PO through either canonical permission alias, and the database transition now evaluates the same aliases as the application. Outlet Daily activity records only real Received, Wastage, Qty Sent, Leftover, note, or status changes, folds identical rapid historical saves, and always identifies the record creator without inventing unavailable history. Dashboard removes the non-operational master-data tile, strengthens the restrained sage attention band, and the mobile workspace sheet uses plain task language. Clean reset through migration 220, the authenticated procurement closure, and the affected four-viewport localhost matrix pass; deployment, current Production record repair, and authenticated Production UAT remain separate gates.
@@ -485,7 +489,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `220`; linked Production application and cleanup evidence through migration 215 is recorded in the current closure sections and repair ledger. Migrations 216–220 are locally applied and schema-verified only; migration 219 is the Manager/Purchasing PR review-line authority change, while migration 220 closes the atomic Finance-to-PO handoff and PO-send permission alias mismatch. Linked application, public runtime availability, and authenticated Production-like workflow evidence remain separate gates.
+Repository migration authority: migrations reviewed through `221`; linked Production application and cleanup evidence through migration 215 is recorded in the current closure sections and repair ledger. Migrations 216–221 are locally applied and schema-verified only; migration 219 is the Manager/Purchasing PR review-line authority change, migration 220 closes the atomic Finance-to-PO handoff and PO-send permission alias mismatch, and migration 221 safely reconciles legacy Ready-stage PRs with matching unlinked POs. Linked application, public runtime availability, and authenticated Production-like workflow evidence remain separate gates.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

@@ -4,6 +4,7 @@ import test from "node:test";
 
 const migration = fs.readFileSync("supabase/migrations/186_fix_pr_to_po_conversion.sql", "utf8");
 const handoffMigration = fs.readFileSync("supabase/migrations/220_finance_po_handoff_and_send_permission.sql", "utf8");
+const recoveryMigration = fs.readFileSync("supabase/migrations/221_legacy_pr_po_reconciliation.sql", "utf8");
 const action = fs.readFileSync("src/server/actions/procurement.ts", "utf8");
 const errorHandling = fs.readFileSync("src/server/actions/error-handling.ts", "utf8");
 const detailPage = fs.readFileSync("src/app/(app)/purchase-requests/[id]/page.tsx", "utf8");
@@ -26,6 +27,12 @@ test("legacy PR to PO recovery preserves Purchasing's saved AutoCount number aft
   assert.match(detailPage, /Legacy recovery only/);
   assert.match(detailPage, /ActionErrorNotice message=\{messageParams\.error\}/);
   assert.match(errorNotice, /autocount po number\|po number/);
+  assert.match(action, /rpc\("finish_legacy_purchase_request_to_order"/);
+  assert.doesNotMatch(action.slice(action.indexOf("export async function convertPurchaseRequestToPurchaseOrder")), /rpc\("set_purchase_request_autocount_po_no"/);
+  assert.match(recoveryMigration, /existing_order\.purchase_request_id is not null/);
+  assert.match(recoveryMigration, /existing_order\.branch_id is distinct from request_row\.branch_id/);
+  assert.match(recoveryMigration, /existing_order\.supplier_id is distinct from selected_supplier_id/);
+  assert.match(recoveryMigration, /legacy_pr_po_reconciliation/);
 });
 
 test("Finance approval creates the PO atomically from Purchasing's saved number", () => {
@@ -47,6 +54,8 @@ test("PR to PO conversion errors are actionable and do not expose database diagn
   for (const code of [
     "PO_NUMBER_REQUIRED",
     "PO_NUMBER_ALREADY_USED",
+    "PO_NUMBER_LINKED_TO_ANOTHER_REQUEST",
+    "PO_NUMBER_BELONGS_TO_DIFFERENT_ORDER",
     "PR_NOT_READY",
     "PR_HAS_NO_LINES",
     "PR_HAS_MULTIPLE_SUPPLIERS",

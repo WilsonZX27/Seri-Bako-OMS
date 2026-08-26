@@ -9,8 +9,8 @@ declare
   policyless_tables text;
 begin
   select max(version) into latest_migration from supabase_migrations.schema_migrations;
-  if latest_migration <> '220' then
-    raise exception 'Expected migration 220, found %', coalesce(latest_migration, '(none)');
+  if latest_migration <> '221' then
+    raise exception 'Expected migration 221, found %', coalesce(latest_migration, '(none)');
   end if;
 
   select string_agg(tablename, ', ' order by tablename) into unsafe_tables
@@ -107,6 +107,9 @@ begin
 
   if to_regprocedure('public.finance_approve_purchase_request_to_order(uuid)') is null then
     raise exception 'Finance approval to PO handoff is missing.';
+  end if;
+  if to_regprocedure('public.finish_legacy_purchase_request_to_order(uuid,text)') is null then
+    raise exception 'Legacy PR-to-PO reconciliation is missing.';
   end if;
 end
 $$;

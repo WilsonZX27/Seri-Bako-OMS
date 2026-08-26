@@ -131,6 +131,10 @@ test.describe("QA- procurement payment closure", () => {
       await admin.from("purchase_requests").delete().eq("id", created.prId);
       if (pr.data?.document_id) await admin.from("documents").delete().eq("id", pr.data.document_id);
     }
+    if (created.legacyPoId) {
+      await admin.from("purchase_order_lines").delete().eq("purchase_order_id", created.legacyPoId);
+      await admin.from("purchase_orders").delete().eq("id", created.legacyPoId);
+    }
     if (created.duplicatePrId) {
       await admin.from("purchase_request_lines").delete().eq("purchase_request_id", created.duplicatePrId);
       await admin.from("purchase_requests").delete().eq("id", created.duplicatePrId);
@@ -282,9 +286,34 @@ test.describe("QA- procurement payment closure", () => {
     await duplicateInput.fill(created.poNo);
     await duplicateForm.getByRole("button", { name: /Finish PO creation/i }).click();
     await expect(page).toHaveURL(new RegExp(`/purchase-requests/${duplicatePrId}\\?.*po_no=`), { timeout: 30_000 });
-    await expect(page.locator("body")).toContainText(/This AutoCount PO Number is already used/i);
+    await expect(page.locator("body")).toContainText(/already linked to another Purchase Request/i);
     await expect(page.locator('input[name="autocount_po_no"]:visible')).toHaveValue(created.poNo);
     await expect.poll(async () => (await admin.from("purchase_orders").select("id").eq("po_no", created.poNo).is("deleted_at", null)).data?.length ?? 0).toBe(1);
+
+    const legacyPoId = crypto.randomUUID();
+    const legacyPoNo = `QA-LEGACY-${fixture.suffix}`;
+    created.legacyPoId = legacyPoId;
+    await must(admin.from("purchase_orders").insert({
+      id: legacyPoId,
+      company_id: fixture.company,
+      purchase_request_id: null,
+      branch_id: fixture.branch,
+      po_no: legacyPoNo,
+      supplier_id: fixture.supplier,
+      order_date: new Date().toISOString().slice(0, 10),
+      status: "approved",
+      approval_status: "approved",
+      remarks: "Disposable unlinked legacy reconciliation fixture.",
+      created_by: fixture.owner,
+      updated_by: fixture.owner,
+    }), "unlinked legacy PO");
+    await page.goto(`/purchase-requests/${duplicatePrId}`, { waitUntil: "domcontentloaded" });
+    const recoveryForm = page.locator('form:visible').filter({ has: page.locator('input[name="autocount_po_no"]') }).first();
+    await recoveryForm.locator('input[name="autocount_po_no"]').fill(legacyPoNo);
+    await recoveryForm.getByRole("button", { name: /Finish PO creation/i }).click();
+    await page.waitForURL(new RegExp(`/purchase-orders/${legacyPoId}`), { timeout: 30_000, waitUntil: "domcontentloaded" });
+    await expect.poll(async () => (await admin.from("purchase_requests").select("status").eq("id", duplicatePrId).single()).data?.status).toBe("converted_to_po");
+    await expect.poll(async () => (await admin.from("purchase_orders").select("purchase_request_id").eq("id", legacyPoId).single()).data?.purchase_request_id).toBe(duplicatePrId);
 
     await page.goto(created.poUrl, { waitUntil: "domcontentloaded" });
 

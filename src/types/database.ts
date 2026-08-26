@@ -2738,6 +2738,15 @@ export type Database = {
           already_existed: boolean;
         }>;
       };
+      finish_legacy_purchase_request_to_order: {
+        Args: { target_purchase_request_id: string; target_po_no: string };
+        Returns: Array<{
+          purchase_order_id: string;
+          purchase_order_no: string;
+          purchase_request_no: string;
+          already_existed: boolean;
+        }>;
+      };
       set_purchase_request_autocount_po_no: {
         Args: { target_purchase_request_id: string; target_po_no: string };
         Returns: undefined;

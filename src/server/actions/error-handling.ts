@@ -54,6 +54,12 @@ export function formatActionError(error: unknown, fallback = "Something went wro
   if (normalized.includes("po_number_already_used") || normalized.includes("this autocount po number is already used")) {
     return "This AutoCount PO Number is already used. Enter a different number.";
   }
+  if (normalized.includes("po_number_linked_to_another_request")) {
+    return "This AutoCount PO Number is already linked to another Purchase Request. Verify the existing PO or enter the correct number.";
+  }
+  if (normalized.includes("po_number_belongs_to_different_order")) {
+    return "This AutoCount PO Number belongs to a different branch, supplier, or cancelled order. Verify the existing PO before continuing.";
+  }
   if (normalized.includes("pr_not_ready")) {
     return "This PR is no longer ready to convert. Refresh the page and check its current status.";
   }

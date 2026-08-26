@@ -35,7 +35,7 @@ test("procurement documents use focused mobile workflow and exact primary action
   for (const label of ["Approve as Manager", "Complete Purchasing Review", "Approve as Finance"]) assert.match(pr, new RegExp(label));
   assert.match(pr, /Finish PO creation/);
   assert.match(po, /Send to Supplier/);
-  assert.match(po, /Record Receiving &amp; Attach DO/);
+  assert.match(po, /Record Receiving (?:&amp;|&) Attach DO/);
 });
 
 test("danger, activity, and mobile line information stay separated", () => {

@@ -9,8 +9,8 @@ declare
   policyless_tables text;
 begin
   select max(version) into latest_migration from supabase_migrations.schema_migrations;
-  if latest_migration <> '223' then
-    raise exception 'Expected migration 223, found %', coalesce(latest_migration, '(none)');
+  if latest_migration <> '224' then
+    raise exception 'Expected migration 224, found %', coalesce(latest_migration, '(none)');
   end if;
 
   select string_agg(tablename, ', ' order by tablename) into unsafe_tables
@@ -148,6 +148,23 @@ begin
       )
   ) then
     raise exception 'Purchasing PO-send permission aliases are incomplete.';
+  end if;
+
+  if exists (
+    select 1
+    from public.roles r
+    where r.role_code = 'purchasing' and r.status = 'active' and r.deleted_at is null
+      and exists (
+        select 1
+        from public.permissions p
+        where p.permission_code = 'pr.cancel'
+          and not exists (
+            select 1 from public.role_permissions rp
+            where rp.role_id = r.id and rp.permission_id = p.id
+          )
+      )
+  ) then
+    raise exception 'Purchasing unposted-PR cancellation permission is incomplete.';
   end if;
 
   if exists (

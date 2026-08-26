@@ -1,5 +1,25 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-08-26 — v8.65.14 Purchasing cancellation, Stock Balance mapping, and receiving simplification
+
+The new review was reconciled against the current branch rather than the older Production UI. The Stock Balance request was audited row by row through the authenticated Production API: 266 of 268 rows had a complete active mapping set; the remaining two defects were isolated to canonical records and are repaired by a fail-closed migration. PO and Goods Receiving changes were exercised against an authenticated local Purchasing fixture at 390×844, 820×1180, 1180×820, and 1440×900.
+
+| Surface / source | Role / viewport | Finding | Resolution | Evidence state |
+|---|---|---|---|---|
+| `/purchase-requests/b3eb112b-de55-43c4-ba89-f977faf517e0` | Purchasing / 1440×900 | Purchasing saw the audited cancel action but lacked `pr.cancel` in the canonical role grant | Grant `pr.cancel` to active Purchasing roles; retain the RPC's unposted-status guard | implemented and locally schema-verified; awaiting Production migration/UAT |
+| `/stock-balance` | Purchasing / Production data / 1440×900 | 268 visible rows included one missing CK @ PJS10 mapping and one ambiguous preferred mapping | Guarded repair for `FROMPNG00006`; prefer canonical QUIK GROCER relationship for `QUIKGROC00025` | authenticated Production read-only audit; repair awaiting Production migration |
+| `/purchase-orders/:id` | Purchasing / all four viewports | Receive goods was outline-only; mobile summary placed every fact on its own row | Green primary receiving action and compact paired summary facts | authenticated localhost screenshots inspected |
+| `/purchase-orders/:id` → receiving | Purchasing / all four viewports | Operator could begin receiving without first opening Activity & files and attaching the DO | Missing attachment opens a focused upload dialog; mobile Activity & files also permits upload | authenticated localhost dialog interaction passed |
+| PO attachment → new GRN | database transaction | A PO-only upload would have forced the same DO to be uploaded again before GRN posting | New GRN atomically inherits active PO document attachments | local runtime insert verified `inherited=1` |
+| `/goods-receivings/new` | Purchasing / 390×844 and 820×1180 | Duplicate purchase/base inputs and always-visible batch metadata obscured the main task | One editable received/rejected pair, compact context strip, derived known conversions, progressive optional fields | authenticated localhost screenshots inspected; no horizontal overflow |
+| mobile Goods Receiving | Purchasing / 390×844 | Action bar disappeared on editable focus even without a software keyboard | Hide fixed action only when the measured virtual keyboard is open | localhost focus interaction retained the action bar |
+| `/imports/autocount` | Purchasing / all four viewports | Production v8.65.12 showed adjacent rail buttons with no gap | Existing v8.65.13 full-width `grid gap-2` authority retained and rechecked | authenticated localhost screenshots inspected |
+
+- Implemented: migration 224, Purchasing cancel alignment, two guarded branch-mapping repairs, pre-receiving DO gate and inheritance, semantic receiving CTA, compact PO summary, simplified GRN editor, mobile action-bar focus repair, and version 8.65.14.
+- Locally verified: migration 224 applied and rerun after runtime compatibility testing; `V9_SCHEMA_OK` reports migration 224, 85 RLS tables, 6 views and 147 fixed-search-path SECURITY DEFINER functions; four-viewport authenticated localhost screenshots and interaction checks passed.
+- Production verified: read-only mapping audit totals and the earlier migration 223 PR-to-PO conversions only. No migration 224 mutation or v8.65.14 application runtime is claimed Production verified.
+- Awaiting authenticated UAT: apply migration 224, deploy v8.65.14, verify Purchasing cancellation on an expendable unposted PR, re-audit all 268 Stock Balance rows, upload a real DO once, create the GRN, and verify the inherited attachment before posting.
+
 ## 2026-08-26 — v8.65.13 Production PO closure and AutoCount source-file repair
 
 The generic duplicate error was reproduced through the authenticated Production RPC with full Postgres diagnostics. Both PRs failed on `supplier_items_supplier_code_active_idx`, not on PO number or document ownership. The PO-line guard required a matching purchase UOM before reusing a supplier-item row, while the Item Master identity trigger normalized any provisional row back to the same item code. Migration 223 removes UOM from supplier-item identity lookup and keeps the branch relationship upsert idempotent.

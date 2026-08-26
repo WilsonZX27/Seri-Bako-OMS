@@ -1,5 +1,14 @@
 # Seri Bako OMS responsive design standard
 
+## v8.65.14 (unreleased) — Progressive receiving and semantic action ownership
+
+- Receiving is one task, not a spreadsheet. Each line leads with item identity, one compact ordered/received/pending strip, and only the quantities the operator can change.
+- Known conversions stay derived and quiet. Unknown pack conversions ask for base quantities once in a bounded warning surface; batch, expiry and remarks remain available behind progressive disclosure.
+- A workflow action uses the primary green treatment at every breakpoint. The same business action must not become a low-emphasis outline merely because it moved into the desktop rail.
+- A Delivery Order gate precedes receiving when the PO has no attachment. The upload is retained by the GRN atomically so a safety gate never creates duplicate clerical work.
+- Mobile document summaries use paired facts where values remain readable; supplier identity may span the row, while short dates, branch, state and priority share a two-column rhythm.
+- Fixed mobile actions respond to the measured software keyboard, not focus alone. Hardware-keyboard and programmatic focus must leave the action reachable.
+
 ## v8.65.13 (unreleased) — Operational identity and import honesty
 
 - A PO-line UOM is transactional data, not a new supplier-item identity. Reuse the canonical supplier + item relationship across PO UOMs; conversion must not manufacture a duplicate sourcing row.

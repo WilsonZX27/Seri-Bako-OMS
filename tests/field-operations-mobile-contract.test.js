@@ -65,13 +65,16 @@ test("goods receiving prioritizes physical receipt before reference quantities o
 
   assert.match(source, /data-goods-receiving-setup/);
   assert.match(source, /data-goods-receiving-workspace/);
-  assert.match(source, /label=\{`Received \(\$\{line\.uom\}\)`\} required className="order-2/);
-  assert.match(source, /label=\{`Rejected \(\$\{line\.uom\}\)`\} className="order-2/);
+  assert.match(source, /label=\{`Received · \$\{line\.uom\}`\} required/);
+  assert.match(source, /label=\{`Rejected · \$\{line\.uom\}`\}/);
+  assert.match(source, /aria-label=\{`Received in purchase UOM \$\{line\.uom\}`\}/);
+  assert.match(source, /!hasSavedConversion \? <div/);
   assert.match(source, /name="line_received_base_qty"/);
   assert.match(source, /line_conversion_snapshot/);
-  assert.match(source, /label="Ordered" className="order-3/);
-  assert.match(source, /label="Prev\. Received" className="order-3/);
-  assert.match(source, /label="Pending" className="order-4/);
+  assert.match(source, /<dt className="text-\[10px\] text-muted-foreground">Ordered<\/dt>/);
+  assert.match(source, /<dt className="text-\[10px\] text-muted-foreground">Received<\/dt>/);
+  assert.match(source, /<dt className="text-\[10px\] text-muted-foreground">Pending<\/dt>/);
+  assert.match(source, /<details className="mt-3 border-t/);
 });
 
 test("purchase requests use a flat phone setup and line-entry hierarchy", () => {

@@ -27,10 +27,11 @@ test("progressive receiving migration can be retried after a partial apply", () 
 });
 
 test("Goods Receiving leads with Purchase UOM and supports unknown conversions at receipt", () => {
-  assert.match(form, /label=\{`Received \(\$\{line\.uom\}\)`\} required/);
+  assert.match(form, /label=\{`Received · \$\{line\.uom\}`\} required/);
   assert.match(form, /name="line_received_base_qty"/);
   assert.match(form, /line_conversion_snapshot/);
-  assert.match(form, /Remember this supplier conversion for future deliveries/);
+  assert.match(form, /Remember for future deliveries/);
+  assert.match(form, /<details[\s\S]*Batch, expiry &amp; line remarks/);
   assert.doesNotMatch(form, /This GRN cannot post until the supplier item is repaired/);
 });
 

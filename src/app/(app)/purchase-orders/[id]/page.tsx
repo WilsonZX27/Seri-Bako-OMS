@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DocumentActionBar, DocumentActionForm, DocumentActionLink } from "@/components/document-action-bar";
+import { DocumentActionBar, DocumentActionForm } from "@/components/document-action-bar";
 import { DocumentNumber } from "@/components/document-number";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
@@ -17,6 +17,7 @@ import { getBranchesForSelect, getItemsForSelect, getSuppliersForSelect } from "
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getPurchaseOrder, getPurchaseRequestForOrder } from "@/server/queries/procurement";
 import { PhaseOneDeleteAction } from "@/components/phase-one-delete-action";
+import { AttachmentRequiredAction } from "@/components/documents/attachment-required-action";
 import { detailOrNotFound } from "@/server/queries/detail";
 
 const poSteps = [
@@ -60,6 +61,11 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
   const canCancel = ["draft", "pending_approval", "approved"].includes(order.status) && permissions["purchase_order.cancel"];
   const canClose = ["partial_received", "received"].includes(order.status) && permissions["purchase_order.close"];
   const canRestore = order.status === "cancelled" && order.approval_status === "cancelled" && permissions["purchase_order.cancel"];
+  const hasReceivingAttachment = Boolean(documentBundle?.attachments.length);
+  const receivingHref = `/goods-receivings/new?po_id=${order.id}`;
+  const receivingAction = (label: string) => <AttachmentRequiredAction href={receivingHref} label={label} hasAttachment={hasReceivingAttachment} canUpload={permissions["documents.attach"]}>
+    {documentBundle ? <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Delivery Order" description="Attach the supplier Delivery Order before recording receiving." defaultLabel="Delivery Order" uploadLabel="Upload DO" presentation="inline" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /> : <p className="text-sm text-destructive">The purchase order document is unavailable. Refresh before receiving goods.</p>}
+  </AttachmentRequiredAction>;
   const secondaryActions = canCancel || canReject || canClose || canRestore ? <div className="space-y-2">{canCancel ? <DocumentActionForm action={cancelPurchaseOrder.bind(null, order.id)} pendingLabel="Cancelling order..." variant="destructive">Cancel purchase order</DocumentActionForm> : null}{canRestore ? <><ConfirmActionForm action={restorePurchaseOrder.bind(null, order.id)} label="Restore purchase order" title={`Restore ${order.po_no}?`} description="The cancelled order will return to its previous unposted workflow state. Restoration is blocked if a replacement PO or downstream record exists." pendingLabel="Restoring..." /><PhaseOneDeleteAction recordType="purchase_order" recordId={order.id} label={order.po_no} /></> : null}{canReject ? <DocumentActionForm action={rejectPurchaseOrder.bind(null, order.id)} pendingLabel="Rejecting..." variant="destructive">Reject purchase order</DocumentActionForm> : null}{canClose ? <DocumentActionForm action={closePurchaseOrder.bind(null, order.id)} pendingLabel="Closing..." variant="outline">Close purchase order</DocumentActionForm> : null}</div> : null;
   const nextStep = (fromApprovedPr ? convertedPoSteps : poSteps).find((step) => step.key === order.status)?.description;
   const mobilePrimaryAction = !fromApprovedPr && order.status === "draft" && permissions["po.submit"]
@@ -69,7 +75,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
       : order.status === "approved" && permissions["po.send"]
         ? <MobileTaskSheet label="Send to Supplier"><div className="space-y-3">{documentBundle ? <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supporting Attachments" uploadLabel="Upload" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /> : null}<DocumentActionForm action={sendPurchaseOrder.bind(null, order.id)} pendingLabel="Sending...">Send to Supplier</DocumentActionForm></div></MobileTaskSheet>
         : ["sent", "partial_received"].includes(order.status) && permissions["po.receive"]
-          ? <DocumentActionLink href={`/goods-receivings/new?po_id=${order.id}`}>Record Receiving &amp; Attach DO</DocumentActionLink>
+          ? receivingAction("Record Receiving & Attach DO")
           : null;
 
   return (
@@ -82,7 +88,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
       workflowSteps={fromApprovedPr ? convertedPoSteps : poSteps}
       currentStatus={order.status}
       mobilePrimaryAction={mobilePrimaryAction}
-      mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Purchase Order files" canManage={false} documentStatus={documentBundle.document.status} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /></> : null}
+      mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Purchase Order files" defaultLabel="Delivery Order" uploadLabel="Upload" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /></> : null}
       mobileMoreOptions={secondaryActions ? <DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions> : null}
       sidePanel={
         <>
@@ -93,7 +99,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
                 <ConfirmActionForm action={approvePurchaseOrder.bind(null, order.id)} label="Approve as Manager" title="Approve this purchase order as Manager?" description="This makes the purchase order ready to send to the supplier." pendingLabel="Approving..." mobilePrimary />
               ) : null}
               {order.status === "approved" && permissions["po.send"] ? <DocumentActionForm action={sendPurchaseOrder.bind(null, order.id)} pendingLabel="Sending..." mobilePrimary>Send to supplier</DocumentActionForm> : null}
-              {["sent", "partial_received"].includes(order.status) && permissions["po.receive"] ? <div data-mobile-primary-action><DocumentActionLink href={`/goods-receivings/new?po_id=${order.id}`} variant="outline">Receive goods</DocumentActionLink></div> : null}
+              {["sent", "partial_received"].includes(order.status) && permissions["po.receive"] ? <div data-mobile-primary-action>{receivingAction("Receive goods")}</div> : null}
             </DocumentActionBar>
           </DocumentActionSection>
           <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{nextStep ?? "No further workflow step is available."}</p></DocumentSideSection>
@@ -111,9 +117,9 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
           <Card>
             <CardContent className="space-y-4 p-5">
               <h2 className="text-sm font-semibold">Order Summary</h2>
-              <div className="grid gap-4 md:grid-cols-4">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-4">
                 <div><p className="text-xs uppercase text-muted-foreground">AutoCount PO Number</p><p className="font-medium">{order.po_no}</p></div>
-                <div><p className="text-xs uppercase text-muted-foreground">Supplier</p><p className="font-medium">{supplier?.name ?? order.supplier_id}</p></div>
+                <div className="col-span-2 md:col-span-1"><p className="text-xs uppercase text-muted-foreground">Supplier</p><p className="font-medium">{supplier?.name ?? order.supplier_id}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{branch?.branch_name ?? "-"}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Order Date</p><p className="font-medium">{formatDateOnly(order.order_date)}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Expected Delivery</p><p className="font-medium">{formatDateOnly(order.expected_delivery_date, "-")}</p></div>

@@ -131,38 +131,79 @@ export function GoodsReceivingForm({
                 <div className="flex flex-col gap-2 border-b bg-secondary/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-xs font-semibold">Receiving Lines</p>
-                    <p className="text-xs text-muted-foreground">Enter what the supplier delivered. Known conversions are calculated for you; unknown pack sizes can be confirmed here once and optionally remembered.</p>
+                    <p className="text-xs text-muted-foreground">Enter delivered and rejected quantities. Conversion and order context stay visible without repeating editable fields.</p>
                   </div>
                   <div className="text-sm">
                     <span className="text-muted-foreground">PO:</span> <span className="font-semibold">{selectedOrder.po_no}</span>
                   </div>
                 </div>
                 <div className="divide-y">
-                  {lines.map((line) => (
-                    <div key={line.id} id={`line-${line.id}`} className="grid grid-cols-2 gap-3 p-3 sm:grid-cols-3 xl:grid-cols-[2fr_repeat(5,96px)_112px_112px_1.3fr] xl:gap-2">
-                      <div className="order-1 col-span-2 border-b border-[var(--sb-border-soft)] pb-2 sm:col-span-3 xl:order-none xl:col-span-1 xl:border-b-0 xl:pb-0">
-                        <p className="font-medium">{line.item?.item_name ?? line.item_id}</p>
-                        <p className="text-xs text-muted-foreground">{line.item?.item_code} · Purchase UOM {line.uom}</p>
-                        {line.conversion_to_base_uom ? <p className="mt-1 text-xs text-muted-foreground">1 {line.uom} = {formatNumber(line.conversion_to_base_uom)} {line.item?.base_unit ?? "base UOM"}</p> : <p className="mt-1 text-xs font-medium text-warning">No saved conversion yet. Enter both quantities below to confirm it for this delivery.</p>}
-                        <p className="mt-1 text-xs text-muted-foreground">Unit cost {formatCurrency(line.unit_price)} / {line.uom}{line.conversion_to_base_uom ? ` · ${formatCurrency(line.unit_price / line.conversion_to_base_uom)} / ${line.item?.base_unit ?? "base UOM"}` : ""}</p>
-                      </div>
-                      <Field label={`Received (${line.uom})`} required className="order-2 xl:order-none xl:col-start-auto"><Input id={`received-${line.id}`} name="line_received_qty" type="number" inputMode="decimal" min="0" max={line.pending_qty} step="0.0001" value={receivedPurchaseByLine[line.id] ?? ""} onChange={(event) => { const value = event.target.value; setReceivedPurchaseByLine((current) => ({ ...current, [line.id]: value })); if (line.conversion_to_base_uom) setReceivedBaseByLine((current) => ({ ...current, [line.id]: value ? (Number(value) * line.conversion_to_base_uom!).toFixed(4) : "" })); else if (value && Number(receivedBaseByLine[line.id] ?? 0) > 0 && Number(rejectedPurchaseByLine[line.id] ?? 0) > 0) setRejectedBaseByLine((current) => ({ ...current, [line.id]: (Number(rejectedPurchaseByLine[line.id]) * Number(receivedBaseByLine[line.id]) / Number(value)).toFixed(4) })); }} className="font-semibold tabular-nums" aria-label={`Received in purchase UOM ${line.uom}`} aria-describedby={`received-help-${line.id}`} /><p id={`received-help-${line.id}`} className="mt-1 text-[11px] text-muted-foreground">Actual quantity on the supplier document.</p></Field>
-                      <Field label={`Received (${line.item?.base_unit ?? "base UOM"})`} required className="order-2 xl:order-none"><Input name="line_received_base_qty" type="number" inputMode="decimal" min="0" step="0.0001" value={receivedBaseByLine[line.id] ?? ""} onChange={(event) => { const value = event.target.value; setReceivedBaseByLine((current) => ({ ...current, [line.id]: value })); if (!line.conversion_to_base_uom && value && Number(receivedPurchaseByLine[line.id] ?? 0) > 0 && Number(rejectedPurchaseByLine[line.id] ?? 0) > 0) setRejectedBaseByLine((current) => ({ ...current, [line.id]: (Number(rejectedPurchaseByLine[line.id]) * Number(value) / Number(receivedPurchaseByLine[line.id])).toFixed(4) })); }} readOnly={Boolean(line.conversion_to_base_uom)} className="font-semibold tabular-nums" aria-label={`Received in base UOM ${line.item?.base_unit ?? "base UOM"}`} /><input type="hidden" name="line_conversion_snapshot" value={line.conversion_to_base_uom ?? ((Number(receivedPurchaseByLine[line.id] ?? 0) > 0 && Number(receivedBaseByLine[line.id] ?? 0) > 0) ? (Number(receivedBaseByLine[line.id]) / Number(receivedPurchaseByLine[line.id])).toFixed(8) : ((Number(rejectedPurchaseByLine[line.id] ?? 0) > 0 && Number(rejectedBaseByLine[line.id] ?? 0) > 0) ? (Number(rejectedBaseByLine[line.id]) / Number(rejectedPurchaseByLine[line.id])).toFixed(8) : ""))} /><p className="mt-1 text-[11px] text-muted-foreground">{line.conversion_to_base_uom ? "Calculated from the saved conversion." : "Actual base quantity received; this teaches the conversion."}</p></Field>
-                      <Field label={`Rejected (${line.uom})`} className="order-2 xl:order-none"><Input name="line_rejected_qty" type="number" inputMode="decimal" min="0" max={line.pending_qty} step="0.0001" value={rejectedPurchaseByLine[line.id] ?? ""} onChange={(event) => { const value = event.target.value; setRejectedPurchaseByLine((current) => ({ ...current, [line.id]: value })); const inferred = line.conversion_to_base_uom ?? ((Number(receivedPurchaseByLine[line.id] ?? 0) > 0 && Number(receivedBaseByLine[line.id] ?? 0) > 0) ? Number(receivedBaseByLine[line.id]) / Number(receivedPurchaseByLine[line.id]) : null); if (inferred) setRejectedBaseByLine((current) => ({ ...current, [line.id]: value ? (Number(value) * inferred).toFixed(4) : "" })); }} aria-label={`Rejected in purchase UOM ${line.uom}`} /></Field>
-                      <Field label={`Rejected (${line.item?.base_unit ?? "base UOM"})`} className="order-2 xl:order-none"><Input name="line_rejected_base_qty" type="number" inputMode="decimal" min="0" step="0.0001" value={rejectedBaseByLine[line.id] ?? ""} onChange={(event) => setRejectedBaseByLine((current) => ({ ...current, [line.id]: event.target.value }))} readOnly={Boolean(line.conversion_to_base_uom)} aria-label={`Rejected in base UOM ${line.item?.base_unit ?? "base UOM"}`} /></Field>
-                      <Field label="Ordered" className="order-3 xl:order-none"><Input name="line_ordered_qty" value={line.qty_ordered} readOnly aria-label={`Ordered in ${line.uom}`} /></Field>
-                      <Field label="Prev. Received" className="order-3 xl:order-none"><Input name="line_previously_received_qty" value={line.previously_received_qty} readOnly aria-label={`Prev. Received in ${line.uom}`} /></Field>
-                      <Field label="Pending" className="order-4 xl:order-none"><Input name="line_pending_qty" value={line.pending_qty} readOnly aria-label={`Pending in ${line.uom}`} /></Field>
-                      <Field label="Batch" className="order-4 xl:order-none"><Input name="line_batch_no" placeholder="Batch no" /></Field>
-                      <Field label="Expiry" className="order-5 xl:order-none"><Input name="line_expiry_date" type="date" /></Field>
-                      <Field label="Remarks" className="order-5 col-span-2 sm:col-span-3 xl:order-none xl:col-span-1"><Input name="line_remarks" placeholder="Damage/reject notes" /></Field>
-                      <input type="hidden" name="line_purchase_order_line_id" value={line.id} />
-                      <input type="hidden" name="line_item_id" value={line.item_id} />
-                      <input type="hidden" name="line_uom" value={line.uom} />
-                      <input type="hidden" name="line_unit_cost" value={line.unit_price} />
-                      {!line.conversion_to_base_uom ? <label className="order-6 col-span-2 flex items-center gap-2 text-xs text-muted-foreground sm:col-span-3 xl:order-none xl:col-span-2"><input type="checkbox" name="line_remember_conversion" checked={rememberConversionByLine[line.id] ?? false} onChange={(event) => setRememberConversionByLine((current) => ({ ...current, [line.id]: event.target.checked }))} /> Remember this supplier conversion for future deliveries</label> : null}
-                    </div>
-                  ))}
+                  {lines.map((line) => {
+                    const baseUom = line.item?.base_unit ?? "base UOM";
+                    const hasSavedConversion = Boolean(line.conversion_to_base_uom);
+                    const sameUnit = hasSavedConversion && (line.uom === baseUom || Number(line.conversion_to_base_uom) === 1);
+                    const receivedBase = receivedBaseByLine[line.id] ?? "";
+                    const rejectedBase = rejectedBaseByLine[line.id] ?? "";
+                    return (
+                      <article key={line.id} id={`line-${line.id}`} className="p-3 sm:p-4">
+                        <header className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="min-w-0">
+                            <p className="font-semibold">{line.item?.item_name ?? line.item_id}</p>
+                            <p className="text-xs text-muted-foreground">{line.item?.item_code} · {line.uom}{sameUnit ? "" : ` → ${baseUom}`}</p>
+                          </div>
+                          <p className="shrink-0 text-xs text-muted-foreground">{formatCurrency(line.unit_price)} / {line.uom}</p>
+                        </header>
+
+                        <dl className="mt-3 grid grid-cols-3 divide-x rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] py-2 text-center">
+                          <div className="px-2"><dt className="text-[10px] text-muted-foreground">Ordered</dt><dd className="text-xs font-semibold tabular-nums">{formatNumber(line.qty_ordered)} {line.uom}</dd></div>
+                          <div className="px-2"><dt className="text-[10px] text-muted-foreground">Received</dt><dd className="text-xs font-semibold tabular-nums">{formatNumber(line.previously_received_qty)} {line.uom}</dd></div>
+                          <div className="px-2"><dt className="text-[10px] text-muted-foreground">Pending</dt><dd className="text-xs font-semibold tabular-nums">{formatNumber(line.pending_qty)} {line.uom}</dd></div>
+                        </dl>
+
+                        <div className="mt-3 grid grid-cols-2 gap-3">
+                          <Field label={`Received · ${line.uom}`} required>
+                            <Input id={`received-${line.id}`} name="line_received_qty" type="number" inputMode="decimal" min="0" max={line.pending_qty} step="0.0001" value={receivedPurchaseByLine[line.id] ?? ""} onChange={(event) => { const value = event.target.value; setReceivedPurchaseByLine((current) => ({ ...current, [line.id]: value })); if (line.conversion_to_base_uom) setReceivedBaseByLine((current) => ({ ...current, [line.id]: value ? (Number(value) * line.conversion_to_base_uom!).toFixed(4) : "" })); else if (value && Number(receivedBaseByLine[line.id] ?? 0) > 0 && Number(rejectedPurchaseByLine[line.id] ?? 0) > 0) setRejectedBaseByLine((current) => ({ ...current, [line.id]: (Number(rejectedPurchaseByLine[line.id]) * Number(receivedBaseByLine[line.id]) / Number(value)).toFixed(4) })); }} className="font-semibold tabular-nums" aria-label={`Received in purchase UOM ${line.uom}`} />
+                          </Field>
+                          <Field label={`Rejected · ${line.uom}`}>
+                            <Input name="line_rejected_qty" type="number" inputMode="decimal" min="0" max={line.pending_qty} step="0.0001" value={rejectedPurchaseByLine[line.id] ?? ""} onChange={(event) => { const value = event.target.value; setRejectedPurchaseByLine((current) => ({ ...current, [line.id]: value })); const inferred = line.conversion_to_base_uom ?? ((Number(receivedPurchaseByLine[line.id] ?? 0) > 0 && Number(receivedBaseByLine[line.id] ?? 0) > 0) ? Number(receivedBaseByLine[line.id]) / Number(receivedPurchaseByLine[line.id]) : null); if (inferred) setRejectedBaseByLine((current) => ({ ...current, [line.id]: value ? (Number(value) * inferred).toFixed(4) : "" })); }} aria-label={`Rejected in purchase UOM ${line.uom}`} />
+                          </Field>
+                        </div>
+
+                        {!hasSavedConversion ? <div className="mt-3 rounded-[var(--sb-radius-control)] bg-[var(--sb-warning-bg)] p-3">
+                          <p className="text-xs font-medium text-[var(--sb-text)]">Confirm the pack conversion once</p>
+                          <p className="mt-0.5 text-[11px] text-muted-foreground">Enter the matching base quantities; future deliveries can reuse this conversion.</p>
+                          <div className="mt-2 grid grid-cols-2 gap-3">
+                            <Field label={`Received · ${baseUom}`} required><Input name="line_received_base_qty" type="number" inputMode="decimal" min="0" step="0.0001" value={receivedBase} onChange={(event) => { const value = event.target.value; setReceivedBaseByLine((current) => ({ ...current, [line.id]: value })); if (value && Number(receivedPurchaseByLine[line.id] ?? 0) > 0 && Number(rejectedPurchaseByLine[line.id] ?? 0) > 0) setRejectedBaseByLine((current) => ({ ...current, [line.id]: (Number(rejectedPurchaseByLine[line.id]) * Number(value) / Number(receivedPurchaseByLine[line.id])).toFixed(4) })); }} /></Field>
+                            <Field label={`Rejected · ${baseUom}`}><Input name="line_rejected_base_qty" type="number" inputMode="decimal" min="0" step="0.0001" value={rejectedBase} onChange={(event) => setRejectedBaseByLine((current) => ({ ...current, [line.id]: event.target.value }))} /></Field>
+                          </div>
+                          <label className="mt-2 flex min-h-10 items-center gap-2 text-xs text-muted-foreground"><input type="checkbox" checked={rememberConversionByLine[line.id] ?? false} onChange={(event) => setRememberConversionByLine((current) => ({ ...current, [line.id]: event.target.checked }))} /> Remember for future deliveries</label>
+                        </div> : <>
+                          <input type="hidden" name="line_received_base_qty" value={receivedBase} />
+                          <input type="hidden" name="line_rejected_base_qty" value={rejectedBase} />
+                          {!sameUnit && (receivedBase || rejectedBase) ? <p className="mt-2 text-xs text-muted-foreground">Base quantity: {receivedBase || "0"} received · {rejectedBase || "0"} rejected {baseUom}</p> : null}
+                        </>}
+
+                        <details className="mt-3 border-t border-[var(--sb-border-soft)] pt-2">
+                          <summary className="cursor-pointer py-1 text-xs font-medium text-[var(--sb-green-800)]">Batch, expiry &amp; line remarks</summary>
+                          <div className="mt-2 grid grid-cols-2 gap-3">
+                            <Field label="Batch"><Input name="line_batch_no" placeholder="Batch no" /></Field>
+                            <Field label="Expiry"><Input name="line_expiry_date" type="date" /></Field>
+                            <Field label="Remarks" className="col-span-2"><Input name="line_remarks" placeholder="Damage or rejection notes" /></Field>
+                          </div>
+                        </details>
+
+                        <input type="hidden" name="line_purchase_order_line_id" value={line.id} />
+                        <input type="hidden" name="line_item_id" value={line.item_id} />
+                        <input type="hidden" name="line_ordered_qty" value={line.qty_ordered} />
+                        <input type="hidden" name="line_previously_received_qty" value={line.previously_received_qty} />
+                        <input type="hidden" name="line_pending_qty" value={line.pending_qty} />
+                        <input type="hidden" name="line_conversion_snapshot" value={line.conversion_to_base_uom ?? ((Number(receivedPurchaseByLine[line.id] ?? 0) > 0 && Number(receivedBaseByLine[line.id] ?? 0) > 0) ? (Number(receivedBaseByLine[line.id]) / Number(receivedPurchaseByLine[line.id])).toFixed(8) : ((Number(rejectedPurchaseByLine[line.id] ?? 0) > 0 && Number(rejectedBaseByLine[line.id] ?? 0) > 0) ? (Number(rejectedBaseByLine[line.id]) / Number(rejectedPurchaseByLine[line.id])).toFixed(8) : ""))} />
+                        <input type="hidden" name="line_remember_conversion" value={rememberConversionByLine[line.id] ? "on" : ""} />
+                        <input type="hidden" name="line_uom" value={line.uom} />
+                        <input type="hidden" name="line_unit_cost" value={line.unit_price} />
+                      </article>
+                    );
+                  })}
                   {!lines.length ? (
                     <div className="flex items-center gap-2 p-4 text-sm text-warning">
                       <AlertTriangle className="h-4 w-4" />

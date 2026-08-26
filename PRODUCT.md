@@ -1,5 +1,11 @@
 # Seri Bako Operations Management System
 
+### v8.65.14 (unreleased) — Receiving workflow and branch-mapping closure
+
+Purchasing can cancel an unposted Purchase Request through the existing audited removal boundary; sent, converted, or otherwise posted work remains protected. A read-only authenticated Production audit checked all 268 Stock Balance rows and found exactly two mapping defects: `FROMPNG00006` lacked its CK @ PJS10 relationship, while `QUIKGROC00025` had two active relationships with no preferred supplier. Migration 224 repairs only those guarded canonical records and grants `pr.cancel` to active Purchasing roles.
+
+Purchase Order receiving now uses a green primary action and requires a supplier document before quantities are recorded. The attachment dialog is available from both the action and mobile Activity & files, and a new GRN atomically inherits the PO attachment so the operator uploads the Delivery Order once. Mobile PO summary data uses a compact two-column composition. Goods Receiving reduces each line to delivered/rejected input plus one ordered/received/pending strip; batch, expiry and remarks move behind progressive disclosure, known base-UOM quantities remain derived, and the fixed mobile action bar hides only for a real software keyboard. The AutoCount action rail retains separate full-width controls with explicit spacing.
+
 ### v8.65.13 (unreleased) — PO mapping idempotency and truthful AutoCount import
 
 The two reported PR failures were not PO-number collisions. Authenticated Production RPC diagnostics identified `supplier_items_supplier_code_active_idx`: the PO-line guard searched supplier-item relationships by purchase UOM, then attempted to insert a second relationship that Item Master identity normalized to the same supplier/item code. Migration 223 now reuses the canonical supplier + item relationship across PO UOMs and keeps branch availability idempotent. It was applied to Production on 26 August 2026; PR/AUG26/023 converted to approved PO-000201 and PR/AUG26/025 converted to approved PO-000208, and both PR/PO relationships were read back through the authenticated Production API.
@@ -499,7 +505,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `223`; Production migration 223 and the authenticated conversion/read-back of PR/AUG26/023 → PO-000201 and PR/AUG26/025 → PO-000208 are recorded in the current closure section and repair ledger. Application deployment, public runtime version, and the AutoCount multi-file confirmation workflow remain separate gates.
+Repository migration authority: migrations reviewed through `224`; Production migration 223 and the authenticated conversion/read-back of PR/AUG26/023 → PO-000201 and PR/AUG26/025 → PO-000208 are recorded in the current closure section and repair ledger. Migration 224, application deployment, public runtime version, and the AutoCount multi-file confirmation workflow remain separate gates.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

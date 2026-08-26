@@ -6,7 +6,7 @@ const sql = fs.readFileSync("supabase/uat/verify_v9_schema.sql", "utf8");
 const runner = fs.readFileSync("scripts/v9/verify-local-schema.mjs", "utf8");
 
 test("v9 local schema gate validates migration, RLS, views and function safety", () => {
-  assert.match(sql, /latest_migration <> '223'/);
+  assert.match(sql, /latest_migration <> '224'/);
   assert.match(sql, /finish_legacy_purchase_request_to_order/);
   assert.match(sql, /not rowsecurity/);
   assert.match(sql, /SECURITY DEFINER functions without a fixed search_path/);
@@ -32,4 +32,8 @@ test("v9 schema verification can only execute against the resolved local Docker 
   assert.match(runner, /assertLocalContainer\(container\)/);
   assert.match(runner, /docker/);
   assert.doesNotMatch(runner, /--linked|SUPABASE_DB_PASSWORD|project-ref/);
+});
+
+test("v9 local schema gate verifies Purchasing can remove unposted PR work", () => {
+  assert.match(sql, /Purchasing unposted-PR cancellation permission is incomplete/);
 });

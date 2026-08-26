@@ -171,6 +171,7 @@ export const rolePermissionMatrix = {
     "pr.admin_review",
     "pr.purchasing_review",
     "pr.reject",
+    "pr.cancel",
     "po.create",
     "po.submit",
     "po.send",

@@ -1,5 +1,16 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-08-26 — v8.65.15 PO receiving modal layer correction
+
+| Surface / source | Role / viewport | Finding | Resolution | Evidence state |
+|---|---|---|---|---|
+| `/purchase-orders/:id` → Delivery Order gate | Purchasing / 390×844 | The dialog was mounted inside the fixed mobile action rail, so the backdrop did not own the whole application layer and the bottom action remained visually prominent | Shared `ModalShell` now portals to `document.body`; header, page content and mobile action rail sit below one complete backdrop | authenticated localhost dialog screenshot inspected; 390px viewport has no horizontal overflow |
+
+- Implemented: shared modal portal ownership and regression contract, version 8.65.15.
+- Locally verified: 995 contracts pass; authenticated localhost Purchasing interaction confirms the complete page and fixed action rail are dimmed while the dialog remains focused.
+- Awaiting authenticated UAT: deploy v8.65.15 and repeat the missing-DO action on a Production PO without an attachment.
+- Production verified: not claimed for this patch; the annotated Production screenshot shows the pre-fix layer behavior.
+
 ## 2026-08-26 — v8.65.14 Purchasing cancellation, Stock Balance mapping, and receiving simplification
 
 The new review was reconciled against the current branch rather than the older Production UI. The Stock Balance request was audited row by row through the authenticated Production API: 266 of 268 rows had a complete active mapping set; the remaining two defects were isolated to canonical records and are repaired by a fail-closed migration. PO and Goods Receiving changes were exercised against an authenticated local Purchasing fixture at 390×844, 820×1180, 1180×820, and 1440×900.

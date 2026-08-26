@@ -94,6 +94,8 @@ test("shared dialogs contain their content within the dynamic mobile viewport an
   assert.match(modal, /max-h-\[calc\(100dvh-2rem\)\]/);
   assert.match(modal, /overflow-y-auto/);
   assert.match(modal, /document\.body\.style\.overflow = "hidden"/);
+  assert.match(modal, /createPortal\(/);
+  assert.match(modal, /document\.body/);
   assert.match(modal, /event\.key === "Escape"/);
   assert.match(modal, /event\.key !== "Tab"/);
 });

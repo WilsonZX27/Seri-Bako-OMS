@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.65.15 (unreleased) — Modal layer ownership correction
+
+Shared dialogs now portal to the document body instead of inheriting the stacking context of the control that opened them. A Delivery Order dialog launched from the fixed mobile receiving rail therefore dims the complete page—including the header and bottom action bar—while keeping only the dialog active and visually clear. The underlying receiving action can no longer appear above the modal backdrop.
+
 ### v8.65.14 (unreleased) — Receiving workflow and branch-mapping closure
 
 Purchasing can cancel an unposted Purchase Request through the existing audited removal boundary; sent, converted, or otherwise posted work remains protected. A read-only authenticated Production audit checked all 268 Stock Balance rows and found exactly two mapping defects: `FROMPNG00006` lacked its CK @ PJS10 relationship, while `QUIKGROC00025` had two active relationships with no preferred supplier. Migration 224 repairs only those guarded canonical records and grants `pr.cancel` to active Purchasing roles.

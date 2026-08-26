@@ -1,5 +1,11 @@
 # Seri Bako OMS responsive design standard
 
+## v8.65.15 (unreleased) — Dialogs own the complete viewport
+
+- A modal is a document-level surface. Portal it to `document.body`; never let it inherit the stacking context of a fixed action rail, sticky header, clipped card, or scrolling panel.
+- The modal backdrop covers every inactive application surface, including fixed navigation and action chrome. Only the dialog remains undimmed and interactive.
+- Z-index tokens describe semantic layers; they do not compensate for a component mounted inside the wrong stacking context.
+
 ## v8.65.14 (unreleased) — Progressive receiving and semantic action ownership
 
 - Receiving is one task, not a spreadsheet. Each line leads with item identity, one compact ordered/received/pending strip, and only the quantities the operator can change.

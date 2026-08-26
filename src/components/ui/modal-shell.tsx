@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { ReactNode, RefObject } from "react";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
 export function ModalShell({
@@ -62,13 +63,14 @@ export function ModalShell({
     };
   }, [initialFocusRef, open, triggerRef]);
 
-  if (!open) return null;
-  return (
+  if (!open || typeof document === "undefined") return null;
+  return createPortal(
     <div className="fixed inset-0 z-[var(--sb-z-dialog)] flex items-center justify-center p-4">
       <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={onClose} aria-label="Close dialog" />
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className={cn("sb-popover-surface relative max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-[var(--sb-panel-radius)] p-4", className)}>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

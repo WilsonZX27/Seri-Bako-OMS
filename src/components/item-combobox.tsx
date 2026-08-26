@@ -16,7 +16,10 @@ function searchTokens(value: string) {
 
 export function itemMatchesSearch(item: ItemComboboxOption, query: string) {
   const tokens = searchTokens(query);
-  if (!tokens.length) return false;
+  // Opening a catalogue combobox should reveal useful choices immediately.
+  // Requiring a character first made the field look like a plain text input
+  // and hid valid supplier-scoped replacements from keyboard and touch users.
+  if (!tokens.length) return true;
   const brandName = item.brand_name ?? "";
   const searchable = searchTokens(`${item.item_code} ${item.item_name} ${brandName}`).join(" ");
   return tokens.every((token) => searchable.includes(token));
@@ -43,7 +46,7 @@ export function ItemCombobox({ items, value, selectedItemId = "", onValueChange,
   const anchorRef = useRef<HTMLDivElement>(null);
   const [listboxStyle, setListboxStyle] = useState<{ left: number; top: number; width: number; maxHeight: number } | null>(null);
   const matches = useMemo(() => items.filter((item) => itemMatchesSearch(item, value)).slice(0, 8), [items, value]);
-  const showSuggestions = open && !selectedItemId && Boolean(value.trim());
+  const showSuggestions = open && !selectedItemId;
 
   useEffect(() => {
     setActiveIndex((current) => matches.length ? Math.min(Math.max(current, 0), matches.length - 1) : -1);

@@ -5,7 +5,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { autosaveNewStockCount, createStockCount } from "@/server/actions/stock-counts";
-import { getBranchesForSelect } from "@/server/queries/common";
+import { getBranchesForSelect, getItemsForSelect } from "@/server/queries/common";
 import { getStockCountSeedLines } from "@/server/queries/stock-counts";
 import { logServerError } from "@/server/observability/logger";
 
@@ -14,9 +14,10 @@ export default async function NewStockCountPage({ searchParams }: { searchParams
   let branches: Awaited<ReturnType<typeof getBranchesForSelect>> = [];
   let selectedBranchId = filters.branch_id;
   let seedLines: Awaited<ReturnType<typeof getStockCountSeedLines>> = [];
+  let items: Awaited<ReturnType<typeof getItemsForSelect>> = [];
   let sourceUnavailable = false;
   try {
-    branches = await getBranchesForSelect();
+    [branches, items] = await Promise.all([getBranchesForSelect(), getItemsForSelect()]);
     selectedBranchId = selectedBranchId ?? branches[0]?.id;
     if (!selectedBranchId) throw new Error("No active branch is available for this Stock Count.");
     seedLines = await getStockCountSeedLines(selectedBranchId);
@@ -32,8 +33,8 @@ export default async function NewStockCountPage({ searchParams }: { searchParams
         title="Stock Count"
         status="draft"
         branch={branches.find((branch) => branch.id === selectedBranchId)?.branch_name}
-        mobileStatusOnly
         hideWorkflow
+        hideMobileHeader
         compactMobileSpacing
         sidePanel={<div className="space-y-4">
           {sourceUnavailable ? null : <DocumentSideSection title="Primary action">
@@ -43,7 +44,7 @@ export default async function NewStockCountPage({ searchParams }: { searchParams
         </div>}
       >
         <ActionErrorNotice message={filters.error} />
-        {sourceUnavailable ? <Card role="status"><CardContent className="p-5"><EmptyState title="Starting balances unavailable" description="Verified branch balances could not be loaded. Retry before entering a count; no zero values have been substituted." action={{ href: filters.branch_id ? `/stock-counts/new?branch_id=${encodeURIComponent(filters.branch_id)}` : "/stock-counts/new", label: "Retry" }} /></CardContent></Card> : <StockCountForm formId={formId} branches={branches} selectedBranchId={selectedBranchId} seedLines={seedLines} action={createStockCount} autosaveAction={autosaveNewStockCount} />}
+        {sourceUnavailable ? <Card role="status"><CardContent className="p-5"><EmptyState title="Starting balances unavailable" description="Verified branch balances could not be loaded. Retry before entering a count; no zero values have been substituted." action={{ href: filters.branch_id ? `/stock-counts/new?branch_id=${encodeURIComponent(filters.branch_id)}` : "/stock-counts/new", label: "Retry" }} /></CardContent></Card> : <StockCountForm formId={formId} branches={branches} selectedBranchId={selectedBranchId} seedLines={seedLines} action={createStockCount} autosaveAction={autosaveNewStockCount} itemCatalog={items} allowAddItem />}
       </DocumentWorkspace>
   );
 }

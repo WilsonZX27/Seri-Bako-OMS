@@ -12,6 +12,8 @@ export function StatusBadge({ status, className }: { status: string; className?:
     ready_to_convert: "border-[#CDE8E3] bg-[#E5F5F2] text-[#0B6B61]",
     awaiting_grn: "border-[#E7D8CB] bg-[#F5ECE5] text-[#71472C]",
     sent_to_supplier: "border-[#E7D8CB] bg-[#F5ECE5] text-[#71472C]",
+    in_progress: "border-[#DDE4E0] bg-[#F1F4F2] text-[#52645B]",
+    ready_to_post: "border-[#BFDCD3] bg-[#E1F3ED] text-[#075942]",
   };
   const stageClassName = workflowTone[normalized];
   const variant = stageClassName

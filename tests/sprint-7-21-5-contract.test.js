@@ -10,7 +10,7 @@ test("mistaken attachments can be removed before finalization without weakening 
   const server = read("src/server/actions/documents.ts");
 
   assert.match(panel, /\["draft", "pending_approval"\]\.includes\(status\)/);
-  assert.match(panel, /Attachments are locked after approval or posting/);
+  assert.doesNotMatch(panel, /Attachments are locked after approval or posting/);
   assert.match(removeAction, /Remove attachment\?/);
   assert.match(removeAction, /Keep file/);
   assert.match(server, /Attachments can only be removed while the document is draft or pending approval/);

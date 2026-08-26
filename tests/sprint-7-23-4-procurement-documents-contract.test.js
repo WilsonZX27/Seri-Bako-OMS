@@ -53,7 +53,8 @@ test("PO preparation and shared attachments expose stage-specific evidence", () 
   assert.match(po, /AutoCount PO Number/);
   assert.match(po, /title="Supporting Attachments" uploadLabel="Upload"/);
   assert.match(attachment, /presentation.*inline/s);
-  assert.match(attachment, /locked after approval or posting/);
+  assert.doesNotMatch(attachment, /locked after approval or posting/);
+  assert.match(attachment, /canRemoveAttachments = resolvedCanManage && \["draft", "pending_approval"\]/);
 });
 
 test("release identifies Sprint 7.23.5", () => {

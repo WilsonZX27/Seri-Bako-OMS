@@ -63,11 +63,13 @@ test("PR and Dashboard mobile rows share a compact three-line operational compos
 test("PR line picker is supplier-scoped, item-code ordered, and searchable", () => {
   const detail = read("src/app/(app)/purchase-requests/[id]/page.tsx");
   const dialog = read("src/components/add-purchase-request-line-dialog.tsx");
+  const combobox = read("src/components/item-combobox.tsx");
   assert.match(detail, /selectedSupplierIds/);
   assert.match(detail, /localeCompare\(right\.item_code/);
-  assert.match(dialog, /<datalist/);
+  assert.match(dialog, /<ItemCombobox/);
   assert.match(dialog, /Search item code or name/);
-  assert.match(dialog, /supplied by the selected supplier, ordered by item code/);
+  assert.match(dialog, /name="supplier_id" value=\{suppliers\[0\]\?\.id/);
+  assert.match(combobox, /if \(!tokens\.length\) return true/);
 });
 
 test("Outlet Daily uses a compact two-line Submitted By header", () => {

@@ -171,6 +171,10 @@ export async function createStockCount(formData: FormData) {
   await requirePermissionOrRedirect("stock_count.create", "/stock-counts/new");
   try {
     const createdId = await createStockCountRecord(formData);
+    const afterCreateAction = z.enum(["add-item", "replace", "remove"]).safeParse(formData.get("after_create_action"));
+    const afterCreateItemId = z.string().uuid().safeParse(formData.get("after_create_item_id"));
+    if (afterCreateAction.success && afterCreateAction.data === "add-item") redirect(`/stock-counts/${createdId}?open=add-item`);
+    if (afterCreateAction.success && afterCreateItemId.success) redirect(`/stock-counts/${createdId}?open=${afterCreateAction.data}&item_id=${afterCreateItemId.data}`);
     redirect(`/stock-counts/${createdId}`);
   } catch (error) {
     rethrowRedirect(error);

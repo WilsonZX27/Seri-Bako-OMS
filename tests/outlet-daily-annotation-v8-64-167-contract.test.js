@@ -36,7 +36,8 @@ test("Outlet Daily owns its responsive identity without duplicate location", () 
 
 test("Today rail has explicit operational hierarchy", () => {
   const page = read("src/app/(app)/outlet-daily-records/page.tsx");
-  for (const label of ["Records today", "Dispatch", "Receiving", "Posted", "Incomplete"]) assert.match(page, new RegExp(label));
+  for (const label of ["Records", "Qty sent", "Dispatch", "Total received", "Receiving", "Posted", "In progress"]) assert.match(page, new RegExp(label));
+  assert.match(page, /<ConsoleSection title="Today"><dl/);
   assert.doesNotMatch(page, /ConsoleSection title="Completion"/);
 });
 

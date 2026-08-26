@@ -75,7 +75,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
         description="Create, approve, and post recipe-based production without changing stock until posting."
       />
       <WorkspaceGrid
-        tabletCanvas="contained"
+        tabletCanvas="wide"
         hideMobileConsole={!canCreate}
         tabletRailMode="split"
         className="sb-portrait-tablet-rail"

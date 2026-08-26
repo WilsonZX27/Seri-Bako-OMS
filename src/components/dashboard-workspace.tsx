@@ -37,7 +37,7 @@ function Metric({
   return (
     <Link prefetch={false}
       href={href}
-      className={`${variant === "tile" ? density === "compact" ? "group flex min-h-[5.25rem] min-w-0 flex-col items-start justify-between gap-1.5 rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-2 transition-colors duration-200 hover:bg-[var(--sb-surface-muted)] sm:min-h-[6.25rem] sm:p-3" : "group flex min-h-[5.75rem] min-w-0 flex-col items-start justify-between gap-2 rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-2 transition-colors duration-200 hover:bg-[var(--sb-surface-muted)] sm:min-h-[7rem] sm:p-3" : "group flex min-h-10 items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] px-2 py-2.5 transition-colors duration-300 hover:bg-[var(--sb-surface-muted)] last:border-b-0"} ${className ?? ""}`}
+      className={`${variant === "tile" ? density === "compact" ? "group flex min-h-[4.25rem] min-w-0 flex-col items-start justify-between gap-1.5 px-2 py-2.5 transition-colors duration-200 hover:bg-[var(--sb-surface-muted)] sm:min-h-[4.75rem] sm:px-3" : "group flex min-h-[5.25rem] min-w-0 flex-col items-start justify-between gap-2 px-3 py-3 transition-colors duration-200 hover:bg-[var(--sb-surface-muted)]" : "group flex min-h-10 items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] px-2 py-2.5 transition-colors duration-300 hover:bg-[var(--sb-surface-muted)] last:border-b-0"} ${className ?? ""}`}
     >
       <span className={variant === "tile" ? `flex min-w-0 flex-col items-start ${density === "compact" ? "gap-1.5 text-[10px] leading-3.5 sm:text-xs sm:leading-4" : "gap-2 text-xs"} font-medium text-[var(--sb-text-muted)]` : "flex min-w-0 items-center gap-2 text-xs font-medium text-[var(--sb-text-muted)]"}>
         <span
@@ -74,7 +74,7 @@ function Panel({
 }) {
   return (
     <section data-dashboard-panel={dataAttribute ?? "true"} className="sb-work-surface overflow-hidden">
-      <div className="flex min-h-12 items-center justify-between gap-2 border-b border-[var(--sb-border-soft)] px-4">
+      <div className="flex min-h-10 items-center justify-between gap-2 border-b border-[var(--sb-border-soft)] px-3">
         <h2 className="text-sm font-semibold text-[var(--sb-text)]">{title}</h2>
         {action ? (
           <Button asChild variant="ghost" size="sm" className="h-8 px-2 text-[11px]">
@@ -82,7 +82,7 @@ function Panel({
           </Button>
         ) : null}
       </div>
-      <div className="px-2 py-1.5">{children ?? <p className="px-1 py-2 text-xs text-muted-foreground">{empty}</p>}</div>
+      <div>{children ?? <p className="px-3 py-3 text-xs text-muted-foreground">{empty}</p>}</div>
     </section>
   );
 }
@@ -263,13 +263,13 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
         ) : (
         <div data-dashboard-layout className="grid gap-4 lg:grid-cols-12 lg:items-start">
           <div className="space-y-4 lg:col-span-6">
-        <section data-dashboard-command className="overflow-hidden border-b border-[var(--sb-border-soft)] bg-transparent">
-          <div className="flex items-start justify-between gap-4 p-4 sm:p-5" data-dashboard-attention-summary>
+        <section data-dashboard-command className="sb-work-surface overflow-hidden">
+          <div className="flex items-start justify-between gap-4 px-3 py-3" data-dashboard-attention-summary>
             <div className="min-w-0">
               <p className="text-xs font-medium text-muted-foreground">Today&apos;s work</p>
               <h2
                 data-dashboard-attention-value
-                className="mt-1 max-w-xl text-lg font-semibold leading-6 tracking-[-0.02em] sm:text-xl sm:leading-7"
+                className="mt-0.5 max-w-xl text-base font-semibold leading-5 tracking-[-0.015em] sm:text-lg sm:leading-6"
                 aria-label={summary.attentionSummary.state === "unavailable" ? `Work summary unavailable because ${unavailableAttentionLabels.join(", ")} data could not be loaded` : `${todayWorkCount} actions waiting`}
               >
                 {summary.attentionSummary.state === "unavailable" ? "Some work queues are unavailable" : todayWorkCount > 0 ? <><span className="tabular-nums">{todayWorkCount}</span> actions waiting</> : "No work waiting"}
@@ -319,7 +319,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
         {!isOutlet ? (
           <div className="order-2 space-y-4" data-dashboard-activity-group>
             <Panel title={isPurchasing ? "Purchasing pipeline" : isKitchen ? "Production and receiving" : "Operational pipeline"}>
-              <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+              <div className="grid grid-cols-3 divide-x divide-[var(--sb-border-soft)]">
                 <Metric
                   href="/purchase-orders"
                   label={isPurchasing ? "PO preparation / sending" : "Recent purchase orders"}
@@ -361,7 +361,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
             title={isKitchen ? "Raw-material exceptions" : "Exceptions requiring follow-up"}
             empty="No urgent operational exceptions are visible in your scope."
           >
-            <div className="grid grid-cols-3 gap-1.5 sm:gap-2" data-dashboard-exceptions>
+            <div className="grid grid-cols-3 divide-x divide-[var(--sb-border-soft)]" data-dashboard-exceptions>
               <Metric href="/low-stock" label="Low stock" value={summary.lowStockCount} icon={AlertTriangle} alert={(summary.lowStockCount ?? 0) > 0} alertTone="critical" unavailable={summary.inventoryUnavailable || summary.lowStockCount === null} variant="tile" density="compact" />
               {showOperations && summary.operationsControl?.outlet ? (
                 <Metric
@@ -405,12 +405,12 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
           >
             {summary.payablesAttention ? (
               <>
-                <div className="grid grid-cols-3 gap-1.5 sm:gap-2" data-dashboard-payables>
+                <div className="grid grid-cols-3 divide-x divide-[var(--sb-border-soft)]" data-dashboard-payables>
                   <Metric href="/supplier-invoices/aging?overdue=1" label="Overdue AP" value={formatCurrency(summary.payablesAttention.overdue_amount + summary.payablesAttention.critical_amount)} icon={ReceiptText} alert={summary.payablesAttention.overdue_count > 0} variant="tile" density="compact" />
                   <Metric href="/supplier-invoices/aging?bucket=missing_due_date" label="Missing due date" value={formatNumber(summary.payablesAttention.missing_due_date_count)} icon={AlertTriangle} alert={summary.payablesAttention.missing_due_date_count > 0} variant="tile" density="compact" />
                   <Metric href="/supplier-invoices/cash-flow" label="Due soon" value={formatCurrency(summary.payablesAttention.due_today_amount + summary.payablesAttention.due_next_7_amount)} icon={Clock3} variant="tile" density="compact" />
                 </div>
-                <div className="mt-3 grid grid-cols-2 gap-2 sm:flex">
+                <div className="grid grid-cols-2 gap-2 border-t border-[var(--sb-border-soft)] px-3 py-2.5 sm:flex">
                   <Button asChild size="sm" className="!text-xs"><Link prefetch={false} href="/supplier-invoices"><ReceiptText className="h-4 w-4" />Review Invoice</Link></Button><Button asChild variant="outline" size="sm" className="!text-xs"><Link prefetch={false} href="/supplier-invoices/cash-flow"><ArrowUpRight className="h-4 w-4" />View Cash Flow</Link></Button>
                 </div>
               </>

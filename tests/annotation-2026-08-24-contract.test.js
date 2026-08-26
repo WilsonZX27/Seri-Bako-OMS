@@ -4,10 +4,10 @@ import test from "node:test";
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("portrait tablet uses the shared contained canvas and two-row query contract", () => {
+test("portrait tablet uses the shared wide canvas and two-row query contract", () => {
   const production = read("src/app/(app)/production/jobs/page.tsx");
   const css = read("src/app/design-system-v2.css");
-  assert.match(production, /tabletCanvas="contained"/);
+  assert.match(production, /tabletCanvas="wide"/);
   assert.match(css, /grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);
   assert.match(css, /grid-column: 1 \/ -1 !important/);
   assert.match(css, /white-space: nowrap/);

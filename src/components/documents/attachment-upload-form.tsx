@@ -49,7 +49,7 @@ export function AttachmentUploadForm({
           <SubmitButton type="submit" pendingLabel="Uploading..." disabled={Boolean(fileError)} className="shrink-0 justify-center">{submitLabel}</SubmitButton>
         </div>
       </Field>
-      <p className="break-words text-[11px] text-muted-foreground">PDF, image, text, CSV, DOCX, or XLSX up to 10 MB.</p>
+      <p className="break-words text-[10px] text-[#adbdb5]">PDF, image, text, CSV, DOCX, or XLSX up to 10 MB.</p>
       {fileError || state.error ? <p role="alert" className="text-xs text-destructive">{fileError ?? state.error}</p> : null}
       {state.success ? <p role="status" className="text-xs text-success">{state.success}</p> : null}
     </form>

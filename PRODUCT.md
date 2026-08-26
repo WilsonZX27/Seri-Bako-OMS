@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.65.7 (unreleased) — Annotation workflow and density closure
+
+The 26 August browser review is implemented at shared product authorities rather than as screenshot-only overrides. Dashboard work, exception, pipeline and payable signals now use compact grouped surfaces instead of oversized nested cards; Production Jobs returns to the standard wide list canvas; Outlet Daily removes duplicate status copy and clarifies Today’s hierarchy. PR review now opens the canonical supplier-item search immediately and permits the active Manager or Purchasing reviewer to update or replace item, quantity and UOM, or add a line with a required reason. A new Stock Count exposes Replace, Remove and Retire from each row plus a final dashed Add item tile; line-scope actions persist the draft first so audit and fixed-scope rules remain intact. Verified-empty Inventory insight cards are omitted while unavailable sources still fail visibly. Migration 219 is required for Manager review add-line authority. Source and local checks are implementation evidence only; authenticated Production-like UAT is awaiting the source database password and Production is not verified.
+
 ### v8.65.6 (unreleased) — V9 local system audit closure
 
 The v9 release gate now exercises 99 routes across Owner, Finance, Manager, Purchasing, Kitchen, and Outlet at 390×844, 820×1180, 1180×820, and 1440×900. It fails closed on route authority, runtime/page errors, horizontal overflow, inaccessible icon actions, undersized touch controls, verbose or oversized headings, visible native scrollbars, missing scroll-edge affordance, and reduced-motion regressions. The owned Playwright server now shuts down through an authenticated same-origin endpoint, so a completed browser run exits cleanly instead of being confused with a product failure. Migrations 216–218 reconcile the canonical audit-log schema and the intended Finance/Manager read and authoring boundaries. Local authenticated UAT passed 52/52 shards; Production-like authenticated UAT is still awaiting the source database password, and nothing in this release is claimed Production verified.
@@ -469,7 +473,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `218`; linked Production application and cleanup evidence through migration 215 is recorded in the current closure sections and repair ledger. Migrations 216–218 are locally applied and schema-verified only. Linked application, public runtime availability, and authenticated Production-like workflow evidence remain separate gates.
+Repository migration authority: migrations reviewed through `219`; linked Production application and cleanup evidence through migration 215 is recorded in the current closure sections and repair ledger. Migrations 216–218 are locally applied and schema-verified only; migration 219 is the unreleased Manager/Purchasing PR review-line authority change. Linked application, public runtime availability, and authenticated Production-like workflow evidence remain separate gates.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

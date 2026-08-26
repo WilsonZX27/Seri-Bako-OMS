@@ -44,9 +44,9 @@ export function AccountMenu({ displayName, roleLabel, initials }: { displayName:
           <p className="truncate font-semibold">{displayName}</p>
           <p className="truncate text-[11px] text-muted-foreground">{roleLabel}</p>
         </div>
-        <Link ref={firstItemRef} role="menuitem" href="/account" onClick={() => setOpen(false)} className="flex min-h-12 items-center px-2 py-2 hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)] md:min-h-8">Update Account</Link>
+        <Link ref={firstItemRef} role="menuitem" href="/account" onClick={() => setOpen(false)} className="flex min-h-12 items-center px-2 py-2 text-xs hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)] md:min-h-8">Update Account</Link>
         <form action={signOut}>
-          <SubmitButton role="menuitem" type="submit" variant="ghost" pendingLabel="Signing out..." className="flex min-h-12 w-full items-center justify-start rounded-none px-2 py-2 text-left text-[11px] text-[var(--sb-danger)] hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)] md:min-h-8">Logout</SubmitButton>
+          <SubmitButton role="menuitem" type="submit" variant="ghost" pendingLabel="Signing out..." className="flex min-h-12 w-full items-center justify-start rounded-none px-2 py-2 text-left text-xs text-[var(--sb-danger)] hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)] md:min-h-8">Logout</SubmitButton>
         </form>
       </div> : null}
     </div>

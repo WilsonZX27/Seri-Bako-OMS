@@ -1,5 +1,14 @@
 # Seri Bako OMS responsive design standard
 
+## v8.65.7 (unreleased) — Compact signal and correction grammar
+
+- Dashboard panels are one grouped surface with flat, divided signal cells. Dark hero blocks, gradients and individually boxed metrics are not the operational hierarchy.
+- List workspaces use the shared wide canvas and compact responsive count grammar. On phones, the result number and “records” label form two readable lines; document numbers are 14px titles.
+- Workflow status appears once. `In progress` is neutral; `Ready to post` uses a distinct success-ready tone; supporting copy must add meaning rather than repeat the badge.
+- Review correction is progressive: selecting Replace opens supplier-scoped candidates immediately, then reveals Quantity and UOM. Add line uses the PR’s canonical supplier and never asks the reviewer to choose a conflicting supplier.
+- New Stock Count row actions persist a draft before audited line-scope mutation. The final dashed Add item tile is the canonical add affordance, while native scrollbars remain hidden by product decision.
+- Verified-empty secondary insight cards may disappear; an unavailable source remains explicit. Compact helper text may use a local 10px/#adbdb5 treatment when it is metadata, not a global muted-text token change.
+
 ## v8.65.6 (unreleased) — V9 compact system authority
 
 The four release viewports are fixed at 390×844, 820×1180, 1180×820, and 1440×900. Native scrollbars remain hidden by product decision; genuinely scrollable regions instead expose a restrained edge affordance. Shared fixed typography, medium-weight identity headings, compact copy, 36px minimum touch controls, accessible names for icon-only actions, deliberate table overflow, and reduced-motion behavior are automated release authority rather than route-specific exceptions. The 99-route, six-role local matrix passed 52/52 shards and produced 93 Owner screenshots per viewport. These artifacts are local design evidence, not deployment or Production verification.

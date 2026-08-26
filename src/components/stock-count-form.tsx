@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
-import { AlertTriangle, Archive, CalendarDays, ChevronDown, ListFilter, MapPin, Minus, Plus, Search } from "lucide-react";
+import { AlertTriangle, Archive, CalendarDays, ChevronDown, ListFilter, ListPlus, MapPin, Minus, Plus, RefreshCw, Search, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModalShell } from "@/components/ui/modal-shell";
 import { Field } from "@/components/ui/field";
@@ -93,6 +93,8 @@ export function StockCountForm({
   lineRevisionAction,
   itemCatalog = [],
   addItemControl,
+  initialLineAction,
+  allowAddItem = false,
 }: {
   branches: BranchOption[];
   selectedBranchId?: string;
@@ -107,6 +109,8 @@ export function StockCountForm({
   lineRevisionAction?: (formData: FormData) => Promise<void>;
   itemCatalog?: Array<{ id: string; item_code: string; item_name: string; base_unit: string }>;
   addItemControl?: ReactNode;
+  initialLineAction?: { mode: "replace" | "remove"; itemId: string } | null;
+  allowAddItem?: boolean;
 }) {
   const router = useRouter();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
@@ -134,6 +138,8 @@ export function StockCountForm({
   const [retirementItemId, setRetirementItemId] = useState<string | null>(null);
   const [retirementReason, setRetirementReason] = useState<RetirementReason>("used_up");
   const [retirementNote, setRetirementNote] = useState("");
+  const [afterCreateAction, setAfterCreateAction] = useState<"add-item" | "replace" | "remove" | "">("");
+  const [afterCreateItemId, setAfterCreateItemId] = useState("");
   const retirementTriggerRef = useRef<HTMLButtonElement>(null);
   const retirementCancelRef = useRef<HTMLButtonElement>(null);
   // Keep the settings content present on the first render so desktop/tablet
@@ -329,6 +335,8 @@ export function StockCountForm({
     if (!firstMissing) return;
 
     event.preventDefault();
+    setAfterCreateAction("");
+    setAfterCreateItemId("");
     setValidationAttempted(true);
     setSearch("");
     setShowAdjustedOnly(false);
@@ -356,6 +364,14 @@ export function StockCountForm({
   function cancelRetirement(itemId: string) {
     markDirty();
     setLines((current) => current.map((line) => line.item_id === itemId ? { ...line, retireAfterCount: false, retirementReason: "", retirementNote: "" } : line));
+  }
+
+  function continueInSavedDraft(actionName: "add-item" | "replace" | "remove", itemId = "") {
+    setAfterCreateAction(actionName);
+    setAfterCreateItemId(itemId);
+    // Line-scope changes require a persisted Stock Count identity for audit.
+    // Save the current form once, then open the requested action on the draft.
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => formRef.current?.requestSubmit()));
   }
 
   function normalizePhysicalQty(itemId: string) {
@@ -413,6 +429,8 @@ export function StockCountForm({
       <div>
         <form ref={formRef} id={formId} action={action} noValidate onSubmit={handleSubmit} className={showSubmit ? "space-y-3 pb-28 xl:pb-0" : "space-y-3"}>
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
+          <input type="hidden" name="after_create_action" value={afterCreateAction} />
+          <input type="hidden" name="after_create_item_id" value={afterCreateItemId} />
           <input type="hidden" name="tolerance_percent" value="0" />
           <section data-stock-count-setup className="erp-surface overflow-hidden rounded-[var(--sb-panel-radius)] border bg-[var(--sb-surface)] p-3 md:p-4">
             <input type="hidden" name="branch_id" value={resolvedBranchId} />
@@ -532,7 +550,10 @@ export function StockCountForm({
                       <div className="flex w-7 shrink-0 flex-col items-center gap-0.5">
                         <span className="mt-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--sb-surface-muted)] px-1 text-[10px] font-semibold tabular-nums text-muted-foreground" aria-label={`Item ${displayIndex}`}>{displayIndex}</span>
                         <TableActionMenuPortal label={`More options for ${line.item_name}`} className="[&_button]:!h-7 [&_button]:!w-7">
-                          {lineRevisionAction && line.line_id ? <StockCountLineRecovery action={lineRevisionAction} line={{ id: line.line_id, item_id: line.item_id, physical_qty: toNumber(line.physicalQty), uom: line.uom }} items={itemCatalog} reviewMode={false} menuTrigger /> : null}
+                          {lineRevisionAction && line.line_id ? <StockCountLineRecovery action={lineRevisionAction} line={{ id: line.line_id, item_id: line.item_id, physical_qty: toNumber(line.physicalQty), uom: line.uom }} items={itemCatalog} reviewMode={false} menuTrigger initialOpenMode={initialLineAction?.itemId === line.item_id ? initialLineAction.mode : undefined} /> : <>
+                            <button type="button" role="menuitem" className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-left text-xs font-medium hover:bg-[var(--sb-surface-muted)]" onClick={() => continueInSavedDraft("replace", line.item_id)}><RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />Replace item</button>
+                            <button type="button" role="menuitem" className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-left text-xs font-medium text-[var(--sb-danger)] hover:bg-[var(--sb-danger-bg)]" onClick={() => continueInSavedDraft("remove", line.item_id)}><Trash2 className="h-3.5 w-3.5" aria-hidden="true" />Remove from this count</button>
+                          </>}
                           <button ref={retirementTriggerRef} type="button" role="menuitem" className="flex w-full items-center rounded-sm px-3 py-2 text-left text-xs font-medium hover:bg-[var(--sb-surface-muted)]" onClick={() => line.retireAfterCount ? cancelRetirement(line.item_id) : openRetirement(line)}>
                             {line.retireAfterCount ? "Keep active" : "Retire after this count"}
                           </button>
@@ -586,7 +607,7 @@ export function StockCountForm({
                   </div>
                 );
               })}
-              {addItemControl ? <div className="flex min-h-28 items-center justify-center rounded-[var(--sb-control-radius)] border border-dashed border-[var(--sb-green-700)] bg-[var(--sb-green-50)] p-3 sm:min-h-20 sm:rounded-none sm:border-x-0 sm:border-t-0 [&_button]:h-full [&_button]:w-full [&_button]:justify-center [&_button]:border-0 [&_button]:bg-transparent [&_button]:shadow-none">{addItemControl}</div> : null}
+              {addItemControl || (!draftId && allowAddItem) ? <div className="flex min-h-28 items-center justify-center rounded-[var(--sb-control-radius)] border border-dashed border-[var(--sb-green-700)] bg-[var(--sb-green-50)] p-3 sm:min-h-20 sm:rounded-none sm:border-x-0 sm:border-t-0 [&_button]:h-full [&_button]:w-full [&_button]:justify-center [&_button]:border-0 [&_button]:bg-transparent [&_button]:shadow-none">{addItemControl ?? <Button type="button" variant="outline" disabled={!itemCatalog.length} title={itemCatalog.length ? "Add an item to this count" : "No active catalogue items are available"} onClick={() => continueInSavedDraft("add-item")}><ListPlus className="h-4 w-4" aria-hidden="true" />Add item</Button>}</div> : null}
               {!lines.length ? (
                 <div className="flex items-center gap-2 px-3 py-2 text-xs text-warning">
                   <AlertTriangle className="h-4 w-4" />

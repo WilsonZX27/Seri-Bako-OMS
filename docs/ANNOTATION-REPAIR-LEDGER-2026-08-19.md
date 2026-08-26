@@ -1,5 +1,38 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-08-26 — v8.65.7 browser annotation closure
+
+Worktree reconciliation found no missing deployed commit hidden in another checkout. The reviewed Vercel branch pointed to `origin/codex/uiux-round2` at `ebac123f`; this isolated worktree inherited that exact commit. The primary checkout was one remote commit behind and already contained unrelated user changes, so it was deliberately left untouched. The visible gaps were incomplete shared implementations: the new Stock Count page had never received the item catalogue/action controls, PR Replace required typed text before opening and lost line identity when modes changed, and late CSS overrode the intended mobile count layout and Dashboard hierarchy.
+
+| # | URL | Role / viewport | Screenshot | Expected behavior | Evidence state |
+|---:|---|---|---|---|---|
+| 1 | `/dashboard` | Owner / 1440×900 | browser comment 1 | One compact operational hierarchy; no oversized nested dashboard cards | implemented; focused contract verified |
+| 2 | `/production/jobs` | operational / 1440×900 | browser comment 2 | Standard 76rem wide list canvas, aligned with peer register pages | implemented; focused contract verified |
+| 3 | `/outlet-daily-records` | operational / 1440×900 | browser comment 3 | Today summary reads as a compact definition list with clear value hierarchy | implemented; focused contract verified |
+| 4 | `/outlet-daily-records` | operational / 1440×900 | browser comment 4 | One workflow badge per row; Ready to post and In progress are distinct | implemented; focused contract verified |
+| 5 | `/purchase-requests/:id` | active reviewer / 1440×900 | browser comment 5 | Replacement item search opens supplier-scoped candidates on focus/click | implemented; focused contract verified |
+| 6 | `/purchase-requests/:id` | active reviewer / 1440×900 | browser comment 6 | Replace permits item, quantity and UOM correction | implemented; focused contract verified |
+| 7 | `/purchase-requests/:id` | active reviewer / 1440×900 | browser comment 7 | Update preserves item identity and permits quantity, UOM and cost correction | implemented; focused contract verified |
+| 8 | `/purchase-requests/:id` | Manager or Purchasing reviewer / 1440×900 | browser comment 8 | Add line is available at the active review step, supplier-scoped and audited | implemented; migration 219; authenticated mutation UAT pending |
+| 9 | `/items?page=5` | operational / 1440×900 | browser comment 9 | Desktop pagination omits the redundant page-jump duplicate | implemented; focused contract verified |
+| 10 | `/stock-counts/:id` | counter / 1440×900 | browser comment 10 | Attachment metadata is local 10px text with #adbdb5 color | implemented; focused contract verified |
+| 11 | `/stock-counts/:id` | counter / 1440×900 | browser comment 11 | Repetitive locked-attachment explanation is removed | implemented; focused contract verified |
+| 12 | `/purchase-requests/new` | requester / 1440×900 | browser comment 12 | Update Account and Logout use the same compact menu type scale | implemented; focused contract verified |
+| 13 | `/purchase-requests/new` | requester / 1440×900 | browser comment 13 | Supplier-UOM exception copy is short, direct and actionable | implemented; focused contract verified |
+| 14 | `/inventory` | operational / 1440×900 | browser comment 14 | Verified-empty Low Stock and Consumption cards do not occupy space; unavailable remains visible | implemented; focused contract verified |
+| 15 | `/dashboard` | Owner / 1440×900 | browser comment 15 | Pipeline, exception and payable signals use flat divided cells, not card stacks | implemented; focused contract verified |
+| 16 | `/dashboard` | Owner / 1440×900 | browser comment 16 | Today’s work is a restrained light work summary, not a dark oversized hero | implemented; focused contract verified |
+| 17 | `/purchase-requests` | operational / 390×844 | browser comment 17 | PR number is a 14px mobile row title | implemented; focused contract verified |
+| 18 | `/purchase-requests` | operational / 390×844 | browser comment 18 | Result count renders number and “records” as two centered lines | implemented; focused contract verified |
+| 19 | `/stock-counts/new` | counter / 390×844 | browser comment 19 | Redundant mobile draft-status header is removed | implemented; focused contract verified |
+| 20 | `/stock-counts/new` | counter / 390×844 | browser comment 20 | Ellipsis menu exposes Replace, Remove from this count and Retire after this count | implemented; authenticated interaction UAT pending |
+| 21 | `/stock-counts/new` | counter / 390×844 | browser comment 21 | Final dashed Add item tile persists the draft, then opens audited item addition | implemented; authenticated interaction UAT pending |
+
+- Implemented: shared source authorities above, application version `8.65.7`, and migration 219 without weakening supplier, tenant, idempotency or audit guards.
+- Locally verified: `982/982` contracts, strict typecheck, ESLint, local-env Production build, migration 219 dry-run and apply, and `V9_SCHEMA_OK` at migration 219 (`85` RLS tables, `6` views, `144` fixed-search-path SECURITY DEFINER functions). Authenticated Owner visual/craft/runtime UAT passed `4/4` for the eight affected static routes at 390×844, 820×1180, 1180×820 and 1440×900; the corrected Stock Count mobile surface was then rebuilt, rerun and manually inspected with the Draft strip absent and final dashed Add item tile visible.
+- Awaiting authenticated UAT: PR and Stock Count mutation flows plus the Production-like clone harness, which still requires the source database password.
+- Production verified: no. Preview screenshots, local migrations, builds and source changes are not Production proof.
+
 ## 2026-08-26 — v9 full-system local audit closure
 
 The inherited v9 implementation was completed without reopening the accepted product decisions. The local production-mode runner passed all 52 shards across 99 routes, six authenticated roles, and four fixed viewports. It checks route authority, runtime/page errors, horizontal overflow, icon accessible names, touch targets, heading/copy density, reduced motion, hidden native scrollbars, and scroll-edge affordance. The owned Playwright server also exits cleanly after authenticated teardown. Screenshot references below are ignored local artifacts; each viewport folder-equivalent contains 93 Owner route captures.

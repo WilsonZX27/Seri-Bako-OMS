@@ -123,7 +123,6 @@ export function PaginationControls({
             <Link href={buildHref(searchParams, { page: String(page + 1) })}>Next</Link>
           </Button>
         )}
-        {totalPages > 7 ? pageJump : null}
       </nav>
     </div>
   );

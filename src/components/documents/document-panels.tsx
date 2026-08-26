@@ -134,11 +134,6 @@ export async function AttachmentPanel({
           ))}
           {!attachments.length ? <EmptyAttachmentState /> : null}
         </div>
-        {resolvedCanManage && attachments.length > 0 && !canRemoveAttachments ? (
-          <p className="rounded-md border bg-secondary/40 p-2 text-xs text-muted-foreground">
-            Attachments are locked after approval or posting to preserve the audit trail. Add the correct file as a new attachment instead.
-          </p>
-        ) : null}
       </div>
   );
   if (presentation === "inline") {

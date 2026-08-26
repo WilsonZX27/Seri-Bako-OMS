@@ -36,6 +36,7 @@ export function DocumentWorkspace({
   hideMobileWorkflow = false,
   hideWorkflow = false,
   compactMobileSpacing = false,
+  hideMobileHeader = false,
   tabletRailMode = "split",
 }: {
   breadcrumbs: Crumb[];
@@ -58,6 +59,7 @@ export function DocumentWorkspace({
   hideMobileWorkflow?: boolean;
   hideWorkflow?: boolean;
   compactMobileSpacing?: boolean;
+  hideMobileHeader?: boolean;
   tabletRailMode?: "context" | "split";
 }) {
   const isNewDocument = documentNo.toLowerCase().startsWith("new ");
@@ -70,7 +72,7 @@ export function DocumentWorkspace({
     <>
       <span data-document-breadcrumb={documentNo} data-document-route-context={breadcrumbs.map((crumb) => crumb.label).join("/")} className="sr-only" aria-hidden="true" />
       <span data-document-context-sentinel className="block h-px" aria-hidden="true" />
-      <header data-document-workspace-header className={cn("sticky top-0 z-20 min-w-0 border-b border-[var(--border-muted)] bg-[var(--workspace-bg)] px-3 transition-[padding] duration-200 motion-reduce:transition-none sm:px-4", isNewDocument ? "py-1.5 sm:py-2" : "py-2.5 sm:py-3")}>
+      <header data-document-workspace-header className={cn("sticky top-0 z-20 min-w-0 border-b border-[var(--border-muted)] bg-[var(--workspace-bg)] px-3 transition-[padding] duration-200 motion-reduce:transition-none sm:px-4", isNewDocument ? "py-1.5 sm:py-2" : "py-2.5 sm:py-3", hideMobileHeader && "!hidden md:!block")}>
         <h1 className="sr-only">{title ?? documentNo}</h1>
         {showDocumentContext ? <div data-tablet-document-header className={cn("flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between", isNewDocument && "hidden md:flex")}>
           <div className="min-w-0">

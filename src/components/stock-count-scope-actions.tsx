@@ -8,12 +8,13 @@ import { Field } from "@/components/ui/field";
 import { ModalShell } from "@/components/ui/modal-shell";
 import { Textarea } from "@/components/ui/textarea";
 
-export function AddStockCountItemDialog({ items, existingItemIds, action }: {
+export function AddStockCountItemDialog({ items, existingItemIds, action, initialOpen = false }: {
   items: ItemComboboxOption[];
   existingItemIds: string[];
   action: (formData: FormData) => Promise<void>;
+  initialOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(initialOpen);
   const [query, setQuery] = useState("");
   const [itemId, setItemId] = useState("");
   const [idempotencyKey] = useState(() => crypto.randomUUID());

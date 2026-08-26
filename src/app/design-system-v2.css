@@ -334,36 +334,16 @@ body::-webkit-scrollbar {
   position: relative;
   border: 1px solid var(--sb-border-soft);
   border-radius: var(--sb-panel-radius);
+  background: var(--sb-surface-raised);
   box-shadow: var(--sb-shadow-xs);
 }
 
 [data-dashboard-panel] > :first-child {
-  background: linear-gradient(180deg, #fbfcfa, #f5f7f4);
+  background: var(--sb-surface-muted);
 }
 
 [data-dashboard-panel] > :last-child {
-  min-height: 4.5rem;
-}
-
-[data-dashboard-command] > div:last-child > div {
-  position: relative;
-}
-
-[data-dashboard-command] > div:last-child > div::after {
-  position: absolute;
-  right: 1rem;
-  bottom: 0.8rem;
-  left: 1rem;
-  height: 2px;
-  border-radius: 999px;
-  content: "";
-  background: linear-gradient(90deg, rgb(142 211 178 / 0.72), rgb(142 211 178 / 0.12));
-}
-
-@media (min-width: 1280px) {
-  [data-dashboard-panel]:has(p:last-child:only-child) {
-    min-height: 7.5rem;
-  }
+  min-height: 0;
 }
 
 /* FilterBar has one authoritative responsive grammar in globals.css. Keep
@@ -972,20 +952,21 @@ html[data-design-layer="v2"] :where(.overflow-auto, .overflow-x-auto, .overflow-
 
 html[data-design-layer="v2"] [data-dashboard-command] {
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--sb-green-800) 76%, var(--sb-text-inverse)) !important;
+  border: 1px solid var(--sb-border-soft) !important;
   border-radius: var(--sb-panel-radius) !important;
-  background: var(--sb-green-900) !important;
-  color: var(--sb-text-inverse);
+  background: var(--sb-surface-raised) !important;
+  color: var(--sb-text);
+  box-shadow: var(--sb-shadow-xs);
 }
 
-html[data-design-layer="v2"] [data-dashboard-command] :where(h1, h2, h3, p, span, a) {
-  color: inherit;
+html[data-design-layer="v2"] [data-dashboard-command] [data-dashboard-attention-summary] {
+  background: var(--sb-surface-muted);
 }
 
 html[data-design-layer="v2"] [data-dashboard-command] [data-dashboard-pulse-metrics] {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  background: color-mix(in srgb, var(--sb-text-inverse) 4%, transparent);
+  background: var(--sb-surface-raised);
 }
 
 html[data-design-layer="v2"] [data-dashboard-command] [data-dashboard-pulse-metrics] > a > span:first-child {
@@ -1126,7 +1107,8 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
   html[data-design-layer="v2"] form.unified-list-header .unified-list-result {
     grid-column: 3;
     align-self: center;
-    display: block !important;
+    display: grid !important;
+    justify-items: center;
     min-height: 1rem;
     margin: 0;
     color: var(--sb-text) !important;

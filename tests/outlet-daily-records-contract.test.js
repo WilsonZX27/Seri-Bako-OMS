@@ -88,8 +88,9 @@ test("completed outlet records use the operator-facing Posted label", () => {
 test("outlet completion does not create a fictitious review queue", () => {
   const page = read("src/app/(app)/outlet-daily-records/page.tsx");
   assert.match(query, /posted_today: todayRows\.filter\(\(row\) => \["evening_completed", "reviewed"\]\.includes\(row\.status\)\)\.length/);
-  assert.match(page, /Posted today/);
+  assert.match(page, /<dt className="text-\[10px\] text-muted-foreground">Posted<\/dt>/);
   assert.match(page, /Ready to post/);
+  assert.doesNotMatch(page, /<StatusBadge status=\{progress\.status\} \/><p/);
 });
 
 test("new outlet daily saves route existing outlet-days back to their authoritative record", () => {
@@ -216,7 +217,7 @@ test("outlet records flag a confirmed zero when stock was sent", () => {
   assert.match(query, /received_zero_with_sent: boolean/);
   assert.match(query, /totalReceived === 0 && totalSent !== null && totalSent > 0/);
   assert.match(page, /0 · verify/);
-  assert.match(page, /no confirmed receipt/);
+  assert.match(page, /no receipt quantity has been confirmed/);
   assert.match(detail, /Receipt check needed/);
   assert.match(detail, /record\.received_zero_with_sent/);
 });

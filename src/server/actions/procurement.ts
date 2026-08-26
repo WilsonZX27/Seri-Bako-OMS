@@ -6,7 +6,7 @@ import type { PurchaseRequestStatus } from "@/lib/status-contracts";
 import { createClient } from "@/lib/supabase/server";
 import { purchaseOrderSchema, purchaseRequestSchema } from "@/lib/validations/procurement";
 import { extractPurchaseRequestLineInputs } from "@/lib/procurement/purchase-request-lines";
-import { requirePermission } from "@/server/auth/permissions";
+import { hasPermission, requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
 import { resolveDocumentNumber } from "@/server/documents/sequences";
@@ -865,7 +865,8 @@ export async function restorePurchaseOrder(id: string) {
 export async function addPurchaseRequestLineDuringReview(id: string, formData: FormData) {
   try {
     if (isMockMode()) return;
-    await requirePermission("pr.admin_review");
+    const [canManagerReview, canPurchasingReview] = await Promise.all([hasPermission("pr.manager_approve"), hasPermission("pr.admin_review")]);
+    if (!canManagerReview && !canPurchasingReview) throw new Error("Only the active Manager or Purchasing reviewer can add a request line.");
     const requestId = parsePurchaseRequestId(id);
     const payload = z.object({
       itemId: z.string().uuid("Select an item."),

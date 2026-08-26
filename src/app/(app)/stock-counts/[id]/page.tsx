@@ -27,8 +27,9 @@ const stockCountSteps = [
 ];
 const legacyPendingStatuses = new Set(["submitted", "reviewed", "approved"]);
 
-export default async function StockCountDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function StockCountDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { id } = await params;
+  const filters = await searchParams;
   const stockCountPromise = getStockCount(id).catch((error) => {
     if (error instanceof StockCountNotFoundError) notFound();
     throw error;
@@ -65,7 +66,10 @@ export default async function StockCountDetailPage({ params }: { params: Promise
       triggerVariant="outline"
     />
   ) : null;
-  const addItemControl = canEdit ? <AddStockCountItemDialog items={items} existingItemIds={lines.map((line) => line.item_id)} action={addItemToStockCount.bind(null, count.id)} /> : null;
+  const addItemControl = canEdit ? <AddStockCountItemDialog items={items} existingItemIds={lines.map((line) => line.item_id)} action={addItemToStockCount.bind(null, count.id)} initialOpen={filters.open === "add-item"} /> : null;
+  const initialLineAction = (filters.open === "replace" || filters.open === "remove") && filters.item_id
+    ? { mode: filters.open, itemId: filters.item_id } as const
+    : null;
   const secondaryActions = cancelControl ? <div className="space-y-2">{cancelControl}</div> : null;
   const postAction = canEdit ? saveAndPostStockCount.bind(null, count.id) : postStockCount.bind(null, count.id);
   const confirmAction = canPost ? <ConfirmActionForm action={postAction} formId={canEdit ? formId : undefined} label="Confirm & Post Count" title="Post this stock count?" description={`${lines.filter((line) => line.variance_qty !== 0).length} adjusted lines will update the branch stock ledger. Your latest entries will be saved before posting. This cannot be undone.`} pendingLabel="Saving & posting..." mobilePrimary /> : null;
@@ -127,7 +131,7 @@ export default async function StockCountDetailPage({ params }: { params: Promise
           return <div key={entry.item_id} className="grid gap-1 py-2 text-xs sm:grid-cols-[minmax(0,1fr)_repeat(4,auto)] sm:items-center sm:gap-5"><p className="font-medium">{line?.item?.item_code} · {line?.item?.item_name}</p><p><span className="text-muted-foreground">Started</span> {formatQuantity(entry.snapshot_balance)}</p><p><span className="text-muted-foreground">Posted baseline</span> {formatQuantity(entry.posting_balance)}</p><p><span className="text-muted-foreground">Physical</span> {formatQuantity(entry.physical_qty)}</p><p className="font-semibold"><span className="font-normal text-muted-foreground">Variance</span> {formatQuantity(entry.final_variance_qty)}</p></div>;
         })}</div>
       </section> : null}
-      {canEdit ? <StockCountForm formId={formId} branches={branches} selectedBranchId={count.branch_id ?? undefined} seedLines={editableLines} action={updateStockCountDraft.bind(null, count.id)} autosaveAction={autosaveStockCountDraft.bind(null, count.id)} lineRevisionAction={reviseStockCountLine.bind(null, count.id)} itemCatalog={items} addItemControl={addItemControl} draftId={count.id} showSubmit={false} initialCountDate={count.count_date} initialRemarks={count.remarks} /> : null}
+      {canEdit ? <StockCountForm formId={formId} branches={branches} selectedBranchId={count.branch_id ?? undefined} seedLines={editableLines} action={updateStockCountDraft.bind(null, count.id)} autosaveAction={autosaveStockCountDraft.bind(null, count.id)} lineRevisionAction={reviseStockCountLine.bind(null, count.id)} itemCatalog={items} addItemControl={addItemControl} initialLineAction={initialLineAction} draftId={count.id} showSubmit={false} initialCountDate={count.count_date} initialRemarks={count.remarks} /> : null}
 
       {!canEdit ? <Card>
         <CardContent className="space-y-4 p-5">

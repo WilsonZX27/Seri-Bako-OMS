@@ -131,7 +131,7 @@ export function ItemCombobox({ items, value, selectedItemId = "", onValueChange,
         }
       }}
     />
-    {showSuggestions && listboxStyle ? createPortal(<div id={listboxId} role="listbox" className="fixed z-[var(--sb-z-dropdown)] overflow-y-auto rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white p-1 shadow-lg" style={{ left: listboxStyle.left, top: listboxStyle.top, width: listboxStyle.width, maxHeight: listboxStyle.maxHeight }}>
+    {showSuggestions && listboxStyle ? createPortal(<div id={listboxId} role="listbox" data-item-combobox-listbox className="fixed z-[var(--sb-z-dropdown)] overflow-y-auto rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white p-1 shadow-lg" style={{ left: listboxStyle.left, top: listboxStyle.top, width: listboxStyle.width, maxHeight: listboxStyle.maxHeight }}>
       {matches.map((item, index) => <button id={`${listboxId}-option-${index}`} key={item.id} type="button" role="option" aria-selected={activeIndex === index} className="flex w-full min-w-0 flex-col rounded-[calc(var(--sb-radius-control)-2px)] px-3 py-2 text-left hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-surface-muted)] focus-visible:outline-none aria-selected:bg-[var(--sb-surface-muted)]" onMouseEnter={() => setActiveIndex(index)} onMouseDown={(event) => event.preventDefault()} onClick={() => choose(item)}>
          <span className="truncate text-sm font-medium text-[var(--sb-text)]">{item.item_name}</span>
          {item.brand_name ? <span className="truncate text-xs text-[var(--sb-text-muted)]">{item.brand_name}</span> : null}
@@ -139,6 +139,6 @@ export function ItemCombobox({ items, value, selectedItemId = "", onValueChange,
         <span className="truncate text-xs text-[var(--sb-text-muted)]">{item.item_code} · Purchase {(item.purchase_unit || item.base_unit).toUpperCase()} · Base {item.base_unit.toUpperCase()}</span>
       </button>)}
       {!matches.length ? <p className="px-3 py-2 text-xs text-[var(--sb-text-muted)]">{emptyMessage}</p> : null}
-    </div>, document.body) : null}
+    </div>, anchorRef.current?.closest("dialog") ?? document.body) : null}
   </div>;
 }

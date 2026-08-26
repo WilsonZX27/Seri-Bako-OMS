@@ -82,7 +82,7 @@ function Panel({
           </Button>
         ) : null}
       </div>
-      <div>{children ?? <p className="px-3 py-3 text-xs text-muted-foreground">{empty}</p>}</div>
+      <div data-dashboard-panel-body>{children ?? <p className="px-3 py-3 text-xs text-muted-foreground">{empty}</p>}</div>
     </section>
   );
 }
@@ -300,7 +300,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                 <Link prefetch={false}
                   key={row.id}
                   href={row.href}
-                  className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 py-2.5 text-xs hover:bg-[var(--sb-surface-muted)]"
+                  className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-3 py-2.5 text-xs hover:bg-[var(--sb-surface-muted)]"
                 >
                   <strong className="min-w-0 truncate font-mono">{row.document_no}</strong>
                   <StatusBadge status={row.step.toLowerCase().replaceAll(" ", "_")} className="shrink-0" />

@@ -817,22 +817,12 @@ input[type="date"]::-webkit-date-and-time-value {
   background: var(--sb-surface-muted);
 }
 
-/* Sticky identity columns need a visible edge before horizontal scrolling starts.
-   The stronger cue below takes over once the table has moved. */
+/* Sticky identity columns use a literal divider. Hidden scrollbars do not add
+   gradients, fades or shadows that obscure the final business column. */
 .sb-table-region[data-sticky-column="first"] :is(th, td):first-child,
 .sb-table-region[data-sticky-column="second"] :is(th, td):nth-child(2),
 .sb-table-region[data-sticky-column="third"] :is(th, td):nth-child(3) {
-  box-shadow: 1px 0 var(--sb-border), 7px 0 10px -8px rgb(6 44 31 / 0.34);
-}
-
-/* Internal lead-band cells stay seamless; only its outer trailing edge gets a scroll cue. */
-.sb-table-region[data-scrolled="true"][data-sticky-column="first"] th:first-child,
-.sb-table-region[data-scrolled="true"][data-sticky-column="first"] td:first-child,
-.sb-table-region[data-scrolled="true"][data-sticky-column="second"] th:nth-child(2),
-.sb-table-region[data-scrolled="true"][data-sticky-column="second"] td:nth-child(2),
-.sb-table-region[data-scrolled="true"][data-sticky-column="third"] th:nth-child(3),
-.sb-table-region[data-scrolled="true"][data-sticky-column="third"] td:nth-child(3) {
-  box-shadow: 1px 0 var(--sb-border), 8px 0 12px -4px rgb(6 44 31 / 0.30), 18px 0 24px -10px rgb(6 44 31 / 0.34);
+  box-shadow: 1px 0 var(--sb-border);
 }
 
 .sb-table-region[data-sticky-column="first"] tbody tr:hover > :first-child,

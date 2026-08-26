@@ -24,10 +24,10 @@ test("technical tables use the shared pinned lead band without overlap", () => {
   assert.match(styles, /data-sticky-column="third"/);
   assert.match(styles, /width: 2\.5rem;/);
   assert.match(styles, /left: 5rem;/);
-  assert.match(table, /data-scrolled=\{scrolled \? "true" : "false"\}/);
-  assert.match(styles, /data-scrolled="true"/);
-  assert.match(styles, /18px 0 24px -10px/);
-  assert.match(styles, /Internal lead-band cells stay seamless/);
+  assert.doesNotMatch(table, /data-scrolled|data-overflow-state|ResizeObserver/);
+  assert.doesNotMatch(styles, /data-scrolled="true"|18px 0 24px -10px/);
+  assert.match(styles, /Sticky identity columns use a literal divider/);
+  assert.match(styles, /box-shadow: 1px 0 var\(--sb-border\);/);
   assert.match(table, /\[&>svg\]:!h-3\.5/);
   assert.doesNotMatch(table, /isActionLabel/);
   assert.doesNotMatch(styles, /\.sb-table-region th:last-child,/);

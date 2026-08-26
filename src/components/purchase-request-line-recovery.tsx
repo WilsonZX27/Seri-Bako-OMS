@@ -65,8 +65,8 @@ export function PurchaseRequestLineRecovery({
     <Button type="button" variant={issue ? "outline" : "ghost"} size="icon" className="h-8 w-8 shrink-0" onClick={() => dialogRef.current?.showModal()} aria-label={`Edit ${itemLabel}`} title={`Edit ${itemLabel}`}>
       {issue ? <AlertTriangle className="h-4 w-4 text-[var(--sb-danger)]" /> : <PencilLine className="h-4 w-4" />}
     </Button>
-    <dialog ref={dialogRef} data-supplier-catalogue-count={suppliers.length} data-supplier-option-count={items.length} className="m-auto h-[min(88dvh,46rem)] w-[min(42rem,calc(100vw-2rem))] max-w-none overflow-hidden rounded-[var(--sb-panel-radius)] border-0 bg-transparent p-0 shadow-2xl backdrop:bg-black/60 open:flex" onClose={() => chooseMode("update")}>
-      <div className="flex h-full w-full flex-col bg-[var(--sb-surface)]">
+    <dialog ref={dialogRef} data-supplier-catalogue-count={suppliers.length} data-supplier-option-count={items.length} className="m-auto h-[min(88dvh,46rem)] w-[min(42rem,calc(100vw-2rem))] max-w-none overflow-visible rounded-[var(--sb-panel-radius)] border-0 bg-transparent p-0 shadow-2xl backdrop:bg-black/60 open:flex" onClose={() => chooseMode("update")}>
+      <div className="flex h-full w-full flex-col overflow-hidden rounded-[var(--sb-panel-radius)] bg-[var(--sb-surface)]">
         <header className="flex items-start justify-between gap-3 border-b border-[var(--sb-border-soft)] px-4 py-3">
           <div className="min-w-0"><h3 className="text-base font-semibold">Review request line</h3><p className="truncate text-xs text-muted-foreground">{itemLabel}</p></div>
           <Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={() => dialogRef.current?.close()} aria-label="Close line editor"><X className="h-4 w-4" /></Button>
@@ -84,7 +84,13 @@ export function PurchaseRequestLineRecovery({
             <div className="grid grid-cols-3 gap-2" role="group" aria-label="Change type">{(["update", "replace", "remove"] as const).map((value) => <Button key={value} type="button" variant={mode === value ? "default" : "outline"} onClick={() => chooseMode(value)}>{value === "update" ? "Update" : value === "replace" ? "Replace" : "Remove"}</Button>)}</div>
             {mode !== "remove" ? <>
               {mode === "replace" ? <Field label="Item"><ItemCombobox items={items} value={query} selectedItemId={itemId} ariaLabel="Replacement Item" placeholder="Search supplier items" emptyMessage="No item from this supplier matches." onValueChange={(value) => { setQuery(value); setItemId(""); }} onSelect={(item) => { setQuery(`${item.item_code} - ${item.item_name}`); setItemId(item.id); setUom(normalizeUom(item.purchase_unit || item.base_unit)); }} /></Field> : null}
-              {itemId ? <Field label="Quantity / UOM"><div className="grid grid-cols-[minmax(0,1fr)_minmax(7rem,.55fr)] gap-2"><Input name="qty" type="number" min="0.0001" step="0.0001" defaultValue={line.qty} aria-label="Quantity" required /><SelectNative name="uom" value={uom} aria-label="Unit of measure" onChange={(event) => setUom(normalizeUom(event.target.value))} required><option value="">Choose UOM</option>{uomOptions.map((option) => <option key={option} value={option}>{option}</option>)}</SelectNative></div></Field> : null}
+              <Field label="Purchase quantity / UOM">
+                <div className="grid grid-cols-[minmax(0,1fr)_minmax(7rem,.55fr)] gap-2">
+                  <Input name="qty" type="number" min="0.0001" step="0.0001" defaultValue={line.qty} aria-label="Purchase quantity" disabled={!itemId} required />
+                  <SelectNative name="uom" value={uom} aria-label="Purchase unit of measure" disabled={!itemId} onChange={(event) => setUom(normalizeUom(event.target.value))} required><option value="">Choose UOM</option>{uomOptions.map((option) => <option key={option} value={option}>{option}</option>)}</SelectNative>
+                </div>
+                {!itemId ? <p className="mt-1 text-xs text-muted-foreground">Choose a replacement item to set its quantity and UOM.</p> : null}
+              </Field>
               <input type="hidden" name="supplier_id" value={supplierId} />
               <Field label="Estimated unit cost"><Input name="unit_cost" type="number" min="0" step="0.0001" defaultValue={line.estimated_unit_cost} /></Field>
               {selectedItem ? <p className="text-xs text-muted-foreground">Selected: {selectedItem.item_code} · {selectedItem.item_name}</p> : null}

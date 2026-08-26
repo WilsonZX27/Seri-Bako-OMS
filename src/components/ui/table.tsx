@@ -12,36 +12,8 @@ import { cn } from "@/lib/utils";
  * Legacy contract: stickyColumn?: "none" | "first" | "second"
  */
 export function Table({ className, mobileHidden = false, compactUntil = "xl", stickyColumn = "first", ...props }: React.TableHTMLAttributes<HTMLTableElement> & { mobileHidden?: boolean; compactUntil?: "md" | "xl" | "2xl"; stickyColumn?: "none" | "first" | "second" | "third" }) {
-  const regionRef = React.useRef<HTMLDivElement>(null);
-  const [scrolled, setScrolled] = React.useState(false);
-  const [overflowState, setOverflowState] = React.useState<"none" | "start" | "middle" | "end">("none");
-
-  const updateScrollState = React.useCallback(() => {
-    const region = regionRef.current;
-    const left = region?.scrollLeft ?? 0;
-    const remaining = region ? region.scrollWidth - region.clientWidth - left : 0;
-    setScrolled(left > 2);
-    setOverflowState(!region || region.scrollWidth <= region.clientWidth + 2
-      ? "none"
-      : left <= 2
-        ? "start"
-        : remaining <= 2
-          ? "end"
-          : "middle");
-  }, []);
-
-  React.useEffect(() => {
-    updateScrollState();
-    const region = regionRef.current;
-    if (!region || typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(updateScrollState);
-    observer.observe(region);
-    if (region.firstElementChild) observer.observe(region.firstElementChild);
-    return () => observer.disconnect();
-  }, [updateScrollState]);
-
   return (
-    <div ref={regionRef} onScroll={updateScrollState} className={cn("sb-table-region sb-scrollbar-none", mobileHidden && (compactUntil === "2xl" ? "hidden 2xl:block" : compactUntil === "xl" ? "hidden xl:block" : "hidden md:block"))} data-sticky-column={stickyColumn} data-scrolled={scrolled ? "true" : "false"} data-overflow-state={overflowState} role="region" aria-label={props["aria-label"] ?? "Data table"} tabIndex={0}>
+    <div className={cn("sb-table-region sb-scrollbar-none", mobileHidden && (compactUntil === "2xl" ? "hidden 2xl:block" : compactUntil === "xl" ? "hidden xl:block" : "hidden md:block"))} data-sticky-column={stickyColumn} role="region" aria-label={props["aria-label"] ?? "Data table"} tabIndex={0}>
       <table data-ui-table="true" className={cn("w-full caption-bottom text-xs", className)} {...props} />
     </div>
   );

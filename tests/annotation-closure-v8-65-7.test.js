@@ -42,7 +42,7 @@ test("PR review supports immediate supplier-item search and complete line correc
   const detail = read("src", "app", "(app)", "purchase-requests", "[id]", "page.tsx");
   const migration = read("supabase", "migrations", "219_annotation_review_line_authority.sql");
   assert.match(combobox, /if \(!tokens\.length\) return true/);
-  assert.match(recovery, /Field label="Quantity \/ UOM"/);
+  assert.match(recovery, /Field label="Purchase quantity \/ UOM"/);
   assert.match(addLine, /<ItemCombobox/);
   assert.doesNotMatch(addLine, /<label[^>]*>Supplier<select/);
   assert.match(detail, /canRepairReviewLines && canonicalSupplierId/);

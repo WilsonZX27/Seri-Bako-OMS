@@ -339,11 +339,13 @@ body::-webkit-scrollbar {
 }
 
 [data-dashboard-panel] > :first-child {
-  background: var(--sb-surface-muted);
+  background: #e9f0ec;
 }
 
 [data-dashboard-panel] > :last-child {
   min-height: 0;
+  padding: 0.5rem;
+  background: #f4f7f5;
 }
 
 /* FilterBar has one authoritative responsive grammar in globals.css. Keep
@@ -389,13 +391,6 @@ tbody tr {
 
 tbody tr:hover {
   background: #f8faf8;
-}
-
-[data-scrolled="true"] th:first-child,
-[data-scrolled="true"] td:first-child,
-[data-scrolled="true"] th:nth-child(2),
-[data-scrolled="true"] td:nth-child(2) {
-  box-shadow: 7px 0 14px -11px rgb(4 40 28 / 0.6);
 }
 
 [data-document-workspace-header] {
@@ -960,13 +955,13 @@ html[data-design-layer="v2"] [data-dashboard-command] {
 }
 
 html[data-design-layer="v2"] [data-dashboard-command] [data-dashboard-attention-summary] {
-  background: var(--sb-surface-muted);
+  background: #e5eee9;
 }
 
 html[data-design-layer="v2"] [data-dashboard-command] [data-dashboard-pulse-metrics] {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  background: var(--sb-surface-raised);
+  background: #f4f7f5;
 }
 
 html[data-design-layer="v2"] [data-dashboard-command] [data-dashboard-pulse-metrics] > a > span:first-child {
@@ -1648,20 +1643,6 @@ html[data-design-layer="v2"] .sb-filter-summary-label {
   font-weight: 500;
 }
 
-/* Owner-approved hidden-scrollbar affordance. The table edge carries a quiet
-   inset cue while more columns remain; native scrollbars stay visually hidden. */
-html[data-design-layer="v2"] .sb-table-region[data-overflow-state="start"] {
-  box-shadow: inset -12px 0 10px -12px rgb(5 60 44 / 0.32);
-}
-
-html[data-design-layer="v2"] .sb-table-region[data-overflow-state="middle"] {
-  box-shadow: inset 12px 0 10px -12px rgb(5 60 44 / 0.24), inset -12px 0 10px -12px rgb(5 60 44 / 0.32);
-}
-
-html[data-design-layer="v2"] .sb-table-region[data-overflow-state="end"] {
-  box-shadow: inset 12px 0 10px -12px rgb(5 60 44 / 0.24);
-}
-
 /* The reference canvas keeps a calm reading width on desktop and landscape
    iPad. `full` remains an explicit escape hatch for registers that need it. */
 @media (min-width: 640px) {
@@ -2164,6 +2145,27 @@ html[data-design-layer="v2"] :where([class~="bg-card"], [class~="overflow-hidden
 
 /* iPadOS desktop-mode UA: keep the touch tablet shell predictable even when
    Safari reports a viewport wide enough to trigger the desktop xl utilities. */
+/* Below desktop, the document owns page scrolling. A horizontal `hidden`
+   overflow makes the other axis compute to `auto`, which can trap an 820px
+   document inside an unsized flex child. Clip horizontal paint only. */
+@media (max-width: 1279px) {
+  html[data-design-layer="v2"],
+  html[data-design-layer="v2"] body {
+    height: auto;
+    min-height: 100%;
+    overflow-y: visible;
+  }
+
+  html[data-design-layer="v2"] [data-center-workspace],
+  html[data-design-layer="v2"] main#main-content {
+    overflow: visible;
+  }
+
+  html[data-design-layer="v2"] main#main-content {
+    overflow-x: clip;
+  }
+}
+
 html[data-touch-tablet="true"] aside[data-app-sidebar] {
   display: none !important;
 }

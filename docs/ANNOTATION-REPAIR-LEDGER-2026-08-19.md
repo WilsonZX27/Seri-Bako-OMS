@@ -1,5 +1,26 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-08-26 — v8.65.8 browser hierarchy and dialog-layer correction
+
+Reconciliation confirmed that the current implementation lives in the isolated `a2a3` worktree at `95246359`, while the occupied primary checkout remains at the older `c48440de`; no protected primary-checkout edits were moved or reset. The visible defects were also real: the Dashboard panel body had lost its padding, scrollbar state added rejected edge shadows, `ItemCombobox` portaled behind native dialog top-layer, Qty/UOM were conditionally absent, and the 820px shell split vertical overflow between `html` and `body`.
+
+| # | URL | Role / viewport | Screenshot | Expected behavior | Evidence state |
+|---:|---|---|---|---|---|
+| 1 | `/dashboard` | Owner / 390×844 | browser comment 1 | Actions list retains deliberate internal padding | implemented; authenticated local browser verified |
+| 2 | `/dashboard` | Owner / 390×844 | browser comment 2 | Exception, pipeline and payable groups remain compact, aligned and reachable | implemented; authenticated local browser verified |
+| 3 | `/dashboard` | Owner / 390×844 | browser comment 3 | Today’s work and panel hierarchy use restrained sage tonal layers, not a white wash | implemented; authenticated local browser verified |
+| 4 | `/purchase-requests` | Owner / 1440×900 | browser comment 4 | Status and final columns are not obscured by scrollbar-edge gradients or shadows | implemented; authenticated local browser verified |
+| 5 | `/purchase-requests/:id` | active reviewer / 820×1180 | browser comment 5 | Replacement search results render above the native dialog | implemented; authenticated local interaction verified |
+| 6 | `/purchase-requests/:id` | active reviewer / 820×1180 | browser comment 6 | Purchase quantity and UOM stay visible and enable after item selection | implemented; authenticated local interaction verified |
+| 7 | `/purchase-requests/:id` | Owner / 820×1180 | browser comment 7 | The full 17-line document scrolls vertically at portrait-tablet width | implemented; authenticated local browser verified |
+| 8 | `/purchase-requests/:id` | Owner / compact list | browser comment 8 | Estimated unit cost sits directly beneath purchase quantity | implemented; authenticated local browser verified |
+| 9 | `/purchase-requests/:id` | active reviewer / 820×1180 | browser comment 9 | Add line suggestions share the dialog top-layer; Qty/UOM are visible before selection | implemented; authenticated local interaction verified |
+
+- Implemented: shared Dashboard spacing/tone, no-gradient hidden-scrollbar authority, page scroll ownership below 1280px, dialog-owned item listboxes, visible Qty/UOM controls, and compact PR commercial alignment in application version `8.65.8`.
+- Locally verified: `986/986` contracts, strict typecheck, ESLint, local-env Production build, migration dry-run up to date, and `V9_SCHEMA_OK` at migration 219 (`85` RLS tables, `6` views, `144` fixed-search-path SECURITY DEFINER functions). Authenticated Owner browser UAT passed at 390×844, 820×1180, 1180×820 and 1440×900. The 820×1180 test used a disposable 17-line PR, proved root scrolling, selected Carrot in Replace, read back `CTN`, and opened Add line with its listbox inside the dialog top-layer; the exact local fixture was then removed before the schema gate.
+- Awaiting authenticated UAT: Production-like clone prepare/verify/destroy still requires the source database password; no remote deployment behavior is inferred from localhost.
+- Production verified: no.
+
 ## 2026-08-26 — v8.65.7 browser annotation closure
 
 Worktree reconciliation found no missing deployed commit hidden in another checkout. The reviewed Vercel branch pointed to `origin/codex/uiux-round2` at `ebac123f`; this isolated worktree inherited that exact commit. The primary checkout was one remote commit behind and already contained unrelated user changes, so it was deliberately left untouched. The visible gaps were incomplete shared implementations: the new Stock Count page had never received the item catalogue/action controls, PR Replace required typed text before opening and lost line identity when modes changed, and late CSS overrode the intended mobile count layout and Dashboard hierarchy.
@@ -39,13 +60,13 @@ The inherited v9 implementation was completed without reopening the accepted pro
 
 | URL | Role | Viewport | Screenshot | Expected behavior | Evidence state |
 |---|---|---:|---|---|---|
-| `/dashboard` | Owner | 390×844 | `test-results/v9-full-system-uat/mobile-390--dashboard.png` | Compact hierarchy, named icon actions, 36px touch controls, no native scrollbar, edge cue only when scrollable | locally verified |
+| `/dashboard` | Owner | 390×844 | `test-results/v9-full-system-uat/mobile-390--dashboard.png` | Compact hierarchy, named icon actions, 36px touch controls, no native scrollbar, and reachable content without decorative edge fades | locally verified |
 | `/dashboard` | Owner | 820×1180 | `test-results/v9-full-system-uat/tablet-820--dashboard.png` | Intentional portrait composition with unwrapped controls and restrained heading scale | locally verified |
 | `/dashboard` | Owner | 1180×820 | `test-results/v9-full-system-uat/landscape-1180--dashboard.png` | Dense landscape workspace without accidental page overflow | locally verified |
 | `/dashboard` | Owner | 1440×900 | `test-results/v9-full-system-uat/desktop-1440--dashboard.png` | Mature desktop information hierarchy and stable shared table authority | locally verified |
 | 99-route matrix | Owner, Finance, Manager, Purchasing, Kitchen, Outlet | all four | Owner route captures use the same four filename prefixes above | Allowed routes render; denied routes fail closed; role boundaries and UI quality gates remain strict | 52/52 local shards passed |
 
-- Implemented: v9 route/role/viewport matrix and fail-closed environment guards; authenticated teardown; fixed typography/motion/table authority; hidden-scrollbar edge affordance; safe JSON parsing; detail not-found authority; audit-log and role-permission migrations 216–218; fault-injection and schema coverage gates.
+- Implemented: v9 route/role/viewport matrix and fail-closed environment guards; authenticated teardown; fixed typography/motion/table authority; hidden native scrollbars without decorative edge fades (superseded by v8.65.8); safe JSON parsing; detail not-found authority; audit-log and role-permission migrations 216–218; fault-injection and schema coverage gates.
 - Locally verified: production-mode authenticated matrix `52/52`; 372 Owner screenshots; `976/976` contracts; strict typecheck; ESLint; production build; local migration dry-run up to date; local schema through migration 218 (`85` RLS tables, `6` views, `144` SECURITY DEFINER functions).
 - Awaiting authenticated UAT: the Production-like clone prepare/verify/destroy harness cannot run without the source database password.
 - Production verified: no. Source, local migrations, tests, build, and screenshots do not prove deployment or Production behavior.

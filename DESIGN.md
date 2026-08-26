@@ -1,5 +1,14 @@
 # Seri Bako OMS responsive design standard
 
+## v8.65.8 (unreleased) — Scroll ownership and native dialog layering
+
+- Hidden native scrollbars do not justify decorative edge gradients, fades or shadows. Horizontal tables retain ordinary touch, trackpad and keyboard scrolling; sticky identity uses only a literal 1px divider.
+- Dashboard groups use one sage-tinted hierarchy: a slightly stronger header/command band, 8px internal content padding, flat divided cells and no nested metric cards.
+- A combobox inside native `<dialog>` portals its listbox into that dialog, not `document.body`; top-layer ownership is structural and cannot be repaired with a larger arbitrary z-index.
+- Purchase quantity and UOM stay visible in Update, Replace and Add line. Before a replacement is selected they are disabled with one short instruction, then enable with the selected item’s purchase UOM.
+- Below 1280px, long documents use the page as vertical scroll owner. `html`, `body` and the center workspace must not form competing fixed-height scroll containers.
+- In compact PR rows, estimated unit cost is subordinate metadata directly beneath purchase quantity, not a detached value at the bottom of the row.
+
 ## v8.65.7 (unreleased) — Compact signal and correction grammar
 
 - Dashboard panels are one grouped surface with flat, divided signal cells. Dark hero blocks, gradients and individually boxed metrics are not the operational hierarchy.
@@ -11,7 +20,7 @@
 
 ## v8.65.6 (unreleased) — V9 compact system authority
 
-The four release viewports are fixed at 390×844, 820×1180, 1180×820, and 1440×900. Native scrollbars remain hidden by product decision; genuinely scrollable regions instead expose a restrained edge affordance. Shared fixed typography, medium-weight identity headings, compact copy, 36px minimum touch controls, accessible names for icon-only actions, deliberate table overflow, and reduced-motion behavior are automated release authority rather than route-specific exceptions. The 99-route, six-role local matrix passed 52/52 shards and produced 93 Owner screenshots per viewport. These artifacts are local design evidence, not deployment or Production verification.
+The four release viewports are fixed at 390×844, 820×1180, 1180×820, and 1440×900. Native scrollbars remain hidden by product decision; v8.65.8 supersedes the earlier edge-affordance treatment and forbids gradients or shadow fades. Shared fixed typography, medium-weight identity headings, compact copy, 36px minimum touch controls, accessible names for icon-only actions, deliberate reachable overflow, and reduced-motion behavior are automated release authority rather than route-specific exceptions. The 99-route, six-role local matrix passed 52/52 shards and produced 93 Owner screenshots per viewport. These artifacts are local design evidence, not deployment or Production verification.
 
 ## v8.65.5 (unreleased) — UAT trust boundary
 

@@ -12,12 +12,12 @@ const procurementForms = fs.readFileSync(path.join(root, "src", "components", "p
 const inventoryDailyMovementChart = fs.readFileSync(path.join(root, "src", "components", "reports", "inventory-daily-movement-chart.tsx"), "utf8");
 const supplierInvoiceAging = fs.readFileSync(path.join(root, "src", "app", "(app)", "supplier-invoices", "aging", "page.tsx"), "utf8");
 
-test("v9 keeps the Owner-approved hidden scrollbar contract", () => {
+test("v9 keeps hidden scrollbars without edge gradients or scroll-state decoration", () => {
   assert.match(globals, /:where\(\[class\*="overflow-auto"[\s\S]*scrollbar-width:\s*none/);
   assert.match(globals, /::-webkit-scrollbar\s*\{[\s\S]*display:\s*none/);
-  assert.match(design, /\.sb-table-region\[data-overflow-state="start"\]/);
-  assert.match(table, /data-overflow-state=\{overflowState\}/);
-  assert.match(table, /scrollWidth - region\.clientWidth - left/);
+  assert.doesNotMatch(design, /\.sb-table-region\[data-overflow-state=/);
+  assert.doesNotMatch(table, /data-overflow-state|ResizeObserver|scrollWidth - region\.clientWidth/);
+  assert.doesNotMatch(globals, /data-scrolled="true"[\s\S]{0,400}box-shadow/);
 });
 
 test("v9 typography uses fixed steps and medium-weight identity headings", () => {

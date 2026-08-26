@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.65.9 (unreleased) — Localhost visual audit correction
+
+The post-implementation review now uses the actual authenticated localhost UI rather than source inspection alone. Purchase Request and Outlet Daily desktop tables fit their shared working canvas without relying on an invisible horizontal journey; 820px Purchase Request details reflow to two readable columns and phones use one column. Inventory renders a compact verified-empty movement state instead of a large zero chart, while Dashboard quick actions use one flat segmented command bar rather than three floating cards. The v9 browser runner no longer demands the rejected scrollbar-edge gradient; it keeps the meaningful gate that any remaining horizontal table is a named, keyboard-focusable region. Focused authenticated localhost UAT passed the nine reviewed routes at all four fixed viewports. Real-data Dashboard density and Production-like authenticated UAT remain separate evidence boundaries.
+
 ### v8.65.8 (unreleased) — Browser hierarchy and dialog-layer correction
 
 The rejected scrollbar-edge treatment is removed across shared tables: native scrollbars remain hidden, but no gradient, fade, inset shadow or scroll-state decoration obscures the final business column. Dashboard groups now retain deliberate internal padding and a restrained sage surface hierarchy instead of flush white cells. PR review item suggestions portal into the owning native dialog top-layer, Quantity/UOM remain visible before item selection, 820px documents return vertical scrolling to the page, and commercial unit cost sits directly below purchase quantity. Local authenticated Owner browser verification passed the four fixed viewports and exercised Replace and Add line against a disposable 17-line PR; Production-like authenticated UAT still requires the source database password and Production is not verified.

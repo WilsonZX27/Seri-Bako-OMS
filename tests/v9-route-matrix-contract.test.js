@@ -118,7 +118,10 @@ test("v9 touch-target checks measure the visible proxy for visually hidden file 
   assert.match(spec, /scrollWidth > node\.clientWidth \+ 2/);
   assert.match(spec, /clientWidth: node\.clientWidth/);
   assert.match(spec, /waitForCraftSettle/);
-  assert.match(spec, /timeout:\s*1_000/);
+  assert.match(spec, /unreachableHorizontalScroll/);
+  assert.match(spec, /node\.tabIndex < 0/);
+  assert.match(spec, /getAttribute\("role"\) !== "region"/);
+  assert.doesNotMatch(spec, /data-overflow-state/);
 });
 
 test("v9 route UAT reports every failure in a role and viewport instead of stopping at the first route", () => {

@@ -1,5 +1,13 @@
 # Seri Bako OMS responsive design standard
 
+## v8.65.9 (unreleased) — Canvas fit and verified-empty density
+
+- Hidden native scrollbars never imply a decorative fade. A table that genuinely needs horizontal travel remains a named, focusable region; common desktop registers should first fit the available shared canvas by assigning deliberate column measures.
+- Form responsiveness is structural: one field per row on phones, two columns at portrait tablet, and four columns only when the document canvas can preserve complete values and labels.
+- A time-series with a valid period but zero posted events is a verified-empty state, not a reason to render an empty plot with tiny axes.
+- Quick actions are one segmented command group. They do not become a repeated grid of floating icon cards or use decorative lift motion.
+- Browser screenshots must be inspected after automation. Passing overflow and accessibility assertions is necessary but does not establish visual hierarchy quality.
+
 ## v8.65.8 (unreleased) — Scroll ownership and native dialog layering
 
 - Hidden native scrollbars do not justify decorative edge gradients, fades or shadows. Horizontal tables retain ordinary touch, trackpad and keyboard scrolling; sticky identity uses only a literal 1px divider.

@@ -94,19 +94,19 @@ function QuickActionsCluster({ actions, className }: { actions: { href: string; 
         <h2 id="dashboard-quick-actions-title" className="text-xs font-semibold text-[var(--sb-text-muted)]">Quick actions</h2>
         <span className="text-[11px] text-[var(--sb-text-muted)]">Based on your role</span>
       </div>
-      <div className="grid grid-cols-3 gap-2" data-dashboard-quick-actions>
+      <div className="grid grid-cols-3 divide-x divide-[var(--sb-border-soft)] overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)]" data-dashboard-quick-actions>
         {actions.slice(0, 3).map((action) => {
           const Icon = action.icon;
           return (
             <Link prefetch={false}
               key={action.href}
               href={action.href}
-              className="group flex min-h-[4.5rem] min-w-0 flex-col items-start justify-between rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-2.5 text-left text-[11px] font-semibold text-[var(--sb-text)] shadow-[var(--sb-shadow-card)] transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:border-[var(--sb-green-700)] hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)]"
+              className="group flex min-h-14 min-w-0 items-center gap-2 p-2.5 text-left text-[11px] font-semibold text-[var(--sb-text)] transition-colors duration-200 hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)]"
             >
               <span className="grid h-7 w-7 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-green-050)] text-[var(--sb-green-800)]">
                 <Icon className="h-4 w-4" aria-hidden="true" />
               </span>
-              <span className="line-clamp-2 leading-4">{action.label}</span>
+              <span className="line-clamp-2 min-w-0 leading-4">{action.label}</span>
             </Link>
           );
         })}

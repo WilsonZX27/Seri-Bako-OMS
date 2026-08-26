@@ -2033,18 +2033,18 @@ html[data-design-layer="v2"] table[data-ui-table] > thead > tr > th {
   }
 
   html[data-design-layer="v2"] .sb-purchase-request-table {
-    min-width: 61rem;
+    min-width: 48rem;
     table-layout: fixed;
   }
 
   html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(1) { width: 2.5rem; }
   html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(2) { width: 2.5rem; }
-  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(3) { width: 10rem; }
-  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(4) { width: 7.5rem; }
-  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(5) { width: 8rem; }
-  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(6) { width: 13rem; }
-  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(7) { width: 10rem; }
-  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(8) { width: 7.5rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(3) { width: 8.5rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(4) { width: 6.25rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(5) { width: 6.5rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(6) { width: 10.5rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(7) { width: 7.75rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(8) { width: 5.5rem; }
   html[data-design-layer="v2"] .sb-purchase-request-table td:nth-child(6) {
     white-space: normal;
     overflow-wrap: anywhere;
@@ -2078,18 +2078,28 @@ html[data-design-layer="v2"] table[data-ui-table] > thead > tr > th {
   }
 
   html[data-design-layer="v2"] .sb-outlet-daily-table {
-    min-width: 44rem;
+    min-width: 46rem;
     table-layout: fixed;
   }
 
-  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(1) { width: 2.5rem; }
-  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(2) { width: 5.5rem; }
-  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(3) { width: 9rem; }
-  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(4) { width: 7rem; }
-  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(5) { width: 5.5rem; }
-  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(6) { width: 5.5rem; }
-  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(7) { width: 6rem; }
-  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td):nth-child(8) { width: 6rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(1) { width: 2.5rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(2) { width: 5rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(3) { width: 7.5rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(4) { width: 6rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(5) { width: 5.5rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(6) { width: 5rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(7) { width: 5.5rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(8) { width: 6rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(9) { width: 6rem; }
+
+  html[data-design-layer="v2"] .sb-outlet-daily-table:not(:has(th:nth-child(9))) :is(th, td):nth-child(1) { width: 2.5rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:not(:has(th:nth-child(9))) :is(th, td):nth-child(2) { width: 5.5rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:not(:has(th:nth-child(9))) :is(th, td):nth-child(3) { width: 8.5rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:not(:has(th:nth-child(9))) :is(th, td):nth-child(4) { width: 6rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:not(:has(th:nth-child(9))) :is(th, td):nth-child(5) { width: 5.5rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:not(:has(th:nth-child(9))) :is(th, td):nth-child(6) { width: 6rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:not(:has(th:nth-child(9))) :is(th, td):nth-child(7) { width: 6rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:not(:has(th:nth-child(9))) :is(th, td):nth-child(8) { width: 6rem; }
 
   html[data-design-layer="v2"] .sb-filter-summary-count,
   html[data-design-layer="v2"] .unified-list-result strong {

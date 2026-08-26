@@ -13,6 +13,8 @@ test("dashboard mobile groups retain padding and a deliberate sage hierarchy", (
   assert.match(dashboard, /gap-y-1 px-3 py-2\.5/);
   assert.match(design, /\[data-dashboard-panel\] > :last-child\s*\{[\s\S]*padding:\s*0\.5rem;[\s\S]*background:\s*#f4f7f5/);
   assert.match(design, /\[data-dashboard-attention-summary\]\s*\{[\s\S]*background:\s*#e5eee9/);
+  assert.match(dashboard, /grid grid-cols-3 divide-x[^\n]+data-dashboard-quick-actions/);
+  assert.doesNotMatch(dashboard, /data-dashboard-quick-actions[\s\S]{0,900}hover:-translate-y/);
 });
 
 test("item combobox stays in the native dialog top layer", () => {
@@ -40,4 +42,14 @@ test("tablet documents use page scrolling and commercial cost sits below purchas
   const detail = read("src", "app", "(app)", "purchase-requests", "[id]", "page.tsx");
   assert.match(design, /@media \(max-width: 1279px\)[\s\S]*main#main-content\s*\{[\s\S]*overflow-x:\s*clip/);
   assert.match(detail, /<div className="text-right"><p className="font-semibold">\{formatNumber\(line\.qty\)\} \{line\.uom\}<\/p>\{canViewCommercial \? <p/);
+});
+
+test("localhost polish keeps tablet fields readable and zero movement compact", () => {
+  const forms = read("src", "components", "procurement-forms.tsx");
+  const chart = read("src", "components", "reports", "inventory-daily-movement-chart.tsx");
+  const runner = read("tests", "e2e", "v9-full-system-uat.spec.js");
+  assert.match(forms, /grid-cols-1 gap-3 p-3 sm:grid-cols-2 lg:grid-cols-4/);
+  assert.match(chart, /!points\.length \|\| totals\.all === 0/);
+  assert.match(runner, /unreachableHorizontalScroll/);
+  assert.doesNotMatch(runner, /hidden scrollbars require an edge affordance/);
 });

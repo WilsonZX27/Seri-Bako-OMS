@@ -34,7 +34,7 @@ export function InventoryDailyMovementChart({ points }: { points: InventoryDaily
     all: sum.all + point.movement_entries,
   }), { inbound: 0, outbound: 0, all: 0 });
 
-  if (!points.length) {
+  if (!points.length || totals.all === 0) {
     return <div data-inventory-daily-movement-chart><p className="border border-dashed px-4 py-5 text-sm text-muted-foreground" role="status" data-inventory-movement-empty>No posted movement entries are available for this period. No unavailable result is shown as zero.</p></div>;
   }
 

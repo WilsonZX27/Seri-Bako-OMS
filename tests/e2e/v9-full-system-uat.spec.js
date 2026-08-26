@@ -62,12 +62,6 @@ async function assertApplicationHealth(page, context) {
 
 async function waitForCraftSettle(page) {
   await page.evaluate(() => document.fonts?.ready).catch(() => {});
-  await page.waitForFunction(() => Array.from(document.querySelectorAll(".sb-table-region")).every((node) => {
-    const rect = node.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) return true;
-    if (node.scrollWidth <= node.clientWidth + 2) return true;
-    return ["start", "middle", "end"].includes(node.getAttribute("data-overflow-state") ?? "");
-  }), undefined, { timeout: 1_000 }).catch(() => {});
 }
 
 async function inspectCraft(page, viewport) {
@@ -128,15 +122,16 @@ async function inspectCraft(page, viewport) {
       return (node.textContent?.replace(/\s+/g, " ").trim().length ?? 0) > 260;
     });
     const tableRegions = Array.from(document.querySelectorAll(".sb-table-region")).filter(visible);
-    // Match the shared Table authority's 2px rounding tolerance. Anything
-    // larger is meaningful hidden overflow and must expose an edge affordance.
-    const unhintedHorizontalScroll = tableRegions
-      .filter((node) => node.scrollWidth > node.clientWidth + 2 && !["start", "middle", "end"].includes(node.getAttribute("data-overflow-state") ?? ""))
+    // Native scrollbars stay visually hidden by product decision. Any table
+    // that still needs horizontal travel must remain a named, keyboard-focusable
+    // region so touch, trackpad and keyboard users can reach every column.
+    const unreachableHorizontalScroll = tableRegions
+      .filter((node) => node.scrollWidth > node.clientWidth + 2 && (node.tabIndex < 0 || node.getAttribute("role") !== "region" || !node.getAttribute("aria-label")))
       .map((node) => ({
         label: node.getAttribute("aria-label"),
         clientWidth: node.clientWidth,
         scrollWidth: node.scrollWidth,
-        state: node.getAttribute("data-overflow-state"),
+        tabIndex: node.tabIndex,
       }));
     const visibleNativeScrollbar = tableRegions.filter((node) => getComputedStyle(node).scrollbarWidth !== "none");
     return {
@@ -147,7 +142,7 @@ async function inspectCraft(page, viewport) {
       heavyHeadings: heavyHeadings.map((node) => ({ text: node.textContent?.trim().slice(0, 80), weight: getComputedStyle(node).fontWeight })),
       oversizedHeadings: oversizedHeadings.map((node) => ({ text: node.textContent?.trim().slice(0, 80), size: getComputedStyle(node).fontSize })),
       verboseCopy: verboseCopy.map((node) => node.textContent?.replace(/\s+/g, " ").trim().slice(0, 280)),
-      unhintedHorizontalScroll,
+      unreachableHorizontalScroll,
       visibleNativeScrollbar: visibleNativeScrollbar.length,
     };
   }, { mobile: viewport.width < 640 });
@@ -161,7 +156,7 @@ function assertCraft(result, context) {
   expect(result.heavyHeadings, `${context} headings must use the approved regular/medium hierarchy`).toEqual([]);
   expect(result.oversizedHeadings, `${context} headings must preserve operational density`).toEqual([]);
   expect(result.verboseCopy, `${context} must not carry essay-like explanatory copy in the primary workspace`).toEqual([]);
-  expect(result.unhintedHorizontalScroll, `${context} hidden scrollbars require an edge affordance`).toEqual([]);
+  expect(result.unreachableHorizontalScroll, `${context} hidden horizontal tables must stay named and keyboard-focusable`).toEqual([]);
   expect(result.visibleNativeScrollbar, `${context} must honor the approved hidden-scrollbar design decision`).toBe(0);
 }
 

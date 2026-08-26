@@ -1,5 +1,23 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-08-26 — v8.65.9 authenticated localhost visual audit
+
+The current `a2a3` worktree was opened through the owned localhost Playwright server and reviewed from newly captured screenshots. The first pass correctly exposed a stale harness rule: desktop PR and Outlet Daily failed only because the runner still required the scrollbar-edge affordance that the Owner rejected. The screenshots also exposed issues that a source-only review missed: avoidable desktop table travel, clipped 820px request fields, a large zero-activity Inventory chart, and Quick Actions still reading as three floating cards.
+
+| URL | Role / viewport | Finding | Resolution | Evidence state |
+|---|---|---|---|---|
+| `/purchase-requests` | Owner / 1440×900 | Final columns required hidden horizontal travel | Rebalanced eight column measures to fit the shared main canvas | authenticated localhost screenshot inspected |
+| `/outlet-daily-records` | Owner / 1440×900 | Nine-column Owner view exceeded the main canvas | Added explicit eight/nine-column width authority without a fade | authenticated localhost screenshot inspected |
+| `/purchase-requests/new` | Owner / 390×844, 820×1180 | Phone and tablet fields were compressed or clipped | One-column phone and two-column tablet setup grammar | authenticated localhost screenshots inspected |
+| `/inventory` | Owner / 390×844 | Valid zero rows produced an empty chart and illegible axes | Compact verified-empty movement state | authenticated localhost screenshot inspected |
+| `/dashboard` | Owner / 1180×820 | Quick actions remained a repeated floating-card strip | One flat divided command group; no lift motion | authenticated localhost screenshot inspected |
+| v9 runner | Owner / four fixed viewports | Stale gate required rejected edge-affordance state | Requires named, focusable contained scrolling instead | focused localhost matrix passed |
+
+- Implemented: application version `8.65.9`, shared table width authority, responsive PR setup grammar, compact zero-movement state, segmented Dashboard commands, and corrected v9 scroll reachability gate.
+- Locally verified: the nine-route Owner matrix passed `4/4` at 390×844, 820×1180, 1180×820 and 1440×900; a final phone/tablet PR form rerun passed `2/2`; the landscape Dashboard rerun passed `1/1`. `988/988` contracts, strict typecheck, ESLint and the isolated local-env Production build passed. The migration dry-run is up to date and `V9_SCHEMA_OK` reports migration 219, 85 RLS tables, 6 views and 144 fixed-search-path SECURITY DEFINER functions.
+- Awaiting authenticated UAT: non-empty real-data Dashboard composition, PR mutation flows against a Production-like clone, and the clone harness itself still require the source database password.
+- Production verified: no. Localhost screenshots and a pushed Preview branch are not Production proof.
+
 ## 2026-08-26 — v8.65.8 browser hierarchy and dialog-layer correction
 
 Reconciliation confirmed that the current implementation lives in the isolated `a2a3` worktree at `95246359`, while the occupied primary checkout remains at the older `c48440de`; no protected primary-checkout edits were moved or reset. The visible defects were also real: the Dashboard panel body had lost its padding, scrollbar state added rejected edge shadows, `ItemCombobox` portaled behind native dialog top-layer, Qty/UOM were conditionally absent, and the 820px shell split vertical overflow between `html` and `body`.

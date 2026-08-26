@@ -364,7 +364,7 @@ export function PurchaseRequestForm({
                 <ChevronDown className={`h-4 w-4 transition-transform ${detailsOpen ? "rotate-180" : ""}`} />
               </Button>
             </div>
-            <div className={`${detailsOpen ? "grid" : "hidden"} grid-cols-2 gap-3 p-3 md:grid-cols-4`}>
+            <div className={`${detailsOpen ? "grid" : "hidden"} grid-cols-1 gap-3 p-3 sm:grid-cols-2 lg:grid-cols-4`}>
             <Field label="Request branch" required>
                 <SelectNative data-pr-field="branch" name="branch_id" aria-label="Request branch" aria-invalid={validationTarget?.field === "branch" || undefined} className={validationTarget?.field === "branch" ? "border-rose-500 ring-2 ring-rose-200" : ""} value={branchId} onChange={(event) => { setValidationError(""); setValidationTarget(null); changeBranch(event.target.value); }} required disabled={lockBranch}>
                   {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
@@ -381,8 +381,8 @@ export function PurchaseRequestForm({
             <Field label="Needed By">
               <Input name="needed_by_date" type="date" value={neededByDate} onChange={(event) => changeNeededByDate(event.target.value)} />
             </Field>
-            <Field label="Urgency" className="col-span-2 md:col-span-1"><UrgencySelect value={priority} onValueChange={setPriority} /></Field>
-            <Field label="Remarks" className="col-span-2 md:col-span-4">
+            <Field label="Urgency"><UrgencySelect value={priority} onValueChange={setPriority} /></Field>
+            <Field label="Remarks" className="sm:col-span-2 lg:col-span-4">
               <Textarea className="min-h-[3.75rem] resize-y" rows={2} name="remarks" defaultValue={initialRemarks ?? ""} placeholder="Reason or instructions for this request" />
             </Field>
             </div>

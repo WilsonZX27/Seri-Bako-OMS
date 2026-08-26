@@ -9,7 +9,7 @@ declare
   policyless_tables text;
 begin
   select max(version) into latest_migration from supabase_migrations.schema_migrations;
-  if latest_migration <> '221' then
+  if latest_migration <> '222' then
     raise exception 'Expected migration 221, found %', coalesce(latest_migration, '(none)');
   end if;
 

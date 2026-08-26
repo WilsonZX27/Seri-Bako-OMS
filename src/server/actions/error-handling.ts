@@ -60,6 +60,12 @@ export function formatActionError(error: unknown, fallback = "Something went wro
   if (normalized.includes("po_number_belongs_to_different_order")) {
     return "This AutoCount PO Number belongs to a different branch, supplier, or cancelled order. Verify the existing PO before continuing.";
   }
+  if (normalized.includes("po_document_belongs_to_different_record")) {
+    return "This number is already used by a different document type. Check the existing record before continuing.";
+  }
+  if (normalized.includes("po_document_owned_by_another_order")) {
+    return "This AutoCount PO Number already belongs to another Purchase Order. Open the existing PO instead of creating a duplicate.";
+  }
   if (normalized.includes("pr_not_ready")) {
     return "This PR is no longer ready to convert. Refresh the page and check its current status.";
   }

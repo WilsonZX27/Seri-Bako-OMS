@@ -1,5 +1,13 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-08-26 — v8.65.12 orphan PO document follow-up
+
+Authenticated Production retries proved that migration 221 still reached the generic unique-document boundary for both reported PRs. The remaining shape is an active PO document number left by the historical non-atomic workflow without a corresponding Purchase Order row.
+
+- Implemented: migration 222 reuses the orphan PO document, appends a recovery revision, and creates the PO header, lines, PR transition and activity atomically under the original AutoCount number.
+- Locally verified: clean reset through migration 222, focused contracts 9/9, and `V9_SCHEMA_OK` with 85 RLS tables, 6 views and 146 fixed-search-path SECURITY DEFINER functions.
+- Awaiting Production: apply migration 222, deploy v8.65.12, then retry PR/AUG26/023 (`PO-000201`) and PR/AUG26/025 (`PO-000208`) without changing either number.
+
 ## 2026-08-26 — v8.65.11 Production legacy PR recovery follow-up
 
 Production screenshots showed that the v8.65.10 UI was present while the two historical Ready-stage PRs still exercised the old recovery boundary. PR/AUG26/023 attempted the Purchasing-only number RPC from Ready, and PR/AUG26/025 collided with an existing `PO-000208` without determining whether it was an unlinked matching order or belonged elsewhere.

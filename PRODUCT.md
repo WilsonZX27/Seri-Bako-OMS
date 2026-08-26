@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v8.65.12 (unreleased) — Orphan PO document recovery
+
+Legacy PR conversion now reuses an active Purchase Order document when the old non-atomic workflow created that document but never created its `purchase_orders` row. The real AutoCount number is preserved, the existing document audit trail receives a recovery revision, and PO header, lines, PR status and activity are committed in one transaction. A document that belongs to another record remains fail-closed with a specific message. Migration 222 is locally reset and schema-verified; Production application and authenticated read-back of PR/AUG26/023 and PR/AUG26/025 remain separate gates.
+
 ### v8.65.11 (deployed; authenticated Production PR read-back pending) — Legacy PR-to-PO reconciliation
 
 Historical PRs stranded in `ready_to_convert` now finish through one guarded reconciliation action. If the PO is already linked to the same PR, the workflow completes idempotently. An unlinked PO may be attached only when company, branch, supplier and active state match exactly; a PO owned by another PR or business order remains blocked with a specific operator message. Correcting a legacy AutoCount number and creating the PO occur in the same database function, so the Ready stage no longer calls the Purchasing-only number RPC. Production migrations 216–221 were applied and commit `27091933` was deployed on 26 August 2026; authenticated read-back of the two reported Production PR/PO relationships remains the final workflow gate.
@@ -489,7 +493,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `221`; linked Production application and cleanup evidence through migration 215 is recorded in the current closure sections and repair ledger. Migrations 216–221 are locally applied and schema-verified only; migration 219 is the Manager/Purchasing PR review-line authority change, migration 220 closes the atomic Finance-to-PO handoff and PO-send permission alias mismatch, and migration 221 safely reconciles legacy Ready-stage PRs with matching unlinked POs. Linked application, public runtime availability, and authenticated Production-like workflow evidence remain separate gates.
+Repository migration authority: migrations reviewed through `222`; linked Production application and cleanup evidence through migration 221 is recorded in the current closure sections and repair ledger. Migration 222 reuses an orphan active PO document only when no Purchase Order owns it, preserving the AutoCount number and audit history. Linked application, public runtime availability, and authenticated Production-like workflow evidence remain separate gates.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

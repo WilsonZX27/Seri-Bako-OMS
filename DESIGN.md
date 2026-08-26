@@ -1,5 +1,11 @@
 # Seri Bako OMS responsive design standard
 
+## v8.65.12 (unreleased) — Preserve the real operational identifier
+
+- Do not ask an operator to add punctuation to a real AutoCount PO Number merely to bypass an OMS uniqueness collision.
+- When an earlier non-atomic attempt left only the PO document, recovery reuses that document and records a revision; it does not hide, rename or recreate the audit identity.
+- The recovery action stays one step. A conflicting document owned by another business record returns an explicit ownership message.
+
 ## v8.65.11 (deployed; authenticated Production PR read-back pending) — Recovery is a business decision
 
 - A legacy recovery action must either finish the known PR-to-PO relationship or explain the exact ownership conflict. Generic duplicate-record errors are not sufficient.

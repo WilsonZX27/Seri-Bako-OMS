@@ -7,6 +7,7 @@
 - A time-series with a valid period but zero posted events is a verified-empty state, not a reason to render an empty plot with tiny axes.
 - Quick actions are one segmented command group. They do not become a repeated grid of floating icon cards or use decorative lift motion.
 - Browser screenshots must be inspected after automation. Passing overflow and accessibility assertions is necessary but does not establish visual hierarchy quality.
+- Final localhost acceptance combines both layers: inspected screenshots for the changed surfaces, followed by the complete 99-route, six-role, four-viewport matrix. The owned production-mode runner must also return control after teardown; a hanging process is a harness failure even when its pages passed.
 
 ## v8.65.8 (unreleased) — Scroll ownership and native dialog layering
 

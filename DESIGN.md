@@ -1,10 +1,11 @@
 # Seri Bako OMS responsive design standard
 
-## v8.65.11 (unreleased) — Recovery is a business decision
+## v8.65.11 (deployed; authenticated Production PR read-back pending) — Recovery is a business decision
 
 - A legacy recovery action must either finish the known PR-to-PO relationship or explain the exact ownership conflict. Generic duplicate-record errors are not sufficient.
 - Existing POs are never silently reassigned. Reconciliation requires an unlinked PO with the same company, branch and supplier; mismatched or already-linked orders remain fail-closed.
 - The operator enters the AutoCount number once in the recovery surface. Correction and reconciliation share one server transaction rather than exposing an earlier workflow RPC.
+- Production release evidence is bounded: linked migrations 216–221 are current, the Vercel Production deployment for commit `27091933` succeeded, and the public login renders `v8.65.11`; only an authenticated retry can verify the two historical PR relationships.
 
 ## v8.65.10 (unreleased) — Workflow clarity and audit hierarchy
 

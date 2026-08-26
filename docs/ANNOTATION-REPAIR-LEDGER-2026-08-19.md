@@ -6,13 +6,14 @@ Production screenshots showed that the v8.65.10 UI was present while the two his
 
 | URL | Role / viewport | Finding | Resolution | Evidence state |
 |---|---|---|---|---|
-| `/purchase-requests/93a03e26-74b3-43c3-85d8-2617ecb159b4` | Purchasing / 1440×900 | Ready-stage recovery called the earlier Purchasing Review number RPC | One legacy reconciliation RPC owns correction and completion | implemented; Production deployment pending |
-| `/purchase-requests/743bf30f-c0ed-4157-b883-d978e4fcc93c` | Purchasing / 1440×900 | `PO-000208` exists but the generic collision cannot distinguish a matching unlinked PO from another request | Reconcile only an unlinked exact branch/supplier match; otherwise return an explicit ownership conflict | implemented; authenticated Production read-back pending |
+| `/purchase-requests/93a03e26-74b3-43c3-85d8-2617ecb159b4` | Purchasing / 1440×900 | Ready-stage recovery called the earlier Purchasing Review number RPC | One legacy reconciliation RPC owns correction and completion | deployed; authenticated Production read-back pending |
+| `/purchase-requests/743bf30f-c0ed-4157-b883-d978e4fcc93c` | Purchasing / 1440×900 | `PO-000208` exists but the generic collision cannot distinguish a matching unlinked PO from another request | Reconcile only an unlinked exact branch/supplier match; otherwise return an explicit ownership conflict | deployed; authenticated Production read-back pending |
 
 - Implemented: application version `8.65.11`, migration 221, guarded legacy PO reconciliation, and specific conflict copy.
 - Locally verified: clean reset and dry-run through migration 221; `V9_SCHEMA_OK` reports 85 RLS tables, 6 views and 146 fixed-search-path SECURITY DEFINER functions; `991/991` contracts, strict typecheck, ESLint and the local-env Production build pass. Authenticated browser mutation proved both boundaries: an existing PO linked to another PR stayed blocked with the specific ownership message, while an unlinked exact branch/supplier match was linked and the legacy PR became `converted_to_po`. The broader payment-chain continuation later encountered the known Next dev attachment-form refresh failure, outside this recovery boundary.
-- Awaiting authenticated UAT: apply migration 221, deploy v8.65.11, then retry and read back both reported Production PRs and their PO relationships.
-- Production verified: no. The screenshots confirm the remaining legacy defect, not the repair.
+- Production deployed: migrations 216–221 applied successfully and a linked dry-run reports `Remote database is up to date`; commit `27091933` has a successful Vercel Production deployment, while `https://system.seribako.com.my/login` returns HTTP 200 and renders `v8.65.11`.
+- Awaiting authenticated UAT: retry and read back both reported Production PRs and their PO relationships with the Purchasing account.
+- Production verified: deployment and migration state only. The two historical business records are not marked verified until the authenticated retries complete.
 
 ## 2026-08-26 — v8.65.10 Production workflow incident repair
 

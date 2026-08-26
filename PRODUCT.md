@@ -1,8 +1,8 @@
 # Seri Bako Operations Management System
 
-### v8.65.11 (unreleased) — Legacy PR-to-PO reconciliation
+### v8.65.11 (deployed; authenticated Production PR read-back pending) — Legacy PR-to-PO reconciliation
 
-Historical PRs stranded in `ready_to_convert` now finish through one guarded reconciliation action. If the PO is already linked to the same PR, the workflow completes idempotently. An unlinked PO may be attached only when company, branch, supplier and active state match exactly; a PO owned by another PR or business order remains blocked with a specific operator message. Correcting a legacy AutoCount number and creating the PO occur in the same database function, so the Ready stage no longer calls the Purchasing-only number RPC. Migration 221 and deployment are required before the two reported Production PRs can be verified or repaired.
+Historical PRs stranded in `ready_to_convert` now finish through one guarded reconciliation action. If the PO is already linked to the same PR, the workflow completes idempotently. An unlinked PO may be attached only when company, branch, supplier and active state match exactly; a PO owned by another PR or business order remains blocked with a specific operator message. Correcting a legacy AutoCount number and creating the PO occur in the same database function, so the Ready stage no longer calls the Purchasing-only number RPC. Production migrations 216–221 were applied and commit `27091933` was deployed on 26 August 2026; authenticated read-back of the two reported Production PR/PO relationships remains the final workflow gate.
 
 ### v8.65.10 (unreleased) — Atomic Finance-to-PO handoff
 

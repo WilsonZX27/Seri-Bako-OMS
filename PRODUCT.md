@@ -1,5 +1,11 @@
 # Seri Bako Operations Management System
 
+### v8.65.16 (unreleased) — Operational input and visual alignment
+
+Dashboard work surfaces now share one restrained sage heading treatment instead of mixing similar but visibly different greens. Outlet Daily uses the same column definition for its wide-screen heading and each product row, while tablet layouts keep wastage details on a deliberate second row. Shared number inputs ignore Arrow Up/Down stepping and release focus on mouse-wheel input so incidental navigation cannot silently change operational quantities.
+
+Workflow badges retain their semantic role colors and now use recognizable icons for Manager, Purchasing, Finance, Ready, converted and rejected states. Goods Receiving removes duplicated Delivery Order instructions, shortens the upload action to “Attach DO”, and adds meaningful icons to posting, navigation and upload actions. These source changes require localhost interaction and four-viewport verification before release; the current Production screenshots remain v8.65.15 evidence.
+
 ### v8.65.15 (unreleased) — Modal layer ownership correction
 
 Shared dialogs now portal to the document body instead of inheriting the stacking context of the control that opened them. A Delivery Order dialog launched from the fixed mobile receiving rail therefore dims the complete page—including the header and bottom action bar—while keeping only the dialog active and visually clear. The underlying receiving action can no longer appear above the modal backdrop.

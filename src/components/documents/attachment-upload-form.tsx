@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useId, useState } from "react";
-import { Paperclip } from "lucide-react";
+import { Paperclip, Upload } from "lucide-react";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -46,7 +46,7 @@ export function AttachmentUploadForm({
         />
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-2">
           <label htmlFor={inputId} className={cn(buttonVariants({ variant: "outline", size: "sm" }), "min-w-0 cursor-pointer justify-start overflow-hidden") }><Paperclip className="h-4 w-4 shrink-0" /><span className="truncate">{fileName || "Add Attachment"}</span></label>
-          <SubmitButton type="submit" pendingLabel="Uploading..." disabled={Boolean(fileError)} className="shrink-0 justify-center">{submitLabel}</SubmitButton>
+          <SubmitButton type="submit" pendingLabel="Uploading..." disabled={Boolean(fileError)} className="shrink-0 justify-center"><Upload className="h-4 w-4 shrink-0" aria-hidden="true" />{submitLabel}</SubmitButton>
         </div>
       </Field>
       <p className="break-words text-[10px] text-[#adbdb5]">PDF, image, text, CSV, DOCX, or XLSX up to 10 MB.</p>

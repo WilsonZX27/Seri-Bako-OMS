@@ -107,7 +107,7 @@ test("required files remain visible on mobile and support follows the canonical 
   const grn = app("goods-receivings/[id]");
   const invoice = app("supplier-invoices/[id]");
   const count = app("stock-counts/[id]");
-  assert.match(grn, /className="md:hidden"><AttachmentPanel[\s\S]*Attach Delivery Order/);
+  assert.match(grn, /className="md:hidden"><AttachmentPanel[\s\S]*uploadLabel="Attach DO"/);
   assert.match(invoice, /className="md:hidden"><AttachmentPanel[\s\S]*Attach Supplier Invoice/);
   assert.match(count, /mobileActivity=\{documentBundle \?[\s\S]*<AttachmentPanel[\s\S]*<CommentsPanel[\s\S]*<DocumentTimeline/);
   assert.doesNotMatch(count, /Count Evidence Required/);

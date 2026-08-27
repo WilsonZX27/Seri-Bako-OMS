@@ -10,6 +10,7 @@
   --sb-shadow-sm: 0 5px 18px rgb(12 43 32 / 0.07), 0 1px 3px rgb(12 43 32 / 0.05);
   --sb-shadow-md: 0 14px 36px rgb(12 43 32 / 0.10), 0 3px 10px rgb(12 43 32 / 0.06);
   --sb-content-gutter: clamp(0.75rem, 1.5vw, 1.25rem);
+  --sb-dashboard-header-surface: #d7e7df;
 }
 
 /* The completion matrix uses separated cells, so a horizontally scrolled date
@@ -338,8 +339,12 @@ body::-webkit-scrollbar {
   box-shadow: var(--sb-shadow-xs);
 }
 
+[data-status-icon]::before {
+  display: none;
+}
+
 [data-dashboard-panel] > :first-child {
-  background: #e9f0ec;
+  background: var(--sb-dashboard-header-surface);
 }
 
 [data-dashboard-panel] > :last-child {
@@ -953,7 +958,7 @@ html[data-design-layer="v2"] [data-dashboard-command] {
 }
 
 html[data-design-layer="v2"] [data-dashboard-command] [data-dashboard-attention-summary] {
-  background: #d7e7df;
+  background: var(--sb-dashboard-header-surface);
 }
 
 html[data-design-layer="v2"] [data-dashboard-command] [data-dashboard-pulse-metrics] {

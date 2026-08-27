@@ -1,5 +1,13 @@
 # Seri Bako OMS responsive design standard
 
+## v8.65.16 (unreleased) — Quiet hierarchy and safe numeric entry
+
+- Repeated work surfaces use one shared semantic header token. A dashboard must not communicate accidental hierarchy through near-duplicate greens.
+- A responsive operational row and its heading share the same column grammar at each breakpoint. Optional details may move to a second row on tablet, but cannot occupy phantom columns that exist only in the data row.
+- Numeric fields must protect business quantities from incidental navigation. Mouse-wheel movement scrolls the page rather than stepping a focused number field; Arrow Up/Down do not mutate the value.
+- Workflow identity uses color and a familiar icon together. Icons are semantic, aria-hidden companions to the visible text label—not standalone decoration or a substitute for copy.
+- Action icons describe the verb: post, open and upload. Repeated Delivery Order guidance is removed once the validation rail already states the requirement.
+
 ## v8.65.15 (unreleased) — Dialogs own the complete viewport
 
 - A modal is a document-level surface. Portal it to `document.body`; never let it inherit the stacking context of a fixed action rail, sticky header, clipped card, or scrolling panel.

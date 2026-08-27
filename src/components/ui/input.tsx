@@ -57,7 +57,7 @@ const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
 DateInput.displayName = "DateInput";
 
 const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
-  ({ className, type, lang, ...props }, ref) => {
+  ({ className, type, lang, onKeyDown, onWheel, ...props }, ref) => {
     if (type === "date") return <DateInput ref={ref} className={className} lang={lang} {...props} />;
 
     return (
@@ -69,6 +69,18 @@ const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLI
           className,
         )}
         ref={ref}
+        onKeyDown={(event) => {
+          onKeyDown?.(event);
+          if (type === "number" && (event.key === "ArrowUp" || event.key === "ArrowDown")) {
+            event.preventDefault();
+          }
+        }}
+        onWheel={(event) => {
+          if (type === "number" && event.currentTarget === document.activeElement) {
+            event.currentTarget.blur();
+          }
+          onWheel?.(event);
+        }}
         {...props}
       />
     );

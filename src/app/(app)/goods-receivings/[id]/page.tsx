@@ -1,4 +1,4 @@
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, ExternalLink, PackageCheck } from "lucide-react";
 import { DocumentActionBar, DocumentActionForm, DocumentActionLink } from "@/components/document-action-bar";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
@@ -35,8 +35,8 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
   const hasPrimaryAction = permissions["grn.post"] && receiving.status === "draft";
   const secondaryActions = receiving.status === "draft" && permissions["goods_receiving.cancel"] ? <DocumentActionForm action={cancelGoodsReceiving.bind(null, receiving.id)} pendingLabel="Deleting draft..." variant="destructive">Delete draft</DocumentActionForm> : receiving.status !== "draft" ? <BlockedDestructiveAction buttonLabel="Delete receiving" title={`Cannot delete ${receiving.grn_no}`} description={receiving.status === "posted" ? "This receiving has posted stock movements and must remain in the audit trail." : "This receiving is linked to its purchase order and document history."} recommendation={receiving.status === "posted" ? "Use a purchase return or correction workflow. Physical deletion is prohibited." : "This record is already outside active draft work."} /> : null;
   const mobilePrimaryAction = hasPrimaryAction ? (hasDeliveryOrder
-    ? <DocumentActionForm action={postGoodsReceiving.bind(null, receiving.id)} pendingLabel="Posting...">Post Receiving to Stock</DocumentActionForm>
-    : <MobileTaskSheet label="Post Receiving to Stock"><form action={postGoodsReceiving.bind(null, receiving.id)} className="space-y-2"><Textarea name="do_exception_reason" placeholder="Document why no Delivery Order is available" required /><SubmitButton pendingLabel="Posting..." className="w-full justify-center">Post Receiving to Stock</SubmitButton></form></MobileTaskSheet>) : null;
+    ? <DocumentActionForm action={postGoodsReceiving.bind(null, receiving.id)} pendingLabel="Posting..."><PackageCheck className="h-4 w-4" aria-hidden="true" />Post Receiving to Stock</DocumentActionForm>
+    : <MobileTaskSheet label="Post Receiving to Stock"><form action={postGoodsReceiving.bind(null, receiving.id)} className="space-y-2"><Textarea name="do_exception_reason" placeholder="Document why no Delivery Order is available" required /><SubmitButton pendingLabel="Posting..." className="w-full justify-center"><PackageCheck className="h-4 w-4" aria-hidden="true" />Post Receiving to Stock</SubmitButton></form></MobileTaskSheet>) : null;
 
   return (
     <DocumentWorkspace
@@ -55,12 +55,12 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
             <DocumentActionBar>
               {hasPrimaryAction ? <form action={postGoodsReceiving.bind(null, receiving.id)} className="space-y-2" data-mobile-primary-action>
                 {!hasDeliveryOrder ? <Textarea name="do_exception_reason" placeholder="If no DO is available, document the exception" required /> : null}
-                <SubmitButton pendingLabel="Posting..." className="w-full justify-center">Post Receiving to Stock</SubmitButton>
+                <SubmitButton pendingLabel="Posting..." className="w-full justify-center"><PackageCheck className="h-4 w-4" aria-hidden="true" />Post Receiving to Stock</SubmitButton>
               </form> : null}
             </DocumentActionBar>
             {!hasPrimaryAction && receiving.status === "draft" ? <p className="mt-3 text-sm text-muted-foreground">You can view this GRN, but you do not have permission to post it.</p> : null}
           </DocumentActionSection>
-          <DocumentSideSection title="Validation / Next Step"><DocumentActionLink href={`/purchase-orders/${receiving.purchase_order_id}`} variant="outline">View Purchase Order</DocumentActionLink><p className="text-xs text-muted-foreground">{receiving.status === "draft" ? "Attach the Delivery Order or document an exception before posting." : "This receiving is finalized and read-only."}</p></DocumentSideSection>
+          <DocumentSideSection title="Validation / Next Step"><DocumentActionLink href={`/purchase-orders/${receiving.purchase_order_id}`} variant="outline"><ExternalLink className="h-4 w-4" aria-hidden="true" />View Purchase Order</DocumentActionLink><p className="text-xs text-muted-foreground">{receiving.status === "draft" ? "Attach the Delivery Order or document an exception before posting." : "This receiving is finalized and read-only."}</p></DocumentSideSection>
           {!hasDeliveryOrder && receiving.status === "draft" ? (
             <DocumentSideSection title="Attachment Recommended">
               <div className="flex gap-2 rounded-md bg-warning/10 p-3 text-sm text-warning">
@@ -71,7 +71,7 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
           ) : null}
           {documentBundle ? (
             <>
-              <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Delivery Order" description="Attach the supplier DO before posting. Upload a replacement before removing a mistaken draft file." defaultLabel="Delivery Order" uploadLabel="Attach Delivery Order" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} />
+              <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Delivery Order" defaultLabel="Delivery Order" uploadLabel="Attach DO" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} />
               <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
               <DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} />
               <RevisionPanel revisions={documentBundle.revisions} />
@@ -80,7 +80,7 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
         </>
       }
     >
-          {documentBundle ? <div className="md:hidden"><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Delivery Order" description="Required before posting, unless a documented exception is provided." defaultLabel="Delivery Order" uploadLabel="Attach Delivery Order" presentation="inline" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /></div> : null}
+          {documentBundle ? <div className="md:hidden"><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Delivery Order" description="Required before posting, unless a documented exception is provided." defaultLabel="Delivery Order" uploadLabel="Attach DO" presentation="inline" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /></div> : null}
           <Card>
             <CardContent className="space-y-4 p-5">
               <h2 className="text-sm font-semibold">Receiving Summary</h2>

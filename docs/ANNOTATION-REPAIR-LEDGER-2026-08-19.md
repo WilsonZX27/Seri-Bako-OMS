@@ -1,5 +1,20 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-08-27 — v8.65.16 Dashboard, Outlet Daily and Goods Receiving correction
+
+| Surface / source | Role / viewport | Finding | Resolution | Evidence state |
+|---|---|---|---|---|
+| `/dashboard` | Owner / Production / 1440×900 | “Exceptions requiring follow-up” and “Actions awaiting you” used visibly different heading greens | Both shared dashboard panel headings and the attention summary now consume one sage surface token | authenticated localhost inspected at all four fixed viewports; no horizontal overflow |
+| `/outlet-daily-records/:id` | authorised staff / Production / 2286×1286 | Wide-screen heading declared five columns while each product line declared six, so Wastage detail controls drifted out of alignment | Heading and row share the same six-column wide-screen grammar; tablet keeps details on a full-width second row | authenticated localhost grid measured at 390/820/1180/1440; 3/4/4/6-column authority and no horizontal overflow |
+| shared number inputs | all roles / mouse and keyboard | Focused `type=number` fields could be changed accidentally by wheel or Arrow Up/Down | Shared Input blocks arrow stepping and blurs a focused number field before wheel default handling | authenticated localhost Goods Receiving input retained value `5` after Arrow Up/Down and wheel; wheel also removed focus |
+| Purchase Request workflow status | all permitted roles / desktop lists and details | Role stages relied on small colored dots and were hard to distinguish in dense status columns | Manager, Purchasing, Finance, Ready, converted and rejected states retain distinct tones and gain semantic icons | regression contract passed; authenticated populated-list visual remains awaiting UAT because local PR fixture is empty |
+| `/goods-receivings/:id` | Owner / Production / 2286×1286 | Rail repeated long DO guidance, lacked clear action icons, and used the verbose “Attach Delivery Order” label | Remove duplicate paragraph; add post/open/upload icons; use “Attach DO” at desktop and mobile | authenticated localhost desktop/mobile DOM and mobile screenshot inspected; all three actions expose icons and concise copy |
+
+- Implemented: shared Dashboard header token, responsive Outlet Daily grid authority, shared numeric-input safety, workflow status iconography, concise Goods Receiving DO actions, and version 8.65.16.
+- Locally verified: 999 contracts, strict typecheck, lint and the environment-backed Production build pass. Authenticated localhost visual/input checks passed; `V9_SCHEMA_OK` reports migration 224, 85 tables, 6 views and 147 SECURITY DEFINER functions; migration dry-run reports the local database is up to date.
+- Awaiting authenticated UAT: deploy v8.65.16 and repeat the annotated workflows with Production roles and data.
+- Production verified: not claimed; the supplied Production screenshots show v8.65.15 before these corrections.
+
 ## 2026-08-26 — v8.65.15 PO receiving modal layer correction
 
 | Surface / source | Role / viewport | Finding | Resolution | Evidence state |

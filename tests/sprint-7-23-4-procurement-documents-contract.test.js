@@ -35,7 +35,7 @@ test("receiving requires delivery evidence or a documented exception before stoc
   assert.match(inventoryHardening, /status = 'active' and deleted_at is null/);
   assert.match(inventoryHardening, /Attach the Delivery Order or document an exception/);
   assert.match(action, /delivery_order_exception/);
-  assert.match(detail, /Attach Delivery Order/);
+  assert.match(detail, /uploadLabel="Attach DO"/);
 });
 
 test("supplier invoice evidence is required for Finance Review", () => {

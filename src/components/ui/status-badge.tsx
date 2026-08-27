@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { CircleCheck, CircleX, Landmark, Send, ShieldCheck, ShoppingCart } from "lucide-react";
 import { formatStatusLabel } from "@/lib/status-label";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +17,19 @@ export function StatusBadge({ status, className }: { status: string; className?:
     ready_to_post: "border-[#BFDCD3] bg-[#E1F3ED] text-[#075942]",
   };
   const stageClassName = workflowTone[normalized];
+  const StatusIcon = normalized === "manager_review"
+    ? ShieldCheck
+    : ["admin_review", "purchasing_review"].includes(normalized)
+      ? ShoppingCart
+      : normalized === "finance_review"
+        ? Landmark
+        : ["ready", "ready_to_convert", "ready_to_send_supplier", "sent_to_supplier"].includes(normalized)
+          ? Send
+          : ["converted", "converted_to_po", "approved", "posted", "completed"].includes(normalized)
+            ? CircleCheck
+            : ["rejected", "cancelled"].includes(normalized)
+              ? CircleX
+              : null;
   const variant = stageClassName
     ? "secondary"
     : ["approved", "posted", "completed", "evening_completed", "ready", "closed", "converted", "converted_to_po", "sent", "active", "available", "dispatched", "paid"].includes(normalized)
@@ -27,5 +41,5 @@ export function StatusBadge({ status, className }: { status: string; className?:
         : ["in_production", "qc_review"].includes(normalized)
           ? "default"
         : "secondary";
-  return <Badge variant={variant} data-status={normalized} className={cn(stageClassName, className)}>{formatStatusLabel(status)}</Badge>;
+  return <Badge variant={variant} data-status={normalized} data-status-icon={StatusIcon ? "true" : undefined} className={cn("gap-1.5", stageClassName, className)}>{StatusIcon ? <StatusIcon className="h-3 w-3 shrink-0" aria-hidden="true" /> : null}{formatStatusLabel(status)}</Badge>;
 }

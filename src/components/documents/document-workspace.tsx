@@ -98,7 +98,7 @@ export function DocumentWorkspace({
         <div className="min-w-0">
           <div className="min-w-0 space-y-3">
             {children}
-            {mobileActivity ? <MobileActivityAndFiles>{mobileActivity}</MobileActivityAndFiles> : null}
+            {mobileActivity ? <MobileActivityAndFiles>{tabletRailMode === "context" && (mobilePrimaryAction || mobileMoreOptions) ? <><div className="hidden space-y-2 md:block xl:hidden"><ConsoleSection title="Actions">{mobilePrimaryAction}{mobileMoreOptions}</ConsoleSection></div>{mobileActivity}</> : mobileActivity}</MobileActivityAndFiles> : null}
           </div>
         </div>
       </WorkspaceGrid>

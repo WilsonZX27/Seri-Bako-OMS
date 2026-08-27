@@ -26,9 +26,9 @@ test("incomplete reference directories cannot expose a writable draft form", () 
   assert.match(page, /Branch unavailable/);
 });
 
-test("linked orders and document activity distinguish unavailable from empty", () => {
-  assert.match(page, /linkedPurchaseOrders === null[\s\S]*Linked purchase orders unavailable/);
-  assert.match(page, /linkedPurchaseOrders\.length[\s\S]*No purchase order has been created/);
+test("linked procurement chain and document activity distinguish unavailable from empty", () => {
+  assert.match(page, /procurementChain \? <ProcurementChain[\s\S]*Purchase chain unavailable/);
+  assert.match(page, /getProcurementChainForRequest/);
   assert.match(page, /documentBundleUnavailable[\s\S]*Document Activity/);
   assert.match(page, /documentBundleUnavailable[\s\S]*md:hidden[\s\S]*Document activity unavailable/);
 });

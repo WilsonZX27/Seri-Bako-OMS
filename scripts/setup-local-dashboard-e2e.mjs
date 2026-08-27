@@ -286,7 +286,7 @@ if (includeAnnotationFixture) {
     qty: 2,
     uom: "KG",
     estimated_unit_cost: 3.5,
-    suggested_supplier_id: null,
+    suggested_supplier_id: reviewSupplier.id,
     reason: "Local guided-review validation fixture.",
   });
   if (lineWrite.error) throw lineWrite.error;
@@ -513,6 +513,14 @@ if (includeSupplierInvoiceFixture) {
   const fixtureSupplierCode = "E2E-INV-SUP";
   const fixturePoNo = "E2E-PO-INVOICE-OPEN";
   const fixtureGrnNo = "E2E-GRN-INVOICE-OPEN";
+  const fixturePrId = "e2000000-0000-4000-8000-000000000070";
+  const fixturePrDocumentId = "e2000000-0000-4000-8000-000000000071";
+  const fixturePoDocumentId = "e2000000-0000-4000-8000-000000000072";
+  const fixtureGrnDocumentId = "e2000000-0000-4000-8000-000000000073";
+  const fixtureInvoiceId = "e2000000-0000-4000-8000-000000000074";
+  const fixtureInvoiceDocumentId = "e2000000-0000-4000-8000-000000000075";
+  const fixturePrAttachmentId = "e2000000-0000-4000-8000-000000000076";
+  const fixtureGrnAttachmentId = "e2000000-0000-4000-8000-000000000077";
 
   let { data: invoiceItem, error: invoiceItemError } = await admin.from("items").select("id").eq("company_id", company.id).eq("item_code", fixtureItemCode).maybeSingle();
   if (invoiceItemError) throw invoiceItemError;
@@ -544,13 +552,30 @@ if (includeSupplierInvoiceFixture) {
     if (result.error) throw result.error;
   }
 
+  const fixtureDocuments = [
+    { id: fixturePrDocumentId, document_no: "E2E-PR-INVOICE-CHAIN", document_type: "purchase_request", title: "Local procurement chain PR", status: "posted", approval_status: "approved", related_entity_type: "purchase_request", related_entity_id: fixturePrId },
+    { id: fixturePoDocumentId, document_no: `DOC-${fixturePoNo}`, document_type: "purchase_order", title: "Local procurement chain PO", status: "posted", approval_status: "approved", related_entity_type: "purchase_order", related_entity_id: null },
+    { id: fixtureGrnDocumentId, document_no: `DOC-${fixtureGrnNo}`, document_type: "goods_receiving", title: "Local procurement chain GRN", status: "posted", approval_status: "approved", related_entity_type: "goods_receiving", related_entity_id: null },
+    { id: fixtureInvoiceDocumentId, document_no: "E2E-INV-CHAIN", document_type: "supplier_invoice", title: "Local procurement chain invoice", status: "posted", approval_status: "approved", related_entity_type: "supplier_invoice", related_entity_id: fixtureInvoiceId },
+  ];
+  for (const document of fixtureDocuments) {
+    const result = await admin.from("documents").upsert({ ...document, company_id: company.id, created_by: staffByRole.get("purchasing"), updated_by: staffByRole.get("purchasing"), deleted_at: null });
+    if (result.error) throw result.error;
+  }
+  const fixturePrWrite = await admin.from("purchase_requests").upsert({ id: fixturePrId, company_id: company.id, document_id: fixturePrDocumentId, request_no: "E2E-PR-INVOICE-CHAIN", requested_by: staffByRole.get("kitchen"), request_date: new Date().toISOString().slice(0, 10), priority: "normal", branch_id: branch.id, status: "converted_to_po", remarks: "Disposable linked procurement chain fixture.", deleted_at: null, created_by: staffByRole.get("kitchen"), updated_by: staffByRole.get("purchasing") });
+  if (fixturePrWrite.error) throw fixturePrWrite.error;
+
   let { data: invoicePo, error: invoicePoError } = await admin.from("purchase_orders").select("id").eq("company_id", company.id).eq("po_no", fixturePoNo).maybeSingle();
   if (invoicePoError) throw invoicePoError;
   if (!invoicePo) {
-    const result = await admin.from("purchase_orders").insert({ company_id: company.id, branch_id: branch.id, po_no: fixturePoNo, supplier_id: invoiceSupplier.id, status: "received", approval_status: "approved", remarks: "Disposable local Supplier Invoice UI fixture." }).select("id").single();
+    const result = await admin.from("purchase_orders").insert({ company_id: company.id, document_id: fixturePoDocumentId, branch_id: branch.id, purchase_request_id: fixturePrId, po_no: fixturePoNo, supplier_id: invoiceSupplier.id, status: "received", approval_status: "approved", remarks: "Disposable local Supplier Invoice UI fixture." }).select("id").single();
     if (result.error) throw result.error;
     invoicePo = result.data;
   }
+  const invoicePoChainWrite = await admin.from("purchase_orders").update({ document_id: fixturePoDocumentId, purchase_request_id: fixturePrId, status: "received" }).eq("id", invoicePo.id);
+  if (invoicePoChainWrite.error) throw invoicePoChainWrite.error;
+  const poDocumentLink = await admin.from("documents").update({ related_entity_id: invoicePo.id }).eq("id", fixturePoDocumentId);
+  if (poDocumentLink.error) throw poDocumentLink.error;
 
   let { data: invoicePoLine, error: invoicePoLineError } = await admin.from("purchase_order_lines").select("id").eq("purchase_order_id", invoicePo.id).eq("item_id", invoiceItem.id).maybeSingle();
   if (invoicePoLineError) throw invoicePoLineError;
@@ -563,10 +588,22 @@ if (includeSupplierInvoiceFixture) {
   let { data: invoiceGrn, error: invoiceGrnError } = await admin.from("goods_receivings").select("id").eq("company_id", company.id).eq("grn_no", fixtureGrnNo).maybeSingle();
   if (invoiceGrnError) throw invoiceGrnError;
   if (!invoiceGrn) {
-    const result = await admin.from("goods_receivings").insert({ company_id: company.id, purchase_order_id: invoicePo.id, grn_no: fixtureGrnNo, supplier_id: invoiceSupplier.id, branch_id: branch.id, status: "posted", posted_at: new Date().toISOString(), remarks: "Disposable local Supplier Invoice UI fixture." }).select("id").single();
+    const result = await admin.from("goods_receivings").insert({ company_id: company.id, document_id: fixtureGrnDocumentId, purchase_order_id: invoicePo.id, grn_no: fixtureGrnNo, supplier_id: invoiceSupplier.id, branch_id: branch.id, status: "posted", posted_at: new Date().toISOString(), remarks: "Disposable local Supplier Invoice UI fixture." }).select("id").single();
     if (result.error) throw result.error;
     invoiceGrn = result.data;
   }
+  const invoiceGrnChainWrite = await admin.from("goods_receivings").update({ document_id: fixtureGrnDocumentId, status: "posted", posted_at: new Date().toISOString() }).eq("id", invoiceGrn.id);
+  if (invoiceGrnChainWrite.error) throw invoiceGrnChainWrite.error;
+  const grnDocumentLink = await admin.from("documents").update({ related_entity_id: invoiceGrn.id }).eq("id", fixtureGrnDocumentId);
+  if (grnDocumentLink.error) throw grnDocumentLink.error;
+
+  const invoiceWrite = await admin.from("supplier_invoices").upsert({ id: fixtureInvoiceId, company_id: company.id, document_id: fixtureInvoiceDocumentId, invoice_no: "E2E-INV-CHAIN", supplier_invoice_no: "SUP-E2E-INV-CHAIN", supplier_id: invoiceSupplier.id, purchase_order_id: invoicePo.id, goods_receiving_id: invoiceGrn.id, total_amount: 42.5, subtotal: 42.5, tax_amount: 0, amount_paid: 0, status: "open", payment_terms_days: 30, created_by: staffByRole.get("finance"), updated_by: staffByRole.get("finance"), deleted_at: null });
+  if (invoiceWrite.error) throw invoiceWrite.error;
+  const sharedAttachmentWrite = await admin.from("attachments").upsert([
+    { id: fixturePrAttachmentId, company_id: company.id, entity_type: "document", entity_id: fixturePrDocumentId, file_name: "Request specification.pdf", file_type: "application/pdf", file_size: 512, storage_path: "e2e/procurement-chain/request-specification.pdf", status: "active", uploaded_by: staffByRole.get("kitchen"), created_by: staffByRole.get("kitchen"), updated_by: staffByRole.get("kitchen"), deleted_at: null },
+    { id: fixtureGrnAttachmentId, company_id: company.id, entity_type: "document", entity_id: fixtureGrnDocumentId, file_name: "Delivery Order.pdf", file_type: "application/pdf", file_size: 512, storage_path: "e2e/procurement-chain/delivery-order.pdf", status: "active", uploaded_by: staffByRole.get("purchasing"), created_by: staffByRole.get("purchasing"), updated_by: staffByRole.get("purchasing"), deleted_at: null },
+  ]);
+  if (sharedAttachmentWrite.error) throw sharedAttachmentWrite.error;
 
   const { data: staleReturns, error: staleReturnsError } = await admin.from("purchase_returns").select("id, document_id").eq("goods_receiving_id", invoiceGrn.id);
   if (staleReturnsError) throw staleReturnsError;

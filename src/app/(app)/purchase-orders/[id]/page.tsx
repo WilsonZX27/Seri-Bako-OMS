@@ -1,8 +1,6 @@
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DocumentActionBar, DocumentActionForm } from "@/components/document-action-bar";
-import { DocumentNumber } from "@/components/document-number";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
@@ -13,9 +11,10 @@ import { PriorityBadge } from "@/components/priority-badge";
 import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
 import { approvePurchaseOrder, cancelPurchaseOrder, closePurchaseOrder, rejectPurchaseOrder, restorePurchaseOrder, sendPurchaseOrder, submitPurchaseOrder } from "@/server/actions/procurement";
 import { getPermissionMap } from "@/server/auth/permissions";
-import { getBranchesForSelect, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
+import { getBranchesForSelect, getCurrentProfile, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
-import { getPurchaseOrder, getPurchaseRequestForOrder } from "@/server/queries/procurement";
+import { getProcurementChainForRequest, getPurchaseOrder, getPurchaseRequestForOrder } from "@/server/queries/procurement";
+import { ProcurementChain } from "@/components/procurement/procurement-chain";
 import { PhaseOneDeleteAction } from "@/components/phase-one-delete-action";
 import { AttachmentRequiredAction } from "@/components/documents/attachment-required-action";
 import { detailOrNotFound } from "@/server/queries/detail";
@@ -40,14 +39,17 @@ const convertedPoSteps = [
 
 export default async function PurchaseOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [{ order, lines }, items, suppliers, branches, permissions] = await Promise.all([
+  const [{ order, lines }, items, suppliers, branches, permissions, profile] = await Promise.all([
     detailOrNotFound(getPurchaseOrder(id)),
     getItemsForSelect(),
     getSuppliersForSelect(),
     getBranchesForSelect(),
     getPermissionMap(["po.submit", "po.approve", "po.send", "po.receive", "purchase_order.cancel", "purchase_order.close", "documents.attach"]),
+    getCurrentProfile(),
   ]);
   const sourceRequest = await getPurchaseRequestForOrder(order.purchase_request_id);
+  const procurementChain = sourceRequest ? await getProcurementChainForRequest(sourceRequest.id) : null;
+  const isOwner = String(profile?.role_code ?? "").toLowerCase() === "super_admin";
   const fromApprovedPr = Boolean(sourceRequest);
   const documentBundle = order.document_id ? await getDocumentBundle(order.document_id) : null;
   const itemById = new Map(items.map((item) => [item.id, item]));
@@ -87,8 +89,9 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
       priority={order.priority}
       workflowSteps={fromApprovedPr ? convertedPoSteps : poSteps}
       currentStatus={order.status}
+      tabletRailMode="context"
       mobilePrimaryAction={mobilePrimaryAction}
-      mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Purchase Order files" defaultLabel="Delivery Order" uploadLabel="Upload" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /></> : null}
+      mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={procurementChain?.attachments ?? documentBundle.attachments} title="Purchase files" defaultLabel="Delivery Order" uploadLabel="Upload" canManage={permissions["documents.attach"]} canRemove={isOwner} documentStatus={documentBundle.document.status} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} canRemove={isOwner} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /><RevisionPanel revisions={documentBundle.revisions} /></> : null}
       mobileMoreOptions={secondaryActions ? <DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions> : null}
       sidePanel={
         <>
@@ -105,10 +108,9 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
           <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{nextStep ?? "No further workflow step is available."}</p></DocumentSideSection>
           {documentBundle ? (
             <>
-              <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supporting Attachments" uploadLabel="Upload" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} />
-              <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
-              <DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} />
-              <RevisionPanel revisions={documentBundle.revisions} />
+              <AttachmentPanel documentId={documentBundle.document.id} attachments={procurementChain?.attachments ?? documentBundle.attachments} title="Purchase files" uploadLabel="Upload" canManage={permissions["documents.attach"]} canRemove={isOwner} documentStatus={documentBundle.document.status} />
+              <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} canRemove={isOwner} />
+              <div className="hidden xl:contents"><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /><RevisionPanel revisions={documentBundle.revisions} /></div>
             </>
           ) : null}
         </>
@@ -182,27 +184,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
             </CardContent>
           </Card>
 
-          <Card>
-            <CardContent className="space-y-3 p-4 sm:p-5">
-              <div>
-                <p className="text-[12px] text-muted-foreground">Linked document</p>
-                <h2 className="text-[14px] font-semibold">Purchase Request</h2>
-              </div>
-              {sourceRequest ? (
-                <Button asChild variant="outline" className="h-auto min-w-0 justify-between gap-2 p-3">
-                  <a href={`/purchase-requests/${sourceRequest.id}`}>
-                    <span className="min-w-0 text-left">
-                      <DocumentNumber value={sourceRequest.request_no} size="sm" className="max-w-full break-all" />
-                      <span className="block truncate text-[12px] text-muted-foreground">Created the purchase order workflow</span>
-                    </span>
-                    <StatusBadge status={sourceRequest.status} />
-                  </a>
-                </Button>
-              ) : (
-                <p className="bg-secondary/30 p-3 text-[12px] text-muted-foreground">This purchase order was created directly and has no source purchase request.</p>
-              )}
-            </CardContent>
-          </Card>
+          {procurementChain ? <ProcurementChain nodes={procurementChain.nodes} /> : <Card><CardContent className="p-4 text-[12px] text-muted-foreground">This purchase order was created directly and has no source purchase request.</CardContent></Card>}
 
     </DocumentWorkspace>
   );

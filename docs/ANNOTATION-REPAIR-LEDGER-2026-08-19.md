@@ -1,5 +1,19 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-08-27 — v8.65.21 Procurement chain and shared evidence
+
+| Surface / source | Role / viewport | Finding | Resolution | Evidence state |
+|---|---|---|---|---|
+| `/purchase-orders` | Owner / localhost 1440×900 | PO rows did not identify the originating PR | Add a Source PR column and direct link; direct POs remain explicitly labelled | authenticated localhost DOM verified |
+| `/purchase-requests` | Owner / localhost 1440×900 | Converted PRs hid later receiving progress | Resolve the furthest linked PO state and show Received/Closed when applicable | authenticated linked fixture displays Received |
+| PR / PO / GRN detail | Owner / 390×844, 820×1180, 1180×820, 1440×900 | Linked GRNs/invoices and files were fragmented; tablet history became a long clipped rail | Add a four-stage purchase chain, aggregate files with source provenance, and move tablet actions/files/activity/revisions into one bounded sheet | authenticated localhost desktop, portrait-tablet and mobile checks pass; landscape/build gates pending this turn |
+| Attachments / comments / PR deletion | Owner | Destructive controls needed explicit confirmation and Owner recovery authority | Keep PR deletion behind the existing confirmation/block dialog; Owner attachment/comment removal soft-archives and records activity | source contracts pass; no destructive action executed in UAT |
+
+- Implemented: linked-document chain, PO-to-PR trace, downstream PR fulfilment status, provenance-aware shared files, Owner soft archive for attachments/comments, and responsive progressive disclosure.
+- Locally verified: authenticated localhost evidence for the linked fixture and focused contracts; strict typecheck passes.
+- Awaiting authenticated UAT: deploy v8.65.21 and repeat with real PR/PO/GRN/invoice attachments across the four fixed viewports.
+- Production verified: not claimed; Production screenshots remain pre-fix problem evidence.
+
 ## 2026-08-27 — v8.65.20 Receiving action boundary and AutoCount confirmation
 
 | Surface / source | Role / viewport | Finding | Resolution | Evidence state |

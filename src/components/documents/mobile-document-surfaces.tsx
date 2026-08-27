@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import type { WorkflowStep } from "@/components/workflow-status-pipeline";
 import { cn } from "@/lib/utils";
 
-function MobileSheet({ label, title, children, danger = false, triggerClassName, triggerAriaLabel, trailingChevron = true }: { label: ReactNode; title: string; children: ReactNode; danger?: boolean; triggerClassName?: string; triggerAriaLabel?: string; trailingChevron?: boolean }) {
+function MobileSheet({ label, title, children, danger = false, triggerClassName, triggerAriaLabel, trailingChevron = true, hideAt = "md" }: { label: ReactNode; title: string; children: ReactNode; danger?: boolean; triggerClassName?: string; triggerAriaLabel?: string; trailingChevron?: boolean; hideAt?: "md" | "xl" }) {
   const [open, setOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -61,7 +61,7 @@ function MobileSheet({ label, title, children, danger = false, triggerClassName,
         {label}{trailingChevron ? <ChevronRight className="h-4 w-4" aria-hidden="true" /> : null}
       </Button>
       {open && hydrated ? createPortal(
-        <div className="fixed inset-0 z-[var(--sb-z-dialog)] md:hidden">
+        <div className={cn("fixed inset-0 z-[var(--sb-z-dialog)]", hideAt === "xl" ? "xl:hidden" : "md:hidden")}>
           <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={() => setOpen(false)} aria-label={`Close ${title}`} />
           <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">
             <header className="flex min-h-12 items-center justify-between border-b px-3">
@@ -99,7 +99,7 @@ export function MobileWorkflowStatus({ steps, currentStatus, trailing }: { steps
 }
 
 export function MobileActivityAndFiles({ children }: { children: ReactNode }) {
-  return <div data-mobile-activity-files className="md:hidden"><MobileSheet label="Activity & files" title="Activity & files">{children}</MobileSheet></div>;
+  return <div data-mobile-activity-files className="xl:hidden"><MobileSheet label="Files, activity & revisions" title="Files, activity & revisions" hideAt="xl">{children}</MobileSheet></div>;
 }
 
 export function MobileTaskSheet({ label, children, primary = false }: { label: string; children: ReactNode; primary?: boolean }) {

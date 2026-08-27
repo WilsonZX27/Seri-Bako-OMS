@@ -1,5 +1,13 @@
 # Seri Bako OMS responsive design standard
 
+## v8.65.21 (unreleased) — Procurement object-page continuity
+
+- Follow the established object-page pattern: show the related PR, PO, GRN and invoice as a compact linked-document chain, not as disconnected cards or duplicated records.
+- A shared file surface aggregates evidence but always displays source document type and number. Required evidence remains enforced at the action boundary of its owning stage.
+- Completed-document removal is Owner-only, confirmed, and implemented as archive metadata; never erase the storage object before the audit trail can explain what happened.
+- Below the desktop rail breakpoint, keep the document canvas full width. Move actions, files, activity and revisions into one bounded, scrollable sheet instead of a permanently tall narrow rail.
+- On mobile, the current primary action remains in the bottom action bar; linked-document navigation and full history remain reachable without competing with the main record.
+
 ## v8.65.20 (unreleased) — Ask at the action boundary
 
 - Required supporting evidence is marked where it is owned. Do not repeat the same instruction above and below the primary action.

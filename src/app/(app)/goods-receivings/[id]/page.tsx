@@ -13,6 +13,9 @@ import { getPermissionMap } from "@/server/auth/permissions";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getGoodsReceiving } from "@/server/queries/goods-receivings";
 import { detailOrNotFound } from "@/server/queries/detail";
+import { getCurrentProfile } from "@/server/queries/common";
+import { getProcurementChainForRequest, getPurchaseRequestIdForOrder } from "@/server/queries/procurement";
+import { ProcurementChain } from "@/components/procurement/procurement-chain";
 
 const grnSteps = [
   { key: "draft", label: "Draft", description: "Receiving is being checked." },
@@ -22,10 +25,14 @@ const grnSteps = [
 
 export default async function GoodsReceivingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [{ receiving, lines }, permissions] = await Promise.all([
+  const [{ receiving, lines }, permissions, profile] = await Promise.all([
     detailOrNotFound(getGoodsReceiving(id)),
     getPermissionMap(["grn.post", "goods_receiving.cancel", "documents.attach"]),
+    getCurrentProfile(),
   ]);
+  const requestId = await getPurchaseRequestIdForOrder(receiving.purchase_order_id);
+  const procurementChain = requestId ? await getProcurementChainForRequest(requestId) : null;
+  const isOwner = String(profile?.role_code ?? "").toLowerCase() === "super_admin";
   const documentBundle = receiving.document_id ? await getDocumentBundle(receiving.document_id) : null;
   const totalReceivedValue = lines.reduce((sum, line) => sum + line.received_qty * line.unit_cost, 0);
   const hasRejected = lines.some((line) => line.rejected_qty > 0);
@@ -45,8 +52,9 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
       status={receiving.status}
       workflowSteps={grnSteps}
       currentStatus={receiving.status}
+      tabletRailMode="context"
       mobilePrimaryAction={mobilePrimaryAction}
-      mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Delivery Order" canManage={false} documentStatus={documentBundle.document.status} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /></> : null}
+      mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={procurementChain?.attachments ?? documentBundle.attachments} title="Purchase files" canManage={false} canRemove={isOwner} documentStatus={documentBundle.document.status} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} canRemove={isOwner} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /><RevisionPanel revisions={documentBundle.revisions} /></> : null}
       mobileMoreOptions={secondaryActions ? <DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions> : null}
       sidePanel={
         <>
@@ -59,10 +67,9 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
           <DocumentSideSection title="Linked order"><DocumentActionLink href={`/purchase-orders/${receiving.purchase_order_id}`} variant="outline"><ExternalLink className="h-4 w-4" aria-hidden="true" />View Purchase Order</DocumentActionLink></DocumentSideSection>
           {documentBundle ? (
             <>
-              <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Delivery Order" defaultLabel="Delivery Order" uploadLabel="Attach DO" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} required={receiving.status === "draft"} />
-              <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
-              <DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} />
-              <RevisionPanel revisions={documentBundle.revisions} />
+              <AttachmentPanel documentId={documentBundle.document.id} attachments={procurementChain?.attachments ?? documentBundle.attachments} title="Purchase files" defaultLabel="Delivery Order" uploadLabel="Attach DO" canManage={permissions["documents.attach"]} canRemove={isOwner} documentStatus={documentBundle.document.status} required={receiving.status === "draft"} />
+              <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} canRemove={isOwner} />
+              <div className="hidden xl:contents"><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /><RevisionPanel revisions={documentBundle.revisions} /></div>
             </>
           ) : null}
         </>
@@ -87,6 +94,8 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
               {receiving.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{receiving.remarks}</p> : null}
             </CardContent>
           </Card>
+
+          {procurementChain ? <ProcurementChain nodes={procurementChain.nodes} /> : null}
 
           <Card>
             <CardContent className="p-5">

@@ -45,7 +45,7 @@ test("danger, activity, and mobile line information stay separated", () => {
 
   assert.match(pr, /DocumentMoreOptions/);
   assert.match(pr, /canManageDeletion = roleCode === "super_admin"/);
-  assert.match(mobile, /label="Activity & files"/);
+  assert.match(mobile, /label="Files, activity & revisions"/);
   assert.match(pr, /role="list" aria-label="Requested items"/);
   assert.match(po, /role="list" aria-label="Ordered items"/);
 });

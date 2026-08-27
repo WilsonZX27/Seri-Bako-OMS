@@ -16,6 +16,7 @@ import { compareTableValues, paginateRows } from "@/lib/table-state";
 import type { Database } from "@/types/database";
 import { getCurrentUserScope } from "@/server/queries/notifications";
 import { requireDetailRow } from "@/server/queries/detail";
+import { actorDisplayName, resolveActorDisplayMap } from "@/server/actors/display";
 
 type Filters = Record<string, string | undefined>;
 type PurchaseRequest = Database["public"]["Tables"]["purchase_requests"]["Row"];
@@ -44,13 +45,24 @@ export type PurchaseRequestRow = PurchaseRequest & {
   estimated_total: number;
   supplier_names: string[];
   supplier_state: "assigned" | "assignment_required" | "details_unavailable" | "no_lines";
+  procurement_status: PurchaseOrder["status"] | null;
 };
 
 export type PurchaseOrderRow = PurchaseOrder & {
   supplier_name: string | null;
+  request_no: string | null;
   line_count: number;
   order_total: number;
 };
+
+const purchaseOrderProgress = ["draft", "approved", "sent", "partial_received", "received", "closed"] as const;
+
+function furthestPurchaseOrderStatus(statuses: PurchaseOrder["status"][]) {
+  return statuses.reduce<PurchaseOrder["status"] | null>((furthest, status) => {
+    if (!furthest) return status;
+    return purchaseOrderProgress.indexOf(status as (typeof purchaseOrderProgress)[number]) > purchaseOrderProgress.indexOf(furthest as (typeof purchaseOrderProgress)[number]) ? status : furthest;
+  }, null);
+}
 
 export type ProcurementWorkspaceInsights = {
   role: string;
@@ -110,6 +122,7 @@ function hydratePr(row: PurchaseRequest, lines: PurchaseRequestLine[]): Purchase
     estimated_total: ownLines.reduce((sum, line) => sum + line.qty * line.estimated_unit_cost, 0),
     supplier_names: supplierNames,
     supplier_state: ownLines.length === 0 ? "no_lines" : supplierNames.length > 0 ? "assigned" : supplierIds.length > 0 ? "details_unavailable" : "assignment_required",
+    procurement_status: mockPurchaseOrders.find((order) => order.purchase_request_id === row.id)?.status ?? null,
   };
 }
 
@@ -119,6 +132,7 @@ function hydratePo(row: PurchaseOrder, lines: PurchaseOrderLine[]): PurchaseOrde
   return {
     ...row,
     supplier_name: supplier?.name ?? null,
+    request_no: row.purchase_request_id ? mockPurchaseRequests.find((request) => request.id === row.purchase_request_id)?.request_no ?? null : null,
     line_count: ownLines.length,
     order_total: ownLines.reduce((sum, line) => sum + line.qty_ordered * line.unit_price, 0),
   };
@@ -168,14 +182,15 @@ export async function getPurchaseRequests(filters: Filters = {}) {
   if (!data || count === null) throw new Error("Purchase request list returned no data.");
   const ids = data.map((row) => row.id);
   const branchIds = [...new Set(data.flatMap((row) => (row.branch_id ? [row.branch_id] : [])))];
-  const [{ data: lines, error: linesError }, { data: branches, error: branchesError }, { data: requesters, error: requestersError }] = await Promise.all([
+  const [{ data: lines, error: linesError }, { data: branches, error: branchesError }, { data: requesters, error: requestersError }, { data: linkedOrders, error: linkedOrdersError }] = await Promise.all([
     ids.length ? supabase.from("purchase_request_lines").select("purchase_request_id, qty, estimated_unit_cost, suggested_supplier_id, item_id, uom").in("purchase_request_id", ids) : Promise.resolve({ data: [], error: null }),
     branchIds.length ? supabase.from("branches").select("id, branch_name").in("id", branchIds) : Promise.resolve({ data: [], error: null }),
     [...new Set(data.map((row) => row.requested_by).filter((id): id is string => Boolean(id)))].length
       ? supabase.from("staffs").select("id, full_name").in("id", [...new Set(data.map((row) => row.requested_by).filter((id): id is string => Boolean(id)))])
       : Promise.resolve({ data: [], error: null }),
+    ids.length ? supabase.from("purchase_orders").select("purchase_request_id, status").in("purchase_request_id", ids).is("deleted_at", null) : Promise.resolve({ data: [], error: null }),
   ]);
-  if (linesError || branchesError || requestersError) throw new Error((linesError ?? branchesError ?? requestersError)!.message);
+  if (linesError || branchesError || requestersError || linkedOrdersError) throw new Error((linesError ?? branchesError ?? requestersError ?? linkedOrdersError)!.message);
   if (!lines || (branchIds.length > 0 && !branches)) throw new Error("Purchase request related data returned no data.");
   const itemIds = [...new Set(lines.map((line) => line.item_id).filter((id): id is string => Boolean(id)))];
   const explicitSupplierIds = [...new Set(lines.map((line) => line.suggested_supplier_id).filter((id): id is string => Boolean(id)))];
@@ -229,6 +244,7 @@ export async function getPurchaseRequests(filters: Filters = {}) {
       estimated_total: ownLines.reduce((sum, line) => sum + line.qty * line.estimated_unit_cost, 0),
       supplier_names: supplierNames,
       supplier_state: ownLines.length === 0 ? "no_lines" : supplierNames.length > 0 ? "assigned" : supplierIds.length > 0 ? "details_unavailable" : "assignment_required",
+      procurement_status: furthestPurchaseOrderStatus((linkedOrders ?? []).filter((order) => order.purchase_request_id === row.id).map((order) => order.status)),
     };
   });
   const totalRows = count;
@@ -372,7 +388,7 @@ export async function getPurchaseOrders(filters: Filters = {}) {
   const sort = safeSort(filters.sort, ["po_no", "order_date", "expected_delivery_date", "status", "updated_at"], "updated_at");
   let query = supabase
     .from("purchase_orders")
-    .select("id, supplier_id, po_no, order_date, expected_delivery_date, status, approval_status, remarks, updated_at, deleted_at", { count: "exact" });
+    .select("id, supplier_id, purchase_request_id, po_no, order_date, expected_delivery_date, status, approval_status, remarks, updated_at, deleted_at", { count: "exact" });
   const status = filters.status && filters.status !== "all" ? filters.status : null;
   const search = searchFilter(filters.search);
   if (status) query = query.eq("status", status as PurchaseOrder["status"]);
@@ -382,24 +398,80 @@ export async function getPurchaseOrders(filters: Filters = {}) {
   if (error) throw new Error(error.message);
   if (!data || count === null) throw new Error("Purchase order list returned no data.");
   const ids = data.map((row) => row.id);
-  const [{ data: lines, error: linesError }, { data: suppliers, error: suppliersError }] = await Promise.all([
+  const requestIds = [...new Set(data.map((row) => row.purchase_request_id).filter((id): id is string => Boolean(id)))];
+  const [{ data: lines, error: linesError }, { data: suppliers, error: suppliersError }, { data: requests, error: requestsError }] = await Promise.all([
     ids.length ? supabase.from("purchase_order_lines").select("purchase_order_id, qty_ordered, unit_price").in("purchase_order_id", ids) : Promise.resolve({ data: [], error: null }),
     data.length ? supabase.from("suppliers").select("id, name").in("id", data.map((row) => row.supplier_id)) : Promise.resolve({ data: [], error: null }),
+    requestIds.length ? supabase.from("purchase_requests").select("id, request_no").in("id", requestIds) : Promise.resolve({ data: [], error: null }),
   ]);
-  if (linesError || suppliersError) throw new Error((linesError ?? suppliersError)!.message);
+  if (linesError || suppliersError || requestsError) throw new Error((linesError ?? suppliersError ?? requestsError)!.message);
   if (!lines || (data.length > 0 && !suppliers)) throw new Error("Purchase order related data returned no data.");
   const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
+  const requestById = new Map((requests ?? []).map((row) => [row.id, row.request_no]));
   const rows = data.map((row) => {
     const ownLines = lines.filter((line) => line.purchase_order_id === row.id);
     return {
       ...row,
       supplier_name: supplierById.get(row.supplier_id) ?? null,
+      request_no: row.purchase_request_id ? requestById.get(row.purchase_request_id) ?? null : null,
       line_count: ownLines.length,
       order_total: ownLines.reduce((sum, line) => sum + line.qty_ordered * line.unit_price, 0),
     };
   });
   const totalRows = count;
   return { rows, page, pageSize: PAGE_SIZE, totalRows, totalPages: Math.max(Math.ceil(totalRows / PAGE_SIZE), 1) };
+}
+
+export type ProcurementChainNode = {
+  id: string;
+  documentId: string | null;
+  kind: "PR" | "PO" | "GRN" | "Invoice";
+  number: string;
+  status: string;
+  href: string;
+};
+
+export type ProcurementChainAttachment = Database["public"]["Tables"]["attachments"]["Row"] & {
+  uploaded_by_name?: string | null;
+  source_document_id: string;
+  source_number: string;
+  source_kind: ProcurementChainNode["kind"];
+  source_href: string;
+};
+
+export async function getProcurementChainForRequest(requestId: string) {
+  if (isMockMode()) return { nodes: [] as ProcurementChainNode[], attachments: [] as ProcurementChainAttachment[] };
+  const supabase = await createClient();
+  const { data: request, error: requestError } = await supabase.from("purchase_requests").select("id, document_id, request_no, status").eq("id", requestId).maybeSingle();
+  if (requestError) throw new Error(requestError.message);
+  if (!request) throw new Error("Purchase request was not found.");
+  const { data: orders, error: ordersError } = await supabase.from("purchase_orders").select("id, document_id, po_no, status").eq("purchase_request_id", requestId).is("deleted_at", null).order("created_at");
+  if (ordersError) throw new Error(ordersError.message);
+  const orderIds = (orders ?? []).map((order) => order.id);
+  const [{ data: receipts, error: receiptsError }, { data: invoices, error: invoicesError }] = await Promise.all([
+    orderIds.length ? supabase.from("goods_receivings").select("id, document_id, purchase_order_id, grn_no, status").in("purchase_order_id", orderIds).is("deleted_at", null).order("created_at") : Promise.resolve({ data: [], error: null }),
+    orderIds.length ? supabase.from("supplier_invoices").select("id, document_id, purchase_order_id, invoice_no, status").in("purchase_order_id", orderIds).is("deleted_at", null).order("created_at") : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (receiptsError || invoicesError) throw new Error((receiptsError ?? invoicesError)!.message);
+  const nodes: ProcurementChainNode[] = [
+    { id: request.id, documentId: request.document_id, kind: "PR", number: request.request_no, status: request.status, href: `/purchase-requests/${request.id}` },
+    ...(orders ?? []).map((order) => ({ id: order.id, documentId: order.document_id, kind: "PO" as const, number: order.po_no, status: order.status, href: `/purchase-orders/${order.id}` })),
+    ...(receipts ?? []).map((receipt) => ({ id: receipt.id, documentId: receipt.document_id, kind: "GRN" as const, number: receipt.grn_no, status: receipt.status, href: `/goods-receivings/${receipt.id}` })),
+    ...(invoices ?? []).map((invoice) => ({ id: invoice.id, documentId: invoice.document_id, kind: "Invoice" as const, number: invoice.invoice_no, status: invoice.status, href: `/supplier-invoices/${invoice.id}` })),
+  ];
+  const sourceByDocumentId = new Map(nodes.filter((node) => node.documentId).map((node) => [node.documentId!, node]));
+  const documentIds = [...sourceByDocumentId.keys()];
+  if (!documentIds.length) return { nodes, attachments: [] as ProcurementChainAttachment[] };
+  const { data: attachments, error: attachmentsError } = await supabase.from("attachments").select("*").eq("entity_type", "document").in("entity_id", documentIds).is("deleted_at", null).order("created_at", { ascending: false });
+  if (attachmentsError) throw new Error(attachmentsError.message);
+  const displayMap = await resolveActorDisplayMap((attachments ?? []).map((attachment) => attachment.uploaded_by));
+  return {
+    nodes,
+    attachments: (attachments ?? []).flatMap((attachment) => {
+      const source = sourceByDocumentId.get(attachment.entity_id);
+      return source ? [{ ...attachment, uploaded_by_name: actorDisplayName(displayMap, attachment.uploaded_by), source_document_id: source.documentId!, source_number: source.number, source_kind: source.kind, source_href: source.href }] : [];
+    }),
+  };
 }
 
 export async function getPurchaseOrderSummary() {
@@ -456,6 +528,13 @@ export async function getPurchaseRequestForOrder(purchaseRequestId: string | nul
   const { data, error } = await supabase.from("purchase_requests").select("*").eq("id", purchaseRequestId).maybeSingle();
   if (error) throw new Error(error.message);
   return data as PurchaseRequest | null;
+}
+
+export async function getPurchaseRequestIdForOrder(orderId: string) {
+  if (isMockMode()) return mockPurchaseOrders.find((order) => order.id === orderId)?.purchase_request_id ?? null;
+  const { data, error } = await (await createClient()).from("purchase_orders").select("purchase_request_id").eq("id", orderId).maybeSingle();
+  if (error) throw new Error(error.message);
+  return data?.purchase_request_id ?? null;
 }
 
 export async function getProcurementWorkspaceInsights(): Promise<ProcurementWorkspaceInsights> {

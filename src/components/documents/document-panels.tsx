@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { CheckCircle2, Clock, Eye, FileText, MessageSquare, Paperclip, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   addDocumentAttachment,
   addDocumentComment,
+  archiveDocumentComment,
   approveDocument,
   archiveDocumentAttachment,
   cancelDocument,
@@ -25,7 +27,7 @@ import { formatDateTime } from "@/lib/utils";
 import type { Database } from "@/types/database";
 
 type Document = Database["public"]["Tables"]["documents"]["Row"] & { created_by_name?: string | null; updated_by_name?: string | null };
-type Attachment = Database["public"]["Tables"]["attachments"]["Row"] & { uploaded_by_name?: string | null; created_by_name?: string | null };
+type Attachment = Database["public"]["Tables"]["attachments"]["Row"] & { uploaded_by_name?: string | null; created_by_name?: string | null; source_document_id?: string; source_number?: string; source_kind?: string; source_href?: string };
 type Comment = Database["public"]["Tables"]["document_comments"]["Row"] & { created_by_name?: string | null };
 type Revision = Database["public"]["Tables"]["document_revisions"]["Row"] & { changed_by_name?: string | null };
 type Approval = Database["public"]["Tables"]["approvals"]["Row"] | null;
@@ -94,6 +96,7 @@ export async function AttachmentPanel({
   canManage,
   documentStatus,
   required = false,
+  canRemove = false,
 }: {
   documentId: string;
   attachments: Attachment[];
@@ -105,13 +108,14 @@ export async function AttachmentPanel({
   canManage?: boolean;
   documentStatus?: string;
   required?: boolean;
+  canRemove?: boolean;
 }) {
   const [resolvedCanManage, resolvedDocument] = await Promise.all([
     canManage === undefined ? hasPermission("documents.attach") : Promise.resolve(canManage),
     documentStatus === undefined ? getDocument(documentId) : Promise.resolve(null),
   ]);
   const status = documentStatus ?? resolvedDocument?.status ?? "draft";
-  const canRemoveAttachments = resolvedCanManage && ["draft", "pending_approval"].includes(status);
+  const canRemoveAttachments = resolvedCanManage && (canRemove || ["draft", "pending_approval"].includes(status));
   const content = (
       <div className="space-y-3">
         {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
@@ -125,12 +129,13 @@ export async function AttachmentPanel({
                 <FileText className="mt-0.5 h-4 w-4 text-muted-foreground" />
                 <div className="min-w-0">
                   <p className="break-words text-xs font-medium">{attachment.file_name}</p>
+                  {attachment.source_href && attachment.source_number ? <p className="mt-0.5 text-[11px]"><Link href={attachment.source_href} className="font-medium text-[var(--sb-link)] underline-offset-4 hover:underline">{attachment.source_kind} {attachment.source_number}</Link></p> : null}
                   <p className="text-xs text-muted-foreground">Uploaded by {actorLabel(attachment.uploaded_by_name)} - {formatDateTime(attachment.created_at)}</p>
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-1">
                 {attachment.storage_path || attachment.file_url ? <Button asChild variant="ghost" size="icon" className="h-8 w-8"><a href={`/api/attachments/${attachment.id}`} target="_blank" rel="noreferrer" aria-label={`View ${attachment.file_name}`} title="View attachment"><Eye className="h-4 w-4" /></a></Button> : <Button type="button" variant="ghost" size="icon" disabled className="h-8 w-8" aria-label="File unavailable"><FileText className="h-4 w-4" /></Button>}
-                {canRemoveAttachments ? <AttachmentRemoveAction action={archiveDocumentAttachment.bind(null, documentId, attachment.id)} fileName={attachment.file_name} /> : null}
+                {canRemoveAttachments ? <AttachmentRemoveAction action={archiveDocumentAttachment.bind(null, attachment.source_document_id ?? documentId, attachment.id)} fileName={attachment.file_name} /> : null}
               </div>
             </div>
           ))}
@@ -144,7 +149,7 @@ export async function AttachmentPanel({
   return <ConsoleSection title={required ? <>{title} <span className="text-[var(--sb-danger)]">*</span></> : title}>{content}</ConsoleSection>;
 }
 
-export function CommentsPanel({ documentId, comments }: { documentId: string; comments: Comment[] }) {
+export function CommentsPanel({ documentId, comments, canRemove = false }: { documentId: string; comments: Comment[]; canRemove?: boolean }) {
   return (
     <ConsoleSection title="Comments">
       <div className="space-y-3">
@@ -154,9 +159,9 @@ export function CommentsPanel({ documentId, comments }: { documentId: string; co
         </form>
         <div className="space-y-3">
           {comments.map((comment) => (
-            <div key={comment.id} className="rounded-[2px] border bg-secondary/30 p-3">
-              <p className="text-xs">{comment.comment_text}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{actorLabel(comment.created_by_name)} - {formatDateTime(comment.created_at)}</p>
+            <div key={comment.id} className="flex items-start gap-2 rounded-[2px] border bg-secondary/30 p-3">
+              <div className="min-w-0 flex-1"><p className="break-words text-xs">{comment.comment_text}</p><p className="mt-1 text-xs text-muted-foreground">{actorLabel(comment.created_by_name)} - {formatDateTime(comment.created_at)}</p></div>
+              {canRemove ? <AttachmentRemoveAction action={archiveDocumentComment.bind(null, documentId, comment.id)} fileName="This comment" itemType="comment" /> : null}
             </div>
           ))}
           {!comments.length ? <p className="text-xs text-muted-foreground">No comments yet.</p> : null}

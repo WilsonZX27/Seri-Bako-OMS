@@ -1,5 +1,11 @@
 # Seri Bako Operations Management System
 
+### v8.65.21 (unreleased) — One purchase chain, one evidence surface
+
+Purchase Requests now expose their full downstream chain: source PR, one or more POs, Goods Receivings and Supplier Invoices remain individually addressable while appearing together as one purchase. PO lists link back to the source PR, and converted PR rows show the furthest PO fulfilment state such as Received instead of stopping at Converted to PO.
+
+Attachments from every linked document are aggregated without copying or losing their source. Each file names the originating PR, PO, GRN or invoice; stage-specific evidence rules still apply to the document that owns the action. Owner removal is a confirmed soft archive, comments can be archived by Owner, and the audit trail remains intact. Tablet and mobile move files, actions, timeline and revisions into one bounded sheet so the main document stays compact and fully scrollable. Supplier/item price history remains a follow-on reporting slice based on immutable PO, GRN and invoice line snapshots rather than an item-master overwrite.
+
 ### v8.65.20 (unreleased) — Concise receiving and reliable AutoCount Confirm
 
 Goods Receiving removes the repeated posting explanation and asks for the required Delivery Order only when the operator presses Post. The compact dialog offers upload first and a documented exception second; Delivery Order ownership is marked with `*`, comments use the dense operational type scale, and tablet document scrolling remains reachable above the fixed navigation.

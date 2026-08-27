@@ -111,6 +111,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                   <TableHead className="w-10 text-center">Action</TableHead>
                   <SortableHead label="PO No" column="po_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>Supplier</TableHead>
+                  <TableHead>Source PR</TableHead>
                   <SortableHead className="hidden md:table-cell" label="Date" column="order_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead className="hidden lg:table-cell" label="Delivery" column="expected_delivery_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -124,6 +125,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                     <TableCell className="w-10 p-0 text-center"><TableActionLink href={`/purchase-orders/${order.id}`} label={`Open ${order.po_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                     <TableCell><DocumentNumber value={order.po_no} size="sm" /></TableCell>
                     <TableCell>{order.supplier_name ?? "-"}</TableCell>
+                    <TableCell>{order.purchase_request_id && order.request_no ? <Link href={`/purchase-requests/${order.purchase_request_id}`} className="font-medium text-[var(--sb-link)] underline-offset-4 hover:underline">{order.request_no}</Link> : <span className="text-muted-foreground">Direct PO</span>}</TableCell>
                     <TableCell className="hidden md:table-cell">{formatDateOnly(order.order_date)}</TableCell>
                     <TableCell className="hidden lg:table-cell">{formatDateOnly(order.expected_delivery_date, "-")}</TableCell>
                     <TableCell><StatusBadge status={order.status} /></TableCell>
@@ -131,7 +133,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                     <TableCell className="hidden text-right md:table-cell">{formatCurrency(order.order_total)}</TableCell>
                   </DataGridRow>
                 ))}
-                {!orders?.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={ordersResult.unavailable ? "Purchase order data unavailable" : filtered ? "No orders match these filters" : "No purchase orders yet"} description={ordersResult.unavailable ? "The order source could not be verified. No record count or order total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={ordersResult.unavailable ? { href: "/purchase-orders", label: "Retry orders" } : emptyStateAction} /></TableCell></TableRow> : null}
+                {!orders?.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title={ordersResult.unavailable ? "Purchase order data unavailable" : filtered ? "No orders match these filters" : "No purchase orders yet"} description={ordersResult.unavailable ? "The order source could not be verified. No record count or order total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={ordersResult.unavailable ? { href: "/purchase-orders", label: "Retry orders" } : emptyStateAction} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Purchase orders">
@@ -141,7 +143,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                 label={`Open ${order.po_no}`}
                 primary={<div><DocumentNumber value={order.po_no} size="sm" /><p className="text-[11px] font-normal text-[var(--sb-text-muted)]">Delivery {formatDateOnly(order.expected_delivery_date, "not set")}</p></div>}
                 status={<StatusBadge status={order.status} />}
-                secondary={`${order.supplier_name ?? "No supplier"} · ${formatDateOnly(order.order_date)}`}
+                secondary={<span>{order.supplier_name ?? "No supplier"} · {formatDateOnly(order.order_date)}{order.purchase_request_id && order.request_no ? <> · <Link href={`/purchase-requests/${order.purchase_request_id}`} className="font-medium text-[var(--sb-link)] underline-offset-4 hover:underline">{order.request_no}</Link></> : null}</span>}
                 meta={`${order.line_count} items · ${formatCurrency(order.order_total)}`}
               />)}
               {!orders?.rows.length ? <EmptyState title={ordersResult.unavailable ? "Purchase order data unavailable" : filtered ? "No orders match these filters" : "No purchase orders yet"} description={ordersResult.unavailable ? "The order source could not be verified. No record count or order total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={ordersResult.unavailable ? { href: "/purchase-orders", label: "Retry orders" } : emptyStateAction} /> : null}

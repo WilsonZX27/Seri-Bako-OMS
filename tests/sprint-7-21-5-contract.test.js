@@ -4,7 +4,7 @@ const test = require("node:test");
 
 const read = (file) => fs.readFileSync(file, "utf8");
 
-test("mistaken attachments can be removed before finalization without weakening the audit trail", () => {
+test("mistaken attachments can be archived with Owner recovery after finalization", () => {
   const panel = read("src/components/documents/document-panels.tsx");
   const removeAction = read("src/components/documents/attachment-remove-action.tsx");
   const server = read("src/server/actions/documents.ts");
@@ -13,7 +13,8 @@ test("mistaken attachments can be removed before finalization without weakening 
   assert.doesNotMatch(panel, /Attachments are locked after approval or posting/);
   assert.match(removeAction, /Remove attachment\?/);
   assert.match(removeAction, /Keep file/);
-  assert.match(server, /Attachments can only be removed while the document is draft or pending approval/);
+  assert.match(server, /Only an Owner can remove an attachment after review has started/);
+  assert.match(server, /actor\.roleCode !== "super_admin"/);
   assert.match(server, /status: "archived"/);
 });
 

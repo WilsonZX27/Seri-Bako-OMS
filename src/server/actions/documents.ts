@@ -16,6 +16,7 @@ function cleanText(value: FormDataEntryValue | null) {
 
 const documentIdSchema = z.string().uuid("This document reference is invalid.");
 const attachmentIdSchema = z.string().uuid("This attachment reference is invalid.");
+const commentIdSchema = z.string().uuid("This comment reference is invalid.");
 const documentRemarksSchema = z.string().trim().max(2_000, "Remarks are too long.");
 
 function parseDocumentId(value: string) {
@@ -152,11 +153,7 @@ export async function archiveDocumentAttachment(documentId: string, attachmentId
       if (documentError) throw new Error(documentError.message);
       if (attachmentError) throw new Error(attachmentError.message);
       if (!document || !attachment) throw new Error("Document or attachment was not found or is outside your workspace.");
-      if (!new Set(["draft", "pending_approval"]).has(document.status)) throw new Error("Attachments can only be removed while the document is draft or pending approval.");
-      if (attachment.storage_path) {
-        const { error: storageError } = await supabase.storage.from("document-attachments").remove([attachment.storage_path]);
-        if (storageError) throw new Error(storageError.message);
-      }
+      if (!new Set(["draft", "pending_approval"]).has(document.status) && actor.roleCode !== "super_admin") throw new Error("Only an Owner can remove an attachment after review has started.");
       const { error } = await supabase.from("attachments").update({ status: "archived", deleted_at: new Date().toISOString() }).eq("id", attachmentId).eq("entity_id", documentId).eq("company_id", actor.companyId);
       if (error) throw new Error(error.message);
       await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "attachment_archived", message: "Attachment archived" });
@@ -164,6 +161,28 @@ export async function archiveDocumentAttachment(documentId: string, attachmentId
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/documents/${documentId}`, "error", formatActionError(error, "Could not archive this attachment."));
+  }
+  revalidatePath("/", "layout");
+}
+
+export async function archiveDocumentComment(documentId: string, commentId: string) {
+  documentId = parseDocumentId(documentId);
+  commentId = commentIdSchema.parse(commentId);
+  await requirePermissionOrRedirect("documents.comment", `/documents/${documentId}`);
+  try {
+    if (!isMockMode()) {
+      const actor = await requireActiveTenantActor({ owner: true });
+      const supabase = await createClient();
+      const { data: document, error: documentError } = await supabase.from("documents").select("id").eq("id", documentId).eq("company_id", actor.companyId).maybeSingle();
+      if (documentError) throw new Error(documentError.message);
+      if (!document) throw new Error("Document was not found or is outside your workspace.");
+      const { error } = await supabase.from("document_comments").update({ deleted_at: new Date().toISOString() }).eq("id", commentId).eq("document_id", documentId).is("deleted_at", null);
+      if (error) throw new Error(error.message);
+      await writeActivityLog({ entityType: "document", entityId: documentId, activityType: "comment_archived", message: "Comment archived by Owner" });
+    }
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/documents/${documentId}`, "error", formatActionError(error, "Could not archive this comment."));
   }
   revalidatePath("/", "layout");
 }

@@ -6,7 +6,6 @@ import { Field } from "@/components/ui/field";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DocumentActionBar, DocumentActionForm } from "@/components/document-action-bar";
 import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
-import { DocumentNumber } from "@/components/document-number";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { DocumentMoreOptions, MobileTaskSheet } from "@/components/documents/mobile-document-surfaces";
@@ -34,7 +33,8 @@ import {
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getBranchesForSelect, getBranchSupplierMappingsForSelect, getCurrentProfile, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
-import { getPurchaseOrdersForRequest, getPurchaseRequest, getPurchaseRequestBranchStock, getRecoverableDocumentWorkflowAvailable } from "@/server/queries/procurement";
+import { getProcurementChainForRequest, getPurchaseOrdersForRequest, getPurchaseRequest, getPurchaseRequestBranchStock, getRecoverableDocumentWorkflowAvailable } from "@/server/queries/procurement";
+import { ProcurementChain } from "@/components/procurement/procurement-chain";
 import { getPhaseOneDeletePreview } from "@/server/queries/hard-delete";
 import { hardDeletePhaseOne } from "@/server/actions/hard-delete";
 import { PurchaseRequestForm } from "@/components/procurement-forms";
@@ -111,8 +111,9 @@ export default async function PurchaseRequestDetailPage({
     canManageDeletion ? getPhaseOneDeletePreview("purchase_request", request.id) : Promise.resolve(null),
     getPurchaseRequestBranchStock(request.branch_id, lines.map((line) => line.item_id)),
     getRecoverableDocumentWorkflowAvailable(),
+    getProcurementChainForRequest(id),
   ]);
-  const [linkedOrdersResult, itemsResult, suppliersResult, supplierMappingsResult, branchesResult, documentBundleResult, deletePreviewResult, branchStockResult, recoveryCapabilityResult] = auxiliaryResults;
+  const [linkedOrdersResult, itemsResult, suppliersResult, supplierMappingsResult, branchesResult, documentBundleResult, deletePreviewResult, branchStockResult, recoveryCapabilityResult, procurementChainResult] = auxiliaryResults;
   for (const [result, source] of [
     [linkedOrdersResult, "page.purchaseRequestDetail.linkedOrders"],
     [itemsResult, "page.purchaseRequestDetail.itemDirectory"],
@@ -123,6 +124,7 @@ export default async function PurchaseRequestDetailPage({
     [deletePreviewResult, "page.purchaseRequestDetail.deletePreview"],
     [branchStockResult, "page.purchaseRequestDetail.branchStock"],
     [recoveryCapabilityResult, "page.purchaseRequestDetail.recoveryCapability"],
+    [procurementChainResult, "page.purchaseRequestDetail.procurementChain"],
   ] as const) {
     if (result.status === "rejected") logServerError(result.reason, { source });
   }
@@ -141,6 +143,7 @@ export default async function PurchaseRequestDetailPage({
   const branchStock = branchStockResult.status === "fulfilled" ? branchStockResult.value : null;
   const stockByItemId = new Map((branchStock ?? []).map((stock) => [stock.itemId, stock]));
   const recoveryAvailable = recoveryCapabilityResult.status === "fulfilled" && recoveryCapabilityResult.value;
+  const procurementChain = procurementChainResult.status === "fulfilled" ? procurementChainResult.value : null;
   const itemById = new Map((items ?? []).map((item) => [item.id, item]));
   const supplierById = new Map((suppliers ?? []).map((supplier) => [supplier.id, supplier]));
   const supplierIds = suppliers ? new Set(suppliers.map((supplier) => supplier.id)) : null;
@@ -221,7 +224,9 @@ export default async function PurchaseRequestDetailPage({
           ? <ConfirmActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} label={<><BadgeCheck className="h-4 w-4" aria-hidden="true" />Approve as Finance</>} title="Approve and create the PO?" description={`Finance approval will create ${request.autocount_po_no ?? "the saved AutoCount PO"} and make it ready to send.`} pendingLabel="Approving..." mobilePrimary />
           : canConvert
             ? <MobileTaskSheet label="Finish PO creation" primary><form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} className="space-y-2"><Field label="Saved AutoCount PO Number"><Input name="autocount_po_no" defaultValue={messageParams.po_no ?? request.autocount_po_no ?? ""} placeholder="AutoCount PO Number" required /></Field><p className="text-xs text-muted-foreground">Legacy recovery only. Correct the saved number here if AutoCount assigned a different one.</p><SubmitButton type="submit" pendingLabel="Finishing..." className="w-full justify-center"><FileCheck2 className="h-4 w-4" aria-hidden="true" />Finish PO creation</SubmitButton></form></MobileTaskSheet>
-            : null;
+            : request.status === "converted_to_po" && linkedPurchaseOrders?.[0]
+              ? <Button asChild><a href={`/purchase-orders/${linkedPurchaseOrders[0].id}`}><FileCheck2 className="h-4 w-4" aria-hidden="true" />Open PO</a></Button>
+              : null;
 
   return (
     <DocumentWorkspace
@@ -233,8 +238,9 @@ export default async function PurchaseRequestDetailPage({
       branch={branch?.branch_name ?? (!branches ? "Branch unavailable" : undefined)}
       workflowSteps={prSteps}
       currentStatus={getPrWorkflowStep(request.status)}
+      tabletRailMode="context"
       mobilePrimaryAction={mobilePrimaryAction}
-      mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supporting Attachments" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /></> : null}
+      mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={procurementChain?.attachments ?? documentBundle.attachments} title="Purchase files" description="Files from this PR, its PO, receiving, and invoice." canManage={permissions["documents.attach"]} canRemove={isOwner} documentStatus={documentBundle.document.status} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} canRemove={isOwner} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /><RevisionPanel revisions={documentBundle.revisions} /></> : null}
       mobileMoreOptions={secondaryActions ? <DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions> : null}
       sidePanel={
         <>
@@ -265,10 +271,9 @@ export default async function PurchaseRequestDetailPage({
           </DocumentSideSection>
           {documentBundle ? (
             <>
-               <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supporting Attachments" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} />
-              <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} />
-              <DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} />
-              <RevisionPanel revisions={documentBundle.revisions} />
+               <AttachmentPanel documentId={documentBundle.document.id} attachments={procurementChain?.attachments ?? documentBundle.attachments} title="Purchase files" description="Files from this PR, its PO, receiving, and invoice." canManage={permissions["documents.attach"]} canRemove={isOwner} documentStatus={documentBundle.document.status} />
+              <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} canRemove={isOwner} />
+              <div className="hidden xl:contents"><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /><RevisionPanel revisions={documentBundle.revisions} /></div>
             </>
           ) : documentBundleUnavailable ? <DocumentSideSection title="Document Activity"><div role="status"><p className="text-xs font-semibold text-[var(--sb-warning)]">Unavailable</p><p className="mt-1 text-xs text-muted-foreground">Attachments, comments, and timeline could not be loaded. Retry this page.</p></div></DocumentSideSection> : null}
         </>
@@ -431,33 +436,7 @@ export default async function PurchaseRequestDetailPage({
             </CardContent>
           </Card>
 
-          <Card className="document-surface shadow-none">
-            <CardContent className="space-y-3 p-4">
-              <div>
-                <p className="text-[12px] text-muted-foreground">Linked documents</p>
-                <h2 className="text-[14px] font-semibold">Purchase Orders created from this PR</h2>
-              </div>
-              {linkedPurchaseOrders === null ? <div role="status" className="bg-secondary/30 p-3"><p className="text-[12px] font-semibold text-[var(--sb-warning)]">Linked purchase orders unavailable</p><p className="mt-1 text-[12px] text-muted-foreground">The PR remains available. Retry to load conversion links.</p></div> : linkedPurchaseOrders.length ? (
-                <div className="grid min-w-0 gap-3 md:grid-cols-2">
-                  {linkedPurchaseOrders.map((order) => (
-                    <Button key={order.id} asChild variant="outline" className="h-auto min-w-0 justify-between gap-2 p-3">
-                      <a href={`/purchase-orders/${order.id}`}>
-                        <span className="min-w-0 text-left">
-                          <DocumentNumber value={order.po_no} size="sm" className="max-w-full break-all" />
-                          <span className="mt-1 block truncate text-[12px] text-muted-foreground">{order.supplier_name ?? "Supplier"}</span>
-                        </span>
-                        <span className="shrink-0 text-[13px] font-semibold">{formatCurrency(order.order_total)}</span>
-                      </a>
-                    </Button>
-                  ))}
-                </div>
-              ) : (
-                <p className="bg-secondary/30 p-3 text-[12px] text-muted-foreground">
-                  No purchase order has been created from this PR yet. The PO link will appear here after approval and conversion.
-                </p>
-              )}
-            </CardContent>
-          </Card>
+          {procurementChain ? <ProcurementChain nodes={procurementChain.nodes} /> : <Card className="document-surface shadow-none"><CardContent className="p-3 text-[12px] text-muted-foreground">Purchase chain unavailable. Retry this page to load linked PO, GRN, and invoice documents.</CardContent></Card>}
 
     </DocumentWorkspace>
   );

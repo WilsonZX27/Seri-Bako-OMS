@@ -1,5 +1,16 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-08-27 — v8.65.18 Procurement global search activation
+
+| Surface / source | Role / viewport | Finding | Resolution | Evidence state |
+|---|---|---|---|---|
+| `/procurement` global search | permitted roles / Production 1440×900 | Existing `PR/AUG26/010` returned no result; the API depended on generic Documents and attempted `ILIKE` against enum status fields | Query PR and PO tables directly under their read permissions, remove enum text matching, dedupe canonical destinations, and separate loading/error/empty states | authenticated localhost found `PO-UAT-RECEIVING` by partial number; Production deployment/UAT pending |
+
+- Implemented: canonical PR/PO search, enum-safe queries, truthful request states, result dedupe and version 8.65.18.
+- Locally verified: focused API/reliability contracts, strict typecheck and lint pass; authenticated localhost search returns the existing PO and canonical detail link.
+- Awaiting authenticated UAT: deploy v8.65.18 and repeat `PR/AUG26/010` plus a PO number with Purchasing and Owner roles.
+- Production verified: not claimed; the supplied Production screenshot is pre-fix evidence.
+
 ## 2026-08-27 — v8.65.17 AutoCount, document evidence, PR recovery and Outlet Daily closure
 
 | Surface / source | Role / viewport | Finding | Resolution | Evidence state |

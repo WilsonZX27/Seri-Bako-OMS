@@ -1,5 +1,11 @@
 # Seri Bako Operations Management System
 
+### v8.65.18 (unreleased) — Activated global record search
+
+Global search now queries Purchase Requests and Purchase Orders directly under their own read permissions instead of depending on a matching generic Document row. Searchable enum statuses are no longer passed through PostgreSQL `ILIKE`, which previously made an otherwise valid record-number search fail for every role that could read those modules.
+
+The search dialog now distinguishes an active request, a genuine empty result and an unavailable API. It no longer flashes or reports “No results found” when the backend request has actually failed. Local authenticated interaction found `PO-UAT-RECEIVING` by full and partial number; Production verification remains pending deployment.
+
 ### v8.65.17 (unreleased) — Workflow evidence and dense table clarity
 
 AutoCount now accepts exports in successive drops: Location Snapshots append, while a newly selected Supplier or Item export replaces the older singleton source. A completed staged job is reported as already imported instead of offering a failing duplicate confirmation. Non-blocking notes are grouped into supplier-mapping and UOM follow-up actions with raw source rows available only on demand.

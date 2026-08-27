@@ -1,5 +1,12 @@
 # Seri Bako OMS responsive design standard
 
+## v8.65.18 (unreleased) — Search states must be truthful
+
+- Global record search queries the canonical module table under that module's read permission. A generic document index may supplement results, but cannot be the only route to an existing PR or PO.
+- Never apply text operators such as `ILIKE` to enum workflow fields. Search identifiers and deliberate text columns; status filtering belongs to typed filters.
+- Searching, unavailable and genuinely empty are distinct states. A failed request cannot be presented as “No matching records.”
+- Results deduplicate by canonical destination so a module row and its document index entry do not create duplicate actions.
+
 ## v8.65.17 (unreleased) — Progressive detail and trustworthy evidence
 
 - An upload surface may be used in successive batches. It must preserve valid prior selections, replace only singleton source roles, and explain any dedupe or replacement without presenting it as an error.

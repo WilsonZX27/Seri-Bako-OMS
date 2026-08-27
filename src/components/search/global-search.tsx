@@ -37,6 +37,7 @@ export function GlobalSearch({
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
+  const [searchState, setSearchState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const triggerRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const titleId = useId();
@@ -66,9 +67,13 @@ export function GlobalSearch({
     let active = true;
     const handle = window.setTimeout(async () => {
       if (!query.trim()) {
-        if (active) setResults([]);
+        if (active) {
+          setResults([]);
+          setSearchState("idle");
+        }
         return;
       }
+      if (active) setSearchState("loading");
       const term = query.trim().toLowerCase();
       const navResults = searchableNavItems
         .filter((item) => !("permission" in item) || !item.permission || permissionMap[item.permission])
@@ -79,12 +84,18 @@ export function GlobalSearch({
         const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`, { signal: controller.signal });
         if (!response.ok) throw new Error("Search request failed.");
         const payload = await readJsonResponse<{ results?: SearchResult[] }>(response);
-        if (active) setResults([...navResults, ...(payload.results ?? [])]);
+        if (active) {
+          setResults([...navResults, ...(payload.results ?? [])]);
+          setSearchState("ready");
+        }
       } catch (error) {
         // A cancelled request is expected while the user is typing. For any
         // transient API failure, preserve permission-filtered navigation so
         // global search never becomes a dead end or emits an unhandled error.
-        if (active && !(error instanceof DOMException && error.name === "AbortError")) setResults(navResults);
+        if (active && !(error instanceof DOMException && error.name === "AbortError")) {
+          setResults(navResults);
+          setSearchState(navResults.length ? "ready" : "error");
+        }
       }
     }, 180);
     return () => {
@@ -119,7 +130,9 @@ export function GlobalSearch({
                   <span className="rounded-[2px] bg-secondary px-2 py-1 text-xs text-muted-foreground">{result.type}</span>
                 </Link>
               ))}
-              {query && !results.length ? <p className="p-6 text-center text-sm text-muted-foreground">No results found.</p> : null}
+              {query && searchState === "loading" ? <p className="p-6 text-center text-sm text-muted-foreground" role="status">Searching…</p> : null}
+              {query && searchState === "error" ? <p className="p-6 text-center text-sm text-destructive" role="alert">Search is temporarily unavailable. Try again.</p> : null}
+              {query && searchState === "ready" && !results.length ? <p className="p-6 text-center text-sm text-muted-foreground">No matching records.</p> : null}
               {!query ? <p className="p-6 text-center text-sm text-muted-foreground">Type to search across Seri Bako OMS.</p> : null}
             </div>
       </ModalShell>

@@ -87,33 +87,40 @@ export async function GET(request: Request) {
     "items.view",
     "suppliers.view",
     "documents.view",
+    "purchase_request.read",
+    "purchase_order.read",
     "goods_receiving.read",
     "stock_count.read",
     "production.view",
   ]);
-    const [items, products, suppliers, documents, receivings, counts, productionJobs] = await Promise.all([
+    const [items, products, suppliers, purchaseRequests, purchaseOrders, documents, receivings, counts, productionJobs] = await Promise.all([
     permissions["items.view"] ? supabase.from("items").select("id,item_code,item_name").or(`item_code.ilike.%${query}%,item_name.ilike.%${query}%`).limit(8) : Promise.resolve({ data: [], error: null }),
     permissions["items.view"] ? supabase.from("products").select("id,product_code,product_name").or(`product_code.ilike.%${query}%,product_name.ilike.%${query}%`).limit(5) : Promise.resolve({ data: [], error: null }),
     permissions["suppliers.view"] ? supabase.from("suppliers").select("id,supplier_code,name").or(`supplier_code.ilike.%${query}%,name.ilike.%${query}%`).limit(5) : Promise.resolve({ data: [], error: null }),
+    permissions["purchase_request.read"] ? supabase.from("purchase_requests").select("id,request_no,status").ilike("request_no", `%${query}%`).limit(8) : Promise.resolve({ data: [], error: null }),
+    permissions["purchase_order.read"] ? supabase.from("purchase_orders").select("id,po_no,status").ilike("po_no", `%${query}%`).limit(8) : Promise.resolve({ data: [], error: null }),
     permissions["documents.view"] ? supabase.from("documents").select("id,document_no,title,document_type,related_entity_type,related_entity_id").or(`document_no.ilike.%${query}%,title.ilike.%${query}%,document_type.ilike.%${query}%`).limit(8) : Promise.resolve({ data: [], error: null }),
-    permissions["goods_receiving.read"] ? supabase.from("goods_receivings").select("id,grn_no,status,remarks").or(`grn_no.ilike.%${query}%,status.ilike.%${query}%,remarks.ilike.%${query}%`).limit(5) : Promise.resolve({ data: [], error: null }),
-    permissions["stock_count.read"] ? supabase.from("stock_counts").select("id,count_no,status,remarks").or(`count_no.ilike.%${query}%,status.ilike.%${query}%,remarks.ilike.%${query}%`).limit(5) : Promise.resolve({ data: [], error: null }),
-    permissions["production.view"] ? db.from("production_jobs").select("id,production_job_no,status,remarks").or(`production_job_no.ilike.%${query}%,status.ilike.%${query}%,remarks.ilike.%${query}%`).limit(5) : Promise.resolve({ data: [], error: null }),
+    permissions["goods_receiving.read"] ? supabase.from("goods_receivings").select("id,grn_no,status,remarks").or(`grn_no.ilike.%${query}%,remarks.ilike.%${query}%`).limit(5) : Promise.resolve({ data: [], error: null }),
+    permissions["stock_count.read"] ? supabase.from("stock_counts").select("id,count_no,status,remarks").or(`count_no.ilike.%${query}%,remarks.ilike.%${query}%`).limit(5) : Promise.resolve({ data: [], error: null }),
+    permissions["production.view"] ? db.from("production_jobs").select("id,production_job_no,status,remarks").or(`production_job_no.ilike.%${query}%,remarks.ilike.%${query}%`).limit(5) : Promise.resolve({ data: [], error: null }),
   ]);
 
-    for (const result of [items, products, suppliers, documents, receivings, counts, productionJobs]) {
+    for (const result of [items, products, suppliers, purchaseRequests, purchaseOrders, documents, receivings, counts, productionJobs]) {
       if (result.error) throw new Error(result.error.message);
     }
 
-    const results: SearchResult[] = [
+    const candidates: SearchResult[] = [
     ...(items.data ?? []).map((item) => ({ type: "Item", title: item.item_name, subtitle: item.item_code, href: `/items/${item.id}` })),
     ...(products.data ?? []).map((product) => ({ type: "Product", title: product.product_name, subtitle: product.product_code, href: `/products/${product.id}` })),
     ...(suppliers.data ?? []).map((supplier) => ({ type: "Supplier", title: supplier.name, subtitle: supplier.supplier_code ?? "-", href: `/suppliers/${supplier.id}` })),
+    ...(purchaseRequests.data ?? []).map((row) => ({ type: "Purchase Request", title: row.request_no, subtitle: row.status, href: `/purchase-requests/${row.id}` })),
+    ...(purchaseOrders.data ?? []).map((row) => ({ type: "Purchase Order", title: row.po_no, subtitle: row.status, href: `/purchase-orders/${row.id}` })),
     ...(documents.data ?? []).map((document) => ({ type: "Document", title: document.document_no, subtitle: document.title, href: getCanonicalDocumentHref(document) })),
     ...(receivings.data ?? []).map((receiving) => ({ type: "Goods Receiving", title: receiving.grn_no, subtitle: receiving.status, href: `/goods-receivings/${receiving.id}` })),
     ...(counts.data ?? []).map((count) => ({ type: "Stock Count", title: count.count_no, subtitle: count.status, href: `/stock-counts/${count.id}` })),
     ...((productionJobs.data ?? []) as Array<{ id: string; production_job_no: string; status: string }>).map((job) => ({ type: "Production Job", title: job.production_job_no, subtitle: job.status, href: `/production/jobs/${job.id}` })),
     ];
+    const results = candidates.filter((result, index) => candidates.findIndex((candidate) => candidate.href === result.href) === index).slice(0, 20);
     return NextResponse.json({ results });
   } catch (error) {
     // Search is advisory UI. Preserve the shell and avoid reflecting database,

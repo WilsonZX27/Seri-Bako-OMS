@@ -80,7 +80,13 @@ test("global search is capability-gated before querying modules and quick item c
   assert.match(search, /getPermissionMap/);
   assert.match(search, /permissions\["items\.view"\]/);
   assert.match(search, /permissions\["documents\.view"\]/);
+  assert.match(search, /permissions\["purchase_request\.read"\]/);
+  assert.match(search, /from\("purchase_requests"\)/);
+  assert.match(search, /permissions\["purchase_order\.read"\]/);
+  assert.match(search, /from\("purchase_orders"\)/);
   assert.match(search, /permissions\["stock_count\.read"\]/);
+  assert.doesNotMatch(search, /status\.ilike/);
+  assert.doesNotMatch(search, /status,remarks\.ilike/);
   assert.match(quickCreate, /from\("suppliers"\)/);
   assert.match(quickCreate, /\.eq\("company_id", actor\.companyId\)/);
   assert.match(quickCreate, /The selected supplier is unavailable/);
@@ -91,11 +97,16 @@ test("global search is capability-gated before querying modules and quick item c
 
 test("global search fails closed without exposing database or policy details", () => {
   const search = read("src/app/api/search/route.ts");
+  const globalSearch = read("src/components/search/global-search.tsx");
 
   assert.match(search, /try \{/);
   assert.match(search, /logServerError\(error, \{ source: "api\.search" \}\)/);
   assert.match(search, /Search is temporarily unavailable/);
   assert.match(search, /status: 503/);
+  assert.match(globalSearch, /Searching…/);
+  assert.match(globalSearch, /Search is temporarily unavailable\. Try again\./);
+  assert.match(globalSearch, /No matching records\./);
+  assert.doesNotMatch(globalSearch, /No results found\./);
 });
 
 test("admin-backed master image uploads verify file bytes and callers verify tenant-owned records first", () => {

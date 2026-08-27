@@ -23,11 +23,12 @@ type Mapping = {
 type SupplierOption = { id: string; name: string };
 
 export function PurchaseRequestLineRecovery({
-  action, line, itemLabel, items, mappings, suppliers, branchId, issue, suggestedSupplierId,
+  action, line, itemCode, itemName, items, mappings, suppliers, branchId, issue, suggestedSupplierId,
 }: {
   action: (formData: FormData) => Promise<void>;
   line: { id: string; item_id: string; qty: number; uom: string; suggested_supplier_id: string | null; estimated_unit_cost: number; updated_at: string };
-  itemLabel: string;
+  itemCode: string;
+  itemName: string;
   items: ItemComboboxOption[];
   mappings: Mapping[];
   suppliers: SupplierOption[];
@@ -39,7 +40,7 @@ export function PurchaseRequestLineRecovery({
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [itemId, setItemId] = useState(line.item_id);
   const selectedItem = items.find((item) => item.id === itemId);
-  const [query, setQuery] = useState(itemLabel);
+  const [query, setQuery] = useState(`${itemCode} - ${itemName}`);
   const [uom, setUom] = useState(normalizeUom(line.uom));
   const supplierId = line.suggested_supplier_id ?? suggestedSupplierId ?? "";
   const [mode, setMode] = useState<"update" | "replace" | "remove">("update");
@@ -57,18 +58,18 @@ export function PurchaseRequestLineRecovery({
     // Returning from Replace must restore the existing line identity. Without
     // this, Quantity / UOM disappeared and Update looked price-only.
     setItemId(line.item_id);
-    setQuery(itemLabel);
+    setQuery(`${itemCode} - ${itemName}`);
     setUom(normalizeUom(line.uom));
   };
 
   return <>
-    <Button type="button" variant={issue ? "outline" : "ghost"} size="icon" className="h-8 w-8 shrink-0" onClick={() => dialogRef.current?.showModal()} aria-label={`Edit ${itemLabel}`} title={`Edit ${itemLabel}`}>
+    <Button type="button" variant={issue ? "outline" : "ghost"} size="icon" className="h-8 w-8 shrink-0" onClick={() => dialogRef.current?.showModal()} aria-label={`Edit ${itemName}`} title={`Edit ${itemName}`}>
       {issue ? <AlertTriangle className="h-4 w-4 text-[var(--sb-danger)]" /> : <PencilLine className="h-4 w-4" />}
     </Button>
     <dialog ref={dialogRef} data-supplier-catalogue-count={suppliers.length} data-supplier-option-count={items.length} className="m-auto h-[min(88dvh,46rem)] w-[min(42rem,calc(100vw-2rem))] max-w-none overflow-visible rounded-[var(--sb-panel-radius)] border-0 bg-transparent p-0 shadow-2xl backdrop:bg-black/60 open:flex" onClose={() => chooseMode("update")}>
       <div className="flex h-full w-full flex-col overflow-hidden rounded-[var(--sb-panel-radius)] bg-[var(--sb-surface)]">
         <header className="flex items-start justify-between gap-3 border-b border-[var(--sb-border-soft)] px-4 py-3">
-          <div className="min-w-0"><h3 className="text-base font-semibold">Review request line</h3><p className="truncate text-xs text-muted-foreground">{itemLabel}</p></div>
+          <div className="min-w-0"><h3 className="truncate text-base font-semibold">{itemName}</h3><p className="mt-0.5 truncate text-xs text-muted-foreground">{itemCode}</p></div>
           <Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={() => dialogRef.current?.close()} aria-label="Close line editor"><X className="h-4 w-4" /></Button>
         </header>
         <form action={action} className="flex min-h-0 flex-1 flex-col">
@@ -79,7 +80,7 @@ export function PurchaseRequestLineRecovery({
           <input type="hidden" name="item_id" value={itemId} />
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4">
             {issue ? <section className="rounded-[var(--sb-control-radius)] border border-[var(--sb-danger)]/25 bg-[var(--sb-danger-bg)] p-3" role="status">
-              <p className="text-sm font-semibold">{issue.message}</p><p className="mt-1 text-xs text-muted-foreground">{issue.cause}</p><p className="mt-2 text-xs font-medium">Next: {issue.recommendedAction}</p><p className="mt-1 text-[11px] text-muted-foreground">Owner: {issue.ownerRole}</p>
+              <p className="text-sm font-semibold">{issue.message}</p><p className="mt-2 text-xs font-medium">Next: {issue.recommendedAction}</p>
             </section> : null}
             <div className="grid grid-cols-3 gap-2" role="group" aria-label="Change type">{(["update", "replace", "remove"] as const).map((value) => <Button key={value} type="button" variant={mode === value ? "default" : "outline"} onClick={() => chooseMode(value)}>{value === "update" ? "Update" : value === "replace" ? "Replace" : "Remove"}</Button>)}</div>
             {mode !== "remove" ? <>
@@ -93,7 +94,6 @@ export function PurchaseRequestLineRecovery({
               </Field>
               <input type="hidden" name="supplier_id" value={supplierId} />
               <Field label="Estimated unit cost"><Input name="unit_cost" type="number" min="0" step="0.0001" defaultValue={line.estimated_unit_cost} /></Field>
-              {selectedItem ? <p className="text-xs text-muted-foreground">Selected: {selectedItem.item_code} · {selectedItem.item_name}</p> : null}
             </> : <p className="text-sm text-muted-foreground">This removes the line from this PR only. It does not delete the Item Master or inventory history.</p>}
             <Field label="Reason for change" required><Textarea name="reason" minLength={3} maxLength={1000} placeholder="Explain what changed so Kitchen, Purchasing, and Finance can acknowledge it." required /></Field>
           </div>

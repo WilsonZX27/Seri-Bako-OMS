@@ -27,24 +27,59 @@ type ConfirmResult = Record<string, number>;
 
 const typeLabels = { supplier_list: "Supplier List", item_list: "Item List", location_snapshot: "Location Snapshot" } as const;
 
+function mergeSelectedFiles(current: AutoCountParsedFile[], incoming: AutoCountParsedFile[]) {
+  const next = new Map(current.map((file) => [file.hash, file]));
+  let duplicates = 0;
+  let replaced = 0;
+  for (const file of incoming) {
+    if (next.has(file.hash)) {
+      duplicates += 1;
+      continue;
+    }
+    if (file.type !== "location_snapshot") {
+      for (const [hash, existing] of next) {
+        if (existing.type === file.type) {
+          next.delete(hash);
+          replaced += 1;
+        }
+      }
+    }
+    next.set(file.hash, file);
+  }
+  return { files: [...next.values()], duplicates, replaced };
+}
+
+function warningSummary(warnings: string[]) {
+  const missingSupplier = warnings.reduce((total, warning) => {
+    const match = warning.match(/:\s*(\d+)\s+items?\s+(?:has|have)\s+no Main Supplier/i);
+    return total + (match ? Number(match[1]) : 0);
+  }, 0);
+  const conversionWarnings = warnings.filter((warning) => warning.includes("no trustworthy conversion"));
+  return { missingSupplier, conversionWarnings, otherCount: Math.max(warnings.length - conversionWarnings.length, 0) };
+}
+
 export function AutoCountImportWorkflow() {
   const [files, setFiles] = useState<AutoCountParsedFile[]>([]);
   const [preview, setPreview] = useState<PreviewResponse | null>(null);
   const [result, setResult] = useState<ConfirmResult | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [selectionNote, setSelectionNote] = useState<string | null>(null);
   const [busy, setBusy] = useState<"parsing" | "preview" | "confirm" | null>(null);
   const [dragActive, setDragActive] = useState(false);
 
   async function selectFiles(selected: FileList | null) {
     if (!selected?.length) return;
-    setBusy("parsing"); setMessage(null); setPreview(null); setResult(null);
+    setBusy("parsing"); setMessage(null); setSelectionNote(null); setPreview(null); setResult(null);
     try {
       const parsed = await Promise.all([...selected].map(parseAutoCountWorkbook));
-      const unique = new Map(parsed.map((file) => [file.hash, file]));
-      setFiles([...unique.values()]);
-      if (unique.size !== parsed.length) setMessage("Duplicate files were removed from this job.");
+      const merged = mergeSelectedFiles(files, parsed);
+      setFiles(merged.files);
+      const notes = [
+        merged.replaced ? `${merged.replaced} earlier Supplier or Item export${merged.replaced === 1 ? " was" : "s were"} replaced by the newer selection.` : null,
+        merged.duplicates ? `${merged.duplicates} duplicate file${merged.duplicates === 1 ? " was" : "s were"} skipped.` : null,
+      ].filter(Boolean);
+      if (notes.length) setSelectionNote(notes.join(" "));
     } catch (error) {
-      setFiles([]);
       setMessage(error instanceof Error ? error.message : "Could not read the selected workbooks.");
     } finally { setBusy(null); }
   }
@@ -87,7 +122,10 @@ export function AutoCountImportWorkflow() {
   const blockers = preview?.blockingIssues ?? [];
   const issueDetails = preview?.issueDetails ?? [];
   const missingItemRecords = issueDetails.filter((issue) => issue.code === "missing_item_list_record");
-  const retryConfirm = Boolean(preview?.jobId && message);
+  const alreadyCompleted = preview?.status === "completed";
+  const retryConfirm = Boolean(preview?.jobId && message && !alreadyCompleted);
+  const warnings = preview?.warnings ?? [];
+  const warningGroups = warningSummary(warnings);
   const rail = (
     <>
       <ConsoleSection title="Actions">
@@ -97,11 +135,11 @@ export function AutoCountImportWorkflow() {
             {busy === "preview" ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />} Review import
           </Button>
         ) : (
-          <Button type="button" className="w-full" onClick={confirmImport} disabled={!preview.jobId || blockers.length > 0 || Boolean(busy) || Boolean(result)} data-mobile-primary-action>
-            {busy === "confirm" ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />} {retryConfirm ? "Retry confirm" : "Confirm once"}
+          <Button type="button" className="w-full" onClick={confirmImport} disabled={!preview.jobId || blockers.length > 0 || Boolean(busy) || Boolean(result) || alreadyCompleted} data-mobile-primary-action>
+            {busy === "confirm" ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />} {alreadyCompleted ? "Already imported" : retryConfirm ? "Retry confirm" : "Confirm once"}
           </Button>
         )}
-          {files.length || preview || result || message ? <Button type="button" className="w-full" variant="outline" onClick={() => { setFiles([]); setPreview(null); setResult(null); setMessage(null); }} disabled={Boolean(busy)}><RotateCcw className="h-4 w-4" />Start over</Button> : null}
+          {files.length || preview || result || message ? <Button type="button" className="w-full" variant="outline" onClick={() => { setFiles([]); setPreview(null); setResult(null); setMessage(null); setSelectionNote(null); }} disabled={Boolean(busy)}><RotateCcw className="h-4 w-4" />Start over</Button> : null}
         </div>
       </ConsoleSection>
       {message ? <ConsoleSection title="Import error"><Notice tone="error" title="Import could not continue">{message}</Notice></ConsoleSection> : null}
@@ -133,7 +171,7 @@ export function AutoCountImportWorkflow() {
             {busy === "parsing" ? <LoaderCircle className="h-6 w-6 animate-spin text-[var(--sb-green-800)]" /> : <Upload className="h-6 w-6 text-[var(--sb-green-800)]" />}
             <span className="text-sm font-semibold">{dragActive ? "Drop files to add them" : "Drop or choose AutoCount .xlsx files"}</span>
             <span className="text-xs text-[var(--sb-text-muted)]">Multiple files accepted · identified by column headers</span>
-            <input type="file" accept=".xlsx" multiple className="sr-only" onChange={(event) => void selectFiles(event.target.files)} disabled={Boolean(busy)} />
+            <input type="file" accept=".xlsx" multiple className="sr-only" onChange={(event) => { const selected = event.currentTarget.files; event.currentTarget.value = ""; void selectFiles(selected); }} disabled={Boolean(busy)} />
           </label>
           {files.length ? <div className="divide-y rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)]">
             {files.map((file) => <div key={file.hash} className="flex items-center gap-3 px-3 py-2.5">
@@ -141,6 +179,7 @@ export function AutoCountImportWorkflow() {
               <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{file.name}</p><p className="text-xs text-[var(--sb-text-muted)]">{typeLabels[file.type]} · {file.rows.length.toLocaleString()} rows</p></div>
             </div>)}
           </div> : null}
+          {selectionNote ? <p className="text-xs text-[var(--sb-text-muted)]" role="status">{selectionNote}</p> : null}
         </CardContent>
       </Card>
 
@@ -176,7 +215,16 @@ export function AutoCountImportWorkflow() {
         </div> : <ul className="mt-3 max-h-72 list-disc space-y-1 overflow-y-auto pl-4">{blockers.slice(0, 100).map((issue) => <li key={issue}>{issue}</li>)}</ul>}
         {(issueDetails.length || blockers.length) > 100 ? <p className="mt-2 flex items-center gap-1.5 font-medium"><AlertTriangle className="h-4 w-4" />Showing the first 100 issues.</p> : null}
       </Notice> : null}
-      {preview?.warnings?.length ? <Notice tone="warning" title="Non-blocking review notes"><ul className="max-h-52 list-disc space-y-1 overflow-y-auto pl-4">{preview.warnings.slice(0, 50).map((warning) => <li key={warning}>{warning}</li>)}</ul></Notice> : null}
+      {warnings.length ? <Notice tone="warning" title="Review after import">
+        <p className="font-medium">These notes do not block the import.</p>
+        <ul className="mt-2 space-y-1.5">
+          {warningGroups.missingSupplier ? <li><strong>{warningGroups.missingSupplier} items:</strong> Item data will import without a supplier mapping. Assign the Main Supplier later in Item Master when the source is known.</li> : null}
+          {warningGroups.conversionWarnings.length ? <li><strong>{warningGroups.conversionWarnings.length} UOM conversion{warningGroups.conversionWarnings.length === 1 ? "" : "s"}:</strong> Review the named source row and add the verified conversion after import.</li> : null}
+          {warningGroups.otherCount && !warningGroups.missingSupplier ? <li><strong>{warningGroups.otherCount} source note{warningGroups.otherCount === 1 ? "" : "s"}:</strong> Review when maintaining supplier mappings.</li> : null}
+        </ul>
+        <details className="mt-3"><summary className="cursor-pointer text-xs font-semibold">View {warnings.length} source note{warnings.length === 1 ? "" : "s"}</summary><ul className="mt-2 max-h-52 list-disc space-y-1 overflow-y-auto pl-4">{warnings.slice(0, 50).map((warning) => <li key={warning}>{warning}</li>)}</ul></details>
+      </Notice> : null}
+      {alreadyCompleted ? <Notice tone="success" title="This file set was already imported">OMS reused the completed job and did not create a duplicate import.</Notice> : null}
       {result ? <Notice tone="success" title="AutoCount import completed">
         <p>Items, suppliers, purchasing relationships, and branch mappings were committed in one transaction. Inventory movements created: 0.</p>
       </Notice> : null}

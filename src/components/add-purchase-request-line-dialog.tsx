@@ -27,7 +27,7 @@ export function AddPurchaseRequestLineDialog({ action, items, suppliers, canView
     <Button type="button" variant="outline" className="w-full justify-center" onClick={() => dialogRef.current?.showModal()}><Plus className="h-4 w-4" />Add line</Button>
     <dialog ref={dialogRef} className="m-auto max-h-[calc(100dvh-2rem)] w-[min(42rem,calc(100vw-2rem))] max-w-none overflow-visible rounded-[var(--sb-panel-radius)] border-0 bg-transparent p-0 shadow-2xl backdrop:bg-black/60">
       <div className="flex max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-[var(--sb-panel-radius)] bg-[var(--sb-surface)]">
-        <header className="flex items-center justify-between border-b border-[var(--sb-border-soft)] px-4 py-3"><div><h3 className="font-semibold">Add request line</h3><p className="text-xs text-muted-foreground">Add one item and keep the reason in revision history.</p></div><Button type="button" variant="ghost" size="icon" onClick={() => dialogRef.current?.close()} aria-label="Close add line dialog"><X className="h-4 w-4" /></Button></header>
+        <header className="flex items-center justify-between border-b border-[var(--sb-border-soft)] px-4 py-3"><h3 className="font-semibold">Add request line</h3><Button type="button" variant="ghost" size="icon" onClick={() => dialogRef.current?.close()} aria-label="Close add line dialog"><X className="h-4 w-4" /></Button></header>
         <form action={action} className="flex min-h-0 flex-1 flex-col">
           <div className="grid min-h-0 flex-1 gap-3 overflow-y-auto p-4 sm:grid-cols-2">
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />

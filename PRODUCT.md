@@ -1,5 +1,13 @@
 # Seri Bako Operations Management System
 
+### v8.65.17 (unreleased) — Workflow evidence and dense table clarity
+
+AutoCount now accepts exports in successive drops: Location Snapshots append, while a newly selected Supplier or Item export replaces the older singleton source. A completed staged job is reported as already imported instead of offering a failing duplicate confirmation. Non-blocking notes are grouped into supplier-mapping and UOM follow-up actions with raw source rows available only on demand.
+
+Delivery Orders uploaded to a Purchase Order after its GRN already exists now synchronize into every linked active Goods Receiving document; migration 225 also backfills historical omissions without duplicating an attachment. The backup page now states the real boundary: PR, PO, GRN, Outlet Daily and document/attachment metadata are included, while uploaded file bodies and secrets are excluded.
+
+Purchase Request recovery removes explanatory duplication, leads with Item Name and Item Code, and reduces UOM guidance to one problem plus one next action. Outlet Daily uses a shared timeline, suppresses rapid duplicate activity, removes redundant Confirmed copy, identifies the last updater, widens Qty Sent, and labels the final date as Last Updated. These changes are locally verified only until migration 225 and v8.65.17 receive authenticated Production UAT.
+
 ### v8.65.16 (unreleased) — Operational input and visual alignment
 
 Dashboard work surfaces now share one restrained sage heading treatment instead of mixing similar but visibly different greens. Outlet Daily uses the same column definition for its wide-screen heading and each product row, while tablet layouts keep wastage details on a deliberate second row. Shared number inputs ignore Arrow Up/Down stepping and release focus on mouse-wheel input so incidental navigation cannot silently change operational quantities.
@@ -515,7 +523,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `224`; Production migration 223 and the authenticated conversion/read-back of PR/AUG26/023 → PO-000201 and PR/AUG26/025 → PO-000208 are recorded in the current closure section and repair ledger. Migration 224, application deployment, public runtime version, and the AutoCount multi-file confirmation workflow remain separate gates.
+Repository migration authority: migrations reviewed through `225`; Production migration 223 and the authenticated conversion/read-back of PR/AUG26/023 → PO-000201 and PR/AUG26/025 → PO-000208 are recorded in the current closure section and repair ledger. Migrations 224–225, application deployment, public runtime version, and the AutoCount multi-file confirmation workflow remain separate gates.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

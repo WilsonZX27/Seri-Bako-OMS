@@ -15,6 +15,12 @@ export async function POST(request: Request) {
   if (!parsed.success) return NextResponse.json({ ok: false, message: "Invalid AutoCount import job." }, { status: 400 });
   if (!(await hasPermission("imports.create"))) return NextResponse.json({ ok: false, message: "Permission required." }, { status: 403 });
   const supabase = await createClient();
+  const { data: job, error: jobError } = await supabase.from("autocount_import_jobs").select("status").eq("id", parsed.data.jobId).maybeSingle();
+  if (jobError) {
+    const failure = formatAutoCountInfrastructureError(jobError);
+    return NextResponse.json({ ok: false, message: failure.message, setupRequired: failure.setupRequired }, { status: failure.setupRequired ? 503 : 409 });
+  }
+  if (job?.status === "completed") return NextResponse.json({ ok: true, result: {}, alreadyCompleted: true });
   const { data, error } = await supabase.rpc("apply_autocount_import_job", { p_job_id: parsed.data.jobId });
   if (error) {
     const failure = formatAutoCountInfrastructureError(error);

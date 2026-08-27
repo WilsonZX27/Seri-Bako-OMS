@@ -44,7 +44,11 @@ export type AutoCountAnalysis = {
 };
 
 export function formatAutoCountInfrastructureError(error: unknown) {
-  const raw = error instanceof Error ? error.message : String(error ?? "");
+  const raw = error instanceof Error
+    ? error.message
+    : error && typeof error === "object"
+      ? ["code", "message", "details", "hint"].map((key) => String((error as Record<string, unknown>)[key] ?? "")).filter(Boolean).join(" ")
+      : String(error ?? "");
   const normalized = raw.toLowerCase();
   const migrationMissing = normalized.includes("autocount_import_") || normalized.includes("apply_autocount_import_job") || normalized.includes("pgrst205") || normalized.includes("schema cache");
   if (migrationMissing) {
@@ -52,6 +56,15 @@ export function formatAutoCountInfrastructureError(error: unknown) {
       message: "AutoCount setup is not available in this environment yet. Ask an Owner to apply migrations 169 and refresh the Supabase schema, then retry. No OMS records were changed.",
       setupRequired: true,
     } as const;
+  }
+  if (normalized.includes("already completed") || normalized.includes("already applied")) {
+    return { message: "This exact AutoCount import was already completed. No duplicate import was created.", setupRequired: false } as const;
+  }
+  if (normalized.includes("blocking") || normalized.includes("not ready")) {
+    return { message: "This preview is not ready to confirm. Review the blocking issues, then prepare it again.", setupRequired: false } as const;
+  }
+  if (normalized.includes("permission") || normalized.includes("not authorized") || normalized.includes("access denied")) {
+    return { message: "Your role cannot confirm this AutoCount import. Ask an Owner to complete it.", setupRequired: false } as const;
   }
   return {
     message: "AutoCount staging is temporarily unavailable. Retry this import; no OMS records were changed. If it persists, ask an Owner to check the import setup.",

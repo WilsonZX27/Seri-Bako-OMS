@@ -1,5 +1,23 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-08-27 — v8.65.17 AutoCount, document evidence, PR recovery and Outlet Daily closure
+
+| Surface / source | Role / viewport | Finding | Resolution | Evidence state |
+|---|---|---|---|---|
+| `/imports/autocount` | Owner / 1440×900 | A later drag/drop replaced the first batch; a completed reused job offered a failing retry; non-blocking notes were an unstructured wall | Incremental merge with singleton replacement, completed-job success state, grouped follow-up with optional source details | strict typecheck/lint and localhost layout inspected; real multi-drop interaction awaiting authenticated UAT |
+| PO attachment → existing GRN | Kitchen / Purchasing / Production report | A DO uploaded after GRN creation stayed only on the PO because migration 224 copied only at GRN insert | Migration 225 trigger synchronizes late active PO attachments and backfills existing linked GRNs with dedupe | locally applied; trigger enabled; database audit reports zero missing inherited attachments |
+| `/administration/backups` | Owner / 1440×900 | First 18 table names obscured whether PR, PO, Outlet Daily and attachments were covered | Grouped operational coverage explicitly includes these records and attachment metadata; file bodies and secrets remain excluded | source contract and exporter manifest audited locally |
+| PR line recovery | Purchasing / 393×852 | UOM issue and dialog repeated cause, owner, selected item and audit-copy detail | One issue + one next action; Item Name leads, Item Code follows; redundant helper lines removed | source contract and strict typecheck pass; populated Production-like PR remains awaiting UAT |
+| `/outlet-daily-records/new` | Owner / 1180×820 | Find product input consumed unnecessary width | Search is capped at 20rem while the title and completion count retain priority | authenticated localhost screenshot inspected; measured width 320px |
+| `/outlet-daily-records` | permitted roles / 820×1180 and 1440×900 | Qty Sent clipped; Confirmed repeated Completed; Submitted By did not describe the displayed actor; Updated label was ambiguous | Explicit column widths, no repeated confirmation line, Updated By uses last updater, Last Updated labels the timestamp | source contract complete; populated register awaiting authenticated UAT |
+| Outlet Daily / document activity | permitted roles / desktop rail | Outlet activity used a separate flat list, duplicate saves appeared, and document icons sat against the edge | Shared inset timeline component and same-actor/message 60-second collapse | strict typecheck/lint pass; populated Production-like timeline awaiting UAT |
+| mobile Goods Receiving | Purchasing / 393×852 | Missing-DO Post Receiving trigger rendered as an outline action | The same primary action stays green before opening the required exception sheet | source contract complete; populated GRN awaiting authenticated UAT |
+
+- Implemented: incremental AutoCount selection, completed-job closure, migration 225 late-attachment sync/backfill, truthful backup scope, concise PR recovery, shared timelines, Outlet Daily density/labels, and version 8.65.17.
+- Locally verified: 1004 contracts, strict typecheck, lint and the environment-backed Production build pass. `V9_SCHEMA_OK` reports migration 225, 85 tables, 6 views and 148 SECURITY DEFINER functions; migration dry-run reports the local database is up to date. Authenticated localhost inspection covered 390×844, 820×1180, 1180×820 and 1440×900; populated PR and Outlet Daily fixtures remain unavailable locally.
+- Awaiting authenticated UAT: populated AutoCount multi-drop/confirm, Production PR recovery, existing Production PO→GRN attachment propagation, and populated Outlet Daily list/timeline across all four fixed viewports.
+- Production verified: not claimed. The supplied screenshots are Production problem evidence, not proof that v8.65.17 or migration 225 is deployed.
+
 ## 2026-08-27 — v8.65.16 Dashboard, Outlet Daily and Goods Receiving correction
 
 | Surface / source | Role / viewport | Finding | Resolution | Evidence state |

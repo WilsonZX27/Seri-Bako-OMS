@@ -12,13 +12,14 @@ import { DestructiveActionDialog } from "@/components/ui/destructive-action-dial
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { sortProductsForDisplay } from "@/lib/product-order";
-import { formatDateOnly, formatDateTime, formatNumber } from "@/lib/utils";
+import { formatDateOnly, formatNumber } from "@/lib/utils";
 import { saveOutletDailyRecord, voidOutletDailyRecord } from "@/server/actions/outlet-daily-records";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getOutletDailyActivity, getOutletDailyFormOptions, getOutletDailyRecord } from "@/server/queries/outlet-daily-records";
 import { logServerError } from "@/server/observability/logger";
 import { CheckCircle2, Save } from "lucide-react";
 import { detailOrNotFound } from "@/server/queries/detail";
+import { TimelineEventList } from "@/components/documents/document-panels";
 
 const dailySteps = [
   { key: "draft", label: "Qty Sent", description: "Central Kitchen records the quantity sent." },
@@ -106,7 +107,7 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
   const sidePanel = <>
     {primaryAction || hasSecondaryActions ? <DocumentActionSection moreOptions={hasSecondaryActions ? <div className="grid gap-2">{secondaryActions}</div> : undefined}>{primaryAction ?? <p className="text-xs text-muted-foreground">No primary action is available for this status.</p>}</DocumentActionSection> : null}
     <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{nextStep}</p><p className="text-xs text-muted-foreground">Wastage needs a reason. Quantity exceptions require a remark.</p></DocumentSideSection>
-    <DocumentSideSection title="Activity"><div className="divide-y divide-[var(--sb-border-soft)]">{activityItems.map((activity) => <div key={activity.id} className="py-2 text-xs"><p className="font-medium">{activity.display_message}</p><p className="mt-1 text-muted-foreground">{activity.actor_name} · {formatDateTime(activity.created_at)}</p></div>)}</div></DocumentSideSection>
+    <DocumentSideSection title="Activity"><TimelineEventList events={activityItems.map((activity) => ({ id: activity.id, activity_type: activity.activity_type, message: activity.display_message, created_at: activity.created_at, created_by_name: activity.actor_name }))} /></DocumentSideSection>
   </>;
 
   return <DocumentWorkspace

@@ -31,6 +31,7 @@ type Revision = Database["public"]["Tables"]["document_revisions"]["Row"] & { ch
 type Approval = Database["public"]["Tables"]["approvals"]["Row"] | null;
 type ApprovalStep = Database["public"]["Tables"]["approval_steps"]["Row"] & { acted_by_name?: string | null; approver_staff_name?: string | null };
 type Activity = Pick<Database["public"]["Tables"]["activity_logs"]["Row"], "id" | "activity_type" | "message" | "created_at" | "created_by"> & { created_by_name?: string | null };
+export type TimelineEvent = Pick<Activity, "id" | "activity_type" | "message" | "created_at"> & { created_by_name?: string | null };
 
 function actorLabel(name: string | null | undefined) {
   return name?.trim() || "System";
@@ -51,6 +52,16 @@ function isMeaningfulTimelineEvent(event: Activity) {
   return true;
 }
 
+export function TimelineEventList({ events }: { events: TimelineEvent[] }) {
+  return <div className="space-y-0">
+    {events.map((event) => <div key={event.id} className="relative ml-2 flex gap-3 border-l border-[var(--sb-border-soft)] pb-4 pl-4 last:pb-0">
+      <div className="-ml-[25px] mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[var(--rail-bg)]">{eventIcon(event.activity_type)}</div>
+      <div className="min-w-0"><p className="text-xs font-medium">{event.message}</p><p className="text-xs text-muted-foreground">{actorLabel(event.created_by_name)} - {formatDateTime(event.created_at)}</p></div>
+    </div>)}
+    {!events.length ? <EmptyTimelineState /> : null}
+  </div>;
+}
+
 export function DocumentTimeline({ document, activities, comments, attachments }: { document: Document; activities: Activity[]; comments: Comment[]; attachments: Attachment[] }) {
   const syntheticEvents = [
     { id: "created", activity_type: "created", message: "Document created", created_at: document.created_at, created_by: document.created_by, created_by_name: document.created_by_name },
@@ -67,18 +78,7 @@ export function DocumentTimeline({ document, activities, comments, attachments }
 
   return (
     <ConsoleSection title="Document Timeline">
-        <div className="space-y-0">
-          {events.map((event) => (
-            <div key={event.id} className="relative flex gap-3 border-l border-[var(--sb-border-soft)] pb-4 pl-3 last:pb-0">
-              <div className="-ml-[21px] mt-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--rail-bg)]">{eventIcon(event.activity_type)}</div>
-              <div className="min-w-0">
-                <p className="text-xs font-medium">{event.message}</p>
-                <p className="text-xs text-muted-foreground">{actorLabel(event.created_by_name)} - {formatDateTime(event.created_at)}</p>
-              </div>
-            </div>
-          ))}
-          {!events.length ? <EmptyTimelineState /> : null}
-        </div>
+      <TimelineEventList events={events} />
     </ConsoleSection>
   );
 }

@@ -15,10 +15,10 @@ test("Outlet Daily activity records only real value changes", () => {
 });
 
 test("Outlet Daily activity folds historical duplicate saves and always identifies creation", () => {
-  assert.match(query, /secondsApart > 60 \|\| JSON\.stringify\(newer\.metadata\) !== JSON\.stringify\(entry\.metadata\)/);
+  assert.match(query, /return secondsApart > 60/);
   assert.match(query, /activityDisplayMessage/);
   assert.match(query, /created_by_name/);
   assert.match(detailPage, /Outlet daily record created/);
-  assert.match(detailPage, /activity\.display_message/);
+  assert.match(detailPage, /message: activity\.display_message/);
   assert.doesNotMatch(detailPage, /No changes recorded yet/);
 });

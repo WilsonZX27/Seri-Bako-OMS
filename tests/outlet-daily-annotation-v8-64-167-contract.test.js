@@ -9,7 +9,7 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 test("draft ownership falls back through updated and created users", () => {
   const source = read("src/server/queries/outlet-daily-records.ts");
   assert.match(source, /record\.submitted_by, record\.updated_by, record\.created_by/);
-  assert.match(source, /record\.submitted_by \?\? record\.updated_by \?\? record\.created_by/);
+  assert.match(source, /record\.updated_by \?\? record\.submitted_by \?\? record\.created_by/);
 });
 
 test("packaging is excluded from received and wastage analytics", () => {

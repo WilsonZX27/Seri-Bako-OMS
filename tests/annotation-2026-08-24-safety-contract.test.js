@@ -74,5 +74,5 @@ test("PR line picker is supplier-scoped, item-code ordered, and searchable", () 
 
 test("Outlet Daily uses a compact two-line Submitted By header", () => {
   const daily = read("src/app/(app)/outlet-daily-records/page.tsx");
-  assert.match(daily, /Submitted<br \/>By/);
+  assert.match(daily, /Updated<br \/>By/);
 });

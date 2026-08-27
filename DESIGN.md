@@ -1,5 +1,15 @@
 # Seri Bako OMS responsive design standard
 
+## v8.65.17 (unreleased) — Progressive detail and trustworthy evidence
+
+- An upload surface may be used in successive batches. It must preserve valid prior selections, replace only singleton source roles, and explain any dedupe or replacement without presenting it as an error.
+- A completed idempotent job is a success state, not a retry state. Raw diagnostic rows stay available behind progressive disclosure after the operator sees the grouped action first.
+- Related documents share evidence automatically. A Delivery Order attached to a PO remains visible to an already-created GRN; the UI must not imply that absent copied metadata means the operator never uploaded it.
+- Recovery dialogs lead with the item name, then the smaller code. Show one concise issue and one next action; remove ownership labels and selection echoes when the surrounding interaction already makes them clear.
+- Dense registers allocate width by business importance. Qty Sent and Last Updated must remain readable, while repeated confirmation copy is removed. Hidden scrollbars remain hidden and no edge gradient is introduced.
+- Timelines use one inset line/icon grammar across documents and Outlet Daily activity. Rapid identical saves by the same actor collapse into one visible event.
+- Backup copy distinguishes operational records and attachment metadata from uploaded file bodies. It cannot promise a full document-file archive when only metadata is exported.
+
 ## v8.65.16 (unreleased) — Quiet hierarchy and safe numeric entry
 
 - Repeated work surfaces use one shared semantic header token. A dashboard must not communicate accidental hierarchy through near-duplicate greens.

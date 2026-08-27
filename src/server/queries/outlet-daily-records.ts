@@ -60,14 +60,14 @@ export async function getOutletDailyActivity(recordId: string) {
     const newer = normalized[index - 1];
     if (!newer || newer.created_by !== entry.created_by || newer.display_message !== entry.display_message) return true;
     const secondsApart = Math.abs(new Date(newer.created_at).getTime() - new Date(entry.created_at).getTime()) / 1_000;
-    return secondsApart > 60 || JSON.stringify(newer.metadata) !== JSON.stringify(entry.metadata);
+    return secondsApart > 60;
   });
 }
 
 export type OutletDailyRecordRow = RecordRow & {
   branch_name: string;
   created_by_name: string | null;
-  submitted_by_name: string | null;
+  updated_by_name: string | null;
   total_sent: number | null;
   total_received: number | null;
   received_state: "verified" | "unavailable";
@@ -336,7 +336,7 @@ async function hydrateRows(db: Awaited<ReturnType<typeof createClient>>, records
     ...record,
     branch_name: branchNames.get(record.branch_id) ?? "Unknown outlet",
     created_by_name: staffNames.get(record.created_by ?? "") ?? null,
-    submitted_by_name: staffNames.get(record.submitted_by ?? record.updated_by ?? record.created_by ?? "") ?? null,
+    updated_by_name: staffNames.get(record.updated_by ?? record.submitted_by ?? record.created_by ?? "") ?? null,
     ...totals(linesByRecord.get(record.id) ?? [], operationalProductIds),
   }));
 }
@@ -490,7 +490,7 @@ export async function getOutletDailyRecord(id: string) {
       ...typedRecord,
       branch_name: trustedBranches.find((branch) => branch.id === typedRecord.branch_id)?.branch_name ?? "Unknown outlet",
       created_by_name: trustedStaffs.find((staff) => staff.id === typedRecord.created_by)?.full_name ?? null,
-      submitted_by_name: trustedStaffs.find((staff) => staff.id === typedRecord.submitted_by)?.full_name ?? null,
+      updated_by_name: trustedStaffs.find((staff) => staff.id === (typedRecord.updated_by ?? typedRecord.submitted_by ?? typedRecord.created_by))?.full_name ?? null,
       reviewed_by_name: trustedStaffs.find((staff) => staff.id === typedRecord.reviewed_by)?.full_name ?? null,
       ...totals(typedLines),
     },

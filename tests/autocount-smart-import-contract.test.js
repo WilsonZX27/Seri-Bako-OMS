@@ -159,6 +159,19 @@ test("AutoCount Confirm preserves optional Main Supplier semantics", () => {
   assert.match(helper, /apply migration 226/);
 });
 
+test("AutoCount Confirm reuses a normalized supplier and preserves creditor references", () => {
+  const migration = read("supabase/migrations/227_autocount_reuse_normalized_supplier.sql");
+  const helper = read("src/lib/imports/autocount.ts");
+  assert.match(migration, /pg_advisory_xact_lock/);
+  assert.match(migration, /upper\(regexp_replace\(trim\(s\.name\), '\\s\+', ' ', 'g'\)\)/);
+  assert.match(migration, /supplier_external_references/);
+  assert.match(migration, /on conflict \(company_id, \(upper\(regexp_replace\(trim\(name\), '\\s\+', ' ', 'g'\)\)\)\) where deleted_at is null/);
+  assert.match(migration, /coalesce\(target_supplier\.id, supplier_id\)/);
+  assert.match(migration, /'inventoryMovementsCreated', 0/);
+  assert.doesNotMatch(migration, /insert into public\.stock_transactions/);
+  assert.match(helper, /apply migration 227/);
+});
+
 test("branch mappings retain the creditor code and never use Item Group as supplier identity", () => {
   const { analyzeAutoCountFiles } = loadAnalyzer();
   const files = JSON.parse(read("tests/fixtures/autocount-sanitized.json"));

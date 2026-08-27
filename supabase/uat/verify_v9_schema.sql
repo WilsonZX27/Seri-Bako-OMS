@@ -9,8 +9,8 @@ declare
   policyless_tables text;
 begin
   select max(version) into latest_migration from supabase_migrations.schema_migrations;
-  if latest_migration <> '226' then
-    raise exception 'Expected migration 226, found %', coalesce(latest_migration, '(none)');
+  if latest_migration <> '227' then
+    raise exception 'Expected migration 227, found %', coalesce(latest_migration, '(none)');
   end if;
 
   select string_agg(tablename, ', ' order by tablename) into unsafe_tables

@@ -1,5 +1,17 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-08-27 — v8.65.22 AutoCount canonical Supplier confirmation
+
+| Surface / source | Role / viewport | Finding | Resolution | Evidence state |
+|---|---|---|---|---|
+| `/imports/autocount` Confirm | Owner / Production 1440×900 plus Supabase log | A valid four-file Preview failed with `suppliers_company_normalized_name_active_idx` because Confirm looked up only the creditor code, then tried to insert an already-named active Supplier | Migration 227 resolves by OMS code, normalized name or AutoCount reference; it reuses the canonical Supplier, records the creditor reference and serializes company confirmation | Production migration 227 applied; staged job completed with 48 Suppliers reused/updated, 8 Items created, 729 Items updated, 7 supplier-item links and zero inventory movements |
+| Import error recovery | Owner / responsive | The generic staging error did not identify this deployed-schema mismatch | Preserve the staged job and direct Owner to migration 227; Retry Confirm remains the recovery action | full contract suite, strict typecheck, lint and environment-backed Production build pass |
+
+- Implemented: migration 227, canonical supplier reuse, creditor-reference preservation, company-scoped confirmation lock, actionable recovery copy, and version 8.65.22.
+- Locally verified: migration 227 applied; a disposable transactional collision reused `LEGACY-227`, attached `NEW-CREDITOR-227`, kept one active normalized Supplier, returned `suppliersUpdated: 1`, and created zero inventory movements.
+- Awaiting authenticated UAT: deploy v8.65.22 only for the improved constraint-specific recovery copy; the database confirmation path is already verified.
+- Production verified: linked Production reports latest migration `227`, the exact four-file job is `completed`, duplicate active normalized Supplier names are `0`, and `inventoryMovementsCreated` is `0`.
+
 ## 2026-08-27 — v8.65.21 Procurement chain and shared evidence
 
 | Surface / source | Role / viewport | Finding | Resolution | Evidence state |

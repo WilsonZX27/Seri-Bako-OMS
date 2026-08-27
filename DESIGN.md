@@ -1,5 +1,12 @@
 # Seri Bako OMS responsive design standard
 
+## v8.65.22 (unreleased) — Preserve identity across imports
+
+- A source-system code is an external reference, not permission to create a second Supplier with the same canonical company identity.
+- Match AutoCount suppliers by OMS code, normalized active name, or recorded AutoCount creditor reference; retain every creditor code on the canonical Supplier.
+- Confirmation errors must preserve the staged Preview and name the required migration or recovery action. Never ask an operator to alter a valid supplier name merely to bypass an identity constraint.
+- Confirm remains atomic and company-serialized. A failed retry changes no OMS records and a successful import creates no inventory movement.
+
 ## v8.65.21 (unreleased) — Procurement object-page continuity
 
 - Follow the established object-page pattern: show the related PR, PO, GRN and invoice as a compact linked-document chain, not as disconnected cards or duplicated records.

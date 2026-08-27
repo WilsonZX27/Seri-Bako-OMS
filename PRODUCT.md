@@ -1,5 +1,11 @@
 # Seri Bako Operations Management System
 
+### v8.65.22 (unreleased) — Canonical AutoCount supplier reuse
+
+AutoCount Confirm now treats a creditor code as an external identity of the canonical Supplier. When an imported creditor carries a normalized name that already exists, Confirm reuses that Supplier, records the new AutoCount reference, and preserves the established OMS supplier code instead of attempting a duplicate insert. Confirmation is serialized per company so concurrent retries cannot race the active-name identity guard.
+
+The prepared Preview remains retryable and the import stays atomic: a failed confirmation changes no OMS records, and a successful confirmation still creates no inventory movement. Migration 227 was applied to the Production project and the user's staged four-file job completed successfully with no duplicate active Supplier names and no inventory movements; application deployment of the improved recovery copy remains a separate gate.
+
 ### v8.65.21 (unreleased) — One purchase chain, one evidence surface
 
 Purchase Requests now expose their full downstream chain: source PR, one or more POs, Goods Receivings and Supplier Invoices remain individually addressable while appearing together as one purchase. PO lists link back to the source PR, and converted PR rows show the furthest PO fulfilment state such as Received instead of stopping at Converted to PO.
@@ -547,7 +553,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `226`; Production migration 223 and the authenticated conversion/read-back of PR/AUG26/023 → PO-000201 and PR/AUG26/025 → PO-000208 are recorded in the current closure section and repair ledger. Migrations 224–226, application deployment, public runtime version, and the AutoCount multi-file confirmation workflow remain separate gates.
+Repository migration authority: migrations reviewed through `227`; Production migration 227 and the authenticated completion of the four-file AutoCount import are recorded in the current closure section and repair ledger. Application deployment and public runtime version remain separate gates.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

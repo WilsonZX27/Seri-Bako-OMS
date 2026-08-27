@@ -69,6 +69,12 @@ export function formatAutoCountInfrastructureError(error: unknown) {
   if (normalized.includes("staged supplier") && normalized.includes("missing")) {
     return { message: "AutoCount Confirm is using an older optional-supplier rule. Ask an Owner to apply migration 226, then retry confirmation; the prepared preview remains available.", setupRequired: true } as const;
   }
+  if (normalized.includes("suppliers_company_normalized_name_active_idx")) {
+    return {
+      message: "This supplier already exists under the same name with another AutoCount creditor code. Ask an Owner to apply migration 227, then retry confirmation; the prepared preview remains available and no OMS records were changed.",
+      setupRequired: true,
+    } as const;
+  }
   return {
     message: "AutoCount staging is temporarily unavailable. Retry this import; no OMS records were changed. If it persists, ask an Owner to check the import setup.",
     setupRequired: false,

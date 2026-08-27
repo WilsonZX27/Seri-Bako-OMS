@@ -34,10 +34,15 @@ test("dashboard headers and workflow identities have one semantic visual authori
 
 test("Goods Receiving keeps concise DO copy and meaningful action icons", () => {
   const detail = read("src/app/(app)/goods-receivings/[id]/page.tsx");
+  const guard = read("src/components/documents/receiving-post-guard.tsx");
   const upload = read("src/components/documents/attachment-upload-form.tsx");
   assert.doesNotMatch(detail, /Attach the supplier DO before posting\. Upload a replacement before removing a mistaken draft file\./);
+  assert.doesNotMatch(detail, /Attach the Delivery Order or document an exception before posting\./);
   assert.match(detail, /uploadLabel="Attach DO"/);
-  assert.match(detail, /PackageCheck/);
+  assert.match(detail, /ReceivingPostGuard/);
+  assert.match(detail, /required=\{receiving\.status === "draft"\}/);
+  assert.match(guard, /Delivery Order required/);
+  assert.match(guard, /Post with exception/);
   assert.match(detail, /ExternalLink/);
   assert.match(upload, /<Upload[^>]+aria-hidden="true"/);
 });

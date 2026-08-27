@@ -215,7 +215,7 @@ export function RightConsoleMount({ children, hideMobileBar = false, hideDesktop
   return null;
 }
 
-export function ConsoleSection({ title, children, titleClassName }: { title: string; children: ReactNode; titleClassName?: string }) {
+export function ConsoleSection({ title, children, titleClassName }: { title: ReactNode; children: ReactNode; titleClassName?: string }) {
   return (
     <section data-console-section className="rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)] px-3 py-3 shadow-[var(--sb-shadow-card)]">
       <div className="mb-3 flex items-center gap-2">

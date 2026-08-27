@@ -1,5 +1,14 @@
 # Seri Bako OMS responsive design standard
 
+## v8.65.20 (unreleased) — Ask at the action boundary
+
+- Required supporting evidence is marked where it is owned. Do not repeat the same instruction above and below the primary action.
+- If a missing document blocks posting, let the operator press the action and open one focused dialog: attach the document first, or record the permitted exception.
+- Dense right-rail comments use the operational text scale and a bounded minimum height; helper copy must not dominate the document.
+- Tablet pages keep one document scroll chain above fixed navigation. A nested main scroller must not trap the remaining side-rail content behind the bottom bar.
+- Import selections remain editable before confirmation. Every selected file has a named remove action, and later drops merge with the current selection.
+- Preview and Confirm enforce the same source-data rule. Optional Main Supplier metadata cannot become a confirmation-time blocker or an empty required Item category.
+
 ## v8.65.19 (unreleased) — Quantities and rates must not compete
 
 - A business quantity and its derived percentage use explicit labels and separate visual lines. A large decimal quantity must never be positioned where it can be read as a percentage.

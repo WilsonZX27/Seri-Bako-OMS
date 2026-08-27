@@ -1,5 +1,11 @@
 # Seri Bako Operations Management System
 
+### v8.65.20 (unreleased) — Concise receiving and reliable AutoCount Confirm
+
+Goods Receiving removes the repeated posting explanation and asks for the required Delivery Order only when the operator presses Post. The compact dialog offers upload first and a documented exception second; Delivery Order ownership is marked with `*`, comments use the dense operational type scale, and tablet document scrolling remains reachable above the fixed navigation.
+
+AutoCount selected files can be removed individually. Migration 226 brings Confirm into line with Preview: an Item Master row with no Main Supplier imports under its real Item Group without fabricating a supplier, supplier-item or branch mapping. A full local reset through migration 226 and an authenticated atomic confirmation proved the item imported with a null supplier and zero inventory movements. Application deployment, linked migration application and authenticated Production import remain separate gates.
+
 ### v8.65.19 (unreleased) — Truthful wastage rate and stable pagination
 
 Outlet Daily pagination now returns the workspace to its top after a page change instead of preserving the previous page's bottom scroll position. The register separates wastage quantity from its rate and limits the displayed percentage to one decimal, so `76.75` quantity cannot be mistaken for `76%`.
@@ -535,7 +541,7 @@ The shared control authority now keeps tablet and desktop filters, textboxes, se
 - Purchase Request review reports the number of requested items and gives supplier/UOM mapping errors a direct explanation and repair action.
 - Shared list surfaces keep desktop controls at 36px while preserving the tablet touch-first decision until the explicit 36px-versus-44px recommendation is accepted.
 
-Repository migration authority: migrations reviewed through `225`; Production migration 223 and the authenticated conversion/read-back of PR/AUG26/023 → PO-000201 and PR/AUG26/025 → PO-000208 are recorded in the current closure section and repair ledger. Migrations 224–225, application deployment, public runtime version, and the AutoCount multi-file confirmation workflow remain separate gates.
+Repository migration authority: migrations reviewed through `226`; Production migration 223 and the authenticated conversion/read-back of PR/AUG26/023 → PO-000201 and PR/AUG26/025 → PO-000208 are recorded in the current closure section and repair ledger. Migrations 224–226, application deployment, public runtime version, and the AutoCount multi-file confirmation workflow remain separate gates.
 
 ### v8.64.70 (unreleased) — Supplier Identity And PR Review Repair
 

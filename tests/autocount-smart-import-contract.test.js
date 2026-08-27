@@ -20,6 +20,7 @@ test("AutoCount import has one direct multi-file workspace without changing supp
   const workflow = read("src/components/imports/autocount-import-workflow.tsx");
   assert.match(page, /AutoCount Direct Import/);
   assert.match(workflow, /multiple/);
+  assert.match(workflow, /Remove \$\{file\.name\}/);
   assert.match(workflow, /No OMS template is required/);
   assert.match(workflow, /Confirm once/);
 });
@@ -146,6 +147,16 @@ test("items without Main Supplier remain importable Item Master data", () => {
   assert.equal(item.normalized.supplier_code, "");
   assert.ok(!analysis.rows.some((row) => row.entityType === "supplier" && row.businessKey === "TEOWJOO"));
   assert.ok(!analysis.rows.some((row) => row.entityType === "branch_mapping" && row.normalized.item_code === "TEOWJOO00001"));
+});
+
+test("AutoCount Confirm preserves optional Main Supplier semantics", () => {
+  const migration = read("supabase/migrations/226_autocount_optional_main_supplier_confirm.sql");
+  const helper = read("src/lib/imports/autocount.ts");
+  assert.match(migration, /coalesce\(target_supplier\.id, supplier_id\)/);
+  assert.match(migration, /if target_supplier\.id is not null then/);
+  assert.match(migration, /category = row_record\.normalized->>'supplier_group'/);
+  assert.match(migration, /Staged supplier % is missing/);
+  assert.match(helper, /apply migration 226/);
 });
 
 test("branch mappings retain the creditor code and never use Item Group as supplier identity", () => {

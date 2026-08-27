@@ -27,7 +27,7 @@ export function PageHeader(props: PageHeaderProps) {
       <header data-page-header className="block border-b border-[var(--sb-border-soft)] bg-[var(--workspace-bg)] px-3 py-3 sm:px-4">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <h1 className="min-w-0 break-words text-lg font-semibold leading-5 tracking-[-0.02em] text-[var(--sb-text)]">{props.title}</h1>
+            <h1 className="min-w-0 break-words text-base font-semibold leading-5 tracking-[-0.015em] text-[var(--sb-text)]">{props.title}</h1>
             {props.description ? <p className="mt-0.5 hidden max-w-2xl text-xs leading-4 text-[var(--sb-text-muted)] sm:block">{props.description}</p> : null}
           </div>
           {props.secondaryAction || (props.action && !isCreateAction) ? (

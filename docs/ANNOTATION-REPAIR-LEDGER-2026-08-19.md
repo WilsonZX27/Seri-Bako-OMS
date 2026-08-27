@@ -1,5 +1,21 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-08-27 — v8.65.20 Receiving action boundary and AutoCount confirmation
+
+| Surface / source | Role / viewport | Finding | Resolution | Evidence state |
+|---|---|---|---|---|
+| `/goods-receivings/:id` | Owner / localhost 1141×792 and Production problem screenshots | Posting guidance repeated around the action, DO requirement was visually weak, comments were oversized, and the tablet scroll chain stopped behind fixed navigation | Remove repeated guidance; mark `Delivery Order *`; click Post opens one upload/exception dialog; comments use 13px/80px; document owns the vertical scroll | authenticated localhost screenshot and computed-style/scroll checks pass; Production deployment pending |
+| `/purchase-requests` | Owner / localhost 1141×792 | Status and priority labels wrapped into awkward two-line controls | Shared select triggers keep one line and truncate within the available control width | authenticated localhost screenshot and geometry inspection pass |
+| `/purchase-requests/new` | Owner / localhost 1141×792 | Main request surface sat below the tablet action rail | Tablet-only form offset aligns the first work surface with the contextual rail; desktop keeps its existing rhythm | authenticated 820×1180 and 1180×820 geometry both report identical 174px surface/rail origins |
+| `/stock-counts`, `/imports/autocount` | Owner / localhost 1141×792 | Page titles were louder than the surrounding operational hierarchy | Shared page-header authority uses an 18px semibold title | authenticated computed style reports 18px; Production deployment pending |
+| `/imports/autocount` selected files | Owner / Production problem screenshot | A staged file could not be removed before review/confirmation | Every file row exposes a named remove control and invalidates the prior preview | source contract and strict typecheck pass; populated browser UAT pending |
+| AutoCount Confirm / migration 226 | Owner / local Supabase | Preview accepted 102 blank Main Supplier cells, but Confirm still required the supplier and then wrote an empty supplier code into required Item category | Confirm skips supplier relationships for blank Main Supplier, preserves existing supplier identity, and writes Item Group as category | clean reset 001–226 and authenticated atomic RPC check pass: null supplier, zero inventory movements |
+
+- Implemented: concise Goods Receiving action boundary, required DO marker, dense comments, tablet scroll repair, compact shared headings/filters, per-file AutoCount removal, migration 226, and version 8.65.20.
+- Locally verified: `1006/1006` contracts, strict typecheck, ESLint and the environment-backed Production build pass. A clean reset applied migrations 001–226, the dry-run is up to date, and `V9_SCHEMA_OK` reports 85 RLS tables, 6 views and 148 fixed-search-path SECURITY DEFINER functions. The authenticated optional-supplier Confirm imports the item with a null supplier and creates zero inventory movements. Authenticated browser checks cover 390×844, 820×1180, 1180×820 and 1440×900 with no horizontal overflow or console errors; Post opens the required DO dialog at every viewport.
+- Awaiting authenticated UAT: deploy v8.65.20, apply migration 226, repeat populated Goods Receiving and the supplied four-file AutoCount import in the authenticated target.
+- Production verified: not claimed; Production screenshots in this batch are pre-fix problem evidence.
+
 ## 2026-08-27 — v8.65.19 Outlet Daily pagination and wastage-rate clarity
 
 | Surface / source | Role / viewport | Finding | Resolution | Evidence state |

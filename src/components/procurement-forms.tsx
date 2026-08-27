@@ -337,7 +337,7 @@ export function PurchaseRequestForm({
   }
 
   return (
-    <div>
+    <div className="md:-mt-3 xl:mt-0">
         <form id="purchase-request-form" action={action} onSubmit={validateSubmission} noValidate className={`space-y-3 ${reserveMobileActionSpace ? "pb-36" : ""} md:pb-0`}>
           <input type="hidden" name="request_no" value="" />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />

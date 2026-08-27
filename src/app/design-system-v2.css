@@ -255,8 +255,8 @@ body::-webkit-scrollbar {
 }
 
 [data-page-header] h1 {
-  font-size: var(--sb-text-display);
-  font-weight: 500;
+  font-size: 1.125rem;
+  font-weight: 600;
   line-height: var(--sb-leading-tight);
   letter-spacing: -0.025em;
   overflow-wrap: anywhere;
@@ -2206,7 +2206,7 @@ html[data-touch-tablet="true"] main#main-content {
 }
 
 html[data-touch-tablet="true"] main#main-content {
-  overflow-y: auto !important;
+  overflow-y: visible !important;
   padding-bottom: calc(var(--sb-mobile-nav-height) + env(safe-area-inset-bottom) + 1rem) !important;
 }
 

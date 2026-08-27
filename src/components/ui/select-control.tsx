@@ -83,7 +83,7 @@ export function SelectControl({
         data-select-control
         aria-label={ariaLabel}
         className={cn(
-          "flex h-[var(--sb-control-height)] w-full min-w-0 items-center justify-between gap-2 rounded-[var(--sb-radius-control)] border border-input bg-background px-2.5 text-left text-sm outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+          "flex h-[var(--sb-control-height)] w-full min-w-0 items-center justify-between gap-2 overflow-hidden whitespace-nowrap rounded-[var(--sb-radius-control)] border border-input bg-background px-2.5 text-left text-sm outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span:first-child]:min-w-0 [&>span:first-child]:truncate",
           className,
         )}
       >

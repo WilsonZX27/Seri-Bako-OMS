@@ -93,6 +93,7 @@ export async function AttachmentPanel({
   presentation = "console",
   canManage,
   documentStatus,
+  required = false,
 }: {
   documentId: string;
   attachments: Attachment[];
@@ -103,6 +104,7 @@ export async function AttachmentPanel({
   presentation?: "console" | "inline";
   canManage?: boolean;
   documentStatus?: string;
+  required?: boolean;
 }) {
   const [resolvedCanManage, resolvedDocument] = await Promise.all([
     canManage === undefined ? hasPermission("documents.attach") : Promise.resolve(canManage),
@@ -137,9 +139,9 @@ export async function AttachmentPanel({
       </div>
   );
   if (presentation === "inline") {
-    return <section aria-label={title} className="rounded-[2px] border bg-card p-4"><h2 className="mb-2 text-sm font-semibold">{title}</h2>{content}</section>;
+    return <section aria-label={title} className="rounded-[2px] border bg-card p-4"><h2 className="mb-2 text-sm font-semibold">{title}{required ? <span className="text-[var(--sb-danger)]"> *</span> : null}</h2>{content}</section>;
   }
-  return <ConsoleSection title={title}>{content}</ConsoleSection>;
+  return <ConsoleSection title={required ? <>{title} <span className="text-[var(--sb-danger)]">*</span></> : title}>{content}</ConsoleSection>;
 }
 
 export function CommentsPanel({ documentId, comments }: { documentId: string; comments: Comment[] }) {
@@ -147,7 +149,7 @@ export function CommentsPanel({ documentId, comments }: { documentId: string; co
     <ConsoleSection title="Comments">
       <div className="space-y-3">
         <form action={addDocumentComment.bind(null, documentId)} className="space-y-2">
-          <Textarea name="comment_text" placeholder="Add a comment for the document history" required className="min-h-[96px] w-full resize-none" />
+          <Textarea name="comment_text" placeholder="Add a comment" required className="min-h-20 w-full resize-none text-[13px] leading-5" />
           <SubmitButton type="submit" pendingLabel="Saving..." className="w-full justify-center">Add comment</SubmitButton>
         </form>
         <div className="space-y-3">

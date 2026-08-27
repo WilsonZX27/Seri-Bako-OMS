@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type DragEvent } from "react";
-import { AlertTriangle, CheckCircle2, Clock3, FileSpreadsheet, LoaderCircle, RotateCcw, ShieldCheck, Upload } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock3, FileSpreadsheet, LoaderCircle, RotateCcw, ShieldCheck, Upload, X } from "lucide-react";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { Button } from "@/components/ui/button";
@@ -104,6 +104,14 @@ export function AutoCountImportWorkflow() {
     if (!busy) void selectFiles(event.dataTransfer.files);
   }
 
+  function removeFile(hash: string) {
+    setFiles((current) => current.filter((file) => file.hash !== hash));
+    setPreview(null);
+    setResult(null);
+    setMessage(null);
+    setSelectionNote(null);
+  }
+
   async function confirmImport() {
     if (!preview?.jobId) return;
     setBusy("confirm"); setMessage(null);
@@ -177,6 +185,7 @@ export function AutoCountImportWorkflow() {
             {files.map((file) => <div key={file.hash} className="flex items-center gap-3 px-3 py-2.5">
               <FileSpreadsheet className="h-4 w-4 shrink-0 text-[var(--sb-green-800)]" />
               <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{file.name}</p><p className="text-xs text-[var(--sb-text-muted)]">{typeLabels[file.type]} · {file.rows.length.toLocaleString()} rows</p></div>
+              <Button type="button" variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive" onClick={() => removeFile(file.hash)} disabled={Boolean(busy)} aria-label={`Remove ${file.name}`} title="Remove file"><X className="h-4 w-4" /></Button>
             </div>)}
           </div> : null}
           {selectionNote ? <p className="text-xs text-[var(--sb-text-muted)]" role="status">{selectionNote}</p> : null}

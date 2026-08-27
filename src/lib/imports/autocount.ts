@@ -66,6 +66,9 @@ export function formatAutoCountInfrastructureError(error: unknown) {
   if (normalized.includes("permission") || normalized.includes("not authorized") || normalized.includes("access denied")) {
     return { message: "Your role cannot confirm this AutoCount import. Ask an Owner to complete it.", setupRequired: false } as const;
   }
+  if (normalized.includes("staged supplier") && normalized.includes("missing")) {
+    return { message: "AutoCount Confirm is using an older optional-supplier rule. Ask an Owner to apply migration 226, then retry confirmation; the prepared preview remains available.", setupRequired: true } as const;
+  }
   return {
     message: "AutoCount staging is temporarily unavailable. Retry this import; no OMS records were changed. If it persists, ask an Owner to check the import setup.",
     setupRequired: false,

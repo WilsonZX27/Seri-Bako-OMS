@@ -15,3 +15,13 @@ test("pagination uses real disabled controls at its boundaries and retains direc
   assert.match(source, /h-\[var\(--sb-control-height\)\]/);
   assert.match(source, /min-w-\[var\(--sb-control-height\)\]/);
 });
+
+test("Outlet Daily pagination restores the page origin after changing pages", () => {
+  const source = fs.readFileSync("src/components/sortable-table.tsx", "utf8");
+  const reset = fs.readFileSync("src/components/pagination-scroll-reset.tsx", "utf8");
+  const outlet = fs.readFileSync("src/app/(app)/outlet-daily-records/page.tsx", "utf8");
+
+  assert.match(source, /resetScrollOnPageChange/);
+  assert.match(reset, /window\.scrollTo\(\{ top: 0, left: 0, behavior: "auto" \}\)/);
+  assert.match(outlet, /resetScrollOnPageChange/);
+});

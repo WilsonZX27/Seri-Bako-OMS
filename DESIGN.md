@@ -1,5 +1,12 @@
 # Seri Bako OMS responsive design standard
 
+## v8.65.19 (unreleased) — Quantities and rates must not compete
+
+- A business quantity and its derived percentage use explicit labels and separate visual lines. A large decimal quantity must never be positioned where it can be read as a percentage.
+- Operational percentages use decision-appropriate precision; one decimal is sufficient for the Outlet Daily register, while the source quantity remains available at normal quantity precision.
+- A period rate aggregates its numerator and denominator before division. Do not average daily percentages when daily volumes differ.
+- Pagination is a workspace transition. A new list page begins at the workspace origin even when the operator selected the control from the bottom of the previous page.
+
 ## v8.65.18 (unreleased) — Search states must be truthful
 
 - Global record search queries the canonical module table under that module's read permission. A generic document index may supplement results, but cannot be the only route to an existing PR or PO.

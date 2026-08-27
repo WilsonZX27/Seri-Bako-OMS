@@ -18,7 +18,8 @@ test("outlet daily workspace renders a lightweight 30-day completed-record wasta
   assert.match(page, /getOutletDailyDemandTrend\(\{ period: "30", branch: filters\.branch \}\)/);
   assert.match(page, /<OutletDailyWastageChart points=\{trend\?\.daily \?\? \[\]\} branch=\{filters\.branch\} unavailable=\{!trend\} \/>/);
   assert.match(chart, /Completed outlet records only/);
-  assert.match(chart, /wastage ÷ received/);
+  assert.match(chart, /total wastage ÷ total received/);
+  assert.match(chart, /totalWastage \/ totalReceived \* 100/);
   assert.match(chart, /InteractiveLineChart/);
   assert.match(chart, /maximumFractionDigits: 1/);
   assert.match(chart, /left: 54/);

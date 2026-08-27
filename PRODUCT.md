@@ -1,5 +1,11 @@
 # Seri Bako Operations Management System
 
+### v8.65.19 (unreleased) — Truthful wastage rate and stable pagination
+
+Outlet Daily pagination now returns the workspace to its top after a page change instead of preserving the previous page's bottom scroll position. The register separates wastage quantity from its rate and limits the displayed percentage to one decimal, so `76.75` quantity cannot be mistaken for `76%`.
+
+The 30-day headline is now a weighted operational rate—total wastage divided by total received—rather than an arithmetic average of daily percentages. Only completed records with trusted Received values contribute to the result. Local authenticated browser evidence and the focused contracts pass; Production verification remains pending deployment.
+
 ### v8.65.18 (unreleased) — Activated global record search
 
 Global search now queries Purchase Requests and Purchase Orders directly under their own read permissions instead of depending on a matching generic Document row. Searchable enum statuses are no longer passed through PostgreSQL `ILIKE`, which previously made an otherwise valid record-number search fail for every role that could read those modules.

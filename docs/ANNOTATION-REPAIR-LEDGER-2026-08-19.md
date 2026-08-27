@@ -1,5 +1,18 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-08-27 — v8.65.19 Outlet Daily pagination and wastage-rate clarity
+
+| Surface / source | Role / viewport | Finding | Resolution | Evidence state |
+|---|---|---|---|---|
+| `/outlet-daily-records?page=3` | Owner / Production 1440×900 | Later pages retained the bottom scroll position used to activate pagination, making the new page appear shifted upward | Outlet Daily opts into the shared pagination origin reset; page changes synchronously restore `window` to top | focused contract and authenticated localhost page-origin inspection pass; populated Production transition pending deployment |
+| Outlet Daily register | Owner / Production 1440×900 | `76.75` wastage quantity could be read as a 76% rate because quantity and percentage shared an ambiguous heading | Label quantity and rate explicitly, keep the quantity at normal precision, and render the derived rate to one decimal | authenticated localhost layout inspected; Production populated-row UAT pending |
+| 30-day wastage insight | permitted roles / desktop | The headline averaged daily percentages even though daily received volumes differ | Use `sum(wastage) ÷ sum(received)` across completed records with trusted Received values | focused calculation contract and authenticated local chart interaction pass |
+
+- Implemented: pagination origin reset, explicit Wastage qty/Rate hierarchy, weighted 30-day rate, truthful fixture provenance, and version 8.65.19.
+- Locally verified: focused contracts, strict typecheck, lint and authenticated localhost chart interaction pass; the 1180×820 rendering keeps the register inside its shared canvas.
+- Awaiting authenticated UAT: deploy v8.65.19 and repeat page 1 → page 3 plus a populated Petaling Street row in Production.
+- Production verified: not claimed; the supplied screenshots are pre-fix problem evidence.
+
 ## 2026-08-27 — v8.65.18 Procurement global search activation
 
 | Surface / source | Role / viewport | Finding | Resolution | Evidence state |

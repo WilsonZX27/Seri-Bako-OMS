@@ -15,7 +15,9 @@ export function OutletDailyWastageChart({ points, branch, unavailable = false }:
   const height = 280;
   const inset = { top: 18, right: 18, bottom: 30, left: 54 };
   const maximum = Math.max(10, ...points.map((point) => point.wastage_percent));
-  const average = points.length ? points.reduce((sum, point) => sum + point.wastage_percent, 0) / points.length : 0;
+  const totalReceived = points.reduce((sum, point) => sum + point.received, 0);
+  const totalWastage = points.reduce((sum, point) => sum + point.wastage, 0);
+  const periodRate = totalReceived > 0 ? totalWastage / totalReceived * 100 : 0;
 
   const formatPercent = (value: number) => new Intl.NumberFormat("en-MY", { maximumFractionDigits: 1 }).format(value);
   const chartPoints = points.map((point) => ({
@@ -36,9 +38,9 @@ export function OutletDailyWastageChart({ points, branch, unavailable = false }:
       <div className="flex flex-wrap items-end justify-between gap-2 border-b border-[var(--sb-border-soft)] px-3 py-2.5">
         <div>
           <h2 id="outlet-wastage-trend-title" className="text-sm font-semibold">30-day wastage rate</h2>
-          <p className="text-xs text-muted-foreground">Completed outlet records only · wastage ÷ received</p>
+          <p className="text-xs text-muted-foreground">Completed outlet records only · total wastage ÷ total received</p>
         </div>
-        <p className="text-xs text-muted-foreground">Daily average <strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable ? "Unavailable" : `${formatPercent(average)}%`}</strong></p>
+        <p className="text-xs text-muted-foreground">30-day rate <strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable ? "Unavailable" : `${formatPercent(periodRate)}%`}</strong></p>
       </div>
       {unavailable ? <div className="px-4 py-8 text-center" role="status"><p className="text-sm font-medium">Wastage trend unavailable</p><p className="mt-1 text-xs text-muted-foreground">The daily record list remains current. Retry this page to load the 30-day insight.</p></div> : points.length ? (
       <div className="grid items-start gap-3 p-2 pt-3 xl:grid-cols-[minmax(0,3fr)_minmax(18rem,2fr)] xl:p-3" data-outlet-wastage-layout>

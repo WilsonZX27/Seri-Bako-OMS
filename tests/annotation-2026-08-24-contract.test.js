@@ -53,6 +53,7 @@ test("register and basket presentations enforce the new operational contract", (
   assert.match(basket, /accessibleBranchIds/);
   assert.match(basket, /One branch per PR basket/);
   assert.match(daily, /Qty Sent[\s\S]*label="Outlet"[\s\S]*Received[\s\S]*Wastage[\s\S]*Updated<br \/>By[\s\S]*label="Last Updated"/);
-  assert.match(daily, /Wastage %/);
+  assert.match(daily, /Wastage qty/);
+  assert.match(daily, /% rate/);
   assert.match(daily, /row\.updated_by_name \?\? "—"/);
 });

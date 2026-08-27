@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TableHead } from "@/components/ui/table";
+import { PaginationScrollReset } from "@/components/pagination-scroll-reset";
 
 type SortableHeadProps = {
   label: string;
@@ -41,11 +42,13 @@ export function PaginationControls({
   totalPages,
   totalRows,
   searchParams,
+  resetScrollOnPageChange = false,
 }: {
   page: number;
   totalPages: number;
   totalRows: number;
   searchParams: Record<string, string | undefined>;
+  resetScrollOnPageChange?: boolean;
 }) {
   if (totalRows === 0) return null;
   const pageNumbers = totalPages <= 7
@@ -73,6 +76,7 @@ export function PaginationControls({
   );
   return (
     <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 border-t px-3 py-1.5 text-[11px] text-muted-foreground">
+      {resetScrollOnPageChange ? <PaginationScrollReset page={page} /> : null}
       <span className="min-w-0 flex-1 truncate leading-6">
         Page {page} of {totalPages} - {totalRows} rows
       </span>

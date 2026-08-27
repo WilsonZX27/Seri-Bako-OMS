@@ -45,7 +45,7 @@ test.describe("outlet wastage chart preview", () => {
     if (insertedRecords.error) throw insertedRecords.error;
     const received = [120, 160, 140, 200];
     const wastage = [6, 16, 7, 30];
-    const insertedLines = await fixtureAdmin.from("outlet_daily_record_lines").insert(insertedRecords.data.map((record, index) => ({ record_id: record.id, product_id: product.id, morning_received_qty: received[index], evening_leftover_qty: received[index] - wastage[index], wastage_qty: wastage[index], wastage_reason: "unsold" })));
+    const insertedLines = await fixtureAdmin.from("outlet_daily_record_lines").insert(insertedRecords.data.map((record, index) => ({ record_id: record.id, product_id: product.id, morning_received_qty: received[index], morning_received_provided: true, evening_leftover_qty: received[index] - wastage[index], wastage_qty: wastage[index], wastage_reason: "unsold" })));
     if (insertedLines.error) throw insertedLines.error;
   });
 

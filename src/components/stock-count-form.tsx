@@ -549,7 +549,7 @@ export function StockCountForm({
                     <div className="order-1 flex min-w-0 items-start gap-2">
                       <div className="flex w-7 shrink-0 flex-col items-center gap-0.5">
                         <span className="mt-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--sb-surface-muted)] px-1 text-[10px] font-semibold tabular-nums text-muted-foreground" aria-label={`Item ${displayIndex}`}>{displayIndex}</span>
-                        <TableActionMenuPortal label={`More options for ${line.item_name}`} className="[&_button]:!h-7 [&_button]:!w-7">
+                        <TableActionMenuPortal label={`More options for ${line.item_name}`}>
                           {lineRevisionAction && line.line_id ? <StockCountLineRecovery action={lineRevisionAction} line={{ id: line.line_id, item_id: line.item_id, physical_qty: toNumber(line.physicalQty), uom: line.uom }} items={itemCatalog} reviewMode={false} menuTrigger initialOpenMode={initialLineAction?.itemId === line.item_id ? initialLineAction.mode : undefined} /> : <>
                             <button type="button" role="menuitem" className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-left text-xs font-medium hover:bg-[var(--sb-surface-muted)]" onClick={() => continueInSavedDraft("replace", line.item_id)}><RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />Replace item</button>
                             <button type="button" role="menuitem" className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-left text-xs font-medium text-[var(--sb-danger)] hover:bg-[var(--sb-danger-bg)]" onClick={() => continueInSavedDraft("remove", line.item_id)}><Trash2 className="h-3.5 w-3.5" aria-hidden="true" />Remove from this count</button>

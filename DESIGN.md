@@ -1,5 +1,13 @@
 # Seri Bako OMS responsive design standard
 
+## v8.65.23 (unreleased) — Compact controls remain usable controls
+
+- Dense operational UI may reduce visual chrome, but an interactive phone target remains at least 36px and shared row utilities retain the established 44px mobile target.
+- Pagination may be compact, but the direct-page input must be independently operable; do not hide a 28px native input inside a larger decorative shell and call the shell the target.
+- A mobile record row with two destinations uses two sibling links. Never place the source-document link inside an anchor that already owns the complete row; invalid nesting causes ambiguous activation and hydration drift.
+- Intentional canonical routes must settle before visual inspection. The audit harness handles known redirects explicitly rather than ignoring execution-context errors or weakening runtime gates.
+- Hidden native scrollbars remain the product decision. Reachability comes from contained, named, keyboard-focusable regions—not gradients, fades or reintroduced scrollbars.
+
 ## v8.65.22 (unreleased) — Preserve identity across imports
 
 - A source-system code is an external reference, not permission to create a second Supplier with the same canonical company identity.

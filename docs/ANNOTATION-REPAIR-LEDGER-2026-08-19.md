@@ -1,5 +1,19 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-08-28 — v8.65.23 v9 responsive interaction closure
+
+| Surface / source | Role / viewport | Finding | Resolution | Evidence state |
+|---|---|---|---|---|
+| Shared paginated registers | six-role matrix / 390×844 | The direct page field inherited a compact desktop height and failed the minimum mobile touch-target gate across otherwise healthy routes | Make the shared page field 36×40px so every consumer keeps a practical target without reintroducing a visible scrollbar | complete canonical matrix covered; focused Owner routes pass at 390×844 and 820×1180 |
+| `/stock-counts/new` | Owner / 390×844 | A local style override shrank row action menus to 28×28 despite the shared mobile control authority | Remove the local override and retain the shared 44px action target | focused authenticated localhost route passes; screenshot reviewed |
+| `/purchase-orders` | Owner / 820×1180 | The mobile list wrapped a linked Source PR inside a linked PO row, producing invalid nested anchors and React hydration error 418 | Keep the row inert and give the PO number and Source PR separate, explicit links | focused authenticated localhost route passes with no console or hydration error |
+| `/stock-balances` compatibility route | six-role matrix / four fixed viewports | The legacy alias redirects to canonical `/stock-balance`, which could replace the Playwright execution context during inspection | Wait for the canonical redirect before applying the unchanged route, craft, motion and runtime gates | focused matrix passes; this is harness synchronization, not a relaxed product gate |
+
+- Implemented: shared pagination touch target, Stock Count action target, valid PO/PR link composition, redirect-aware v9 harness, and version 8.65.23.
+- Locally verified: all 52 canonical role/viewport shards have passing evidence. The first full pass was 50/52 because two already-started Outlet shards still used the pre-fix redirect assumption; their exact 390×844 and 820×1180 rerun passed, while the same corrected shard already passed at 1180×820 and 1440×900. `1011/1011` contracts, strict typecheck, lint and the environment-backed Production build pass. Representative screenshots at all four fixed viewports were manually inspected. Local migration 227 reports `V9_SCHEMA_OK` with 85 RLS tables, 6 views and 148 fixed-search-path SECURITY DEFINER functions; migration dry-run is up to date.
+- Awaiting authenticated UAT: the Production-like cloned-dataset run still requires the source database password; the v8.65.23 frontend has not been deployed.
+- Production verified: limited to migration 227 and the exact completed AutoCount staged job documented in v8.65.22 below; no v8.65.23 frontend claim is made.
+
 ## 2026-08-27 — v8.65.22 AutoCount canonical Supplier confirmation
 
 | Surface / source | Role / viewport | Finding | Resolution | Evidence state |

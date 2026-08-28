@@ -139,9 +139,8 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
             <OperationalList ariaLabel="Purchase orders">
               {orders?.rows.map((order) => <OperationalListRow
                 key={order.id}
-                href={`/purchase-orders/${order.id}`}
                 label={`Open ${order.po_no}`}
-                primary={<div><DocumentNumber value={order.po_no} size="sm" /><p className="text-[11px] font-normal text-[var(--sb-text-muted)]">Delivery {formatDateOnly(order.expected_delivery_date, "not set")}</p></div>}
+                primary={<div><Link href={`/purchase-orders/${order.id}`} className="inline-flex min-h-9 items-center rounded-[var(--sb-radius-control)] font-medium text-[var(--sb-link)] underline-offset-4 hover:underline"><DocumentNumber value={order.po_no} size="sm" /></Link><p className="text-[11px] font-normal text-[var(--sb-text-muted)]">Delivery {formatDateOnly(order.expected_delivery_date, "not set")}</p></div>}
                 status={<StatusBadge status={order.status} />}
                 secondary={<span>{order.supplier_name ?? "No supplier"} · {formatDateOnly(order.order_date)}{order.purchase_request_id && order.request_no ? <> · <Link href={`/purchase-requests/${order.purchase_request_id}`} className="font-medium text-[var(--sb-link)] underline-offset-4 hover:underline">{order.request_no}</Link></> : null}</span>}
                 meta={`${order.line_count} items · ${formatCurrency(order.order_total)}`}

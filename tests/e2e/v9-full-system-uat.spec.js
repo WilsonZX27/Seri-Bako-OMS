@@ -46,12 +46,18 @@ function normalizeText(value) {
   return String(value ?? "").replace(/\s+/g, " ").trim();
 }
 
-async function navigate(page, route) {
+async function navigate(page, route, { expectCanonicalStockRoute = false } = {}) {
   try {
     await page.goto(route, { waitUntil: "domcontentloaded", timeout: 30_000 });
   } catch (error) {
     if (!/net::ERR_ABORTED|Execution context was destroyed/.test(String(error))) throw error;
     await page.waitForLoadState("domcontentloaded");
+  }
+  // The legacy plural stock URL intentionally canonicalizes on the client.
+  // Wait for that navigation before inspecting the document so the audit does
+  // not evaluate a React tree while its execution context is being replaced.
+  if (route === "/stock-balances" && expectCanonicalStockRoute) {
+    await page.waitForURL((url) => url.pathname === "/stock-balance", { timeout: 10_000 });
   }
 }
 
@@ -185,10 +191,12 @@ test.describe("v9 full-system authenticated UAT", () => {
         for (const entry of appRoutes) {
           runtimeFailures.length = 0;
           try {
-            await navigate(page, entry.route);
+            const permitted = entry.permittedRoles.includes(role);
+            await navigate(page, entry.route, {
+              expectCanonicalStockRoute: entry.route === "/stock-balances" && permitted,
+            });
             await assertApplicationHealth(page, `${role} ${viewport.label} ${entry.route}`);
             const pathname = new URL(page.url()).pathname;
-            const permitted = entry.permittedRoles.includes(role);
             if (permitted) {
               expect(pathname, `${role} should not be sent to an access or login page for ${entry.route}`).not.toMatch(/^\/(?:login|access-status)$/);
               await waitForCraftSettle(page);

@@ -1,5 +1,13 @@
 # Seri Bako Operations Management System
 
+### v8.65.23 (unreleased) — v9 interaction and audit closure
+
+The final local v9 audit keeps the accepted dense operational language while closing three shared interaction defects found by the real production-mode route matrix. Direct-page pagination now provides a practical phone touch target, Stock Count row menus retain the shared 44px mobile control instead of shrinking locally, and Purchase Order mobile rows expose the PO and source PR as separate valid links without nesting one anchor inside another.
+
+The authenticated audit runner also waits for the intentional `/stock-balances` → `/stock-balance` canonical navigation before inspecting the React tree. The meaningful gates remain unchanged: named icon controls, practical touch targets, reduced motion, hidden native scrollbars, contained horizontal reachability, concise copy and fail-closed role access are still required. Local evidence is not Production verification; the sanitized Production-like clone remains awaiting its source database password.
+
+All 52 canonical six-role/four-viewport shards now have passing local evidence, alongside 1011 contracts, strict typecheck, lint, the 79-page environment-backed Production build, migration 227 schema verification and an up-to-date migration dry-run.
+
 ### v8.65.22 (unreleased) — Canonical AutoCount supplier reuse
 
 AutoCount Confirm now treats a creditor code as an external identity of the canonical Supplier. When an imported creditor carries a normalized name that already exists, Confirm reuses that Supplier, records the new AutoCount reference, and preserves the established OMS supplier code instead of attempting a duplicate insert. Confirmation is serialized per company so concurrent retries cannot race the active-name identity guard.

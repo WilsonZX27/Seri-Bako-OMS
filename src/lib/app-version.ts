@@ -1,4 +1,4 @@
-export const APP_VERSION = "8.65.22";
+export const APP_VERSION = "8.65.23";
 export const APP_SPRINT = `v${APP_VERSION}`;
 export const APP_RELEASE_TITLE = "Canonical AutoCount Supplier Reuse";
 // Keep the shell footer concise; the detailed release title belongs in release

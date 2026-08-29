@@ -3,9 +3,9 @@
 ## v9.2.0 (unreleased) — Separate operational workspaces
 
 - Outlet Management and People are independent navigation sections; a dashboard, checklist detail, profile and calendar each own one job instead of stacking create forms beneath exception tables.
-- Outlet Compliance follows the established SaaS checklist pattern: template requirement, upload evidence, pending review, approve/return, renewal and audit history. Outlet cards expose completion and exceptions; details expose the seven fixed requirements.
+- Outlet Compliance follows the established SaaS checklist pattern: template requirement, upload evidence, pending review, approve/return, renewal and audit history. One exception band leads into the canonical Outlet register; repeated KPI and outlet-card grids are prohibited. Details expose the seven fixed requirements through progressive disclosure rather than seven permanently open upload forms.
 - People Profile uses stable sections for Overview, Employment & outlet assignments, Compliance, Documents, and Account & access. It reuses the existing OMS staff identity and reveals sensitive originals only to Owner and People Operations.
-- Calendar rows remain compact at 390px and become date/content/status grids at wider viewports. Forms wrap intentionally without wrapping filter labels or creating a desktop-width control on phones/tablets.
+- Outlet and People calendars use a real seven-column month grid with previous/next navigation. Phone cells reduce events to labelled status dots while wider cells expose compact event names; the document never widens beyond the workspace. Forms wrap intentionally without wrapping filter labels or creating a desktop-width control on phones/tablets.
 - Outlet Daily keeps product quantities and cashless reconciliation in one workflow while visually separating their ownership. Difference and review state are derived evidence, not editable client totals.
 - Attendance is absent from navigation and schema in this release. Future attendance integration must remain an external-system boundary until separately approved.
 

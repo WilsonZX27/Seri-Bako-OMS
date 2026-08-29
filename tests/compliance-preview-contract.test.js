@@ -58,3 +58,19 @@ test("Preview remains readable before migration 229 is applied", () => {
   assert.match(complianceQuery, /migrationReady/);
   assert.match(outletQuery, /salesError.*PGRST205/);
 });
+
+test("v9.2 uses the OMS register, progressive checklist and real month calendars", () => {
+  const register = read("src","app","(app)","outlet-compliance","page.tsx");
+  const checklist = read("src","app","(app)","outlet-compliance","[branchId]","page.tsx");
+  const people = read("src","app","(app)","people","[id]","page.tsx");
+  const calendar = read("src","components","compliance-month-calendar.tsx");
+  assert.match(register, /Outlet register/);
+  assert.match(register, /OperationalList/);
+  assert.doesNotMatch(register, /lg:grid-cols-2/);
+  assert.match(checklist, /<details/);
+  assert.match(people, /WorkspaceGrid/);
+  assert.doesNotMatch(people, /lg:grid-cols-2/);
+  assert.match(calendar, /grid-cols-7/);
+  assert.match(calendar, /Previous month/);
+  assert.match(calendar, /Next month/);
+});

@@ -14,6 +14,7 @@ type Crumb = {
 const sectionMap: Record<string, { label: string; href?: string; parent?: Crumb }> = {
   dashboard: { label: "Dashboard" },
   administration: { label: "Administration" },
+  compliance: { label: "Compliance & People Operations" },
   company: { label: "Company", parent: { label: "Administration", href: "/administration" } },
   branches: { label: "Branches", parent: { label: "Administration", href: "/administration" } },
   staffs: { label: "Users & Staff", parent: { label: "Administration", href: "/administration" } },

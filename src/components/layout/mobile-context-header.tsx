@@ -11,6 +11,7 @@ const routeTitles: Record<string, RouteTitle> = {
   "/account": { title: "My Account" },
   "/activity": { title: "Activity Log" },
   "/administration": { title: "Administration" },
+  "/compliance": { title: "Compliance" },
   "/administration/backups": { title: "System Backup", backHref: "/administration" },
   "/administration/master-data-cleanup": { title: "Master Data Cleanup", backHref: "/administration" },
   "/branches": { title: "Branches / Outlets" },

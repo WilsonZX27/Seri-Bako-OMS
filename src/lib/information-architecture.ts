@@ -24,20 +24,21 @@ export const iaGroupLabels: Record<IaGroupId, string> = {
   administration: "Administration",
 };
 
-const ALL: readonly UserRole[] = ["super_admin", "finance", "manager", "purchasing", "kitchen", "outlet_staff"];
+const ALL: readonly UserRole[] = ["super_admin", "people_operations", "finance", "manager", "purchasing", "kitchen", "outlet_staff"];
 const PROCUREMENT: readonly UserRole[] = ["super_admin", "finance", "manager", "purchasing", "kitchen"];
 const INVENTORY: readonly UserRole[] = ["super_admin", "finance", "manager", "purchasing", "kitchen"];
 const PRODUCTION: readonly UserRole[] = ["super_admin", "finance", "manager", "purchasing", "kitchen"];
 const REPORTS: readonly UserRole[] = ["super_admin", "finance", "manager", "purchasing"];
 const MASTER_DATA: readonly UserRole[] = ["super_admin", "finance", "purchasing"];
 const OWNER: readonly UserRole[] = ["super_admin"];
-const BRANCH_READERS: readonly UserRole[] = ["super_admin", "finance", "manager", "purchasing"];
-const STAFF_MANAGERS: readonly UserRole[] = ["super_admin", "finance"];
+const BRANCH_READERS: readonly UserRole[] = ["super_admin", "people_operations", "finance", "manager", "purchasing"];
+const STAFF_MANAGERS: readonly UserRole[] = ["super_admin", "people_operations", "finance", "manager"];
 
 export const informationArchitecture: readonly IaItem[] = [
   { href: "/dashboard", label: "Dashboard", group: "operations", icon: "gauge", roles: ALL, permission: "dashboard.view", defaultFor: ALL, keywords: ["home", "alerts", "approvals"] },
   { href: "/production/jobs", label: "Production Jobs", group: "operations", icon: "factory", roles: PRODUCTION, permission: "production.view" },
   { href: "/outlet-daily-records", label: "Outlet Daily Records", group: "operations", icon: "clipboard", roles: ALL, permission: "outlet_daily_record.view" },
+  { href: "/compliance", label: "Compliance", group: "operations", icon: "check", roles: ALL, permission: "compliance.read", attention: true, keywords: ["license", "permit", "expiry", "staff", "inspection"] },
 
   { href: "/purchase-requests", label: "Purchase Requests", group: "procurement", icon: "request", roles: PROCUREMENT, permission: "purchase_request.read", attention: true },
   { href: "/purchase-orders", label: "Purchase Orders", group: "procurement", icon: "shopping", roles: PROCUREMENT, permission: "purchase_order.read" },

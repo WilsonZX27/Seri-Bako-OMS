@@ -29,7 +29,7 @@ test("one canonical six-role catalogue feeds the Staff dropdown", () => {
   const form = read("src/components/staff-access-fields.tsx");
   const expected = ["Super Admin / Owner", "Finance", "Manager", "Purchasing", "Kitchen", "Outlet Staff"];
 
-  assert.match(roles, /SYSTEM_ROLE_CODES = \["super_admin", "finance", "manager", "purchasing", "kitchen", "outlet_staff"\]/);
+  assert.match(roles, /SYSTEM_ROLE_CODES = \["super_admin", "people_operations", "finance", "manager", "purchasing", "kitchen", "outlet_staff"\]/);
   for (const label of expected) assert.equal((roles.match(new RegExp(`"${label.replace("/", "\\/")}"`, "g")) ?? []).length, 1, label);
   assert.match(roles, /new Map<SystemRoleCode, T>/);
   assert.match(queries, /sortRolesForDisplay/);

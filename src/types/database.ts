@@ -1,6 +1,6 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
-export type UserRole = "super_admin" | "finance" | "manager" | "purchasing" | "kitchen" | "outlet_staff";
+export type UserRole = "super_admin" | "people_operations" | "finance" | "manager" | "purchasing" | "kitchen" | "outlet_staff";
 export type ItemStatus = "active" | "inactive";
 export type SupplierStatus = "active" | "inactive";
 export type RecordStatus = "active" | "inactive" | "archived" | "invited" | "disabled";
@@ -626,6 +626,24 @@ export type Database = {
           change_summary: string;
         };
         Update: Partial<Database["public"]["Tables"]["document_revisions"]["Insert"]>;
+        Relationships: [];
+      };
+      compliance_types: {
+        Row: { id: string; company_id: string; type_code: string; type_name: string; subject_kind: "outlet" | "staff" | "asset"; is_sensitive: boolean; default_reminder_days: number[]; status: RecordStatus; created_at: string; updated_at: string; deleted_at: string | null };
+        Insert: { id?: string; company_id: string; type_code: string; type_name: string; subject_kind: "outlet" | "staff" | "asset"; is_sensitive?: boolean; default_reminder_days?: number[]; status?: RecordStatus; created_at?: string; updated_at?: string; deleted_at?: string | null };
+        Update: Partial<Database["public"]["Tables"]["compliance_types"]["Insert"]>;
+        Relationships: [];
+      };
+      compliance_records: {
+        Row: { id: string; company_id: string; compliance_type_id: string; subject_kind: "outlet" | "staff" | "asset"; branch_id: string | null; staff_id: string | null; asset_external_ref: string | null; subject_label: string; reference_no: string | null; issued_on: string | null; expires_on: string | null; review_status: "draft" | "pending_review" | "approved" | "rejected"; responsible_staff_id: string | null; reminder_days: number[]; attachment_id: string | null; notes: string | null; reviewed_by: string | null; reviewed_at: string | null; review_note: string | null; created_at: string; updated_at: string; created_by: string; updated_by: string; deleted_at: string | null };
+        Insert: { id?: string; company_id: string; compliance_type_id: string; subject_kind: "outlet" | "staff" | "asset"; branch_id?: string | null; staff_id?: string | null; asset_external_ref?: string | null; subject_label: string; reference_no?: string | null; issued_on?: string | null; expires_on?: string | null; review_status?: "draft" | "pending_review" | "approved" | "rejected"; responsible_staff_id?: string | null; reminder_days?: number[]; attachment_id?: string | null; notes?: string | null; reviewed_by?: string | null; reviewed_at?: string | null; review_note?: string | null; created_at?: string; updated_at?: string; created_by: string; updated_by: string; deleted_at?: string | null };
+        Update: Partial<Database["public"]["Tables"]["compliance_records"]["Insert"]>;
+        Relationships: [];
+      };
+      compliance_record_history: {
+        Row: { id: string; company_id: string; compliance_record_id: string; event_type: string; safe_summary: string; previous_expires_on: string | null; new_expires_on: string | null; actor_staff_id: string; created_at: string };
+        Insert: { id?: string; company_id: string; compliance_record_id: string; event_type: string; safe_summary: string; previous_expires_on?: string | null; new_expires_on?: string | null; actor_staff_id: string; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["compliance_record_history"]["Insert"]>;
         Relationships: [];
       };
       attachments: {

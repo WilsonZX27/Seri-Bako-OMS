@@ -11,8 +11,8 @@
 
 - Implemented: shared pagination touch target, Stock Count action target, valid PO/PR link composition, redirect-aware v9 harness, and version 8.65.23.
 - Locally verified: all 52 canonical role/viewport shards have passing evidence. The first full pass was 50/52 because two already-started Outlet shards still used the pre-fix redirect assumption; their exact 390×844 and 820×1180 rerun passed, while the same corrected shard already passed at 1180×820 and 1440×900. `1011/1011` contracts, strict typecheck, lint and the environment-backed Production build pass. Representative screenshots at all four fixed viewports were manually inspected. Local migration 227 reports `V9_SCHEMA_OK` with 85 RLS tables, 6 views and 148 fixed-search-path SECURITY DEFINER functions; migration dry-run is up to date.
-- Awaiting authenticated UAT: the Production-like cloned-dataset run still requires the source database password; the v8.65.23 frontend has not been deployed.
-- Production verified: limited to migration 227 and the exact completed AutoCount staged job documented in v8.65.22 below; no v8.65.23 frontend claim is made.
+- Awaiting authenticated UAT: the Production-like cloned-dataset run still requires the source database password. The complete authenticated mutation matrix remains awaiting that sanitized clone even though the deployed read-only smoke passed.
+- Production verified: commit `77efd376` was fast-forwarded to `main`; Vercel reported the deployment complete, the Production login page and authenticated Owner session display `v8.65.23`, and Dashboard, Item Master, Supplier Items, Stock Balance and AutoCount Import passed a read-only smoke with zero browser console errors. Visible Production counts were 755 Item Master records, 752 Supplier Item records and 271 Stock Balance rows. This is not a claim that every Item has a Supplier or branch mapping: blank authoritative Main Supplier data intentionally remains master-only, and no relationship is fabricated.
 
 ## 2026-08-27 — v8.65.22 AutoCount canonical Supplier confirmation
 

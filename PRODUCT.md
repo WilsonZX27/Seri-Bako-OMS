@@ -1,12 +1,14 @@
 # Seri Bako Operations Management System
 
-### v8.65.23 (unreleased) — v9 interaction and audit closure
+### v8.65.23 (deployed) — v9 interaction and audit closure
 
 The final local v9 audit keeps the accepted dense operational language while closing three shared interaction defects found by the real production-mode route matrix. Direct-page pagination now provides a practical phone touch target, Stock Count row menus retain the shared 44px mobile control instead of shrinking locally, and Purchase Order mobile rows expose the PO and source PR as separate valid links without nesting one anchor inside another.
 
 The authenticated audit runner also waits for the intentional `/stock-balances` → `/stock-balance` canonical navigation before inspecting the React tree. The meaningful gates remain unchanged: named icon controls, practical touch targets, reduced motion, hidden native scrollbars, contained horizontal reachability, concise copy and fail-closed role access are still required. Local evidence is not Production verification; the sanitized Production-like clone remains awaiting its source database password.
 
 All 52 canonical six-role/four-viewport shards now have passing local evidence, alongside 1011 contracts, strict typecheck, lint, the 79-page environment-backed Production build, migration 227 schema verification and an up-to-date migration dry-run.
+
+Commit `77efd376` was fast-forwarded to `main` and Vercel reported the Production deployment complete on 29 August 2026. The Production login page and authenticated Owner session display `v8.65.23`; Dashboard, Item Master, Supplier Items, Stock Balance and AutoCount Import completed a read-only smoke check with no browser console errors. Production currently exposes 755 Item Master records, 752 Supplier Item records and 271 Stock Balance rows. These counts do not imply every Item has a Supplier or branch mapping: records without an authoritative Main Supplier intentionally remain master-only, while purchasing continues to fail closed until an authorized mapping is supplied. The sanitized Production-like clone remains awaiting its source database password and is not claimed as complete authenticated workflow UAT.
 
 ### v8.65.22 (unreleased) — Canonical AutoCount supplier reuse
 

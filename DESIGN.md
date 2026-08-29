@@ -1,12 +1,13 @@
 # Seri Bako OMS responsive design standard
 
-## v9.1.0 (unreleased) — Exception-led compliance Preview
+## v9.1.0 (Preview deployed; authenticated UAT pending) — Exception-led compliance
 
 - Compliance lives in the OMS operations navigation and uses the existing dense workspace, not a separate HR application shell.
 - The first screen leads with actionable expiry and missing-document bands, followed by one register and a progressive create surface. It does not use large hero metrics or repeated nested cards.
 - Non-HR readers see `Valid`, `Expiring`, `Missing`, or `Restricted`; medical detail and sensitive file actions never appear as ordinary table content.
 - Phone summary bands use two columns, tablet uses four, and desktop may use seven. Filter and status labels stay on one line; the register is a named keyboard-scrollable region when its business columns cannot safely collapse.
 - Outlet and staff subjects reuse canonical branch/staff identities. Asset references remain external until an approved AMS integration exists.
+- Migration 228 is remotely verified on the linked Production database by schema/read-back counts. The v9.1 application is still an isolated Preview branch: no `main` merge or Production application promotion has occurred, and authenticated role/mutation UAT remains pending.
 
 ## v8.65.23 (deployed) — Compact controls remain usable controls
 

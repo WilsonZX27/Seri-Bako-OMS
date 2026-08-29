@@ -1,14 +1,14 @@
 # Seri Bako Operations Management System
 
-### v9.1.0 (unreleased) — Compliance & Staff Operations Preview
+### v9.1.0 (Preview deployed; authenticated UAT pending) — Compliance & Staff Operations
 
 Compliance is a module inside the existing OMS identity and branch-access model. It tracks outlet business licenses, insurance, fire-extinguisher inspections and POS licenses, plus restricted vaccination-compliance and working-permit status for existing staff accounts. Asset subjects retain an external AMS reference only; this Preview does not merge or mutate AMS data.
 
 The first vertical slice provides an exception-led register for expired, 7/30/60/90-day, missing-document and pending-review work; responsible-owner assignment; branch drill-down; draft/submission/review history; configurable reminder arrays; and sensitive attachment enforcement at both RLS and download boundaries. A dedicated People Operations role carries HR-sensitive access. Manager manages staff plus outlet compliance status and review, but cannot read health-file originals. Owner configures types, Finance has no implicit compliance authority, and all branch access continues through `staff_branches` and existing permissions. Payroll, leave, recruitment, algorithmic scoring and outlet-health scoring are explicitly out of scope.
 
-Migration 228 is a Preview dependency and has not been applied remotely or to Production. Source implementation and local static gates do not establish authenticated role UAT, remote verification, deployment, or Production verification.
+Migration 228 was applied transactionally to the linked Production Supabase project on 29 August 2026 after the user explicitly changed the original Preview-only boundary. Remote read-back confirmed six compliance types, one active People Operations role per current company, five compliance permissions, seven compliance RLS policies, and migration-ledger version 228. The application remains an isolated Vercel Preview from `codex/v9.1-compliance-preview`; it has not been merged to `main` or promoted as the Production application. Authenticated role and mutation UAT remain pending.
 
-Repository migrations reviewed through `228`; this records source authority only.
+Repository migrations reviewed through `228`; remote schema verification applies only to migration 228 and does not imply migrations 224–226 were applied.
 
 ### v8.65.23 (deployed) — v9 interaction and audit closure
 

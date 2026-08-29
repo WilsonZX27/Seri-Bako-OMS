@@ -1,5 +1,7 @@
 -- v9.1 Compliance & Staff Operations Preview
--- Preview-only migration. Reuses staff, branch, attachment, notification and audit authorities.
+-- Reuses staff, branch, attachment, notification and audit authorities.
+-- Applied to the linked Production schema on 2026-08-29 after explicit user authorization;
+-- application deployment remains Preview-only until separately approved.
 
 create table if not exists public.compliance_types (
   id uuid primary key default gen_random_uuid(),

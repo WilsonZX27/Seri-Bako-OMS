@@ -1,0 +1,6 @@
+import Link from "next/link";
+import { PageHeader } from "@/components/ui/page-header";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { getPeopleCompliance } from "@/server/queries/compliance";
+export default async function PeopleCalendarPage(){const events=(await getPeopleCompliance()).filter((row)=>row.expires_on);return <><PageHeader title="People Calendar" description="Restricted employee compliance expiry, review and renewal dates." backHref="/people"/><div className="erp-surface divide-y">{events.map((event)=><Link key={event.id} href={`/people/${event.staff_id}`} className="grid gap-1 p-4 hover:bg-[var(--sb-surface-muted)] sm:grid-cols-[7rem_1fr_auto] sm:items-center"><time className="text-sm font-semibold tabular-nums">{event.expires_on}</time><span><strong className="block text-sm">{event.subject_label}</strong><span className="text-xs text-muted-foreground">{event.type?.type_name??"Employee compliance"}</span></span><Badge variant={event.state==="expired"?"danger":"warning"}>{event.state.replace("due_","Due ")}</Badge></Link>)}{!events.length?<EmptyState title="No People events in scope" description="Only authorised employee compliance dates appear here."/>:null}</div></>}

@@ -18,10 +18,11 @@ const schema = z.object({
 });
 
 export async function createComplianceRecord(formData: FormData) {
-  await requirePermission("compliance.manage");
+  const requestedKind = formData.get("subject_kind");
+  await requirePermission(requestedKind === "outlet" ? "outlet_compliance.upload" : requestedKind === "staff" ? "people.compliance.manage" : "compliance.manage");
   const actor = await requireActiveTenantActor();
   const parsed = schema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) redirect("/compliance?error=Check+the+required+record+fields.");
+  if (!parsed.success) redirect("/outlet-compliance?error=Check+the+required+record+fields.");
   const value = parsed.data;
   if ((value.subject_kind === "outlet" && !value.branch_id) || (value.subject_kind === "staff" && !value.staff_id) || (value.subject_kind === "asset" && !value.asset_external_ref)) redirect("/compliance?error=Choose+the+matching+subject.");
   const supabase = await createClient();
@@ -61,21 +62,23 @@ export async function createComplianceRecord(formData: FormData) {
     redirect(`/compliance?error=${encodeURIComponent(error?.message ?? "Record could not be created.")}`);
   }
   await supabase.from("compliance_record_history").insert({ company_id: actor.companyId, compliance_record_id: data.id, event_type: value.submit_for_review ? "submitted" : "created", safe_summary: value.submit_for_review ? "Record created and submitted for review." : "Draft record created.", new_expires_on: data.expires_on, actor_staff_id: actor.staffId });
-  revalidatePath("/compliance");
-  redirect("/compliance?success=Compliance+record+created.");
+  revalidatePath(value.subject_kind === "outlet" ? "/outlet-compliance" : "/people");
+  redirect(value.subject_kind === "outlet" && value.branch_id ? `/outlet-compliance/${value.branch_id}?success=Evidence+received+and+submitted+for+review.` : "/people?success=Compliance+record+created.");
 }
 
 export async function reviewComplianceRecord(formData: FormData) {
-  await requirePermission("compliance.review");
   const actor = await requireActiveTenantActor();
   const id = z.string().uuid().parse(formData.get("id"));
   const decision = z.enum(["approved", "rejected"]).parse(formData.get("decision"));
   const note = z.string().trim().max(500).parse(formData.get("review_note") ?? "");
   const supabase = await createClient();
+  const { data: target } = await supabase.from("compliance_records").select("subject_kind,branch_id").eq("id", id).single();
+  if (!target) redirect("/outlet-compliance?error=Record+is+not+available+in+your+scope.");
+  await requirePermission(target.subject_kind === "outlet" ? "outlet_compliance.review" : target.subject_kind === "staff" ? "people.compliance.manage" : "compliance.review");
   const { error } = await supabase.from("compliance_records").update({ review_status: decision, reviewed_by: actor.staffId, reviewed_at: new Date().toISOString(), review_note: note || null, updated_by: actor.staffId }).eq("id", id).eq("review_status", "pending_review");
   if (error) redirect(`/compliance?error=${encodeURIComponent(error.message)}`);
   await supabase.from("compliance_record_history").insert({ company_id: actor.companyId, compliance_record_id: id, event_type: decision, safe_summary: decision === "approved" ? "Compliance record approved." : "Compliance record returned for correction.", actor_staff_id: actor.staffId });
-  revalidatePath("/compliance");
+  revalidatePath(target.subject_kind === "outlet" ? "/outlet-compliance" : "/people");
 }
 
 export async function renewComplianceRecord(formData: FormData) {

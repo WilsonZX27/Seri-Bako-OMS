@@ -1,5 +1,14 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.0 (unreleased) — Separate operational workspaces
+
+- Outlet Management and People are independent navigation sections; a dashboard, checklist detail, profile and calendar each own one job instead of stacking create forms beneath exception tables.
+- Outlet Compliance follows the established SaaS checklist pattern: template requirement, upload evidence, pending review, approve/return, renewal and audit history. Outlet cards expose completion and exceptions; details expose the seven fixed requirements.
+- People Profile uses stable sections for Overview, Employment & outlet assignments, Compliance, Documents, and Account & access. It reuses the existing OMS staff identity and reveals sensitive originals only to Owner and People Operations.
+- Calendar rows remain compact at 390px and become date/content/status grids at wider viewports. Forms wrap intentionally without wrapping filter labels or creating a desktop-width control on phones/tablets.
+- Outlet Daily keeps product quantities and cashless reconciliation in one workflow while visually separating their ownership. Difference and review state are derived evidence, not editable client totals.
+- Attendance is absent from navigation and schema in this release. Future attendance integration must remain an external-system boundary until separately approved.
+
 ## v9.1.0 (Preview deployed; authenticated UAT pending) — Exception-led compliance
 
 - Compliance lives in the OMS operations navigation and uses the existing dense workspace, not a separate HR application shell.

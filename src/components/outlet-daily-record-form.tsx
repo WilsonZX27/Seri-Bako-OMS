@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
 import type { OutletDailyWastageReason } from "@/types/database";
-import { CalendarDays, ChevronDown, Info, MapPin, MessageSquare, Search } from "lucide-react";
+import { CalendarDays, ChevronDown, Info, MapPin, MessageSquare, Search, WalletCards } from "lucide-react";
 
 type Branch = { id: string; branch_code: string; branch_name: string };
 type Product = { id: string; product_code: string; product_name: string; category: string; selling_unit: string; display_order?: number };
@@ -26,7 +26,9 @@ const reasons: OutletDailyWastageReason[] = ["unsold", "damaged", "expired", "qu
 const EMPTY_LINES: Line[] = [];
 const EMPTY_DEFAULTS_BY_BRANCH: Record<string, Record<string, DefaultLine>> = {};
 
-  export function OutletDailyRecordForm({ formId, action, branches, products, lines = EMPTY_LINES, branchId, recordDate, notes, defaultsByBranch = EMPTY_DEFAULTS_BY_BRANCH, validationError, locked = false, canEditHeader = true, canEditQtySent = false, canEditOutletValues = true }: {
+type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: string | null; breakdown?: Partial<Record<"duitnow" | "credit_card" | "voucher" | "grabfood" | "foodpanda", number>> };
+
+  export function OutletDailyRecordForm({ formId, action, branches, products, lines = EMPTY_LINES, branchId, recordDate, notes, sales, defaultsByBranch = EMPTY_DEFAULTS_BY_BRANCH, validationError, locked = false, canEditHeader = true, canEditQtySent = false, canEditOutletValues = true }: {
   formId: string;
   action: (formData: FormData) => Promise<void>;
   branches: Branch[];
@@ -35,6 +37,7 @@ const EMPTY_DEFAULTS_BY_BRANCH: Record<string, Record<string, DefaultLine>> = {}
   branchId?: string;
   recordDate: string;
   notes?: string | null;
+  sales?: SalesValues;
   defaultsByBranch?: Record<string, Record<string, DefaultLine>>;
   validationError?: string;
   locked?: boolean;
@@ -96,6 +99,8 @@ const EMPTY_DEFAULTS_BY_BRANCH: Record<string, Record<string, DefaultLine>> = {}
         </div>
       </details>
 
+      <SalesReconciliation sales={sales} disabled={locked || !canEditOutletValues} />
+
       <section data-outlet-daily-lines className="erp-surface touch-pan-y overflow-hidden">
       <div className="grid gap-2 border-b px-3 py-2 md:grid-cols-[minmax(10rem,1fr)_minmax(14rem,20rem)] md:items-center"><div className="flex min-w-0 items-baseline gap-2"><h2 className="truncate text-sm font-semibold">Daily Product Lines</h2><span className="ml-auto shrink-0 text-[11px] tabular-nums text-muted-foreground">{remainingCount === 0 ? "All ready" : `${remainingCount} remaining`}</span></div><label className="relative block min-w-0"><span className="sr-only">Find product</span><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" /><Input className="pl-9" type="search" value={productSearch} onChange={(event) => setProductSearch(event.target.value)} placeholder="Find product" disabled={locked} /></label></div>
       <div className="grid grid-cols-3 gap-2 border-b bg-[var(--sb-surface-muted)] px-3 py-2 text-xs font-medium text-muted-foreground md:grid-cols-[minmax(12rem,1fr)_repeat(3,minmax(4.5rem,6rem))] xl:grid-cols-[minmax(12rem,1fr)_repeat(3,minmax(4.5rem,6rem))_minmax(7rem,9rem)_minmax(12rem,1.5fr)]"><span className="hidden md:block">Product</span><span>Qty Sent</span><span>Received</span><span>Wastage</span><span className="hidden xl:col-span-2 xl:block">Wastage details</span>{!canEditQtySent && !locked ? <p id="qty-sent-ownership-note" data-qty-sent-ownership className="col-span-3 flex items-start gap-1.5 pt-1 text-[11px] font-normal leading-4 text-muted-foreground md:col-span-full"><Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span><span className="font-medium text-foreground">Qty Sent is Kitchen-owned.</span> Only Kitchen and authorised company-wide staff can enter it. Outlet staff record Received and Wastage.</span></p> : null}</div>
@@ -109,6 +114,19 @@ const EMPTY_DEFAULTS_BY_BRANCH: Record<string, Record<string, DefaultLine>> = {}
       </div>
       </section>
   </form>;
+}
+
+const salesChannelLabels = { duitnow: "DuitNow", credit_card: "Credit Card", voucher: "Voucher", grabfood: "GrabFood", foodpanda: "FoodPanda" } as const;
+function SalesReconciliation({ sales, disabled }: { sales?: SalesValues; disabled: boolean }) {
+  const [posTotal, setPosTotal] = useState(String(sales?.pos_total_sales ?? ""));
+  const [amounts, setAmounts] = useState(() => Object.fromEntries(Object.keys(salesChannelLabels).map((key) => [key, String(sales?.breakdown?.[key as keyof typeof salesChannelLabels] ?? 0)])) as Record<keyof typeof salesChannelLabels, string>);
+  const channelTotal = Object.values(amounts).reduce((sum, value) => sum + Number(value || 0), 0);
+  const difference = Number(posTotal || 0) - channelTotal;
+  return <section className="erp-surface overflow-hidden" aria-labelledby="sales-reconciliation-title">
+    <div className="flex items-center justify-between gap-3 border-b px-3 py-3"><div className="flex items-center gap-2"><WalletCards className="h-4 w-4 text-[var(--sb-green-700)]" aria-hidden="true" /><div><h2 id="sales-reconciliation-title" className="text-sm font-semibold">Sales reconciliation</h2><p className="text-[11px] text-muted-foreground">POS total against five cashless channels</p></div></div><strong className={`text-sm tabular-nums ${difference ? "text-warning" : "text-success"}`}>Difference RM {difference.toFixed(2)}</strong></div>
+    <div className="grid gap-3 p-3 sm:grid-cols-2 xl:grid-cols-3"><Field label="POS Total Sales (RM)"><Input name="pos_total_sales" type="number" min="0" step="0.01" required value={posTotal} onChange={(event)=>setPosTotal(event.target.value)} disabled={disabled} /></Field>{(Object.keys(salesChannelLabels) as Array<keyof typeof salesChannelLabels>).map((channel)=><Field key={channel} label={`${salesChannelLabels[channel]} (RM)`}><Input name={`sales_${channel}`} type="number" min="0" step="0.01" required value={amounts[channel]} onChange={(event)=>setAmounts((current)=>({...current,[channel]:event.target.value}))} disabled={disabled} /></Field>)}</div>
+    <div className="grid gap-3 border-t bg-[var(--sb-surface-muted)] p-3 sm:grid-cols-[1fr_auto_auto] sm:items-end"><div><Field label="Difference reason"><Input name="sales_variance_reason" defaultValue={sales?.sales_variance_reason ?? ""} required={difference !== 0} disabled={disabled} placeholder="Explain settlement or entry difference" /></Field><p className="mt-1 text-[11px] text-muted-foreground">{difference ? "Required because POS total and channel total do not match." : "No explanation needed when matched."}</p></div><div className="text-xs"><span className="block text-muted-foreground">Channel total</span><strong className="tabular-nums">RM {channelTotal.toFixed(2)}</strong></div><div className="text-xs"><span className="block text-muted-foreground">Review</span><strong>{difference ? "Needs review" : "Matched"}</strong></div></div>
+  </section>;
 }
 
 function DailyProductLine({ product, line, defaultLine, validationHint, hiddenClass, locked, canEditQtySent, canEditOutletValues, onTouched }: {

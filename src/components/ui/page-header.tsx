@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 type PageHeaderProps = {
   title: ReactNode;
   description?: string;
+  backHref?: string;
   action?: {
     href: string;
     label: string;
@@ -27,6 +28,7 @@ export function PageHeader(props: PageHeaderProps) {
       <header data-page-header className="block border-b border-[var(--sb-border-soft)] bg-[var(--workspace-bg)] px-3 py-3 sm:px-4">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
+            {props.backHref ? <Link href={props.backHref} className="mb-1 block text-[11px] font-medium text-[var(--sb-text-muted)] hover:text-[var(--sb-text)]">← Back</Link> : null}
             <h1 className="min-w-0 break-words text-base font-semibold leading-5 tracking-[-0.015em] text-[var(--sb-text)]">{props.title}</h1>
             {props.description ? <p className="mt-0.5 hidden max-w-2xl text-xs leading-4 text-[var(--sb-text-muted)] sm:block">{props.description}</p> : null}
           </div>

@@ -38,3 +38,39 @@ export async function getComplianceWorkspace(filters: { state?: string; branch?:
   }).filter((record) => (!filters.state || filters.state === "all" || record.state === filters.state) && (!filters.branch || filters.branch === "all" || record.branch_id === filters.branch));
   return { records, types: typesResult.data ?? [], branches: branchesResult.data ?? [], staffs: staffsResult.data ?? [] };
 }
+
+export async function getOutletComplianceWorkspace() {
+  if (isMockMode()) return { branches: [], requirements: [], records: [] };
+  const [supabase, profile] = await Promise.all([createClient(), getCurrentProfile()]);
+  if (!profile?.company_id) return { branches: [], requirements: [], records: [] };
+  const [branchesResult, requirementsResult, recordsResult] = await Promise.all([
+    supabase.from("branches").select("id,branch_code,branch_name").eq("company_id", profile.company_id).eq("branch_type", "outlet").eq("status", "active").is("deleted_at", null).order("branch_name"),
+    supabase.from("outlet_compliance_requirements").select("id,branch_id,compliance_type_id,is_required,waiver_reason").eq("company_id", profile.company_id).order("created_at"),
+    supabase.from("compliance_records").select("*").eq("company_id", profile.company_id).eq("subject_kind", "outlet").is("deleted_at", null).order("updated_at", { ascending: false }),
+  ]);
+  for (const result of [branchesResult, requirementsResult, recordsResult]) if (result.error) throw new Error(result.error.message);
+  const typeIds = [...new Set((requirementsResult.data ?? []).map((row) => row.compliance_type_id))];
+  const typesResult = typeIds.length ? await supabase.from("compliance_types").select("id,type_code,type_name,display_order").in("id", typeIds).order("display_order") : { data: [], error: null };
+  if (typesResult.error) throw new Error(typesResult.error.message);
+  const records = (recordsResult.data ?? []).map((record) => ({ ...record, state: complianceState(record.expires_on, record.review_status, Boolean(record.attachment_id)) }));
+  const typeById = new Map((typesResult.data ?? []).map((row) => [row.id, row]));
+  const latestByRequirement = new Map<string, (typeof records)[number]>();
+  for (const record of records) { const key = `${record.branch_id}:${record.compliance_type_id}`; if (!latestByRequirement.has(key)) latestByRequirement.set(key, record); }
+  const requirements = (requirementsResult.data ?? []).map((row) => ({ ...row, type: typeById.get(row.compliance_type_id)!, record: latestByRequirement.get(`${row.branch_id}:${row.compliance_type_id}`) ?? null }));
+  return { branches: branchesResult.data ?? [], requirements, records };
+}
+
+export async function getPeopleCompliance(staffId?: string) {
+  if (isMockMode()) return [];
+  const [supabase, profile] = await Promise.all([createClient(), getCurrentProfile()]);
+  if (!profile?.company_id) return [];
+  let query = supabase.from("compliance_records").select("*").eq("company_id", profile.company_id).eq("subject_kind", "staff").is("deleted_at", null).order("expires_on", { ascending: true, nullsFirst: false });
+  if (staffId) query = query.eq("staff_id", staffId);
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+  const typeIds = [...new Set((data ?? []).map((row) => row.compliance_type_id))];
+  const { data: types, error: typeError } = typeIds.length ? await supabase.from("compliance_types").select("id,type_name,is_sensitive").in("id", typeIds) : { data: [], error: null };
+  if (typeError) throw new Error(typeError.message);
+  const typeById = new Map((types ?? []).map((row) => [row.id, row]));
+  return (data ?? []).map((record) => ({ ...record, type: typeById.get(record.compliance_type_id), state: complianceState(record.expires_on, record.review_status, Boolean(record.attachment_id)) }));
+}

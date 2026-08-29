@@ -4,37 +4,49 @@ const fs = require("node:fs");
 const path = require("node:path");
 const read = (...parts) => fs.readFileSync(path.join(process.cwd(), ...parts), "utf8");
 
-test("compliance preview reuses identity and enforces database scope", () => {
-  const sql = read("supabase", "migrations", "228_compliance_staff_operations_preview.sql");
-  assert.match(sql, /staff_id uuid references public\.staffs/);
-  assert.match(sql, /can_access_company_branch/);
-  assert.match(sql, /compliance\.sensitive\.read/);
-  assert.match(sql, /redact_sensitive_compliance_metadata/);
-  assert.match(sql, /'people_operations'/);
-  assert.doesNotMatch(sql, /r\.role_code='finance'.*compliance/s);
-  assert.match(sql, /enable row level security/g);
+test("v9.2 separates outlet and People authorization at RLS", () => {
+  const sql = read("supabase", "migrations", "229_outlet_people_sales_reconciliation.sql");
+  assert.match(sql, /people\.compliance\.status\.read/);
+  assert.match(sql, /people\.compliance\.document\.read/);
+  assert.match(sql, /outlet_compliance\.upload/);
+  assert.match(sql, /target\.subject_kind='staff'/);
+  assert.match(sql, /target\.subject_kind='outlet'/);
+  assert.match(sql, /r\.role_code in \('finance','purchasing','kitchen','outlet_staff'\)/);
   assert.doesNotMatch(sql, /create table if not exists public\.employees/);
 });
 
-test("sensitive compliance files are authorized and audited at the API boundary", () => {
+test("Kitchen and Outlet cannot read staff compliance or original files", () => {
+  const sql = read("supabase", "migrations", "229_outlet_people_sales_reconciliation.sql");
+  assert.match(sql, /r\.role_code='outlet_staff'.*outlet_compliance\.upload/s);
+  assert.match(sql, /r\.role_code='kitchen'.*outlet_compliance\.read/s);
+  const outletGrant = sql.match(/r\.role_code='outlet_staff'[^\n]+/)?.[0] ?? "";
+  const kitchenGrant = sql.match(/r\.role_code='kitchen'[^\n]+/)?.[0] ?? "";
+  assert.doesNotMatch(outletGrant, /people\.compliance/);
+  assert.doesNotMatch(kitchenGrant, /people\.compliance/);
   const route = read("src", "app", "api", "attachments", "[id]", "route.ts");
-  assert.match(route, /compliance\.sensitive\.read/);
+  assert.match(route, /subject_kind === "staff" \? "people\.compliance\.document\.read"/);
   assert.match(route, /attachment_downloaded/);
-  assert.match(route, /restricted to authorised People Operations staff/);
 });
 
-test("compliance UI exposes exception windows without medical detail", () => {
-  const page = read("src", "app", "(app)", "compliance", "page.tsx");
-  for (const label of ["Expired", "Due in 7 days", "Due in 30 days", "Due in 60 days", "Due in 90 days", "Missing document", "Pending review"]) assert.match(page, new RegExp(label));
-  assert.match(page, /details restricted/);
-  assert.doesNotMatch(page, /vaccination_date|vaccine_brand|medical_notes/);
+test("Outlet checklist includes the seven required templates", () => {
+  const sql = read("supabase", "migrations", "229_outlet_people_sales_reconciliation.sql");
+  for (const code of ["BOMBA","BUSINESS_LICENSE","DBKL","TENANCY_AGREEMENT","INSURANCE","FIRE_EXTINGUISHER","POS_LICENSE"]) assert.match(sql, new RegExp(code));
+  assert.match(sql, /outlet_compliance_requirements/);
 });
 
-test("compliance creation validates and stores canonical private attachments", () => {
-  const action = read("src", "server", "actions", "compliance.ts");
-  const form = read("src", "components", "compliance-create-form.tsx");
-  assert.match(form, /name="file"/);
-  assert.match(action, /document-attachments/);
-  assert.match(action, /content does not match|signatureValid/);
-  assert.match(action, /compliance\.sensitive\.read/);
+test("sales reconciliation is database-derived and atomic with daily lines", () => {
+  const sql = read("supabase", "migrations", "229_outlet_people_sales_reconciliation.sql");
+  for (const channel of ["duitnow","credit_card","voucher","grabfood","foodpanda"]) assert.match(sql, new RegExp(channel));
+  assert.match(sql, /saved_id:=public\.save_outlet_daily_record/);
+  assert.match(sql, /difference:=round\(p_pos_total_sales-channel_total,2\)/);
+  assert.match(sql, /difference<>0.*sales difference/s);
+  const action = read("src", "server", "actions", "outlet-daily-records.ts");
+  assert.match(action, /save_outlet_daily_record_v92/);
+  assert.match(action, /canUpdateOutletValues/);
+});
+
+test("mixed compliance route redirects and module pages remain separate", () => {
+  assert.match(read("src","app","(app)","compliance","page.tsx"), /redirect\("\/outlet-compliance"\)/);
+  assert.match(read("src","app","(app)","people","[id]","page.tsx"), /Employment & outlet assignments/);
+  assert.doesNotMatch(read("src","app","(app)","people","page.tsx"), /Attendance/);
 });

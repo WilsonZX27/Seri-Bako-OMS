@@ -77,6 +77,10 @@ const actionRouteAuthorities = new Map([
 // whichever RLS policy happens to answer today. A new route must deliberately
 // join one of these authorities before the v9 matrix will accept it.
 const accessAuthorities = [
+  ["/outlet-compliance", ["superAdmin", "manager", "kitchen", "outlet"]],
+  ["/outlet-calendar", ["superAdmin", "manager", "kitchen", "outlet"]],
+  ["/people", ["superAdmin", "manager"]],
+  ["/compliance", ["superAdmin", "manager", "kitchen", "outlet"]],
   ["/reports/costing-readiness", ["superAdmin", "finance"]],
   ["/reports/product-margin", ["superAdmin", "finance"]],
   ["/reports/recipe-costing", ["superAdmin", "finance"]],

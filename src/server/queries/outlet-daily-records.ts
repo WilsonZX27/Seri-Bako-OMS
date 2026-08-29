@@ -467,15 +467,17 @@ export async function getOutletDailyWastageCostSummary(recordDate = todayInKuala
 export async function getOutletDailyRecord(id: string) {
   if (isMockMode()) throw new Error("Outlet daily records require migration 064.");
   const db = await createClient();
-  const [{ data: record, error }, { data: lines, error: linesError }, { data: branches, error: branchesError }, { data: products, error: productsError }, { data: staffs, error: staffsError }] = await Promise.all([
+  const [{ data: record, error }, { data: lines, error: linesError }, { data: sales, error: salesError }, { data: branches, error: branchesError }, { data: products, error: productsError }, { data: staffs, error: staffsError }] = await Promise.all([
     db.from("outlet_daily_records").select("*").eq("id", id).maybeSingle(),
     db.from("outlet_daily_record_lines").select("*").eq("record_id", id),
+    db.from("outlet_daily_sales_breakdowns").select("channel,amount").eq("record_id", id),
     db.from("branches").select("id,branch_name"),
     db.from("products").select("id,product_code,product_name,category,selling_unit,status,display_order"),
     db.from("staffs").select("id,full_name"),
   ]);
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(linesError.message);
+  if (salesError) throw new Error(salesError.message);
   if (branchesError) throw new Error(branchesError.message);
   if (productsError) throw new Error(productsError.message);
   if (staffsError) throw new Error(staffsError.message);
@@ -501,6 +503,7 @@ export async function getOutletDailyRecord(id: string) {
         if (!b.product) return -1;
         return compareProductDisplayOrder(a.product, b.product);
       }),
+    sales: Object.fromEntries((sales ?? []).map((row) => [row.channel, row.amount])),
   };
 }
 

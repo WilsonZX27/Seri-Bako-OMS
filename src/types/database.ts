@@ -365,6 +365,9 @@ export type Database = {
           voided_by: string | null;
           voided_at: string | null;
           notes: string | null;
+          pos_total_sales: number | null;
+          sales_variance_reason: string | null;
+          sales_review_status: "not_required" | "needs_review" | "reviewed";
           created_by: string | null;
           updated_by: string | null;
           created_at: string;
@@ -384,6 +387,9 @@ export type Database = {
           voided_by?: string | null;
           voided_at?: string | null;
           notes?: string | null;
+          pos_total_sales?: number | null;
+          sales_variance_reason?: string | null;
+          sales_review_status?: "not_required" | "needs_review" | "reviewed";
           created_by?: string | null;
           updated_by?: string | null;
           created_at?: string;
@@ -629,9 +635,21 @@ export type Database = {
         Relationships: [];
       };
       compliance_types: {
-        Row: { id: string; company_id: string; type_code: string; type_name: string; subject_kind: "outlet" | "staff" | "asset"; is_sensitive: boolean; default_reminder_days: number[]; status: RecordStatus; created_at: string; updated_at: string; deleted_at: string | null };
-        Insert: { id?: string; company_id: string; type_code: string; type_name: string; subject_kind: "outlet" | "staff" | "asset"; is_sensitive?: boolean; default_reminder_days?: number[]; status?: RecordStatus; created_at?: string; updated_at?: string; deleted_at?: string | null };
+        Row: { id: string; company_id: string; type_code: string; type_name: string; subject_kind: "outlet" | "staff" | "asset"; module_scope: "outlet" | "people" | "asset"; is_required: boolean; document_required: boolean; display_order: number; is_sensitive: boolean; default_reminder_days: number[]; status: RecordStatus; created_at: string; updated_at: string; deleted_at: string | null };
+        Insert: { id?: string; company_id: string; type_code: string; type_name: string; subject_kind: "outlet" | "staff" | "asset"; module_scope?: "outlet" | "people" | "asset"; is_required?: boolean; document_required?: boolean; display_order?: number; is_sensitive?: boolean; default_reminder_days?: number[]; status?: RecordStatus; created_at?: string; updated_at?: string; deleted_at?: string | null };
         Update: Partial<Database["public"]["Tables"]["compliance_types"]["Insert"]>;
+        Relationships: [];
+      };
+      outlet_compliance_requirements: {
+        Row: { id: string; company_id: string; branch_id: string; compliance_type_id: string; is_required: boolean; waiver_reason: string | null; created_at: string; updated_at: string };
+        Insert: { id?: string; company_id: string; branch_id: string; compliance_type_id: string; is_required?: boolean; waiver_reason?: string | null; created_at?: string; updated_at?: string };
+        Update: Partial<Database["public"]["Tables"]["outlet_compliance_requirements"]["Insert"]>;
+        Relationships: [];
+      };
+      outlet_daily_sales_breakdowns: {
+        Row: { id: string; record_id: string; channel: "duitnow" | "credit_card" | "voucher" | "grabfood" | "foodpanda"; amount: number; created_at: string; updated_at: string };
+        Insert: { id?: string; record_id: string; channel: "duitnow" | "credit_card" | "voucher" | "grabfood" | "foodpanda"; amount?: number; created_at?: string; updated_at?: string };
+        Update: Partial<Database["public"]["Tables"]["outlet_daily_sales_breakdowns"]["Insert"]>;
         Relationships: [];
       };
       compliance_records: {
@@ -2830,6 +2848,10 @@ export type Database = {
           p_lines: Json;
           p_target_status: string;
         };
+        Returns: string;
+      };
+      save_outlet_daily_record_v92: {
+        Args: { p_record_id: string | null; p_branch_id: string; p_record_date: string; p_notes: string | null; p_lines: Json; p_target_status: string; p_pos_total_sales: number; p_sales_breakdown: Json; p_sales_variance_reason: string | null };
         Returns: string;
       };
       transition_outlet_daily_record: {

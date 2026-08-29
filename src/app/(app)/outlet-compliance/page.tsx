@@ -1,0 +1,16 @@
+import Link from "next/link";
+import { AlertTriangle, CheckCircle2, ChevronRight, Clock3, FileQuestion } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
+import { getOutletComplianceWorkspace } from "@/server/queries/compliance";
+
+export default async function OutletCompliancePage() {
+  const workspace = await getOutletComplianceWorkspace();
+  const summaries = workspace.branches.map((branch) => { const rows=workspace.requirements.filter((row)=>row.branch_id===branch.id); const valid=rows.filter((row)=>row.record?.state==="valid").length; return {branch,rows,valid,missing:rows.filter((row)=>!row.record||row.record.state==="missing").length,pending:rows.filter((row)=>row.record?.state==="pending_review").length,urgent:rows.filter((row)=>row.record&&["expired","due_7","due_30"].includes(row.record.state)).length}; });
+  return <><PageHeader title="Outlet Compliance" description="Required outlet licences and operating documents, organised as a reviewable checklist." action={{href:"/outlet-calendar",label:"Open calendar"}} />
+    <section className="grid grid-cols-2 gap-2 md:grid-cols-4" aria-label="Outlet compliance summary"><Summary icon={CheckCircle2} label="Outlets" value={summaries.length}/><Summary icon={AlertTriangle} label="Missing" value={summaries.reduce((n,row)=>n+row.missing,0)}/><Summary icon={Clock3} label="Pending review" value={summaries.reduce((n,row)=>n+row.pending,0)}/><Summary icon={FileQuestion} label="Expiring / expired" value={summaries.reduce((n,row)=>n+row.urgent,0)}/></section>
+    <div className="mt-4 grid gap-3 lg:grid-cols-2">{summaries.map(({branch,rows,valid,missing,pending,urgent})=><Link key={branch.id} href={`/outlet-compliance/${branch.id}`} className="erp-surface block p-4 transition-colors hover:bg-[var(--sb-surface-muted)]"><div className="flex items-start justify-between gap-3"><div><h2 className="font-semibold">{branch.branch_name}</h2><p className="text-xs text-muted-foreground">{branch.branch_code} · {valid}/{rows.length} valid</p></div><ChevronRight className="h-4 w-4" /></div><div className="mt-4 flex flex-wrap gap-2"><Badge variant={missing?"danger":"secondary"}>{missing} missing</Badge><Badge variant={pending?"warning":"secondary"}>{pending} pending</Badge><Badge variant={urgent?"danger":"secondary"}>{urgent} urgent</Badge></div><div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[var(--sb-surface-muted)]"><div className="h-full bg-[var(--sb-success)]" style={{width:`${rows.length?valid/rows.length*100:0}%`}} /></div></Link>)}{!summaries.length?<Card className="lg:col-span-2"><CardContent><EmptyState title="No assigned outlets" description="Outlet checklists appear after migration 229 initialises required requirements." /></CardContent></Card>:null}</div></>;
+}
+function Summary({icon:Icon,label,value}:{icon:typeof CheckCircle2;label:string;value:number}) { return <div className="erp-surface p-3"><Icon className="h-4 w-4 text-muted-foreground"/><strong className="mt-3 block text-xl tabular-nums">{value}</strong><span className="text-xs text-muted-foreground">{label}</span></div> }

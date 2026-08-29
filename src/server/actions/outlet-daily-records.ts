@@ -11,6 +11,8 @@ import { writeActivityLog } from "@/server/activity/log";
 const values = (formData: FormData, name: string) => formData.getAll(name).map(String);
 const outletDailyStatusSchema = z.enum(["draft", "morning_recorded", "evening_completed"]);
 const quantitySchema = z.coerce.number().finite().min(0).max(1_000_000);
+const moneySchema = z.coerce.number().finite().min(0).max(100_000_000);
+const salesChannels = ["duitnow", "credit_card", "voucher", "grabfood", "foodpanda"] as const;
 const outletDailyLineSchema = z.object({
   product_id: z.uuid(),
   qty_sent: quantitySchema.nullable(),
@@ -28,6 +30,9 @@ const outletDailyPayloadSchema = z.object({
   notes: z.string().trim().max(2_000).nullable(),
   target_status: outletDailyStatusSchema,
   lines: z.array(outletDailyLineSchema).min(1).max(500),
+  pos_total_sales: moneySchema,
+  sales_variance_reason: z.string().trim().max(1000).nullable(),
+  sales_breakdown: z.array(z.object({ channel: z.enum(salesChannels), amount: moneySchema })).length(5),
 });
 
 function nullableText(value: string | undefined) {
@@ -70,6 +75,9 @@ function extractOutletDailyPayload(formData: FormData) {
     record_date: String(formData.get("record_date") ?? "").trim(),
     notes: nullableText(String(formData.get("notes") ?? "")),
     target_status: String(formData.get("target_status") ?? "draft"),
+    pos_total_sales: String(formData.get("pos_total_sales") ?? ""),
+    sales_variance_reason: nullableText(String(formData.get("sales_variance_reason") ?? "")),
+    sales_breakdown: salesChannels.map((channel) => ({ channel, amount: String(formData.get(`sales_${channel}`) ?? "0") })),
     lines: productIds.map((productId, index) => ({
       product_id: productId,
       qty_sent: nullableText(sent[index]),
@@ -98,8 +106,10 @@ export async function saveOutletDailyRecord(formData: FormData) {
     safeRedirectWithMessage(recordId ? `/outlet-daily-records/${recordId}` : "/outlet-daily-records/new", "error", formatActionError(error, "Could not validate this outlet daily record."));
   }
   const recordId = payload.record_id;
+  let canUpdateOutletValues = false;
   if (recordId) {
     const [canUpdate, canSetSent] = await Promise.all([hasPermission("outlet_daily_record.update"), hasPermission("outlet_daily_record.qty_sent")]);
+    canUpdateOutletValues = canUpdate;
     if (!canUpdate && !canSetSent) safeRedirectWithMessage(`/outlet-daily-records/${recordId}`, "error", "You do not have permission to perform this action.");
   } else await requirePermissionOrRedirect("outlet_daily_record.create", "/outlet-daily-records/new");
   try {
@@ -121,14 +131,17 @@ export async function saveOutletDailyRecord(formData: FormData) {
       if (existingError) throw new Error(existingError.message);
       if (existing?.id) safeRedirectWithMessage(`/outlet-daily-records/${existing.id}`, "error", "A record already exists for this outlet and date. Continue from the existing record.");
     }
-    const { data, error } = await db.rpc("save_outlet_daily_record", {
+    const baseArgs = {
       p_record_id: recordId,
       p_branch_id: payload.branch_id,
       p_record_date: payload.record_date,
       p_notes: payload.notes,
       p_target_status: payload.target_status,
       p_lines: payload.lines,
-    });
+    };
+    const { data, error } = canUpdateOutletValues || !recordId
+      ? await db.rpc("save_outlet_daily_record_v92", { ...baseArgs, p_pos_total_sales: payload.pos_total_sales, p_sales_breakdown: payload.sales_breakdown, p_sales_variance_reason: payload.sales_variance_reason })
+      : await db.rpc("save_outlet_daily_record", baseArgs);
     if (error?.code === "23505" && !recordId) {
       // The unique active outlet-day index is the final authority. Two taps or
       // concurrent sessions can both pass the friendly preflight check; when

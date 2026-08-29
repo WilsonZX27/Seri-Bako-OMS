@@ -15,7 +15,7 @@ test("the TypeScript database contract covers every current public table", () =>
     .map((match) => match[1])
     .sort();
 
-  assert.equal(classified.length, 88, "Backup classification and local schema table count must move together.");
+  assert.equal(classified.length, 90, "Backup classification and local schema table count must move together.");
   assert.equal(new Set(typed).size, typed.length, "Database table types must not be declared twice.");
   assert.deepEqual(typed, classified, "Regenerate or reconcile database types whenever a migration changes the public table set.");
 });

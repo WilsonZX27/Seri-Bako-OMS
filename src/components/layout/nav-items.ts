@@ -1,7 +1,7 @@
 import {
   Activity, AlertTriangle, Archive, ArrowLeftRight, BarChart3, BookOpen, Boxes, Building2, ClipboardCheck, ClipboardList,
   Factory, FileText, Gauge, GitPullRequest, Layers, List, Package, ReceiptText, RotateCcw, Scale, ShoppingCart,
-  Upload, UserCog, Users,
+  Upload, UserCog, Users, CalendarDays,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { getVisibleIaItems, iaGroupLabels, informationArchitecture, type IaIcon } from "@/lib/information-architecture";
@@ -11,7 +11,7 @@ const icons: Record<IaIcon, LucideIcon> = {
   activity: Activity, alert: AlertTriangle, archive: Archive, barChart: BarChart3, boxes: Boxes, building: Building2,
   arrowLeftRight: ArrowLeftRight, bookOpen: BookOpen, check: ClipboardCheck, clipboard: ClipboardList, factory: Factory, gauge: Gauge,
   file: FileText, layers: Layers, list: List, package: Package, receipt: ReceiptText, request: GitPullRequest, rotate: RotateCcw, scale: Scale, shopping: ShoppingCart,
-  upload: Upload, userCog: UserCog, users: Users,
+  upload: Upload, userCog: UserCog, users: Users, calendar: CalendarDays,
 };
 
 export type NavItem = Omit<(typeof informationArchitecture)[number], "icon" | "roles"> & { icon: LucideIcon };

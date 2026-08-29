@@ -11,9 +11,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ error: "Attachment not found." }, { status: 404 });
   }
   const supabase = await createClient();
-  if (!(await resolveEffectivePermission(supabase, "documents.read").catch(() => false))) {
-    return NextResponse.json({ error: "You do not have permission to open this attachment." }, { status: 403 });
-  }
   const actor = await requireActiveTenantActor().catch(() => null);
   if (!actor) {
     return NextResponse.json({ error: "You do not have permission to open this attachment." }, { status: 403 });
@@ -31,17 +28,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const { data: complianceRecord } = await supabase
     .from("compliance_records")
-    .select("id, company_id, compliance_type_id")
+    .select("id, company_id, compliance_type_id, subject_kind")
     .eq("attachment_id", id)
     .eq("company_id", actor.companyId)
     .is("deleted_at", null)
     .maybeSingle();
   if (complianceRecord) {
-    const canReadCompliance = await resolveEffectivePermission(supabase, "compliance.read").catch(() => false);
-    const { data: complianceType } = await supabase.from("compliance_types").select("is_sensitive").eq("id", complianceRecord.compliance_type_id).single();
-    const canReadSensitive = await resolveEffectivePermission(supabase, "compliance.sensitive.read").catch(() => false);
-    if (!canReadCompliance || (complianceType?.is_sensitive && !canReadSensitive)) {
-      return NextResponse.json({ error: "This compliance file is restricted to authorised People Operations staff." }, { status: 403 });
+    const permission = complianceRecord.subject_kind === "outlet" ? "outlet_compliance.document.read" : complianceRecord.subject_kind === "staff" ? "people.compliance.document.read" : "compliance.sensitive.read";
+    if (!(await resolveEffectivePermission(supabase, permission).catch(() => false))) {
+      return NextResponse.json({ error: "This compliance file is restricted. Status access never grants access to the original document." }, { status: 403 });
     }
     await supabase.from("compliance_record_history").insert({
       company_id: actor.companyId,
@@ -50,6 +45,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       safe_summary: request.nextUrl.searchParams.get("download") === "1" ? "Restricted file downloaded." : "Restricted file opened.",
       actor_staff_id: actor.staffId,
     });
+  } else if (!(await resolveEffectivePermission(supabase, "documents.read").catch(() => false))) {
+    return NextResponse.json({ error: "You do not have permission to open this attachment." }, { status: 403 });
   }
 
   if (attachment.storage_path) {

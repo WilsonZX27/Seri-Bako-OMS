@@ -1,7 +1,7 @@
 import type { UserRole } from "@/types/database";
 
-export type IaGroupId = "operations" | "procurement" | "inventory" | "analytics" | "administration";
-export type IaIcon = "activity" | "alert" | "archive" | "arrowLeftRight" | "barChart" | "bookOpen" | "boxes" | "building" | "check" | "clipboard" | "factory" | "file" | "gauge" | "layers" | "list" | "package" | "receipt" | "request" | "rotate" | "scale" | "shopping" | "users" | "userCog" | "upload";
+export type IaGroupId = "operations" | "outlet_management" | "people" | "procurement" | "inventory" | "analytics" | "administration";
+export type IaIcon = "activity" | "alert" | "archive" | "arrowLeftRight" | "barChart" | "bookOpen" | "boxes" | "building" | "calendar" | "check" | "clipboard" | "factory" | "file" | "gauge" | "layers" | "list" | "package" | "receipt" | "request" | "rotate" | "scale" | "shopping" | "users" | "userCog" | "upload";
 
 export type IaItem = {
   href: string;
@@ -18,6 +18,8 @@ export type IaItem = {
 
 export const iaGroupLabels: Record<IaGroupId, string> = {
   operations: "Operations",
+  outlet_management: "Outlet Management",
+  people: "People",
   procurement: "Procurement",
   inventory: "Inventory",
   analytics: "Analytics",
@@ -37,8 +39,11 @@ const STAFF_MANAGERS: readonly UserRole[] = ["super_admin", "people_operations",
 export const informationArchitecture: readonly IaItem[] = [
   { href: "/dashboard", label: "Dashboard", group: "operations", icon: "gauge", roles: ALL, permission: "dashboard.view", defaultFor: ALL, keywords: ["home", "alerts", "approvals"] },
   { href: "/production/jobs", label: "Production Jobs", group: "operations", icon: "factory", roles: PRODUCTION, permission: "production.view" },
-  { href: "/outlet-daily-records", label: "Outlet Daily Records", group: "operations", icon: "clipboard", roles: ALL, permission: "outlet_daily_record.view" },
-  { href: "/compliance", label: "Compliance", group: "operations", icon: "check", roles: ALL, permission: "compliance.read", attention: true, keywords: ["license", "permit", "expiry", "staff", "inspection"] },
+  { href: "/outlet-daily-records", label: "Outlet Daily Records", group: "outlet_management", icon: "clipboard", roles: ALL, permission: "outlet_daily_record.view" },
+  { href: "/outlet-compliance", label: "Outlet Compliance", group: "outlet_management", icon: "check", roles: ["super_admin","people_operations","manager","kitchen","outlet_staff"], permission: "outlet_compliance.read", attention: true, keywords: ["bomba", "permit", "expiry", "inspection"] },
+  { href: "/outlet-calendar", label: "Outlet Calendar", group: "outlet_management", icon: "calendar", roles: ["super_admin","people_operations","manager","kitchen","outlet_staff"], permission: "outlet_compliance.read" },
+  { href: "/people", label: "Employees", group: "people", icon: "users", roles: ["super_admin","people_operations","manager"], permission: "people.read" },
+  { href: "/people/calendar", label: "People Calendar", group: "people", icon: "calendar", roles: ["super_admin","people_operations","manager"], permission: "people.compliance.status.read" },
 
   { href: "/purchase-requests", label: "Purchase Requests", group: "procurement", icon: "request", roles: PROCUREMENT, permission: "purchase_request.read", attention: true },
   { href: "/purchase-orders", label: "Purchase Orders", group: "procurement", icon: "shopping", roles: PROCUREMENT, permission: "purchase_order.read" },
@@ -64,7 +69,6 @@ export const informationArchitecture: readonly IaItem[] = [
 
   { href: "/company", label: "Company Profile", group: "administration", icon: "building", roles: OWNER, permission: "company.read", administrationCard: "Maintain legal identity, contact details, logo, and branding." },
   { href: "/branches", label: "Branches / Outlets", group: "administration", icon: "building", roles: BRANCH_READERS, permission: "branches.read", administrationCard: "Review operating branches and outlet structure." },
-  { href: "/staffs", label: "Users & Staff", group: "administration", icon: "users", roles: STAFF_MANAGERS, permission: "staffs.read", administrationCard: "Manage staff status, role, default branch, and branch access." },
   { href: "/roles", label: "Roles & Permissions", group: "administration", icon: "userCog", roles: OWNER, permission: "roles.read", administrationCard: "Review the six fixed system roles and their permissions." },
   { href: "/document-sequences", label: "Document Sequences", group: "administration", icon: "receipt", roles: STAFF_MANAGERS, permission: "document_sequences.read", administrationCard: "Manage controlled document numbering." },
   { href: "/administration/master-data-cleanup", label: "Master Data Cleanup", group: "administration", icon: "check", roles: MASTER_DATA, permission: "items.view", administrationCard: "Review master-data quality issues." },

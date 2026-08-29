@@ -141,7 +141,7 @@ test("migration 065 only replaces the save RPC validation", () => {
   assert.doesNotMatch(validationFix, /(insert into|update|delete from) public\.(stock_transactions|stock_transaction_lines|stock_balances|production_jobs|supplier_invoices)/i);
 });
 
-test("only the requested routes and operations navigation are wired", () => {
+test("outlet daily routes are wired under Outlet Management", () => {
   const nav = read("src/lib/information-architecture.ts");
   const routes = read("src/server/auth/route-permissions.ts");
   for (const file of [
@@ -149,7 +149,7 @@ test("only the requested routes and operations navigation are wired", () => {
     "src/app/(app)/outlet-daily-records/new/page.tsx",
     "src/app/(app)/outlet-daily-records/[id]/page.tsx",
   ]) assert.equal(fs.existsSync(file), true);
-  assert.match(nav, /href: "\/outlet-daily-records"[\s\S]*group: "operations"/);
+  assert.match(nav, /href: "\/outlet-daily-records"[\s\S]*group: "outlet_management"/);
   assert.match(routes, /"\/outlet-daily-records\/new": \["outlet_daily_record\.create"\]/);
   assert.match(routes, /\.\.\.informationArchitecture\.map/);
 });

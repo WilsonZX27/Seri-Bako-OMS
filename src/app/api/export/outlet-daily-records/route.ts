@@ -15,7 +15,7 @@ export async function GET(request: Request) {
     const db = await createClient();
     let query = db
       .from("outlet_daily_records")
-      .select("id, branch_id, record_date, status, submitted_by, notes, created_at, updated_at")
+      .select("id, branch_id, record_date, status, submitted_by, notes, pos_total_sales, sales_variance_reason, sales_review_status, created_at, updated_at")
       .order("record_date", { ascending: false })
       .order("updated_at", { ascending: false })
       .limit(10000);
@@ -48,6 +48,10 @@ export async function GET(request: Request) {
       ? await db.from("outlet_daily_record_lines").select("record_id, product_id, qty_sent, qty_sent_estimated, qty_sent_confirmed, qty_sent_source, morning_received_qty, morning_received_provided, evening_leftover_qty, wastage_qty, wastage_reason, notes").in("record_id", recordIds)
       : { data: [], error: null };
     if (linesError) throw linesError;
+    const { data: salesBreakdowns, error: salesError } = recordIds.length ? await db.from("outlet_daily_sales_breakdowns").select("record_id,channel,amount").in("record_id", recordIds) : { data: [], error: null };
+    if (salesError) throw salesError;
+    const salesByRecord = new Map<string,Record<string,number>>();
+    for (const row of salesBreakdowns ?? []) salesByRecord.set(row.record_id,{...(salesByRecord.get(row.record_id)??{}),[row.channel]:Number(row.amount)});
     const productIds = [...new Set((lines ?? []).map((line) => line.product_id))];
     const [{ data: products, error: productsError }, { data: recipes, error: recipesError }] = await Promise.all([
       productIds.length ? db.from("products").select("id, product_code, product_name, selling_unit").in("id", productIds) : Promise.resolve({ data: [], error: null }),
@@ -71,11 +75,23 @@ export async function GET(request: Request) {
       const recipeId = recipeByProduct.get(line.product_id);
       const unitCost = canViewWastageCost && recipeId ? latestCostByRecipe.get(recipeId) ?? null : null;
       const wastage = Number(line.wastage_qty ?? 0);
+      const sales = record ? salesByRecord.get(record.id) ?? {} : {};
+      const channelTotal = Object.values(sales).reduce((sum,amount)=>sum+amount,0);
       return {
         record_id: line.record_id,
         record_date: record?.record_date ?? null,
         outlet: record ? branchNames.get(record.branch_id) ?? "Unknown outlet" : "Unknown outlet",
         status: record?.status ?? "Unavailable",
+        pos_total_sales: record?.pos_total_sales ?? null,
+        duitnow: sales.duitnow ?? 0,
+        credit_card: sales.credit_card ?? 0,
+        voucher: sales.voucher ?? 0,
+        grabfood: sales.grabfood ?? 0,
+        foodpanda: sales.foodpanda ?? 0,
+        channel_total: channelTotal,
+        sales_difference: record?.pos_total_sales == null ? null : Number(record.pos_total_sales)-channelTotal,
+        sales_variance_reason: record?.sales_variance_reason ?? null,
+        sales_review_status: record?.sales_review_status ?? "not_required",
         product_code: product?.product_code ?? "Unavailable",
         product: product?.product_name ?? "Unavailable product",
         selling_unit: product?.selling_unit ?? null,
@@ -104,6 +120,9 @@ export async function GET(request: Request) {
         record_date: row.record_date,
         outlet: branchNames.get(row.branch_id) ?? "Unknown outlet",
         status: row.status,
+        pos_total_sales: row.pos_total_sales,
+        sales_variance_reason: row.sales_variance_reason,
+        sales_review_status: row.sales_review_status,
         product_code: null,
         product: "No product lines",
         selling_unit: null,

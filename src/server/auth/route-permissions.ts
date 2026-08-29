@@ -1,6 +1,7 @@
 import { informationArchitecture } from "@/lib/information-architecture";
 
 const exactRoutePermissions: Record<string, string[]> = {
+  "/compliance": ["outlet_compliance.read"],
   "/activity": ["dashboard.view"],
   "/administration": ["company.read", "staffs.read", "roles.read", "items.view", "imports.create", "branches.read"],
   "/procurement": ["purchase_request.read", "purchase_order.read", "goods_receiving.read", "purchase_return.view", "supplier_invoice.view", "suppliers.view"],

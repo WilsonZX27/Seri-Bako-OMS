@@ -50,3 +50,11 @@ test("mixed compliance route redirects and module pages remain separate", () => 
   assert.match(read("src","app","(app)","people","[id]","page.tsx"), /Employment & outlet assignments/);
   assert.doesNotMatch(read("src","app","(app)","people","page.tsx"), /Attendance/);
 });
+
+test("Preview remains readable before migration 229 is applied", () => {
+  const complianceQuery = read("src","server","queries","compliance.ts");
+  const outletQuery = read("src","server","queries","outlet-daily-records.ts");
+  assert.match(complianceQuery, /PGRST205/);
+  assert.match(complianceQuery, /migrationReady/);
+  assert.match(outletQuery, /salesError.*PGRST205/);
+});

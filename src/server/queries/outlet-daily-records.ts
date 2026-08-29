@@ -477,7 +477,7 @@ export async function getOutletDailyRecord(id: string) {
   ]);
   if (error) throw new Error(error.message);
   if (linesError) throw new Error(linesError.message);
-  if (salesError) throw new Error(salesError.message);
+  if (salesError && !["42P01", "PGRST205"].includes(salesError.code ?? "")) throw new Error(salesError.message);
   if (branchesError) throw new Error(branchesError.message);
   if (productsError) throw new Error(productsError.message);
   if (staffsError) throw new Error(staffsError.message);

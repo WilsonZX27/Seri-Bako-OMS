@@ -15,6 +15,11 @@ const schema = z.object({
   subject_label: z.string().trim().min(2).max(160), reference_no: z.string().trim().max(120).optional(),
   issued_on: z.string().optional(), expires_on: z.string().optional(), responsible_staff_id: optionalUuid,
   notes: z.string().trim().max(1000).optional(), submit_for_review: z.string().optional(),
+}).superRefine((value, context) => {
+  if (value.subject_kind !== "outlet") return;
+  if (!value.issued_on) context.addIssue({ code: "custom", path: ["issued_on"], message: "Issued or inspection date is required." });
+  if (!value.expires_on) context.addIssue({ code: "custom", path: ["expires_on"], message: "Expiry or next inspection date is required." });
+  if (value.issued_on && value.expires_on && value.expires_on < value.issued_on) context.addIssue({ code: "custom", path: ["expires_on"], message: "Expiry must be on or after the issue date." });
 });
 
 export async function createComplianceRecord(formData: FormData) {
@@ -74,6 +79,7 @@ export async function reviewComplianceRecord(formData: FormData) {
   const supabase = await createClient();
   const { data: target } = await supabase.from("compliance_records").select("subject_kind,branch_id").eq("id", id).single();
   if (!target) redirect("/outlet-compliance?error=Record+is+not+available+in+your+scope.");
+  if (decision === "rejected" && !note) redirect(target.branch_id ? `/outlet-compliance/${target.branch_id}?error=Add+a+corrective+note+before+returning+evidence.` : "/outlet-compliance?error=Add+a+corrective+note+before+returning+evidence.");
   await requirePermission(target.subject_kind === "outlet" ? "outlet_compliance.review" : target.subject_kind === "staff" ? "people.compliance.manage" : "compliance.review");
   const { error } = await supabase.from("compliance_records").update({ review_status: decision, reviewed_by: actor.staffId, reviewed_at: new Date().toISOString(), review_note: note || null, updated_by: actor.staffId }).eq("id", id).eq("review_status", "pending_review");
   if (error) redirect(`/compliance?error=${encodeURIComponent(error.message)}`);

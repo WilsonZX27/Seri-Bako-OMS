@@ -1,4 +1,2 @@
-import { PageHeader } from "@/components/ui/page-header";
-import { ComplianceMonthCalendar } from "@/components/compliance-month-calendar";
-import { getPeopleCompliance } from "@/server/queries/compliance";
-export default async function PeopleCalendarPage({searchParams}:{searchParams:Promise<{month?:string}>}){const {month}=await searchParams;const records=await getPeopleCompliance();const events=records.filter((row)=>row.expires_on&&row.staff_id).map((event)=>({id:event.id,date:event.expires_on!,title:event.subject_label,context:event.type?.type_name??"Employee compliance",href:`/people/${event.staff_id}#compliance`,state:event.state}));return <><PageHeader title="People Calendar" description="Restricted employee compliance expiry, review and renewal dates." backHref="/people"/><div className="p-3"><ComplianceMonthCalendar baseHref="/people/calendar" month={month} events={events}/></div></>}
+import { redirect } from "next/navigation";
+export default function PeopleCalendarCompatibilityPage(){redirect("/people")}

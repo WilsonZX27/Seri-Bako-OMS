@@ -43,7 +43,6 @@ export const informationArchitecture: readonly IaItem[] = [
   { href: "/outlet-compliance", label: "Outlet Compliance", group: "outlet_management", icon: "check", roles: ["super_admin","people_operations","manager","kitchen","outlet_staff"], permission: "outlet_compliance.read", attention: true, keywords: ["bomba", "permit", "expiry", "inspection"] },
   { href: "/outlet-calendar", label: "Outlet Calendar", group: "outlet_management", icon: "calendar", roles: ["super_admin","people_operations","manager","kitchen","outlet_staff"], permission: "outlet_compliance.read" },
   { href: "/people", label: "Employees", group: "people", icon: "users", roles: ["super_admin","people_operations","manager"], permission: "people.read" },
-  { href: "/people/calendar", label: "People Calendar", group: "people", icon: "calendar", roles: ["super_admin","people_operations","manager"], permission: "people.compliance.status.read" },
 
   { href: "/purchase-requests", label: "Purchase Requests", group: "procurement", icon: "request", roles: PROCUREMENT, permission: "purchase_request.read", attention: true },
   { href: "/purchase-orders", label: "Purchase Orders", group: "procurement", icon: "shopping", roles: PROCUREMENT, permission: "purchase_order.read" },

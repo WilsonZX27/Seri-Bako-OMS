@@ -2,13 +2,15 @@
 
 ### v9.2.0 (unreleased) — Outlet Management, People Operations & Sales Reconciliation
 
-The mixed Compliance workspace is replaced by two bounded OMS modules. Outlet Management owns Outlet Daily Records, an exception-first Outlet register, a seven-item outlet checklist (BOMBA, Business Permit, DBKL, Tenancy Agreement, Insurance, Fire Extinguisher Inspection and POS Licence), a real monthly expiry calendar, progressive evidence upload and review. People owns the existing staff directory, one People Profile per existing `staffs ↔ auth.users` identity, restricted vaccination/working-permit status, documents/access sections and a monthly People calendar. Attendance, payroll, leave, recruitment and employee scoring remain roadmap-only; AMS remains an external reference.
+The mixed Compliance workspace is replaced by two bounded OMS modules. Outlet Management owns Outlet Daily Records, an exception-first Outlet register, a seven-item outlet checklist (BOMBA, Business Permit, DBKL, Tenancy Agreement, Insurance, Fire Extinguisher Inspection and POS Licence), a real monthly expiry calendar, and progressive evidence upload with reference number, issued/inspection date, expiry/next-inspection date, notes and review. People owns the existing staff directory and one sectioned People Profile per existing `staffs ↔ auth.users` identity, including restricted vaccination/working-permit status and documents/access sections. People Calendar is intentionally absent. Attendance, payroll, leave, recruitment and employee scoring remain roadmap-only; AMS remains an external reference.
 
 Outlet Daily now reconciles POS Total against DuitNow, Credit Card, Voucher, GrabFood and FoodPanda in the same database transaction as daily product lines. The database derives channel total and difference; any non-zero difference requires a reason and enters `Needs review` without blocking inventory close. Kitchen Qty Sent updates use the legacy ownership path and cannot overwrite sales.
 
 Migration 229 replaces the broad compliance permission with outlet status/upload/document/review and People status/sensitive-document boundaries. Kitchen and Outlet Staff receive no staff-compliance visibility; Outlet Staff can upload outlet evidence without metadata, signed URL, view or download access; Manager receives scoped employee status but never sensitive originals. This source is not Production verified: migration 229 has not been applied remotely, the Preview has not been promoted, and role/viewport UAT remains pending.
 
 Repository migrations reviewed through `229`; migration 229 remains a Preview dependency and has not been applied to Production.
+
+Internet, electricity, water, rent and other outlet operating expenses are not compliance documents. A future Outlet Cost workspace must model recurring, scheduled and actual costs, billing periods, suppliers, payment status, Finance visibility and audit evidence separately; this Preview does not create a misleading amount field inside the checklist.
 
 ### v9.1.0 (Preview deployed; authenticated UAT pending) — Compliance & Staff Operations
 

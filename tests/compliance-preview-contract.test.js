@@ -68,9 +68,20 @@ test("v9.2 uses the OMS register, progressive checklist and real month calendars
   assert.match(register, /OperationalList/);
   assert.doesNotMatch(register, /lg:grid-cols-2/);
   assert.match(checklist, /<details/);
+  assert.match(checklist, /name="issued_on"/);
+  assert.match(checklist, /name="expires_on"/);
+  assert.match(checklist, /name="reference_no"/);
   assert.match(people, /WorkspaceGrid/);
   assert.doesNotMatch(people, /lg:grid-cols-2/);
+  assert.match(people, /aria-current/);
+  assert.doesNotMatch(people, /backHref/);
   assert.match(calendar, /grid-cols-7/);
   assert.match(calendar, /Previous month/);
   assert.match(calendar, /Next month/);
+});
+
+test("People Calendar is retired without creating a dead route", () => {
+  assert.doesNotMatch(read("src","lib","information-architecture.ts"), /label: "People Calendar"/);
+  assert.doesNotMatch(read("src","app","(app)","people","page.tsx"), /People calendar/);
+  assert.match(read("src","app","(app)","people","calendar","page.tsx"), /redirect\("\/people"\)/);
 });

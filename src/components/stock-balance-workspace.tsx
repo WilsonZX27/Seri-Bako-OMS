@@ -128,12 +128,12 @@ export function StockBalanceWorkspace({
   const createBranchId = selectableBranchIds.length === 1 ? selectableBranchIds[0] : "";
   const createRows = useMemo(() => (createBranchId ? basketByBranch.get(createBranchId) ?? [] : []), [createBranchId, basketByBranch]);
   const supplierGroups = useMemo(() => groupBySupplier(createRows), [createRows]);
-  const basketPayload = useMemo(() => supplierGroups.filter(([supplierId]) => supplierId !== "unassigned").map(([supplierId, lines]) => ({
-    supplier_id: supplierId,
+  const basketPayload = useMemo(() => supplierGroups.map(([supplierId, lines]) => ({
+    supplier_id: supplierId === "unassigned" ? null : supplierId,
     lines: lines.map((line) => ({ item_id: line.item_id, qty: line.qty, uom: line.uom, estimated_unit_cost: line.average_cost })),
   })), [supplierGroups]);
   const inactiveRows = useMemo(() => createRows.filter((line) => line.item_status !== "active"), [createRows]);
-  const canCreatePr = hasCreatePr && createRows.length > 0 && inactiveRows.length === 0 && createRows.every((line) => Boolean(line.supplier_id));
+  const canCreatePr = hasCreatePr && createRows.length > 0 && inactiveRows.length === 0;
 
   const inBasket = useMemo(() => new Set(Object.keys(basket)), [basket]);
   useEffect(() => {
@@ -217,11 +217,11 @@ export function StockBalanceWorkspace({
                     <div>
                       <dl className="grid grid-cols-3 gap-2 text-xs">
                         <div><dt className="text-[10px] text-muted-foreground">Location</dt><dd className="truncate font-semibold">{createBranchId ? branchNameById.get(createBranchId) ?? "Unknown" : "Select"}</dd></div>
-                        <div><dt className="text-[10px] text-muted-foreground">Suppliers</dt><dd className="font-semibold tabular-nums">{supplierGroups.length || "—"}</dd></div>
+                        <div><dt className="text-[10px] text-muted-foreground">PR groups</dt><dd className="font-semibold tabular-nums">{supplierGroups.length || "—"}</dd></div>
                         <div><dt className="text-[10px] text-muted-foreground">Items</dt><dd className="font-semibold tabular-nums">{basketRows.length}</dd></div>
                       </dl>
                       {createRows.length > 0 && createRows.some((line) => !line.supplier_id) ? (
-                        <p className="mt-1 text-xs text-destructive">Some selected items have no supplier mapping. Map them before creating PRs.</p>
+                        <p className="mt-1 text-[10px] leading-4 text-muted-foreground">Items without a supplier will be placed in a separate Draft PR for Purchasing to map.</p>
                       ) : null}
                       {inactiveRows.length ? <p className="mt-1 text-xs text-destructive">Some selected items are no longer active. Remove them and add the current active item from Stock Balance before creating a PR.</p> : null}
                     </div>
@@ -377,7 +377,7 @@ export function StockBalanceWorkspace({
         <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={() => setBasketOpen(false)} aria-label="Close PR basket" />
         <section className="sb-pr-basket-sheet sb-popover-surface absolute inset-x-0 bottom-0 flex max-h-[82dvh] flex-col overflow-hidden" role="dialog" aria-modal="true" aria-label="PR basket">
           <header className="flex min-h-14 items-center justify-between border-b border-[var(--sb-border-soft)] px-4">
-            <div className="min-w-0"><h2 className="text-base font-semibold text-[var(--sb-green-950)]">PR basket</h2><p className="text-xs text-[var(--sb-text-muted)]">{createBranchId ? branchNameById.get(createBranchId) ?? "Unknown location" : "Select location"} · {supplierGroups.length || 0} supplier{supplierGroups.length === 1 ? "" : "s"} · {basketRows.length} item{basketRows.length === 1 ? "" : "s"}</p></div>
+            <div className="min-w-0"><h2 className="text-base font-semibold text-[var(--sb-green-950)]">PR basket</h2><p className="text-xs text-[var(--sb-text-muted)]">{createBranchId ? branchNameById.get(createBranchId) ?? "Unknown location" : "Select location"} · {supplierGroups.length || 0} PR group{supplierGroups.length === 1 ? "" : "s"} · {basketRows.length} item{basketRows.length === 1 ? "" : "s"}</p></div>
             <Button type="button" variant="ghost" size="icon" onClick={() => setBasketOpen(false)} aria-label="Close PR basket"><X className="h-5 w-5" /></Button>
           </header>
           <form action={createPurchaseRequestsFromBasket} className="flex min-h-0 flex-1 flex-col">
@@ -408,7 +408,7 @@ export function StockBalanceWorkspace({
             </div>
             <footer className="border-t border-[var(--sb-border-soft)] bg-[var(--sb-surface)] px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-3px_8px_rgb(6_44_31_/_0.10)]">
               {filters.error ? <p className="mb-2 rounded-[var(--sb-control-radius)] bg-[var(--sb-danger-soft)] px-2.5 py-2 text-xs text-[var(--sb-danger)]">The PR was not created. Review the supplier status below; your basket has been kept.</p> : null}
-              {createRows.some((line) => !line.supplier_id) ? <p className="mb-2 text-xs text-[var(--sb-danger)]">Supplier mapping is required before these items can become a PR.</p> : null}
+              {createRows.some((line) => !line.supplier_id) ? <p className="mb-2 text-[10px] leading-4 text-[var(--sb-text-muted)]">Unmapped items will stay together in a Draft PR until Purchasing assigns a supplier.</p> : null}
               {inactiveRows.length ? <p className="mb-2 text-xs text-[var(--sb-danger)]">Some selected items are no longer active. Remove and re-add them from the current Stock Balance list.</p> : null}
               <SubmitButton type="submit" disabled={!canCreatePr} className="min-h-12 w-full" pendingLabel="Creating PR...">Create PR</SubmitButton>
             </footer>

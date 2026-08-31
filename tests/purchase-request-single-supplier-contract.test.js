@@ -43,12 +43,13 @@ test("each supplier-specific PR still converts with its own manually entered Aut
   assert.match(conversion, /This AutoCount PO Number is already used/);
 });
 
-test("stock basket groups selected rows by supplier before creating PRs", () => {
+test("stock basket separates supplier and unmapped sourcing groups before creating draft PRs", () => {
   const workspace = read("src/components/stock-balance-workspace.tsx");
   const action = read("src/server/actions/procurement.ts");
   assert.match(workspace, /groupBySupplier/);
   assert.match(workspace, /groupBySupplier/);
   assert.match(workspace, /name="supplier_groups"/);
   assert.match(workspace, /createPurchaseRequestsFromBasket/);
-  assert.match(action, /Created \$\{created\.length\} supplier-grouped draft PR/);
+  assert.match(workspace, /supplierId === "unassigned" \? null : supplierId/);
+  assert.match(action, /Created \$\{created\.length\} sourcing-grouped draft PR/);
 });

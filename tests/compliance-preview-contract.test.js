@@ -62,6 +62,18 @@ test("mixed compliance route redirects and module pages remain separate", () => 
   assert.doesNotMatch(read("src","app","(app)","people","page.tsx"), /Attendance/);
 });
 
+test("People profile exposes authorised employment editing and staff document capture", () => {
+  const people = read("src","app","(app)","people","[id]","page.tsx");
+  const action = read("src","server","actions","compliance.ts");
+  assert.match(people, /Edit employment & outlets/);
+  assert.match(people, /Add compliance record & file/);
+  assert.match(people, /Save record & file/);
+  assert.match(people, /people\.compliance\.document\.read/);
+  assert.match(people, /text-\[10px\][^>]*>Additional outlets/);
+  assert.match(people, /text-\[10px\][^>]*>Original files/);
+  assert.match(action, /value\.subject_kind === "staff" \? "people\.compliance\.document\.read"/);
+});
+
 test("Preview remains readable before migration 229 is applied", () => {
   const complianceQuery = read("src","server","queries","compliance.ts");
   const outletQuery = read("src","server","queries","outlet-daily-records.ts");

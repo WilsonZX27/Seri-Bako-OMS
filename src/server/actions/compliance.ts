@@ -27,7 +27,11 @@ export async function createComplianceRecord(formData: FormData) {
   await requirePermission(requestedKind === "outlet" ? "outlet_compliance.upload" : requestedKind === "staff" ? "people.compliance.manage" : "compliance.manage");
   const actor = await requireActiveTenantActor();
   const parsed = schema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) redirect("/outlet-compliance?error=Check+the+required+record+fields.");
+  const staffId = String(formData.get("staff_id") ?? "");
+  const returnPath = requestedKind === "staff" && z.string().uuid().safeParse(staffId).success
+    ? `/people/${staffId}?section=compliance`
+    : "/outlet-compliance";
+  if (!parsed.success) redirect(`${returnPath}${returnPath.includes("?") ? "&" : "?"}error=Check+the+required+record+fields.`);
   const value = parsed.data;
   if ((value.subject_kind === "outlet" && !value.branch_id) || (value.subject_kind === "staff" && !value.staff_id) || (value.subject_kind === "asset" && !value.asset_external_ref)) redirect("/compliance?error=Choose+the+matching+subject.");
   const supabase = await createClient();
@@ -45,7 +49,7 @@ export async function createComplianceRecord(formData: FormData) {
     const signatureValid = file.type === "application/pdf" ? starts(37,80,68,70,45) : file.type === "image/png" ? starts(137,80,78,71,13,10,26,10) : file.type === "image/jpeg" ? starts(255,216,255) : bytes.length >= 12 && String.fromCharCode(...bytes.slice(0,4)) === "RIFF" && String.fromCharCode(...bytes.slice(8,12)) === "WEBP";
     if (!signatureValid) redirect("/compliance?error=Document+content+does+not+match+its+file+type.");
     const { data: type } = await supabase.from("compliance_types").select("is_sensitive").eq("id", value.compliance_type_id).single();
-    if (type?.is_sensitive) await requirePermission("compliance.sensitive.read");
+    if (type?.is_sensitive) await requirePermission(value.subject_kind === "staff" ? "people.compliance.document.read" : "compliance.sensitive.read");
     attachmentId = crypto.randomUUID();
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(-120) || "compliance-file";
     storagePath = `${actor.companyId}/compliance/${recordId}/${crypto.randomUUID()}-${safeName}`;
@@ -68,7 +72,7 @@ export async function createComplianceRecord(formData: FormData) {
   }
   await supabase.from("compliance_record_history").insert({ company_id: actor.companyId, compliance_record_id: data.id, event_type: value.submit_for_review ? "submitted" : "created", safe_summary: value.submit_for_review ? "Record created and submitted for review." : "Draft record created.", new_expires_on: data.expires_on, actor_staff_id: actor.staffId });
   revalidatePath(value.subject_kind === "outlet" ? "/outlet-compliance" : "/people");
-  redirect(value.subject_kind === "outlet" && value.branch_id ? `/outlet-compliance/${value.branch_id}?success=Evidence+received+and+submitted+for+review.` : "/people?success=Compliance+record+created.");
+  redirect(value.subject_kind === "outlet" && value.branch_id ? `/outlet-compliance/${value.branch_id}?success=Evidence+received+and+submitted+for+review.` : value.subject_kind === "staff" && value.staff_id ? `/people/${value.staff_id}?section=compliance&success=Compliance+record+and+file+saved.` : "/people?success=Compliance+record+created.");
 }
 
 export async function reviewComplianceRecord(formData: FormData) {

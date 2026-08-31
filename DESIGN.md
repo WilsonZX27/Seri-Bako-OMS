@@ -1,5 +1,14 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.8 (unreleased) — Profiles that lead to the next task
+
+- A People Profile fact must not imply editability while hiding the edit route. Employment exposes one explicit `Edit employment & outlets` action; account management remains the full administrative workspace.
+- Staff Compliance owns its evidence capture in the employee context. Authorised roles can add the record and file together; Documents lists only recorded evidence and preserves the sensitive-file permission boundary.
+- Explanatory assignment, privacy and file-format copy uses the 10px helper scale with a 16px line height. Operational labels and primary values remain at the established readable scale.
+- Outlet Daily Today metrics keep only the actual business labels. `Qty sent` does not need `Dispatch`, and `Total received` does not need `Receiving` repeated beneath it.
+- A calendar is date-owned: expiring and renewal records with dates appear there. Missing dates and review-only queues remain in Outlet Compliance and the page description says so.
+- Stock Balance uses branch sourcing first, then the Item Master default. A genuinely unmapped Item remains selectable into a separate Draft PR whose next owner is Purchasing; conflict and source-unavailable states remain blocked.
+
 ## v9.2.7 (unreleased) — Progressive capture without dead ends
 
 - Kitchen’s fixed mobile destinations follow task frequency and the user’s requested sequence: Home, Count, Request, Stock and More. Less frequent Wastage remains discoverable inside More.

@@ -75,3 +75,19 @@ export async function getPeopleCompliance(staffId?: string) {
   const typeById = new Map((types ?? []).map((row) => [row.id, row]));
   return (data ?? []).map((record) => ({ ...record, type: typeById.get(record.compliance_type_id), state: complianceState(record.expires_on, record.review_status, Boolean(record.attachment_id)) }));
 }
+
+export async function getPeopleComplianceTypes() {
+  if (isMockMode()) return [];
+  const [supabase, profile] = await Promise.all([createClient(), getCurrentProfile()]);
+  if (!profile?.company_id) return [];
+  const { data, error } = await supabase
+    .from("compliance_types")
+    .select("id,type_name,subject_kind,is_sensitive")
+    .eq("company_id", profile.company_id)
+    .eq("subject_kind", "staff")
+    .eq("status", "active")
+    .is("deleted_at", null)
+    .order("type_name");
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}

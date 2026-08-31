@@ -322,7 +322,7 @@ const stockBasketLineSchema = z.object({
 });
 
 const stockBasketGroupsSchema = z.array(z.object({
-  supplier_id: z.string().uuid("The selected supplier is invalid."),
+  supplier_id: z.string().uuid("The selected supplier is invalid.").nullable(),
   lines: z.array(stockBasketLineSchema).min(1, "Each supplier requires at least one item.").max(100, "A supplier group is limited to 100 items."),
 })).min(1, "Select at least one item for the purchase request.").max(20, "A stock basket is limited to 20 suppliers.").superRefine((groups, context) => {
   const lineCount = groups.reduce((total, group) => total + group.lines.length, 0);
@@ -347,9 +347,10 @@ export async function createPurchaseRequestsFromBasket(formData: FormData) {
     await ensureActorCanUsePurchaseRequestBranch(branchId);
     const groups = parseStockBasketGroups(formData.get("supplier_groups"));
     const allLines = groups.flatMap((group) => group.lines.map((line) => ({ ...line, suggested_supplier_id: group.supplier_id, branch_id: branchId })));
+    const sourcedLines = allLines.filter((line): line is typeof line & { suggested_supplier_id: string } => Boolean(line.suggested_supplier_id));
     const [, , profile] = await Promise.all([
       ensureActiveItems(allLines.map((line) => line.item_id), branchId, allLines.map(() => branchId)),
-      ensureBranchSupplierSelections(branchId, allLines, true),
+      ensureBranchSupplierSelections(branchId, sourcedLines, true),
       identity(),
     ]);
     const created: Array<{ id: string; request_no: string }> = [];
@@ -373,14 +374,14 @@ export async function createPurchaseRequestsFromBasket(formData: FormData) {
         urgency_reason: "",
         production_risk: false,
         branch_id: branchId,
-        remarks: `Created from stock basket for ${group.supplier_id}.`,
+        remarks: group.supplier_id ? `Created from stock basket for ${group.supplier_id}.` : "Created from stock basket; Purchasing supplier mapping required.",
         lines,
       });
       const result = await createPurchaseRequestAggregate(payload, profile, crypto.randomUUID(), "draft");
       created.push({ id: result.id, request_no: result.request_no });
     }
     revalidateWorkspaceState(["/purchase-requests", "/stock-balance"]);
-    safeRedirectWithMessage("/purchase-requests", "success", `Created ${created.length} supplier-grouped draft PR${created.length === 1 ? "" : "s"}.`);
+    safeRedirectWithMessage("/purchase-requests", "success", `Created ${created.length} sourcing-grouped draft PR${created.length === 1 ? "" : "s"}.`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage("/stock-balance", "error", formatActionError(error, "Could not create supplier-grouped purchase requests."));

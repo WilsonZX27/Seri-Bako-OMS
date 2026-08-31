@@ -44,13 +44,21 @@ test("stock balance persists the PR basket across filter refreshes without trust
   assert.match(source, /item_status: line\.item_status === "active" \? "active" : "unknown"/);
   assert.match(source, /inactiveRows/);
   assert.match(source, /inactiveRows\.length === 0/);
+  assert.match(source, /supplierId === "unassigned" \? null : supplierId/);
+  assert.match(source, /Draft PR for Purchasing to map/);
+  assert.doesNotMatch(source, /createRows\.every\(\(line\) => Boolean\(line\.supplier_id\)\)/);
   assert.match(stockRows, /disabled=\{!itemActive\}/);
+  assert.match(procurementAction, /supplier_id: z\.string\(\)\.uuid\("The selected supplier is invalid\."\)\.nullable\(\)/);
+  assert.match(procurementAction, /Purchasing supplier mapping required/);
 });
 
 test("stock balance basket uses branch-authoritative sourcing and a fixed purchase UOM", () => {
   const query = fs.readFileSync(path.join(root, "src", "server", "queries", "inventory.ts"), "utf8");
   assert.match(query, /branch_supplier_items/);
   assert.match(query, /pairMappings\.find\(\(mapping\) => mapping\.is_preferred\)/);
+  assert.match(query, /itemDefaultById\.get\(row\.item_id\)/);
+  assert.match(query, /supplier_id: itemDefault\.supplier_id/);
+  assert.match(query, /if \(branchMappingsError \|\| suppliersError\)/);
   assert.match(source, /Purchase UOM for/);
   assert.doesNotMatch(source, /updateUom/);
   assert.match(source, /useState\(Boolean\(filters\.error\)\)/);

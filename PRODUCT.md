@@ -1,5 +1,13 @@
 # Seri Bako Operations Management System
 
+### v9.2.8 (unreleased) — Actionable People profiles and recoverable Stock PRs
+
+People Profile now provides a direct Employment and outlet-assignment edit path instead of presenting read-only facts without a next action. Authorised People roles may add a staff compliance record with its supporting PDF/image, and authorised sensitive-document readers may open recorded originals from the Documents section. Supporting privacy and assignment copy uses the compact 10px helper scale requested in the annotated Production review.
+
+Outlet Daily removes the redundant Dispatch and Receiving sublabels from the Today summary. Outlet Calendar now states its real boundary: dated expiry and renewal work appears on the calendar, while missing dates and review queues remain in Outlet Compliance.
+
+Stock Balance now applies the same sourcing hierarchy as the server. A branch mapping wins; otherwise an active Item Master default supplier and Purchase UOM are used. An Item with neither may still create a separate Draft PR for Purchasing to map before submission. Ambiguous branch mappings and failed sourcing reads remain blocked rather than guessed. This is implemented and locally verified only; the current Production v9.2.3 screenshots do not prove these Preview changes deployed.
+
 ### v9.2.7 (unreleased) — Progressive Daily Sales and Kitchen task navigation
 
 Kitchen mobile navigation now follows the requested operational order: Home, Count, Request, Stock and More. Stock Wastage remains available through More without displacing the frequent Purchase Request workspace from the fixed bottom bar.

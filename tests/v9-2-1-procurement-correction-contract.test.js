@@ -30,6 +30,16 @@ test("document actions stay available at tablet and phone breakpoints", () => {
   assert.match(workspace, /mobileActivity \? <div className="min-w-0"><MobileActivityAndFiles>/);
 });
 
+test("purchase request actions separate reviewer decisions from requester and Owner recovery controls", () => {
+  const prDetail = read("src/app/(app)/purchase-requests/[id]/page.tsx");
+  assert.match(prDetail, /canRequesterWithdraw[\s\S]*profile\?\.id === request\.requested_by/);
+  assert.match(prDetail, /canOwnerRecoverWithdraw[\s\S]*profile\?\.id !== request\.requested_by/);
+  assert.match(prDetail, /label="Return for correction"/);
+  assert.match(prDetail, /DocumentActionSection moreOptions=\{administrativeControls\} collapseMoreOptions/);
+  assert.match(prDetail, /DocumentSideSection title="Request controls"/);
+  assert.doesNotMatch(prDetail, /canRequesterWithdraw[\s\S]{0,200}\|\| isOwner/);
+});
+
 test("requester revoke is atomic, requester-owned and revision audited", () => {
   const migration = read("supabase/migrations/231_requester_revoke_before_manager_decision.sql");
   assert.match(migration, /status::text <> 'manager_review'/);

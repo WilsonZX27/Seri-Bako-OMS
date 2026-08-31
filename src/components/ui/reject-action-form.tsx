@@ -11,10 +11,16 @@ export function RejectActionForm({
   action,
   label = "Reject request",
   pendingLabel = "Rejecting...",
+  title = "Reject purchase request?",
+  description = "Add a reason so the requester knows what to correct.",
+  fieldLabel = "Rejection reason",
 }: {
   action: (formData: FormData) => void | Promise<void>;
   label?: string;
   pendingLabel?: string;
+  title?: string;
+  description?: string;
+  fieldLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -39,13 +45,13 @@ export function RejectActionForm({
         <header className="mb-4">
           <h2 id={titleId} className="flex items-center gap-2 text-base font-semibold text-[var(--sb-danger)]">
             <CircleX className="h-4 w-4" aria-hidden="true" />
-            Reject purchase request?
+            {title}
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">Add a reason so the requester knows what to correct.</p>
+          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
         </header>
         <form action={action} className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor={`${titleId}-remarks`} className="text-sm font-medium">Rejection reason</label>
+            <label htmlFor={`${titleId}-remarks`} className="text-sm font-medium">{fieldLabel}</label>
             <Textarea
               ref={remarksRef}
               id={`${titleId}-remarks`}

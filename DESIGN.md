@@ -1,11 +1,13 @@
 # Seri Bako OMS responsive design standard
 
-## v9.2.3 (unreleased) — Recoverable accidental submission
+## v9.2.4 (unreleased) — Recoverable submission with clear action ownership
 
 - `Manager Review` is still a review state, not an editable form. Before Manager acts, the original requester may use `Revoke submission` to return the PR to Draft; revision and cancellation remain Draft actions.
 - Revoke is requester-owned and server-authoritative. Company-wide read scope or possession of `pr.cancel` alone never permits one operator to revoke another operator’s submission; Owner remains the controlled recovery exception.
 - The database row lock and status predicate decide concurrent Manager/revoke races. Whichever transition commits first wins, and the other receives a safe no-change error.
-- Revoke remains in the shared secondary action area at desktop, tablet and phone sizes. Copy names the consequence—return to Draft—and requires one short reason for the audit trail.
+- Manager Review exposes one decision pair: approve, or return for correction. The correction action uses request-return language instead of presenting a terminal rejection.
+- The original requester sees revoke in a separate `Request controls` surface. Owner-only recovery and permanent deletion sit behind collapsed `More options`; elevated capability must not make mutually exclusive actor duties look like equal next actions.
+- On tablet and phone, the same controls remain reachable through the shared document action surfaces. Copy names the consequence—return to Draft—and requires one short reason for the audit trail.
 
 ## v9.2.2 (unreleased) — Complete role and action audit coverage
 

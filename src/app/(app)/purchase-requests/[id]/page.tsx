@@ -154,7 +154,8 @@ export default async function PurchaseRequestDetailPage({
   const canSubmit = isStatus(request.status, "draft", "rejected", "returned") && permissions["pr.submit"];
   const isOwner = roleCode === "super_admin";
   const canCancel = request.status === "draft" && permissions["pr.cancel"];
-  const canWithdraw = request.status === "manager_review" && permissions["pr.cancel"] && (profile?.id === request.requested_by || isOwner);
+  const canRequesterWithdraw = request.status === "manager_review" && permissions["pr.cancel"] && profile?.id === request.requested_by;
+  const canOwnerRecoverWithdraw = request.status === "manager_review" && permissions["pr.cancel"] && isOwner && profile?.id !== request.requested_by;
   const canEditRequest = isStatus(request.status, "draft", "rejected", "returned") && permissions["purchase_request.create"] && (profile?.id === request.requested_by || isOwner);
   const canManagerReview = request.status === "manager_review" && permissions["pr.manager_approve"] && (roleCode === "manager" || isOwner);
   const canAdminReview = request.status === "admin_review" && permissions["pr.admin_review"] && (roleCode === "purchasing" || isOwner);
@@ -189,18 +190,22 @@ export default async function PurchaseRequestDetailPage({
   const hasPrimaryAction = canSubmit || canManagerReview || canAdminReview || canFinanceReview || canConvert;
   const deleteControl = canManageDeletion && !canCancel ? (deletePreview?.eligible ? <DangerConfirmForm action={hardDeletePhaseOne.bind(null, "purchase_request", request.id)} title={`Permanently delete ${request.request_no}?`} description="This cannot be undone. Purchase request lines will be removed; the document number will remain consumed." checkboxLabel="I understand this permanently deletes the eligible request." confirmWord={deletePreview.confirmation} buttonLabel="Delete purchase request" pendingLabel="Deleting..." /> : <BlockedDestructiveAction buttonLabel="Delete purchase request" title={`Cannot delete ${request.request_no}`} description="Permanent deletion is blocked by the current status or linked records." recommendation={deletePreview ? Object.entries(deletePreview.dependencies).filter(([, count]) => count > 0).map(([key, count]) => `${key}: ${count}`).join("; ") : "Dependency preview unavailable."} />) : null;
   const saveDraftAction = canEditRequest ? <SubmitButton form="purchase-request-form" type="submit" pendingLabel="Saving..." className="w-full justify-center">Save request changes</SubmitButton> : null;
-  const secondaryActions = saveDraftAction || canWithdraw || canCancel || canReject || deleteControl ? <div className="space-y-2">
+  const withdrawControl = canRequesterWithdraw || canOwnerRecoverWithdraw ? <MobileTaskSheet label={canRequesterWithdraw ? "Revoke submission" : "Owner recovery: revoke submission"}><form action={withdrawPurchaseRequest.bind(null, request.id)} className="space-y-3"><p className="text-xs text-muted-foreground">Available only before Manager makes a decision. The request returns to Draft so it can be corrected or cancelled.</p><Field label="Revoke reason" required><Input name="reason" placeholder="Example: Submitted twice" required minLength={3} maxLength={500} /></Field><SubmitButton className="w-full justify-center" pendingLabel="Revoking..."><RotateCcw className="h-4 w-4" aria-hidden="true" />Revoke to Draft</SubmitButton></form></MobileTaskSheet> : null;
+  const requestControls = saveDraftAction || canRequesterWithdraw || canCancel ? <div className="space-y-2">
     {saveDraftAction}
-    {canReject ? <RejectActionForm action={rejectPurchaseRequest.bind(null, request.id)} /> : null}
-    {canWithdraw ? <MobileTaskSheet label="Revoke submission"><form action={withdrawPurchaseRequest.bind(null, request.id)} className="space-y-3"><p className="text-xs text-muted-foreground">Available only before Manager makes a decision. The request returns to Draft so you can revise or cancel it.</p><Field label="Revoke reason" required><Input name="reason" placeholder="Example: Submitted twice" required minLength={3} maxLength={500} /></Field><SubmitButton className="w-full justify-center" pendingLabel="Revoking..."><RotateCcw className="h-4 w-4" aria-hidden="true" />Revoke to Draft</SubmitButton></form></MobileTaskSheet> : null}
+    {canRequesterWithdraw ? withdrawControl : null}
     {canCancel ? (
       <DocumentActionForm action={cancelPurchaseRequest.bind(null, request.id)} pendingLabel="Removing..." variant="outline">
         <Trash2 className="h-4 w-4" aria-hidden="true" />
         Cancel unposted request
       </DocumentActionForm>
     ) : null}
+  </div> : null;
+  const administrativeControls = canOwnerRecoverWithdraw || deleteControl ? <div className="space-y-2">
+    {canOwnerRecoverWithdraw ? withdrawControl : null}
     {deleteControl}
   </div> : null;
+  const mobileMoreActions = requestControls || administrativeControls ? <div className="space-y-3">{requestControls}{administrativeControls}</div> : null;
   const nextStep = prSteps.find((step) => step.key === getPrWorkflowStep(request.status))?.description;
   const unresolvedSourcingNotice = unresolvedLines.length ? (
     <div className="flex items-start gap-2 rounded-[var(--sb-radius-control)] bg-[var(--sb-warning-bg)] p-2.5" role="status">
@@ -244,10 +249,10 @@ export default async function PurchaseRequestDetailPage({
       tabletRailMode="split"
       mobilePrimaryAction={mobilePrimaryAction}
       mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={procurementChain?.attachments ?? documentBundle.attachments} title="Purchase files" canManage={permissions["documents.attach"]} canRemove={isOwner} documentStatus={documentBundle.document.status} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} canRemove={isOwner} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /><RevisionPanel revisions={documentBundle.revisions} /></> : null}
-      mobileMoreOptions={secondaryActions ? <DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions> : null}
+      mobileMoreOptions={mobileMoreActions ? <DocumentMoreOptions>{mobileMoreActions}</DocumentMoreOptions> : null}
       sidePanel={
         <>
-          <DocumentActionSection moreOptions={secondaryActions}>
+          {hasPrimaryAction || canReject || administrativeControls ? <DocumentActionSection moreOptions={administrativeControls} collapseMoreOptions>
             <DocumentActionBar>
               {canSubmit ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..." mobilePrimary><Send className="h-4 w-4" aria-hidden="true" />Submit to Manager Review</DocumentActionForm> : null}
               {canManagerReview ? blockingLineIssues.length ? <Button asChild className="w-full"><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <ConfirmActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} label={<><CircleCheck className="h-4 w-4" aria-hidden="true" />Approve as Manager</>} title="Approve this PR as Manager?" description="This moves the request to Purchasing Review." pendingLabel="Approving..." mobilePrimary /> : null}
@@ -257,6 +262,7 @@ export default async function PurchaseRequestDetailPage({
                 <Button asChild className="w-full justify-center"><a href={`/purchase-orders/${linkedPurchaseOrders[0].id}`}><FileCheck2 className="h-4 w-4" aria-hidden="true" />Open PO</a></Button>
               ) : null}
             </DocumentActionBar>
+            {canReject ? <div className="mt-2"><RejectActionForm action={rejectPurchaseRequest.bind(null, request.id)} label="Return for correction" pendingLabel="Returning..." title="Return this request for correction?" description="Add a clear reason so the requester knows what to revise before resubmitting." fieldLabel="Correction required" /></div> : null}
             {canConvert ? (
               <form action={convertPurchaseRequestToPurchaseOrder.bind(null, request.id)} className="mt-3 space-y-2" data-mobile-primary-action>
                 <Field label="Saved AutoCount PO Number"><Input name="autocount_po_no" defaultValue={messageParams.po_no ?? request.autocount_po_no ?? ""} placeholder="AutoCount PO Number" required /></Field>
@@ -264,8 +270,9 @@ export default async function PurchaseRequestDetailPage({
                 <SubmitButton type="submit" pendingLabel="Finishing..." className="w-full justify-center"><FileCheck2 className="h-4 w-4" aria-hidden="true" />Finish PO creation</SubmitButton>
               </form>
             ) : null}
-            {!hasPrimaryAction && !secondaryActions ? <p className="text-xs text-muted-foreground">No action is required at this stage.</p> : null}
-          </DocumentActionSection>
+            {!hasPrimaryAction && !canReject && !requestControls && !administrativeControls ? <p className="text-xs text-muted-foreground">No action is required at this stage.</p> : null}
+          </DocumentActionSection> : null}
+          {requestControls ? <DocumentSideSection title="Request controls">{requestControls}</DocumentSideSection> : null}
           <DocumentSideSection title="Validation / Next Step">
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground">{nextStep ?? "No further workflow step is available."}</p>

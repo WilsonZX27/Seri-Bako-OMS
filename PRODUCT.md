@@ -1,10 +1,12 @@
 # Seri Bako Operations Management System
 
-### v9.2.3 (unreleased) — Requester revoke before Manager decision
+### v9.2.4 (unreleased) — Clear PR decision and recovery hierarchy
 
 An authorised Purchase Request creator who accidentally submits a request may use `Revoke submission` while it is still in `Manager Review`. The database locks the request and permits the transition only to the original requester or Owner; once Manager has approved or returned it, revoke fails closed. A successful revoke returns the request to Draft, where the normal revise, cancel or resubmit actions apply.
 
 The revoke reason, actor, status transition and document revision are recorded atomically. This closes the previous gap where the UI restricted the control to the requester but a broader company-scoped actor with `pr.cancel` could attempt the RPC directly. Migration 231 is a Preview dependency and has not been applied to Production.
+
+Reviewer decisions, requester correction controls and Owner recovery tools no longer appear as equal actions. Manager Review presents `Approve as Manager` and `Return for correction` as the decision pair. The original requester receives a separate `Request controls` surface for revoke; Owner recovery and permanent deletion remain available behind collapsed `More options` without impersonating the requester.
 
 Repository migrations reviewed through `231`; migrations 229–231 remain unapplied Preview dependencies.
 

@@ -2851,7 +2851,7 @@ export type Database = {
         Returns: string;
       };
       save_outlet_daily_record_v92: {
-        Args: { p_record_id: string | null; p_branch_id: string; p_record_date: string; p_notes: string | null; p_lines: Json; p_target_status: string; p_pos_total_sales: number; p_sales_breakdown: Json; p_sales_variance_reason: string | null };
+        Args: { p_record_id: string | null; p_branch_id: string; p_record_date: string; p_notes: string | null; p_lines: Json; p_target_status: string; p_pos_total_sales: number | null; p_sales_breakdown: Json; p_sales_variance_reason: string | null };
         Returns: string;
       };
       transition_outlet_daily_record: {

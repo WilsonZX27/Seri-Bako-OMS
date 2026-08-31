@@ -1,5 +1,12 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.7 (unreleased) — Progressive capture without dead ends
+
+- Kitchen’s fixed mobile destinations follow task frequency and the user’s requested sequence: Home, Count, Request, Stock and More. Less frequent Wastage remains discoverable inside More.
+- Sales reconciliation is a completion gate, not a draft-save gate. A blank POS Total is presented as `Sales pending`; it never triggers native browser validation while the operator is saving operational progress.
+- When sales infrastructure is awaiting migration, preserve the core Outlet Daily save and state exactly that sales was not recorded. Never replace a recoverable partial capability with a generic whole-record failure.
+- Existing reconciliation data is preserved when a later draft save leaves the Sales section blank. Completion remains server-authoritative and requires POS Total; a non-zero difference requires a reason.
+
 ## v9.2.6 (unreleased) — Recoverable Stock Balance procurement
 
 - Stock Balance and PR creation share the same branch supplier relationship as their sourcing authority. Item Master defaults must not appear as valid branch purchasing choices when an active branch mapping says otherwise.

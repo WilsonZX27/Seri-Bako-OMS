@@ -196,6 +196,7 @@ function formatValidationError(error: unknown) {
     tolerance: "Tolerance",
     tolerance_percent: "Tolerance",
     count_no: "Count number",
+    pos_total_sales: "POS Total Sales",
   };
   const field = fieldLabels[fieldKey];
   return field ? `${field}: ${message}` : message;

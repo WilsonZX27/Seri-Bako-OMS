@@ -1,5 +1,13 @@
 # Seri Bako Operations Management System
 
+### v9.2.7 (unreleased) — Progressive Daily Sales and Kitchen task navigation
+
+Kitchen mobile navigation now follows the requested operational order: Home, Count, Request, Stock and More. Stock Wastage remains available through More without displacing the frequent Purchase Request workspace from the fixed bottom bar.
+
+Outlet Daily sales reconciliation no longer blocks an operator from saving Received, Wastage or other in-day progress when POS Total has not been entered. POS Total becomes mandatory only when completing the record; an entered non-zero difference still requires an explanation. If the v9.2 sales RPC is not yet available in the connected database, the established daily record is saved through the legacy transaction and the operator receives an explicit notice that sales was not recorded instead of a generic failure.
+
+Migration 232 carries the progressive database rule and is an unapplied Preview dependency. Repository migrations reviewed through `232`; migrations 229–232 have not been applied to Production.
+
 ### v9.2.6 (unreleased) — Branch-authoritative Stock Balance PR basket
 
 Stock Balance now resolves the active branch supplier relationship before presenting an Item for PR creation. A branch mapping overrides the Item Master default supplier and purchase UOM; ambiguous or unavailable mappings remain visibly blocked instead of producing a late server error after Kitchen submits the basket.

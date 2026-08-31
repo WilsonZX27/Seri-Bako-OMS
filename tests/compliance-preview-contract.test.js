@@ -36,6 +36,7 @@ test("Outlet checklist includes the seven required templates", () => {
 
 test("sales reconciliation is database-derived and atomic with daily lines", () => {
   const sql = read("supabase", "migrations", "229_outlet_people_sales_reconciliation.sql");
+  const progressiveSql = read("supabase", "migrations", "232_outlet_daily_sales_progressive_capture.sql");
   for (const channel of ["duitnow","credit_card","voucher","grabfood","foodpanda"]) assert.match(sql, new RegExp(channel));
   assert.match(sql, /saved_id:=public\.save_outlet_daily_record/);
   assert.match(sql, /difference:=round\(p_pos_total_sales-channel_total,2\)/);
@@ -43,6 +44,16 @@ test("sales reconciliation is database-derived and atomic with daily lines", () 
   const action = read("src", "server", "actions", "outlet-daily-records.ts");
   assert.match(action, /save_outlet_daily_record_v92/);
   assert.match(action, /canUpdateOutletValues/);
+  assert.match(action, /isSalesReconciliationMigrationPending/);
+  assert.match(action, /Sales reconciliation is temporarily unavailable and was not recorded/);
+  assert.match(action, /Sales reconciliation is temporarily unavailable, so completion was deferred/);
+  assert.match(progressiveSql, /p_target_status='evening_completed'/);
+  assert.match(progressiveSql, /POS Total Sales is required before completing this record/);
+  assert.match(progressiveSql, /Preserve any existing/);
+  const form = read("src", "components", "outlet-daily-record-form.tsx");
+  assert.match(form, /hasPosTotal/);
+  assert.match(form, /You can save progress now and complete sales before posting/);
+  assert.doesNotMatch(form, /name="pos_total_sales"[^>]+required/);
 });
 
 test("mixed compliance route redirects and module pages remain separate", () => {

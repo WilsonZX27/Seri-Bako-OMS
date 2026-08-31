@@ -12,6 +12,10 @@ const values = (formData: FormData, name: string) => formData.getAll(name).map(S
 const outletDailyStatusSchema = z.enum(["draft", "morning_recorded", "evening_completed"]);
 const quantitySchema = z.coerce.number().finite().min(0).max(1_000_000);
 const moneySchema = z.coerce.number().finite().min(0).max(100_000_000);
+const optionalMoneySchema = z.preprocess(
+  (value) => typeof value === "string" && value.trim() === "" ? null : value,
+  moneySchema.nullable(),
+);
 const salesChannels = ["duitnow", "credit_card", "voucher", "grabfood", "foodpanda"] as const;
 const outletDailyLineSchema = z.object({
   product_id: z.uuid(),
@@ -30,7 +34,7 @@ const outletDailyPayloadSchema = z.object({
   notes: z.string().trim().max(2_000).nullable(),
   target_status: outletDailyStatusSchema,
   lines: z.array(outletDailyLineSchema).min(1).max(500),
-  pos_total_sales: moneySchema,
+  pos_total_sales: optionalMoneySchema,
   sales_variance_reason: z.string().trim().max(1000).nullable(),
   sales_breakdown: z.array(z.object({ channel: z.enum(salesChannels), amount: moneySchema })).length(5),
 });
@@ -38,6 +42,16 @@ const outletDailyPayloadSchema = z.object({
 function nullableText(value: string | undefined) {
   const text = value?.trim() ?? "";
   return text.length ? text : null;
+}
+
+function isSalesReconciliationMigrationPending(error: { code?: string; message?: string } | null) {
+  if (!error) return false;
+  const message = error.message?.toLowerCase() ?? "";
+  return error.code === "PGRST202"
+    || error.code === "42883"
+    || error.code === "42P01"
+    || (message.includes("save_outlet_daily_record_v92") && (message.includes("schema cache") || message.includes("does not exist") || message.includes("could not find")))
+    || message.includes("outlet_daily_sales_breakdowns");
 }
 
 type DailyValueSnapshot = {
@@ -139,9 +153,21 @@ export async function saveOutletDailyRecord(formData: FormData) {
       p_target_status: payload.target_status,
       p_lines: payload.lines,
     };
-    const { data, error } = canUpdateOutletValues || !recordId
+    let salesReconciliationUnavailable = false;
+    let completionDeferred = false;
+    let saveResult = canUpdateOutletValues || !recordId
       ? await db.rpc("save_outlet_daily_record_v92", { ...baseArgs, p_pos_total_sales: payload.pos_total_sales, p_sales_breakdown: payload.sales_breakdown, p_sales_variance_reason: payload.sales_variance_reason })
       : await db.rpc("save_outlet_daily_record", baseArgs);
+    if ((canUpdateOutletValues || !recordId) && isSalesReconciliationMigrationPending(saveResult.error)) {
+      // Keep the established daily-record workflow usable while a Preview or
+      // Production database is waiting for the sales migration. The operator
+      // is told that sales was not recorded; no entered sales value is silently
+      // represented as saved.
+      salesReconciliationUnavailable = true;
+      completionDeferred = payload.target_status === "evening_completed";
+      saveResult = await db.rpc("save_outlet_daily_record", completionDeferred ? { ...baseArgs, p_target_status: "draft" } : baseArgs);
+    }
+    const { data, error } = saveResult;
     if (error?.code === "23505" && !recordId) {
       // The unique active outlet-day index is the final authority. Two taps or
       // concurrent sessions can both pass the friendly preflight check; when
@@ -159,6 +185,7 @@ export async function saveOutletDailyRecord(formData: FormData) {
     }
     if (error) throw new Error(error.message);
     if (!data) throw new Error("Outlet daily record was not saved.");
+    const effectiveTargetStatus = completionDeferred ? "draft" : payload.target_status;
     const changedLines = payload.lines.flatMap((line) => {
       const stored = beforeLines.data?.find((candidate) => candidate.product_id === line.product_id);
       const before: DailyValueSnapshot | null = stored ? {
@@ -180,7 +207,7 @@ export async function saveOutletDailyRecord(formData: FormData) {
       const fields = changedDailyFields(before, after);
       return fields.length ? [{ product_id: line.product_id, fields, before, after }] : [];
     });
-    const statusChanged = Boolean(recordId && beforeRecord.data?.status !== payload.target_status);
+    const statusChanged = Boolean(recordId && beforeRecord.data?.status !== effectiveTargetStatus);
     const notesChanged = Boolean(recordId && (beforeRecord.data?.notes ?? null) !== payload.notes);
     if (!recordId || changedLines.length || statusChanged || notesChanged) {
       const fieldNames = new Set(changedLines.flatMap((line) => line.fields));
@@ -199,7 +226,7 @@ export async function saveOutletDailyRecord(formData: FormData) {
         activityType: recordId ? "updated" : "created",
         message: recordId ? `${changeLabel} updated` : "Outlet daily record created",
         metadata: {
-          target_status: payload.target_status,
+          target_status: effectiveTargetStatus,
           previous_status: beforeRecord.data?.status ?? null,
           changed_lines: changedLines,
           notes_changed: notesChanged,
@@ -207,7 +234,12 @@ export async function saveOutletDailyRecord(formData: FormData) {
       });
     }
     revalidateWorkspaceState(["/outlet-daily-records", `/outlet-daily-records/${data}`]);
-    redirect(`/outlet-daily-records/${data}?success=${encodeURIComponent("Outlet daily record saved.")}`);
+    const successMessage = completionDeferred
+      ? "Outlet daily record saved as Draft. Sales reconciliation is temporarily unavailable, so completion was deferred."
+      : salesReconciliationUnavailable
+      ? "Outlet daily record saved. Sales reconciliation is temporarily unavailable and was not recorded."
+      : "Outlet daily record saved.";
+    redirect(`/outlet-daily-records/${data}?success=${encodeURIComponent(successMessage)}`);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(recordId ? `/outlet-daily-records/${recordId}` : "/outlet-daily-records/new", "error", formatActionError(error, "Could not save this outlet daily record."));

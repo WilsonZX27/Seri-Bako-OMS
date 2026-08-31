@@ -16,7 +16,6 @@ import {
   ReceiptText,
   Search,
   ShoppingCart,
-  TriangleAlert,
   LogOut,
   UserRound,
   X,
@@ -67,8 +66,8 @@ function roleTabs(role: UserRole, permissionMap: Record<string, boolean>): Mobil
   if (role === "kitchen") {
     tabs.push(
       { href: "/stock-counts", label: "Count", icon: CheckCircle2, permission: "stock_count.read" },
+      { href: "/purchase-requests", label: "Request", icon: FileText, permission: "purchase_request.read" },
       { href: "/stock-balance", label: "Stock", icon: Boxes, permission: "stock_balance.read" },
-      { href: "/stock-wastage", label: "Wastage", icon: TriangleAlert, permission: "stock_wastage.read" },
     );
     return tabs;
   }

@@ -1,5 +1,15 @@
 # Seri Bako Operations Management System
 
+### v9.2.1 (unreleased) — Procurement correction and operational attribution
+
+Kitchen can withdraw its own assigned-branch Purchase Request from Manager Review back to Draft, correct it, and resubmit through the full approval path. Draft cancellation remains available; later Purchasing and Finance review stages must return a request rather than permit silent requester edits. Every transition remains branch-scoped and audited.
+
+Users who may read a Purchase Request or Outlet Daily Record can see the responsible submit/update actor through a bounded display-name resolver without gaining People Profile or sensitive staff access. Procurement stages share one icon and semantic-colour vocabulary, linked documents remain readable at constrained widths, and record actions/files remain reachable at the four canonical viewports. Goods Receiving posting failures return to the record with an actionable message instead of replacing the workspace with a generic error page.
+
+Migration 230 is a Preview dependency. It has not been applied to Production; authenticated mutation UAT and Production verification remain pending.
+
+Repository migrations reviewed through `230`; migrations 229 and 230 remain unapplied Preview dependencies.
+
 ### v9.2.0 (unreleased) — Outlet Management, People Operations & Sales Reconciliation
 
 The mixed Compliance workspace is replaced by two bounded OMS modules. Outlet Management owns Outlet Daily Records, an exception-first Outlet register, a seven-item outlet checklist (BOMBA, Business Permit, DBKL, Tenancy Agreement, Insurance, Fire Extinguisher Inspection and POS Licence), a real monthly expiry calendar, and progressive evidence upload with reference number, issued/inspection date, expiry/next-inspection date, notes and review. People owns the existing staff directory and one sectioned People Profile per existing `staffs ↔ auth.users` identity, including restricted vaccination/working-permit status and documents/access sections. People Calendar is intentionally absent. Attendance, payroll, leave, recruitment and employee scoring remain roadmap-only; AMS remains an external reference.

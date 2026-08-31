@@ -1,6 +1,7 @@
 import { isMockMode, mockBranches, mockProducts } from "@/lib/mock-mode";
 import { todayInKualaLumpur } from "@/lib/business-date";
 import { createClient } from "@/lib/supabase/server";
+import { actorDisplayName, resolveActorDisplayMap } from "@/server/actors/display";
 import { hasPermission } from "@/server/auth/permissions";
 import { getCurrentProfile, requireReadRows } from "@/server/queries/common";
 import { requireDetailRow } from "@/server/queries/detail";
@@ -309,23 +310,19 @@ async function hydrateRows(db: Awaited<ReturnType<typeof createClient>>, records
   const recordIds = records.map((record) => record.id);
   const branchIds = [...new Set(records.map((record) => record.branch_id))];
   const staffIds = [...new Set(records.flatMap((record) => [record.submitted_by, record.updated_by, record.created_by].filter((value): value is string => Boolean(value))))];
-  const [{ data: lines, error: linesError }, { data: branches, error: branchesError }, staffResult] = await Promise.all([
+  const [{ data: lines, error: linesError }, { data: branches, error: branchesError }, actorDisplayMap] = await Promise.all([
     db.from("outlet_daily_record_lines").select("*").in("record_id", recordIds),
     db.from("branches").select("id,branch_name").in("id", branchIds),
-    staffIds.length
-      ? db.from("staffs").select("id,full_name").in("id", staffIds)
-      : Promise.resolve({ data: [], error: null }),
+    resolveActorDisplayMap(staffIds),
   ]);
   if (linesError) throw new Error(linesError.message);
   if (branchesError) throw new Error(branchesError.message);
-  if (staffResult.error) throw new Error(staffResult.error.message);
-  if (!lines || !branches || !staffResult.data) throw new Error("Outlet daily record details returned no data.");
+  if (!lines || !branches) throw new Error("Outlet daily record details returned no data.");
   const productIds = [...new Set(lines.map((line) => line.product_id))];
   const { data: products, error: productsError } = productIds.length ? await db.from("products").select("id,category").in("id", productIds) : { data: [], error: null };
   if (productsError) throw new Error(productsError.message);
   const operationalProductIds = new Set((products ?? []).filter((product) => !isPackagingCategory(product.category)).map((product) => product.id));
   const branchNames = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
-  const staffNames = new Map((staffResult.data ?? []).map((row) => [row.id, row.full_name]));
   const linesByRecord = new Map<string, LineRow[]>();
   for (const line of (lines ?? []) as LineRow[]) {
     const recordLines = linesByRecord.get(line.record_id) ?? [];
@@ -335,8 +332,8 @@ async function hydrateRows(db: Awaited<ReturnType<typeof createClient>>, records
   return records.map((record) => ({
     ...record,
     branch_name: branchNames.get(record.branch_id) ?? "Unknown outlet",
-    created_by_name: staffNames.get(record.created_by ?? "") ?? null,
-    updated_by_name: staffNames.get(record.updated_by ?? record.submitted_by ?? record.created_by ?? "") ?? null,
+    created_by_name: actorDisplayName(actorDisplayMap, record.created_by),
+    updated_by_name: actorDisplayName(actorDisplayMap, record.updated_by ?? record.submitted_by ?? record.created_by),
     ...totals(linesByRecord.get(record.id) ?? [], operationalProductIds),
   }));
 }

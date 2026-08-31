@@ -16,6 +16,7 @@ import { detailOrNotFound } from "@/server/queries/detail";
 import { getCurrentProfile } from "@/server/queries/common";
 import { getProcurementChainForRequest, getPurchaseRequestIdForOrder } from "@/server/queries/procurement";
 import { ProcurementChain } from "@/components/procurement/procurement-chain";
+import { ActionErrorNotice } from "@/components/action-error-notice";
 
 const grnSteps = [
   { key: "draft", label: "Draft", description: "Receiving is being checked." },
@@ -23,8 +24,8 @@ const grnSteps = [
   { key: "cancelled", label: "Cancelled", description: "Receiving was cancelled before posting." },
 ];
 
-export default async function GoodsReceivingDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function GoodsReceivingDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ error?: string; success?: string }> }) {
+  const [{ id }, messageParams] = await Promise.all([params, searchParams]);
   const [{ receiving, lines }, permissions, profile] = await Promise.all([
     detailOrNotFound(getGoodsReceiving(id)),
     getPermissionMap(["grn.post", "goods_receiving.cancel", "documents.attach"]),
@@ -52,7 +53,7 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
       status={receiving.status}
       workflowSteps={grnSteps}
       currentStatus={receiving.status}
-      tabletRailMode="context"
+      tabletRailMode="split"
       mobilePrimaryAction={mobilePrimaryAction}
       mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={procurementChain?.attachments ?? documentBundle.attachments} title="Purchase files" canManage={false} canRemove={isOwner} documentStatus={documentBundle.document.status} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} canRemove={isOwner} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /><RevisionPanel revisions={documentBundle.revisions} /></> : null}
       mobileMoreOptions={secondaryActions ? <DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions> : null}
@@ -75,6 +76,8 @@ export default async function GoodsReceivingDetailPage({ params }: { params: Pro
         </>
       }
     >
+      {messageParams.error ? <ActionErrorNotice message={messageParams.error} /> : null}
+      {messageParams.success ? <Card><CardContent className="p-3 text-xs text-[var(--sb-success)]">{messageParams.success}</CardContent></Card> : null}
           {documentBundle ? <div className="md:hidden"><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Delivery Order" defaultLabel="Delivery Order" uploadLabel="Attach DO" presentation="inline" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} required={receiving.status === "draft"} /></div> : null}
           <Card>
             <CardContent className="space-y-4 p-5">

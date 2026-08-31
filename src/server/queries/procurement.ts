@@ -182,15 +182,13 @@ export async function getPurchaseRequests(filters: Filters = {}) {
   if (!data || count === null) throw new Error("Purchase request list returned no data.");
   const ids = data.map((row) => row.id);
   const branchIds = [...new Set(data.flatMap((row) => (row.branch_id ? [row.branch_id] : [])))];
-  const [{ data: lines, error: linesError }, { data: branches, error: branchesError }, { data: requesters, error: requestersError }, { data: linkedOrders, error: linkedOrdersError }] = await Promise.all([
+  const [{ data: lines, error: linesError }, { data: branches, error: branchesError }, actorDisplayMap, { data: linkedOrders, error: linkedOrdersError }] = await Promise.all([
     ids.length ? supabase.from("purchase_request_lines").select("purchase_request_id, qty, estimated_unit_cost, suggested_supplier_id, item_id, uom").in("purchase_request_id", ids) : Promise.resolve({ data: [], error: null }),
     branchIds.length ? supabase.from("branches").select("id, branch_name").in("id", branchIds) : Promise.resolve({ data: [], error: null }),
-    [...new Set(data.map((row) => row.requested_by).filter((id): id is string => Boolean(id)))].length
-      ? supabase.from("staffs").select("id, full_name").in("id", [...new Set(data.map((row) => row.requested_by).filter((id): id is string => Boolean(id)))])
-      : Promise.resolve({ data: [], error: null }),
+    resolveActorDisplayMap(data.map((row) => row.requested_by)),
     ids.length ? supabase.from("purchase_orders").select("purchase_request_id, status").in("purchase_request_id", ids).is("deleted_at", null) : Promise.resolve({ data: [], error: null }),
   ]);
-  if (linesError || branchesError || requestersError || linkedOrdersError) throw new Error((linesError ?? branchesError ?? requestersError ?? linkedOrdersError)!.message);
+  if (linesError || branchesError || linkedOrdersError) throw new Error((linesError ?? branchesError ?? linkedOrdersError)!.message);
   if (!lines || (branchIds.length > 0 && !branches)) throw new Error("Purchase request related data returned no data.");
   const itemIds = [...new Set(lines.map((line) => line.item_id).filter((id): id is string => Boolean(id)))];
   const explicitSupplierIds = [...new Set(lines.map((line) => line.suggested_supplier_id).filter((id): id is string => Boolean(id)))];
@@ -198,7 +196,7 @@ export async function getPurchaseRequests(filters: Filters = {}) {
     ? await supabase.from("items").select("id, supplier_id").in("id", itemIds)
     : { data: [], error: null };
   if (itemDefaultsError) throw new Error(itemDefaultsError.message);
-  if (!itemDefaults || !requesters) throw new Error("Purchase request sourcing details returned no data.");
+  if (!itemDefaults) throw new Error("Purchase request sourcing details returned no data.");
   const { data: branchMappings, error: branchMappingsError } = branchIds.length && itemIds.length
     ? await supabase.from("branch_supplier_items").select("branch_id, item_id, supplier_item_id, is_preferred").in("branch_id", branchIds).in("item_id", itemIds).eq("status", "active").is("deleted_at", null)
     : { data: [], error: null };
@@ -219,7 +217,6 @@ export async function getPurchaseRequests(filters: Filters = {}) {
   if (suppliersError) throw new Error(suppliersError.message);
   if (!suppliers) throw new Error("Purchase request supplier details returned no data.");
   const branchById = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
-  const requesterById = new Map((requesters ?? []).map((row) => [row.id, row.full_name]));
   const itemSupplierById = new Map((itemDefaults ?? []).map((row) => [row.id, row.supplier_id]));
   const supplierItemById = new Map((supplierItems ?? []).map((row) => [row.id, row]));
   const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
@@ -238,7 +235,7 @@ export async function getPurchaseRequests(filters: Filters = {}) {
     const supplierNames = [...new Set(supplierIds.map((id) => supplierById.get(id)).filter((name): name is string => Boolean(name)))];
     return {
       ...row,
-      requested_by_name: row.requested_by ? requesterById.get(row.requested_by) ?? null : null,
+      requested_by_name: actorDisplayName(actorDisplayMap, row.requested_by),
       branch_name: row.branch_id ? branchById.get(row.branch_id) ?? null : null,
       line_count: ownLines.length,
       estimated_total: ownLines.reduce((sum, line) => sum + line.qty * line.estimated_unit_cost, 0),

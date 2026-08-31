@@ -98,15 +98,16 @@ export function DocumentWorkspace({
         <div className="min-w-0">
           <div className="min-w-0 space-y-3">
             {children}
-            {mobileActivity ? <MobileActivityAndFiles>{tabletRailMode === "context" && (mobilePrimaryAction || mobileMoreOptions) ? <><div className="hidden space-y-2 md:block xl:hidden"><ConsoleSection title="Actions">{mobilePrimaryAction}{mobileMoreOptions}</ConsoleSection></div>{mobileActivity}</> : mobileActivity}</MobileActivityAndFiles> : null}
+            {mobileActivity ? <div className="hidden md:block xl:hidden"><MobileActivityAndFiles>{tabletRailMode === "context" && (mobilePrimaryAction || mobileMoreOptions) ? <><div className="hidden space-y-2 md:block xl:hidden"><ConsoleSection title="Actions">{mobilePrimaryAction}{mobileMoreOptions}</ConsoleSection></div>{mobileActivity}</> : mobileActivity}</MobileActivityAndFiles></div> : null}
           </div>
         </div>
       </WorkspaceGrid>
-      {mobilePrimaryAction || mobileMoreOptions ? <div data-mobile-document-action className={cn(
+      {mobilePrimaryAction || mobileActivity || mobileMoreOptions ? <div data-mobile-document-action className={cn(
         "sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] grid min-w-0 items-center gap-2 border-x-0 border-b-0 bg-white/95 p-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(17,30,22,0.16)] md:hidden [&_button]:h-11 [&_button]:w-full",
-        mobilePrimaryAction && mobileMoreOptions ? "grid-cols-[minmax(0,1fr)_minmax(7rem,auto)]" : "grid-cols-1",
+        [mobilePrimaryAction, mobileActivity, mobileMoreOptions].filter(Boolean).length > 1 ? "grid-cols-[repeat(auto-fit,minmax(0,1fr))]" : "grid-cols-1",
       )}>
         {mobilePrimaryAction ? <div className="min-w-0">{mobilePrimaryAction}</div> : null}
+        {mobileActivity ? <div className="min-w-0"><MobileActivityAndFiles>{mobileActivity}</MobileActivityAndFiles></div> : null}
         {mobileMoreOptions ? <div className="min-w-0">{mobileMoreOptions}</div> : null}
       </div> : null}
     </>

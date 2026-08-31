@@ -672,6 +672,26 @@ export async function cancelPurchaseRequest(id: string) {
   }
 }
 
+export async function withdrawPurchaseRequest(id: string, formData: FormData) {
+  try {
+    if (isMockMode()) return;
+    const requestId = parsePurchaseRequestId(id);
+    const reason = z.string().trim().min(3, "Enter a short correction reason.").max(500, "Correction reason must be 500 characters or fewer.").parse(cleanText(formData.get("reason")) ?? "");
+    const supabase = await createClient();
+    const { data, error } = await looseSupabase(supabase).rpc("withdraw_purchase_request_for_correction", {
+      target_purchase_request_id: requestId,
+      correction_reason: reason,
+    });
+    if (error) throw new Error(error.message);
+    const pr = data as { request_no: string };
+    revalidateWorkspaceState(["/purchase-requests", `/purchase-requests/${requestId}`]);
+    safeRedirectWithMessage(`/purchase-requests/${requestId}`, "success", `${pr.request_no} withdrawn to Draft. Correct it, then submit it again.`);
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not withdraw this purchase request."));
+  }
+}
+
 export async function createPurchaseOrder(formData: FormData) {
   await requirePermission("purchase_order.create");
   try {

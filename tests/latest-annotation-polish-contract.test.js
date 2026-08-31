@@ -22,7 +22,7 @@ test("purchase request lines use one responsive control geometry and no duplicat
   assert.doesNotMatch(design, /data-purchase-request-line\] \{[\s\S]*grid-template-columns/);
   assert.match(design, /sb-list-filters--equal-controls > \.sb-filter-more > summary[\s\S]*width: 100% !important/);
   assert.match(detail, /saveDraftAction/);
-  assert.match(detail, /saveDraftAction \|\| canCancel \|\| canReject \|\| deleteControl/);
+  assert.match(detail, /saveDraftAction \|\| canWithdraw \|\| canCancel \|\| canReject \|\| deleteControl/);
   assert.match(detail, /reserveMobileActionSpace=\{false\}/);
   assert.doesNotMatch(detail, /<div className="mt-4">\s*<SubmitButton form="purchase-request-form"/);
 });

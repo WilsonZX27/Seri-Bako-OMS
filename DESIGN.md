@@ -1,5 +1,15 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.1 (unreleased) — Operational stage and action continuity
+
+Repository forward-only migration 历史已到 `230`；本节仅记录 Preview 设计与本地实现，不代表远端或 Production 已应用。
+
+- PR, PO and GRN stages use one restrained icon/tone vocabulary. Sent is teal, partial receipt is amber, completed receipt is green, and rejection remains red; a completed state must not look disabled.
+- At 1180×820 record workspaces retain the compact right action rail. At 820×1180 secondary actions and audit surfaces stay reachable without narrowing the main document into a desktop column.
+- On phones the primary workflow action and Files & activity share the fixed document action bar. Do not leave audit access as an isolated control at the end of a long record.
+- Linked procurement nodes use a bounded two-line identity/status layout. Document type must not be duplicated into the number, and badges must not force a node wider than its workspace.
+- Missing actor data is a provenance state, not decorative punctuation. Resolve authorized display names through the audit boundary; use System or Unknown user only when the stored actor genuinely cannot be resolved.
+
 ## v9.2.0 (unreleased) — Separate operational workspaces
 
 - Outlet Management and People are independent navigation sections; a dashboard, checklist detail, profile and calendar each own one job instead of stacking create forms beneath exception tables.

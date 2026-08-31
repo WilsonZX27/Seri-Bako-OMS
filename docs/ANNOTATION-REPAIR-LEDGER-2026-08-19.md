@@ -1,5 +1,19 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-08-31 — v9.2.1 procurement and receiving correction batch
+
+| Surface | Role / viewport | Resolution | Evidence state |
+|---|---|---|---|
+| PR list and Outlet Daily list | permitted record readers / all canonical viewports | Resolve submit/update actor through the bounded server actor-display authority; no People or sensitive staff permission is granted | implemented; role tests pending |
+| PR detail | Kitchen / 390×844, 820×1180, 1180×820, 1440×900 | Draft cancel; Manager Review withdraw-to-Draft with reason and audit; split tablet action rail; Files & activity joins the phone action bar | implemented; authenticated UAT pending |
+| PR and PO lists / linked chain | operational roles / four viewports | Shared stage icons and semantic tones, italic required date, non-clipping linked nodes, no duplicate document type | implemented; viewport verification pending |
+| Goods Receiving detail | Kitchen / four viewports | Align Kitchen posting grant and return RPC/validation failures to the record as actionable feedback; posting remains atomic and idempotent | implemented; migration 230 and authenticated posting UAT pending |
+
+- Implemented: source changes and forward-only migration 230; application version synchronized to v9.2.1.
+- Awaiting UAT: Kitchen withdraw/edit/resubmit, Draft cancellation, GRN posting, and actor visibility against Preview data.
+- Remote verified: not yet claimed.
+- Production verified: not executed; no Production migration, deployment, promotion or mutation was performed.
+
 ## 2026-08-28 — v8.65.23 v9 responsive interaction closure
 
 | Surface / source | Role / viewport | Finding | Resolution | Evidence state |

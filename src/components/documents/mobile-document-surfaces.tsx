@@ -99,7 +99,7 @@ export function MobileWorkflowStatus({ steps, currentStatus, trailing }: { steps
 }
 
 export function MobileActivityAndFiles({ children }: { children: ReactNode }) {
-  return <div data-mobile-activity-files className="xl:hidden"><MobileSheet label="Files, activity & revisions" title="Files, activity & revisions" hideAt="xl">{children}</MobileSheet></div>;
+  return <div data-mobile-activity-files className="xl:hidden"><MobileSheet label="Files & activity" title="Files, activity & revisions" hideAt="xl" triggerClassName="h-11 min-w-0 justify-center px-2" trailingChevron={false}>{children}</MobileSheet></div>;
 }
 
 export function MobileTaskSheet({ label, children, primary = false }: { label: string; children: ReactNode; primary?: boolean }) {

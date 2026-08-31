@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { CircleCheck, CircleX, Landmark, Send, ShieldCheck, ShoppingCart } from "lucide-react";
+import { CircleCheck, CircleX, FilePenLine, Landmark, PackageCheck, PackageOpen, Send, ShieldCheck, ShoppingCart } from "lucide-react";
 import { formatStatusLabel } from "@/lib/status-label";
 import { cn } from "@/lib/utils";
 
@@ -13,18 +13,27 @@ export function StatusBadge({ status, className }: { status: string; className?:
     ready_to_convert: "border-[#CDE8E3] bg-[#E5F5F2] text-[#0B6B61]",
     awaiting_grn: "border-[#E7D8CB] bg-[#F5ECE5] text-[#71472C]",
     sent_to_supplier: "border-[#E7D8CB] bg-[#F5ECE5] text-[#71472C]",
+    sent: "border-[#CDE8E3] bg-[#E5F5F2] text-[#0B6B61]",
+    partial_received: "border-[#F1E1B7] bg-[#FFF5DA] text-[#7A5500]",
+    received: "border-[#C7E7D7] bg-[#E5F5EC] text-[#176B45]",
     in_progress: "border-[#DDE4E0] bg-[#F1F4F2] text-[#52645B]",
     ready_to_post: "border-[#BFDCD3] bg-[#E1F3ED] text-[#075942]",
   };
   const stageClassName = workflowTone[normalized];
-  const StatusIcon = normalized === "manager_review"
+  const StatusIcon = normalized === "draft"
+    ? FilePenLine
+    : normalized === "manager_review"
     ? ShieldCheck
     : ["admin_review", "purchasing_review"].includes(normalized)
       ? ShoppingCart
       : normalized === "finance_review"
         ? Landmark
-        : ["ready", "ready_to_convert", "ready_to_send_supplier", "sent_to_supplier"].includes(normalized)
+        : ["ready", "ready_to_convert", "ready_to_send_supplier", "sent_to_supplier", "sent"].includes(normalized)
           ? Send
+          : normalized === "partial_received"
+            ? PackageOpen
+            : normalized === "received"
+              ? PackageCheck
           : ["converted", "converted_to_po", "approved", "posted", "completed"].includes(normalized)
             ? CircleCheck
             : ["rejected", "cancelled"].includes(normalized)

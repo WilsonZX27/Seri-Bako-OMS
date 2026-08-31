@@ -1,4 +1,4 @@
-import { AlertTriangle, BadgeCheck, CircleCheck, CircleX, Clock, FileCheck2, MessageSquare, Send, ShoppingCart, Trash2, UserRound } from "lucide-react";
+import { AlertTriangle, BadgeCheck, CircleCheck, CircleX, Clock, FileCheck2, MessageSquare, RotateCcw, Send, ShoppingCart, Trash2, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,6 +29,7 @@ import {
   revisePurchaseRequestLine,
   resolvePurchaseRequestUnresolvedLine,
   submitPurchaseRequest,
+  withdrawPurchaseRequest,
 } from "@/server/actions/procurement";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getBranchesForSelect, getBranchSupplierMappingsForSelect, getCurrentProfile, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
@@ -151,8 +152,9 @@ export default async function PurchaseRequestDetailPage({
   const total = lines.reduce((sum, line) => sum + line.qty * line.estimated_unit_cost, 0);
   const canViewCommercial = permissions["pr.view_all"] && !["kitchen", "kitchen_staff"].includes(roleCode);
   const canSubmit = isStatus(request.status, "draft", "rejected", "returned") && permissions["pr.submit"];
-  const canCancel = ["draft", "manager_review", "admin_review", "finance_review", "ready_to_convert"].includes(request.status) && permissions["pr.cancel"];
   const isOwner = roleCode === "super_admin";
+  const canCancel = request.status === "draft" && permissions["pr.cancel"];
+  const canWithdraw = request.status === "manager_review" && permissions["pr.cancel"] && (profile?.id === request.requested_by || isOwner);
   const canEditRequest = isStatus(request.status, "draft", "rejected", "returned") && permissions["purchase_request.create"] && (profile?.id === request.requested_by || isOwner);
   const canManagerReview = request.status === "manager_review" && permissions["pr.manager_approve"] && (roleCode === "manager" || isOwner);
   const canAdminReview = request.status === "admin_review" && permissions["pr.admin_review"] && (roleCode === "purchasing" || isOwner);
@@ -187,9 +189,10 @@ export default async function PurchaseRequestDetailPage({
   const hasPrimaryAction = canSubmit || canManagerReview || canAdminReview || canFinanceReview || canConvert;
   const deleteControl = canManageDeletion && !canCancel ? (deletePreview?.eligible ? <DangerConfirmForm action={hardDeletePhaseOne.bind(null, "purchase_request", request.id)} title={`Permanently delete ${request.request_no}?`} description="This cannot be undone. Purchase request lines will be removed; the document number will remain consumed." checkboxLabel="I understand this permanently deletes the eligible request." confirmWord={deletePreview.confirmation} buttonLabel="Delete purchase request" pendingLabel="Deleting..." /> : <BlockedDestructiveAction buttonLabel="Delete purchase request" title={`Cannot delete ${request.request_no}`} description="Permanent deletion is blocked by the current status or linked records." recommendation={deletePreview ? Object.entries(deletePreview.dependencies).filter(([, count]) => count > 0).map(([key, count]) => `${key}: ${count}`).join("; ") : "Dependency preview unavailable."} />) : null;
   const saveDraftAction = canEditRequest ? <SubmitButton form="purchase-request-form" type="submit" pendingLabel="Saving..." className="w-full justify-center">Save request changes</SubmitButton> : null;
-  const secondaryActions = saveDraftAction || canCancel || canReject || deleteControl ? <div className="space-y-2">
+  const secondaryActions = saveDraftAction || canWithdraw || canCancel || canReject || deleteControl ? <div className="space-y-2">
     {saveDraftAction}
     {canReject ? <RejectActionForm action={rejectPurchaseRequest.bind(null, request.id)} /> : null}
+    {canWithdraw ? <MobileTaskSheet label="Withdraw for correction"><form action={withdrawPurchaseRequest.bind(null, request.id)} className="space-y-3"><Field label="Correction reason" required><Input name="reason" placeholder="What needs to be corrected?" required minLength={3} maxLength={500} /></Field><SubmitButton className="w-full justify-center" pendingLabel="Withdrawing..."><RotateCcw className="h-4 w-4" aria-hidden="true" />Withdraw to Draft</SubmitButton></form></MobileTaskSheet> : null}
     {canCancel ? (
       <DocumentActionForm action={cancelPurchaseRequest.bind(null, request.id)} pendingLabel="Removing..." variant="outline">
         <Trash2 className="h-4 w-4" aria-hidden="true" />
@@ -238,9 +241,9 @@ export default async function PurchaseRequestDetailPage({
       branch={branch?.branch_name ?? (!branches ? "Branch unavailable" : undefined)}
       workflowSteps={prSteps}
       currentStatus={getPrWorkflowStep(request.status)}
-      tabletRailMode="context"
+      tabletRailMode="split"
       mobilePrimaryAction={mobilePrimaryAction}
-      mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={procurementChain?.attachments ?? documentBundle.attachments} title="Purchase files" description="Files from this PR, its PO, receiving, and invoice." canManage={permissions["documents.attach"]} canRemove={isOwner} documentStatus={documentBundle.document.status} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} canRemove={isOwner} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /><RevisionPanel revisions={documentBundle.revisions} /></> : null}
+      mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={procurementChain?.attachments ?? documentBundle.attachments} title="Purchase files" canManage={permissions["documents.attach"]} canRemove={isOwner} documentStatus={documentBundle.document.status} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} canRemove={isOwner} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /><RevisionPanel revisions={documentBundle.revisions} /></> : null}
       mobileMoreOptions={secondaryActions ? <DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions> : null}
       sidePanel={
         <>
@@ -271,7 +274,7 @@ export default async function PurchaseRequestDetailPage({
           </DocumentSideSection>
           {documentBundle ? (
             <>
-               <AttachmentPanel documentId={documentBundle.document.id} attachments={procurementChain?.attachments ?? documentBundle.attachments} title="Purchase files" description="Files from this PR, its PO, receiving, and invoice." canManage={permissions["documents.attach"]} canRemove={isOwner} documentStatus={documentBundle.document.status} />
+               <AttachmentPanel documentId={documentBundle.document.id} attachments={procurementChain?.attachments ?? documentBundle.attachments} title="Purchase files" canManage={permissions["documents.attach"]} canRemove={isOwner} documentStatus={documentBundle.document.status} />
               <CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} canRemove={isOwner} />
               <div className="hidden xl:contents"><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /><RevisionPanel revisions={documentBundle.revisions} /></div>
             </>

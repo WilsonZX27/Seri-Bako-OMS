@@ -125,34 +125,40 @@ export async function createGoodsReceiving(formData: FormData) {
 }
 
 export async function postGoodsReceiving(id: string, formData: FormData) {
-  await requirePermission("grn.post");
-  if (isMockMode()) return;
+  try {
+    await requirePermission("grn.post");
+    if (isMockMode()) return;
 
-  const goodsReceivingId = parseGoodsReceivingId(id);
-  const supabase = await createClient();
-  const doExceptionReason = z.string().trim().max(1_000).nullable().parse(cleanText(formData.get("do_exception_reason")));
-  const { data, error } = await supabase.rpc("post_goods_receiving_atomic", {
-    p_goods_receiving_id: goodsReceivingId,
-    p_do_exception_reason: doExceptionReason,
-  });
-  if (error) throw new Error(error.message);
-  const result = data as { document_id?: string | null; grn_no?: string; purchase_order_id?: string; already_posted?: boolean } | null;
-  if (result?.document_id && !result.already_posted) {
-    // Activity history is useful audit metadata, but it is not the posting
-    // transaction. A logging failure must not turn an already committed GRN
-    // into a false failure or invite a user to retry and duplicate movement.
-    try {
-      if (doExceptionReason) await writeActivityLog({ entityType: "document", entityId: result.document_id, activityType: "delivery_order_exception", message: `Delivery Order exception: ${doExceptionReason}` });
-      await writeActivityLog({ entityType: "document", entityId: result.document_id, activityType: "posted", message: `Goods receiving ${result.grn_no ?? id} posted to inventory` });
-    } catch (activityError) {
-      logServerWarning(activityError, { source: "goods-receivings.post.activity-log", actorId: result.document_id });
+    const goodsReceivingId = parseGoodsReceivingId(id);
+    const supabase = await createClient();
+    const doExceptionReason = z.string().trim().max(1_000).nullable().parse(cleanText(formData.get("do_exception_reason")));
+    const { data, error } = await supabase.rpc("post_goods_receiving_atomic", {
+      p_goods_receiving_id: goodsReceivingId,
+      p_do_exception_reason: doExceptionReason,
+    });
+    if (error) throw new Error(error.message);
+    const result = data as { document_id?: string | null; grn_no?: string; purchase_order_id?: string; already_posted?: boolean } | null;
+    if (result?.document_id && !result.already_posted) {
+      // Activity history is useful audit metadata, but it is not the posting
+      // transaction. A logging failure must not turn an already committed GRN
+      // into a false failure or invite a user to retry and duplicate movement.
+      try {
+        if (doExceptionReason) await writeActivityLog({ entityType: "document", entityId: result.document_id, activityType: "delivery_order_exception", message: `Delivery Order exception: ${doExceptionReason}` });
+        await writeActivityLog({ entityType: "document", entityId: result.document_id, activityType: "posted", message: `Goods receiving ${result.grn_no ?? id} posted to inventory` });
+      } catch (activityError) {
+        logServerWarning(activityError, { source: "goods-receivings.post.activity-log", actorId: result.document_id });
+      }
     }
+    revalidateWorkspaceState(["/goods-receivings", `/goods-receivings/${id}`, "/purchase-orders", ...(result?.purchase_order_id ? [`/purchase-orders/${result.purchase_order_id}`] : [])]);
+    revalidatePath("/inventory");
+    revalidatePath("/stock-transactions");
+    revalidatePath("/stock-balance");
+    revalidatePath("/stock-card");
+    safeRedirectWithMessage(`/goods-receivings/${id}`, "success", result?.already_posted ? "This receiving was already posted. No duplicate stock movement was created." : `${result?.grn_no ?? "Goods receiving"} posted to stock.`);
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/goods-receivings/${id}`, "error", formatActionError(error, "Could not post this receiving to stock."));
   }
-  revalidateWorkspaceState(["/goods-receivings", `/goods-receivings/${id}`, "/purchase-orders", ...(result?.purchase_order_id ? [`/purchase-orders/${result.purchase_order_id}`] : [])]);
-  revalidatePath("/inventory");
-  revalidatePath("/stock-transactions");
-  revalidatePath("/stock-balance");
-  revalidatePath("/stock-card");
 }
 
 export async function cancelGoodsReceiving(id: string) {

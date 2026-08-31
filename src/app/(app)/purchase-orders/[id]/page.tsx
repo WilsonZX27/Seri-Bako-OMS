@@ -89,7 +89,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
       priority={order.priority}
       workflowSteps={fromApprovedPr ? convertedPoSteps : poSteps}
       currentStatus={order.status}
-      tabletRailMode="context"
+      tabletRailMode="split"
       mobilePrimaryAction={mobilePrimaryAction}
       mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={procurementChain?.attachments ?? documentBundle.attachments} title="Purchase files" defaultLabel="Delivery Order" uploadLabel="Upload" canManage={permissions["documents.attach"]} canRemove={isOwner} documentStatus={documentBundle.document.status} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} canRemove={isOwner} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /><RevisionPanel revisions={documentBundle.revisions} /></> : null}
       mobileMoreOptions={secondaryActions ? <DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions> : null}

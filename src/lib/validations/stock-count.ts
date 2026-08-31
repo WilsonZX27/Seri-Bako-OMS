@@ -17,7 +17,9 @@ export const stockCountLineSchema = z.object({
   // The server recalculates the theoretical quantity from the ledger. Keeping
   // this field bounded still prevents an oversized FormData payload before it
   // reaches the database aggregate.
-  theoretical_qty: z.coerce.number().min(0).max(1_000_000),
+  // A ledger balance can legitimately be negative before the physical count
+  // corrects it. Only the operator-entered physical quantity must stay >= 0.
+  theoretical_qty: z.coerce.number().min(-1_000_000, "Starting quantity is too small").max(1_000_000, "Starting quantity is too large"),
   physical_qty: z.coerce.number().min(0, "Physical quantity cannot be negative").max(1_000_000, "Physical quantity is too large"),
   uom: z.string().trim().min(1, "UOM is required").max(32, "UOM is too long"),
   remarks: z.string().trim().max(1_000, "Line note is too long").optional().nullable(),

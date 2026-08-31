@@ -47,6 +47,16 @@ function formatStockCountPostingError(error: unknown) {
   return formatActionError(error, "The Stock Count could not be posted. No inventory changes were made.");
 }
 
+function formatStockCountDraftError(error: unknown, fallback: string) {
+  if (error instanceof z.ZodError) {
+    const issue = error.issues[0];
+    const lineIndex = issue?.path[0] === "lines" && typeof issue.path[1] === "number" ? issue.path[1] : null;
+    const subject = lineIndex === null ? "Stock Count" : `Item ${lineIndex + 1}`;
+    return `${subject}: ${issue?.message ?? "Review the entered value."}`;
+  }
+  return formatActionError(error, fallback);
+}
+
 function extractStockCount(formData: FormData) {
   const itemIds = formData.getAll("line_item_id").map(String);
   const theoretical = formData.getAll("line_theoretical_qty").map(String);
@@ -178,7 +188,7 @@ export async function createStockCount(formData: FormData) {
     redirect(`/stock-counts/${createdId}`);
   } catch (error) {
     rethrowRedirect(error);
-    safeRedirectWithMessage("/stock-counts/new", "error", formatActionError(error, "Could not create this stock count."));
+    safeRedirectWithMessage("/stock-counts/new", "error", formatStockCountDraftError(error, "Could not create this stock count."));
   }
 }
 
@@ -189,7 +199,7 @@ export async function updateStockCountDraft(id: string, formData: FormData) {
     redirect(`/stock-counts/${countId}`);
   } catch (error) {
     rethrowRedirect(error);
-    safeRedirectWithMessage(`/stock-counts/${id}`, "error", formatActionError(error, "Could not save this stock count draft."));
+    safeRedirectWithMessage(`/stock-counts/${id}`, "error", formatStockCountDraftError(error, "Could not save this stock count draft."));
   }
 }
 
@@ -201,7 +211,7 @@ export async function autosaveNewStockCount(formData: FormData): Promise<StockCo
     return { ok: true, id, savedAt: new Date().toISOString(), operationId };
   } catch (error) {
     const kind = classifyActionError(error);
-    const userMessage = formatActionError(error, "Autosave failed. Your changes remain on this device.");
+    const userMessage = formatStockCountDraftError(error, "Autosave failed. Your changes remain on this device.");
     await recordSystemIncident({ module: "stock_count", code: kind, message: userMessage, route: "/stock-counts/new", operationId, eventType: "failed", recommendedAction: "Retry after connection recovery; the device snapshot remains available." });
     return {
       ok: false,
@@ -220,7 +230,7 @@ export async function autosaveStockCountDraft(id: string, formData: FormData): P
     return { ok: true, id: countId, savedAt: new Date().toISOString(), operationId };
   } catch (error) {
     const kind = classifyActionError(error);
-    const userMessage = formatActionError(error, "Autosave failed. Your changes remain on this device.");
+    const userMessage = formatStockCountDraftError(error, "Autosave failed. Your changes remain on this device.");
     await recordSystemIncident({ module: "stock_count", code: kind, message: userMessage, route: `/stock-counts/${id}`, operationId, eventType: "failed", recommendedAction: "Retry after connection recovery; the device snapshot remains available." });
     return {
       ok: false,
@@ -350,7 +360,7 @@ export async function saveAndPostStockCount(id: string, formData: FormData) {
   try {
     await updateStockCountDraftRecord(id, formData);
   } catch (error) {
-    safeRedirectWithMessage(`/stock-counts/${id}`, "error", formatActionError(error, "The latest changes could not be saved, so this Stock Count was not posted."));
+    safeRedirectWithMessage(`/stock-counts/${id}`, "error", formatStockCountDraftError(error, "The latest changes could not be saved, so this Stock Count was not posted."));
   }
   await postStockCount(id);
 }

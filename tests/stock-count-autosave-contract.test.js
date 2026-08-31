@@ -86,6 +86,17 @@ test("stock count decimal validation tolerates floating point tails and autosave
   assert.match(errors, /normalized\.includes\("current state"\)/);
 });
 
+test("stock count accepts negative ledger balances and reports the exact invalid line", () => {
+  const validation = read("src", "lib", "validations", "stock-count.ts");
+  const actions = read("src", "server", "actions", "stock-counts.ts");
+
+  assert.match(validation, /theoretical_qty: z\.coerce\.number\(\)\.min\(-1_000_000/);
+  assert.match(validation, /physical_qty: z\.coerce\.number\(\)\.min\(0/);
+  assert.match(actions, /function formatStockCountDraftError/);
+  assert.match(actions, /`Item \$\{lineIndex \+ 1\}`/);
+  assert.match(actions, /saveAndPostStockCount[\s\S]*formatStockCountDraftError/);
+});
+
 test("applied Central Kitchen PR history is retired forward without shipping its API", () => {
   assert.equal(existsSync(join(root, "supabase", "migrations", "111_central_kitchen_purchase_request_atomic.sql")), true);
   assert.equal(existsSync(join(root, "supabase", "migrations", "112_restrict_central_kitchen_pr_rpc_acl.sql")), true);

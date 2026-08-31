@@ -1,5 +1,12 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.3 (unreleased) — Recoverable accidental submission
+
+- `Manager Review` is still a review state, not an editable form. Before Manager acts, the original requester may use `Revoke submission` to return the PR to Draft; revision and cancellation remain Draft actions.
+- Revoke is requester-owned and server-authoritative. Company-wide read scope or possession of `pr.cancel` alone never permits one operator to revoke another operator’s submission; Owner remains the controlled recovery exception.
+- The database row lock and status predicate decide concurrent Manager/revoke races. Whichever transition commits first wins, and the other receives a safe no-change error.
+- Revoke remains in the shared secondary action area at desktop, tablet and phone sizes. Copy names the consequence—return to Draft—and requires one short reason for the audit trail.
+
 ## v9.2.2 (unreleased) — Complete role and action audit coverage
 
 - The canonical release matrix contains seven roles: Owner, People Operations, Finance, Manager, Purchasing, Kitchen and Outlet Staff. Adding a system role requires updating credentials, fixture creation/cleanup, route authority, role workspaces and all four viewport shards together.

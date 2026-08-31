@@ -26,8 +26,19 @@ test("document actions stay available at tablet and phone breakpoints", () => {
   const prDetail = read("src/app/(app)/purchase-requests/[id]/page.tsx");
   const workspace = read("src/components/documents/document-workspace.tsx");
   assert.match(prDetail, /tabletRailMode="split"/);
-  assert.match(prDetail, /Withdraw for correction/);
+  assert.match(prDetail, /Revoke submission/);
   assert.match(workspace, /mobileActivity \? <div className="min-w-0"><MobileActivityAndFiles>/);
+});
+
+test("requester revoke is atomic, requester-owned and revision audited", () => {
+  const migration = read("supabase/migrations/231_requester_revoke_before_manager_decision.sql");
+  assert.match(migration, /status::text <> 'manager_review'/);
+  assert.match(migration, /requested_by <> actor\.id and not actor_is_owner/);
+  assert.match(migration, /Only the original requester can revoke/);
+  assert.match(migration, /for update/);
+  assert.match(migration, /revision_no = document_row\.revision_no \+ 1/);
+  assert.match(migration, /insert into public\.document_revisions/);
+  assert.match(migration, /submission_revoked/);
 });
 
 test("Goods Receiving posting returns actionable record feedback", () => {

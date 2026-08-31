@@ -214,6 +214,10 @@ begin
   ) then
     raise exception 'Manager inventory read alignment is incomplete.';
   end if;
+
+  if to_regprocedure('public.withdraw_purchase_request_for_correction(uuid,text)') is null then
+    raise exception 'Requester revoke function is missing.';
+  end if;
 end
 $$;
 

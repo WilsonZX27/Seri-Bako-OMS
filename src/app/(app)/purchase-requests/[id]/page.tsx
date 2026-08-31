@@ -192,7 +192,7 @@ export default async function PurchaseRequestDetailPage({
   const secondaryActions = saveDraftAction || canWithdraw || canCancel || canReject || deleteControl ? <div className="space-y-2">
     {saveDraftAction}
     {canReject ? <RejectActionForm action={rejectPurchaseRequest.bind(null, request.id)} /> : null}
-    {canWithdraw ? <MobileTaskSheet label="Withdraw for correction"><form action={withdrawPurchaseRequest.bind(null, request.id)} className="space-y-3"><Field label="Correction reason" required><Input name="reason" placeholder="What needs to be corrected?" required minLength={3} maxLength={500} /></Field><SubmitButton className="w-full justify-center" pendingLabel="Withdrawing..."><RotateCcw className="h-4 w-4" aria-hidden="true" />Withdraw to Draft</SubmitButton></form></MobileTaskSheet> : null}
+    {canWithdraw ? <MobileTaskSheet label="Revoke submission"><form action={withdrawPurchaseRequest.bind(null, request.id)} className="space-y-3"><p className="text-xs text-muted-foreground">Available only before Manager makes a decision. The request returns to Draft so you can revise or cancel it.</p><Field label="Revoke reason" required><Input name="reason" placeholder="Example: Submitted twice" required minLength={3} maxLength={500} /></Field><SubmitButton className="w-full justify-center" pendingLabel="Revoking..."><RotateCcw className="h-4 w-4" aria-hidden="true" />Revoke to Draft</SubmitButton></form></MobileTaskSheet> : null}
     {canCancel ? (
       <DocumentActionForm action={cancelPurchaseRequest.bind(null, request.id)} pendingLabel="Removing..." variant="outline">
         <Trash2 className="h-4 w-4" aria-hidden="true" />

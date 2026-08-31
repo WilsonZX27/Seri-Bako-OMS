@@ -685,10 +685,10 @@ export async function withdrawPurchaseRequest(id: string, formData: FormData) {
     if (error) throw new Error(error.message);
     const pr = data as { request_no: string };
     revalidateWorkspaceState(["/purchase-requests", `/purchase-requests/${requestId}`]);
-    safeRedirectWithMessage(`/purchase-requests/${requestId}`, "success", `${pr.request_no} withdrawn to Draft. Correct it, then submit it again.`);
+    safeRedirectWithMessage(`/purchase-requests/${requestId}`, "success", `${pr.request_no} submission revoked. It is back in Draft for correction or cancellation.`);
   } catch (error) {
     rethrowRedirect(error);
-    safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not withdraw this purchase request."));
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not revoke this submission."));
   }
 }
 

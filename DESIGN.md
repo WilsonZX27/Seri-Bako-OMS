@@ -1,5 +1,10 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.5 (unreleased) — Truthful Stock Count ordering
+
+- A register's visible default-sort indicator and its server query must describe the same order. Stock Counts default to newest SC sequence first, with the SC No header marked descending.
+- SC sequence uses creation order rather than `updated_at`, so later edits cannot reorder historical documents and alphabetical month abbreviations cannot corrupt chronological sequence.
+
 ## v9.2.4 (unreleased) — Recoverable submission with clear action ownership
 
 - `Manager Review` is still a review state, not an editable form. Before Manager acts, the original requester may use `Revoke submission` to return the PR to Draft; revision and cancellation remain Draft actions.

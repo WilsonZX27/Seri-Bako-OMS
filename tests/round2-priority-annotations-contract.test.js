@@ -58,3 +58,11 @@ test("stock count tablet rail has an explicit card contract", () => {
   assert.match(stockCounts, /shadow-\[var\(--sb-shadow-card\)\]/);
   assert.match(css, /\[data-stock-count-tablet-rail\] > section/);
 });
+
+test("stock count register defaults to descending document sequence and shows the active sort", () => {
+  const query = fs.readFileSync(path.join(root, "src", "server", "queries", "stock-counts.ts"), "utf8");
+  assert.match(query, /requestedSort[\s\S]*: "count_no"/);
+  assert.match(query, /requestedSort === "count_no" \? "created_at"/);
+  assert.match(stockCounts, /currentSort=\{filters\.sort \?\? "count_no"\}/);
+  assert.match(stockCounts, /currentDir=\{filters\.dir \?\? "desc"\}/);
+});

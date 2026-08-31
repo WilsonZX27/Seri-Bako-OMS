@@ -61,6 +61,7 @@ function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filte
   const status = filters.status && filters.status !== "all" ? filters.status : null;
   const branch = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
   const sort = filters.sort ?? String(defaultSort);
+  const sortKey = sort === "count_no" ? "created_at" : sort;
   const dir = filters.dir ?? "desc";
   return rows
     .filter((row) => {
@@ -71,7 +72,7 @@ function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filte
       const matchesTo = filters.to ? String(row.count_date ?? "") <= filters.to : true;
       return matchesSearch && matchesStatus && matchesBranch && matchesFrom && matchesTo;
     })
-    .sort((a, b) => compareTableValues(a[sort], b[sort], dir));
+    .sort((a, b) => compareTableValues(a[sortKey], b[sortKey], dir));
 }
 
 function requestedPage(pageValue?: string) {
@@ -108,10 +109,11 @@ function hydrateCount(row: StockCount, lines: StockCountLine[]): StockCountRow {
 export async function getStockCounts(filters: Filters = {}) {
   if (isMockMode()) {
     const rows = mockStockCounts.map((row) => hydrateCount(row as StockCount, mockStockCountLines as StockCountLine[]));
-    return paginateRows(filterRows(rows, filters, ["count_no", "status", "branch_name", "remarks"], "updated_at"), filters.page, 12);
+    return paginateRows(filterRows(rows, filters, ["count_no", "status", "branch_name", "remarks"], "count_no"), filters.page, 12);
   }
   const supabase = await createClient();
-  const sort = STOCK_COUNT_SORT_COLUMNS.has(filters.sort ?? "") ? filters.sort! : "updated_at";
+  const requestedSort = STOCK_COUNT_SORT_COLUMNS.has(filters.sort ?? "") ? filters.sort! : "count_no";
+  const sort = requestedSort === "count_no" ? "created_at" : requestedSort;
   const ascending = filters.dir === "asc";
   const branchId = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
   const status = filters.status && filters.status !== "all" ? filters.status : null;
@@ -161,7 +163,7 @@ export async function getStockCounts(filters: Filters = {}) {
       high_variance_count: linesByCount.get(rowId)?.high_variance_count ?? 0,
       });
     }) as StockCountRow[];
-    return databasePagination(filterRows(fallbackRows, filters, ["count_no", "status", "branch_name", "remarks"], "updated_at"), fallbackRows.length, filters.page);
+    return databasePagination(filterRows(fallbackRows, filters, ["count_no", "status", "branch_name", "remarks"], "count_no"), fallbackRows.length, filters.page);
   }
   if (!data || count === null) throw new Error("Stock count list returned incomplete data.");
   return databasePagination(data as StockCountRow[], count, filters.page);

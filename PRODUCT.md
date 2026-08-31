@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v9.2.5 (unreleased) — Ordered Stock Count register
+
+Stock Counts now open in descending document sequence instead of `updated_at` order. Revisiting or correcting an older count no longer moves it above newer SC numbers, and the SC No header visibly identifies the active default sort. Sequence sorting follows creation order so month labels do not introduce alphabetical month-order errors.
+
 ### v9.2.4 (unreleased) — Clear PR decision and recovery hierarchy
 
 An authorised Purchase Request creator who accidentally submits a request may use `Revoke submission` while it is still in `Manager Review`. The database locks the request and permits the transition only to the original requester or Owner; once Manager has approved or returned it, revoke fails closed. A successful revoke returns the request to Draft, where the normal revise, cancel or resubmit actions apply.

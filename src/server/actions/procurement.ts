@@ -347,8 +347,9 @@ export async function createPurchaseRequestsFromBasket(formData: FormData) {
     await ensureActorCanUsePurchaseRequestBranch(branchId);
     const groups = parseStockBasketGroups(formData.get("supplier_groups"));
     const allLines = groups.flatMap((group) => group.lines.map((line) => ({ ...line, suggested_supplier_id: group.supplier_id, branch_id: branchId })));
-    const [, profile] = await Promise.all([
+    const [, , profile] = await Promise.all([
       ensureActiveItems(allLines.map((line) => line.item_id), branchId, allLines.map(() => branchId)),
+      ensureBranchSupplierSelections(branchId, allLines, true),
       identity(),
     ]);
     const created: Array<{ id: string; request_no: string }> = [];
@@ -363,7 +364,6 @@ export async function createPurchaseRequestsFromBasket(formData: FormData) {
         remarks: "",
         branch_id: branchId,
       }));
-      await ensureBranchSupplierSelections(branchId, lines, true);
       const payload = purchaseRequestSchema.parse({
         request_no: "",
         request_date: new Date().toISOString().slice(0, 10),

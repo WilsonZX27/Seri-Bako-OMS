@@ -1,5 +1,11 @@
 # Seri Bako Operations Management System
 
+### v9.2.6 (unreleased) — Branch-authoritative Stock Balance PR basket
+
+Stock Balance now resolves the active branch supplier relationship before presenting an Item for PR creation. A branch mapping overrides the Item Master default supplier and purchase UOM; ambiguous or unavailable mappings remain visibly blocked instead of producing a late server error after Kitchen submits the basket.
+
+The basket uses the mapped purchase UOM as a fixed operational unit, preserves its contents when creation fails, reopens with a recovery message, and validates all supplier groups before creating the first draft PR. Legacy locally stored basket rows are retired so stale supplier/UOM choices cannot be resubmitted.
+
 ### v9.2.5 (unreleased) — Ordered Stock Count register
 
 Stock Counts now open in descending document sequence instead of `updated_at` order. Revisiting or correcting an older count no longer moves it above newer SC numbers, and the SC No header visibly identifies the active default sort. Sequence sorting follows creation order so month labels do not introduce alphabetical month-order errors.

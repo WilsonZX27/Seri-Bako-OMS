@@ -14,3 +14,11 @@ test("stock-basket PR creation validates the complete JSON payload before databa
   assert.match(source, /parseStockBasketGroups\(formData\.get\("supplier_groups"\)\)/);
   assert.doesNotMatch(source, /const groups = JSON\.parse\(String\(formData\.get\("supplier_groups"\)/);
 });
+
+test("stock basket validates every supplier mapping before creating the first grouped PR", () => {
+  const action = fs.readFileSync("src/server/actions/procurement.ts", "utf8");
+  assert.match(action, /Promise\.all\(\[[\s\S]*ensureActiveItems[\s\S]*ensureBranchSupplierSelections\(branchId, allLines, true\)[\s\S]*identity\(\)/);
+  const validationIndex = action.indexOf("ensureBranchSupplierSelections(branchId, allLines, true)");
+  const creationIndex = action.indexOf("const created: Array", validationIndex);
+  assert.ok(validationIndex > -1 && creationIndex > validationIndex);
+});

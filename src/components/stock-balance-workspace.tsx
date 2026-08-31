@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
-import { SelectNative } from "@/components/ui/select-native";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { PageHeader } from "@/components/ui/page-header";
@@ -18,7 +17,6 @@ import { SelectControl } from "@/components/ui/select-control";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { OperationalList, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatQuantityInput, getToday } from "@/lib/utils";
-import { uomOptionsWithCurrent } from "@/lib/uom";
 import { createPurchaseRequestsFromBasket } from "@/server/actions/procurement";
 import { StockBalanceOperationalRows, StockBalanceTableRows, type StockBalanceRow } from "@/components/stock-balance-table";
 import { ItemThumbnail } from "@/components/ui/item-thumbnail";
@@ -81,14 +79,14 @@ export function StockBalanceWorkspace({
 }) {
   const [basket, setBasket] = useState<Record<string, BasketLine>>({});
   const [basketStorageReady, setBasketStorageReady] = useState(false);
-  const [basketOpen, setBasketOpen] = useState(false);
+  const [basketOpen, setBasketOpen] = useState(Boolean(filters.error));
   const [branchConflict, setBranchConflict] = useState<{ current: string; attempted: string } | null>(null);
   const [idempotencyKey] = useState(() => crypto.randomUUID());
 
   const branchNameById = useMemo(() => new Map<string, string>(branches.map((branch) => [branch.id, branch.branch_name])), [branches]);
   const basketStorageKey = useMemo(() => {
     const scope = branches.map((branch) => branch.id).sort().join(".") || "unassigned";
-    return `seri-bako:stock-balance-pr-basket:v1:${scope}`;
+    return `seri-bako:stock-balance-pr-basket:v2:${scope}`;
   }, [branches]);
 
   useEffect(() => {
@@ -103,7 +101,7 @@ export function StockBalanceWorkspace({
         const restored = Object.fromEntries(Object.entries(parsed).filter(([key, line]) => (
           Boolean(key) && Boolean(line) && typeof line.item_id === "string" && typeof line.item_name === "string"
           && typeof line.qty === "string" && typeof line.uom === "string" && Boolean(line.branch_id) && accessibleBranchIds.has(line.branch_id as string)
-        )).map(([key, line]) => [key, { ...line, item_status: line.item_status === "active" ? "active" : "unknown" }]).slice(0, 500)) as Record<string, BasketLine>;
+        )).map(([key, line]) => [key, { ...line, uom: line.purchase_unit || line.base_unit, item_status: line.item_status === "active" ? "active" : "unknown" }]).slice(0, 500)) as Record<string, BasketLine>;
         const firstBranch = Object.values(restored)[0]?.branch_id;
         setBasket(Object.fromEntries(Object.entries(restored).filter(([, line]) => line.branch_id === firstBranch)));
       }
@@ -155,14 +153,6 @@ export function StockBalanceWorkspace({
       const existing = current[key];
       if (!existing) return current;
       return { ...current, [key]: { ...existing, qty: nextQty } };
-    });
-  }
-
-  function updateUom(key: string, nextUom: string) {
-    setBasket((current) => {
-      const existing = current[key];
-      if (!existing) return current;
-      return { ...current, [key]: { ...existing, uom: nextUom } };
     });
   }
 
@@ -261,9 +251,7 @@ export function StockBalanceWorkspace({
                                           onChange={(value) => updateQty(key, value)}
                                           className="min-w-0 flex-1"
                                         />
-                                        <SelectNative aria-label={`UOM for ${line.item_name}`} value={line.uom} onChange={(event) => updateUom(key, event.target.value)} className="h-8 w-14 shrink-0 px-1 text-[10px]">
-                                          {uomOptionsWithCurrent(line.uom).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
-                                        </SelectNative>
+                                        <span className="inline-flex h-8 min-w-14 shrink-0 items-center justify-center rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-2 text-[10px] font-semibold" aria-label={`Purchase UOM for ${line.item_name}: ${line.uom}`}>{line.uom}</span>
                                         <button
                                           type="button"
                                           className="inline-flex h-8 w-7 shrink-0 items-center justify-center text-[var(--sb-danger)] hover:bg-[var(--sb-danger-soft)]"
@@ -412,15 +400,14 @@ export function StockBalanceWorkspace({
                     </div>
                     {activeBranch ? <div className="flex min-w-0 items-stretch gap-1.5">
                       <QuantityStepper value={line.qty} uom={null} step={0.01} density="compact" label={`Quantity for ${line.item_name}`} onChange={(value) => updateQty(key, value)} className="min-w-0 flex-1" />
-                      <SelectNative aria-label={`UOM for ${line.item_name}`} value={line.uom} onChange={(event) => updateUom(key, event.target.value)} className="h-10 w-20 shrink-0 px-2 text-xs">
-                        {uomOptionsWithCurrent(line.uom).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
-                      </SelectNative>
+                      <span className="inline-flex h-10 min-w-20 shrink-0 items-center justify-center rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-2 text-xs font-semibold" aria-label={`Purchase UOM for ${line.item_name}: ${line.uom}`}>{line.uom}</span>
                     </div> : null}
                   </article>
                 );
               }) : <p className="py-10 text-center text-sm text-[var(--sb-text-muted)]">Add an item from Stock Balance to prepare a PR.</p>}
             </div>
             <footer className="border-t border-[var(--sb-border-soft)] bg-[var(--sb-surface)] px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-3px_8px_rgb(6_44_31_/_0.10)]">
+              {filters.error ? <p className="mb-2 rounded-[var(--sb-control-radius)] bg-[var(--sb-danger-soft)] px-2.5 py-2 text-xs text-[var(--sb-danger)]">The PR was not created. Review the supplier status below; your basket has been kept.</p> : null}
               {createRows.some((line) => !line.supplier_id) ? <p className="mb-2 text-xs text-[var(--sb-danger)]">Supplier mapping is required before these items can become a PR.</p> : null}
               {inactiveRows.length ? <p className="mb-2 text-xs text-[var(--sb-danger)]">Some selected items are no longer active. Remove and re-add them from the current Stock Balance list.</p> : null}
               <SubmitButton type="submit" disabled={!canCreatePr} className="min-h-12 w-full" pendingLabel="Creating PR...">Create PR</SubmitButton>

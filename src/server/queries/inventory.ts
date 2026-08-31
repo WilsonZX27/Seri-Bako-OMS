@@ -805,6 +805,7 @@ export async function getStockBalanceDetails(filters: Filters = {}): Promise<Pag
   }
   const balanceRows = data;
   const itemIds = Array.from(new Set(balanceRows.map((row) => row.item_id))).slice(0, 500);
+  const branchIds = Array.from(new Set(balanceRows.map((row) => row.branch_id).filter((id): id is string => Boolean(id))));
   const imageByItemId = new Map<string, string | null>();
   for (let offset = 0; offset < itemIds.length; offset += 100) {
     const images = await supabase
@@ -817,8 +818,37 @@ export async function getStockBalanceDetails(filters: Filters = {}): Promise<Pag
     }
     images.data?.forEach((item) => imageByItemId.set(item.id, item.item_image_url));
   }
+  const { data: branchMappings, error: branchMappingsError } = itemIds.length && branchIds.length
+    ? await supabase.from("branch_supplier_items").select("branch_id, item_id, supplier_item_id, is_preferred").in("branch_id", branchIds).in("item_id", itemIds).eq("status", "active").is("deleted_at", null)
+    : { data: [], error: null };
+  if (branchMappingsError) warnOptionalInventoryQuery("Stock Balance branch sourcing", branchMappingsError);
+  const supplierItemIds = [...new Set((branchMappings ?? []).map((mapping) => mapping.supplier_item_id))];
+  const { data: supplierItems, error: supplierItemsError } = supplierItemIds.length
+    ? await supabase.from("supplier_items").select("id, item_id, supplier_id, purchase_uom, conversion_to_base_uom").in("id", supplierItemIds).eq("status", "active").is("deleted_at", null)
+    : { data: [], error: null };
+  if (supplierItemsError) warnOptionalInventoryQuery("Stock Balance supplier relationships", supplierItemsError);
+  const supplierIds = [...new Set((supplierItems ?? []).map((relationship) => relationship.supplier_id))];
+  const { data: suppliers, error: suppliersError } = supplierIds.length
+    ? await supabase.from("suppliers").select("id, name").in("id", supplierIds).eq("status", "active").is("deleted_at", null)
+    : { data: [], error: null };
+  if (suppliersError) warnOptionalInventoryQuery("Stock Balance supplier names", suppliersError);
+  const relationshipById = new Map((supplierItems ?? []).map((relationship) => [relationship.id, relationship]));
+  const supplierNameById = new Map((suppliers ?? []).map((supplier) => [supplier.id, supplier.name]));
   const rows = balanceRows.map((row) => ({
-    ...row,
+    ...(() => {
+      const pairMappings = (branchMappings ?? []).filter((mapping) => mapping.branch_id === row.branch_id && mapping.item_id === row.item_id);
+      if (!pairMappings.length) return row;
+      const chosen = pairMappings.find((mapping) => mapping.is_preferred) ?? (pairMappings.length === 1 ? pairMappings[0] : null);
+      const relationship = chosen ? relationshipById.get(chosen.supplier_item_id) : null;
+      if (!relationship || relationship.item_id !== row.item_id) return { ...row, supplier_id: null, supplier_name: null };
+      return {
+        ...row,
+        supplier_id: relationship.supplier_id,
+        supplier_name: supplierNameById.get(relationship.supplier_id) ?? null,
+        purchase_unit: relationship.purchase_uom,
+        conversion_to_base_unit: relationship.conversion_to_base_uom ?? row.conversion_to_base_unit,
+      };
+    })(),
     item_status: row.status ?? "unknown",
     image_url: imageByItemId.get(row.item_id) ?? null,
     available_qty: row.current_qty,

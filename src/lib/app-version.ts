@@ -1,4 +1,4 @@
-export const APP_VERSION = "9.2.5";
+export const APP_VERSION = "9.2.6";
 export const APP_SPRINT = `v${APP_VERSION}`;
 export const APP_RELEASE_TITLE = "Requester Revoke Preview";
 // Keep the shell footer concise; the detailed release title belongs in release

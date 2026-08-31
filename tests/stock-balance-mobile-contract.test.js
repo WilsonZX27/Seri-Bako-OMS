@@ -28,11 +28,11 @@ test("stock balance keeps query controls balanced and the desktop basket compact
   assert.doesNotMatch(source, /Saved on this device/);
   assert.match(source, /density="dense"/);
   assert.doesNotMatch(source, /\[&_button\]|\[&_input\]/);
-  assert.match(source, /className="h-8 w-14 shrink-0/);
+  assert.match(source, /inline-flex h-8 min-w-14 shrink-0/);
 });
 
 test("stock balance persists the PR basket across filter refreshes without trusting browser state", () => {
-  assert.match(source, /seri-bako:stock-balance-pr-basket:v1/);
+  assert.match(source, /seri-bako:stock-balance-pr-basket:v2/);
   assert.match(source, /branches\.map\(\(branch\) => branch\.id\)\.sort\(\)\.join/);
   assert.match(source, /window\.localStorage\.getItem\(basketStorageKey\)/);
   assert.match(source, /window\.localStorage\.setItem\(basketStorageKey, JSON\.stringify\(basket\)\)/);
@@ -47,14 +47,25 @@ test("stock balance persists the PR basket across filter refreshes without trust
   assert.match(stockRows, /disabled=\{!itemActive\}/);
 });
 
-test("stock balance hydrates item images into compact rows and keeps common PR UOM choices", () => {
+test("stock balance basket uses branch-authoritative sourcing and a fixed purchase UOM", () => {
+  const query = fs.readFileSync(path.join(root, "src", "server", "queries", "inventory.ts"), "utf8");
+  assert.match(query, /branch_supplier_items/);
+  assert.match(query, /pairMappings\.find\(\(mapping\) => mapping\.is_preferred\)/);
+  assert.match(source, /Purchase UOM for/);
+  assert.doesNotMatch(source, /updateUom/);
+  assert.match(source, /useState\(Boolean\(filters\.error\)\)/);
+  assert.match(source, /your basket has been kept/);
+});
+
+test("stock balance hydrates item images into compact rows and keeps the mapped PR UOM", () => {
   const rows = fs.readFileSync(path.join(root, "src", "components", "stock-balance-table.tsx"), "utf8");
 
   assert.match(inventoryQuery, /for \(let offset = 0; offset < itemIds\.length; offset \+= 100\)/);
   assert.match(inventoryQuery, /itemIds\.slice\(offset, offset \+ 100\)/);
   assert.match(rows, /ItemThumbnail src=\{item\.image_url\}/);
   assert.match(source, /ItemThumbnail src=\{line\.image_url\}/);
-  assert.match(source, /uomOptionsWithCurrent\(line\.uom\)/);
+  assert.match(source, /Purchase UOM for/);
+  assert.doesNotMatch(source, /uomOptionsWithCurrent\(line\.uom\)/);
 });
 
 test("stock balance propagates stock balance query error state to UI props", () => {

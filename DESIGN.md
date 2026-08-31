@@ -1,5 +1,11 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.6 (unreleased) — Recoverable Stock Balance procurement
+
+- Stock Balance and PR creation share the same branch supplier relationship as their sourcing authority. Item Master defaults must not appear as valid branch purchasing choices when an active branch mapping says otherwise.
+- The basket shows one mapped purchase UOM instead of offering arbitrary units that the server will reject. Missing or ambiguous sourcing is blocked before submission.
+- A failed creation keeps and reopens the mobile basket with a concise recovery message. All groups are preflighted before the first PR is created so a mapping failure cannot leave a partial supplier batch.
+
 ## v9.2.5 (unreleased) — Truthful Stock Count ordering
 
 - A register's visible default-sort indicator and its server query must describe the same order. Stock Counts default to newest SC sequence first, with the SC No header marked descending.

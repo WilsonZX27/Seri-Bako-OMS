@@ -47,7 +47,7 @@ if (!["127.0.0.1", "localhost"].includes(target.hostname) && process.env.ALLOW_R
 
 module.exports = defineConfig({
   testDir: "./tests/e2e",
-  // The six test identities are disposable and are seeded only for the explicitly
+  // The seven test identities are disposable and are seeded only for the explicitly
   // local suite. This removes hidden dependence on a developer manually running
   // a setup command while keeping remote and production targets untouched.
   globalSetup: usesLocalRoleFixture ? "./tests/e2e/local-role-fixture-global-setup.cjs" : undefined,

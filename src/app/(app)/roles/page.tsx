@@ -20,7 +20,7 @@ export default async function RolesPage() {
     return { ...role, permissionCount: enabled.length, moduleCount: new Set(enabled.map((permission) => permission.module)).size };
   }));
   return <>
-    <PageHeader title="Roles & Permissions" description="Read-only overview of the six system-controlled roles." />
+    <PageHeader title="Roles & Permissions" description="Read-only overview of the seven system-controlled roles." />
     <WorkspaceGrid
       tabletCanvas="contained"
       hideMobileConsole

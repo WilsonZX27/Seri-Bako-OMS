@@ -115,7 +115,7 @@ async function main() {
     const sanitiseSql = `set seri_bako.production_like_clone = 'confirmed';\n${readFileSync(resolve("supabase", "uat", "sanitize_production_like_clone.sql"), "utf8")}`;
     psqlInput(container, sanitiseSql);
 
-    console.log("Creating six disposable role identities…");
+    console.log("Creating seven disposable role identities…");
     execFileSync(process.execPath, [resolve("scripts", "setup-local-dashboard-e2e.mjs")], {
       cwd: process.cwd(),
       env: { ...process.env, TEST_ENV_FILE: localEnvPath, RUN_TENANT_BOUNDARY_E2E: "1" },

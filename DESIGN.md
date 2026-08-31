@@ -1,5 +1,14 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.2 (unreleased) — Complete role and action audit coverage
+
+- The canonical release matrix contains seven roles: Owner, People Operations, Finance, Manager, Purchasing, Kitchen and Outlet Staff. Adding a system role requires updating credentials, fixture creation/cleanup, route authority, role workspaces and all four viewport shards together.
+- Route visibility, permission authority and workflow actions are separate checks. A role must never receive a navigation or route classification that its server permission will reject, and adding a role must not broaden unrelated modules through a shared `ALL` or staff-management constant.
+- Employee administration and document-number administration use separate role groups. People Operations and Manager may administer employees within their scope; Document Sequences remains Owner/Finance work.
+- Every page that imports a route-owned server mutation must declare a responsive action owner through the shared document, record, rail, header or primary-action workspace. Desktop-only buttons and actions stranded after long mobile content are release failures.
+- Static and populated-detail layout audits include the new Outlet Compliance, Outlet Calendar and People surfaces. Generic dynamic parameters are replaced with inert identifiers so the browser audits the actual route boundary rather than a literal bracket URL.
+- Authenticated visual evidence still requires the four fixed viewports. Source and contract success cannot be reported as browser UAT when the disposable local Supabase fixture is unavailable.
+
 ## v9.2.1 (unreleased) — Operational stage and action continuity
 
 Repository forward-only migration 历史已到 `230`；本节仅记录 Preview 设计与本地实现，不代表远端或 Production 已应用。
@@ -265,7 +274,7 @@ Kitchen's Outlet Daily workdesk now has a narrow RLS read path for active outlet
 - **Navigation:** one canonical destination per action; role-aware quick actions stay visible, while secondary detail uses progressive disclosure.
 - **Visual language:** Seri Bako green remains the action color; neutral gray carries ordinary analytics; warning/danger colors stay reserved for actionable caution or blocking/destructive states.
 - **Motion:** use short, state-oriented transitions only for disclosure, loading, and confirmation; no decorative motion in data-entry workflows.
-- **Acceptance:** every v9 surface is checked at 390×844, 820×1180, 1180×820, and 1440×900 across all six roles before promotion.
+- **Acceptance:** every v9 surface is checked at 390×844, 820×1180, 1180×820, and 1440×900 across all seven roles before promotion.
 
 ### v9 batch 01 — Shared type hierarchy (implemented; local acceptance passed)
 

@@ -41,6 +41,7 @@ const includeSupplierInvoiceFixture = process.argv.includes("--supplier-invoice-
 const includeAnnotationFixture = process.argv.includes("--annotation-fixture") || process.env.E2E_ANNOTATION_FIXTURE === "1";
 const accounts = [
   ["super_admin", "TEST_SUPER_ADMIN_EMAIL", "TEST_SUPER_ADMIN_PASSWORD"],
+  ["people_operations", "TEST_PEOPLE_OPERATIONS_EMAIL", "TEST_PEOPLE_OPERATIONS_PASSWORD"],
   ["finance", "TEST_FINANCE_EMAIL", "TEST_FINANCE_PASSWORD"],
   ["manager", "TEST_MANAGER_EMAIL", "TEST_MANAGER_PASSWORD"],
   ["purchasing", "TEST_PURCHASING_EMAIL", "TEST_PURCHASING_PASSWORD"],
@@ -660,5 +661,5 @@ if (includeSupplierInvoiceFixture) {
 
 const fixtureLabels = [includeStockCountFixture ? "stock-count" : null, includeSupplierInvoiceFixture ? "supplier-invoice" : null, includeMutationWorkflowFixture ? "workflow-mutation" : null, includeAnnotationFixture ? "annotation" : null].filter(Boolean);
 console.log(fixtureLabels.length
-  ? `Created six disposable local dashboard identities and local-only ${fixtureLabels.join(" + ")} fixtures.`
-  : "Created six disposable local dashboard identities without business records.");
+  ? `Created seven disposable local dashboard identities and local-only ${fixtureLabels.join(" + ")} fixtures.`
+  : "Created seven disposable local dashboard identities without business records.");

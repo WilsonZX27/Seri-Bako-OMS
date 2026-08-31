@@ -5,6 +5,7 @@ const { hasAccount, login } = require("./helpers");
 
 const roles = {
   superAdmin: "Super Admin / Owner",
+  peopleOperations: "People Operations",
   finance: "Finance",
   manager: "Manager",
   purchasing: "Purchasing",
@@ -64,7 +65,7 @@ for (const [role, roleLabel] of Object.entries(roles)) {
     await expect(page).toHaveURL(/\/activity/);
     await expect(page.locator("body")).not.toContainText(/Application error|Internal Server Error/i);
 
-    if (role !== "outlet") {
+    if (!["peopleOperations", "outlet"].includes(role)) {
       for (const route of ["/procurement", "/inventory"]) {
         await page.goto(route, { waitUntil: "domcontentloaded" });
         await expect(page).toHaveURL(new RegExp(`${route}$`));
@@ -73,6 +74,7 @@ for (const [role, roleLabel] of Object.entries(roles)) {
     }
 
     const denied = role === "superAdmin" ? []
+      : role === "peopleOperations" ? ["/procurement", "/inventory", "/supplier-invoices", "/administration/backups"]
       : role === "finance" ? ["/purchase-requests?status=manager_review", "/administration/backups"]
       : role === "manager" ? ["/supplier-invoices", "/reports/recipe-costing", "/administration/backups"]
       : ["/supplier-invoices", "/reports/recipe-costing", "/administration/backups"];

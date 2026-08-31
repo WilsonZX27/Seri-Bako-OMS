@@ -32,6 +32,7 @@ function follow(start, stateFor) {
 
 const activeRoles = {
   owner: "/dashboard",
+  people_operations: "/dashboard",
   manager: "/dashboard",
   finance: "/dashboard",
   purchasing: "/dashboard",

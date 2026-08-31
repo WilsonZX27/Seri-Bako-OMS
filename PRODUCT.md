@@ -1,5 +1,13 @@
 # Seri Bako Operations Management System
 
+### v9.2.2 (unreleased) — Seven-role full-system audit authority
+
+The release audit now treats People Operations as the seventh system role instead of silently reusing the legacy six-role matrix. All 106 application pages are classified across Owner, People Operations, Finance, Manager, Purchasing, Kitchen and Outlet Staff at 390×844, 820×1180, 1180×820 and 1440×900. Dynamic route parameters, including Outlet Compliance branch IDs, resolve to inert audit identifiers rather than literal bracket paths.
+
+People Operations is limited to its approved People, staff, branch-read and Outlet Compliance responsibilities. It does not inherit Outlet Daily sales, Procurement, Inventory or Document Sequence authority. Manager retains staff administration and scoped People status without sensitive-file access. A new source-wide contract requires every route-owned mutation to expose a responsive action owner, and the static/dynamic layout audits now include Outlet Compliance, Outlet Calendar, People, System Health and AutoCount surfaces.
+
+This is implemented and contract-verified locally. Authenticated seven-role browser UAT is awaiting a disposable local Supabase environment; the current worktree has no `.env.test.local` and cannot access the Docker API. No remote environment or Production operation was performed.
+
 ### v9.2.1 (unreleased) — Procurement correction and operational attribution
 
 Kitchen can withdraw its own assigned-branch Purchase Request from Manager Review back to Draft, correct it, and resubmit through the full approval path. Draft cancellation remains available; later Purchasing and Finance review stages must return a request rather than permit silent requester edits. Every transition remains branch-scoped and audited.
@@ -220,7 +228,7 @@ Kitchen already owned the explicit Outlet Daily visibility and Qty Sent permissi
 
 ## v9 design direction (baseline, 2026-08-23)
 
-v9 upgrades the shared OMS experience in controlled batches: stronger typographic hierarchy, calmer information density, role-adaptive work surfaces, and subtle state transitions. It keeps the Seri Bako green identity and operational vocabulary; it does not imitate macOS chrome, hide business labels behind icons, or change workflow authority while visual work is in progress. Every v9 batch must retain the v8.64 four-viewport and six-role acceptance matrix, semantic color rules, fixed mobile/tablet bottom navigation, and explicit unavailable/error states.
+v9 upgrades the shared OMS experience in controlled batches: stronger typographic hierarchy, calmer information density, role-adaptive work surfaces, and subtle state transitions. It keeps the Seri Bako green identity and operational vocabulary; it does not imitate macOS chrome, hide business labels behind icons, or change workflow authority while visual work is in progress. From v9.2.2 onward every batch must retain the four-viewport and seven-role acceptance matrix, semantic color rules, fixed mobile/tablet bottom navigation, and explicit unavailable/error states; earlier six-role evidence remains historical.
 
 ### v9 batch 01 — Shared type hierarchy (implemented; local acceptance passed)
 

@@ -22,13 +22,14 @@ test("v9 UAT classifies every application page", () => {
 });
 
 test("v9 UAT locks the approved role and viewport matrix", () => {
-  assert.deepEqual(roles, ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outlet"]);
+  assert.deepEqual(roles, ["superAdmin", "peopleOperations", "finance", "manager", "purchasing", "kitchen", "outlet"]);
   assert.deepEqual(viewports.map(({ width, height }) => `${width}x${height}`), ["390x844", "820x1180", "1180x820", "1440x900"]);
   assert.equal(publicRoutes.size, 6);
 });
 
 test("dynamic pages receive inert audit identifiers without losing route identity", () => {
   assert.equal(sourcePageToRoute("src/app/(app)/stock-counts/[id]/page.tsx"), "/stock-counts/00000000-0000-4000-8000-000000000000");
+  assert.equal(sourcePageToRoute("src/app/(app)/outlet-compliance/[branchId]/page.tsx"), "/outlet-compliance/00000000-0000-4000-8000-000000000000");
   assert.equal(sourcePageToRoute("src/app/(app)/imports/[entity]/page.tsx"), "/imports/items");
   assert.equal(sourcePageToRoute("src/app/(auth)/login/page.tsx"), "/login");
 });
@@ -88,6 +89,15 @@ test("Outlet remains on daily operations without generic documents or production
   const permissions = fs.readFileSync("src/server/auth/route-permissions.ts", "utf8");
   assert.match(permissions, /"\/production\/planning": \["super_admin", "finance", "manager", "purchasing", "kitchen"\]/);
   assert.match(permissions, /"\/production\/variance": \["super_admin", "finance", "manager", "purchasing", "kitchen"\]/);
+});
+
+test("People Operations is audited only across its approved OMS modules", () => {
+  assert.deepEqual(permittedRolesFor("/people"), ["superAdmin", "peopleOperations", "manager"]);
+  assert.deepEqual(permittedRolesFor("/staffs"), ["superAdmin", "peopleOperations", "finance", "manager"]);
+  assert.deepEqual(permittedRolesFor("/outlet-compliance"), ["superAdmin", "peopleOperations", "manager", "kitchen", "outlet"]);
+  assert.deepEqual(permittedRolesFor("/document-sequences"), ["superAdmin", "finance"]);
+  assert.deepEqual(permittedRolesFor("/outlet-daily-records"), ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outlet"]);
+  assert.deepEqual(permittedRolesFor("/purchase-requests"), ["superAdmin", "finance", "manager", "purchasing", "kitchen"]);
 });
 
 test("v9 full UAT consumes the clone marker written by the clone lifecycle", () => {

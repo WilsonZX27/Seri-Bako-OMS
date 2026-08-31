@@ -16,6 +16,7 @@ const viewports = [
 const sources = [
   ["/branches", "/branches/", 2], ["/document-sequences", "/document-sequences/", 2], ["/documents", "/documents/", 2],
   ["/goods-receivings", "/goods-receivings/", 2], ["/items", "/items/", 2], ["/outlet-daily-records", "/outlet-daily-records/", 2],
+  ["/outlet-compliance", "/outlet-compliance/", 2], ["/people", "/people/", 2],
   ["/production/jobs", "/production/jobs/", 3], ["/products", "/products/", 2], ["/purchase-orders", "/purchase-orders/", 2],
   ["/purchase-requests", "/purchase-requests/", 2], ["/purchase-returns", "/purchase-returns/", 2], ["/recipes", "/recipes/", 2],
   ["/staffs", "/staffs/", 2], ["/stock-counts", "/stock-counts/", 2],

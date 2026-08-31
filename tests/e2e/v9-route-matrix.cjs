@@ -4,9 +4,10 @@ const { execFileSync } = require("node:child_process");
 
 const MISSING_ID = "00000000-0000-4000-8000-000000000000";
 
-const roles = ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outlet"];
+const roles = ["superAdmin", "peopleOperations", "finance", "manager", "purchasing", "kitchen", "outlet"];
 const roleCodes = {
   superAdmin: "super_admin",
+  peopleOperations: "people_operations",
   finance: "finance",
   manager: "manager",
   purchasing: "purchasing",
@@ -22,14 +23,16 @@ const viewports = [
 ];
 
 const ALL = roles;
+const OUTLET_DAILY = ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outlet"];
 const PROCUREMENT = ["superAdmin", "finance", "manager", "purchasing", "kitchen"];
 const INVENTORY = ["superAdmin", "finance", "manager", "purchasing", "kitchen"];
 const PRODUCTION = ["superAdmin", "finance", "manager", "purchasing", "kitchen"];
 const REPORTS = ["superAdmin", "finance", "manager", "purchasing"];
 const MASTER_DATA = ["superAdmin", "finance", "purchasing"];
 const OWNER = ["superAdmin"];
-const BRANCH_READERS = ["superAdmin", "finance", "manager", "purchasing"];
-const STAFF_MANAGERS = ["superAdmin", "finance"];
+const BRANCH_READERS = ["superAdmin", "peopleOperations", "finance", "manager", "purchasing"];
+const STAFF_MANAGERS = ["superAdmin", "peopleOperations", "finance", "manager"];
+const SEQUENCE_MANAGERS = ["superAdmin", "finance"];
 const OWNER_FINANCE_MANAGER = ["superAdmin", "finance", "manager"];
 const OWNER_PURCHASING = ["superAdmin", "purchasing"];
 const OWNER_KITCHEN = ["superAdmin", "kitchen"];
@@ -43,8 +46,8 @@ const actionRouteAuthorities = new Map([
   ["/administration", ["superAdmin", "finance", "manager", "purchasing"]],
   [`/branches/${MISSING_ID}`, OWNER_FINANCE_MANAGER],
   ["/branches/new", OWNER_FINANCE_MANAGER],
-  [`/document-sequences/${MISSING_ID}`, STAFF_MANAGERS],
-  ["/document-sequences/new", STAFF_MANAGERS],
+  [`/document-sequences/${MISSING_ID}`, SEQUENCE_MANAGERS],
+  ["/document-sequences/new", SEQUENCE_MANAGERS],
   ["/goods-receivings/new", OWNER_PURCHASING_KITCHEN],
   [`/items/${MISSING_ID}`, OWNER_PURCHASING],
   ["/items/new", OWNER_PURCHASING],
@@ -77,10 +80,10 @@ const actionRouteAuthorities = new Map([
 // whichever RLS policy happens to answer today. A new route must deliberately
 // join one of these authorities before the v9 matrix will accept it.
 const accessAuthorities = [
-  ["/outlet-compliance", ["superAdmin", "manager", "kitchen", "outlet"]],
-  ["/outlet-calendar", ["superAdmin", "manager", "kitchen", "outlet"]],
-  ["/people", ["superAdmin", "manager"]],
-  ["/compliance", ["superAdmin", "manager", "kitchen", "outlet"]],
+  ["/outlet-compliance", ["superAdmin", "peopleOperations", "manager", "kitchen", "outlet"]],
+  ["/outlet-calendar", ["superAdmin", "peopleOperations", "manager", "kitchen", "outlet"]],
+  ["/people", ["superAdmin", "peopleOperations", "manager"]],
+  ["/compliance", ["superAdmin", "peopleOperations", "manager", "kitchen", "outlet"]],
   ["/reports/costing-readiness", ["superAdmin", "finance"]],
   ["/reports/product-margin", ["superAdmin", "finance"]],
   ["/reports/recipe-costing", ["superAdmin", "finance"]],
@@ -89,8 +92,8 @@ const accessAuthorities = [
   ["/administration/backups", OWNER],
   ["/opening-stock/import", MASTER_DATA],
   ["/supplier-invoices", ["superAdmin", "finance"]],
-  ["/document-sequences", STAFF_MANAGERS],
-  ["/outlet-daily-records", ALL],
+  ["/document-sequences", SEQUENCE_MANAGERS],
+  ["/outlet-daily-records", OUTLET_DAILY],
   ["/purchase-requests", PROCUREMENT],
   ["/purchase-orders", PROCUREMENT],
   ["/purchase-returns", PROCUREMENT],
@@ -133,7 +136,7 @@ function sourcePageToRoute(file) {
     .replace(/\/page\.(?:ts|tsx)$/, "")
     .split("/")
     .filter((segment) => !/^\(.+\)$/.test(segment))
-    .map((segment) => segment === "[id]" ? MISSING_ID : segment === "[entity]" ? "items" : segment);
+    .map((segment) => segment === "[entity]" ? "items" : /^\[[^\]]+\]$/.test(segment) ? MISSING_ID : segment);
   return `/${relative.join("/")}`.replace(/\/$/, "") || "/";
 }
 

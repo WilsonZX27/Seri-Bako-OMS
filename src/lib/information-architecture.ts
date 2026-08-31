@@ -34,7 +34,7 @@ const REPORTS: readonly UserRole[] = ["super_admin", "finance", "manager", "purc
 const MASTER_DATA: readonly UserRole[] = ["super_admin", "finance", "purchasing"];
 const OWNER: readonly UserRole[] = ["super_admin"];
 const BRANCH_READERS: readonly UserRole[] = ["super_admin", "people_operations", "finance", "manager", "purchasing"];
-const STAFF_MANAGERS: readonly UserRole[] = ["super_admin", "people_operations", "finance", "manager"];
+const SEQUENCE_MANAGERS: readonly UserRole[] = ["super_admin", "finance"];
 
 export const informationArchitecture: readonly IaItem[] = [
   { href: "/dashboard", label: "Dashboard", group: "operations", icon: "gauge", roles: ALL, permission: "dashboard.view", defaultFor: ALL, keywords: ["home", "alerts", "approvals"] },
@@ -68,8 +68,8 @@ export const informationArchitecture: readonly IaItem[] = [
 
   { href: "/company", label: "Company Profile", group: "administration", icon: "building", roles: OWNER, permission: "company.read", administrationCard: "Maintain legal identity, contact details, logo, and branding." },
   { href: "/branches", label: "Branches / Outlets", group: "administration", icon: "building", roles: BRANCH_READERS, permission: "branches.read", administrationCard: "Review operating branches and outlet structure." },
-  { href: "/roles", label: "Roles & Permissions", group: "administration", icon: "userCog", roles: OWNER, permission: "roles.read", administrationCard: "Review the six fixed system roles and their permissions." },
-  { href: "/document-sequences", label: "Document Sequences", group: "administration", icon: "receipt", roles: STAFF_MANAGERS, permission: "document_sequences.read", administrationCard: "Manage controlled document numbering." },
+  { href: "/roles", label: "Roles & Permissions", group: "administration", icon: "userCog", roles: OWNER, permission: "roles.read", administrationCard: "Review the seven fixed system roles and their permissions." },
+  { href: "/document-sequences", label: "Document Sequences", group: "administration", icon: "receipt", roles: SEQUENCE_MANAGERS, permission: "document_sequences.read", administrationCard: "Manage controlled document numbering." },
   { href: "/administration/master-data-cleanup", label: "Master Data Cleanup", group: "administration", icon: "check", roles: MASTER_DATA, permission: "items.view", administrationCard: "Review master-data quality issues." },
   { href: "/imports", label: "Imports", group: "administration", icon: "upload", roles: MASTER_DATA, permission: "imports.create", administrationCard: "Import approved master-data templates with validation." },
   { href: "/administration/backups", label: "System Backup", group: "administration", icon: "archive", roles: OWNER, permission: "settings.manage", administrationCard: "Download an owner-only local ZIP export." },

@@ -1,5 +1,11 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.9 (unreleased) — Recovery stays in context
+
+- Shared application chrome resolves authentication and active profile state before tenant permission reads. An expired or detached session must redirect to recovery rather than replacing every workspace with a generic server-render error.
+- A Stock Balance PR basket owns one retry identity. Each sourcing group receives a stable derived key so double taps, interrupted multi-group creation and explicit retries converge on the same draft documents.
+- Form failures return to the surface that owns the task. People Compliance upload, validation and persistence errors remain on the selected employee Compliance section with visible feedback; retired mixed-module routes are not recovery destinations.
+
 ## v9.2.8 (unreleased) — Profiles that lead to the next task
 
 - A People Profile fact must not imply editability while hiding the edit route. Employment exposes one explicit `Edit employment & outlets` action; account management remains the full administrative workspace.

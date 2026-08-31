@@ -22,6 +22,11 @@ const schema = z.object({
   if (value.issued_on && value.expires_on && value.expires_on < value.issued_on) context.addIssue({ code: "custom", path: ["expires_on"], message: "Expiry must be on or after the issue date." });
 });
 
+function complianceMessageUrl(path: string, kind: "error" | "success", message: string) {
+  const separator = path.includes("?") ? "&" : "?";
+  return `${path}${separator}${kind}=${encodeURIComponent(message)}`;
+}
+
 export async function createComplianceRecord(formData: FormData) {
   const requestedKind = formData.get("subject_kind");
   await requirePermission(requestedKind === "outlet" ? "outlet_compliance.upload" : requestedKind === "staff" ? "people.compliance.manage" : "compliance.manage");
@@ -31,9 +36,9 @@ export async function createComplianceRecord(formData: FormData) {
   const returnPath = requestedKind === "staff" && z.string().uuid().safeParse(staffId).success
     ? `/people/${staffId}?section=compliance`
     : "/outlet-compliance";
-  if (!parsed.success) redirect(`${returnPath}${returnPath.includes("?") ? "&" : "?"}error=Check+the+required+record+fields.`);
+  if (!parsed.success) redirect(complianceMessageUrl(returnPath, "error", "Check the required record fields."));
   const value = parsed.data;
-  if ((value.subject_kind === "outlet" && !value.branch_id) || (value.subject_kind === "staff" && !value.staff_id) || (value.subject_kind === "asset" && !value.asset_external_ref)) redirect("/compliance?error=Choose+the+matching+subject.");
+  if ((value.subject_kind === "outlet" && !value.branch_id) || (value.subject_kind === "staff" && !value.staff_id) || (value.subject_kind === "asset" && !value.asset_external_ref)) redirect(complianceMessageUrl(returnPath, "error", "Choose the matching subject."));
   const supabase = await createClient();
   const recordId = crypto.randomUUID();
   const fileValue = formData.get("file");
@@ -41,22 +46,22 @@ export async function createComplianceRecord(formData: FormData) {
   let attachmentId: string | null = null;
   let storagePath: string | null = null;
   if (file) {
-    if (file.size > 10 * 1024 * 1024) redirect("/compliance?error=Supporting+document+must+be+10+MB+or+smaller.");
+    if (file.size > 10 * 1024 * 1024) redirect(complianceMessageUrl(returnPath, "error", "Supporting document must be 10 MB or smaller."));
     const allowed = new Set(["application/pdf", "image/png", "image/jpeg", "image/webp"]);
-    if (!allowed.has(file.type)) redirect("/compliance?error=Use+a+PDF,+PNG,+JPEG,+or+WebP+document.");
+    if (!allowed.has(file.type)) redirect(complianceMessageUrl(returnPath, "error", "Use a PDF, PNG, JPEG, or WebP document."));
     const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
     const starts = (...expected: number[]) => expected.every((byte, index) => bytes[index] === byte);
     const signatureValid = file.type === "application/pdf" ? starts(37,80,68,70,45) : file.type === "image/png" ? starts(137,80,78,71,13,10,26,10) : file.type === "image/jpeg" ? starts(255,216,255) : bytes.length >= 12 && String.fromCharCode(...bytes.slice(0,4)) === "RIFF" && String.fromCharCode(...bytes.slice(8,12)) === "WEBP";
-    if (!signatureValid) redirect("/compliance?error=Document+content+does+not+match+its+file+type.");
+    if (!signatureValid) redirect(complianceMessageUrl(returnPath, "error", "Document content does not match its file type."));
     const { data: type } = await supabase.from("compliance_types").select("is_sensitive").eq("id", value.compliance_type_id).single();
     if (type?.is_sensitive) await requirePermission(value.subject_kind === "staff" ? "people.compliance.document.read" : "compliance.sensitive.read");
     attachmentId = crypto.randomUUID();
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(-120) || "compliance-file";
     storagePath = `${actor.companyId}/compliance/${recordId}/${crypto.randomUUID()}-${safeName}`;
     const { error: uploadError } = await supabase.storage.from("document-attachments").upload(storagePath, Buffer.from(await file.arrayBuffer()), { contentType: file.type, upsert: false });
-    if (uploadError) redirect(`/compliance?error=${encodeURIComponent(uploadError.message)}`);
+    if (uploadError) redirect(complianceMessageUrl(returnPath, "error", uploadError.message));
     const { error: attachmentError } = await supabase.from("attachments").insert({ id: attachmentId, company_id: actor.companyId, entity_type: "compliance_record", entity_id: recordId, file_name: file.name.slice(0,180), file_type: file.type, file_size: file.size, storage_path: storagePath, file_url: null, uploaded_by: actor.staffId, created_by: actor.staffId, updated_by: actor.staffId });
-    if (attachmentError) { await supabase.storage.from("document-attachments").remove([storagePath]); redirect(`/compliance?error=${encodeURIComponent(attachmentError.message)}`); }
+    if (attachmentError) { await supabase.storage.from("document-attachments").remove([storagePath]); redirect(complianceMessageUrl(returnPath, "error", attachmentError.message)); }
   }
   const { data, error } = await supabase.from("compliance_records").insert({
     id: recordId, company_id: actor.companyId, compliance_type_id: value.compliance_type_id, subject_kind: value.subject_kind,
@@ -68,7 +73,7 @@ export async function createComplianceRecord(formData: FormData) {
   if (error || !data) {
     if (attachmentId) await supabase.from("attachments").delete().eq("id", attachmentId);
     if (storagePath) await supabase.storage.from("document-attachments").remove([storagePath]);
-    redirect(`/compliance?error=${encodeURIComponent(error?.message ?? "Record could not be created.")}`);
+    redirect(complianceMessageUrl(returnPath, "error", error?.message ?? "Record could not be created."));
   }
   await supabase.from("compliance_record_history").insert({ company_id: actor.companyId, compliance_record_id: data.id, event_type: value.submit_for_review ? "submitted" : "created", safe_summary: value.submit_for_review ? "Record created and submitted for review." : "Draft record created.", new_expires_on: data.expires_on, actor_staff_id: actor.staffId });
   revalidatePath(value.subject_kind === "outlet" ? "/outlet-compliance" : "/people");

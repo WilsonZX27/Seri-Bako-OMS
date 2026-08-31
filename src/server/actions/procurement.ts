@@ -339,11 +339,19 @@ function parseStockBasketGroups(value: FormDataEntryValue | null) {
   }
 }
 
+function stockBasketGroupIdempotencyKey(basketKey: string, groupIndex: number) {
+  const compact = basketKey.replaceAll("-", "");
+  const suffix = (BigInt(`0x${compact.slice(-12)}`) + BigInt(groupIndex)) & BigInt("0xffffffffffff");
+  const derived = `${compact.slice(0, 20)}${suffix.toString(16).padStart(12, "0")}`;
+  return `${derived.slice(0, 8)}-${derived.slice(8, 12)}-${derived.slice(12, 16)}-${derived.slice(16, 20)}-${derived.slice(20)}`;
+}
+
 export async function createPurchaseRequestsFromBasket(formData: FormData) {
   await requirePermissionOrRedirect("purchase_request.create", "/stock-balance");
   try {
     if (isMockMode()) redirect("/purchase-requests");
     const branchId = z.uuid().parse(cleanText(formData.get("branch_id")));
+    const basketIdempotencyKey = z.uuid().parse(cleanText(formData.get("idempotency_key")));
     await ensureActorCanUsePurchaseRequestBranch(branchId);
     const groups = parseStockBasketGroups(formData.get("supplier_groups"));
     const allLines = groups.flatMap((group) => group.lines.map((line) => ({ ...line, suggested_supplier_id: group.supplier_id, branch_id: branchId })));
@@ -354,7 +362,7 @@ export async function createPurchaseRequestsFromBasket(formData: FormData) {
       identity(),
     ]);
     const created: Array<{ id: string; request_no: string }> = [];
-    for (const group of groups) {
+    for (const [groupIndex, group] of groups.entries()) {
       const lines = group.lines.map((line) => ({
         item_id: line.item_id,
         qty: line.qty,
@@ -377,7 +385,7 @@ export async function createPurchaseRequestsFromBasket(formData: FormData) {
         remarks: group.supplier_id ? `Created from stock basket for ${group.supplier_id}.` : "Created from stock basket; Purchasing supplier mapping required.",
         lines,
       });
-      const result = await createPurchaseRequestAggregate(payload, profile, crypto.randomUUID(), "draft");
+      const result = await createPurchaseRequestAggregate(payload, profile, stockBasketGroupIdempotencyKey(basketIdempotencyKey, groupIndex), "draft");
       created.push({ id: result.id, request_no: result.request_no });
     }
     revalidateWorkspaceState(["/purchase-requests", "/stock-balance"]);

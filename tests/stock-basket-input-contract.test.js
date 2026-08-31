@@ -12,6 +12,9 @@ test("stock-basket PR creation validates the complete JSON payload before databa
   assert.match(source, /lineCount > 500/);
   assert.match(source, /raw\.length > 100_000/);
   assert.match(source, /parseStockBasketGroups\(formData\.get\("supplier_groups"\)\)/);
+  assert.match(source, /basketIdempotencyKey = z\.uuid\(\)\.parse\(cleanText\(formData\.get\("idempotency_key"\)\)\)/);
+  assert.match(source, /stockBasketGroupIdempotencyKey\(basketIdempotencyKey, groupIndex\)/);
+  assert.doesNotMatch(source, /createPurchaseRequestAggregate\(payload, profile, crypto\.randomUUID\(\), "draft"\)/);
   assert.doesNotMatch(source, /const groups = JSON\.parse\(String\(formData\.get\("supplier_groups"\)/);
 });
 

@@ -72,6 +72,8 @@ test("People profile exposes authorised employment editing and staff document ca
   assert.match(people, /text-\[10px\][^>]*>Additional outlets/);
   assert.match(people, /text-\[10px\][^>]*>Original files/);
   assert.match(action, /value\.subject_kind === "staff" \? "people\.compliance\.document\.read"/);
+  assert.match(action, /complianceMessageUrl\(returnPath, "error", uploadError\.message\)/);
+  assert.match(action, /complianceMessageUrl\(returnPath, "error", error\?\.message \?\? "Record could not be created\."\)/);
 });
 
 test("Preview remains readable before migration 229 is applied", () => {

@@ -1,5 +1,13 @@
 # Seri Bako Operations Management System
 
+### v9.2.9 (unreleased) — Workflow retry and session recovery
+
+The Stock Balance PR basket now consumes its submitted idempotency key and deterministically derives one key per sourcing group. A double tap, network retry or retry after a partial multi-group interruption reuses the matching draft PR instead of silently creating duplicates. All groups still receive full item, branch and sourcing preflight validation before the first write.
+
+People Compliance upload and database failures return to the same employee Compliance section with visible recovery feedback instead of falling through to the retired mixed `/compliance` route. The shared application layout now resolves an expired or detached profile before tenant-scoped permission RPCs, preventing stale sessions from replacing every protected workspace with one Server Component error boundary.
+
+Local browser verification covered Stock Balance, Outlet Daily Records, Outlet Calendar, People and Purchase Requests at 390×844, 820×1180, 1180×820 and 1440×900 with no horizontal overflow or browser console errors. Production v9.2.3 currently returned the same safe error reference `3304477461` for Dashboard and the audited protected routes; this Preview repair is not Production verification and no Production data or deployment was changed.
+
 ### v9.2.8 (unreleased) — Actionable People profiles and recoverable Stock PRs
 
 People Profile now provides a direct Employment and outlet-assignment edit path instead of presenting read-only facts without a next action. Authorised People roles may add a staff compliance record with its supporting PDF/image, and authorised sensitive-document readers may open recorded originals from the Documents section. Supporting privacy and assignment copy uses the compact 10px helper scale requested in the annotated Production review.

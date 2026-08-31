@@ -77,6 +77,16 @@ test("middleware preserves refreshed cookies and guards identical-path redirects
   assert.match(middleware, /response\.cookies\.getAll\(\)/);
 });
 
+test("the shared app layout resolves an expired profile before tenant permission RPCs", () => {
+  const layout = fs.readFileSync("src/app/(app)/layout.tsx", "utf8");
+  const profileRead = layout.indexOf("const profile = await getCurrentProfile()");
+  const missingProfileRedirect = layout.indexOf('if (!profile) redirect("/login")');
+  const permissionRead = layout.indexOf("getPermissionMap(permissionCodes)");
+  assert.ok(profileRead >= 0 && missingProfileRedirect > profileRead);
+  assert.ok(permissionRead > missingProfileRedirect);
+  assert.doesNotMatch(layout, /Promise\.all\(\[getCurrentProfile\(\), getPermissionMap/);
+});
+
 test("route denial is explicit and does not masquerade as a signed-out session", () => {
   const resolver = fs.readFileSync("src/server/auth/route-resolver.ts", "utf8");
   const status = fs.readFileSync("src/app/(auth)/access-status/page.tsx", "utf8");

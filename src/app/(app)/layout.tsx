@@ -15,7 +15,10 @@ import type { UserRole } from "@/types/database";
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const mobileNavigationPermissionCodes = ["outlet_daily_record.create", "goods_receiving.create", "stock_count.create"];
   const permissionCodes = Array.from(new Set([...navPermissionCodes, ...mobileNavigationPermissionCodes]));
-  const [profile, permissionMap, branding] = await Promise.all([getCurrentProfile(), getPermissionMap(permissionCodes), getCompanyBranding()]);
+  // Resolve the session/profile boundary before tenant-scoped permission RPCs.
+  // Otherwise an expired or detached identity can throw from the shared layout
+  // before the intended login/access-status redirect is allowed to run.
+  const profile = await getCurrentProfile();
 
   if (!isMockMode()) {
     if (!profile) redirect("/login");
@@ -31,6 +34,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       redirect("/change-password");
     }
   }
+
+  const [permissionMap, branding] = await Promise.all([getPermissionMap(permissionCodes), getCompanyBranding()]);
 
   const hasStaffRole = (profile as { has_staff_role?: boolean } | null)?.has_staff_role ?? false;
   const roleProfile = profile as { role_code?: UserRole; role?: UserRole } | null;

@@ -9,10 +9,13 @@ const read = (...parts) => readFileSync(join(root, ...parts), "utf8");
 test("stock count autosave preserves the canonical Draft to Confirm and Post workflow", () => {
   const actions = read("src", "server", "actions", "stock-counts.ts");
   const detail = read("src", "app", "(app)", "stock-counts", "[id]", "page.tsx");
+  const form = read("src", "components", "stock-count-form.tsx");
 
   assert.match(actions, /autosaveNewStockCount[\s\S]*createStockCountRecord/);
   assert.match(actions, /autosaveStockCountDraft[\s\S]*updateStockCountDraftRecord/);
   assert.match(actions, /saveAndPostStockCount[\s\S]*updateStockCountDraftRecord[\s\S]*postStockCount/);
+  assert.match(form, /name="has_unsaved_changes"/);
+  assert.match(actions, /formData\.get\("has_unsaved_changes"\) === "true"/);
   assert.match(detail, /formId=\{canEdit \? formId : undefined\}/);
   assert.match(detail, /Your latest entries will be saved before posting/);
   assert.doesNotMatch(actions, /submitStockCount|reviewStockCount|approveStockCount/);

@@ -428,6 +428,7 @@ export function StockCountForm({
     <div className="min-w-0">
       <div>
         <form ref={formRef} id={formId} action={action} noValidate onSubmit={handleSubmit} className={showSubmit ? "space-y-3 pb-28 xl:pb-0" : "space-y-3"}>
+          <input type="hidden" name="has_unsaved_changes" value={String(dirtyRevision > lastSavedRevision.current)} />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="after_create_action" value={afterCreateAction} />
           <input type="hidden" name="after_create_item_id" value={afterCreateItemId} />

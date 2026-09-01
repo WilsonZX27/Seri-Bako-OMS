@@ -358,10 +358,13 @@ export async function resolveStockCountLineRevision(id: string, revisionId: stri
 
 export async function saveAndPostStockCount(id: string, formData: FormData) {
   await requirePermissionOrRedirect("stock_count.update", `/stock-counts/${id}`);
-  try {
-    await updateStockCountDraftRecord(id, formData);
-  } catch (error) {
-    safeRedirectWithMessage(`/stock-counts/${id}`, "error", formatStockCountDraftError(error, "The latest changes could not be saved, so this Stock Count was not posted.", formData));
+  const hasUnsavedChanges = formData.get("has_unsaved_changes") === "true";
+  if (hasUnsavedChanges) {
+    try {
+      await updateStockCountDraftRecord(id, formData);
+    } catch (error) {
+      safeRedirectWithMessage(`/stock-counts/${id}`, "error", formatStockCountDraftError(error, "The latest changes could not be saved, so this Stock Count was not posted.", formData));
+    }
   }
   await postStockCount(id);
 }

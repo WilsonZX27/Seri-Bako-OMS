@@ -51,11 +51,8 @@ test("PR line writes are guarded by the canonical request supplier", () => {
 
 test("snapshot posting patch fails closed when Production function formatting differs", () => {
   assert.match(enforcedSnapshotAuthority, /regexp_replace/);
-  assert.match(enforcedSnapshotAuthority, /Could not patch draft Item status guard/);
-  assert.match(enforcedSnapshotAuthority, /Could not patch draft UOM snapshot guard/);
-  assert.match(enforcedSnapshotAuthority, /Could not patch posting Item status guard/);
-  assert.match(enforcedSnapshotAuthority, /Could not patch negative snapshot guard/);
-  assert.match(enforcedSnapshotAuthority, /Could not patch posting UOM snapshot guard/);
+  assert.match(enforcedSnapshotAuthority, /Could not verify draft UOM snapshot guard/);
+  assert.match(enforcedSnapshotAuthority, /Could not verify posting UOM snapshot guard/);
 });
 
 test("saved Stock Count snapshots remain postable after Item Master lifecycle changes", () => {

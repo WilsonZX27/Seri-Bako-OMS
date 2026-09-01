@@ -1,6 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { revalidateWorkspaceState } from "@/server/actions/revalidate";
@@ -165,7 +164,10 @@ export async function saveOutletDailyRecord(formData: FormData) {
       // represented as saved.
       salesReconciliationUnavailable = true;
       completionDeferred = payload.target_status === "evening_completed";
-      saveResult = await db.rpc("save_outlet_daily_record", completionDeferred ? { ...baseArgs, p_target_status: "draft" } : baseArgs);
+      const fallbackStatus = completionDeferred
+        ? beforeRecord.data?.status === "morning_recorded" ? "morning_recorded" : "draft"
+        : payload.target_status;
+      saveResult = await db.rpc("save_outlet_daily_record", { ...baseArgs, p_target_status: fallbackStatus });
     }
     const { data, error } = saveResult;
     if (error?.code === "23505" && !recordId) {
@@ -185,7 +187,9 @@ export async function saveOutletDailyRecord(formData: FormData) {
     }
     if (error) throw new Error(error.message);
     if (!data) throw new Error("Outlet daily record was not saved.");
-    const effectiveTargetStatus = completionDeferred ? "draft" : payload.target_status;
+    const effectiveTargetStatus = completionDeferred
+      ? beforeRecord.data?.status === "morning_recorded" ? "morning_recorded" : "draft"
+      : payload.target_status;
     const changedLines = payload.lines.flatMap((line) => {
       const stored = beforeLines.data?.find((candidate) => candidate.product_id === line.product_id);
       const before: DailyValueSnapshot | null = stored ? {
@@ -239,7 +243,7 @@ export async function saveOutletDailyRecord(formData: FormData) {
       : salesReconciliationUnavailable
       ? "Outlet daily record saved. Sales reconciliation is temporarily unavailable and was not recorded."
       : "Outlet daily record saved.";
-    redirect(`/outlet-daily-records/${data}?success=${encodeURIComponent(successMessage)}`);
+    safeRedirectWithMessage(`/outlet-daily-records/${data}`, salesReconciliationUnavailable ? "warning" : "success", successMessage);
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(recordId ? `/outlet-daily-records/${recordId}` : "/outlet-daily-records/new", "error", formatActionError(error, "Could not save this outlet daily record."));

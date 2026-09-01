@@ -1,5 +1,14 @@
 # Seri Bako Operations Management System
 
+### v9.2.14 (unreleased) — Receiving control and procurement clarity
+
+- Draft Goods Receivings expose editable Received and Rejected quantities before posting. A supplier over-delivery is permitted only with a retained exception reason; migration 240 applies the same rule atomically and grants Kitchen the canonical `grn.post` permission checked by the posting path.
+- Outlet Daily fallback preserves an already confirmed status when sales reconciliation is unavailable, and partial saves use warning feedback instead of a false success treatment.
+- Procurement workflow badges distinguish Sent, Approved and Received with related but visibly different semantic tones. Required attachment labels fail inline with a focused red field state.
+- Document console sections retain independent spacing so actions, files, comments, timeline and revisions do not read as one continuous panel.
+
+Migration 240 is implemented locally and remains unapplied until separately approved for the target environment.
+
 ### v9.2.13 (unreleased) — Operational UI recovery and reversible retirement
 
 - PR item matching dropdowns remain above the shared modal surface; purchasing actions use a direct approve / return / destructive hierarchy, and mobile actions keep one full-width primary action.

@@ -251,7 +251,7 @@ export function formatPageError(error: unknown, fallback = "This page could not 
   return fallback;
 }
 
-export function safeRedirectWithMessage(path: string, key: "error" | "success", message: string): never {
+export function safeRedirectWithMessage(path: string, key: "error" | "success" | "warning", message: string): never {
   const separator = path.includes("?") ? "&" : "?";
   redirect(`${path}${separator}${key}=${encodeURIComponent(message)}`);
 }

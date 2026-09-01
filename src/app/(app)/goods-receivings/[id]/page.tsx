@@ -4,11 +4,12 @@ import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from 
 import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { DocumentMoreOptions } from "@/components/documents/mobile-document-surfaces";
 import { ReceivingPostGuard } from "@/components/documents/receiving-post-guard";
+import { GoodsReceivingDraftEditor } from "@/components/goods-receiving-draft-editor";
 import { Card, CardContent } from "@/components/ui/card";
 import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
-import { cancelGoodsReceiving, postGoodsReceiving } from "@/server/actions/goods-receivings";
+import { cancelGoodsReceiving, postGoodsReceiving, updateGoodsReceivingDraft } from "@/server/actions/goods-receivings";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getGoodsReceiving } from "@/server/queries/goods-receivings";
@@ -106,6 +107,7 @@ export default async function GoodsReceivingDetailPage({ params, searchParams }:
                 <h2 className="text-sm font-semibold">Received Items</h2>
                 <p className="text-sm font-semibold">{formatCurrency(totalReceivedValue)}</p>
               </div>
+              {receiving.status === "draft" && permissions["grn.post"] ? <GoodsReceivingDraftEditor action={updateGoodsReceivingDraft.bind(null, receiving.id)} lines={lines} /> : <>
               <Table mobileHidden aria-label="Received items">
                   <TableHeader>
                     <TableRow>
@@ -168,6 +170,7 @@ export default async function GoodsReceivingDetailPage({ params, searchParams }:
                   </article>
                 ))}
               </div>
+              </>}
             </CardContent>
           </Card>
 

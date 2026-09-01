@@ -749,6 +749,7 @@ export type Database = {
           approver_staff_id: string | null;
           status: ApprovalStatus;
           remarks: string | null;
+          over_receipt_reason: string | null;
           acted_at: string | null;
           acted_by: string | null;
           created_at: string;
@@ -762,6 +763,7 @@ export type Database = {
           approver_staff_id?: string | null;
           status?: ApprovalStatus;
           remarks?: string | null;
+          over_receipt_reason?: string | null;
           acted_at?: string | null;
           acted_by?: string | null;
           created_at?: string;

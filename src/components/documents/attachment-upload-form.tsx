@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useId, useState } from "react";
+import { useActionState, useId, useRef, useState } from "react";
 import { Paperclip, Upload } from "lucide-react";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -22,12 +22,23 @@ export function AttachmentUploadForm({
   const [state, formAction] = useActionState(action, { error: null, success: null });
   const [fileName, setFileName] = useState("");
   const [fileError, setFileError] = useState<string | null>(null);
+  const [labelError, setLabelError] = useState<string | null>(null);
+  const labelRef = useRef<HTMLInputElement>(null);
   const inputId = useId();
 
   return (
-    <form action={formAction} className="grid min-w-0 gap-2">
-      <Field label="Attachment label">
-        <Input name="file_name" defaultValue={defaultLabel} placeholder="Name this attachment" minLength={3} maxLength={180} required className="w-full" />
+    <form action={formAction} className="grid min-w-0 gap-2" noValidate onSubmit={(event) => {
+      const label = labelRef.current?.value.trim() ?? "";
+      if (label.length >= 3) {
+        setLabelError(null);
+        return;
+      }
+      event.preventDefault();
+      setLabelError(label ? "Use at least 3 characters." : "Attachment label is required.");
+      labelRef.current?.focus();
+    }}>
+      <Field label="Attachment label" required error={labelError ?? undefined}>
+        <Input ref={labelRef} name="file_name" defaultValue={defaultLabel} placeholder="Name this attachment" minLength={3} maxLength={180} required aria-invalid={Boolean(labelError)} onChange={() => labelError && setLabelError(null)} className={cn("w-full", labelError && "border-destructive ring-2 ring-destructive/20")} />
       </Field>
       <Field label="Attachment file" labelClassName="sr-only">
         <Input

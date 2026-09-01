@@ -161,6 +161,39 @@ export async function postGoodsReceiving(id: string, formData: FormData) {
   }
 }
 
+export async function updateGoodsReceivingDraft(id: string, formData: FormData) {
+  try {
+    await requirePermission("grn.post");
+    const goodsReceivingId = parseGoodsReceivingId(id);
+    const lineIds = formData.getAll("line_id").map(String);
+    const received = formData.getAll("received_qty").map(String);
+    const rejected = formData.getAll("rejected_qty").map(String);
+    const reasons = formData.getAll("over_receipt_reason").map(String);
+    const lines = z.array(z.object({
+      line_id: z.uuid(),
+      received_qty: z.coerce.number().finite().min(0).max(1_000_000),
+      rejected_qty: z.coerce.number().finite().min(0).max(1_000_000),
+      over_receipt_reason: z.string().trim().max(1_000).nullable(),
+    })).min(1).max(500).parse(lineIds.map((lineId, index) => ({
+      line_id: lineId,
+      received_qty: received[index] ?? "0",
+      rejected_qty: rejected[index] ?? "0",
+      over_receipt_reason: cleanText(reasons[index] ?? null),
+    })));
+    const supabase = await createClient();
+    const { error } = await supabase.rpc("update_goods_receiving_draft_atomic" as never, {
+      p_goods_receiving_id: goodsReceivingId,
+      p_lines: lines,
+    } as never);
+    if (error) throw new Error(error.message);
+    revalidateWorkspaceState([`/goods-receivings/${goodsReceivingId}`, "/goods-receivings"]);
+    safeRedirectWithMessage(`/goods-receivings/${goodsReceivingId}`, "success", "Received quantities saved. Review them, then post to stock when ready.");
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/goods-receivings/${id}`, "error", formatActionError(error, "Could not save the received quantities."));
+  }
+}
+
 export async function cancelGoodsReceiving(id: string) {
   await requirePermission("goods_receiving.cancel");
   if (isMockMode()) return;

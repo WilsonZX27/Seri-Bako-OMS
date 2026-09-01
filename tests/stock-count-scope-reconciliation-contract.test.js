@@ -7,6 +7,7 @@ const actions = fs.readFileSync("src/server/actions/stock-counts.ts", "utf8");
 const detail = fs.readFileSync("src/app/(app)/stock-counts/[id]/page.tsx", "utf8");
 const scopeUi = fs.readFileSync("src/components/stock-count-scope-actions.tsx", "utf8");
 const lineRecovery = fs.readFileSync("src/components/stock-count-line-recovery.tsx", "utf8");
+const snapshotAuthority = fs.readFileSync("supabase/migrations/237_stock_count_snapshot_posting_authority.sql", "utf8");
 
 test("posting-time inventory movement is reconciled without replacing Kitchen physical count", () => {
   assert.match(migration, /stock_count_reconciliations/);
@@ -45,4 +46,13 @@ test("PR line writes are guarded by the canonical request supplier", () => {
   assert.match(migration, /guard_purchase_request_line_supplier/);
   assert.match(migration, /canonical<>new\.suggested_supplier_id/);
   assert.match(migration, /This PR already belongs to another supplier/);
+});
+
+test("saved Stock Count snapshots remain postable after Item Master lifecycle changes", () => {
+  assert.match(snapshotAuthority, /update_stock_count_draft_atomic\(uuid,jsonb\)/);
+  assert.match(snapshotAuthority, /and line\.uom = nullif\(trim\(submitted->>'uom'\), ''\)/);
+  assert.match(snapshotAuthority, /post_stock_count_atomic\(uuid\)/);
+  assert.match(snapshotAuthority, /and item\.deleted_at is null/);
+  assert.match(snapshotAuthority, /coalesce\(item_row\.item_code, line\.item_id::text\)/);
+  assert.match(snapshotAuthority, /\$new\$      and item\.deleted_at is null;\$new\$/);
 });

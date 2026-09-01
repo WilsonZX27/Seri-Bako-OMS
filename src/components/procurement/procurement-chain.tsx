@@ -4,6 +4,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import type { ProcurementChainNode } from "@/server/queries/procurement";
 
 const icons = { PR: FileText, PO: ShoppingCart, GRN: PackageCheck, Invoice: ReceiptText };
+const labels = { PR: "Purchase Request", PO: "Purchase Order", GRN: "Goods Receiving", Invoice: "Supplier Invoice" };
 
 export function ProcurementChain({ nodes }: { nodes: ProcurementChainNode[] }) {
   return (
@@ -18,13 +19,12 @@ export function ProcurementChain({ nodes }: { nodes: ProcurementChainNode[] }) {
           return <li key={`${node.kind}-${node.id}`} className="min-w-0">
             <Link href={node.href} className="group grid min-h-16 min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2 gap-y-1 rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)] bg-secondary/20 px-3 py-2 transition-colors hover:border-[var(--sb-green-600)] hover:bg-[var(--sb-green-50)] motion-reduce:transition-none">
               <Icon className="h-4 w-4 shrink-0 text-[var(--sb-green-700)]" aria-hidden="true" />
-              <span className="min-w-0 flex-1"><span className="block text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{node.kind}</span><span className="block truncate text-[12px] font-semibold" title={node.number}>{node.number}</span></span>
+              <span className="min-w-0 flex-1"><span className="block text-[10px] font-medium text-muted-foreground">{labels[node.kind]}</span><span className="block truncate text-[12px] font-semibold" title={node.number}>{node.number}</span></span>
               <StatusBadge status={node.status} className="col-start-2 w-fit max-w-full" />
             </Link>
           </li>;
         })}
       </ol>
-      {nodes.length === 1 ? <p className="mt-3 text-[12px] text-muted-foreground">The PO, receiving, and invoice links will appear here as this purchase progresses.</p> : null}
     </section>
   );
 }

@@ -47,11 +47,12 @@ function formatStockCountPostingError(error: unknown) {
   return formatActionError(error, "The Stock Count could not be posted. No inventory changes were made.");
 }
 
-function formatStockCountDraftError(error: unknown, fallback: string) {
+function formatStockCountDraftError(error: unknown, fallback: string, formData?: FormData) {
   if (error instanceof z.ZodError) {
     const issue = error.issues[0];
     const lineIndex = issue?.path[0] === "lines" && typeof issue.path[1] === "number" ? issue.path[1] : null;
-    const subject = lineIndex === null ? "Stock Count" : `Item ${lineIndex + 1}`;
+    const itemCodes = formData?.getAll("line_item_code").map(String) ?? [];
+    const subject = lineIndex === null ? "Stock Count" : itemCodes[lineIndex] ? `Item ${itemCodes[lineIndex]}` : `Item ${lineIndex + 1}`;
     return `${subject}: ${issue?.message ?? "Review the entered value."}`;
   }
   return formatActionError(error, fallback);
@@ -360,7 +361,7 @@ export async function saveAndPostStockCount(id: string, formData: FormData) {
   try {
     await updateStockCountDraftRecord(id, formData);
   } catch (error) {
-    safeRedirectWithMessage(`/stock-counts/${id}`, "error", formatStockCountDraftError(error, "The latest changes could not be saved, so this Stock Count was not posted."));
+    safeRedirectWithMessage(`/stock-counts/${id}`, "error", formatStockCountDraftError(error, "The latest changes could not be saved, so this Stock Count was not posted.", formData));
   }
   await postStockCount(id);
 }

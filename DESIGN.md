@@ -1,5 +1,12 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.13 (unreleased) — Clear operational ownership
+
+- Keep transient Stock Count decisions inside confirmation dialogs; manage completed branch retirement centrally from the Items filter rather than adding badges to every count line.
+- Requirement-heavy compliance work uses a responsive 1/2/3-column card grid. Cards expose identity and state first, while evidence forms expand only on intent.
+- Shared modal descendants own their popup stacking context. Tablet and phone filter sheets ignore desktop anchor coordinates so they stay attached to the viewport.
+- Document action rails use a direct primary, correction, separator, destructive sequence; owner recovery is hidden when the same user can perform the current review decision.
+
 ## v9.2.12 (unreleased) — Role-specific terminal landing
 
 - People Operations enters the Employees workspace after authentication. Dashboard remains permitted, but it is not the role's primary task landing.

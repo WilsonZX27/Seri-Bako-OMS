@@ -211,8 +211,9 @@ export default async function PurchaseRequestDetailPage({
       </DocumentActionForm>
     ) : null}
   </div> : null;
-  const administrativeControls = canOwnerRecoverWithdraw || deleteControl ? <div className="space-y-2">
-    {canOwnerRecoverWithdraw ? withdrawControl : null}
+  const showOwnerRecoveryWithdraw = canOwnerRecoverWithdraw && !canManagerReview && !canAdminReview && !canFinanceReview;
+  const administrativeControls = showOwnerRecoveryWithdraw || deleteControl ? <div className="space-y-2">
+    {showOwnerRecoveryWithdraw ? withdrawControl : null}
     {deleteControl}
   </div> : null;
   const mobileMoreActions = requestControls || administrativeControls ? <div className="space-y-3">{requestControls}{administrativeControls}</div> : null;
@@ -262,7 +263,7 @@ export default async function PurchaseRequestDetailPage({
       mobileMoreOptions={mobileMoreActions ? <DocumentMoreOptions>{mobileMoreActions}</DocumentMoreOptions> : null}
       sidePanel={
         <>
-          {hasPrimaryAction || canReject || administrativeControls ? <DocumentActionSection moreOptions={administrativeControls} collapseMoreOptions>
+          {hasPrimaryAction || canReject || administrativeControls ? <DocumentActionSection moreOptions={administrativeControls}>
             <DocumentActionBar>
               {canSubmit ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..." mobilePrimary><Send className="h-4 w-4" aria-hidden="true" />Submit to Manager Review</DocumentActionForm> : null}
               {canManagerReview ? blockingLineIssues.length ? <Button asChild className="w-full"><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <ConfirmActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} label={<><CircleCheck className="h-4 w-4" aria-hidden="true" />Approve as Manager</>} title="Approve this PR as Manager?" description="This moves the request to Purchasing Review." pendingLabel="Approving..." mobilePrimary /> : null}

@@ -139,6 +139,6 @@ export function ItemCombobox({ items, value, selectedItemId = "", onValueChange,
         <span className="truncate text-xs text-[var(--sb-text-muted)]">{item.item_code} · Purchase {(item.purchase_unit || item.base_unit).toUpperCase()} · Base {item.base_unit.toUpperCase()}</span>
       </button>)}
       {!matches.length ? <p className="px-3 py-2 text-xs text-[var(--sb-text-muted)]">{emptyMessage}</p> : null}
-    </div>, anchorRef.current?.closest("dialog") ?? document.body) : null}
+    </div>, anchorRef.current?.closest("[data-modal-shell]") ?? document.body) : null}
   </div>;
 }

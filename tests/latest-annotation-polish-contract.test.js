@@ -24,7 +24,7 @@ test("purchase request lines use one responsive control geometry and no duplicat
   assert.match(detail, /saveDraftAction/);
   assert.match(detail, /saveDraftAction \|\| canRequesterWithdraw \|\| canCancel/);
   assert.match(detail, /administrativeControls/);
-  assert.match(detail, /collapseMoreOptions/);
+  assert.match(detail, /showOwnerRecoveryWithdraw/);
   assert.match(detail, /Return for correction/);
   assert.match(detail, /reserveMobileActionSpace=\{false\}/);
   assert.doesNotMatch(detail, /<div className="mt-4">\s*<SubmitButton form="purchase-request-form"/);

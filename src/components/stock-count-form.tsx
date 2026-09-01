@@ -520,6 +520,7 @@ export function StockCountForm({
                 <input name="line_physical_qty" value={line.physicalQty} readOnly />
                 <input name="line_uom" value={line.uom} readOnly />
                 <input name="line_remarks" value={line.remarks} readOnly />
+                <input name="line_item_code" value={line.item_code} readOnly />
                 <input name="line_retire_after_count" value={String(line.retireAfterCount)} readOnly />
                 <input name="line_retirement_reason" value={line.retirementReason} readOnly />
                 <input name="line_retirement_note" value={line.retirementNote} readOnly />
@@ -563,7 +564,6 @@ export function StockCountForm({
                         <p className="break-words text-[13px] font-medium leading-tight text-slate-800">{line.item_name}</p>
                         <p className="min-w-0 break-all text-[10px] leading-3 tracking-[0.01em] text-slate-400">{line.item_code}</p>
                         <p className="mt-1 hidden text-[10px] leading-3 text-muted-foreground sm:block">{line.prefill_source === "unavailable" ? "No prior ledger balance · enter count" : `Starting balance · ${formatQuantity(line.theoretical_qty)} ${line.uom}`}</p>
-                        {line.retireAfterCount ? <div className="mt-2"><span className="rounded-full bg-[var(--sb-warning-bg)] px-2 py-1 text-[10px] font-semibold text-[var(--sb-warning-text)]">Retires after posting</span></div> : null}
                       </div>
                     </div>
 
@@ -601,6 +601,7 @@ export function StockCountForm({
                     <input type="hidden" name="line_theoretical_qty" value={line.theoretical_qty} />
                     <input type="hidden" name="line_uom" value={line.uom} />
                     <input type="hidden" name="line_remarks" value={line.remarks} readOnly />
+                    <input type="hidden" name="line_item_code" value={line.item_code} readOnly />
                     <input type="hidden" name="line_retire_after_count" value={String(line.retireAfterCount)} readOnly />
                     <input type="hidden" name="line_retirement_reason" value={line.retirementReason} readOnly />
                     <input type="hidden" name="line_retirement_note" value={line.retirementNote} readOnly />

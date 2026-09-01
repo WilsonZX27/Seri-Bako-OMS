@@ -4,6 +4,14 @@ import { requireDetailRow } from "@/server/queries/detail";
 import { isMockMode, mockItems, mockSuppliers } from "@/lib/mock-mode";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
 import { getStockBalances } from "@/server/queries/inventory";
+import { looseSupabase } from "@/lib/supabase/loose";
+
+export type RetiredBranchStockCountItem = {
+  id: string; item_id: string; branch_id: string; retirement_reason: string | null;
+  retirement_note: string | null; last_physical_qty: number | null; retired_at: string | null;
+  item: { item_code: string; item_name: string; base_unit: string } | null;
+  branch: { branch_name: string } | null;
+};
 
 type ItemFilters = {
   search?: string;
@@ -171,6 +179,18 @@ export async function getItemsWithStockPage(filters: ItemFilters = {}) {
     },
     categories: Array.from(new Set(rows.map((item) => item.category))).sort(),
   };
+}
+
+export async function getRetiredBranchStockCountItems() {
+  if (isMockMode()) return [];
+  const supabase = await createClient();
+  const { data, error } = await looseSupabase(supabase)
+    .from("branch_stock_count_items")
+    .select("id,item_id,branch_id,retirement_reason,retirement_note,last_physical_qty,retired_at,item:items(item_code,item_name,base_unit),branch:branches(branch_name)")
+    .eq("status", "retired")
+    .order("retired_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as RetiredBranchStockCountItem[];
 }
 
 export async function getItem(id: string) {

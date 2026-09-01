@@ -34,7 +34,7 @@ test("Kitchen retirement dialog requires category and explanation and retains th
   const form = read("src", "components", "stock-count-form.tsx");
   const actions = read("src", "server", "actions", "stock-counts.ts");
   assert.match(form, /Retire item after this count/);
-  assert.match(form, /Retires after posting/);
+  assert.doesNotMatch(form, /Retires after posting|Retirement scheduled/);
   assert.match(form, /Wrong or duplicate item code/);
   assert.match(form, /line_retirement_reason/);
   assert.match(form, /line_retirement_note/);

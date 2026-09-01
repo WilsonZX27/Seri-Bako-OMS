@@ -1,5 +1,15 @@
 # Seri Bako Operations Management System
 
+### v9.2.13 (unreleased) — Operational UI recovery and reversible retirement
+
+- PR item matching dropdowns remain above the shared modal surface; purchasing actions use a direct approve / return / destructive hierarchy, and mobile actions keep one full-width primary action.
+- Stock Count recovery dialogs use compact helper copy, Post errors identify the affected item, and retirement state is removed from count rows.
+- Items can be filtered by `Retired from counts`; authorised staff can restore an item to a branch's future Stock Counts with an audit reason.
+- Outlet compliance uses a responsive requirement-card grid and adds FOSIM as a required outlet record through migration 235.
+- Purchase-chain labels use full document names; PO lists nest the clickable PR number without the redundant `From` prefix.
+
+Repository migrations reviewed through `235`; migration 235 remains an unapplied release dependency until the target environment is explicitly promoted.
+
 ### v9.2.12 (unreleased) — People Operations workspace access
 
 People Operations authentication now resolves to Employees as its preferred workspace. Migration 234 idempotently restores the canonical role for every company and grants its Dashboard, People, compliance, staff, branch and document workspace permissions, preventing a valid People Operations account from terminating at `no-permitted-route`.

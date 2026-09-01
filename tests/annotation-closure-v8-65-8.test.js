@@ -19,11 +19,11 @@ test("dashboard mobile groups retain padding and a deliberate sage hierarchy", (
   assert.doesNotMatch(dashboard, /data-dashboard-quick-actions[\s\S]{0,900}hover:-translate-y/);
 });
 
-test("item combobox stays in the native dialog top layer", () => {
+test("item combobox stays in the shared modal stacking context", () => {
   const combobox = read("src", "components", "item-combobox.tsx");
   const recovery = read("src", "components", "purchase-request-line-recovery.tsx");
   const addLine = read("src", "components", "add-purchase-request-line-dialog.tsx");
-  assert.match(combobox, /anchorRef\.current\?\.closest\("dialog"\) \?\? document\.body/);
+  assert.match(combobox, /anchorRef\.current\?\.closest\("\[data-modal-shell\]"\) \?\? document\.body/);
   assert.match(combobox, /data-item-combobox-listbox/);
   assert.match(recovery, /overflow-visible/);
   assert.match(addLine, /overflow-visible/);

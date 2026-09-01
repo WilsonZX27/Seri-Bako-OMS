@@ -1,4 +1,4 @@
-import { Pencil } from "lucide-react";
+import { Pencil, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DataGridRow } from "@/components/ui/data-grid-row";
@@ -10,7 +10,10 @@ import { StatusTabs } from "@/components/status-tabs";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
-import { getItemsWithStockPage } from "@/server/queries/items";
+import { getItemsWithStockPage, getRetiredBranchStockCountItems } from "@/server/queries/items";
+import { restoreBranchStockCountItem } from "@/server/actions/items";
+import { SubmitButton } from "@/components/ui/submit-button";
+import { Input } from "@/components/ui/input";
 import { getSuppliersForSelect } from "@/server/queries/common";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
@@ -23,7 +26,8 @@ export default async function ItemsPage({
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const filters = await searchParams;
-  const [itemsPage, suppliers, permissions] = await Promise.all([getItemsWithStockPage(filters), getSuppliersForSelect(), getPermissionMap(["items.create", "items.manage"])]);
+  const showRetired = filters.status === "retired";
+  const [itemsPage, retiredScopes, suppliers, permissions] = await Promise.all([getItemsWithStockPage(showRetired ? { ...filters, status: "all" } : filters), getRetiredBranchStockCountItems(), getSuppliersForSelect(), getPermissionMap(["items.create", "items.manage", "stock_count.update"])]);
   const lowStockCount = itemsPage.summary.low_stock;
   const filtered = hasActiveFilters(filters);
 
@@ -44,13 +48,13 @@ export default async function ItemsPage({
             categories={[]}
             suppliers={suppliers}
             showStatus={false}
-            leadingFilter={<StatusTabs name="status" statuses={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }, { value: "archived", label: "Archived" }]} activeStatus={filters.status} />}
+            leadingFilter={<StatusTabs name="status" statuses={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }, { value: "archived", label: "Archived" }, { value: "retired", label: "Retired from counts" }]} activeStatus={filters.status} />}
             showStockFilters
             resultCount={itemsPage.totalRows}
             filtered={filtered}
             resetHref="/items"
           />
-          <div className="sb-list-content-card overflow-hidden">
+          {showRetired ? <div className="sb-list-content-card overflow-hidden"><div className="border-b px-3 py-3"><h2 className="text-sm font-semibold">Retired from branch Stock Counts</h2><p className="mt-0.5 text-xs text-muted-foreground">These items remain in Item Master and inventory history. Restore one to include it in that branch&apos;s next count.</p></div><div className="divide-y divide-[var(--sb-border-soft)]">{retiredScopes.map((scope) => { const item = Array.isArray(scope.item) ? scope.item[0] : scope.item; const branch = Array.isArray(scope.branch) ? scope.branch[0] : scope.branch; return <div key={scope.id} className="grid gap-3 p-3 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,auto)] lg:items-center"><div><p className="text-sm font-semibold">{item?.item_code} · {item?.item_name}</p><p className="mt-1 text-xs text-muted-foreground">{branch?.branch_name ?? "Assigned branch"}{scope.last_physical_qty != null ? ` · final count ${scope.last_physical_qty} ${item?.base_unit ?? ""}` : ""}</p>{scope.retirement_note ? <p className="mt-1 text-xs text-muted-foreground">{scope.retirement_note}</p> : null}</div>{permissions["stock_count.update"] ? <form action={restoreBranchStockCountItem.bind(null, scope.item_id, scope.id)} className="flex min-w-0 gap-2"><Input name="reason" minLength={3} maxLength={1000} required placeholder="Reason for restoring" className="min-w-0" /><SubmitButton variant="outline" pendingLabel="Restoring..."><RotateCcw className="h-4 w-4" />Unretire</SubmitButton></form> : null}</div>; })}{!retiredScopes.length ? <EmptyState title="No retired items" description="No branch-level Stock Count retirements match this filter." /> : null}</div></div> : <div className="sb-list-content-card overflow-hidden">
           <DataGridHint text="Pro-tip: Double-click any row to open the item." />
           <Table mobileHidden aria-label="Items" stickyColumn="second">
             <TableHeader>
@@ -98,7 +102,7 @@ export default async function ItemsPage({
             {!itemsPage.rows.length ? <EmptyState title={filtered ? "No records match these filters" : "No items yet"} description={filtered ? "Clear the filters or widen the search." : "Items appear here after they are created or imported."} action={filtered ? { href: "/items", label: "Clear filters" } : undefined} /> : null}
           </OperationalList>
           <PaginationControls page={itemsPage.page} totalPages={itemsPage.totalPages} totalRows={itemsPage.totalRows} searchParams={filters} />
-          </div>
+          </div>}
         </div>
       </WorkspaceGrid>
     </>

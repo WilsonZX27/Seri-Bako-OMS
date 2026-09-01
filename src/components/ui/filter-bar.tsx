@@ -47,6 +47,10 @@ export function FilterBarMore({
   const [open, setOpen] = useState(false);
   const [panelStyle, setPanelStyle] = useState<CSSProperties>();
   const positionPanel = () => {
+    if (window.innerWidth < 1280) {
+      setPanelStyle(undefined);
+      return;
+    }
     const anchor = summaryRef.current?.getBoundingClientRect();
     if (!anchor) return;
     const width = Math.min(360, Math.max(280, window.innerWidth - 24));

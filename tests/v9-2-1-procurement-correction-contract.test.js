@@ -35,7 +35,8 @@ test("purchase request actions separate reviewer decisions from requester and Ow
   assert.match(prDetail, /canRequesterWithdraw[\s\S]*profile\?\.id === request\.requested_by/);
   assert.match(prDetail, /canOwnerRecoverWithdraw[\s\S]*profile\?\.id !== request\.requested_by/);
   assert.match(prDetail, /label="Return for correction"/);
-  assert.match(prDetail, /DocumentActionSection moreOptions=\{administrativeControls\} collapseMoreOptions/);
+  assert.match(prDetail, /DocumentActionSection moreOptions=\{administrativeControls\}/);
+  assert.match(prDetail, /showOwnerRecoveryWithdraw = canOwnerRecoverWithdraw && !canManagerReview/);
   assert.match(prDetail, /DocumentSideSection title="Request controls"/);
   assert.doesNotMatch(prDetail, /canRequesterWithdraw[\s\S]{0,200}\|\| isOwner/);
 });

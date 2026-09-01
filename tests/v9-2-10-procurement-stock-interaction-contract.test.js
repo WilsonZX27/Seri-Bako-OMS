@@ -23,6 +23,16 @@ test("PR matching is dialog based and constrained to the canonical supplier rout
   assert.doesNotMatch(migration, /mapped_supplier_id/);
 });
 
+test("PR matching accepts the same Item Master fallback that the UI offers", () => {
+  const migration = read("supabase", "migrations", "236_align_pr_item_match_with_master_supplier_fallback.sql");
+
+  assert.match(migration, /item\.supplier_id=canonical_supplier_id/);
+  assert.match(migration, /coalesce\(item\.purchase_unit,item\.base_unit\)/);
+  assert.match(migration, /not exists \([\s\S]*from public\.branch_supplier_items bsi/);
+  assert.match(migration, /select item\.cost into mapped_unit_cost/);
+  assert.match(migration, /if not found then[\s\S]*raise exception 'The selected item is not mapped/);
+});
+
 test("Stock Count line controls align UOMs and confirm destructive removal", () => {
   const form = read("src", "components", "stock-count-form.tsx");
   const recovery = read("src", "components", "stock-count-line-recovery.tsx");

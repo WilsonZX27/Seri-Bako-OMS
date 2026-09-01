@@ -90,6 +90,12 @@ export function formatActionError(error: unknown, fallback = "Something went wro
   if (normalized.includes("pr_branch_invalid")) {
     return "The request branch is no longer available in this company.";
   }
+  if (normalized.includes("pr supplier is not uniquely defined")) {
+    return "This PR does not have one confirmed supplier. Correct the PR supplier before matching items.";
+  }
+  if (normalized.includes("not mapped to this pr supplier, branch, and requested uom")) {
+    return "This item is not mapped to the PR supplier, branch, and requested UOM. Correct the Supplier Item mapping, then try again.";
+  }
   if (normalized.includes("qty_sent_missing")) {
     const safeMessage = message.replace(/^qty_sent_missing:\s*/i, "").trim();
     if (safeMessage.length <= 220 && !/(supabase|postgres|constraint|sqlstate|violates)/i.test(safeMessage)) return safeMessage;

@@ -1423,3 +1423,11 @@ Deployment evidence (25 August 2026): `main` and `codex/uiux-round2` resolved to
 - Procurement: PR and Dashboard information order aligned; correction dialog progressively reveals fields; PO `Ready to Send`; compact permanent-delete confirmation; wider movement type.
 - Outlet Daily: user-facing completeness status, compact Reason/Comment composition, distinctive Today badge, aligned summary hierarchy, and an actor/time/before-after Activity rail.
 - Evidence boundary: source implementation and local gates are reported separately from migration application, authenticated role/viewport UAT, deployment, and production verification.
+
+## 2026-09-01 PR matching, Stock Count and attachment closure — v9.2.10
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| PR matching shows one compact dialog action and only the canonical supplier's branch/UOM items. | implemented / awaiting authenticated UAT | UI filtering and migration 233 enforce the same supplier boundary; PR/AUG26/039 mutation UAT requires the migration in the target environment. |
+| Stock Count steppers align, destructive line actions confirm, and negative starting balances can post. | implemented / awaiting authenticated UAT | Focused contracts, typecheck and lint pass. SC/SEP26/001 and the reported remove revision require read-only/mutation verification against the target environment. |
+| Attachments require a business label and People email casing is truthful. | implemented / awaiting responsive UAT | Client/server label validation and email-specific display formatting are covered by source contracts; four-viewport runtime evidence remains open. |

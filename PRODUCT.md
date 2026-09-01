@@ -1,5 +1,15 @@
 # Seri Bako Operations Management System
 
+### v9.2.10 (unreleased) — Supplier-locked matching and confirmed count actions
+
+Purchasing Review now matches each non-catalog PR line through a focused dialog that shows the request description, quantity, UOM and canonical PR supplier. Candidate items are limited to the same branch, supplier and requested UOM. Migration 233 preserves the existing RPC signature while enforcing the same boundary under a row lock, recovering a legacy PR supplier only when its existing lines identify exactly one supplier.
+
+Stock Count quantity controls reserve one consistent UOM column, and Replace, Remove and Retire use a complete icon and confirmation vocabulary. Removing a line requires explicit confirmation and states that Item Master and inventory history remain unchanged. Negative ledger starting balances remain valid while physical counts remain non-negative; validation identifies the affected item instead of collapsing to a generic required-fields error.
+
+Document attachments require a recognisable business label at both client and server boundaries. People Profile email display is lower-cased without applying title-case styling to an address. These changes are implemented and locally contract/type/lint verified; migration 233, authenticated mutation UAT, Preview deployment and Production verification remain separate gates.
+
+Repository migrations reviewed through `233`; migrations 229–233 remain unapplied Preview dependencies until the target environment is explicitly released.
+
 ### v9.2.9 (unreleased) — Workflow retry and session recovery
 
 The Stock Balance PR basket now consumes its submitted idempotency key and deterministically derives one key per sourcing group. A double tap, network retry or retry after a partial multi-group interruption reuses the matching draft PR instead of silently creating duplicates. All groups still receive full item, branch and sourcing preflight validation before the first write.

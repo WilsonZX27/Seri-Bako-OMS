@@ -554,8 +554,8 @@ export function StockCountForm({
                             <button type="button" role="menuitem" className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-left text-xs font-medium hover:bg-[var(--sb-surface-muted)]" onClick={() => continueInSavedDraft("replace", line.item_id)}><RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />Replace item</button>
                             <button type="button" role="menuitem" className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-left text-xs font-medium text-[var(--sb-danger)] hover:bg-[var(--sb-danger-bg)]" onClick={() => continueInSavedDraft("remove", line.item_id)}><Trash2 className="h-3.5 w-3.5" aria-hidden="true" />Remove from this count</button>
                           </>}
-                          <button ref={retirementTriggerRef} type="button" role="menuitem" className="flex w-full items-center rounded-sm px-3 py-2 text-left text-xs font-medium hover:bg-[var(--sb-surface-muted)]" onClick={() => line.retireAfterCount ? cancelRetirement(line.item_id) : openRetirement(line)}>
-                            {line.retireAfterCount ? "Keep active" : "Retire after this count"}
+                          <button ref={retirementTriggerRef} type="button" role="menuitem" className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-left text-xs font-medium hover:bg-[var(--sb-surface-muted)]" onClick={() => line.retireAfterCount ? cancelRetirement(line.item_id) : openRetirement(line)}>
+                            <Archive className="h-3.5 w-3.5" aria-hidden="true" />{line.retireAfterCount ? "Keep active" : "Retire after this count"}
                           </button>
                         </TableActionMenuPortal>
                       </div>
@@ -571,7 +571,7 @@ export function StockCountForm({
                       {hasPhysical ? <><span className="block whitespace-nowrap">{variance > 0 ? "+" : ""}{formatQuantity(variance)}</span><span className="block text-[10px] font-normal">{formatVariancePercent(percent)}</span></> : <span className="font-normal">—</span>}
                     </div>
 
-                    <div className="order-3 col-span-2 flex min-w-0 items-center justify-end gap-1 sm:gap-2 lg:col-span-1 lg:justify-self-stretch">
+                    <div className="order-3 col-span-2 grid min-w-0 grid-cols-[minmax(0,1fr)_3.5rem] items-center gap-2 lg:col-span-1 lg:justify-self-stretch">
                         <div className="flex min-w-0 flex-1 overflow-hidden rounded-sm border border-[var(--sb-border)] bg-[var(--sb-surface)]">
                           <button type="button" className="flex h-10 w-10 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, -1)} aria-label={`Decrease physical quantity for ${line.item_name}`}><Minus className="h-4 w-4" /></button>
                         <Input
@@ -592,7 +592,7 @@ export function StockCountForm({
                         />
                           <button type="button" className="flex h-10 w-10 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, 1)} aria-label={`Increase physical quantity for ${line.item_name}`}><Plus className="h-4 w-4" /></button>
                         </div>
-                      <span className="shrink-0 text-[11px] text-muted-foreground">{line.uom}</span>
+                      <span className="truncate text-left text-[11px] text-muted-foreground" title={line.uom}>{line.uom}</span>
                       {validationAttempted && !hasPhysical ? <span id={`physical-error-${line.item_id}`} className="sr-only">Physical count required</span> : null}
                     </div>
 

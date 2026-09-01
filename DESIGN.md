@@ -1,5 +1,12 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.10 (unreleased) — Familiar dialogs and exact operational boundaries
+
+- PR matching is a discrete Purchasing task, not an inline table form. A compact icon action opens the shared centered modal, restates the requested line and supplier, and exposes only branch/supplier/UOM-valid Item Master candidates.
+- Stock Count controls reserve a fixed 3.5rem UOM suffix track so steppers align across short and long units. Replace, Remove and Retire have distinct familiar icons; destructive removal requires a confirmation state before submission.
+- Attachment filenames do not substitute for business meaning. The label is required, bounded and saved as the visible document name; the selected local filename remains supporting context only.
+- Email addresses are identity strings, not prose. They display lower-case and never inherit generic title-case styling.
+
 ## v9.2.9 (unreleased) — Recovery stays in context
 
 - Shared application chrome resolves authentication and active profile state before tenant permission reads. An expired or detached session must redirect to recovery rather than replacing every workspace with a generic server-render error.

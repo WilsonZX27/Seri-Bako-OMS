@@ -182,6 +182,16 @@ export default async function PurchaseRequestDetailPage({
   const addLineItems = (items ?? []).filter((item) => addLineItemIds.has(item.id)).sort((left, right) => left.item_code.localeCompare(right.item_code, undefined, { numeric: true, sensitivity: "base" }));
   const recoveryItems = (items ?? []).filter((item) => addLineItemIds.has(item.id) || lines.some((line) => line.item_id === item.id));
   const addLineSuppliers = (suppliers ?? []).filter((supplier) => supplier.id === canonicalSupplierId);
+  const canonicalSupplierName = canonicalSupplierId ? supplierById.get(canonicalSupplierId)?.name ?? "Selected PR supplier" : "PR supplier unavailable";
+  const matchingItemsFor = (requestedUom: string) => {
+    if (!canonicalSupplierId || !request.branch_id) return [];
+    const normalizedUom = requestedUom.trim().toUpperCase();
+    const eligibleIds = new Set((supplierMappings ?? []).filter((mapping) => mapping.branch_id === request.branch_id && mapping.supplier_id === canonicalSupplierId && mapping.purchase_uom.trim().toUpperCase() === normalizedUom).map((mapping) => mapping.item_id));
+    return (items ?? []).filter((item) => eligibleIds.has(item.id));
+  };
+  const supplierSetupHref = canonicalSupplierId
+    ? `/supplier-items/new?supplierId=${canonicalSupplierId}&branchId=${request.branch_id ?? ""}`
+    : "/supplier-items";
   const canConvert = request.status === "ready_to_convert" && permissions["pr.convert_to_po"];
   const canReject =
     (request.status === "manager_review" && (roleCode === "manager" || isOwner) && (permissions["pr.manager_approve"] || permissions["pr.reject"])) ||
@@ -421,7 +431,7 @@ export default async function PurchaseRequestDetailPage({
                           <TableCell><span className="text-muted-foreground">Available after item match</span></TableCell>
                           {canViewCommercial ? <TableCell className="text-right">—</TableCell> : null}
                           <TableCell>{line.remarks ?? "-"}</TableCell>
-                          {canRepairReviewLines ? <TableCell>{canAdminReview && items ? <PurchaseRequestLineResolutionForm action={resolvePurchaseRequestUnresolvedLine.bind(null, request.id)} items={items} unresolvedLineId={line.id} description={line.requested_description} compact /> : null}</TableCell> : null}
+                          {canRepairReviewLines ? <TableCell>{canAdminReview && items ? <PurchaseRequestLineResolutionForm action={resolvePurchaseRequestUnresolvedLine.bind(null, request.id)} items={matchingItemsFor(line.requested_uom)} unresolvedLineId={line.id} description={line.requested_description} quantity={formatNumber(line.requested_qty)} uom={line.requested_uom} supplierName={canonicalSupplierName} supplierSetupHref={supplierSetupHref} /> : null}</TableCell> : null}
                         </TableRow>)}
                       </TableBody>
                   </Table>
@@ -438,7 +448,7 @@ export default async function PurchaseRequestDetailPage({
                         {line.reason ? <p className="mt-1 break-words text-[12px] text-muted-foreground">{line.reason}</p> : null}
                       </div>;
                     })}
-                    {unresolvedLines.map((line, index) => <div key={line.id} role="listitem" className="min-w-0 py-3 text-[13px]"><div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="text-[11px] font-semibold tabular-nums text-muted-foreground">Item {lines.length + index + 1}</p><p className="break-words font-semibold">{line.requested_description}</p><p className="text-[12px] font-medium text-[var(--sb-danger)]">Non-catalog item · Purchasing match required</p></div><p className="shrink-0 font-semibold">{formatNumber(line.requested_qty)} {line.requested_uom}</p></div>{line.remarks ? <p className="mt-1 text-[12px] text-muted-foreground">{line.remarks}</p> : null}{canAdminReview && items ? <div className="mt-2"><PurchaseRequestLineResolutionForm action={resolvePurchaseRequestUnresolvedLine.bind(null, request.id)} items={items} unresolvedLineId={line.id} description={line.requested_description} /></div> : null}</div>)}
+                    {unresolvedLines.map((line, index) => <div key={line.id} role="listitem" className="min-w-0 py-3 text-[13px]"><div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="text-[11px] font-semibold tabular-nums text-muted-foreground">Item {lines.length + index + 1}</p><p className="break-words font-semibold">{line.requested_description}</p><p className="text-[12px] font-medium text-[var(--sb-danger)]">Non-catalog item · Purchasing match required</p></div><p className="shrink-0 font-semibold">{formatNumber(line.requested_qty)} {line.requested_uom}</p></div>{line.remarks ? <p className="mt-1 text-[12px] text-muted-foreground">{line.remarks}</p> : null}{canAdminReview && items ? <div className="mt-2"><PurchaseRequestLineResolutionForm action={resolvePurchaseRequestUnresolvedLine.bind(null, request.id)} items={matchingItemsFor(line.requested_uom)} unresolvedLineId={line.id} description={line.requested_description} quantity={formatNumber(line.requested_qty)} uom={line.requested_uom} supplierName={canonicalSupplierName} supplierSetupHref={supplierSetupHref} /></div> : null}</div>)}
                   </div>
                   {canRepairReviewLines && canonicalSupplierId && items && suppliers && supplierMappings ? <div className="mt-3"><AddPurchaseRequestLineDialog action={addPurchaseRequestLineDuringReview.bind(null, request.id)} items={addLineItems} suppliers={addLineSuppliers} canViewCommercial={canViewCommercial} /></div> : null}
                 </>

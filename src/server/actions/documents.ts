@@ -91,8 +91,8 @@ export async function addDocumentAttachment(
     if (!parsedDocumentId.success) throw new Error("This document reference is invalid.");
     const profile = await currentIdentity();
     if (!profile?.company_id || !profile.id) throw new Error("An active staff profile is required.");
-    const attachmentLabel = cleanText(formData.get("file_name"));
-    const fileName = attachmentLabel ?? uploadedFile.name;
+    const attachmentLabel = z.string().trim().min(3, "Name this attachment before uploading.").max(180, "Attachment name is too long.").parse(formData.get("file_name"));
+    const fileName = attachmentLabel;
 
     if (!isMockMode()) {
       const supabase = await createClient();

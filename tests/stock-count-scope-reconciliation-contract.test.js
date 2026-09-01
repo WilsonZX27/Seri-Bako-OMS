@@ -8,6 +8,7 @@ const detail = fs.readFileSync("src/app/(app)/stock-counts/[id]/page.tsx", "utf8
 const scopeUi = fs.readFileSync("src/components/stock-count-scope-actions.tsx", "utf8");
 const lineRecovery = fs.readFileSync("src/components/stock-count-line-recovery.tsx", "utf8");
 const snapshotAuthority = fs.readFileSync("supabase/migrations/237_stock_count_snapshot_posting_authority.sql", "utf8");
+const enforcedSnapshotAuthority = fs.readFileSync("supabase/migrations/238_enforce_stock_count_snapshot_posting_patch.sql", "utf8");
 
 test("posting-time inventory movement is reconciled without replacing Kitchen physical count", () => {
   assert.match(migration, /stock_count_reconciliations/);
@@ -46,6 +47,15 @@ test("PR line writes are guarded by the canonical request supplier", () => {
   assert.match(migration, /guard_purchase_request_line_supplier/);
   assert.match(migration, /canonical<>new\.suggested_supplier_id/);
   assert.match(migration, /This PR already belongs to another supplier/);
+});
+
+test("snapshot posting patch fails closed when Production function formatting differs", () => {
+  assert.match(enforcedSnapshotAuthority, /regexp_replace/);
+  assert.match(enforcedSnapshotAuthority, /Could not patch draft Item status guard/);
+  assert.match(enforcedSnapshotAuthority, /Could not patch draft UOM snapshot guard/);
+  assert.match(enforcedSnapshotAuthority, /Could not patch posting Item status guard/);
+  assert.match(enforcedSnapshotAuthority, /Could not patch negative snapshot guard/);
+  assert.match(enforcedSnapshotAuthority, /Could not patch posting UOM snapshot guard/);
 });
 
 test("saved Stock Count snapshots remain postable after Item Master lifecycle changes", () => {

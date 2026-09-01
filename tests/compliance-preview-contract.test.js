@@ -66,7 +66,9 @@ test("People profile exposes authorised employment editing and staff document ca
   const people = read("src","app","(app)","people","[id]","page.tsx");
   const action = read("src","server","actions","compliance.ts");
   assert.match(people, /Edit employment & outlets/);
-  assert.match(people, /Add compliance record & file/);
+  assert.match(people, /Compliance summary/);
+  assert.match(people, /Add compliance record/);
+  assert.match(people, /Add employee document/);
   assert.match(people, /Save record & file/);
   assert.match(people, /people\.compliance\.document\.read/);
   assert.match(people, /text-\[10px\][^>]*>Additional outlets/);

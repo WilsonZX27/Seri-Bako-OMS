@@ -11,7 +11,7 @@ test("procurement lists expose source and downstream fulfilment", () => {
   const prList = read("src/app/(app)/purchase-requests/page.tsx");
   assert.match(query, /purchase_request_id, status/);
   assert.match(query, /furthestPurchaseOrderStatus/);
-  assert.match(poList, /Source PR/);
+  assert.match(poList, /From \{order\.request_no\}/);
   assert.match(poList, /purchase-requests\/\$\{order\.purchase_request_id\}/);
   assert.match(prList, /request\.procurement_status/);
 });

@@ -1,5 +1,11 @@
 # Seri Bako Operations Management System
 
+### v9.2.11 (unreleased) — People records and procurement table hierarchy
+
+Employee Compliance now separates the status Summary from the Add compliance record form as two sibling work cards. The Documents tab gives authorised People Operations users a visible Add employee document form rather than ending at a read-only empty state. Email presentation preserves identity semantics and displays a normalized lowercase value without mutating the account identity.
+
+Purchase Order and Goods Receiving tables place clickable source provenance beneath the primary document number, return the released column width to supplier identity, and use a stable top-aligned two-line row rhythm.
+
 ### v9.2.10 (unreleased) — Supplier-locked matching and confirmed count actions
 
 Purchasing Review now matches each non-catalog PR line through a focused dialog that shows the request description, quantity, UOM and canonical PR supplier. Candidate items are limited to the same branch, supplier and requested UOM. Migration 233 preserves the existing RPC signature while enforcing the same boundary under a row lock, recovering a legacy PR supplier only when its existing lines identify exactly one supplier.

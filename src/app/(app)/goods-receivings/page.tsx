@@ -88,8 +88,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                 <TableRow>
                   <TableHead className="w-10 text-center">Action</TableHead>
                   <SortableHead label="GRN No" column="grn_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <TableHead>PO</TableHead>
-                  <TableHead>Supplier</TableHead>
+                  <TableHead className="w-52">Supplier</TableHead>
                   <SortableHead label="Received" column="received_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>Branch</TableHead>
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -99,11 +98,10 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
               </TableHeader>
               <TableBody>
                 {receivings?.rows.map((receiving) => (
-                  <DataGridRow key={receiving.id} href={`/goods-receivings/${receiving.id}`}>
+                  <DataGridRow key={receiving.id} href={`/goods-receivings/${receiving.id}`} className="[&>td]:h-16 [&>td]:align-top">
                     <TableCell className="w-10 p-0 text-center"><TableActionLink href={`/goods-receivings/${receiving.id}`} label={`Open ${receiving.grn_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
-                    <TableCell><DocumentNumber value={receiving.grn_no} size="sm" /></TableCell>
-                    <TableCell>{receiving.po_no ?? "-"}</TableCell>
-                    <TableCell>{receiving.supplier_name ?? "-"}</TableCell>
+                    <TableCell><DocumentNumber value={receiving.grn_no} size="sm" /><span className="mt-1 block text-[10px] italic text-muted-foreground">{receiving.purchase_order_id && receiving.po_no ? <Link href={`/purchase-orders/${receiving.purchase_order_id}`} className="text-[var(--sb-link)] underline-offset-4 hover:underline">From {receiving.po_no}</Link> : "No linked PO"}</span></TableCell>
+                    <TableCell className="w-52 max-w-52"><span className="line-clamp-2 leading-4">{receiving.supplier_name ?? "-"}</span></TableCell>
                     <TableCell>{formatDateOnly(receiving.received_date)}</TableCell>
                     <TableCell>{receiving.branch_name ?? "-"}</TableCell>
                     <TableCell><StatusBadge status={receiving.status} /></TableCell>
@@ -111,7 +109,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                     <TableCell className="text-right">{formatNumber(receiving.rejected_total)}</TableCell>
                   </DataGridRow>
                 ))}
-                {!receivings?.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title={!receivings ? "Goods receiving data unavailable" : filtered ? "No receivings match these filters" : "No goods receivings yet"} description={!receivings ? "The receiving source could not be verified. No quantities or record count are shown as zero." : filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={emptyStateAction} /></TableCell></TableRow> : null}
+                {!receivings?.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={!receivings ? "Goods receiving data unavailable" : filtered ? "No receivings match these filters" : "No goods receivings yet"} description={!receivings ? "The receiving source could not be verified. No quantities or record count are shown as zero." : filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={emptyStateAction} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Goods receiving records">

@@ -1431,3 +1431,12 @@ Deployment evidence (25 August 2026): `main` and `codex/uiux-round2` resolved to
 | PR matching shows one compact dialog action and only the canonical supplier's branch/UOM items. | implemented / awaiting authenticated UAT | UI filtering and migration 233 enforce the same supplier boundary; PR/AUG26/039 mutation UAT requires the migration in the target environment. |
 | Stock Count steppers align, destructive line actions confirm, and negative starting balances can post. | implemented / awaiting authenticated UAT | Focused contracts, typecheck and lint pass. SC/SEP26/001 and the reported remove revision require read-only/mutation verification against the target environment. |
 | Attachments require a business label and People email casing is truthful. | implemented / awaiting responsive UAT | Client/server label validation and email-specific display formatting are covered by source contracts; four-viewport runtime evidence remains open. |
+
+## 2026-09-01 People cards and procurement table hierarchy — v9.2.11
+
+| Annotation | Status | Evidence / remaining gate |
+|---|---|---|
+| Employee email must not display as title-cased prose. | implemented / locally verified | The email-specific lower-case presentation remains covered by the People layout contract; target Preview rendering remains open. |
+| Compliance Summary and Add compliance record must be separate cards. | implemented / locally verified | The disclosure was removed and the two tasks now use sibling `ProfileSection` surfaces. |
+| Documents needs a visible upload path for authorised roles. | implemented / locally verified | The Documents tab now renders an Add employee document card backed by the existing permission-checked compliance upload action. |
+| PO and GRN rows should not be uneven or vertically centered; source provenance should sit beneath the main number. | implemented / locally verified | Both desktop tables use a stable top-aligned 64px row, two-line supplier clamp, and clickable italic source link below PO/GRN identity. Four-viewport Preview UAT remains open. |

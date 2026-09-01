@@ -1,5 +1,11 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.11 (unreleased) — Sibling work cards and nested document provenance
+
+- Summary and creation tasks are separate sibling cards. Forms are not hidden inside a summary disclosure, and authorised document surfaces always provide a visible upload path.
+- Dense procurement tables place source provenance as a small italic link beneath the primary document number, returning column width to supplier identity.
+- Operational table rows use a stable 64px height, top-aligned cells, and a two-line supplier clamp so mixed supplier-name lengths do not create awkward middle alignment.
+
 ## v9.2.10 (unreleased) — Familiar dialogs and exact operational boundaries
 
 - PR matching is a discrete Purchasing task, not an inline table form. A compact icon action opens the shared centered modal, restates the requested line and supplier, and exposes only branch/supplier/UOM-valid Item Master candidates.

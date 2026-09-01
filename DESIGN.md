@@ -1,5 +1,10 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.12 (unreleased) — Role-specific terminal landing
+
+- People Operations enters the Employees workspace after authentication. Dashboard remains permitted, but it is not the role's primary task landing.
+- A successful authentication must always resolve to at least one permitted operational route; a newly introduced role ships with an idempotent database permission repair and a finite-route contract.
+
 ## v9.2.11 (unreleased) — Sibling work cards and nested document provenance
 
 - Summary and creation tasks are separate sibling cards. Forms are not hidden inside a summary disclosure, and authorised document surfaces always provide a visible upload path.

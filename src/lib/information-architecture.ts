@@ -37,12 +37,12 @@ const BRANCH_READERS: readonly UserRole[] = ["super_admin", "people_operations",
 const SEQUENCE_MANAGERS: readonly UserRole[] = ["super_admin", "finance"];
 
 export const informationArchitecture: readonly IaItem[] = [
-  { href: "/dashboard", label: "Dashboard", group: "operations", icon: "gauge", roles: ALL, permission: "dashboard.view", defaultFor: ALL, keywords: ["home", "alerts", "approvals"] },
+  { href: "/dashboard", label: "Dashboard", group: "operations", icon: "gauge", roles: ALL, permission: "dashboard.view", defaultFor: ["super_admin","finance","manager","purchasing","kitchen","outlet_staff"], keywords: ["home", "alerts", "approvals"] },
   { href: "/production/jobs", label: "Production Jobs", group: "operations", icon: "factory", roles: PRODUCTION, permission: "production.view" },
   { href: "/outlet-daily-records", label: "Outlet Daily Records", group: "outlet_management", icon: "clipboard", roles: ALL, permission: "outlet_daily_record.view" },
   { href: "/outlet-compliance", label: "Outlet Compliance", group: "outlet_management", icon: "check", roles: ["super_admin","people_operations","manager","kitchen","outlet_staff"], permission: "outlet_compliance.read", attention: true, keywords: ["bomba", "permit", "expiry", "inspection"] },
   { href: "/outlet-calendar", label: "Outlet Calendar", group: "outlet_management", icon: "calendar", roles: ["super_admin","people_operations","manager","kitchen","outlet_staff"], permission: "outlet_compliance.read" },
-  { href: "/people", label: "Employees", group: "people", icon: "users", roles: ["super_admin","people_operations","manager"], permission: "people.read" },
+  { href: "/people", label: "Employees", group: "people", icon: "users", roles: ["super_admin","people_operations","manager"], permission: "people.read", defaultFor: ["people_operations"] },
 
   { href: "/purchase-requests", label: "Purchase Requests", group: "procurement", icon: "request", roles: PROCUREMENT, permission: "purchase_request.read", attention: true },
   { href: "/purchase-orders", label: "Purchase Orders", group: "procurement", icon: "shopping", roles: PROCUREMENT, permission: "purchase_order.read" },

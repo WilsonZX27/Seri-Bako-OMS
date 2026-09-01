@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v9.2.12 (unreleased) — People Operations workspace access
+
+People Operations authentication now resolves to Employees as its preferred workspace. Migration 234 idempotently restores the canonical role for every company and grants its Dashboard, People, compliance, staff, branch and document workspace permissions, preventing a valid People Operations account from terminating at `no-permitted-route`.
+
 ### v9.2.11 (unreleased) — People records and procurement table hierarchy
 
 Employee Compliance now separates the status Summary from the Add compliance record form as two sibling work cards. The Documents tab gives authorised People Operations users a visible Add employee document form rather than ending at a read-only empty state. Email presentation preserves identity semantics and displays a normalized lowercase value without mutating the account identity.
@@ -14,7 +18,7 @@ Stock Count quantity controls reserve one consistent UOM column, and Replace, Re
 
 Document attachments require a recognisable business label at both client and server boundaries. People Profile email display is lower-cased without applying title-case styling to an address. These changes are implemented and locally contract/type/lint verified; migration 233, authenticated mutation UAT, Preview deployment and Production verification remain separate gates.
 
-Repository migrations reviewed through `233`; migrations 229–233 remain unapplied Preview dependencies until the target environment is explicitly released.
+Repository migrations reviewed through `234`; migrations 229–234 remain unapplied Preview dependencies until the target environment is explicitly released.
 
 ### v9.2.9 (unreleased) — Workflow retry and session recovery
 

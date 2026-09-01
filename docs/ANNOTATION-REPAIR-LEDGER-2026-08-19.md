@@ -1440,3 +1440,9 @@ Deployment evidence (25 August 2026): `main` and `codex/uiux-round2` resolved to
 | Compliance Summary and Add compliance record must be separate cards. | implemented / locally verified | The disclosure was removed and the two tasks now use sibling `ProfileSection` surfaces. |
 | Documents needs a visible upload path for authorised roles. | implemented / locally verified | The Documents tab now renders an Add employee document card backed by the existing permission-checked compliance upload action. |
 | PO and GRN rows should not be uneven or vertically centered; source provenance should sit beneath the main number. | implemented / locally verified | Both desktop tables use a stable top-aligned 64px row, two-line supplier clamp, and clickable italic source link below PO/GRN identity. Four-viewport Preview UAT remains open. |
+
+## 2026-09-01 People Operations login access — v9.2.12
+
+| Acceptance | Status | Evidence / remaining gate |
+|---|---|---|
+| A valid People Operations account reaches a permitted operational workspace after authentication. | implemented / awaiting migration and authenticated UAT | Employees is now the preferred landing and migration 234 repairs the role plus its Dashboard, People, compliance, staff, branch and document grants. Production shown in the report remains v9.2.9; migrations 229 and 234 plus the application release must be applied before Production can be called fixed. |

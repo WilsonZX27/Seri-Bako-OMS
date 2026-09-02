@@ -11,6 +11,7 @@ export const roleDescriptions = {
   manager: "Company-wide operational approver; branch assignment supplies default context only.",
   purchasing: "Company-wide purchasing and master-data operator.",
   kitchen: "Central Kitchen operator for assigned branches.",
+  outlet_supervisor: "Outlet operator who prepares rosters and reviews pure swaps for assigned outlets.",
   outlet_staff: "Outlet worker who confirms received quantities and records wastage for assigned outlets.",
 } as const;
 
@@ -198,6 +199,7 @@ export const rolePermissionMatrix = {
     "branches.read",
   ],
   outlet_staff: ["dashboard.view", "outlet_daily_record.view", "outlet_daily_record.create", "outlet_daily_record.update", "outlet_compliance.read", "outlet_compliance.upload"],
+  outlet_supervisor: ["dashboard.view", "outlet_daily_record.view", "outlet_daily_record.create", "outlet_daily_record.update", "outlet_compliance.read", "outlet_compliance.upload", "schedule.read", "schedule.draft", "schedule.submit", "schedule.request", "schedule.swap_review", "attendance.read", "attendance.review"],
   kitchen: [
     "dashboard.view",
     "inventory.read",

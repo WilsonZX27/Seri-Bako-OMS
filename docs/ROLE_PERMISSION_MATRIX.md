@@ -1,5 +1,17 @@
 # Fixed role, route, and Branch / Outlet matrix
 
+## Attendance additions (v9.2.15)
+
+| Role | Schedule | Attendance |
+| --- | --- | --- |
+| Owner | All scopes; reasoned unlock | Import, review, adjust, export, lock and reasoned unlock |
+| People Operations | Read/history only; cannot approve | Organisation-wide mapping, import, review, adjust, export and lock |
+| Manager | Read and decide within authorised scope | Read/export/reconcile within authorised scope |
+| Outlet Supervisor | Draft/submit assigned outlets; pure-swap review; no self-approval | Assigned-outlet exception review |
+| Outlet Staff | Own published schedule and requests | Own attendance only |
+
+All boundaries are enforced by capability checks and RLS; navigation visibility is not an authorisation boundary.
+
 v9.2.2 keeps seven system-controlled roles. The database is authoritative; this is the sanitized product-level operating matrix.
 
 | Role | Scope | Staff / Users | Document Sequences | Imports | Branches / Outlets | Protected system controls |

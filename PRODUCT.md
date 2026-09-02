@@ -1,5 +1,11 @@
 # Seri Bako Operations Management System
 
+### v9.2.15 (unreleased) — Dynamic Scheduling and NGTeco Attendance
+
+People Operations gains Monday–Sunday outlet rosters, Manager publication, staff shift requests, a branch-scoped Outlet Supervisor role, immutable NGTeco punch imports, exact-second OMS attendance calculation, exception review, reconciliation-only Attendance Report uploads, and protected period locks. Migrations 241–242 and authenticated role/responsive UAT remain separate release gates; nothing is deployed by this local implementation.
+
+Repository migrations reviewed through `242`; migrations 241–242 are implemented locally and remain unapplied until separately authorised for a target environment.
+
 ### v9.2.14 (unreleased) — Receiving control and procurement clarity
 
 - Draft Goods Receivings expose editable Received and Rejected quantities before posting. A supplier over-delivery is permitted only with a retained exception reason; migration 240 applies the same rule atomically and grants Kitchen the canonical `grn.post` permission checked by the posting path.

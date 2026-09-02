@@ -26,7 +26,7 @@ export const iaGroupLabels: Record<IaGroupId, string> = {
   administration: "Administration",
 };
 
-const ALL: readonly UserRole[] = ["super_admin", "people_operations", "finance", "manager", "purchasing", "kitchen", "outlet_staff"];
+const ALL: readonly UserRole[] = ["super_admin", "people_operations", "finance", "manager", "purchasing", "kitchen", "outlet_supervisor", "outlet_staff"];
 const PROCUREMENT: readonly UserRole[] = ["super_admin", "finance", "manager", "purchasing", "kitchen"];
 const INVENTORY: readonly UserRole[] = ["super_admin", "finance", "manager", "purchasing", "kitchen"];
 const PRODUCTION: readonly UserRole[] = ["super_admin", "finance", "manager", "purchasing", "kitchen"];
@@ -43,6 +43,7 @@ export const informationArchitecture: readonly IaItem[] = [
   { href: "/outlet-compliance", label: "Outlet Compliance", group: "outlet_management", icon: "check", roles: ["super_admin","people_operations","manager","kitchen","outlet_staff"], permission: "outlet_compliance.read", attention: true, keywords: ["bomba", "permit", "expiry", "inspection"] },
   { href: "/outlet-calendar", label: "Outlet Calendar", group: "outlet_management", icon: "calendar", roles: ["super_admin","people_operations","manager","kitchen","outlet_staff"], permission: "outlet_compliance.read" },
   { href: "/people", label: "Employees", group: "people", icon: "users", roles: ["super_admin","people_operations","manager"], permission: "people.read", defaultFor: ["people_operations"] },
+  { href: "/attendance", label: "Attendance", group: "people", icon: "calendar", roles: ["super_admin","people_operations","manager","outlet_supervisor","outlet_staff"], permission: "attendance.read", attention: true, keywords: ["roster", "shift", "punch", "NGTeco"] },
 
   { href: "/purchase-requests", label: "Purchase Requests", group: "procurement", icon: "request", roles: PROCUREMENT, permission: "purchase_request.read", attention: true },
   { href: "/purchase-orders", label: "Purchase Orders", group: "procurement", icon: "shopping", roles: PROCUREMENT, permission: "purchase_order.read" },
@@ -68,7 +69,7 @@ export const informationArchitecture: readonly IaItem[] = [
 
   { href: "/company", label: "Company Profile", group: "administration", icon: "building", roles: OWNER, permission: "company.read", administrationCard: "Maintain legal identity, contact details, logo, and branding." },
   { href: "/branches", label: "Branches / Outlets", group: "administration", icon: "building", roles: BRANCH_READERS, permission: "branches.read", administrationCard: "Review operating branches and outlet structure." },
-  { href: "/roles", label: "Roles & Permissions", group: "administration", icon: "userCog", roles: OWNER, permission: "roles.read", administrationCard: "Review the seven fixed system roles and their permissions." },
+  { href: "/roles", label: "Roles & Permissions", group: "administration", icon: "userCog", roles: OWNER, permission: "roles.read", administrationCard: "Review the eight fixed system roles and their permissions." },
   { href: "/document-sequences", label: "Document Sequences", group: "administration", icon: "receipt", roles: SEQUENCE_MANAGERS, permission: "document_sequences.read", administrationCard: "Manage controlled document numbering." },
   { href: "/administration/master-data-cleanup", label: "Master Data Cleanup", group: "administration", icon: "check", roles: MASTER_DATA, permission: "items.view", administrationCard: "Review master-data quality issues." },
   { href: "/imports", label: "Imports", group: "administration", icon: "upload", roles: MASTER_DATA, permission: "imports.create", administrationCard: "Import approved master-data templates with validation." },

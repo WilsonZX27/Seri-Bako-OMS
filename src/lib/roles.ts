@@ -1,4 +1,4 @@
-export const SYSTEM_ROLE_CODES = ["super_admin", "people_operations", "finance", "manager", "purchasing", "kitchen", "outlet_staff"] as const;
+export const SYSTEM_ROLE_CODES = ["super_admin", "people_operations", "finance", "manager", "purchasing", "kitchen", "outlet_supervisor", "outlet_staff"] as const;
 export type SystemRoleCode = (typeof SYSTEM_ROLE_CODES)[number];
 
 const COMPANY_WIDE_OPERATIONAL_ROLES: readonly SystemRoleCode[] = ["super_admin", "finance", "manager", "purchasing"];
@@ -10,6 +10,7 @@ export const roleDisplayLabels: Record<SystemRoleCode, string> = {
   manager: "Manager",
   purchasing: "Purchasing",
   kitchen: "Kitchen",
+  outlet_supervisor: "Outlet Supervisor",
   outlet_staff: "Outlet Staff",
 };
 
@@ -20,7 +21,8 @@ export const roleSortOrder: Record<string, number> = {
   manager: 3,
   purchasing: 4,
   kitchen: 5,
-  outlet_staff: 6,
+  outlet_supervisor: 6,
+  outlet_staff: 7,
 };
 
 export function getRoleDisplayLabel(roleCode?: string | null, fallback?: string | null) {

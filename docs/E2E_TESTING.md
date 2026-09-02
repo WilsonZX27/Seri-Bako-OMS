@@ -1,5 +1,9 @@
 # E2E Testing
 
+## Dynamic Scheduling and Attendance
+
+Use disposable local data and the eight-role matrix. Verify roster submission/publication, return/reject comments, own-schedule visibility, pure swap versus material escalation, immutable history, both NGTeco samples, preview-before-mutation, duplicate import, exception review, adjustment revision, period lock and Owner reasoned unlock. Responsive targets are 320, 390×844, 768, 820×1180, 1180×820 and 1440×900.
+
 Seri Bako OMS Playwright tests read `.env.test.local` automatically through `playwright.config.js`.
 
 ## Required variables

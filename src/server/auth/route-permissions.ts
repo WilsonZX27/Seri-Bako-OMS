@@ -2,6 +2,8 @@ import { informationArchitecture } from "@/lib/information-architecture";
 
 const exactRoutePermissions: Record<string, string[]> = {
   "/compliance": ["outlet_compliance.read"],
+  "/attendance/imports": ["attendance.import"],
+  "/attendance/templates": ["shift_template.manage"],
   "/activity": ["dashboard.view"],
   "/administration": ["company.read", "staffs.read", "roles.read", "items.view", "imports.create", "branches.read"],
   "/procurement": ["purchase_request.read", "purchase_order.read", "goods_receiving.read", "purchase_return.view", "supplier_invoice.view", "suppliers.view"],
@@ -47,6 +49,7 @@ const exactRouteRoles: Record<string, readonly string[]> = {
 const routePermissions: Array<{ prefixes: string[]; permissions: string[] }> = [
   ...informationArchitecture.map((item) => ({ prefixes: [item.href], permissions: [item.permission] })),
   { prefixes: ["/outlet-daily-records"], permissions: ["outlet_daily_record.view"] },
+  { prefixes: ["/attendance"], permissions: ["attendance.read"] },
   { prefixes: ["/production/jobs", "/production", "/products"], permissions: ["production.view"] },
   { prefixes: ["/recipes"], permissions: ["recipes.view"] },
   { prefixes: ["/purchase-requests"], permissions: ["purchase_request.read"] },

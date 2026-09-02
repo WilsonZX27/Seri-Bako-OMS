@@ -317,6 +317,7 @@ export async function getDashboardSummary() {
       operationsControl: null,
       productionSummary: null,
       outletToday: null,
+      upcomingShifts: [],
       recentTransactions: mockStockTransactions.slice(0, 6).map((transaction) => ({
         ...transaction,
         item: itemById.get(transaction.item_id) ?? null,
@@ -332,7 +333,7 @@ export async function getDashboardSummary() {
   const isManager = role === "manager";
   const isPurchasing = role === "purchasing";
   const isKitchen = role === "kitchen";
-  const isOutlet = role === "outlet_staff";
+  const isOutlet = role === "outlet_staff" || role === "outlet_supervisor";
   const needsProcurement = isOwner || isFinance || isManager || isPurchasing || isKitchen;
   const needsInventory = isOwner || isFinance || isManager || isPurchasing || isKitchen;
   const needsOperations = isOwner || isFinance || isManager;
@@ -341,7 +342,8 @@ export async function getDashboardSummary() {
   const supabase = await createClient();
   const db = looseSupabase(supabase);
   const empty = { data: [], error: null, count: 0 };
-  const [coreSnapshotRpcResult, pendingApprovals, notifications, recentActivities, outletToday, currentStaff, assignedBranches, payablesAttention, lowStockViewResult] = await Promise.all([
+  const nextWeek = new Date(`${today}T00:00:00Z`); nextWeek.setUTCDate(nextWeek.getUTCDate()+7);
+  const [coreSnapshotRpcResult, pendingApprovals, notifications, recentActivities, outletToday, currentStaff, assignedBranches, payablesAttention, lowStockViewResult, upcomingShifts] = await Promise.all([
     (needsProcurement || needsInventory) ? supabase.rpc("get_dashboard_core_snapshot", { p_today: today }) : Promise.resolve({ data: null, error: null }),
     getCurrentUserPendingActionSnapshot(5),
     getVisibleNotificationsForCurrentUser(),
@@ -365,6 +367,7 @@ export async function getDashboardSummary() {
     needsInventory
       ? supabase.from("stock_balances_summary").select("item_id, current_qty, safety_stock, status, is_low_stock")
       : Promise.resolve({ data: [], error: null }),
+    isOutlet && scope.staffId ? db.from("shift_assignment_revisions").select("id,work_date,assignment_kind,shift_templates(code,name,planned_start,planned_end,crosses_midnight),schedule_weeks!inner(status)").eq("staff_id",scope.staffId).eq("is_current",true).gte("work_date",today).lte("work_date",nextWeek.toISOString().slice(0,10)).in("schedule_weeks.status",["published","locked"]).order("work_date").limit(8) : Promise.resolve({data:[],error:null}),
   ]);
 
   let coreSnapshot = coreSnapshotRpcResult.data as DashboardCoreSnapshot | null;
@@ -501,6 +504,7 @@ export async function getDashboardSummary() {
       ingredientShortages: Number(coreSnapshot?.production_ingredient_shortages ?? 0),
     } : null,
     outletToday: outletToday.data ?? null,
+    upcomingShifts: upcomingShifts.error ? [] : (upcomingShifts.data ?? []) as unknown as Array<{id:string;work_date:string;assignment_kind:string;shift_templates:{code:string;name:string;planned_start:string;planned_end:string;crosses_midnight:boolean}|null}>,
   };
   return result;
 }

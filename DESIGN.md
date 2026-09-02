@@ -1,5 +1,12 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.15 (unreleased) — Attendance workspaces
+
+- Attendance landing uses Workspace Mode with one weekly identity surface, compact operational signals, import state and period lock state.
+- Schedule Planner and Attendance Review use high-density matrix/list surfaces. Sticky employee/date bands and intentional inner horizontal scrolling are allowed; page-level overflow is not.
+- Schedule cells remain compact, single-line and selectable. Blockers and warnings use distinct semantic states. Filter labels do not wrap.
+- Staff dashboard shifts reuse the existing flat divided-list hierarchy and keep request actions inside Attendance.
+
 ## v9.2.14 (unreleased) — Explicit receiving exceptions
 
 - Received and Rejected remain direct quantity inputs in both GRN creation and Draft review. Exceeding the visible PO balance uses the same warning treatment and requires a retained reason in either entry point.

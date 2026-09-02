@@ -122,7 +122,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   const isManager = role === "manager";
   const isPurchasing = role === "purchasing";
   const isKitchen = role === "kitchen";
-  const isOutlet = role === "outlet_staff";
+  const isOutlet = role === "outlet_staff" || role === "outlet_supervisor";
   const showFinance = isOwner || isFinance;
   const showOperations = isOwner || isFinance || isManager;
   const outletStatus = summary.outletToday?.status ?? null;
@@ -240,6 +240,12 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
 
         {isOutlet ? (
           <div data-dashboard-layout className="grid w-full gap-4 xl:grid-cols-2 xl:items-start">
+            <Panel title="Upcoming shifts" action={{ href: "/attendance", label: "View schedule" }}>
+              <div className="divide-y divide-[var(--sb-border-soft)]">
+                {summary.upcomingShifts.map((shift) => { const template=shift.shift_templates as {planned_start?:string;planned_end?:string;code?:string}|null; return <Link key={`${shift.work_date}-${shift.assignment_kind}`} href="/attendance" className="flex items-center justify-between gap-3 px-3 py-3 text-xs hover:bg-[var(--sb-surface-muted)]"><span><strong className="block text-sm">{shift.work_date}</strong><span className="mt-0.5 block text-muted-foreground">{template?.code??shift.assignment_kind.toUpperCase()}</span></span>{shift.assignment_kind==="shift"?<span className="font-semibold tabular-nums">{template?.planned_start?.slice(0,5)}–{template?.planned_end?.slice(0,5)}</span>:<StatusBadge status={shift.assignment_kind}/>}</Link> })}
+                {!summary.upcomingShifts.length?<p className="px-3 py-4 text-xs text-muted-foreground">No published shift is available for the next seven days.</p>:null}
+              </div>
+            </Panel>
             <Panel title="Today's completion">
               <Link
                 prefetch={false}

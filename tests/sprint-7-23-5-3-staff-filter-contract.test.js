@@ -23,13 +23,13 @@ test("Staff access uses branches directly and avoids ambiguous location embeds",
   assert.doesNotMatch(form, /Location|Branch \/ Outlet/);
 });
 
-test("one canonical seven-role catalogue feeds the Staff dropdown", () => {
+test("one canonical eight-role catalogue feeds the Staff dropdown", () => {
   const roles = read("src/lib/roles.ts");
   const queries = read("src/server/queries/foundation.ts");
   const form = read("src/components/staff-access-fields.tsx");
-  const expected = ["Super Admin / Owner", "People Operations", "Finance", "Manager", "Purchasing", "Kitchen", "Outlet Staff"];
+  const expected = ["Super Admin / Owner", "People Operations", "Finance", "Manager", "Purchasing", "Kitchen", "Outlet Supervisor", "Outlet Staff"];
 
-  assert.match(roles, /SYSTEM_ROLE_CODES = \["super_admin", "people_operations", "finance", "manager", "purchasing", "kitchen", "outlet_staff"\]/);
+  assert.match(roles, /SYSTEM_ROLE_CODES = \["super_admin", "people_operations", "finance", "manager", "purchasing", "kitchen", "outlet_supervisor", "outlet_staff"\]/);
   for (const label of expected) assert.equal((roles.match(new RegExp(`"${label.replace("/", "\\/")}"`, "g")) ?? []).length, 1, label);
   assert.match(roles, /new Map<SystemRoleCode, T>/);
   assert.match(queries, /sortRolesForDisplay/);

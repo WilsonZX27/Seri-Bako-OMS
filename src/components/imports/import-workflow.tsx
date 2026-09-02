@@ -41,7 +41,7 @@ function csvEscape(value: string) {
   return /[",\n]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value;
 }
 
-function parseCsv(text: string) {
+export function parseCsv(text: string) {
   const rows: string[][] = [];
   let current = "";
   let row: string[] = [];
@@ -82,8 +82,9 @@ function parseCsv(text: string) {
   row.push(current.trim());
   if (row.some((value) => value.length > 0)) rows.push(row);
 
-  const headers = rows[0]?.map((cell) => cell.trim()) ?? [];
-  const dataRows = rows.slice(1).map((values) => Object.fromEntries(headers.map((header, index) => [header, values[index]?.trim() ?? ""])));
+  const headerIndex = rows[0]?.filter(Boolean).length === 1 && (rows[1]?.filter(Boolean).length ?? 0) > 1 ? 1 : 0;
+  const headers = rows[headerIndex]?.map((cell) => cell.trim()) ?? [];
+  const dataRows = rows.slice(headerIndex + 1).map((values) => Object.fromEntries(headers.map((header, index) => [header, values[index]?.trim() ?? ""])));
   return { headers, dataRows };
 }
 
@@ -138,7 +139,7 @@ function textContent(xml: string) {
   return xml.replace(/<[^>]+>/g, "").replaceAll("&amp;", "&").replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&quot;", '"').replaceAll("&apos;", "'");
 }
 
-async function parseXlsx(file: File) {
+export async function parseXlsx(file: File) {
   const files = await unzipText(file);
   const shared = [...(files.get("xl/sharedStrings.xml") ?? "").matchAll(/<si[\s\S]*?<\/si>/g)].map((match) => textContent(match[0]));
   const sheet = files.get("xl/worksheets/sheet1.xml");
@@ -155,8 +156,9 @@ async function parseXlsx(file: File) {
     }
     if (row.some(Boolean)) rows.push(row);
   }
-  const headers = rows[0]?.map((cell) => String(cell ?? "").trim()) ?? [];
-  const dataRows = rows.slice(1).map((values) => Object.fromEntries(headers.map((header, index) => [header, String(values[index] ?? "").trim()])));
+  const headerIndex = rows[0]?.filter(Boolean).length === 1 && (rows[1]?.filter(Boolean).length ?? 0) > 1 ? 1 : 0;
+  const headers = rows[headerIndex]?.map((cell) => String(cell ?? "").trim()) ?? [];
+  const dataRows = rows.slice(headerIndex + 1).map((values) => Object.fromEntries(headers.map((header, index) => [header, String(values[index] ?? "").trim()])));
   return { headers, dataRows };
 }
 

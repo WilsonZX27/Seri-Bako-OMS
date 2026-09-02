@@ -8,8 +8,11 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { durationLabel } from "@/lib/attendance/calculation";
 import { getAttendanceMappings, getAttendanceReconciliation } from "@/server/queries/attendance";
+import { hasPermission } from "@/server/auth/permissions";
+import { redirect } from "next/navigation";
 
 export default async function AttendanceImportsPage() {
+  if (!(await hasPermission("attendance.import"))) redirect("/attendance");
   const [mappings, reconciliation] = await Promise.all([getAttendanceMappings(), getAttendanceReconciliation()]);
   const people = mappings.people as Array<Record<string, unknown>>;
   const devices = mappings.devices as Array<Record<string, unknown>>;

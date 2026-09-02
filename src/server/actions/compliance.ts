@@ -33,9 +33,10 @@ export async function createComplianceRecord(formData: FormData) {
   const actor = await requireActiveTenantActor();
   const parsed = schema.safeParse(Object.fromEntries(formData));
   const staffId = String(formData.get("staff_id") ?? "");
+  const branchId = String(formData.get("branch_id") ?? "");
   const returnPath = requestedKind === "staff" && z.string().uuid().safeParse(staffId).success
     ? `/people/${staffId}?section=compliance`
-    : "/outlet-compliance";
+    : requestedKind === "outlet" && z.string().uuid().safeParse(branchId).success ? `/outlet-compliance/${branchId}` : "/outlet-compliance";
   if (!parsed.success) redirect(complianceMessageUrl(returnPath, "error", "Check the required record fields."));
   const value = parsed.data;
   if ((value.subject_kind === "outlet" && !value.branch_id) || (value.subject_kind === "staff" && !value.staff_id) || (value.subject_kind === "asset" && !value.asset_external_ref)) redirect(complianceMessageUrl(returnPath, "error", "Choose the matching subject."));
@@ -94,6 +95,7 @@ export async function reviewComplianceRecord(formData: FormData) {
   if (error) redirect(`/compliance?error=${encodeURIComponent(error.message)}`);
   await supabase.from("compliance_record_history").insert({ company_id: actor.companyId, compliance_record_id: id, event_type: decision, safe_summary: decision === "approved" ? "Compliance record approved." : "Compliance record returned for correction.", actor_staff_id: actor.staffId });
   revalidatePath(target.subject_kind === "outlet" ? "/outlet-compliance" : "/people");
+  redirect(target.branch_id ? `/outlet-compliance/${target.branch_id}?success=${decision === "approved" ? "Evidence+approved." : "Evidence+returned+with+the+correction+note."}` : "/compliance?success=Review+saved.");
 }
 
 export async function renewComplianceRecord(formData: FormData) {
@@ -118,7 +120,12 @@ export async function createComplianceType(formData: FormData) {
   const sensitive = formData.get("is_sensitive") === "1";
   const typeCode = typeName.toUpperCase().replace(/[^A-Z0-9]+/g, "_").replace(/^_|_$/g, "").slice(0, 60);
   const supabase = await createClient();
-  const { error } = await supabase.from("compliance_types").insert({ company_id: actor.companyId, type_code: typeCode, type_name: typeName, subject_kind: subjectKind, is_sensitive: sensitive });
-  if (error) redirect(`/compliance?error=${encodeURIComponent(error.message)}`);
-  revalidatePath("/compliance");
+  const { data, error } = await supabase.from("compliance_types").insert({ company_id: actor.companyId, type_code: typeCode, type_name: typeName, subject_kind: subjectKind, is_sensitive: sensitive }).select("id").single();
+  if (error || !data) redirect(`/compliance?error=${encodeURIComponent(error?.message ?? "Type could not be created.")}`);
+  if(subjectKind==="outlet") {
+    const {data:branches}=await supabase.from("branches").select("id").eq("company_id",actor.companyId).eq("branch_type","outlet").eq("status","active").is("deleted_at",null);
+    if(branches?.length) await supabase.from("outlet_compliance_requirements").insert(branches.map(branch=>({company_id:actor.companyId,branch_id:branch.id,compliance_type_id:data.id,is_required:true})));
+  }
+  revalidatePath(subjectKind==="outlet"?"/outlet-compliance":"/compliance");
+  redirect(subjectKind==="outlet"?"/outlet-compliance?success=Requirement+type+added+to+all+active+outlets.":"/compliance?success=Compliance+type+created.");
 }

@@ -9,7 +9,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
-import { cancelGoodsReceiving, postGoodsReceiving, updateGoodsReceivingDraft } from "@/server/actions/goods-receivings";
+import { cancelGoodsReceiving, closeGoodsReceiving, postGoodsReceiving, updateGoodsReceivingDraft } from "@/server/actions/goods-receivings";
+import { Button } from "@/components/ui/button";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getDocumentBundle } from "@/server/queries/documents";
 import { getGoodsReceiving } from "@/server/queries/goods-receivings";
@@ -22,6 +23,7 @@ import { ActionErrorNotice } from "@/components/action-error-notice";
 const grnSteps = [
   { key: "draft", label: "Draft", description: "Receiving is being checked." },
   { key: "posted", label: "Posted", description: "Stock has been posted to inventory." },
+  { key: "closed", label: "Closed", description: "Finance verified and closed the receiving." },
   { key: "cancelled", label: "Cancelled", description: "Receiving was cancelled before posting." },
 ];
 
@@ -29,7 +31,7 @@ export default async function GoodsReceivingDetailPage({ params, searchParams }:
   const [{ id }, messageParams] = await Promise.all([params, searchParams]);
   const [{ receiving, lines }, permissions, profile] = await Promise.all([
     detailOrNotFound(getGoodsReceiving(id)),
-    getPermissionMap(["grn.post", "goods_receiving.cancel", "documents.attach"]),
+    getPermissionMap(["grn.post", "goods_receiving.cancel", "goods_receiving.close", "documents.attach"]),
     getCurrentProfile(),
   ]);
   const requestId = await getPurchaseRequestIdForOrder(receiving.purchase_order_id);
@@ -41,6 +43,7 @@ export default async function GoodsReceivingDetailPage({ params, searchParams }:
   const hasDeliveryOrder = Boolean(documentBundle?.attachments.some((attachment) => attachment.status === "active"));
   const receivingDisplay = receiving as typeof receiving & { supplier_name?: string | null; branch_name?: string | null };
   const hasPrimaryAction = permissions["grn.post"] && receiving.status === "draft";
+  const displayStatus=receiving.finance_closed_at?"closed":receiving.status;
   const secondaryActions = receiving.status === "draft" && permissions["goods_receiving.cancel"] ? <DocumentActionForm action={cancelGoodsReceiving.bind(null, receiving.id)} pendingLabel="Deleting draft..." variant="destructive">Delete draft</DocumentActionForm> : receiving.status !== "draft" ? <BlockedDestructiveAction buttonLabel="Delete receiving" title={`Cannot delete ${receiving.grn_no}`} description={receiving.status === "posted" ? "This receiving has posted stock movements and must remain in the audit trail." : "This receiving is linked to its purchase order and document history."} recommendation={receiving.status === "posted" ? "Use a purchase return or correction workflow. Physical deletion is prohibited." : "This record is already outside active draft work."} /> : null;
   const postAction = postGoodsReceiving.bind(null, receiving.id);
   const deliveryOrderUpload = documentBundle ? <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Delivery Order" defaultLabel="Delivery Order" uploadLabel="Attach DO" presentation="inline" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} required /> : null;
@@ -51,9 +54,9 @@ export default async function GoodsReceivingDetailPage({ params, searchParams }:
       breadcrumbs={[{ label: "Procurement", href: "/procurement" }, { label: "Goods Receiving", href: "/goods-receivings" }, { label: receiving.grn_no }]}
       documentNo={receiving.grn_no}
       title="Goods Receiving"
-      status={receiving.status}
+      status={displayStatus}
       workflowSteps={grnSteps}
-      currentStatus={receiving.status}
+      currentStatus={displayStatus}
       tabletRailMode="split"
       mobilePrimaryAction={mobilePrimaryAction}
       mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={procurementChain?.attachments ?? documentBundle.attachments} title="Purchase files" canManage={false} canRemove={isOwner} documentStatus={documentBundle.document.status} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} canRemove={isOwner} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /><RevisionPanel revisions={documentBundle.revisions} /></> : null}
@@ -65,6 +68,8 @@ export default async function GoodsReceivingDetailPage({ params, searchParams }:
               {hasPrimaryAction ? <ReceivingPostGuard action={postAction} hasDeliveryOrder={hasDeliveryOrder} attachmentForm={deliveryOrderUpload} /> : null}
             </DocumentActionBar>
             {!hasPrimaryAction && receiving.status === "draft" ? <p className="mt-3 text-sm text-muted-foreground">You can view this GRN, but you do not have permission to post it.</p> : null}
+            {receiving.status==="posted"&&!receiving.finance_closed_at&&permissions["goods_receiving.close"]?<form action={closeGoodsReceiving.bind(null,receiving.id)} className="mt-3 space-y-2"><label className="grid gap-1 text-xs font-medium">Finance verification note<textarea name="reason" required minLength={3} maxLength={1000} rows={3} className="rounded-md border bg-background p-2 font-normal" placeholder="Invoice / DO checked, no outstanding issue"/></label><Button type="submit" className="min-h-10 w-full">Mark as closed</Button></form>:null}
+            {receiving.finance_closed_at?<p className="mt-3 text-xs text-muted-foreground">Closed by Finance on {formatDateOnly(receiving.finance_closed_at)}. {receiving.finance_close_note}</p>:null}
           </DocumentActionSection>
           <DocumentSideSection title="Linked order"><DocumentActionLink href={`/purchase-orders/${receiving.purchase_order_id}`} variant="outline"><ExternalLink className="h-4 w-4" aria-hidden="true" />View Purchase Order</DocumentActionLink></DocumentSideSection>
           {documentBundle ? (

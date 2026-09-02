@@ -2,9 +2,9 @@
 
 ### v9.2.15 (unreleased) — Dynamic Scheduling and NGTeco Attendance
 
-People Operations gains Monday–Sunday outlet rosters, Manager publication, staff shift requests, a branch-scoped Outlet Supervisor role, immutable NGTeco punch imports, exact-second OMS attendance calculation, exception review, reconciliation-only Attendance Report uploads, and protected period locks. Direct Check In/Check Out entry follows the outlet roster workbooks; break and recognised-paid caps are editable per selection, while templates remain reusable four-time-window shortcuts. PH and OIL are explicit roster states.
+People Operations gains Monday–Sunday outlet rosters, Manager publication, staff shift requests, a branch-scoped Outlet Supervisor role, immutable NGTeco punch imports, exact-second OMS attendance calculation, exception review, reconciliation-only Attendance Report uploads, and protected period locks. Direct Check In/Check Out entry follows the outlet roster workbooks; break and recognised-paid caps are editable per selection, while templates remain reusable four-time-window shortcuts. PH and EL (Emergency Leave) are explicit roster states.
 
-Repository migrations reviewed through `246`. Migrations 241–246 are applied to the linked Preview Supabase project; migration 245 makes direct Supervisor roster times calculable while retaining elevated authority for non-standard minutes, and migration 246 adds audited clearing of mistaken draft assignments. The Preview application is deployed separately from Production, and authenticated role/responsive UAT remains outstanding.
+Repository migrations reviewed through `247`. Migrations 241–246 are applied to the linked Preview Supabase project; migration 247 filters roster identities to outlet roles, adds Pest control and configurable outlet requirements, and adds audited Finance closure for posted receivings. The Preview application is deployed separately from Production, and authenticated role/responsive UAT remains outstanding.
 
 ### v9.2.14 (unreleased) — Receiving control and procurement clarity
 

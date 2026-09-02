@@ -163,6 +163,22 @@ export async function postGoodsReceiving(id: string, formData: FormData) {
   }
 }
 
+export async function closeGoodsReceiving(id: string, formData: FormData) {
+  try {
+    await requirePermission("goods_receiving.close");
+    const goodsReceivingId=parseGoodsReceivingId(id);
+    const reason=z.string().trim().min(3,"Add a brief Finance verification note.").max(1000).parse(formData.get("reason"));
+    const supabase=await createClient();
+    const {error}=await supabase.rpc("close_goods_receiving" as never,{p_goods_receiving_id:goodsReceivingId,p_reason:reason} as never);
+    if(error)throw new Error(error.message);
+    revalidateWorkspaceState(["/goods-receivings",`/goods-receivings/${goodsReceivingId}`]);
+    safeRedirectWithMessage(`/goods-receivings/${goodsReceivingId}`,"success","Finance verification complete. This receiving is closed.");
+  } catch(error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/goods-receivings/${id}`,"error",formatActionError(error,"Could not close this receiving."));
+  }
+}
+
 export async function updateGoodsReceivingDraft(id: string, formData: FormData) {
   try {
     await requirePermission("grn.post");

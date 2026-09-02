@@ -18,8 +18,8 @@ const schema=z.discriminatedUnion("action",[
  z.object({action:z.literal("lock"),weekId:uuid}),z.object({action:z.literal("unlock"),weekId:uuid,reason:z.string().trim().min(1).max(1000)})
 ]);
 const scheduleBusinessErrors: Array<[string,string]> = [
- ["A roster cannot be submitted without assignments.","Add at least one shift, OFF, leave, public holiday, or OIL day before submitting."],
- ["Every scheduled employee requires at least one weekly OFF or leave day.","Every scheduled employee needs at least one OFF, leave, public holiday, or OIL day this week."],
+ ["A roster cannot be submitted without assignments.","Add at least one shift, OFF, leave, public holiday, or emergency leave day before submitting."],
+ ["Every scheduled employee requires at least one weekly OFF or leave day.","Every scheduled employee needs at least one OFF, leave, public holiday, or emergency leave day this week."],
  ["Inactive staff cannot be scheduled.","Remove inactive staff assignments before submitting."],
  ["Cross-branch schedule collision detected.","Resolve the employee's same-day assignment at another outlet before submitting."],
  ["A roster submitter cannot approve their own roster.","A different authorised Manager must publish this roster."],

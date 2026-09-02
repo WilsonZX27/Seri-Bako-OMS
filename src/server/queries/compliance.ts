@@ -2,9 +2,10 @@ import { isMockMode } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/server/queries/common";
 
-export type ComplianceState = "expired" | "due_7" | "due_30" | "due_60" | "due_90" | "valid" | "missing" | "pending_review";
+export type ComplianceState = "expired" | "due_7" | "due_30" | "due_60" | "due_90" | "valid" | "missing" | "pending_review" | "returned";
 
 export function complianceState(expiresOn: string | null, reviewStatus: string, hasAttachment: boolean, now = new Date()): ComplianceState {
+  if (reviewStatus === "rejected") return "returned";
   if (!hasAttachment) return "missing";
   if (reviewStatus === "pending_review") return "pending_review";
   if (!expiresOn) return "valid";

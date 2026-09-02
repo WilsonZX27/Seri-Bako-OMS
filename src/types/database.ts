@@ -1388,6 +1388,9 @@ export type Database = {
           remarks: string | null;
           posted_at: string | null;
           posted_by: string | null;
+          finance_closed_at: string | null;
+          finance_closed_by: string | null;
+          finance_close_note: string | null;
           cancelled_at: string | null;
           created_at: string;
           updated_at: string;
@@ -1409,6 +1412,9 @@ export type Database = {
           remarks?: string | null;
           posted_at?: string | null;
           posted_by?: string | null;
+          finance_closed_at?: string | null;
+          finance_closed_by?: string | null;
+          finance_close_note?: string | null;
           cancelled_at?: string | null;
           created_at?: string;
           updated_at?: string;

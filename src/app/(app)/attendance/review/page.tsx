@@ -25,7 +25,7 @@ export default async function AttendanceReviewPage({ searchParams }: { searchPar
       <ConsoleSection title="Actions">
         <Button asChild size="sm" className="w-full"><a href={`/api/attendance/export?week=${week}&format=xlsx`}><Download className="mr-2 h-4 w-4" />Export XLSX</a></Button>
         <Button asChild size="sm" variant="outline" className="w-full"><a href={`/api/attendance/export?week=${week}&format=csv`}>Export CSV</a></Button>
-        {canLock ? <AttendanceLockButton weekStart={week} /> : null}
+        {canLock ? <><AttendanceLockButton weekStart={week} /><p className="text-[11px] text-muted-foreground">Closing prevents further adjustments. An Owner can reopen it only with a recorded reason.</p></> : null}
       </ConsoleSection>
       <ConsoleSection title="Week"><p className="font-semibold">{week}</p><p>{rows.length} calculated staff days</p></ConsoleSection>
       <ConsoleSection title="Exceptions"><div className="flex items-center gap-2"><TriangleAlert className="h-4 w-4 text-[var(--sb-warning)]" /><strong>{exceptionCount}</strong></div><p>Resolve or adjust exceptions before locking.</p></ConsoleSection>

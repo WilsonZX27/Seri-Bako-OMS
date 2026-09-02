@@ -8,9 +8,11 @@ import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody,
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { getOutletComplianceWorkspace } from "@/server/queries/compliance";
+import { createComplianceType } from "@/server/actions/compliance";
+import { hasPermission } from "@/server/auth/permissions";
 
 export default async function OutletCompliancePage() {
-  const workspace = await getOutletComplianceWorkspace();
+  const [workspace,canManageTypes] = await Promise.all([getOutletComplianceWorkspace(),hasPermission("compliance.types.manage")]);
   const summaries = workspace.branches.map((branch) => {
     const rows = workspace.requirements.filter((row) => row.branch_id === branch.id);
     const valid = rows.filter((row) => row.record?.state === "valid").length;
@@ -29,6 +31,7 @@ export default async function OutletCompliancePage() {
       <Table mobileHidden aria-label="Outlet compliance register"><TableHeader><TableRow><TableHead className="w-16 text-center">Action</TableHead><TableHead>Outlet</TableHead><TableHead className="text-center">Complete</TableHead><TableHead className="text-center">Missing</TableHead><TableHead className="text-center">Pending</TableHead><TableHead className="text-center">Due</TableHead></TableRow></TableHeader><TableBody>{summaries.map(({branch,rows,valid,missing,pending,urgent})=><TableRow key={branch.id}><TableCell className="w-16 p-0 text-center"><TableActionLink href={`/outlet-compliance/${branch.id}`} label={`Open ${branch.branch_name}`}><ChevronRight className="h-4 w-4"/></TableActionLink></TableCell><TableCell><strong className="block text-sm">{branch.branch_name}</strong><span className="text-[11px] text-muted-foreground">{branch.branch_code}</span></TableCell><TableCell className="text-center tabular-nums">{valid}/{rows.length}</TableCell><TableCell className="text-center"><Badge variant={missing?"danger":"secondary"}>{missing}</Badge></TableCell><TableCell className="text-center"><Badge variant={pending?"warning":"secondary"}>{pending}</Badge></TableCell><TableCell className="text-center"><Badge variant={urgent?"danger":"secondary"}>{urgent}</Badge></TableCell></TableRow>)}{!summaries.length?<TableRow><TableCell colSpan={6}><EmptyState title="No assigned outlets" description="Outlet checklists appear after requirements are initialised."/></TableCell></TableRow>:null}</TableBody></Table>
       <OperationalList ariaLabel="Outlet compliance register">{summaries.map(({branch,rows,valid,missing,pending,urgent})=><OperationalListRow key={branch.id} href={`/outlet-compliance/${branch.id}`} label={`Open ${branch.branch_name}`} primary={branch.branch_name} status={<Badge variant={missing||urgent?"danger":pending?"warning":"success"}>{missing||urgent?"Needs attention":pending?"Pending":"Current"}</Badge>} secondary={`${valid}/${rows.length} requirements valid`} detail={`${missing} missing · ${pending} pending · ${urgent} due`} meta="Open checklist"/>)}{!summaries.length?<EmptyState title="No assigned outlets" description="Outlet checklists appear after requirements are initialised."/>:null}</OperationalList>
     </section>
+    {canManageTypes?<details className="rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)] p-3"><summary className="min-h-10 cursor-pointer py-2 text-sm font-semibold">Add a requirement type</summary><p className="mb-3 text-xs text-muted-foreground">Create another document or inspection to track across every active outlet.</p><form action={createComplianceType} className="flex flex-col gap-3 sm:flex-row sm:items-end"><input type="hidden" name="subject_kind" value="outlet"/><label className="grid flex-1 gap-1 text-xs">Requirement name<input name="type_name" required maxLength={100} className="h-10 rounded-md border bg-background px-3" placeholder="e.g. Grease trap service"/></label><Button type="submit" className="min-h-10">Add to all outlets</Button></form></details>:null}
   </WorkspaceGrid></>;
 }
 

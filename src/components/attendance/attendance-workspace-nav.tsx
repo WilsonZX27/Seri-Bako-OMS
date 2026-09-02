@@ -1,14 +1,16 @@
 import Link from "next/link";
-import { CalendarRange, ClipboardCheck, FileUp, LayoutDashboard } from "lucide-react";
+import { CalendarRange, ClipboardCheck, FileUp, LayoutDashboard, Settings2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { hasPermission } from "@/server/auth/permissions";
 
 const items = [
   { href: "/attendance", label: "Overview", icon: LayoutDashboard },
   { href: "/attendance/schedule", label: "Schedule", icon: CalendarRange },
   { href: "/attendance/review", label: "Review", icon: ClipboardCheck },
-  { href: "/attendance/imports", label: "Import", icon: FileUp },
 ];
 
-export function AttendanceWorkspaceNav({ current }: { current: "overview" | "schedule" | "review" | "import" }) {
-  return <nav aria-label="Attendance workspace" className="erp-surface flex min-w-0 gap-1 overflow-x-auto p-1">{items.map(({ href, label, icon: Icon }) => { const active = label.toLowerCase() === current; return <Link key={href} href={href} aria-current={active ? "page" : undefined} className={cn("inline-flex h-9 shrink-0 items-center gap-2 rounded-[var(--sb-radius-control)] px-3 text-xs font-semibold transition-colors", active ? "bg-[var(--sb-green-900)] text-white" : "text-[var(--sb-text-muted)] hover:bg-[var(--sb-surface-muted)] hover:text-[var(--sb-text)]")}><Icon className="h-4 w-4" aria-hidden="true" />{label}</Link>; })}</nav>;
+export async function AttendanceWorkspaceNav({ current }: { current: "overview" | "schedule" | "review" | "import" | "settings" }) {
+  const [canImport,canManage]=await Promise.all([hasPermission("attendance.import"),hasPermission("shift_template.manage")]);
+  const visible=[...items,...(canImport?[{href:"/attendance/imports",label:"Import",icon:FileUp}]:[]),...(canManage?[{href:"/attendance/settings",label:"Settings",icon:Settings2}]:[])];
+  return <nav aria-label="Attendance workspace" className="flex min-w-0 gap-5 overflow-x-auto border-b border-[var(--sb-border-soft)] px-1">{visible.map(({ href, label, icon: Icon }) => { const active=label.toLowerCase()===current;return <Link key={href} href={href} aria-current={active?"page":undefined} className={cn("inline-flex h-11 shrink-0 items-center gap-2 border-b-2 px-1 text-xs font-semibold transition-colors",active?"border-[var(--sb-green-800)] text-[var(--sb-green-900)]":"border-transparent text-[var(--sb-text-muted)] hover:text-[var(--sb-text)]")}><Icon className="h-4 w-4" aria-hidden="true"/>{label}</Link>})}</nav>;
 }

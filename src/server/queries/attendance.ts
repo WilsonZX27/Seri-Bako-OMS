@@ -77,7 +77,7 @@ export async function getOwnPublishedShifts(weekStart = malaysiaWeekStart()) {
 
 export async function getPendingShiftRequests() {
   if (!(await hasPermission("schedule.swap_review")) && !(await hasPermission("schedule.approve"))) return [];
-  const db=looseSupabase(await createClient());const {data,error}=await db.from("shift_change_requests").select("id,status,reason,material_change,created_at,shift_assignment_revisions!inner(work_date,staffs(full_name),branches(branch_name))").in("status",["pending_supervisor","pending_manager"]).order("created_at");if(error)throw error;return data??[];
+  const db=looseSupabase(await createClient());const {data,error}=await db.from("shift_change_requests").select("id,status,reason,material_change,created_at,shift_assignment_revisions!shift_change_requests_assignment_id_fkey(work_date,staffs!shift_assignment_revisions_staff_id_fkey(full_name),branches!shift_assignment_revisions_branch_id_fkey(branch_name))").in("status",["pending_supervisor","pending_manager"]).order("created_at");if(error)throw error;return data??[];
 }
 
 export async function getAttendanceMappings() {

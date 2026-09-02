@@ -17,6 +17,20 @@ const schema=z.discriminatedUnion("action",[
  z.object({action:z.literal("template"),id:uuid.nullable().optional(),code:z.string().trim().min(1).max(20),name:z.string().trim().min(1).max(100),checkInStart:z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/),start:z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/),end:z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/),checkOutEnd:z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/),crossesMidnight:z.boolean(),breakSeconds:z.number().int().min(0).max(43200),capSeconds:z.number().int().positive().max(86400),branchIds:z.array(uuid).max(100),colour:z.string().regex(/^#[0-9a-fA-F]{6}$/),otEligible:z.boolean(),graceSeconds:z.number().int().min(0).max(7200),matchBeforeSeconds:z.number().int().min(0).max(43200),matchAfterSeconds:z.number().int().min(0).max(43200),overtimeRule:z.object({mode:z.enum(["disabled","approved_only"]),threshold_seconds:z.number().int().min(0).max(86400),maximum_seconds:z.number().int().min(0).max(86400),rounding_minutes:z.union([z.literal(1),z.literal(5),z.literal(10),z.literal(15),z.literal(30)])}),reason:z.string().trim().max(500).nullable().optional()}),
  z.object({action:z.literal("lock"),weekId:uuid}),z.object({action:z.literal("unlock"),weekId:uuid,reason:z.string().trim().min(1).max(1000)})
 ]);
+const scheduleBusinessErrors: Array<[string,string]> = [
+ ["A roster cannot be submitted without assignments.","Add at least one shift, OFF, leave, public holiday, or OIL day before submitting."],
+ ["Every scheduled employee requires at least one weekly OFF or leave day.","Every scheduled employee needs at least one OFF, leave, public holiday, or OIL day this week."],
+ ["Inactive staff cannot be scheduled.","Remove inactive staff assignments before submitting."],
+ ["Cross-branch schedule collision detected.","Resolve the employee's same-day assignment at another outlet before submitting."],
+ ["A roster submitter cannot approve their own roster.","A different authorised Manager must publish this roster."],
+ ["Only an editable roster may be submitted.","Only a Draft, Returned, Rejected, or Amendment Pending roster can be submitted."],
+ ["This schedule week is not editable.","This roster is no longer editable. Ask an authorised user to return or unlock it."],
+];
+function scheduleErrorResponse(error: unknown) {
+ const raw=error && typeof error==="object" && "message" in error && typeof error.message==="string" ? error.message : "";
+ const match=scheduleBusinessErrors.find(([source])=>raw.includes(source));
+ return match ? NextResponse.json({ok:false,message:match[1]},{status:409}) : NextResponse.json({ok:false,message:"Schedule action could not be completed."},{status:500});
+}
 export async function POST(request:Request){const rejected=rejectCrossSiteMutation(request);if(rejected)return rejected;try{const input=schema.safeParse(await request.json());if(!input.success)return NextResponse.json({ok:false,message:"Invalid schedule request."},{status:400});await requireActiveTenantActor();const required=input.data.action==="template"?"shift_template.manage":input.data.action==="save"||input.data.action==="copy"?"schedule.draft":input.data.action==="submit"?"schedule.submit":input.data.action==="decide"?"schedule.approve":input.data.action==="lock"?"schedule.lock":"schedule.unlock";if(!(await hasPermission(required)))return NextResponse.json({ok:false,message:"You do not have permission for this schedule action."},{status:403});const db=looseSupabase(await createClient());let result;
 if(input.data.action==="template")result=await db.rpc("upsert_shift_template",{p_id:input.data.id??null,p_code:input.data.code,p_name:input.data.name,p_check_in_start:input.data.checkInStart,p_start:input.data.start,p_end:input.data.end,p_check_out_end:input.data.checkOutEnd,p_crosses_midnight:input.data.crossesMidnight,p_break_seconds:input.data.breakSeconds,p_cap_seconds:input.data.capSeconds,p_branch_ids:input.data.branchIds,p_colour:input.data.colour,p_ot_eligible:input.data.otEligible,p_grace_seconds:input.data.graceSeconds,p_match_before_seconds:input.data.matchBeforeSeconds,p_match_after_seconds:input.data.matchAfterSeconds,p_overtime_rule:input.data.overtimeRule,p_reason:input.data.reason??null});
 else if(input.data.action==="save")result=await db.rpc("save_schedule_week",{p_branch_id:input.data.branchId,p_week_start:input.data.weekStart,p_assignments:input.data.assignments});
@@ -25,4 +39,4 @@ else if(input.data.action==="submit")result=await db.rpc("submit_schedule_week",
 else if(input.data.action==="decide")result=await db.rpc("decide_schedule_week",{p_week_id:input.data.weekId,p_decision:input.data.decision,p_comment:input.data.comment??null});
 else if(input.data.action==="lock")result=await db.rpc("lock_schedule_week",{p_week_id:input.data.weekId});
 else result=await db.rpc("unlock_schedule_week",{p_week_id:input.data.weekId,p_reason:input.data.reason});
-if(result.error)throw result.error;return NextResponse.json({ok:true,data:result.data});}catch(error){logServerError(error,{source:"api.attendance.schedule"});return NextResponse.json({ok:false,message:"Schedule action could not be completed."},{status:500});}}
+if(result.error)throw result.error;return NextResponse.json({ok:true,data:result.data});}catch(error){logServerError(error,{source:"api.attendance.schedule"});return scheduleErrorResponse(error);}}

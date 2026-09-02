@@ -41,6 +41,7 @@ export function GoodsReceivingForm({
   const [receivedBaseByLine, setReceivedBaseByLine] = useState<Record<string, string>>({});
   const [rejectedBaseByLine, setRejectedBaseByLine] = useState<Record<string, string>>({});
   const [rememberConversionByLine, setRememberConversionByLine] = useState<Record<string, boolean>>({});
+  const [overReceiptReasonByLine, setOverReceiptReasonByLine] = useState<Record<string, string>>({});
   const grnNo = "GRN-AUTO";
   const hasSelectedOrder = Boolean(selectedOrder);
   const selectedBranchId = selectedOrder?.branch_id ?? branches[0]?.id ?? "";
@@ -52,6 +53,7 @@ export function GoodsReceivingForm({
     setReceivedBaseByLine((current) => Object.fromEntries([...lineIds].map((id) => [id, current[id] ?? ""])));
     setRejectedBaseByLine((current) => Object.fromEntries([...lineIds].map((id) => [id, current[id] ?? ""])));
     setRememberConversionByLine((current) => Object.fromEntries([...lineIds].map((id) => [id, current[id] ?? false])));
+    setOverReceiptReasonByLine((current) => Object.fromEntries([...lineIds].map((id) => [id, current[id] ?? ""])));
   }, [lines]);
 
   useEffect(() => {
@@ -144,6 +146,8 @@ export function GoodsReceivingForm({
                     const sameUnit = hasSavedConversion && (line.uom === baseUom || Number(line.conversion_to_base_uom) === 1);
                     const receivedBase = receivedBaseByLine[line.id] ?? "";
                     const rejectedBase = rejectedBaseByLine[line.id] ?? "";
+                    const enteredQty = Number(receivedPurchaseByLine[line.id] ?? 0) + Number(rejectedPurchaseByLine[line.id] ?? 0);
+                    const isOverReceipt = enteredQty > Number(line.pending_qty);
                     return (
                       <article key={line.id} id={`line-${line.id}`} className="p-3 sm:p-4">
                         <header className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -162,12 +166,17 @@ export function GoodsReceivingForm({
 
                         <div className="mt-3 grid grid-cols-2 gap-3">
                           <Field label={`Received · ${line.uom}`} required>
-                            <Input id={`received-${line.id}`} name="line_received_qty" type="number" inputMode="decimal" min="0" max={line.pending_qty} step="0.0001" value={receivedPurchaseByLine[line.id] ?? ""} onChange={(event) => { const value = event.target.value; setReceivedPurchaseByLine((current) => ({ ...current, [line.id]: value })); if (line.conversion_to_base_uom) setReceivedBaseByLine((current) => ({ ...current, [line.id]: value ? (Number(value) * line.conversion_to_base_uom!).toFixed(4) : "" })); else if (value && Number(receivedBaseByLine[line.id] ?? 0) > 0 && Number(rejectedPurchaseByLine[line.id] ?? 0) > 0) setRejectedBaseByLine((current) => ({ ...current, [line.id]: (Number(rejectedPurchaseByLine[line.id]) * Number(receivedBaseByLine[line.id]) / Number(value)).toFixed(4) })); }} className="font-semibold tabular-nums" aria-label={`Received in purchase UOM ${line.uom}`} />
+                            <Input id={`received-${line.id}`} name="line_received_qty" type="number" inputMode="decimal" min="0" step="0.0001" value={receivedPurchaseByLine[line.id] ?? ""} onChange={(event) => { const value = event.target.value; setReceivedPurchaseByLine((current) => ({ ...current, [line.id]: value })); if (line.conversion_to_base_uom) setReceivedBaseByLine((current) => ({ ...current, [line.id]: value ? (Number(value) * line.conversion_to_base_uom!).toFixed(4) : "" })); else if (value && Number(receivedBaseByLine[line.id] ?? 0) > 0 && Number(rejectedPurchaseByLine[line.id] ?? 0) > 0) setRejectedBaseByLine((current) => ({ ...current, [line.id]: (Number(rejectedPurchaseByLine[line.id]) * Number(receivedBaseByLine[line.id]) / Number(value)).toFixed(4) })); }} className={`font-semibold tabular-nums ${isOverReceipt ? "border-[var(--sb-warning)]" : ""}`} aria-label={`Received in purchase UOM ${line.uom}`} />
                           </Field>
                           <Field label={`Rejected · ${line.uom}`}>
-                            <Input name="line_rejected_qty" type="number" inputMode="decimal" min="0" max={line.pending_qty} step="0.0001" value={rejectedPurchaseByLine[line.id] ?? ""} onChange={(event) => { const value = event.target.value; setRejectedPurchaseByLine((current) => ({ ...current, [line.id]: value })); const inferred = line.conversion_to_base_uom ?? ((Number(receivedPurchaseByLine[line.id] ?? 0) > 0 && Number(receivedBaseByLine[line.id] ?? 0) > 0) ? Number(receivedBaseByLine[line.id]) / Number(receivedPurchaseByLine[line.id]) : null); if (inferred) setRejectedBaseByLine((current) => ({ ...current, [line.id]: value ? (Number(value) * inferred).toFixed(4) : "" })); }} aria-label={`Rejected in purchase UOM ${line.uom}`} />
+                            <Input name="line_rejected_qty" type="number" inputMode="decimal" min="0" step="0.0001" value={rejectedPurchaseByLine[line.id] ?? ""} onChange={(event) => { const value = event.target.value; setRejectedPurchaseByLine((current) => ({ ...current, [line.id]: value })); const inferred = line.conversion_to_base_uom ?? ((Number(receivedPurchaseByLine[line.id] ?? 0) > 0 && Number(receivedBaseByLine[line.id] ?? 0) > 0) ? Number(receivedBaseByLine[line.id]) / Number(receivedPurchaseByLine[line.id]) : null); if (inferred) setRejectedBaseByLine((current) => ({ ...current, [line.id]: value ? (Number(value) * inferred).toFixed(4) : "" })); }} className={isOverReceipt ? "border-[var(--sb-warning)]" : undefined} aria-label={`Rejected in purchase UOM ${line.uom}`} />
                           </Field>
                         </div>
+
+                        {isOverReceipt ? <Field label="Over-receipt reason" required className="mt-3">
+                          <Input name="line_over_receipt_reason" value={overReceiptReasonByLine[line.id] ?? ""} onChange={(event) => setOverReceiptReasonByLine((current) => ({ ...current, [line.id]: event.target.value }))} minLength={3} maxLength={1000} required placeholder="Explain the supplier over-delivery" className="border-[var(--sb-warning)]" />
+                          <p className="mt-1 flex items-center gap-1 text-xs text-[var(--sb-warning)]"><AlertTriangle className="h-3.5 w-3.5" />Entered total exceeds the remaining PO quantity by {formatNumber(enteredQty - Number(line.pending_qty))} {line.uom}. The reason will be retained for audit.</p>
+                        </Field> : <input type="hidden" name="line_over_receipt_reason" value="" />}
 
                         {!hasSavedConversion ? <div className="mt-3 rounded-[var(--sb-radius-control)] bg-[var(--sb-warning-bg)] p-3">
                           <p className="text-xs font-medium text-[var(--sb-text)]">Confirm the pack conversion once</p>

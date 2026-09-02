@@ -46,6 +46,7 @@ function extractGoodsReceiving(formData: FormData) {
   const batches = formData.getAll("line_batch_no").map(String);
   const expiries = formData.getAll("line_expiry_date").map(String);
   const remarks = formData.getAll("line_remarks").map(String);
+  const overReceiptReasons = formData.getAll("line_over_receipt_reason").map(String);
   return goodsReceivingSchema.parse({
     grn_no: formData.get("grn_no"),
     purchase_order_id: formData.get("purchase_order_id"),
@@ -73,6 +74,7 @@ function extractGoodsReceiving(formData: FormData) {
         batch_no: batches[index],
         expiry_date: expiries[index],
         remarks: remarks[index],
+        over_receipt_reason: cleanText(overReceiptReasons[index] ?? null),
       }))
       .filter((line) => line.purchase_order_line_id && line.item_id),
   });

@@ -83,13 +83,19 @@ export const goodsReceivingLineSchema = z
     rejected_base_qty: z.coerce.number().min(0, "Base rejected quantity cannot be negative").max(maxOperationalQuantity, "Base rejected quantity is too large.").optional().nullable(),
     conversion_to_base_uom_snapshot: z.coerce.number().positive("Conversion must be greater than 0.").max(maxOperationalQuantity, "Conversion is too large.").optional().nullable(),
     remember_conversion: z.coerce.boolean().optional(),
+    over_receipt_reason: optionalShortText,
     batch_no: z.string().trim().max(160, "Batch number is too long.").optional().nullable(),
     expiry_date: optionalIsoDate,
     remarks: optionalLongText,
   })
-  .refine((line) => line.received_qty + line.rejected_qty <= line.pending_qty, {
-    message: "Received plus rejected quantity cannot exceed pending quantity without manager override",
-    path: ["received_qty"],
+  .superRefine((line, context) => {
+    if (line.received_qty + line.rejected_qty > line.pending_qty && (line.over_receipt_reason?.trim().length ?? 0) < 3) {
+      context.addIssue({
+        code: "custom",
+        message: "Explain why the received and rejected quantity exceeds the PO balance.",
+        path: ["over_receipt_reason"],
+      });
+    }
   });
 
 export const goodsReceivingSchema = z.object({

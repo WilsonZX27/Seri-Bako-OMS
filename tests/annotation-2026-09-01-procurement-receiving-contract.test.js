@@ -43,6 +43,20 @@ test("draft GRNs support controlled receiving edits and audited over-receipt", (
   assert.match(migration, /line\.received_qty\+line\.rejected_qty>greatest[\s\S]*over_receipt_reason/);
 });
 
+test("new GRNs use the same controlled over-receipt rule as draft edits", () => {
+  const form = read("src/components/goods-receiving-form.tsx");
+  const validation = read("src/lib/validations/procurement.ts");
+  const action = read("src/server/actions/goods-receivings.ts");
+  const migration = read("supabase/migrations/240_editable_goods_receiving_and_controlled_over_receipt.sql");
+  assert.doesNotMatch(form, /max=\{line\.pending_qty\}/);
+  assert.match(form, /name="line_over_receipt_reason"/);
+  assert.match(form, /Entered total exceeds the remaining PO quantity/);
+  assert.match(validation, /over_receipt_reason: optionalShortText/);
+  assert.match(action, /line_over_receipt_reason/);
+  assert.match(migration, /create or replace function public\.create_goods_receiving_atomic/);
+  assert.match(migration, /over_receipt_reason/);
+});
+
 test("right console keeps document sections visually separate", () => {
   const console = read("src/components/layout/right-console.tsx");
   assert.match(console, /h-full space-y-4 overflow-y-auto/);

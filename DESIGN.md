@@ -1,5 +1,13 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.14 (unreleased) — Explicit receiving exceptions
+
+- Received and Rejected remain direct quantity inputs in both GRN creation and Draft review. Exceeding the visible PO balance uses the same warning treatment and requires a retained reason in either entry point.
+- Over-receipt is an exception, not a hidden maximum or a different workflow. Quantity fields remain readable and editable; the warning sits with the affected item and names the excess in its Purchase UOM.
+- Recording an exception does not imply posting authority. The Post Receiving action remains separately permission- and branch-gated.
+- Sent, Approved, Received and Partial Received keep text and icon identity while using distinct related tones; status meaning never depends on colour alone.
+- Required attachment labels fail at the owning field with red focus treatment, and document-console sections keep visible separation as histories grow.
+
 ## v9.2.13 (unreleased) — Clear operational ownership
 
 - Keep transient Stock Count decisions inside confirmation dialogs; manage completed branch retirement centrally from the Items filter rather than adding badges to every count line.

@@ -6,7 +6,7 @@ const sql = fs.readFileSync("supabase/uat/verify_v9_schema.sql", "utf8");
 const runner = fs.readFileSync("scripts/v9/verify-local-schema.mjs", "utf8");
 
 test("v9 local schema gate validates migration, RLS, views and function safety", () => {
-  assert.match(sql, /latest_migration <> '227'/);
+  assert.match(sql, /latest_migration <> '__EXPECTED_MIGRATION__'/);
   assert.match(sql, /sync_purchase_order_attachment_to_receivings/);
   assert.match(sql, /finish_legacy_purchase_request_to_order/);
   assert.match(sql, /not rowsecurity/);
@@ -32,6 +32,8 @@ test("v9 schema verification can only execute against the resolved local Docker 
   assert.match(runner, /localDatabaseContainer\(\)/);
   assert.match(runner, /assertLocalContainer\(container\)/);
   assert.match(runner, /docker/);
+  assert.match(runner, /readdirSync/);
+  assert.match(runner, /replaceAll\("__EXPECTED_MIGRATION__"/);
   assert.doesNotMatch(runner, /--linked|SUPABASE_DB_PASSWORD|project-ref/);
 });
 

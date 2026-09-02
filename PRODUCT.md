@@ -7,7 +7,7 @@
 - Procurement workflow badges distinguish Sent, Approved and Received with related but visibly different semantic tones. Required attachment labels fail inline with a focused red field state.
 - Document console sections retain independent spacing so actions, files, comments, timeline and revisions do not read as one continuous panel.
 
-Migration 240 is implemented locally and remains unapplied until separately approved for the target environment.
+Repository migrations reviewed through `240`; migration 240 is implemented locally and remains unapplied until separately approved for the target environment.
 
 ### v9.2.13 (unreleased) — Operational UI recovery and reversible retirement
 

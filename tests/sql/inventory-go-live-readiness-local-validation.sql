@@ -83,8 +83,8 @@ begin
 end $$;
 
 reset role;
-insert into public.purchase_orders (id, company_id, po_no, supplier_id, branch_id, order_date, status, approval_status)
-values ('98000000-0000-0000-0000-000000000001', '91000000-0000-0000-0000-000000000001', 'INV-PO-1', '96000000-0000-0000-0000-000000000001', '92000000-0000-0000-0000-000000000001', current_date, 'approved', 'approved');
+insert into public.purchase_orders (id, company_id, po_no, supplier_id, branch_id, order_date, status, approval_status, idempotency_key)
+values ('98000000-0000-0000-0000-000000000001', '91000000-0000-0000-0000-000000000001', 'INV-PO-1', '96000000-0000-0000-0000-000000000001', '92000000-0000-0000-0000-000000000001', current_date, 'approved', 'approved', '98000000-0000-4000-8000-000000000001');
 insert into public.purchase_order_lines (id, purchase_order_id, item_id, qty_ordered, uom, unit_price)
 values ('98100000-0000-0000-0000-000000000001', '98000000-0000-0000-0000-000000000001', '97000000-0000-0000-0000-000000000001', 10, 'KG', 4);
 insert into public.documents (id, company_id, document_no, document_type, title, status, approval_status, current_step, related_entity_type, related_entity_id)
@@ -94,19 +94,29 @@ values
   ('98200000-0000-0000-0000-000000000003', '91000000-0000-0000-0000-000000000001', 'INV-COUNT-1', 'stock_count', 'Count Test', 'pending_approval', 'pending', 'Review', 'stock_count', '98700000-0000-0000-0000-000000000001');
 insert into public.goods_receivings (id, company_id, document_id, purchase_order_id, grn_no, supplier_id, received_date, branch_id, status)
 values ('98300000-0000-0000-0000-000000000001', '91000000-0000-0000-0000-000000000001', '98200000-0000-0000-0000-000000000001', '98000000-0000-0000-0000-000000000001', 'INV-GRN-1', '96000000-0000-0000-0000-000000000001', current_date, '92000000-0000-0000-0000-000000000001', 'draft');
-insert into public.goods_receiving_lines (id, goods_receiving_id, purchase_order_line_id, item_id, ordered_qty, pending_qty, received_qty, rejected_qty, uom, unit_cost)
-values ('98400000-0000-0000-0000-000000000001', '98300000-0000-0000-0000-000000000001', '98100000-0000-0000-0000-000000000001', '97000000-0000-0000-0000-000000000001', 10, 10, 5, 0, 'KG', 4);
+insert into public.goods_receiving_lines (id, goods_receiving_id, purchase_order_line_id, item_id, ordered_qty, pending_qty, received_qty, rejected_qty, uom, unit_cost, received_base_qty, rejected_base_qty, conversion_to_base_uom_snapshot)
+values ('98400000-0000-0000-0000-000000000001', '98300000-0000-0000-0000-000000000001', '98100000-0000-0000-0000-000000000001', '97000000-0000-0000-0000-000000000001', 10, 10, 12, 0, 'KG', 4, 12, 0, 1);
 
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '94000000-0000-0000-0000-000000000001', true);
 do $$ begin
   if exists (select 1 from public.stock_transactions where reference_type = 'goods_receiving' and reference_id = '98300000-0000-0000-0000-000000000001') then raise exception 'Draft GRN affected stock'; end if;
+  begin
+    perform public.post_goods_receiving_atomic('98300000-0000-0000-0000-000000000001', 'Paper DO unavailable during local test');
+    raise exception 'OVER_RECEIPT_WITHOUT_REASON_POSTED';
+  exception when others then if sqlerrm = 'OVER_RECEIPT_WITHOUT_REASON_POSTED' then raise; end if; end;
+  if exists (select 1 from public.stock_transactions where reference_type = 'goods_receiving' and reference_id = '98300000-0000-0000-0000-000000000001') then raise exception 'Rejected over-receipt changed stock'; end if;
 end $$;
+reset role;
+update public.goods_receiving_lines set over_receipt_reason='Supplier delivered two additional kilograms; accepted for kitchen demand.' where id='98400000-0000-0000-0000-000000000001';
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '94000000-0000-0000-0000-000000000001', true);
 select public.post_goods_receiving_atomic('98300000-0000-0000-0000-000000000001', 'Paper DO unavailable during local test');
 select public.post_goods_receiving_atomic('98300000-0000-0000-0000-000000000001', 'retry');
 do $$ begin
   if not exists (select 1 from public.goods_receivings where id = '98300000-0000-0000-0000-000000000001' and status = 'posted') then raise exception 'GRN did not post'; end if;
-  if (select qty_received from public.purchase_order_lines where id = '98100000-0000-0000-0000-000000000001') <> 5 then raise exception 'GRN did not update PO line'; end if;
+  if (select qty_received from public.purchase_order_lines where id = '98100000-0000-0000-0000-000000000001') <> 12 then raise exception 'GRN did not retain the controlled over-receipt on the PO line'; end if;
+  if (select status from public.purchase_orders where id = '98000000-0000-0000-0000-000000000001') <> 'received' then raise exception 'Over-received PO did not close as received'; end if;
   if (select count(*) from public.stock_transactions where reference_type = 'goods_receiving' and reference_id = '98300000-0000-0000-0000-000000000001') <> 1 then raise exception 'GRN traceability failed'; end if;
 end $$;
 

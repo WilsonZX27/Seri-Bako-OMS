@@ -20,7 +20,7 @@ type Access = {
 
 function eligibleBranches(branches: Branch[], roleCode: string | undefined) {
   if (roleCode === "kitchen") return branches.filter((branch) => branch.branch_type === "central_kitchen");
-  if (roleCode === "outlet_staff") return branches.filter((branch) => branch.branch_type === "outlet");
+  if (roleCode === "outlet_staff" || roleCode === "outlet_supervisor") return branches.filter((branch) => branch.branch_type === "outlet");
   return branches;
 }
 
@@ -43,7 +43,7 @@ export function StaffAccessFields({ branches, roles, access }: { branches: Branc
 
   const branchHelp = roleCode === "kitchen"
     ? "Kitchen staff can be assigned only to Central Kitchen branches."
-    : roleCode === "outlet_staff"
+    : roleCode === "outlet_staff" || roleCode === "outlet_supervisor"
       ? "Outlet staff can be assigned only to Outlet branches."
       : "Select the operating branches this staff member may access.";
 

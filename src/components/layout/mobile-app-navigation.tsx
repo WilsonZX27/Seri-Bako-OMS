@@ -49,7 +49,7 @@ function has(permissionMap: Record<string, boolean>, permission: string) {
 function roleTabs(role: UserRole, permissionMap: Record<string, boolean>): MobileTab[] {
   const tabs: MobileTab[] = [{ href: "/dashboard", label: "Home", icon: Home, permission: "dashboard.view" }];
 
-  if (role === "outlet_staff") {
+  if (role === "outlet_staff" || role === "outlet_supervisor") {
     const canCreateDailyRecord = has(permissionMap, "outlet_daily_record.create");
     tabs.push(
       { href: "/outlet-daily-records", label: "Daily", icon: ClipboardList, permission: "outlet_daily_record.view" },

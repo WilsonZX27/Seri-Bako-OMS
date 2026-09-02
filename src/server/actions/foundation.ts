@@ -414,7 +414,7 @@ async function assertStaffAccessIsEligible(
   if ((branches ?? []).length !== requestedBranchIds.length) throw new Error("Select only active branches in your company.");
   const typeMismatch = role.role_code === "kitchen"
     ? (branches ?? []).some((branch) => branch.branch_type !== "central_kitchen")
-    : role.role_code === "outlet_staff"
+    : role.role_code === "outlet_staff" || role.role_code === "outlet_supervisor"
       ? (branches ?? []).some((branch) => branch.branch_type !== "outlet")
       : false;
   if (typeMismatch) throw new Error(role.role_code === "kitchen" ? "Kitchen staff require a Central Kitchen branch." : "Outlet staff require an Outlet branch.");

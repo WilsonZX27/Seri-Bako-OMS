@@ -8,7 +8,7 @@ import { hasPermission } from "@/server/auth/permissions";
 import { logServerError } from "@/server/observability/logger";
 
 const uuid=z.string().uuid(); const date=z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
-const assignment=z.object({staff_id:uuid,work_date:date,assignment_kind:z.enum(["shift","off","al","mc","upl","ro"]),shift_template_id:uuid.nullable().optional(),custom_start:z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/).nullable().optional(),custom_end:z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/).nullable().optional(),custom_crosses_midnight:z.boolean().optional(),custom_break_seconds:z.number().int().min(0).max(86400).nullable().optional(),custom_maximum_recognised_seconds:z.number().int().positive().max(86400).nullable().optional(),custom_reason:z.string().trim().max(500).nullable().optional()});
+const assignment=z.object({staff_id:uuid,work_date:date,assignment_kind:z.enum(["shift","off","ph","al","mc","upl","ro","oil"]),shift_template_id:uuid.nullable().optional(),custom_start:z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/).nullable().optional(),custom_end:z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/).nullable().optional(),custom_crosses_midnight:z.boolean().optional(),custom_break_seconds:z.number().int().min(0).max(86400).nullable().optional(),custom_maximum_recognised_seconds:z.number().int().positive().max(86400).nullable().optional(),custom_reason:z.string().trim().max(500).nullable().optional()});
 const schema=z.discriminatedUnion("action",[
  z.object({action:z.literal("save"),branchId:uuid,weekStart:date,assignments:z.array(assignment).max(1000)}),
  z.object({action:z.literal("copy"),sourceWeekId:uuid,targetWeekStart:date}),

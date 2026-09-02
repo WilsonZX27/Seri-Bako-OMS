@@ -2,7 +2,7 @@
 
 ## Authority and weekly boundary
 
-OMS is authoritative for the approved Monday–Sunday roster and recognised attendance. NGTeco supplies raw fingerprint events only. Malaysia local time (`+08:00`) and exact source seconds are preserved; names are display-only and `Person ID` is the stable employee mapping.
+OMS is authoritative for the approved Monday–Sunday roster and recognised attendance. NGTeco supplies raw fingerprint events only. Malaysia local time (`+08:00`) and exact source seconds are preserved; a unique exact name match may assist a user-confirmed mapping, while `Person ID` remains the stored employee identity.
 
 `View Attendance Punch` is the calculation source. Required columns are `Person ID`, `Person Name`, `Punch Date`, `Attendance record`, `Verify Type`, `TimeZone`, and `Source`. Dates use `MM/DD/YYYY`; time uses `HH:mm:ss`.
 
@@ -28,7 +28,7 @@ Adjustments create a new result revision and immutable before/after history. Loc
 
 Upload preview parses and validates without mutation. Confirmation records the SHA-256 file hash, uploader, parser profile, period, raw row JSON and immutable event fingerprints. Event uniqueness is tenant + Person ID + exact timestamp + device + punch type, so overlapping exports remain idempotent while every batch keeps its source-row association.
 
-Apply migrations `241_dynamic_scheduling.sql` and `242_ngteco_attendance.sql` in order. The documented migration ceiling is **242**. Do not apply either migration to Production without a separate authorised deployment.
+Apply migrations `241_dynamic_scheduling.sql` through `244_roster_markers_and_submission.sql` in order. The documented migration ceiling is **244**. Migration 243 repairs the complete Supervisor operational baseline; migration 244 adds PH/OIL roster markers and the aligned weekly submission rule. Do not promote the Preview application or database changes to Production without separate authorisation.
 
 ## Test checklist
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Copy, Save, Send } from "lucide-react";
+import { ChevronLeft, ChevronRight, Copy, Save, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -11,12 +11,13 @@ type Person = { id: string; full_name: string; staff_code: string | null; employ
 type Template = { id: string; code: string; name: string; planned_start: string; planned_end: string; colour: string };
 type Assignment = { staff_id: string; work_date: string; assignment_kind: string; shift_template_id: string | null; custom_start?: string | null; custom_end?: string | null; custom_crosses_midnight?: boolean; custom_break_seconds?: number | null; custom_maximum_recognised_seconds?: number | null; custom_reason?: string | null };
 type Week = { id: string; status: string } | null;
-const markers = ["off", "al", "mc", "upl", "ro"] as const;
+const markers = ["off", "ph", "al", "mc", "upl", "ro", "oil"] as const;
 
 function addDays(day: string, amount: number) { const value = new Date(`${day}T00:00:00Z`); value.setUTCDate(value.getUTCDate() + amount); return value.toISOString().slice(0, 10); }
 function compactTime(value?: string | null) { return value?.slice(0, 5) ?? ""; }
+function currentMalaysiaWeek() { const day = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date()); const value = new Date(`${day}T00:00:00Z`); return addDays(day, -((value.getUTCDay() + 6) % 7)); }
 
-export function SchedulePlanner({ branches, branchId, weekStart, week, people, templates, initialAssignments, canDraft, canSubmit, canApprove }: { branches: Branch[]; branchId: string; weekStart: string; week: Week; people: Person[]; templates: Template[]; initialAssignments: Assignment[]; canDraft: boolean; canSubmit: boolean; canApprove: boolean }) {
+export function SchedulePlanner({ branches, branchId, weekStart, week, previousWeekId, people, templates, initialAssignments, canDraft, canSubmit, canApprove }: { branches: Branch[]; branchId: string; weekStart: string; week: Week; previousWeekId: string | null; people: Person[]; templates: Template[]; initialAssignments: Assignment[]; canDraft: boolean; canSubmit: boolean; canApprove: boolean }) {
   const dates = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(weekStart, index)), [weekStart]);
   const initial = useMemo(() => new Map(initialAssignments.map(assignment => [`${assignment.staff_id}:${assignment.work_date}`, assignment])), [initialAssignments]);
   const [cells, setCells] = useState<Map<string, Assignment>>(initial);
@@ -24,6 +25,8 @@ export function SchedulePlanner({ branches, branchId, weekStart, week, people, t
   const [copied, setCopied] = useState<Assignment | null>(null);
   const [customStart, setCustomStart] = useState("08:00");
   const [customEnd, setCustomEnd] = useState("16:30");
+  const [breakMinutes, setBreakMinutes] = useState(60);
+  const [capMinutes, setCapMinutes] = useState(510);
   const [message, setMessage] = useState(people.length ? "Select cells, then apply working times or a day marker." : "No active staff are assigned to this outlet.");
   const [busy, setBusy] = useState(false);
 
@@ -32,21 +35,25 @@ export function SchedulePlanner({ branches, branchId, weekStart, week, people, t
   function assignWorkingTimes() {
     if (!customStart || !customEnd) return;
     const crossesMidnight = customEnd <= customStart;
-    setCells(current => { const next = new Map(current); for (const key of selected) { const [staff_id, work_date] = key.split(":"); next.set(key, { staff_id, work_date, assignment_kind: "shift", shift_template_id: null, custom_start: customStart, custom_end: customEnd, custom_crosses_midnight: crossesMidnight, custom_break_seconds: 3600, custom_maximum_recognised_seconds: 510 * 60, custom_reason: "Outlet roster working time" }); } return next; });
+    setCells(current => { const next = new Map(current); for (const key of selected) { const [staff_id, work_date] = key.split(":"); next.set(key, { staff_id, work_date, assignment_kind: "shift", shift_template_id: null, custom_start: customStart, custom_end: customEnd, custom_crosses_midnight: crossesMidnight, custom_break_seconds: breakMinutes * 60, custom_maximum_recognised_seconds: capMinutes * 60, custom_reason: "Outlet roster working time" }); } return next; });
     setMessage(`${customStart}–${customEnd} applied to ${selected.size} selected ${selected.size === 1 ? "day" : "days"}.`);
   }
   function paste() { if (!copied) return; setCells(current => { const next = new Map(current); for (const key of selected) { const [staff_id, work_date] = key.split(":"); next.set(key, { ...copied, staff_id, work_date }); } return next; }); }
   async function action(payload: Record<string, unknown>) { setBusy(true); try { const response = await fetch("/api/attendance/schedule", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) }); const result = await response.json() as { ok: boolean; message?: string }; if (!result.ok) throw new Error(result.message); setMessage("Schedule action completed."); window.location.reload(); } catch (error) { setMessage(error instanceof Error ? error.message : "Schedule action failed."); } finally { setBusy(false); } }
   const assignments = [...cells.values()];
+  const priorWeek = addDays(weekStart, -7);
+  const nextWeek = addDays(weekStart, 7);
+  const scheduleUrl = (week: string) => `/attendance/schedule?branch=${encodeURIComponent(branchId)}&week=${week}`;
 
   return <div className="space-y-3">
     <section className="sb-work-surface flex flex-wrap items-center gap-2 p-3">
       <label className="text-xs font-medium">Outlet <select className="ml-2 h-9 rounded-md border bg-background px-2" value={branchId} onChange={event => { window.location.href = `/attendance/schedule?branch=${encodeURIComponent(event.target.value)}&week=${weekStart}`; }}>{branches.map(branch => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}</select></label>
       <StatusBadge status={week?.status ?? "not_started"}/><span className="text-xs text-muted-foreground">{weekStart} – {dates[6]}</span>
-      <div className="ml-auto flex flex-wrap gap-2">{canDraft ? <><Button size="sm" variant="outline" disabled={!selected.size} onClick={() => setCopied(cells.get([...selected][0]) ?? null)}><Copy className="mr-2 h-4 w-4"/>Copy</Button><Button size="sm" variant="outline" disabled={!selected.size || !copied} onClick={paste}>Paste</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => void action({ action: "save", branchId, weekStart, assignments })}><Save className="mr-2 h-4 w-4"/>Save draft</Button></> : null}{canSubmit && week ? <Button size="sm" disabled={busy} onClick={() => void action({ action: "submit", weekId: week.id })}><Send className="mr-2 h-4 w-4"/>Submit</Button> : null}{canApprove && week?.status === "submitted" ? <><Button size="sm" onClick={() => void action({ action: "decide", weekId: week.id, decision: "approve" })}>Publish</Button><Button size="sm" variant="outline" onClick={() => { const comment = window.prompt("Return reason"); if (comment) void action({ action: "decide", weekId: week.id, decision: "return", comment }); }}>Return</Button></> : null}</div>
+      <div className="flex items-center gap-1"><Button asChild size="icon" variant="outline" aria-label="Previous week"><a href={scheduleUrl(priorWeek)}><ChevronLeft className="h-4 w-4"/></a></Button><Button asChild size="sm" variant="outline"><a href={scheduleUrl(currentMalaysiaWeek())}>Current week</a></Button><Button asChild size="icon" variant="outline" aria-label="Next week"><a href={scheduleUrl(nextWeek)}><ChevronRight className="h-4 w-4"/></a></Button></div>
+      <div className="ml-auto flex flex-wrap gap-2">{canDraft ? <>{previousWeekId ? <Button size="sm" variant="outline" disabled={busy} onClick={() => void action({ action: "copy", sourceWeekId: previousWeekId, targetWeekStart: weekStart })}>Copy previous week</Button> : null}<Button size="sm" variant="outline" disabled={!selected.size} onClick={() => setCopied(cells.get([...selected][0]) ?? null)}><Copy className="mr-2 h-4 w-4"/>Copy</Button><Button size="sm" variant="outline" disabled={!selected.size || !copied} onClick={paste}>Paste</Button><Button size="sm" variant="outline" disabled={busy} onClick={() => void action({ action: "save", branchId, weekStart, assignments })}><Save className="mr-2 h-4 w-4"/>Save draft</Button></> : null}{canSubmit && week ? <Button size="sm" disabled={busy} onClick={() => void action({ action: "submit", weekId: week.id })}><Send className="mr-2 h-4 w-4"/>Submit</Button> : null}{canApprove && week?.status === "submitted" ? <><Button size="sm" onClick={() => void action({ action: "decide", weekId: week.id, decision: "approve" })}>Publish</Button><Button size="sm" variant="outline" onClick={() => { const comment = window.prompt("Return reason"); if (comment) void action({ action: "decide", weekId: week.id, decision: "return", comment }); }}>Return</Button></> : null}</div>
     </section>
     {canDraft ? <section className="sb-work-surface space-y-3 p-3">
-      <div className="flex flex-wrap items-end gap-2"><label className="grid gap-1 text-xs font-medium">Check in<Input type="time" step={1800} value={customStart} onChange={event => setCustomStart(event.target.value)} className="h-9 w-32"/></label><label className="grid gap-1 text-xs font-medium">Check out<Input type="time" step={1800} value={customEnd} onChange={event => setCustomEnd(event.target.value)} className="h-9 w-32"/></label><Button size="sm" disabled={!selected.size} onClick={assignWorkingTimes}>Apply working time</Button><span className="pb-2 text-xs text-muted-foreground">Direct times follow the existing outlet roster method. Break defaults to 1 hour; recognised time caps at 8.5 hours.</span></div>
+      <div className="flex flex-wrap items-end gap-2"><label className="grid gap-1 text-xs font-medium">Check in<Input type="time" step={1800} value={customStart} onChange={event => setCustomStart(event.target.value)} className="h-9 w-32"/></label><label className="grid gap-1 text-xs font-medium">Check out<Input type="time" step={1800} value={customEnd} onChange={event => setCustomEnd(event.target.value)} className="h-9 w-32"/></label><label className="grid gap-1 text-xs font-medium">Break (min)<Input type="number" min={0} max={720} step={15} value={breakMinutes} onChange={event => setBreakMinutes(Number(event.target.value))} className="h-9 w-24"/></label><label className="grid gap-1 text-xs font-medium">Max paid (min)<Input type="number" min={1} max={1440} step={30} value={capMinutes} onChange={event => setCapMinutes(Number(event.target.value))} className="h-9 w-28"/></label><Button size="sm" disabled={!selected.size || breakMinutes < 0 || capMinutes < 1} onClick={assignWorkingTimes}>Apply working time</Button><span className="pb-2 text-xs text-muted-foreground">These values are saved with the selected staff days; saved templates remain reusable shortcuts.</span></div>
       <div className="flex flex-wrap gap-2"><span className="self-center text-xs text-muted-foreground">Saved shifts:</span>{templates.map(template => <Button key={template.id} size="sm" variant="outline" disabled={!selected.size} onClick={() => assign("shift", template.id)}>{template.code} · {compactTime(template.planned_start)}–{compactTime(template.planned_end)}</Button>)}<span className="mx-1 h-8 w-px bg-[var(--sb-border-soft)]"/>{markers.map(marker => <Button key={marker} size="sm" variant="outline" disabled={!selected.size} onClick={() => assign(marker)}>{marker.toUpperCase()}</Button>)}</div>
     </section> : null}
     <p className="text-xs text-muted-foreground" role="status">{message}</p>

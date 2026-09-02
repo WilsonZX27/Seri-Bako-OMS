@@ -367,7 +367,7 @@ export async function getDashboardSummary() {
     needsInventory
       ? supabase.from("stock_balances_summary").select("item_id, current_qty, safety_stock, status, is_low_stock")
       : Promise.resolve({ data: [], error: null }),
-    isOutlet && scope.staffId ? db.from("shift_assignment_revisions").select("id,work_date,assignment_kind,shift_templates(code,name,planned_start,planned_end,crosses_midnight),schedule_weeks!inner(status)").eq("staff_id",scope.staffId).eq("is_current",true).gte("work_date",today).lte("work_date",nextWeek.toISOString().slice(0,10)).in("schedule_weeks.status",["published","locked"]).order("work_date").limit(8) : Promise.resolve({data:[],error:null}),
+    isOutlet && scope.staffId ? db.from("shift_assignment_revisions").select("id,work_date,assignment_kind,custom_start,custom_end,shift_templates(code,name,planned_start,planned_end,crosses_midnight),schedule_weeks!inner(status)").eq("staff_id",scope.staffId).eq("is_current",true).gte("work_date",today).lte("work_date",nextWeek.toISOString().slice(0,10)).in("schedule_weeks.status",["published","locked"]).order("work_date").limit(8) : Promise.resolve({data:[],error:null}),
   ]);
 
   let coreSnapshot = coreSnapshotRpcResult.data as DashboardCoreSnapshot | null;
@@ -504,7 +504,7 @@ export async function getDashboardSummary() {
       ingredientShortages: Number(coreSnapshot?.production_ingredient_shortages ?? 0),
     } : null,
     outletToday: outletToday.data ?? null,
-    upcomingShifts: upcomingShifts.error ? [] : (upcomingShifts.data ?? []) as unknown as Array<{id:string;work_date:string;assignment_kind:string;shift_templates:{code:string;name:string;planned_start:string;planned_end:string;crosses_midnight:boolean}|null}>,
+    upcomingShifts: upcomingShifts.error ? [] : (upcomingShifts.data ?? []) as unknown as Array<{id:string;work_date:string;assignment_kind:string;custom_start:string|null;custom_end:string|null;shift_templates:{code:string;name:string;planned_start:string;planned_end:string;crosses_midnight:boolean}|null}>,
   };
   return result;
 }

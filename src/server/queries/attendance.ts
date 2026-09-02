@@ -59,7 +59,7 @@ export async function getSchedulePlanner(weekStart = malaysiaWeekStart(), reques
     week ? db.from("shift_assignment_revisions").select("*").eq("schedule_week_id", week.id).eq("is_current", true) : Promise.resolve({ data: [], error: null }),
   ]);
   if (templates.error) throw templates.error; if (assignments.error) throw assignments.error;
-  return { branches: branchRows, branchId, week: week as unknown as { id: string; status: string } | null, previousWeekId: previousWeeks?.[0]?.id ? String(previousWeeks[0].id) : null, templates: (templates.data ?? []) as unknown as Array<{ id:string;code:string;name:string;planned_start:string;planned_end:string;colour:string }>, people: (scheduleStaff ?? []) as unknown as Array<{ id:string;full_name:string;staff_code:string|null;status:string;employment_type:string }>, assignments: (assignments.data ?? []) as unknown as Array<{staff_id:string;work_date:string;assignment_kind:string;shift_template_id:string|null}> };
+  return { branches: branchRows, branchId, week: week as unknown as { id: string; status: string } | null, previousWeekId: previousWeeks?.[0]?.id ? String(previousWeeks[0].id) : null, templates: (templates.data ?? []) as unknown as Array<{ id:string;code:string;name:string;planned_start:string;planned_end:string;colour:string }>, people: (scheduleStaff ?? []) as unknown as Array<{ id:string;full_name:string;staff_code:string|null;status:string;employment_type:string }>, assignments: (assignments.data ?? []) as unknown as Array<{staff_id:string;work_date:string;assignment_kind:string;shift_template_id:string|null;custom_start:string|null;custom_end:string|null;custom_crosses_midnight:boolean;custom_break_seconds:number|null;custom_maximum_recognised_seconds:number|null;custom_reason:string|null}> };
 }
 
 export async function getAttendanceReview(weekStart = malaysiaWeekStart()) {
@@ -72,7 +72,7 @@ export async function getAttendanceReview(weekStart = malaysiaWeekStart()) {
 export async function getOwnPublishedShifts(weekStart = malaysiaWeekStart()) {
   if (!(await hasPermission("schedule.request"))) return [];
   const db=looseSupabase(await createClient());const end=new Date(`${weekStart}T00:00:00Z`);end.setUTCDate(end.getUTCDate()+6);
-  const {data,error}=await db.from("shift_assignment_revisions").select("id,work_date,assignment_kind,shift_templates(code,name,planned_start,planned_end),schedule_weeks!inner(status)").eq("is_current",true).gte("work_date",weekStart).lte("work_date",end.toISOString().slice(0,10)).in("schedule_weeks.status",["published","locked"]).order("work_date");if(error)throw error;return (data??[]) as unknown as Array<{id:string;work_date:string;assignment_kind:string;shift_templates:{code:string;name:string;planned_start:string;planned_end:string}|null}>;
+  const {data,error}=await db.from("shift_assignment_revisions").select("id,work_date,assignment_kind,custom_start,custom_end,shift_templates(code,name,planned_start,planned_end),schedule_weeks!inner(status)").eq("is_current",true).gte("work_date",weekStart).lte("work_date",end.toISOString().slice(0,10)).in("schedule_weeks.status",["published","locked"]).order("work_date");if(error)throw error;return (data??[]) as unknown as Array<{id:string;work_date:string;assignment_kind:string;custom_start:string|null;custom_end:string|null;shift_templates:{code:string;name:string;planned_start:string;planned_end:string}|null}>;
 }
 
 export async function getPendingShiftRequests() {

@@ -12,7 +12,7 @@ const {
 
 test("v9 UAT classifies every application page", () => {
   const routes = discoverRouteMatrix();
-  assert.equal(routes.length, 106, "Route count changed. Classify the new or removed page deliberately.");
+  assert.equal(routes.length, 110, "Route count changed. Classify the new or removed page deliberately.");
   assert.equal(new Set(routes.map((entry) => entry.file)).size, routes.length);
   assert.equal(new Set(routes.map((entry) => entry.route)).size, routes.length);
   for (const entry of routes) {
@@ -22,9 +22,16 @@ test("v9 UAT classifies every application page", () => {
 });
 
 test("v9 UAT locks the approved role and viewport matrix", () => {
-  assert.deepEqual(roles, ["superAdmin", "peopleOperations", "finance", "manager", "purchasing", "kitchen", "outlet"]);
+  assert.deepEqual(roles, ["superAdmin", "peopleOperations", "finance", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]);
   assert.deepEqual(viewports.map(({ width, height }) => `${width}x${height}`), ["390x844", "820x1180", "1180x820", "1440x900"]);
   assert.equal(publicRoutes.size, 6);
+});
+
+test("Attendance routes follow the eighth-role permission boundary", () => {
+  assert.deepEqual(permittedRolesFor("/attendance"), ["superAdmin", "peopleOperations", "manager", "outletSupervisor", "outlet"]);
+  assert.deepEqual(permittedRolesFor("/attendance/schedule"), ["superAdmin", "peopleOperations", "manager", "outletSupervisor", "outlet"]);
+  assert.deepEqual(permittedRolesFor("/attendance/review"), ["superAdmin", "peopleOperations", "manager", "outletSupervisor", "outlet"]);
+  assert.deepEqual(permittedRolesFor("/attendance/imports"), ["superAdmin", "peopleOperations"]);
 });
 
 test("dynamic pages receive inert audit identifiers without losing route identity", () => {

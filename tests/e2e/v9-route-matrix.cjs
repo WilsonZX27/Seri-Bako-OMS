@@ -4,7 +4,7 @@ const { execFileSync } = require("node:child_process");
 
 const MISSING_ID = "00000000-0000-4000-8000-000000000000";
 
-const roles = ["superAdmin", "peopleOperations", "finance", "manager", "purchasing", "kitchen", "outlet"];
+const roles = ["superAdmin", "peopleOperations", "finance", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"];
 const roleCodes = {
   superAdmin: "super_admin",
   peopleOperations: "people_operations",
@@ -12,6 +12,7 @@ const roleCodes = {
   manager: "manager",
   purchasing: "purchasing",
   kitchen: "kitchen",
+  outletSupervisor: "outlet_supervisor",
   outlet: "outlet_staff",
 };
 
@@ -39,6 +40,8 @@ const OWNER_KITCHEN = ["superAdmin", "kitchen"];
 const OWNER_PURCHASING_KITCHEN = ["superAdmin", "purchasing", "kitchen"];
 const OWNER_FINANCE_PURCHASING_KITCHEN = ["superAdmin", "finance", "purchasing", "kitchen"];
 const OWNER_KITCHEN_OUTLET = ["superAdmin", "kitchen", "outlet"];
+const ATTENDANCE = ["superAdmin", "peopleOperations", "manager", "outletSupervisor", "outlet"];
+const ATTENDANCE_IMPORT = ["superAdmin", "peopleOperations"];
 
 // Parent navigation describes read visibility. Create and edit workspaces are
 // narrower and follow the canonical permission grants through migration 218.
@@ -80,6 +83,8 @@ const actionRouteAuthorities = new Map([
 // whichever RLS policy happens to answer today. A new route must deliberately
 // join one of these authorities before the v9 matrix will accept it.
 const accessAuthorities = [
+  ["/attendance/imports", ATTENDANCE_IMPORT],
+  ["/attendance", ATTENDANCE],
   ["/outlet-compliance", ["superAdmin", "peopleOperations", "manager", "kitchen", "outlet"]],
   ["/outlet-calendar", ["superAdmin", "peopleOperations", "manager", "kitchen", "outlet"]],
   ["/people", ["superAdmin", "peopleOperations", "manager"]],

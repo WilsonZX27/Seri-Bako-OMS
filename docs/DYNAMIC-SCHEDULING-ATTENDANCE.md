@@ -28,7 +28,7 @@ Adjustments create a new result revision and immutable before/after history. Loc
 
 Upload preview parses and validates without mutation. Confirmation records the SHA-256 file hash, uploader, parser profile, period, raw row JSON and immutable event fingerprints. Event uniqueness is tenant + Person ID + exact timestamp + device + punch type, so overlapping exports remain idempotent while every batch keeps its source-row association.
 
-Apply migrations `241_dynamic_scheduling.sql` through `245_direct_roster_attendance_calculation.sql` in order. The documented migration ceiling is **245**. Migration 243 repairs the complete Supervisor operational baseline; migration 244 adds PH/OIL roster markers; migration 245 makes standard direct roster times Supervisor-editable and includes them in attendance calculation. Do not promote the Preview application or database changes to Production without separate authorisation.
+Apply migrations `241_dynamic_scheduling.sql` through `246_clear_schedule_assignments.sql` in order. The documented migration ceiling is **246**. Migration 243 repairs the complete Supervisor operational baseline; migration 244 adds PH/OIL roster markers; migration 245 makes standard direct roster times Supervisor-editable and includes them in attendance calculation; migration 246 makes the editable-week payload authoritative so mistaken cells can be cleared with an audit event. Do not promote the Preview application or database changes to Production without separate authorisation.
 
 ## Test checklist
 

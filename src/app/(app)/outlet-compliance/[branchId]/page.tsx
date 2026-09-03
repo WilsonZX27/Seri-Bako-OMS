@@ -5,17 +5,26 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Notice } from "@/components/ui/system-states";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { getOutletComplianceWorkspace } from "@/server/queries/compliance";
 import { createComplianceRecord, reviewComplianceRecord } from "@/server/actions/compliance";
 import { getPermissionMap } from "@/server/auth/permissions";
+import { logServerError } from "@/server/observability/logger";
 
 const meta: Record<string,{label:string;variant:"success"|"warning"|"danger"|"secondary"}>={missing:{label:"Missing",variant:"danger"},pending_review:{label:"Pending review",variant:"warning"},valid:{label:"Valid",variant:"success"},due_7:{label:"Expiring",variant:"danger"},due_30:{label:"Expiring",variant:"warning"},due_60:{label:"Expiring",variant:"warning"},due_90:{label:"Expiring",variant:"secondary"},expired:{label:"Expired",variant:"danger"},returned:{label:"Returned",variant:"danger"},uploaded:{label:"Uploaded",variant:"secondary"}};
 
 export default async function OutletChecklistPage({params,searchParams}:{params:Promise<{branchId:string}>;searchParams:Promise<{error?:string;success?:string}>}) {
   const [{branchId},message]=await Promise.all([params,searchParams]);
-  const [workspace,permissions]=await Promise.all([getOutletComplianceWorkspace(),getPermissionMap(["outlet_compliance.upload","outlet_compliance.review"])]);
+  let workspace: Awaited<ReturnType<typeof getOutletComplianceWorkspace>>;
+  let permissions: Awaited<ReturnType<typeof getPermissionMap>>;
+  try {
+    [workspace,permissions]=await Promise.all([getOutletComplianceWorkspace(),getPermissionMap(["outlet_compliance.upload","outlet_compliance.review"])]);
+  } catch (error) {
+    logServerError(error,{source:"page.outletCompliance.detail",branchId});
+    return <><PageHeader title="Outlet Compliance" description="Required documents, evidence review and renewal status."/><WorkspaceGrid tabletCanvas="contained" hideMobileConsole hideDesktopConsole><Notice tone="warning" title="Checklist temporarily unavailable">We could not verify this outlet checklist. Your review decision and saved records are unchanged unless a success message was shown.<span className="mt-2 flex flex-wrap gap-3"><Link className="font-semibold underline underline-offset-2" href={`/outlet-compliance/${branchId}`}>Retry</Link><Link className="font-semibold underline underline-offset-2" href="/outlet-compliance">Back to outlet register</Link></span></Notice></WorkspaceGrid></>;
+  }
   const branch=workspace.branches.find((row)=>row.id===branchId);
   if(!branch) notFound();
   const rows=workspace.requirements.filter((row)=>row.branch_id===branchId);

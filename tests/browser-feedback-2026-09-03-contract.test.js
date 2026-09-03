@@ -22,9 +22,10 @@ test("calendar, settings, review and imports expose direct context instead of hi
   assert.match(review, /Attendance review filters/);
   assert.match(review, /All accessible outlets/);
   const mappings = read("src", "components", "attendance", "mapping-admin.tsx");
-  assert.match(mappings, /NGTeco Person ID[\s\S]*OMS employee/);
+  assert.doesNotMatch(mappings, /NGTeco Person ID[\s\S]*OMS employee/);
   assert.match(mappings, /NGTeco Source[\s\S]*Outlet/);
   const workflow = read("src", "components", "attendance", "attendance-import-workflow.tsx");
+  assert.match(workflow, /employees matched automatically/);
   assert.match(workflow, /md:items-start/);
   assert.doesNotMatch(workflow, /Choose an NGTeco CSV or XLSX file\. Preview never writes to the database\./);
 });
@@ -37,6 +38,10 @@ test("daily records, receiving, compliance and stock count feedback remains expl
   const compliance = read("src", "server", "actions", "compliance.ts");
   assert.match(compliance, /export async function revokeComplianceRecord/);
   assert.match(compliance, /This evidence is no longer pending review/);
+  const outletCompliance = read("src", "app", "(app)", "outlet-compliance", "[branchId]", "page.tsx");
+  assert.match(outletCompliance, /Replace document/);
+  assert.match(outletCompliance, /Remove \{row\.type/);
+  assert.doesNotMatch(outletCompliance, /reviewComplianceRecord|>Approve<|>Return<|Pending review|Submit for review/);
   assert.match(read("src", "app", "(app)", "outlet-compliance", "page.tsx"), /New requirement/);
   assert.match(read("src", "server", "queries", "topbar.ts"), /"purchasing", "manager", "finance", "people_operations", "super_admin"/);
   const countForm = read("src", "components", "stock-count-form.tsx");

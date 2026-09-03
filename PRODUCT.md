@@ -1,12 +1,16 @@
 # Seri Bako Operations Management System
 
-### v9.2.20 (unreleased) — Unified Loading and Workflow Reliability
+### v9.2.21 (unreleased) — Direct Compliance Upload and Attendance Matching
+
+- Removes Outlet Compliance approval entirely: an upload becomes current immediately, and authorised staff can replace or remove the current document.
+- Matches imported NGTeco people automatically to unique active OMS employee names; only device-source-to-outlet mapping remains manual.
+
+Repository migrations reviewed through `254`; migration 254 makes every active outlet document current without changing the separate staff-compliance review capability.
+
+### v9.2.20 (deployed) — Unified Loading and Workflow Reliability
 
 - Uses one shared loading workspace with a consistent right-side action and summary rail across People, Attendance, Compliance and procurement routes.
-- Makes outlet compliance approve/return atomic so a review and its audit history either both save or both remain unchanged.
 - Prevents Attendance mapping and Goods Receiving lists from overflowing at compact desktop widths, simplifies shift settings, and defaults purchase orders to newest document number.
-
-Repository migrations reviewed through `253`; migration 253 is implemented locally and remains unapplied until the linked database target is verified.
 
 ### v9.2.19 (unreleased) — Direct AutoCount PO and Receiving Repair
 

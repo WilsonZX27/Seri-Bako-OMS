@@ -69,16 +69,25 @@ export async function createComplianceRecord(formData: FormData) {
     branch_id: value.branch_id, staff_id: value.staff_id, asset_external_ref: value.asset_external_ref || null,
     subject_label: value.subject_label, reference_no: value.reference_no || null, issued_on: value.issued_on || null,
     expires_on: value.expires_on || null, responsible_staff_id: value.responsible_staff_id, attachment_id: attachmentId, notes: value.notes || null,
-    review_status: value.submit_for_review ? "pending_review" : "draft", created_by: actor.staffId, updated_by: actor.staffId,
+    review_status: value.subject_kind === "outlet" ? "approved" : value.submit_for_review ? "pending_review" : "draft", created_by: actor.staffId, updated_by: actor.staffId,
   }).select("id, expires_on").single();
   if (error || !data) {
     if (attachmentId) await supabase.from("attachments").delete().eq("id", attachmentId);
     if (storagePath) await supabase.storage.from("document-attachments").remove([storagePath]);
     redirect(complianceMessageUrl(returnPath, "error", error?.message ?? "Record could not be created."));
   }
-  await supabase.from("compliance_record_history").insert({ company_id: actor.companyId, compliance_record_id: data.id, event_type: value.submit_for_review ? "submitted" : "created", safe_summary: value.submit_for_review ? "Record created and submitted for review." : "Draft record created.", new_expires_on: data.expires_on, actor_staff_id: actor.staffId });
+  if (value.subject_kind === "outlet" && value.branch_id) {
+    const { error: replaceError } = await supabase.from("compliance_records").update({ deleted_at: new Date().toISOString(), updated_by: actor.staffId }).eq("company_id", actor.companyId).eq("subject_kind", "outlet").eq("branch_id", value.branch_id).eq("compliance_type_id", value.compliance_type_id).neq("id", data.id).is("deleted_at", null);
+    if (replaceError) {
+      await supabase.from("compliance_records").delete().eq("id", data.id).eq("company_id", actor.companyId);
+      if (attachmentId) await supabase.from("attachments").delete().eq("id", attachmentId);
+      if (storagePath) await supabase.storage.from("document-attachments").remove([storagePath]);
+      redirect(complianceMessageUrl(returnPath, "error", "The current document could not be replaced. Your previous document is unchanged."));
+    }
+  }
+  await supabase.from("compliance_record_history").insert({ company_id: actor.companyId, compliance_record_id: data.id, event_type: value.subject_kind === "outlet" ? "created" : value.submit_for_review ? "submitted" : "created", safe_summary: value.subject_kind === "outlet" ? "Outlet document uploaded and made current." : value.submit_for_review ? "Record created and submitted for review." : "Draft record created.", new_expires_on: data.expires_on, actor_staff_id: actor.staffId });
   revalidatePath(value.subject_kind === "outlet" ? "/outlet-compliance" : "/people");
-  redirect(value.subject_kind === "outlet" && value.branch_id ? `/outlet-compliance/${value.branch_id}?success=Evidence+received+and+submitted+for+review.` : value.subject_kind === "staff" && value.staff_id ? `/people/${value.staff_id}?section=compliance&success=Compliance+record+and+file+saved.` : "/people?success=Compliance+record+created.");
+  redirect(value.subject_kind === "outlet" && value.branch_id ? `/outlet-compliance/${value.branch_id}?success=Document+uploaded+and+made+current.` : value.subject_kind === "staff" && value.staff_id ? `/people/${value.staff_id}?section=compliance&success=Compliance+record+and+file+saved.` : "/people?success=Compliance+record+created.");
 }
 
 export async function reviewComplianceRecord(formData: FormData) {
@@ -92,14 +101,15 @@ export async function reviewComplianceRecord(formData: FormData) {
   const supabase = await createClient();
   const { data: target } = await supabase.from("compliance_records").select("subject_kind,branch_id").eq("id", id).single();
   if (!target) redirect("/outlet-compliance?error=Record+is+not+available+in+your+scope.");
+  if (target.subject_kind === "outlet") redirect(target.branch_id ? `/outlet-compliance/${target.branch_id}?success=Outlet+documents+do+not+require+review.` : "/outlet-compliance?success=Outlet+documents+do+not+require+review.");
   if (decision === "rejected" && !note) redirect(target.branch_id ? `/outlet-compliance/${target.branch_id}?error=Add+a+corrective+note+before+returning+evidence.` : "/outlet-compliance?error=Add+a+corrective+note+before+returning+evidence.");
-  await requirePermission(target.subject_kind === "outlet" ? "outlet_compliance.review" : target.subject_kind === "staff" ? "people.compliance.manage" : "compliance.review");
+  await requirePermission(target.subject_kind === "staff" ? "people.compliance.manage" : "compliance.review");
   const { error } = await supabase.rpc("review_compliance_record_atomic" as never, { p_record_id: id, p_decision: decision, p_note: note || null } as never);
   if (error) {
     const message = error.code === "55000" ? "This evidence is no longer pending review. Reload to see its current state." : error.message;
     redirect(complianceMessageUrl(target.branch_id ? `/outlet-compliance/${target.branch_id}` : "/compliance", "error", message));
   }
-  revalidatePath(target.subject_kind === "outlet" ? "/outlet-compliance" : "/people");
+  revalidatePath(target.subject_kind === "staff" ? "/people" : "/compliance");
   redirect(target.branch_id ? `/outlet-compliance/${target.branch_id}?success=${decision === "approved" ? "Evidence+approved." : "Evidence+returned+with+the+correction+note."}` : "/compliance?success=Review+saved.");
 }
 
@@ -112,12 +122,11 @@ export async function revokeComplianceRecord(formData: FormData) {
   const returnPath = target?.branch_id ? `/outlet-compliance/${target.branch_id}` : "/outlet-compliance";
   if (readError || !target) redirect(complianceMessageUrl(returnPath, "error", "This evidence is no longer available."));
   if (!target.branch_id) redirect(complianceMessageUrl(returnPath, "error", "This evidence is not linked to an outlet."));
-  if (!['draft', 'pending_review', 'rejected'].includes(target.review_status)) redirect(complianceMessageUrl(returnPath, "error", "Approved evidence cannot be revoked. Add a renewal instead."));
   const { error } = await supabase.from("compliance_records").update({ deleted_at: new Date().toISOString(), updated_by: actor.staffId }).eq("id", id).eq("company_id", actor.companyId).is("deleted_at", null);
   if (error) redirect(complianceMessageUrl(returnPath, "error", error.message));
-  await supabase.from("compliance_record_history").insert({ company_id: actor.companyId, compliance_record_id: id, event_type: "updated", safe_summary: "Testing or incorrect evidence revoked before approval.", actor_staff_id: actor.staffId });
+  await supabase.from("compliance_record_history").insert({ company_id: actor.companyId, compliance_record_id: id, event_type: "updated", safe_summary: "Outlet document removed.", actor_staff_id: actor.staffId });
   revalidatePath("/outlet-compliance");
-  redirect(complianceMessageUrl(returnPath, "success", "Evidence revoked. You can upload the correct document now."));
+  redirect(complianceMessageUrl(returnPath, "success", "Document removed. You can upload its replacement now."));
 }
 
 export async function renewComplianceRecord(formData: FormData) {

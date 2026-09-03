@@ -1,6 +1,11 @@
 # Seri Bako OMS responsive design standard
 
-## v9.2.20 (unreleased) — Unified loading and compact operational layouts
+## v9.2.21 (unreleased) — Direct compliance upload and automatic staff matching
+
+- Outlet Compliance is a direct document checklist: upload, replace and remove are the only actions; approval vocabulary and pending-review states are absent.
+- Attendance resolves uniquely matching active employee names automatically and asks operators only for the device-to-outlet relationship the source file cannot infer.
+
+## v9.2.20 (deployed) — Unified loading and compact operational layouts
 
 - Every route loading boundary uses the same shared workspace skeleton: heading, primary work surface, Actions rail and Summary rail.
 - Compact desktop widths switch dense operational tables to the shared row presentation before columns collide.

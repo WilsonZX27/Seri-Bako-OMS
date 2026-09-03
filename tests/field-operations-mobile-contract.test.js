@@ -73,8 +73,9 @@ test("goods receiving prioritizes physical receipt before reference quantities o
   assert.match(source, /line_conversion_snapshot/);
   assert.match(source, /<dt className="text-\[10px\] text-muted-foreground">Ordered<\/dt>/);
   assert.match(source, /<dt className="text-\[10px\] text-muted-foreground">Received<\/dt>/);
-  assert.match(source, /<dt className="text-\[10px\] text-muted-foreground">Pending<\/dt>/);
-  assert.match(source, /<details className="mt-3 border-t/);
+  assert.match(source, /<dt className="text-\[10px\] font-medium text-\[var\(--sb-green-800\)\]">Pending<\/dt>/);
+  assert.match(source, />Traceability<\/p>/);
+  assert.doesNotMatch(source, /<details className="mt-3 border-t/);
 });
 
 test("purchase requests use a flat phone setup and line-entry hierarchy", () => {

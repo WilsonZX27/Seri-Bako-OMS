@@ -1,7 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DocumentActionBar, DocumentActionForm } from "@/components/document-action-bar";
-import { StatusBadge } from "@/components/ui/status-badge";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { MobileTaskSheet } from "@/components/documents/mobile-document-surfaces";
@@ -9,7 +8,7 @@ import { DocumentMoreOptions } from "@/components/documents/mobile-document-surf
 import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
 import { PriorityBadge } from "@/components/priority-badge";
 import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
-import { approvePurchaseOrder, cancelPurchaseOrder, closePurchaseOrder, rejectPurchaseOrder, restorePurchaseOrder, sendPurchaseOrder, submitPurchaseOrder } from "@/server/actions/procurement";
+import { cancelPurchaseOrder, closePurchaseOrder, restorePurchaseOrder, sendPurchaseOrder } from "@/server/actions/procurement";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getBranchesForSelect, getCurrentProfile, getItemsForSelect, getSuppliersForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
@@ -20,9 +19,7 @@ import { AttachmentRequiredAction } from "@/components/documents/attachment-requ
 import { detailOrNotFound } from "@/server/queries/detail";
 
 const poSteps = [
-  { key: "draft", label: "Draft", description: "Order is being prepared." },
-  { key: "pending_approval", label: "Approval", description: "Waiting for approval." },
-  { key: "approved", label: "Approved", description: "Ready to send to supplier." },
+  { key: "approved", label: "Ready to Send Supplier", description: "Backfilled AutoCount PO is ready to send." },
   { key: "sent", label: "Sent", description: "Supplier has received the order." },
   { key: "partial_received", label: "Receiving", description: "Some lines have been received." },
   { key: "received", label: "Received", description: "All goods received." },
@@ -44,7 +41,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
     getItemsForSelect(),
     getSuppliersForSelect(),
     getBranchesForSelect(),
-    getPermissionMap(["po.submit", "po.approve", "po.send", "po.receive", "purchase_order.cancel", "purchase_order.close", "documents.attach"]),
+    getPermissionMap(["po.send", "po.receive", "purchase_order.cancel", "purchase_order.close", "documents.attach"]),
     getCurrentProfile(),
   ]);
   const sourceRequest = await getPurchaseRequestForOrder(order.purchase_request_id);
@@ -56,7 +53,6 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
   const supplier = suppliers.find((row) => row.id === order.supplier_id);
   const branch = branches.find((row) => row.id === order.branch_id);
   const total = lines.reduce((sum, line) => sum + line.qty_ordered * line.unit_price, 0);
-  const canReject = !fromApprovedPr && order.status === "pending_approval" && permissions["po.approve"];
   // A PO converted from an approved PR is still unposted work until it is sent.
   // Keep the audited cancellation path available so traceable UAT and operator
   // corrections do not require a hidden database-only cleanup.
@@ -68,13 +64,9 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
   const receivingAction = (label: string) => <AttachmentRequiredAction href={receivingHref} label={label} hasAttachment={hasReceivingAttachment} canUpload={permissions["documents.attach"]}>
     {documentBundle ? <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Delivery Order" description="Attach the supplier Delivery Order before recording receiving." defaultLabel="Delivery Order" uploadLabel="Upload DO" presentation="inline" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /> : <p className="text-sm text-destructive">The purchase order document is unavailable. Refresh before receiving goods.</p>}
   </AttachmentRequiredAction>;
-  const secondaryActions = canCancel || canReject || canClose || canRestore ? <div className="space-y-2">{canCancel ? <DocumentActionForm action={cancelPurchaseOrder.bind(null, order.id)} pendingLabel="Cancelling order..." variant="destructive">Cancel purchase order</DocumentActionForm> : null}{canRestore ? <><ConfirmActionForm action={restorePurchaseOrder.bind(null, order.id)} label="Restore purchase order" title={`Restore ${order.po_no}?`} description="The cancelled order will return to its previous unposted workflow state. Restoration is blocked if a replacement PO or downstream record exists." pendingLabel="Restoring..." /><PhaseOneDeleteAction recordType="purchase_order" recordId={order.id} label={order.po_no} /></> : null}{canReject ? <DocumentActionForm action={rejectPurchaseOrder.bind(null, order.id)} pendingLabel="Rejecting..." variant="destructive">Reject purchase order</DocumentActionForm> : null}{canClose ? <DocumentActionForm action={closePurchaseOrder.bind(null, order.id)} pendingLabel="Closing..." variant="outline">Close purchase order</DocumentActionForm> : null}</div> : null;
+  const secondaryActions = canCancel || canClose || canRestore ? <div className="space-y-2">{canCancel ? <DocumentActionForm action={cancelPurchaseOrder.bind(null, order.id)} pendingLabel="Cancelling order..." variant="destructive">Cancel purchase order</DocumentActionForm> : null}{canRestore ? <><ConfirmActionForm action={restorePurchaseOrder.bind(null, order.id)} label="Restore purchase order" title={`Restore ${order.po_no}?`} description="The cancelled order will return to its previous unposted workflow state. Restoration is blocked if a replacement PO or downstream record exists." pendingLabel="Restoring..." /><PhaseOneDeleteAction recordType="purchase_order" recordId={order.id} label={order.po_no} /></> : null}{canClose ? <DocumentActionForm action={closePurchaseOrder.bind(null, order.id)} pendingLabel="Closing..." variant="outline">Close purchase order</DocumentActionForm> : null}</div> : null;
   const nextStep = (fromApprovedPr ? convertedPoSteps : poSteps).find((step) => step.key === order.status)?.description;
-  const mobilePrimaryAction = !fromApprovedPr && order.status === "draft" && permissions["po.submit"]
-    ? <DocumentActionForm action={submitPurchaseOrder.bind(null, order.id)} pendingLabel="Submitting...">Submit Purchase Order</DocumentActionForm>
-    : !fromApprovedPr && order.status === "pending_approval" && permissions["po.approve"]
-      ? <ConfirmActionForm action={approvePurchaseOrder.bind(null, order.id)} label="Approve as Manager" title="Approve this purchase order as Manager?" description="This makes the purchase order ready to send to the supplier." pendingLabel="Approving..." mobilePrimary />
-      : order.status === "approved" && permissions["po.send"]
+  const mobilePrimaryAction = order.status === "approved" && permissions["po.send"]
         ? <MobileTaskSheet label="Send to Supplier"><div className="space-y-3">{documentBundle ? <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supporting Attachments" uploadLabel="Upload" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /> : null}<DocumentActionForm action={sendPurchaseOrder.bind(null, order.id)} pendingLabel="Sending...">Send to Supplier</DocumentActionForm></div></MobileTaskSheet>
         : ["sent", "partial_received"].includes(order.status) && permissions["po.receive"]
           ? receivingAction("Record Receiving & Attach DO")
@@ -97,10 +89,6 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
         <>
           <DocumentActionSection description="Only the next valid workflow action is shown." moreOptions={secondaryActions}>
             <DocumentActionBar>
-              {!fromApprovedPr && order.status === "draft" && permissions["po.submit"] ? <DocumentActionForm action={submitPurchaseOrder.bind(null, order.id)} pendingLabel="Submitting...">Submit approval</DocumentActionForm> : null}
-              {!fromApprovedPr && order.status === "pending_approval" && permissions["po.approve"] ? (
-                <ConfirmActionForm action={approvePurchaseOrder.bind(null, order.id)} label="Approve as Manager" title="Approve this purchase order as Manager?" description="This makes the purchase order ready to send to the supplier." pendingLabel="Approving..." mobilePrimary />
-              ) : null}
               {order.status === "approved" && permissions["po.send"] ? <DocumentActionForm action={sendPurchaseOrder.bind(null, order.id)} pendingLabel="Sending..." mobilePrimary>Send to supplier</DocumentActionForm> : null}
               {["sent", "partial_received"].includes(order.status) && permissions["po.receive"] ? <div data-mobile-primary-action>{receivingAction("Receive goods")}</div> : null}
             </DocumentActionBar>
@@ -125,7 +113,6 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
                 <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{branch?.branch_name ?? "-"}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Order Date</p><p className="font-medium">{formatDateOnly(order.order_date)}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Expected Delivery</p><p className="font-medium">{formatDateOnly(order.expected_delivery_date, "-")}</p></div>
-                {!fromApprovedPr ? <div><p className="text-xs uppercase text-muted-foreground">Approval</p><StatusBadge status={order.approval_status} /></div> : null}
                 <div><p className="text-xs uppercase text-muted-foreground">Priority</p><PriorityBadge priority={order.priority} /></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Needed By</p><p className="font-medium">{formatDateOnly(order.needed_by_date, "-")}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Source Document</p><p className="font-medium">{sourceRequest?.request_no ?? "-"}</p></div>

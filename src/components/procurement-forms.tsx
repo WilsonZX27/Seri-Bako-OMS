@@ -485,7 +485,6 @@ export function PurchaseOrderForm({
   action: (previousState: { error: string | null; attempt: number }, formData: FormData) => Promise<{ error: string | null; attempt: number }>;
 }) {
   const [actionState, formAction] = useActionState(action, { error: null, attempt: 0 });
-  const poNo = "PO-AUTO";
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [branchId, setBranchId] = useState(branches[0]?.id ?? "");
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([""]);
@@ -528,10 +527,7 @@ export function PurchaseOrderForm({
   return (
     <div className="min-w-0">
         <form id="purchase-order-form" action={formAction} className="grid gap-3">
-          <input hidden type="hidden" name="po_no" value={poNo} />
           <input hidden type="hidden" name="idempotency_key" value={idempotencyKey} />
-          <input hidden type="hidden" name="status" value="draft" />
-          <input hidden type="hidden" name="approval_status" value="draft" />
           {actionState.error && actionState.attempt !== dismissedErrorAttempt ? <Notice tone="error" title="Purchase order not created"><p>{actionState.error}</p><p className="mt-1 font-medium">Your entries are still here. Review the selected branch, supplier, and items, then try again.</p></Notice> : null}
           <section data-purchase-order-form-surface className="sb-work-surface overflow-hidden">
           <div className="flex items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] bg-white px-3 py-2">
@@ -539,6 +535,10 @@ export function PurchaseOrderForm({
             <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" aria-expanded={detailsOpen} aria-label={detailsOpen ? "Collapse order details" : "Expand order details"} onClick={() => setDetailsOpen((current) => !current)}><ChevronDown className={`h-4 w-4 transition-transform motion-reduce:transition-none ${detailsOpen ? "rotate-180" : ""}`} aria-hidden="true" /></Button>
           </div>
           <div data-purchase-order-setup className={`grid grid-cols-2 gap-3 p-3 md:grid-cols-3 md:p-4 ${detailsOpen ? "" : "hidden"}`}>
+            <Field label="AutoCount PO Number" required className="col-span-2 md:col-span-3">
+              <Input name="po_no" required maxLength={64} autoComplete="off" placeholder="e.g. PO - 000207" />
+              <p className="mt-1 text-xs text-muted-foreground">Use the exact PO number from AutoCount. OMS will not generate or replace it.</p>
+            </Field>
             <Field label="Branch" required>
               <SelectNative name="branch_id" value={branchId} onChange={(event) => { setBranchId(event.target.value); setDismissedErrorAttempt(actionState.attempt); setCatalogueNotice("Branch changed. Your supplier and item lines were kept for review."); }} required>
                 {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}

@@ -97,7 +97,8 @@ test("PO and production portrait-tablet layouts keep deliberate alignment", () =
   const po = read("src", "components", "procurement-forms.tsx");
   const jobs = read("src", "app", "(app)", "production", "jobs", "page.tsx");
   const css = read("src", "app", "design-system-v2.css");
-  assert.match(po, /<input hidden type="hidden" name="po_no"/);
+  assert.match(po, /label="AutoCount PO Number" required/);
+  assert.match(po, /<Input name="po_no" required/);
   assert.match(po, /id="purchase-order-form"[^>]+className="grid gap-3"/);
   assert.match(jobs, /sb-production-jobs-filters/);
   assert.match(css, /sb-production-jobs-filters[\s\S]{0,300}repeat\(4, minmax\(0, 1fr\)\)/);

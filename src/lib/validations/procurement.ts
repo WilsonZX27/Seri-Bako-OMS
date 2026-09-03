@@ -58,7 +58,7 @@ export const purchaseOrderLineSchema = z.object({
 });
 
 export const purchaseOrderSchema = z.object({
-  po_no: z.string().trim().max(64, "Purchase order number is too long.").optional().nullable().or(z.literal("")),
+  po_no: z.string().trim().min(1, "AutoCount PO number is required.").max(64, "Purchase order number is too long."),
   branch_id: z.string().uuid("Branch is required"),
   supplier_id: z.string().uuid("Supplier is required"),
   order_date: requiredIsoDate,

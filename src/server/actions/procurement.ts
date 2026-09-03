@@ -13,7 +13,7 @@ import { resolveDocumentNumber } from "@/server/documents/sequences";
 import { getCurrentProfile } from "@/server/queries/common";
 import { logServerError } from "@/server/observability/logger";
 import { z } from "zod";
-import type { ApprovalStatus, PurchaseOrderStatus } from "@/types/database";
+import type { PurchaseOrderStatus } from "@/types/database";
 import { getCurrentUserScope } from "@/server/queries/notifications";
 import { normalizeUom } from "@/lib/uom";
 import { looseSupabase } from "@/lib/supabase/loose";
@@ -718,16 +718,10 @@ export async function createPurchaseOrder(_previousState: PurchaseOrderCreateSta
     if (isMockMode()) redirect("/purchase-orders");
     await ensureActiveItems(payload.lines.map((line) => line.item_id));
     await ensureBranchSupplierSelections(payload.branch_id, payload.lines.map((line) => ({ item_id: line.item_id, uom: line.uom, suggested_supplier_id: payload.supplier_id })), true, false);
-    const profile = await identity();
-    const poNo = await resolveDocumentNumber({
-      companyId: profile?.company_id,
-      documentType: "purchase_order",
-      enteredNumber: payload.po_no,
-    });
     const supabase = await createClient();
     const idempotencyKey = z.uuid().parse(cleanText(formData.get("idempotency_key")));
     const { data: created, error } = await supabase.rpc("create_purchase_order_atomic", {
-      p_payload: { ...payload, po_no: poNo, idempotency_key: idempotencyKey },
+      p_payload: { ...payload, po_no: payload.po_no, idempotency_key: idempotencyKey },
     });
     if (error) throw new Error(error.message);
     const data = created as { id: string; po_no: string; document_id: string };
@@ -739,18 +733,10 @@ export async function createPurchaseOrder(_previousState: PurchaseOrderCreateSta
   }
 }
 
-async function updatePoStatus(id: string, status: PurchaseOrderStatus, approvalStatus: ApprovalStatus) {
+async function updatePoStatus(id: string, status: "sent" | "closed") {
   const purchaseOrderId = parsePurchaseOrderId(id);
   const supabase = await createClient();
-  const action = status === "pending_approval"
-    ? "submit"
-    : status === "approved"
-      ? "approve"
-      : status === "sent"
-        ? "send"
-        : status === "closed"
-          ? "close"
-          : approvalStatus === "rejected" ? "reject" : "cancel";
+  const action = status === "sent" ? "send" : "close";
   const { data, error } = await supabase.rpc("transition_purchase_order_atomic", {
     p_purchase_order_id: purchaseOrderId,
     p_action: action,
@@ -759,42 +745,6 @@ async function updatePoStatus(id: string, status: PurchaseOrderStatus, approvalS
   const order = data as { id: string; po_no: string; status: PurchaseOrderStatus; document_id: string | null };
   revalidateWorkspaceState(["/purchase-orders", `/purchase-orders/${purchaseOrderId}`]);
   return order;
-}
-
-export async function submitPurchaseOrder(id: string) {
-  try {
-    await requirePermission("po.submit");
-    if (isMockMode()) return;
-    const order = await updatePoStatus(id, "pending_approval", "pending");
-    safeRedirectWithMessage(`/purchase-orders/${id}`, "success", `${order.po_no} submitted for approval.`);
-  } catch (error) {
-    rethrowRedirect(error);
-    safeRedirectWithMessage(`/purchase-orders/${id}`, "error", formatActionError(error, "Could not submit this purchase order."));
-  }
-}
-
-export async function approvePurchaseOrder(id: string) {
-  try {
-    await requirePermission("po.approve");
-    if (isMockMode()) return;
-    const order = await updatePoStatus(id, "approved", "approved");
-    safeRedirectWithMessage(`/purchase-orders/${id}`, "success", `${order.po_no} approved.`);
-  } catch (error) {
-    rethrowRedirect(error);
-    safeRedirectWithMessage(`/purchase-orders/${id}`, "error", formatActionError(error, "Could not approve this purchase order."));
-  }
-}
-
-export async function rejectPurchaseOrder(id: string) {
-  try {
-    await requirePermission("po.approve");
-    if (isMockMode()) return;
-    const order = await updatePoStatus(id, "cancelled", "rejected");
-    safeRedirectWithMessage(`/purchase-orders/${id}`, "success", `${order.po_no} rejected.`);
-  } catch (error) {
-    rethrowRedirect(error);
-    safeRedirectWithMessage(`/purchase-orders/${id}`, "error", formatActionError(error, "Could not reject this purchase order."));
-  }
 }
 
 export async function sendPurchaseOrder(id: string) {
@@ -806,8 +756,8 @@ export async function sendPurchaseOrder(id: string) {
     const { data, error } = await supabase.from("purchase_orders").select("approval_status,status,po_no").eq("id", purchaseOrderId).single();
     if (error) throw new Error(error.message);
     if (data.status === "sent") safeRedirectWithMessage(`/purchase-orders/${id}`, "success", `${data.po_no} has already been sent.`);
-    if (data.approval_status !== "approved") throw new Error("Cannot send unapproved PO.");
-    const order = await updatePoStatus(purchaseOrderId, "sent", "approved");
+    if (!["approved", "not_required"].includes(data.approval_status)) throw new Error("This PO is not ready to send.");
+    const order = await updatePoStatus(purchaseOrderId, "sent");
     safeRedirectWithMessage(`/purchase-orders/${id}`, "success", `${order.po_no} sent to supplier.`);
   } catch (error) {
     rethrowRedirect(error);
@@ -861,7 +811,7 @@ export async function closePurchaseOrder(id: string) {
       if (documentError) throw new Error(documentError.message);
       if (document.current_step !== "Audit Passed") throw new Error("Audit must pass before a purchase order can be closed.");
     }
-    const order = await updatePoStatus(purchaseOrderId, "closed", "approved");
+    const order = await updatePoStatus(purchaseOrderId, "closed");
     safeRedirectWithMessage(`/purchase-orders/${id}`, "success", `${order.po_no} closed.`);
   } catch (error) {
     rethrowRedirect(error);

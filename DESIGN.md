@@ -1,5 +1,12 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.19 (unreleased) — Receiving hierarchy and direct PO identity
+
+- AutoCount PO Number is the first required identity field for a direct PO. The workflow begins at Ready to Send and contains no approval affordance.
+- Receiving lines use one visual grammar across create and draft-edit states: item identity, compact order context with Pending emphasised, primary Received/Rejected inputs, then secondary conversion and traceability.
+- A missing conversion is expressed once as `1 purchase UOM = factor base UOM`; derived base quantities are not duplicated as editable fields.
+- Batch, Expiry and Line remarks remain visible in a quiet Traceability row. On phones, remarks occupy the full row; tablet portrait keeps operational context in the canvas instead of duplicating a right-side PO summary.
+
 ## v9.2.18 (unreleased) — Lossless purchase order correction
 
 - Dense PO entry gives every line a stable visible index and keeps Item, Ordered Qty, UOM, Unit Price, Comment and remove action in one desktop row. Item yields width to Comment without truncating the commercial controls.

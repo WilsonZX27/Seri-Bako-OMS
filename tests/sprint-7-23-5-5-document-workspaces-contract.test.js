@@ -51,7 +51,7 @@ test("the shared shell gives iPad a contained canvas and an explicit operational
   assert.doesNotMatch(workspaceGrid, /grid-cols-\[/);
   assert.match(styles, /data-tablet-rail-breakpoint="md"[\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(14rem, 24%\)/);
   assert.match(styles, /data-tablet-rail-breakpoint="md"\]\[data-tablet-rail-width="compact"\][\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(14rem, 18rem\)/);
-  assert.match(grn, /tabletRailMode="split"/);
+  assert.match(grn, /tabletRailMode="context"/);
   assert.match(pr, /tabletRailMode="split"/);
   assert.match(recordWorkspace, /tabletRailMode="split"/);
   assert.match(workspace, /data-mobile-document-action/);
@@ -86,14 +86,14 @@ test("workflow actions are explicit, confirmed, permission-derived and secondary
   const daily = app("outlet-daily-records/[id]");
 
   for (const label of ["Approve as Manager", "Complete Purchasing Review", "Approve as Finance"]) assert.match(pr, new RegExp(label));
-  assert.match(po, /Approve as Manager/);
+  assert.doesNotMatch(po, /Approve as Manager|po\.approve|po\.submit/);
   assert.match(invoice, /Approve as Finance/);
   assert.match(production, /Approve as Manager/);
   assert.doesNotMatch(daily, /Approve as Manager|Review Daily Record/);
   assert.match(daily, /label: "Posted"/);
   assert.match(daily, /Post Daily Record/);
   assert.match(daily, /Save Changes/);
-  for (const source of [pr, po, invoice, production]) assert.match(source, /ConfirmActionForm/);
+  for (const source of [pr, invoice, production]) assert.match(source, /ConfirmActionForm/);
   for (const route of detailRoutes) {
     const source = app(route);
     const primary = source.indexOf("DocumentActionSection");

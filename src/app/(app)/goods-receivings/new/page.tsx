@@ -27,18 +27,11 @@ export default async function NewGoodsReceivingPage({ searchParams }: { searchPa
         branch={branches.find((branch) => branch.id === selectedOrder?.branch_id)?.branch_name}
         workflowSteps={steps}
         currentStatus="draft"
-        tabletRailMode="split"
+        tabletRailMode="context"
         mobilePrimaryAction={primaryAction}
         sidePanel={<>
             <DocumentSideSection title="Primary Action">{primaryAction}</DocumentSideSection>
             <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">Received plus rejected quantity cannot exceed the pending PO quantity. Attach the Delivery Order on the saved GRN before posting.</p></DocumentSideSection>
-            <DocumentSideSection title="PO Summary">
-              <div className="grid gap-2 text-xs">
-                <div className="flex justify-between gap-3"><span className="text-muted-foreground">Selected PO</span><strong>{selectedOrder?.po_no ?? "None"}</strong></div>
-                <div className="flex justify-between gap-3"><span className="text-muted-foreground">Supplier</span><strong>{selectedOrder?.supplier_name ?? "-"}</strong></div>
-                <div className="flex justify-between gap-3"><span className="text-muted-foreground">Pending Lines</span><strong>{lines.length}</strong></div>
-              </div>
-            </DocumentSideSection>
           </>}
       >
         <ActionErrorNotice message={filters.error} />

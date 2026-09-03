@@ -30,8 +30,10 @@ test("Goods Receiving leads with Purchase UOM and supports unknown conversions a
   assert.match(form, /label=\{`Received · \$\{line\.uom\}`\} required/);
   assert.match(form, /name="line_received_base_qty"/);
   assert.match(form, /line_conversion_snapshot/);
-  assert.match(form, /Remember for future deliveries/);
-  assert.match(form, /<details[\s\S]*Batch, expiry &amp; line remarks/);
+  assert.match(form, /Reuse next time/);
+  assert.match(form, /1 \{line\.uom\} =/);
+  assert.match(form, />Traceability</);
+  assert.doesNotMatch(form, /<details[\s\S]*Batch, expiry/);
   assert.doesNotMatch(form, /This GRN cannot post until the supplier item is repaired/);
 });
 

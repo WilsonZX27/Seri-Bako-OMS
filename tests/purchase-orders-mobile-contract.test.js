@@ -15,7 +15,7 @@ test("purchase order mobile pages keep the list quiet and the creation action re
   assert.match(listPage, /ConsoleSection title="Actions"/);
   assert.match(listPage, /href="\/purchase-orders\/new"/);
   assert.match(newPage, /<DocumentWorkspace[\s\S]*tabletRailMode="split"[\s\S]*sidePanel=/);
-  assert.match(newPage, /<SubmitButton[^>]*form="purchase-order-form"[^>]*data-mobile-primary-action><ShoppingCart[^>]*\/>Create Draft PO/);
+  assert.match(newPage, /<SubmitButton[^>]*form="purchase-order-form"[^>]*data-mobile-primary-action><ShoppingCart[^>]*\/>Create PO/);
   assert.match(newPage, /form="purchase-order-form"[^>]*pendingLabel="Creating\.\.\."/);
 });
 
@@ -29,6 +29,8 @@ test("new purchase order loading state mirrors the document workspace and right 
 
 test("purchase order creation uses one stable setup surface and dynamic compact lines", () => {
   assert.match(form, /data-purchase-order-setup/);
+  assert.match(form, /label="AutoCount PO Number" required/);
+  assert.doesNotMatch(form, /name="po_no" value="PO-AUTO"/);
   assert.match(form, /data-purchase-order-lines/);
   assert.match(form, /<section data-purchase-order-form-surface/);
   assert.doesNotMatch(form, /<details open data-purchase-order-form-surface/);

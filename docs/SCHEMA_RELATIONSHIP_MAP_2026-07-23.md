@@ -1,5 +1,7 @@
 # Seri Bako OMS — Schema 与 Table 关系地图
 
+> Current repository authority 2026-09-03: forward-only migration 历史已到 `252`. Migration `252` makes the exact AutoCount number authoritative for direct Purchase Orders, removes their obsolete submit/Manager-approval transition and grants Kitchen the exact Goods Receiving create/receive/post permissions. Its guarded correction of `PO/SEP26/001` to `PO - 000207` is repository evidence only and remains unapplied; this is not proof of Preview or Production state.
+
 > Current repository authority 2026-09-03: forward-only migration 历史已到 `251`. Migration `251` adds nullable, length-bounded Purchase Order line remarks and updates atomic PO creation to retain them. It is repository evidence only and remains unapplied; this is not proof of Preview or Production schema state.
 
 > Current repository authority 2026-09-03: forward-only migration 历史已到 `250`. Migrations `241–250` add branch-scoped dynamic scheduling, Outlet Supervisor access, active/invited outlet-role roster visibility, PH/EL and direct-time rosters with audited clearing, immutable NGTeco punch imports, exact-second attendance, Purchasing outlet follow-up, configurable outlet compliance, audited Finance closure for posted receivings, and optional sales difference notes with a persistent back-office attention state. Preview Supabase remains separate from Production; migrations 249–250 remain unapplied.

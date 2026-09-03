@@ -84,7 +84,7 @@ export async function getAttendanceMappings() {
   if (!(await hasPermission("attendance.map"))) return { people: [], devices: [], staffs: [], branches: [], allowed: false };
   const db = looseSupabase(await createClient());
   const [people, devices, staffs, branches] = await Promise.all([
-    db.from("ngteco_person_mappings").select("*,staffs(full_name,staff_code)").order("person_id"),
+    db.from("ngteco_person_mappings").select("*,staffs!ngteco_person_mappings_staff_id_fkey(full_name,staff_code)").order("person_id"),
     db.from("ngteco_device_mappings").select("*,branches(branch_name)").order("source_code"),
     db.from("staffs").select("id,full_name,staff_code").eq("status", "active").is("deleted_at", null).order("full_name"),
     db.from("branches").select("id,branch_name").eq("branch_type", "outlet").eq("status", "active").order("branch_name"),
@@ -96,7 +96,7 @@ export async function getAttendanceMappings() {
 export async function getAttendanceReconciliation(weekStart = malaysiaWeekStart()) {
   if (!(await hasPermission("attendance.reconcile"))) return { allowed: false, rows: [] };
   const db = looseSupabase(await createClient()); const end=new Date(`${weekStart}T00:00:00Z`);end.setUTCDate(end.getUTCDate()+6);
-  const [batches,mappings,results]=await Promise.all([db.from("attendance_import_batches").select("id").eq("parser_profile","attendance_report").eq("week_start",weekStart).eq("status","finalised"),db.from("ngteco_person_mappings").select("person_id,staff_id,staffs(full_name)"),db.from("daily_attendance_results").select("staff_id,recognised_paid_seconds").eq("is_current",true).gte("work_date",weekStart).lte("work_date",end.toISOString().slice(0,10))]);
+  const [batches,mappings,results]=await Promise.all([db.from("attendance_import_batches").select("id").eq("parser_profile","attendance_report").eq("week_start",weekStart).eq("status","finalised"),db.from("ngteco_person_mappings").select("person_id,staff_id,staffs!ngteco_person_mappings_staff_id_fkey(full_name)"),db.from("daily_attendance_results").select("staff_id,recognised_paid_seconds").eq("is_current",true).gte("work_date",weekStart).lte("work_date",end.toISOString().slice(0,10))]);
   for(const result of [batches,mappings,results])if(result.error)throw result.error;const batchIds=(batches.data??[]).map((row:Record<string,unknown>)=>String(row.id));if(!batchIds.length)return {allowed:true,rows:[]};const reconciliation=await db.from("attendance_reconciliation_rows").select("person_id,person_name,ngteco_total_seconds,ngteco_work_seconds,batch_id").in("batch_id",batchIds);if(reconciliation.error)throw reconciliation.error;const mapRows=(mappings.data??[]) as Array<Record<string,unknown>>;const resultRows=(results.data??[]) as Array<Record<string,unknown>>;
   const rows=((reconciliation.data??[]) as Array<Record<string,unknown>>).map(row=>{const mapping=mapRows.find(item=>item.person_id===row.person_id);const staffId=mapping?.staff_id;const omsSeconds=resultRows.filter(item=>item.staff_id===staffId).reduce((sum,item)=>sum+Number(item.recognised_paid_seconds??0),0);const ngtecoSeconds=Number(row.ngteco_total_seconds??row.ngteco_work_seconds??0);return {batch_id:String(row.batch_id),person_id:String(row.person_id),person_name:row.person_name,ngteco_total_seconds:row.ngteco_total_seconds,ngteco_work_seconds:row.ngteco_work_seconds,staffName:String((mapping?.staffs as {full_name?:string}|null)?.full_name??row.person_name??"Unmapped"),omsSeconds,differenceSeconds:ngtecoSeconds-omsSeconds}});return {allowed:true,rows};
 }

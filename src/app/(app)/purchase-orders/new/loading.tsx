@@ -39,15 +39,15 @@ export default function NewPurchaseOrderLoading() {
           </section>
           <section className="sb-work-surface overflow-hidden">
             <div className="border-b border-[var(--sb-border-soft)] bg-white px-3 py-3"><Skeleton className="h-4 w-24" /></div>
-            <div className="hidden grid-cols-[minmax(12rem,1.65fr)_112px_100px_112px_40px] gap-2 border-b bg-[var(--sb-surface-muted)] px-3 py-2 md:grid">
-              {["w-full", "w-20", "w-12", "w-20", "w-8"].map((width, index) => <Skeleton key={index} className={`h-3 ${width}`} />)}
+            <div className="hidden grid-cols-[36px_minmax(10rem,1.25fr)_92px_84px_100px_minmax(10rem,1fr)_40px] gap-2 border-b bg-[var(--sb-surface-muted)] px-3 py-2 md:grid">
+              {["w-4", "w-full", "w-16", "w-12", "w-16", "w-full", "w-8"].map((width, index) => <Skeleton key={index} className={`h-3 ${width}`} />)}
             </div>
-            <div className="hidden grid-cols-[minmax(12rem,1.65fr)_112px_100px_112px_40px] gap-2 p-3 md:grid">
-              {["w-full", "w-full", "w-full", "w-full", "w-9"].map((width, index) => <Skeleton key={index} className={`h-10 ${width}`} />)}
+            <div className="hidden grid-cols-[36px_minmax(10rem,1.25fr)_92px_84px_100px_minmax(10rem,1fr)_40px] gap-2 p-3 md:grid">
+              {["w-4", "w-full", "w-full", "w-full", "w-full", "w-full", "w-9"].map((width, index) => <Skeleton key={index} className={`h-10 ${width}`} />)}
             </div>
-            <div className="grid grid-cols-[minmax(0,1fr)_2.25rem] gap-2 p-3 md:hidden">
-              <Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-9" />
-              <div className="col-span-2 grid grid-cols-[minmax(0,1fr)_minmax(5rem,0.8fr)_minmax(0,1fr)] gap-2"><Skeleton className="h-14 w-full" /><Skeleton className="h-14 w-full" /><Skeleton className="h-14 w-full" /></div>
+            <div className="grid grid-cols-[2rem_minmax(0,1fr)_2.25rem] gap-2 p-3 md:hidden">
+              <Skeleton className="h-10 w-4" /><Skeleton className="h-10 w-full" /><Skeleton className="h-10 w-9" />
+              <div className="col-span-2 col-start-2 grid grid-cols-[minmax(0,1fr)_minmax(5rem,0.8fr)_minmax(0,1fr)] gap-2"><Skeleton className="h-14 w-full" /><Skeleton className="h-14 w-full" /><Skeleton className="h-14 w-full" /><Skeleton className="col-span-3 h-10 w-full" /></div>
             </div>
             <div className="flex justify-end border-t px-3 py-2"><Skeleton className="h-9 w-24" /></div>
           </section>

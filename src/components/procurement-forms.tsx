@@ -482,32 +482,38 @@ export function PurchaseOrderForm({
   items: ItemOption[];
   branches: BranchOption[];
   supplierMappings: BranchSupplierMappingOption[];
-  action: (previousState: { error: string | null }, formData: FormData) => Promise<{ error: string | null }>;
+  action: (previousState: { error: string | null; attempt: number }, formData: FormData) => Promise<{ error: string | null; attempt: number }>;
 }) {
-  const [actionState, formAction] = useActionState(action, { error: null });
+  const [actionState, formAction] = useActionState(action, { error: null, attempt: 0 });
   const poNo = "PO-AUTO";
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [branchId, setBranchId] = useState(branches[0]?.id ?? "");
   const [selectedItemIds, setSelectedItemIds] = useState<string[]>([""]);
   const [selectedItemUoms, setSelectedItemUoms] = useState<string[]>([""]);
   const [itemQueries, setItemQueries] = useState<string[]>([""]);
+  const [lineComments, setLineComments] = useState<string[]>([""]);
   const [supplierId, setSupplierId] = useState("");
   const [catalogueNotice,setCatalogueNotice]=useState("");
   const [detailsOpen, setDetailsOpen] = useState(true);
   const [orderDate, setOrderDate] = useState(getToday());
   const [expectedDeliveryDate, setExpectedDeliveryDate] = useState("");
+  const [dismissedErrorAttempt, setDismissedErrorAttempt] = useState(0);
   const selectedItemPairs = selectedItemIds.map((itemId, index) => ({ itemId, index })).filter((row) => Boolean(row.itemId));
   const selectedItems = selectedItemPairs.map((row) => row.itemId);
   const eligibleSupplierIds = [...new Set(supplierMappings.filter((mapping) => mapping.branch_id === branchId).map((mapping) => mapping.supplier_id))];
+  const currentSupplier = supplierId ? supplierMappings.find((mapping) => mapping.supplier_id === supplierId) : null;
   const eligibleSuppliers = eligibleSupplierIds
     .map((id) => supplierMappings.find((mapping) => mapping.branch_id === branchId && mapping.supplier_id === id))
     .filter((mapping): mapping is BranchSupplierMappingOption => Boolean(mapping))
+    .concat(currentSupplier && !eligibleSupplierIds.includes(currentSupplier.supplier_id) ? [currentSupplier] : [])
     .sort((left, right) => left.supplier_name.localeCompare(right.supplier_name, "en", { sensitivity: "base", numeric: true }));
   const supplierItems = supplierId ? items.filter(item=>supplierMappings.some(mapping=>mapping.branch_id===branchId&&mapping.supplier_id===supplierId&&mapping.item_id===item.id)).map(item=>{const mapping=supplierMappings.find(candidate=>candidate.branch_id===branchId&&candidate.supplier_id===supplierId&&candidate.item_id===item.id);return{...item,supplier_name:mapping?.supplier_name??item.supplier_name,purchase_unit:mapping?.purchase_uom??item.purchase_unit};}) : [];
-  const uncoveredItems = selectedItemPairs.filter(({ itemId, index }) => !supplierMappings.some((mapping) => mapping.branch_id === branchId && mapping.supplier_id === supplierId && mapping.item_id === itemId && normalizeUom(mapping.purchase_uom) === normalizeUom(selectedItemUoms[index] || preferredUom(itemId))));
+  const uncoveredItems = selectedItemPairs.filter(({ itemId }) => !supplierMappings.some((mapping) => mapping.branch_id === branchId && mapping.supplier_id === supplierId && mapping.item_id === itemId));
   const selectedItemLabels = (rows: typeof uncoveredItems) => rows.map(({ itemId }) => items.find((item) => item.id === itemId)?.item_name ?? "Selected item");
   function uomOptions(itemId: string) {
     return uomOptionsForValues([
+      items.find((item) => item.id === itemId)?.purchase_unit,
+      items.find((item) => item.id === itemId)?.base_unit,
       ...supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.supplier_id === supplierId && mapping.item_id === itemId).map((mapping) => mapping.purchase_uom),
     ]);
   }
@@ -526,7 +532,7 @@ export function PurchaseOrderForm({
           <input hidden type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input hidden type="hidden" name="status" value="draft" />
           <input hidden type="hidden" name="approval_status" value="draft" />
-          {actionState.error ? <Notice tone="error" title="Purchase order not created"><p>{actionState.error}</p><p className="mt-1 font-medium">Your entries are still here. Correct the highlighted supplier or UOM and try again.</p></Notice> : null}
+          {actionState.error && actionState.attempt !== dismissedErrorAttempt ? <Notice tone="error" title="Purchase order not created"><p>{actionState.error}</p><p className="mt-1 font-medium">Your entries are still here. Review the selected branch, supplier, and items, then try again.</p></Notice> : null}
           <section data-purchase-order-form-surface className="sb-work-surface overflow-hidden">
           <div className="flex items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] bg-white px-3 py-2">
             <div className="min-w-0"><h2 className="text-sm font-semibold text-[var(--sb-text)]">Order details</h2>{!detailsOpen ? <p className="mt-0.5 truncate text-xs text-muted-foreground">{branches.find((branch) => branch.id === branchId)?.branch_name ?? "Branch not set"} · {eligibleSuppliers.find((supplier) => supplier.supplier_id === supplierId)?.supplier_name ?? "Supplier not set"} · {orderDate}{expectedDeliveryDate ? ` → ${expectedDeliveryDate}` : ""}</p> : null}</div>
@@ -534,12 +540,12 @@ export function PurchaseOrderForm({
           </div>
           <div data-purchase-order-setup className={`grid grid-cols-2 gap-3 p-3 md:grid-cols-3 md:p-4 ${detailsOpen ? "" : "hidden"}`}>
             <Field label="Branch" required>
-              <SelectNative name="branch_id" value={branchId} onChange={(event) => { setBranchId(event.target.value); setSupplierId(""); setSelectedItemIds([""]);setSelectedItemUoms([""]);setItemQueries([""]);setCatalogueNotice("Supplier and item lines were cleared because the branch changed."); }} required>
+              <SelectNative name="branch_id" value={branchId} onChange={(event) => { setBranchId(event.target.value); setDismissedErrorAttempt(actionState.attempt); setCatalogueNotice("Branch changed. Your supplier and item lines were kept for review."); }} required>
                 {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
               </SelectNative>
             </Field>
             <Field label="Supplier" required className="col-span-1 md:col-span-2">
-              <SelectNative name="supplier_id" value={supplierId} onChange={(event) => {setSupplierId(event.target.value);setSelectedItemIds([""]);setSelectedItemUoms([""]);setItemQueries([""]);setCatalogueNotice("Item lines were cleared so this order only uses the selected supplier catalogue.");}} required>
+              <SelectNative name="supplier_id" value={supplierId} onChange={(event) => {setSupplierId(event.target.value);setDismissedErrorAttempt(actionState.attempt);setCatalogueNotice("Supplier changed. Existing item lines were kept so you can review or replace them.");}} required>
                 <option value="">Select supplier</option>
                 {eligibleSuppliers.map((supplier) => <option key={supplier.supplier_id} value={supplier.supplier_id}>{supplier.supplier_name}</option>)}
               </SelectNative>
@@ -562,8 +568,8 @@ export function PurchaseOrderForm({
 
           <section data-purchase-order-lines className="sb-work-surface overflow-hidden">
             <div className="border-b bg-white px-3 py-2"><p className="text-xs font-semibold">Ordered Items</p></div>
-            <div className="hidden grid-cols-[minmax(12rem,1.65fr)_112px_100px_112px_40px] gap-2 border-b bg-[var(--sb-surface-muted)] px-3 py-2 text-[11px] font-medium text-muted-foreground md:grid">
-              <span>Item</span><span>Ordered Qty</span><span>UOM</span><span>Unit Price</span><span aria-hidden="true" />
+            <div className="hidden grid-cols-[36px_minmax(10rem,1.25fr)_92px_84px_100px_minmax(10rem,1fr)_40px] gap-2 border-b bg-[var(--sb-surface-muted)] px-3 py-2 text-[11px] font-medium text-muted-foreground md:grid">
+              <span>#</span><span>Item</span><span>Ordered Qty</span><span>UOM</span><span>Unit Price</span><span>Comment</span><span aria-hidden="true" />
             </div>
             <div className="divide-y">
               {selectedItemIds.map((itemId, index) => {
@@ -571,23 +577,26 @@ export function PurchaseOrderForm({
                 const options = uomOptions(itemId);
                 const lineUom = normalizeUom(selectedItemUoms[index] || preferredUom(itemId));
                 return (
-                  <div key={index} className="grid grid-cols-[minmax(0,1fr)_2.25rem] gap-2 p-3 md:grid-cols-[minmax(12rem,1.65fr)_112px_100px_112px_40px]">
-                    <div className="col-start-1 row-start-1 min-w-0">
+                  <div key={index} className="grid grid-cols-[2rem_minmax(0,1fr)_2.25rem] gap-2 p-3 md:grid-cols-[36px_minmax(10rem,1.25fr)_92px_84px_100px_minmax(10rem,1fr)_40px]">
+                    <span className="col-start-1 row-start-1 flex h-[var(--sb-control-height)] items-center justify-center text-xs font-medium tabular-nums text-muted-foreground">{index + 1}</span>
+                    <div className="col-start-2 row-start-1 min-w-0 md:col-start-2">
                       <Field label="Item" required={index === 0} labelClassName="md:sr-only">
-                        <ItemCombobox name="line_item_id" items={supplierItems} value={itemQueries[index]??""} selectedItemId={itemId} ariaLabel={`Item for purchase order line ${index+1}`} placeholder={supplierId?"Search supplier item name or code":"Select supplier first"} emptyMessage={supplierId?"No item from this supplier matches your search.":"Select a supplier before adding items."} onValueChange={value=>{const queries=[...itemQueries];queries[index]=value;setItemQueries(queries);const ids=[...selectedItemIds];ids[index]="";setSelectedItemIds(ids)}} onSelect={item=>{const ids=[...selectedItemIds];ids[index]=item.id;setSelectedItemIds(ids);const queries=[...itemQueries];queries[index]=`${item.item_code} - ${item.item_name}`;setItemQueries(queries);const uoms=[...selectedItemUoms];uoms[index]=normalizeUom(item.purchase_unit||item.base_unit);setSelectedItemUoms(uoms)}} />
+                        <ItemCombobox name="line_item_id" items={supplierItems} value={itemQueries[index]??""} selectedItemId={itemId} ariaLabel={`Item for purchase order line ${index+1}`} placeholder={supplierId?"Search supplier item name or code":"Select supplier first"} emptyMessage={supplierId?"No item from this supplier matches your search.":"Select a supplier before adding items."} onValueChange={value=>{const queries=[...itemQueries];queries[index]=value;setItemQueries(queries);const ids=[...selectedItemIds];ids[index]="";setSelectedItemIds(ids);setDismissedErrorAttempt(actionState.attempt)}} onSelect={item=>{const ids=[...selectedItemIds];ids[index]=item.id;setSelectedItemIds(ids);const queries=[...itemQueries];queries[index]=`${item.item_code} - ${item.item_name}`;setItemQueries(queries);const uoms=[...selectedItemUoms];uoms[index]=normalizeUom(item.purchase_unit||item.base_unit);setSelectedItemUoms(uoms);setDismissedErrorAttempt(actionState.attempt)}} />
                       </Field>
-                      {itemId && !supplierMappings.some((mapping) => mapping.branch_id === branchId && mapping.supplier_id === supplierId && mapping.item_id === itemId && normalizeUom(mapping.purchase_uom) === lineUom) && supplierMappings.some((mapping) => mapping.branch_id === branchId && mapping.supplier_id === supplierId && mapping.item_id === itemId) ? <p className="mt-1 text-[11px] leading-relaxed text-amber-700">No active supplier mapping uses {lineUom.toUpperCase()} for this item.</p> : null}
                     </div>
-                    <Button type="button" variant="ghost" size="icon" className="col-start-2 row-start-1 h-10 w-9 self-end text-muted-foreground md:col-start-5" aria-label="Remove order line" disabled={selectedItemIds.length === 1} onClick={() => { setSelectedItemIds((current) => current.filter((_, rowIndex) => rowIndex !== index)); setSelectedItemUoms((current) => current.filter((_, rowIndex) => rowIndex !== index));setItemQueries(current=>current.filter((_,rowIndex)=>rowIndex!==index)); }}><X className="h-4 w-4" /></Button>
-                    <div className="col-span-2 row-start-2 grid grid-cols-[minmax(0,1fr)_minmax(5rem,0.8fr)_minmax(0,1fr)] gap-2 md:contents">
-                      <Field label="Ordered Qty" required={index === 0} labelClassName="md:sr-only" className="min-w-0 md:col-start-2 md:row-start-1">
+                    <Button type="button" variant="ghost" size="icon" className="col-start-3 row-start-1 h-10 w-9 self-end text-muted-foreground md:col-start-7" aria-label="Remove order line" disabled={selectedItemIds.length === 1} onClick={() => { setSelectedItemIds((current) => current.filter((_, rowIndex) => rowIndex !== index)); setSelectedItemUoms((current) => current.filter((_, rowIndex) => rowIndex !== index));setItemQueries(current=>current.filter((_,rowIndex)=>rowIndex!==index));setLineComments(current=>current.filter((_,rowIndex)=>rowIndex!==index)); }}><X className="h-4 w-4" /></Button>
+                    <div className="col-span-2 col-start-2 row-start-2 grid grid-cols-[minmax(0,1fr)_minmax(5rem,0.8fr)_minmax(0,1fr)] gap-2 md:contents">
+                      <Field label="Ordered Qty" required={index === 0} labelClassName="md:sr-only" className="min-w-0 md:col-start-3 md:row-start-1">
                         <Input name="line_qty_ordered" type="number" inputMode="decimal" min="0.0001" step="0.0001" placeholder="Qty" required={index === 0} />
                       </Field>
-                      <Field label="UOM" required={Boolean(itemId)} labelClassName="md:sr-only" className="min-w-0 md:col-start-3 md:row-start-1">
-                        {itemId ? <SelectNative name="line_uom" value={lineUom} onChange={(event) => { const next = [...selectedItemUoms]; next[index] = normalizeUom(event.target.value); setSelectedItemUoms(next); }} aria-label={`Unit of measure for ${selectedItem?.item_name ?? "order line"}`} className="w-full text-xs" disabled={!options.length}><option value="">Choose UOM</option>{options.map((uom) => <option key={uom} value={uom}>{uom.toUpperCase()}</option>)}</SelectNative> : <SelectNative aria-label={`Unit of measure for order line ${index + 1}`} disabled><option>UOM</option></SelectNative>}
+                      <Field label="UOM" required={Boolean(itemId)} labelClassName="md:sr-only" className="min-w-0 md:col-start-4 md:row-start-1">
+                        {itemId ? <SelectNative name="line_uom" value={lineUom} onChange={(event) => { const next = [...selectedItemUoms]; next[index] = normalizeUom(event.target.value); setSelectedItemUoms(next); setDismissedErrorAttempt(actionState.attempt); }} aria-label={`Unit of measure for ${selectedItem?.item_name ?? "order line"}`} className="w-full text-xs" disabled={!options.length}><option value="">Choose UOM</option>{options.map((uom) => <option key={uom} value={uom}>{uom.toUpperCase()}</option>)}</SelectNative> : <SelectNative aria-label={`Unit of measure for order line ${index + 1}`} disabled><option>UOM</option></SelectNative>}
                       </Field>
-                      <Field label="Unit Price" labelClassName="md:sr-only" className="min-w-0 md:col-start-4 md:row-start-1">
+                      <Field label="Unit Price" labelClassName="md:sr-only" className="min-w-0 md:col-start-5 md:row-start-1">
                         <Input name="line_unit_price" type="number" inputMode="decimal" min="0" step="0.0001" placeholder="0.00" defaultValue={0} />
+                      </Field>
+                      <Field label="Comment" labelClassName="md:sr-only" className="col-span-3 min-w-0 md:col-span-1 md:col-start-6 md:row-start-1">
+                        <Input name="line_remarks" value={lineComments[index] ?? ""} onChange={(event) => { const next = [...lineComments]; next[index] = event.target.value; setLineComments(next); }} maxLength={2000} placeholder="Optional" />
                       </Field>
                     </div>
                     <input type="hidden" name="line_qty_received" value="0" />
@@ -598,13 +607,13 @@ export function PurchaseOrderForm({
               })}
             </div>
             <div className="flex justify-end border-t bg-white px-3 py-2">
-              <Button type="button" variant="outline" size="sm" disabled={!supplierId} onClick={() => { setSelectedItemIds((current) => [...current, ""]); setSelectedItemUoms((current) => [...current, ""]);setItemQueries(current=>[...current,""]); }} aria-label="Add order line at end">
+              <Button type="button" variant="outline" size="sm" disabled={!supplierId} onClick={() => { setSelectedItemIds((current) => [...current, ""]); setSelectedItemUoms((current) => [...current, ""]);setItemQueries(current=>[...current,""]);setLineComments(current=>[...current,""]); }} aria-label="Add order line at end">
                 <Plus className="h-4 w-4" /> Add line
               </Button>
             </div>
           </section>
 
-          {selectedItems.length > 0 && eligibleSuppliers.length === 0 ? <div role="alert" className="border border-destructive/25 bg-destructive/5 px-3 py-2.5 text-xs leading-relaxed text-destructive"><p className="font-semibold">This order cannot be sourced yet.</p>{uncoveredItems.length ? <p className="mt-1">Missing active supplier/UOM mapping for: {selectedItemLabels(uncoveredItems).join(", ")}.</p> : <p className="mt-1">No single supplier covers every selected item in the requested UOM. Split the order by supplier or add the required branch mappings.</p>}<Link href="/imports/branch-supplier-items" className="mt-1 inline-flex font-semibold underline underline-offset-2">Open supplier mapping import</Link></div> : null}
+          {selectedItems.length > 0 && supplierId && uncoveredItems.length > 0 ? <div role="alert" className="border border-destructive/25 bg-destructive/5 px-3 py-2.5 text-xs leading-relaxed text-destructive"><p className="font-semibold">Review this supplier selection.</p><p className="mt-1">The selected supplier is not mapped to this branch for: {selectedItemLabels(uncoveredItems).join(", ")}.</p><p className="mt-1">Your lines are kept so you can change the branch, supplier, or item.</p><Link href="/imports/branch-supplier-items" className="mt-1 inline-flex font-semibold underline underline-offset-2">Open supplier mapping import</Link></div> : null}
         </form>
     </div>
   );

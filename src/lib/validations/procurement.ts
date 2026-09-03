@@ -54,6 +54,7 @@ export const purchaseOrderLineSchema = z.object({
   qty_cancelled: z.coerce.number().min(0).max(maxOperationalQuantity, "Cancelled quantity is too large."),
   uom: z.string().trim().min(1, "UOM is required").max(32, "UOM is too long."),
   unit_price: z.coerce.number().min(0).max(maxOperationalCost, "Unit price is too large."),
+  remarks: optionalLongText,
 });
 
 export const purchaseOrderSchema = z.object({

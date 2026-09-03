@@ -1,5 +1,11 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.18 (unreleased) — Lossless purchase order correction
+
+- Dense PO entry gives every line a stable visible index and keeps Item, Ordered Qty, UOM, Unit Price, Comment and remove action in one desktop row. Item yields width to Comment without truncating the commercial controls.
+- Branch and Supplier changes preserve the draft. Invalid combinations are explained beside the intact editor so the buyer can correct them deliberately.
+- UOM at PO stage records what was ordered. Supplier/Item coverage remains authoritative, while delivery conversion and inventory-unit correction belong to GRN.
+
 ## v9.2.17 (unreleased) — Import feedback and native picker parity
 
 - Native file selection and drag-and-drop must feed the same stable parsing input. Copy a browser `FileList` before resetting its input so re-selecting the same file remains possible without discarding the current choice.

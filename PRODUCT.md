@@ -1,5 +1,13 @@
 # Seri Bako Operations Management System
 
+### v9.2.18 (unreleased) — Flexible Purchase Order Lines
+
+New Purchase Order numbers every line and keeps Item, Ordered Qty, UOM, Unit Price and an optional line Comment together in the desktop entry grid. Changing Branch or Supplier preserves the complete draft for correction instead of removing buyer input.
+
+Purchase Orders now record the buyer's actual ordered UOM without requiring that exact UOM in the supplier mapping. The selected supplier must still cover the Branch and Item; receiving remains responsible for confirming the delivered quantity and conversion into inventory units. Migration 251 retains line comments in `purchase_order_lines` and the atomic PO creation path.
+
+Repository migrations reviewed through `251`; migration 251 is implemented locally and remains unapplied.
+
 ### v9.2.17 (unreleased) — Reliable AutoCount File Selection
 
 AutoCount Direct Import snapshots files selected through the native picker before clearing its input, so click-to-choose and drag-and-drop now enter the same parsing workflow. Successful confirmation leads the main workspace instead of appearing below the impact and warning surfaces.

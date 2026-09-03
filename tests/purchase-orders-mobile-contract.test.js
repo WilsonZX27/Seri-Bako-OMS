@@ -43,9 +43,10 @@ test("purchase order creation uses one stable setup surface and dynamic compact 
   assert.doesNotMatch(form, /Select UOM/);
 });
 
-test("purchase order sourcing validates the selected purchase UOM", () => {
-  assert.match(action, /purchase_uom/);
-  assert.match(action, /not mapped to this branch, item, and unit of measure/);
-  assert.match(form, /Missing active supplier\/UOM mapping for/);
-  assert.match(form, /No single supplier covers every selected item in the requested UOM/);
+test("purchase order records the ordered UOM while GRN owns conversion", () => {
+  assert.match(action, /ensureBranchSupplierSelections\(payload\.branch_id[\s\S]*true, false\)/);
+  assert.match(form, /items\.find\(\(item\) => item\.id === itemId\)\?\.base_unit/);
+  assert.doesNotMatch(form, /No active supplier mapping uses/);
+  assert.match(form, /name="line_remarks"/);
+  assert.match(loading, /grid-cols-\[36px_minmax\(10rem,1\.25fr\)_92px_84px_100px_minmax\(10rem,1fr\)_40px\]/);
 });

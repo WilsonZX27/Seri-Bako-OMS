@@ -1354,6 +1354,7 @@ export type Database = {
           qty_cancelled: number;
           uom: string;
           unit_price: number;
+          remarks: string | null;
           line_total: number;
           created_at: string;
           updated_at: string;
@@ -1367,6 +1368,7 @@ export type Database = {
           qty_cancelled?: number;
           uom: string;
           unit_price?: number;
+          remarks?: string | null;
           created_at?: string;
           updated_at?: string;
         };

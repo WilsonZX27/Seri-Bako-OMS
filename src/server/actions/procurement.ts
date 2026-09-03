@@ -143,6 +143,7 @@ function extractPurchaseOrder(formData: FormData) {
   const cancelled = formData.getAll("line_qty_cancelled").map(String);
   const uoms = formData.getAll("line_uom").map(String);
   const prices = formData.getAll("line_unit_price").map(String);
+  const remarks = formData.getAll("line_remarks").map(String);
   return purchaseOrderSchema.parse({
     po_no: formData.get("po_no"),
     branch_id: formData.get("branch_id"),
@@ -158,6 +159,7 @@ function extractPurchaseOrder(formData: FormData) {
         qty_cancelled: cancelled[index] ?? 0,
         uom: uoms[index],
         unit_price: prices[index] ?? 0,
+        remarks: remarks[index] ?? "",
       }))
       .filter((line) => line.item_id),
   });
@@ -167,6 +169,7 @@ async function ensureBranchSupplierSelections(
   branchId: string,
   lines: Array<{ item_id: string; suggested_supplier_id?: string | null; uom?: string | null }>,
   requireAll: boolean,
+  matchPurchaseUom = true,
 ) {
   const missing = lines.filter((line) => !line.suggested_supplier_id);
   if (requireAll && missing.length) throw new Error("Every item needs a supplier mapped to this branch before the request can continue.");
@@ -195,18 +198,23 @@ async function ensureBranchSupplierSelections(
     .is("deleted_at", null);
   if (itemDefaultsError) throw new Error(itemDefaultsError.message);
   const valid = new Set((relationships ?? []).map((row) => `${row.item_id}|${row.supplier_id}|${normalizeUom(row.purchase_uom)}`));
+  const validSupplierItems = new Set((relationships ?? []).map((row) => `${row.item_id}|${row.supplier_id}`));
   const mappedItemIds = new Set((mappings ?? []).map((row) => row.item_id));
   const itemDefaultById = new Map((itemDefaults ?? []).map((row) => [row.id, row]));
   const isValid = (line: { item_id: string; suggested_supplier_id: string; uom?: string | null }) => {
+    if (!matchPurchaseUom && validSupplierItems.has(`${line.item_id}|${line.suggested_supplier_id}`)) return true;
     const requested = `${line.item_id}|${line.suggested_supplier_id}|${normalizeUom(String(line.uom ?? ""))}`;
     if (valid.has(requested)) return true;
     if (mappedItemIds.has(line.item_id)) return false;
     const item = itemDefaultById.get(line.item_id);
     if (!item || item.supplier_id !== line.suggested_supplier_id) return false;
+    if (!matchPurchaseUom) return true;
     return normalizeUom(String(item.purchase_unit ?? item.base_unit ?? "")) === normalizeUom(String(line.uom ?? ""));
   };
   if (selected.some((line) => !isValid(line)) && requireAll) {
-    throw new Error("A selected supplier is not mapped to this branch, item, and unit of measure.");
+    throw new Error(matchPurchaseUom
+      ? "A selected supplier is not mapped to this branch, item, and unit of measure."
+      : "The selected supplier is not mapped to this branch and one or more items.");
   }
 }
 
@@ -701,7 +709,7 @@ export async function withdrawPurchaseRequest(id: string, formData: FormData) {
   }
 }
 
-export type PurchaseOrderCreateState = { error: string | null };
+export type PurchaseOrderCreateState = { error: string | null; attempt: number };
 
 export async function createPurchaseOrder(_previousState: PurchaseOrderCreateState, formData: FormData): Promise<PurchaseOrderCreateState> {
   await requirePermission("purchase_order.create");
@@ -709,7 +717,7 @@ export async function createPurchaseOrder(_previousState: PurchaseOrderCreateSta
     const payload = extractPurchaseOrder(formData);
     if (isMockMode()) redirect("/purchase-orders");
     await ensureActiveItems(payload.lines.map((line) => line.item_id));
-    await ensureBranchSupplierSelections(payload.branch_id, payload.lines.map((line) => ({ item_id: line.item_id, uom: line.uom, suggested_supplier_id: payload.supplier_id })), true);
+    await ensureBranchSupplierSelections(payload.branch_id, payload.lines.map((line) => ({ item_id: line.item_id, uom: line.uom, suggested_supplier_id: payload.supplier_id })), true, false);
     const profile = await identity();
     const poNo = await resolveDocumentNumber({
       companyId: profile?.company_id,
@@ -727,7 +735,7 @@ export async function createPurchaseOrder(_previousState: PurchaseOrderCreateSta
     redirect(`/purchase-orders/${data.id}`);
   } catch (error) {
     rethrowRedirect(error);
-    return { error: formatActionError(error, "Could not create this purchase order.") };
+    return { error: formatActionError(error, "Could not create this purchase order."), attempt: _previousState.attempt + 1 };
   }
 }
 

@@ -1,6 +1,10 @@
 # Seri Bako OMS responsive design standard
 
-## v9.2.21 (unreleased) — Direct compliance upload and automatic staff matching
+## v9.2.22 (unreleased) — Workflow-aligned completion matrix
+
+- Outlet Daily matrix abbreviations mirror the detail workflow exactly: `QS` for Qty Sent pending, `OE` for Outlet Entry pending, and `P` for Posted. Aggregate unfinished records are labelled Open rather than using a second status vocabulary.
+
+## v9.2.21 (deployed) — Direct compliance upload and automatic staff matching
 
 - Outlet Compliance is a direct document checklist: upload, replace and remove are the only actions; approval vocabulary and pending-review states are absent.
 - Attendance resolves uniquely matching active employee names automatically and asks operators only for the device-to-outlet relationship the source file cannot infer.

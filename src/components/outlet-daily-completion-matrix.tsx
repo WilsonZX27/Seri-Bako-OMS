@@ -10,9 +10,9 @@ type MatrixSummary = { expected: number; completed: number; incomplete: number; 
 
 const stateMeta = {
   missing: { label: "Missing", short: "—", className: "border-[var(--sb-border-strong)] bg-[var(--sb-surface)] text-[var(--sb-text-muted)]" },
-  draft: { label: "Draft", short: "D", className: "border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" },
-  morning_recorded: { label: "Morning only", short: "AM", className: "border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" },
-  evening_completed: { label: "Completed", short: "C", className: "border-[var(--sb-success)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]" },
+  draft: { label: "Qty Sent pending", short: "QS", className: "border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" },
+  morning_recorded: { label: "Outlet Entry pending", short: "OE", className: "border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" },
+  evening_completed: { label: "Posted", short: "P", className: "border-[var(--sb-success)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]" },
   reviewed: { label: "Reviewed", short: "R", className: "border-[var(--sb-green-900)] bg-[var(--sb-green-100)] text-[var(--sb-green-900)]" },
   void: { label: "Void", short: "V", className: "border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]" },
 } as const;
@@ -37,12 +37,12 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
     {unavailable ? <div className="px-4 py-8 text-center" role="status"><p className="text-sm font-medium">Completion insight unavailable</p><p className="mt-1 text-xs text-muted-foreground">The daily record list remains current. Retry this page to load outlet-day coverage.</p></div> : rows.length && summary ? <>
       <div className="grid grid-cols-[repeat(3,minmax(0,1fr))] divide-x divide-[var(--sb-border-soft)] border-b border-[var(--sb-border-soft)] sm:hidden" data-outlet-completion-phone-summary>
         <div className="px-3 py-2.5"><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Complete</p><p className="mt-0.5 text-base font-semibold tabular-nums">{summary.completed}<span className="text-xs font-normal text-muted-foreground">/{summary.expected}</span></p></div>
-        <div className="px-3 py-2.5"><p className="text-[10px] uppercase tracking-wide text-muted-foreground">In progress</p><p className="mt-0.5 text-base font-semibold tabular-nums">{summary.incomplete}</p></div>
+        <div className="px-3 py-2.5"><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Open</p><p className="mt-0.5 text-base font-semibold tabular-nums">{summary.incomplete}</p></div>
         <div className="px-3 py-2.5"><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Missing</p><p className="mt-0.5 text-base font-semibold tabular-nums">{summary.missing}</p></div>
       </div>
       <div id="outlet-completion-detail">
       <div className="flex flex-wrap justify-end gap-x-3 gap-y-1 px-3 pt-2 text-[11px] text-muted-foreground" aria-hidden="true">
-        {(["missing", "draft", "morning_recorded", "evening_completed", "reviewed", "void"] as const).map((status) => <span key={status} className="inline-flex items-center gap-1"><span className={`grid h-4 min-w-4 place-items-center border px-0.5 text-[9px] font-bold ${stateMeta[status].className}`}>{stateMeta[status].short}</span>{status === "draft" ? "In progress" : stateMeta[status].label}</span>)}
+        {(["missing", "draft", "morning_recorded", "evening_completed", "reviewed", "void"] as const).map((status) => <span key={status} className="inline-flex items-center gap-1"><span className={`grid h-4 min-w-4 place-items-center border px-0.5 text-[9px] font-bold ${stateMeta[status].className}`}>{stateMeta[status].short}</span>{stateMeta[status].label}</span>)}
       </div>
       <div className="relative isolate block w-full max-w-full overflow-x-auto overscroll-x-contain bg-[var(--sb-surface)] px-3 py-2" tabIndex={0} aria-label="Outlet completion matrix" data-outlet-completion-scrollport>
         <table className="w-full min-w-[40rem] table-fixed border-separate border-spacing-x-1 border-spacing-y-0 text-xs">
@@ -64,7 +64,7 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
         </div>
       </div> : null}
       </div>
-      {showCoverageDetails ? <details className="border-t border-[var(--sb-border-soft)] px-3 py-2 text-xs"><summary className="cursor-pointer font-medium text-primary">Coverage · {summary.completed}/{summary.expected} complete</summary><dl className="mt-2 grid grid-cols-3 gap-2 text-[11px] text-muted-foreground"><div><dt>In progress</dt><dd className="font-semibold text-[var(--sb-text)]">{summary.incomplete}</dd></div><div><dt>Missing</dt><dd className="font-semibold text-[var(--sb-text)]">{summary.missing}</dd></div><div><dt>Void</dt><dd className="font-semibold text-[var(--sb-text)]">{summary.voided}</dd></div></dl></details> : null}
+      {showCoverageDetails ? <details className="border-t border-[var(--sb-border-soft)] px-3 py-2 text-xs"><summary className="cursor-pointer font-medium text-primary">Coverage · {summary.completed}/{summary.expected} complete</summary><dl className="mt-2 grid grid-cols-3 gap-2 text-[11px] text-muted-foreground"><div><dt>Open</dt><dd className="font-semibold text-[var(--sb-text)]">{summary.incomplete}</dd></div><div><dt>Missing</dt><dd className="font-semibold text-[var(--sb-text)]">{summary.missing}</dd></div><div><dt>Void</dt><dd className="font-semibold text-[var(--sb-text)]">{summary.voided}</dd></div></dl></details> : null}
     </> : <div className="px-4 py-8 text-center"><p className="text-sm font-medium">No outlets in your current scope</p><p className="mt-1 text-xs text-muted-foreground">Completion appears after an outlet is assigned and active.</p></div>}
   </section>;
 }

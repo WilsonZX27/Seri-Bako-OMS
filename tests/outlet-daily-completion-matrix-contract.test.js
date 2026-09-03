@@ -70,7 +70,11 @@ test("phone completion insight keeps the summary and seven-day matrix directly s
   assert.match(component, /id="outlet-completion-detail"/);
   assert.doesNotMatch(component, /data-outlet-completion-toggle/);
   assert.doesNotMatch(component, /matrixOpen/);
-  assert.match(component, /Complete[\s\S]*In progress[\s\S]*Missing/);
+  assert.match(component, /Complete[\s\S]*Open[\s\S]*Missing/);
+  assert.match(component, /Qty Sent pending[\s\S]*short: "QS"/);
+  assert.match(component, /Outlet Entry pending[\s\S]*short: "OE"/);
+  assert.match(component, /Posted[\s\S]*short: "P"/);
+  assert.doesNotMatch(component, /Morning only|short: "AM"|short: "D"/);
 });
 
 test("outlet daily phone filters keep date, branch, and status inside one drawer", () => {

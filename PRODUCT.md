@@ -1,6 +1,10 @@
 # Seri Bako Operations Management System
 
-### v9.2.21 (unreleased) — Direct Compliance Upload and Attendance Matching
+### v9.2.22 (unreleased) — Clear Outlet Daily Workflow States
+
+- Aligns the seven-day Outlet Daily matrix with the detail workflow: `QS` means Qty Sent pending, `OE` means Outlet Entry pending, and `P` means Posted. Ambiguous `D`, `AM`, and `C` abbreviations are removed.
+
+### v9.2.21 (deployed) — Direct Compliance Upload and Attendance Matching
 
 - Removes Outlet Compliance approval entirely: an upload becomes current immediately, and authorised staff can replace or remove the current document.
 - Matches imported NGTeco people automatically to unique active OMS employee names; only device-source-to-outlet mapping remains manual.

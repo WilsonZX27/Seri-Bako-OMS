@@ -131,11 +131,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
     requestAnimationFrame(() => triggerRef.current?.focus());
   }
 
-  const consoleContent = desktopConsoleHidden ? null : content ?? (
-    <ConsoleSection title="Workspace Context">
-      <p className="text-sm text-[var(--sb-text-muted)] sm:text-xs">Open a record to see actions, timeline, and metadata here.</p>
-    </ConsoleSection>
-  );
+  const consoleContent = desktopConsoleHidden ? null : content;
   const primaryAction = findMobilePrimaryAction(consoleContent);
   const secondaryConsoleContent = withoutMobilePrimaryAction(consoleContent);
   const primaryHref = findActionHref(primaryAction);
@@ -164,11 +160,13 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
   return (
     <RightConsoleContext.Provider value={value}>
       {children}
-      <aside data-right-console className={cn("hidden h-full min-h-0 w-[var(--sb-console-width)] shrink-0 overflow-hidden border-l bg-[var(--rail-bg)]", !desktopConsoleHidden && "xl:block")}>
-        <div data-right-console-scroll className="sb-scrollbar-none h-full space-y-4 overflow-y-auto overflow-x-hidden bg-[var(--rail-bg)] px-2 py-3">
-          {consoleContent}
-        </div>
-      </aside>
+      {consoleContent ? (
+        <aside data-right-console className="hidden h-full min-h-0 w-[var(--sb-console-width)] shrink-0 overflow-hidden border-l border-[var(--sb-border-soft)] bg-[var(--rail-bg)] xl:block">
+          <div data-right-console-scroll className="sb-scrollbar-none h-full space-y-4 overflow-y-auto overflow-x-hidden bg-[var(--rail-bg)] px-3 py-3">
+            {consoleContent}
+          </div>
+        </aside>
+      ) : null}
       {content && !mobileBarHidden && hasCreateFab && primaryHref ? (
         <Link
           href={primaryHref}
@@ -215,9 +213,9 @@ export function RightConsoleMount({ children, hideMobileBar = false, hideDesktop
   return null;
 }
 
-export function ConsoleSection({ title, children, titleClassName }: { title: ReactNode; children: ReactNode; titleClassName?: string }) {
+export function ConsoleSection({ title, children, titleClassName, kind = "reference" }: { title: ReactNode; children: ReactNode; titleClassName?: string; kind?: "action" | "status" | "reference" }) {
   return (
-    <section data-console-section className="rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)] px-3 py-3 shadow-[var(--sb-shadow-card)]">
+    <section data-console-section data-console-kind={kind} className="rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)] px-3 py-3">
       <div className="mb-3 flex items-center gap-2">
         <h2 className={cn("shrink-0 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--sb-text-muted)]", titleClassName)}>{title}</h2>
         <span aria-hidden="true" className="h-px min-w-0 flex-1 bg-[var(--sb-border-soft)]" />

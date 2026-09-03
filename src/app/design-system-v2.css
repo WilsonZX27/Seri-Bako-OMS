@@ -209,11 +209,101 @@ body::-webkit-scrollbar {
   }
 }
 
+/* v9.3 workspace authority -------------------------------------------------
+   Header and body consume the same canvas and gutter. The data attributes
+   deliberately outrank legacy route-local utilities while those retire. */
+html[data-design-layer="v2"] .sb-workspace-canvas {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  margin-inline: auto;
+  padding-inline: var(--sb-shell-gutter);
+}
+
+html[data-design-layer="v2"] [data-workspace-canvas][data-canvas-mode="contained"] {
+  max-width: calc(var(--sb-canvas-contained) + (var(--sb-shell-gutter) * 2));
+}
+
+html[data-design-layer="v2"] [data-workspace-canvas][data-canvas-mode="wide"] {
+  max-width: calc(var(--sb-canvas-wide) + (var(--sb-shell-gutter) * 2));
+}
+
+html[data-design-layer="v2"] [data-workspace-canvas][data-canvas-mode="full"] {
+  max-width: none;
+}
+
+html[data-design-layer="v2"] [data-tablet-canvas].sb-workspace-canvas {
+  padding-block: var(--sb-shell-gutter);
+}
+
+html[data-design-layer="v2"] [data-page-header] > .sb-workspace-canvas {
+  padding-block: var(--sb-space-3);
+}
+
+html[data-design-layer="v2"] :is(.sb-work-surface, [data-ui-surface="data"], [data-ui-surface="command"], [data-ui-surface="insight"], [data-ui-surface="inspector"]) {
+  border-radius: var(--sb-panel-radius);
+  border-color: var(--sb-border-soft);
+  background: var(--sb-surface);
+}
+
+html[data-design-layer="v2"] [data-ui-surface="command"] {
+  box-shadow: 0 1px 2px rgb(6 44 31 / 0.04);
+}
+
+html[data-design-layer="v2"] [data-ui-surface="attention"] {
+  border: 1px solid color-mix(in srgb, var(--sb-warning) 24%, transparent);
+  border-radius: var(--sb-radius-control);
+  background: var(--sb-warning-bg);
+}
+
+html[data-design-layer="v2"] [data-console-kind="action"] {
+  border-color: color-mix(in srgb, var(--sb-green-700) 22%, var(--sb-border-soft));
+}
+
+html[data-design-layer="v2"] [data-console-kind="status"] {
+  background: var(--sb-surface-muted);
+}
+
+.sb-skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--sb-radius-control);
+  background: color-mix(in srgb, var(--sb-border) 62%, var(--sb-surface));
+}
+
+.sb-skeleton::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.7), transparent);
+  animation: sb-skeleton-sweep 1.35s var(--sb-ease-out) infinite;
+}
+
+@keyframes sb-skeleton-sweep {
+  100% { transform: translateX(100%); }
+}
+
+html[data-design-layer="v2"] :is(a, button, summary, [role="button"]) {
+  transition-duration: var(--sb-motion-fast);
+  transition-timing-function: var(--sb-ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sb-skeleton::after { display: none; }
+  html[data-design-layer="v2"] *,
+  html[data-design-layer="v2"] *::before,
+  html[data-design-layer="v2"] *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 [data-app-shell] {
   color: var(--sb-text);
-  background:
-    radial-gradient(circle at 72% 0%, rgb(203 222 211 / 0.28), transparent 28rem),
-    linear-gradient(145deg, #f5f6f3 0%, #edf1ed 100%);
+  background: var(--workspace-bg);
 }
 
 [data-center-workspace] {

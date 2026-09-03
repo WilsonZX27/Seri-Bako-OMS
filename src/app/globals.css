@@ -93,11 +93,16 @@
   --sb-mobile-nav-height: 4rem;
   --sb-sidebar-width: 14.75rem;
   --sb-console-width: 20rem;
+  --sb-console-width-compact: 18rem;
+  --sb-canvas-contained: 64rem;
+  --sb-canvas-wide: 76rem;
+  --sb-shell-gutter: 0.75rem;
   /* Canonical geometry tokens. Every route consumes these values; the app
      design layer must not redefine them at a later cascade position. */
   --sb-panel-radius: 0.75rem;
   --sb-z-dropdown: 30;
   --sb-z-sticky: 40;
+  --sb-z-action-rail: 45;
   /* Narrow-screen drawers must fully cover the mobile navigation and any
      fixed action rail. Desktop/tablet rails keep their normal stacking order;
      these values are consumed by the narrow-screen drawer rules below. */
@@ -106,6 +111,7 @@
   --sb-z-toast: 70;
   --sb-motion-fast: 160ms;
   --sb-motion-standard: 220ms;
+  --sb-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --app-bg: var(--sb-bg);
   --workspace-bg: #f4f5f2;
   --rail-bg: #fbfcfa;
@@ -132,6 +138,21 @@
   --input: 150 10% 82%;
   --ring: 155 63% 20%;
   --radius: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  :root { --sb-shell-gutter: 1rem; }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --sb-shell-gutter: 1.25rem;
+    --sb-console-width: var(--sb-console-width-compact);
+  }
+}
+
+@media (min-width: 1440px) {
+  :root { --sb-console-width: 20rem; }
 }
 
 * {

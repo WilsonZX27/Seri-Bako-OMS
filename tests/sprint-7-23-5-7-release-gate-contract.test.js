@@ -34,7 +34,7 @@ test("annotated actions and compact tables are implemented through shared struct
 
   assert.doesNotMatch(dashboard, /Protected controls/);
   assert.match(dashboard, /data-dashboard-quick-actions/);
-  assert.match(dashboard, /<ConsoleSection title="Actions">/);
+  assert.match(dashboard, /<ConsoleSection title="Actions" kind="action">/);
   assert.match(documentWorkspace, /function DocumentActionSection/);
   assert.match(documentWorkspace, /<DocumentMoreOptions/);
   assert.match(mobileDocumentSurfaces, /disabled=\{!hydrated\}/);

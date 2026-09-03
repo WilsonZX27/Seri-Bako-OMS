@@ -18,7 +18,7 @@ test("dashboard composition is all-role, task-first, and finance-gated", () => {
   assert.match(view, /data-dashboard-quick-actions/);
   assert.doesNotMatch(view, /Protected controls/);
   assert.match(view, /data-dashboard-actions/);
-  assert.match(view, /<ConsoleSection title="Actions">/);
+  assert.match(view, /<ConsoleSection title="Actions" kind="action">/);
   assert.match(view, /tabletRailMode="context"/);
   assert.doesNotMatch(view, /title="Workspace context"|title="Alerts"/);
 });

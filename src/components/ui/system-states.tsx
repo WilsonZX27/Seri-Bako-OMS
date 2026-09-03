@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { AlertTriangle, Ban, CheckCircle2, FileQuestion, LoaderCircle, SearchX, ShieldAlert } from "lucide-react";
+import { AlertTriangle, Ban, CheckCircle2, FileQuestion, SearchX, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -20,20 +20,27 @@ function renderAction(action?: StateAction) {
 
 export function PageLoadingState({ label = "Loading workspace..." }: { label?: string }) {
   return (
-    <div className="min-h-0 p-3 sm:p-4" aria-live="polite" aria-busy="true" data-page-loading-state>
-      <div className="h-0.5 w-full overflow-hidden rounded-full bg-[var(--sb-border-soft)]" aria-hidden="true">
-        <div className="h-full w-1/3 animate-pulse rounded-full bg-[var(--sb-green-700)]" />
+    <div className="sb-workspace-canvas min-h-0" aria-live="polite" aria-busy="true" data-workspace-canvas data-canvas-mode="wide" data-page-loading-state>
+      <span className="sr-only" role="status">{label}</span>
+      <div className="mb-4 space-y-2" aria-hidden="true">
+        <div className="sb-skeleton h-5 w-44" />
+        <div className="sb-skeleton h-3 w-72 max-w-full" />
       </div>
-      <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground" role="status">
-        <LoaderCircle className="h-3.5 w-3.5 animate-spin" />
-        {label}
-      </p>
+      <div className="sb-work-surface overflow-hidden" aria-hidden="true">
+        <div className="flex gap-3 border-b border-[var(--sb-border-soft)] p-3">
+          <div className="sb-skeleton h-9 min-w-0 flex-1" />
+          <div className="sb-skeleton h-9 w-28" />
+        </div>
+        <div className="divide-y divide-[var(--sb-border-soft)]">
+          {[0, 1, 2, 3, 4].map((row) => <div key={row} className="flex items-center gap-3 p-3"><div className="sb-skeleton h-8 w-8 rounded-full" /><div className="min-w-0 flex-1 space-y-2"><div className="sb-skeleton h-3 w-2/5" /><div className="sb-skeleton h-3 w-3/5" /></div><div className="sb-skeleton h-7 w-20" /></div>)}
+        </div>
+      </div>
     </div>
   );
 }
 
 export function SectionLoadingState({ label = "Loading..." }: { label?: string }) {
-  return <p className="p-3 text-xs text-muted-foreground" aria-live="polite" aria-busy="true">{label}</p>;
+  return <div className="space-y-2 p-3" aria-live="polite" aria-busy="true"><span className="sr-only">{label}</span><div className="sb-skeleton h-3 w-2/5" /><div className="sb-skeleton h-3 w-4/5" /><div className="sb-skeleton h-3 w-3/5" /></div>;
 }
 
 export function ErrorState({
@@ -47,7 +54,7 @@ export function ErrorState({
 }) {
   return (
     <div className="p-4">
-      <div className="flex flex-col items-start gap-3 rounded-[2px] border border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] p-4 text-[var(--sb-danger)]" role="alert">
+      <div className="flex flex-col items-start gap-3 rounded-[var(--sb-radius-control)] border border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] p-4 text-[var(--sb-danger)]" role="alert">
         <AlertTriangle className="h-5 w-5" />
         <div>
           <p className="text-sm font-semibold">{title}</p>
@@ -103,7 +110,7 @@ export function Notice({ tone = "info", title, children, className }: { tone?: "
   };
   const Icon = tone === "success" ? CheckCircle2 : tone === "error" ? Ban : tone === "warning" ? ShieldAlert : AlertTriangle;
   return (
-    <div className={cn("flex items-start gap-2 rounded-[2px] border p-3 text-sm", tones[tone], className)} role={tone === "error" ? "alert" : "status"}>
+    <div className={cn("flex items-start gap-2 rounded-[var(--sb-radius-control)] border p-3 text-sm", tones[tone], className)} role={tone === "error" ? "alert" : "status"}>
       <Icon className="mt-0.5 h-4 w-4 shrink-0" />
       <div>
         {title ? <p className="font-semibold">{title}</p> : null}

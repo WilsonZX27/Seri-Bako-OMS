@@ -157,8 +157,8 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
         <ShoppingBasket className="h-5 w-5" />
         {selectedCount ? <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-white px-1 text-center text-[11px] font-bold leading-5 text-[var(--sb-green-900)]">{selectedCount}</span> : null}
       </button>
-      {basketOpen ? <button type="button" className="fixed inset-0 z-[100] bg-black/45 md:hidden" aria-label="Close PR basket" onClick={() => setBasketOpen(false)} /> : null}
-      <Card className={`sb-procurement-basket max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-[101] max-md:max-h-[84dvh] max-md:overflow-hidden max-md:rounded-b-none max-md:rounded-t-[var(--sb-panel-radius)] ${basketOpen ? "max-md:block" : "max-md:hidden"}`} data-low-stock-pr-setup>
+      {basketOpen ? <button type="button" className="fixed inset-0 z-[var(--sb-z-backdrop)] bg-black/45 md:hidden" aria-label="Close PR basket" onClick={() => setBasketOpen(false)} /> : null}
+      <Card className={`sb-procurement-basket max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-[var(--sb-z-dialog)] max-md:max-h-[84dvh] max-md:overflow-hidden max-md:rounded-b-none max-md:rounded-t-[var(--sb-panel-radius)] ${basketOpen ? "max-md:block" : "max-md:hidden"}`} data-low-stock-pr-setup>
       <CardContent className="space-y-4 p-4 max-md:max-h-[84dvh] max-md:overflow-y-auto max-md:pb-[calc(env(safe-area-inset-bottom)+1rem)] md:p-5">
         <div className="flex flex-col gap-3 border-b border-[var(--sb-border-soft)] pb-4 md:flex-row md:items-end md:justify-between">
           <div className="flex min-w-0 items-start justify-between gap-3">

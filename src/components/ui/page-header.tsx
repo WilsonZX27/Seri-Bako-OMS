@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowUpRight, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { WorkspaceCanvas, type WorkspaceCanvasMode } from "@/components/layout/workspace-layout";
 
 type PageHeaderProps = {
   title: ReactNode;
@@ -18,7 +19,7 @@ type PageHeaderProps = {
   /** Split tablet workspaces expose the same create action in their right rail. */
   hideTabletCreateFab?: boolean;
   /** Aligns the header content with the workspace canvas used by the route. */
-  contentWidth?: "contained" | "wide";
+  contentWidth?: WorkspaceCanvasMode;
 };
 
 export function PageHeader(props: PageHeaderProps) {
@@ -27,11 +28,11 @@ export function PageHeader(props: PageHeaderProps) {
 
   return (
     <>
-      <header data-page-header className="block border-b border-[var(--sb-border-soft)] bg-[var(--workspace-bg)] px-3 py-3 sm:px-4">
-        <div className={`${props.contentWidth === "wide" ? "max-w-[76rem]" : props.contentWidth === "contained" ? "max-w-[64rem]" : "max-w-none"} mx-auto flex w-full items-start justify-between gap-2`}>
+      <header data-page-header className="block border-b border-[var(--sb-border-soft)] bg-[var(--workspace-bg)]">
+        <WorkspaceCanvas mode={props.contentWidth ?? "wide"} className="flex items-start justify-between gap-3 py-3">
           <div className="min-w-0">
             {props.backHref ? <Link href={props.backHref} className="mb-1 block text-[11px] font-medium text-[var(--sb-text-muted)] hover:text-[var(--sb-text)]">← Back</Link> : null}
-            <h1 className="min-w-0 break-words text-base font-semibold leading-5 tracking-[-0.015em] text-[var(--sb-text)]">{props.title}</h1>
+            <h1 className="min-w-0 text-balance break-words text-[var(--sb-text-page)] font-semibold leading-6 tracking-[-0.015em] text-[var(--sb-text)]">{props.title}</h1>
             {props.description ? <p className="mt-0.5 hidden max-w-2xl text-xs leading-4 text-[var(--sb-text-muted)] sm:block">{props.description}</p> : null}
           </div>
           {props.secondaryAction || (props.action && !isCreateAction) ? (
@@ -48,7 +49,7 @@ export function PageHeader(props: PageHeaderProps) {
               ) : null}
             </div>
           ) : null}
-        </div>
+        </WorkspaceCanvas>
       </header>
       {props.secondaryAction || (props.action && !isCreateAction) ? (
         <div data-tablet-page-actions className="flex min-h-12 items-center justify-end gap-2 border-b border-[var(--sb-border-soft)] bg-white px-3 xl:hidden">

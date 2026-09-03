@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Search, X } from "lucide-react";
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -42,6 +42,9 @@ export function GlobalSearch({
   const inputRef = useRef<HTMLInputElement>(null);
   const titleId = useId();
   const isOpen = open ?? uncontrolledOpen;
+  const destinations = useMemo(() => searchableNavItems
+    .filter((item) => !("permission" in item) || !item.permission || permissionMap[item.permission])
+    .slice(0, 8), [permissionMap]);
 
   const setSearchOpen = useCallback((next: boolean) => {
     setUncontrolledOpen(next);
@@ -122,18 +125,18 @@ export function GlobalSearch({
             </div>
             <div className="max-h-[60vh] overflow-y-auto p-2">
               {results.map((result) => (
-                <Link key={`${result.type}-${result.href}`} href={result.href} onClick={() => setSearchOpen(false)} className="flex items-center justify-between rounded-[2px] px-3 py-2 hover:bg-secondary">
+                <Link key={`${result.type}-${result.href}`} href={result.href} onClick={() => setSearchOpen(false)} className="flex items-center justify-between rounded-[var(--sb-radius-control)] px-3 py-2 hover:bg-secondary">
                   <div>
                     <p className="text-sm font-medium">{result.title}</p>
                     <p className="text-xs text-muted-foreground">{result.subtitle}</p>
                   </div>
-                  <span className="rounded-[2px] bg-secondary px-2 py-1 text-xs text-muted-foreground">{result.type}</span>
+                  <span className="rounded-[var(--sb-radius-control)] bg-secondary px-2 py-1 text-xs text-muted-foreground">{result.type}</span>
                 </Link>
               ))}
               {query && searchState === "loading" ? <p className="p-6 text-center text-sm text-muted-foreground" role="status">Searching…</p> : null}
               {query && searchState === "error" ? <p className="p-6 text-center text-sm text-destructive" role="alert">Search is temporarily unavailable. Try again.</p> : null}
               {query && searchState === "ready" && !results.length ? <p className="p-6 text-center text-sm text-muted-foreground">No matching records.</p> : null}
-              {!query ? <p className="p-6 text-center text-sm text-muted-foreground">Type to search across Seri Bako OMS.</p> : null}
+              {!query ? <div className="p-2"><p className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Go directly to</p><div className="grid gap-1 sm:grid-cols-2">{destinations.map((item)=><Link key={item.href} href={item.href} onClick={()=>setSearchOpen(false)} className="rounded-[var(--sb-radius-control)] px-3 py-2 hover:bg-secondary"><span className="block text-sm font-medium">{item.label}</span><span className="block text-xs text-muted-foreground">{item.group}</span></Link>)}</div><p className="px-2 pt-3 text-xs text-muted-foreground">Type to search records, item codes, suppliers or document numbers.</p></div> : null}
             </div>
       </ModalShell>
     </>

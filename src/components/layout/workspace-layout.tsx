@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { RightConsoleMount } from "@/components/layout/right-console";
 import { cn } from "@/lib/utils";
 
-type TabletCanvas = "contained" | "wide" | "full";
+export type WorkspaceCanvasMode = "contained" | "wide" | "full";
 type TabletRailMode = "context" | "split";
 type TabletRailBreakpoint = "md" | "lg";
 type TabletRailWidth = "compact" | "half";
@@ -28,7 +28,7 @@ export function WorkspaceGrid({
   hideDesktopConsole?: boolean;
   documentMode?: boolean;
   /** Keeps touch-focused work contained while technical registers retain horizontal working room. */
-  tabletCanvas?: TabletCanvas;
+  tabletCanvas?: WorkspaceCanvasMode;
   /** At landscape-tablet widths, a document may keep its operational context visible beside the form. */
   tabletRailMode?: TabletRailMode;
   /** Lists may keep portrait tablets stacked and split only on wider tablet canvases. */
@@ -42,9 +42,11 @@ export function WorkspaceGrid({
 
   return (
     <div
+      data-workspace-canvas
+      data-canvas-mode={effectiveTabletCanvas}
       data-tablet-canvas={effectiveTabletCanvas}
       data-tablet-content={rightRail && effectiveTabletCanvas !== "full" ? "contained" : undefined}
-      className={cn("min-h-0 p-3 pb-3", rightRail && !hideMobileConsole && "pb-32 xl:pb-3", className)}
+      className={cn("sb-workspace-canvas min-h-0", rightRail && !hideMobileConsole && "pb-32 xl:pb-3", className)}
     >
       {usesTabletSplit ? (
         <div
@@ -63,6 +65,22 @@ export function WorkspaceGrid({
         </div>
       ) : <div className="min-w-0 space-y-3">{children}</div>}
       {rightRail || hideDesktopConsole ? <RightConsoleMount hideMobileBar={hideMobileConsole} hideDesktopConsole={hideDesktopConsole}>{contextualRail}</RightConsoleMount> : null}
+    </div>
+  );
+}
+
+export function WorkspaceCanvas({
+  children,
+  mode = "wide",
+  className,
+}: {
+  children: ReactNode;
+  mode?: WorkspaceCanvasMode;
+  className?: string;
+}) {
+  return (
+    <div data-workspace-canvas data-canvas-mode={mode} className={cn("sb-workspace-canvas", className)}>
+      {children}
     </div>
   );
 }

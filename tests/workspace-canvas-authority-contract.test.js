@@ -16,9 +16,10 @@ describe("workspace canvas regression", () => {
     assert.match(workspace, /tabletCanvas \?\? \(documentMode \? "contained" : "wide"\)/);
   });
 
-  test("desktop workspace width is not capped by a global canvas override", () => {
-    assert.doesNotMatch(css, /--sb-canvas-contained/);
-    assert.doesNotMatch(css, /--sb-canvas-wide/);
+  test("desktop workspace width is controlled by explicit canvas modes", () => {
+    assert.match(css, /data-canvas-mode="contained"/);
+    assert.match(css, /data-canvas-mode="wide"/);
+    assert.match(css, /data-canvas-mode="full"/);
     assert.doesNotMatch(css, /\[data-workspace-grid\]/);
   });
 

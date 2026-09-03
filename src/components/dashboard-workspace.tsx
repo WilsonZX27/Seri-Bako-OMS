@@ -115,6 +115,35 @@ function QuickActionsCluster({ actions, className }: { actions: { href: string; 
   );
 }
 
+function QueueLoadChart({ signals }: { signals: { label: string; value: number | null; href: string }[] }) {
+  const available = signals.filter((signal): signal is typeof signal & { value: number } => signal.value !== null);
+  const maximum = Math.max(1, ...available.map((signal) => signal.value));
+  if (!available.some((signal) => signal.value > 0)) return null;
+
+  return (
+    <section className="sb-work-surface px-3 py-3" aria-labelledby="dashboard-queue-load-title">
+      <div className="mb-3 flex items-end justify-between gap-3">
+        <div>
+          <h2 id="dashboard-queue-load-title" className="text-sm font-semibold">Queue load</h2>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">Relative workload in your current scope.</p>
+        </div>
+        <span className="text-[10px] font-medium uppercase tracking-[0.1em] text-muted-foreground">Live counts</span>
+      </div>
+      <div className="space-y-2.5">
+        {available.map((signal) => (
+          <Link key={signal.label} href={signal.href} className="group grid grid-cols-[minmax(7rem,0.8fr)_minmax(5rem,1.2fr)_2rem] items-center gap-2 text-xs">
+            <span className="truncate text-muted-foreground group-hover:text-foreground">{signal.label}</span>
+            <span className="h-1.5 overflow-hidden rounded-full bg-[var(--sb-surface-muted)]">
+              <span className="block h-full rounded-full bg-[var(--sb-green-700)] transition-[width]" style={{ width: `${Math.max(signal.value > 0 ? 8 : 0, (signal.value / maximum) * 100)}%` }} />
+            </span>
+            <strong className="text-right tabular-nums">{signal.value}</strong>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   const role = summary.role;
   const isOwner = role === "super_admin";
@@ -184,7 +213,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               ];
 
   const desktopActionRail = (
-    <ConsoleSection title="Actions">
+    <ConsoleSection title="Actions" kind="action">
       <div className="grid gap-2" data-dashboard-actions>
         {quickActions.map((action, index) => {
           const Icon = action.icon;
@@ -296,6 +325,8 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
             })}
           </div>
         </section>
+
+        <QueueLoadChart signals={attentionSignals} />
 
         <QuickActionsCluster actions={quickActions} className="hidden lg:block xl:hidden" />
 

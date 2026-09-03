@@ -39,14 +39,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const hasStaffRole = (profile as { has_staff_role?: boolean } | null)?.has_staff_role ?? false;
   const roleProfile = profile as { role_code?: UserRole; role?: UserRole } | null;
+  const account = profile as { full_name?: string | null; email?: string | null } | null;
   const role = roleProfile?.role_code ?? roleProfile?.role ?? "outlet_staff";
+  const displayName = account?.full_name ?? account?.email ?? "Signed in";
 
   return (
     <div data-app-shell data-design-layer="v2" className="min-h-dvh bg-[var(--app-bg)] xl:h-dvh xl:overflow-hidden">
       <div className="flex min-h-dvh min-w-0 xl:h-dvh">
-        <Sidebar permissionMap={permissionMap} />
+        <Sidebar permissionMap={permissionMap} role={role} companyName={branding.company_name} companyLogoUrl={branding.logo_url} displayName={displayName} />
         <div className="flex min-w-0 flex-1 flex-col xl:overflow-hidden">
-          <TopBar permissionMap={permissionMap} />
+          <TopBar permissionMap={permissionMap} role={role} companyName={branding.company_name} companyLogoUrl={branding.logo_url} displayName={displayName} />
           {!hasStaffRole ? (
             <div className="border-b border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] px-5 py-3 text-sm font-medium text-[var(--sb-warning)]" role="alert">
               Your account has no staff role assigned. Please contact the Super Admin / Owner.

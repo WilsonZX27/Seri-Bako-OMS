@@ -205,6 +205,8 @@ test("AutoCount picker supports drag and drop and versions preview reuse semanti
   assert.match(workflow, /onDragOver/);
   assert.match(workflow, /onDrop=\{handleDrop\}/);
   assert.match(workflow, /Drop or choose AutoCount/);
+  assert.match(workflow, /const selected = Array\.from\(event\.currentTarget\.files \?\? \[\]\)/);
+  assert.ok(workflow.indexOf('title="AutoCount import completed"') < workflow.indexOf("<Card>"), "completed feedback should lead the main workspace");
   assert.match(preview, /autocount-v2:/);
 });
 

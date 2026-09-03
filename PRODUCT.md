@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v9.2.17 (unreleased) — Reliable AutoCount File Selection
+
+AutoCount Direct Import snapshots files selected through the native picker before clearing its input, so click-to-choose and drag-and-drop now enter the same parsing workflow. Successful confirmation leads the main workspace instead of appearing below the impact and warning surfaces.
+
 ### v9.2.16 (unreleased) — Recoverable Purchase Order Entry
 
 New Purchase Order keeps the complete in-progress editor mounted when supplier/UOM validation fails, returning the actionable error beside the form instead of redirecting and clearing the document. Supplier choices are alphabetised, UOM choices are limited to the selected branch/supplier/item relationship, and desktop line entry follows Item, Ordered Qty, UOM, Unit Price. Its route-owned loading state now mirrors the document canvas and right action rail at every supported viewport.

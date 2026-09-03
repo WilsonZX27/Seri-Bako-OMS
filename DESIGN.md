@@ -1,5 +1,10 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.17 (unreleased) — Import feedback and native picker parity
+
+- Native file selection and drag-and-drop must feed the same stable parsing input. Copy a browser `FileList` before resetting its input so re-selecting the same file remains possible without discarding the current choice.
+- A completed import is the page's primary outcome and appears before source files, impact details and warnings. Supporting evidence remains below it for review.
+
 ## v9.2.16 (unreleased) — Recoverable purchase entry
 
 - A recoverable form error returns into the mounted editor. It must not navigate away, reset uncontrolled inputs, or replace editable context with a global-only toast.

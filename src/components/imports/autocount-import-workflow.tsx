@@ -67,11 +67,11 @@ export function AutoCountImportWorkflow() {
   const [busy, setBusy] = useState<"parsing" | "preview" | "confirm" | null>(null);
   const [dragActive, setDragActive] = useState(false);
 
-  async function selectFiles(selected: FileList | null) {
+  async function selectFiles(selected: FileList | File[] | null) {
     if (!selected?.length) return;
     setBusy("parsing"); setMessage(null); setSelectionNote(null); setPreview(null); setResult(null);
     try {
-      const parsed = await Promise.all([...selected].map(parseAutoCountWorkbook));
+      const parsed = await Promise.all(Array.from(selected).map(parseAutoCountWorkbook));
       const merged = mergeSelectedFiles(files, parsed);
       setFiles(merged.files);
       const notes = [
@@ -163,6 +163,10 @@ export function AutoCountImportWorkflow() {
 
   return (
     <WorkspaceGrid rightRail={rail} tabletCanvas="contained" tabletRailBreakpoint="md">
+      {alreadyCompleted ? <Notice tone="success" title="This file set was already imported">OMS reused the completed job and did not create a duplicate import.</Notice> : null}
+      {result ? <Notice tone="success" title="AutoCount import completed">
+        <p>Items, suppliers, purchasing relationships, and branch mappings were committed in one transaction. Inventory movements created: 0.</p>
+      </Notice> : null}
       <Card>
         <CardHeader>
           <CardTitle>Select the original AutoCount exports</CardTitle>
@@ -179,7 +183,7 @@ export function AutoCountImportWorkflow() {
             {busy === "parsing" ? <LoaderCircle className="h-6 w-6 animate-spin text-[var(--sb-green-800)]" /> : <Upload className="h-6 w-6 text-[var(--sb-green-800)]" />}
             <span className="text-sm font-semibold">{dragActive ? "Drop files to add them" : "Drop or choose AutoCount .xlsx files"}</span>
             <span className="text-xs text-[var(--sb-text-muted)]">Multiple files accepted · identified by column headers</span>
-            <input type="file" accept=".xlsx" multiple className="sr-only" onChange={(event) => { const selected = event.currentTarget.files; event.currentTarget.value = ""; void selectFiles(selected); }} disabled={Boolean(busy)} />
+            <input type="file" accept=".xlsx" multiple className="sr-only" onChange={(event) => { const selected = Array.from(event.currentTarget.files ?? []); event.currentTarget.value = ""; void selectFiles(selected); }} disabled={Boolean(busy)} />
           </label>
           {files.length ? <div className="divide-y rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)]">
             {files.map((file) => <div key={file.hash} className="flex items-center gap-3 px-3 py-2.5">
@@ -232,10 +236,6 @@ export function AutoCountImportWorkflow() {
           {warningGroups.otherCount && !warningGroups.missingSupplier ? <li><strong>{warningGroups.otherCount} source note{warningGroups.otherCount === 1 ? "" : "s"}:</strong> Review when maintaining supplier mappings.</li> : null}
         </ul>
         <details className="mt-3"><summary className="cursor-pointer text-xs font-semibold">View {warnings.length} source note{warnings.length === 1 ? "" : "s"}</summary><ul className="mt-2 max-h-52 list-disc space-y-1 overflow-y-auto pl-4">{warnings.slice(0, 50).map((warning) => <li key={warning}>{warning}</li>)}</ul></details>
-      </Notice> : null}
-      {alreadyCompleted ? <Notice tone="success" title="This file set was already imported">OMS reused the completed job and did not create a duplicate import.</Notice> : null}
-      {result ? <Notice tone="success" title="AutoCount import completed">
-        <p>Items, suppliers, purchasing relationships, and branch mappings were committed in one transaction. Inventory movements created: 0.</p>
       </Notice> : null}
     </WorkspaceGrid>
   );

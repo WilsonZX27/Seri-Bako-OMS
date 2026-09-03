@@ -7,7 +7,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { getStaff, getStaffs } from "@/server/queries/foundation";
+import { getStaff, getStaffProfileSummary } from "@/server/queries/foundation";
 import { getPeopleCompliance, getPeopleComplianceTypes } from "@/server/queries/compliance";
 import { createComplianceRecord } from "@/server/actions/compliance";
 import { getPermissionMap } from "@/server/auth/permissions";
@@ -15,13 +15,12 @@ import { getPermissionMap } from "@/server/auth/permissions";
 type ProfileSectionId = "overview"|"employment"|"compliance"|"documents";
 export default async function PeopleProfilePage({params,searchParams}:{params:Promise<{id:string}>;searchParams:Promise<{section?:string;error?:string;success?:string}>}) {
   const {id}=await params;
-  const [message,staff,compliance,complianceTypes,permissions]=await Promise.all([searchParams,getStaff(id),getPeopleCompliance(id),getPeopleComplianceTypes(),getPermissionMap(["people.compliance.manage","people.compliance.document.read"])]);
+  const [message,staff,staffSummary,compliance,complianceTypes,permissions]=await Promise.all([searchParams,getStaff(id),getStaffProfileSummary(id),getPeopleCompliance(id),getPeopleComplianceTypes(),getPermissionMap(["people.compliance.manage","people.compliance.document.read"])]);
   const {section}=message;
   const activeSection:ProfileSectionId=["overview","employment","compliance","documents"].includes(section??"")?section as ProfileSectionId:"overview";
-  const staffSummary=(await getStaffs({search:staff.email??staff.full_name})).find((row)=>row.id===id);
   const attention=compliance.filter((record)=>record.state!=="valid").length;
   const rail=<><ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href={`/staffs/${staff.id}`}>Manage account & access</Link></Button></ConsoleSection><ConsoleSection title="Profile status"><div className="flex items-center justify-between"><span className="text-muted-foreground">Employment</span><StatusBadge status={staff.status}/></div><div className="flex items-center justify-between border-t pt-2"><span className="text-muted-foreground">Compliance</span><strong>{attention?`${attention} need attention`:"Current"}</strong></div></ConsoleSection><ConsoleSection title="Privacy"><p className="text-muted-foreground">Managers see compliance status only. Sensitive originals remain restricted to Owner and People Operations.</p></ConsoleSection></>;
-  return <><PageHeader title={staff.full_name} description="Employee profile, assignment, compliance and OMS account access."/><WorkspaceGrid rightRail={rail} documentMode tabletRailBreakpoint="lg">
+  return <><PageHeader title={staff.full_name} description="Employee profile, assignment, compliance and OMS account access." contentWidth="contained"/><WorkspaceGrid tabletCanvas="contained" rightRail={rail} documentMode tabletRailBreakpoint="lg">
     {message.error||message.success?<div role="status" className={`rounded-[var(--sb-panel-radius)] border px-3 py-2 text-sm ${message.error?"border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]":"border-[var(--sb-success)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]"}`}>{message.error??message.success}</div>:null}
     <nav className="flex min-h-11 gap-1 overflow-x-auto rounded-[var(--sb-panel-radius)] border bg-[var(--sb-surface-raised)] p-1 text-xs" aria-label="Employee profile sections">{[["overview","Overview"],["employment","Employment"],["compliance","Compliance"],["documents","Documents"]].map(([sectionId,label])=><Link key={sectionId} href={`/people/${id}?section=${sectionId}`} aria-current={activeSection===sectionId?"page":undefined} className={`inline-flex min-h-9 shrink-0 items-center rounded-[2px] px-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] ${activeSection===sectionId?"bg-[var(--sb-green-50)] font-semibold text-[var(--sb-green-900)]":"hover:bg-[var(--sb-surface-muted)]"}`}>{label}</Link>)}</nav>
     <div className="space-y-3">

@@ -61,8 +61,8 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
   } catch (error) {
     logServerError(error, { source: "page.outletDailyRecords.source" });
     return <>
-      <PageHeader title="Outlet Daily Records" description="Morning receiving and evening wastage capture by outlet." />
-      <WorkspaceGrid tabletCanvas="contained">
+      <PageHeader title="Outlet Daily Records" description="Morning receiving and evening wastage capture by outlet." contentWidth="wide" />
+      <WorkspaceGrid tabletCanvas="wide">
         <Notice tone="warning" title="Outlet daily data unavailable">
           Receiving data could not be verified, so no zero totals are shown. Reload to retry once the source is available.
           <span className="mt-2 block"><Link className="font-semibold underline underline-offset-2" href="/outlet-daily-records">Retry</Link></span>
@@ -77,7 +77,7 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
   const completion = completionResult.status === "fulfilled" ? completionResult.value : null;
   const filtered = hasActiveFilters(filters);
   return <>
-    <PageHeader title="Outlet Daily Records" description="Morning receiving and evening wastage capture by outlet." action={canCreate ? { href: "/outlet-daily-records/new", label: "New Daily Record" } : undefined} hideTabletCreateFab />
+    <PageHeader title="Outlet Daily Records" description="Morning receiving and evening wastage capture by outlet." action={canCreate ? { href: "/outlet-daily-records/new", label: "New Daily Record" } : undefined} hideTabletCreateFab contentWidth="wide" />
     <WorkspaceGrid className="sb-portrait-tablet-rail" hideMobileConsole rightRail={<>
       <ConsoleSection title="Actions">
         {canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/outlet-daily-records/new">New Daily Record</Link></Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}

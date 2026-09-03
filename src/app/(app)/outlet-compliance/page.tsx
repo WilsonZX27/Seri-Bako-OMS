@@ -12,8 +12,14 @@ import { hasPermission } from "@/server/auth/permissions";
 
 export default async function OutletCompliancePage() {
   const [workspace,canManageTypes] = await Promise.all([getOutletComplianceWorkspace(),hasPermission("compliance.types.manage")]);
+  const requirementsByBranch = new Map<string, typeof workspace.requirements>();
+  for (const requirement of workspace.requirements) {
+    const rows = requirementsByBranch.get(requirement.branch_id) ?? [];
+    rows.push(requirement);
+    requirementsByBranch.set(requirement.branch_id, rows);
+  }
   const summaries = workspace.branches.map((branch) => {
-    const rows = workspace.requirements.filter((row) => row.branch_id === branch.id);
+    const rows = requirementsByBranch.get(branch.id) ?? [];
     const valid = rows.filter((row) => row.record?.state === "valid").length;
     const missing = rows.filter((row) => !row.record || row.record.state === "missing").length;
     const pending = rows.filter((row) => row.record?.state === "pending_review").length;

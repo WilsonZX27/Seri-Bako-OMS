@@ -7,11 +7,14 @@ import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { hasPermission } from "@/server/auth/permissions";
+import { getPermissionMap } from "@/server/auth/permissions";
 import { getAttendanceWorkspace, getOwnPublishedShifts } from "@/server/queries/attendance";
 
 export default async function AttendancePage() {
-  const [data, ownShifts, canSchedule, canReview, canImport] = await Promise.all([getAttendanceWorkspace(), getOwnPublishedShifts(), hasPermission("schedule.read"), hasPermission("attendance.review"), hasPermission("attendance.import")]);
+  const [data, ownShifts, permissions] = await Promise.all([getAttendanceWorkspace(), getOwnPublishedShifts(), getPermissionMap(["schedule.read", "attendance.review", "attendance.import"])]);
+  const canSchedule = permissions["schedule.read"];
+  const canReview = permissions["attendance.review"];
+  const canImport = permissions["attendance.import"];
   const tasks = [
     ...(canSchedule?[{ label: "Schedule decisions", value: data.pendingApprovals+data.pendingRequests, detail:`${data.pendingApprovals} awaiting Manager · ${data.pendingRequests} staff requests`, icon: CalendarDays, href: "/attendance/schedule" }]:[]),
     ...(canReview?[{ label: "Attendance exceptions", value: data.unresolvedExceptions, detail:"Review punches that need a decision", icon: AlertTriangle, href: "/attendance/review" }]:[]),

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { durationLabel } from "@/lib/attendance/calculation";
-import { hasPermission } from "@/server/auth/permissions";
+import { getPermissionMap } from "@/server/auth/permissions";
 import { getAttendanceReview, malaysiaWeekStart } from "@/server/queries/attendance";
 
 function time(value: unknown) {
@@ -17,7 +17,9 @@ function time(value: unknown) {
 export default async function AttendanceReviewPage({ searchParams }: { searchParams: Promise<{ week?: string }> }) {
   const params = await searchParams;
   const week = /^\d{4}-\d{2}-\d{2}$/.test(params.week ?? "") ? params.week! : malaysiaWeekStart();
-  const [rows, canAdjust, canLock] = await Promise.all([getAttendanceReview(week), hasPermission("attendance.adjust"), hasPermission("attendance.lock")]);
+  const [rows, permissions] = await Promise.all([getAttendanceReview(week), getPermissionMap(["attendance.adjust", "attendance.lock"])]);
+  const canAdjust = permissions["attendance.adjust"];
+  const canLock = permissions["attendance.lock"];
   const exceptionCount = rows.filter((row: Record<string, unknown>) => Array.isArray(row.statuses) && row.statuses.length > 0).length;
   return <>
     <PageHeader title="Attendance Review" description="Compare approved working times with actual NGTeco punches, then resolve exceptions." contentWidth="wide" />

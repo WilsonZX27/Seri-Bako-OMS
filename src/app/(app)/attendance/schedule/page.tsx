@@ -7,13 +7,18 @@ import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { hasPermission } from "@/server/auth/permissions";
+import { getPermissionMap } from "@/server/auth/permissions";
 import { getPendingShiftRequests, getSchedulePlanner, malaysiaWeekStart } from "@/server/queries/attendance";
 
 export default async function SchedulePage({ searchParams }: { searchParams: Promise<{ branch?: string; week?: string }> }) {
   const params = await searchParams;
   const weekStart = /^\d{4}-\d{2}-\d{2}$/.test(params.week ?? "") ? params.week! : malaysiaWeekStart();
-  const [data, requests, canDraft, canSubmit, canApprove, canImport, canManageTemplates] = await Promise.all([getSchedulePlanner(weekStart, params.branch), getPendingShiftRequests(), hasPermission("schedule.draft"), hasPermission("schedule.submit"), hasPermission("schedule.approve"), hasPermission("attendance.import"), hasPermission("shift_template.manage")]);
+  const [data, requests, permissions] = await Promise.all([getSchedulePlanner(weekStart, params.branch), getPendingShiftRequests(), getPermissionMap(["schedule.draft", "schedule.submit", "schedule.approve", "attendance.import", "shift_template.manage"])]);
+  const canDraft = permissions["schedule.draft"];
+  const canSubmit = permissions["schedule.submit"];
+  const canApprove = permissions["schedule.approve"];
+  const canImport = permissions["attendance.import"];
+  const canManageTemplates = permissions["shift_template.manage"];
   const rightRail = <><ConsoleSection title="This week"><dl className="divide-y divide-[var(--sb-border-soft)]"><div className="flex items-center justify-between gap-3 pb-2"><dt className="text-muted-foreground">Status</dt><dd><StatusBadge status={data.week?.status??"not_started"}/></dd></div><div className="flex items-center justify-between gap-3 pt-2"><dt className="text-muted-foreground">Outlet team</dt><dd className="font-semibold tabular-nums">{data.people.length}</dd></div></dl></ConsoleSection><ConsoleSection title="Attendance tools">{canManageTemplates?<Button asChild size="sm" variant="outline" className="w-full"><Link href="/attendance/settings">Shift settings</Link></Button>:null}<Button asChild size="sm" variant="outline" className="w-full"><Link href="/attendance/review">Review actual time</Link></Button>{canImport?<Button asChild size="sm" variant="outline" className="w-full"><Link href="/attendance/imports">Import punches</Link></Button>:null}</ConsoleSection></>;
   return <>
     <PageHeader title="Outlet Schedule" description="Select staff days, assign a shift or leave type, then send the week to a Manager." contentWidth="wide" />

@@ -40,14 +40,22 @@ export async function getComplianceWorkspace(filters: { state?: string; branch?:
   return { records, types: typesResult.data ?? [], branches: branchesResult.data ?? [], staffs: staffsResult.data ?? [] };
 }
 
-export async function getOutletComplianceWorkspace() {
+export async function getOutletComplianceWorkspace(branchId?: string) {
   if (isMockMode()) return { branches: [], requirements: [], records: [], migrationReady: true };
   const [supabase, profile] = await Promise.all([createClient(), getCurrentProfile()]);
   if (!profile?.company_id) return { branches: [], requirements: [], records: [], migrationReady: true };
+  let branchesQuery = supabase.from("branches").select("id,branch_code,branch_name").eq("company_id", profile.company_id).eq("branch_type", "outlet").eq("status", "active").is("deleted_at", null).order("branch_name");
+  let requirementsQuery = supabase.from("outlet_compliance_requirements").select("id,branch_id,compliance_type_id,is_required,waiver_reason").eq("company_id", profile.company_id).order("created_at");
+  let recordsQuery = supabase.from("compliance_records").select("*").eq("company_id", profile.company_id).eq("subject_kind", "outlet").is("deleted_at", null).order("updated_at", { ascending: false });
+  if (branchId) {
+    branchesQuery = branchesQuery.eq("id", branchId);
+    requirementsQuery = requirementsQuery.eq("branch_id", branchId);
+    recordsQuery = recordsQuery.eq("branch_id", branchId);
+  }
   const [branchesResult, requirementsResult, recordsResult, typesResult] = await Promise.all([
-    supabase.from("branches").select("id,branch_code,branch_name").eq("company_id", profile.company_id).eq("branch_type", "outlet").eq("status", "active").is("deleted_at", null).order("branch_name"),
-    supabase.from("outlet_compliance_requirements").select("id,branch_id,compliance_type_id,is_required,waiver_reason").eq("company_id", profile.company_id).order("created_at"),
-    supabase.from("compliance_records").select("*").eq("company_id", profile.company_id).eq("subject_kind", "outlet").is("deleted_at", null).order("updated_at", { ascending: false }),
+    branchesQuery,
+    requirementsQuery,
+    recordsQuery,
     supabase.from("compliance_types").select("id,type_code,type_name,subject_kind").eq("company_id", profile.company_id).eq("subject_kind", "outlet").eq("status", "active").is("deleted_at", null).order("type_name"),
   ]);
   for (const result of [branchesResult, recordsResult, typesResult]) if (result.error) throw new Error(result.error.message);

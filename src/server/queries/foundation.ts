@@ -192,6 +192,37 @@ export async function getStaff(id: string) {
   return { ...staff, auth_link_valid: hasUniqueValidAuthLink(staff, authUsers) };
 }
 
+export async function getStaffProfileSummary(staffId: string) {
+  if (isMockMode()) {
+    return (await getStaffs()).find((staff) => staff.id === staffId) ?? null;
+  }
+
+  const [supabase, profile] = await Promise.all([createClient(), getCurrentProfile()]);
+  if (!profile?.company_id) return null;
+  const [{ data: staffRoles, error: staffRolesError }, { data: staffBranches, error: staffBranchesError }] = await Promise.all([
+    supabase.from("staff_roles").select("role_id").eq("staff_id", staffId),
+    supabase.from("staff_branches").select("branch_id,is_default").eq("staff_id", staffId),
+  ]);
+  if (staffRolesError) throw new Error(staffRolesError.message);
+  if (staffBranchesError) throw new Error(staffBranchesError.message);
+  const roleIds = (staffRoles ?? []).map((row) => row.role_id);
+  const defaultBranchId = (staffBranches ?? []).find((row) => row.is_default)?.branch_id;
+  const [{ data: roles, error: rolesError }, { data: branch, error: branchError }] = await Promise.all([
+    roleIds.length
+      ? supabase.from("roles").select("role_code,role_name").eq("company_id", profile.company_id).in("id", roleIds)
+      : Promise.resolve({ data: [], error: null }),
+    defaultBranchId
+      ? supabase.from("branches").select("branch_name").eq("company_id", profile.company_id).eq("id", defaultBranchId).maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+  ]);
+  if (rolesError) throw new Error(rolesError.message);
+  if (branchError) throw new Error(branchError.message);
+  return {
+    role_name: (roles ?? []).map((role) => getRoleDisplayLabel(role.role_code, role.role_name)).join(", ") || null,
+    default_branch_name: branch?.branch_name ?? null,
+  };
+}
+
 export async function getStaffAccess(staffId: string) {
   if (isMockMode()) {
     return {

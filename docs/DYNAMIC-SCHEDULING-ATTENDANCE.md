@@ -28,7 +28,7 @@ Adjustments create a new result revision and immutable before/after history. Loc
 
 Upload preview parses and validates without mutation. Confirmation records the SHA-256 file hash, uploader, parser profile, period, raw row JSON and immutable event fingerprints. Event uniqueness is tenant + Person ID + exact timestamp + device + punch type, so overlapping exports remain idempotent while every batch keeps its source-row association.
 
-Apply migrations `241_dynamic_scheduling.sql` through `247_attendance_compliance_finance_close.sql` in order. The documented migration ceiling is **247**. Migration 243 repairs the Supervisor baseline; 244–246 add roster markers, direct-time calculation and audited clearing; migration 247 restricts planner identities to outlet roles, seeds Pest control, enables custom outlet requirements and adds audited Finance closure for posted receivings. The internal legacy `oil` value is displayed as **EL — Emergency Leave**. Do not promote Preview changes to Production without separate authorisation.
+Apply migrations `241_dynamic_scheduling.sql` through `248_purchasing_outlet_followup_and_roster_identity.sql` in order. The documented migration ceiling is **248**. Migration 243 repairs the Supervisor baseline; 244–246 add roster markers, direct-time calculation and audited clearing; migration 247 restricts planner identities to outlet roles, seeds Pest control, enables custom outlet requirements and adds audited Finance closure; migration 248 adds Purchasing's non-approval outlet follow-up access and explicit roster role metadata. The internal legacy `oil` value is displayed as **EL — Emergency Leave**. Do not promote Preview changes to Production without separate authorisation.
 
 ## Test checklist
 

@@ -12,7 +12,7 @@ const {
 
 test("v9 UAT classifies every application page", () => {
   const routes = discoverRouteMatrix();
-  assert.equal(routes.length, 110, "Route count changed. Classify the new or removed page deliberately.");
+  assert.equal(routes.length, 111, "Route count changed. Classify the new or removed page deliberately.");
   assert.equal(new Set(routes.map((entry) => entry.file)).size, routes.length);
   assert.equal(new Set(routes.map((entry) => entry.route)).size, routes.length);
   for (const entry of routes) {
@@ -32,6 +32,7 @@ test("Attendance routes follow the eighth-role permission boundary", () => {
   assert.deepEqual(permittedRolesFor("/attendance/schedule"), ["superAdmin", "peopleOperations", "manager", "outletSupervisor", "outlet"]);
   assert.deepEqual(permittedRolesFor("/attendance/review"), ["superAdmin", "peopleOperations", "manager", "outletSupervisor", "outlet"]);
   assert.deepEqual(permittedRolesFor("/attendance/imports"), ["superAdmin", "peopleOperations"]);
+  assert.deepEqual(permittedRolesFor("/attendance/settings"), ["superAdmin", "peopleOperations"]);
 });
 
 test("dynamic pages receive inert audit identifiers without losing route identity", () => {
@@ -101,7 +102,8 @@ test("Outlet remains on daily operations without generic documents or production
 test("People Operations is audited only across its approved OMS modules", () => {
   assert.deepEqual(permittedRolesFor("/people"), ["superAdmin", "peopleOperations", "manager"]);
   assert.deepEqual(permittedRolesFor("/staffs"), ["superAdmin", "peopleOperations", "finance", "manager"]);
-  assert.deepEqual(permittedRolesFor("/outlet-compliance"), ["superAdmin", "peopleOperations", "manager", "kitchen", "outlet"]);
+  assert.deepEqual(permittedRolesFor("/outlet-compliance"), ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen", "outlet"]);
+  assert.deepEqual(permittedRolesFor("/outlet-calendar"), ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen", "outlet"]);
   assert.deepEqual(permittedRolesFor("/document-sequences"), ["superAdmin", "finance"]);
   assert.deepEqual(permittedRolesFor("/outlet-daily-records"), ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outlet"]);
   assert.deepEqual(permittedRolesFor("/purchase-requests"), ["superAdmin", "finance", "manager", "purchasing", "kitchen"]);

@@ -20,7 +20,7 @@ import { getGoodsReceivingSummary, getGoodsReceivings } from "@/server/queries/g
 import { hasPermission } from "@/server/auth/permissions";
 import { logServerError } from "@/server/observability/logger";
 
-const statuses = ["draft", "posted", "cancelled"];
+const statuses = ["draft", "awaiting_finance", "closed", "cancelled"];
 
 export default async function GoodsReceivingsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
@@ -61,7 +61,8 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
               {summary ? <><div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Total GRNs</span><strong>{summary.total}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Draft</span><strong>{summary.draft}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Posted</span><strong>{summary.posted}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Awaiting Finance</span><strong>{summary.awaitingFinance}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Closed</span><strong>{summary.closed}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Cancelled</span><strong>{summary.cancelled}</strong></div>
               </div>
               <div className="my-3 border-t" />
@@ -104,7 +105,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                     <TableCell className="w-52 max-w-52"><span className="line-clamp-2 leading-4">{receiving.supplier_name ?? "-"}</span></TableCell>
                     <TableCell>{formatDateOnly(receiving.received_date)}</TableCell>
                     <TableCell>{receiving.branch_name ?? "-"}</TableCell>
-                    <TableCell><StatusBadge status={receiving.status} /></TableCell>
+                    <TableCell><StatusBadge status={receiving.workflow_status} /></TableCell>
                     <TableCell className="text-right">{formatNumber(receiving.received_total)}</TableCell>
                     <TableCell className="text-right">{formatNumber(receiving.rejected_total)}</TableCell>
                   </DataGridRow>
@@ -118,7 +119,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                 href={`/goods-receivings/${receiving.id}`}
                 label={`Open ${receiving.grn_no}`}
                 primary={<div><DocumentNumber value={receiving.grn_no} size="sm" /><p className="text-[11px] font-normal text-[var(--sb-text-muted)]">PO {receiving.po_no ?? "not linked"} · {formatDateOnly(receiving.received_date)}</p></div>}
-                status={<StatusBadge status={receiving.status} />}
+                status={<StatusBadge status={receiving.workflow_status} />}
                 secondary={`${receiving.supplier_name ?? "No supplier"} · ${receiving.branch_name ?? "No branch"}`}
                 meta={`${formatNumber(receiving.received_total)} in · ${formatNumber(receiving.rejected_total)} rejected`}
               />)}

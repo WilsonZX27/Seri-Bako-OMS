@@ -1,6 +1,6 @@
 # Seri Bako OMS — Schema 与 Table 关系地图
 
-> Current repository authority 2026-09-02: forward-only migration 历史已到 `247`. Migrations `241–247` add branch-scoped dynamic scheduling, Outlet Supervisor access, outlet-role roster filtering, PH/EL and direct-time rosters with audited clearing, immutable NGTeco punch imports, exact-second attendance, configurable outlet compliance, and audited Finance closure for posted receivings. Preview Supabase remains separate from Production.
+> Current repository authority 2026-09-03: forward-only migration 历史已到 `248`. Migrations `241–248` add branch-scoped dynamic scheduling, Outlet Supervisor access, outlet-role roster filtering, PH/EL and direct-time rosters with audited clearing, immutable NGTeco punch imports, exact-second attendance, Purchasing outlet follow-up, configurable outlet compliance, and audited Finance closure for posted receivings. Preview Supabase remains separate from Production.
 
 > Current repository authority 2026-09-02: forward-only migration 历史已到 `240`. Migration `240` adds controlled over-receipt reasons, aligns GRN creation and Draft editing, retains `grn.post` and branch access as the inventory-posting boundary, and keeps repeated Post calls idempotent. This is repository evidence only; it is not proof that migration 240 has been applied remotely or in Production.
 

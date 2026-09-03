@@ -1,0 +1,4 @@
+const test=require("node:test");const assert=require("node:assert/strict");const fs=require("node:fs");
+const form=fs.readFileSync("src/components/procurement-forms.tsx","utf8");const action=fs.readFileSync("src/server/actions/procurement.ts","utf8");
+test("purchase order selects supplier before searchable mapped items",()=>{assert.match(form,/Select supplier/);assert.match(form,/const supplierItems = supplierId \? items\.filter/);assert.match(form,/ItemCombobox name="line_item_id" items=\{supplierItems\}/);assert.match(form,/Search supplier item name or code/)});
+test("purchase order clears invalid catalogue context and revalidates server side",()=>{assert.match(form,/Item lines were cleared so this order only uses the selected supplier catalogue/);assert.match(form,/Supplier and item lines were cleared because the branch changed/);assert.match(action,/ensureBranchSupplierSelections\(payload\.branch_id/);assert.match(action,/, true\)/)});

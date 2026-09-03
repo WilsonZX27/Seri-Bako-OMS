@@ -23,6 +23,7 @@ type PurchaseOrder = Database["public"]["Tables"]["purchase_orders"]["Row"];
 type PurchaseOrderLine = Database["public"]["Tables"]["purchase_order_lines"]["Row"];
 
 export type GoodsReceivingRow = GoodsReceiving & {
+  workflow_status: "draft"|"awaiting_finance"|"closed"|"cancelled";
   po_no: string | null;
   supplier_name: string | null;
   branch_name: string | null;
@@ -73,6 +74,7 @@ function hydrateGrn(row: GoodsReceiving, lines: GoodsReceivingLine[]): GoodsRece
   const ownLines = lines.filter((line) => line.goods_receiving_id === row.id);
   return {
     ...row,
+    workflow_status: row.status === "posted" ? row.finance_closed_at ? "closed" : "awaiting_finance" : row.status,
     po_no: po?.po_no ?? null,
     supplier_name: supplier?.name ?? null,
     branch_name: branch?.branch_name ?? null,
@@ -105,7 +107,9 @@ export async function getGoodsReceivings(filters: Filters = {}) {
   const page = Math.max(1, Number.isFinite(Number(filters.page)) ? Math.trunc(Number(filters.page)) : 1);
   let query = supabase.from("goods_receivings").select("*", { count: "exact" }).is("deleted_at", null);
   const status = filters.status && filters.status !== "all" ? filters.status : null;
-  if (status) query = query.eq("status", status as GoodsReceiving["status"]);
+  if (status === "closed") query = query.eq("status", "posted").not("finance_closed_at", "is", null);
+  else if (status === "awaiting_finance") query = query.eq("status", "posted").is("finance_closed_at", null);
+  else if (status) query = query.eq("status", status as GoodsReceiving["status"]);
     if (filters.date === "today") query = query.eq("received_date", todayInKualaLumpur());
   const search = filters.search?.trim();
   if (search) {
@@ -138,6 +142,7 @@ export async function getGoodsReceivings(filters: Filters = {}) {
     const ownLines = (lines as GoodsReceivingLine[]).filter((line) => line.goods_receiving_id === row.id);
     return {
       ...row,
+      workflow_status: row.status === "posted" ? row.finance_closed_at ? "closed" : "awaiting_finance" : row.status,
       po_no: poById.get(row.purchase_order_id) ?? null,
       supplier_name: supplierById.get(row.supplier_id) ?? null,
       branch_name: row.branch_id ? branchById.get(row.branch_id) ?? null : null,
@@ -147,7 +152,7 @@ export async function getGoodsReceivings(filters: Filters = {}) {
       line_count: ownLines.length,
     };
   });
-  const filteredRows = filterRows(rows, filters, ["grn_no", "status", "po_no", "supplier_name", "remarks"], "updated_at");
+  const filteredRows = filterRows(rows, { ...filters, status: undefined }, ["grn_no", "status", "po_no", "supplier_name", "remarks"], "updated_at");
   return { rows: filteredRows, page, pageSize, totalRows: count, totalPages: Math.max(Math.ceil(count / pageSize), 1) };
 }
 
@@ -158,14 +163,22 @@ export async function getGoodsReceivingSummary() {
       total: rows.length,
       draft: rows.filter((row) => row.status === "draft").length,
       posted: rows.filter((row) => row.status === "posted").length,
+      closed: rows.filter((row) => row.status === "posted" && row.finance_closed_at).length,
+      awaitingFinance: rows.filter((row) => row.status === "posted" && !row.finance_closed_at).length,
       cancelled: rows.filter((row) => row.status === "cancelled").length,
       receivedTotal: mockGoodsReceivingLines.reduce((sum, line) => sum + line.received_qty, 0),
       rejectedTotal: mockGoodsReceivingLines.reduce((sum, line) => sum + line.rejected_qty, 0),
     };
   }
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("get_goods_receiving_summary");
+  const [{ data, error },closedResult,awaitingResult] = await Promise.all([
+    supabase.rpc("get_goods_receiving_summary"),
+    supabase.from("goods_receivings").select("id",{count:"exact",head:true}).eq("status","posted").not("finance_closed_at","is",null).is("deleted_at",null),
+    supabase.from("goods_receivings").select("id",{count:"exact",head:true}).eq("status","posted").is("finance_closed_at",null).is("deleted_at",null),
+  ]);
   if (error) throw new Error(error.message);
+  if (closedResult.error) throw new Error(closedResult.error.message);
+  if (awaitingResult.error) throw new Error(awaitingResult.error.message);
   if (!data || typeof data !== "object" || Array.isArray(data)) throw new Error("Goods receiving summary returned no data.");
   const summary = data as Record<string, unknown>;
   const requiredFields = ["total", "draft", "posted", "cancelled", "received_total", "rejected_total"];
@@ -176,6 +189,8 @@ export async function getGoodsReceivingSummary() {
     total: summary.total as number,
     draft: summary.draft as number,
     posted: summary.posted as number,
+    closed: closedResult.count??0,
+    awaitingFinance: awaitingResult.count??0,
     cancelled: summary.cancelled as number,
     receivedTotal: summary.received_total as number,
     rejectedTotal: summary.rejected_total as number,

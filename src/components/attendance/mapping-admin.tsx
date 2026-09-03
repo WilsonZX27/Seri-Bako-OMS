@@ -21,11 +21,11 @@ export function MappingAdmin({ staffs, branches, people, devices }: { staffs: Op
     if (result.ok) window.location.reload();
   }
 
-  return <section className="grid items-start gap-4 lg:grid-cols-2">
+  return <section className="grid min-w-0 items-start gap-4 2xl:grid-cols-2">
     <div className="sb-work-surface p-4">
       <h2 className="text-sm font-semibold">NGTeco Person ID <ArrowRight className="mx-1 inline h-3.5 w-3.5" aria-hidden="true" /> OMS employee</h2>
       <p className="mt-1 text-xs text-muted-foreground">Link the Person ID printed in the NGTeco export to the staff member who owns those punches.</p>
-      <form className="mt-4 grid items-end gap-2 sm:grid-cols-[1fr_1.5fr_auto]" onSubmit={(event) => { event.preventDefault(); void submit("person", event.currentTarget); }}>
+      <form className="mt-4 grid min-w-0 items-end gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_auto]" onSubmit={(event) => { event.preventDefault(); void submit("person", event.currentTarget); }}>
         <label className="grid gap-1 text-xs font-medium">NGTeco Person ID<Input name="personId" required maxLength={100} placeholder="e.g. 1024" /></label>
         <label className="grid gap-1 text-xs font-medium">OMS employee<select name="staffId" required className="h-10 rounded-md border bg-background px-3 text-sm"><option value="">Select employee</option>{staffs.map((staff) => <option key={staff.id} value={staff.id}>{staff.full_name} · {staff.staff_code ?? "no code"}</option>)}</select></label>
         <Button type="submit">Link</Button>
@@ -35,7 +35,7 @@ export function MappingAdmin({ staffs, branches, people, devices }: { staffs: Op
     <div className="sb-work-surface p-4">
       <h2 className="text-sm font-semibold">NGTeco Source <ArrowRight className="mx-1 inline h-3.5 w-3.5" aria-hidden="true" /> Outlet</h2>
       <p className="mt-1 text-xs text-muted-foreground">Link the Source value in the export to the outlet where that device is installed.</p>
-      <form className="mt-4 grid items-end gap-2 sm:grid-cols-[1fr_1.5fr_auto]" onSubmit={(event) => { event.preventDefault(); void submit("device", event.currentTarget); }}>
+      <form className="mt-4 grid min-w-0 items-end gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_auto]" onSubmit={(event) => { event.preventDefault(); void submit("device", event.currentTarget); }}>
         <label className="grid gap-1 text-xs font-medium">NGTeco Source<Input name="sourceCode" required maxLength={100} placeholder="e.g. Main Door" /></label>
         <label className="grid gap-1 text-xs font-medium">Outlet<select name="branchId" required className="h-10 rounded-md border bg-background px-3 text-sm"><option value="">Select outlet</option>{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}</select></label>
         <Button type="submit">Link</Button>

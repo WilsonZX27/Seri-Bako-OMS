@@ -1,5 +1,13 @@
 # Seri Bako Operations Management System
 
+### v9.2.20 (unreleased) — Unified Loading and Workflow Reliability
+
+- Uses one shared loading workspace with a consistent right-side action and summary rail across People, Attendance, Compliance and procurement routes.
+- Makes outlet compliance approve/return atomic so a review and its audit history either both save or both remain unchanged.
+- Prevents Attendance mapping and Goods Receiving lists from overflowing at compact desktop widths, simplifies shift settings, and defaults purchase orders to newest document number.
+
+Repository migrations reviewed through `253`; migration 253 is implemented locally and remains unapplied until the linked database target is verified.
+
 ### v9.2.19 (unreleased) — Direct AutoCount PO and Receiving Repair
 
 Direct Purchase Orders now require the exact AutoCount PO Number, start ready to send, and never consume an OMS document sequence or enter Manager approval. Migration 252 removes legacy PO submit/approve role grants and RPC transitions, safely corrects `PO/SEP26/001` to `PO - 000207` when the target number is free, and grants Kitchen the exact create/receive/post permissions used by Goods Receiving.

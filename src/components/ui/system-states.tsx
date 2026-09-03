@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { AlertTriangle, Ban, CheckCircle2, FileQuestion, SearchX, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { ConsoleSection } from "@/components/layout/right-console";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { cn } from "@/lib/utils";
 
 type StateAction = { href: string; label: string } | ReactNode;
@@ -19,13 +21,18 @@ function renderAction(action?: StateAction) {
 }
 
 export function PageLoadingState({ label = "Loading workspace..." }: { label?: string }) {
+  const rightRail = <>
+    <ConsoleSection title="Actions" kind="action"><div className="space-y-2"><div className="sb-skeleton h-9 w-full" /><div className="sb-skeleton h-9 w-full" /></div></ConsoleSection>
+    <ConsoleSection title="Summary" kind="status"><div className="space-y-2"><div className="sb-skeleton h-3 w-full" /><div className="sb-skeleton h-3 w-4/5" /><div className="sb-skeleton h-3 w-2/3" /></div></ConsoleSection>
+  </>;
   return (
-    <div className="sb-workspace-canvas min-h-0" aria-live="polite" aria-busy="true" data-workspace-canvas data-canvas-mode="wide" data-page-loading-state>
+    <div aria-live="polite" aria-busy="true" data-page-loading-state>
       <span className="sr-only" role="status">{label}</span>
-      <div className="mb-4 space-y-2" aria-hidden="true">
+      <div className="sb-workspace-canvas mb-3 space-y-2" aria-hidden="true" data-workspace-canvas data-canvas-mode="wide">
         <div className="sb-skeleton h-5 w-44" />
         <div className="sb-skeleton h-3 w-72 max-w-full" />
       </div>
+      <WorkspaceGrid tabletCanvas="wide" tabletRailBreakpoint="lg" rightRail={rightRail}>
       <div className="sb-work-surface overflow-hidden" aria-hidden="true">
         <div className="flex gap-3 border-b border-[var(--sb-border-soft)] p-3">
           <div className="sb-skeleton h-9 min-w-0 flex-1" />
@@ -35,6 +42,7 @@ export function PageLoadingState({ label = "Loading workspace..." }: { label?: s
           {[0, 1, 2, 3, 4].map((row) => <div key={row} className="flex items-center gap-3 p-3"><div className="sb-skeleton h-8 w-8 rounded-full" /><div className="min-w-0 flex-1 space-y-2"><div className="sb-skeleton h-3 w-2/5" /><div className="sb-skeleton h-3 w-3/5" /></div><div className="sb-skeleton h-7 w-20" /></div>)}
         </div>
       </div>
+      </WorkspaceGrid>
     </div>
   );
 }

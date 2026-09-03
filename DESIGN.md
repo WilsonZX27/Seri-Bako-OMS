@@ -1,5 +1,11 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.20 (unreleased) — Unified loading and compact operational layouts
+
+- Every route loading boundary uses the same shared workspace skeleton: heading, primary work surface, Actions rail and Summary rail.
+- Compact desktop widths switch dense operational tables to the shared row presentation before columns collide.
+- Attendance mapping and shift setup preserve the existing visual language while using quieter disclosures and fewer simultaneous columns.
+
 ## v9.2.19 (unreleased) — Receiving hierarchy and direct PO identity
 
 - AutoCount PO Number is the first required identity field for a direct PO. The workflow begins at Ready to Send and contains no approval affordance.

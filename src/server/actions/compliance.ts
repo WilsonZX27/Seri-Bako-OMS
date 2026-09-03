@@ -82,19 +82,23 @@ export async function createComplianceRecord(formData: FormData) {
 }
 
 export async function reviewComplianceRecord(formData: FormData) {
-  const actor = await requireActiveTenantActor();
-  const id = z.string().uuid().parse(formData.get("record_id") ?? formData.get("id"));
-  const decision = z.enum(["approved", "rejected"]).parse(formData.get("decision"));
-  const note = z.string().trim().max(500).parse(formData.get("review_note") ?? "");
+  const idResult = z.string().uuid().safeParse(formData.get("record_id") ?? formData.get("id"));
+  const decisionResult = z.enum(["approved", "rejected"]).safeParse(formData.get("decision"));
+  const noteResult = z.string().trim().max(500).safeParse(formData.get("review_note") ?? "");
+  if (!idResult.success || !decisionResult.success || !noteResult.success) redirect("/outlet-compliance?error=The+review+request+was+incomplete.+Reload+and+try+again.");
+  const id = idResult.data;
+  const decision = decisionResult.data;
+  const note = noteResult.data;
   const supabase = await createClient();
   const { data: target } = await supabase.from("compliance_records").select("subject_kind,branch_id").eq("id", id).single();
   if (!target) redirect("/outlet-compliance?error=Record+is+not+available+in+your+scope.");
   if (decision === "rejected" && !note) redirect(target.branch_id ? `/outlet-compliance/${target.branch_id}?error=Add+a+corrective+note+before+returning+evidence.` : "/outlet-compliance?error=Add+a+corrective+note+before+returning+evidence.");
   await requirePermission(target.subject_kind === "outlet" ? "outlet_compliance.review" : target.subject_kind === "staff" ? "people.compliance.manage" : "compliance.review");
-  const { data: updated, error } = await supabase.from("compliance_records").update({ review_status: decision, reviewed_by: actor.staffId, reviewed_at: new Date().toISOString(), review_note: note || null, updated_by: actor.staffId }).eq("id", id).eq("review_status", "pending_review").select("id").maybeSingle();
-  if (error) redirect(complianceMessageUrl(target.branch_id ? `/outlet-compliance/${target.branch_id}` : "/compliance", "error", error.message));
-  if (!updated) redirect(complianceMessageUrl(target.branch_id ? `/outlet-compliance/${target.branch_id}` : "/compliance", "error", "This evidence is no longer pending review. Reload to see its current state."));
-  await supabase.from("compliance_record_history").insert({ company_id: actor.companyId, compliance_record_id: id, event_type: decision, safe_summary: decision === "approved" ? "Compliance record approved." : "Compliance record returned for correction.", actor_staff_id: actor.staffId });
+  const { error } = await supabase.rpc("review_compliance_record_atomic" as never, { p_record_id: id, p_decision: decision, p_note: note || null } as never);
+  if (error) {
+    const message = error.code === "55000" ? "This evidence is no longer pending review. Reload to see its current state." : error.message;
+    redirect(complianceMessageUrl(target.branch_id ? `/outlet-compliance/${target.branch_id}` : "/compliance", "error", message));
+  }
   revalidatePath(target.subject_kind === "outlet" ? "/outlet-compliance" : "/people");
   redirect(target.branch_id ? `/outlet-compliance/${target.branch_id}?success=${decision === "approved" ? "Evidence+approved." : "Evidence+returned+with+the+correction+note."}` : "/compliance?success=Review+saved.");
 }

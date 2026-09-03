@@ -12,7 +12,7 @@ test("dashboard and attendance workspaces follow the corrected visual hierarchy"
   const planner = read("src", "components", "attendance", "schedule-planner.tsx");
   assert.match(planner, /const workflowActions[\s\S]*?Submit to Manager[\s\S]*?Save draft/);
   assert.match(read("src", "app", "globals.css"), /dialog\.m-auto\[open\][\s\S]*position: fixed;[\s\S]*inset: 0;/);
-  assert.match(read("src", "app", "(app)", "attendance", "schedule", "loading.tsx"), /rightRail=\{rightRail\}/);
+  assert.match(read("src", "app", "(app)", "attendance", "schedule", "loading.tsx"), /PageLoadingState/);
 });
 
 test("calendar, settings, review and imports expose direct context instead of hidden steps", () => {

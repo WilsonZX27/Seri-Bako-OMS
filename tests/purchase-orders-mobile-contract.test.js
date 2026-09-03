@@ -20,11 +20,11 @@ test("purchase order mobile pages keep the list quiet and the creation action re
 });
 
 test("new purchase order loading state mirrors the document workspace and right rail", () => {
-  assert.match(loading, /<WorkspaceGrid documentMode tabletRailMode="split"/);
-  assert.match(loading, /rightRail=\{sidePanel\}/);
-  assert.match(loading, /ConsoleSection title="PO Actions"/);
-  assert.match(loading, /ConsoleSection title="PO Summary"/);
-  assert.match(loading, /data-purchase-order-loading/);
+  assert.match(loading, /PageLoadingState/);
+  const sharedLoading = fs.readFileSync(path.join(root, "src", "components", "ui", "system-states.tsx"), "utf8");
+  assert.match(sharedLoading, /rightRail=\{rightRail\}/);
+  assert.match(sharedLoading, /ConsoleSection title="Actions"/);
+  assert.match(sharedLoading, /ConsoleSection title="Summary"/);
 });
 
 test("purchase order creation uses one stable setup surface and dynamic compact lines", () => {
@@ -50,5 +50,5 @@ test("purchase order records the ordered UOM while GRN owns conversion", () => {
   assert.match(form, /items\.find\(\(item\) => item\.id === itemId\)\?\.base_unit/);
   assert.doesNotMatch(form, /No active supplier mapping uses/);
   assert.match(form, /name="line_remarks"/);
-  assert.match(loading, /grid-cols-\[36px_minmax\(10rem,1\.25fr\)_92px_84px_100px_minmax\(10rem,1fr\)_40px\]/);
+  assert.match(loading, /PageLoadingState/);
 });

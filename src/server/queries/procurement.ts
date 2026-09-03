@@ -377,12 +377,12 @@ export async function getPurchaseOrdersForRequest(id: string) {
 export async function getPurchaseOrders(filters: Filters = {}) {
   if (isMockMode()) {
     const rows = mockPurchaseOrders.map((row) => hydratePo(row, mockPurchaseOrderLines));
-    return paginateRows(filterRows(rows, filters, ["po_no", "status", "approval_status", "supplier_name", "remarks"], "updated_at"), filters.page, 12);
+    return paginateRows(filterRows(rows, { ...filters, dir: filters.dir ?? "desc" }, ["po_no", "status", "approval_status", "supplier_name", "remarks"], "po_no"), filters.page, 12);
   }
 
   const supabase = await createClient();
   const page = pageNumber(filters.page);
-  const sort = safeSort(filters.sort, ["po_no", "order_date", "expected_delivery_date", "status", "updated_at"], "updated_at");
+  const sort = safeSort(filters.sort, ["po_no", "order_date", "expected_delivery_date", "status", "updated_at"], "po_no");
   let query = supabase
     .from("purchase_orders")
     .select("id, supplier_id, purchase_request_id, po_no, order_date, expected_delivery_date, status, approval_status, remarks, updated_at, deleted_at", { count: "exact" });
@@ -391,7 +391,7 @@ export async function getPurchaseOrders(filters: Filters = {}) {
   if (status) query = query.eq("status", status as PurchaseOrder["status"]);
   if (status !== "cancelled") query = query.is("deleted_at", null);
   if (search) query = query.or(`po_no.ilike.%${search}%,remarks.ilike.%${search}%`);
-  const { data, error, count } = await query.order(sort, { ascending: filters.dir !== "asc" }).range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+  const { data, error, count } = await query.order(sort, { ascending: (filters.dir ?? "desc") === "asc" }).range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
   if (error) throw new Error(error.message);
   if (!data || count === null) throw new Error("Purchase order list returned no data.");
   const ids = data.map((row) => row.id);

@@ -992,3 +992,22 @@ input[type="date"]::-webkit-date-and-time-value {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Schedule is an editing surface: keep the roster visually distinct from the canvas. */
+[data-schedule-planner] > section:last-of-type {
+  overflow: hidden;
+  border: 1px solid var(--sb-border);
+  border-radius: var(--sb-panel-radius);
+  background: #fff;
+  box-shadow: var(--sb-shadow-xs);
+}
+
+[data-schedule-planner] table,
+[data-schedule-planner] tbody td {
+  background: #fff;
+}
+
+[data-schedule-planner] tbody button.border-transparent {
+  border-color: var(--sb-border-soft);
+  background: #fff;
+}

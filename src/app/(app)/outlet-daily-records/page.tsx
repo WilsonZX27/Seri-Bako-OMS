@@ -24,7 +24,8 @@ import { logServerError } from "@/server/observability/logger";
 
 const statuses = ["draft", "morning_recorded", "evening_completed", "reviewed", "void"];
 const formatWastageRate = (value: number) => new Intl.NumberFormat("en-MY", { maximumFractionDigits: 1 }).format(value);
-const outletProgress = (row: { status: string; qty_sent_state: string; received_pending_lines: number }) => {
+const outletProgress = (row: { status: string; qty_sent_state: string; received_pending_lines: number; sales_review_status?: string | null }) => {
+  if (row.sales_review_status === "needs_review") return { status: "attention", label: "Attention" };
   if (["evening_completed", "reviewed"].includes(row.status)) return { status: "posted", label: "Posted" };
   if (row.status === "void") return { status: "void", label: "Void" };
   if (row.qty_sent_state === "confirmed" && row.received_pending_lines === 0) return { status: "ready_to_post", label: "Ready to post" };

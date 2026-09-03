@@ -105,7 +105,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                     <TableCell className="w-52 max-w-52"><span className="line-clamp-2 leading-4">{receiving.supplier_name ?? "-"}</span></TableCell>
                     <TableCell>{formatDateOnly(receiving.received_date)}</TableCell>
                     <TableCell>{receiving.branch_name ?? "-"}</TableCell>
-                    <TableCell><StatusBadge status={receiving.workflow_status} /></TableCell>
+                    <TableCell className="min-w-36"><StatusBadge status={receiving.workflow_status} className="min-w-max" /></TableCell>
                     <TableCell className="text-right">{formatNumber(receiving.received_total)}</TableCell>
                     <TableCell className="text-right">{formatNumber(receiving.rejected_total)}</TableCell>
                   </DataGridRow>

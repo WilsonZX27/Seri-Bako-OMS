@@ -15,7 +15,8 @@ test("posting-time inventory movement is reconciled without replacing Kitchen ph
   assert.match(migration, /physical_qty,line\.physical_qty-current_balance/);
   assert.match(migration, /variance := line\.physical_qty - current_balance/);
   assert.match(migration, /Inventory changed during count; reconciled automatically at posting/);
-  assert.match(detail, /Kitchen&apos;s physical quantities were preserved/);
+  assert.match(detail, /Your entered physical quantities were kept/);
+  assert.match(detail, /Retired by this Stock Count/);
 });
 
 test("Kitchen can add an active item to the current and future branch scope with an audit trail", () => {

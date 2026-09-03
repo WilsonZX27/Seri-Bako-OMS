@@ -18,7 +18,7 @@ export function AttendanceImportWorkflow({ staffs = [], mappedPersonIds = [], ma
   const [profile, setProfile] = useState<ParserProfile>("view_attendance_punch");
   const [rows, setRows] = useState<ParsedRow[]>([]);
   const [fileName, setFileName] = useState("");
-  const [message, setMessage] = useState("Choose an NGTeco CSV or XLSX file. Preview never writes to the database.");
+  const [message, setMessage] = useState("");
   const [fileHash,setFileHash]=useState("");
   const [saving,setSaving]=useState(false);
   const [weekStart,setWeekStart]=useState(currentMalaysiaWeekStart());
@@ -52,7 +52,7 @@ export function AttendanceImportWorkflow({ staffs = [], mappedPersonIds = [], ma
 
   return <div className="space-y-4">
     <section className="sb-work-surface p-4">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div><h2 className="text-sm font-semibold">NGTeco import preview</h2><p className="mt-1 text-xs text-muted-foreground">Punch events calculate attendance. Attendance Report totals are reconciliation-only.</p></div>
         <div className="grid min-w-0 gap-3 md:w-80"><label className="grid gap-1.5 text-xs font-medium"><span>Monday week start</span><Input type="date" value={weekStart} onChange={event=>setWeekStart(event.currentTarget.value)}/></label><label className="grid gap-1.5 text-xs font-medium"><span>Upload CSV or XLSX</span><Input type="file" accept=".csv,.xlsx" onChange={(event) => void load(event.currentTarget.files?.[0])}/></label></div>
       </div>

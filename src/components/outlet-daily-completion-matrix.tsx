@@ -11,7 +11,7 @@ type MatrixSummary = { expected: number; completed: number; incomplete: number; 
 const stateMeta = {
   missing: { label: "Missing", short: "—", className: "border-[var(--sb-border-strong)] bg-[var(--sb-surface)] text-[var(--sb-text-muted)]" },
   draft: { label: "Draft", short: "D", className: "border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" },
-  morning_recorded: { label: "Morning recorded", short: "M", className: "border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" },
+  morning_recorded: { label: "Morning only", short: "AM", className: "border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" },
   evening_completed: { label: "Completed", short: "C", className: "border-[var(--sb-success)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]" },
   reviewed: { label: "Reviewed", short: "R", className: "border-[var(--sb-green-900)] bg-[var(--sb-green-100)] text-[var(--sb-green-900)]" },
   void: { label: "Void", short: "V", className: "border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]" },
@@ -42,7 +42,7 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
       </div>
       <div id="outlet-completion-detail">
       <div className="flex flex-wrap justify-end gap-x-3 gap-y-1 px-3 pt-2 text-[11px] text-muted-foreground" aria-hidden="true">
-        {(["missing", "draft", "evening_completed", "reviewed", "void"] as const).map((status) => <span key={status} className="inline-flex items-center gap-1"><span className={`grid h-4 w-4 place-items-center border text-[9px] font-bold ${stateMeta[status].className}`}>{stateMeta[status].short}</span>{status === "draft" ? "In progress" : stateMeta[status].label}</span>)}
+        {(["missing", "draft", "morning_recorded", "evening_completed", "reviewed", "void"] as const).map((status) => <span key={status} className="inline-flex items-center gap-1"><span className={`grid h-4 min-w-4 place-items-center border px-0.5 text-[9px] font-bold ${stateMeta[status].className}`}>{stateMeta[status].short}</span>{status === "draft" ? "In progress" : stateMeta[status].label}</span>)}
       </div>
       <div className="relative isolate block w-full max-w-full overflow-x-auto overscroll-x-contain bg-[var(--sb-surface)] px-3 py-2" tabIndex={0} aria-label="Outlet completion matrix" data-outlet-completion-scrollport>
         <table className="w-full min-w-[40rem] table-fixed border-separate border-spacing-x-1 border-spacing-y-0 text-xs">

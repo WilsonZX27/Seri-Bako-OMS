@@ -6,6 +6,8 @@ import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { SelectNative } from "@/components/ui/select-native";
+import { Input } from "@/components/ui/input";
 import { durationLabel } from "@/lib/attendance/calculation";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getAttendanceReview, malaysiaWeekStart } from "@/server/queries/attendance";
@@ -14,10 +16,13 @@ function time(value: unknown) {
   return typeof value === "string" ? new Intl.DateTimeFormat("en-MY", { timeZone: "Asia/Kuala_Lumpur", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" }).format(new Date(value)) : "—";
 }
 
-export default async function AttendanceReviewPage({ searchParams }: { searchParams: Promise<{ week?: string }> }) {
+export default async function AttendanceReviewPage({ searchParams }: { searchParams: Promise<{ week?: string; branch?: string }> }) {
   const params = await searchParams;
   const week = /^\d{4}-\d{2}-\d{2}$/.test(params.week ?? "") ? params.week! : malaysiaWeekStart();
-  const [rows, permissions] = await Promise.all([getAttendanceReview(week), getPermissionMap(["attendance.adjust", "attendance.lock"])]);
+  const [allRows, permissions] = await Promise.all([getAttendanceReview(week), getPermissionMap(["attendance.adjust", "attendance.lock"])]);
+  const branchOptions = [...new Map(allRows.map((row: Record<string, unknown>) => [String(row.branch_id), (row.branches as { branch_name?: string } | null)?.branch_name ?? "Outlet"])).entries()].sort((left, right) => left[1].localeCompare(right[1]));
+  const selectedBranch = branchOptions.some(([id]) => id === params.branch) ? params.branch : undefined;
+  const rows = selectedBranch ? allRows.filter((row: Record<string, unknown>) => String(row.branch_id) === selectedBranch) : allRows;
   const canAdjust = permissions["attendance.adjust"];
   const canLock = permissions["attendance.lock"];
   const exceptionCount = rows.filter((row: Record<string, unknown>) => Array.isArray(row.statuses) && row.statuses.length > 0).length;
@@ -33,6 +38,12 @@ export default async function AttendanceReviewPage({ searchParams }: { searchPar
       <ConsoleSection title="Exceptions"><div className="flex items-center gap-2"><TriangleAlert className="h-4 w-4 text-[var(--sb-warning)]" /><strong>{exceptionCount}</strong></div><p>Resolve or adjust exceptions before locking.</p></ConsoleSection>
     </>}>
       <AttendanceWorkspaceNav current="review" />
+      <form className="sb-work-surface grid items-end gap-3 p-3 sm:grid-cols-[minmax(12rem,1fr)_11rem_auto_auto]" aria-label="Attendance review filters">
+        <label className="grid gap-1 text-xs font-medium">Outlet<SelectNative name="branch" defaultValue={selectedBranch ?? ""}><option value="">All accessible outlets</option>{branchOptions.map(([id, name]) => <option key={id} value={id}>{name}</option>)}</SelectNative></label>
+        <label className="grid gap-1 text-xs font-medium">Week starting<Input name="week" type="date" defaultValue={week}/></label>
+        <Button type="submit" size="sm">Apply</Button>
+        <Button asChild type="button" size="sm" variant="ghost"><a href="/attendance/review">Reset</a></Button>
+      </form>
       <section className="sb-work-surface overflow-hidden">
         <div className="flex flex-wrap items-center gap-3 border-b border-[var(--sb-border-soft)] px-3 py-2.5"><div><h2 className="text-sm font-semibold">Calculated attendance</h2><p className="text-xs text-muted-foreground">Times and durations preserve NGTeco seconds.</p></div><StatusBadge status={exceptionCount ? "attention" : "reviewed"} /><span className="ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground"><LockKeyhole className="h-3.5 w-3.5" />Week {week}</span></div>
         <div className="overflow-auto">

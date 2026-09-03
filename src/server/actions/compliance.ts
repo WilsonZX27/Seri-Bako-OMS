@@ -83,7 +83,7 @@ export async function createComplianceRecord(formData: FormData) {
 
 export async function reviewComplianceRecord(formData: FormData) {
   const actor = await requireActiveTenantActor();
-  const id = z.string().uuid().parse(formData.get("id"));
+  const id = z.string().uuid().parse(formData.get("record_id") ?? formData.get("id"));
   const decision = z.enum(["approved", "rejected"]).parse(formData.get("decision"));
   const note = z.string().trim().max(500).parse(formData.get("review_note") ?? "");
   const supabase = await createClient();
@@ -91,11 +91,29 @@ export async function reviewComplianceRecord(formData: FormData) {
   if (!target) redirect("/outlet-compliance?error=Record+is+not+available+in+your+scope.");
   if (decision === "rejected" && !note) redirect(target.branch_id ? `/outlet-compliance/${target.branch_id}?error=Add+a+corrective+note+before+returning+evidence.` : "/outlet-compliance?error=Add+a+corrective+note+before+returning+evidence.");
   await requirePermission(target.subject_kind === "outlet" ? "outlet_compliance.review" : target.subject_kind === "staff" ? "people.compliance.manage" : "compliance.review");
-  const { error } = await supabase.from("compliance_records").update({ review_status: decision, reviewed_by: actor.staffId, reviewed_at: new Date().toISOString(), review_note: note || null, updated_by: actor.staffId }).eq("id", id).eq("review_status", "pending_review");
-  if (error) redirect(`/compliance?error=${encodeURIComponent(error.message)}`);
+  const { data: updated, error } = await supabase.from("compliance_records").update({ review_status: decision, reviewed_by: actor.staffId, reviewed_at: new Date().toISOString(), review_note: note || null, updated_by: actor.staffId }).eq("id", id).eq("review_status", "pending_review").select("id").maybeSingle();
+  if (error) redirect(complianceMessageUrl(target.branch_id ? `/outlet-compliance/${target.branch_id}` : "/compliance", "error", error.message));
+  if (!updated) redirect(complianceMessageUrl(target.branch_id ? `/outlet-compliance/${target.branch_id}` : "/compliance", "error", "This evidence is no longer pending review. Reload to see its current state."));
   await supabase.from("compliance_record_history").insert({ company_id: actor.companyId, compliance_record_id: id, event_type: decision, safe_summary: decision === "approved" ? "Compliance record approved." : "Compliance record returned for correction.", actor_staff_id: actor.staffId });
   revalidatePath(target.subject_kind === "outlet" ? "/outlet-compliance" : "/people");
   redirect(target.branch_id ? `/outlet-compliance/${target.branch_id}?success=${decision === "approved" ? "Evidence+approved." : "Evidence+returned+with+the+correction+note."}` : "/compliance?success=Review+saved.");
+}
+
+export async function revokeComplianceRecord(formData: FormData) {
+  await requirePermission("outlet_compliance.upload");
+  const actor = await requireActiveTenantActor();
+  const id = z.string().uuid().parse(formData.get("record_id"));
+  const supabase = await createClient();
+  const { data: target, error: readError } = await supabase.from("compliance_records").select("id,branch_id,review_status").eq("id", id).eq("subject_kind", "outlet").is("deleted_at", null).maybeSingle();
+  const returnPath = target?.branch_id ? `/outlet-compliance/${target.branch_id}` : "/outlet-compliance";
+  if (readError || !target) redirect(complianceMessageUrl(returnPath, "error", "This evidence is no longer available."));
+  if (!target.branch_id) redirect(complianceMessageUrl(returnPath, "error", "This evidence is not linked to an outlet."));
+  if (!['draft', 'pending_review', 'rejected'].includes(target.review_status)) redirect(complianceMessageUrl(returnPath, "error", "Approved evidence cannot be revoked. Add a renewal instead."));
+  const { error } = await supabase.from("compliance_records").update({ deleted_at: new Date().toISOString(), updated_by: actor.staffId }).eq("id", id).eq("company_id", actor.companyId).is("deleted_at", null);
+  if (error) redirect(complianceMessageUrl(returnPath, "error", error.message));
+  await supabase.from("compliance_record_history").insert({ company_id: actor.companyId, compliance_record_id: id, event_type: "updated", safe_summary: "Testing or incorrect evidence revoked before approval.", actor_staff_id: actor.staffId });
+  revalidatePath("/outlet-compliance");
+  redirect(complianceMessageUrl(returnPath, "success", "Evidence revoked. You can upload the correct document now."));
 }
 
 export async function renewComplianceRecord(formData: FormData) {

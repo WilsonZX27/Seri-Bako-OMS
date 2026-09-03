@@ -52,8 +52,13 @@ test("sales reconciliation is database-derived and atomic with daily lines", () 
   assert.match(progressiveSql, /Preserve any existing/);
   const form = read("src", "components", "outlet-daily-record-form.tsx");
   assert.match(form, /hasPosTotal/);
-  assert.match(form, /You can save progress now and complete sales before posting/);
+  assert.doesNotMatch(form, /You can save progress now and complete sales before posting/);
+  assert.match(form, /Difference reason \(optional\)/);
+  assert.match(form, /Attention/);
   assert.doesNotMatch(form, /name="pos_total_sales"[^>]+required/);
+  const optionalDifferenceSql = read("supabase", "migrations", "250_optional_daily_sales_difference_reason.sql");
+  assert.match(optionalDifferenceSql, /sales_review_status=case when difference=0 then 'not_required' else 'needs_review' end/);
+  assert.doesNotMatch(optionalDifferenceSql, /difference<>0.*raise exception/s);
 });
 
 test("mixed compliance route redirects and module pages remain separate", () => {

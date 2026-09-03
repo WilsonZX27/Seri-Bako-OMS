@@ -3,7 +3,7 @@ import { looseSupabase } from "@/lib/supabase/loose";
 import { getCanonicalDocumentHref, getCanonicalEntityHref } from "@/lib/document-routing";
 import { isMockMode, mockDocuments } from "@/lib/mock-mode";
 import { hasPermission } from "@/server/auth/permissions";
-import { getVisibleNotificationsForCurrentUser } from "@/server/queries/notifications";
+import { getCurrentUserScope, getVisibleNotificationsForCurrentUser } from "@/server/queries/notifications";
 import { getCurrentUserPendingActions } from "@/server/queries/pending-actions";
 import { logServerWarning } from "@/server/observability/logger";
 
@@ -46,7 +46,7 @@ export async function getTopBarActivity() {
 
   const supabase = await createClient();
   const db = looseSupabase(supabase);
-  const [documentApprovals, notificationsResult, assignedActivities, workflowPendingActionsResult, canApproveProductionResult, canPostProductionResult] = await Promise.all([
+  const [documentApprovals, notificationsResult, assignedActivities, workflowPendingActionsResult, canApproveProductionResult, canPostProductionResult, currentScope] = await Promise.all([
     supabase.from("documents").select("id, document_no, title, document_type, related_entity_type, related_entity_id").eq("approval_status", "pending").order("updated_at", { ascending: false }).limit(5),
     getVisibleNotificationsForCurrentUser().then((rows) => ({ rows, unavailable: false })).catch((error) => {
       logServerWarning(error, { source: "topbar.notifications" });
@@ -66,6 +66,10 @@ export async function getTopBarActivity() {
     hasPermission("production.post").then((allowed) => ({ allowed, unavailable: false })).catch((error) => {
       logServerWarning(error, { source: "topbar.production-post-permission" });
       return { allowed: false, unavailable: true };
+    }),
+    getCurrentUserScope().catch((error) => {
+      logServerWarning(error, { source: "topbar.current-user-scope" });
+      return null;
     }),
   ]);
   const notifications = notificationsResult.rows;
@@ -150,7 +154,7 @@ export async function getTopBarActivity() {
     .filter((item, index, rows) => rows.findIndex((row) => row.href === item.href) === index)
     .slice(0, 5);
   const pendingActionHrefs = new Set(pendingApprovals.map((item) => item.href));
-  const actionableNotifications = notifications
+  let actionableNotifications = notifications
     .filter((row) => !row.is_company_wide && !row.read_at)
     .map((row) => ({
       ...row,
@@ -160,6 +164,15 @@ export async function getTopBarActivity() {
     // the notification feed for events that do not duplicate an actionable
     // queue entry.
     .filter((row) => !pendingActionHrefs.has(row.action_url ?? ""));
+
+  const complianceReminderRoles = new Set(["purchasing", "manager", "finance", "people_operations", "super_admin"]);
+  if (currentScope && complianceReminderRoles.has(currentScope.roleCode)) {
+    const dueCutoff = new Date();
+    dueCutoff.setUTCDate(dueCutoff.getUTCDate() + 30);
+    const { count: dueCount, error: dueError } = await supabase.from("compliance_records").select("id", { count: "exact", head: true }).eq("subject_kind", "outlet").is("deleted_at", null).not("expires_on", "is", null).lte("expires_on", dueCutoff.toISOString().slice(0, 10));
+    if (dueError) logServerWarning(dueError, { source: "topbar.compliance-reminders" });
+    else if ((dueCount ?? 0) > 0) actionableNotifications = [{ id: "outlet-compliance-due", title: `${dueCount} outlet requirement${dueCount === 1 ? "" : "s"} need attention`, message: "Expired or due within 30 days.", action_url: "/outlet-compliance", priority: "high", created_at: new Date().toISOString(), read_at: null, dismissed_at: null, is_company_wide: false, recipient_user_id: null, recipient_staff_id: currentScope.staffId, recipient_role_id: null, branch_id: null, entity_type: "compliance_record", entity_id: null }, ...actionableNotifications];
+  }
 
   const result = {
     availability: {

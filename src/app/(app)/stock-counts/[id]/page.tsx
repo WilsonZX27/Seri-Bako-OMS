@@ -43,6 +43,7 @@ export default async function StockCountDetailPage({ params, searchParams }: { p
   const pendingRevisions = revisions.filter((revision) => revision.status === "pending");
   const documentBundle = count.document_id ? await getDocumentBundle(count.document_id) : null;
   const adjustedLines = lines.filter((line) => Number(line.variance_qty) !== 0);
+  const retiredLines = lines.filter((line) => line.retirement);
   const isLegacyPending = legacyPendingStatuses.has(count.status);
   const canPost = (count.status === "draft" || isLegacyPending) && permissions["stock_count.post"] && pendingRevisions.length === 0;
   const canEdit = count.status === "draft" && permissions["stock_count.update"];
@@ -112,6 +113,7 @@ export default async function StockCountDetailPage({ params, searchParams }: { p
             ) : null}
           </DocumentActionSection> : null}
           <DocumentSideSection title="Next step"><p className="text-xs text-muted-foreground">{count.status === "draft" ? "Enter the physical quantities and post when complete. If inventory moved during counting, the system keeps your physical count and records the reconciliation for follow-up." : isLegacyPending ? "Confirm and post this historical count, or cancel it if permitted." : "Posted counts are read-only. Reconciliation notices remain in the document history."}</p></DocumentSideSection>
+          <DocumentSideSection title="Retired lines"><p className="text-xs"><strong>{retiredLines.length}</strong> item{retiredLines.length === 1 ? "" : "s"} retired by this Stock Count.</p>{retiredLines.length ? <a href="#retired-stock-count-lines" className="text-xs font-semibold text-[var(--sb-link)] hover:underline">View retired items</a> : null}</DocumentSideSection>
           {documentBundle ? (
             <>
               <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} />
@@ -125,12 +127,13 @@ export default async function StockCountDetailPage({ params, searchParams }: { p
     >
       {reconciliationRows.length ? <section className="erp-surface border border-[var(--sb-warning)]/40 bg-[var(--sb-warning-bg)] p-4" role="status">
         <h2 className="text-sm font-semibold">Inventory changed during this count</h2>
-        <p className="mt-1 text-xs text-muted-foreground">Kitchen&apos;s physical quantities were preserved. The posting baseline was refreshed atomically and the differences below remain available for follow-up.</p>
+        <p className="mt-1 text-xs text-muted-foreground">Stock moved after this count started. Your entered physical quantities were kept; posting recalculated each variance against the latest ledger balance. The affected items are listed below.</p>
         <div className="mt-3 divide-y divide-[var(--sb-border-soft)]">{reconciliationRows.map((entry) => {
           const line = lines.find((candidate) => candidate.item_id === entry.item_id);
           return <div key={entry.item_id} className="grid gap-1 py-2 text-xs sm:grid-cols-[minmax(0,1fr)_repeat(4,auto)] sm:items-center sm:gap-5"><p className="font-medium">{line?.item?.item_code} · {line?.item?.item_name}</p><p><span className="text-muted-foreground">Started</span> {formatQuantity(entry.snapshot_balance)}</p><p><span className="text-muted-foreground">Posted baseline</span> {formatQuantity(entry.posting_balance)}</p><p><span className="text-muted-foreground">Physical</span> {formatQuantity(entry.physical_qty)}</p><p className="font-semibold"><span className="font-normal text-muted-foreground">Variance</span> {formatQuantity(entry.final_variance_qty)}</p></div>;
         })}</div>
       </section> : null}
+      {retiredLines.length ? <section id="retired-stock-count-lines" className="erp-surface overflow-hidden"><div className="border-b border-[var(--sb-border-soft)] p-3"><h2 className="text-sm font-semibold">Retired by this Stock Count</h2><p className="mt-1 text-xs text-muted-foreground">{retiredLines.length} item{retiredLines.length === 1 ? "" : "s"} removed from future counts for this branch. Historical quantities remain intact.</p></div><div className="divide-y divide-[var(--sb-border-soft)]">{retiredLines.map((line)=><div key={line.id} className="grid gap-1 p-3 text-xs sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><div><p className="font-semibold">{line.item?.item_code} · {line.item?.item_name}</p><p className="text-muted-foreground">{line.retirement?.note || line.retirement?.reason?.replaceAll("_", " ")}</p></div><p className="tabular-nums">Final count {formatQuantity(line.retirement?.actual_qty ?? line.physical_qty)} {line.uom}</p></div>)}</div></section> : null}
       {canEdit ? <StockCountForm formId={formId} branches={branches} selectedBranchId={count.branch_id ?? undefined} seedLines={editableLines} action={updateStockCountDraft.bind(null, count.id)} autosaveAction={autosaveStockCountDraft.bind(null, count.id)} lineRevisionAction={reviseStockCountLine.bind(null, count.id)} itemCatalog={items} addItemControl={addItemControl} initialLineAction={initialLineAction} draftId={count.id} showSubmit={false} initialCountDate={count.count_date} initialRemarks={count.remarks} /> : null}
 
       {!canEdit ? <Card>
@@ -140,6 +143,7 @@ export default async function StockCountDetailPage({ params, searchParams }: { p
             <div><p className="text-xs uppercase text-muted-foreground">Date</p><p className="font-medium">{formatDateOnly(count.count_date)}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{count.branch_name ?? "-"}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Adjusted lines</p><p className="font-medium">{adjustedLines.length}</p></div>
+            <div><p className="text-xs uppercase text-muted-foreground">Retired lines</p><p className="font-medium">{retiredLines.length}</p></div>
           </div>
           {count.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{count.remarks}</p> : null}
         </CardContent>

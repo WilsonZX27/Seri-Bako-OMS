@@ -1032,3 +1032,8 @@ input[type="date"]::-webkit-date-and-time-value {
   border-color: var(--sb-border-soft);
   background: #fff;
 }
+dialog.m-auto[open] {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+}

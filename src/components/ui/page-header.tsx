@@ -17,6 +17,8 @@ type PageHeaderProps = {
   };
   /** Split tablet workspaces expose the same create action in their right rail. */
   hideTabletCreateFab?: boolean;
+  /** Aligns the header content with the workspace canvas used by the route. */
+  contentWidth?: "contained" | "wide";
 };
 
 export function PageHeader(props: PageHeaderProps) {
@@ -26,7 +28,7 @@ export function PageHeader(props: PageHeaderProps) {
   return (
     <>
       <header data-page-header className="block border-b border-[var(--sb-border-soft)] bg-[var(--workspace-bg)] px-3 py-3 sm:px-4">
-        <div className="flex items-start justify-between gap-2">
+        <div className={`${props.contentWidth === "wide" ? "max-w-[76rem]" : props.contentWidth === "contained" ? "max-w-[64rem]" : "max-w-none"} mx-auto flex w-full items-start justify-between gap-2`}>
           <div className="min-w-0">
             {props.backHref ? <Link href={props.backHref} className="mb-1 block text-[11px] font-medium text-[var(--sb-text-muted)] hover:text-[var(--sb-text)]">← Back</Link> : null}
             <h1 className="min-w-0 break-words text-base font-semibold leading-5 tracking-[-0.015em] text-[var(--sb-text)]">{props.title}</h1>

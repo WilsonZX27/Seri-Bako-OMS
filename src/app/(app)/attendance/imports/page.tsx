@@ -17,8 +17,8 @@ export default async function AttendanceImportsPage() {
   const people = mappings.people as Array<Record<string, unknown>>;
   const devices = mappings.devices as Array<Record<string, unknown>>;
   return <>
-    <PageHeader title="NGTeco Import" description="Match people and devices, preview raw punches, then calculate against the published schedule." />
-    <WorkspaceGrid tabletCanvas="contained" className="sb-portrait-tablet-rail" hideMobileConsole rightRail={<>
+    <PageHeader title="NGTeco Import" description="Match people and devices, preview raw punches, then calculate against the published schedule." contentWidth="wide" />
+    <WorkspaceGrid tabletCanvas="wide" className="sb-portrait-tablet-rail" hideMobileConsole rightRail={<>
       <ConsoleSection title="Import order"><ol className="space-y-2"><li><strong>1. Match</strong><br/><span className="text-muted-foreground">Link Person ID or accept one exact staff-name match.</span></li><li><strong>2. Preview</strong><br/><span className="text-muted-foreground">Nothing is stored during preview.</span></li><li><strong>3. Confirm</strong><br/><span className="text-muted-foreground">Punches calculate against published times.</span></li></ol></ConsoleSection>
       <ConsoleSection title="Next"><Button asChild size="sm" variant="outline" className="w-full"><Link href="/attendance/review">Review calculated time</Link></Button></ConsoleSection>
     </>}>

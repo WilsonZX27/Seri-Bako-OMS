@@ -94,6 +94,7 @@ test("v9.2 uses the OMS register, progressive checklist and real month calendars
   assert.match(register, /Outlet register/);
   assert.match(register, /OperationalList/);
   assert.match(register, /tabletCanvas="wide"/);
+  assert.match(register, /contentWidth="wide"/);
   assert.match(register, /Compliance portfolio/);
   assert.doesNotMatch(register, /lg:grid-cols-2/);
   assert.match(checklist, /<details/);
@@ -101,6 +102,7 @@ test("v9.2 uses the OMS register, progressive checklist and real month calendars
   assert.match(checklist, /name="expires_on"/);
   assert.match(checklist, /name="reference_no"/);
   assert.match(checklist, /Checklist temporarily unavailable/);
+  assert.match(checklist, /tabletCanvas="wide"/);
   assert.match(people, /WorkspaceGrid/);
   assert.doesNotMatch(people, /lg:grid-cols-2/);
   assert.match(people, /aria-current/);

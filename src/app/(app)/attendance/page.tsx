@@ -18,8 +18,8 @@ export default async function AttendancePage() {
     ...(canImport?[{ label: "Missing Person ID mappings", value: data.missingMappings, detail:"Map people before calculating attendance", icon: UsersRound, href: "/attendance/imports" }]:[]),
   ];
   return <>
-    <PageHeader title="Attendance" description="Your outlet schedule and the items that need attention this week." />
-    <WorkspaceGrid tabletCanvas="contained" className="sb-portrait-tablet-rail" hideMobileConsole rightRail={<>
+    <PageHeader title="Attendance" description="Your outlet schedule and the items that need attention this week." contentWidth="wide" />
+    <WorkspaceGrid tabletCanvas="wide" className="sb-portrait-tablet-rail" hideMobileConsole rightRail={<>
       <ConsoleSection title="Actions">
         {canSchedule ? <Button asChild size="sm" className="w-full"><Link href="/attendance/schedule">Open Schedule Planner</Link></Button> : null}
         {canReview ? <Button asChild size="sm" variant="outline" className="w-full"><Link href="/attendance/review">Review attendance</Link></Button> : null}

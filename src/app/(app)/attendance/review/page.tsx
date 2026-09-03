@@ -20,8 +20,8 @@ export default async function AttendanceReviewPage({ searchParams }: { searchPar
   const [rows, canAdjust, canLock] = await Promise.all([getAttendanceReview(week), hasPermission("attendance.adjust"), hasPermission("attendance.lock")]);
   const exceptionCount = rows.filter((row: Record<string, unknown>) => Array.isArray(row.statuses) && row.statuses.length > 0).length;
   return <>
-    <PageHeader title="Attendance Review" description="Compare approved working times with actual NGTeco punches, then resolve exceptions." />
-    <WorkspaceGrid tabletCanvas="contained" className="sb-portrait-tablet-rail" hideMobileConsole rightRail={<>
+    <PageHeader title="Attendance Review" description="Compare approved working times with actual NGTeco punches, then resolve exceptions." contentWidth="wide" />
+    <WorkspaceGrid tabletCanvas="wide" className="sb-portrait-tablet-rail" hideMobileConsole rightRail={<>
       <ConsoleSection title="Actions">
         <Button asChild size="sm" className="w-full"><a href={`/api/attendance/export?week=${week}&format=xlsx`}><Download className="mr-2 h-4 w-4" />Export XLSX</a></Button>
         <Button asChild size="sm" variant="outline" className="w-full"><a href={`/api/attendance/export?week=${week}&format=csv`}>Export CSV</a></Button>

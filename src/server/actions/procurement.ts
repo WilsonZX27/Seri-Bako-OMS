@@ -701,7 +701,9 @@ export async function withdrawPurchaseRequest(id: string, formData: FormData) {
   }
 }
 
-export async function createPurchaseOrder(formData: FormData) {
+export type PurchaseOrderCreateState = { error: string | null };
+
+export async function createPurchaseOrder(_previousState: PurchaseOrderCreateState, formData: FormData): Promise<PurchaseOrderCreateState> {
   await requirePermission("purchase_order.create");
   try {
     const payload = extractPurchaseOrder(formData);
@@ -725,7 +727,7 @@ export async function createPurchaseOrder(formData: FormData) {
     redirect(`/purchase-orders/${data.id}`);
   } catch (error) {
     rethrowRedirect(error);
-    safeRedirectWithMessage("/purchase-orders/new", "error", formatActionError(error, "Could not create this purchase order."));
+    return { error: formatActionError(error, "Could not create this purchase order.") };
   }
 }
 

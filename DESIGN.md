@@ -1,5 +1,12 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.16 (unreleased) — Recoverable purchase entry
+
+- A recoverable form error returns into the mounted editor. It must not navigate away, reset uncontrolled inputs, or replace editable context with a global-only toast.
+- Supplier choices use deterministic alphabetical ordering. After supplier selection, purchase UOM choices come only from that branch, supplier and item mapping so the UI cannot offer a combination the server is guaranteed to reject.
+- Purchase Order lines read left to right as Item, Ordered Qty, UOM and Unit Price on tablet/desktop; compact phone entry keeps the item on its own row and aligns the three commercial controls beneath it.
+- Route-owned loading states reproduce the actual document header, work surfaces and right rail. A generic list skeleton is not an acceptable placeholder for a document editor.
+
 ## v9.2.15 (unreleased) — Attendance workspaces
 
 - Attendance landing uses Workspace Mode with one weekly identity surface, compact operational signals, import state and period lock state.

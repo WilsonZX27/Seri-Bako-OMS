@@ -178,6 +178,7 @@ The annotation-derived mobile and workflow changes were tested against the same 
 - A fresh local schema verifier rerun returned `V9_SCHEMA_OK` at migration 260, and the complete mobile closure suite passed **6/6** in the isolated fixture (including Ready to post → Purchasing Post → immutable edit lock).
 - Commit `54411fd` was pushed to `codex/annotation-closure-loading-schedule`. Its Vercel Preview deployment is READY at `https://seri-bako-oms-official-8dta09z4f-seribako.vercel.app`.
 - The latest application Preview passed the public auth/setup UI E2E matrix **8/8** across 320×700, 390×844, 640×900, 768×1024, 1024×900, 1280×960, 1440×960 and 2560×1440. The follow-up documentation deployment `8f1f828` is also READY at `https://seri-bako-oms-official-igrcwcmub-seribako.vercel.app`. This does not prove authenticated feature mutation or Production behavior.
+- The Preview UAT guard commit `913aad6` is READY at `https://seri-bako-oms-official-7w5nr8m3w-seribako.vercel.app`; its public auth/setup UI E2E rerun passed **8/8**. The guard intentionally requires an exact Preview app host and Supabase project ref before remote mutation tests can start.
 
 ### Still open
 

@@ -21,7 +21,17 @@ const target = option("target");
 const envFile = option("env");
 if (!['local', 'preview', 'production'].includes(target)) throw new Error("Use --target local, --target preview or --target production");
 const env = readEnv(envFile);
-for (const key of ["TEST_BASE_URL", "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "TEST_SUPER_ADMIN_EMAIL", "TEST_SUPER_ADMIN_PASSWORD"]) {
+const requiredKeys = ["TEST_BASE_URL", "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "TEST_SUPER_ADMIN_EMAIL", "TEST_SUPER_ADMIN_PASSWORD"];
+if (target === "preview") requiredKeys.push(
+  "TEST_PEOPLE_OPERATIONS_EMAIL", "TEST_PEOPLE_OPERATIONS_PASSWORD",
+  "TEST_FINANCE_EMAIL", "TEST_FINANCE_PASSWORD",
+  "TEST_MANAGER_EMAIL", "TEST_MANAGER_PASSWORD",
+  "TEST_PURCHASING_EMAIL", "TEST_PURCHASING_PASSWORD",
+  "TEST_KITCHEN_EMAIL", "TEST_KITCHEN_PASSWORD",
+  "TEST_OUTLET_SUPERVISOR_EMAIL", "TEST_OUTLET_SUPERVISOR_PASSWORD",
+  "TEST_OUTLET_EMAIL", "TEST_OUTLET_PASSWORD",
+);
+for (const key of requiredKeys) {
   if (!env[key]) throw new Error(`Missing required UAT variable: ${key}`);
 }
 const app = new URL(env.TEST_BASE_URL);

@@ -65,7 +65,7 @@ TEST_OUTLET_PASSWORD=
 
 ```
 
-Role-specific tests skip only the role whose credentials are missing. If credentials are present but login fails, the test fails with the role and email address only. Passwords are never printed.
+Local role-specific tests may skip only the role whose credentials are missing. Preview UAT is stricter: the guard requires all eight role identities before any browser shard starts, so a green Preview run cannot silently omit a role. If credentials are present but login fails, the test fails with the role and email address only. Passwords are never printed.
 
 ## Run
 

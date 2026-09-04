@@ -14,6 +14,20 @@ function runPreviewGuard(overrides = {}) {
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "publishable-test-key",
     TEST_SUPER_ADMIN_EMAIL: "owner@example.test",
     TEST_SUPER_ADMIN_PASSWORD: "disposable-test-password",
+    TEST_PEOPLE_OPERATIONS_EMAIL: "people-operations@example.test",
+    TEST_PEOPLE_OPERATIONS_PASSWORD: "disposable-test-password",
+    TEST_FINANCE_EMAIL: "finance@example.test",
+    TEST_FINANCE_PASSWORD: "disposable-test-password",
+    TEST_MANAGER_EMAIL: "manager@example.test",
+    TEST_MANAGER_PASSWORD: "disposable-test-password",
+    TEST_PURCHASING_EMAIL: "purchasing@example.test",
+    TEST_PURCHASING_PASSWORD: "disposable-test-password",
+    TEST_KITCHEN_EMAIL: "kitchen@example.test",
+    TEST_KITCHEN_PASSWORD: "disposable-test-password",
+    TEST_OUTLET_SUPERVISOR_EMAIL: "outlet-supervisor@example.test",
+    TEST_OUTLET_SUPERVISOR_PASSWORD: "disposable-test-password",
+    TEST_OUTLET_EMAIL: "outlet@example.test",
+    TEST_OUTLET_PASSWORD: "disposable-test-password",
     RUN_PREVIEW_UAT: "confirmed",
     EXPECTED_PREVIEW_APP_HOST: "preview.example.vercel.app",
     EXPECTED_PREVIEW_SUPABASE_PROJECT_REF: "previewref",
@@ -64,6 +78,10 @@ test("Preview UAT guard accepts a valid isolated fixture", () => {
 test("Preview UAT guard rejects Production app and Supabase identities", () => {
   assert.match(runPreviewGuardFailure({ TEST_BASE_URL: "https://system.seribako.com.my" }), /Preview UAT cannot use the Production app host/);
   assert.match(runPreviewGuardFailure({ NEXT_PUBLIC_SUPABASE_URL: "https://productionref.supabase.co" }), /Preview Supabase project mismatch/);
+});
+
+test("Preview UAT guard rejects an incomplete role matrix before browser startup", () => {
+  assert.match(runPreviewGuardFailure({ TEST_FINANCE_PASSWORD: "" }), /Missing required UAT variable: TEST_FINANCE_PASSWORD/);
 });
 
 test("Preview UAT template stays secret-free and includes every guarded boundary", () => {

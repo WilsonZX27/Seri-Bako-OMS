@@ -172,9 +172,15 @@ The annotation-derived mobile and workflow changes were tested against the same 
 - Preview deployment: **READY** at `https://seri-bako-oms-official-4i0vujatj-seribako.vercel.app`, commit `4a06cb5`, branch `codex/annotation-closure-loading-schedule`.
 - Remote public auth/setup UI E2E: **8/8 passed** across 320×700, 390×844, 640×900, 768×1024, 1024×900, 1280×960, 1440×960 and 2560×1440. The protected `/dashboard` route also redirected to `/login?redirectedFrom=%2Fdashboard` as expected.
 
+### Follow-up receipt — 2026-09-05
+
+- The legacy Purchase Request validation-copy assertion was aligned with the current field-level message (`Choose one supplier for this purchase request.`); the focused isolated E2E passed **1/1**.
+- Commit `54411fd` was pushed to `codex/annotation-closure-loading-schedule`. Its Vercel Preview deployment is READY at `https://seri-bako-oms-official-8dta09z4f-seribako.vercel.app`.
+- The latest Preview passed the public auth/setup UI E2E matrix **8/8** across 320×700, 390×844, 640×900, 768×1024, 1024×900, 1280×960, 1440×960 and 2560×1440. This does not prove authenticated feature mutation or Production behavior.
+
 ### Still open
 
 - The Preview branch has been pushed and its deployment is READY, but it has not been promoted or observed in Production.
 - The full all-role authenticated regression was not repeated against the remote Preview; the focused Outlet and Purchasing workflow was exercised locally.
-- One unrelated legacy Purchase Request validation-copy assertion remains out of sync with the current UI; the other four checks in that legacy annotation batch passed.
+- The remaining four checks in that legacy annotation batch still need their authenticated fixture run; the validation-copy assertion itself is closed by the follow-up receipt above.
 - The independent deep-security scan produced no canonical manifest because three discovery workers failed after the scan service reached its usage limit. Security closure therefore remains incomplete; no absence-of-findings claim is made.

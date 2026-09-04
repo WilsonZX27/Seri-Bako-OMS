@@ -57,7 +57,7 @@ export async function getOutletComplianceWorkspace(branchId?: string) {
     branchesQuery,
     requirementsQuery,
     recordsQuery,
-    supabase.from("compliance_types").select("id,type_code,type_name,subject_kind").eq("company_id", profile.company_id).eq("subject_kind", "outlet").eq("status", "active").is("deleted_at", null).order("type_name"),
+    supabase.from("compliance_types").select("id,type_code,type_name,subject_kind,is_required,module_scope").eq("company_id", profile.company_id).eq("subject_kind", "outlet").eq("status", "active").eq("is_required", true).eq("module_scope", "outlet").is("deleted_at", null).order("type_name"),
   ]);
   for (const result of [branchesResult, recordsResult, typesResult]) if (result.error) throw new Error(result.error.message);
   const migrationReady = !requirementsResult.error;
@@ -82,7 +82,11 @@ export async function getOutletComplianceWorkspace(branchId?: string) {
   const typeById = new Map((typesResult.data ?? []).map((row) => [row.id, row]));
   const latestByRequirement = new Map<string, (typeof records)[number]>();
   for (const record of records) { const key = `${record.branch_id}:${record.compliance_type_id}`; if (!latestByRequirement.has(key)) latestByRequirement.set(key, record); }
-  const requirementRows = migrationReady ? requirementsResult.data ?? [] : (branchesResult.data ?? []).flatMap((branch) => (typesResult.data ?? []).map((type) => ({ id: `${branch.id}:${type.id}`, branch_id: branch.id, compliance_type_id: type.id, is_required: true, waiver_reason: null })));
+  const savedRequirementByKey = new Map((requirementsResult.data ?? []).map((row) => [`${row.branch_id}:${row.compliance_type_id}`, row]));
+  // The checklist remains usable during a staged rollout: every active Outlet
+  // and Central Kitchen receives the same required type set even before the
+  // idempotent assignment backfill reaches the linked database.
+  const requirementRows = (branchesResult.data ?? []).flatMap((branch) => (typesResult.data ?? []).map((type) => savedRequirementByKey.get(`${branch.id}:${type.id}`) ?? ({ id: `${branch.id}:${type.id}`, branch_id: branch.id, compliance_type_id: type.id, is_required: true, waiver_reason: null })));
   const requirements = requirementRows.map((row) => ({ ...row, type: typeById.get(row.compliance_type_id)!, record: latestByRequirement.get(`${row.branch_id}:${row.compliance_type_id}`) ?? null }));
   return { branches: branchesResult.data ?? [], requirements, records, migrationReady };
 }

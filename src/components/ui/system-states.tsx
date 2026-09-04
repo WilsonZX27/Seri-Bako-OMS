@@ -50,7 +50,7 @@ export function PageLoadingState({ label = "Loading workspace...", variant = "li
         <div className="sb-skeleton h-3 w-72 max-w-full" />
       </div>
       <WorkspaceGrid tabletCanvas="wide" tabletRailBreakpoint="lg" rightRail={rightRail}>
-      <div className="relative min-h-72" aria-hidden="true"><LoadingCanvas variant={variant} /><div className="sb-loading-progress" /></div>
+      <div className="relative min-h-72" aria-hidden="true"><LoadingCanvas variant={variant} /></div>
       </WorkspaceGrid>
     </div>
   );

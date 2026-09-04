@@ -1,5 +1,7 @@
 # Seri Bako OMS — Schema 与 Table 关系地图
 
+> Current repository authority 2026-09-04: forward-only migration 历史已到 `258`. Migration `258` idempotently repairs canonical Compliance names, required Outlet/Central Kitchen assignments, attachment create/update permission alignment, and the attachment upload/archive audit-event constraint. The linked Supabase migration list could not be confirmed because its read-only status request timed out; repository state is not Production state.
+
 > Current repository authority 2026-09-04: forward-only migration 历史已到 `257`. Migration `255` retires Outlet Daily review approval while preserving legacy audit fields and activity. Migration `256` corrects the exact AutoCount PO number to `PO-000207`. Migration `257` adds named multi-attachment compliance evidence and includes Central Kitchen while excluding Office. Repository evidence is not proof of Preview or Production state.
 
 > Current repository authority 2026-09-03: forward-only migration 历史已到 `251`. Migration `251` adds nullable, length-bounded Purchase Order line remarks and updates atomic PO creation to retain them. It is repository evidence only and remains unapplied; this is not proof of Preview or Production schema state.

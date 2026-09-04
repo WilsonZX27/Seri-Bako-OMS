@@ -1,5 +1,12 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.23 (unreleased) — Calm compliance and state-owned actions
+
+- Site Compliance uses a single structured disclosure list. A closed row carries requirement identity, recorded expiry and state; opening it reveals one details surface and one attachments surface without masonry gaps or nested accordion noise.
+- Date controls align by their input baseline even when labels wrap. File selection uses the established primary green action while Upload remains secondary until a file has been chosen.
+- Schedule action rails show only actions valid for the current workflow state. Submitted rosters are read-only and expose Manager decision actions, while Draft editing controls disappear.
+- Shared loading states retain their page and right-rail skeleton geometry without an indeterminate progress stroke floating over content.
+
 ## v9.2.22 (unreleased) — Workflow-aligned completion matrix
 
 - Outlet Daily matrix abbreviations mirror the detail workflow exactly: `QS` for Qty Sent pending, `OE` for Outlet Entry pending, and `P` for Posted. Aggregate unfinished records are labelled Open rather than using a second status vocabulary.

@@ -1,5 +1,14 @@
 # Seri Bako Operations Management System
 
+### v9.2.23 (unreleased) — Compliance and Schedule Workflow Repair
+
+- Rebuilds site Compliance as one calm disclosure list with aligned record fields and a clear primary file picker; repeated missing-detail copy is removed while status and recorded expiry remain visible.
+- Gives every active Outlet and Central Kitchen the same required checklist during staged rollout, repairs canonical requirement names, multi-attachment policies and attachment audit events through idempotent migration 258.
+- Shows only workflow-valid Schedule actions: Draft controls disappear after submission, Manager approval owns the submitted state, and failed actions return readable feedback.
+- Removes the decorative loading progress stroke while retaining the shared content and right-rail skeleton, and suppresses an empty Purchase Request supplier summary until a real supplier exists.
+
+Repository migrations reviewed through `258`. Migration 258 is implemented locally as a forward-only repair; remote migration status could not be confirmed because the linked Supabase status request timed out. This is not Production deployment evidence.
+
 ### v9.2.22 (unreleased) — Clear Outlet Daily Workflow States
 
 - Aligns the seven-day Outlet Daily matrix with the detail workflow: `QS` means Qty Sent pending, `OE` means Outlet Entry pending, and `P` means Posted. Ambiguous `D`, `AM`, and `C` abbreviations are removed.

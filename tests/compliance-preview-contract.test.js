@@ -79,8 +79,9 @@ test("People profile exposes authorised employment editing and staff document ca
   assert.doesNotMatch(people, /Additional outlets use the existing staff assignment model/);
   assert.match(people, /text-\[10px\][^>]*>Original files/);
   assert.match(action, /value\.subject_kind === "staff" \? "people\.compliance\.document\.read"/);
-  assert.match(action, /complianceMessageUrl\(returnPath, "error", uploadError\.message\)/);
-  assert.match(action, /complianceMessageUrl\(returnPath, "error", error\?\.message \?\? "Record could not be created\."\)/);
+  assert.match(action, /File storage could not accept this upload/);
+  assert.match(action, /Nothing was retained; retry after migration 258 is applied/);
+  assert.match(action, /logServerError/);
 });
 
 test("Preview remains readable before migration 229 is applied", () => {

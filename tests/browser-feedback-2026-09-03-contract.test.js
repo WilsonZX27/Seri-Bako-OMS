@@ -10,7 +10,8 @@ test("dashboard and attendance workspaces follow the corrected visual hierarchy"
   assert.match(navigation, /bg-\[var\(--sb-green-100\)\]/);
   assert.doesNotMatch(navigation, /border-b-2/);
   const planner = read("src", "components", "attendance", "schedule-planner.tsx");
-  assert.match(planner, /const workflowActions[\s\S]*?Submit to Manager[\s\S]*?Save draft/);
+  assert.match(planner, /editableStatus[\s\S]*?Save draft[\s\S]*?Submit to Manager/);
+  assert.match(planner, /week\?\.status==="submitted"/);
   assert.match(read("src", "app", "globals.css"), /dialog\.m-auto\[open\][\s\S]*position: fixed;[\s\S]*inset: 0;/);
   assert.match(read("src", "app", "(app)", "attendance", "schedule", "loading.tsx"), /PageLoadingState/);
 });

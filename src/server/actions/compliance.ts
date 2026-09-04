@@ -6,6 +6,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission } from "@/server/auth/permissions";
 import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
+import { logServerError } from "@/server/observability/logger";
 
 const emptyUuid = z.literal("").transform(() => null);
 const optionalUuid = z.union([z.string().uuid(), emptyUuid]);
@@ -62,9 +63,16 @@ export async function createComplianceRecord(formData: FormData) {
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(-120) || "compliance-file";
     storagePath = `${actor.companyId}/compliance/${recordId}/${crypto.randomUUID()}-${safeName}`;
     const { error: uploadError } = await supabase.storage.from("document-attachments").upload(storagePath, Buffer.from(await file.arrayBuffer()), { contentType: file.type, upsert: false });
-    if (uploadError) redirect(complianceMessageUrl(returnPath, "error", uploadError.message));
+    if (uploadError) {
+      logServerError(uploadError, { source: "action.compliance.firstAttachment.storage", operationId: recordId });
+      redirect(complianceMessageUrl(returnPath, "error", "File storage could not accept this upload. Retry in a moment."));
+    }
     const { error: attachmentError } = await supabase.from("attachments").insert({ id: attachmentId, company_id: actor.companyId, entity_type: "compliance_record", entity_id: recordId, file_name: (attachmentLabel.success ? attachmentLabel.data : file.name).slice(0,180), file_type: file.type, file_size: file.size, storage_path: storagePath, file_url: null, uploaded_by: actor.staffId, created_by: actor.staffId, updated_by: actor.staffId });
-    if (attachmentError) { await supabase.storage.from("document-attachments").remove([storagePath]); redirect(complianceMessageUrl(returnPath, "error", attachmentError.message)); }
+    if (attachmentError) {
+      await supabase.storage.from("document-attachments").remove([storagePath]);
+      logServerError(attachmentError, { source: "action.compliance.firstAttachment.record", operationId: recordId });
+      redirect(complianceMessageUrl(returnPath, "error", "The file could not be linked. Nothing was retained; ask an Owner to verify migration 258."));
+    }
   }
   const { data, error } = await supabase.from("compliance_records").insert({
     id: recordId, company_id: actor.companyId, compliance_type_id: value.compliance_type_id, subject_kind: value.subject_kind,
@@ -76,7 +84,8 @@ export async function createComplianceRecord(formData: FormData) {
   if (error || !data) {
     if (attachmentId) await supabase.from("attachments").delete().eq("id", attachmentId);
     if (storagePath) await supabase.storage.from("document-attachments").remove([storagePath]);
-    redirect(complianceMessageUrl(returnPath, "error", error?.message ?? "Record could not be created."));
+    if (error) logServerError(error, { source: "action.compliance.record.create", operationId: recordId });
+    redirect(complianceMessageUrl(returnPath, "error", "The compliance record could not be created. Nothing was retained; retry after migration 258 is applied."));
   }
   if (value.subject_kind === "outlet" && value.branch_id) {
     const { error: replaceError } = await supabase.from("compliance_records").update({ deleted_at: new Date().toISOString(), updated_by: actor.staffId }).eq("company_id", actor.companyId).eq("subject_kind", "outlet").eq("branch_id", value.branch_id).eq("compliance_type_id", value.compliance_type_id).neq("id", data.id).is("deleted_at", null);
@@ -159,12 +168,23 @@ export async function addOutletComplianceAttachment(recordId: string, _state: { 
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(-120) || "compliance-file";
     const storagePath = `${actor.companyId}/compliance/${id}/${crypto.randomUUID()}-${safeName}`;
     const { error: uploadError } = await supabase.storage.from("document-attachments").upload(storagePath, Buffer.from(await file.arrayBuffer()), { contentType: file.type, upsert: false });
-    if (uploadError) throw new Error(uploadError.message);
+    if (uploadError) {
+      logServerError(uploadError, { source: "action.compliance.attachment.storage", operationId: id });
+      throw new Error("File storage could not accept this upload. Retry in a moment.");
+    }
     const { error: insertError } = await supabase.from("attachments").insert({ id: attachmentId, company_id: actor.companyId, entity_type: "compliance_record", entity_id: id, file_name: label, file_type: file.type, file_size: file.size, storage_path: storagePath, file_url: null, uploaded_by: actor.staffId, created_by: actor.staffId, updated_by: actor.staffId });
-    if (insertError) { await supabase.storage.from("document-attachments").remove([storagePath]); throw new Error(insertError.message); }
-    if (!record.attachment_id) await supabase.from("compliance_records").update({ attachment_id: attachmentId, updated_by: actor.staffId }).eq("id", id).eq("company_id", actor.companyId);
-    await supabase.from("compliance_record_history").insert({ company_id: actor.companyId, compliance_record_id: id, event_type: "attachment_uploaded", safe_summary: `Attachment ${label} uploaded.`, actor_staff_id: actor.staffId });
-    revalidatePath("/outlet-compliance");
+    if (insertError) {
+      await supabase.storage.from("document-attachments").remove([storagePath]);
+      logServerError(insertError, { source: "action.compliance.attachment.record", operationId: id });
+      throw new Error("The file could not be linked to this requirement. Nothing was retained; retry after migration 258 is applied.");
+    }
+    if (!record.attachment_id) {
+      const { error: primaryError } = await supabase.from("compliance_records").update({ attachment_id: attachmentId, updated_by: actor.staffId }).eq("id", id).eq("company_id", actor.companyId);
+      if (primaryError) logServerError(primaryError, { source: "action.compliance.attachment.primary", operationId: `${id}:${attachmentId}` });
+    }
+    const { error: historyError } = await supabase.from("compliance_record_history").insert({ company_id: actor.companyId, compliance_record_id: id, event_type: "attachment_uploaded", safe_summary: `Attachment ${label} uploaded.`, actor_staff_id: actor.staffId });
+    if (historyError) logServerError(historyError, { source: "action.compliance.attachment.history", operationId: `${id}:${attachmentId}` });
+    revalidatePath(record.branch_id ? `/outlet-compliance/${record.branch_id}` : "/outlet-compliance");
     return { error: null, success: `${label} uploaded.` };
   } catch (error) {
     return { error: error instanceof Error ? error.message : "Could not upload this attachment.", success: null };

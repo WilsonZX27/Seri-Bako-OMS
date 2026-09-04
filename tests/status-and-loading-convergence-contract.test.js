@@ -20,9 +20,9 @@ test("loading surfaces are lightweight, route-shaped and keep the action rail", 
   const css = read("src/app/globals.css");
   assert.match(states, /type PageLoadingVariant = "list" \| "detail" \| "form"/);
   assert.match(states, /ConsoleSection title="Actions" kind="action"/);
-  assert.match(states, /sb-loading-progress/);
+  assert.doesNotMatch(states, /sb-loading-progress/);
   assert.match(detail, /variant="detail"/);
-  assert.match(css, /@keyframes sb-loading-progress/);
+  assert.doesNotMatch(css, /@keyframes sb-loading-progress/);
   assert.doesNotMatch(states, /setInterval|fetch\(|requestAnimationFrame/);
 });
 

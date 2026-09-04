@@ -33,7 +33,7 @@ Follow-up status on 2026-09-05: P1-01 (documentation-authority contract) and P1-
 
 Impact: `npm test` has one failure and the repository cannot honestly be called release-gate green.
 
-~~Required closure: align the authority contract with the stronger wording or restore a stable machine-readable authority sentence, then rerun the entire suite.~~ Closed by the authority-map update; the current suite passes 1,157/1,157.
+~~Required closure: align the authority contract with the stronger wording or restore a stable machine-readable authority sentence, then rerun the entire suite.~~ Closed by the authority-map update; the current suite passes 1,158/1,158.
 
 ### P1-02 — Compliance type creation can partially succeed — closed 2026-09-05
 
@@ -51,11 +51,11 @@ The canonical matrix defines 8 roles across 390×844, 820×1180, 1180×820, and 
 
 Required closure: provision a sanitized Production-like local clone, run the canonical matrix, and retain route/role/viewport artifacts separately from Production verification.
 
-### P2-02 — Local build reproducibility depends on undocumented injected variables
+### P2-02 — Local build reproducibility depends on undocumented injected variables — closed 2026-09-05
 
-`next build` compiles successfully in 11.2 seconds and completes type validation, then fails while prerendering `/document-sequences/new` and `/imports/autocount` because `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` are absent.
+`next build` previously compiled successfully and then failed while prerendering `/document-sequences/new` and `/imports/autocount` because `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` were absent.
 
-Required closure: add a secret-free build-environment preflight and document the required variable names. Do not commit credentials.
+~~Required closure: add a secret-free build-environment preflight and document the required variable names. Do not commit credentials.~~ Closed by the npm `prebuild` hook, contract coverage and `docs/E2E_TESTING.md` build-environment section.
 
 ### P2-03 — Browser audit tooling was not reliable enough for exhaustive route evidence
 
@@ -139,7 +139,7 @@ The earlier UAT blocker was closed for a local, loopback-only environment. A dis
 ### Verified after remediation
 
 - Canonical authenticated route matrix: **36/36 passed** in 20.4 minutes. This covers eight roles at 390×844, 820×1180, 1180×820, and 1440×900, plus the public auth surfaces at all four viewports.
-- Contract suite: **1,157/1,157 passed**.
+- Contract suite: **1,158/1,158 passed**.
 - Strict TypeScript: passed.
 - ESLint: passed.
 - Local schema/RLS/RPC gate: `V9_SCHEMA_OK`, migration 261, 105 tables, 6 views, and 174 security-definer functions.
@@ -165,12 +165,12 @@ The annotation-derived mobile and workflow changes were tested against the same 
 
 ### Verification refresh — 2026-09-05
 
-- The complete repository contract suite now passes **1,157/1,157**. This closes P1-01 from the initial 2026-09-04 audit; the documentation-authority contract now matches the migration ceiling of 261.
+- The complete repository contract suite now passes **1,158/1,158**. This closes P1-01 from the initial 2026-09-04 audit; the documentation-authority contract now matches the migration ceiling of 261.
 - P1-02 is closed locally: `261_atomic_compliance_type_creation.sql` provides one tenant-scoped `security definer` transaction for type creation plus active outlet/central-kitchen requirement rollout; the action has an explicit `PGRST202` migration guard and a contract test.
 
 ### Verified locally
 
-- Contract suite: **1,157/1,157 passed**.
+- Contract suite: **1,158/1,158 passed**.
 - Strict TypeScript and ESLint: passed.
 - Local schema/RLS/RPC gate: `V9_SCHEMA_OK`, migration 261, 105 tables, 6 views and 174 security-definer functions.
 - Isolated Next.js production build: compiled, type-checked and prerendered **95/95** static pages.

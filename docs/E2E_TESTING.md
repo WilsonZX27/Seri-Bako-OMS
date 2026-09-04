@@ -60,3 +60,6 @@ For local production smoke testing, build first, start the app, and set:
 ```env
 TEST_BASE_URL=http://127.0.0.1:3000
 ```
+### Build environment preflight
+
+`npm run build` runs `scripts/check-build-environment.mjs` first. It requires only `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, validates that the URL is absolute HTTP(S), and never prints key material. A missing or malformed value fails before Next.js compilation/prerendering with an actionable message. Use the target environment's injected variables; do not commit credentials or reuse local test keys for Preview/Production.

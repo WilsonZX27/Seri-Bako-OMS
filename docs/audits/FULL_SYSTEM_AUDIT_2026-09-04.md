@@ -194,7 +194,7 @@ The annotation-derived mobile and workflow changes were tested against the same 
 - The full all-role authenticated regression was not repeated against the remote Preview; the focused Outlet and Purchasing workflow was exercised locally.
 - The remaining four checks in that legacy annotation batch still need their authenticated fixture run; the validation-copy assertion itself is closed by the follow-up receipt above.
 - The independent deep-security scan produced no canonical manifest because three discovery workers failed after the scan service reached its usage limit. Security closure therefore remains incomplete; no absence-of-findings claim is made.
-- A fresh Codex Security access check returned `not_granted` (`checkedAt: 2026-09-04T18:59:22Z`), so no new canonical Deep Scan was launched. Security enrollment, when authorized, is available at `https://chatgpt.com/cyber`; this status is an access boundary, not a scan result.
+- A fresh Codex Security access check returned `not_granted` with no grants and `stale: false` (`checkedAt: 2026-09-04T19:20:18.281854Z`), so no new canonical Deep Scan was launched. Security enrollment, when authorized, is available at `https://chatgpt.com/cyber`; this status is an access boundary, not a scan result.
 
 ### Current Preview continuation — 2026-09-05
 

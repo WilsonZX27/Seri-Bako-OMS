@@ -4,7 +4,7 @@
 
 This is an audit report, not a remediation commit. The repository and deployed Owner surface were reviewed to the executable boundary available on 2026-09-04. The system must **not** be described as fully closed or fully UAT-verified yet.
 
-Follow-up status on 2026-09-05: P1-01 (documentation-authority contract) is closed by the current 1,156/1,156 contract run; P1-02 (atomic Compliance type and requirement creation) remains open.
+Follow-up status on 2026-09-05: P1-01 (documentation-authority contract) and P1-02 (atomic Compliance type and requirement creation) are closed by the current contract and local schema gates; remote authenticated Preview UAT remains an external-target gate.
 
 - Repository HEAD: `b4b2619758932be163bc6a776e79523003389291` (`v9.2.26`)
 - TypeScript strict check: pass
@@ -35,7 +35,7 @@ Impact: `npm test` has one failure and the repository cannot honestly be called 
 
 Required closure: align the authority contract with the stronger wording or restore a stable machine-readable authority sentence, then rerun the entire suite.
 
-### P1-02 — Compliance type creation can partially succeed
+### P1-02 — Compliance type creation can partially succeed — closed 2026-09-05
 
 `src/server/actions/compliance.ts:246-259` creates the compliance type first and then inserts requirements for active Outlet and Central Kitchen branches. The second insert result is not checked and the two operations are not atomic.
 
@@ -127,7 +127,7 @@ This was a degraded, single-reviewer standard security pass; it is not an indepe
 ## Closure order
 
 1. Repair P1-01 and return the full contract suite to green.
-2. Make P1-02 atomic and add failure-path coverage.
+2. ~~Make P1-02 atomic and add failure-path coverage.~~ Closed by migration 261 and the compliance-preview contract.
 3. Provision the isolated UAT environment and execute the 8-role × 4-viewport matrix.
 4. Rerun bounded authenticated browser batches with captured artifacts.
 5. Normalize the remaining visual literals and rerun accessibility/contrast checks on rendered states.
@@ -157,7 +157,7 @@ The earlier UAT blocker was closed for a local, loopback-only environment. A dis
 
 ### Remaining evidence boundary
 
-This is **local isolated verification**, not a sanitized clone of current Production data and not Production verification. A fresh Production-like clone remains blocked until an ignored source environment supplies `RUN_PRODUCTION_CLONE=confirmed`, `EXPECTED_SUPABASE_PROJECT_REF`, and `SUPABASE_DB_PASSWORD`. Secrets must not be committed or pasted into chat. P1-02 (atomic compliance type plus requirement creation) remains open and is not represented as closed by the route matrix.
+This is **local isolated verification**, not a sanitized clone of current Production data and not Production verification. A fresh Production-like clone remains blocked until an ignored source environment supplies `RUN_PRODUCTION_CLONE=confirmed`, `EXPECTED_SUPABASE_PROJECT_REF`, and `SUPABASE_DB_PASSWORD`. Secrets must not be committed or pasted into chat. P1-02 is closed locally by migration 261; remote authenticated Preview UAT still requires a dedicated Preview Supabase target and role accounts.
 
 ## v9.2.28 mobile workflow closure evidence — 2026-09-05
 
@@ -165,14 +165,14 @@ The annotation-derived mobile and workflow changes were tested against the same 
 
 ### Verification refresh — 2026-09-05
 
-- The complete repository contract suite now passes **1,156/1,156**. This closes P1-01 from the initial 2026-09-04 audit; the documentation-authority contract now matches the migration ceiling of 260.
-- P1-02 remains open: Compliance type creation and eligible-site requirement assignment still need one tenant-scoped atomic transaction and failure-path coverage.
+- The complete repository contract suite now passes **1,156/1,156**. This closes P1-01 from the initial 2026-09-04 audit; the documentation-authority contract now matches the migration ceiling of 261.
+- P1-02 is closed locally: `261_atomic_compliance_type_creation.sql` provides one tenant-scoped `security definer` transaction for type creation plus active outlet/central-kitchen requirement rollout; the action has an explicit `PGRST202` migration guard and a contract test.
 
 ### Verified locally
 
 - Contract suite: **1,155/1,155 passed**.
 - Strict TypeScript and ESLint: passed.
-- Local schema/RLS/RPC gate: `V9_SCHEMA_OK`, migration 260, 105 tables, 6 views and 173 security-definer functions.
+- Local schema/RLS/RPC gate: `V9_SCHEMA_OK`, migration 261, 105 tables, 6 views and 174 security-definer functions.
 - Isolated Next.js production build: compiled, type-checked and prerendered **95/95** static pages.
 - Focused 390×844 workflows: **6/6 passed**, covering Outlet Daily layout and controlled posting, persistent navigation and Calendar, Compliance 70/30 upload controls, Attendance scheduling, More Actions spacing and dashboard divider removal.
 - Affected-route responsive matrix: **4/4 viewport projects passed** across 390×844, 820×1180, 1180×820 and 1440×900 for Dashboard, Outlet Daily Records, Outlet Calendar, Outlet Compliance and Attendance Schedule.
@@ -182,7 +182,7 @@ The annotation-derived mobile and workflow changes were tested against the same 
 ### Follow-up receipt — 2026-09-05
 
 - The legacy Purchase Request validation-copy assertion was aligned with the current field-level message (`Choose one supplier for this purchase request.`); the focused isolated E2E passed **1/1**.
-- A fresh local schema verifier rerun returned `V9_SCHEMA_OK` at migration 260, and the complete mobile closure suite passed **6/6** in the isolated fixture (including Ready to post → Purchasing Post → immutable edit lock).
+- A fresh local schema verifier rerun returned `V9_SCHEMA_OK` at migration 261, and the complete mobile closure suite passed **6/6** in the isolated fixture (including Ready to post → Purchasing Post → immutable edit lock).
 - Commit `54411fd` was pushed to `codex/annotation-closure-loading-schedule`. Its Vercel Preview deployment is READY at `https://seri-bako-oms-official-8dta09z4f-seribako.vercel.app`.
 - The latest application Preview passed the public auth/setup UI E2E matrix **8/8** across 320×700, 390×844, 640×900, 768×1024, 1024×900, 1280×960, 1440×960 and 2560×1440. The follow-up documentation deployment `8f1f828` is also READY at `https://seri-bako-oms-official-igrcwcmub-seribako.vercel.app`. This does not prove authenticated feature mutation or Production behavior.
 - The Preview UAT guard commit `913aad6` is READY at `https://seri-bako-oms-official-7w5nr8m3w-seribako.vercel.app`; its public auth/setup UI E2E rerun passed **8/8**. The guard intentionally requires an exact Preview app host and Supabase project ref before remote mutation tests can start.

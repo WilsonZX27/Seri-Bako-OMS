@@ -245,17 +245,21 @@ export async function renewComplianceRecord(formData: FormData) {
 
 export async function createComplianceType(formData: FormData) {
   await requirePermission("compliance.types.manage");
-  const actor = await requireActiveTenantActor();
+  await requireActiveTenantActor();
   const typeName = z.string().trim().min(2).max(100).parse(formData.get("type_name"));
   const subjectKind = z.enum(["outlet", "staff", "asset"]).parse(formData.get("subject_kind"));
   const sensitive = formData.get("is_sensitive") === "1";
-  const typeCode = typeName.toUpperCase().replace(/[^A-Z0-9]+/g, "_").replace(/^_|_$/g, "").slice(0, 60);
   const supabase = await createClient();
-  const { data, error } = await supabase.from("compliance_types").insert({ company_id: actor.companyId, type_code: typeCode, type_name: typeName, subject_kind: subjectKind, is_sensitive: sensitive }).select("id").single();
-  if (error || !data) redirect(`/compliance?error=${encodeURIComponent(error?.message ?? "Type could not be created.")}`);
-  if(subjectKind==="outlet") {
-    const {data:branches}=await supabase.from("branches").select("id").eq("company_id",actor.companyId).in("branch_type",["outlet","central_kitchen"]).eq("status","active").is("deleted_at",null);
-    if(branches?.length) await supabase.from("outlet_compliance_requirements").insert(branches.map(branch=>({company_id:actor.companyId,branch_id:branch.id,compliance_type_id:data.id,is_required:true})));
+  const { error } = await supabase.rpc("create_compliance_type_atomic" as never, {
+    p_type_name: typeName,
+    p_subject_kind: subjectKind,
+    p_is_sensitive: sensitive,
+  } as never);
+  if (error) {
+    const message = error.code === "PGRST202"
+      ? "Compliance type creation is temporarily unavailable; apply migration 261 and retry."
+      : error.message;
+    redirect(`/compliance?error=${encodeURIComponent(message)}`);
   }
   revalidatePath(subjectKind==="outlet"?"/outlet-compliance":"/compliance");
   redirect(subjectKind==="outlet"?"/outlet-compliance?success=Requirement+type+added+to+all+active+sites.":"/compliance?success=Compliance+type+created.");

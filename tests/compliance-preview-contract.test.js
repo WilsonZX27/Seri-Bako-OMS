@@ -92,6 +92,20 @@ test("Preview remains readable before migration 229 is applied", () => {
   assert.match(outletQuery, /salesError.*PGRST205/);
 });
 
+test("compliance type creation is atomic and has an actionable migration guard", () => {
+  const migration = read("supabase", "migrations", "261_atomic_compliance_type_creation.sql");
+  const action = read("src", "server", "actions", "compliance.ts");
+  assert.match(migration, /create or replace function public\.create_compliance_type_atomic/);
+  assert.match(migration, /security definer/);
+  assert.match(migration, /insert into public\.outlet_compliance_requirements/);
+  assert.match(migration, /public\.current_staff_company_id\(\)/);
+  assert.match(migration, /public\.has_permission\('compliance\.types\.manage'\)/);
+  assert.match(action, /create_compliance_type_atomic/);
+  assert.match(action, /migration 261/);
+  assert.doesNotMatch(action, /from\("compliance_types"\)\.insert/);
+  assert.doesNotMatch(action, /from\("outlet_compliance_requirements"\)\.insert/);
+});
+
 test("v9.2 uses the OMS register, progressive checklist and real month calendars", () => {
   const register = read("src","app","(app)","outlet-compliance","page.tsx");
   const checklist = read("src","app","(app)","outlet-compliance","[branchId]","page.tsx");

@@ -8,10 +8,25 @@ Seri Bako OMS Playwright tests read `.env.test.local` automatically through `pla
 
 ## Required variables
 
-Set the variables for each role you want to test:
+For local UAT, keep these variables in the ignored `.env.test.local` fixture. Never point that file at a remote target.
+
+For authenticated Preview UAT, use a separate secret env file or process environment containing only disposable Preview identities and the exact isolated Preview project. The guard below must pass before any mutation-capable browser run:
+
+```powershell
+node scripts/check-uat-environment.mjs --target preview --env .env.preview.test.local
+```
+
+The Preview env must include `RUN_PREVIEW_UAT=confirmed`, `EXPECTED_PREVIEW_APP_HOST`, and `EXPECTED_PREVIEW_SUPABASE_PROJECT_REF`; the expected app host must be the exact Vercel Preview deployment URL and the project ref must not be Production. Do not reuse local or Production credentials.
+
+Set the role variables for each identity you want to test:
 
 ```env
-TEST_BASE_URL=https://seri-bako-oms-official.vercel.app
+TEST_BASE_URL=https://<exact-preview-deployment>.vercel.app
+NEXT_PUBLIC_SUPABASE_URL=https://<preview-project-ref>.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+RUN_PREVIEW_UAT=confirmed
+EXPECTED_PREVIEW_APP_HOST=<exact-preview-deployment>.vercel.app
+EXPECTED_PREVIEW_SUPABASE_PROJECT_REF=<preview-project-ref>
 
 TEST_SUPER_ADMIN_EMAIL=
 TEST_SUPER_ADMIN_PASSWORD=

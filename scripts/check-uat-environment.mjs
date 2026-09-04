@@ -19,7 +19,7 @@ function option(name) {
 
 const target = option("target");
 const envFile = option("env");
-if (!['local', 'production'].includes(target)) throw new Error("Use --target local or --target production");
+if (!['local', 'preview', 'production'].includes(target)) throw new Error("Use --target local, --target preview or --target production");
 const env = readEnv(envFile);
 for (const key of ["TEST_BASE_URL", "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "TEST_SUPER_ADMIN_EMAIL", "TEST_SUPER_ADMIN_PASSWORD"]) {
   if (!env[key]) throw new Error(`Missing required UAT variable: ${key}`);
@@ -30,6 +30,17 @@ const loopback = new Set(["127.0.0.1", "localhost", "::1"]);
 
 if (target === "local") {
   if (!loopback.has(app.hostname) || !loopback.has(supabase.hostname)) throw new Error("Local UAT must use loopback app and Supabase hosts");
+} else if (target === "preview") {
+  if (env.RUN_PREVIEW_UAT !== "confirmed") throw new Error("Preview UAT requires RUN_PREVIEW_UAT=confirmed");
+  if (loopback.has(app.hostname) || loopback.has(supabase.hostname)) throw new Error("Preview UAT cannot use a loopback host");
+  if (app.hostname === "system.seribako.com.my") throw new Error("Preview UAT cannot use the Production app host");
+  if (!env.EXPECTED_PREVIEW_APP_HOST || app.hostname !== env.EXPECTED_PREVIEW_APP_HOST) {
+    throw new Error(`Preview app host mismatch: expected ${env.EXPECTED_PREVIEW_APP_HOST || "(missing)"}, received ${app.hostname}`);
+  }
+  const actualRef = supabase.hostname.split(".")[0];
+  if (!env.EXPECTED_PREVIEW_SUPABASE_PROJECT_REF || actualRef !== env.EXPECTED_PREVIEW_SUPABASE_PROJECT_REF) {
+    throw new Error(`Preview Supabase project mismatch: expected ${env.EXPECTED_PREVIEW_SUPABASE_PROJECT_REF || "(missing)"}, received ${actualRef}`);
+  }
 } else {
   if (env.RUN_PRODUCTION_UAT !== "confirmed") throw new Error("Production UAT requires RUN_PRODUCTION_UAT=confirmed");
   if (loopback.has(app.hostname) || loopback.has(supabase.hostname)) throw new Error("Production UAT cannot use a loopback host");

@@ -149,7 +149,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
           </div>
         </div>
       </WorkspaceGrid>
-      {permissions["po.create"] ? <Button asChild size="icon" className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] h-14 w-14 rounded-full shadow-[0_8px_24px_rgb(6_44_31_/_0.24)] md:hidden"><Link href="/purchase-orders/new" aria-label="New purchase order"><Plus className="h-5 w-5" /></Link></Button> : null}
+      {permissions["po.create"] ? <Button asChild size="icon" className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] h-14 w-14 rounded-full shadow-[var(--sb-shadow-sm)] md:hidden"><Link href="/purchase-orders/new" aria-label="New purchase order"><Plus className="h-5 w-5" /></Link></Button> : null}
     </>
   );
 }

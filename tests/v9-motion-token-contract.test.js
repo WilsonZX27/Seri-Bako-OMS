@@ -30,3 +30,14 @@ test("v9 surfaces and overlays use semantic color and layer tokens", () => {
   assert.match(designSystem, /\.unified-list-sheet \{[^}]*z-index: var\(--sb-z-sheet\)/);
   assert.doesNotMatch(designSystem, /\.unified-list-(?:layer|backdrop|sheet) \{[^}]*z-index: 10[01]/);
 });
+
+test("v9 elevation uses defined semantic shadows for panels, rails, and dialogs", () => {
+  const purchaseOrders = fs.readFileSync("src/app/(app)/purchase-orders/page.tsx", "utf8");
+  const stockCountExport = fs.readFileSync("src/components/stock-count-export-dialog.tsx", "utf8");
+  assert.match(designSystem, /--sb-shadow-panel:\s*var\(--sb-shadow-sm\)/);
+  assert.match(designSystem, /--sb-shadow-lg:\s*0 -8px 24px/);
+  assert.match(purchaseOrders, /shadow-\[var\(--sb-shadow-sm\)\]/);
+  assert.match(stockCountExport, /shadow-\[var\(--sb-shadow-md\)\]/);
+  assert.doesNotMatch(purchaseOrders, /shadow-\[0_8px_24px/);
+  assert.doesNotMatch(stockCountExport, /shadow-\[0_8px_24px/);
+});

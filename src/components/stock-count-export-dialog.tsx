@@ -64,7 +64,7 @@ export function StockCountExportDialog({
         <Download className="h-4 w-4" aria-hidden="true" />
         Export workbook
       </Button>
-      <dialog ref={dialogRef} className="m-auto w-[min(32rem,calc(100vw-2rem))] max-w-none rounded-[var(--sb-panel-radius)] border border-[var(--sb-border)] bg-[var(--sb-surface)] p-0 text-[var(--sb-text)] shadow-[0_8px_24px_rgb(6_44_31_/_0.18)] backdrop:bg-[rgb(6_44_31_/_0.55)] backdrop:backdrop-blur-sm">
+      <dialog ref={dialogRef} className="m-auto w-[min(32rem,calc(100vw-2rem))] max-w-none rounded-[var(--sb-panel-radius)] border border-[var(--sb-border)] bg-[var(--sb-surface)] p-0 text-[var(--sb-text)] shadow-[var(--sb-shadow-md)] backdrop:bg-[rgb(6_44_31_/_0.55)] backdrop:backdrop-blur-sm">
         <form action="/api/export/stock-counts-workbook" method="get" onSubmit={handleExport}>
           <header className="flex min-h-14 items-center justify-between border-b border-[var(--sb-border-soft)] px-4">
             <div>

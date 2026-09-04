@@ -33,7 +33,7 @@ Follow-up status on 2026-09-05: P1-01 (documentation-authority contract) and P1-
 
 Impact: `npm test` has one failure and the repository cannot honestly be called release-gate green.
 
-~~Required closure: align the authority contract with the stronger wording or restore a stable machine-readable authority sentence, then rerun the entire suite.~~ Closed by the authority-map update; the current suite passes 1,159/1,159.
+~~Required closure: align the authority contract with the stronger wording or restore a stable machine-readable authority sentence, then rerun the entire suite.~~ Closed by the authority-map update; the current suite passes 1,160/1,160.
 
 ### P1-02 — Compliance type creation can partially succeed — closed 2026-09-05
 
@@ -77,9 +77,9 @@ Impact: theme drift and stacking regressions become more likely even though the 
 
 The detector flagged `src/components/attendance/schedule-planner.tsx:79,82`, but the slate and emerald classes belong to mutually exclusive variants. No defect should be filed without rendered-state contrast evidence.
 
-### P3-02 — A small number of mobile/dialog shadows exceed the otherwise restrained elevation language
+### P3-02 — Mobile/dialog elevation was not using a single semantic token
 
-Examples are the mobile Purchase Order floating action and Stock Count export dialog. They are functional but should be considered during the next visual-system pass rather than changed in isolation.
+Closed in the visual-system pass. The active v2 layer now defines `--sb-shadow-panel` and the upward `--sb-shadow-lg` rail elevation, while the mobile Purchase Order action and Stock Count export dialog consume shared `--sb-shadow-sm`/`--sb-shadow-md` tokens. This removes undefined-token fallbacks and keeps the two previously isolated surfaces within the restrained elevation language.
 
 ## Security review
 
@@ -139,7 +139,7 @@ The earlier UAT blocker was closed for a local, loopback-only environment. A dis
 ### Verified after remediation
 
 - Canonical authenticated route matrix: **36/36 passed** in 20.4 minutes. This covers eight roles at 390×844, 820×1180, 1180×820, and 1440×900, plus the public auth surfaces at all four viewports.
-- Contract suite: **1,159/1,159 passed**.
+- Contract suite: **1,160/1,160 passed**.
 - Strict TypeScript: passed.
 - ESLint: passed.
 - Local schema/RLS/RPC gate: `V9_SCHEMA_OK`, migration 261, 105 tables, 6 views, and 174 security-definer functions.
@@ -165,12 +165,12 @@ The annotation-derived mobile and workflow changes were tested against the same 
 
 ### Verification refresh — 2026-09-05
 
-- The complete repository contract suite now passes **1,159/1,159**. This closes P1-01 from the initial 2026-09-04 audit; the documentation-authority contract now matches the migration ceiling of 261.
+- The complete repository contract suite now passes **1,160/1,160**. This closes P1-01 from the initial 2026-09-04 audit; the documentation-authority contract now matches the migration ceiling of 261.
 - P1-02 is closed locally: `261_atomic_compliance_type_creation.sql` provides one tenant-scoped `security definer` transaction for type creation plus active outlet/central-kitchen requirement rollout; the action has an explicit `PGRST202` migration guard and a contract test.
 
 ### Verified locally
 
-- Contract suite: **1,159/1,159 passed**.
+- Contract suite: **1,160/1,160 passed**.
 - Strict TypeScript and ESLint: passed.
 - Local schema/RLS/RPC gate: `V9_SCHEMA_OK`, migration 261, 105 tables, 6 views and 174 security-definer functions.
 - Isolated Next.js production build: compiled, type-checked and prerendered **95/95** static pages.

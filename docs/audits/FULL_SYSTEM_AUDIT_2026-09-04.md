@@ -194,3 +194,10 @@ The annotation-derived mobile and workflow changes were tested against the same 
 - The full all-role authenticated regression was not repeated against the remote Preview; the focused Outlet and Purchasing workflow was exercised locally.
 - The remaining four checks in that legacy annotation batch still need their authenticated fixture run; the validation-copy assertion itself is closed by the follow-up receipt above.
 - The independent deep-security scan produced no canonical manifest because three discovery workers failed after the scan service reached its usage limit. Security closure therefore remains incomplete; no absence-of-findings claim is made.
+
+### Current Preview continuation — 2026-09-05
+
+- Commit `48208138` (`test: add guarded preview uat runner`) is pushed to `codex/annotation-closure-loading-schedule` and its Vercel Preview deployment is **READY** at `https://seri-bako-oms-official-kf89k5vnf-seribako.vercel.app`.
+- Browser smoke opened `/outlet-daily-records` on that deployment and observed the expected unauthenticated redirect to `/login?redirectedFrom=%2Foutlet-daily-records`; the login surface identifies `Seri Bako OMS v9.2.28`.
+- `npm run uat:v9:preview` was invoked and stopped before any browser shard because `.env.preview.test.local` is absent. This is an intentional safety boundary: authenticated Preview UAT requires an exact isolated Supabase project reference and disposable role identities, and must not reuse local or Production credentials.
+- The current local release gates remain green: **1,160/1,160** contract tests, TypeScript, ESLint, `git diff --check`, and a clean worktree. These are local evidence only and do not close remote authenticated UAT or Production verification.

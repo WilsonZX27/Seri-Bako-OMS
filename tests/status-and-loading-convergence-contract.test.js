@@ -19,11 +19,16 @@ test("loading surfaces are lightweight, route-shaped and keep the action rail", 
   const detail = read("src/app/(app)/purchase-requests/[id]/loading.tsx");
   const css = read("src/app/globals.css");
   assert.match(states, /type PageLoadingVariant = "list" \| "detail" \| "form"/);
-  assert.match(states, /ConsoleSection title="Actions" kind="action"/);
+  assert.match(states, /aria-label="Loading page actions"/);
+  assert.match(states, /data-loading-query-surface/);
+  assert.doesNotMatch(states, /title="Actions"|title="Summary"/);
   assert.doesNotMatch(states, /sb-loading-progress/);
   assert.match(detail, /variant="detail"/);
   assert.doesNotMatch(css, /@keyframes sb-loading-progress/);
   assert.doesNotMatch(states, /setInterval|fetch\(|requestAnimationFrame/);
+  const auth = read("src/app/(auth)/loading.tsx");
+  assert.match(auth, /Preparing sign in/);
+  assert.doesNotMatch(auth, /PageLoadingState|Loading page actions/);
 });
 
 test("dashboard and compliance surface actionable exceptions", () => {

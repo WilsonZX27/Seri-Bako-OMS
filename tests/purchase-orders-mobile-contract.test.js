@@ -23,8 +23,9 @@ test("new purchase order loading state mirrors the document workspace and right 
   assert.match(loading, /PageLoadingState/);
   const sharedLoading = fs.readFileSync(path.join(root, "src", "components", "ui", "system-states.tsx"), "utf8");
   assert.match(sharedLoading, /rightRail=\{rightRail\}/);
-  assert.match(sharedLoading, /ConsoleSection title="Actions"/);
-  assert.match(sharedLoading, /ConsoleSection title="Summary"/);
+  assert.match(sharedLoading, /aria-label="Loading page actions"/);
+  assert.match(sharedLoading, /aria-label="Loading page summary"/);
+  assert.doesNotMatch(sharedLoading, /title="Actions"|title="Summary"/);
 });
 
 test("purchase order creation uses one stable setup surface and dynamic compact lines", () => {

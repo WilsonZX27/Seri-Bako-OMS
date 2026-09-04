@@ -1,5 +1,15 @@
 # Seri Bako Operations Management System
 
+### v9.2.24 (unreleased) — Loading, weekly oversight and checklist closure
+
+- Route loading now mirrors the real page hierarchy: the page-heading skeleton sits on the header baseline, list search is an independent surface, right-rail placeholders have no fake headings, and authentication uses a dedicated sign-in skeleton instead of the operations workspace.
+- Dashboard exception panels suppress unavailable source tiles instead of presenting failed reads as operational KPIs; supporting PO text is removed and section identity uses one restrained brand tint.
+- Outlet Daily uses `Attention` as its complete warning label, aligns wastage insight to the selected Calendar history seven-day window, excludes zero-denominator records from the rate chart, and lets the graph occupy the available card height.
+- Schedule keeps the existing outlet planner and adds a separate weekly overview across accessible outlets with Not started, Draft, Submitted, Published and Locked workflow states plus assignment coverage.
+- Migration 259 retires DBKL from every company checklist and assigns Pest Control to every active Outlet and Central Kitchen. It is implemented locally only and has not been applied to Preview or Production.
+
+Repository migrations reviewed through `259`. Focused loading, Dashboard, Outlet Daily, Compliance and Schedule contracts pass locally. Dependency installation did not complete in this isolated worktree, so TypeScript, build, authenticated browser UAT, migration application and deployment remain unverified.
+
 ### v9.2.23 (unreleased) — Compliance and Schedule Workflow Repair
 
 - Rebuilds site Compliance as one calm disclosure list with aligned record fields and a clear primary file picker; repeated missing-detail copy is removed while status and recorded expiry remain visible.

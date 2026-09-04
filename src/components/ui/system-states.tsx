@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { AlertTriangle, Ban, CheckCircle2, FileQuestion, SearchX, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { cn } from "@/lib/utils";
 
@@ -31,23 +30,27 @@ function LoadingCanvas({ variant }: { variant: PageLoadingVariant }) {
     <div className="sb-work-surface grid gap-3 p-3 sm:grid-cols-2">{Array.from({ length: 4 }, (_, field) => <div key={field} className="space-y-2"><div className="sb-skeleton h-3 w-24" /><div className="sb-skeleton h-9 w-full" /></div>)}</div>
     <div className="sb-work-surface h-40" />
   </div>;
-  return <div className="sb-work-surface overflow-hidden" data-loading-variant="list">
-    <div className="flex gap-3 border-b border-[var(--sb-border-soft)] p-3"><div className="sb-skeleton h-9 min-w-0 flex-1" /><div className="sb-skeleton h-9 w-28" /></div>
+  return <div className="space-y-3" data-loading-variant="list">
+    <div className="sb-work-surface flex gap-3 p-3" data-loading-query-surface><div className="sb-skeleton h-9 min-w-0 flex-1" /><div className="sb-skeleton h-9 w-28" /></div>
+    <div className="sb-work-surface overflow-hidden">
     <div className="divide-y divide-[var(--sb-border-soft)]">{[0, 1, 2, 3, 4].map((row) => <div key={row} className="flex items-center gap-3 p-3"><div className="sb-skeleton h-8 w-8 rounded-full" /><div className="min-w-0 flex-1 space-y-2"><div className="sb-skeleton h-3 w-2/5" /><div className="sb-skeleton h-3 w-3/5" /></div><div className="sb-skeleton h-7 w-20" /></div>)}</div>
+    </div>
   </div>;
 }
 
 export function PageLoadingState({ label = "Loading workspace...", variant = "list" }: { label?: string; variant?: PageLoadingVariant }) {
   const rightRail = <>
-    <ConsoleSection title="Actions" kind="action"><div className="space-y-2"><div className="sb-skeleton h-9 w-full" /><div className="sb-skeleton h-9 w-full" /></div></ConsoleSection>
-    <ConsoleSection title="Summary" kind="status"><div className="space-y-2"><div className="sb-skeleton h-3 w-full" /><div className="sb-skeleton h-3 w-4/5" /><div className="sb-skeleton h-3 w-2/3" /></div></ConsoleSection>
+    <section className="sb-work-surface space-y-2 p-3" aria-label="Loading page actions"><div className="sb-skeleton h-9 w-full" /><div className="sb-skeleton h-9 w-full" /></section>
+    <section className="sb-work-surface space-y-2 p-3" aria-label="Loading page summary"><div className="sb-skeleton h-3 w-full" /><div className="sb-skeleton h-3 w-4/5" /><div className="sb-skeleton h-3 w-2/3" /></section>
   </>;
   return (
     <div aria-live="polite" aria-busy="true" data-page-loading-state>
       <span className="sr-only" role="status">{label}</span>
-      <div className="sb-workspace-canvas mb-3 space-y-2" aria-hidden="true" data-workspace-canvas data-canvas-mode="wide">
-        <div className="sb-skeleton h-5 w-44" />
-        <div className="sb-skeleton h-3 w-72 max-w-full" />
+      <div className="border-b border-[var(--sb-border-soft)] bg-[var(--workspace-bg)]" aria-hidden="true">
+        <div className="sb-workspace-canvas space-y-2 py-3" data-workspace-canvas data-canvas-mode="wide">
+          <div className="sb-skeleton h-5 w-44" />
+          <div className="sb-skeleton h-3 w-72 max-w-full" />
+        </div>
       </div>
       <WorkspaceGrid tabletCanvas="wide" tabletRailBreakpoint="lg" rightRail={rightRail}>
       <div className="relative min-h-72" aria-hidden="true"><LoadingCanvas variant={variant} /></div>

@@ -34,6 +34,15 @@ test("compliance covers outlets and Central Kitchen but not Office", () => {
   assert.match(repair, /outlet_compliance\.upload/);
 });
 
+test("the current site checklist retires DBKL and assigns Pest Control everywhere", () => {
+  const migration = read("supabase/migrations/259_replace_dbkl_with_pest_control.sql");
+  assert.match(migration, /type_code = 'DBKL'/);
+  assert.match(migration, /status = 'inactive'/);
+  assert.match(migration, /'PEST_CONTROL', 'Pest Control'/);
+  assert.match(migration, /branch_type in \('outlet', 'central_kitchen'\)/);
+  assert.match(migration, /on conflict \(branch_id, compliance_type_id\) do update/);
+});
+
 test("compliance uses one structured disclosure list with aligned details", () => {
   const page = read("src/app/(app)/outlet-compliance/[branchId]/page.tsx");
   const upload = read("src/components/compliance-attachment-upload.tsx");

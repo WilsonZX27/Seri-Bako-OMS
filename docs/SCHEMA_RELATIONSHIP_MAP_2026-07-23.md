@@ -1,6 +1,6 @@
 # Seri Bako OMS — Schema 与 Table 关系地图
 
-> Current repository authority 2026-09-04: forward-only migration 历史已到 `258`. Migration `258` idempotently repairs canonical Compliance names, required Outlet/Central Kitchen assignments, attachment create/update permission alignment, and the attachment upload/archive audit-event constraint. The linked Supabase migration list could not be confirmed because its read-only status request timed out; repository state is not Production state.
+> Current repository authority 2026-09-04: forward-only migration 历史已到 `259`. Migration `259` retires DBKL from the company checklist and assigns Pest Control to every active Outlet and Central Kitchen. Migration `258` idempotently repairs canonical Compliance names, required site assignments, attachment create/update permission alignment, and the attachment upload/archive audit-event constraint. Neither repository state nor local migration code proves Preview or Production application.
 
 > Current repository authority 2026-09-04: forward-only migration 历史已到 `257`. Migration `255` retires Outlet Daily review approval while preserving legacy audit fields and activity. Migration `256` corrects the exact AutoCount PO number to `PO-000207`. Migration `257` adds named multi-attachment compliance evidence and includes Central Kitchen while excluding Office. Repository evidence is not proof of Preview or Production state.
 

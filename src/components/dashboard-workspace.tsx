@@ -17,7 +17,6 @@ function Metric({
   alert = false,
   alertTone = "warning",
   unavailable = false,
-  detail,
   variant = "row",
   density = "default",
   className,
@@ -29,7 +28,6 @@ function Metric({
   alert?: boolean;
   alertTone?: "warning" | "critical";
   unavailable?: boolean;
-  detail?: string;
   variant?: "row" | "tile";
   density?: "default" | "compact";
   className?: string;
@@ -54,7 +52,6 @@ function Metric({
       >
         {unavailable ? "Unavailable" : value}
       </strong>
-      {detail ? <span className="max-w-full truncate text-[10px] font-medium text-[var(--sb-text-muted)]" title={detail}>{detail}</span> : null}
     </Link>
   );
 }
@@ -74,7 +71,7 @@ function Panel({
 }) {
   return (
     <section data-dashboard-panel={dataAttribute ?? "true"} className="sb-work-surface overflow-hidden">
-      <div className="flex min-h-10 items-center justify-between gap-2 border-b border-[var(--sb-border-soft)] px-3">
+      <div className="flex min-h-10 items-center justify-between gap-2 border-b border-[var(--sb-border-soft)] bg-[var(--sb-green-050)] px-3">
         <h2 className="text-sm font-semibold text-[var(--sb-text)]">{title}</h2>
         {action ? (
           <Button asChild variant="ghost" size="sm" className="h-8 px-2 text-[11px]">
@@ -145,8 +142,6 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   const todayWorkCount = attentionSignals.reduce((sum, signal) => sum + (signal.value ?? 0), 0);
   const outletExceptionCount = summary.operationsControl?.outlet?.missing_evening ?? 0;
   const operationalExceptionCount = (summary.inventoryUnavailable ? 0 : summary.lowStockCount ?? 0) + (summary.wastageUnavailable ? 0 : summary.wastageAttention ?? 0) + outletExceptionCount + (summary.compliance?.issues ?? 0);
-  const operationalExceptionUnavailable = summary.inventoryUnavailable || summary.wastageUnavailable || Boolean(summary.compliance?.unavailable);
-  const latestPurchaseOrder = summary.purchaseOrders[0];
   const quickActions = isOutlet
     ? [
         { href: summary.outletToday?.id ? `/outlet-daily-records/${summary.outletToday.id}` : "/outlet-daily-records/new", label: outletAction, icon: ClipboardCheck },
@@ -332,7 +327,6 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                   value={summary.purchaseOrders.length}
                   icon={ShoppingCart}
                   unavailable={summary.coreSnapshotUnavailable}
-                  detail={summary.coreSnapshotUnavailable ? undefined : latestPurchaseOrder ? `${latestPurchaseOrder.po_no} · ${latestPurchaseOrder.status.replaceAll("_", " ")}` : "No recent PO"}
                   variant="tile"
                   density="compact"
                 />
@@ -371,13 +365,13 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
           </div>
         ) : null}
 
-        {(showOperations || isKitchen || isPurchasing) && (operationalExceptionCount > 0 || operationalExceptionUnavailable) ? <div className="order-1" data-dashboard-priority-group="exceptions">
+        {(showOperations || isKitchen || isPurchasing) && operationalExceptionCount > 0 ? <div className="order-1" data-dashboard-priority-group="exceptions">
           <Panel
             title={isKitchen ? "Raw-material exceptions" : "Exceptions requiring follow-up"}
             empty="No urgent operational exceptions are visible in your scope."
           >
             <div className="grid grid-cols-3 divide-x divide-[var(--sb-border-soft)]" data-dashboard-exceptions>
-              <Metric href="/low-stock" label="Low stock" value={summary.lowStockCount} icon={AlertTriangle} alert={(summary.lowStockCount ?? 0) > 0} alertTone="critical" unavailable={summary.inventoryUnavailable || summary.lowStockCount === null} variant="tile" density="compact" />
+              {!summary.inventoryUnavailable && summary.lowStockCount !== null ? <Metric href="/low-stock" label="Low stock" value={summary.lowStockCount} icon={AlertTriangle} alert={summary.lowStockCount > 0} alertTone="critical" variant="tile" density="compact" /> : null}
               {showOperations && summary.operationsControl?.outlet ? (
                 <Metric
                   href="/outlet-daily-records"
@@ -389,14 +383,13 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                   density="compact"
                 />
               ) : null}
-              {(isOwner || isManager || isKitchen) ? (
+              {(isOwner || isManager || isKitchen) && !summary.wastageUnavailable && summary.wastageAttention !== null ? (
                 <Metric
                   href="/stock-wastage?status=submitted"
                   label="Wastage attention"
                   value={summary.wastageAttention}
                   icon={AlertTriangle}
                   alert={(summary.wastageAttention ?? 0) > 0}
-                  unavailable={summary.wastageUnavailable || summary.wastageAttention === null}
                   variant="tile"
                   density="compact"
                 />

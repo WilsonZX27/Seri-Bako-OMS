@@ -55,7 +55,7 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
       hasPermission("outlet_daily_record.view_all"),
       getOutletDailyWastageCostSummary(),
       Promise.allSettled([
-        getOutletDailyDemandTrend({ period: "30", branch: filters.branch }),
+        getOutletDailyDemandTrend({ period: "7", branch: filters.branch, history_date: filters.history_date }),
         getOutletDailyCompletionMatrix({ branch: filters.branch, history_date: filters.history_date }),
       ]),
     ]);

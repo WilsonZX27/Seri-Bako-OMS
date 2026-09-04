@@ -34,17 +34,17 @@ export function OutletDailyWastageChart({ points, branch, unavailable = false }:
   };
 
   return (
-    <section className="erp-surface overflow-hidden" aria-labelledby="outlet-wastage-trend-title">
+    <section className="erp-surface flex min-h-[26rem] flex-col overflow-hidden" aria-labelledby="outlet-wastage-trend-title">
       <div className="flex flex-wrap items-end justify-between gap-2 border-b border-[var(--sb-border-soft)] px-3 py-2.5">
         <div>
-          <h2 id="outlet-wastage-trend-title" className="text-sm font-semibold">30-day wastage rate</h2>
-          <p className="text-xs text-muted-foreground">Completed outlet records only · total wastage ÷ total received</p>
+          <h2 id="outlet-wastage-trend-title" className="text-sm font-semibold">7-day wastage rate</h2>
+          <p className="text-xs text-muted-foreground">Matches Calendar history · completed records only</p>
         </div>
-        <p className="text-xs text-muted-foreground">30-day rate <strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable ? "Unavailable" : `${formatPercent(periodRate)}%`}</strong></p>
+        <p className="text-xs text-muted-foreground">7-day rate <strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable ? "Unavailable" : `${formatPercent(periodRate)}%`}</strong></p>
       </div>
-      {unavailable ? <div className="px-4 py-8 text-center" role="status"><p className="text-sm font-medium">Wastage trend unavailable</p><p className="mt-1 text-xs text-muted-foreground">The daily record list remains current. Retry this page to load the 30-day insight.</p></div> : points.length ? (
-      <div className="grid items-start gap-3 p-2 pt-3 xl:grid-cols-[minmax(0,3fr)_minmax(18rem,2fr)] xl:p-3" data-outlet-wastage-layout>
-        <div className="flex min-w-0 w-full items-start" data-outlet-wastage-chart-panel>
+      {unavailable ? <div className="px-4 py-8 text-center" role="status"><p className="text-sm font-medium">Wastage trend unavailable</p><p className="mt-1 text-xs text-muted-foreground">The daily record list remains current. Retry this page to load the selected 7-day insight.</p></div> : points.length ? (
+      <div className="grid flex-1 items-stretch gap-3 p-2 pt-3 xl:grid-cols-[minmax(0,3fr)_minmax(18rem,2fr)] xl:p-3" data-outlet-wastage-layout>
+        <div className="flex min-h-72 min-w-0 w-full items-stretch [&>svg]:h-full" data-outlet-wastage-chart-panel>
           <InteractiveLineChart
             points={chartPoints}
             width={width}
@@ -77,7 +77,7 @@ export function OutletDailyWastageChart({ points, branch, unavailable = false }:
             </div>
           </div>
         </div>
-      ) : <div className="px-4 py-8 text-center"><p className="text-sm font-medium">No completed records in the last 30 days</p><p className="mt-1 text-xs text-muted-foreground">The trend will appear after evening records are completed.</p></div>}
+      ) : <div className="px-4 py-8 text-center"><p className="text-sm font-medium">No completed records in these 7 days</p><p className="mt-1 text-xs text-muted-foreground">Choose another Calendar history date or complete an evening record.</p></div>}
     </section>
   );
 }

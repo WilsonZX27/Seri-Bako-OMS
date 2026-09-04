@@ -177,8 +177,8 @@ const shiftDate = (date: string, days: number) => {
   return value.toISOString().slice(0, 10);
 };
 
-const trendDateRange = (period: TrendPeriod) => {
-  const end = todayInKualaLumpur();
+const trendDateRange = (period: TrendPeriod, requestedEnd?: string) => {
+  const end = /^\d{4}-\d{2}-\d{2}$/.test(requestedEnd ?? "") ? requestedEnd! : todayInKualaLumpur();
   return { start: period === "month" ? `${end.slice(0, 8)}01` : shiftDate(end, period === "30" ? -29 : -6), end };
 };
 
@@ -508,7 +508,7 @@ export async function getOutletDailyRecord(id: string) {
 export async function getOutletDailyDemandTrend(filters: Filters = {}) {
   const period = (["7", "30", "month"].includes(filters.period ?? "") ? filters.period : "7") as TrendPeriod;
   const status = (["all", "evening_completed"].includes(filters.status ?? "") ? filters.status : "all") as TrendStatus;
-  const { start, end } = trendDateRange(period);
+  const { start, end } = trendDateRange(period, filters.history_date);
   const options = await getOutletDailyFormOptions();
   const branchId = filters.branch && filters.branch !== "all" ? filters.branch : undefined;
   const productId = filters.product && filters.product !== "all" ? filters.product : undefined;

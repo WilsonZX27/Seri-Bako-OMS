@@ -1,5 +1,14 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.24 (unreleased) — Honest loading and operational overview
+
+- Loading geometry follows the destination surface, not a generic demo: heading rhythm aligns with `PageHeader`, query controls are their own sibling surface, list rows remain separate, and right-rail skeletons do not expose placeholder section titles.
+- Authentication has its own compact, centred skeleton. It never renders the application workspace, data list or action rail before identity is known.
+- Dashboard source failures disappear from the operational KPI grid rather than becoming large `Unavailable` values. Section headers may use the quiet brand tint to improve scanning, while controls and states retain the shared semantic palette.
+- Outlet Daily warning state reads only `Attention`; the posted state remains separate. Calendar history owns both the completion matrix and the matching seven-day wastage trend.
+- Schedule overview is a control board, not a second editor. One row per outlet exposes workflow state and coverage, while selection opens the existing planner without changing its behaviour.
+- Site Compliance owns one current company checklist: DBKL is retired, Pest Control is required, and the rule applies equally to every active Outlet and Central Kitchen.
+
 ## v9.2.23 (unreleased) — Calm compliance and state-owned actions
 
 - Site Compliance uses a single structured disclosure list. A closed row carries requirement identity, recorded expiry and state; opening it reveals one details surface and one attachments surface without masonry gaps or nested accordion noise.

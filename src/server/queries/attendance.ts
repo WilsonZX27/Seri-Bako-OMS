@@ -62,6 +62,37 @@ export async function getSchedulePlanner(weekStart = malaysiaWeekStart(), reques
   return { branches: branchRows, branchId, week: week as unknown as { id: string; status: string } | null, previousWeekId: previousWeeks?.[0]?.id ? String(previousWeeks[0].id) : null, templates: (templates.data ?? []) as unknown as Array<{ id:string;code:string;name:string;planned_start:string;planned_end:string;planned_break_seconds:number;maximum_recognised_seconds:number;colour:string }>, people: (scheduleStaff ?? []) as unknown as Array<{ id:string;full_name:string;staff_code:string|null;status:string;employment_type:string;role_code:string }>, assignments: (assignments.data ?? []) as unknown as Array<{staff_id:string;work_date:string;assignment_kind:string;shift_template_id:string|null;custom_start:string|null;custom_end:string|null;custom_crosses_midnight:boolean;custom_break_seconds:number|null;custom_maximum_recognised_seconds:number|null;custom_reason:string|null}> };
 }
 
+export async function getScheduleOverview(weekStart = malaysiaWeekStart()) {
+  if (!(await hasPermission("schedule.read"))) throw new Error("Missing permission: schedule.read");
+  const db = looseSupabase(await createClient());
+  const { data: branchData, error: branchError } = await db.rpc("get_schedule_branches");
+  if (branchError) throw branchError;
+  const branches = (branchData ?? []) as unknown as Array<{ id: string; branch_name: string }>;
+  if (!branches.length) return [];
+  const { data: weekData, error: weekError } = await db.from("schedule_weeks").select("id,branch_id,status,revision,updated_at").eq("week_start", weekStart).in("branch_id", branches.map((branch) => branch.id)).order("revision", { ascending: false });
+  if (weekError) throw weekError;
+  const latestByBranch = new Map<string, { id: string; status: string; updated_at: string }>();
+  for (const week of (weekData ?? []) as Array<{ id: string; branch_id: string; status: string; updated_at: string }>) if (!latestByBranch.has(week.branch_id)) latestByBranch.set(week.branch_id, week);
+  const weekIds = [...latestByBranch.values()].map((week) => week.id);
+  const { data: assignmentData, error: assignmentError } = weekIds.length
+    ? await db.from("shift_assignment_revisions").select("schedule_week_id,staff_id,work_date,assignment_kind").in("schedule_week_id", weekIds).eq("is_current", true)
+    : { data: [], error: null };
+  if (assignmentError) throw assignmentError;
+  const assignments = (assignmentData ?? []) as Array<{ schedule_week_id: string; staff_id: string; work_date: string; assignment_kind: string }>;
+  return branches.map((branch) => {
+    const week = latestByBranch.get(branch.id) ?? null;
+    const rows = week ? assignments.filter((assignment) => assignment.schedule_week_id === week.id) : [];
+    return {
+      branchId: branch.id,
+      branchName: branch.branch_name,
+      status: week?.status ?? "not_started",
+      assignedPeople: new Set(rows.map((row) => row.staff_id)).size,
+      assignedDays: new Set(rows.filter((row) => row.assignment_kind === "shift").map((row) => row.work_date)).size,
+      updatedAt: week?.updated_at ?? null,
+    };
+  });
+}
+
 export async function getAttendanceReview(weekStart = malaysiaWeekStart()) {
   if (!(await hasPermission("attendance.read"))) throw new Error("Missing permission: attendance.read");
   const db = looseSupabase(await createClient()); const end = new Date(`${weekStart}T00:00:00Z`); end.setUTCDate(end.getUTCDate() + 6);

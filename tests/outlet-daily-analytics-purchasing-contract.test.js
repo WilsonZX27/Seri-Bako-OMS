@@ -14,11 +14,11 @@ const outletQuery = fs.readFileSync(path.join(root, "src", "server", "queries", 
 const demandPage = fs.readFileSync(path.join(root, "src", "app", "(app)", "reports", "demand-trends", "page.tsx"), "utf8");
 const planningPage = fs.readFileSync(path.join(root, "src", "app", "(app)", "production", "planning", "page.tsx"), "utf8");
 
-test("outlet daily workspace renders a lightweight 30-day completed-record wastage trend", () => {
-  assert.match(page, /getOutletDailyDemandTrend\(\{ period: "30", branch: filters\.branch \}\)/);
+test("outlet daily workspace renders a seven-day trend aligned to Calendar history", () => {
+  assert.match(page, /getOutletDailyDemandTrend\(\{ period: "7", branch: filters\.branch, history_date: filters\.history_date \}\)/);
   assert.match(page, /<OutletDailyWastageChart points=\{trend\?\.daily \?\? \[\]\} branch=\{filters\.branch\} unavailable=\{!trend\} \/>/);
-  assert.match(chart, /Completed outlet records only/);
-  assert.match(chart, /total wastage ÷ total received/);
+  assert.match(chart, /Matches Calendar history · completed records only/);
+  assert.match(chart, /7-day wastage rate/);
   assert.match(chart, /totalWastage \/ totalReceived \* 100/);
   assert.match(chart, /InteractiveLineChart/);
   assert.match(chart, /maximumFractionDigits: 1/);
@@ -28,6 +28,7 @@ test("outlet daily workspace renders a lightweight 30-day completed-record wasta
   assert.match(chart, /role="list" aria-label="Daily wastage rate data"/);
   assert.match(chart, /className="hidden w-full text-left sm:table"/);
   assert.match(chart, /xl:grid-cols-\[minmax\(0,3fr\)_minmax\(18rem,2fr\)\]/);
+  assert.match(chart, /\[&>svg\]:h-full/);
   assert.doesNotMatch(chart, /Hover or focus the chart/);
   assert.doesNotMatch(chart, /<details className="mt-2/);
   assert.match(interactiveChart, /strokeWidth="1\.5"/);
@@ -42,6 +43,8 @@ test("outlet daily workspace renders a lightweight 30-day completed-record wasta
   assert.match(interactiveChart, /ArrowRight/);
   assert.match(interactiveChart, /touch-pan-y/);
   assert.doesNotMatch(chart + interactiveChart, /recharts|chart\.js|d3/);
+  assert.match(outletQuery, /trendDateRange\(period, filters\.history_date\)/);
+  assert.match(outletQuery, /filter\(\(row\) => row\.received > 0\)/);
 });
 
 test("purchasing can inspect and correct company outlet daily records without bypassing RLS", () => {

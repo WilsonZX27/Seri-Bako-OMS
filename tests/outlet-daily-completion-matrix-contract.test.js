@@ -16,7 +16,8 @@ test("outlet completion matrix uses a bounded seven-day header query and preserv
   assert.match(query, /\["evening_completed", "reviewed"\]\.includes\(cell\.status\)/);
   const component = read("src/components/outlet-daily-completion-matrix.tsx");
   assert.match(component, /posted_attention/);
-  assert.match(component, /short: "P!"/);
+  assert.match(component, /posted_attention: \{ label: "Attention", short: "!"/);
+  assert.doesNotMatch(component, /Posted · Attention|short: "P!"/);
   assert.doesNotMatch(component, /label: "Reviewed"/);
   assert.doesNotMatch(query, /getOutletDailyCompletionMatrix[\s\S]*outlet_daily_record_lines/);
 });

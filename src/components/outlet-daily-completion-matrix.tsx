@@ -13,7 +13,7 @@ const stateMeta = {
   draft: { label: "Qty Sent pending", short: "QS", className: "border-[var(--sb-info)] bg-[var(--sb-info-bg)] text-[var(--sb-info)]" },
   morning_recorded: { label: "Outlet Entry pending", short: "OE", className: "border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" },
   evening_completed: { label: "Posted", short: "P", className: "border-[var(--sb-success)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]" },
-  posted_attention: { label: "Posted · Attention", short: "P!", className: "border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" },
+  posted_attention: { label: "Attention", short: "!", className: "border-amber-500 bg-amber-100 text-amber-900" },
   void: { label: "Void", short: "V", className: "border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]" },
 } as const;
 

@@ -2,15 +2,15 @@
 
 ## Executive status
 
-This is an audit report, not a remediation commit. The repository and deployed Owner surface were reviewed to the executable boundary available on 2026-09-04. The system must **not** be described as fully closed or fully UAT-verified yet.
+This is the 2026-09-04 baseline audit report; remediation receipts and current evidence are recorded below. The repository and deployed Owner surface were reviewed to the executable boundary available on that date. The system must **not** be described as fully Production-UAT verified yet.
 
 Follow-up status on 2026-09-05: P1-01 (documentation-authority contract) and P1-02 (atomic Compliance type and requirement creation) are closed by the current contract and local schema gates; remote authenticated Preview UAT remains an external-target gate.
 
-- Repository HEAD: `b4b2619758932be163bc6a776e79523003389291` (`v9.2.26`)
+- Repository baseline HEAD: `b4b2619758932be163bc6a776e79523003389291` (`v9.2.26`)
 - TypeScript strict check: pass
 - ESLint: pass
 - Production dependency audit: pass, 0 known vulnerabilities
-- Contract suite: fail, 1 documentation-authority contract failure
+- Baseline contract suite: fail, 1 documentation-authority contract failure (closed in the follow-up receipt)
 - Local production build: compilation and type validation pass; prerender blocked because this worktree has no public Supabase build variables
 - Production deployment: previously verified Ready; this audit did not treat that as proof of every workflow
 - Authenticated browser coverage: representative Owner routes were verified earlier; the requested full route/role/viewport crawl could not be completed because the browser automation surface repeatedly timed out
@@ -27,13 +27,13 @@ Follow-up status on 2026-09-05: P1-01 (documentation-authority contract) and P1-
 
 ## P1 findings
 
-### P1-01 — Main is not contract-green
+### P1-01 — Main is not contract-green — closed 2026-09-05
 
 `tests/documentation-authority-contract.test.js:27` expects the current migration authority phrase `forward-only migration 历史已到 \`259\``. `docs/SCHEMA_RELATIONSHIP_MAP_2026-07-23.md:3` now says `forward-only migration 历史与 Production ledger 均已到 \`259\``. The semantic documentation is accurate, but it broke the executable documentation contract.
 
 Impact: `npm test` has one failure and the repository cannot honestly be called release-gate green.
 
-Required closure: align the authority contract with the stronger wording or restore a stable machine-readable authority sentence, then rerun the entire suite.
+~~Required closure: align the authority contract with the stronger wording or restore a stable machine-readable authority sentence, then rerun the entire suite.~~ Closed by the authority-map update; the current suite passes 1,157/1,157.
 
 ### P1-02 — Compliance type creation can partially succeed — closed 2026-09-05
 
@@ -134,15 +134,15 @@ This was a degraded, single-reviewer standard security pass; it is not an indepe
 
 ## Isolation and browser-verification update — 2026-09-04
 
-The earlier UAT blocker was closed for a local, loopback-only environment. A disposable eight-role fixture was generated in the gitignored `.env.test.local`, the local Supabase stack was migrated through 259, and the application was exercised from an isolated production build. No Production database, deployment, identity, or file was mutated.
+The earlier UAT blocker was closed for a local, loopback-only environment. A disposable eight-role fixture was generated in the gitignored `.env.test.local`, the local Supabase stack was migrated through 261, and the application was exercised from an isolated production build. No Production database, deployment, identity, or file was mutated.
 
 ### Verified after remediation
 
 - Canonical authenticated route matrix: **36/36 passed** in 20.4 minutes. This covers eight roles at 390×844, 820×1180, 1180×820, and 1440×900, plus the public auth surfaces at all four viewports.
-- Contract suite: **1146/1146 passed**.
+- Contract suite: **1,157/1,157 passed**.
 - Strict TypeScript: passed.
 - ESLint: passed.
-- Local schema/RLS/RPC gate: `V9_SCHEMA_OK`, migration 259, 105 tables, 6 views, and 173 security-definer functions.
+- Local schema/RLS/RPC gate: `V9_SCHEMA_OK`, migration 261, 105 tables, 6 views, and 174 security-definer functions.
 - Isolated production build: compiled, type-checked, prerendered, and served successfully for the browser matrix.
 
 ### Defects closed by the matrix

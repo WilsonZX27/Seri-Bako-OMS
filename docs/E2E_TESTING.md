@@ -12,6 +12,10 @@ For local UAT, keep these variables in the ignored `.env.test.local` fixture. Ne
 
 For authenticated Preview UAT, use a separate secret env file or process environment containing only disposable Preview identities and the exact isolated Preview project. The guard below must pass before any mutation-capable browser run:
 
+Use the tracked [`.env.preview.test.example`](../.env.preview.test.example) as the
+secret-free starting template, copy it to the ignored `.env.preview.test.local`,
+and replace every placeholder only with the isolated Preview values.
+
 ```powershell
 node scripts/check-uat-environment.mjs --target preview --env .env.preview.test.local
 ```

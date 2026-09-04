@@ -65,3 +65,18 @@ test("Preview UAT guard rejects Production app and Supabase identities", () => {
   assert.match(runPreviewGuardFailure({ TEST_BASE_URL: "https://system.seribako.com.my" }), /Preview UAT cannot use the Production app host/);
   assert.match(runPreviewGuardFailure({ NEXT_PUBLIC_SUPABASE_URL: "https://productionref.supabase.co" }), /Preview Supabase project mismatch/);
 });
+
+test("Preview UAT template stays secret-free and includes every guarded boundary", () => {
+  const template = fs.readFileSync(".env.preview.test.example", "utf8");
+  for (const key of [
+    "RUN_PREVIEW_UAT=confirmed",
+    "EXPECTED_PREVIEW_APP_HOST=",
+    "EXPECTED_PREVIEW_SUPABASE_PROJECT_REF=",
+    "NEXT_PUBLIC_SUPABASE_URL=",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=",
+    "TEST_SUPER_ADMIN_EMAIL=",
+    "TEST_FINANCE_EMAIL=",
+    "TEST_OUTLET_EMAIL=",
+  ]) assert.match(template, new RegExp(`^${key.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}`, "m"));
+  assert.doesNotMatch(template, /system\.seribako\.com\.my|service_role|eyJ[A-Za-z0-9_-]+\./i);
+});

@@ -16,6 +16,18 @@ For authenticated Preview UAT, use a separate secret env file or process environ
 node scripts/check-uat-environment.mjs --target preview --env .env.preview.test.local
 ```
 
+Once the isolated Preview app, Supabase project, and disposable role identities
+are provisioned, run the complete guarded route matrix with:
+
+```powershell
+npm run uat:v9:preview
+```
+
+The runner validates the Preview target first, never starts the local server or
+Production-like clone, and then executes the same role/viewport/route shards as
+the local full-system audit. It stops before any browser shard when the env file
+is missing, points at Production, or names a different Supabase project.
+
 The Preview env must include `RUN_PREVIEW_UAT=confirmed`, `EXPECTED_PREVIEW_APP_HOST`, and `EXPECTED_PREVIEW_SUPABASE_PROJECT_REF`; the expected app host must be the exact Vercel Preview deployment URL and the project ref must not be Production. Do not reuse local or Production credentials.
 
 Set the role variables for each identity you want to test:

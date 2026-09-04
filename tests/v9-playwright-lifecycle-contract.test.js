@@ -31,6 +31,10 @@ test("v9 package commands set the explicit mode and local fixture guards", () =>
   assert.equal(packageJson.scripts["uat:env:prepare"], "node scripts/v9/prepare-local-uat-env.mjs");
   assert.equal(packageJson.scripts["uat:v9:local"], "node scripts/v9/run-uat.mjs local");
   assert.equal(packageJson.scripts["uat:v9:full"], "node scripts/v9/run-uat.mjs full");
+  assert.equal(packageJson.scripts["uat:v9:preview"], "node scripts/v9/run-uat.mjs preview --env .env.preview.test.local");
+  assert.match(runner, /mode === "preview"/);
+  assert.match(runner, /check-uat-environment\.mjs/);
+  assert.match(runner, /no browser shard was started/);
   assert.match(runner, /RUN_TENANT_BOUNDARY_E2E:\s*"1"/);
   assert.match(runner, /RUN_V9_FULL_UAT/);
   assert.match(runner, /RUN_V9_LOCAL_UAT/);

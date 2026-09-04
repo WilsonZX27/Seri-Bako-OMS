@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -7,8 +7,12 @@ import { fileURLToPath } from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const localEnvPath = resolve(root, ".env.test.local");
 const mode = process.argv[2];
-if (!new Set(["local", "full"]).has(mode)) throw new Error("Use run-uat.mjs with local or full mode.");
-if (!existsSync(localEnvPath)) throw new Error("v9 UAT requires the ignored .env.test.local fixture file.");
+const envOptionIndex = process.argv.indexOf("--env");
+const selectedEnvValue = envOptionIndex >= 0 ? process.argv[envOptionIndex + 1] : null;
+const selectedEnvPath = selectedEnvValue ? resolve(root, selectedEnvValue) : null;
+if (!new Set(["local", "full", "preview"]).has(mode)) throw new Error("Use run-uat.mjs with local, full, or preview mode.");
+if (mode !== "preview" && !existsSync(localEnvPath)) throw new Error("v9 UAT requires the ignored .env.test.local fixture file.");
+if (mode === "preview" && (!selectedEnvPath || !existsSync(selectedEnvPath))) throw new Error("Preview UAT requires an explicit env file: --env .env.preview.test.local");
 
 function loadLocalEnv() {
   const result = {};
@@ -29,14 +33,48 @@ function loadLocalEnv() {
   return result;
 }
 
+function loadSelectedEnv() {
+  const envPath = mode === "preview" ? selectedEnvPath : localEnvPath;
+  const result = {};
+  for (const line of readFileSync(envPath, "utf8").split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) continue;
+    const index = trimmed.indexOf("=");
+    const key = trimmed.slice(0, index).trim();
+    let value = trimmed.slice(index + 1).trim();
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) value = value.slice(1, -1);
+    result[key] = value;
+  }
+  return result;
+}
+
+function assertPreviewTarget() {
+  const result = spawnSync(process.execPath, [resolve(root, "scripts", "check-uat-environment.mjs"), "--target", "preview", "--env", selectedEnvPath], {
+    cwd: root,
+    env: { ...process.env, ...loadSelectedEnv() },
+    stdio: "inherit",
+    windowsHide: true,
+  });
+  if (result.status !== 0) throw new Error("Preview UAT environment guard failed; no browser shard was started.");
+}
+
+if (mode === "preview") assertPreviewTarget();
+
 const baseEnv = {
   ...process.env,
+  ...(mode === "preview" ? loadSelectedEnv() : loadLocalEnv()),
   RUN_TENANT_BOUNDARY_E2E: "1",
   PLAYWRIGHT_LOCAL_PORT: process.env.PLAYWRIGHT_LOCAL_PORT || "3109",
 };
+if (mode === "preview") {
+  delete baseEnv.RUN_TENANT_BOUNDARY_E2E;
+  baseEnv.ALLOW_REMOTE_E2E = "1";
+  baseEnv.PLAYWRIGHT_SERVER_MODE = "remote";
+}
 delete baseEnv.RUN_V9_LOCAL_UAT;
 delete baseEnv.RUN_V9_FULL_UAT;
-baseEnv[mode === "full" ? "RUN_V9_FULL_UAT" : "RUN_V9_LOCAL_UAT"] = "1";
+if (mode === "full") baseEnv.RUN_V9_FULL_UAT = "1";
+if (mode === "local") baseEnv.RUN_V9_LOCAL_UAT = "1";
 
 const cli = resolve(root, "node_modules", "@playwright", "test", "cli.js");
 const playwrightArgs = [
@@ -90,19 +128,21 @@ function buildProductionAudit() {
 }
 
 const explicitSelection = ["V9_UAT_ROLES", "V9_UAT_VIEWPORTS", "V9_UAT_ROUTES", "V9_UAT_SURFACE"]
-  .some((key) => process.env[key]?.trim());
+  .some((key) => baseEnv[key]?.trim());
 
 if (explicitSelection) {
-  if (process.env.V9_UAT_REBUILD === "1") {
+  if (mode !== "preview" && baseEnv.V9_UAT_REBUILD === "1") {
     const buildCode = await buildProductionAudit();
     if (buildCode !== 0) throw new Error("v9 UAT production build failed; focused selection was not started.");
     baseEnv.PLAYWRIGHT_SERVER_MODE = "production";
   }
   process.exitCode = await runShard("focused selection");
 } else {
-  const buildCode = await buildProductionAudit();
-  if (buildCode !== 0) throw new Error("v9 UAT production build failed; route shards were not started.");
-  baseEnv.PLAYWRIGHT_SERVER_MODE = "production";
+  if (mode !== "preview") {
+    const buildCode = await buildProductionAudit();
+    if (buildCode !== 0) throw new Error("v9 UAT production build failed; route shards were not started.");
+    baseEnv.PLAYWRIGHT_SERVER_MODE = "production";
+  }
   const require = createRequire(import.meta.url);
   const { discoverRouteMatrix, roles, viewports } = require("../../tests/e2e/v9-route-matrix.cjs");
   const matrix = discoverRouteMatrix();

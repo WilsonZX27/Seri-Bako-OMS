@@ -11,7 +11,8 @@ const {
 
 const fullMode = process.env.RUN_V9_FULL_UAT === "1";
 const localPreflightMode = process.env.RUN_V9_LOCAL_UAT === "1";
-const enabled = fullMode || localPreflightMode;
+const previewMode = process.env.RUN_PREVIEW_UAT === "confirmed";
+const enabled = fullMode || localPreflightMode || previewMode;
 if (fullMode) requireFreshProductionLikeClone();
 if (localPreflightMode) {
   const target = new URL(process.env.TEST_BASE_URL ?? "http://127.0.0.1:3000");
@@ -169,7 +170,7 @@ function assertCraft(result, context) {
 fs.mkdirSync(evidence, { recursive: true });
 
 test.describe("v9 full-system authenticated UAT", () => {
-  test.skip(!enabled, "Set RUN_V9_LOCAL_UAT=1 for local preflight or RUN_V9_FULL_UAT=1 after preparing the sanitized Production-like clone.");
+  test.skip(!enabled, "Set RUN_V9_LOCAL_UAT=1 for local preflight, RUN_V9_FULL_UAT=1 after preparing the sanitized Production-like clone, or RUN_PREVIEW_UAT=confirmed through the guarded Preview runner.");
 
   for (const role of includeApp ? auditedRoles : []) {
     for (const viewport of auditedViewports) {

@@ -4,7 +4,7 @@
 
 This is the 2026-09-04 baseline audit report; remediation receipts and current evidence are recorded below. The repository and deployed Owner surface were reviewed to the executable boundary available on that date. The system must **not** be described as fully Production-UAT verified yet.
 
-Follow-up status on 2026-09-05: P1-01 (documentation-authority contract) and P1-02 (atomic Compliance type and requirement creation) are closed by the current contract and local schema gates; remote authenticated Preview UAT remains an external-target gate.
+Follow-up status on 2026-09-05: P1-01 (documentation-authority contract) and P1-02 (atomic Compliance type and requirement creation) are closed by the current contract and local schema gates; remote authenticated Preview UAT remains an external-target gate. The guarded `uat:v9:preview` runner is now implemented and validated, but cannot execute until the isolated Preview Supabase target and disposable role identities exist.
 
 - Repository baseline HEAD: `b4b2619758932be163bc6a776e79523003389291` (`v9.2.26`)
 - TypeScript strict check: pass

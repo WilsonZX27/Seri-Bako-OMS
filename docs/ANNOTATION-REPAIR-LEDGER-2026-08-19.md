@@ -1461,3 +1461,15 @@ Deployment evidence (25 August 2026): `main` and `codex/uiux-round2` resolved to
 | Acceptance | Status | Evidence / remaining gate |
 |---|---|---|
 | A valid People Operations account reaches a permitted operational workspace after authentication. | implemented / awaiting migration and authenticated UAT | Employees is now the preferred landing and migration 234 repairs the role plus its Dashboard, People, compliance, staff, branch and document grants. Production shown in the report remains v9.2.9; migrations 229 and 234 plus the application release must be applied before Production can be called fixed. |
+
+## 2026-09-04 mobile workflow and posting closure — v9.2.28
+
+| Annotation group | Acceptance | Status / remaining gate |
+|---|---|---|
+| Outlet Daily actions and sales inputs | Two real actions remain one 50/50 phone row; sales amounts use labelled two-column numeric inputs. | locally verified / focused 390×844 browser workflow and four-viewport route matrix pass |
+| Outlet Daily edit and post authority | Outlet may correct and resave through Ready to post; authorised Purchasing-or-higher roles post and lock it; ready records appear in My Actions. | locally verified / migration 260 and `V9_SCHEMA_OK`; Outlet resave, Purchasing queue, Post and immutable lock browser flow pass |
+| Loading and bottom navigation | Content skeletons never replace the fixed five-item application navigation with More Actions. | locally verified / loading contracts and affected-route viewport matrix pass; deployed transition observation pending |
+| Dashboard visual line and More Actions spacing | Pipeline grids use gap-based composition without sibling divider fragments; mobile sheet cards have explicit spacing. | locally verified / phone DOM border checks and four-viewport route matrix pass |
+| Outlet Calendar | One compact month axis, smaller phone cells and dot-based phone events replace the duplicated mobile toolbar. | locally verified / focused phone browser workflow and four-viewport route matrix pass |
+| Compliance attachment layout | File chooser and Upload share a 70/30 row while preserving the 4 MB validation contract. | locally verified / authenticated phone flow measured the rendered 70/30 grid; destructive upload mutation was not required |
+| Attendance mobile schedule | Phone uses a seven-day selector, compact employee rows and inline workflow actions; normal app navigation remains fixed. | locally verified / authenticated phone schedule workflow and four-viewport route matrix pass; complete Supervisor/Manager/Owner mutation regression remains open |

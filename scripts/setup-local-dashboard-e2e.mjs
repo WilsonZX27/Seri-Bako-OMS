@@ -46,6 +46,7 @@ const accounts = [
   ["manager", "TEST_MANAGER_EMAIL", "TEST_MANAGER_PASSWORD"],
   ["purchasing", "TEST_PURCHASING_EMAIL", "TEST_PURCHASING_PASSWORD"],
   ["kitchen", "TEST_KITCHEN_EMAIL", "TEST_KITCHEN_PASSWORD"],
+  ["outlet_supervisor", "TEST_OUTLET_SUPERVISOR_EMAIL", "TEST_OUTLET_SUPERVISOR_PASSWORD"],
   ["outlet_staff", "TEST_OUTLET_EMAIL", "TEST_OUTLET_PASSWORD"],
 ];
 const staffByRole = new Map();
@@ -661,5 +662,5 @@ if (includeSupplierInvoiceFixture) {
 
 const fixtureLabels = [includeStockCountFixture ? "stock-count" : null, includeSupplierInvoiceFixture ? "supplier-invoice" : null, includeMutationWorkflowFixture ? "workflow-mutation" : null, includeAnnotationFixture ? "annotation" : null].filter(Boolean);
 console.log(fixtureLabels.length
-  ? `Created seven disposable local dashboard identities and local-only ${fixtureLabels.join(" + ")} fixtures.`
-  : "Created seven disposable local dashboard identities without business records.");
+  ? `Created eight disposable local dashboard identities and local-only ${fixtureLabels.join(" + ")} fixtures.`
+  : "Created eight disposable local dashboard identities without business records.");

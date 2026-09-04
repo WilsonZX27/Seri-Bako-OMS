@@ -79,15 +79,18 @@ test("active staff, permissions, company and assigned branch are checked inside 
   assert.equal((sql.match(/set search_path = public/g) ?? []).length, 3);
 });
 
-test("completed outlet records use the operator-facing Posted label", () => {
+test("ready and posted outlet records retain separate operator-facing labels", () => {
   const statusLabels = read("src/lib/status-label.ts");
-  assert.match(statusLabels, /evening_completed: "Posted"/);
+  assert.match(statusLabels, /evening_completed: "Ready to post"/);
+  assert.match(statusLabels, /reviewed: "Posted"/);
   assert.doesNotMatch(read("src/app/(app)/outlet-daily-records/page.tsx"), /Posted · editable/);
 });
 
-test("outlet completion does not create a fictitious review queue", () => {
+test("outlet completion creates the controlled ready-to-post queue", () => {
   const page = read("src/app/(app)/outlet-daily-records/page.tsx");
-  assert.match(query, /posted_today: todayRows\.filter\(\(row\) => \["evening_completed", "reviewed"\]\.includes\(row\.status\)\)\.length/);
+  assert.match(query, /posted_today: todayRows\.filter\(\(row\) => row\.status === "reviewed"\)\.length/);
+  assert.match(query, /missing_evening: todayRows\.filter\(\(row\) => \["draft", "morning_recorded"\]\.includes\(row\.status\)\)\.length/);
+  assert.match(query, /ready_to_post: todayRows\.filter\(\(row\) => row\.status === "evening_completed"\)\.length/);
   assert.match(page, /<dt className="text-\[10px\] text-muted-foreground">Posted<\/dt>/);
   assert.match(page, /Ready to post/);
   assert.doesNotMatch(page, /<StatusBadge status=\{progress\.status\} \/><p/);
@@ -223,7 +226,7 @@ test("outlet records flag a confirmed zero when stock was sent", () => {
 });
 
 test("Outlet cannot enter Qty Sent; only the dedicated permission unlocks it", () => {
-  assert.match(detail, /getPermissionMap\(\["outlet_daily_record\.update", "outlet_daily_record\.qty_sent", "outlet_daily_record\.void"\]\)/);
+  assert.match(detail, /getPermissionMap\(\["outlet_daily_record\.update", "outlet_daily_record\.qty_sent", "outlet_daily_record\.post", "outlet_daily_record\.void"\]\)/);
   assert.match(detail, /const canEditQtySent = !statusLocked && permissions\["outlet_daily_record\.qty_sent"\]/);
   assert.match(form, /name="qty_sent"[\s\S]*disabled=\{locked \|\| !canEditQtySent\}/);
   assert.match(form, /data-qty-sent-ownership/);

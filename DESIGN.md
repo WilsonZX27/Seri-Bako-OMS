@@ -1,5 +1,14 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.28 (unreleased) — Persistent navigation and role-owned finalisation
+
+- A route loading boundary owns only the changing content canvas. The authenticated five-item mobile navigation remains mounted and visually unchanged; stale route actions, document action bars, create FABs and placeholder `More actions` controls are suppressed until real content resolves.
+- A phone document action bar divides available width equally among its real actions. Primary status does not earn a double-width row, and two actions must remain a single 50/50 row.
+- Repeated numeric amounts use a two-column phone grid with numeric keyboards when labels remain unambiguous. Density never removes field labels, validation, ownership or units.
+- Outlet Daily finalisation is role-owned: Outlet corrects and resaves through `Ready to post`; authorised company-wide roles post; `Posted` is immutable to Outlet. Every owned finalisation appears in the assignee's shared action queue.
+- Attendance phone planning is a day-at-a-time operational view with a seven-day selector, compact employee rows and local workflow actions. The desktop weekly matrix remains the pointer/tablet workspace rather than a compressed phone layout.
+- Upload controls may use a 70/30 file/action row when the file picker remains the dominant task. Mobile sheets use explicit inter-card spacing; grid separators must be drawn by row and column logic, never one-dimensional sibling dividers.
+
 ## v9.2.26 (unreleased) — Annotation-derived release gates
 
 - Annotation repair is systemic: classify each report as data truth, component vocabulary, density, workflow, responsive behaviour or release reliability, then repair the shared authority before adding a page exception.

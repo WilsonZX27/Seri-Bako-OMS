@@ -3,6 +3,7 @@ import { informationArchitecture } from "@/lib/information-architecture";
 const exactRoutePermissions: Record<string, string[]> = {
   "/compliance": ["outlet_compliance.read"],
   "/attendance/imports": ["attendance.import"],
+  "/attendance/settings": ["shift_template.manage"],
   "/attendance/templates": ["shift_template.manage"],
   "/activity": ["dashboard.view"],
   "/administration": ["company.read", "staffs.read", "roles.read", "items.view", "imports.create", "branches.read"],
@@ -42,6 +43,8 @@ const exactRoutePermissions: Record<string, string[]> = {
 };
 
 const exactRouteRoles: Record<string, readonly string[]> = {
+  "/documents": ["super_admin", "finance", "manager", "purchasing", "kitchen"],
+  "/procurement": ["super_admin", "finance", "manager", "purchasing", "kitchen"],
   "/production/planning": ["super_admin", "finance", "manager", "purchasing", "kitchen"],
   "/production/variance": ["super_admin", "finance", "manager", "purchasing", "kitchen"],
 };
@@ -106,7 +109,10 @@ export function getRoutePermissionCodes(pathname: string) {
 
 export function getRouteAllowedRoles(pathname: string) {
   if (pathname === "/administration") return ["super_admin", "finance", "manager", "purchasing"] as const;
-  if (exactRouteRoles[pathname]) return exactRouteRoles[pathname];
+  const explicitRoles = Object.entries(exactRouteRoles)
+    .sort(([left], [right]) => right.length - left.length)
+    .find(([route]) => matchesPrefix(pathname, route))?.[1];
+  if (explicitRoles) return explicitRoles;
   const item = informationArchitecture.find((entry) => pathname === entry.href || pathname.startsWith(`${entry.href}/`));
   return item?.roles ?? null;
 }

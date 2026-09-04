@@ -76,3 +76,11 @@ test("Manager and Owner dashboards include submitted outlet schedules in their a
   assert.match(pending, /href: `\/attendance\/schedule\?branch=/);
   assert.match(workspace, /Review and publish this outlet roster/);
 });
+
+test("Outlet Daily posting actions never inherit procurement-only supplier and amount copy", () => {
+  const pending = read("src/server/queries/pending-actions.ts");
+  const dashboard = read("src/components/dashboard-workspace.tsx");
+  assert.match(pending, /id: `outlet-daily-\$\{row\.id\}`/);
+  assert.match(dashboard, /isOutletDailyAction[\s\S]*Review outlet quantities and post to lock editing/);
+  assert.match(dashboard, /isOutletDailyAction \? "Outlet Daily"/);
+});

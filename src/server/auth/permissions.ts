@@ -7,7 +7,7 @@ import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 export const roleDescriptions = {
   super_admin: "Protected system owner with every permission.",
   people_operations: "People Operations administrator for staff and restricted compliance records.",
-  finance: "Finance reviewer who also manages staff, numbering, imports, and branches without Owner controls.",
+  finance: "Finance reviewer who manages numbering, imports, and branches without Owner or People controls.",
   manager: "Company-wide operational approver; branch assignment supplies default context only.",
   purchasing: "Company-wide purchasing and master-data operator.",
   kitchen: "Central Kitchen operator for assigned branches.",
@@ -161,8 +161,8 @@ const permissionAliases: Record<string, string[]> = {
 export const rolePermissionMatrix = {
   super_admin: ["*"],
   people_operations: ["dashboard.view", "outlet_compliance.read", "outlet_compliance.manage", "outlet_compliance.review", "outlet_compliance.document.read", "people.read", "people.compliance.status.read", "people.compliance.manage", "people.compliance.document.read", "staffs.read", "staffs.create", "staffs.update", "branches.read", "documents.view", "documents.attach"],
-  finance: ["dashboard.view", "pr.finance_review", "pr.reject", "pr.view_all", "purchase_request.read", "purchase_order.read", "goods_receiving.read", "inventory.read", "stock_count.read", "stock_transfer.read", "stock_wastage.read", "po.view", "grn.view", "purchase_return.view", "items.view", "suppliers.view", "production.view", "recipes.view", "outlet_daily_record.view", "outlet_daily_record.view_all", "outlet_daily_record.qty_sent", "supplier_invoice.view", "supplier_invoice.create", "supplier_invoice.pay", "supplier_invoice.approve", "supplier_invoice.void", "documents.view", "documents.attach", "reports.view", "stock.view", "stock_transactions.read", "document_sequences.read", "document_sequences.create", "document_sequences.update", "imports.create", "imports.run", "branches.read", "branches.create", "branches.update"],
-  manager: ["dashboard.view", "outlet_compliance.read", "outlet_compliance.manage", "outlet_compliance.review", "outlet_compliance.document.read", "people.read", "people.compliance.status.read", "staffs.read", "staffs.create", "staffs.update", "purchase_request.read", "purchase_order.read", "goods_receiving.read", "inventory.read", "stock_count.read", "stock_transfer.read", "stock_wastage.read", "pr.manager_approve", "pr.reject", "pr.view_all", "po.view", "grn.view", "purchase_return.view", "documents.view", "documents.comment", "reports.view", "stock.view", "stock_transactions.read", "attachments.upload", "production.view", "production.approve", "production.reject", "outlet_daily_record.view", "outlet_daily_record.view_all", "outlet_daily_record.qty_sent", "outlet_daily_record.review", "outlet_daily_record.void", "branches.read", "branches.create", "branches.update"],
+  finance: ["dashboard.view", "pr.finance_review", "pr.reject", "pr.view_all", "purchase_request.read", "purchase_order.read", "goods_receiving.read", "inventory.read", "stock_count.read", "stock_transfer.read", "stock_wastage.read", "po.view", "grn.view", "purchase_return.view", "items.view", "suppliers.view", "production.view", "recipes.view", "outlet_daily_record.view", "outlet_daily_record.view_all", "outlet_daily_record.qty_sent", "outlet_daily_record.post", "supplier_invoice.view", "supplier_invoice.create", "supplier_invoice.pay", "supplier_invoice.approve", "supplier_invoice.void", "documents.view", "documents.attach", "reports.view", "stock.view", "stock_transactions.read", "document_sequences.read", "document_sequences.create", "document_sequences.update", "imports.create", "imports.run", "branches.read", "branches.create", "branches.update"],
+  manager: ["dashboard.view", "outlet_compliance.read", "outlet_compliance.manage", "outlet_compliance.review", "outlet_compliance.document.read", "people.read", "people.compliance.status.read", "staffs.read", "staffs.create", "staffs.update", "purchase_request.read", "purchase_order.read", "goods_receiving.read", "inventory.read", "stock_count.read", "stock_transfer.read", "stock_wastage.read", "pr.manager_approve", "pr.reject", "pr.view_all", "po.view", "grn.view", "purchase_return.view", "documents.view", "documents.comment", "reports.view", "stock.view", "stock_transactions.read", "attachments.upload", "production.view", "production.approve", "production.reject", "outlet_daily_record.view", "outlet_daily_record.view_all", "outlet_daily_record.qty_sent", "outlet_daily_record.post", "outlet_daily_record.review", "outlet_daily_record.void", "branches.read", "branches.create", "branches.update"],
   purchasing: [
     "dashboard.view",
     "items.create",
@@ -195,6 +195,7 @@ export const rolePermissionMatrix = {
     "outlet_daily_record.view_all",
     "outlet_daily_record.update",
     "outlet_daily_record.qty_sent",
+    "outlet_daily_record.post",
     "branches.read",
   ],
   outlet_staff: ["dashboard.view", "outlet_daily_record.view", "outlet_daily_record.create", "outlet_daily_record.update", "outlet_compliance.read", "outlet_compliance.upload"],

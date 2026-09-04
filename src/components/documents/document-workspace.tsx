@@ -104,9 +104,13 @@ export function DocumentWorkspace({
       </WorkspaceGrid>
       {mobilePrimaryAction || mobileActivity || mobileMoreOptions ? <div data-mobile-document-action className={cn(
         "sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] grid min-w-0 items-center gap-2 border-x-0 border-b-0 bg-white/95 p-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(17,30,22,0.16)] md:hidden [&_button]:h-11 [&_button]:w-full",
-        mobilePrimaryAction && (mobileActivity || mobileMoreOptions) ? "grid-cols-2" : "grid-cols-1",
+        [mobilePrimaryAction, mobileActivity, mobileMoreOptions].filter(Boolean).length === 3
+          ? "grid-cols-3"
+          : [mobilePrimaryAction, mobileActivity, mobileMoreOptions].filter(Boolean).length === 2
+            ? "grid-cols-2"
+            : "grid-cols-1",
       )}>
-        {mobilePrimaryAction ? <div className={cn("min-w-0", (mobileActivity || mobileMoreOptions) && "col-span-2")}>{mobilePrimaryAction}</div> : null}
+        {mobilePrimaryAction ? <div className="min-w-0">{mobilePrimaryAction}</div> : null}
         {mobileActivity ? <div className="min-w-0"><MobileActivityAndFiles>{mobileActivity}</MobileActivityAndFiles></div> : null}
         {mobileMoreOptions ? <div className="min-w-0">{mobileMoreOptions}</div> : null}
       </div> : null}

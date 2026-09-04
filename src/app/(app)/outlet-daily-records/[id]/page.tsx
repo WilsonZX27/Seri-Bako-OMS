@@ -13,18 +13,19 @@ import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { sortProductsForDisplay } from "@/lib/product-order";
 import { formatDateOnly, formatNumber } from "@/lib/utils";
-import { saveOutletDailyRecord, voidOutletDailyRecord } from "@/server/actions/outlet-daily-records";
+import { postOutletDailyRecord, saveOutletDailyRecord, voidOutletDailyRecord } from "@/server/actions/outlet-daily-records";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getOutletDailyActivity, getOutletDailyFormOptions, getOutletDailyRecord } from "@/server/queries/outlet-daily-records";
 import { logServerError } from "@/server/observability/logger";
-import { CheckCircle2, Save } from "lucide-react";
+import { CheckCircle2, Save, Send } from "lucide-react";
 import { detailOrNotFound } from "@/server/queries/detail";
 import { TimelineEventList } from "@/components/documents/document-panels";
 
 const dailySteps = [
   { key: "draft", label: "Qty Sent", description: "Central Kitchen records the quantity sent." },
   { key: "morning_recorded", label: "Outlet Entry", description: "Outlet Staff confirms received quantity and wastage." },
-  { key: "evening_completed", label: "Posted", description: "The completed daily record is posted and remains editable by authorised staff." },
+  { key: "evening_completed", label: "Ready to post", description: "Outlet values remain editable until an authorised company-wide role posts the record." },
+  { key: "reviewed", label: "Posted", description: "Purchasing or a higher authorised role posted and locked the record." },
 ];
 
 export default async function OutletDailyRecordDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
@@ -33,7 +34,7 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
   const source = await Promise.all([
     Promise.resolve(detail),
     getOutletDailyFormOptions(),
-    getPermissionMap(["outlet_daily_record.update", "outlet_daily_record.qty_sent", "outlet_daily_record.void"]),
+    getPermissionMap(["outlet_daily_record.update", "outlet_daily_record.qty_sent", "outlet_daily_record.post", "outlet_daily_record.void"]),
     getOutletDailyActivity(id),
   ]).catch((error) => {
     logServerError(error, { source: "page.outletDailyRecords.detail" });
@@ -62,9 +63,10 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
       actor_name: record.created_by_name ?? "Staff",
     },
   ].sort((left, right) => new Date(right.created_at).getTime() - new Date(left.created_at).getTime());
-  const statusLocked = record.status === "void";
+  const statusLocked = ["reviewed", "void"].includes(record.status);
   const canEditOutletValues = !statusLocked && permissions["outlet_daily_record.update"];
   const canEditQtySent = !statusLocked && permissions["outlet_daily_record.qty_sent"];
+  const canPost = !statusLocked && permissions["outlet_daily_record.post"];
   const qtySentConfirmed = record.qty_sent_state === "confirmed";
   const outletCanComplete = canEditOutletValues && qtySentConfirmed;
   const locked = !canEditOutletValues && !canEditQtySent;
@@ -77,21 +79,26 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
     : record.status === "morning_recorded"
       ? "Confirm Received and record Wastage, then complete the daily record."
       : record.status === "evening_completed"
-        ? "This record is posted. Authorised staff can still correct and save it."
+        ? canPost
+          ? "This record is ready to post. Review the values, save any correction, then post to lock Outlet editing."
+          : "This record is ready to post. Outlet can continue correcting and saving it until Purchasing or another authorised role posts it."
         : record.status === "reviewed"
-          ? "This legacy record is treated as posted. Authorised staff can still correct and save it."
+          ? "This record is posted and locked. Use the audit trail for follow-up instead of silently changing operational history."
           : "This record is void and locked.";
   const voidAction = voidOutletDailyRecord.bind(null, record.id);
+  const postAction = postOutletDailyRecord.bind(null, record.id);
 
   const editPrimary = record.status === "draft" && canEditQtySent && !qtySentConfirmed
     ? <SubmitButton form={formId} name="target_status" value="morning_recorded" className="gap-2"><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Confirm Qty Sent</SubmitButton>
     : canEditOutletValues && record.status === "draft"
       ? outletCanComplete
-        ? <SubmitButton form={formId} name="target_status" value="evening_completed" className="gap-2"><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Post Daily Record</SubmitButton>
+        ? <SubmitButton form={formId} name="target_status" value="evening_completed" className="gap-2"><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Mark Ready to Post</SubmitButton>
         : <SubmitButton form={formId} name="target_status" value="draft" className="gap-2"><Save className="h-4 w-4" aria-hidden="true" />Save Draft</SubmitButton>
     : outletCanComplete && record.status === "morning_recorded"
-      ? <SubmitButton form={formId} name="target_status" value="evening_completed" className="gap-2"><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Post Daily Record</SubmitButton>
-      : canEditOutletValues && record.status === "evening_completed"
+      ? <SubmitButton form={formId} name="target_status" value="evening_completed" className="gap-2"><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Mark Ready to Post</SubmitButton>
+      : canPost && record.status === "evening_completed"
+        ? <form action={postAction}><SubmitButton className="w-full gap-2" pendingLabel="Posting…"><Send className="h-4 w-4" aria-hidden="true" />Post Daily Record</SubmitButton></form>
+        : canEditOutletValues && record.status === "evening_completed"
         ? <SubmitButton form={formId} name="target_status" value="evening_completed" className="gap-2"><Save className="h-4 w-4" aria-hidden="true" />Save Changes</SubmitButton>
         : !canEditOutletValues && canEditQtySent
           ? <SubmitButton form={formId} name="target_status" value={record.status}>Save Qty Sent</SubmitButton>
@@ -100,9 +107,10 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
   const secondaryActions = <>
     {canEditOutletValues && record.status === "draft" && (canEditQtySent || outletCanComplete) ? <SubmitButton form={formId} name="target_status" value="draft" variant="outline"><Save className="h-4 w-4" aria-hidden="true" />Save progress</SubmitButton> : null}
     {outletCanComplete && canEditOutletValues && record.status === "morning_recorded" ? <SubmitButton form={formId} name="target_status" value="morning_recorded" variant="outline">Save Changes</SubmitButton> : null}
+    {canPost && canEditOutletValues && record.status === "evening_completed" ? <SubmitButton form={formId} name="target_status" value="evening_completed" variant="outline"><Save className="h-4 w-4" aria-hidden="true" />Save Changes</SubmitButton> : null}
     {canVoid ? <DestructiveActionDialog action={voidAction} label="Void Record" title="Void this outlet daily record?" description="The record will leave active operational totals but remain in the audit trail." pendingLabel="Voiding…"><Field label="Void reason" required><Input name="reason" required placeholder="Explain why this record is being voided" /></Field></DestructiveActionDialog> : null}
   </>;
-  const hasSecondaryActions = Boolean(canVoid || canEditOutletValues && record.status === "morning_recorded" || canEditOutletValues && record.status === "draft" && (canEditQtySent || outletCanComplete));
+  const hasSecondaryActions = Boolean(canVoid || canPost && canEditOutletValues && record.status === "evening_completed" || canEditOutletValues && record.status === "morning_recorded" || canEditOutletValues && record.status === "draft" && (canEditQtySent || outletCanComplete));
 
   const sidePanel = <>
     {primaryAction || hasSecondaryActions ? <DocumentActionSection moreOptions={hasSecondaryActions ? <div className="grid gap-2">{secondaryActions}</div> : undefined}>{primaryAction ?? <p className="text-xs text-muted-foreground">No primary action is available for this status.</p>}</DocumentActionSection> : null}
@@ -115,20 +123,20 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
     documentNo={`${record.branch_name} · ${formatDateOnly(record.record_date)}`}
     documentIdentity={<p className="min-w-0 font-mono text-[14px] font-semibold leading-5 text-[var(--sb-text)] sm:whitespace-nowrap sm:text-[16px]"><span className="block truncate sm:inline">{record.branch_name}</span><span className="block whitespace-nowrap sm:inline"> · {formatDateOnly(record.record_date)}</span></p>}
     title="Outlet Daily Record"
-    status={record.status}
+    status={record.status === "evening_completed" ? "ready_to_post" : record.status === "reviewed" ? "posted" : record.status}
     workflowSteps={dailySteps}
-    currentStatus={["reviewed", "void"].includes(record.status) ? "evening_completed" : record.status}
+    currentStatus={record.status === "void" ? "reviewed" : record.status}
     sidePanel={sidePanel}
     mobilePrimaryAction={primaryAction}
     mobileMoreOptions={hasSecondaryActions ? <DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions> : undefined}
   >
     {messages.success ? <Card><CardContent className="p-3 text-sm text-success">{messages.success}</CardContent></Card> : null}
     <ActionErrorNotice message={messages.error} />
-    {canEditOutletValues && !canEditQtySent && !qtySentConfirmed && record.status === "draft" ? <Card className="border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)]"><CardContent className="p-3 text-sm"><p className="font-medium">Waiting for Kitchen Qty Sent.</p><p className="mt-1 text-muted-foreground">This record can be posted in one step after all Qty Sent values are confirmed.</p></CardContent></Card> : null}
+    {canEditOutletValues && !canEditQtySent && !qtySentConfirmed && record.status === "draft" ? <Card className="border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)]"><CardContent className="p-3 text-sm"><p className="font-medium">Waiting for Kitchen Qty Sent.</p><p className="mt-1 text-muted-foreground">After Qty Sent is confirmed, Outlet can finish the entry and mark it Ready to post.</p></CardContent></Card> : null}
     {record.received_state === "unavailable" ? <Card className="border-warning/40 bg-warning/10"><CardContent className="p-3 text-sm"><p className="font-medium text-warning">Received entry still in progress</p><p className="mt-1 text-muted-foreground">{record.received_pending_lines} food line{record.received_pending_lines === 1 ? " still needs" : "s still need"} a Received value. Enter an amount or an explicit 0, save progress, and return later to complete Wastage.</p></CardContent></Card> : null}
     {record.received_zero_with_sent ? <Card className="border-warning/40 bg-warning/10"><CardContent className="p-3 text-sm"><p className="font-medium text-warning">Receipt check needed</p><p className="mt-1 text-muted-foreground">Qty Sent is recorded, but Received is 0. Confirm whether the outlet received nothing or the receipt entry is incomplete.</p></CardContent></Card> : null}
-    {record.sales_review_status === "needs_review" ? <Card className="border-warning/40 bg-warning/10"><CardContent className="p-3 text-sm"><p className="font-medium text-warning">Sales total needs attention</p><p className="mt-1 text-muted-foreground">POS total and channel total do not tally. The record can remain posted; Finance or an authorised manager should review the difference.</p></CardContent></Card> : null}
-    {statusLocked ? <Card className="border-warning/40 bg-warning/10"><CardContent className="p-3 text-sm font-medium">Void and locked — normal editing is unavailable.</CardContent></Card> : null}
+    {record.sales_review_status === "needs_review" ? <Card className="border-warning/40 bg-warning/10"><CardContent className="p-3 text-sm"><p className="font-medium text-warning">Sales total needs attention</p><p className="mt-1 text-muted-foreground">POS total and channel total do not tally. Finance or an authorised manager should review the difference before or after posting.</p></CardContent></Card> : null}
+    {statusLocked ? <Card className="border-warning/40 bg-warning/10"><CardContent className="p-3 text-sm font-medium">{record.status === "reviewed" ? "Posted and locked — Outlet editing is unavailable." : "Void and locked — normal editing is unavailable."}</CardContent></Card> : null}
     <Card><CardContent className="grid grid-cols-2 gap-x-4 gap-y-3 p-3 sm:grid-cols-4"><div><p className="text-xs text-muted-foreground">Qty Sent</p><strong className={`tabular-nums ${record.total_sent === null ? "text-warning" : ""}`}>{record.total_sent === null ? "Pending" : formatNumber(record.total_sent)}</strong>{record.total_sent === null ? <p className="text-[11px] text-warning">Needs confirmation</p> : null}</div><div><p className="text-xs text-muted-foreground">Received</p><strong className={`tabular-nums ${record.total_received === null || record.received_zero_with_sent ? "text-warning" : ""}`}>{record.total_received === null ? `${record.received_pending_lines} line${record.received_pending_lines === 1 ? "" : "s"} pending` : record.received_zero_with_sent ? "0 · verify" : formatNumber(record.total_received)}</strong></div><div><p className="text-xs text-muted-foreground">Wastage</p><strong className="tabular-nums">{formatNumber(record.total_wastage)}</strong></div><div><p className="text-xs text-muted-foreground">Wastage %</p><strong className="tabular-nums">{record.wastage_percent === null ? record.received_pending_lines > 0 ? "Pending receipt" : "—" : `${formatNumber(record.wastage_percent)}%`}</strong></div>{record.void_reason ? <p className="col-span-full text-xs text-destructive">Void reason: {record.void_reason}</p> : null}</CardContent></Card>
     <input form={formId} type="hidden" name="record_id" value={record.id} />
     <OutletDailyRecordForm formId={formId} action={saveOutletDailyRecord} branches={options.branches} products={products} lines={lines} branchId={record.branch_id} recordDate={record.record_date} notes={record.notes} sales={{ pos_total_sales: record.pos_total_sales, sales_variance_reason: record.sales_variance_reason, breakdown: sales }} validationError={messages.error} locked={locked} canEditHeader={canEditOutletValues} canEditQtySent={canEditQtySent} canEditOutletValues={canEditOutletValues} />

@@ -180,7 +180,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
       ) : null}
       {content && !mobileBarHidden && !hasCreateFab ? <div data-mobile-action-bar className={cn("sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] items-center gap-2 rounded-none border-x-0 border-b-0 bg-white/95 p-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_20px_rgba(17,30,22,0.2)]", "grid", primaryAction ? "grid-cols-2" : "grid-cols-1", "md:hidden xl:hidden")}>
         {primaryAction ? <div data-mobile-primary-slot className="min-w-0 [&>*]:h-11 [&>*]:w-full">{primaryAction}</div> : null}
-        <Button ref={triggerRef} type="button" variant={primaryAction ? "outline" : "default"} className="h-11 min-w-0 w-full gap-2" onClick={() => setOpen(true)} aria-label="Open more actions" aria-haspopup="dialog" aria-expanded={open}>
+        <Button ref={triggerRef} type="button" variant={primaryAction ? "outline" : "default"} className="h-11 min-w-0 w-full justify-center gap-2" onClick={() => setOpen(true)} aria-label="Open more actions" aria-haspopup="dialog" aria-expanded={open}>
           <PanelRight className="h-4 w-4" aria-hidden="true" />
           {primaryAction ? "More" : "More actions"}
         </Button>
@@ -193,7 +193,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
               <h2 id={titleId} className="text-sm font-semibold">More actions</h2>
               <Button type="button" variant="ghost" size="icon" onClick={close} aria-label="Close more actions"><X className="h-5 w-5" /></Button>
             </header>
-            <div className="sb-scrollbar-none max-h-[calc(82dvh-3rem-env(safe-area-inset-bottom))] overflow-y-auto overscroll-contain px-2 py-1">{secondaryConsoleContent}</div>
+            <div data-mobile-console-content className="sb-scrollbar-none grid max-h-[calc(82dvh-3rem-env(safe-area-inset-bottom))] gap-3 overflow-y-auto overscroll-contain p-3">{secondaryConsoleContent}</div>
           </div>
         </div>
       ) : null}

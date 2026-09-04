@@ -1480,11 +1480,13 @@ html[data-design-layer="v2"] :where([data-mobile-action-bar], .sb-mobile-action-
 html[data-design-layer="v2"] :where([data-mobile-action-bar], .sb-mobile-action-bar) > * :where(button, a) {
   width: 100% !important;
   min-width: 0;
-  justify-content: space-evenly;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 html[data-design-layer="v2"] :where([data-mobile-action-bar], .sb-mobile-action-bar) > button {
-  justify-content: space-evenly;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 html[data-design-layer="v2"] [data-mobile-action-bar] > *,
@@ -2320,6 +2322,29 @@ html[data-touch-tablet="true"] [data-app-topbar] > .hidden.min-w-0.items-center 
   }
 }
 
+/* Route loading owns only the workspace canvas. A previous route may still
+   have a mounted action rail while Suspense resolves; never let that stale
+   rail replace the persistent app navigation. */
+@media (max-width: 1023px) {
+  html[data-design-layer="v2"]:has([data-page-loading-state])
+    :is([data-mobile-action-bar], [data-mobile-document-action], [data-mobile-create-fab], .sb-mobile-action-bar) {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  html[data-design-layer="v2"]:has([data-page-loading-state]) [data-mobile-bottom-nav] {
+    display: block !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+
+  html[data-design-layer="v2"]:has([data-page-loading-state]) #main-content {
+    padding-bottom: calc(var(--sb-mobile-nav-height) + env(safe-area-inset-bottom)) !important;
+    scroll-padding-bottom: calc(var(--sb-mobile-nav-height) + env(safe-area-inset-bottom)) !important;
+  }
+}
+
 @media (max-width: 639px) {
   html[data-design-layer="v2"] form.sb-list-query-card {
     margin: 0;
@@ -2332,5 +2357,17 @@ html[data-touch-tablet="true"] [data-app-topbar] > .hidden.min-w-0.items-center 
   html[data-design-layer="v2"] form.unified-list-header :where(.unified-list-primary-control, .unified-list-date-control, .unified-list-primary-input, .unified-list-inline-control, .unified-list-inline-control > *, .unified-list-inline-control input, .unified-list-inline-control select, .unified-list-inline-fields > *, .unified-list-inline-fields input, .unified-list-inline-fields select, [data-select-control]) {
     height: 44px !important;
     min-height: 44px !important;
+  }
+}
+
+@media (max-width: 767px) {
+  /* The weekly spreadsheet remains the high-density desktop editor. Phones
+     use the selected-day roster directly above it in the DOM. */
+  [data-schedule-planner] section:has(table) {
+    display: none !important;
+  }
+
+  [data-schedule-planner] [aria-label="Shift palette"] > :last-child {
+    display: none !important;
   }
 }

@@ -1,6 +1,8 @@
 # Seri Bako OMS — Schema 与 Table 关系地图
 
-> Current repository and Production authority 2026-09-04: forward-only migration 历史与 Production ledger 均已到 `259`. Migration `259` retires DBKL from the company checklist and assigns Pest Control to every active Outlet and Central Kitchen. Production verification reported migration ceiling `259`, zero active DBKL types, zero required DBKL sites, and Pest Control assigned to all 12/12 eligible active sites. The authenticated v9.2.26 Compliance detail rerun showed Pest Control and no DBKL entry.
+> Current repository authority 2026-09-04: forward-only migration 历史已到 `260`. Migration `260` introduces the permission-gated Outlet Daily `post` transition, retains `evening_completed` as Ready to post, and uses the historical `reviewed` enum value as the durable Posted state. This is repository evidence only; it does not prove migration application in Preview or Production.
+
+> Current repository and Production authority 2026-09-04: forward-only migration 历史已到 `259`; Production ledger 亦已到 `259`. Migration `259` retires DBKL from the company checklist and assigns Pest Control to every active Outlet and Central Kitchen. Production verification reported migration ceiling `259`, zero active DBKL types, zero required DBKL sites, and Pest Control assigned to all 12/12 eligible active sites. The authenticated v9.2.26 Compliance detail rerun showed Pest Control and no DBKL entry.
 
 > Current repository authority 2026-09-04: forward-only migration 历史已到 `257`. Migration `255` retires Outlet Daily review approval while preserving legacy audit fields and activity. Migration `256` corrects the exact AutoCount PO number to `PO-000207`. Migration `257` adds named multi-attachment compliance evidence and includes Central Kitchen while excluding Office. Repository evidence is not proof of Preview or Production state.
 

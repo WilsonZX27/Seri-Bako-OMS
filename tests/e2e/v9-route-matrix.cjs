@@ -24,7 +24,7 @@ const viewports = [
 ];
 
 const ALL = roles;
-const OUTLET_DAILY = ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outlet"];
+const OUTLET_DAILY = ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"];
 const PROCUREMENT = ["superAdmin", "finance", "manager", "purchasing", "kitchen"];
 const INVENTORY = ["superAdmin", "finance", "manager", "purchasing", "kitchen"];
 const PRODUCTION = ["superAdmin", "finance", "manager", "purchasing", "kitchen"];
@@ -32,14 +32,14 @@ const REPORTS = ["superAdmin", "finance", "manager", "purchasing"];
 const MASTER_DATA = ["superAdmin", "finance", "purchasing"];
 const OWNER = ["superAdmin"];
 const BRANCH_READERS = ["superAdmin", "peopleOperations", "finance", "manager", "purchasing"];
-const STAFF_MANAGERS = ["superAdmin", "peopleOperations", "finance", "manager"];
+const STAFF_MANAGERS = ["superAdmin", "peopleOperations", "manager"];
 const SEQUENCE_MANAGERS = ["superAdmin", "finance"];
 const OWNER_FINANCE_MANAGER = ["superAdmin", "finance", "manager"];
 const OWNER_PURCHASING = ["superAdmin", "purchasing"];
 const OWNER_KITCHEN = ["superAdmin", "kitchen"];
 const OWNER_PURCHASING_KITCHEN = ["superAdmin", "purchasing", "kitchen"];
 const OWNER_FINANCE_PURCHASING_KITCHEN = ["superAdmin", "finance", "purchasing", "kitchen"];
-const OWNER_KITCHEN_OUTLET = ["superAdmin", "kitchen", "outlet"];
+const OWNER_KITCHEN_OUTLET = ["superAdmin", "kitchen", "outletSupervisor", "outlet"];
 const ATTENDANCE = ["superAdmin", "peopleOperations", "manager", "outletSupervisor", "outlet"];
 const ATTENDANCE_IMPORT = ["superAdmin", "peopleOperations"];
 
@@ -86,10 +86,10 @@ const actionRouteAuthorities = new Map([
 const accessAuthorities = [
   ["/attendance/imports", ATTENDANCE_IMPORT],
   ["/attendance", ATTENDANCE],
-  ["/outlet-compliance", ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen", "outlet"]],
-  ["/outlet-calendar", ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen", "outlet"]],
+  ["/outlet-compliance", ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]],
+  ["/outlet-calendar", ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]],
   ["/people", ["superAdmin", "peopleOperations", "manager"]],
-  ["/compliance", ["superAdmin", "peopleOperations", "manager", "kitchen", "outlet"]],
+  ["/compliance", ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]],
   ["/reports/costing-readiness", ["superAdmin", "finance"]],
   ["/reports/product-margin", ["superAdmin", "finance"]],
   ["/reports/recipe-costing", ["superAdmin", "finance"]],

@@ -79,10 +79,11 @@ export function assertLocalContainer(container) {
 }
 
 export function runSupabase(args, options = {}) {
-  const command = process.platform === "win32"
-    ? resolve("node_modules", ".bin", "supabase.cmd")
-    : resolve("node_modules", ".bin", "supabase");
-  return execFileSync(command, args, {
+  const command = process.platform === "win32" ? process.execPath : resolve("node_modules", ".bin", "supabase");
+  const commandArgs = process.platform === "win32"
+    ? [resolve("node_modules", "supabase", "dist", "supabase.js"), ...args]
+    : args;
+  return execFileSync(command, commandArgs, {
     cwd: process.cwd(),
     env: { ...process.env, SUPABASE_TELEMETRY_DISABLED: "true", ...options.env },
     encoding: "utf8",

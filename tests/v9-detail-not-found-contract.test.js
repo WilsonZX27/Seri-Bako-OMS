@@ -30,6 +30,7 @@ const pageCases = [
   ["src/app/(app)/goods-receivings/[id]/page.tsx", "getGoodsReceiving"],
   ["src/app/(app)/items/[id]/page.tsx", "getItem"],
   ["src/app/(app)/outlet-daily-records/[id]/page.tsx", "getOutletDailyRecord"],
+  ["src/app/(app)/people/[id]/page.tsx", "getStaff"],
   ["src/app/(app)/products/[id]/page.tsx", "getProduct"],
   ["src/app/(app)/purchase-orders/[id]/page.tsx", "getPurchaseOrder"],
   ["src/app/(app)/purchase-returns/[id]/page.tsx", "getPurchaseReturn"],

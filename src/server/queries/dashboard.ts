@@ -76,7 +76,7 @@ async function getDashboardCoreSnapshotFallback(db: LooseSupabase, today: string
     db.from("production_jobs").select("id", { count: "exact", head: true }).eq("status", "submitted").is("deleted_at", null),
     db.from("production_jobs").select("id", { count: "exact", head: true }).eq("status", "approved").is("deleted_at", null),
     db.from("production_job_ingredient_lines").select("id", { count: "exact", head: true }).lt("stock_available_qty", 0),
-    db.from("outlet_daily_records").select("id", { count: "exact", head: true }).eq("record_date", today).in("status", ["draft", "morning_recorded"]),
+    db.from("outlet_daily_records").select("id", { count: "exact", head: true }).eq("record_date", today).in("status", ["draft", "morning_recorded", "evening_completed"]),
     db.from("outlet_daily_records").select("id", { count: "exact", head: true }).eq("status", "evening_completed"),
     db.from("stock_counts").select("count_no, count_date, status").eq("status", "posted").is("deleted_at", null).order("count_date", { ascending: false }).order("posted_at", { ascending: false }).limit(1),
   ]);
@@ -423,7 +423,7 @@ export async function getDashboardSummary() {
   const outletCompletionIssues = outletCompletion
     ? outletCompletion.rows.reduce((total, row) => {
         const todayCell = row.cells.find((cell) => cell.record_date === today);
-        return total + (!todayCell || ["missing", "draft", "morning_recorded"].includes(todayCell.status) ? 1 : 0);
+        return total + (!todayCell || ["missing", "draft", "morning_recorded", "evening_completed"].includes(todayCell.status) ? 1 : 0);
       }, 0)
     : null;
   const complianceIssues = complianceWorkspace

@@ -11,11 +11,12 @@ import { getStaff, getStaffProfileSummary } from "@/server/queries/foundation";
 import { getPeopleCompliance, getPeopleComplianceTypes } from "@/server/queries/compliance";
 import { createComplianceRecord } from "@/server/actions/compliance";
 import { getPermissionMap } from "@/server/auth/permissions";
+import { detailOrNotFound } from "@/server/queries/detail";
 
 type ProfileSectionId = "overview"|"employment"|"compliance"|"documents";
 export default async function PeopleProfilePage({params,searchParams}:{params:Promise<{id:string}>;searchParams:Promise<{section?:string;error?:string;success?:string}>}) {
   const {id}=await params;
-  const [message,staff,staffSummary,compliance,complianceTypes,permissions]=await Promise.all([searchParams,getStaff(id),getStaffProfileSummary(id),getPeopleCompliance(id),getPeopleComplianceTypes(),getPermissionMap(["people.compliance.manage","people.compliance.document.read"])]);
+  const [message,staff,staffSummary,compliance,complianceTypes,permissions]=await Promise.all([searchParams,detailOrNotFound(getStaff(id)),getStaffProfileSummary(id),getPeopleCompliance(id),getPeopleComplianceTypes(),getPermissionMap(["people.compliance.manage","people.compliance.document.read"])]);
   const {section}=message;
   const activeSection:ProfileSectionId=["overview","employment","compliance","documents"].includes(section??"")?section as ProfileSectionId:"overview";
   const attention=compliance.filter((record)=>record.state!=="valid").length;

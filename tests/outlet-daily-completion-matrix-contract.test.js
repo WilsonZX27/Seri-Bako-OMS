@@ -13,7 +13,8 @@ test("outlet completion matrix uses a bounded seven-day header query and preserv
   assert.match(query, /select\("id,branch_id,record_date,status,sales_review_status,updated_at"\)/);
   assert.match(query, /\.gte\("record_date", start\)[\s\S]*\.lte\("record_date", end\)/);
   assert.match(query, /record\?\.status \?\? "missing"/);
-  assert.match(query, /\["evening_completed", "reviewed"\]\.includes\(cell\.status\)/);
+  assert.match(query, /cell\.status === "reviewed"/);
+  assert.match(query, /\["draft", "morning_recorded", "evening_completed"\]\.includes\(cell\.status\)/);
   const component = read("src/components/outlet-daily-completion-matrix.tsx");
   assert.match(component, /posted_attention/);
   assert.match(component, /posted_attention: \{ label: "Attention", short: "!"/);
@@ -72,13 +73,17 @@ test("matrix detail consumes no permanent row until a status is previewed", () =
 test("phone completion insight keeps the summary and seven-day matrix directly scannable", () => {
   const component = read("src/components/outlet-daily-completion-matrix.tsx");
   assert.match(component, /data-outlet-completion-phone-summary/);
+  assert.match(component, /data-outlet-completion-legend/);
+  assert.match(component, /grid grid-cols-2[^"]*sm:flex/);
+  assert.match(component, /\["draft", "morning_recorded", "evening_completed", "reviewed", "posted_attention", "missing", "void"\]/);
   assert.match(component, /id="outlet-completion-detail"/);
   assert.doesNotMatch(component, /data-outlet-completion-toggle/);
   assert.doesNotMatch(component, /matrixOpen/);
   assert.match(component, /Complete[\s\S]*Open[\s\S]*Missing/);
   assert.match(component, /Qty Sent pending[\s\S]*short: "QS"/);
   assert.match(component, /Outlet Entry pending[\s\S]*short: "OE"/);
-  assert.match(component, /Posted[\s\S]*short: "P"/);
+  assert.match(component, /Ready to post[\s\S]*short: "RP"/);
+  assert.match(component, /reviewed: \{ label: "Posted", short: "P"/);
   assert.doesNotMatch(component, /Morning only|short: "AM"|short: "D"/);
 });
 

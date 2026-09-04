@@ -18,3 +18,7 @@ test("stock count mobile lines use a two-column card instead of a tall single-co
   assert.match(source, /grid min-h-0 grid-cols-\[minmax\(0,1fr\)_auto\] items-start/);
   assert.match(source, /rounded-\[var\(--sb-control-radius\)\]/);
 });
+
+test("stock count add-item action keeps a practical mobile target", () => {
+  assert.match(source, /\[&_button\]:min-h-9/);
+});

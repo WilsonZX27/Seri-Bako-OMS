@@ -28,6 +28,7 @@ test("v9 local UAT owns an isolated server and closes it before Playwright webSe
 });
 
 test("v9 package commands set the explicit mode and local fixture guards", () => {
+  assert.equal(packageJson.scripts["uat:env:prepare"], "node scripts/v9/prepare-local-uat-env.mjs");
   assert.equal(packageJson.scripts["uat:v9:local"], "node scripts/v9/run-uat.mjs local");
   assert.equal(packageJson.scripts["uat:v9:full"], "node scripts/v9/run-uat.mjs full");
   assert.match(runner, /RUN_TENANT_BOUNDARY_E2E:\s*"1"/);

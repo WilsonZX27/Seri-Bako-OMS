@@ -11,7 +11,8 @@ import { CheckCircle2, Save, Send } from "lucide-react";
 const dailySteps = [
   { key: "draft", label: "Qty Sent", description: "Central Kitchen records the quantity sent." },
   { key: "morning_recorded", label: "Outlet Entry", description: "Outlet Staff confirms received quantity and wastage." },
-  { key: "evening_completed", label: "Posted", description: "The completed daily record is posted and remains editable by authorised staff." },
+  { key: "evening_completed", label: "Ready to post", description: "Outlet values remain editable until an authorised company-wide role posts the record." },
+  { key: "reviewed", label: "Posted", description: "Purchasing or a higher authorised role posted and locked the record." },
 ];
 
 export default async function NewOutletDailyRecordPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
@@ -32,11 +33,11 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
   const primaryAction = canEnterOutlet
     ? needsKitchenQtySent
       ? <SubmitButton form={formId} name="target_status" value="draft" className="w-full gap-2" pendingLabel="Saving entry…" disabled={disabled}><Save className="h-4 w-4" aria-hidden="true" />Save Outlet Entry</SubmitButton>
-      : <SubmitButton form={formId} name="target_status" value="evening_completed" className="w-full gap-2" disabled={disabled}><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Complete Record</SubmitButton>
+      : <SubmitButton form={formId} name="target_status" value="evening_completed" className="w-full gap-2" disabled={disabled}><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Mark Ready to Post</SubmitButton>
     : <SubmitButton form={formId} name="target_status" value="morning_recorded" className="w-full gap-2" disabled={disabled}><Send className="h-4 w-4" aria-hidden="true" />Confirm Qty Sent</SubmitButton>;
   const secondaryActions = <SubmitButton form={formId} name="target_status" value="draft" variant="outline" className="w-full gap-2" disabled={disabled}><Save className="h-4 w-4" aria-hidden="true" />Save Draft</SubmitButton>;
   const sidePanel = <>
-    <DocumentActionSection description={needsKitchenQtySent ? "Enter Received and Wastage now. Save this entry while Kitchen confirms Qty Sent." : canEnterOutlet ? "Complete the outlet record when today’s values are ready." : "Confirm the quantities sent to the outlet."} moreOptions={<div className="grid gap-3">{secondaryActions}</div>}>{primaryAction}</DocumentActionSection>
+    <DocumentActionSection description={needsKitchenQtySent ? "Enter Received and Wastage now. Save this entry while Kitchen confirms Qty Sent." : canEnterOutlet ? "Finish the outlet values and mark the record Ready to post." : "Confirm the quantities sent to the outlet."} moreOptions={<div className="grid gap-3">{secondaryActions}</div>}>{primaryAction}</DocumentActionSection>
     <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{needsKitchenQtySent ? "Received and Wastage remain editable. Kitchen or an authorised company-wide user must confirm Qty Sent before the record can be completed." : "Any invalid line will be highlighted before completion. Qty Sent must be confirmed by Kitchen or an authorised company-wide user first."}</p></DocumentSideSection>
   </>;
 

@@ -379,7 +379,7 @@ async function loadRows(filters: Filters = {}) {
 
 export async function getOutletDailyRecords(filters: Filters = {}) {
   if (isMockMode()) {
-    return { rows: [], totalRows: 0, page: 1, pageSize: 15, totalPages: 1, summary: { today: todayInKualaLumpur(), today_records: 0, today_sent: 0, today_received: 0, today_received_unavailable: 0, today_received_zero_with_sent: 0, missing_evening: 0, posted_today: 0 } };
+    return { rows: [], totalRows: 0, page: 1, pageSize: 15, totalPages: 1, summary: { today: todayInKualaLumpur(), today_records: 0, today_sent: 0, today_received: 0, today_received_unavailable: 0, today_received_zero_with_sent: 0, missing_evening: 0, ready_to_post: 0, posted_today: 0 } };
   }
   const db = await createClient();
   const pageResult = await loadRows(filters);
@@ -408,10 +408,11 @@ export async function getOutletDailyRecords(filters: Filters = {}) {
       today_received_unavailable: todayRows.filter((row) => row.total_received === null).length,
       today_received_zero_with_sent: todayRows.filter((row) => row.received_zero_with_sent).length,
       missing_evening: todayRows.filter((row) => ["draft", "morning_recorded"].includes(row.status)).length,
+      ready_to_post: todayRows.filter((row) => row.status === "evening_completed").length,
       // Outlet staff post the evening record directly. Keep the completed
       // count visible for operational context, but do not turn it into a
       // fictitious review queue.
-      posted_today: todayRows.filter((row) => ["evening_completed", "reviewed"].includes(row.status)).length,
+      posted_today: todayRows.filter((row) => row.status === "reviewed").length,
     },
   };
 }
@@ -578,8 +579,8 @@ function buildOutletDailyCompletionMatrix({ branches, dates, records }: {
     }),
   }));
   const cells = rows.flatMap((row) => row.cells);
-  const completed = cells.filter((cell) => ["evening_completed", "reviewed"].includes(cell.status)).length;
-  const incomplete = cells.filter((cell) => ["draft", "morning_recorded"].includes(cell.status)).length;
+  const completed = cells.filter((cell) => cell.status === "reviewed").length;
+  const incomplete = cells.filter((cell) => ["draft", "morning_recorded", "evening_completed"].includes(cell.status)).length;
   const missing = cells.filter((cell) => cell.status === "missing").length;
   const voided = cells.filter((cell) => cell.status === "void").length;
   return {

@@ -38,7 +38,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
   const scope = await getCurrentUserScope();
   if (!scope) return { items: [], total: null, unavailable: true };
 
-  const [canAdminReview, canPurchasingReview, canManagerApprove, canFinanceReview, canConvertPo, canViewAll, canApproveSchedule] = await Promise.all([
+  const [canAdminReview, canPurchasingReview, canManagerApprove, canFinanceReview, canConvertPo, canViewAll, canApproveSchedule, canPostOutletDaily] = await Promise.all([
     hasPermission("pr.admin_review"),
     hasPermission("pr.purchasing_review"),
     hasPermission("pr.manager_approve"),
@@ -46,6 +46,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
     hasPermission("pr.convert_to_po"),
     hasPermission("pr.view_all"),
     hasPermission("schedule.approve"),
+    hasPermission("outlet_daily_record.post"),
   ]);
 
   const prStatusFilters: Array<{ status: PurchaseRequestStatus; allowed: boolean; step: string; title: string }> = [
@@ -166,7 +167,49 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
     };
   })();
 
-  const results = [...prResults, scheduleResult];
+  const outletDailyResult = await (async () => {
+    if (!canPostOutletDaily) return { items: [] as PendingAction[], count: 0, unavailable: false };
+    let query = supabase
+      .from("outlet_daily_records")
+      .select("id,branch_id,record_date,updated_at,branch:branches!outlet_daily_records_branch_id_fkey(branch_name)", { count: "exact" })
+      .eq("status", "evening_completed")
+      .order("updated_at", { ascending: false })
+      .limit(limit);
+    if (!canSeeAllBranches) {
+      if (!scope.branchIds.length) return { items: [] as PendingAction[], count: 0, unavailable: false };
+      query = query.in("branch_id", scope.branchIds);
+    }
+    const { data, error, count } = await query;
+    if (error || !data || count === null) {
+      if (error) logServerWarning(error, { source: "pending-actions.outlet-daily" });
+      return { items: [] as PendingAction[], count: null, unavailable: true };
+    }
+    return {
+      count,
+      unavailable: false,
+      items: data.map((row) => {
+        const branch = row.branch as { branch_name?: string | null } | { branch_name?: string | null }[] | null;
+        const branchName = Array.isArray(branch) ? branch[0]?.branch_name : branch?.branch_name;
+        const updatedAt = String(row.updated_at);
+        return {
+          id: `outlet-daily-${row.id}`,
+          document_no: String(row.record_date),
+          title: "Outlet daily record ready to post",
+          href: `/outlet-daily-records/${row.id}`,
+          step: "Ready to Post",
+          branch_name: branchName ?? null,
+          age_label: ageLabel(updatedAt),
+          updated_at: updatedAt,
+          supplier_names: [],
+          line_count: 0,
+          submitted_by_name: null,
+          estimated_total: 0,
+        } satisfies PendingAction;
+      }),
+    };
+  })();
+
+  const results = [...prResults, scheduleResult, outletDailyResult];
   const unavailable = results.some((result) => result.unavailable);
   const items = results
     .flatMap((result) => result.items)

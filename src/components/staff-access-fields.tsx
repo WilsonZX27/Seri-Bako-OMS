@@ -60,8 +60,8 @@ export function StaffAccessFields({ branches, roles, access }: { branches: Branc
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2 border-b pb-2">
                 <span className="text-xs font-medium text-muted-foreground">{branchIds.length} selected</span>
                 <div className="flex gap-2">
-                  <button type="button" className="text-xs font-semibold text-[var(--sb-green-800)] hover:underline" onClick={() => setBranchIds(availableBranches.map((branch) => branch.id))}>Select all</button>
-                  <button type="button" className="text-xs font-semibold text-[var(--sb-green-800)] hover:underline" onClick={() => setBranchIds(defaultBranchId ? [defaultBranchId] : [])}>Default only</button>
+                  <button type="button" className="inline-flex min-h-9 items-center px-2 text-xs font-semibold text-[var(--sb-green-800)] hover:underline" onClick={() => setBranchIds(availableBranches.map((branch) => branch.id))}>Select all</button>
+                  <button type="button" className="inline-flex min-h-9 items-center px-2 text-xs font-semibold text-[var(--sb-green-800)] hover:underline" onClick={() => setBranchIds(defaultBranchId ? [defaultBranchId] : [])}>Default only</button>
                 </div>
               </div>
               <div className="grid gap-x-4 gap-y-1 md:grid-cols-2">

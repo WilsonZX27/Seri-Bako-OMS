@@ -28,7 +28,9 @@ test("outlet daily workspace renders a seven-day trend aligned to Calendar histo
   assert.match(chart, /role="list" aria-label="Daily wastage rate data"/);
   assert.match(chart, /className="hidden w-full text-left sm:table"/);
   assert.match(chart, /xl:grid-cols-\[minmax\(0,3fr\)_minmax\(18rem,2fr\)\]/);
-  assert.match(chart, /\[&>svg\]:h-full/);
+  assert.match(chart, /data-outlet-wastage-chart-panel/);
+  assert.match(chart, /xl:min-h-72/);
+  assert.doesNotMatch(chart, /flex min-h-72[^\n]*\[&>svg\]:h-full/);
   assert.doesNotMatch(chart, /Hover or focus the chart/);
   assert.doesNotMatch(chart, /<details className="mt-2/);
   assert.match(interactiveChart, /strokeWidth="1\.5"/);

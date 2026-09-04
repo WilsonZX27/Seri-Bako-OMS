@@ -16,5 +16,5 @@ export default async function OutletCalendarPage({ searchParams }: { searchParam
     <ConsoleSection title="Actions" kind="action"><Button asChild size="sm" className="w-full"><Link href="/outlet-compliance">Open outlet register</Link></Button></ConsoleSection>
     <ConsoleSection title="Calendar" kind="status"><p><strong>{events.length}</strong> dated requirements</p><p><strong>{urgent}</strong> due soon or expired</p></ConsoleSection>
   </>;
-  return <><PageHeader title="Outlet Calendar" description="Expiry and renewal dates by outlet." contentWidth="wide"/><WorkspaceGrid tabletCanvas="wide" rightRail={rightRail}><ComplianceMonthCalendar baseHref="/outlet-calendar" month={month} events={events}/></WorkspaceGrid></>;
+  return <><PageHeader title="Outlet Calendar" description="Expiry and renewal dates by outlet." contentWidth="wide"/><WorkspaceGrid tabletCanvas="wide" hideMobileConsole rightRail={rightRail}><ComplianceMonthCalendar baseHref="/outlet-calendar" month={month} events={events}/></WorkspaceGrid></>;
 }

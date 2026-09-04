@@ -1,5 +1,24 @@
 # Seri Bako Operations Management System
 
+### v9.2.28 (unreleased) — Mobile workflow and posting closure
+
+- Outlet Daily phone actions share one equal-width row and sales inputs use a compact two-column numeric layout. Outlet users can correct and resave a Ready to post record until an authorised Purchasing, Manager, Finance or company-wide role posts it; posting then locks the record.
+- Ready to post records join the authorised role's shared `Actions awaiting you` queue. `Ready to post` and `Posted` remain separate workflow states in lists, matrices, dashboards and seven-day coverage totals.
+- Loading states replace only route content and retain the fixed five-item app navigation. Compliance attachments use a 70/30 file/action row, More Actions cards have explicit spacing, and the dashboard pipeline no longer draws broken grid dividers.
+- Attendance phone scheduling uses a compact day strip and per-day employee assignment list instead of squeezing the desktop weekly spreadsheet into the viewport. Outlet Calendar uses one month axis and a compact mobile event grammar.
+
+Repository migrations reviewed through `260`. Migration `260` introduces the controlled Outlet Daily post permission and transition and was applied only to the isolated local Supabase stack. Local evidence comprises 1,155 passing contracts, ESLint, strict TypeScript, a 95/95-page isolated Next.js production build, `V9_SCHEMA_OK` at migration 260, six focused phone workflows, and the five affected routes at 390×844, 820×1180, 1180×820 and 1440×900. Deployment, all-role authenticated regression and Production observation remain separate open gates.
+
+### v9.2.27 (unreleased) — Mobile detail and layout closure
+
+- Loading workspaces retain the normal mobile app navigation and never expose a placeholder `More actions` bar. Real mobile action buttons keep their icon and label as one centered 8px group.
+- Dashboard metric grids use row- and column-aware borders, removing the broken divider fragments created by applying one-dimensional sibling dividers to a two-dimensional grid.
+- Outlet Calendar uses one stable mobile toolbar with Today, previous/next controls and a single month identity; Calendar and Compliance reference rails no longer replace the mobile navigation.
+- Outlet Daily renders a stable two-column workflow legend and removes the false mobile chart height that left empty space beneath the SVG.
+- The shared mobile console sheet uses deliberate 12px outer spacing when a page genuinely owns secondary actions.
+
+Locally verified with 1,148 contracts, strict TypeScript, ESLint, an isolated Next.js production build, focused 390×844 route UAT, a real seeded Compliance detail flow, and a clean Impeccable layout scan. This remains local evidence until pushed and observed in the deployed environment.
+
 ### v9.2.26 (unreleased) — Deterministic builds and systemic closure
 
 - Restores the failed Production build by keeping Schedule approval reads on the established Attendance query authority and correcting the generated `Database.public.Tables` boundary that had stranded late-added operational tables outside the typed schema.

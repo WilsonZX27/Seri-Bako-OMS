@@ -49,6 +49,18 @@ test("portrait tablet outlet workspace keeps its rail and a full-width chart", a
   await expectNoPageOverflow(page);
 });
 
+test("mobile compliance detail keeps the app navigation and no synthetic More actions rail", async ({ page }) => {
+  test.skip(!hasAccount("superAdmin"), "Missing super-admin test credentials.");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await login(page, "superAdmin");
+  await page.goto("/outlet-compliance", { waitUntil: "domcontentloaded" });
+  await page.getByRole("listitem", { name: "Open Local E2E Outlet" }).dblclick();
+  await expect(page.getByRole("heading", { name: "Compliance checklist" })).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator("[data-mobile-action-bar]")).toHaveCount(0);
+  await expect(page.locator("[data-mobile-bottom-nav]")).toBeVisible();
+  await expectNoPageOverflow(page);
+});
+
 test("staff register uses grouped columns without desktop overflow", async ({ page }) => {
   test.skip(!hasAccount("superAdmin"), "Missing super-admin test credentials.");
   await page.setViewportSize({ width: 1440, height: 900 });

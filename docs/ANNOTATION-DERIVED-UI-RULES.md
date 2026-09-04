@@ -1,5 +1,14 @@
 # Annotation-derived UI rules
 
+## 2026-09-04 mobile closure rules
+
+- Loading replaces content, not application chrome. Keep the authenticated bottom navigation fixed and suppress stale route-specific actions while the next route resolves.
+- Two mobile document actions share one 50/50 row. Do not make the primary action span both columns and push the secondary action to another row.
+- Outlet Daily remains editable by Outlet through `Ready to post`; an authorised finaliser owns `Post`, and the resulting `Posted` state is locked. The finaliser's queue must surface every ready record.
+- Dense numeric entry may use two phone columns when each field retains its label, currency/unit, numeric keyboard and validation.
+- Phone Attendance uses day selection plus compact employee assignment rows. Do not present the full desktop weekly spreadsheet as the primary phone interaction.
+- File selection remains visually dominant in a same-row upload control; 70/30 is the default split. Sheets and metric grids require deliberate gaps and two-dimensional divider logic.
+
 This is the review contract extracted from Wilson's repeated browser annotations. It is a decision aid for future implementation and QA, not a replacement for product requirements or database semantics.
 
 ## Release reliability rule

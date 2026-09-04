@@ -250,6 +250,32 @@ export async function saveOutletDailyRecord(formData: FormData) {
   }
 }
 
+export async function postOutletDailyRecord(id: string) {
+  await requirePermission("outlet_daily_record.post");
+  const recordId = z.uuid("Invalid outlet daily record identifier.").parse(id);
+  try {
+    const db = await createClient();
+    const { error } = await db.rpc("transition_outlet_daily_record", {
+      p_record_id: recordId,
+      p_action: "post",
+      p_reason: null,
+    });
+    if (error) throw new Error(error.message);
+    await writeActivityLog({
+      entityType: "outlet_daily_record",
+      entityId: recordId,
+      activityType: "posted",
+      message: "Outlet daily record posted",
+      metadata: { status: "reviewed" },
+    });
+    revalidateWorkspaceState(["/outlet-daily-records", `/outlet-daily-records/${recordId}`]);
+    safeRedirectWithMessage(`/outlet-daily-records/${recordId}`, "success", "Outlet daily record posted. Outlet editing is now locked.");
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/outlet-daily-records/${recordId}`, "error", formatActionError(error, "Could not post this outlet daily record."));
+  }
+}
+
 export async function voidOutletDailyRecord(id: string, formData: FormData) {
   await requirePermission("outlet_daily_record.void");
   const recordId = z.uuid("Invalid outlet daily record identifier.").parse(id);

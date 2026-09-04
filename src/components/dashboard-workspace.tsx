@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowUpRight, Boxes, CheckCircle2, ClipboardCheck, ClipboardList, Clock3, Factory, FileText, LockKeyhole, PackageCheck, ReceiptText, ShoppingCart, UserRound } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, Boxes, CheckCircle2, ClipboardCheck, ClipboardList, Clock3, Factory, FileText, LockKeyhole, PackageCheck, ReceiptText, ShieldCheck, ShoppingCart, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
@@ -144,8 +144,8 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   ];
   const todayWorkCount = attentionSignals.reduce((sum, signal) => sum + (signal.value ?? 0), 0);
   const outletExceptionCount = summary.operationsControl?.outlet?.missing_evening ?? 0;
-  const operationalExceptionCount = (summary.inventoryUnavailable ? 0 : summary.lowStockCount ?? 0) + (summary.wastageUnavailable ? 0 : summary.wastageAttention ?? 0) + outletExceptionCount;
-  const operationalExceptionUnavailable = summary.inventoryUnavailable || summary.wastageUnavailable;
+  const operationalExceptionCount = (summary.inventoryUnavailable ? 0 : summary.lowStockCount ?? 0) + (summary.wastageUnavailable ? 0 : summary.wastageAttention ?? 0) + outletExceptionCount + (summary.compliance?.issues ?? 0);
+  const operationalExceptionUnavailable = summary.inventoryUnavailable || summary.wastageUnavailable || Boolean(summary.compliance?.unavailable);
   const latestPurchaseOrder = summary.purchaseOrders[0];
   const quickActions = isOutlet
     ? [
@@ -325,7 +325,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
         {!isOutlet ? (
           <div className="order-2 space-y-4" data-dashboard-activity-group>
             <Panel title={isPurchasing ? "Purchasing pipeline" : isKitchen ? "Production and receiving" : "Operational pipeline"}>
-              <div className={`grid ${isPurchasing ? "grid-cols-2" : "grid-cols-3"} divide-x divide-[var(--sb-border-soft)]`}>
+              <div className={`grid ${isPurchasing ? "grid-cols-2" : summary.compliance ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"} divide-x divide-y divide-[var(--sb-border-soft)] sm:divide-y-0`}>
                 <Metric
                   href="/purchase-orders"
                   label={isPurchasing ? "PO preparation / sending" : "Recent purchase orders"}
@@ -356,6 +356,16 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                   variant="tile"
                   density="compact"
                 />
+                {summary.compliance ? <Metric
+                  href="/outlet-compliance"
+                  label="Compliance issues"
+                  value={summary.compliance.issues}
+                  icon={ShieldCheck}
+                  alert={(summary.compliance.issues ?? 0) > 0}
+                  unavailable={summary.compliance.unavailable || summary.compliance.issues === null}
+                  variant="tile"
+                  density="compact"
+                /> : null}
               </div>
             </Panel>
           </div>
@@ -370,7 +380,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               <Metric href="/low-stock" label="Low stock" value={summary.lowStockCount} icon={AlertTriangle} alert={(summary.lowStockCount ?? 0) > 0} alertTone="critical" unavailable={summary.inventoryUnavailable || summary.lowStockCount === null} variant="tile" density="compact" />
               {showOperations && summary.operationsControl?.outlet ? (
                 <Metric
-                  href="/outlet-daily-records?status=draft"
+                  href="/outlet-daily-records"
                   label="Outlet completion issues"
                   value={summary.operationsControl.outlet.missing_evening}
                   icon={ClipboardCheck}

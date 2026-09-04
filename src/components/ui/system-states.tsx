@@ -20,7 +20,24 @@ function renderAction(action?: StateAction) {
   return action;
 }
 
-export function PageLoadingState({ label = "Loading workspace..." }: { label?: string }) {
+type PageLoadingVariant = "list" | "detail" | "form";
+
+function LoadingCanvas({ variant }: { variant: PageLoadingVariant }) {
+  if (variant === "detail") return <div className="space-y-3" data-loading-variant="detail">
+    <div className="sb-work-surface p-3"><div className="sb-skeleton h-9 w-full" /></div>
+    <div className="sb-work-surface divide-y divide-[var(--sb-border-soft)]">{[0, 1, 2].map((row) => <div key={row} className="grid gap-3 p-3 sm:grid-cols-3"><div className="sb-skeleton h-12 sm:col-span-2" /><div className="sb-skeleton h-12" /></div>)}</div>
+  </div>;
+  if (variant === "form") return <div className="space-y-3" data-loading-variant="form">
+    <div className="sb-work-surface grid gap-3 p-3 sm:grid-cols-2">{Array.from({ length: 4 }, (_, field) => <div key={field} className="space-y-2"><div className="sb-skeleton h-3 w-24" /><div className="sb-skeleton h-9 w-full" /></div>)}</div>
+    <div className="sb-work-surface h-40" />
+  </div>;
+  return <div className="sb-work-surface overflow-hidden" data-loading-variant="list">
+    <div className="flex gap-3 border-b border-[var(--sb-border-soft)] p-3"><div className="sb-skeleton h-9 min-w-0 flex-1" /><div className="sb-skeleton h-9 w-28" /></div>
+    <div className="divide-y divide-[var(--sb-border-soft)]">{[0, 1, 2, 3, 4].map((row) => <div key={row} className="flex items-center gap-3 p-3"><div className="sb-skeleton h-8 w-8 rounded-full" /><div className="min-w-0 flex-1 space-y-2"><div className="sb-skeleton h-3 w-2/5" /><div className="sb-skeleton h-3 w-3/5" /></div><div className="sb-skeleton h-7 w-20" /></div>)}</div>
+  </div>;
+}
+
+export function PageLoadingState({ label = "Loading workspace...", variant = "list" }: { label?: string; variant?: PageLoadingVariant }) {
   const rightRail = <>
     <ConsoleSection title="Actions" kind="action"><div className="space-y-2"><div className="sb-skeleton h-9 w-full" /><div className="sb-skeleton h-9 w-full" /></div></ConsoleSection>
     <ConsoleSection title="Summary" kind="status"><div className="space-y-2"><div className="sb-skeleton h-3 w-full" /><div className="sb-skeleton h-3 w-4/5" /><div className="sb-skeleton h-3 w-2/3" /></div></ConsoleSection>
@@ -33,15 +50,7 @@ export function PageLoadingState({ label = "Loading workspace..." }: { label?: s
         <div className="sb-skeleton h-3 w-72 max-w-full" />
       </div>
       <WorkspaceGrid tabletCanvas="wide" tabletRailBreakpoint="lg" rightRail={rightRail}>
-      <div className="sb-work-surface overflow-hidden" aria-hidden="true">
-        <div className="flex gap-3 border-b border-[var(--sb-border-soft)] p-3">
-          <div className="sb-skeleton h-9 min-w-0 flex-1" />
-          <div className="sb-skeleton h-9 w-28" />
-        </div>
-        <div className="divide-y divide-[var(--sb-border-soft)]">
-          {[0, 1, 2, 3, 4].map((row) => <div key={row} className="flex items-center gap-3 p-3"><div className="sb-skeleton h-8 w-8 rounded-full" /><div className="min-w-0 flex-1 space-y-2"><div className="sb-skeleton h-3 w-2/5" /><div className="sb-skeleton h-3 w-3/5" /></div><div className="sb-skeleton h-7 w-20" /></div>)}
-        </div>
-      </div>
+      <div className="relative min-h-72" aria-hidden="true"><LoadingCanvas variant={variant} /><div className="sb-loading-progress" /></div>
       </WorkspaceGrid>
     </div>
   );

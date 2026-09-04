@@ -22,7 +22,7 @@ import { hasPermission } from "@/server/auth/permissions";
 import { getOutletDailyCompletionMatrix, getOutletDailyDemandTrend, getOutletDailyFormOptions, getOutletDailyRecords, getOutletDailyWastageCostSummary } from "@/server/queries/outlet-daily-records";
 import { logServerError } from "@/server/observability/logger";
 
-const statuses = ["draft", "morning_recorded", "evening_completed", "reviewed", "void"];
+const statuses = ["draft", "morning_recorded", "evening_completed", "void"];
 const formatWastageRate = (value: number) => new Intl.NumberFormat("en-MY", { maximumFractionDigits: 1 }).format(value);
 const outletProgress = (row: { status: string; qty_sent_state: string; received_pending_lines: number; sales_review_status?: string | null }) => {
   if (row.sales_review_status === "needs_review") return { status: "attention", label: "Attention" };

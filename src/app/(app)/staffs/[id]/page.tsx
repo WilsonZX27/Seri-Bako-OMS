@@ -49,11 +49,8 @@ export default async function EditStaffPage({
   const [permissionAccess, canManageOverrides] = await Promise.all([getStaffPermissionAccess(id), hasPermission("roles.update")]);
   const protectedRole = roleCode === "super_admin";
   if (protectedRole && currentRole !== "super_admin") redirect("/access-status?reason=no-permitted-route");
-  const overrideCounts = {
-    inherited: permissionAccess.filter((permission) => !permission.override).length,
-    allowed: permissionAccess.filter((permission) => permission.override === "allow").length,
-    denied: permissionAccess.filter((permission) => permission.override === "deny").length,
-  };
+  const overrideCount = permissionAccess.filter((permission) => permission.override).length;
+  const effectiveAccessCount = permissionAccess.filter((permission) => permission.effective).length;
   const formId = "staff-edit-form";
   const branchName = access.staffBranch?.branch_id ? tenantBranches.find((branch) => branch.id === access.staffBranch?.branch_id)?.branch_name ?? "-" : "-";
   const authState = getStaffAuthState(staff);
@@ -65,12 +62,11 @@ export default async function EditStaffPage({
       <RecordWorkspace
         actionPanel={
           <>
-            <RecordActionPanel title="Staff Actions" description="Save changes and manage this staff member's login setup.">
+            <RecordActionPanel title="Staff Actions">
               <div className="rounded-[2px] border bg-white p-3">
                 <p className="text-[11px] font-medium uppercase text-muted-foreground">Current Status</p>
                 <div className="mt-2 flex items-center justify-between gap-3">
                   <StatusBadge status={staff.status} />
-                  <span className="text-[11px] text-muted-foreground">Use actions below</span>
                 </div>
                 <div className="mt-3 flex justify-between gap-3 border-t pt-2 text-xs">
                   <span className="text-muted-foreground">Default branch</span>
@@ -113,7 +109,6 @@ export default async function EditStaffPage({
 
               <div className="rounded-[2px] border bg-secondary/30 p-3 text-xs">
                 <p className="font-semibold">Auth Setup</p>
-                <p className="mt-1 text-xs text-muted-foreground">Internal staff accounts use a temporary password and require a secure password change.</p>
                 <div className="mt-3 grid gap-2 text-xs">
                   <div className="flex justify-between gap-3">
                     <span className="text-muted-foreground">Account state</span>
@@ -159,10 +154,9 @@ export default async function EditStaffPage({
                 <p className="font-semibold">Permission Summary</p>
                 <p className="mt-1 text-muted-foreground">{getRoleDisplayLabel(assignedRole?.role_code, assignedRole?.role_name)}</p>
                 {additionalRoles.length ? <p className="mt-1 text-muted-foreground">Additional: {additionalRoles.map((role) => getRoleDisplayLabel(role.role_code, role.role_name)).join(", ")}</p> : null}
-                <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                  <div><strong className="block text-sm">{overrideCounts.inherited}</strong><span className="text-muted-foreground">Inherited</span></div>
-                  <div><strong className="block text-sm text-[var(--sb-success)]">{overrideCounts.allowed}</strong><span className="text-muted-foreground">Allowed</span></div>
-                  <div><strong className="block text-sm text-[var(--sb-danger)]">{overrideCounts.denied}</strong><span className="text-muted-foreground">Denied</span></div>
+                <div className="mt-3 grid grid-cols-2 gap-2 text-center">
+                  <div><strong className="block text-sm">{effectiveAccessCount}</strong><span className="text-muted-foreground">Effective</span></div>
+                  <div><strong className="block text-sm">{overrideCount}</strong><span className="text-muted-foreground">Overrides</span></div>
                 </div>
               </div>
 

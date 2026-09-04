@@ -1022,7 +1022,7 @@ export async function getStockCard(filters: Filters = {}) {
   return (await getStockCardResult(filters)).rows;
 }
 
-export async function getLowStockItems(filters: Filters = {}) {
+async function loadLowStockItems(filters: Filters = {}) {
   if (isMockMode()) {
     return getMockLowStockItems().map((row) => ({
       ...row,
@@ -1077,13 +1077,7 @@ export async function getLowStockItems(filters: Filters = {}) {
       error = null;
     } else if (viewResult.error) {
       warnOptionalInventoryQuery("low stock canonical fallback", viewResult.error);
-      // An empty, successful summary is a valid healthy state. Do not turn a
-      // secondary fallback read failure into a blocking error when there are
-      // no rows that need replenishment to display.
-      if (!summaryError) {
-        fallbackData = [];
-        error = null;
-      }
+      error = viewResult.error;
     } else {
       fallbackData = viewResult.data ?? [];
       error = null;
@@ -1112,4 +1106,22 @@ export async function getLowStockItems(filters: Filters = {}) {
     .filter((row) => status ? row.stock_status === status : true)
     .sort((a, b) => (a.stock_status === b.stock_status ? b.suggested_reorder_qty - a.suggested_reorder_qty : a.stock_status === "out_of_stock" ? -1 : 1));
   return rows;
+}
+
+export type LowStockResult = { rows: Awaited<ReturnType<typeof loadLowStockItems>>; count: number | null; unavailable: boolean };
+
+export async function getLowStockResult(filters: Filters = {}): Promise<LowStockResult> {
+  try {
+    const rows = await loadLowStockItems(filters);
+    return { rows, count: rows.length, unavailable: false };
+  } catch (error) {
+    warnOptionalInventoryQuery("low stock result", error instanceof Error ? error : new Error(String(error)));
+    return { rows: [], count: null, unavailable: true };
+  }
+}
+
+export async function getLowStockItems(filters: Filters = {}) {
+  const result = await getLowStockResult(filters);
+  if (result.unavailable) throw new Error("Low stock could not be loaded.");
+  return result.rows;
 }

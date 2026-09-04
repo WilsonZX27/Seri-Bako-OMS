@@ -1,96 +1,66 @@
+"use client";
+
+import { useMemo, useState } from "react";
 import { RecordSection } from "@/components/record-workspace";
-import { SelectNative } from "@/components/ui/select-native";
 import { SubmitButton } from "@/components/ui/submit-button";
 
-type PermissionAccess = {
-  id: string;
-  permission_code: string;
-  module: string;
-  action: string;
-  description: string | null;
-  roleDefault: boolean;
-  override: "allow" | "deny" | null;
-  effective: boolean;
+type PermissionAccess = { id: string; permission_code: string; module: string; action: string; description: string | null; roleDefault: boolean; override: "allow" | "deny" | null; effective: boolean };
+type OverrideValue = "inherit" | "allow" | "deny";
+const categoryOrder = ["Operations", "Procurement", "Inventory", "People & Attendance", "Compliance", "Analytics", "Administration", "Other"] as const;
+const categories: Record<string, (typeof categoryOrder)[number]> = {
+  outlet_daily_record: "Operations", production: "Operations", goods_receiving: "Operations",
+  purchase_request: "Procurement", purchase_requests: "Procurement", purchase_order: "Procurement", purchase_orders: "Procurement", supplier_invoice: "Procurement", suppliers: "Procurement", procurement: "Procurement",
+  inventory: "Inventory", items: "Inventory", stock_ledger: "Inventory", stock_transfer: "Inventory", stock_wastage: "Inventory", stock_count: "Inventory", uom: "Inventory",
+  people: "People & Attendance", attendance: "People & Attendance", branches: "People & Attendance", schedule: "People & Attendance",
+  compliance: "Compliance", outlet_compliance: "Compliance", dashboard: "Analytics", analytics: "Analytics", reports: "Analytics",
+  company: "Administration", documents: "Administration", document_sequences: "Administration", imports: "Administration", roles: "Administration", users: "Administration",
 };
+const actionLabels: Record<string, string> = { read: "View", view: "View", create: "Create", update: "Manage", manage: "Manage", approve: "Approve", delete: "Manage", post: "Post", export: "Export", import: "Import" };
+function categoryFor(permission: PermissionAccess) { return categories[permission.module] ?? "Other"; }
+function permissionName(permission: PermissionAccess) { return permission.description ?? `${actionLabels[permission.action] ?? "Manage"} ${permission.module.replaceAll("_", " ")}`; }
 
-const moduleLabels: Record<string, string> = { purchase_request: "Purchase Requests", purchase_order: "Purchase Orders", goods_receiving: "Goods Receiving", supplier_invoice: "Supplier Invoices", stock_ledger: "Movement Ledger", stock_transfer: "Stock Transfers", stock_wastage: "Stock Wastage", outlet_daily_record: "Outlet Daily Records" };
-const actionLabels: Record<string, string> = { read: "view", view: "view", create: "create", update: "manage", manage: "manage", approve: "approve", delete: "manage", post: "manage", export: "view", import: "manage" };
-
-function friendlyModule(module: string) { return moduleLabels[module] ?? module.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase()); }
-function effectiveLabel(permission: PermissionAccess) { return permission.effective ? `Can ${actionLabels[permission.action] ?? "manage"}` : "Restricted"; }
-
-export function StaffPermissionOverrides({
-  permissions,
-  canManage,
-  protectedRole,
-  updateAction,
-  resetAction,
-}: {
-  permissions: PermissionAccess[];
-  canManage: boolean;
-  protectedRole: boolean;
-  updateAction: (formData: FormData) => Promise<void>;
-  resetAction: () => Promise<void>;
-}) {
-  const visiblePermissions = permissions;
-  const normalizeModule = (module: string) => ({ purchase_order: "purchase_orders", purchase_request: "purchase_requests" })[module] ?? module;
-  const groups = Array.from(
-    visiblePermissions.reduce((map, permission) => {
-      const moduleKey = normalizeModule(permission.module);
-      return map.set(moduleKey, [...(map.get(moduleKey) ?? []), permission]);
-    }, new Map<string, PermissionAccess[]>()),
-  );
-  const allowed = visiblePermissions.filter((permission) => permission.override === "allow").length;
-  const denied = visiblePermissions.filter((permission) => permission.override === "deny").length;
-  const inherited = visiblePermissions.length - allowed - denied;
+export function StaffPermissionOverrides({ permissions, canManage, protectedRole, updateAction, resetAction }: { permissions: PermissionAccess[]; canManage: boolean; protectedRole: boolean; updateAction: (formData: FormData) => Promise<void>; resetAction: () => Promise<void> }) {
+  const grouped = useMemo(() => categoryOrder.map((name) => ({ name, permissions: permissions.filter((permission) => categoryFor(permission) === name) })).filter((group) => group.permissions.length), [permissions]);
+  const [activeCategory, setActiveCategory] = useState(grouped[0]?.name ?? "Operations");
+  const [overrides, setOverrides] = useState<Record<string, OverrideValue>>(() => Object.fromEntries(permissions.map((permission) => [permission.id, permission.override ?? "inherit"])));
   const disabled = !canManage || protectedRole;
+  const activePermissions = grouped.find((group) => group.name === activeCategory)?.permissions ?? [];
+  const effectiveCount = permissions.filter((permission) => { const value = overrides[permission.id] ?? "inherit"; return value === "allow" || (value === "inherit" && permission.roleDefault); }).length;
+  const overrideCount = Object.values(overrides).filter((value) => value !== "inherit").length;
+  const setEffective = (permission: PermissionAccess, enabled: boolean) => setOverrides((current) => ({ ...current, [permission.id]: enabled === permission.roleDefault ? "inherit" : enabled ? "allow" : "deny" }));
+  const resetCategory = () => setOverrides((current) => ({ ...current, ...Object.fromEntries(activePermissions.map((permission) => [permission.id, "inherit"])) }));
 
   return (
-    <RecordSection title="Permission Overrides" description="Role permissions are defaults. Individual staff overrides may alter effective access.">
-      <div className="mb-3 grid grid-cols-3 border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] text-center text-xs">
-        <div className="p-2"><strong className="block text-sm text-[var(--sb-text)]">{inherited}</strong>Inherited</div>
-        <div className="border-x border-[var(--sb-border-soft)] p-2"><strong className="block text-sm text-[var(--sb-success)]">{allowed}</strong>Allowed</div>
-        <div className="p-2"><strong className="block text-sm text-[var(--sb-danger)]">{denied}</strong>Denied</div>
+    <RecordSection title="Permission Settings" description="Access follows the role by default. Switch only the exceptions this staff member needs.">
+      <div className="mb-3 flex flex-wrap gap-x-6 gap-y-2 rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-3 py-2 text-xs">
+        <span><strong className="mr-1 text-sm text-[var(--sb-text)]">{effectiveCount}</strong>Effective access</span>
+        <span><strong className="mr-1 text-sm text-[var(--sb-text)]">{overrideCount}</strong>Overrides</span>
       </div>
-
       {protectedRole ? <p className="mb-3 border border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] p-2 text-xs text-[var(--sb-warning)]">Super Admin / Owner permissions are protected and cannot be overridden.</p> : null}
-      {!canManage ? <p className="mb-3 text-xs text-muted-foreground">You can view effective access but cannot change overrides.</p> : null}
-
+      {!canManage ? <p className="mb-3 text-xs text-muted-foreground">You can view effective access but cannot change it.</p> : null}
       <form action={updateAction} className="space-y-3">
-        {groups.map(([module, modulePermissions]) => (
-          <details key={module} className="border border-[var(--sb-border-soft)]">
-            <summary className="cursor-pointer px-3 py-2 text-sm font-semibold capitalize focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)]">
-              {friendlyModule(module)} <span className="font-normal text-muted-foreground">({modulePermissions.length})</span>
-            </summary>
-            <div className="divide-y border-t border-[var(--sb-border-soft)]">
-              {modulePermissions.map((permission) => (
-                <div key={permission.id} className="grid gap-2 p-3 sm:grid-cols-[minmax(0,1fr)_9rem] sm:items-center">
-                  <div className="min-w-0">
-                    <p className="text-xs font-medium">{permission.description ?? `Can ${actionLabels[permission.action] ?? "manage"}`}</p>
-                    <p className="mt-1 text-[11px] text-muted-foreground">Role default: {permission.roleDefault ? "Can access" : "Restricted"} · Effective: <span className={permission.effective ? "text-[var(--sb-success)]" : "text-[var(--sb-danger)]"}>{effectiveLabel(permission)}</span></p>
-                    <details className="mt-1 text-[11px] text-muted-foreground"><summary className="cursor-pointer">Technical details</summary><code className="mt-1 block truncate">{permission.permission_code}</code></details>
-                  </div>
-                  <SelectNative name={`permission:${permission.id}`} defaultValue={permission.override ?? "inherit"} disabled={disabled} aria-label={`Override ${permission.permission_code}`}>
-                    <option value="inherit">Inherit</option>
-                    <option value="allow">Allow</option>
-                    <option value="deny">Deny</option>
-                  </SelectNative>
-                </div>
-              ))}
+        {permissions.map((permission) => <input key={permission.id} type="hidden" name={`permission:${permission.id}`} value={overrides[permission.id] ?? "inherit"} />)}
+        <div className="grid items-start gap-3 md:grid-cols-[11rem_minmax(0,1fr)]">
+          <nav aria-label="Permission categories" className="flex gap-1 overflow-x-auto pb-1 md:flex-col md:overflow-visible">
+            {grouped.map((group) => <button key={group.name} type="button" onClick={() => setActiveCategory(group.name)} aria-current={activeCategory === group.name ? "page" : undefined} className={`shrink-0 rounded-[var(--sb-radius-control)] px-3 py-2 text-left text-xs font-semibold transition-colors ${activeCategory === group.name ? "bg-[var(--sb-green-900)] text-white" : "bg-[var(--sb-surface-muted)] text-[var(--sb-text)] hover:bg-[var(--sb-green-50)]"}`}>{group.name} <span className="opacity-70">{group.permissions.length}</span></button>)}
+          </nav>
+          <div className="overflow-hidden rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-white">
+            <div className="flex items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] px-3 py-2"><h3 className="text-sm font-semibold">{activeCategory}</h3>{!disabled ? <button type="button" onClick={resetCategory} className="text-xs font-semibold text-[var(--sb-green-800)] hover:underline">Reset category</button> : null}</div>
+            <div className="divide-y divide-[var(--sb-border-soft)]">
+              {activePermissions.map((permission) => {
+                const override = overrides[permission.id] ?? "inherit";
+                const effective = override === "allow" || (override === "inherit" && permission.roleDefault);
+                return <div key={permission.id} className="flex min-h-14 items-center justify-between gap-3 px-3 py-2.5">
+                  <div className="min-w-0"><p className="text-xs font-medium text-[var(--sb-text)]">{permissionName(permission)}</p><span className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${override === "inherit" ? "bg-[var(--sb-surface-muted)] text-muted-foreground" : "bg-[var(--sb-green-50)] text-[var(--sb-green-800)]"}`}>{override === "inherit" ? "Role default" : "Override"}</span></div>
+                  <button type="button" role="switch" aria-checked={effective} aria-label={`${permissionName(permission)} ${effective ? "on" : "off"}`} disabled={disabled} onClick={() => setEffective(permission, !effective)} className={`relative h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 ${effective ? "bg-[var(--sb-green-800)]" : "bg-[var(--sb-border-strong)]"}`}><span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${effective ? "translate-x-5" : "translate-x-0.5"}`} /></button>
+                </div>;
+              })}
             </div>
-          </details>
-        ))}
-        {canManage && !protectedRole ? (
-          <div className="flex flex-wrap justify-end gap-2">
-            <SubmitButton type="submit" pendingLabel="Saving overrides...">Save overrides</SubmitButton>
           </div>
-        ) : null}
+        </div>
+        {canManage && !protectedRole ? <div className="flex justify-end"><SubmitButton type="submit" pendingLabel="Saving permissions...">Save permissions</SubmitButton></div> : null}
       </form>
-      {canManage && !protectedRole && (allowed || denied) ? (
-        <form action={resetAction} className="mt-2 flex justify-end">
-          <SubmitButton type="submit" variant="outline" pendingLabel="Resetting...">Reset to role defaults</SubmitButton>
-        </form>
-      ) : null}
+      {canManage && !protectedRole && overrideCount ? <form action={resetAction} className="mt-2 flex justify-end"><SubmitButton type="submit" variant="outline" pendingLabel="Resetting...">Reset all overrides</SubmitButton></form> : null}
     </RecordSection>
   );
 }

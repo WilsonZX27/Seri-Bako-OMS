@@ -227,6 +227,46 @@ input::file-selector-button:hover {
   background: var(--sb-green-100);
 }
 
+/* Sales reconciliation closes with an editable settlement surface. Keep it
+   visually distinct from the muted workspace canvas and summary bands. */
+section[aria-labelledby="sales-reconciliation-title"] > div:last-child {
+  border-top-color: var(--sb-border);
+  background: var(--sb-surface);
+  box-shadow: inset 0 1px 0 var(--sb-border-soft);
+}
+
+section[aria-labelledby="sales-reconciliation-title"] > div:last-child input {
+  border-color: var(--sb-border);
+  background: #fff;
+}
+
+.sb-loading-progress {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(10rem, 42%);
+  height: 0.1875rem;
+  overflow: hidden;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: var(--sb-green-100);
+}
+
+.sb-loading-progress::after {
+  content: "";
+  display: block;
+  width: 42%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--sb-green-700);
+  animation: sb-loading-progress 1.1s cubic-bezier(0.76, 0, 0.24, 1) infinite;
+}
+
+@keyframes sb-loading-progress {
+  from { transform: translateX(-110%); }
+  to { transform: translateX(350%); }
+}
+
 button,
 a,
 input,

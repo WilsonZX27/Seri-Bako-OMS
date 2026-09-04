@@ -23,12 +23,13 @@ test("stock ledger does not coerce a null RPC payload into an empty verified res
   assert.match(ledger, /const result = data;/);
 });
 
-test("inventory fallbacks distinguish missing payloads from a healthy empty low-stock result", () => {
+test("inventory fallbacks mark low-stock unavailable when the canonical fallback cannot confirm it", () => {
   assert.match(source, /if \(!transactions\) throw new Error\("Inventory daily movement fallback returned no data\."\)/);
   assert.match(source, /if \(!transactionData\) throw new Error\("Stock Card transaction fallback returned no data\."\)/);
   assert.match(source, /const balancesUnavailable = Boolean\(balancesResult\.error \|\| !balancesResult\.data/);
   assert.match(source, /const summaryError = error \?\? \(data == null \? new Error\("Low stock summary returned no data\."\) : null\)/);
-  assert.match(source, /if \(!summaryError\) \{\s*fallbackData = \[\];\s*error = null;/);
+  assert.match(source, /error = viewResult\.error/);
+  assert.match(source, /return \{ rows: \[\], count: null, unavailable: true \}/);
 });
 
 test("stock balance base reads do not return a null payload as a verified list", () => {

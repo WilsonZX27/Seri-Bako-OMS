@@ -26,7 +26,7 @@ export function MappingAdmin({ branches, devices }: { branches: Option[]; device
       <form className="mt-4 grid min-w-0 items-end gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_auto]" onSubmit={(event) => { event.preventDefault(); void submit(event.currentTarget); }}>
         <label className="grid gap-1 text-xs font-medium">NGTeco Source<Input name="sourceCode" required maxLength={100} placeholder="e.g. Main Door" /></label>
         <label className="grid gap-1 text-xs font-medium">Outlet<select name="branchId" required className="h-10 rounded-md border bg-background px-3 text-sm"><option value="">Select outlet</option>{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}</select></label>
-        <Button type="submit">Link</Button>
+        <Button type="submit" className="h-10 min-w-20 px-4">Link</Button>
       </form>
       <div className="mt-4 divide-y text-xs">{devices.map((row) => { const branch = row.branches as { branch_name?: string } | null; return <div key={String(row.id)} className="flex justify-between gap-3 py-2"><span className="font-mono">{String(row.source_code)}</span><span>{branch?.branch_name ?? "Unknown outlet"}</span></div>; })}{!devices.length ? <p className="py-3 text-muted-foreground">No device sources linked yet.</p> : null}</div>
     </div>

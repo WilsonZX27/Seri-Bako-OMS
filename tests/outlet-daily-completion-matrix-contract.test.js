@@ -10,10 +10,14 @@ test("outlet completion matrix uses a bounded seven-day header query and preserv
   const query = read("src/server/queries/outlet-daily-records.ts");
   assert.match(query, /getOutletDailyCompletionMatrix/);
   assert.match(query, /const start = shiftDate\(end, -6\)/);
-  assert.match(query, /select\("id,branch_id,record_date,status,updated_at"\)/);
+  assert.match(query, /select\("id,branch_id,record_date,status,sales_review_status,updated_at"\)/);
   assert.match(query, /\.gte\("record_date", start\)[\s\S]*\.lte\("record_date", end\)/);
   assert.match(query, /record\?\.status \?\? "missing"/);
   assert.match(query, /\["evening_completed", "reviewed"\]\.includes\(cell\.status\)/);
+  const component = read("src/components/outlet-daily-completion-matrix.tsx");
+  assert.match(component, /posted_attention/);
+  assert.match(component, /short: "P!"/);
+  assert.doesNotMatch(component, /label: "Reviewed"/);
   assert.doesNotMatch(query, /getOutletDailyCompletionMatrix[\s\S]*outlet_daily_record_lines/);
 });
 

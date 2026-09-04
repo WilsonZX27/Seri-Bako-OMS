@@ -238,7 +238,7 @@ export function StockBalanceWorkspace({
                               return (
                                 <div key={key} className="space-y-1 border-b border-[var(--sb-border-soft)] py-1.5 last:border-0">
                                   <p className="truncate text-[13px] font-semibold leading-4">{line.item_name}</p>
-                                  <p className="truncate text-[10px] leading-4 text-[var(--sb-text-muted)]">{line.item_code} · {line.supplier_name ?? "Supplier mapping missing"}</p>
+                                  <p className="truncate text-[10px] leading-4 text-[var(--sb-text-muted)]">{line.item_code}{isCreateBranch ? "" : ` · ${line.supplier_name ?? "Supplier mapping missing"}`}</p>
                                   {isCreateBranch ? (
                                     <>
                                       <div className="flex items-center justify-between gap-2">

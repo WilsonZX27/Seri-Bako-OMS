@@ -69,6 +69,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
   const branchSelected = selectedBranchId !== "all";
 
   const selectedCount = visibleItems.filter((item) => selected[rowKey(item)]).length;
+  const selectedLabel = selectedCount ? `${selectedCount} selected` : "No items selected";
   const selectedTotal = selectedCount === 0
     ? "0"
     : visibleItems
@@ -170,7 +171,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
             <button type="button" className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border md:hidden" onClick={() => setBasketOpen(false)} aria-label="Close PR basket"><X className="h-4 w-4" /></button>
           </div>
           <div className="flex items-baseline gap-2 text-xs text-muted-foreground md:text-right">
-            <strong className="text-sm text-foreground">{selectedCount}</strong> selected
+            <strong className="text-sm text-foreground">{selectedLabel}</strong>
             <span aria-hidden="true">·</span>
             <span>Suggested total {selectedTotal}</span>
           </div>
@@ -285,7 +286,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
             <div className="divide-y divide-[var(--sb-border-soft)] border-y border-[var(--sb-border-soft)] md:hidden" data-low-stock-pr-lines>
               <div className="flex items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] bg-secondary/20 px-3 py-2 text-xs">
                 <label className="inline-flex min-h-11 items-center gap-2 font-medium"><input ref={selectAllMobileRef} type="checkbox" aria-label="Select all visible low-stock items" checked={allVisibleSelected} onChange={toggleAllVisible} disabled={!branchSelected || !visibleItems.length} /> Select all visible</label>
-                <span className="text-muted-foreground">{selectedCount} selected</span>
+                <span className="text-muted-foreground">{selectedLabel}</span>
               </div>
               {groupBySupplier(visibleItems).map(([supplierId, supplierItems]) => <div key={`mobile-supplier-group-${supplierId}`}>
                 <div className="bg-secondary/30 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-muted)]">
@@ -321,7 +322,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
                 <p>Only checked rows will be included. Each supplier becomes a separate draft PR.</p>
                 {hasMissingSupplier ? <p className="mt-1 font-medium text-destructive">Supplier mapping is required before these items can become a PR.</p> : null}
               </div>
-              <p aria-live="polite">{selectedCount} selected</p>
+              <p aria-live="polite">{selectedLabel}</p>
             </div>
             <div className="flex justify-end border-t border-[var(--sb-border-soft)] pt-3">
               <SubmitButton type="submit" disabled={!canCreatePr} className="min-h-11 w-full md:w-auto md:min-w-56" pendingLabel="Creating PR...">

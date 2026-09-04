@@ -21,12 +21,14 @@ const uomConversionsPage = read("src/app/(app)/uom-conversions/page.tsx");
 const staffsPage = read("src/app/(app)/staffs/page.tsx");
 const purchaseReturnForm = read("src/components/purchase-return-form.tsx");
 
-test("UI consistency keeps imports upload-only and technical permission details collapsed", () => {
+test("UI consistency keeps imports upload-only and permission details user-facing", () => {
   assert.doesNotMatch(imports, /Edit in table|Add blank row|Paste into table/);
   assert.match(imports, /Upload file/);
   assert.match(imports, /Confirm import/);
-  assert.match(staffPermissions, /Technical details/);
-  assert.match(staffPermissions, /<details key=\{module\}/);
+  assert.doesNotMatch(staffPermissions, /Technical details/);
+  assert.match(staffPermissions, /role="switch"/);
+  assert.match(staffPermissions, /Role default/);
+  assert.doesNotMatch(staffPermissions, /<details/);
 });
 
 test("shared filter rows use compact operational-green submits without adding duplicate link icons", () => {

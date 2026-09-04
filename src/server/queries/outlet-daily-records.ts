@@ -12,7 +12,7 @@ type Filters = Record<string, string | undefined>;
 type RecordRow = Database["public"]["Tables"]["outlet_daily_records"]["Row"];
 type LineRow = Database["public"]["Tables"]["outlet_daily_record_lines"]["Row"];
 type TrendPeriod = "7" | "30" | "month";
-type TrendStatus = "all" | "evening_completed" | "reviewed";
+type TrendStatus = "all" | "evening_completed";
 type TrendTotals = { received: number; leftover: number; wastage: number; movement: number };
 
 type ActivityMetadata = {
@@ -94,6 +94,7 @@ export type OutletDailyCompletionCell = {
   record_date: string;
   record_id: string | null;
   status: OutletDailyCompletionStatus;
+  sales_review_status: RecordRow["sales_review_status"] | null;
 };
 
 export type OutletDailyWastageCostSummary = {
@@ -506,7 +507,7 @@ export async function getOutletDailyRecord(id: string) {
 
 export async function getOutletDailyDemandTrend(filters: Filters = {}) {
   const period = (["7", "30", "month"].includes(filters.period ?? "") ? filters.period : "7") as TrendPeriod;
-  const status = (["all", "evening_completed", "reviewed"].includes(filters.status ?? "") ? filters.status : "all") as TrendStatus;
+  const status = (["all", "evening_completed"].includes(filters.status ?? "") ? filters.status : "all") as TrendStatus;
   const { start, end } = trendDateRange(period);
   const options = await getOutletDailyFormOptions();
   const branchId = filters.branch && filters.branch !== "all" ? filters.branch : undefined;
@@ -546,7 +547,7 @@ export async function getOutletDailyCompletionMatrix(filters: Filters = {}) {
   const db = await createClient();
   let query = db
     .from("outlet_daily_records")
-    .select("id,branch_id,record_date,status,updated_at")
+    .select("id,branch_id,record_date,status,sales_review_status,updated_at")
     .gte("record_date", start)
     .lte("record_date", end)
     .order("updated_at", { ascending: false });
@@ -554,13 +555,13 @@ export async function getOutletDailyCompletionMatrix(filters: Filters = {}) {
   const { data, error } = await query;
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Outlet daily completion matrix returned no data.");
-  return buildOutletDailyCompletionMatrix({ branches, dates, records: data as Pick<RecordRow, "id" | "branch_id" | "record_date" | "status" | "updated_at">[] });
+  return buildOutletDailyCompletionMatrix({ branches, dates, records: data as Pick<RecordRow, "id" | "branch_id" | "record_date" | "status" | "sales_review_status" | "updated_at">[] });
 }
 
 function buildOutletDailyCompletionMatrix({ branches, dates, records }: {
   branches: Awaited<ReturnType<typeof getOutletDailyFormOptions>>["branches"];
   dates: string[];
-  records: Pick<RecordRow, "id" | "branch_id" | "record_date" | "status" | "updated_at">[];
+  records: Pick<RecordRow, "id" | "branch_id" | "record_date" | "status" | "sales_review_status" | "updated_at">[];
 }) {
   const recordByOutletDay = new Map<string, (typeof records)[number]>();
   for (const record of records) {
@@ -573,7 +574,7 @@ function buildOutletDailyCompletionMatrix({ branches, dates, records }: {
     branch_name: branch.branch_name,
     cells: dates.map<OutletDailyCompletionCell>((recordDate) => {
       const record = recordByOutletDay.get(`${branch.id}:${recordDate}`);
-      return { branch_id: branch.id, branch_name: branch.branch_name, record_date: recordDate, record_id: record?.id ?? null, status: record?.status ?? "missing" };
+      return { branch_id: branch.id, branch_name: branch.branch_name, record_date: recordDate, record_id: record?.id ?? null, status: record?.status ?? "missing", sales_review_status: record?.sales_review_status ?? null };
     }),
   }));
   const cells = rows.flatMap((row) => row.cells);

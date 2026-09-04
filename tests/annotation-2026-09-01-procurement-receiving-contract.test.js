@@ -34,7 +34,9 @@ test("draft GRNs support controlled receiving edits and audited over-receipt", (
   const action = read("src/server/actions/goods-receivings.ts");
   const migration = read("supabase/migrations/240_editable_goods_receiving_and_controlled_over_receipt.sql");
   assert.match(detail, /GoodsReceivingDraftEditor/);
-  assert.match(editor, /Save received quantities/);
+  assert.doesNotMatch(editor, /Save received quantities/);
+  assert.match(editor, /goods-receiving-post-form/);
+  assert.match(detail, /formId="goods-receiving-post-form"/);
   assert.match(editor, /Over-receipt reason/);
   assert.match(action, /update_goods_receiving_draft_atomic/);
   assert.match(migration, /over_receipt_reason text/);

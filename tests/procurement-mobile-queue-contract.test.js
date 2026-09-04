@@ -20,7 +20,8 @@ test("purchase order mobile search and rows expose delivery context", () => {
 test("goods receiving mobile rows expose source, scope, and variance", () => {
   const source = read("src/app/(app)/goods-receivings/page.tsx");
 
-  assert.match(source, /PO \{receiving\.po_no \?\? "not linked"\}/);
+  assert.match(source, /\{receiving\.po_no \?\? "No linked PO"\}/);
+  assert.doesNotMatch(source, />PO \{receiving\.po_no/);
   assert.match(source, /receiving\.branch_name \?\? "No branch"/);
   assert.match(source, /formatNumber\(receiving\.received_total\).*formatNumber\(receiving\.rejected_total\)/s);
 });

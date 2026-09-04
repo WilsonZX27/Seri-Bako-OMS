@@ -39,7 +39,8 @@ test("Demand Trend Lite applies date, outlet, product and reliable-status filter
   assert.match(query, /filters\.status/);
   assert.match(page, /Last 7 days/);
   assert.match(page, /All available outlets/);
-  assert.match(page, /Completed \+ reviewed/);
+  assert.doesNotMatch(page, /Reviewed only|Completed \+ reviewed/);
+  assert.match(page, /No posted product lines/);
 });
 
 test("Demand Trend Lite uses dense phone summaries and compact trend rows", () => {

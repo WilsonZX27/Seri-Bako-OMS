@@ -76,7 +76,7 @@ test("People profile exposes authorised employment editing and staff document ca
   assert.match(people, /Add employee document/);
   assert.match(people, /Save record & file/);
   assert.match(people, /people\.compliance\.document\.read/);
-  assert.match(people, /text-\[10px\][^>]*>Additional outlets/);
+  assert.doesNotMatch(people, /Additional outlets use the existing staff assignment model/);
   assert.match(people, /text-\[10px\][^>]*>Original files/);
   assert.match(action, /value\.subject_kind === "staff" \? "people\.compliance\.document\.read"/);
   assert.match(action, /complianceMessageUrl\(returnPath, "error", uploadError\.message\)/);
@@ -96,7 +96,7 @@ test("v9.2 uses the OMS register, progressive checklist and real month calendars
   const checklist = read("src","app","(app)","outlet-compliance","[branchId]","page.tsx");
   const people = read("src","app","(app)","people","[id]","page.tsx");
   const calendar = read("src","components","compliance-month-calendar.tsx");
-  assert.match(register, /Outlet register/);
+  assert.match(register, /Compliance register/);
   assert.match(register, /OperationalList/);
   assert.match(register, /tabletCanvas="wide"/);
   assert.match(register, /contentWidth="wide"/);

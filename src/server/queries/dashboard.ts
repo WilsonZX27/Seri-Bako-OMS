@@ -5,6 +5,9 @@ import { getCurrentUserScope, getVisibleNotificationsForCurrentUser } from "@/se
 import { getCurrentUserPendingActionSnapshot } from "@/server/queries/pending-actions";
 import { getPayablesAttention } from "@/server/queries/ap-aging";
 import { getRoleDisplayLabel } from "@/lib/roles";
+import { getOutletComplianceWorkspace } from "@/server/queries/compliance";
+import { getOutletDailyCompletionMatrix } from "@/server/queries/outlet-daily-records";
+import { getLowStockResult } from "@/server/queries/inventory";
 import { logServerWarning } from "@/server/observability/logger";
 import {
   getMockLowStockItems,
@@ -315,6 +318,7 @@ export async function getDashboardSummary() {
       wastageUnavailable: false,
       receivingFollowupUnavailable: false,
       operationsControl: null,
+      compliance: null,
       productionSummary: null,
       outletToday: null,
       upcomingShifts: [],
@@ -337,13 +341,14 @@ export async function getDashboardSummary() {
   const needsProcurement = isOwner || isFinance || isManager || isPurchasing || isKitchen;
   const needsInventory = isOwner || isFinance || isManager || isPurchasing || isKitchen;
   const needsOperations = isOwner || isFinance || isManager;
+  const needsCompliance = isOwner || isManager || isKitchen || isOutlet || role === "people_operations";
   const needsProduction = isOwner || isFinance || isManager || isPurchasing || isKitchen;
   const today = todayInKualaLumpur();
   const supabase = await createClient();
   const db = looseSupabase(supabase);
   const empty = { data: [], error: null, count: 0 };
   const nextWeek = new Date(`${today}T00:00:00Z`); nextWeek.setUTCDate(nextWeek.getUTCDate()+7);
-  const [coreSnapshotRpcResult, pendingApprovals, notifications, recentActivities, outletToday, currentStaff, assignedBranches, payablesAttention, lowStockViewResult, upcomingShifts] = await Promise.all([
+  const [coreSnapshotRpcResult, pendingApprovals, notifications, recentActivities, outletToday, currentStaff, assignedBranches, payablesAttention, lowStockViewResult, upcomingShifts, outletCompletion, complianceWorkspace] = await Promise.all([
     (needsProcurement || needsInventory) ? supabase.rpc("get_dashboard_core_snapshot", { p_today: today }) : Promise.resolve({ data: null, error: null }),
     getCurrentUserPendingActionSnapshot(5),
     getVisibleNotificationsForCurrentUser(),
@@ -361,13 +366,12 @@ export async function getDashboardSummary() {
           return null;
         })
       : Promise.resolve(null),
-    // Keep the attention count on the bounded pre-aggregated inventory model.
-    // The legacy stock_balances_view recomputes the entire ledger and can time
-    // out even for a small dashboard count.
     needsInventory
-      ? supabase.from("stock_balances_summary").select("item_id, current_qty, safety_stock, status, is_low_stock")
-      : Promise.resolve({ data: [], error: null }),
+      ? getLowStockResult()
+      : Promise.resolve({ rows: [], count: 0, unavailable: false }),
     isOutlet && scope.staffId ? db.from("shift_assignment_revisions").select("id,work_date,assignment_kind,custom_start,custom_end,shift_templates(code,name,planned_start,planned_end,crosses_midnight),schedule_weeks!inner(status)").eq("staff_id",scope.staffId).eq("is_current",true).gte("work_date",today).lte("work_date",nextWeek.toISOString().slice(0,10)).in("schedule_weeks.status",["published","locked"]).order("work_date").limit(8) : Promise.resolve({data:[],error:null}),
+    needsOperations ? getOutletDailyCompletionMatrix({ history_date: today }).catch((error) => { warnOptionalQuery("outlet completion", error); return null; }) : Promise.resolve(null),
+    needsCompliance ? getOutletComplianceWorkspace().catch((error) => { warnOptionalQuery("outlet compliance", error); return null; }) : Promise.resolve(null),
   ]);
 
   let coreSnapshot = coreSnapshotRpcResult.data as DashboardCoreSnapshot | null;
@@ -396,22 +400,8 @@ export async function getDashboardSummary() {
   warnOptionalQueryResult("assigned branches", assignedBranches);
 
   const coreUnavailable = (needsProcurement || needsInventory) && coreSnapshotUnavailable;
-  const lowStockViewUnavailable = Boolean(needsInventory && (lowStockViewResult.error || !lowStockViewResult.data));
-  const lowStockViewRows = (lowStockViewResult.data ?? []) as Array<{
-    item_id: string | null;
-    current_qty: number | string | null;
-    safety_stock: number | string | null;
-    status: string | null;
-  }>;
-  const lowStockViewCount = lowStockViewUnavailable
-    ? null
-    : new Set(
-        lowStockViewRows
-          .filter((row) => row.status === "active")
-          .filter((row) => Number(row.current_qty ?? 0) <= Number(row.safety_stock ?? 0) || Number(row.current_qty ?? 0) <= 0)
-          .map((row) => row.item_id)
-          .filter(Boolean),
-      ).size;
+  const lowStockViewUnavailable = Boolean(needsInventory && lowStockViewResult.unavailable);
+  const lowStockViewCount = lowStockViewResult.count;
 
   // A dashboard is a situational overview, not a transaction form. A degraded
   // optional read must not strand a signed-in operator behind a generic error
@@ -430,6 +420,15 @@ export async function getDashboardSummary() {
   const receivingFollowupUnavailable = (needsProcurement || needsInventory) && (coreUnavailable || fallbackUnavailable.receivingFollowup);
   const productionUnavailable = needsProduction && (coreUnavailable || fallbackUnavailable.production);
   const operationsUnavailable = needsOperations && (coreUnavailable || fallbackUnavailable.operations);
+  const outletCompletionIssues = outletCompletion
+    ? outletCompletion.rows.reduce((total, row) => {
+        const todayCell = row.cells.find((cell) => cell.record_date === today);
+        return total + (!todayCell || ["missing", "draft", "morning_recorded"].includes(todayCell.status) ? 1 : 0);
+      }, 0)
+    : null;
+  const complianceIssues = complianceWorkspace
+    ? complianceWorkspace.requirements.filter((row) => !row.record || ["missing", "expired"].includes(row.record.state)).length
+    : null;
   const attentionSummary = createDashboardAttentionSummary({
     pendingApprovals: pendingApprovals.total ?? 0,
     lowStock: inventoryUnavailable ? 0 : (lowStockViewCount ?? Number(coreSnapshot?.low_stock_items_count ?? 0)),
@@ -486,9 +485,10 @@ export async function getDashboardSummary() {
     payablesAttention,
     payablesAttentionUnavailable,
     attentionSummary,
+    compliance: needsCompliance ? { issues: complianceIssues, unavailable: complianceWorkspace === null } : null,
     operationsControl: needsOperations && !operationsUnavailable ? {
       outlet: {
-        missing_evening: Number(coreSnapshot?.outlet_missing_evening ?? 0),
+        missing_evening: outletCompletionIssues ?? Number(coreSnapshot?.outlet_missing_evening ?? 0),
         needs_review: Number(coreSnapshot?.outlet_needs_review ?? 0),
       },
       demand: null,

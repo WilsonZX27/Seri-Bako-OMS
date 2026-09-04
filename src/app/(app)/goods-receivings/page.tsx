@@ -118,7 +118,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                 key={receiving.id}
                 href={`/goods-receivings/${receiving.id}`}
                 label={`Open ${receiving.grn_no}`}
-                primary={<div><DocumentNumber value={receiving.grn_no} size="sm" /><p className="text-[11px] font-normal text-[var(--sb-text-muted)]">PO {receiving.po_no ?? "not linked"} · {formatDateOnly(receiving.received_date)}</p></div>}
+                primary={<div><DocumentNumber value={receiving.grn_no} size="sm" /><p className="text-[11px] font-normal text-[var(--sb-text-muted)]">{receiving.po_no ?? "No linked PO"} · {formatDateOnly(receiving.received_date)}</p></div>}
                 status={<StatusBadge status={receiving.workflow_status} />}
                 secondary={`${receiving.supplier_name ?? "No supplier"} · ${receiving.branch_name ?? "No branch"}`}
                 meta={`${formatNumber(receiving.received_total)} in · ${formatNumber(receiving.rejected_total)} rejected`}

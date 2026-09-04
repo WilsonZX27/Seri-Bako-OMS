@@ -250,21 +250,6 @@ export async function saveOutletDailyRecord(formData: FormData) {
   }
 }
 
-export async function reviewOutletDailyRecord(id: string) {
-  await requirePermission("outlet_daily_record.review");
-  const recordId = z.uuid("Invalid outlet daily record identifier.").parse(id);
-  try {
-    const db = await createClient();
-    const { error } = await db.rpc("transition_outlet_daily_record", { p_record_id: recordId, p_action: "review", p_reason: null });
-    if (error) throw new Error(error.message);
-    revalidateWorkspaceState(["/outlet-daily-records", `/outlet-daily-records/${recordId}`]);
-    safeRedirectWithMessage(`/outlet-daily-records/${recordId}`, "success", "Outlet daily record reviewed.");
-  } catch (error) {
-    rethrowRedirect(error);
-    safeRedirectWithMessage(`/outlet-daily-records/${recordId}`, "error", formatActionError(error, "Could not review this outlet daily record."));
-  }
-}
-
 export async function voidOutletDailyRecord(id: string, formData: FormData) {
   await requirePermission("outlet_daily_record.void");
   const recordId = z.uuid("Invalid outlet daily record identifier.").parse(id);

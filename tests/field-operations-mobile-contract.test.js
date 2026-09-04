@@ -344,13 +344,14 @@ test("costing readiness reports use severity-first phone issue rows", () => {
   assert.match(source, /Open record/);
 });
 
-test("staff permission overrides use touch-friendly capability rows instead of a scrolling table", () => {
+test("staff permission overrides use category navigation and effective access switches", () => {
   const source = read("src/components/staff-permission-overrides.tsx");
 
-  assert.match(source, /<details key=\{module\}/);
-  assert.match(source, /grid gap-2 p-3 sm:grid-cols/);
-  assert.match(source, /Technical details/);
-  assert.match(source, /text-\[11px\]/);
+  assert.match(source, /aria-label="Permission categories"/);
+  assert.match(source, /role="switch"/);
+  assert.match(source, /enabled === permission\.roleDefault \? "inherit" : enabled \? "allow" : "deny"/);
+  assert.match(source, /Reset category/);
+  assert.match(source, /Reset all overrides/);
 });
 
 test("product master editing avoids nested card boundaries on phones", () => {

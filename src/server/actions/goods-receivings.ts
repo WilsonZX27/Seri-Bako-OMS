@@ -133,6 +133,25 @@ export async function postGoodsReceiving(id: string, formData: FormData) {
 
     const goodsReceivingId = parseGoodsReceivingId(id);
     const supabase = await createClient();
+    const lineIds = formData.getAll("line_id").map(String);
+    if (lineIds.length) {
+      const received = formData.getAll("received_qty").map(String);
+      const rejected = formData.getAll("rejected_qty").map(String);
+      const reasons = formData.getAll("over_receipt_reason").map(String);
+      const lines = z.array(z.object({
+        line_id: z.uuid(),
+        received_qty: z.coerce.number().finite().min(0).max(1_000_000),
+        rejected_qty: z.coerce.number().finite().min(0).max(1_000_000),
+        over_receipt_reason: z.string().trim().max(1_000).nullable(),
+      })).min(1).max(500).parse(lineIds.map((lineId, index) => ({
+        line_id: lineId,
+        received_qty: received[index] ?? "0",
+        rejected_qty: rejected[index] ?? "0",
+        over_receipt_reason: cleanText(reasons[index] ?? null),
+      })));
+      const { error: updateError } = await supabase.rpc("update_goods_receiving_draft_atomic" as never, { p_goods_receiving_id: goodsReceivingId, p_lines: lines } as never);
+      if (updateError) throw new Error(updateError.message);
+    }
     const doExceptionReason = z.string().trim().max(1_000).nullable().parse(cleanText(formData.get("do_exception_reason")));
     const { data, error } = await supabase.rpc("post_goods_receiving_atomic", {
       p_goods_receiving_id: goodsReceivingId,

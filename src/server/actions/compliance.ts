@@ -44,6 +44,8 @@ export async function createComplianceRecord(formData: FormData) {
   const recordId = crypto.randomUUID();
   const fileValue = formData.get("file");
   const file = fileValue instanceof File && fileValue.size > 0 ? fileValue : null;
+  const attachmentLabel = z.string().trim().min(3).max(180).safeParse(formData.get("file_name"));
+  if (value.subject_kind === "outlet" && (!file || !attachmentLabel.success)) redirect(complianceMessageUrl(returnPath, "error", "Name and choose the first attachment."));
   let attachmentId: string | null = null;
   let storagePath: string | null = null;
   if (file) {
@@ -61,7 +63,7 @@ export async function createComplianceRecord(formData: FormData) {
     storagePath = `${actor.companyId}/compliance/${recordId}/${crypto.randomUUID()}-${safeName}`;
     const { error: uploadError } = await supabase.storage.from("document-attachments").upload(storagePath, Buffer.from(await file.arrayBuffer()), { contentType: file.type, upsert: false });
     if (uploadError) redirect(complianceMessageUrl(returnPath, "error", uploadError.message));
-    const { error: attachmentError } = await supabase.from("attachments").insert({ id: attachmentId, company_id: actor.companyId, entity_type: "compliance_record", entity_id: recordId, file_name: file.name.slice(0,180), file_type: file.type, file_size: file.size, storage_path: storagePath, file_url: null, uploaded_by: actor.staffId, created_by: actor.staffId, updated_by: actor.staffId });
+    const { error: attachmentError } = await supabase.from("attachments").insert({ id: attachmentId, company_id: actor.companyId, entity_type: "compliance_record", entity_id: recordId, file_name: (attachmentLabel.success ? attachmentLabel.data : file.name).slice(0,180), file_type: file.type, file_size: file.size, storage_path: storagePath, file_url: null, uploaded_by: actor.staffId, created_by: actor.staffId, updated_by: actor.staffId });
     if (attachmentError) { await supabase.storage.from("document-attachments").remove([storagePath]); redirect(complianceMessageUrl(returnPath, "error", attachmentError.message)); }
   }
   const { data, error } = await supabase.from("compliance_records").insert({
@@ -113,6 +115,84 @@ export async function reviewComplianceRecord(formData: FormData) {
   redirect(target.branch_id ? `/outlet-compliance/${target.branch_id}?success=${decision === "approved" ? "Evidence+approved." : "Evidence+returned+with+the+correction+note."}` : "/compliance?success=Review+saved.");
 }
 
+const outletDetailsSchema = z.object({
+  reference_no: z.string().trim().max(120).optional(), issued_on: z.string().date(), expires_on: z.string().date(), notes: z.string().trim().max(1000).optional(),
+}).refine((value) => value.expires_on >= value.issued_on, { path: ["expires_on"], message: "Expiry must be on or after the issue date." });
+
+export async function updateOutletComplianceDetails(recordId: string, formData: FormData) {
+  await requirePermission("outlet_compliance.upload");
+  const actor = await requireActiveTenantActor();
+  const id = z.string().uuid().parse(recordId);
+  const parsed = outletDetailsSchema.safeParse(Object.fromEntries(formData));
+  const supabase = await createClient();
+  const { data: current } = await supabase.from("compliance_records").select("branch_id,expires_on").eq("id", id).eq("company_id", actor.companyId).eq("subject_kind", "outlet").is("deleted_at", null).maybeSingle();
+  const path = current?.branch_id ? `/outlet-compliance/${current.branch_id}` : "/outlet-compliance";
+  if (!current || !parsed.success) redirect(complianceMessageUrl(path, "error", "Check the required record fields."));
+  const value = parsed.data;
+  const { error } = await supabase.from("compliance_records").update({ reference_no: value.reference_no || null, issued_on: value.issued_on, expires_on: value.expires_on, notes: value.notes || null, updated_by: actor.staffId }).eq("id", id).eq("company_id", actor.companyId).is("deleted_at", null);
+  if (error) redirect(complianceMessageUrl(path, "error", error.message));
+  await supabase.from("compliance_record_history").insert({ company_id: actor.companyId, compliance_record_id: id, event_type: "updated", safe_summary: "Compliance details updated.", previous_expires_on: current.expires_on, new_expires_on: value.expires_on, actor_staff_id: actor.staffId });
+  revalidatePath("/outlet-compliance");
+  redirect(complianceMessageUrl(path, "success", "Compliance details updated."));
+}
+
+export async function addOutletComplianceAttachment(recordId: string, _state: { error: string | null; success: string | null }, formData: FormData) {
+  try {
+    await requirePermission("outlet_compliance.upload");
+    const actor = await requireActiveTenantActor();
+    const id = z.string().uuid().parse(recordId);
+    const label = z.string().trim().min(3, "Name this attachment before uploading.").max(180).parse(formData.get("file_name"));
+    const value = formData.get("file");
+    const file = value instanceof File && value.size > 0 ? value : null;
+    if (!file) throw new Error("Choose a file to upload.");
+    if (file.size > 10 * 1024 * 1024) throw new Error("Attachment must be 10 MB or smaller.");
+    const allowed = new Set(["application/pdf", "image/png", "image/jpeg", "image/webp"]);
+    if (!allowed.has(file.type)) throw new Error("Use a PDF, PNG, JPEG, or WebP document.");
+    const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+    const starts = (...expected: number[]) => expected.every((byte, index) => bytes[index] === byte);
+    const signatureValid = file.type === "application/pdf" ? starts(37,80,68,70,45) : file.type === "image/png" ? starts(137,80,78,71,13,10,26,10) : file.type === "image/jpeg" ? starts(255,216,255) : bytes.length >= 12 && String.fromCharCode(...bytes.slice(0,4)) === "RIFF" && String.fromCharCode(...bytes.slice(8,12)) === "WEBP";
+    if (!signatureValid) throw new Error("Document content does not match its file type.");
+    const supabase = await createClient();
+    const { data: record, error: recordError } = await supabase.from("compliance_records").select("id,branch_id,attachment_id").eq("id", id).eq("company_id", actor.companyId).eq("subject_kind", "outlet").is("deleted_at", null).maybeSingle();
+    if (recordError || !record) throw new Error("This compliance record is no longer available.");
+    const attachmentId = crypto.randomUUID();
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, "-").slice(-120) || "compliance-file";
+    const storagePath = `${actor.companyId}/compliance/${id}/${crypto.randomUUID()}-${safeName}`;
+    const { error: uploadError } = await supabase.storage.from("document-attachments").upload(storagePath, Buffer.from(await file.arrayBuffer()), { contentType: file.type, upsert: false });
+    if (uploadError) throw new Error(uploadError.message);
+    const { error: insertError } = await supabase.from("attachments").insert({ id: attachmentId, company_id: actor.companyId, entity_type: "compliance_record", entity_id: id, file_name: label, file_type: file.type, file_size: file.size, storage_path: storagePath, file_url: null, uploaded_by: actor.staffId, created_by: actor.staffId, updated_by: actor.staffId });
+    if (insertError) { await supabase.storage.from("document-attachments").remove([storagePath]); throw new Error(insertError.message); }
+    if (!record.attachment_id) await supabase.from("compliance_records").update({ attachment_id: attachmentId, updated_by: actor.staffId }).eq("id", id).eq("company_id", actor.companyId);
+    await supabase.from("compliance_record_history").insert({ company_id: actor.companyId, compliance_record_id: id, event_type: "attachment_uploaded", safe_summary: `Attachment ${label} uploaded.`, actor_staff_id: actor.staffId });
+    revalidatePath("/outlet-compliance");
+    return { error: null, success: `${label} uploaded.` };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : "Could not upload this attachment.", success: null };
+  }
+}
+
+export async function archiveOutletComplianceAttachment(recordId: string, attachmentId: string) {
+  await requirePermission("outlet_compliance.upload");
+  const actor = await requireActiveTenantActor();
+  const recordKey = z.string().uuid().parse(recordId);
+  const attachmentKey = z.string().uuid().parse(attachmentId);
+  const supabase = await createClient();
+  const { data: record } = await supabase.from("compliance_records").select("id,branch_id,attachment_id").eq("id", recordKey).eq("company_id", actor.companyId).eq("subject_kind", "outlet").is("deleted_at", null).maybeSingle();
+  const path = record?.branch_id ? `/outlet-compliance/${record.branch_id}` : "/outlet-compliance";
+  if (!record) redirect(complianceMessageUrl(path, "error", "This compliance record is no longer available."));
+  const { data: attachment } = await supabase.from("attachments").select("id,file_name").eq("id", attachmentKey).eq("entity_type", "compliance_record").eq("entity_id", recordKey).eq("company_id", actor.companyId).eq("status", "active").is("deleted_at", null).maybeSingle();
+  if (!attachment) redirect(complianceMessageUrl(path, "error", "This attachment is no longer available."));
+  const { error } = await supabase.from("attachments").update({ status: "archived", deleted_at: new Date().toISOString(), updated_by: actor.staffId }).eq("id", attachmentKey).eq("company_id", actor.companyId);
+  if (error) redirect(complianceMessageUrl(path, "error", error.message));
+  if (record.attachment_id === attachmentKey) {
+    const { data: next } = await supabase.from("attachments").select("id").eq("entity_type", "compliance_record").eq("entity_id", recordKey).eq("company_id", actor.companyId).eq("status", "active").is("deleted_at", null).order("created_at", { ascending: false }).limit(1).maybeSingle();
+    await supabase.from("compliance_records").update({ attachment_id: next?.id ?? null, updated_by: actor.staffId }).eq("id", recordKey).eq("company_id", actor.companyId);
+  }
+  await supabase.from("compliance_record_history").insert({ company_id: actor.companyId, compliance_record_id: recordKey, event_type: "attachment_archived", safe_summary: `Attachment ${attachment.file_name} removed.`, actor_staff_id: actor.staffId });
+  revalidatePath("/outlet-compliance");
+  redirect(complianceMessageUrl(path, "success", "Attachment removed."));
+}
+
 export async function revokeComplianceRecord(formData: FormData) {
   await requirePermission("outlet_compliance.upload");
   const actor = await requireActiveTenantActor();
@@ -154,9 +234,9 @@ export async function createComplianceType(formData: FormData) {
   const { data, error } = await supabase.from("compliance_types").insert({ company_id: actor.companyId, type_code: typeCode, type_name: typeName, subject_kind: subjectKind, is_sensitive: sensitive }).select("id").single();
   if (error || !data) redirect(`/compliance?error=${encodeURIComponent(error?.message ?? "Type could not be created.")}`);
   if(subjectKind==="outlet") {
-    const {data:branches}=await supabase.from("branches").select("id").eq("company_id",actor.companyId).eq("branch_type","outlet").eq("status","active").is("deleted_at",null);
+    const {data:branches}=await supabase.from("branches").select("id").eq("company_id",actor.companyId).in("branch_type",["outlet","central_kitchen"]).eq("status","active").is("deleted_at",null);
     if(branches?.length) await supabase.from("outlet_compliance_requirements").insert(branches.map(branch=>({company_id:actor.companyId,branch_id:branch.id,compliance_type_id:data.id,is_required:true})));
   }
   revalidatePath(subjectKind==="outlet"?"/outlet-compliance":"/compliance");
-  redirect(subjectKind==="outlet"?"/outlet-compliance?success=Requirement+type+added+to+all+active+outlets.":"/compliance?success=Compliance+type+created.");
+  redirect(subjectKind==="outlet"?"/outlet-compliance?success=Requirement+type+added+to+all+active+sites.":"/compliance?success=Compliance+type+created.");
 }

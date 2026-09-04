@@ -9,7 +9,7 @@
 - Removes Outlet Compliance approval entirely: an upload becomes current immediately, and authorised staff can replace or remove the current document.
 - Matches imported NGTeco people automatically to unique active OMS employee names; only device-source-to-outlet mapping remains manual.
 
-Repository migrations reviewed through `254`; migration 254 makes every active outlet document current without changing the separate staff-compliance review capability.
+Repository migrations reviewed through `257`; migrations 255–257 retire Outlet Daily review approval while preserving its audit history, correct AutoCount PO `PO-000207` exactly, and extend site compliance to named multi-attachments and Central Kitchen. These migrations are implemented locally and remain unapplied until the linked database target is verified.
 
 ### v9.2.20 (deployed) — Unified Loading and Workflow Reliability
 

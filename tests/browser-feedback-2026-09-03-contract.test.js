@@ -39,8 +39,9 @@ test("daily records, receiving, compliance and stock count feedback remains expl
   assert.match(compliance, /export async function revokeComplianceRecord/);
   assert.match(compliance, /This evidence is no longer pending review/);
   const outletCompliance = read("src", "app", "(app)", "outlet-compliance", "[branchId]", "page.tsx");
-  assert.match(outletCompliance, /Replace document/);
-  assert.match(outletCompliance, /Remove \{row\.type/);
+  assert.match(outletCompliance, /ComplianceAttachmentUpload/);
+  assert.doesNotMatch(outletCompliance, /Replace document/);
+  assert.match(outletCompliance, /AttachmentRemoveAction/);
   assert.doesNotMatch(outletCompliance, /reviewComplianceRecord|>Approve<|>Return<|Pending review|Submit for review/);
   assert.match(read("src", "app", "(app)", "outlet-compliance", "page.tsx"), /New requirement/);
   assert.match(read("src", "server", "queries", "topbar.ts"), /"purchasing", "manager", "finance", "people_operations", "super_admin"/);

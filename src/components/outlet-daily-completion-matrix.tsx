@@ -10,10 +10,10 @@ type MatrixSummary = { expected: number; completed: number; incomplete: number; 
 
 const stateMeta = {
   missing: { label: "Missing", short: "—", className: "border-[var(--sb-border-strong)] bg-[var(--sb-surface)] text-[var(--sb-text-muted)]" },
-  draft: { label: "Qty Sent pending", short: "QS", className: "border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" },
+  draft: { label: "Qty Sent pending", short: "QS", className: "border-[var(--sb-info)] bg-[var(--sb-info-bg)] text-[var(--sb-info)]" },
   morning_recorded: { label: "Outlet Entry pending", short: "OE", className: "border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" },
   evening_completed: { label: "Posted", short: "P", className: "border-[var(--sb-success)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]" },
-  reviewed: { label: "Reviewed", short: "R", className: "border-[var(--sb-green-900)] bg-[var(--sb-green-100)] text-[var(--sb-green-900)]" },
+  posted_attention: { label: "Posted · Attention", short: "P!", className: "border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" },
   void: { label: "Void", short: "V", className: "border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]" },
 } as const;
 
@@ -32,7 +32,7 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
         <h2 id="outlet-completion-title" className="text-sm font-semibold">7-day outlet completion</h2>
         <p className="text-xs text-muted-foreground">Expected outlet-days · explicit record status, not a lateness estimate</p>
       </div>
-      <p className="text-xs text-muted-foreground"><strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable || completionPercent === null ? "Not available" : `${formatNumber(completionPercent)}%`}</strong>{unavailable || completionPercent === null ? "" : " completed or reviewed"}</p>
+      <p className="text-xs text-muted-foreground"><strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable || completionPercent === null ? "Not available" : `${formatNumber(completionPercent)}%`}</strong>{unavailable || completionPercent === null ? "" : " posted"}</p>
     </div>
     {unavailable ? <div className="px-4 py-8 text-center" role="status"><p className="text-sm font-medium">Completion insight unavailable</p><p className="mt-1 text-xs text-muted-foreground">The daily record list remains current. Retry this page to load outlet-day coverage.</p></div> : rows.length && summary ? <>
       <div className="grid grid-cols-[repeat(3,minmax(0,1fr))] divide-x divide-[var(--sb-border-soft)] border-b border-[var(--sb-border-soft)] sm:hidden" data-outlet-completion-phone-summary>
@@ -42,14 +42,15 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
       </div>
       <div id="outlet-completion-detail">
       <div className="flex flex-wrap justify-end gap-x-3 gap-y-1 px-3 pt-2 text-[11px] text-muted-foreground" aria-hidden="true">
-        {(["missing", "draft", "morning_recorded", "evening_completed", "reviewed", "void"] as const).map((status) => <span key={status} className="inline-flex items-center gap-1"><span className={`grid h-4 min-w-4 place-items-center border px-0.5 text-[9px] font-bold ${stateMeta[status].className}`}>{stateMeta[status].short}</span>{stateMeta[status].label}</span>)}
+        {(["missing", "draft", "morning_recorded", "evening_completed", "posted_attention", "void"] as const).map((status) => <span key={status} className="inline-flex items-center gap-1"><span className={`grid h-4 min-w-4 place-items-center border px-0.5 text-[9px] font-bold ${stateMeta[status].className}`}>{stateMeta[status].short}</span>{stateMeta[status].label}</span>)}
       </div>
       <div className="relative isolate block w-full max-w-full overflow-x-auto overscroll-x-contain bg-[var(--sb-surface)] px-3 py-2" tabIndex={0} aria-label="Outlet completion matrix" data-outlet-completion-scrollport>
         <table className="w-full min-w-[40rem] table-fixed border-separate border-spacing-x-1 border-spacing-y-0 text-xs">
           <colgroup><col className="w-[9rem] sm:w-48" />{dates.map((date) => <col key={date} className="w-[3.5rem] sm:w-14" />)}</colgroup>
           <thead><tr><th scope="col" className="sticky left-0 z-30 min-w-[9rem] w-[9rem] max-w-[9rem] border-r border-[var(--sb-border-soft)] bg-[var(--sb-surface)] pb-1 pr-2 text-left font-medium text-muted-foreground sm:min-w-48 sm:w-48 sm:max-w-48 sm:pr-3">Outlet</th>{dates.map((date) => <th key={date} scope="col" className="min-w-[3.5rem] pb-1 text-center text-[9px] font-medium text-muted-foreground sm:min-w-14 sm:text-xs"><span className="block">{new Intl.DateTimeFormat("en-MY", { weekday: "short", timeZone: "UTC" }).format(new Date(`${date}T00:00:00Z`))}</span><span className="text-[9px] font-normal sm:text-[10px]">{date.slice(8)}</span></th>)}</tr></thead>
           <tbody>{rows.map((row) => <tr key={row.branch_id} className="border-b border-[var(--sb-border-soft)]"><th scope="row" className="sticky left-0 z-20 min-w-[9rem] w-[9rem] max-w-[9rem] border-r border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface)] py-1 pr-2 text-left text-[10px] font-medium sm:min-w-48 sm:w-48 sm:max-w-48 sm:pr-3 sm:text-xs" title={row.branch_name}><span className="block truncate">{row.branch_name}</span></th>{row.cells.map((cell) => {
-            const meta = stateMeta[cell.status];
+            const displayStatus = cell.status === "reviewed" ? "evening_completed" : cell.status === "evening_completed" && cell.sales_review_status === "needs_review" ? "posted_attention" : cell.status;
+            const meta = stateMeta[displayStatus];
             const key = `${cell.branch_id}:${cell.record_date}`;
             const common = `grid h-9 w-full min-w-0 place-items-center border text-[10px] font-bold transition-shadow hover:ring-2 hover:ring-[var(--sb-green-700)] hover:ring-offset-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1 sm:min-w-9 sm:text-[11px] ${meta.className} ${activeKey === key ? "ring-2 ring-[var(--sb-green-700)] ring-offset-1" : ""}`;
             const label = `${cell.branch_name}, ${formatDateOnly(cell.record_date)}: ${meta.label}`;
@@ -59,7 +60,7 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
       </div>
       {active ? <div className="border-t border-[var(--sb-border-soft)] px-3 py-2" aria-live="polite" data-outlet-completion-preview>
         <div className="grid gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-          <div><p className="text-xs font-semibold">{active.branch_name} · {formatDateOnly(active.record_date)}</p><p className="text-[11px] text-muted-foreground">{stateMeta[active.status].label}{active.status === "missing" ? " · no record exists for this outlet-day" : " · recorded system status"}</p></div>
+          <div><p className="text-xs font-semibold">{active.branch_name} · {formatDateOnly(active.record_date)}</p><p className="text-[11px] text-muted-foreground">{active.status === "evening_completed" && active.sales_review_status === "needs_review" ? stateMeta.posted_attention.label : stateMeta[active.status === "reviewed" ? "evening_completed" : active.status].label}{active.status === "missing" ? " · no record exists for this outlet-day" : " · recorded system status"}</p></div>
           {active.record_id ? <Link href={`/outlet-daily-records/${active.record_id}`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary underline-offset-4 hover:underline xl:min-h-8">Open daily record</Link> : active.status === "missing" && canCreate ? <Link href={`/outlet-daily-records/new?branch_id=${encodeURIComponent(active.branch_id)}&date=${encodeURIComponent(active.record_date)}`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary underline-offset-4 hover:underline xl:min-h-8">Create daily record</Link> : null}
         </div>
       </div> : null}

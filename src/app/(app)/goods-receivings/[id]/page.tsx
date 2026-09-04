@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { BlockedDestructiveAction } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
-import { cancelGoodsReceiving, closeGoodsReceiving, postGoodsReceiving, updateGoodsReceivingDraft } from "@/server/actions/goods-receivings";
+import { cancelGoodsReceiving, closeGoodsReceiving, postGoodsReceiving } from "@/server/actions/goods-receivings";
 import { Button } from "@/components/ui/button";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getDocumentBundle } from "@/server/queries/documents";
@@ -47,7 +47,7 @@ export default async function GoodsReceivingDetailPage({ params, searchParams }:
   const secondaryActions = receiving.status === "draft" && permissions["goods_receiving.cancel"] ? <DocumentActionForm action={cancelGoodsReceiving.bind(null, receiving.id)} pendingLabel="Deleting draft..." variant="destructive">Delete draft</DocumentActionForm> : receiving.status !== "draft" ? <BlockedDestructiveAction buttonLabel="Delete receiving" title={`Cannot delete ${receiving.grn_no}`} description={receiving.status === "posted" ? "This receiving has posted stock movements and must remain in the audit trail." : "This receiving is linked to its purchase order and document history."} recommendation={receiving.status === "posted" ? "Use a purchase return or correction workflow. Physical deletion is prohibited." : "This record is already outside active draft work."} /> : null;
   const postAction = postGoodsReceiving.bind(null, receiving.id);
   const deliveryOrderUpload = documentBundle ? <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Delivery Order" defaultLabel="Delivery Order" uploadLabel="Attach DO" presentation="inline" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} required /> : null;
-  const mobilePrimaryAction = hasPrimaryAction ? <ReceivingPostGuard action={postAction} hasDeliveryOrder={hasDeliveryOrder} attachmentForm={deliveryOrderUpload} primaryAction /> : null;
+  const mobilePrimaryAction = hasPrimaryAction ? <ReceivingPostGuard action={postAction} formId="goods-receiving-post-form" hasDeliveryOrder={hasDeliveryOrder} attachmentForm={deliveryOrderUpload} primaryAction /> : null;
 
   return (
     <DocumentWorkspace
@@ -65,7 +65,7 @@ export default async function GoodsReceivingDetailPage({ params, searchParams }:
         <>
           <DocumentActionSection moreOptions={secondaryActions}>
             <DocumentActionBar>
-              {hasPrimaryAction ? <ReceivingPostGuard action={postAction} hasDeliveryOrder={hasDeliveryOrder} attachmentForm={deliveryOrderUpload} /> : null}
+              {hasPrimaryAction ? <ReceivingPostGuard action={postAction} formId="goods-receiving-post-form" hasDeliveryOrder={hasDeliveryOrder} attachmentForm={deliveryOrderUpload} /> : null}
             </DocumentActionBar>
             {!hasPrimaryAction && receiving.status === "draft" ? <p className="mt-3 text-sm text-muted-foreground">You can view this GRN, but you do not have permission to post it.</p> : null}
             {receiving.status==="posted"&&!receiving.finance_closed_at&&permissions["goods_receiving.close"]?<form action={closeGoodsReceiving.bind(null,receiving.id)} className="mt-3 space-y-2"><label className="grid gap-1 text-xs font-medium">Finance verification note<textarea name="reason" required minLength={3} maxLength={1000} rows={3} className="rounded-md border bg-background p-2 font-normal" placeholder="Invoice / DO checked, no outstanding issue"/></label><Button type="submit" className="min-h-10 w-full">Mark as closed</Button></form>:null}
@@ -112,7 +112,7 @@ export default async function GoodsReceivingDetailPage({ params, searchParams }:
                 <h2 className="text-sm font-semibold">Received Items</h2>
                 <p className="text-sm font-semibold">{formatCurrency(totalReceivedValue)}</p>
               </div>
-              {receiving.status === "draft" && permissions["grn.post"] ? <GoodsReceivingDraftEditor action={updateGoodsReceivingDraft.bind(null, receiving.id)} lines={lines} /> : <>
+              {receiving.status === "draft" && permissions["grn.post"] ? <GoodsReceivingDraftEditor action={postAction} lines={lines} /> : <>
               <Table mobileHidden aria-label="Received items">
                   <TableHeader>
                     <TableRow>

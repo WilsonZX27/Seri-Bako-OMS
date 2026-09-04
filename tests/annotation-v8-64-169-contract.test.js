@@ -27,7 +27,7 @@ test("Movement Ledger has an explicit readable column authority", () => {
   const page = read("src", "app", "(app)", "stock-transactions", "page.tsx");
   const css = read("src", "app", "design-system-v2.css");
   assert.match(page, /className="sb-stock-movement-ledger"/);
-  assert.match(css, /\.sb-stock-movement-ledger \{[\s\S]*?min-width: 85rem;[\s\S]*?table-layout: fixed;/);
+  assert.match(css, /\.sb-stock-movement-ledger \{[\s\S]*?min-width: 72rem;[\s\S]*?table-layout: fixed;/);
 });
 
 test("document action hierarchy and PO attachments use the final shared grammar", () => {

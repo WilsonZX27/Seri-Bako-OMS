@@ -41,12 +41,6 @@ export function StaffAccessFields({ branches, roles, access }: { branches: Branc
     });
   }, [availableBranches, defaultBranchId]);
 
-  const branchHelp = roleCode === "kitchen"
-    ? "Kitchen staff can be assigned only to Central Kitchen branches."
-    : roleCode === "outlet_staff" || roleCode === "outlet_supervisor"
-      ? "Outlet staff can be assigned only to Outlet branches."
-      : "Select the operating branches this staff member may access.";
-
   function toggleBranch(id: string, checked: boolean) {
     setBranchIds((current) => checked ? [...new Set([...current, id])] : current.filter((branchId) => branchId !== id || branchId === defaultBranchId));
   }
@@ -61,9 +55,16 @@ export function StaffAccessFields({ branches, roles, access }: { branches: Branc
       </Field>
       <div className="md:col-span-2">
         <Field label="Accessible Branches" required>
-          <p className="mb-2 text-xs text-muted-foreground">{branchHelp}</p>
           {availableBranches.length ? (
-            <div className="grid gap-2 rounded-[2px] border p-3 md:grid-cols-2">
+            <div className="rounded-[2px] border p-3">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2 border-b pb-2">
+                <span className="text-xs font-medium text-muted-foreground">{branchIds.length} selected</span>
+                <div className="flex gap-2">
+                  <button type="button" className="text-xs font-semibold text-[var(--sb-green-800)] hover:underline" onClick={() => setBranchIds(availableBranches.map((branch) => branch.id))}>Select all</button>
+                  <button type="button" className="text-xs font-semibold text-[var(--sb-green-800)] hover:underline" onClick={() => setBranchIds(defaultBranchId ? [defaultBranchId] : [])}>Default only</button>
+                </div>
+              </div>
+              <div className="grid gap-x-4 gap-y-1 md:grid-cols-2">
               {availableBranches.map((branch) => {
                 const isDefault = branch.id === defaultBranchId;
                 return (
@@ -81,6 +82,7 @@ export function StaffAccessFields({ branches, roles, access }: { branches: Branc
                   </label>
                 );
               })}
+              </div>
             </div>
           ) : <p className="rounded-[2px] border border-dashed p-3 text-sm text-muted-foreground">Create an eligible active branch before assigning this role.</p>}
         </Field>

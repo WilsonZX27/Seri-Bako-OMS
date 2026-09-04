@@ -10,18 +10,19 @@ import { hasActiveFilters } from "@/lib/table-state";
 import { getReplenishmentDecision } from "@/lib/replenishment-decision";
 import { hasPermission } from "@/server/auth/permissions";
 import { getBranchesForSelect } from "@/server/queries/common";
-import { getLowStockItems } from "@/server/queries/inventory";
+import { getLowStockResult } from "@/server/queries/inventory";
 import { LowStockPrForm } from "@/components/low-stock-pr-form";
 import { UnifiedListHeader } from "@/components/common/UnifiedListHeader";
 import { EmptyState } from "@/components/ui/empty-state";
 
 export default async function LowStockPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [items, branches, canCreatePr] = await Promise.all([
-    getLowStockItems(filters),
+  const [lowStockResult, branches, canCreatePr] = await Promise.all([
+    getLowStockResult(filters),
     getBranchesForSelect(),
     hasPermission("purchase_request.create"),
   ]);
+  const { rows: items, count, unavailable } = lowStockResult;
   const out = items.filter((item) => item.stock_status === "out_of_stock").length;
   const low = items.filter((item) => item.stock_status === "low_stock").length;
   const decisions = items.map((item) => getReplenishmentDecision({
@@ -50,9 +51,9 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
         rightRail={
           <ConsoleSection title="Low Stock Summary">
             <div className="grid gap-2 text-xs" data-low-stock-decision-summary>
-              <div className="flex justify-between"><span className="text-muted-foreground">Rows</span><strong>{items.length}</strong></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Out of Stock</span><strong>{out}</strong></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Low Stock</span><strong>{low}</strong></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Rows</span><strong>{unavailable ? "Unavailable" : count}</strong></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Out of Stock</span><strong>{unavailable ? "-" : out}</strong></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Low Stock</span><strong>{unavailable ? "-" : low}</strong></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Buy now</span><strong>{buyNow}</strong></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Supplier fixes</span><strong>{supplierFixes}</strong></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Create PR</span><strong>{canCreatePr ? "Allowed" : "Read-only"}</strong></div>
@@ -71,7 +72,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
           </div>
 
           <div>
-            <UnifiedListHeader resultCount={items.length} resetHref="/low-stock" filtered={filtered}>
+            <UnifiedListHeader resultCount={unavailable ? undefined : count ?? undefined} resetHref="/low-stock" filtered={filtered}>
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, branch, supplier" className="md:max-w-sm" />
               <SelectControl
                 name="branch_id"
@@ -138,7 +139,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
               })}
               {!items.length ? (
                 <TableRow>
-                  <TableCell colSpan={11}><EmptyState title={filtered ? "No items match these filters" : "Stock levels are healthy"} description={filtered ? "Reset the filters or search for another item." : "Items that need replenishment will appear here."} action={filtered ? { href: "/low-stock", label: "Reset filters" } : undefined} /></TableCell>
+                  <TableCell colSpan={11}><EmptyState title={unavailable ? "Low stock is unavailable" : filtered ? "No items match these filters" : "Stock levels are healthy"} description={unavailable ? "The inventory summary could not be confirmed. Try again shortly." : filtered ? "Reset the filters or search for another item." : "Items that need replenishment will appear here."} action={filtered && !unavailable ? { href: "/low-stock", label: "Reset filters" } : undefined} /></TableCell>
                 </TableRow>
               ) : null}
             </TableBody>
@@ -168,7 +169,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
                 />
               );
             })}
-            {!items.length ? <EmptyState title={filtered ? "No items match these filters" : "Stock levels are healthy"} description={filtered ? "Reset the filters or search for another item." : "Items that need replenishment will appear here."} action={filtered ? { href: "/low-stock", label: "Reset filters" } : undefined} /> : null}
+            {!items.length ? <EmptyState title={unavailable ? "Low stock is unavailable" : filtered ? "No items match these filters" : "Stock levels are healthy"} description={unavailable ? "The inventory summary could not be confirmed. Try again shortly." : filtered ? "Reset the filters or search for another item." : "Items that need replenishment will appear here."} action={filtered && !unavailable ? { href: "/low-stock", label: "Reset filters" } : undefined} /> : null}
           </OperationalList>
           </div>
         </div>

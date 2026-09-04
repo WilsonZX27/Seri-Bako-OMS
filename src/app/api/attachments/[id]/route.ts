@@ -18,7 +18,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const { data: attachment, error } = await supabase
     .from("attachments")
-    .select("file_name, storage_path, file_url")
+    .select("file_name, storage_path, file_url, entity_type, entity_id")
     .eq("id", id)
     .eq("company_id", actor.companyId)
     .eq("status", "active")
@@ -26,13 +26,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     .single();
   if (error || !attachment) return NextResponse.json({ error: "Attachment not found." }, { status: 404 });
 
-  const { data: complianceRecord } = await supabase
+  const complianceLookup = supabase
     .from("compliance_records")
     .select("id, company_id, compliance_type_id, subject_kind")
-    .eq("attachment_id", id)
     .eq("company_id", actor.companyId)
-    .is("deleted_at", null)
-    .maybeSingle();
+    .is("deleted_at", null);
+  const { data: complianceRecord } = attachment.entity_type === "compliance_record"
+    ? await complianceLookup.eq("id", attachment.entity_id).maybeSingle()
+    : await complianceLookup.eq("attachment_id", id).maybeSingle();
   if (complianceRecord) {
     const permission = complianceRecord.subject_kind === "outlet" ? "outlet_compliance.document.read" : complianceRecord.subject_kind === "staff" ? "people.compliance.document.read" : "compliance.sensitive.read";
     if (!(await resolveEffectivePermission(supabase, permission).catch(() => false))) {

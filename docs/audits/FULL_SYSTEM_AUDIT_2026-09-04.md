@@ -165,12 +165,12 @@ The annotation-derived mobile and workflow changes were tested against the same 
 
 ### Verification refresh — 2026-09-05
 
-- The complete repository contract suite now passes **1,160/1,160**. This closes P1-01 from the initial 2026-09-04 audit; the documentation-authority contract now matches the migration ceiling of 261.
+- The complete repository contract suite now passes **1,162/1,162**. This closes P1-01 from the initial 2026-09-04 audit; the documentation-authority contract now matches the migration ceiling of 261.
 - P1-02 is closed locally: `261_atomic_compliance_type_creation.sql` provides one tenant-scoped `security definer` transaction for type creation plus active outlet/central-kitchen requirement rollout; the action has an explicit `PGRST202` migration guard and a contract test.
 
 ### Verified locally
 
-- Contract suite: **1,160/1,160 passed**.
+- Contract suite: **1,162/1,162 passed**.
 - Strict TypeScript and ESLint: passed.
 - Local schema/RLS/RPC gate: `V9_SCHEMA_OK`, migration 261, 105 tables, 6 views and 174 security-definer functions.
 - Isolated Next.js production build: compiled, type-checked and prerendered **95/95** static pages.
@@ -203,4 +203,4 @@ The annotation-derived mobile and workflow changes were tested against the same 
 - The documentation follow-up commit `807b9f1f` is also **READY** at `https://seri-bako-oms-official-7ox0lwpzo-seribako.vercel.app`; the same browser smoke redirect and v9.2.28 login surface were observed there.
 - A read-only Vercel environment inventory showed only `NEXT_PUBLIC_APP_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, each scoped to Production and Preview. No Preview-only project reference or role-credential variables were visible; secret values were not opened. Therefore an independently isolated Preview database is not yet evidenced and mutation UAT remains intentionally disabled.
 - `npm run uat:v9:preview` was invoked and stopped before any browser shard because `.env.preview.test.local` is absent. This is an intentional safety boundary: authenticated Preview UAT requires an exact isolated Supabase project reference and disposable role identities, and must not reuse local or Production credentials.
-- The current local release gates remain green: **1,160/1,160** contract tests, TypeScript, ESLint, `git diff --check`, and a clean worktree. These are local evidence only and do not close remote authenticated UAT or Production verification.
+- The current local release gates remain green: **1,162/1,162** contract tests, TypeScript, ESLint, `git diff --check`, and a clean worktree. These are local evidence only and do not close remote authenticated UAT or Production verification.

@@ -76,6 +76,7 @@ test("Preview UAT template stays secret-free and includes every guarded boundary
     "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=",
     "TEST_SUPER_ADMIN_EMAIL=",
     "TEST_FINANCE_EMAIL=",
+    "TEST_OUTLET_SUPERVISOR_EMAIL=",
     "TEST_OUTLET_EMAIL=",
   ]) assert.match(template, new RegExp(`^${key.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}`, "m"));
   assert.doesNotMatch(template, /system\.seribako\.com\.my|service_role|eyJ[A-Za-z0-9_-]+\./i);

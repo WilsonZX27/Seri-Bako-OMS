@@ -50,7 +50,7 @@ export async function createComplianceRecord(formData: FormData) {
   let attachmentId: string | null = null;
   let storagePath: string | null = null;
   if (file) {
-    if (file.size > 10 * 1024 * 1024) redirect(complianceMessageUrl(returnPath, "error", "Supporting document must be 10 MB or smaller."));
+    if (file.size > 4 * 1024 * 1024) redirect(complianceMessageUrl(returnPath, "error", `This file is ${(file.size / 1024 / 1024).toFixed(1)} MB. Compliance files must be 4 MB or smaller.`));
     const allowed = new Set(["application/pdf", "image/png", "image/jpeg", "image/webp"]);
     if (!allowed.has(file.type)) redirect(complianceMessageUrl(returnPath, "error", "Use a PDF, PNG, JPEG, or WebP document."));
     const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
@@ -154,7 +154,7 @@ export async function addOutletComplianceAttachment(recordId: string, _state: { 
     const value = formData.get("file");
     const file = value instanceof File && value.size > 0 ? value : null;
     if (!file) throw new Error("Choose a file to upload.");
-    if (file.size > 10 * 1024 * 1024) throw new Error("Attachment must be 10 MB or smaller.");
+    if (file.size > 4 * 1024 * 1024) throw new Error(`This file is ${(file.size / 1024 / 1024).toFixed(1)} MB. Compliance files must be 4 MB or smaller.`);
     const allowed = new Set(["application/pdf", "image/png", "image/jpeg", "image/webp"]);
     if (!allowed.has(file.type)) throw new Error("Use a PDF, PNG, JPEG, or WebP document.");
     const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());

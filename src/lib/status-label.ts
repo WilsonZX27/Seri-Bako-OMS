@@ -19,6 +19,7 @@ const statusLabels: Record<string, string> = {
   submitted: "Submitted",
   finance_review: "Finance Review",
   manager_review: "Manager Review",
+  manager_approval: "Manager Approval",
   ready_to_convert: "Ready to Convert",
   ready_to_send_supplier: "Ready to Send",
   sent_to_supplier: "Sent to Supplier",

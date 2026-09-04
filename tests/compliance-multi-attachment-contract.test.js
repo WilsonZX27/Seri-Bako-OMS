@@ -46,12 +46,16 @@ test("the current site checklist retires DBKL and assigns Pest Control everywher
 test("compliance uses one structured disclosure list with aligned details", () => {
   const page = read("src/app/(app)/outlet-compliance/[branchId]/page.tsx");
   const upload = read("src/components/compliance-attachment-upload.tsx");
+  const fileInput = read("src/components/compliance-file-input.tsx");
   assert.match(page, /mx-auto grid max-w-5xl gap-2/);
   assert.match(page, /lg:grid-cols-\[minmax\(0,1\.2fr\)_minmax\(18rem,0\.8fr\)\]/);
   assert.doesNotMatch(page, /Expiry not recorded · Document required/);
   assert.match(page, /grid items-end gap-3 sm:grid-cols-2/);
-  assert.match(upload, /Choose file/);
-  assert.match(upload, /buttonVariants\(\{ size: "sm" \}\)/);
+  assert.match(upload, /ComplianceFileInput/);
+  assert.match(fileInput, /Choose file/);
+  assert.match(fileInput, /maximum 4 MB/);
+  assert.match(fileInput, /This file is.*Compliance files must be 4 MB or smaller/);
+  assert.match(fileInput, /buttonVariants\(\{ size: "sm"/);
 });
 
 test("legacy and entity-owned compliance attachments share protected delivery", () => {

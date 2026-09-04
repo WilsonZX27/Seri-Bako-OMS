@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronDown, Eye, FileText } from "lucide-react";
 import { ComplianceAttachmentUpload } from "@/components/compliance-attachment-upload";
+import { ComplianceFileInput } from "@/components/compliance-file-input";
 import { AttachmentRemoveAction } from "@/components/documents/attachment-remove-action";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
@@ -59,7 +60,7 @@ export default async function OutletChecklistPage({ params, searchParams }: { pa
               <FormField label="Reference / certificate number"><input name="reference_no" defaultValue={record?.reference_no ?? ""} className={controlClass} placeholder="Document number"/></FormField>
               <div className="grid items-end gap-3 sm:grid-cols-2"><FormField label="Issued / inspected on"><input name="issued_on" type="date" defaultValue={record?.issued_on ?? ""} required className={controlClass}/></FormField><FormField label="Expires / next inspection"><input name="expires_on" type="date" defaultValue={record?.expires_on ?? ""} required className={controlClass}/></FormField></div>
               <FormField label="Notes"><input name="notes" defaultValue={record?.notes ?? ""} className={controlClass} placeholder="Issuer, coverage or renewal note"/></FormField>
-              {!record ? <><FormField label="Attachment label"><input name="file_name" minLength={3} maxLength={180} required className={controlClass} placeholder="Name this attachment"/></FormField><FormField label="Attachment file"><input name="file" type="file" accept="application/pdf,image/png,image/jpeg,image/webp" required className="mt-1 block w-full overflow-hidden rounded-[var(--sb-radius-control)] border bg-white text-xs file:mr-2 file:min-h-9 file:border-0 file:bg-[var(--sb-green-900)] file:px-3 file:font-semibold file:text-white"/></FormField></> : null}
+              {!record ? <><FormField label="Attachment label"><input name="file_name" minLength={3} maxLength={180} required className={controlClass} placeholder="Name this attachment"/></FormField><FormField label="Attachment file"><ComplianceFileInput /></FormField></> : null}
               <SubmitButton size="sm" className="w-full justify-center" pendingLabel={record ? "Updating..." : "Uploading..."}>{record ? "Update" : "Upload"}</SubmitButton>
             </form>
           </section>

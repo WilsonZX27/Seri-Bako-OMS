@@ -306,7 +306,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                   <strong className="min-w-0 truncate font-mono">{row.document_no}</strong>
                   <StatusBadge status={row.step.toLowerCase().replaceAll(" ", "_")} className="shrink-0" />
                   <span className="col-span-2 flex min-w-0 items-center gap-2 text-[11px] text-muted-foreground"><span className="shrink-0">{row.branch_name ?? "Unassigned"}</span><span>·</span><span className="shrink-0">{row.age_label}</span><span>·</span><span className="truncate">{row.submitted_by_name ?? "—"}</span></span>
-                  <span className="col-span-2 flex min-w-0 items-center justify-between gap-3 text-[11px] text-muted-foreground"><span className="truncate" title={row.supplier_names.join(", ")}>{row.supplier_names.join(", ") || "Supplier pending"}</span><span className="shrink-0 tabular-nums">{row.line_count} items · <strong className="font-medium text-foreground">{formatCurrency(row.estimated_total)}</strong></span></span>
+                  {row.id.startsWith("schedule-") ? <span className="col-span-2 text-[11px] font-medium text-[var(--sb-warning)]">Review and publish this outlet roster</span> : <span className="col-span-2 flex min-w-0 items-center justify-between gap-3 text-[11px] text-muted-foreground"><span className="truncate" title={row.supplier_names.join(", ")}>{row.supplier_names.join(", ") || "Supplier pending"}</span><span className="shrink-0 tabular-nums">{row.line_count} items · <strong className="font-medium text-foreground">{formatCurrency(row.estimated_total)}</strong></span></span>}
                 </Link>
               ))}
             </div>

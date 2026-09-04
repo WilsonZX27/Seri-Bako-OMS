@@ -65,3 +65,14 @@ test("pending actions expose their workflow state as a semantic status badge", (
   assert.match(dashboard, /<StatusBadge status=\{row\.step\.toLowerCase\(\)\.replaceAll\(" ", "_"\)\}/);
   assert.doesNotMatch(dashboard, /\{row\.step\}\s*\{row\.branch_name/);
 });
+
+test("Manager and Owner dashboards include submitted outlet schedules in their action queue", () => {
+  const pending = read("src/server/queries/pending-actions.ts");
+  const workspace = read("src/components/dashboard-workspace.tsx");
+  assert.match(pending, /hasPermission\("schedule\.approve"\)/);
+  assert.match(pending, /from\("schedule_weeks"\)/);
+  assert.match(pending, /\.eq\("status", "submitted"\)/);
+  assert.match(pending, /title: "Schedule approval required"/);
+  assert.match(pending, /href: `\/attendance\/schedule\?branch=/);
+  assert.match(workspace, /Review and publish this outlet roster/);
+});

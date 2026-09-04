@@ -38,13 +38,14 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
   const scope = await getCurrentUserScope();
   if (!scope) return { items: [], total: null, unavailable: true };
 
-  const [canAdminReview, canPurchasingReview, canManagerApprove, canFinanceReview, canConvertPo, canViewAll] = await Promise.all([
+  const [canAdminReview, canPurchasingReview, canManagerApprove, canFinanceReview, canConvertPo, canViewAll, canApproveSchedule] = await Promise.all([
     hasPermission("pr.admin_review"),
     hasPermission("pr.purchasing_review"),
     hasPermission("pr.manager_approve"),
     hasPermission("pr.finance_review"),
     hasPermission("pr.convert_to_po"),
     hasPermission("pr.view_all"),
+    hasPermission("schedule.approve"),
   ]);
 
   const prStatusFilters: Array<{ status: PurchaseRequestStatus; allowed: boolean; step: string; title: string }> = [
@@ -55,12 +56,10 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
   ];
 
   const filters = prStatusFilters.filter((filter) => filter.allowed);
-  if (!filters.length) return { items: [], total: 0, unavailable: false };
-
   const supabase = await createClient();
   const canSeeAllBranches = canViewAll || scope.companyWideAccess || scope.roleCode === "super_admin";
 
-  const results = await Promise.all(
+  const prResults = await Promise.all(
     filters.map(async (filter) => {
       let query = supabase
         .from("purchase_requests")
@@ -123,6 +122,51 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
     }),
   );
 
+  const scheduleResult = await (async () => {
+    if (!canApproveSchedule) return { items: [] as PendingAction[], count: 0, unavailable: false };
+    let query = supabase
+      .from("schedule_weeks")
+      .select("id,branch_id,week_start,status,updated_at,branches(branch_name)", { count: "exact" })
+      .eq("status", "submitted")
+      .order("updated_at", { ascending: false })
+      .limit(limit);
+    if (!scope.companyWideAccess && scope.roleCode !== "super_admin") {
+      if (!scope.branchIds.length) return { items: [] as PendingAction[], count: 0, unavailable: false };
+      query = query.in("branch_id", scope.branchIds);
+    }
+    const { data, error, count } = await query;
+    if (error || !data || count === null) {
+      if (error) logServerWarning(error, { source: "pending-actions.schedule" });
+      return { items: [] as PendingAction[], count: null, unavailable: true };
+    }
+    return {
+      count,
+      unavailable: false,
+      items: data.map((row) => {
+        const branch = row.branches as { branch_name?: string | null } | { branch_name?: string | null }[] | null;
+        const branchName = Array.isArray(branch) ? branch[0]?.branch_name : branch?.branch_name;
+        const branchId = String(row.branch_id);
+        const weekStart = String(row.week_start);
+        const updatedAt = String(row.updated_at);
+        return {
+          id: `schedule-${row.id}`,
+          document_no: `Week of ${weekStart}`,
+          title: "Schedule approval required",
+          href: `/attendance/schedule?branch=${encodeURIComponent(branchId)}&week=${weekStart}`,
+          step: "Manager Approval",
+          branch_name: branchName ?? null,
+          age_label: ageLabel(updatedAt),
+          updated_at: updatedAt,
+          supplier_names: [],
+          line_count: 0,
+          submitted_by_name: null,
+          estimated_total: 0,
+        } satisfies PendingAction;
+      }),
+    };
+  })();
+
+  const results = [...prResults, scheduleResult];
   const unavailable = results.some((result) => result.unavailable);
   const items = results
     .flatMap((result) => result.items)

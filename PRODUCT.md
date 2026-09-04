@@ -1,5 +1,13 @@
 # Seri Bako Operations Management System
 
+### v9.2.25 (unreleased) — Visible approvals and actionable upload feedback
+
+- Submitted outlet schedules now join the same Dashboard `Actions awaiting you` queue as procurement decisions for users with Schedule approval authority. The action opens the exact outlet and week, and renders schedule-specific context instead of supplier or value placeholders.
+- Compliance uploads enforce the production-safe 4 MB request boundary before submission, show the selected file size and accepted formats, and repeat the same precise validation on the server. Oversized evidence no longer falls through to a generic workspace failure.
+- Outlet Daily `Attention` uses a prominent amber warning treatment. `Ready to post` is a blue pending-finalisation state, while `Posted` is a solid green final state; each badge exposes a concise workflow explanation.
+
+Focused Dashboard, Compliance, Outlet Daily and loading contracts pass locally. Dependency installation remains blocked by the pre-existing lockfile mismatch, so TypeScript, build, authenticated browser UAT and deployment are not verified.
+
 ### v9.2.24 (unreleased) — Loading, weekly oversight and checklist closure
 
 - Route loading now mirrors the real page hierarchy: the page-heading skeleton sits on the header baseline, list search is an independent surface, right-rail placeholders have no fake headings, and authentication uses a dedicated sign-in skeleton instead of the operations workspace.

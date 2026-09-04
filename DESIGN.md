@@ -1,5 +1,11 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.25 (unreleased) — Action ownership and legible workflow states
+
+- Dashboard action queues are cross-module: any current decision owned by the signed-in role belongs in `Actions awaiting you`, including submitted outlet schedules. Rows use module-specific supporting context rather than forcing every action through procurement metadata.
+- File constraints are part of the picker, not an after-the-fact error page. Compliance shows accepted formats, the real 4 MB boundary, selected size and an inline correction before a request is sent.
+- `Ready to post`, `Posted` and `Attention` must never share one green-neutral treatment. Pending finalisation is blue, final posted state is solid green, and follow-up attention is high-contrast amber with a warning icon. Text and accessible descriptions carry the meaning independently of colour.
+
 ## v9.2.24 (unreleased) — Honest loading and operational overview
 
 - Loading geometry follows the destination surface, not a generic demo: heading rhythm aligns with `PageHeader`, query controls are their own sibling surface, list rows remain separate, and right-rail skeletons do not expose placeholder section titles.

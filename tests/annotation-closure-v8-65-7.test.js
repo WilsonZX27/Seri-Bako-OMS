@@ -32,7 +32,9 @@ test("outlet status and today summary are concise and non-duplicated", () => {
   assert.match(outlet, /<ConsoleSection title="Today"><dl/);
   assert.doesNotMatch(outlet, /<StatusBadge status=\{progress\.status\} \/><p/);
   assert.match(badges, /in_progress: "border-\[#DDE4E0\] bg-\[#F1F4F2\]/);
-  assert.match(badges, /ready_to_post: "border-\[#BFDCD3\] bg-\[#E1F3ED\]/);
+  assert.match(badges, /ready_to_post: "border-\[#8FB8DC\] bg-\[#E7F1FA\]/);
+  assert.match(badges, /posted: "border-\[#075942\] bg-\[#075942\] text-white"/);
+  assert.match(badges, /attention: "border-\[#D88400\] bg-\[#FFF0C2\]/);
 });
 
 test("PR review supports immediate supplier-item search and complete line correction", () => {

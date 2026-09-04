@@ -161,16 +161,16 @@ This is **local isolated verification**, not a sanitized clone of current Produc
 
 ## v9.2.28 mobile workflow closure evidence — 2026-09-05
 
-The annotation-derived mobile and workflow changes were tested against the same loopback-only environment. Migration 260 was applied locally and adds controlled Outlet Daily posting; it was not applied to Production.
+The annotation-derived mobile and workflow changes were tested against the same loopback-only environment. Migrations 260 and 261 were applied locally (controlled Outlet Daily posting and atomic Compliance type rollout); neither was applied to Production.
 
 ### Verification refresh — 2026-09-05
 
-- The complete repository contract suite now passes **1,156/1,156**. This closes P1-01 from the initial 2026-09-04 audit; the documentation-authority contract now matches the migration ceiling of 261.
+- The complete repository contract suite now passes **1,157/1,157**. This closes P1-01 from the initial 2026-09-04 audit; the documentation-authority contract now matches the migration ceiling of 261.
 - P1-02 is closed locally: `261_atomic_compliance_type_creation.sql` provides one tenant-scoped `security definer` transaction for type creation plus active outlet/central-kitchen requirement rollout; the action has an explicit `PGRST202` migration guard and a contract test.
 
 ### Verified locally
 
-- Contract suite: **1,155/1,155 passed**.
+- Contract suite: **1,157/1,157 passed**.
 - Strict TypeScript and ESLint: passed.
 - Local schema/RLS/RPC gate: `V9_SCHEMA_OK`, migration 261, 105 tables, 6 views and 174 security-definer functions.
 - Isolated Next.js production build: compiled, type-checked and prerendered **95/95** static pages.
@@ -186,6 +186,7 @@ The annotation-derived mobile and workflow changes were tested against the same 
 - Commit `54411fd` was pushed to `codex/annotation-closure-loading-schedule`. Its Vercel Preview deployment is READY at `https://seri-bako-oms-official-8dta09z4f-seribako.vercel.app`.
 - The latest application Preview passed the public auth/setup UI E2E matrix **8/8** across 320×700, 390×844, 640×900, 768×1024, 1024×900, 1280×960, 1440×960 and 2560×1440. The follow-up documentation deployment `8f1f828` is also READY at `https://seri-bako-oms-official-igrcwcmub-seribako.vercel.app`. This does not prove authenticated feature mutation or Production behavior.
 - The Preview UAT guard commit `913aad6` is READY at `https://seri-bako-oms-official-7w5nr8m3w-seribako.vercel.app`; its public auth/setup UI E2E rerun passed **8/8**. The guard intentionally requires an exact Preview app host and Supabase project ref before remote mutation tests can start.
+- The atomic Compliance fix commit `638cebd3` is READY at `https://seri-bako-oms-official-9415216e6-seribako.vercel.app`; its public auth/setup UI E2E rerun passed **8/8** across the same eight viewports. This is deployment and public-surface evidence only; the new migration has not been applied to a remote Preview database.
 
 ### Still open
 

@@ -169,10 +169,12 @@ The annotation-derived mobile and workflow changes were tested against the same 
 - Isolated Next.js production build: compiled, type-checked and prerendered **95/95** static pages.
 - Focused 390×844 workflows: **6/6 passed**, covering Outlet Daily layout and controlled posting, persistent navigation and Calendar, Compliance 70/30 upload controls, Attendance scheduling, More Actions spacing and dashboard divider removal.
 - Affected-route responsive matrix: **4/4 viewport projects passed** across 390×844, 820×1180, 1180×820 and 1440×900 for Dashboard, Outlet Daily Records, Outlet Calendar, Outlet Compliance and Attendance Schedule.
+- Preview deployment: **READY** at `https://seri-bako-oms-official-4i0vujatj-seribako.vercel.app`, commit `4a06cb5`, branch `codex/annotation-closure-loading-schedule`.
+- Remote public auth/setup UI E2E: **8/8 passed** across 320×700, 390×844, 640×900, 768×1024, 1024×900, 1280×960, 1440×960 and 2560×1440. The protected `/dashboard` route also redirected to `/login?redirectedFrom=%2Fdashboard` as expected.
 
 ### Still open
 
-- This branch has not been pushed, deployed or observed in Production.
-- The full all-role authenticated regression was not repeated for v9.2.28; the focused Outlet and Purchasing workflow was exercised locally.
+- The Preview branch has been pushed and its deployment is READY, but it has not been promoted or observed in Production.
+- The full all-role authenticated regression was not repeated against the remote Preview; the focused Outlet and Purchasing workflow was exercised locally.
 - One unrelated legacy Purchase Request validation-copy assertion remains out of sync with the current UI; the other four checks in that legacy annotation batch passed.
 - The independent deep-security scan produced no canonical manifest because three discovery workers failed after the scan service reached its usage limit. Security closure therefore remains incomplete; no absence-of-findings claim is made.

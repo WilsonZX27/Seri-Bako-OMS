@@ -2,6 +2,13 @@
 
 This is the review contract extracted from Wilson's repeated browser annotations. It is a decision aid for future implementation and QA, not a replacement for product requirements or database semantics.
 
+## Release reliability rule
+
+- A visual or regex contract cannot substitute for strict TypeScript and the real production compile/type-validation path. Both are blocking release gates.
+- New database tables must be members of `Database.public.Tables`; placing a type near the schema without compile-time membership is not coverage.
+- Deployment installs use the committed lockfile under the pinned LTS runtime. Mutable dependency resolution during a Production build is prohibited.
+- Repeated annotations must become a shared component, token, query authority or contract. Page-specific patches are accepted only when the business workflow is genuinely different.
+
 ## 1. Trust states are visible
 
 - Loading uses a skeleton or explicit loading state; it never renders `0`, an empty list, or an empty chart as a temporary placeholder.

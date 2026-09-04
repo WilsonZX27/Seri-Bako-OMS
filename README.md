@@ -8,8 +8,9 @@ For UI and interaction standards, read `DESIGN.md`.
 
 ## Current Release Baseline
 
-- Application release: `v8.36.0 — Explicit Stock Count Cancellation`.
-- Database migration ceiling: `126_retire_legacy_rpc_acl_and_hold_rls`.
+- Application release candidate: `v9.2.26 — Deterministic Builds and Systemic Closure`.
+- Database migration ceiling: `259_replace_dbkl_with_pest_control`.
+- Vercel builds use Node.js 22 LTS and `npm ci --no-audit --no-fund`; `package.json`, `package-lock.json`, and the visible application version must remain synchronized.
 - Tenant isolation, inventory posting atomicity, procurement/document transitions, concurrency controls, and credential handoff are database-authoritative.
 - Start with `docs/PILOT_BASELINE.md`, use the controlled CSV files in `docs/import-templates/`, and record sign-off in `docs/PILOT_QA_CHECKLIST.md`.
 
@@ -37,7 +38,7 @@ Refer to `package.json` for the current framework and library versions.
 
 Before running the project locally, prepare:
 
-- Node.js supported by the current project.
+- Node.js 22 LTS.
 - npm.
 - A Supabase project.
 - A local `.env.local` file.

@@ -1,5 +1,19 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-09-04 — v9.2.26 build and annotation-system closure
+
+| Surface / source | Finding | Systemic resolution | Evidence state |
+|---|---|---|---|
+| Vercel Production build | `npm install` consumed five minutes, then the build failed when `schedule_weeks` was absent from the typed Supabase table union | Pin Node 22 LTS, use deterministic `npm ci`, repair the `Database.public.Tables` boundary and add build/type contracts | strict typecheck, compile and type-validation pass locally; remote deployment pending push |
+| Dashboard Attendance actions | Schedule approvals were not part of the cross-module Manager/Owner queue | Add submitted rosters to the canonical pending-action authority with exact outlet/week navigation | focused Dashboard contracts and full suite pass |
+| Compliance upload | Files above the request boundary fell through to a generic workspace error | Shared 4 MB picker preflight plus identical server enforcement and correction copy | focused Compliance contracts pass |
+| Outlet Daily statuses | Ready, Posted and Attention were visually ambiguous | Blue pending, solid-green final and high-contrast amber follow-up semantics with accessible descriptions | focused workflow contracts pass |
+| Repeated browser annotations | Fixes risked becoming isolated page patches | Promote data truth, shared vocabulary, action ownership, workflow language and four-viewport checks into permanent release rules | documented in Product, Design, annotation rules and audit report |
+
+- Locally verified: 1,142/1,142 contracts, strict TypeScript, ESLint, production compile/type-validation, and `npm audit --omit=dev --audit-level=high` with zero vulnerabilities.
+- Environment gate: local static generation requires `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`; the configured Vercel environment owns final deployment verification.
+- Production verified: not yet claimed in this entry. The earlier failed deployment remains evidence, not a successful release.
+
 ## 2026-08-31 — v9.2.1 procurement and receiving correction batch
 
 | Surface | Role / viewport | Resolution | Evidence state |

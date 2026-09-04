@@ -1,5 +1,20 @@
 # Full-system audit matrix
 
+## v9.2.26 release-candidate gate — 2026-09-04
+
+| Gate | Result | Evidence |
+| --- | --- | --- |
+| Production build blocker | Closed locally | Schedule query compiles; strict TypeScript passes; Next compile and type validation pass |
+| Deterministic deployment | Closed in source | Node 22 LTS plus `npm ci --no-audit --no-fund`; package/lock/config contract added |
+| Database type integrity | Closed | Late operational tables moved into `Database.public.Tables`; compile-time membership assertion added |
+| Business and workflow contracts | Pass | 1,142/1,142 node contracts |
+| Source quality | Pass | ESLint and strict TypeScript |
+| Production dependencies | Pass | zero vulnerabilities at high audit threshold |
+| Static prerender | Environment-gated locally | Supabase public build variables are absent locally; Vercel owns final configured build evidence |
+| Authenticated four-viewport UAT | Awaiting fresh release deployment | Prior annotation matrices remain historical evidence and are not relabelled as v9.2.26 proof |
+
+Recurring annotation categories are now release gates: data-state honesty, shared component vocabulary, task density, database-aligned workflow language, interaction-complete disclosure and four canonical responsive viewports.
+
 ## v8.36.0 release note
 
 Unposted Purchase Requests and Purchase Orders now use dedicated atomic cancel

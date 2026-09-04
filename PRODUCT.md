@@ -1,5 +1,14 @@
 # Seri Bako Operations Management System
 
+### v9.2.26 (unreleased) — Deterministic builds and systemic closure
+
+- Restores the failed Production build by keeping Schedule approval reads on the established Attendance query authority and correcting the generated `Database.public.Tables` boundary that had stranded late-added operational tables outside the typed schema.
+- Pins Vercel to Node.js 22 LTS and replaces mutable `npm install` deployment resolution with `npm ci --no-audit --no-fund`. Package, lockfile and visible application versions are synchronized and protected by release contracts.
+- Converts repeated annotation feedback into permanent gates: truthful data states, one component vocabulary, role-owned actions, database-aligned workflow labels, four-viewport responsive release checks and compile-time database table coverage.
+- Full local source gates pass: 1,142 contracts, strict TypeScript, ESLint and zero production dependency vulnerabilities. The production compilation and type-validation phases pass; local static generation still requires the configured Supabase public environment values.
+
+This release candidate is locally verified only until the commit is pushed and the resulting Vercel deployment is observed. No database migration is introduced by v9.2.26.
+
 ### v9.2.25 (unreleased) — Visible approvals and actionable upload feedback
 
 - Submitted outlet schedules now join the same Dashboard `Actions awaiting you` queue as procurement decisions for users with Schedule approval authority. The action opens the exact outlet and week, and renders schedule-specific context instead of supplier or value placeholders.

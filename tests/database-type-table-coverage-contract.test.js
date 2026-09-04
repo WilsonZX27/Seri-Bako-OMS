@@ -1,10 +1,10 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const test = require("node:test");
+const database = fs.readFileSync("src/types/database.ts", "utf8");
 
 test("the TypeScript database contract covers every current public table", () => {
   const backup = fs.readFileSync("src/server/backup/export.ts", "utf8");
-  const database = fs.readFileSync("src/types/database.ts", "utf8");
   const tableSection = database.match(/    Tables: \{([\s\S]*?)    Views: \{/)?.[1] ?? "";
 
   const classified = [...backup.matchAll(/\{ table: "([a-z0-9_.]+)"/g)]
@@ -20,8 +20,11 @@ test("the TypeScript database contract covers every current public table", () =>
   assert.deepEqual(typed, classified, "Regenerate or reconcile database types whenever a migration changes the public table set.");
 });
 
+test("late-added operational tables have a compile-time Tables membership assertion", () => {
+  assert.match(database, /export type DatabaseOperationalTableCoverage = Assert<RequiredOperationalTable extends keyof Database\["public"\]\["Tables"\] \? true : false>/);
+});
+
 test("supplemental table definitions do not use any or unknown escape hatches", () => {
-  const database = fs.readFileSync("src/types/database.ts", "utf8");
   const supplemental = database.match(/branch_stock_count_items: TableDefinition<\{([\s\S]*?)    Views: \{/)?.[0] ?? "";
   assert.ok(supplemental.length > 0);
   assert.doesNotMatch(supplemental, /\b(?:any|unknown)\b/);

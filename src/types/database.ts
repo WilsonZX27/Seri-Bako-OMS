@@ -2206,7 +2206,6 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["inventory_daily_summary"]["Insert"]>;
         Relationships: [];
       };
-    };
       branch_stock_count_items: TableDefinition<{
         branch_id: string; branch_note: string | null; company_id: string; created_at: string; created_by: string | null;
         id: string; item_id: string; last_action: string | null; last_action_at: string | null; last_action_by: string | null;
@@ -2299,6 +2298,7 @@ export type Database = {
       attendance_exceptions: TableDefinition<{ id:string; company_id:string; result_id:string|null; batch_id:string|null; exception_code:string; severity:"warning"|"blocker"; details:Json; resolved_at:string|null; resolved_by:string|null; resolution_note:string|null; created_at:string }>;
       attendance_adjustments: TableDefinition<{ id:string; company_id:string; result_id:string; actor_staff_id:string; reason:string; before_state:Json; after_state:Json; created_at:string }>;
       attendance_period_locks: TableDefinition<{ id:string; company_id:string; branch_id:string|null; week_start:string; locked_by:string; locked_at:string; unlocked_by:string|null; unlocked_at:string|null; unlock_reason:string|null }>;
+    };
     Views: {
       stock_balances_view: {
         Row: {
@@ -2925,3 +2925,12 @@ export type Database = {
     CompositeTypes: Record<string, never>;
   };
 };
+
+type Assert<T extends true> = T;
+type RequiredOperationalTable =
+  | "branch_stock_count_items"
+  | "production_jobs"
+  | "schedule_weeks"
+  | "attendance_import_batches"
+  | "attendance_period_locks";
+export type DatabaseOperationalTableCoverage = Assert<RequiredOperationalTable extends keyof Database["public"]["Tables"] ? true : false>;

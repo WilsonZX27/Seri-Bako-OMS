@@ -1,7 +1,10 @@
 {
   "name": "seri-bako-ops",
-  "version": "9.2.23",
+  "version": "9.2.26",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "node --use-system-ca node_modules/next/dist/bin/next dev",
     "build": "next build",

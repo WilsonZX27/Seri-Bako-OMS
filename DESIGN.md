@@ -1,5 +1,13 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.26 (unreleased) — Annotation-derived release gates
+
+- Annotation repair is systemic: classify each report as data truth, component vocabulary, density, workflow, responsive behaviour or release reliability, then repair the shared authority before adding a page exception.
+- Every release keeps loading, successful empty, unavailable and numeric zero visually and semantically distinct. Cross-module approvals belong to the signed-in role's single action queue.
+- Every changed operational surface is gated at 390×844, 820×1180, 1180×820 and 1440×900. Touch, keyboard, pointer and reduced-motion equivalents remain mandatory.
+- Status colour never carries meaning alone. Pending, final, warning and unavailable states require distinct copy, accessible labels and semantic tokens.
+- UI contracts are necessary but not sufficient: strict TypeScript and the real Next production compile/type-validation path are release blockers. Newly added database tables require a compile-time `Database.public.Tables` membership assertion.
+
 ## v9.2.25 (unreleased) — Action ownership and legible workflow states
 
 - Dashboard action queues are cross-module: any current decision owned by the signed-in role belongs in `Actions awaiting you`, including submitted outlet schedules. Rows use module-specific supporting context rather than forcing every action through procurement metadata.

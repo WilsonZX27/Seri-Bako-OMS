@@ -4,6 +4,8 @@
 
 This is an audit report, not a remediation commit. The repository and deployed Owner surface were reviewed to the executable boundary available on 2026-09-04. The system must **not** be described as fully closed or fully UAT-verified yet.
 
+Follow-up status on 2026-09-05: P1-01 (documentation-authority contract) is closed by the current 1,156/1,156 contract run; P1-02 (atomic Compliance type and requirement creation) remains open.
+
 - Repository HEAD: `b4b2619758932be163bc6a776e79523003389291` (`v9.2.26`)
 - TypeScript strict check: pass
 - ESLint: pass
@@ -160,6 +162,11 @@ This is **local isolated verification**, not a sanitized clone of current Produc
 ## v9.2.28 mobile workflow closure evidence — 2026-09-05
 
 The annotation-derived mobile and workflow changes were tested against the same loopback-only environment. Migration 260 was applied locally and adds controlled Outlet Daily posting; it was not applied to Production.
+
+### Verification refresh — 2026-09-05
+
+- The complete repository contract suite now passes **1,156/1,156**. This closes P1-01 from the initial 2026-09-04 audit; the documentation-authority contract now matches the migration ceiling of 260.
+- P1-02 remains open: Compliance type creation and eligible-site requirement assignment still need one tenant-scoped atomic transaction and failure-path coverage.
 
 ### Verified locally
 

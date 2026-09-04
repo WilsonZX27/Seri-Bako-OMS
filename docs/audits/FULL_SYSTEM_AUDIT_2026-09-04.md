@@ -175,8 +175,9 @@ The annotation-derived mobile and workflow changes were tested against the same 
 ### Follow-up receipt — 2026-09-05
 
 - The legacy Purchase Request validation-copy assertion was aligned with the current field-level message (`Choose one supplier for this purchase request.`); the focused isolated E2E passed **1/1**.
+- A fresh local schema verifier rerun returned `V9_SCHEMA_OK` at migration 260, and the complete mobile closure suite passed **6/6** in the isolated fixture (including Ready to post → Purchasing Post → immutable edit lock).
 - Commit `54411fd` was pushed to `codex/annotation-closure-loading-schedule`. Its Vercel Preview deployment is READY at `https://seri-bako-oms-official-8dta09z4f-seribako.vercel.app`.
-- The latest Preview passed the public auth/setup UI E2E matrix **8/8** across 320×700, 390×844, 640×900, 768×1024, 1024×900, 1280×960, 1440×960 and 2560×1440. This does not prove authenticated feature mutation or Production behavior.
+- The latest application Preview passed the public auth/setup UI E2E matrix **8/8** across 320×700, 390×844, 640×900, 768×1024, 1024×900, 1280×960, 1440×960 and 2560×1440. The follow-up documentation deployment `8f1f828` is also READY at `https://seri-bako-oms-official-igrcwcmub-seribako.vercel.app`. This does not prove authenticated feature mutation or Production behavior.
 
 ### Still open
 

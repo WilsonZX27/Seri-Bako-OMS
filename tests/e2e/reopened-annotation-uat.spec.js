@@ -85,7 +85,7 @@ test("purchase request validation points to the exact field before any record is
   await page.getByRole("button", { name: "Submit PR" }).click();
   await expect(supplier).toBeFocused();
   await expect(supplier).toHaveAttribute("aria-invalid", "true");
-  await expect(page.getByText("Select the supplier before choosing items.", { exact: true })).toBeVisible();
+  await expect(page.getByText("Choose one supplier for this purchase request.", { exact: true })).toBeVisible();
 
   const availableSuppliers = await supplier.locator("option").evaluateAll((options) =>
     options.map((option) => option.value).filter(Boolean),

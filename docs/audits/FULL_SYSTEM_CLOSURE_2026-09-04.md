@@ -19,6 +19,7 @@ The blocking Production build defect is closed in source. The audit found two sy
 
 - **P0** — Production build TypeScript failure: fixed through the established Attendance query authority and corrected database type structure.
 - **P1** — Non-deterministic Vercel install and unpinned runtime: fixed with Node 22 LTS and `npm ci`.
+- **P1** — npm 11 lockfile omitted npm 10's required optional `@emnapi` graph: regenerated with npm 10.9.3 and validated through the exact npm 10 `ci --dry-run` path before the deployment retry.
 - **P1** — False database type coverage: fixed by moving supplemental tables into `Tables` and adding compile-time membership.
 - **P2** — Documentation and release versions drifted across current authorities: synchronized to v9.2.26.
 - **P3** — No verified UI polish issue remained. The detector's two gray-on-colour warnings paired mutually exclusive dynamic classes and were not changed.

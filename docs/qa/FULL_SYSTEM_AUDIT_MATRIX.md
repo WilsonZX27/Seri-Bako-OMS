@@ -5,7 +5,7 @@
 | Gate | Result | Evidence |
 | --- | --- | --- |
 | Production build blocker | Closed locally | Schedule query compiles; strict TypeScript passes; Next compile and type validation pass |
-| Deterministic deployment | Closed in source | Node 22 LTS plus `npm ci --no-audit --no-fund`; package/lock/config contract added |
+| Deterministic deployment | Closed in source | Node 22 LTS plus `npm ci --no-audit --no-fund`; lockfile regenerated and validated with npm 10.9.3 including the Linux `@emnapi` graph |
 | Database type integrity | Closed | Late operational tables moved into `Database.public.Tables`; compile-time membership assertion added |
 | Business and workflow contracts | Pass | 1,142/1,142 node contracts |
 | Source quality | Pass | ESLint and strict TypeScript |

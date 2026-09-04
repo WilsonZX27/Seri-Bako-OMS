@@ -16,4 +16,6 @@ test("Vercel uses the pinned LTS runtime and deterministic lockfile install", ()
 test("package and lockfile release versions stay synchronized", () => {
   assert.equal(packageLock.version, packageJson.version);
   assert.equal(packageLock.packages?.[""]?.version, packageJson.version);
+  assert.equal(packageLock.packages?.["node_modules/@emnapi/core"]?.version, "1.11.3");
+  assert.equal(packageLock.packages?.["node_modules/@emnapi/runtime"]?.version, "1.11.3");
 });

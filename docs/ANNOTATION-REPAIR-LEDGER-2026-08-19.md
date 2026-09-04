@@ -12,7 +12,8 @@
 
 - Locally verified: 1,142/1,142 contracts, strict TypeScript, ESLint, production compile/type-validation, and `npm audit --omit=dev --audit-level=high` with zero vulnerabilities.
 - Environment gate: local static generation requires `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`; the configured Vercel environment owns final deployment verification.
-- Production verified: not yet claimed in this entry. The earlier failed deployment remains evidence, not a successful release.
+- Deployment continuation: the first v9.2.26 attempt failed in six seconds because npm 10 correctly rejected the prior npm 11 lockfile's missing `@emnapi` optional graph. The lockfile was regenerated with npm 10.9.3 and the exact npm 10 `ci --dry-run` path passed with the Linux native dependency set included.
+- Production verified: not yet claimed in this entry. Both failed deployments remain evidence, not successful releases.
 
 ## 2026-08-31 — v9.2.1 procurement and receiving correction batch
 

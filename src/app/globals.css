@@ -47,6 +47,7 @@
   --sb-bg: #eef1ee;
   --sb-surface: #FFFFFF;
   --sb-surface-muted: #f5f6f3;
+  --sb-surface-subtle: #fafafa;
   --sb-muted: var(--sb-surface-muted);
   --sb-border: #d8ded9;
   /* Canonical control geometry: 8px controls, 12px panels across every viewport. */

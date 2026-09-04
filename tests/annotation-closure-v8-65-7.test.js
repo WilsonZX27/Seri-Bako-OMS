@@ -71,7 +71,7 @@ test("attachment, account, sourcing and inventory copy stay restrained", () => {
   const account = read("src", "components", "layout", "account-menu.tsx");
   const procurement = read("src", "components", "procurement-forms.tsx");
   const inventory = read("src", "app", "(app)", "inventory", "page.tsx");
-  assert.match(upload, /text-\[10px\] text-\[#71847a\]/);
+  assert.match(upload, /text-\[10px\] text-\[var\(--sb-text-muted\)\]/);
   assert.match(upload, /Give the file a recognisable name/);
   assert.doesNotMatch(panels, /Attachments are locked after approval or posting/);
   assert.equal((account.match(/text-xs/g) ?? []).length >= 2, true);

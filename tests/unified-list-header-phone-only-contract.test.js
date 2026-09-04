@@ -22,7 +22,7 @@ test("unified list header is phone-only and preserves desktop controls", () => {
 });
 
 test("unified filter sheet covers the complete phone viewport and nav", () => {
-  assert.match(styles, /\.unified-list-backdrop\s*\{[\s\S]*inset:\s*0;[\s\S]*z-index:\s*100/);
-  assert.match(styles, /\.unified-list-sheet\s*\{[\s\S]*bottom:\s*0;[\s\S]*z-index:\s*101/);
+  assert.match(styles, /\.unified-list-backdrop\s*\{[\s\S]*inset:\s*0;[\s\S]*z-index:\s*var\(--sb-z-sheet-backdrop\)/);
+  assert.match(styles, /\.unified-list-sheet\s*\{[\s\S]*bottom:\s*0;[\s\S]*z-index:\s*var\(--sb-z-sheet\)/);
   assert.match(styles, /body:has\(\[data-mobile-action-bar\]\)\s+\[data-mobile-app-nav\]/);
 });

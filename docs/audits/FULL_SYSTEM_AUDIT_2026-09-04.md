@@ -33,7 +33,7 @@ Follow-up status on 2026-09-05: P1-01 (documentation-authority contract) and P1-
 
 Impact: `npm test` has one failure and the repository cannot honestly be called release-gate green.
 
-~~Required closure: align the authority contract with the stronger wording or restore a stable machine-readable authority sentence, then rerun the entire suite.~~ Closed by the authority-map update; the current suite passes 1,158/1,158.
+~~Required closure: align the authority contract with the stronger wording or restore a stable machine-readable authority sentence, then rerun the entire suite.~~ Closed by the authority-map update; the current suite passes 1,159/1,159.
 
 ### P1-02 — Compliance type creation can partially succeed — closed 2026-09-05
 
@@ -63,13 +63,13 @@ The current browser control session timed out repeatedly, including state recove
 
 Required closure: rerun in bounded route batches with authenticated fixtures and preserve per-route screenshots/console/network results.
 
-### P2-04 — Visual tokens are not yet the sole styling authority
+### P2-04 — Visual tokens are not yet the sole styling authority — closed 2026-09-05
 
-Examples include `src/components/documents/attachment-upload-form.tsx:63` (`#71847a`), `src/components/procurement-forms.tsx:408` (`#fafafa`), and literal overlay z-indices 100/101 in `src/app/design-system-v2.css:963-965` alongside the semantic z-index system.
+The baseline examples were `src/components/documents/attachment-upload-form.tsx:63` (`#71847a`), `src/components/procurement-forms.tsx:408` (`#fafafa`), and literal overlay z-indices 100/101 in `src/app/design-system-v2.css:963-965` alongside the semantic z-index system. These are now mapped to `--sb-text-muted`, `--sb-surface-subtle`, and the existing sheet layer tokens.
 
 Impact: theme drift and stacking regressions become more likely even though the current presentation is generally coherent.
 
-Required closure: map remaining literals to semantic text/surface/layer tokens and add a bounded token contract.
+~~Required closure: map remaining literals to semantic text/surface/layer tokens and add a bounded token contract.~~ Closed by the token migration and v9 visual-authority contract.
 
 ## P3 findings
 
@@ -139,7 +139,7 @@ The earlier UAT blocker was closed for a local, loopback-only environment. A dis
 ### Verified after remediation
 
 - Canonical authenticated route matrix: **36/36 passed** in 20.4 minutes. This covers eight roles at 390×844, 820×1180, 1180×820, and 1440×900, plus the public auth surfaces at all four viewports.
-- Contract suite: **1,158/1,158 passed**.
+- Contract suite: **1,159/1,159 passed**.
 - Strict TypeScript: passed.
 - ESLint: passed.
 - Local schema/RLS/RPC gate: `V9_SCHEMA_OK`, migration 261, 105 tables, 6 views, and 174 security-definer functions.
@@ -165,12 +165,12 @@ The annotation-derived mobile and workflow changes were tested against the same 
 
 ### Verification refresh — 2026-09-05
 
-- The complete repository contract suite now passes **1,158/1,158**. This closes P1-01 from the initial 2026-09-04 audit; the documentation-authority contract now matches the migration ceiling of 261.
+- The complete repository contract suite now passes **1,159/1,159**. This closes P1-01 from the initial 2026-09-04 audit; the documentation-authority contract now matches the migration ceiling of 261.
 - P1-02 is closed locally: `261_atomic_compliance_type_creation.sql` provides one tenant-scoped `security definer` transaction for type creation plus active outlet/central-kitchen requirement rollout; the action has an explicit `PGRST202` migration guard and a contract test.
 
 ### Verified locally
 
-- Contract suite: **1,158/1,158 passed**.
+- Contract suite: **1,159/1,159 passed**.
 - Strict TypeScript and ESLint: passed.
 - Local schema/RLS/RPC gate: `V9_SCHEMA_OK`, migration 261, 105 tables, 6 views and 174 security-definer functions.
 - Isolated Next.js production build: compiled, type-checked and prerendered **95/95** static pages.

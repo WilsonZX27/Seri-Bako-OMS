@@ -960,9 +960,9 @@ nav[aria-label="Pagination"] > span,
   .unified-list-filter-badge { position: absolute; top: -.35rem; right: -.35rem; min-width: 1.15rem; height: 1.15rem; padding: 0 .25rem; border-radius: 999px; background: var(--sb-green-900); color: white; font-size: .6875rem; font-weight: 600; line-height: 1.15rem; }
   .unified-list-result { display: grid; flex: 0 0 auto; margin: 0; color: var(--sb-text-muted); font-size: .625rem; font-weight: 500; line-height: 1.05; text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .unified-list-result strong { color: var(--sb-text); font-size: .8125rem; }
-  .unified-list-layer { position: fixed; inset: 0; z-index: 100; }
-  .unified-list-backdrop { position: fixed; inset: 0; z-index: 100; background: rgb(10 31 25 / .5); }
-  .unified-list-sheet { position: fixed; inset-inline: 0; bottom: 0; z-index: 101; display: grid; grid-template-rows: auto minmax(0,1fr) auto; max-height: min(85dvh, 40rem); overflow: hidden; padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom)); border-radius: var(--sb-panel-radius) var(--sb-panel-radius) 0 0; border: 1px solid var(--sb-border); background: var(--sb-surface-raised); box-shadow: 0 -1rem 3rem rgb(10 31 25 / .16); }
+  .unified-list-layer { position: fixed; inset: 0; z-index: var(--sb-z-sheet-backdrop); }
+  .unified-list-backdrop { position: fixed; inset: 0; z-index: var(--sb-z-sheet-backdrop); background: rgb(10 31 25 / .5); }
+  .unified-list-sheet { position: fixed; inset-inline: 0; bottom: 0; z-index: var(--sb-z-sheet); display: grid; grid-template-rows: auto minmax(0,1fr) auto; max-height: min(85dvh, 40rem); overflow: hidden; padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom)); border-radius: var(--sb-panel-radius) var(--sb-panel-radius) 0 0; border: 1px solid var(--sb-border); background: var(--sb-surface-raised); box-shadow: 0 -1rem 3rem rgb(10 31 25 / .16); }
   .unified-list-sheet-header { display: flex; align-items: center; justify-content: space-between; padding-bottom: .75rem; border-bottom: 1px solid var(--sb-border); }
   .unified-list-sheet-header h2 { margin: 0; font-size: 1rem; font-weight: 500; }
   .unified-list-sheet-header button { display: grid; place-items: center; width: 2rem; height: 2rem; color: var(--sb-muted); }

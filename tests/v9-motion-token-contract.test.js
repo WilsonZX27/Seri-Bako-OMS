@@ -18,3 +18,15 @@ test("v9 dashboard identity and panel headings use shared type tokens", () => {
   assert.match(designSystem, /\[data-dashboard-user-name\][\s\S]*font-size: var\(--sb-text-identity\)/);
   assert.match(designSystem, /\[data-dashboard-panel\] > :first-child[\s\S]*font-size: var\(--sb-text-section\)/);
 });
+
+test("v9 surfaces and overlays use semantic color and layer tokens", () => {
+  const globals = fs.readFileSync("src/app/globals.css", "utf8");
+  const upload = fs.readFileSync("src/components/documents/attachment-upload-form.tsx", "utf8");
+  const procurement = fs.readFileSync("src/components/procurement-forms.tsx", "utf8");
+  assert.match(globals, /--sb-surface-subtle:\s*#fafafa/);
+  assert.match(upload, /text-\[var\(--sb-text-muted\)\]/);
+  assert.match(procurement, /bg-\[var\(--sb-surface-subtle\)\]/);
+  assert.match(designSystem, /\.unified-list-layer \{[^}]*z-index: var\(--sb-z-sheet-backdrop\)/);
+  assert.match(designSystem, /\.unified-list-sheet \{[^}]*z-index: var\(--sb-z-sheet\)/);
+  assert.doesNotMatch(designSystem, /\.unified-list-(?:layer|backdrop|sheet) \{[^}]*z-index: 10[01]/);
+});

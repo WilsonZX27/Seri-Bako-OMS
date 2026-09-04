@@ -405,7 +405,7 @@ export function PurchaseRequestForm({
             </div>
             <div
               data-purchase-request-line-header
-              className="hidden grid-cols-[minmax(14rem,1fr)_10rem_8.5rem_2.75rem_2.75rem] gap-3 border-b border-[var(--sb-border-soft)] bg-[#fafafa] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-muted)] lg:grid"
+              className="hidden grid-cols-[minmax(14rem,1fr)_10rem_8.5rem_2.75rem_2.75rem] gap-3 border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface-subtle)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-muted)] lg:grid"
             >
               <span>Item</span>
               <span>Quantity</span>

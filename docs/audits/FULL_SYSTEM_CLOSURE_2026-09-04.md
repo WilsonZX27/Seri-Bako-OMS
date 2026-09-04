@@ -40,3 +40,12 @@ Repeated annotations resolve into six families: truthful data states, shared com
 ## Remaining release boundary
 
 Push the verified commit to `main`, observe the configured Vercel build through Ready, then run read-only authenticated smoke at 390×844, 820×1180, 1180×820 and 1440×900. Do not describe source or local results as Production verification.
+
+## Post-release Production correction
+
+- Vercel deployed commit `a4c0c367` to Production in 2m23s and the public origin reported v9.2.26.
+- Authenticated Owner browser verification covered Dashboard, Attendance, Schedule, Review, Outlet Daily Records, Compliance, Employees, Procurement, Purchase Requests, Goods Receiving, Inventory, Stock Counts and Administration without a framework error overlay or desktop horizontal overflow.
+- That verification exposed migration 259 as unapplied: Production still displayed DBKL and omitted Pest Control while the migration ledger stopped at 258.
+- The reviewed, idempotent migration 259 was applied to the linked Production project. Follow-up SQL reported migration ceiling `259`, zero active DBKL types, zero required DBKL sites, 12 eligible sites and 12 required Pest Control assignments.
+- The same authenticated Compliance detail route was reloaded after the schema notification. It displayed Pest Control, omitted DBKL, retained the expected 8-item checklist and reported v9.2.26 with no framework error overlay or horizontal overflow.
+- Mobile/tablet authenticated viewport reruns remain a separate visual-UAT gate; the Production data correction itself is remotely verified.

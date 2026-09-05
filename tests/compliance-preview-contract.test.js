@@ -59,6 +59,10 @@ test("sales reconciliation is database-derived and atomic with daily lines", () 
   const optionalDifferenceSql = read("supabase", "migrations", "250_optional_daily_sales_difference_reason.sql");
   assert.match(optionalDifferenceSql, /sales_review_status=case when difference=0 then 'not_required' else 'needs_review' end/);
   assert.doesNotMatch(optionalDifferenceSql, /difference<>0.*raise exception/s);
+  const nonBlockingSql = read("supabase", "migrations", "262_sales_reconciliation_non_blocking.sql");
+  assert.match(nonBlockingSql, /-- Sales remains a reconciliation signal/);
+  assert.match(nonBlockingSql, /if p_pos_total_sales is null then\s+return saved_id;/);
+  assert.match(nonBlockingSql, /sales_review_status=case when difference=0 then 'not_required' else 'needs_review' end/);
 });
 
 test("mixed compliance route redirects and module pages remain separate", () => {

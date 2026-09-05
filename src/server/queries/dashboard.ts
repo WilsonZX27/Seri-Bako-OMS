@@ -348,7 +348,7 @@ export async function getDashboardSummary() {
   const db = looseSupabase(supabase);
   const empty = { data: [], error: null, count: 0 };
   const nextWeek = new Date(`${today}T00:00:00Z`); nextWeek.setUTCDate(nextWeek.getUTCDate()+7);
-  const [coreSnapshotRpcResult, pendingApprovals, notifications, recentActivities, outletToday, currentStaff, assignedBranches, payablesAttention, lowStockViewResult, upcomingShifts, outletCompletion, complianceWorkspace] = await Promise.all([
+  const [coreSnapshotRpcResult, pendingApprovalsSnapshot, notifications, recentActivities, outletToday, currentStaff, assignedBranches, payablesAttention, lowStockViewResult, upcomingShifts, outletCompletion, complianceWorkspace] = await Promise.all([
     (needsProcurement || needsInventory) ? supabase.rpc("get_dashboard_core_snapshot", { p_today: today }) : Promise.resolve({ data: null, error: null }),
     getCurrentUserPendingActionSnapshot(5),
     getVisibleNotificationsForCurrentUser(),
@@ -373,6 +373,10 @@ export async function getDashboardSummary() {
     needsOperations ? getOutletDailyCompletionMatrix({ history_date: today }).catch((error) => { warnOptionalQuery("outlet completion", error); return null; }) : Promise.resolve(null),
     needsCompliance ? getOutletComplianceWorkspace().catch((error) => { warnOptionalQuery("outlet compliance", error); return null; }) : Promise.resolve(null),
   ]);
+
+  // Keep the exact total for the attention summary, while showing only the
+  // three newest actionable items on the dashboard command surface.
+  const pendingApprovals = { ...pendingApprovalsSnapshot, items: pendingApprovalsSnapshot.items.slice(0, 3) };
 
   let coreSnapshot = coreSnapshotRpcResult.data as DashboardCoreSnapshot | null;
   let coreSnapshotUnavailable = Boolean(coreSnapshotRpcResult.error) || !coreSnapshot;

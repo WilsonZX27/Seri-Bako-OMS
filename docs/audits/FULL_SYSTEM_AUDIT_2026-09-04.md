@@ -227,3 +227,10 @@ The annotation-derived mobile and workflow changes were tested against the same 
 - Local verification after this pass: `npm run typecheck` passed, `npm run lint` passed, and the complete contract suite passed **1,164/1,164**. These are implementation/local evidence only.
 - The new commit is present locally on `codex/annotation-closure-loading-schedule`; Preview deployment and authenticated UAT for this exact commit remain pending because the exact remote push was not authorized by the execution boundary.
 - Not changed intentionally: sales retroactive-required semantics, Ready to post versus Posted business transitions, dashboard daily-action volume, and Low Stock `Unavailable`. Those require either owner confirmation of the intended rule or an isolated Preview data/schema trace; changing only the label would risk masking a source failure.
+
+## Follow-up receipt — owner direction on sales and dashboard volume — 2026-09-05
+
+- Owner direction now confirms that sales is a validation/reconciliation mechanism only; wastage and received quantities are the completion priority. New migration `262_sales_reconciliation_non_blocking.sql` removes the remaining POS-total exception for `evening_completed` while preserving optional five-channel capture and Finance `needs_review` follow-up when a supplied total differs.
+- Dashboard `Actions awaiting you` keeps its exact server-side total for attention summaries but renders only the three newest actionable items, reducing daily-record noise without hiding the underlying count.
+- Local contract suite after this change: **1,164/1,164 passed**; strict TypeScript and ESLint passed. The local Docker schema verifier could not be rerun because the Docker daemon/named pipe was unavailable, so migration 262 remains implementation evidence only until an isolated database target applies it.
+- The branch is authorized for Preview push. Preview must remain an independent deployment/database target; no Production database connection, promotion, or Production mutation is authorized by this receipt.

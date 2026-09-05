@@ -89,7 +89,6 @@ function QuickActionsCluster({ actions, className }: { actions: { href: string; 
     <section className={className} aria-labelledby="dashboard-quick-actions-title">
       <div className="mb-2 flex items-center justify-between">
         <h2 id="dashboard-quick-actions-title" className="text-xs font-semibold text-[var(--sb-text-muted)]">Quick actions</h2>
-        <span className="text-[11px] text-[var(--sb-text-muted)]">Based on your role</span>
       </div>
       <div className="grid grid-cols-3 divide-x divide-[var(--sb-border-soft)] overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)]" data-dashboard-quick-actions>
         {actions.slice(0, 3).map((action) => {
@@ -142,6 +141,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   const unavailableAttentionLabels = summary.attentionSummary.unavailableSources.map((source) => attentionSourceLabels[source]);
   const pendingApprovalsHref = isFinance ? "/purchase-requests?status=finance_review" : isManager ? "/purchase-requests?status=manager_review" : isPurchasing ? "/purchase-requests?status=admin_review" : "/purchase-requests";
   const attentionSignals = [
+    ...((isOwner || isFinance || isManager || isPurchasing || isKitchen) ? [{ key: "low_stock", label: "Low stock", value: summary.inventoryUnavailable ? null : summary.lowStockCount, href: "/low-stock", icon: AlertTriangle }] : []),
     { key: "pending_approvals", label: "Pending approvals", value: summary.attentionSummary.sources.pending_approvals, href: pendingApprovalsHref, icon: ClipboardCheck },
     { key: "stock_count_due", label: "Stock count due", value: summary.attentionSummary.sources.stock_count_due, href: "/stock-counts", icon: CheckCircle2 },
     ...(showFinance ? [{ key: "overdue_payables", label: "Overdue payables", value: summary.attentionSummary.sources.overdue_payables, href: "/supplier-invoices/aging?overdue=1", icon: ReceiptText }] : []),
@@ -285,7 +285,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               {summary.attentionSummary.state === "unavailable" ? <p className="mt-1 text-[11px] leading-4 text-muted-foreground">Unavailable: {unavailableAttentionLabels.join(", ")}</p> : null}
             </div>
           </div>
-          <div className={`grid grid-cols-2 divide-x divide-y divide-[var(--sb-border-soft)] border-t border-[var(--sb-border-soft)] ${showFinance ? "sm:grid-cols-3" : "sm:grid-cols-2"}`} data-dashboard-pulse-metrics aria-label="Today work breakdown">
+          <div className={`grid grid-cols-2 divide-x divide-y divide-[var(--sb-border-soft)] border-t border-[var(--sb-border-soft)] ${attentionSignals.length === 4 ? "sm:grid-cols-4" : attentionSignals.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`} data-dashboard-pulse-metrics aria-label="Today work breakdown">
             {attentionSignals.map((signal, index) => {
               const Icon = signal.icon;
               const unavailable = signal.value === null;

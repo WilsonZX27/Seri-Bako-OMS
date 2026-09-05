@@ -30,7 +30,7 @@ test("attachment label fails inline with a strong field error", () => {
 test("sales fallback preserves confirmed state and uses warning feedback", () => {
   const action = read("src/server/actions/outlet-daily-records.ts");
   const toast = read("src/components/global-action-toast.tsx");
-  assert.match(action, /beforeRecord\.data\?\.status === "morning_recorded" \? "morning_recorded" : "draft"/);
+  assert.match(action, /effectiveTargetStatus = payload\.target_status/);
   assert.match(action, /salesReconciliationUnavailable \? "warning" : "success"/);
   assert.match(toast, /searchParams\.get\("warning"\)/);
   assert.match(toast, /sb-warning-bg/);

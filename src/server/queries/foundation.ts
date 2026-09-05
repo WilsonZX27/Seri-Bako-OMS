@@ -17,6 +17,7 @@ import {
 } from "@/lib/mock-mode";
 
 type Filters = {
+  branch_id?: string;
   search?: string;
   status?: string;
 };
@@ -116,6 +117,7 @@ export async function getStaffs(filters: Filters = {}) {
     const roleById = new Map(mockRoles.map((role) => [role.id, role]));
     const branchById = new Map(mockBranches.map((branch) => [branch.id, branch]));
     return mockStaffs
+      .filter((staff) => !filters.branch_id || filters.branch_id === "all" || mockStaffBranches.some((row) => row.staff_id === staff.id && row.branch_id === filters.branch_id))
       .map((staff) => {
         const roles = mockStaffRoles.filter((row) => row.staff_id === staff.id).map((row) => roleById.get(row.role_id)?.role_name).filter(Boolean);
         const defaultBranch = mockStaffBranches.find((row) => row.staff_id === staff.id && row.is_default);
@@ -165,6 +167,7 @@ export async function getStaffs(filters: Filters = {}) {
   const branchById = new Map((branches ?? []).map((branch) => [branch.id, branch.branch_name]));
   const roleById = new Map((roles ?? []).map((role) => [role.id, getRoleDisplayLabel(role.role_code, role.role_name)]));
   return (staffs ?? [])
+    .filter((staff) => !filters.branch_id || filters.branch_id === "all" || (staffBranches ?? []).some((row) => row.staff_id === staff.id && row.branch_id === filters.branch_id))
     .map((staff) => {
       const assignedRoles = (staffRoles ?? []).filter((row) => row.staff_id === staff.id).map((row) => roleById.get(row.role_id)).filter(Boolean);
       const defaultBranch = (staffBranches ?? []).find((row) => row.staff_id === staff.id && row.is_default);

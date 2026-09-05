@@ -1,6 +1,6 @@
 # Seri Bako OMS — Schema 与 Table 关系地图
 
-> Current repository authority 2026-09-05: forward-only migration 历史已到 `262`. Migration `260` introduces the permission-gated Outlet Daily `post` transition, retains `evening_completed` as Ready to post, and uses the historical `reviewed` enum value as the durable Posted state. Migration `261` makes Compliance type creation and active-site requirement rollout atomic through a tenant-scoped RPC. Migration `262` keeps sales reconciliation optional so blank or mismatched sales never blocks wastage completion or posting. This is repository evidence only; it does not prove migration application in Preview or Production.
+> Current repository authority 2026-09-05: forward-only migration 历史已到 `263`. Migration `260` introduces the permission-gated Outlet Daily `post` transition, retains `evening_completed` as Ready to post, and uses the historical `reviewed` enum value as the durable Posted state. Migration `261` makes Compliance type creation and active-site requirement rollout atomic through a tenant-scoped RPC. Migration `262` keeps sales reconciliation optional so blank or mismatched sales never blocks wastage completion or posting. This is repository evidence only; it does not prove migration application in Preview or Production.
 
 > Current repository and Production authority 2026-09-04: forward-only migration 历史已到 `259`; Production ledger 亦已到 `259`. Migration `259` retires DBKL from the company checklist and assigns Pest Control to every active Outlet and Central Kitchen. Production verification reported migration ceiling `259`, zero active DBKL types, zero required DBKL sites, and Pest Control assigned to all 12/12 eligible active sites. The authenticated v9.2.26 Compliance detail rerun showed Pest Control and no DBKL entry.
 
@@ -278,3 +278,5 @@ flowchart LR
 4. 明确通知采用单收件人还是收件人子表。
 5. 对 `barcode_mappings`、`profiles` 做 Production 使用量与调用方审计。
 6. 每一项通过**新的 forward-only migration**处理；绝不改或删除已经上线过的历史 migration。
+
+Migration `263` adds atomic compliance renewal with history. Source reviewed locally; database execution and remote application are pending.

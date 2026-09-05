@@ -295,7 +295,7 @@ export function StockBalanceWorkspace({
         }
         tabletRailMode="split"
         tabletRailBreakpoint="md"
-        tabletRailWidth="half"
+        tabletRailWidth="compact"
       >
         <div className="space-y-3">
           <FilterBar resultCount={totalRows} resetHref="/stock-balance" filtered={Boolean(filters.search || filters.branch_id || filters.status)} className="sb-list-filters--balanced">

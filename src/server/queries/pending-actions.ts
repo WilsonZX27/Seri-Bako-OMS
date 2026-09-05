@@ -34,7 +34,7 @@ function ageLabel(updatedAt?: string | null) {
   return `${days} days`;
 }
 
-export const getCurrentUserPendingActionSnapshot = cache(async function getCurrentUserPendingActionSnapshot(limit = 5): Promise<PendingActionSnapshot> {
+export const getCurrentUserPendingActionSnapshot = cache(async function getCurrentUserPendingActionSnapshot(limit = 5, includeOutletDaily = true): Promise<PendingActionSnapshot> {
   const scope = await getCurrentUserScope();
   if (!scope) return { items: [], total: null, unavailable: true };
 
@@ -168,7 +168,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
   })();
 
   const outletDailyResult = await (async () => {
-    if (!canPostOutletDaily) return { items: [] as PendingAction[], count: 0, unavailable: false };
+    if (!includeOutletDaily || !canPostOutletDaily) return { items: [] as PendingAction[], count: 0, unavailable: false };
     let query = supabase
       .from("outlet_daily_records")
       .select("id,branch_id,record_date,updated_at,branch:branches!outlet_daily_records_branch_id_fkey(branch_name)", { count: "exact" })
@@ -209,7 +209,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
     };
   })();
 
-  const results = [...prResults, scheduleResult, outletDailyResult];
+  const results = [...prResults, scheduleResult, ...(includeOutletDaily ? [outletDailyResult] : [])];
   const unavailable = results.some((result) => result.unavailable);
   const items = results
     .flatMap((result) => result.items)

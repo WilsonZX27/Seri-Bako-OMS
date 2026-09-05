@@ -220,7 +220,7 @@ export function ConsoleSection({ title, children, titleClassName, kind = "refere
         <h2 className={cn("shrink-0 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--sb-text-muted)]", titleClassName)}>{title}</h2>
         <span aria-hidden="true" className="h-px min-w-0 flex-1 bg-[var(--sb-border-soft)]" />
       </div>
-      <div className="space-y-2 text-xs [&_.inline-flex]:text-xs">{children}</div>
+      <div className="grid gap-2 text-xs [&_.inline-flex]:w-full [&_.inline-flex]:text-xs">{children}</div>
     </section>
   );
 }

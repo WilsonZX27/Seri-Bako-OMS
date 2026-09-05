@@ -37,6 +37,7 @@ export function OperationalListRow({ href, label, primary, status, statusMeta, s
 }) {
   const lastTapAt = React.useRef(0);
   const handlePointerOpen = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (event.detail === 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
     const now = Date.now();
     if (now - lastTapAt.current < 350) {
       lastTapAt.current = 0;

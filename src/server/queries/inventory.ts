@@ -1022,6 +1022,18 @@ export async function getStockCard(filters: Filters = {}) {
   return (await getStockCardResult(filters)).rows;
 }
 
+async function readLowStockPages<T>(query: { range: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }> }) {
+  const rows: T[] = [];
+  const pageSize = 500;
+  for (let offset = 0; offset < 100_000; offset += pageSize) {
+    const result = await query.range(offset, offset + pageSize - 1);
+    if (result.error || result.data === null) return { data: null, error: result.error ?? { message: "Low stock returned no data." } };
+    rows.push(...result.data);
+    if (result.data.length < pageSize) return { data: rows, error: null };
+  }
+  return { data: null, error: { message: "Low stock exceeds the supported read size; select an outlet to narrow the scope." } };
+}
+
 async function loadLowStockItems(filters: Filters = {}) {
   if (isMockMode()) {
     return getMockLowStockItems().map((row) => ({
@@ -1050,10 +1062,10 @@ async function loadLowStockItems(filters: Filters = {}) {
     .eq("status", "active")
     .eq("is_low_stock", true)
     .order("shortage_quantity", { ascending: false })
-    .order("item_name", { ascending: true });
+    .order("item_name", { ascending: true }).order("item_id").order("branch_id");
   const branchId = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
   if (branchId) query = query.eq("branch_id", branchId);
-  const summaryResult = await query;
+  const summaryResult = await readLowStockPages(query);
   const data = summaryResult.data;
   let error = summaryResult.error;
   let fallbackData: unknown[] | null = null;
@@ -1069,9 +1081,9 @@ async function loadLowStockItems(filters: Filters = {}) {
       .select("*")
       .eq("status", "active")
       .order("shortage_quantity", { ascending: false })
-      .order("item_name", { ascending: true });
+      .order("item_name", { ascending: true }).order("item_id").order("branch_id");
     if (branchId) viewQuery = viewQuery.eq("branch_id", branchId);
-    const viewResult = await viewQuery;
+    const viewResult = await readLowStockPages(viewQuery);
     if (viewResult.data?.length) {
       fallbackData = viewResult.data;
       error = null;
@@ -1081,11 +1093,11 @@ async function loadLowStockItems(filters: Filters = {}) {
       // low_stock_items view while the pre-aggregated summary/view is being
       // repaired. Keep this as a final read-only compatibility path.
       if (!branchId) {
-        const legacyResult = await supabase
+        const legacyResult = await readLowStockPages(supabase
           .from("low_stock_items")
           .select("*")
           .order("shortage_quantity", { ascending: false })
-          .order("item_name", { ascending: true });
+          .order("item_name", { ascending: true }).order("item_id"));
         if (legacyResult.data) {
           fallbackData = legacyResult.data;
           error = null;

@@ -75,7 +75,7 @@ test("list filters have a single final responsive authority", () => {
   const css = readFileSync("src/app/design-system-v2.css", "utf8");
   assert.match(css, /Final shared list-control authority/);
   assert.match(css, /grid-column: 1 \/ -1/);
-  assert.match(css, /grid-template-columns: repeat\(var\(--sb-list-tablet-columns, 4\)/);
+  assert.match(css, /grid-template-columns: repeat\(3, minmax\(0, 1fr\)\) auto/);
   assert.match(css, /flex: 0 0 10rem !important/);
 });
 

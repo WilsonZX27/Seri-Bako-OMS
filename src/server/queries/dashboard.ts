@@ -350,7 +350,7 @@ export async function getDashboardSummary() {
   const nextWeek = new Date(`${today}T00:00:00Z`); nextWeek.setUTCDate(nextWeek.getUTCDate()+7);
   const [coreSnapshotRpcResult, pendingApprovalsSnapshot, notifications, recentActivities, outletToday, currentStaff, assignedBranches, payablesAttention, lowStockViewResult, upcomingShifts, outletCompletion, complianceWorkspace] = await Promise.all([
     (needsProcurement || needsInventory) ? supabase.rpc("get_dashboard_core_snapshot", { p_today: today }) : Promise.resolve({ data: null, error: null }),
-    getCurrentUserPendingActionSnapshot(5),
+    getCurrentUserPendingActionSnapshot(5, false),
     getVisibleNotificationsForCurrentUser(),
     // Actor resolution is intentionally reserved for Activity Log and the
     // notification workspace. It is not part of the dashboard's critical path.

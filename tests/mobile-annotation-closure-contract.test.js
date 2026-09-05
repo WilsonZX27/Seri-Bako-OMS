@@ -30,9 +30,9 @@ test("compliance upload and More Actions use compact deliberate spacing", () => 
   assert.match(consoleSource, /data-mobile-console-content[^>]*grid[^>]*gap-3/);
 });
 
-test("attendance has a phone day planner and keeps the normal app navigation", () => {
+test("attendance has a phone day planner and exposes persistent workflow actions", () => {
   const planner = read("src/components/attendance/schedule-planner.tsx");
-  assert.match(planner, /<RightConsoleMount hideMobileBar>/);
+  assert.match(planner, /<WorkspaceGrid rightRail=\{workflowActions\} hideMobileConsole/);
   assert.match(planner, /data-schedule-mobile-day/);
   assert.match(planner, /grid grid-cols-7/);
   assert.match(planner, /data-schedule-mobile-actions/);

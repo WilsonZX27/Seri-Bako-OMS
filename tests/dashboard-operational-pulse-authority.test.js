@@ -15,7 +15,7 @@ test("pending actions expose an exact total separately from the five displayed r
   assert.match(pending, /order\("updated_at", \{ ascending: false \}\)/);
   assert.match(pending, /total: unavailable \? null : results\.reduce\(\(sum, result\) => sum \+ \(result\.count \?\? 0\), 0\)/);
   assert.match(pending, /items[\s\S]*\.slice\(0, limit\)/);
-  assert.match(dashboard, /getCurrentUserPendingActionSnapshot\(5\)/);
+  assert.match(dashboard, /getCurrentUserPendingActionSnapshot\(5, false\)/);
   assert.match(dashboard, /pendingApprovals: pendingApprovals\.total \?\? 0/);
   assert.match(dashboard, /pendingApprovalsUnavailable: pendingApprovals\.unavailable/);
   assert.match(dashboard, /pendingApprovals: pendingApprovals\.items/);
@@ -44,7 +44,7 @@ test("Today's work renders only actionable queues and leaves exceptions to their
 test("Today's work stays compact without a duplicate role snapshot card", () => {
   const dashboard = read("src/components/dashboard-workspace.tsx");
 
-  assert.match(dashboard, /grid grid-cols-2[\s\S]*showFinance \? "sm:grid-cols-3" : "sm:grid-cols-2"/);
+  assert.match(dashboard, /grid grid-cols-2[\s\S]*attentionSignals\.length === 4 \? "sm:grid-cols-4"/);
   assert.match(dashboard, /min-h-12 min-w-0 items-center/);
   assert.match(dashboard, /col-span-2 sm:col-span-1/);
   assert.doesNotMatch(dashboard, /DashboardRoleMicroChart|roleChartItems/);

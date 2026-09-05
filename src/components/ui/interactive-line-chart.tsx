@@ -41,6 +41,20 @@ export function InteractiveLineChart({
 }: InteractiveLineChartProps) {
   const previewId = useId();
   const chartRef = useRef<SVGSVGElement>(null);
+  const [chartSize, setChartSize] = useState({ width, height });
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart) return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry.contentRect.width && entry.contentRect.height) {
+        setChartSize({ width: entry.contentRect.width, height: entry.contentRect.height });
+      }
+    });
+    observer.observe(chart);
+    return () => observer.disconnect();
+  }, []);
+  width = chartSize.width;
+  height = chartSize.height;
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const innerWidth = width - inset.left - inset.right;
   const innerHeight = height - inset.top - inset.bottom;
@@ -108,7 +122,7 @@ export function InteractiveLineChart({
         ref={chartRef}
         className="block h-full min-h-72 w-full touch-pan-y rounded-[var(--sb-radius-control)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-2"
         viewBox={`0 0 ${width} ${height}`}
-        preserveAspectRatio="none"
+        preserveAspectRatio="xMidYMid meet"
         role="img"
         tabIndex={0}
         aria-roledescription="interactive line chart"

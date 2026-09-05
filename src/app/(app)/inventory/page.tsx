@@ -47,7 +47,7 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
     <>
       <PageHeader title="Inventory Workspace" description="Review branch stock, movement, and operational exceptions." />
       <WorkspaceGrid className="p-3 sm:p-5" hideMobileConsole rightRail={<><ConsoleSection title="Attention summary"><div className="space-y-2 text-xs">{permissions["low_stock.view"] ? <p className="flex justify-between gap-3"><span className="text-muted-foreground">Low stock</span><strong>{formatCounter(counters.find((counter) => counter.label === "Low stock")!)}</strong></p> : null}{permissions["stock_count.read"] ? <p className="flex justify-between gap-3"><span className="text-muted-foreground">Counts due</span><strong>{formatCounter(counters.find((counter) => counter.label === "Counts due")!)}</strong></p> : null}</div></ConsoleSection><ConsoleSection title="Control basis"><p className="text-xs leading-5 text-muted-foreground">Balances come from posted Movement Ledger entries and follow branch access.</p></ConsoleSection></>}>
-        <div className="space-y-4 pb-24 md:pb-0">
+        <div className="flex flex-col gap-4 pb-24 md:pb-0">
           <div className="md:hidden">
             <OperationalHub
               eyebrow="Today’s inventory"

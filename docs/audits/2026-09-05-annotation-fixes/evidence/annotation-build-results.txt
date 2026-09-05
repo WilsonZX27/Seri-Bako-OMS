@@ -1,0 +1,182 @@
+   ▲ Next.js 15.5.21
+   - Experiments (use with caution):
+     · serverActions
+
+   Creating an optimized production build ...
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (102kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (250kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ⚠ Compiled with warnings in 1587ms
+
+../../../bf60/seri-bako-oms/node_modules/@supabase/supabase-js/dist/index.mjs
+A Node.js API is used (process.version at line: 27) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+../../../bf60/seri-bako-oms/node_modules/@supabase/supabase-js/dist/index.mjs
+../../../bf60/seri-bako-oms/node_modules/@supabase/ssr/dist/module/createBrowserClient.js
+../../../bf60/seri-bako-oms/node_modules/@supabase/ssr/dist/module/index.js
+./src/lib/supabase/middleware.ts
+
+ ✓ Compiled successfully in 29.1s
+   Linting and checking validity of types ...
+
+   We detected TypeScript in your project and reconfigured your tsconfig.json file for you.
+   The following suggested values were added to your tsconfig.json. These values can be changed to fit your project's needs:
+
+    - include was updated to add '.next-annotation-build/types/**/*.ts'
+
+   Collecting page data ...
+   Generating static pages (0/95) ...
+   Generating static pages (23/95)
+   Generating static pages (47/95)
+   Generating static pages (71/95)
+ ✓ Generating static pages (95/95)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ƒ /                                      204 B         103 kB
+├ ○ /_not-found                            204 B         103 kB
+├ ƒ /access-status                       2.89 kB         117 kB
+├ ƒ /account                             3.26 kB         121 kB
+├ ƒ /activity                            5.87 kB         120 kB
+├ ƒ /administration                        129 B         118 kB
+├ ƒ /administration/backups                129 B         118 kB
+├ ƒ /administration/master-data-cleanup  5.41 kB         152 kB
+├ ƒ /administration/system-health          129 B         118 kB
+├ ƒ /api/attachments/[id]                  204 B         103 kB
+├ ƒ /api/attendance/export                 204 B         103 kB
+├ ƒ /api/attendance/imports/confirm        204 B         103 kB
+├ ƒ /api/attendance/mappings               204 B         103 kB
+├ ƒ /api/attendance/requests               204 B         103 kB
+├ ƒ /api/attendance/review                 204 B         103 kB
+├ ƒ /api/attendance/schedule               204 B         103 kB
+├ ƒ /api/backups/system                    204 B         103 kB
+├ ƒ /api/export/[table]                    204 B         103 kB
+├ ƒ /api/export/ap-aging                   204 B         103 kB
+├ ƒ /api/export/outlet-daily-records       204 B         103 kB
+├ ƒ /api/export/stock-counts-workbook      204 B         103 kB
+├ ƒ /api/health                            204 B         103 kB
+├ ƒ /api/imports/autocount/confirm         204 B         103 kB
+├ ƒ /api/imports/autocount/preview         204 B         103 kB
+├ ƒ /api/imports/confirm                   204 B         103 kB
+├ ƒ /api/items/quick-create                204 B         103 kB
+├ ƒ /api/search                            204 B         103 kB
+├ ƒ /attendance                          5.09 kB         119 kB
+├ ƒ /attendance/imports                  8.66 kB         138 kB
+├ ƒ /attendance/review                    1.6 kB         120 kB
+├ ƒ /attendance/schedule                 8.09 kB         126 kB
+├ ƒ /attendance/settings                 2.84 kB         121 kB
+├ ƒ /auth/callback                         204 B         103 kB
+├ ƒ /branches                              951 B         157 kB
+├ ƒ /branches/[id]                       4.22 kB         153 kB
+├ ƒ /branches/new                        2.82 kB         151 kB
+├ ƒ /change-password                     4.11 kB         122 kB
+├ ƒ /company                             4.97 kB         153 kB
+├ ƒ /compliance                            204 B         103 kB
+├ ƒ /dashboard                             129 B         118 kB
+├ ƒ /document-sequences                  2.49 kB         154 kB
+├ ƒ /document-sequences/[id]               137 B         124 kB
+├ ƒ /document-sequences/new                137 B         124 kB
+├ ƒ /documents                           3.32 kB         154 kB
+├ ƒ /documents/[id]                      5.33 kB         130 kB
+├ ƒ /forgot-password                     2.12 kB         120 kB
+├ ƒ /goods-receivings                    2.24 kB         153 kB
+├ ƒ /goods-receivings/[id]               6.81 kB         136 kB
+├ ƒ /goods-receivings/new                7.35 kB         132 kB
+├ ○ /icon.svg                                0 B            0 B
+├ ƒ /imports                             4.24 kB         118 kB
+├ ƒ /imports/[entity]                    1.75 kB         131 kB
+├ ƒ /imports/autocount                   11.1 kB         125 kB
+├ ƒ /inventory                           6.63 kB         120 kB
+├ ƒ /items                               4.12 kB         155 kB
+├ ƒ /items/[id]                          4.12 kB         122 kB
+├ ƒ /items/new                           2.59 kB         121 kB
+├ ƒ /login                               2.58 kB         121 kB
+├ ƒ /low-stock                           6.95 kB         160 kB
+├ ○ /manifest.webmanifest                  204 B         103 kB
+├ ƒ /opening-stock/import                1.75 kB         131 kB
+├ ƒ /outlet-calendar                     5.98 kB         120 kB
+├ ƒ /outlet-compliance                   5.88 kB         120 kB
+├ ƒ /outlet-compliance/[branchId]        4.41 kB         122 kB
+├ ƒ /outlet-daily-records                5.78 kB         160 kB
+├ ƒ /outlet-daily-records/[id]           3.13 kB         137 kB
+├ ƒ /outlet-daily-records/new              213 B         135 kB
+├ ƒ /people                              3.26 kB         154 kB
+├ ƒ /people/[id]                           128 B         118 kB
+├ ƒ /people/calendar                       204 B         103 kB
+├ ƒ /procurement                           129 B         118 kB
+├ ƒ /production                            129 B         118 kB
+├ ƒ /production/jobs                     3.31 kB         154 kB
+├ ƒ /production/jobs/[id]                5.28 kB         135 kB
+├ ƒ /production/jobs/new                 5.58 kB         161 kB
+├ ƒ /production/planning                 2.33 kB         126 kB
+├ ƒ /production/variance                 6.99 kB         154 kB
+├ ƒ /products                            2.87 kB         154 kB
+├ ƒ /products/[id]                        3.7 kB         122 kB
+├ ƒ /products/new                        2.12 kB         120 kB
+├ ƒ /purchase-orders                     4.16 kB         155 kB
+├ ƒ /purchase-orders/[id]                4.55 kB         134 kB
+├ ƒ /purchase-orders/new                   212 B         166 kB
+├ ƒ /purchase-requests                      3 kB         159 kB
+├ ƒ /purchase-requests/[id]              6.62 kB         177 kB
+├ ƒ /purchase-requests/new               1.49 kB         168 kB
+├ ƒ /purchase-returns                    2.24 kB         153 kB
+├ ƒ /purchase-returns/[id]               5.03 kB         135 kB
+├ ƒ /purchase-returns/new                5.52 kB         130 kB
+├ ƒ /recipes                             3.31 kB         154 kB
+├ ƒ /recipes/[id]                        5.18 kB         132 kB
+├ ƒ /recipes/[id]/edit                     137 B         134 kB
+├ ƒ /recipes/new                           137 B         134 kB
+├ ƒ /reports                               129 B         118 kB
+├ ƒ /reports/costing-readiness           6.71 kB         126 kB
+├ ƒ /reports/demand-trends               7.01 kB         130 kB
+├ ƒ /reports/procurement-variance          135 B         127 kB
+├ ƒ /reports/product-margin                135 B         127 kB
+├ ƒ /reports/recipe-costing                135 B         127 kB
+├ ƒ /roles                               5.87 kB         120 kB
+├ ƒ /set-password                         4.1 kB         122 kB
+├ ƒ /setup                               2.89 kB         117 kB
+├ ƒ /staffs                              3.26 kB         154 kB
+├ ƒ /staffs/[id]                         6.36 kB         155 kB
+├ ƒ /staffs/new                          3.86 kB         152 kB
+├ ƒ /stock-balance                       13.7 kB         165 kB
+├ ƒ /stock-balances                        204 B         103 kB
+├ ƒ /stock-card                          2.49 kB         154 kB
+├ ƒ /stock-counts                        6.52 kB         161 kB
+├ ƒ /stock-counts/[id]                   4.79 kB         147 kB
+├ ƒ /stock-counts/new                    2.17 kB         140 kB
+├ ƒ /stock-transactions                  2.87 kB         154 kB
+├ ƒ /stock-transactions/[id]             4.25 kB         125 kB
+├ ƒ /stock-transactions/export             204 B         103 kB
+├ ƒ /stock-transactions/new              2.12 kB         120 kB
+├ ƒ /stock-transfers                     3.31 kB         154 kB
+├ ƒ /stock-transfers/[id]                1.75 kB         157 kB
+├ ƒ /stock-transfers/new                 1.48 kB         152 kB
+├ ƒ /stock-wastage                       3.32 kB         154 kB
+├ ƒ /stock-wastage/[id]                  3.95 kB         134 kB
+├ ƒ /stock-wastage/new                   1.48 kB         152 kB
+├ ƒ /supplier-invoices                     141 B         154 kB
+├ ƒ /supplier-invoices/[id]              1.15 kB         136 kB
+├ ƒ /supplier-invoices/aging              3.9 kB         127 kB
+├ ƒ /supplier-invoices/cash-flow         7.18 kB         121 kB
+├ ƒ /supplier-invoices/new               3.19 kB         134 kB
+├ ƒ /supplier-items                        141 B         156 kB
+├ ƒ /supplier-items/[id]                 2.76 kB         129 kB
+├ ƒ /supplier-items/new                    200 B         126 kB
+├ ƒ /suppliers                             141 B         154 kB
+├ ƒ /suppliers/[id]                      3.69 kB         122 kB
+├ ƒ /suppliers/new                       2.12 kB         120 kB
+├ ƒ /uom-conversions                       141 B         156 kB
+├ ƒ /uom-conversions/[id]                1.97 kB         128 kB
+└ ƒ /uom-conversions/new                   201 B         126 kB
++ First Load JS shared by all             103 kB
+  ├ chunks/1742-fec3d57cfa141aaa.js      46.4 kB
+  ├ chunks/5c9f61f5-8a9cee73ffb06d2f.js  54.2 kB
+  └ other shared chunks (total)          2.01 kB
+
+
+ƒ Middleware                              102 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand

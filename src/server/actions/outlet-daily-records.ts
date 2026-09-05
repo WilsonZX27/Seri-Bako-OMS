@@ -33,6 +33,7 @@ const outletDailyPayloadSchema = z.object({
   notes: z.string().trim().max(2_000).nullable(),
   target_status: outletDailyStatusSchema,
   lines: z.array(outletDailyLineSchema).min(1).max(500),
+  sales_unavailable: z.boolean(),
   pos_total_sales: optionalMoneySchema,
   sales_variance_reason: z.string().trim().max(1000).nullable(),
   sales_breakdown: z.array(z.object({ channel: z.enum(salesChannels), amount: moneySchema })).length(5),
@@ -41,6 +42,15 @@ const outletDailyPayloadSchema = z.object({
 function nullableText(value: string | undefined) {
   const text = value?.trim() ?? "";
   return text.length ? text : null;
+}
+
+function describeValidation(error: z.ZodError) {
+  const labels: Record<string, string> = { branch_id: "Branch", record_date: "Record Date", notes: "Remarks", qty_sent: "Qty Sent", morning_received_qty: "Received", wastage_qty: "Wastage", wastage_reason: "Wastage reason", product_id: "Product", target_status: "Record status" };
+  return error.issues.map(issue => {
+    const field = String(issue.path.at(-1) ?? "Record");
+    const prefix = issue.path[0] === "lines" && typeof issue.path[1] === "number" ? `Product line ${issue.path[1] + 1}: ` : "";
+    return `${prefix}${labels[field] ?? field.replaceAll("_", " ")} — ${issue.message}`;
+  }).join("; ");
 }
 
 function isSalesReconciliationMigrationPending(error: { code?: string; message?: string } | null) {
@@ -82,15 +92,19 @@ function extractOutletDailyPayload(formData: FormData) {
   const wastage = values(formData, "wastage_qty");
   const reasons = values(formData, "wastage_reason");
   const notes = values(formData, "line_notes");
+  const salesResult = outletDailyPayloadSchema.pick({ pos_total_sales: true, sales_variance_reason: true, sales_breakdown: true }).safeParse({
+    pos_total_sales: String(formData.get("pos_total_sales") ?? ""),
+    sales_variance_reason: nullableText(String(formData.get("sales_variance_reason") ?? "")),
+    sales_breakdown: salesChannels.map((channel) => ({ channel, amount: String(formData.get(`sales_${channel}`) ?? "0") })),
+  });
   return outletDailyPayloadSchema.parse({
     record_id: String(formData.get("record_id") ?? "").trim() || null,
     branch_id: String(formData.get("branch_id") ?? "").trim(),
     record_date: String(formData.get("record_date") ?? "").trim(),
     notes: nullableText(String(formData.get("notes") ?? "")),
     target_status: String(formData.get("target_status") ?? "draft"),
-    pos_total_sales: String(formData.get("pos_total_sales") ?? ""),
-    sales_variance_reason: nullableText(String(formData.get("sales_variance_reason") ?? "")),
-    sales_breakdown: salesChannels.map((channel) => ({ channel, amount: String(formData.get(`sales_${channel}`) ?? "0") })),
+    sales_unavailable: !salesResult.success,
+    ...(salesResult.success ? salesResult.data : { pos_total_sales: null, sales_variance_reason: null, sales_breakdown: salesChannels.map(channel => ({ channel, amount: 0 })) }),
     lines: productIds.map((productId, index) => ({
       product_id: productId,
       qty_sent: nullableText(sent[index]),
@@ -116,7 +130,7 @@ export async function saveOutletDailyRecord(formData: FormData) {
   } catch (error) {
     const rawRecordId = String(formData.get("record_id") ?? "").trim();
     const recordId = z.uuid().safeParse(rawRecordId).success ? rawRecordId : null;
-    safeRedirectWithMessage(recordId ? `/outlet-daily-records/${recordId}` : "/outlet-daily-records/new", "error", formatActionError(error, "Could not validate this outlet daily record."));
+    safeRedirectWithMessage(recordId ? `/outlet-daily-records/${recordId}` : "/outlet-daily-records/new", "error", error instanceof z.ZodError ? describeValidation(error) : formatActionError(error, "Could not validate this outlet daily record."));
   }
   const recordId = payload.record_id;
   let canUpdateOutletValues = false;
@@ -152,9 +166,8 @@ export async function saveOutletDailyRecord(formData: FormData) {
       p_target_status: payload.target_status,
       p_lines: payload.lines,
     };
-    let salesReconciliationUnavailable = false;
-    let completionDeferred = false;
-    let saveResult = canUpdateOutletValues || !recordId
+    let salesReconciliationUnavailable = payload.sales_unavailable;
+    let saveResult = !payload.sales_unavailable && (canUpdateOutletValues || !recordId)
       ? await db.rpc("save_outlet_daily_record_v92", { ...baseArgs, p_pos_total_sales: payload.pos_total_sales, p_sales_breakdown: payload.sales_breakdown, p_sales_variance_reason: payload.sales_variance_reason })
       : await db.rpc("save_outlet_daily_record", baseArgs);
     if ((canUpdateOutletValues || !recordId) && isSalesReconciliationMigrationPending(saveResult.error)) {
@@ -163,11 +176,7 @@ export async function saveOutletDailyRecord(formData: FormData) {
       // is told that sales was not recorded; no entered sales value is silently
       // represented as saved.
       salesReconciliationUnavailable = true;
-      completionDeferred = payload.target_status === "evening_completed";
-      const fallbackStatus = completionDeferred
-        ? beforeRecord.data?.status === "morning_recorded" ? "morning_recorded" : "draft"
-        : payload.target_status;
-      saveResult = await db.rpc("save_outlet_daily_record", { ...baseArgs, p_target_status: fallbackStatus });
+      saveResult = await db.rpc("save_outlet_daily_record", baseArgs);
     }
     const { data, error } = saveResult;
     if (error?.code === "23505" && !recordId) {
@@ -187,9 +196,7 @@ export async function saveOutletDailyRecord(formData: FormData) {
     }
     if (error) throw new Error(error.message);
     if (!data) throw new Error("Outlet daily record was not saved.");
-    const effectiveTargetStatus = completionDeferred
-      ? beforeRecord.data?.status === "morning_recorded" ? "morning_recorded" : "draft"
-      : payload.target_status;
+    const effectiveTargetStatus = payload.target_status;
     const changedLines = payload.lines.flatMap((line) => {
       const stored = beforeLines.data?.find((candidate) => candidate.product_id === line.product_id);
       const before: DailyValueSnapshot | null = stored ? {
@@ -238,8 +245,8 @@ export async function saveOutletDailyRecord(formData: FormData) {
       });
     }
     revalidateWorkspaceState(["/outlet-daily-records", `/outlet-daily-records/${data}`]);
-    const successMessage = completionDeferred
-      ? "Outlet daily record saved as Draft. Sales reconciliation is temporarily unavailable, so completion was deferred."
+    const successMessage = payload.sales_unavailable
+      ? "Outlet daily quantities saved. Sales entries were invalid and were not saved; correct them for Finance follow-up."
       : salesReconciliationUnavailable
       ? "Outlet daily record saved. Sales reconciliation is temporarily unavailable and was not recorded."
       : "Outlet daily record saved.";

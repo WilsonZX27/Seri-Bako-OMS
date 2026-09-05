@@ -109,10 +109,10 @@ export function MobileTaskSheet({ label, children, primary = false }: { label: s
 export function DocumentMoreOptions({ children, defaultOpen = true, triggerClassName }: { children: ReactNode; defaultOpen?: boolean; triggerClassName?: string }) {
   return (
     <>
-      <div className="md:hidden"><MobileSheet label="More" title="More options" triggerClassName={triggerClassName ?? "h-11 w-full min-w-0 !justify-center gap-2 px-3"}>{children}</MobileSheet></div>
+      <div className="md:hidden"><MobileSheet label="More" title="More options" triggerClassName={triggerClassName ?? "h-11 w-full min-w-0 !justify-center gap-2 px-3"}><div className="grid gap-3 [&_button]:w-full [&_button]:min-h-11">{children}</div></MobileSheet></div>
       <details open={defaultOpen} className="hidden border-t border-[var(--sb-border-soft)] pt-2 md:block">
         <summary className="cursor-pointer text-[12px] font-medium text-[var(--sb-text-muted)]">More options</summary>
-        <div className="mt-2">{children}</div>
+        <div className="mt-2 grid gap-2 [&_button]:w-full">{children}</div>
       </details>
     </>
   );

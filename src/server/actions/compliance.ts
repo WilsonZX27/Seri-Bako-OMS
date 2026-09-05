@@ -231,15 +231,12 @@ export async function revokeComplianceRecord(formData: FormData) {
 
 export async function renewComplianceRecord(formData: FormData) {
   await requirePermission("compliance.manage");
-  const actor = await requireActiveTenantActor();
+  await requireActiveTenantActor();
   const id = z.string().uuid().parse(formData.get("id"));
   const expiresOn = z.string().date().parse(formData.get("expires_on"));
   const supabase = await createClient();
-  const { data: current, error: readError } = await supabase.from("compliance_records").select("expires_on").eq("id", id).single();
-  if (readError || !current) redirect("/compliance?error=Compliance+record+is+not+available+in+your+scope.");
-  const { error } = await supabase.from("compliance_records").update({ expires_on: expiresOn, review_status: "pending_review", reviewed_by: null, reviewed_at: null, review_note: null, updated_by: actor.staffId }).eq("id", id);
-  if (error) redirect(`/compliance?error=${encodeURIComponent(error.message)}`);
-  await supabase.from("compliance_record_history").insert({ company_id: actor.companyId, compliance_record_id: id, event_type: "renewed", safe_summary: "Expiry renewed and returned for review.", previous_expires_on: current.expires_on, new_expires_on: expiresOn, actor_staff_id: actor.staffId });
+  const { error } = await supabase.rpc("renew_compliance_record_atomic" as never, { p_record_id: id, p_expires_on: expiresOn } as never);
+  if (error) redirect(`/compliance?error=${encodeURIComponent(error.code === "PGRST202" ? "Renewal is temporarily unavailable until the database update is applied." : error.message)}`);
   revalidatePath("/compliance");
 }
 

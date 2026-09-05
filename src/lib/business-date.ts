@@ -4,13 +4,13 @@
  * prevents the local midnight window from showing different days across
  * dashboard and module pages.
  */
-export function todayInKualaLumpur() {
+export function todayInKualaLumpur(now = new Date()) {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Kuala_Lumpur",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(new Date());
+  }).format(now);
 }
 
 /** Shift an ISO business date without letting the server timezone change it. */

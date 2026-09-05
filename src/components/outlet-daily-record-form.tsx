@@ -46,6 +46,7 @@ type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: st
   canEditOutletValues?: boolean;
 }) {
   const [productSearch, setProductSearch] = useState("");
+  const [fieldError, setFieldError] = useState("");
   const initialBranchId = branchId ?? (branches.length === 1 ? branches[0].id : "");
   const [selectedBranchId, setSelectedBranchId] = useState(initialBranchId);
   const [selectedRecordDate, setSelectedRecordDate] = useState(recordDate);
@@ -61,7 +62,7 @@ type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: st
   const normalizedSearch = productSearch.trim().toLowerCase();
   const matchingProductIds = new Set(products.filter((product) => `${product.product_code} ${product.product_name} ${product.category}`.toLowerCase().includes(normalizedSearch)).map((product) => product.id));
   const selectedBranch = branches.find((branch) => branch.id === selectedBranchId);
-  const wastageValidation = validationError?.toLowerCase().includes("wastage") === true;
+  const wastageValidation = validationError?.toLowerCase().includes("wastage") === true && !validationError?.startsWith("Product line ");
   const validationProductCode = validationError?.match(/\(([A-Z0-9_-]+)\)/i)?.[1]?.toLowerCase();
   const validationProductId = wastageValidation
     ? products.find((product) => validationProductCode && product.product_code.toLowerCase() === validationProductCode)?.id
@@ -83,19 +84,56 @@ type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: st
   }, [validationProductId]);
 
   useEffect(() => {
+    if (!validationError) return;
+    const line = validationError.match(/^Product line (\d+): /);
+    const label = validationError.replace(/^Product line \d+: /, "").split(" — ")[0];
+    const names: Record<string, string> = { Branch: "branch_id", "Record Date": "record_date", "Qty Sent": "qty_sent", Received: "morning_received_qty", Wastage: "wastage_qty", "Wastage reason": "wastage_reason", Remarks: line ? "line_notes" : "notes" };
+    const name = names[label];
+    if (!name) return;
+    setProductSearch("");
+    setSetupOpen(true);
+    const frame = requestAnimationFrame(() => {
+      const targets = document.getElementById(formId)?.querySelectorAll<HTMLInputElement>(`[name="${name}"]:not([type="hidden"])`);
+      const target = targets?.[line ? Number(line[1]) - 1 : 0];
+      if (!target) return;
+      target.setAttribute("aria-invalid", "true");
+      target.scrollIntoView({ block: "center", behavior: "smooth" });
+      target.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [validationError, formId]);
+
+  useEffect(() => {
     window.dispatchEvent(new CustomEvent("sb:document-context", { detail: { branch: selectedBranch?.branch_name ?? null, date: selectedRecordDate } }));
   }, [selectedBranch?.branch_name, selectedRecordDate]);
 
-  return <form id={formId} action={action} className="space-y-4" data-long-mobile-form>
+  return <form id={formId} action={action} className="space-y-4" data-long-mobile-form noValidate onInputCapture={(event) => {
+    const target = event.target;
+    if (target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement) target.removeAttribute("aria-invalid");
+  }} onSubmit={(event) => {
+    const invalid = Array.from(event.currentTarget.elements).find((element) =>
+      (element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement)
+      && !element.name.startsWith("sales_") && element.name !== "pos_total_sales" && !element.validity.valid,
+    ) as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | undefined;
+    if (!invalid) { setFieldError(""); return; }
+    event.preventDefault();
+    setProductSearch("");
+    setSetupOpen(true);
+    const label = invalid.getAttribute("aria-label") ?? invalid.closest("label")?.textContent?.trim() ?? invalid.name.replaceAll("_", " ");
+    setFieldError(`${label}: ${invalid.validationMessage}`);
+    invalid.setAttribute("aria-invalid", "true");
+    requestAnimationFrame(() => { invalid.scrollIntoView({ block: "center", behavior: "smooth" }); invalid.focus({ preventScroll: true }); });
+  }}>
+      {fieldError ? <p role="alert" className="rounded border border-rose-500 p-3 text-sm text-rose-700">{fieldError}</p> : null}
       <details data-outlet-daily-setup open={setupOpen} onToggle={(event) => setSetupOpen(event.currentTarget.open)} className="group erp-surface overflow-hidden">
         <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 text-sm font-semibold [&::-webkit-details-marker]:hidden">
           <span className="min-w-0"><span className="block">Record setup</span><span className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] font-normal text-muted-foreground"><span data-record-setup-location className="flex min-w-0 items-center gap-1"><MapPin className="h-3 w-3 shrink-0" aria-hidden="true" /><span className="truncate">{selectedBranch?.branch_name ?? "Select location"}</span></span><span data-record-setup-date className="flex items-center gap-1"><CalendarDays className="h-3 w-3 shrink-0" aria-hidden="true" /><span className="tabular-nums">{selectedRecordDate || "Select date"}</span></span></span></span>
           <ChevronDown className="ml-auto h-4 w-4 shrink-0 transition-transform group-open:rotate-180" aria-hidden="true" />
         </summary>
-        <div className="grid gap-4 border-t p-3 md:!grid md:grid-cols-2 md:border-0 md:p-4">
+        <div className="grid grid-cols-2 gap-3 border-t p-3 md:!grid md:grid-cols-2 md:border-0 md:p-4">
           <Field label="Branch">{!canEditHeader && branchId ? <input type="hidden" name="branch_id" value={branchId} /> : null}<SelectNative name="branch_id" value={selectedBranchId} onChange={(event) => { const nextBranch = event.target.value; setSelectedBranchId(nextBranch); setTouchedProducts(new Set()); if (nextBranch && selectedRecordDate) setSetupOpen(false); }} required disabled={locked || !canEditHeader}>{branches.length > 1 && !branchId ? <option value="">Select branch</option> : null}{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name} ({branch.branch_code})</option>)}</SelectNative></Field>
           <Field label="Record Date">{!canEditHeader ? <input type="hidden" name="record_date" value={recordDate} /> : null}<Input name="record_date" type="date" value={selectedRecordDate} onChange={(event) => { const nextDate = event.target.value; setSelectedRecordDate(nextDate); if (selectedBranchId && nextDate) setSetupOpen(false); }} required disabled={locked || !canEditHeader} /></Field>
-          <div className="md:col-span-2"><Field label="Record Remarks"><Textarea name="notes" rows={2} defaultValue={notes ?? ""} placeholder="Optional outlet-level remarks" disabled={locked || !canEditOutletValues} /></Field></div>
+          <div className="col-span-2"><Field label="Record Remarks"><Textarea name="notes" rows={2} defaultValue={notes ?? ""} placeholder="Optional outlet-level remarks" disabled={locked || !canEditOutletValues} /></Field></div>
         </div>
       </details>
 
@@ -126,7 +164,7 @@ function SalesReconciliation({ sales, disabled }: { sales?: SalesValues; disable
   return <section className="erp-surface overflow-hidden" aria-labelledby="sales-reconciliation-title">
     <div className="flex items-center justify-between gap-3 border-b px-3 py-3"><div className="flex items-center gap-2"><WalletCards className="h-4 w-4 text-[var(--sb-green-700)]" aria-hidden="true" /><div><h2 id="sales-reconciliation-title" className="text-sm font-semibold">Sales reconciliation</h2><p className="text-[11px] text-muted-foreground">Optional record for Finance follow-up; it does not block wastage posting</p></div></div><strong aria-live="polite" className={`whitespace-nowrap text-sm tabular-nums ${!hasPosTotal ? "text-muted-foreground" : difference ? "text-warning" : "text-success"}`}>{hasPosTotal ? `Difference RM ${difference.toFixed(2)}` : "Sales pending"}</strong></div>
     <div className="grid grid-cols-2 gap-2 p-3 sm:gap-3 lg:grid-cols-3"><Field label="POS Total Sales (RM)"><Input name="pos_total_sales" type="number" inputMode="decimal" min="0" step="0.01" value={posTotal} onChange={(event)=>setPosTotal(event.target.value)} disabled={disabled} /></Field>{(Object.keys(salesChannelLabels) as Array<keyof typeof salesChannelLabels>).map((channel)=><Field key={channel} label={`${salesChannelLabels[channel]} (RM)`}><Input name={`sales_${channel}`} type="number" inputMode="decimal" min="0" step="0.01" value={amounts[channel]} onChange={(event)=>setAmounts((current)=>({...current,[channel]:event.target.value}))} disabled={disabled} /></Field>)}</div>
-    <div className="grid gap-3 border-t bg-[var(--sb-surface-muted)] p-3 sm:grid-cols-[1fr_auto_auto] sm:items-end"><div><Field label="Difference reason (optional)"><Input name="sales_variance_reason" defaultValue={sales?.sales_variance_reason ?? ""} disabled={disabled} placeholder="Explain settlement or entry difference" /></Field></div><div className="text-xs"><span className="block text-muted-foreground">Channel total</span><strong className="tabular-nums">RM {channelTotal.toFixed(2)}</strong></div>{hasPosTotal && difference !== 0 ? <div className="text-xs text-[var(--sb-warning)]"><span className="block">Attention</span><strong className="tabular-nums">RM {Math.abs(difference).toFixed(2)} difference</strong></div> : null}</div>
+    <div className="grid gap-3 border-t bg-[var(--sb-surface-muted)] p-3 sm:grid-cols-[1fr_auto_auto] sm:items-end"><div hidden={!hasPosTotal || Math.abs(difference) < 0.005}><Field label="Difference reason (optional)"><Input name="sales_variance_reason" defaultValue={sales?.sales_variance_reason ?? ""} disabled={disabled} placeholder="Explain settlement or entry difference" /></Field></div><div className="text-xs"><span className="block text-muted-foreground">Channel total</span><strong className="tabular-nums">RM {channelTotal.toFixed(2)}</strong></div>{hasPosTotal && difference !== 0 ? <div className="text-xs text-[var(--sb-warning)]"><span className="block">Attention</span><strong className="tabular-nums">RM {Math.abs(difference).toFixed(2)} difference</strong></div> : null}</div>
   </section>;
 }
 
@@ -163,7 +201,7 @@ function DailyProductLine({ product, line, defaultLine, validationHint, hiddenCl
     <label className="min-w-0"><span className="sr-only">Received</span><Input className="h-10 min-w-0 px-2 text-center tabular-nums" aria-label={`${product.product_name} received`} name="morning_received_qty" type="number" min="0" step="0.01" value={received} placeholder={receivedIsKnown ? undefined : "Not verified"} title={receivedIsKnown ? undefined : "Received quantity has not been verified"} data-received-unverified={!receivedIsKnown ? "true" : undefined} onChange={(event) => { setReceived(event.target.value); onTouched(); }} disabled={locked || !canEditOutletValues} /></label>
     <label className="min-w-0"><span className="sr-only">Wastage</span><Input className="h-10 min-w-0 px-2 text-center tabular-nums" aria-label={`${product.product_name} wastage`} name="wastage_qty" type="number" min="0" step="0.01" value={wastage} onChange={(event) => { const next = event.target.value; setWastage(next); if (Number(next || 0) > 0 && !reason) setReason("unsold"); if (Number(next || 0) <= 0) { setReason(""); setRemark(""); setRemarkOpen(false); } onTouched(); }} disabled={locked || !canEditOutletValues} /></label>
     {showWastageDetails ? <>
-      <div className="col-span-full grid min-w-0 grid-cols-[7.5rem_minmax(0,1fr)] items-end gap-2 xl:contents">
+      <div className="col-span-full grid min-w-0 grid-cols-[7.5rem_minmax(0,1fr)] items-end gap-2 md:col-start-2 md:col-end-5 xl:contents">
         <label className="min-w-0"><span className="sr-only">Wastage Reason</span><SelectNative className="h-10 w-full text-xs" aria-label={`${product.product_name} wastage reason`} name="wastage_reason" value={reason || "unsold"} onChange={(event) => { setReason(event.target.value as OutletDailyWastageReason); onTouched(); }} required={Number(wastage || 0) > 0} disabled={locked || !canEditOutletValues}>{reasons.map((option) => <option key={option} value={option}>{option.replaceAll("_", " ")}</option>)}</SelectNative></label>
         <div className="min-w-0">{remarkOpen ? <><Input autoFocus={Boolean(validationHint)} data-validation-anchor={validationHint ? product.id : undefined} aria-invalid={validationHint ? "true" : undefined} className={`h-10 w-full ${validationHint ? "border-rose-500 ring-2 ring-rose-200" : ""}`} aria-label={`${product.product_name} remarks`} name="line_notes" value={remark} placeholder="Remark" onChange={(event) => { setRemark(event.target.value); onTouched(); }} disabled={locked || !canEditOutletValues} />{validationHint ? <p className="mt-1 text-[11px] font-medium text-rose-700">{validationHint}</p> : null}</> : <><input type="hidden" name="line_notes" value={remark} /><button type="button" className="inline-flex h-10 w-11 items-center justify-center rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)] bg-white text-muted-foreground hover:text-foreground" onClick={() => setRemarkOpen(true)} aria-label={`Add remarks for ${product.product_name}`} aria-expanded="false" disabled={locked || !canEditOutletValues}><MessageSquare className="h-4 w-4" aria-hidden="true" /></button></>}</div>
       </div>

@@ -129,7 +129,7 @@ test("dashboard exposes direct mobile actions and field forms keep touch-first g
   const stock = read("src/components/stock-balance-table.tsx");
 
   assert.match(dashboard, /QuickActionsCluster/);
-  assert.match(dashboard, /Based on your role/);
+  assert.doesNotMatch(dashboard, /Based on your role/);
   assert.match(dashboard, /Stock count/);
   assert.match(receiving, /grid-cols-2/);
   assert.match(receiving, /inputMode="decimal"/);

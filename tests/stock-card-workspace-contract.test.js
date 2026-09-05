@@ -9,7 +9,7 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 test("stock card reuses the operational workspace, compact filter rail, and contained technical table", () => {
   const source = read("src/app/(app)/stock-card/page.tsx");
 
-  assert.match(source, /<WorkspaceGrid className="p-3 sm:p-4">/);
+  assert.match(source, /<WorkspaceGrid className="p-3 sm:p-4" rightRail=/);
   assert.match(source, /const resultCount = unavailable \? undefined : rows\.length/);
   assert.match(source, /<FilterBar resultCount=\{resultCount\} resetHref="\/stock-card" filtered=\{filtered\}>/);
   assert.match(source, /aria-label="Stock movement history"/);

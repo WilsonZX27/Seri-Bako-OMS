@@ -294,7 +294,10 @@ export function UnifiedListHeader({ children, resultCount, resetHref, filtered =
       data-reset-href={resetHref}
       style={{ "--sb-list-tablet-columns": tabletColumns } as CSSProperties}
     >
-      {desktopControls}
+      {desktopControls.map((child, index) => isValidElement(child) ? cloneElement(child as ReactElement<Record<string, unknown>>, {
+        key: child.key ?? index,
+        "data-query-control": isQueryControl(child) || undefined,
+      }) : child)}
       {desktopHidden}
       <div
         className="unified-list-desktop-actions"

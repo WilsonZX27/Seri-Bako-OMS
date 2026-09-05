@@ -15,8 +15,8 @@ test("FilterBar geometry has one authoritative stylesheet", () => {
   assert.doesNotMatch(globals, /(^|\n)\s*\.sb-list-filters\s*(?:>|\{)/);
   assert.doesNotMatch(globals, /\[data-tablet-main-list\] \.sb-list-filters\s*\{[\s\S]*?display:\s*grid/);
   assert.doesNotMatch(`${globals}\n${designV2}`, /\.sb-tablet-split-filter/);
-  assert.match(designV2, /One tablet grammar for every list/);
-  assert.match(designV2, /filter-dense forms without a query still use the same bounded grid/);
+  assert.match(designV2, /Tablet query and count occupy the first row/);
+  assert.match(designV2, /controls and Search share the second/);
   assert.doesNotMatch(globals, /\[data-tablet-split-actions\] > section,\s*\[data-tablet-main-list\]/);
   const canonicalStart = designV2.indexOf("Canonical list workspace contract");
   assert.notEqual(canonicalStart, -1);
@@ -40,7 +40,7 @@ test("FilterBar geometry has one authoritative stylesheet", () => {
   assert.match(unifiedListHeader, /filterCount = desktopControls\.filter\(\(child\) => !isQueryControl\(child\)\)\.length/);
   assert.match(unifiedListHeader, /commandTrackCount = Math\.max\(2, desktopActions\.length \+ \(typeof resultCount === "number" \? 1 : 0\)\)/);
   assert.match(unifiedListHeader, /2 \+ filterCount \+ \(hasCommandGroup \? commandTrackCount : 0\)/);
-  assert.match(designV2.slice(canonicalStart), /data-tablet-query-layout="controls"[\s\S]*?grid-column:\s*-3 \/ -1/);
+  assert.match(designV2, /grid-row: 2;/);
 });
 
 test("hidden persisted filters do not steal the leading query slot", () => {
@@ -69,12 +69,12 @@ test("desktop list actions keep the established Search then record-count order",
 test("shared query controls keep compact text and bounded tablet measures", () => {
   const canonical = designV2.slice(designV2.indexOf("Canonical list workspace contract"));
   assert.match(canonical, /form\.sb-list-query-card :where\(input, select, button[\s\S]*?font-size: 0\.75rem !important;/);
-  assert.match(canonical, /@media \(min-width: 640px\) and \(max-width: 1279px\)[\s\S]*?\.sb-list-query-card:is\(\[data-tablet-query-layout="query"\], \[data-tablet-query-layout="controls"\], \[data-tablet-query-layout="compact"\]\) > :where\(select[\s\S]*?width: 100% !important;/);
+  assert.match(canonical, /grid-row: 2;/);
   assert.match(canonical, /\.unified-list-desktop-actions > \.unified-list-action \{[\s\S]*?width: 9rem !important;/);
   assert.match(canonical, /sb-list-filters--date-first > \.unified-list-date-control[\s\S]*?width: 9rem !important/);
-  assert.match(canonical, /Tablet has enough room for a deliberate two-sided command row/);
-  assert.match(canonical, /form\.sb-list-query-card\[data-tablet-query-layout="query"\] > \.unified-list-desktop-actions[\s\S]*?grid-column: -3 \/ -1[\s\S]*?justify-self: end/);
+  assert.match(canonical, /grid-row: 2;/);
+  assert.match(canonical, /grid-row: 2;/);
   assert.match(canonical, /form\.sb-list-query-card > \.sb-filter-more > summary[\s\S]*?width: 100%/);
-  assert.match(canonical, /data-tablet-query-layout="compact"/);
+  assert.match(canonical, /grid-row: 2;/);
   assert.match(canonical, /min-width: 0 !important;[\s\S]*?max-width: 10rem !important/);
 });

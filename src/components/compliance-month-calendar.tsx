@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -34,12 +34,13 @@ function eventTone(state: string) {
 
 export function ComplianceMonthCalendar({ baseHref, month, events }: { baseHref: string; month?: string; events: ComplianceCalendarEvent[] }) {
   const router = useRouter();
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const cursor = cursorOf(month);
   const go = (date: Date) => router.push(`${baseHref}?month=${monthKey(date)}`);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLSelectElement || event.altKey || event.ctrlKey || event.metaKey) return;
       if (event.key === "ArrowLeft" || event.key.toLowerCase() === "p") go(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1));
       if (event.key === "ArrowRight" || event.key.toLowerCase() === "n") go(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1));
       if (event.key.toLowerCase() === "t") go(new Date());
@@ -66,7 +67,7 @@ export function ComplianceMonthCalendar({ baseHref, month, events }: { baseHref:
       <Button variant="outline" size="sm" className="shrink-0" onClick={() => go(new Date())}>Today</Button>
       <div className="grid min-w-0 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center sm:flex sm:flex-1 sm:justify-center">
         <Button variant="ghost" size="icon" onClick={() => go(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))} aria-label="Previous month"><ChevronLeft className="h-4 w-4" /></Button>
-        <h2 className="truncate text-center text-sm font-semibold sm:min-w-44">{cursor.toLocaleDateString("en-MY", { month: "long", year: "numeric" })}</h2>
+        <input aria-label="Choose year and month" type="month" value={prefix} onChange={(event) => event.target.value && router.push(`${baseHref}?month=${event.target.value}`)} className="h-10 min-w-0 w-full border-0 bg-transparent text-center text-sm font-semibold sm:w-44" />
         <Button variant="ghost" size="icon" onClick={() => go(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))} aria-label="Next month"><ChevronRight className="h-4 w-4" /></Button>
       </div>
       <label className="hidden shrink-0 items-center gap-2 text-xs text-muted-foreground sm:flex">Go to month <input type="month" value={prefix} onChange={(event) => event.target.value && router.push(`${baseHref}?month=${event.target.value}`)} className="h-10 rounded-md border bg-background px-2 text-foreground" /></label>
@@ -77,7 +78,7 @@ export function ComplianceMonthCalendar({ baseHref, month, events }: { baseHref:
       const dateKey = day ? `${prefix}-${String(day).padStart(2, "0")}` : "";
       return <div key={index} className={cn("min-h-16 border-b border-r border-[var(--sb-border-soft)] p-1 sm:min-h-28 sm:p-2", !day && "bg-[var(--sb-surface-muted)]/45")}>
         {day ? <>
-          <span className={cn("ml-auto flex h-6 w-6 items-center justify-center rounded-full text-[11px] tabular-nums text-muted-foreground", dateKey === todayKey && "bg-[var(--sb-green-800)] font-semibold text-white")}>{day}</span>
+          <button type="button" onClick={() => setSelectedDate(dateKey)} aria-label={`${dateKey}, ${dayEvents.length} events`} aria-pressed={selectedDate === dateKey} className={cn("ml-auto flex h-10 w-full items-center justify-end rounded px-2 text-xs tabular-nums", dateKey === todayKey && "font-bold text-[var(--sb-green-800)]", selectedDate === dateKey && "bg-[var(--sb-green-100)] ring-1 ring-inset ring-[var(--sb-green-700)]")}>{day}</button>
           {dayEvents.length ? <>
             <div className="mt-1 flex flex-wrap justify-end gap-1 sm:hidden">{dayEvents.slice(0, 3).map((event) => <Link key={event.id} href={event.href} aria-label={`${event.title}: ${event.context}`} className={cn("h-2.5 w-2.5 rounded-full ring-2 ring-white", eventTone(event.state))} />)}{dayEvents.length > 3 ? <span className="text-[9px] font-semibold text-muted-foreground">+{dayEvents.length - 3}</span> : null}</div>
             <div className="mt-1 hidden space-y-1 sm:block">{dayEvents.slice(0, 2).map((event) => <Link key={event.id} href={event.href} className="block min-h-10 rounded-[2px] bg-[var(--sb-surface-muted)] px-1.5 py-1 text-[10px] leading-3 hover:bg-[var(--sb-green-50)]"><span className="flex items-center gap-1"><i className={cn("h-1.5 w-1.5 shrink-0 rounded-full", eventTone(event.state))} /><strong className="truncate">{event.title}</strong></span><span className="mt-0.5 block truncate text-muted-foreground">{event.context}</span></Link>)}</div>
@@ -85,5 +86,9 @@ export function ComplianceMonthCalendar({ baseHref, month, events }: { baseHref:
         </> : null}
       </div>;
     })}</div>
+    <section className="border-t p-3" aria-label="Selected day events" aria-live="polite">
+      <h3 className="mb-2 text-sm font-semibold">{selectedDate ?? "Select a day"}</h3>
+      {selectedDate ? events.filter(event => event.date === selectedDate).length ? <ul className="divide-y">{events.filter(event => event.date === selectedDate).map(event => <li key={event.id}><Link href={event.href} className="block min-h-11 py-2"><strong className="block text-xs">{event.title}</strong><span className="text-xs text-muted-foreground">{event.context}</span></Link></li>)}</ul> : <p className="text-xs text-muted-foreground">No events on this day.</p> : <p className="text-xs text-muted-foreground">Choose a date to see its events here.</p>}
+    </section>
   </section>;
 }

@@ -54,8 +54,8 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
               <div className="flex justify-between"><span className="text-muted-foreground">Rows</span><strong>{unavailable ? "Unavailable" : count}</strong></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Out of Stock</span><strong>{unavailable ? "-" : out}</strong></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Low Stock</span><strong>{unavailable ? "-" : low}</strong></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Buy now</span><strong>{buyNow}</strong></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Supplier fixes</span><strong>{supplierFixes}</strong></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Buy now</span><strong>{unavailable ? "Unavailable" : buyNow}</strong></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Supplier fixes</span><strong>{unavailable ? "Unavailable" : supplierFixes}</strong></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Create PR</span><strong>{canCreatePr ? "Allowed" : "Read-only"}</strong></div>
             </div>
           </ConsoleSection>
@@ -63,12 +63,12 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
       >
         <div className="space-y-3">
           <div>
-            <LowStockPrForm
+            {unavailable ? <p role="status" className="erp-surface p-3 text-sm">Replenishment is unavailable until stock data can be confirmed.</p> : <LowStockPrForm
               items={items}
               branches={branches}
               defaultBranchId={filters.branch_id}
               disabled={!canCreatePr}
-            />
+            />}
           </div>
 
           <div>

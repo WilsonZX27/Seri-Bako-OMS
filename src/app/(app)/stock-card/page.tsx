@@ -44,7 +44,17 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
   return (
     <>
       <PageHeader title="Stock Card" description="Chronological stock movement history per item." />
-      <WorkspaceGrid className="p-3 sm:p-4">
+      <WorkspaceGrid className="p-3 sm:p-4" rightRail={<section className="erp-surface overflow-hidden" aria-labelledby="stock-card-summary">
+            <div className="border-b px-3 py-2.5"><h2 id="stock-card-summary" className="text-xs font-semibold">Movement summary</h2></div>
+            <div className="grid divide-y">
+              {movementSummary.map(([label, value]) => (
+                <div key={label} className="flex min-w-0 items-center justify-between gap-3 px-3 py-2">
+                  <p className="text-xs text-muted-foreground">{label}</p>
+                  <p className="mt-0.5 truncate font-mono text-xs font-semibold tabular-nums sm:text-sm">{unavailable ? "Unavailable" : formatNumber(value)}</p>
+                </div>
+              ))}
+            </div>
+          </section>}>
         <div className="space-y-3">
           <section className="sb-list-filters--stock-card" aria-label="Stock card filters">
               <FilterBar resultCount={resultCount} resetHref="/stock-card" filtered={filtered}>
@@ -61,17 +71,7 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
               </FilterBar>
           </section>
 
-          <section className="erp-surface overflow-hidden" aria-labelledby="stock-card-summary">
-            <div className="border-b px-3 py-2.5"><h2 id="stock-card-summary" className="text-xs font-semibold">Movement summary</h2></div>
-            <div className="grid grid-cols-4 overflow-hidden xl:grid-cols-8">
-              {movementSummary.map(([label, value]) => (
-                <div key={label} className="min-w-0 border-b border-r px-2 py-2 sm:px-3">
-                  <p className="line-clamp-2 min-h-7 text-[10px] leading-3.5 text-muted-foreground sm:min-h-0 sm:truncate sm:text-[11px]">{label}</p>
-                  <p className="mt-0.5 truncate font-mono text-xs font-semibold tabular-nums sm:text-sm">{unavailable ? "Unavailable" : formatNumber(value)}</p>
-                </div>
-              ))}
-            </div>
-          </section>
+
 
           <section className="erp-surface overflow-hidden">
             <div className="border-b px-3 py-2.5">

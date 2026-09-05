@@ -46,7 +46,7 @@ test("sales reconciliation is database-derived and atomic with daily lines", () 
   assert.match(action, /canUpdateOutletValues/);
   assert.match(action, /isSalesReconciliationMigrationPending/);
   assert.match(action, /Sales reconciliation is temporarily unavailable and was not recorded/);
-  assert.match(action, /Sales reconciliation is temporarily unavailable, so completion was deferred/);
+  assert.doesNotMatch(action, /completion was deferred/);
   assert.match(progressiveSql, /p_target_status='evening_completed'/);
   assert.match(progressiveSql, /POS Total Sales is required before completing this record/);
   assert.match(progressiveSql, /Preserve any existing/);

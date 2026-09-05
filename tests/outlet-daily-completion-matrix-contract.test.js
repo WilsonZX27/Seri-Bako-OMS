@@ -27,9 +27,9 @@ test("outlet completion matrix previews before an explicit record open", () => {
   const component = read("src/components/outlet-daily-completion-matrix.tsx");
   const page = read("src/app/(app)/outlet-daily-records/page.tsx");
   const newPage = read("src/app/(app)/outlet-daily-records/new/page.tsx");
-  assert.match(component, /onMouseEnter=\{\(\) => setActiveKey\(key\)\}/);
-  assert.match(component, /onFocus=\{\(\) => setActiveKey\(key\)\}/);
-  assert.match(component, /onPointerDown=\{\(\) => setActiveKey\(key\)\}/);
+  assert.doesNotMatch(component, /onMouseEnter=\{\(\) => setActiveKey\(key\)\}/);
+  assert.doesNotMatch(component, /onFocus=\{\(\) => setActiveKey\(key\)\}/);
+  assert.doesNotMatch(component, /onPointerDown=\{\(\) => setActiveKey\(key\)\}/);
   assert.match(component, /aria-pressed=\{activeKey === key\}/);
   assert.match(component, /Preview details\./);
   assert.match(component, /data-outlet-completion-preview/);

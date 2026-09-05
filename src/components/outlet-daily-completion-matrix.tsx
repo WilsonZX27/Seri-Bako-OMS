@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { todayInKualaLumpur } from "@/lib/business-date";
 import { formatDateOnly, formatNumber } from "@/lib/utils";
 import type { OutletDailyCompletionCell } from "@/server/queries/outlet-daily-records";
 
@@ -19,10 +20,9 @@ const stateMeta = {
 } as const;
 
 export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable = false, canCreate = false, showCoverageDetails = true }: { dates: string[]; rows: MatrixRow[]; summary: MatrixSummary | null; unavailable?: boolean; canCreate?: boolean; showCoverageDetails?: boolean }) {
+  const today = todayInKualaLumpur();
   const cells = useMemo(() => rows.flatMap((row) => row.cells), [rows]);
-  // Do not reserve a full detail row until the operator points at a day. The
-  // matrix stays compact at rest while hover, focus, click, and touch all use
-  // the same exact-value preview.
+  // Selection remains committed until the operator chooses another day.
   const [activeKey, setActiveKey] = useState("");
   const active = activeKey ? cells.find((cell) => `${cell.branch_id}:${cell.record_date}` === activeKey) ?? null : null;
   const completionPercent = summary?.expected ? (summary.completed / summary.expected) * 100 : null;
@@ -48,14 +48,14 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
       <div className="relative isolate block w-full max-w-full overflow-x-auto overscroll-x-contain bg-[var(--sb-surface)] px-3 py-2" tabIndex={0} aria-label="Outlet completion matrix" data-outlet-completion-scrollport>
         <table className="w-full min-w-[40rem] table-fixed border-separate border-spacing-x-1 border-spacing-y-0 text-xs">
           <colgroup><col className="w-[9rem] sm:w-48" />{dates.map((date) => <col key={date} className="w-[3.5rem] sm:w-14" />)}</colgroup>
-          <thead><tr><th scope="col" className="sticky left-0 z-30 min-w-[9rem] w-[9rem] max-w-[9rem] border-r border-[var(--sb-border-soft)] bg-[var(--sb-surface)] pb-1 pr-2 text-left font-medium text-muted-foreground sm:min-w-48 sm:w-48 sm:max-w-48 sm:pr-3">Outlet</th>{dates.map((date) => <th key={date} scope="col" className="min-w-[3.5rem] pb-1 text-center text-[9px] font-medium text-muted-foreground sm:min-w-14 sm:text-xs"><span className="block">{new Intl.DateTimeFormat("en-MY", { weekday: "short", timeZone: "UTC" }).format(new Date(`${date}T00:00:00Z`))}</span><span className="text-[9px] font-normal sm:text-[10px]">{date.slice(8)}</span></th>)}</tr></thead>
+          <thead><tr><th scope="col" className="sticky left-0 z-30 min-w-[9rem] w-[9rem] max-w-[9rem] border-r border-[var(--sb-border-soft)] bg-[var(--sb-surface)] pb-1 pr-2 text-left font-medium text-muted-foreground sm:min-w-48 sm:w-48 sm:max-w-48 sm:pr-3">Outlet</th>{dates.map((date) => <th key={date} aria-current={date === today ? "date" : undefined} scope="col" className="min-w-[3.5rem] pb-1 text-center text-[9px] font-medium text-muted-foreground sm:min-w-14 sm:text-xs"><span className="block">{new Intl.DateTimeFormat("en-MY", { weekday: "short", timeZone: "UTC" }).format(new Date(`${date}T00:00:00Z`))}</span><span className="text-[9px] font-normal sm:text-[10px]">{date.slice(8)}</span></th>)}</tr></thead>
           <tbody>{rows.map((row) => <tr key={row.branch_id} className="border-b border-[var(--sb-border-soft)]"><th scope="row" className="sticky left-0 z-20 min-w-[9rem] w-[9rem] max-w-[9rem] border-r border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface)] py-1 pr-2 text-left text-[10px] font-medium sm:min-w-48 sm:w-48 sm:max-w-48 sm:pr-3 sm:text-xs" title={row.branch_name}><span className="block truncate">{row.branch_name}</span></th>{row.cells.map((cell) => {
             const displayStatus = cell.status === "reviewed" && cell.sales_review_status === "needs_review" ? "posted_attention" : cell.status;
             const meta = stateMeta[displayStatus];
             const key = `${cell.branch_id}:${cell.record_date}`;
             const common = `grid h-9 w-full min-w-0 place-items-center border text-[10px] font-bold transition-shadow hover:ring-2 hover:ring-[var(--sb-green-700)] hover:ring-offset-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1 sm:min-w-9 sm:text-[11px] ${meta.className} ${activeKey === key ? "ring-2 ring-[var(--sb-green-700)] ring-offset-1" : ""}`;
             const label = `${cell.branch_name}, ${formatDateOnly(cell.record_date)}: ${meta.label}`;
-            return <td key={cell.record_date} className="p-0.5 text-center"><button type="button" className={common} aria-label={`${label}. Preview details.`} aria-pressed={activeKey === key} onMouseEnter={() => setActiveKey(key)} onFocus={() => setActiveKey(key)} onPointerDown={() => setActiveKey(key)} onClick={() => setActiveKey(key)}>{meta.short}</button></td>;
+            return <td key={cell.record_date} className="p-0.5 text-center"><button type="button" className={common} aria-label={`${label}. Preview details.`} aria-pressed={activeKey === key} onClick={() => setActiveKey(key)}>{meta.short}</button></td>;
           })}</tr>)}</tbody>
         </table>
       </div>

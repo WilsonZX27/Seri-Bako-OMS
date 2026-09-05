@@ -1,4 +1,5 @@
 import { isMockMode } from "@/lib/mock-mode";
+import { todayInKualaLumpur } from "@/lib/business-date";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/server/queries/common";
 
@@ -10,7 +11,7 @@ export function complianceState(expiresOn: string | null, reviewStatus: string, 
   if (!hasAttachment) return "missing";
   if (reviewStatus === "pending_review") return "pending_review";
   if (!expiresOn) return "valid";
-  const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const today = new Date(`${todayInKualaLumpur(now)}T00:00:00Z`);
   const days = Math.ceil((new Date(`${expiresOn}T00:00:00Z`).getTime() - today.getTime()) / 86_400_000);
   if (days < 0) return "expired";
   if (days <= 7) return "due_7";

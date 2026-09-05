@@ -266,7 +266,7 @@ html[data-design-layer="v2"] [data-console-kind="action"] {
 }
 
 html[data-design-layer="v2"] [data-console-kind="status"] {
-  background: var(--sb-surface-muted);
+  background: var(--sb-surface-raised);
 }
 
 .sb-skeleton {
@@ -602,10 +602,6 @@ aside section > h2 {
 
 [data-console-section] {
   position: relative;
-}
-
-[data-console-section] + [data-console-section] {
-  background: color-mix(in srgb, var(--rail-bg) 94%, var(--sb-green-100));
 }
 
 [data-console-section] > h2 {
@@ -2011,90 +2007,44 @@ html[data-design-layer="v2"] [data-outlet-daily-lines] {
   }
 }
 
-/* One tablet grammar for every list. Query-led forms place the query on row
-   one; filter-dense forms without a query still use the same bounded grid.
-   Compact forms use the same two-sided command row as query-led forms. */
+/* Tablet query and count occupy the first row; controls and Search share the second. */
 @media (min-width: 640px) and (max-width: 1279px) {
-  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"], [data-tablet-query-layout="compact"]) {
+  html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout] {
     display: grid !important;
-    grid-template-columns: repeat(var(--sb-list-tablet-columns, 4), minmax(0, 1fr));
-    align-items: center;
-    column-gap: .75rem;
-    row-gap: .5rem;
-    padding: .75rem;
-  }
-
-  html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout="query"] > :where(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control) {
-    /* A query is intentionally two filter widths, not a full-width banner. */
-    grid-column: 1 / span 2;
-    overflow: hidden;
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-  }
-
-  html[data-design-layer="v2"] form.sb-list-query-card.sb-list-filters--date-first[data-tablet-query-layout="query"] > .unified-list-date-control {
-    /* Date-first filters use one control slot, matching the two dropdowns. */
-    grid-column: 1 / span 1;
-  }
-
-  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"], [data-tablet-query-layout="compact"]) > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more) {
-    /* Controls fill their grid slot without overflowing it. The slot is
-       allowed to shrink on portrait/landscape tablet so long labels never
-       push Search or the record count outside the card. */
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 10rem !important;
-    margin-left: 0;
-    justify-self: stretch;
-  }
-
-  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"], [data-tablet-query-layout="compact"]) > :where(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control),
-  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"], [data-tablet-query-layout="compact"]) > :where(select, [data-select-control], .sb-status-filter, .sb-filter-more),
-  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"], [data-tablet-query-layout="compact"]) > .unified-list-desktop-actions > .unified-list-action {
-    height: var(--sb-control-height) !important;
-    min-height: var(--sb-control-height) !important;
-  }
-
-  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"], [data-tablet-query-layout="compact"]) > .unified-list-desktop-actions {
-    min-width: 0 !important;
-    max-width: none !important;
-    box-sizing: border-box;
-    margin-left: 0;
-    justify-self: end;
-    display: flex !important;
-    align-items: center;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
     gap: .5rem;
-    width: 100% !important;
-    justify-content: flex-end;
+    padding: .5rem;
   }
-
-  /* Tablet has enough room for a deliberate two-sided command row: filters
-     stay grouped at the left, while Search and the result count stay together
-     at the right. The grid tracks preserve breathing room between them and
-     avoid making every control fill the full card width. */
-  html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout="query"] > .unified-list-desktop-actions {
-    /* The header component reserves the final two tracks for this group. */
-    grid-column: -3 / -1;
-    justify-self: end;
-    margin-left: auto;
-   }
-
-  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="query"], [data-tablet-query-layout="controls"], [data-tablet-query-layout="compact"]) > .unified-list-desktop-actions > .unified-list-action {
-    flex: 0 1 10rem !important;
+  html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout] > :where(input, select, [data-select-control], .sb-status-filter, .sb-filter-more, .unified-list-date-control) {
     width: 100% !important;
     min-width: 0 !important;
-    max-width: 10rem !important;
+    max-width: none !important;
+    height: var(--sb-control-height);
+    grid-row: 2;
   }
-
-  html[data-design-layer="v2"] form.sb-list-query-card:is([data-tablet-query-layout="controls"], [data-tablet-query-layout="compact"]) > .unified-list-desktop-actions {
-    /* The final two tracks are always reserved for Search + count. */
-    grid-column: -3 / -1;
-    margin-left: auto;
+  html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout="query"] > [data-query-control] {
+    grid-column: 1 / 4;
+    grid-row: 1;
   }
-
-  html[data-design-layer="v2"] [data-tablet-document-split] form.sb-list-query-card {
-    width: 100%;
+  html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout] > .unified-list-desktop-actions {
+    display: contents !important;
+  }
+  html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout] > .unified-list-desktop-actions > .sb-filter-summary {
+    grid-column: 4;
+    grid-row: 1;
+    justify-self: end;
+    margin: 0 !important;
+  }
+  html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout] > .unified-list-desktop-actions > .unified-list-action {
+    grid-column: 4;
+    grid-row: 2;
+    width: auto !important;
+    min-width: 5rem !important;
+    max-width: none !important;
+    height: var(--sb-control-height) !important;
+  }
+  html[data-design-layer="v2"] form.sb-list-query-card .sb-filter-more > summary {
+    white-space: nowrap;
   }
 }
 
@@ -2375,4 +2325,28 @@ html[data-touch-tablet="true"] [data-app-topbar] > .hidden.min-w-0.items-center 
   [data-schedule-planner] [aria-label="Shift palette"] > :last-child {
     display: none !important;
   }
+}
+
+/* Workflow actions remain reachable while editing long mobile forms. */
+@media (max-width: 767px) {
+  html:has([data-schedule-mobile-actions]) [data-mobile-bottom-nav],
+  html:has([data-template-mobile-actions]) [data-mobile-bottom-nav] { display: none; }
+  [data-schedule-mobile-actions], [data-template-mobile-actions] {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: var(--sb-z-sticky);
+    padding-bottom: calc(.75rem + env(safe-area-inset-bottom));
+    background: var(--sb-surface-raised);
+  }
+  .sb-schedule-workspace { padding-bottom: 6rem; }
+}
+
+[data-outlet-completion-matrix] th[aria-current="date"] {
+  background: var(--sb-green-100);
+  color: var(--sb-green-900);
+  box-shadow: inset 0 -2px var(--sb-green-700);
+}
+[data-long-mobile-form] [aria-invalid="true"] {
+  border-color: var(--sb-danger);
+  outline: 1px solid var(--sb-danger);
 }

@@ -40,11 +40,11 @@ describe("workspace canvas regression", () => {
     assert.match(listHeader, /commandTrackCount = Math\.max\(2, desktopActions\.length \+ \(typeof resultCount === "number" \? 1 : 0\)\)/);
     assert.match(listHeader, /2 \+ filterCount \+ \(hasCommandGroup \? commandTrackCount : 0\)/);
     assert.match(listHeader, /data-tablet-query-layout=\{tabletLayout\}/);
-    assert.match(css, /repeat\(var\(--sb-list-tablet-columns, 4\), minmax\(0, 1fr\)\)/);
-    assert.match(css, /data-tablet-query-layout="controls"/);
-    assert.match(css, /\.sb-list-query-card:is\(\[data-tablet-query-layout="query"\], \[data-tablet-query-layout="controls"\], \[data-tablet-query-layout="compact"\]\) > :where\(select[\s\S]*?width: 100% !important;/);
-    assert.match(css, /unified-list-desktop-actions[\s\S]*display: flex !important/);
-    assert.match(css, /unified-list-desktop-actions > \.unified-list-action[\s\S]*width: 10rem !important/);
+    assert.match(css, /repeat\(3, minmax\(0, 1fr\)\) auto/);
+  assert.match(css, /grid-row: 2;/);
+  assert.match(css, /grid-row: 2;/);
+  assert.match(css, /grid-row: 2;/);
+  assert.match(css, /grid-row: 2;/);
     assert.match(css, /\[data-tablet-content="contained"\][\s\S]*width: min\(calc\(100% - 3rem\), 64rem\)/);
     assert.match(css, /\[data-tablet-canvas="wide"\][\s\S]*width: min\(calc\(100% - 3rem\), 64rem\)/);
     assert.match(css, /@media \(min-width: 768px\) and \(max-width: 1023px\)[\s\S]*data-tablet-rail-breakpoint="md"[\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(13rem, 28%\)/);

@@ -11,6 +11,14 @@ test("procurement workflow badges distinguish sent, approved, and received", () 
   assert.match(badge, /"approved"[\s\S]*\? "success"/);
 });
 
+test("purchase order status filters use readable labels with database-aligned values", () => {
+  const page = read("src/app/(app)/purchase-orders/page.tsx");
+  const query = read("src/server/queries/procurement.ts");
+  assert.match(page, /value: "receiving", label: "Receiving"/);
+  assert.match(page, /placeholder="Search PO no or remarks"/);
+  assert.match(query, /filters\.status === "receiving" \? "partial_received"/);
+});
+
 test("attachment label fails inline with a strong field error", () => {
   const upload = read("src/components/documents/attachment-upload-form.tsx");
   assert.match(upload, /Attachment label is required\./);

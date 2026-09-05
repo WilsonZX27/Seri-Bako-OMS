@@ -97,7 +97,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
       >
         <div className="space-y-3" data-tablet-main-list>
             <UnifiedListHeader resultCount={orders?.totalRows} resetHref="/purchase-orders" filtered={filtered} activeCount={Number(Boolean(filters.status))}>
-              <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PO no, supplier, remarks" className="min-w-0 flex-1 md:max-w-sm" />
+              <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PO no or remarks" className="min-w-0 flex-1 md:max-w-sm" />
               <StatusTabs statuses={statuses} activeStatus={filters.status} />
               <Button type="submit" variant="secondary" className="shrink-0" data-list-action="primary">Search</Button>
               {filtered ? <Button asChild variant="secondary" className="shrink-0" data-list-action="secondary"><Link href="/purchase-orders">Reset</Link></Button> : null}

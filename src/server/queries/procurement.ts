@@ -84,7 +84,9 @@ export type ProcurementWorkspaceInsights = {
 
 function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filters, keys: (keyof T)[], defaultSort: keyof T) {
   const search = filters.search?.trim().toLowerCase();
-  const status = filters.status && filters.status !== "all" ? filters.status : null;
+  // The register uses the readable "receiving" filter label while the
+  // database workflow state is `partial_received`.
+  const status = filters.status === "receiving" ? "partial_received" : filters.status && filters.status !== "all" ? filters.status : null;
   const step = filters.step && filters.step !== "all" ? filters.step : null;
   const priority = filters.priority && filters.priority !== "all" ? filters.priority : null;
   const sort = filters.sort ?? String(defaultSort);

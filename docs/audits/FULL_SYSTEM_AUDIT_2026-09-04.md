@@ -235,6 +235,12 @@ The annotation-derived mobile and workflow changes were tested against the same 
 - Local contract suite after this change: **1,164/1,164 passed**; strict TypeScript and ESLint passed. The local Docker schema verifier could not be rerun because the Docker daemon/named pipe was unavailable, so migration 262 remains implementation evidence only until an isolated database target applies it.
 - The branch is authorized for Preview push. Preview must remain an independent deployment/database target; no Production database connection, promotion, or Production mutation is authorized by this receipt.
 
+## Filter audit follow-up — 2026-09-05
+
+- Purchase Orders now maps the readable `Receiving` filter to the database's `partial_received` state; the previous value could silently return no matching rows against the live enum.
+- The Purchase Orders search hint now names only the fields currently queried (`PO no` and `remarks`) instead of implying supplier search that the server query did not perform.
+- Local contract suite after this follow-up: **1,165/1,165 passed**; TypeScript and ESLint remain green.
+
 ## Preview push receipt — 2026-09-05
 
 - Commit `48f03dcd` was pushed to `origin/codex/annotation-closure-loading-schedule` under the owner's explicit Preview authorization.

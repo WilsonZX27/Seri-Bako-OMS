@@ -225,7 +225,7 @@ The annotation-derived mobile and workflow changes were tested against the same 
 
 - Implemented locally in commit `38498cee` (`fix: close annotated preview ui gaps`): loading header uses the same canvas structure as the page header; wastage chart fills its chart panel; Goods Receiving uses the desktop table at 1280px+; Attendance overview mounts the right-panel context and the employee schedule identifies its outlet; Imports restores a persistent right-panel context; NGTeco source guidance is blank; Compliance upload guidance is single-line; Outlet Daily status filters use user-facing workflow labels; PO rows now carry request context, outlet and submitter context; PR request-value header has trailing space.
 - Local verification after this pass: `npm run typecheck` passed, `npm run lint` passed, and the complete contract suite passed **1,164/1,164**. These are implementation/local evidence only.
-- The new commit is present locally on `codex/annotation-closure-loading-schedule`; Preview deployment and authenticated UAT for this exact commit remain pending because the exact remote push was not authorized by the execution boundary.
+- At the time of this annotation-pass receipt, the local commit was awaiting the owner's explicit Preview push authorization; the later Preview push receipt below records the completed push and public auth-boundary smoke.
 - Not changed intentionally: sales retroactive-required semantics, Ready to post versus Posted business transitions, dashboard daily-action volume, and Low Stock `Unavailable`. Those require either owner confirmation of the intended rule or an isolated Preview data/schema trace; changing only the label would risk masking a source failure.
 
 ## Follow-up receipt — owner direction on sales and dashboard volume — 2026-09-05
@@ -234,3 +234,9 @@ The annotation-derived mobile and workflow changes were tested against the same 
 - Dashboard `Actions awaiting you` keeps its exact server-side total for attention summaries but renders only the three newest actionable items, reducing daily-record noise without hiding the underlying count.
 - Local contract suite after this change: **1,164/1,164 passed**; strict TypeScript and ESLint passed. The local Docker schema verifier could not be rerun because the Docker daemon/named pipe was unavailable, so migration 262 remains implementation evidence only until an isolated database target applies it.
 - The branch is authorized for Preview push. Preview must remain an independent deployment/database target; no Production database connection, promotion, or Production mutation is authorized by this receipt.
+
+## Preview push receipt — 2026-09-05
+
+- Commit `48f03dcd` was pushed to `origin/codex/annotation-closure-loading-schedule` under the owner's explicit Preview authorization.
+- Vercel deployment `94lwoqals` reached the login boundary at `https://seri-bako-oms-official-94lwoqals-seribako.vercel.app/login?redirectedFrom=%2Foutlet-daily-records`; the public route correctly redirected to sign-in and displayed `Seri Bako OMS v9.2.28`.
+- This is deployment/public-auth evidence only. No authenticated mutation UAT was attempted, no Preview database isolation was inferred, and Production was not connected, promoted, or changed.

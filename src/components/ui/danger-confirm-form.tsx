@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, CirclePause, Trash2 } from "lucide-react";
 import { useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ type DangerConfirmFormProps = {
   confirmWord?: string;
   buttonLabel: string;
   pendingLabel: string;
+  triggerIcon?: "warning" | "delete" | "deactivate";
   triggerVariant?: "destructive" | "outline";
 };
 
@@ -29,7 +30,9 @@ export function DangerConfirmForm({
   buttonLabel,
   pendingLabel,
   triggerVariant = "destructive",
+  triggerIcon = "warning",
 }: DangerConfirmFormProps) {
+  const TriggerIcon = triggerIcon === "delete" ? Trash2 : triggerIcon === "deactivate" ? CirclePause : AlertTriangle;
   const [open, setOpen] = useState(false);
   const [checked, setChecked] = useState(false);
   const [typed, setTyped] = useState("");
@@ -48,7 +51,7 @@ export function DangerConfirmForm({
         className="w-full justify-start"
       >
         <span className="flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4" />
+          <TriggerIcon className="h-4 w-4" />
           {buttonLabel}
         </span>
       </Button>

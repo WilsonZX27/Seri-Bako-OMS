@@ -43,6 +43,7 @@ export function WorkspaceGrid({
   return (
     <div
       data-workspace-canvas
+      data-workspace-has-rail={Boolean(rightRail && !hideDesktopConsole) || undefined}
       data-canvas-mode={effectiveTabletCanvas}
       data-tablet-canvas={effectiveTabletCanvas}
       data-tablet-content={rightRail && effectiveTabletCanvas !== "full" ? "contained" : undefined}

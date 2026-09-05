@@ -56,7 +56,8 @@ test("matrix keeps a readable frozen outlet column while dates scroll horizontal
   assert.doesNotMatch(component, /aria-describedby="outlet-completion-scroll-hint"/);
   assert.match(component, /className="sticky left-0 z-30[\s\S]*min-w-\[9rem\][\s\S]*sm:min-w-48/);
   assert.match(component, /className="sticky left-0 z-20[\s\S]*min-w-\[9rem\][\s\S]*sm:min-w-48/);
-  assert.match(component, /<colgroup>[\s\S]*w-\[3\.5rem\][\s\S]*sm:w-14/);
+  assert.match(component, /<colgroup>[\s\S]*w-\[9rem\] sm:w-48/);
+  assert.match(component, /<col key=\{date\} \/>/);
   assert.match(component, /relative isolate block w-full max-w-full overflow-x-auto overscroll-x-contain/);
   assert.match(component, /w-full min-w-\[40rem\] table-fixed/);
   assert.doesNotMatch(component, /w-max min-w-\[40rem\]/);
@@ -74,7 +75,8 @@ test("phone completion insight keeps the summary and seven-day matrix directly s
   const component = read("src/components/outlet-daily-completion-matrix.tsx");
   assert.match(component, /data-outlet-completion-phone-summary/);
   assert.match(component, /data-outlet-completion-legend/);
-  assert.match(component, /grid grid-cols-2[^"]*sm:flex/);
+  assert.match(component, /grid-cols-\[calc\(9rem\+4px\)_minmax\(0,1fr\)\]/);
+  assert.doesNotMatch(component, /recorded system status/);
   assert.match(component, /\["draft", "morning_recorded", "evening_completed", "reviewed", "posted_attention", "missing", "void"\]/);
   assert.match(component, /id="outlet-completion-detail"/);
   assert.doesNotMatch(component, /data-outlet-completion-toggle/);

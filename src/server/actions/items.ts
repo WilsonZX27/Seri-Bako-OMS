@@ -141,7 +141,7 @@ export async function updateItem(id: string, formData: FormData) {
     if (!existing) throw new Error("Item was not found or is outside your workspace.");
     const itemPayload = payload(formData);
     const imageUrl = await uploadMasterDataImage("items", itemId, formData.get("item_image"));
-    const { error } = await writeSupabase.from("items").update({ ...itemPayload, ...(imageUrl ? { item_image_url: imageUrl } : {}) }).eq("id", itemId).eq("company_id", actor.companyId);
+    const { error } = await writeSupabase.from("items").update({ ...itemPayload, ...(imageUrl ? { item_image_url: imageUrl } : formData.get("remove_item_image") === "true" ? { item_image_url: null } : {}) }).eq("id", itemId).eq("company_id", actor.companyId);
     if (error) throw new Error(error.message);
 
     revalidatePath("/items");

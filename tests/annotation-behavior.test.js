@@ -65,3 +65,49 @@ test('invalid optional sales does not invalidate valid outlet quantities', () =>
   form.set('wastage_qty', '-1');
   assert.throws(() => extract(form));
 });
+
+
+test('a successful empty low-stock summary does not query the expensive ledger views', async () => {
+  const sources = [];
+  const query = { select(){return this;}, eq(){return this;}, order(){return this;}, range: async () => ({data: [], error: null}) };
+  const { loadLowStockItems } = loadFunctions('src/server/queries/inventory.ts', ['readLowStockPages', 'loadLowStockItems'], {
+    isMockMode: () => false,
+    createClient: async () => ({from(name) { sources.push(name); if(name !== 'stock_balances_summary') throw new Error('Unexpected fallback'); return query; }}),
+    warnOptionalInventoryQuery: () => {},
+  });
+  assert.deepEqual(await loadLowStockItems(), []);
+  assert.deepEqual(sources, ['stock_balances_summary']);
+});
+
+test('the two observed production Outlet Daily errors report pending database rules, not missing inputs', () => {
+  const { formatActionError } = loadFunctions('src/server/actions/error-handling.ts', ['formatActionError'], {
+    logServerError: () => {}, classifyActionError: () => 'validation_failed',
+  });
+  for(const message of ['Invalid outlet daily record action.', 'POS Total Sales is required before completing this record.']) {
+    assert.match(formatActionError(new Error(message)), /pending Outlet Daily migrations/);
+  }
+});
+
+
+test('item image removal is explicit and a validated replacement takes precedence', async () => {
+  for (const [remove, replacement, expected] of [[false, null, undefined], [true, null, null], [true, '/validated-image.webp', '/validated-image.webp']]) {
+    let written;
+    let permission;
+    const scopeChecks = [];
+    const redirected = new Error('redirect');
+    const query = { select(){return this;}, eq(key,value){scopeChecks.push([key,value]);return this;}, maybeSingle:async()=>({data:{id:'item'},error:null}), update(value){written=value;return this;}, then(resolve){return Promise.resolve({error:null}).then(resolve);} };
+    const { updateItem } = loadFunctions('src/server/actions/items.ts', ['updateItem'], {
+      requirePermissionOrRedirect: async value => {permission=value;}, isMockMode:()=>false,
+      parseItemId:value=>value, createClient:async()=>({from:()=>query}), requireActiveTenantActor:async()=>({companyId:'company'}),
+      payload:()=>({item_name:'Test item'}), uploadMasterDataImage:async()=>replacement,
+      revalidatePath:()=>{}, redirect:()=>{throw redirected;}, rethrowRedirect:error=>{throw error;},
+    });
+    const form = new FormData();
+    if(remove) form.set('remove_item_image','true');
+    await assert.rejects(updateItem('item',form), error=>error===redirected);
+    assert.equal(written.item_image_url,expected);
+    assert.equal(Object.hasOwn(written,'item_image_url'),expected!==undefined);
+    assert.equal(permission,'items.update');
+    assert.equal(scopeChecks.filter(([key,value])=>key==='company_id'&&value==='company').length,2);
+  }
+});

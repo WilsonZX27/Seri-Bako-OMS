@@ -54,7 +54,7 @@ test("sales reconciliation is database-derived and atomic with daily lines", () 
   assert.match(form, /hasPosTotal/);
   assert.doesNotMatch(form, /You can save progress now and complete sales before posting/);
   assert.match(form, /Difference reason \(optional\)/);
-  assert.match(form, /Attention/);
+  assert.match(form, /Channel total[\s\S]*Difference/);
   assert.doesNotMatch(form, /name="pos_total_sales"[^>]+required/);
   const optionalDifferenceSql = read("supabase", "migrations", "250_optional_daily_sales_difference_reason.sql");
   assert.match(optionalDifferenceSql, /sales_review_status=case when difference=0 then 'not_required' else 'needs_review' end/);

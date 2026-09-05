@@ -9,8 +9,7 @@ import { getOutletComplianceWorkspace } from "@/server/queries/compliance";
 export default async function OutletCalendarPage({ searchParams }: { searchParams: Promise<{ month?: string }> }) {
   const [{ month }, workspace] = await Promise.all([searchParams, getOutletComplianceWorkspace()]);
   const branchById = new Map(workspace.branches.map((row) => [row.id, row]));
-  const typeById = new Map(workspace.requirements.map((row) => [row.compliance_type_id, row.type?.type_name]));
-  const events = workspace.records.filter((row) => row.expires_on && row.branch_id).map((event) => ({ id: event.id, date: event.expires_on!, title: typeById.get(event.compliance_type_id) ?? event.subject_label, context: branchById.get(event.branch_id!)?.branch_name ?? "Outlet", href: `/outlet-compliance/${event.branch_id}`, state: event.state }));
+  const events = workspace.records.filter((row) => row.expires_on && row.branch_id).map((event) => ({ id: event.id, date: event.expires_on!, title: event.type_name, context: branchById.get(event.branch_id!)?.branch_name ?? "Outlet", href: `/outlet-compliance/${event.branch_id}`, state: event.state }));
   const urgent = events.filter((event) => ["expired", "due_7", "due_30"].includes(event.state)).length;
   const rightRail = <>
     <ConsoleSection title="Actions" kind="action"><Button asChild size="sm" className="w-full"><Link href="/outlet-compliance">Open outlet register</Link></Button></ConsoleSection>

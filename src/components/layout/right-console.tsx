@@ -166,7 +166,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
             {consoleContent}
           </div>
         </aside>
-      ) : null}
+      ) : <aside data-right-console-placeholder aria-hidden="true" className="hidden h-full w-[var(--sb-console-width)] shrink-0 border-l border-[var(--sb-border-soft)] bg-[var(--rail-bg)] p-3"><div className="sb-work-surface space-y-3 p-3"><div className="sb-skeleton h-9" /><div className="sb-skeleton h-9" /></div><div className="sb-work-surface mt-3 space-y-3 p-3"><div className="sb-skeleton h-3" /><div className="sb-skeleton h-3 w-4/5" /></div></aside>}
       {content && !mobileBarHidden && hasCreateFab && primaryHref ? (
         <Link
           href={primaryHref}
@@ -220,7 +220,7 @@ export function ConsoleSection({ title, children, titleClassName, kind = "refere
         <h2 className={cn("shrink-0 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--sb-text-muted)]", titleClassName)}>{title}</h2>
         <span aria-hidden="true" className="h-px min-w-0 flex-1 bg-[var(--sb-border-soft)]" />
       </div>
-      <div className="grid gap-2 text-xs [&_.inline-flex]:w-full [&_.inline-flex]:text-xs">{children}</div>
+      <div className="grid gap-2 text-xs">{children}</div>
     </section>
   );
 }

@@ -26,7 +26,8 @@ test("compliance upload and More Actions use compact deliberate spacing", () => 
   const attachment = read("src/components/compliance-attachment-upload.tsx");
   const page = read("src/app/(app)/outlet-compliance/[branchId]/page.tsx");
   const consoleSource = read("src/components/layout/right-console.tsx");
-  for (const source of [attachment, page]) assert.match(source, /grid-cols-\[minmax\(0,7fr\)_minmax\(6\.5rem,3fr\)\]/);
+  for (const source of [attachment, page]) assert.match(source, /ComplianceFileInput action=/);
+  assert.match(read("src/components/compliance-file-input.tsx"), /col-span-full/);
   assert.match(consoleSource, /data-mobile-console-content[^>]*grid[^>]*gap-3/);
 });
 

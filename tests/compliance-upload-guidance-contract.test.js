@@ -13,7 +13,7 @@ test("compliance upload rejects oversized files before submitting and repeats th
   assert.match(input, /role="alert"/);
   assert.match(input, /maximum 4 MB/);
   assert.equal((actions.match(/file\.size > 4 \* 1024 \* 1024/g) ?? []).length, 2);
-  assert.match(page, /<ComplianceFileInput \/>/);
+  assert.match(page, /<ComplianceFileInput action=/);
 });
 
 test("Outlet Daily workflow states make pending, final and attention outcomes visually distinct", () => {

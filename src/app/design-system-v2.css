@@ -2031,13 +2031,13 @@ html[data-design-layer="v2"] [data-outlet-daily-lines] {
   }
   html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout] > .unified-list-desktop-actions > .sb-filter-summary {
     grid-column: 4;
-    grid-row: 1;
+    grid-row: 2;
     justify-self: end;
     margin: 0 !important;
   }
   html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout] > .unified-list-desktop-actions > .unified-list-action {
     grid-column: 4;
-    grid-row: 2;
+    grid-row: 1;
     width: auto !important;
     min-width: 5rem !important;
     max-width: none !important;
@@ -2349,4 +2349,12 @@ html[data-touch-tablet="true"] [data-app-topbar] > .hidden.min-w-0.items-center 
 [data-long-mobile-form] [aria-invalid="true"] {
   border-color: var(--sb-danger);
   outline: 1px solid var(--sb-danger);
+}
+
+@media (min-width: 1280px) {
+  html:has([data-workspace-has-rail]) [data-right-console-placeholder] { display: block; }
+}
+
+html[data-design-layer="v2"] [data-console-section] {
+  box-shadow: var(--sb-shadow-card);
 }

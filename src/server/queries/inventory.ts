@@ -753,7 +753,7 @@ export async function getStockBalanceDetails(filters: Filters = {}): Promise<Pag
         item_id: latest.item_id,
         item_code: latest.item_code,
         item_name: latest.item_name,
-        supplier_id: null,
+        supplier_id: item?.supplier_id ?? null,
         supplier_name: null,
         purchase_unit: latest.base_unit,
         base_unit: latest.base_unit,
@@ -772,7 +772,7 @@ export async function getStockBalanceDetails(filters: Filters = {}): Promise<Pag
       };
     });
     const branchId = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
-    const scopeRows = branchId ? rows.filter((row) => row.branch_id === branchId) : rows;
+    const scopeRows = rows.filter(row => (!branchId || row.branch_id === branchId) && (!filters.supplier_id || filters.supplier_id === "all" || row.supplier_id === filters.supplier_id));
     const filtered = filterRows(scopeRows, filters, ["item_code", "item_name", "branch_name", "status"], "item_name");
     return databasePaginationOrError(filtered, filtered.length, filters.page, null, filters.page === "all" ? Math.max(filtered.length, 1) : 15);
   }
@@ -783,6 +783,7 @@ export async function getStockBalanceDetails(filters: Filters = {}): Promise<Pag
   const branchId = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
   const status = filters.status && filters.status !== "all" ? filters.status : null;
   let query = supabase.from("stock_balances_summary").select("*", { count: "exact" });
+  if (filters.supplier_id && filters.supplier_id !== "all") query = query.eq("supplier_id", filters.supplier_id);
   if (branchId) query = query.eq("branch_id", branchId);
   if (status === "negative") query = query.lt("current_qty", 0);
   if (status === "low_stock") query = query.gt("current_qty", 0).eq("is_low_stock", true);
@@ -1069,12 +1070,10 @@ async function loadLowStockItems(filters: Filters = {}) {
   const data = summaryResult.data;
   let error = summaryResult.error;
   let fallbackData: unknown[] | null = null;
-  // The pre-aggregated summary can briefly be empty while its refresh trigger
-  // catches up, and older linked deployments may not have the summary grant
-  // yet. Keep the canonical view as a read-only fallback, while preserving a
-  // successful empty result as the valid healthy state it represents.
+  // A successful empty summary is authoritative. Re-running the full ledger
+  // views here turns a valid zero into two statement timeouts on the dashboard.
   const summaryError = error ?? (data == null ? new Error("Low stock summary returned no data.") : null);
-  if (summaryError || !data?.length) {
+  if (summaryError) {
     warnOptionalInventoryQuery("low stock summary fallback", summaryError);
     let viewQuery = supabase
       .from("stock_balances_view")

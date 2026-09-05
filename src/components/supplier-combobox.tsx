@@ -35,14 +35,12 @@ export function SupplierCombobox({ suppliers, initialSupplierId }: { suppliers: 
         }}
         placeholder="Search supplier code or name"
         autoComplete="off"
-        aria-describedby="supplier-selection-help"
+        aria-describedby={query && !hasExactMatch ? "supplier-selection-help" : undefined}
       />
       <datalist id="item-supplier-options">
         {suppliers.map((supplier) => <option key={supplier.id} value={optionLabel(supplier)} />)}
       </datalist>
-      <p id="supplier-selection-help" className="mt-1 text-xs text-muted-foreground">
-        {query && !hasExactMatch ? "No matching active supplier. Choose a listed result or clear the field." : "Optional. Search by supplier code or name."}
-      </p>
+      {query && !hasExactMatch ? <p id="supplier-selection-help" className="mt-1 text-xs text-muted-foreground">No matching active supplier. Choose a listed result or clear the field.</p> : null}
     </div>
   );
 }

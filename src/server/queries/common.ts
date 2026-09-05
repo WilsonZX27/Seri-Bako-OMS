@@ -263,3 +263,17 @@ export const getBranchesForSelect = cache(async function getBranchesForSelect(op
   if (!data) throw new Error("Branch options returned no data.");
   return data;
 });
+
+export const getItemCategories = cache(async () => {
+  if (isMockMode()) return [...new Set(mockItems.map(item => item.category))].sort();
+  const db = await createClient();
+  const categories = new Set<string>();
+  for (let offset = 0; ; offset += 500) {
+    const { data, error } = await db.from("items").select("id,category").is("deleted_at", null).order("id").range(offset, offset + 499);
+    if (error) throw new Error(error.message);
+    const rows = requireReadRows(data, "Item categories");
+    for (const row of rows) if (row.category?.trim()) categories.add(row.category.trim());
+    if (rows.length < 500) break;
+  }
+  return [...categories].sort();
+});

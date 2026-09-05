@@ -55,7 +55,7 @@ test("compliance uses one structured disclosure list with aligned details", () =
   assert.match(fileInput, /Choose file/);
   assert.match(fileInput, /maximum 4 MB/);
   assert.match(fileInput, /This file is.*Compliance files must be 4 MB or smaller/);
-  assert.match(fileInput, /buttonVariants\(\{ size: "sm"/);
+  assert.match(fileInput, /variant: "outline"/);
 });
 
 test("legacy and entity-owned compliance attachments share protected delivery", () => {

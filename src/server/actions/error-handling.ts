@@ -96,6 +96,9 @@ export function formatActionError(error: unknown, fallback = "Something went wro
   if (normalized.includes("not mapped to this pr supplier, branch, and requested uom")) {
     return "This item is not mapped to the PR supplier, branch, and requested UOM. Correct the Supplier Item mapping, then try again.";
   }
+  if (normalized === "invalid outlet daily record action." || normalized === "pos total sales is required before completing this record.") {
+    return "Outlet Daily database rules are outdated. An Owner must apply the pending Outlet Daily migrations before posting. Your quantities have not been changed.";
+  }
   if (normalized.includes("qty_sent_missing")) {
     const safeMessage = message.replace(/^qty_sent_missing:\s*/i, "").trim();
     if (safeMessage.length <= 220 && !/(supabase|postgres|constraint|sqlstate|violates)/i.test(safeMessage)) return safeMessage;

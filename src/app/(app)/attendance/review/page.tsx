@@ -38,11 +38,10 @@ export default async function AttendanceReviewPage({ searchParams }: { searchPar
       <ConsoleSection title="Exceptions"><div className="flex items-center gap-2"><TriangleAlert className="h-4 w-4 text-[var(--sb-warning)]" /><strong>{exceptionCount}</strong></div><p>Resolve or adjust exceptions before locking.</p></ConsoleSection>
     </>}>
       <AttendanceWorkspaceNav current="review" />
-      <form className="sb-work-surface grid items-end gap-3 p-3 sm:grid-cols-[minmax(12rem,1fr)_11rem_auto_auto]" aria-label="Attendance review filters">
+      <form className="sb-work-surface grid items-end gap-3 p-3 sm:grid-cols-[minmax(12rem,1fr)_11rem_auto]" aria-label="Attendance review filters">
         <label className="grid gap-1 text-xs font-medium">Outlet<SelectNative name="branch" defaultValue={selectedBranch ?? ""}><option value="">All accessible outlets</option>{branchOptions.map(([id, name]) => <option key={id} value={id}>{name}</option>)}</SelectNative></label>
         <label className="grid gap-1 text-xs font-medium">Week starting<Input name="week" type="date" defaultValue={week}/></label>
-        <Button type="submit" size="sm">Apply</Button>
-        <Button asChild type="button" size="sm" variant="ghost"><a href="/attendance/review">Reset</a></Button>
+        <div className="grid grid-cols-[1fr_2fr] gap-2"><Button asChild type="button" size="sm" variant="outline"><a href="/attendance/review">Reset</a></Button><Button type="submit" size="sm">Apply</Button></div>
       </form>
       <section className="sb-work-surface overflow-hidden">
         <div className="flex flex-wrap items-center gap-3 border-b border-[var(--sb-border-soft)] px-3 py-2.5"><div><h2 className="text-sm font-semibold">Calculated attendance</h2><p className="text-xs text-muted-foreground">Times and durations preserve NGTeco seconds.</p></div><StatusBadge status={exceptionCount ? "attention" : "reviewed"} /><span className="ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground"><LockKeyhole className="h-3.5 w-3.5" />Week {week}</span></div>

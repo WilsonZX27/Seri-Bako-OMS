@@ -1,3 +1,4 @@
+import { ItemImageInput } from "@/components/item-image-input";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { RecordSection } from "@/components/record-workspace";
@@ -23,9 +24,10 @@ type ItemFormProps = {
   canCreateSupplier?: boolean;
   canCreateSourcing?: boolean;
   branches?: Branch[];
+  categories?: string[];
 };
 
-export function ItemForm({ item, suppliers, action, formId, showSubmit = true, canCreateSupplier = false, canCreateSourcing = false, branches = [] }: ItemFormProps) {
+export function ItemForm({ item, suppliers, action, formId, showSubmit = true, canCreateSupplier = false, canCreateSourcing = false, branches = [], categories = [] }: ItemFormProps) {
   return (
     <form id={formId} action={action} className="space-y-4">
       <RecordSection title="Identity" description="Item code, name, category, and operational status.">
@@ -40,15 +42,13 @@ export function ItemForm({ item, suppliers, action, formId, showSubmit = true, c
             <Input name="item_name" defaultValue={item?.item_name ?? ""} required />
           </Field>
           <Field label="Brand">
-            <Input name="brand_name" defaultValue={item?.brand_name ?? ""} placeholder="Optional authoritative brand" />
-            <p className="mt-1 text-xs text-muted-foreground">Only use a brand supplied by an authoritative source file.</p>
+            <Input name="brand_name" defaultValue={item?.brand_name ?? ""} placeholder="Brand" />
           </Field>
           <Field label="Category" required>
-            <Input name="category" defaultValue={item?.category ?? ""} placeholder="Flour, Dairy, Packaging" required />
+            <Input list="item-category-options" name="category" defaultValue={item?.category ?? ""} placeholder="Choose or enter a category" required /><datalist id="item-category-options">{categories.map(category => <option key={category} value={category} />)}</datalist>
           </Field>
           <Field label="Item Image">
-            <Input name="item_image" type="file" accept="image/png,image/jpeg,image/webp" />
-            <p className="mt-1 text-xs text-muted-foreground">PNG, JPG, or WEBP. Leave empty to keep the current image.</p>
+            <ItemImageInput currentUrl={item?.item_image_url} name={item?.item_name ?? "Item image"} />
           </Field>
         </div>
       </RecordSection>
@@ -84,7 +84,7 @@ export function ItemForm({ item, suppliers, action, formId, showSubmit = true, c
             <SupplierCombobox suppliers={suppliers} initialSupplierId={item?.supplier_id} />
           </Field>
           {canCreateSupplier ? <div className="flex items-start md:self-start md:pt-6">
-            <Button asChild type="button" variant="outline" className="h-11 w-full md:w-auto">
+            <Button asChild type="button" variant="outline" className="w-full md:w-auto">
               <Link href="/suppliers/new">Create supplier</Link>
             </Button>
           </div> : null}

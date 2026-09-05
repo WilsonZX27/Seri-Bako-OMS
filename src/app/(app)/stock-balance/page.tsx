@@ -1,14 +1,15 @@
 import { hasPermission } from "@/server/auth/permissions";
 import { StockBalanceWorkspace } from "@/components/stock-balance-workspace";
-import { getBranchesForSelect } from "@/server/queries/common";
+import { getBranchesForSelect, getSuppliersForSelect } from "@/server/queries/common";
 import { getStockBalanceDetails } from "@/server/queries/inventory";
 
 export default async function StockBalancePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [branches, balances, hasCreatePr] = await Promise.all([
+  const [branches, balances, hasCreatePr, suppliers] = await Promise.all([
     getBranchesForSelect(),
     getStockBalanceDetails({ ...filters, view: "branch" }),
     hasPermission("purchase_request.create"),
+    getSuppliersForSelect(),
   ]);
   const queryError = balances.error;
   const totalValue = balances.rows.reduce((sum, item) => sum + item.inventory_value, 0);
@@ -17,6 +18,7 @@ export default async function StockBalancePage({ searchParams }: { searchParams:
 
   return (
     <StockBalanceWorkspace
+      suppliers={suppliers}
       rows={balances.rows}
       totalValue={totalValue}
       filters={filters}

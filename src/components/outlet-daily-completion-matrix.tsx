@@ -42,12 +42,9 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
         <div className="px-3 py-2.5"><p className="text-[10px] uppercase tracking-wide text-muted-foreground">Missing</p><p className="mt-0.5 text-base font-semibold tabular-nums">{summary.missing}</p></div>
       </div>
       <div id="outlet-completion-detail">
-      <div className="grid grid-cols-2 gap-x-3 gap-y-2 border-b border-[var(--sb-border-soft)] px-3 py-2 text-[10px] text-muted-foreground sm:flex sm:flex-wrap sm:justify-end sm:gap-x-3 sm:border-b-0 sm:pb-0 sm:text-[11px]" aria-label="Status key" data-outlet-completion-legend>
-        {(["draft", "morning_recorded", "evening_completed", "reviewed", "posted_attention", "missing", "void"] as const).map((status) => <span key={status} className="inline-flex min-w-0 items-center gap-1"><span className={`grid h-4 min-w-4 shrink-0 place-items-center border px-0.5 text-[9px] font-bold ${stateMeta[status].className}`}>{stateMeta[status].short}</span><span>{stateMeta[status].label}</span></span>)}
-      </div>
       <div className="relative isolate block w-full max-w-full overflow-x-auto overscroll-x-contain bg-[var(--sb-surface)] px-3 py-2" tabIndex={0} aria-label="Outlet completion matrix" data-outlet-completion-scrollport>
         <table className="w-full min-w-[40rem] table-fixed border-separate border-spacing-x-1 border-spacing-y-0 text-xs">
-          <colgroup><col className="w-[9rem] sm:w-48" />{dates.map((date) => <col key={date} className="w-[3.5rem] sm:w-14" />)}</colgroup>
+          <colgroup><col className="w-[9rem] sm:w-48" />{dates.map((date) => <col key={date} />)}</colgroup>
           <thead><tr><th scope="col" className="sticky left-0 z-30 min-w-[9rem] w-[9rem] max-w-[9rem] border-r border-[var(--sb-border-soft)] bg-[var(--sb-surface)] pb-1 pr-2 text-left font-medium text-muted-foreground sm:min-w-48 sm:w-48 sm:max-w-48 sm:pr-3">Outlet</th>{dates.map((date) => <th key={date} aria-current={date === today ? "date" : undefined} scope="col" className="min-w-[3.5rem] pb-1 text-center text-[9px] font-medium text-muted-foreground sm:min-w-14 sm:text-xs"><span className="block">{new Intl.DateTimeFormat("en-MY", { weekday: "short", timeZone: "UTC" }).format(new Date(`${date}T00:00:00Z`))}</span><span className="text-[9px] font-normal sm:text-[10px]">{date.slice(8)}</span></th>)}</tr></thead>
           <tbody>{rows.map((row) => <tr key={row.branch_id} className="border-b border-[var(--sb-border-soft)]"><th scope="row" className="sticky left-0 z-20 min-w-[9rem] w-[9rem] max-w-[9rem] border-r border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface)] py-1 pr-2 text-left text-[10px] font-medium sm:min-w-48 sm:w-48 sm:max-w-48 sm:pr-3 sm:text-xs" title={row.branch_name}><span className="block truncate">{row.branch_name}</span></th>{row.cells.map((cell) => {
             const displayStatus = cell.status === "reviewed" && cell.sales_review_status === "needs_review" ? "posted_attention" : cell.status;
@@ -59,12 +56,17 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
           })}</tr>)}</tbody>
         </table>
       </div>
-      {active ? <div className="border-t border-[var(--sb-border-soft)] px-3 py-2" aria-live="polite" data-outlet-completion-preview>
+      <div className="grid grid-cols-[calc(9rem+4px)_minmax(0,1fr)] gap-1 border-t border-[var(--sb-border-soft)] px-3 py-2 sm:grid-cols-[calc(12rem+4px)_minmax(0,1fr)]">
+      <div className="grid content-start gap-1 text-[10px] text-muted-foreground" aria-label="Status key" data-outlet-completion-legend>
+        {(["draft", "morning_recorded", "evening_completed", "reviewed", "posted_attention", "missing", "void"] as const).map((status) => <span key={status} className="inline-flex min-w-0 items-center gap-1"><span className={`grid h-4 min-w-4 shrink-0 place-items-center border px-0.5 text-[9px] font-bold ${stateMeta[status].className}`}>{stateMeta[status].short}</span><span>{stateMeta[status].label}</span></span>)}
+      </div>
+      {active ? <div className="min-w-0" aria-live="polite" data-outlet-completion-preview>
         <div className="grid gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-          <div><p className="text-xs font-semibold">{active.branch_name} · {formatDateOnly(active.record_date)}</p><p className="text-[11px] text-muted-foreground">{active.status === "reviewed" && active.sales_review_status === "needs_review" ? stateMeta.posted_attention.label : stateMeta[active.status].label}{active.status === "missing" ? " · no record exists for this outlet-day" : " · recorded system status"}</p></div>
+          <div><p className="text-xs font-semibold">{active.branch_name} · {formatDateOnly(active.record_date)}</p><p className="text-[11px] text-muted-foreground">{active.status === "reviewed" && active.sales_review_status === "needs_review" ? stateMeta.posted_attention.label : stateMeta[active.status].label}{active.status === "missing" ? " · no record exists for this outlet-day" : ""}</p></div>
           {active.record_id ? <Link href={`/outlet-daily-records/${active.record_id}`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary underline-offset-4 hover:underline xl:min-h-8">Open daily record</Link> : active.status === "missing" && canCreate ? <Link href={`/outlet-daily-records/new?branch_id=${encodeURIComponent(active.branch_id)}&date=${encodeURIComponent(active.record_date)}`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary underline-offset-4 hover:underline xl:min-h-8">Create daily record</Link> : null}
         </div>
       </div> : null}
+      </div>
       </div>
       {showCoverageDetails ? <details className="border-t border-[var(--sb-border-soft)] px-3 py-2 text-xs"><summary className="cursor-pointer font-medium text-primary">Coverage · {summary.completed}/{summary.expected} complete</summary><dl className="mt-2 grid grid-cols-3 gap-2 text-[11px] text-muted-foreground"><div><dt>Open</dt><dd className="font-semibold text-[var(--sb-text)]">{summary.incomplete}</dd></div><div><dt>Missing</dt><dd className="font-semibold text-[var(--sb-text)]">{summary.missing}</dd></div><div><dt>Void</dt><dd className="font-semibold text-[var(--sb-text)]">{summary.voided}</dd></div></dl></details> : null}
     </> : <div className="px-4 py-8 text-center"><p className="text-sm font-medium">No outlets in your current scope</p><p className="mt-1 text-xs text-muted-foreground">Completion appears after an outlet is assigned and active.</p></div>}

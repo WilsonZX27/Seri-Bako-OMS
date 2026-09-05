@@ -57,6 +57,7 @@ export function StockBalanceWorkspace({
   totalValue,
   filters,
   branches,
+  suppliers = [],
   totalRows,
   totalPages,
   page,
@@ -69,6 +70,7 @@ export function StockBalanceWorkspace({
   totalValue: number;
   filters: Record<string, string | undefined>;
   branches: BranchOption[];
+  suppliers?: Array<{ id: string; name: string }>;
   totalRows: number;
   totalPages: number;
   page: number;
@@ -298,7 +300,7 @@ export function StockBalanceWorkspace({
         tabletRailWidth="compact"
       >
         <div className="space-y-3">
-          <FilterBar resultCount={totalRows} resetHref="/stock-balance" filtered={Boolean(filters.search || filters.branch_id || filters.status)} className="sb-list-filters--balanced">
+          <FilterBar resultCount={totalRows} resetHref="/stock-balance" filtered={Boolean(filters.search || filters.branch_id || filters.status || filters.supplier_id)} className="sb-list-filters--balanced">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, branch, status" />
             <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
             <SelectControl
@@ -312,8 +314,9 @@ export function StockBalanceWorkspace({
                 { value: "negative", label: "Out of Stock" },
               ]}
             />
+            <SelectControl name="supplier_id" defaultValue={filters.supplier_id ?? "all"} ariaLabel="Default supplier" options={[{ value: "all", label: "All default suppliers" }, ...suppliers.map(supplier => ({ value: supplier.id, label: supplier.name }))]} />
             <input type="hidden" name="view" value="branch" />
-            {Boolean(filters.search || filters.branch_id || filters.status) ? <Button asChild variant="secondary"><Link href="/stock-balance">Reset</Link></Button> : <Button type="submit" variant="secondary">Search</Button>}
+            {Boolean(filters.search || filters.branch_id || filters.status || filters.supplier_id) ? <Button asChild variant="secondary"><Link href="/stock-balance">Reset</Link></Button> : <Button type="submit" variant="secondary">Search</Button>}
           </FilterBar>
           <div className="sb-list-content-card overflow-hidden">
           <Table mobileHidden aria-label="Stock balances" stickyColumn="second">

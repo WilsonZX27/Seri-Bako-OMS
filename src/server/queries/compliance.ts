@@ -76,9 +76,13 @@ export async function getOutletComplianceWorkspace(branchId?: string) {
     rows.push({ ...attachment, uploaded_by_name: attachment.uploaded_by ? uploaderById.get(attachment.uploaded_by) ?? null : null });
     attachmentsByRecord.set(attachment.entity_id, rows);
   }
+  const recordTypeIds = [...new Set((recordsResult.data ?? []).map(record => record.compliance_type_id))];
+  const { data: recordTypes, error: recordTypeError } = recordTypeIds.length ? await supabase.from("compliance_types").select("id,type_name").eq("company_id", profile.company_id).in("id", recordTypeIds) : { data: [], error: null };
+  if (recordTypeError) throw new Error(recordTypeError.message);
+  const recordTypeNames = new Map((recordTypes ?? []).map(type => [type.id, type.type_name]));
   const records = (recordsResult.data ?? []).map((record) => {
     const attachments = attachmentsByRecord.get(record.id) ?? [];
-    return { ...record, attachments, state: complianceState(record.expires_on, record.review_status, attachments.length > 0) };
+    return { ...record, type_name: recordTypeNames.get(record.compliance_type_id) ?? "Compliance renewal", attachments, state: complianceState(record.expires_on, record.review_status, attachments.length > 0) };
   });
   const typeById = new Map((typesResult.data ?? []).map((row) => [row.id, row]));
   const latestByRequirement = new Map<string, (typeof records)[number]>();

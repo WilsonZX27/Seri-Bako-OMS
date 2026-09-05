@@ -62,3 +62,9 @@ The linked-project `supabase db push --dry-run` succeeded and confirmed these pe
   - Image Remove hid the preview; server-action tests verified reference removal, replacement precedence, permission check and company scope.
 
 No push, deployment, linked database mutation, production document posting, or production image change was performed in this follow-up. Local Docker database execution was unavailable because the Docker Linux engine pipe was absent; no local migration execution is claimed.
+
+## Authorized production migration follow-up
+
+On 5 September 2026, the user explicitly authorized production migrations 260–263. The linked project was reconfirmed as `nnvdsaftiwpqkekjfrgc`, and a fresh dry-run listed exactly those four migrations. `supabase db push --yes` applied all four successfully (exit 0). The subsequent read-only dry-run returned `Remote database is up to date.`
+
+The CLI emitted a local migration-catalog cache warning because the Docker Linux engine was unavailable; this did not prevent the remote migrations, as confirmed by the subsequent dry-run. No production daily record was posted during verification. Frontend commit `aba3ba5f` has not been pushed or deployed by this follow-up.

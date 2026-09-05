@@ -253,11 +253,7 @@ export function StaffForm({
         />
       </RecordSection>
 
-      {includeAuthSetup ? (
-        <RecordSection title="Auth Setup" description="Create the staff login with a temporary password that must be changed at first sign-in.">
-          <StaffAuthSetupFields />
-        </RecordSection>
-      ) : null}
+      {includeAuthSetup ? <StaffAuthSetupFields /> : null}
 
       {showSubmit ? (
         <Card>
@@ -272,17 +268,10 @@ export function StaffForm({
 
 export function StaffAuthSetupFields({ formId }: { formId?: string }) {
   return (
-    <div className="space-y-3">
+    <>
       <input type="hidden" name="auth_setup_method" value="temporary_password" form={formId} />
-      <div className="rounded-[2px] border bg-white p-3 text-xs">
-        <p className="font-medium">Create login with temporary password</p>
-        <p className="mt-1 text-muted-foreground">Internal staff must change this password after their first sign-in.</p>
-      </div>
-      <Field label="Temporary Password">
-        <Input name="temporary_password" type="text" placeholder="Leave blank to auto-generate" autoComplete="off" form={formId} className="form-control-compact" />
-        <p className="mt-1 text-xs text-muted-foreground">Do not reuse passwords. Share temporary passwords securely and ask staff to change immediately.</p>
-      </Field>
-    </div>
+      <input type="hidden" name="temporary_password" value="" form={formId} />
+    </>
   );
 }
 

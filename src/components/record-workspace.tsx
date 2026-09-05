@@ -9,11 +9,12 @@ type RecordWorkspaceProps = {
   children: ReactNode;
   actionPanel: ReactNode;
   className?: string;
+  tabletRailBreakpoint?: "md" | "lg";
 };
 
-export function RecordWorkspace({ children, actionPanel, className }: RecordWorkspaceProps) {
+export function RecordWorkspace({ children, actionPanel, className, tabletRailBreakpoint = "md" }: RecordWorkspaceProps) {
   return (
-    <WorkspaceGrid documentMode tabletRailMode="split" className={cn("p-4", className)} rightRail={<div>{actionPanel}</div>}>
+    <WorkspaceGrid documentMode tabletRailMode="split" tabletRailBreakpoint={tabletRailBreakpoint} className={cn("p-4", className)} rightRail={<div className="min-w-0">{actionPanel}</div>}>
       <main className="min-w-0 space-y-4">{children}</main>
     </WorkspaceGrid>
   );

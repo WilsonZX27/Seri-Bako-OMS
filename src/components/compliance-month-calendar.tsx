@@ -63,14 +63,14 @@ export function ComplianceMonthCalendar({ baseHref, month, events }: { baseHref:
   while (cells.length % 7) cells.push(null);
 
   return <section className="overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)]" aria-label="Monthly compliance calendar">
-    <header className="grid min-h-14 grid-cols-[auto_minmax(0,1fr)] items-center gap-2 border-b px-2 py-2 sm:flex sm:px-3">
+    <header className="grid min-h-14 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-b px-2 py-2 sm:px-3">
       <Button variant="outline" size="sm" className="shrink-0" onClick={() => go(new Date())}>Today</Button>
-      <div className="grid min-w-0 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center sm:flex sm:flex-1 sm:justify-center">
+      <div className="grid min-w-0 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center justify-self-center">
         <Button variant="ghost" size="icon" onClick={() => go(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))} aria-label="Previous month"><ChevronLeft className="h-4 w-4" /></Button>
         <input aria-label="Choose year and month" type="month" value={prefix} onChange={(event) => event.target.value && router.push(`${baseHref}?month=${event.target.value}`)} className="h-10 min-w-0 w-full border-0 bg-transparent text-center text-sm font-semibold sm:w-44" />
         <Button variant="ghost" size="icon" onClick={() => go(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))} aria-label="Next month"><ChevronRight className="h-4 w-4" /></Button>
       </div>
-      <label className="hidden shrink-0 items-center gap-2 text-xs text-muted-foreground sm:flex">Go to month <input type="month" value={prefix} onChange={(event) => event.target.value && router.push(`${baseHref}?month=${event.target.value}`)} className="h-10 rounded-md border bg-background px-2 text-foreground" /></label>
+      <span className="w-[4.5rem]" aria-hidden="true" />
     </header>
     <div className="grid grid-cols-7 border-b bg-[var(--sb-surface-muted)]">{weekdays.map((weekday) => <div key={weekday} className="px-1 py-2 text-center text-[10px] font-semibold uppercase tracking-[0.04em] text-muted-foreground sm:text-xs">{weekday}</div>)}</div>
     <div className="grid grid-cols-7">{cells.map((day, index) => {

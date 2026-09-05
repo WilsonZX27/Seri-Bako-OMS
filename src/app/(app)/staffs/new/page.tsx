@@ -61,9 +61,9 @@ export default async function NewStaffPage({
       <PageHeader title="New Staff" description="Create a staff profile, assign role and branch access, then complete login setup from the action panel." />
       <RecordWorkspace
         actionPanel={
-          <RecordActionPanel title="Staff Actions" description="Create the profile and choose how this staff member signs in.">
+          <RecordActionPanel title="Staff Actions" description="Create the profile and issue an auto-generated temporary password.">
             <div className="rounded-[2px] border bg-secondary/30 p-4 text-sm text-muted-foreground">
-              The temporary password is entered in the Sign-in setup section and must be changed at first login.
+              The temporary password is shown once after creation and must be changed at first login.
             </div>
             <div className="rounded-[2px] border bg-secondary/30 p-4 text-sm text-muted-foreground">
               <p className="font-medium text-foreground">Role assignment</p>

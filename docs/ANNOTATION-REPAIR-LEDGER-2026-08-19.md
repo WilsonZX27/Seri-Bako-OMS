@@ -1,5 +1,19 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-09-05 — v9.2.30 People, Schedule and historical record closure
+
+| Comments | Surface | Resolution | Evidence state |
+|---|---|---|---|
+| 1, 5, 9 | People / Staff lists | Removed redundant open text, restored raised list background and kept identity lines contiguous | locally verified; authenticated viewport UAT pending |
+| 2, 6 | Staff detail | Reworked permission switches and deferred the action rail until landscape tablet width | locally verified; authenticated viewport UAT pending |
+| 3–4 | New Staff | Hidden auto-generated password fields and corrected action copy | locally verified; authenticated create flow pending |
+| 7 | Owner self-update | Preserve verified Owner authority across same-role atomic replacement; last-Owner protection remains | migration 264 applied remotely; final dry-run reports the database up to date; authenticated UAT pending |
+| 8 | Historical Outlet Daily | Close Ready-to-post records dated before 2026-09-05 with reviewer attribution and per-record audit | migration 264 applied remotely; final dry-run reports the database up to date |
+| 10–14 | Calendar / Attendance | Centered month and dialog, equalized nav tracks, changed Add to request time per cell, replaced native time picker | locally verified; authenticated interaction UAT pending |
+| 15–16 | Purchase Orders | Protected PO/PR width and reduced Request context width | locally verified; viewport UAT pending |
+
+Production data mutation, deployment and authenticated browser acceptance remain separate from local evidence.
+
 ## 2026-09-05 — v9.2.29 operational polish follow-up
 
 | Comments | Surface | Resolution | Evidence state |

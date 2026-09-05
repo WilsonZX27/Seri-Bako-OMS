@@ -1,5 +1,12 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.30 (unreleased) — Direct manipulation and stable identity columns
+
+- Compact rows keep primary, secondary and detail identity lines in one uninterrupted left stack; status and metadata form the right stack. Redundant “Open” copy is omitted when the row affordance and chevron already communicate navigation.
+- Binary permission controls use the familiar compact mobile switch grammar: a quiet neutral track when off, brand track when on, white thumb, subtle elevation and an explicit focus ring. Portrait tablets do not force dense Staff actions into a narrow side rail.
+- Schedule cells own time entry. Add opens a centered working-time dialog with controlled 30-minute choices; leave and off codes remain reusable shortcuts, while a previous work time never silently carries into the next cell.
+- Register headers preserve the primary business identifier before descriptive context. Calendar navigation balances equal left and right header space so the month stays on the visual centerline.
+
 ## v9.2.29 (unreleased) — Denser operational rhythm with stronger state contrast
 
 - Permission switches retain the approved category-and-row structure while gaining a two-pixel track outline and bordered thumb. Attendance tabs use equal tracks across all available destinations; schedule outlet, week, and Today controls form one bounded row from tablet upward.

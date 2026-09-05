@@ -60,6 +60,7 @@ export default async function EditStaffPage({
     <>
       <PageHeader title={staff.full_name} description="Update staff identity, access, and account actions." />
       <RecordWorkspace
+        tabletRailBreakpoint="lg"
         actionPanel={
           <>
             <RecordActionPanel title="Staff Actions">

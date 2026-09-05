@@ -119,7 +119,7 @@ test("administration decision directories replace narrow tables with shared oper
   assert.match(sequences, /Current period \$\{sequence\.preview_number/);
   assert.match(sequences, /Next \$\{sequence\.next_number\}/);
   assert.match(staffs, /<Table[^>]*mobileHidden[^>]*aria-label="Staff members"/);
-  assert.match(staffs, /<OperationalList ariaLabel="Staff members">/);
+  assert.match(staffs, /<OperationalList ariaLabel="Staff members" className="erp-surface overflow-hidden">/);
   assert.match(staffs, /staffAuthStateLabels\[getStaffAuthState\(staff\)\]/);
   assert.match(staffs, /staff\.default_branch_name \?\? "No default branch"/);
 });

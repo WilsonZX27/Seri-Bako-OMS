@@ -109,8 +109,8 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-10 text-center">Action</TableHead>
-                  <SortableHead label="PO No / PR No" column="po_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} wrap />
-                  <TableHead className="w-52">Request context</TableHead>
+                  <SortableHead className="min-w-36" label="PO No / PR No" column="po_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <TableHead className="w-40 max-w-40">Request context</TableHead>
                   <TableHead className="w-52">Supplier</TableHead>
                   <SortableHead className="hidden md:table-cell" label="Date" column="order_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead className="hidden lg:table-cell" label="Delivery" column="expected_delivery_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
@@ -123,8 +123,8 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                 {orders?.rows.map((order) => (
                   <DataGridRow key={order.id} href={`/purchase-orders/${order.id}`} className="[&>td]:h-16 [&>td]:align-top">
                     <TableCell className="w-10 p-0 text-center"><TableActionLink href={`/purchase-orders/${order.id}`} label={`Open ${order.po_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
-                    <TableCell><DocumentNumber value={order.po_no} size="sm" /><span className="mt-1 block text-[10px] italic text-muted-foreground">{order.purchase_request_id && order.request_no ? <Link href={`/purchase-requests/${order.purchase_request_id}`} className="text-[var(--sb-link)] underline-offset-4 hover:underline">{order.request_no}</Link> : "Direct PO"}</span></TableCell>
-                    <TableCell className="w-52 max-w-52"><p>{order.branch_name ?? "No outlet"}</p><p className="mt-1 text-[11px] text-muted-foreground">{order.requested_by_name ? `Submitted by ${order.requested_by_name}` : "Direct PO"}</p></TableCell>
+                    <TableCell className="min-w-36"><DocumentNumber value={order.po_no} size="sm" /><span className="mt-1 block text-[10px] italic text-muted-foreground">{order.purchase_request_id && order.request_no ? <Link href={`/purchase-requests/${order.purchase_request_id}`} className="text-[var(--sb-link)] underline-offset-4 hover:underline">{order.request_no}</Link> : "Direct PO"}</span></TableCell>
+                    <TableCell className="w-40 max-w-40"><p className="truncate">{order.branch_name ?? "No outlet"}</p><p className="mt-1 truncate text-[11px] text-muted-foreground">{order.requested_by_name ? `Submitted by ${order.requested_by_name}` : "Direct PO"}</p></TableCell>
                     <TableCell className="w-52 max-w-52"><span className="line-clamp-2 leading-4">{order.supplier_name ?? "-"}</span></TableCell>
                     <TableCell className="hidden md:table-cell">{formatDateOnly(order.order_date)}</TableCell>
                     <TableCell className="hidden lg:table-cell">{formatDateOnly(order.expected_delivery_date, "-")}</TableCell>

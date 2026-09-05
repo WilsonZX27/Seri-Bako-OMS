@@ -1,5 +1,13 @@
 # Seri Bako Operations Management System
 
+### v9.2.30 (unreleased) — People and schedule interaction closure
+
+- People and Staff rows remove redundant open copy, keep identity lines contiguous, and restore the raised list surface. New Staff always generates a temporary password and no longer exposes generated setup fields. Staff actions stay out of the narrow portrait-tablet rail, and permission switches use a quieter platform-familiar track and thumb.
+- Schedule navigation uses equal tracks for every permitted destination. Work times are chosen only after Add is clicked, while the palette retains leave and off shortcuts; controlled half-hour selectors replace the browser-native time picker. Outlet Calendar centers its month axis, and Purchase Orders protect the PO/PR identity column by narrowing Request context.
+- Migration 264 preserves Owner authority while an Owner updates their own unchanged Owner assignment, retains last-Owner protection, and closes pre-2026-09-05 historical Outlet Daily records with reviewer attribution and audit entries.
+
+Repository migrations reviewed through `264`. Source, contracts, schema execution, authenticated browser UAT and Production application are reported as separate evidence states.
+
 ### v9.2.29 (unreleased) — Operational polish and complete low-stock scope
 
 - The People profile removes its duplicate employment edit link while Staff access keeps one clear management path and higher-contrast permission switches. Outlet Daily uses a compact horizontal status key and a dedicated landscape-tablet filter row. Attendance navigation and schedule period controls share equal, bounded tracks. The Dashboard restores a stronger Seri Bako green hierarchy.

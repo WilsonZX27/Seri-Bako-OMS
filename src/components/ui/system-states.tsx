@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { AlertTriangle, Ban, CheckCircle2, FileQuestion, SearchX, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { WorkspaceCanvas, WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { cn } from "@/lib/utils";
 
 type StateAction = { href: string; label: string } | ReactNode;
@@ -47,10 +47,12 @@ export function PageLoadingState({ label = "Loading workspace...", variant = "li
     <div aria-live="polite" aria-busy="true" data-page-loading-state>
       <span className="sr-only" role="status">{label}</span>
       <div className="border-b border-[var(--sb-border-soft)] bg-[var(--workspace-bg)]" aria-hidden="true">
-        <div className="sb-workspace-canvas space-y-2 py-3" data-workspace-canvas data-canvas-mode="wide">
-          <div className="sb-skeleton h-5 w-44" />
-          <div className="sb-skeleton h-3 w-72 max-w-full" />
-        </div>
+        <WorkspaceCanvas mode="wide" className="flex items-start justify-between gap-3 py-3">
+          <div className="min-w-0 space-y-2">
+            <div className="sb-skeleton h-5 w-44" />
+            <div className="sb-skeleton h-3 w-72 max-w-full" />
+          </div>
+        </WorkspaceCanvas>
       </div>
       <WorkspaceGrid tabletCanvas="wide" tabletRailBreakpoint="lg" hideMobileConsole rightRail={rightRail}>
       <div className="relative min-h-72" aria-hidden="true"><LoadingCanvas variant={variant} /></div>

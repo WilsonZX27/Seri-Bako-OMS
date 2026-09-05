@@ -44,7 +44,7 @@ export function OutletDailyWastageChart({ points, branch, unavailable = false }:
       </div>
       {unavailable ? <div className="px-4 py-8 text-center" role="status"><p className="text-sm font-medium">Wastage trend unavailable</p><p className="mt-1 text-xs text-muted-foreground">The daily record list remains current. Retry this page to load the selected 7-day insight.</p></div> : points.length ? (
       <div className="grid flex-1 items-stretch gap-3 p-2 pt-3 xl:grid-cols-[minmax(0,3fr)_minmax(18rem,2fr)] xl:p-3" data-outlet-wastage-layout>
-        <div className="flex min-w-0 w-full items-stretch xl:min-h-72" data-outlet-wastage-chart-panel>
+        <div className="flex min-h-72 min-w-0 w-full flex-1 items-stretch xl:min-h-72" data-outlet-wastage-chart-panel>
           <InteractiveLineChart
             points={chartPoints}
             width={width}

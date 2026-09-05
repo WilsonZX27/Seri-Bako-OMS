@@ -102,7 +102,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                   <TableHead>Request context</TableHead>
                   <TableHead>Supplier</TableHead>
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <TableHead className="text-right">Request value</TableHead>
+                  <TableHead className="pr-5 text-right">Request value</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

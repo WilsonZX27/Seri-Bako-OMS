@@ -23,6 +23,7 @@ import { getOutletDailyCompletionMatrix, getOutletDailyDemandTrend, getOutletDai
 import { logServerError } from "@/server/observability/logger";
 
 const statuses = ["draft", "morning_recorded", "evening_completed", "void"];
+const statusLabels: Record<string, string> = { draft: "Draft", morning_recorded: "Morning recorded", evening_completed: "Ready to post", void: "Void" };
 const formatWastageRate = (value: number) => new Intl.NumberFormat("en-MY", { maximumFractionDigits: 1 }).format(value);
 const outletProgress = (row: { status: string; qty_sent_state: string; received_pending_lines: number; sales_review_status?: string | null }) => {
   if (row.status === "reviewed" && row.sales_review_status === "needs_review") return { status: "attention", label: "Attention" };
@@ -110,7 +111,7 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
         >
             <Input name="date" type="date" defaultValue={filters.date ?? ""} aria-label="Record date" className="sb-filter-date" />
             <SelectControl name="branch" value={filters.branch ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...options.branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
-            <SelectControl name="status" value={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status, label: status.replaceAll("_", " ") }))]} />
+            <SelectControl name="status" value={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status, label: statusLabels[status] ?? status }))]} />
             {canViewSentGaps ? <SelectControl name="sent_state" value={filters.sent_state ?? "all"} ariaLabel="Qty sent state" options={[{ value: "all", label: "All Qty Sent" }, { value: "missing", label: "Qty Sent missing" }]} /> : null}
               <Button type="submit" variant="secondary" data-list-action="primary">Search</Button>
               {filtered ? <Button asChild variant="secondary" data-list-action="secondary"><Link href="/outlet-daily-records">Reset</Link></Button> : null}

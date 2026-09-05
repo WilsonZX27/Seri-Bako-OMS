@@ -84,7 +84,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
             </UnifiedListHeader>
           <div className="sb-list-content-card overflow-hidden" data-mobile-list-content-card>
           <DataGridHint text="Pro-tip: Double-click any row to open the goods receiving document." />
-          <Table mobileHidden compactUntil="2xl" aria-label="Goods receiving records" stickyColumn="second">
+          <Table mobileHidden compactUntil="xl" aria-label="Goods receiving records" stickyColumn="second">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-10 text-center">Action</TableHead>
@@ -113,7 +113,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                 {!receivings?.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={!receivings ? "Goods receiving data unavailable" : filtered ? "No receivings match these filters" : "No goods receivings yet"} description={!receivings ? "The receiving source could not be verified. No quantities or record count are shown as zero." : filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={emptyStateAction} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
-            <OperationalList ariaLabel="Goods receiving records" showUntil="2xl">
+            <OperationalList ariaLabel="Goods receiving records" showUntil="xl">
               {receivings?.rows.map((receiving) => <OperationalListRow
                 key={receiving.id}
                 href={`/goods-receivings/${receiving.id}`}

@@ -38,7 +38,7 @@ export function ComplianceFileInput({ compact = false }: { compact?: boolean }) 
       <span className="truncate">{selected?.name ?? "Choose file"}</span>
       {selected && !error ? <span className="ml-auto shrink-0 text-[10px] opacity-75">{fileSize(selected.size)}</span> : null}
     </label>
-    <p id={`${inputId}-guidance`} className="text-[10px] leading-4 text-muted-foreground">PDF, PNG, JPEG or WebP · maximum 4 MB.</p>
+    <p id={`${inputId}-guidance`} className="whitespace-nowrap text-[10px] leading-4 text-muted-foreground">PDF, PNG, JPEG or WebP · maximum 4 MB.</p>
     {error ? <p id={`${inputId}-error`} role="alert" className="text-xs font-medium text-[var(--sb-danger)]">{error}</p> : null}
   </div>;
 }

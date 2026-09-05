@@ -24,7 +24,7 @@ export function MappingAdmin({ branches, devices }: { branches: Option[]; device
       <h2 className="text-sm font-semibold">NGTeco Source <ArrowRight className="mx-1 inline h-3.5 w-3.5" aria-hidden="true" /> Outlet</h2>
       <p className="mt-1 text-xs text-muted-foreground">Link the Source value in the export to the outlet where that device is installed.</p>
       <form className="mt-4 grid min-w-0 items-end gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_auto]" onSubmit={(event) => { event.preventDefault(); void submit(event.currentTarget); }}>
-        <label className="grid gap-1 text-xs font-medium">NGTeco Source<Input name="sourceCode" required maxLength={100} placeholder="e.g. Main Door" /></label>
+        <label className="grid gap-1 text-xs font-medium">NGTeco Source<Input name="sourceCode" required maxLength={100} /></label>
         <label className="grid gap-1 text-xs font-medium">Outlet<select name="branchId" required className="h-10 rounded-md border bg-background px-3 text-sm"><option value="">Select outlet</option>{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}</select></label>
         <Button type="submit" className="h-10 min-w-20 px-4">Link</Button>
       </form>

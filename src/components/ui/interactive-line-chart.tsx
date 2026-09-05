@@ -106,8 +106,9 @@ export function InteractiveLineChart({
     <div className="relative min-w-0 w-full" data-interactive-line-chart>
       <svg
         ref={chartRef}
-        className="h-auto w-full touch-pan-y rounded-[var(--sb-radius-control)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-2"
+        className="block h-full min-h-72 w-full touch-pan-y rounded-[var(--sb-radius-control)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-2"
         viewBox={`0 0 ${width} ${height}`}
+        preserveAspectRatio="none"
         role="img"
         tabIndex={0}
         aria-roledescription="interactive line chart"

@@ -51,6 +51,8 @@ export type PurchaseRequestRow = PurchaseRequest & {
 export type PurchaseOrderRow = PurchaseOrder & {
   supplier_name: string | null;
   request_no: string | null;
+  branch_name: string | null;
+  requested_by_name: string | null;
   line_count: number;
   order_total: number;
 };
@@ -128,11 +130,15 @@ function hydratePr(row: PurchaseRequest, lines: PurchaseRequestLine[]): Purchase
 
 function hydratePo(row: PurchaseOrder, lines: PurchaseOrderLine[]): PurchaseOrderRow {
   const supplier = mockSuppliers.find((item) => item.id === row.supplier_id);
+  const request = row.purchase_request_id ? mockPurchaseRequests.find((item) => item.id === row.purchase_request_id) : null;
+  const branch = request ? mockBranches.find((item) => item.id === request.branch_id) : null;
   const ownLines = lines.filter((line) => line.purchase_order_id === row.id);
   return {
     ...row,
     supplier_name: supplier?.name ?? null,
-    request_no: row.purchase_request_id ? mockPurchaseRequests.find((request) => request.id === row.purchase_request_id)?.request_no ?? null : null,
+    request_no: request?.request_no ?? null,
+    branch_name: branch?.branch_name ?? null,
+    requested_by_name: request?.requested_by ? mockProfile.full_name : null,
     line_count: ownLines.length,
     order_total: ownLines.reduce((sum, line) => sum + line.qty_ordered * line.unit_price, 0),
   };
@@ -399,18 +405,30 @@ export async function getPurchaseOrders(filters: Filters = {}) {
   const [{ data: lines, error: linesError }, { data: suppliers, error: suppliersError }, { data: requests, error: requestsError }] = await Promise.all([
     ids.length ? supabase.from("purchase_order_lines").select("purchase_order_id, qty_ordered, unit_price").in("purchase_order_id", ids) : Promise.resolve({ data: [], error: null }),
     data.length ? supabase.from("suppliers").select("id, name").in("id", data.map((row) => row.supplier_id)) : Promise.resolve({ data: [], error: null }),
-    requestIds.length ? supabase.from("purchase_requests").select("id, request_no").in("id", requestIds) : Promise.resolve({ data: [], error: null }),
+    requestIds.length ? supabase.from("purchase_requests").select("id, request_no, branch_id, requested_by").in("id", requestIds) : Promise.resolve({ data: [], error: null }),
   ]);
   if (linesError || suppliersError || requestsError) throw new Error((linesError ?? suppliersError ?? requestsError)!.message);
   if (!lines || (data.length > 0 && !suppliers)) throw new Error("Purchase order related data returned no data.");
   const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
   const requestById = new Map((requests ?? []).map((row) => [row.id, row.request_no]));
+  const branchIds = [...new Set((requests ?? []).map((row) => row.branch_id).filter((id): id is string => Boolean(id)))];
+  const requesterIds = [...new Set((requests ?? []).map((row) => row.requested_by).filter((id): id is string => Boolean(id)))];
+  const [{ data: branches, error: branchesError }, { data: requesters, error: requestersError }] = await Promise.all([
+    branchIds.length ? supabase.from("branches").select("id, branch_name").in("id", branchIds) : Promise.resolve({ data: [], error: null }),
+    requesterIds.length ? supabase.from("staffs").select("id, full_name").in("id", requesterIds) : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (branchesError || requestersError) throw new Error((branchesError ?? requestersError)!.message);
+  const branchById = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
+  const requesterById = new Map((requesters ?? []).map((row) => [row.id, row.full_name]));
   const rows = data.map((row) => {
     const ownLines = lines.filter((line) => line.purchase_order_id === row.id);
+    const request = row.purchase_request_id ? (requests ?? []).find((candidate) => candidate.id === row.purchase_request_id) : null;
     return {
       ...row,
       supplier_name: supplierById.get(row.supplier_id) ?? null,
       request_no: row.purchase_request_id ? requestById.get(row.purchase_request_id) ?? null : null,
+      branch_name: request?.branch_id ? branchById.get(request.branch_id) ?? null : null,
+      requested_by_name: request?.requested_by ? requesterById.get(request.requested_by) ?? null : null,
       line_count: ownLines.length,
       order_total: ownLines.reduce((sum, line) => sum + line.qty_ordered * line.unit_price, 0),
     };

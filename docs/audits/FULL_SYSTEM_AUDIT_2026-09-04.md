@@ -242,6 +242,11 @@ The annotation-derived mobile and workflow changes were tested against the same 
 - Local contract suite after this follow-up: **1,165/1,165 passed**; TypeScript and ESLint remain green.
 - The chart wrapper now inherits the full panel height, removing the remaining bottom whitespace under the SVG while preserving the fixed chart/data split.
 
+## Low Stock read-path follow-up — 2026-09-05
+
+- Low Stock now attempts the existing read-only `low_stock_items` compatibility view if both the pre-aggregated summary and canonical balance view fail. Branch-scoped requests intentionally do not use that legacy view because its generated schema has no branch key; they remain fail-closed rather than leaking cross-branch rows.
+- This is a source-level resilience improvement only. The Preview environment still lacks an evidenced isolated Supabase target, so no remote inventory data claim is made.
+
 ## Preview push receipt — 2026-09-05
 
 - Commit `48f03dcd` was pushed to `origin/codex/annotation-closure-loading-schedule` under the owner's explicit Preview authorization.

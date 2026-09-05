@@ -28,7 +28,9 @@ test("inventory fallbacks mark low-stock unavailable when the canonical fallback
   assert.match(source, /if \(!transactionData\) throw new Error\("Stock Card transaction fallback returned no data\."\)/);
   assert.match(source, /const balancesUnavailable = Boolean\(balancesResult\.error \|\| !balancesResult\.data/);
   assert.match(source, /const summaryError = error \?\? \(data == null \? new Error\("Low stock summary returned no data\."\) : null\)/);
-  assert.match(source, /error = viewResult\.error/);
+  assert.match(source, /from\("low_stock_items"\)/);
+  assert.match(source, /error = legacyResult\.error/);
+  assert.match(source, /if \(!branchId\)/);
   assert.match(source, /return \{ rows: \[\], count: null, unavailable: true \}/);
 });
 

@@ -1077,7 +1077,27 @@ async function loadLowStockItems(filters: Filters = {}) {
       error = null;
     } else if (viewResult.error) {
       warnOptionalInventoryQuery("low stock canonical fallback", viewResult.error);
-      error = viewResult.error;
+      // Older linked deployments may still expose the original read-only
+      // low_stock_items view while the pre-aggregated summary/view is being
+      // repaired. Keep this as a final read-only compatibility path.
+      if (!branchId) {
+        const legacyResult = await supabase
+          .from("low_stock_items")
+          .select("*")
+          .order("shortage_quantity", { ascending: false })
+          .order("item_name", { ascending: true });
+        if (legacyResult.data) {
+          fallbackData = legacyResult.data;
+          error = null;
+        } else {
+          warnOptionalInventoryQuery("low stock legacy fallback", legacyResult.error ?? viewResult.error);
+          error = legacyResult.error ?? viewResult.error;
+        }
+      } else {
+        // The legacy view has no branch key in the generated schema, so never
+        // use it for a branch-scoped request.
+        error = viewResult.error;
+      }
     } else {
       fallbackData = viewResult.data ?? [];
       error = null;

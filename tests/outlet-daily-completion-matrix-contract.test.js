@@ -75,7 +75,8 @@ test("phone completion insight keeps the summary and seven-day matrix directly s
   const component = read("src/components/outlet-daily-completion-matrix.tsx");
   assert.match(component, /data-outlet-completion-phone-summary/);
   assert.match(component, /data-outlet-completion-legend/);
-  assert.match(component, /grid-cols-\[calc\(9rem\+4px\)_minmax\(0,1fr\)\]/);
+  assert.match(component, /flex flex-wrap items-center gap-x-3 gap-y-1/);
+  assert.match(component, /bg-\[var\(--sb-surface-muted\)\].*data-outlet-completion-legend/);
   assert.doesNotMatch(component, /recorded system status/);
   assert.match(component, /\["draft", "morning_recorded", "evening_completed", "reviewed", "posted_attention", "missing", "void"\]/);
   assert.match(component, /id="outlet-completion-detail"/);

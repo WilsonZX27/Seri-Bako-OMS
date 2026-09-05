@@ -1,5 +1,10 @@
 # Seri Bako Operations Management System
 
+### v9.2.29 (unreleased) — Operational polish and complete low-stock scope
+
+- The People profile removes its duplicate employment edit link while Staff access keeps one clear management path and higher-contrast permission switches. Outlet Daily uses a compact horizontal status key and a dedicated landscape-tablet filter row. Attendance navigation and schedule period controls share equal, bounded tracks. The Dashboard restores a stronger Seri Bako green hierarchy.
+- Low Stock now includes active branch-mapped items before their first ledger movement, so a zero-balance item below safety stock is visible instead of being reported as healthy. Local typecheck, lint, 1,172 contract tests, and the 95-page production build pass; authenticated browser UAT, push, deployment, and Production verification remain separate.
+
 ### v9.2.28 (unreleased) — Mobile workflow and posting closure
 
 - Outlet Daily phone actions share one equal-width row and sales inputs use a compact two-column numeric layout. Outlet users can correct and resave a Ready to post record until an authorised Purchasing, Manager, Finance or company-wide role posts it; posting then locks the record.

@@ -1,5 +1,17 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-09-05 — v9.2.29 operational polish follow-up
+
+| Comments | Surface | Resolution | Evidence state |
+|---|---|---|---|
+| 1–3 | People profile and Staff permissions | Removed the duplicate employment edit link; preserved the accepted category layout; strengthened both on and off switch outlines | implemented; contract, lint, typecheck and build verified locally |
+| 4–5 | Outlet Daily | Replaced the vertical legend with one compact horizontal key; added a date-led single-row landscape-tablet filter layout | implemented; contract, lint, typecheck and build verified locally |
+| 6–8 | Attendance Schedule | Equalized workspace navigation and aligned outlet, week and Today controls into a bounded tablet row | implemented; lint, typecheck and build verified locally |
+| 9 | Dashboard | Increased hierarchy with a deep-green work summary, stronger sage headers and a contained operational canvas | implemented; full contract suite and build verified locally |
+| 10 | Low Stock | Read the branch-mapped eligibility view so below-safety items with no ledger movement no longer disappear as a false healthy zero | implemented; query contract and build verified locally; authenticated data UAT pending |
+
+Production deployment and authenticated browser acceptance remain separate from this local evidence.
+
 ## 2026-09-04 — v9.2.26 build and annotation-system closure
 
 | Surface / source | Finding | Systemic resolution | Evidence state |

@@ -33,6 +33,7 @@ test("dashboard and low-stock page consume one branch-item result authority", ()
   assert.match(dashboard, /getLowStockResult\(\)/);
   assert.match(page, /getLowStockResult\(filters\)/);
   assert.doesNotMatch(dashboard, /new Set\([\s\S]*lowStockViewRows/);
+  assert.match(read("src/server/queries/inventory.ts"), /from\("stock_count_eligible_items" as "stock_balances_summary"\)/);
 });
 
 test("unavailable low-stock data never renders a healthy zero", () => {

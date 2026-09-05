@@ -12,9 +12,9 @@ test("dashboard mobile groups retain padding and a deliberate sage hierarchy", (
   assert.match(dashboard, /data-dashboard-panel-body/);
   assert.match(dashboard, /gap-y-1 px-3 py-2\.5/);
   assert.match(design, /\[data-dashboard-panel\] > :last-child\s*\{[\s\S]*padding:\s*0\.5rem;[\s\S]*background:\s*#f4f7f5/);
-  assert.match(design, /--sb-dashboard-header-surface:\s*#d7e7df/);
-  assert.match(design, /\[data-dashboard-panel\] > :first-child\s*\{[\s\S]*background:\s*var\(--sb-dashboard-header-surface\)/);
-  assert.match(design, /\[data-dashboard-attention-summary\]\s*\{[\s\S]*background:\s*var\(--sb-dashboard-header-surface\)/);
+  assert.match(design, /\[data-dashboard-panel\] > :first-child\s*\{[\s\S]*background:\s*#c9ded4/);
+  assert.match(design, /\[data-dashboard-attention-summary\]\s*\{[\s\S]*background:\s*var\(--sb-green-900\)/);
+  assert.match(design, /\[data-dashboard-layout\]\s*\{[\s\S]*background:\s*#e6efea/);
   assert.match(dashboard, /grid grid-cols-3 divide-x[^\n]+data-dashboard-quick-actions/);
   assert.doesNotMatch(dashboard, /data-dashboard-quick-actions[\s\S]{0,900}hover:-translate-y/);
 });

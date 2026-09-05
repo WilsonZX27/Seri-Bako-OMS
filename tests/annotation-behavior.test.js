@@ -67,16 +67,16 @@ test('invalid optional sales does not invalidate valid outlet quantities', () =>
 });
 
 
-test('a successful empty low-stock summary does not query the expensive ledger views', async () => {
+test('a successful empty low-stock eligible scope does not query the expensive ledger views', async () => {
   const sources = [];
   const query = { select(){return this;}, eq(){return this;}, order(){return this;}, range: async () => ({data: [], error: null}) };
   const { loadLowStockItems } = loadFunctions('src/server/queries/inventory.ts', ['readLowStockPages', 'loadLowStockItems'], {
     isMockMode: () => false,
-    createClient: async () => ({from(name) { sources.push(name); if(name !== 'stock_balances_summary') throw new Error('Unexpected fallback'); return query; }}),
+    createClient: async () => ({from(name) { sources.push(name); if(name !== 'stock_count_eligible_items') throw new Error('Unexpected fallback'); return query; }}),
     warnOptionalInventoryQuery: () => {},
   });
   assert.deepEqual(await loadLowStockItems(), []);
-  assert.deepEqual(sources, ['stock_balances_summary']);
+  assert.deepEqual(sources, ['stock_count_eligible_items']);
 });
 
 test('the two observed production Outlet Daily errors report pending database rules, not missing inputs', () => {

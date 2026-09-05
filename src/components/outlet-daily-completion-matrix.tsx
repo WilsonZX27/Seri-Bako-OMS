@@ -56,11 +56,11 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
           })}</tr>)}</tbody>
         </table>
       </div>
-      <div className="grid grid-cols-[calc(9rem+4px)_minmax(0,1fr)] gap-1 border-t border-[var(--sb-border-soft)] px-3 py-2 sm:grid-cols-[calc(12rem+4px)_minmax(0,1fr)]">
-      <div className="grid content-start gap-1 text-[10px] text-muted-foreground" aria-label="Status key" data-outlet-completion-legend>
-        {(["draft", "morning_recorded", "evening_completed", "reviewed", "posted_attention", "missing", "void"] as const).map((status) => <span key={status} className="inline-flex min-w-0 items-center gap-1"><span className={`grid h-4 min-w-4 shrink-0 place-items-center border px-0.5 text-[9px] font-bold ${stateMeta[status].className}`}>{stateMeta[status].short}</span><span>{stateMeta[status].label}</span></span>)}
+      <div className="border-t border-[var(--sb-border-soft)]">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 bg-[var(--sb-surface-muted)] px-3 py-2 text-[10px] text-[var(--sb-text-muted)]" aria-label="Status key" data-outlet-completion-legend>
+        {(["draft", "morning_recorded", "evening_completed", "reviewed", "posted_attention", "missing", "void"] as const).map((status) => <span key={status} className="inline-flex min-w-0 items-center gap-1.5 whitespace-nowrap"><span className={`grid h-4 min-w-4 shrink-0 place-items-center border px-0.5 text-[9px] font-bold ${stateMeta[status].className}`}>{stateMeta[status].short}</span><span>{stateMeta[status].label}</span></span>)}
       </div>
-      {active ? <div className="min-w-0" aria-live="polite" data-outlet-completion-preview>
+      {active ? <div className="min-w-0 border-t border-[var(--sb-border-soft)] px-3 py-2" aria-live="polite" data-outlet-completion-preview>
         <div className="grid gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
           <div><p className="text-xs font-semibold">{active.branch_name} · {formatDateOnly(active.record_date)}</p><p className="text-[11px] text-muted-foreground">{active.status === "reviewed" && active.sales_review_status === "needs_review" ? stateMeta.posted_attention.label : stateMeta[active.status].label}{active.status === "missing" ? " · no record exists for this outlet-day" : ""}</p></div>
           {active.record_id ? <Link href={`/outlet-daily-records/${active.record_id}`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary underline-offset-4 hover:underline xl:min-h-8">Open daily record</Link> : active.status === "missing" && canCreate ? <Link href={`/outlet-daily-records/new?branch_id=${encodeURIComponent(active.branch_id)}&date=${encodeURIComponent(active.record_date)}`} className="inline-flex min-h-11 items-center text-xs font-semibold text-primary underline-offset-4 hover:underline xl:min-h-8">Create daily record</Link> : null}

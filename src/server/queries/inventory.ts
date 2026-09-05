@@ -1057,8 +1057,12 @@ async function loadLowStockItems(filters: Filters = {}) {
   }
 
   const supabase = await createClient();
+  // Include active branch-mapped items before their first ledger movement.
+  // The stock-count eligibility view already unions those zero-balance rows
+  // with the posted-ledger summary, so replenishment does not silently omit
+  // a newly mapped item that is already below safety stock.
   let query = supabase
-    .from("stock_balances_summary")
+    .from("stock_count_eligible_items" as "stock_balances_summary")
     .select("*")
     .eq("status", "active")
     .eq("is_low_stock", true)

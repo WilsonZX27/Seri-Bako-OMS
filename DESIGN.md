@@ -1,5 +1,10 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.29 (unreleased) — Denser operational rhythm with stronger state contrast
+
+- Permission switches retain the approved category-and-row structure while gaining a two-pixel track outline and bordered thumb. Attendance tabs use equal tracks across all available destinations; schedule outlet, week, and Today controls form one bounded row from tablet upward.
+- Outlet Daily treats its seven-state key as a compact horizontal strip and gives its date-led register a one-row landscape-tablet filter composition. Dashboard priority surfaces use deep Seri Bako green for the work summary, stronger sage section headers, and one contained sage canvas behind the operational groups.
+
 ## v9.2.28 (unreleased) — Persistent navigation and role-owned finalisation
 
 - A route loading boundary owns only the changing content canvas. The authenticated five-item mobile navigation remains mounted and visually unchanged; stale route actions, document action bars, create FABs and placeholder `More actions` controls are suppressed until real content resolves.

@@ -74,7 +74,8 @@ test("mixed compliance route redirects and module pages remain separate", () => 
 test("People profile exposes authorised employment editing and staff document capture", () => {
   const people = read("src","app","(app)","people","[id]","page.tsx");
   const action = read("src","server","actions","compliance.ts");
-  assert.match(people, /Edit employment & outlets/);
+  assert.doesNotMatch(people, /Edit employment & outlets/);
+  assert.match(people, /Manage account & access/);
   assert.match(people, /Compliance summary/);
   assert.match(people, /Add compliance record/);
   assert.match(people, /Add employee document/);

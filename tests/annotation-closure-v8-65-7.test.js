@@ -11,7 +11,7 @@ test("dashboard annotation closure removes oversized nested metric cards", () =>
   const design = read("src", "app", "design-system-v2.css");
   assert.match(dashboard, /data-dashboard-command className="sb-work-surface overflow-hidden"/);
   assert.match(dashboard, /grid grid-cols-3 divide-x divide-\[var\(--sb-border-soft\)\]/);
-  assert.doesNotMatch(design, /\[data-dashboard-command\][\s\S]{0,240}background:\s*var\(--sb-green-900\)/);
+  assert.match(design, /\[data-dashboard-command\] \[data-dashboard-attention-summary\][\s\S]{0,120}background:\s*var\(--sb-green-900\)/);
   assert.doesNotMatch(design, /\[data-dashboard-panel\] > :first-child[\s\S]{0,100}linear-gradient/);
 });
 

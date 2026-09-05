@@ -240,6 +240,7 @@ The annotation-derived mobile and workflow changes were tested against the same 
 - Purchase Orders now maps the readable `Receiving` filter to the database's `partial_received` state; the previous value could silently return no matching rows against the live enum.
 - The Purchase Orders search hint now names only the fields currently queried (`PO no` and `remarks`) instead of implying supplier search that the server query did not perform.
 - Local contract suite after this follow-up: **1,165/1,165 passed**; TypeScript and ESLint remain green.
+- The chart wrapper now inherits the full panel height, removing the remaining bottom whitespace under the SVG while preserving the fixed chart/data split.
 
 ## Preview push receipt — 2026-09-05
 

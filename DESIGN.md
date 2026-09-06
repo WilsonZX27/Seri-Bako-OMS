@@ -1,5 +1,10 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.33 (unreleased) — One tablet filter authority
+
+- A route-specific tablet layout must replace the earlier shared declaration that owns its grid tracks. Adding a second selector in another stylesheet is insufficient when the original rule continues to win the cascade.
+- Outlet Daily uses two equal columns for its four filter controls, followed by a full-width command row.
+
 ## v9.2.32 (unreleased) — Equal controls and two-line metrics
 
 - Tablet query controls in the same group use equal tracks. Search/result actions occupy their own row when forcing them beside four filters would produce unequal or truncated controls.

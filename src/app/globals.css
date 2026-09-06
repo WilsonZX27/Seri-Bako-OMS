@@ -474,11 +474,12 @@ input[type="date"]::-webkit-date-and-time-value {
 
 @media (min-width: 768px) and (max-width: 1023px) {
   .sb-outlet-daily-filters[data-unified-list-desktop="true"] {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-flow: row;
   }
 
   .sb-outlet-daily-filters[data-unified-list-desktop="true"] > .unified-list-desktop-actions {
-    grid-column: 3 / -1 !important;
+    grid-column: 1 / -1 !important;
   }
 }
 

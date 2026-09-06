@@ -1,6 +1,6 @@
 {
   "name": "seri-bako-ops",
-  "version": "9.2.32",
+  "version": "9.2.33",
   "private": true,
   "engines": {
     "node": "22.x"

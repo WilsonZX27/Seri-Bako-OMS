@@ -1,5 +1,11 @@
 # Seri Bako Operations Management System
 
+### v9.2.33 (unreleased) — Outlet Daily tablet authority correction
+
+- Replaces the older four-column Outlet Daily tablet rule at its source. At 820px, date, branch, status and Qty Sent now occupy four equal controls in a two-column grid, with Search and result count on their own row.
+
+The correction was derived from computed Production geometry rather than screenshot inference. Local contracts and strict TypeScript pass; deployment and final Production geometry remain separate evidence states.
+
 ### v9.2.32 (unreleased) — Tablet composition and dashboard density correction
 
 - Outlet Daily portrait-tablet filters use four equal controls in a stable two-column flow with a separate action/count row. Outlet Compliance restores its operational right rail from the 768px tablet breakpoint.

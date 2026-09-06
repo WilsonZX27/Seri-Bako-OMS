@@ -53,8 +53,11 @@ test("Attendance, calendar and PO headers retain stable alignment", () => {
 });
 
 test("portrait tablet filters and compliance rail keep deliberate geometry", () => {
+  const globals = read("src", "app", "globals.css");
   const design = read("src", "app", "design-system-v2.css");
   const compliance = read("src", "app", "(app)", "outlet-compliance", "page.tsx");
+  assert.match(globals, /\.sb-outlet-daily-filters\[data-unified-list-desktop="true"\]\s*\{[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(globals, /\.sb-outlet-daily-filters\[data-unified-list-desktop="true"\] > \.unified-list-desktop-actions\s*\{[\s\S]*grid-column: 1 \/ -1 !important/);
   assert.match(design, /form\.sb-outlet-daily-filters\.sb-list-query-card\s*\{[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
   assert.match(design, /unified-list-desktop-actions > \.unified-list-action\s*\{[\s\S]*width: calc\(50% - \.25rem\)/);
   assert.match(compliance, /tabletRailBreakpoint="md"/);

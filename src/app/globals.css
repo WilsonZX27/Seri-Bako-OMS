@@ -650,14 +650,7 @@ input[type="date"]::-webkit-date-and-time-value {
 
 }
 
-/* A filter dialog owns the interaction surface on phone and tablet. Remove the
-   underlying navigation instead of leaving an invisible hit area beneath the
-   dialog's actions. */
 @media (max-width: 1279px) {
-  html[data-filter-dialog-open] [data-mobile-app-nav] {
-    display: none !important;
-  }
-
   .sb-filter-more[open] > .sb-filter-more-backdrop {
     position: fixed;
     z-index: var(--sb-z-backdrop);
@@ -673,7 +666,7 @@ input[type="date"]::-webkit-date-and-time-value {
   .sb-filter-more > .sb-filter-more-panel {
     position: fixed;
     z-index: var(--sb-z-dialog);
-    inset: auto 0 0;
+    inset: auto 0 var(--sb-mobile-nav-height);
     display: flex;
     flex-direction: column;
     width: auto;
@@ -744,7 +737,7 @@ input[type="date"]::-webkit-date-and-time-value {
 @media (min-width: 768px) and (max-width: 1279px) {
   .sb-filter-more > .sb-filter-more-panel {
     right: 1rem;
-    bottom: 1rem;
+    bottom: calc(var(--sb-mobile-nav-height) + 1rem);
     left: auto;
     width: min(28rem, calc(100vw - 2rem));
     border: 1px solid var(--sb-border-soft);

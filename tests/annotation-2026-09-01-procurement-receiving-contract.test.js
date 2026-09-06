@@ -69,5 +69,5 @@ test("new GRNs use the same controlled over-receipt rule as draft edits", () => 
 
 test("right console keeps document sections visually separate", () => {
   const console = read("src/components/layout/right-console.tsx");
-  assert.match(console, /h-full space-y-4 overflow-y-auto/);
+  assert.match(console, /h-full space-y-3 overflow-y-auto/);
 });

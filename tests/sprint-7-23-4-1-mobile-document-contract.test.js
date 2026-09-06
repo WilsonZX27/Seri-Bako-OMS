@@ -68,7 +68,8 @@ test("More filters escapes list clipping on mobile and tablet", () => {
   assert.match(filter, /sb-filter-more-backdrop/);
   assert.match(filter, /event\.key === "Escape"/);
   assert.match(filter, /filterDialogOpen/);
-  assert.match(css, /html\[data-filter-dialog-open\] \[data-mobile-app-nav\]/);
+  assert.doesNotMatch(css, /html\[data-filter-dialog-open\] \[data-mobile-app-nav\]/);
+  assert.match(css, /inset: auto 0 var\(--sb-mobile-nav-height\)/);
   assert.match(css, /@media \(max-width: 1279px\)[\s\S]*\.sb-filter-more\[open\]/);
   assert.match(css, /z-index: var\(--sb-z-dialog\)/);
   assert.match(filter, />Filters</);

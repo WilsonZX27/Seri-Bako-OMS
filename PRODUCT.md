@@ -1,5 +1,14 @@
 # Seri Bako Operations Management System
 
+### v9.2.31 (unreleased) — Schedule, filters and purchasing interaction polish
+
+- Schedule working time is centered at every viewport and asks only for check-in and check-out. Submit now saves pending cell changes automatically before sending the roster to a Manager, while Save draft remains available for incomplete work.
+- Attendance navigation is more compact. Outlet Daily uses a readable two-column portrait-tablet filter layout, and More filters stays above the persistent bottom navigation.
+- Item identity uses a deliberate image-left, fields-right composition on wide screens with a larger preview. Right-rail sections use one consistent spacing rhythm.
+- Stock Balance PR baskets show supplier item counts and row indices, and allow the purchase UOM to be selected from the item's supported units.
+
+Repository migrations reviewed through `264`. Local contracts, lint, strict TypeScript and the 95-page production build pass; authenticated viewport UAT, push, deployment and Production verification remain separate evidence states.
+
 ### v9.2.30 (unreleased) — People and schedule interaction closure
 
 - People and Staff rows remove redundant open copy, keep identity lines contiguous, and restore the raised list surface. New Staff always generates a temporary password and no longer exposes generated setup fields. Staff actions stay out of the narrow portrait-tablet rail, and permission switches use a quieter platform-familiar track and thumb.

@@ -8,9 +8,10 @@ const css = fs.readFileSync(path.join(root, "src", "app", "globals.css"), "utf8"
 const filterBar = fs.readFileSync(path.join(root, "src", "components", "ui", "filter-bar.tsx"), "utf8");
 const unified = fs.readFileSync(path.join(root, "src", "components", "common", "UnifiedListHeader.tsx"), "utf8");
 
-test("filter dialog owns the mobile navigation surface while open", () => {
+test("filter dialog stays above content without removing mobile navigation", () => {
   assert.match(filterBar, /dataset\.filterDialogOpen\s*=\s*"true"/);
-  assert.match(css, /html\[data-filter-dialog-open\]\s+\[data-mobile-app-nav\]\s*\{[\s\S]*display:\s*none\s*!important/);
+  assert.doesNotMatch(css, /html\[data-filter-dialog-open\]\s+\[data-mobile-app-nav\]\s*\{[\s\S]*display:\s*none\s*!important/);
+  assert.match(css, /bottom: calc\(var\(--sb-mobile-nav-height\) \+ 1rem\)/);
 });
 
 test("mobile filter dialog traps keyboard focus and restores its trigger", () => {

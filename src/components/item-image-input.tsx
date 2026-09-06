@@ -18,9 +18,9 @@ export function ItemImageInput({ currentUrl, name }: { currentUrl?: string | nul
     return () => URL.revokeObjectURL(url);
   }, [file]);
   const src = preview ?? (removed ? null : currentUrl);
-  return <div className="flex items-start gap-3">
-    <ItemThumbnail src={src} alt={name} className="!h-20 !w-20" />
-    <div className="grid min-w-0 flex-1 gap-2"><Input key={inputKey} name="item_image" type="file" accept="image/png,image/jpeg,image/webp" onChange={event => { setFile(event.target.files?.[0] ?? null); }} />
+  return <div className="grid gap-2">
+    <ItemThumbnail src={src} alt={name} className="!h-36 !w-full rounded-[var(--sb-control-radius)] object-contain" />
+    <div className="grid min-w-0 gap-2"><Input key={inputKey} name="item_image" type="file" accept="image/png,image/jpeg,image/webp" className="text-xs" onChange={event => { setFile(event.target.files?.[0] ?? null); }} />
       <input type="hidden" name="remove_item_image" value={removed ? "true" : "false"} />
       {src ? <Button type="button" size="sm" variant="outline" className="justify-self-start" onClick={() => { setRemoved(true); setFile(null); setInputKey(key => key + 1); }}><X className="h-3.5 w-3.5" />Remove image</Button> : null}
     </div>

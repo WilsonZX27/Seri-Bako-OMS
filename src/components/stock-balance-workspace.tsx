@@ -20,6 +20,8 @@ import { formatCurrency, formatQuantityInput, getToday } from "@/lib/utils";
 import { createPurchaseRequestsFromBasket } from "@/server/actions/procurement";
 import { StockBalanceOperationalRows, StockBalanceTableRows, type StockBalanceRow } from "@/components/stock-balance-table";
 import { ItemThumbnail } from "@/components/ui/item-thumbnail";
+import { SelectNative } from "@/components/ui/select-native";
+import { uomOptionsWithCurrent } from "@/lib/uom";
 
 type BranchOption = { id: string; branch_name: string };
 type BasketLine = StockBalanceRow & { qty: string; uom: string };
@@ -103,7 +105,7 @@ export function StockBalanceWorkspace({
         const restored = Object.fromEntries(Object.entries(parsed).filter(([key, line]) => (
           Boolean(key) && Boolean(line) && typeof line.item_id === "string" && typeof line.item_name === "string"
           && typeof line.qty === "string" && typeof line.uom === "string" && Boolean(line.branch_id) && accessibleBranchIds.has(line.branch_id as string)
-        )).map(([key, line]) => [key, { ...line, uom: line.purchase_unit || line.base_unit, item_status: line.item_status === "active" ? "active" : "unknown" }]).slice(0, 500)) as Record<string, BasketLine>;
+        )).map(([key, line]) => [key, { ...line, uom: line.uom || line.purchase_unit || line.base_unit, item_status: line.item_status === "active" ? "active" : "unknown" }]).slice(0, 500)) as Record<string, BasketLine>;
         const firstBranch = Object.values(restored)[0]?.branch_id;
         setBasket(Object.fromEntries(Object.entries(restored).filter(([, line]) => line.branch_id === firstBranch)));
       }
@@ -156,6 +158,10 @@ export function StockBalanceWorkspace({
       if (!existing) return current;
       return { ...current, [key]: { ...existing, qty: nextQty } };
     });
+  }
+
+  function updateUom(key: string, uom: string) {
+    setBasket((current) => current[key] ? { ...current, [key]: { ...current[key], uom } } : current);
   }
 
   function toggleBasket(row: StockBalanceRow) {
@@ -234,12 +240,12 @@ export function StockBalanceWorkspace({
                           <div key={branchId} className="space-y-2 py-2.5 first:pt-0 last:pb-0">
                             {(isCreateBranch ? groupBySupplier(lines) : [["preview", lines]] as const).map(([supplierId, supplierLines]) => (
                               <div key={`${branchId}-${supplierId}`} className="space-y-1.5">
-                                {isCreateBranch ? <p className="rounded-[var(--sb-control-radius)] bg-[var(--sb-surface-muted)] px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-[var(--sb-text)]">{supplierLines[0]?.supplier_name ?? "Unassigned supplier"}</p> : null}
-                                {supplierLines.map((line) => {
+                                {isCreateBranch ? <p className="flex items-center justify-between gap-2 rounded-[var(--sb-control-radius)] bg-[var(--sb-surface-muted)] px-2 py-1.5 text-[11px] font-semibold text-[var(--sb-text)]"><span className="truncate uppercase tracking-wide">{supplierLines[0]?.supplier_name ?? "Unassigned supplier"}</span><span className="shrink-0 tabular-nums text-[var(--sb-text-muted)]">{supplierLines.length} item{supplierLines.length === 1 ? "" : "s"}</span></p> : null}
+                                {supplierLines.map((line, lineIndex) => {
                               const key = rowKey(line);
                               return (
                                 <div key={key} className="space-y-1 border-b border-[var(--sb-border-soft)] py-1.5 last:border-0">
-                                  <p className="truncate text-[13px] font-semibold leading-4">{line.item_name}</p>
+                                  <p className="truncate text-[13px] font-semibold leading-4"><span className="mr-1.5 text-[10px] tabular-nums text-[var(--sb-text-muted)]">{lineIndex + 1}.</span>{line.item_name}</p>
                                   <p className="truncate text-[10px] leading-4 text-[var(--sb-text-muted)]">{line.item_code}{isCreateBranch ? "" : ` · ${line.supplier_name ?? "Supplier mapping missing"}`}</p>
                                   {isCreateBranch ? (
                                     <>
@@ -253,7 +259,7 @@ export function StockBalanceWorkspace({
                                           onChange={(value) => updateQty(key, value)}
                                           className="min-w-0 flex-1"
                                         />
-                                        <span className="inline-flex h-8 min-w-14 shrink-0 items-center justify-center rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-2 text-[10px] font-semibold" aria-label={`Purchase UOM for ${line.item_name}: ${line.uom}`}>{line.uom}</span>
+                                        <SelectNative className="h-8 w-20 shrink-0 px-2 text-[10px] font-semibold" aria-label={`Purchase UOM for ${line.item_name}`} value={line.uom} onChange={(event) => updateUom(key, event.target.value)}>{uomOptionsWithCurrent(line.purchase_unit || line.base_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}</SelectNative>
                                         <button
                                           type="button"
                                           className="inline-flex h-8 w-7 shrink-0 items-center justify-center text-[var(--sb-danger)] hover:bg-[var(--sb-danger-soft)]"
@@ -403,7 +409,7 @@ export function StockBalanceWorkspace({
                     </div>
                     {activeBranch ? <div className="flex min-w-0 items-stretch gap-1.5">
                       <QuantityStepper value={line.qty} uom={null} step={0.01} density="compact" label={`Quantity for ${line.item_name}`} onChange={(value) => updateQty(key, value)} className="min-w-0 flex-1" />
-                      <span className="inline-flex h-10 min-w-20 shrink-0 items-center justify-center rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-2 text-xs font-semibold" aria-label={`Purchase UOM for ${line.item_name}: ${line.uom}`}>{line.uom}</span>
+                      <SelectNative className="h-10 w-24 shrink-0 px-2 text-xs font-semibold" aria-label={`Purchase UOM for ${line.item_name}`} value={line.uom} onChange={(event) => updateUom(key, event.target.value)}>{uomOptionsWithCurrent(line.purchase_unit || line.base_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}</SelectNative>
                     </div> : null}
                   </article>
                 );

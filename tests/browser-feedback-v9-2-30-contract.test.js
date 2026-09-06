@@ -29,7 +29,9 @@ test("schedule asks for time per Add and avoids the native time picker", () => {
   assert.match(planner, /customDialog\.current\?\.showModal\(\)/);
   assert.match(planner, /const palette=leavePalette/);
   assert.doesNotMatch(planner, /type="time"/);
-  assert.match(planner, /fixed inset-0 m-auto/);
+  assert.match(planner, /fixed left-1\/2 top-1\/2 m-0/);
+  assert.match(planner, /-translate-x-1\/2 -translate-y-1\/2/);
+  assert.match(planner, /Unsaved changes will be saved when you submit/);
 });
 
 test("Owner self-update and historical Outlet Daily closure are audited", () => {

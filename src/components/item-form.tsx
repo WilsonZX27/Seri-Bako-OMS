@@ -31,25 +31,17 @@ export function ItemForm({ item, suppliers, action, formId, showSubmit = true, c
   return (
     <form id={formId} action={action} className="space-y-4">
       <RecordSection title="Identity" description="Item code, name, category, and operational status.">
-        <div className="grid gap-4 md:grid-cols-3">
-          <Field label="Item Code" required>
-            <Input name="item_code" defaultValue={item?.item_code ?? ""} required />
-          </Field>
-          <Field label="AutoCount Code">
-            <Input name="autocount_code" defaultValue={item?.autocount_code ?? ""} />
-          </Field>
-          <Field label="Item Name" required>
-            <Input name="item_name" defaultValue={item?.item_name ?? ""} required />
-          </Field>
-          <Field label="Brand">
-            <Input name="brand_name" defaultValue={item?.brand_name ?? ""} placeholder="Brand" />
-          </Field>
-          <Field label="Category" required>
-            <Input list="item-category-options" name="category" defaultValue={item?.category ?? ""} placeholder="Choose or enter a category" required /><datalist id="item-category-options">{categories.map(category => <option key={category} value={category} />)}</datalist>
-          </Field>
+        <div className="grid gap-4 lg:grid-cols-[14rem_minmax(0,1fr)] lg:items-start">
           <Field label="Item Image">
             <ItemImageInput currentUrl={item?.item_image_url} name={item?.item_name ?? "Item image"} />
           </Field>
+          <div className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <Field label="Item Code" required><Input name="item_code" defaultValue={item?.item_code ?? ""} required /></Field>
+            <Field label="AutoCount Code"><Input name="autocount_code" defaultValue={item?.autocount_code ?? ""} /></Field>
+            <Field label="Item Name" required><Input name="item_name" defaultValue={item?.item_name ?? ""} required /></Field>
+            <Field label="Brand"><Input name="brand_name" defaultValue={item?.brand_name ?? ""} placeholder="Brand" /></Field>
+            <Field label="Category" required><Input list="item-category-options" name="category" defaultValue={item?.category ?? ""} placeholder="Choose or enter a category" required /><datalist id="item-category-options">{categories.map(category => <option key={category} value={category} />)}</datalist></Field>
+          </div>
         </div>
       </RecordSection>
 

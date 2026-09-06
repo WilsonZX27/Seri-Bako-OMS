@@ -162,7 +162,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
       {children}
       {consoleContent ? (
         <aside data-right-console className="hidden h-full min-h-0 w-[var(--sb-console-width)] shrink-0 overflow-hidden border-l border-[var(--sb-border-soft)] bg-[var(--rail-bg)] xl:block">
-          <div data-right-console-scroll className="sb-scrollbar-none h-full space-y-4 overflow-y-auto overflow-x-hidden bg-[var(--rail-bg)] px-3 py-3">
+          <div data-right-console-scroll className="sb-scrollbar-none h-full space-y-3 overflow-y-auto overflow-x-hidden bg-[var(--rail-bg)] px-3 py-3">
             {consoleContent}
           </div>
         </aside>

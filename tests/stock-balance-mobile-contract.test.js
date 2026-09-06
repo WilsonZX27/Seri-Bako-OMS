@@ -28,7 +28,7 @@ test("stock balance keeps query controls balanced and the desktop basket compact
   assert.doesNotMatch(source, /Saved on this device/);
   assert.match(source, /density="dense"/);
   assert.doesNotMatch(source, /\[&_button\]|\[&_input\]/);
-  assert.match(source, /inline-flex h-8 min-w-14 shrink-0/);
+  assert.match(source, /SelectNative className="h-8 w-20 shrink-0/);
 });
 
 test("stock balance persists the PR basket across filter refreshes without trusting browser state", () => {
@@ -52,7 +52,7 @@ test("stock balance persists the PR basket across filter refreshes without trust
   assert.match(procurementAction, /Purchasing supplier mapping required/);
 });
 
-test("stock balance basket uses branch-authoritative sourcing and a fixed purchase UOM", () => {
+test("stock balance basket uses branch-authoritative sourcing and an editable purchase UOM", () => {
   const query = fs.readFileSync(path.join(root, "src", "server", "queries", "inventory.ts"), "utf8");
   assert.match(query, /branch_supplier_items/);
   assert.match(query, /pairMappings\.find\(\(mapping\) => mapping\.is_preferred\)/);
@@ -60,7 +60,8 @@ test("stock balance basket uses branch-authoritative sourcing and a fixed purcha
   assert.match(query, /supplier_id: itemDefault\.supplier_id/);
   assert.match(query, /if \(branchMappingsError \|\| suppliersError\)/);
   assert.match(source, /Purchase UOM for/);
-  assert.doesNotMatch(source, /updateUom/);
+  assert.match(source, /function updateUom/);
+  assert.match(source, /uomOptionsWithCurrent\(line\.purchase_unit \|\| line\.base_unit\)/);
   assert.match(source, /useState\(Boolean\(filters\.error\)\)/);
   assert.match(source, /your basket has been kept/);
 });

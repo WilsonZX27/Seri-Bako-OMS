@@ -1,5 +1,16 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-09-06 — v9.2.31 Schedule, filters, Item and PR basket polish
+
+| Comments | Surface | Resolution | Evidence state |
+|---|---|---|---|
+| 1–4 | Attendance Schedule | Centered and simplified working-time dialog; Submit saves dirty changes; reduced tab height | locally verified; authenticated interaction UAT pending |
+| 5–6 | Outlet Daily / Supplier Invoices | Added portrait-tablet filter composition and retained bottom navigation while More filters is open | locally verified; authenticated viewport UAT pending |
+| 7–9 | Item detail | Rebuilt identity as image-left and fields-right; enlarged preview; normalized right-rail spacing | locally verified; authenticated viewport UAT pending |
+| 10–12 | Stock Balance PR basket | Tightened basket rhythm, added supplier counts and row indices, and enabled supported purchase-UOM selection | locally verified; authenticated creation UAT pending |
+
+Full contracts, focused lint, strict TypeScript and the 95-page production build pass locally. Push, deployment and Production verification remain separate.
+
 ## 2026-09-05 — v9.2.30 People, Schedule and historical record closure
 
 | Comments | Surface | Resolution | Evidence state |

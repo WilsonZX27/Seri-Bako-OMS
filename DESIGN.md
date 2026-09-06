@@ -1,5 +1,13 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.31 (unreleased) — Compact workflows and visible grouping
+
+- A direct assignment dialog asks only for the decision the user owns. Derived break and paid-cap rules remain automatic, and the dialog is centered with explicit viewport transforms rather than relying on browser dialog margins.
+- Workflow submission may persist current edits as part of the submit action. A separate draft action remains useful, but it must not become a mandatory intermediate step.
+- Portrait-tablet filters use two readable columns before collapsing controls into ellipses. Modal filters stop above persistent navigation instead of removing it.
+- Item identity pairs a substantial image area with the identity form at wide widths and stacks naturally below it. Right-rail sections use a consistent 12px vertical rhythm.
+- Supplier-grouped baskets state both group size and item order. Purchase UOM is an explicit bounded selector when valid alternatives exist.
+
 ## v9.2.30 (unreleased) — Direct manipulation and stable identity columns
 
 - Compact rows keep primary, secondary and detail identity lines in one uninterrupted left stack; status and metadata form the right stack. Redundant “Open” copy is omitted when the row affordance and chevron already communicate navigation.

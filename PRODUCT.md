@@ -1,5 +1,13 @@
 # Seri Bako Operations Management System
 
+### v9.2.32 (unreleased) — Tablet composition and dashboard density correction
+
+- Outlet Daily portrait-tablet filters use four equal controls in a stable two-column flow with a separate action/count row. Outlet Compliance restores its operational right rail from the 768px tablet breakpoint.
+- Dashboard removes the outer sage wrapper around its panel grid. Compact metrics place the icon and larger value on one line with the label below, avoiding three-line tiles on phones.
+- Dashboard low stock remains evidence-based: a successful zero-result read is shown as zero, while transport or query failures remain `Unavailable`.
+
+Local lint, strict TypeScript and 1,178 contracts pass. Production deployment and authenticated viewport acceptance remain separate evidence states.
+
 ### v9.2.31 (unreleased) — Schedule, filters and purchasing interaction polish
 
 - Schedule working time is centered at every viewport and asks only for check-in and check-out. Submit now saves pending cell changes automatically before sending the roster to a Manager, while Save draft remains available for incomplete work.

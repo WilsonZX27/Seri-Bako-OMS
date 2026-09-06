@@ -1,5 +1,12 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.32 (unreleased) — Equal controls and two-line metrics
+
+- Tablet query controls in the same group use equal tracks. Search/result actions occupy their own row when forcing them beside four filters would produce unequal or truncated controls.
+- Operational right rails appear at the first viewport that can support a useful main column and compact rail; Outlet Compliance uses the 768px split authority.
+- Dashboard panels own their individual surfaces. A second tinted container around the full grid adds no hierarchy and must be removed.
+- Compact metric tiles use two visual rows: icon and prominent value above, label below. Zero is a valid result; unavailable data uses an explicit unavailable state.
+
 ## v9.2.31 (unreleased) — Compact workflows and visible grouping
 
 - A direct assignment dialog asks only for the decision the user owns. Derived break and paid-cap rules remain automatic, and the dialog is centered with explicit viewport transforms rather than relying on browser dialog margins.

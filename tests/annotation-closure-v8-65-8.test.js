@@ -6,7 +6,7 @@ const assert = require("node:assert/strict");
 const root = path.join(__dirname, "..");
 const read = (...segments) => fs.readFileSync(path.join(root, ...segments), "utf8");
 
-test("dashboard mobile groups retain padding and a deliberate sage hierarchy", () => {
+test("dashboard panels retain their hierarchy without a nested sage canvas", () => {
   const dashboard = read("src", "components", "dashboard-workspace.tsx");
   const design = read("src", "app", "design-system-v2.css");
   assert.match(dashboard, /data-dashboard-panel-body/);
@@ -14,7 +14,10 @@ test("dashboard mobile groups retain padding and a deliberate sage hierarchy", (
   assert.match(design, /\[data-dashboard-panel\] > :last-child\s*\{[\s\S]*padding:\s*0\.5rem;[\s\S]*background:\s*#f4f7f5/);
   assert.match(design, /\[data-dashboard-panel\] > :first-child\s*\{[\s\S]*background:\s*#c9ded4/);
   assert.match(design, /\[data-dashboard-attention-summary\]\s*\{[\s\S]*background:\s*var\(--sb-green-900\)/);
-  assert.match(design, /\[data-dashboard-layout\]\s*\{[\s\S]*background:\s*#e6efea/);
+  assert.match(design, /\[data-dashboard-layout\]\s*\{[\s\S]*min-width:\s*0/);
+  assert.doesNotMatch(design, /\[data-dashboard-layout\]\s*\{[\s\S]{0,160}background:/);
+  assert.match(dashboard, /grid-cols-\[auto_minmax\(0,1fr\)\] grid-rows-\[auto_auto\]/);
+  assert.match(dashboard, /col-span-2 row-start-2/);
   assert.match(dashboard, /grid grid-cols-3 divide-x[^\n]+data-dashboard-quick-actions/);
   assert.doesNotMatch(dashboard, /data-dashboard-quick-actions[\s\S]{0,900}hover:-translate-y/);
 });

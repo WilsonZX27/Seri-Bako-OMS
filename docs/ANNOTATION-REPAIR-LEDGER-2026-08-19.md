@@ -1,5 +1,16 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-09-06 — v9.2.32 Tablet and dashboard follow-up
+
+| Comments | Surface | Resolution | Evidence state |
+|---|---|---|---|
+| 1 | Outlet Daily | Replaced unequal portrait-tablet placement with four equal two-column controls and a separate command row | locally verified; authenticated viewport UAT pending |
+| 2 | Outlet Compliance | Restored the right action/portfolio rail at the 768px tablet split | locally verified; authenticated viewport UAT pending |
+| 3–4 | Dashboard | Removed the redundant outer sage container and changed compact metrics to icon/value plus label | locally verified; authenticated viewport UAT pending |
+| 5 | Dashboard Low Stock | Confirmed the live query succeeds with zero records; retained explicit unavailable handling for actual failures | Production read verified at v9.2.30; v9.2.32 deployment pending |
+
+Local lint, strict TypeScript and 1,178 contracts pass. Production deployment remains separate.
+
 ## 2026-09-06 — v9.2.31 Schedule, filters, Item and PR basket polish
 
 | Comments | Surface | Resolution | Evidence state |

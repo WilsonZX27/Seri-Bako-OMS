@@ -51,3 +51,11 @@ test("Attendance, calendar and PO headers retain stable alignment", () => {
   assert.match(po, /className="min-w-36" label="PO No \/ PR No"/);
   assert.match(po, /className="w-40 max-w-40">Request context/);
 });
+
+test("portrait tablet filters and compliance rail keep deliberate geometry", () => {
+  const design = read("src", "app", "design-system-v2.css");
+  const compliance = read("src", "app", "(app)", "outlet-compliance", "page.tsx");
+  assert.match(design, /form\.sb-outlet-daily-filters\.sb-list-query-card\s*\{[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(design, /unified-list-desktop-actions > \.unified-list-action\s*\{[\s\S]*width: calc\(50% - \.25rem\)/);
+  assert.match(compliance, /tabletRailBreakpoint="md"/);
+});

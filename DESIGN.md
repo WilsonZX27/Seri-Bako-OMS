@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.34 (unreleased) — Explicit placement reset
+
+- Changing a grid template does not remove explicit placement inherited by its children. A responsive layout that reduces the column count must reset child `grid-column` and `grid-row` before relying on auto placement.
+
 ## v9.2.33 (unreleased) — One tablet filter authority
 
 - A route-specific tablet layout must replace the earlier shared declaration that owns its grid tracks. Adding a second selector in another stylesheet is insufficient when the original rule continues to win the cascade.

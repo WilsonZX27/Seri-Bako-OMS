@@ -1,5 +1,11 @@
 # Annotation Repair Ledger — 2026-08-19
 
+## 2026-09-06 — v9.2.34 Outlet Daily implicit-column closure
+
+| Comment | Surface | Resolution | Evidence state |
+|---|---|---|---|
+| 1 | Outlet Daily at 820×1180 | Reset inherited child grid positions so the two-column template cannot generate implicit extra columns | Production v9.2.33 computed cause verified; local contracts/typecheck pass; deployment pending |
+
 ## 2026-09-06 — v9.2.33 Outlet Daily cascade correction
 
 | Comment | Surface | Resolution | Evidence state |

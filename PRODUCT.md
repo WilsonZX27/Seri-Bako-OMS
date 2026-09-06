@@ -1,5 +1,11 @@
 # Seri Bako Operations Management System
 
+### v9.2.34 (unreleased) — Outlet Daily implicit-column closure
+
+- Clears inherited explicit grid-column and grid-row placement from all four Outlet Daily tablet filters. This prevents CSS Grid from generating a third and fourth implicit column after the container is set to two columns.
+
+The fix targets the computed layout cause observed on Production v9.2.33. Local contracts and strict TypeScript pass; final Production geometry awaits deployment.
+
 ### v9.2.33 (unreleased) — Outlet Daily tablet authority correction
 
 - Replaces the older four-column Outlet Daily tablet rule at its source. At 820px, date, branch, status and Qty Sent now occupy four equal controls in a two-column grid, with Search and result count on their own row.

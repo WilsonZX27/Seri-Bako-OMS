@@ -2367,6 +2367,8 @@ html[data-touch-tablet="true"] [data-app-topbar] > .hidden.min-w-0.items-center 
   }
 
   html[data-design-layer="v2"] form.sb-outlet-daily-filters.sb-list-query-card > :where(input, select, [data-select-control], .sb-status-filter, .sb-filter-more, .unified-list-date-control) {
+    grid-column: auto !important;
+    grid-row: auto !important;
     width: 100% !important;
     min-width: 0 !important;
     max-width: none !important;

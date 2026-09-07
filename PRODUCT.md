@@ -1,6 +1,14 @@
 # Seri Bako Operations Management System
 
-### v9.2.38 (unreleased) — Right rail spacing closure
+### v9.2.39 (unreleased) — Finance PR return permission
+
+- Finance can return a purchase request from Finance Review to Purchasing Review through the audited correction workflow.
+
+Repository migrations reviewed through `267`. Migration `267` grants the existing Finance correction permission required by the server-authoritative return RPC; Production application remains a separate release step.
+
+> Current repository authority: forward-only migration 历史已到 `267`.
+
+### v9.2.38 — Right rail spacing closure
 
 - Applies the shared 12px card gap through `display: contents` wrappers so Timeline, Revision History, and other nested right-rail sections follow the same rhythm.
 

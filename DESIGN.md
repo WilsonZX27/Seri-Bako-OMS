@@ -1,6 +1,10 @@
 # Seri Bako OMS responsive design standard
 
-## v9.2.38 (unreleased) — Nested rail spacing authority
+## v9.2.39 (unreleased) — Finance PR return permission
+
+- The visible Finance correction action now matches its database permission, so the interface does not offer an action that the server rejects.
+
+## v9.2.38 — Nested rail spacing authority
 
 - Right-rail section spacing is based on adjacent console sections at any wrapper depth, including transparent `display: contents` groups.
 

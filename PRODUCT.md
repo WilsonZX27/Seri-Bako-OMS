@@ -1,6 +1,6 @@
 # Seri Bako Operations Management System
 
-### v9.2.43 (unreleased) — Manager scheduling and Timecard import
+### v9.2.44 (unreleased) — Manager scheduling and Timecard import
 
 - Managers can prepare, submit, and publish their own audited rosters while Supervisor self-approval remains blocked.
 - NGTeco Timecard Report files become actual punch evidence with an inferred Monday–Sunday week, explicit one-sided-punch exceptions, and immutable source rows.

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, FileSpreadsheet, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ export function AttendanceImportWorkflow({ staffs = [], mappedPersonIds = [], ma
   const [message, setMessage] = useState("");
   const [fileHash,setFileHash]=useState("");
   const [saving,setSaving]=useState(false);
+  const [completedBatch,setCompletedBatch]=useState<{id:string;row_count:number}|null>(null);
   const [weekStart,setWeekStart]=useState(currentMalaysiaWeekStart());
   const [knownPersonIds,setKnownPersonIds]=useState(mappedPersonIds);
   const errors = useMemo(() => rows.reduce((sum, row) => sum + row.errors.length, 0), [rows]);
@@ -58,16 +60,16 @@ export function AttendanceImportWorkflow({ staffs = [], mappedPersonIds = [], ma
     } catch { setRows([]); setMessage("This file could not be parsed. Use the original NGTeco CSV/XLSX export."); }
   }
 
-  async function confirm(){setSaving(true);try{for(const suggestion of suggestions){const mappingResponse=await fetch("/api/attendance/mappings",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({kind:"person",personId:suggestion.personId,staffId:suggestion.staff.id,active:true})});if(!mappingResponse.ok)throw new Error("automatic employee match failed");}const response=await fetch("/api/attendance/imports/confirm",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({profile,weekStart,fileName,fileHash,rows:importableRows.map(row=>row.values)})});const result=await response.json() as {ok:boolean;message:string};setKnownPersonIds(current=>[...new Set([...current,...suggestions.map(suggestion=>suggestion.personId)])]);setMessage(result.ok&&excludedRows?`${result.message} ${excludedRows} incomplete or invalid rows were excluded for review.`:result.message);}catch{setMessage("Attendance import could not be finalised. Preview remains available.");}finally{setSaving(false)}}
+  async function confirm(){setSaving(true);setCompletedBatch(null);try{for(const suggestion of suggestions){const mappingResponse=await fetch("/api/attendance/mappings",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({kind:"person",personId:suggestion.personId,staffId:suggestion.staff.id,active:true})});if(!mappingResponse.ok)throw new Error("automatic employee match failed");}const response=await fetch("/api/attendance/imports/confirm",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({profile,weekStart,fileName,fileHash,rows:importableRows.map(row=>row.values)})});const result=await response.json() as {ok:boolean;message:string;batch?:{id:string;row_count:number}};if(!response.ok||!result.ok)throw new Error(result.message);setKnownPersonIds(current=>[...new Set([...current,...suggestions.map(suggestion=>suggestion.personId)])]);setCompletedBatch(result.batch??null);setMessage(excludedRows?`Import completed. ${importableRows.length} rows accepted; ${excludedRows} rows excluded for review.`:`Import completed. ${importableRows.length} rows accepted.`);}catch{setMessage("Import failed. No partial result was accepted; you can correct mappings or retry this file.");}finally{setSaving(false)}}
 
   return <div className="space-y-4">
     <section className="sb-work-surface p-3">
       <div className="grid min-w-0 gap-3 md:items-start lg:grid-cols-[minmax(14rem,1fr)_minmax(13rem,0.7fr)_minmax(17rem,1fr)] lg:items-end">
         <div className="self-center"><h2 className="text-sm font-semibold">Import attendance file</h2></div>
         <div><p className="text-xs font-medium">Attendance week</p><p className="mt-1 flex h-10 items-center rounded-[var(--sb-radius-control)] border bg-[var(--sb-surface-muted)] px-3 text-xs font-semibold tabular-nums">{displayDate(weekStart)} – {displayDate(addDays(weekStart,6))}</p></div>
-        <label className="grid gap-1 text-xs font-medium"><span>Upload NGTeco CSV or XLSX</span><Input type="file" accept=".csv,.xlsx" onChange={(event) => void load(event.currentTarget.files?.[0])}/></label>
+        <label className="grid gap-1 text-xs font-medium"><span>Upload NGTeco CSV or XLSX</span><Input className="h-10" type="file" accept=".csv,.xlsx" onChange={(event) => void load(event.currentTarget.files?.[0])}/></label>
       </div>
-      <p className="mt-3 text-xs text-muted-foreground" role="status">{message}</p>{profile!=="attendance_report"&&rows.length?<div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[var(--sb-border-soft)] pt-3 text-xs"><span><strong>{suggestions.length}</strong> employees matched automatically · <strong>{unmatchedEmployees.length}</strong> Person IDs will remain unmapped · <strong>{unmappedSources.length}</strong> unmapped devices</span><span className="text-muted-foreground">Unmapped employees import as exceptions and can be linked later in Settings.</span></div>:null}
+      <p className={`mt-3 text-xs ${completedBatch?"font-semibold text-[var(--sb-success)]":"text-muted-foreground"}`} role="status">{message}</p>{completedBatch?<div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[var(--sb-border-soft)] pt-3"><Button asChild size="sm"><Link href={`/attendance/review?week=${weekStart}`}>Review calculated attendance</Link></Button><Button asChild size="sm" variant="outline"><Link href="/attendance/settings">Resolve Person ID mappings</Link></Button></div>:profile!=="attendance_report"&&rows.length?<div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[var(--sb-border-soft)] pt-3 text-xs"><span><strong>{suggestions.length}</strong> employees matched automatically · <strong>{unmatchedEmployees.length}</strong> Person IDs will remain unmapped · <strong>{unmappedSources.length}</strong> unmapped devices</span><span className="text-muted-foreground">Unmapped employees import as exceptions and can be linked later in Settings.</span></div>:null}
     </section>
     {fileName ? <section className="sb-work-surface overflow-hidden">
       <div className="flex flex-wrap items-center gap-2 border-b border-[var(--sb-border-soft)] px-3 py-2"><FileSpreadsheet className="h-4 w-4"/><strong className="min-w-0 truncate text-sm">{fileName}</strong><StatusBadge status={profile}/><span className="ml-auto text-xs text-muted-foreground">{rows.length} rows · {errors} errors · {warnings} warnings</span></div>

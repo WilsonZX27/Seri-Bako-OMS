@@ -97,7 +97,7 @@ test("production follow-up keeps PR review compact and low stock semantically cr
   assert.doesNotMatch(detail, /<TableHead className="text-right">Qty<\/TableHead>/);
   assert.match(recovery, /w-\[min\(42rem,calc\(100vw-2rem\)\)\]/);
   assert.match(actions, /expectedUpdatedAt: z\.string\(\)\.datetime\(\{ offset: true \}\)/);
-  assert.match(dashboard, /label="Low stock"[\s\S]*alertTone="critical"/);
+  assert.equal((dashboard.match(/label: "Low stock"/g) ?? []).length, 1);
 });
 
 test("current annotation batch keeps shared explanation and responsive filter ownership", () => {

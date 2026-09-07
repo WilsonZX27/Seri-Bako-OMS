@@ -148,7 +148,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   ];
   const todayWorkCount = attentionSignals.reduce((sum, signal) => sum + (signal.value ?? 0), 0);
   const outletExceptionCount = summary.operationsControl?.outlet?.missing_evening ?? 0;
-  const operationalExceptionCount = (summary.inventoryUnavailable ? 0 : summary.lowStockCount ?? 0) + (summary.wastageUnavailable ? 0 : summary.wastageAttention ?? 0) + outletExceptionCount + (summary.compliance?.issues ?? 0);
+  const operationalExceptionCount = (summary.wastageUnavailable ? 0 : summary.wastageAttention ?? 0) + outletExceptionCount + (summary.compliance?.issues ?? 0);
   const quickActions = isOutlet
     ? [
         { href: summary.outletToday?.id ? `/outlet-daily-records/${summary.outletToday.id}` : "/outlet-daily-records/new", label: outletAction, icon: ClipboardCheck },
@@ -384,7 +384,6 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
             empty="No urgent operational exceptions are visible in your scope."
           >
             <div className="grid grid-cols-2 gap-px bg-[var(--sb-border-soft)]" data-dashboard-exceptions>
-              {!summary.inventoryUnavailable && summary.lowStockCount !== null ? <Metric href="/low-stock" label="Low stock" value={summary.lowStockCount} icon={AlertTriangle} alert={summary.lowStockCount > 0} alertTone="critical" variant="tile" density="compact" /> : null}
               {showOperations && summary.operationsControl?.outlet ? (
                 <Metric
                   href="/outlet-daily-records"

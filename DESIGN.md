@@ -1,6 +1,6 @@
 # Seri Bako OMS responsive design standard
 
-## v9.2.44 (unreleased) — Dense Attendance operations
+## v9.2.45 (unreleased) — Dense Attendance operations
 
 - Import controls share one compact toolbar, source mappings align as Source, Location, and Actions, and editing appears only on demand.
 - OFF, AL, PH, UPL, and RO keep their text labels while using separate neutral, blue, violet, amber, and teal tones.

@@ -5,7 +5,6 @@ import type { ReactNode } from "react";
 import { ChevronLeft, ChevronRight, Copy, MessageSquareText, Save, Send, Undo2, UserRound, X } from "lucide-react";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import { AttendanceWorkspaceNav } from "@/components/attendance/attendance-workspace-nav";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { readJsonResponse } from "@/lib/http/read-json-response";
@@ -88,7 +87,6 @@ export function SchedulePlanner({branches,branchId,weekStart,week,previousWeekId
   const selectedDayHours=selectedDayValues.reduce((sum,value)=>sum+cellSeconds(value),0);
   return <WorkspaceGrid rightRail={workflowActions} hideMobileConsole className="sb-schedule-workspace">
     <div className="space-y-3" data-schedule-planner>
-    <AttendanceWorkspaceNav current="schedule" />
     {headerContent}
     <section className="overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-white shadow-[var(--sb-shadow-card)]">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-[var(--sb-border-soft)] px-3 py-2 sm:grid-cols-[minmax(12rem,1fr)_auto_auto]" data-schedule-period-controls>

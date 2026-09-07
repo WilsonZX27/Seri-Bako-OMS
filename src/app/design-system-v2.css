@@ -694,7 +694,8 @@ nav[aria-label="Pagination"] > span,
 [data-right-console-scroll] > [data-console-section] + [data-console-section],
 [data-mobile-console-content] > [data-console-section] + [data-console-section],
 [data-right-console] [data-console-section] + [data-console-section],
-[data-mobile-console-content] [data-console-section] + [data-console-section] {
+[data-mobile-console-content] [data-console-section] + [data-console-section],
+[data-right-console-scroll] > [class~="xl:contents"] > [data-console-section]:first-child {
   margin-top: 0.75rem !important;
 }
 

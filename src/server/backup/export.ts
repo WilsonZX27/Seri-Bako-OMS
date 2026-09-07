@@ -55,6 +55,8 @@ export const BACKUP_DATASETS: readonly BackupDataset[] = [
   { table: "daily_attendance_results", classification: "company_id filtered", column: "company_id" },
   { table: "attendance_exceptions", classification: "company_id filtered", column: "company_id" },
   { table: "attendance_adjustments", classification: "company_id filtered", column: "company_id", optional: "logs" },
+  { table: "daily_attendance_reports", classification: "company_id filtered", column: "company_id" },
+  { table: "comp_time_transactions", classification: "company_id filtered", column: "company_id" },
   { table: "attendance_period_locks", classification: "company_id filtered", column: "company_id" },
   { table: "items", classification: "company_id filtered", column: "company_id" },
   { table: "products", classification: "company_id filtered", column: "company_id" },

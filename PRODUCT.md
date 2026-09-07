@@ -1,5 +1,13 @@
 # Seri Bako Operations Management System
 
+### v9.2.35 (unreleased) — Published roster and actual attendance separation
+
+- Keeps Manager-approved schedules immutable while daily MC, emergency leave, punch corrections, and compensatory-time use follow a separate approval trail.
+- Adds an approved minute-based comp-time ledger with no overdraft, no self approval, and no automatic expiry.
+- Adds auditable NGTeco source changes and inactive unbinding, plus consistent Schedule and Review interfaces across supported viewports.
+
+Repository migrations reviewed through `265`. Migration `265` is repository implementation evidence only and must be applied before this application version is deployed; it is not Preview or Production proof.
+
 ### v9.2.34 (unreleased) — Outlet Daily implicit-column closure
 
 - Clears inherited explicit grid-column and grid-row placement from all four Outlet Daily tablet filters. This prevents CSS Grid from generating a third and fourth implicit column after the container is set to two columns.

@@ -1,6 +1,7 @@
 import { Download, LockKeyhole, TriangleAlert } from "lucide-react";
 import { AttendanceWorkspaceNav } from "@/components/attendance/attendance-workspace-nav";
 import { AttendanceAdjustmentButton, AttendanceLockButton } from "@/components/attendance/review-actions";
+import { ActualAttendancePanel } from "@/components/attendance/actual-attendance-panel";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,7 @@ import { SelectNative } from "@/components/ui/select-native";
 import { Input } from "@/components/ui/input";
 import { durationLabel } from "@/lib/attendance/calculation";
 import { getPermissionMap } from "@/server/auth/permissions";
-import { getAttendanceReview, malaysiaWeekStart } from "@/server/queries/attendance";
+import { getAttendanceActuals, getAttendanceReview, malaysiaWeekStart } from "@/server/queries/attendance";
 
 function time(value: unknown) {
   return typeof value === "string" ? new Intl.DateTimeFormat("en-MY", { timeZone: "Asia/Kuala_Lumpur", hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23" }).format(new Date(value)) : "—";
@@ -19,7 +20,7 @@ function time(value: unknown) {
 export default async function AttendanceReviewPage({ searchParams }: { searchParams: Promise<{ week?: string; branch?: string }> }) {
   const params = await searchParams;
   const week = /^\d{4}-\d{2}-\d{2}$/.test(params.week ?? "") ? params.week! : malaysiaWeekStart();
-  const [allRows, permissions] = await Promise.all([getAttendanceReview(week), getPermissionMap(["attendance.adjust", "attendance.lock"])]);
+  const [allRows, actuals, permissions] = await Promise.all([getAttendanceReview(week), getAttendanceActuals(week), getPermissionMap(["attendance.adjust", "attendance.lock", "attendance.report.submit", "attendance.report.approve", "comp_time.submit", "comp_time.approve"])]);
   const branchOptions = [...new Map(allRows.map((row: Record<string, unknown>) => [String(row.branch_id), (row.branches as { branch_name?: string } | null)?.branch_name ?? "Outlet"])).entries()].sort((left, right) => left[1].localeCompare(right[1]));
   const selectedBranch = branchOptions.some(([id]) => id === params.branch) ? params.branch : undefined;
   const rows = selectedBranch ? allRows.filter((row: Record<string, unknown>) => String(row.branch_id) === selectedBranch) : allRows;
@@ -47,14 +48,15 @@ export default async function AttendanceReviewPage({ searchParams }: { searchPar
         <div className="flex flex-wrap items-center gap-3 border-b border-[var(--sb-border-soft)] px-3 py-2.5"><div><h2 className="text-sm font-semibold">Calculated attendance</h2><p className="text-xs text-muted-foreground">Times and durations preserve NGTeco seconds.</p></div><StatusBadge status={exceptionCount ? "attention" : "reviewed"} /><span className="ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground"><LockKeyhole className="h-3.5 w-3.5" />Week {week}</span></div>
         <div className="overflow-auto">
           <table className="w-full min-w-[82rem] text-left text-xs">
-            <thead className="sticky top-0 bg-[var(--sb-surface-muted)]"><tr>{["Date", "Employee", "Branch", "Scheduled", "Actual", "Break", "Recognised", "Hours", "Late", "Early leave", "Extra time", "Status", "Review"].map(label => <th key={label} className="px-3 py-3">{label}</th>)}</tr></thead>
-            <tbody>{rows.map((row: Record<string, unknown>) => { const staff = row.staffs as { full_name?: string } | null; const branch = row.branches as { branch_name?: string } | null; const paid = Number(row.recognised_paid_seconds ?? 0); const extra = Number(row.pre_shift_seconds ?? 0) + Number(row.post_shift_seconds ?? 0); return <tr key={String(row.id)} className="border-t border-[var(--sb-border-soft)]">
-              <td className="px-3 py-3">{String(row.work_date)}</td><td className="px-3 py-3 font-semibold">{staff?.full_name ?? "Unknown staff"}</td><td className="px-3 py-3">{branch?.branch_name ?? "—"}</td><td className="px-3 py-3 tabular-nums">{time(row.scheduled_start)}–{time(row.scheduled_end)}</td><td className="px-3 py-3 tabular-nums">{time(row.actual_first_in)}–{time(row.actual_last_out)}</td><td className="px-3 py-3 tabular-nums">{durationLabel(Number(row.break_seconds ?? 0))}</td><td className="px-3 py-3 font-semibold tabular-nums">{durationLabel(paid)}</td><td className="px-3 py-3 tabular-nums">{(paid / 3600).toFixed(4)}</td><td className="px-3 py-3 tabular-nums">{durationLabel(Number(row.late_seconds ?? 0))}</td><td className="px-3 py-3 tabular-nums">{durationLabel(Number(row.early_leave_seconds ?? 0))}</td><td className="px-3 py-3 tabular-nums">{durationLabel(extra)}</td><td className="px-3 py-3"><StatusBadge status={Array.isArray(row.statuses) && row.statuses.length ? String(row.statuses[0]) : "normal"} /></td><td className="px-3 py-3"><div className="flex items-center gap-2"><StatusBadge status={String(row.review_status)} />{canAdjust ? <AttendanceAdjustmentButton resultId={String(row.id)} currentSeconds={paid} /> : null}</div></td>
+            <thead className="sticky top-0 bg-[var(--sb-surface-muted)]"><tr>{["Date", "Employee", "Branch", "Planned", "Actual", "Approved adjustments", "Break", "Recognised attendance", "Hours", "Late", "Early leave", "Extra time", "Status", "Review"].map(label => <th key={label} className="px-3 py-3">{label}</th>)}</tr></thead>
+            <tbody>{rows.map((row: Record<string, unknown>) => { const staff = row.staffs as { full_name?: string } | null; const branch = row.branches as { branch_name?: string } | null; const paid = Number(row.recognised_paid_seconds ?? 0); const extra = Number(row.pre_shift_seconds ?? 0) + Number(row.post_shift_seconds ?? 0);const approved=(actuals.reports as Array<Record<string,unknown>>).filter(report=>report.status==="approved"&&report.staff_id===row.staff_id&&report.work_date===row.work_date); return <tr key={String(row.id)} className="border-t border-[var(--sb-border-soft)]">
+              <td className="px-3 py-3">{String(row.work_date)}</td><td className="px-3 py-3 font-semibold">{staff?.full_name ?? "Unknown staff"}</td><td className="px-3 py-3">{branch?.branch_name ?? "—"}</td><td className="px-3 py-3 tabular-nums">{time(row.scheduled_start)}–{time(row.scheduled_end)}</td><td className="px-3 py-3 tabular-nums">{time(row.actual_first_in)}–{time(row.actual_last_out)}</td><td className="px-3 py-3">{approved.length?approved.map(report=><span key={String(report.id)} className="mr-1 inline-flex rounded-full bg-[var(--sb-green-100)] px-2 py-1 text-[10px] font-medium text-[var(--sb-green-900)]">{String(report.report_type).replaceAll("_"," ")}{report.requested_minutes?` · ${report.requested_minutes}m`:""}</span>):"—"}</td><td className="px-3 py-3 tabular-nums">{durationLabel(Number(row.break_seconds ?? 0))}</td><td className="px-3 py-3 font-semibold tabular-nums">{durationLabel(paid)}</td><td className="px-3 py-3 tabular-nums">{(paid / 3600).toFixed(4)}</td><td className="px-3 py-3 tabular-nums">{durationLabel(Number(row.late_seconds ?? 0))}</td><td className="px-3 py-3 tabular-nums">{durationLabel(Number(row.early_leave_seconds ?? 0))}</td><td className="px-3 py-3 tabular-nums">{durationLabel(extra)}</td><td className="px-3 py-3"><StatusBadge status={Array.isArray(row.statuses) && row.statuses.length ? String(row.statuses[0]) : "normal"} /></td><td className="px-3 py-3"><div className="flex items-center gap-2"><StatusBadge status={String(row.review_status)} />{canAdjust ? <AttendanceAdjustmentButton resultId={String(row.id)} currentSeconds={paid} /> : null}</div></td>
             </tr>; })}</tbody>
           </table>
           {!rows.length ? <div className="p-8 text-center"><p className="text-sm font-medium">No calculated attendance for this week</p><p className="mt-1 text-xs text-muted-foreground">Publish schedules, complete Person ID and device mappings, then confirm a View Attendance Punch import.</p></div> : null}
         </div>
       </section>
+      <ActualAttendancePanel assignments={actuals.assignments as Array<Record<string,unknown>>} reports={actuals.reports as Array<Record<string,unknown>>} ledger={actuals.ledger} balances={actuals.balances} canSubmit={permissions["attendance.report.submit"]} canApprove={permissions["attendance.report.approve"]} canSubmitComp={permissions["comp_time.submit"]} canApproveComp={permissions["comp_time.approve"]}/>
     </WorkspaceGrid>
   </>;
 }

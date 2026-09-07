@@ -17,7 +17,7 @@ export default async function AttendancePage() {
   const canImport = permissions["attendance.import"];
   const tasks = [
     ...(canSchedule?[{ label: "Schedule decisions", value: data.pendingApprovals+data.pendingRequests, detail:`${data.pendingApprovals} awaiting Manager · ${data.pendingRequests} staff requests`, icon: CalendarDays, href: "/attendance/schedule" }]:[]),
-    ...(canReview?[{ label: "Attendance exceptions", value: data.unresolvedExceptions, detail:"Review punches that need a decision", icon: AlertTriangle, href: "/attendance/review" }]:[]),
+    ...(canReview?[{ label: "Attendance exceptions", value: data.unresolvedExceptions+data.pendingActualReports, detail:`${data.unresolvedExceptions} punch exceptions · ${data.pendingActualReports} daily reports`, icon: AlertTriangle, href: "/attendance/review" }]:[]),
     ...(canImport?[{ label: "Missing Person ID mappings", value: data.missingMappings, detail:"Map people before calculating attendance", icon: UsersRound, href: "/attendance/imports" }]:[]),
   ];
   return <>

@@ -1,5 +1,11 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.35 (unreleased) — Roster and attendance evidence layers
+
+- Schedule cells express the approved plan and may carry a compact comment marker without becoming the source for same-day exceptions.
+- Actual Attendance presents Planned, Actual, Approved adjustments, and Recognised attendance as separate fields, with formal submit and decision dialogs.
+- Attendance pages share one mobile gutter, card border, spacing rhythm, and action area; opening Working Time focuses its heading instead of a native time control.
+
 ## v9.2.34 (unreleased) — Explicit placement reset
 
 - Changing a grid template does not remove explicit placement inherited by its children. A responsive layout that reduces the column count must reset child `grid-column` and `grid-row` before relying on auto placement.

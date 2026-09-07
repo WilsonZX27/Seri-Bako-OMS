@@ -1,22 +1,24 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Link2Off } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { StatusBadge } from "@/components/ui/status-badge";
 
 type Option = { id: string; branch_name?: string };
 
 export function MappingAdmin({ branches, devices }: { branches: Option[]; devices: Array<Record<string, unknown>> }) {
   const [message, setMessage] = useState("");
 
+  async function saveMapping(sourceCode:string,branchId:string,active:boolean){
+    const response=await fetch("/api/attendance/mappings",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({kind:"device",sourceCode,branchId,active})});
+    const result=await response.json() as {ok:boolean;message?:string};setMessage(result.ok?(active?"Mapping saved.":"Source unbound. Historical imports are unchanged."):result.message??"Mapping failed.");if(result.ok)window.location.reload();
+  }
+
   async function submit(form: HTMLFormElement) {
     const data = new FormData(form);
-    const body = { kind: "device", sourceCode: data.get("sourceCode"), branchId: data.get("branchId"), active: true };
-    const response = await fetch("/api/attendance/mappings", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
-    const result = await response.json() as { ok: boolean; message?: string };
-    setMessage(result.ok ? "Mapping saved." : result.message ?? "Mapping failed.");
-    if (result.ok) window.location.reload();
+    await saveMapping(String(data.get("sourceCode")),String(data.get("branchId")),true);
   }
 
   return <section className="min-w-0">
@@ -28,7 +30,7 @@ export function MappingAdmin({ branches, devices }: { branches: Option[]; device
         <label className="grid gap-1 text-xs font-medium">Outlet<select name="branchId" required className="h-10 rounded-md border bg-background px-3 text-sm"><option value="">Select outlet</option>{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}</select></label>
         <Button type="submit" className="h-10 min-w-20 px-4">Link</Button>
       </form>
-      <div className="mt-4 divide-y text-xs">{devices.map((row) => { const branch = row.branches as { branch_name?: string } | null; return <div key={String(row.id)} className="flex justify-between gap-3 py-2"><span className="font-mono">{String(row.source_code)}</span><span>{branch?.branch_name ?? "Unknown outlet"}</span></div>; })}{!devices.length ? <p className="py-3 text-muted-foreground">No device sources linked yet.</p> : null}</div>
+      <div className="mt-4 divide-y text-xs">{devices.map((row) => { const branch = row.branches as { branch_name?: string } | null;const source=String(row.source_code),branchId=String(row.branch_id),active=Boolean(row.is_active); return <div key={String(row.id)} className="grid gap-2 py-2 sm:grid-cols-[minmax(10rem,1fr)_minmax(12rem,1.4fr)_auto] sm:items-center"><div><span className="font-mono">{source}</span>{!active?<StatusBadge status="inactive"/>:null}</div><label className="sr-only" htmlFor={`mapping-${row.id}`}>Outlet for {source}</label><select id={`mapping-${row.id}`} disabled={!active} defaultValue={branchId} className="h-9 rounded-[var(--sb-radius-control)] border bg-white px-2" onChange={event=>{const next=event.target.value;if(next!==branchId&&window.confirm(`Move ${source} from ${branch?.branch_name??"its current outlet"} to the selected outlet? Historical imports will stay unchanged.`))void saveMapping(source,next,true)}}>{branches.map(item=><option key={item.id} value={item.id}>{item.branch_name}</option>)}</select><Button size="sm" variant="outline" disabled={!active} onClick={()=>{if(window.confirm(`Unbind ${source} from ${branch?.branch_name??"this outlet"}? Historical imports will remain available.`))void saveMapping(source,branchId,false)}}><Link2Off className="h-3.5 w-3.5"/>Unbind</Button></div>; })}{!devices.length ? <p className="py-3 text-muted-foreground">No device sources linked yet.</p> : null}</div>
     </div>
     {message ? <p className="mt-3 text-xs text-muted-foreground" role="status">{message}</p> : null}
   </section>;

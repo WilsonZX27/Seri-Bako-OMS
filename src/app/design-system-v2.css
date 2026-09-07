@@ -2325,6 +2325,16 @@ html[data-touch-tablet="true"] [data-app-topbar] > .hidden.min-w-0.items-center 
 }
 
 @media (max-width: 767px) {
+  .sb-schedule-workspace [data-schedule-planner] {
+    margin-inline: -1rem;
+  }
+
+  .sb-schedule-workspace [data-schedule-planner] > :not([data-schedule-mobile-actions]) {
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
+  }
+
   /* The weekly spreadsheet remains the high-density desktop editor. Phones
      use the selected-day roster directly above it in the DOM. */
   [data-schedule-planner] section:has(table) {

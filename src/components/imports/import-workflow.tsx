@@ -147,10 +147,11 @@ export async function parseXlsx(file: File) {
   const rows: string[][] = [];
   for (const rowMatch of sheet.matchAll(/<row[^>]*>([\s\S]*?)<\/row>/g)) {
     const row: string[] = [];
-    for (const cellMatch of rowMatch[1].matchAll(/<c[^>]*r="([A-Z]+\d+)"[^>]*(?:t="([^"]+)")?[^>]*>([\s\S]*?)<\/c>/g)) {
-      const index = columnIndex(cellMatch[1]);
-      const type = cellMatch[2];
-      const body = cellMatch[3];
+    for (const cellMatch of rowMatch[1].matchAll(/<c([^>]*)r="([A-Z]+\d+)"([^>]*)>([\s\S]*?)<\/c>/g)) {
+      const index = columnIndex(cellMatch[2]);
+      const attributes = `${cellMatch[1]} ${cellMatch[3]}`;
+      const type = attributes.match(/\bt="([^"]+)"/)?.[1];
+      const body = cellMatch[4];
       const raw = body.match(/<v[^>]*>([\s\S]*?)<\/v>/)?.[1] ?? body.match(/<t[^>]*>([\s\S]*?)<\/t>/)?.[1] ?? "";
       row[index] = type === "s" ? shared[Number(raw)] ?? "" : textContent(raw);
     }

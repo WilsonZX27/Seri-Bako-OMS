@@ -22,7 +22,7 @@ test("dashboard composition is all-role, task-first, and finance-gated", () => {
   assert.match(view, /tabletRailMode="context"/);
   assert.doesNotMatch(view, /title="Workspace context"|title="Alerts"/);
   assert.match(view, /data-dashboard-pipeline/);
-  assert.match(view, /data-dashboard-pipeline className=\{`grid gap-1/);
+  assert.match(view, /data-dashboard-pipeline className="grid grid-cols-2/);
   assert.doesNotMatch(view, /\[&>\*:nth-child\(even\)\]:border-l/);
 });
 

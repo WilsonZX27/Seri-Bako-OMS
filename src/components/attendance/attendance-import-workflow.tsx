@@ -61,7 +61,7 @@ export function AttendanceImportWorkflow({ staffs = [], mappedPersonIds = [], ma
   return <div className="space-y-4">
     <section className="sb-work-surface p-3">
       <div className="grid min-w-0 gap-3 md:items-start lg:grid-cols-[minmax(14rem,1fr)_minmax(13rem,0.7fr)_minmax(17rem,1fr)] lg:items-end">
-        <div className="self-center"><h2 className="text-sm font-semibold">NGTeco import preview</h2><p className="mt-1 max-w-[52ch] text-xs text-muted-foreground">Punch and Timecard exports calculate actual attendance. Attendance Report totals remain comparison-only.</p></div>
+        <div className="self-center"><h2 className="text-sm font-semibold">Import attendance file</h2></div>
         <div><p className="text-xs font-medium">Attendance week</p><p className="mt-1 flex h-10 items-center rounded-[var(--sb-radius-control)] border bg-[var(--sb-surface-muted)] px-3 text-xs font-semibold tabular-nums">{displayDate(weekStart)} – {displayDate(addDays(weekStart,6))}</p></div>
         <label className="grid gap-1 text-xs font-medium"><span>Upload NGTeco CSV or XLSX</span><Input type="file" accept=".csv,.xlsx" onChange={(event) => void load(event.currentTarget.files?.[0])}/></label>
       </div>

@@ -22,8 +22,8 @@ test("dashboard uses one non-duplicated operational hierarchy", () => {
 test("priority dashboard groups remain compact across phone and tablet", () => {
   assert.match(dashboard, /grid grid-cols-3 divide-x divide-\[var\(--sb-border-soft\)\][^\n]*data-dashboard-quick-actions/);
   assert.doesNotMatch(dashboard, /data-dashboard-quick-actions[\s\S]{0,900}hover:-translate-y/);
-  assert.match(dashboard, /grid grid-cols-3 divide-x divide-\[var\(--sb-border-soft\)\][^\n]*data-dashboard-exceptions/);
-  assert.match(dashboard, /grid grid-cols-3 divide-x divide-\[var\(--sb-border-soft\)\][^\n]*data-dashboard-payables/);
+  assert.match(dashboard, /grid grid-cols-2 gap-px bg-\[var\(--sb-border-soft\)\][^\n]*data-dashboard-exceptions/);
+  assert.match(dashboard, /grid grid-cols-2 gap-px bg-\[var\(--sb-border-soft\)\][^\n]*data-dashboard-payables/);
 });
 
 test("purchase requests and stock counts share canonical query-card ownership", () => {

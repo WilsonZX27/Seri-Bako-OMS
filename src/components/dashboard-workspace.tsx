@@ -43,7 +43,7 @@ function Metric({
         >
           <Icon className="h-3.5 w-3.5 group-hover:scale-105" />
         </span>
-        <span className={variant === "tile" ? `col-span-2 row-start-2 min-w-0 font-medium text-[var(--sb-text-muted)] ${density === "compact" ? "text-[10px] leading-3.5 sm:text-xs sm:leading-4" : "text-[11px] leading-4 sm:text-xs"}` : "truncate"}>{label}</span>
+        <span className={variant === "tile" ? "col-span-2 row-start-2 min-w-0 text-xs font-medium leading-4 text-[var(--sb-text-muted)]" : "truncate"}>{label}</span>
       </span>
       <strong
         className={unavailable ? "col-start-2 row-start-1 justify-self-end text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-warning)]" : variant === "tile" ? density === "compact" ? "col-start-2 row-start-1 min-w-0 justify-self-end whitespace-nowrap text-lg font-semibold tabular-nums sm:text-xl" : "col-start-2 row-start-1 justify-self-end text-xl font-semibold tabular-nums sm:text-2xl" : "tabular-nums"}
@@ -333,7 +333,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
         {!isOutlet ? (
           <div className="order-2 space-y-4" data-dashboard-activity-group>
             <Panel title={isPurchasing ? "Purchasing pipeline" : isKitchen ? "Production and receiving" : "Operational pipeline"}>
-              <div data-dashboard-pipeline className={`grid gap-1 ${isPurchasing ? "grid-cols-2" : summary.compliance ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-3"}`}>
+              <div data-dashboard-pipeline className="grid grid-cols-2 gap-px bg-[var(--sb-border-soft)]">
                 <Metric
                   href="/purchase-orders"
                   label={isPurchasing ? "PO preparation / sending" : "Recent purchase orders"}
@@ -383,7 +383,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
             title={isKitchen ? "Raw-material exceptions" : "Exceptions requiring follow-up"}
             empty="No urgent operational exceptions are visible in your scope."
           >
-            <div className="grid grid-cols-3 divide-x divide-[var(--sb-border-soft)]" data-dashboard-exceptions>
+            <div className="grid grid-cols-2 gap-px bg-[var(--sb-border-soft)]" data-dashboard-exceptions>
               {!summary.inventoryUnavailable && summary.lowStockCount !== null ? <Metric href="/low-stock" label="Low stock" value={summary.lowStockCount} icon={AlertTriangle} alert={summary.lowStockCount > 0} alertTone="critical" variant="tile" density="compact" /> : null}
               {showOperations && summary.operationsControl?.outlet ? (
                 <Metric
@@ -426,7 +426,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
           >
             {summary.payablesAttention ? (
               <>
-                <div className="grid grid-cols-3 divide-x divide-[var(--sb-border-soft)]" data-dashboard-payables>
+                <div className="grid grid-cols-2 gap-px bg-[var(--sb-border-soft)]" data-dashboard-payables>
                   <Metric href="/supplier-invoices/aging?overdue=1" label="Overdue AP" value={formatCurrency(summary.payablesAttention.overdue_amount + summary.payablesAttention.critical_amount)} icon={ReceiptText} alert={summary.payablesAttention.overdue_count > 0} variant="tile" density="compact" />
                   <Metric href="/supplier-invoices/aging?bucket=missing_due_date" label="Missing due date" value={formatNumber(summary.payablesAttention.missing_due_date_count)} icon={AlertTriangle} alert={summary.payablesAttention.missing_due_date_count > 0} variant="tile" density="compact" />
                   <Metric href="/supplier-invoices/cash-flow" label="Due soon" value={formatCurrency(summary.payablesAttention.due_today_amount + summary.payablesAttention.due_next_7_amount)} icon={Clock3} variant="tile" density="compact" />

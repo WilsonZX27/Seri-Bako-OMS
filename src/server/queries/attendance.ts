@@ -144,7 +144,7 @@ export async function getAttendanceMappings() {
     db.from("ngteco_person_mappings").select("*,staffs!ngteco_person_mappings_staff_id_fkey(full_name,staff_code)").order("person_id"),
     db.from("ngteco_device_mappings").select("*,branches(branch_name)").order("source_code"),
     db.from("staffs").select("id,full_name,staff_code").eq("status", "active").is("deleted_at", null).order("full_name"),
-    db.from("branches").select("id,branch_name").eq("branch_type", "outlet").eq("status", "active").order("branch_name"),
+    db.from("branches").select("id,branch_name").in("branch_type", ["outlet", "central_kitchen"]).eq("status", "active").is("deleted_at", null).order("branch_name"),
   ]);
   for (const result of [people, devices, staffs, branches]) if (result.error) throw result.error;
   return { people: people.data ?? [], devices: devices.data ?? [], staffs: (staffs.data ?? []) as unknown as Array<{id:string;full_name:string;staff_code:string|null}>, branches: (branches.data ?? []) as unknown as Array<{id:string;branch_name:string}>, allowed: true };

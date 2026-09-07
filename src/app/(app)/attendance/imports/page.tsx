@@ -19,7 +19,7 @@ export default async function AttendanceImportsPage() {
   return <>
     <PageHeader title="NGTeco Import" description="Match people and devices, preview raw punches, then calculate against the published schedule." contentWidth="wide" />
     <WorkspaceGrid tabletCanvas="wide" className="sb-portrait-tablet-rail" hideMobileConsole rightRail={<>
-      <ConsoleSection title="Import order"><ol className="space-y-2"><li><strong>1. Select outlet source</strong><br/><span className="text-muted-foreground">Map each NGTeco device to its outlet once.</span></li><li><strong>2. Preview</strong><br/><span className="text-muted-foreground">Employees match automatically by their OMS name.</span></li><li><strong>3. Confirm</strong><br/><span className="text-muted-foreground">Punches calculate against published times.</span></li></ol></ConsoleSection>
+      <ConsoleSection title="Import order"><ol className="space-y-2"><li><strong>1. Map device locations</strong><br/><span className="text-muted-foreground">Link Punch sources to an Outlet or Central Kitchen once.</span></li><li><strong>2. Preview</strong><br/><span className="text-muted-foreground">The file type and attendance week are detected automatically.</span></li><li><strong>3. Confirm</strong><br/><span className="text-muted-foreground">Punches calculate against published times.</span></li></ol></ConsoleSection>
       <ConsoleSection title="Next"><Button asChild size="sm" variant="outline" className="w-full"><Link href="/attendance/review">Review calculated time</Link></Button></ConsoleSection>
     </>}>
       <AttendanceWorkspaceNav current="import" />

@@ -1,5 +1,15 @@
 # Seri Bako Operations Management System
 
+### v9.2.40 (unreleased) — Manager scheduling and Timecard import
+
+- Managers can prepare, submit, and publish their own audited rosters while Supervisor self-approval remains blocked.
+- NGTeco Timecard Report files become actual punch evidence with an inferred Monday–Sunday week, explicit one-sided-punch exceptions, and immutable source rows.
+- Attendance mapping includes Central Kitchen and uses a compact Location table; Schedule leave shortcuts use distinct restrained semantic colours.
+
+Repository migrations reviewed through `268`. Migration `268` contains the server-authoritative scheduling, Timecard import, and Central Kitchen mapping rules and remains unapplied until release.
+
+> Current repository authority: forward-only migration 历史已到 `268`.
+
 ### v9.2.39 (unreleased) — Finance PR return permission
 
 - Finance can return a purchase request from Finance Review to Purchasing Review through the audited correction workflow.

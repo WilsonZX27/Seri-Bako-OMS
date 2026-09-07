@@ -1,5 +1,10 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.40 (unreleased) — Dense Attendance operations
+
+- Import controls share one compact toolbar, source mappings align as Source, Location, and Actions, and editing appears only on demand.
+- OFF, AL, PH, UPL, and RO keep their text labels while using separate neutral, blue, violet, amber, and teal tones.
+
 ## v9.2.39 (unreleased) — Finance PR return permission
 
 - The visible Finance correction action now matches its database permission, so the interface does not offer an action that the server rejects.

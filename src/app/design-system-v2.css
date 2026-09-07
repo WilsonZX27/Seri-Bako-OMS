@@ -692,7 +692,9 @@ nav[aria-label="Pagination"] > span,
 }
 
 [data-right-console-scroll] > [data-console-section] + [data-console-section],
-[data-mobile-console-content] > [data-console-section] + [data-console-section] {
+[data-mobile-console-content] > [data-console-section] + [data-console-section],
+[data-right-console] [data-console-section] + [data-console-section],
+[data-mobile-console-content] [data-console-section] + [data-console-section] {
   margin-top: 0.75rem !important;
 }
 

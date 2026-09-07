@@ -1,5 +1,9 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.37 (unreleased) — Nested rail spacing authority
+
+- Right-rail section spacing is based on adjacent console sections at any wrapper depth, including transparent `display: contents` groups.
+
 ## v9.2.36 (unreleased) — Compact operational controls
 
 - Shared buttons use 12px labels while preserving the existing control height and touch target.

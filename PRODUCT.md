@@ -1,5 +1,9 @@
 # Seri Bako Operations Management System
 
+### v9.2.37 (unreleased) — Right rail spacing closure
+
+- Applies the shared 12px card gap through `display: contents` wrappers so Timeline, Revision History, and other nested right-rail sections follow the same rhythm.
+
 ### v9.2.36 (unreleased) — Operational density and Finance access alignment
 
 - Uses a consistent 12px action-label scale and a visible 12px gap between cards in desktop and mobile action rails.

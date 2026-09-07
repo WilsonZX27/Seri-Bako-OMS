@@ -47,3 +47,10 @@ test("Attendance mapping and quick assignments use the compact location vocabula
   assert.match(mappings, />Change<\/Button>/);
   for (const tone of ["slate", "blue", "violet", "amber", "teal"]) assert.match(schedule, new RegExp(`border-${tone}-200`));
 });
+
+test("invalid or empty Timecard rows do not block valid punches", () => {
+  assert.match(workflow, /const importableRows/);
+  assert.match(workflow, /rows:importableRows\.map/);
+  assert.match(workflow, /incomplete or invalid rows will be excluded for review/);
+  assert.doesNotMatch(workflow, /errors>0\|\|saving/);
+});

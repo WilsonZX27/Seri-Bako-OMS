@@ -1,3 +1,7 @@
+## v9.2.46 (unreleased) — Unified Attendance workspace
+
+- The schedule navigation and roster now share the same workspace grid and main-column width beside the action console.
+
 # Seri Bako OMS responsive design standard
 
 ## v9.2.45 (unreleased) — Dense Attendance operations

@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { ChevronLeft, ChevronRight, Copy, MessageSquareText, Save, Send, Undo2, UserRound, X } from "lucide-react";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { AttendanceWorkspaceNav } from "@/components/attendance/attendance-workspace-nav";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { readJsonResponse } from "@/lib/http/read-json-response";
@@ -30,7 +31,7 @@ function durationSeconds(start:string,end:string,crosses=false){const [sh,sm]=st
 const timeOptions=Array.from({length:48},(_,index)=>`${String(Math.floor(index/2)).padStart(2,"0")}:${index%2?"30":"00"}`);
 function TimeSelect({label,value,onChange}:{label:string;value:string;onChange:(value:string)=>void}){return <label className="grid gap-1 text-xs"><span>{label}</span><select value={value} onChange={event=>onChange(event.target.value)} className="h-10 w-full rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white px-3 text-sm tabular-nums focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)]">{timeOptions.map(time=><option key={time} value={time}>{time}</option>)}</select></label>}
 
-export function SchedulePlanner({branches,branchId,weekStart,week,previousWeekId,people,templates,initialAssignments,canDraft,canSubmit,canApprove,rightRailDetails}:{branches:Branch[];branchId:string;weekStart:string;week:Week;previousWeekId:string|null;people:Person[];templates:Template[];initialAssignments:Assignment[];canDraft:boolean;canSubmit:boolean;canApprove:boolean;rightRailDetails:ReactNode}){
+export function SchedulePlanner({branches,branchId,weekStart,week,previousWeekId,people,templates,initialAssignments,canDraft,canSubmit,canApprove,rightRailDetails,headerContent}:{branches:Branch[];branchId:string;weekStart:string;week:Week;previousWeekId:string|null;people:Person[];templates:Template[];initialAssignments:Assignment[];canDraft:boolean;canSubmit:boolean;canApprove:boolean;rightRailDetails:ReactNode;headerContent?:ReactNode}){
   const dates=useMemo(()=>Array.from({length:7},(_,i)=>addDays(weekStart,i)),[weekStart]);
   const initial=useMemo(()=>new Map(initialAssignments.map(a=>[`${a.staff_id}:${a.work_date}`,a])),[initialAssignments]);
   const [cells,setCells]=useState<Map<string,Assignment>>(initial);
@@ -87,6 +88,8 @@ export function SchedulePlanner({branches,branchId,weekStart,week,previousWeekId
   const selectedDayHours=selectedDayValues.reduce((sum,value)=>sum+cellSeconds(value),0);
   return <WorkspaceGrid rightRail={workflowActions} hideMobileConsole className="sb-schedule-workspace">
     <div className="space-y-3" data-schedule-planner>
+    <AttendanceWorkspaceNav current="schedule" />
+    {headerContent}
     <section className="overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-white shadow-[var(--sb-shadow-card)]">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-[var(--sb-border-soft)] px-3 py-2 sm:grid-cols-[minmax(12rem,1fr)_auto_auto]" data-schedule-period-controls>
         <label className="sr-only" htmlFor="schedule-outlet">Outlet</label><select id="schedule-outlet" className="col-span-2 h-10 w-full rounded-[var(--sb-radius-control)] border bg-white px-3 text-xs font-semibold sm:col-span-1 sm:min-w-0" value={branchId} onChange={e=>window.location.href=`/attendance/schedule?branch=${encodeURIComponent(e.target.value)}&week=${weekStart}`}>{branches.map(b=><option key={b.id} value={b.id}>{b.branch_name}</option>)}</select>

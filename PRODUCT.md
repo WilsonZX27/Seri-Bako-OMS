@@ -1,3 +1,7 @@
+### v9.2.46 (unreleased) — Attendance workspace alignment
+
+- Schedule navigation, pending requests, and the roster now use one layout authority so the main workflow remains visually aligned with its action rail.
+
 # Seri Bako Operations Management System
 
 ### v9.2.45 (unreleased) — Manager scheduling and Timecard import

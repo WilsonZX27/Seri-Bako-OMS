@@ -46,7 +46,7 @@ function Metric({
         <span className={variant === "tile" ? `col-span-2 row-start-2 min-w-0 font-medium text-[var(--sb-text-muted)] ${density === "compact" ? "text-[10px] leading-3.5 sm:text-xs sm:leading-4" : "text-[11px] leading-4 sm:text-xs"}` : "truncate"}>{label}</span>
       </span>
       <strong
-        className={unavailable ? "col-start-2 row-start-1 justify-self-end text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-warning)]" : variant === "tile" ? density === "compact" ? "col-start-2 row-start-1 justify-self-end text-xl font-semibold tabular-nums sm:text-2xl" : "col-start-2 row-start-1 justify-self-end text-xl font-semibold tabular-nums sm:text-2xl" : "tabular-nums"}
+        className={unavailable ? "col-start-2 row-start-1 justify-self-end text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-warning)]" : variant === "tile" ? density === "compact" ? "col-start-2 row-start-1 min-w-0 justify-self-end whitespace-nowrap text-lg font-semibold tabular-nums sm:text-xl" : "col-start-2 row-start-1 justify-self-end text-xl font-semibold tabular-nums sm:text-2xl" : "tabular-nums"}
         aria-label={unavailable ? `${label} is temporarily unavailable` : undefined}
         title={unavailable ? `${label} is temporarily unavailable` : undefined}
       >

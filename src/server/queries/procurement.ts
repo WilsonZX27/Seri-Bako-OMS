@@ -393,7 +393,7 @@ export async function getPurchaseOrders(filters: Filters = {}) {
   const sort = safeSort(filters.sort, ["po_no", "order_date", "expected_delivery_date", "status", "updated_at"], "po_no");
   let query = supabase
     .from("purchase_orders")
-    .select("id, supplier_id, purchase_request_id, po_no, order_date, expected_delivery_date, status, approval_status, remarks, updated_at, deleted_at", { count: "exact" });
+    .select("id, supplier_id, purchase_request_id, branch_id, created_by, po_no, order_date, expected_delivery_date, status, approval_status, remarks, updated_at, deleted_at", { count: "exact" });
   const status = filters.status && filters.status !== "all" ? filters.status : null;
   const search = searchFilter(filters.search);
   if (status) query = query.eq("status", status as PurchaseOrder["status"]);
@@ -413,8 +413,8 @@ export async function getPurchaseOrders(filters: Filters = {}) {
   if (!lines || (data.length > 0 && !suppliers)) throw new Error("Purchase order related data returned no data.");
   const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
   const requestById = new Map((requests ?? []).map((row) => [row.id, row.request_no]));
-  const branchIds = [...new Set((requests ?? []).map((row) => row.branch_id).filter((id): id is string => Boolean(id)))];
-  const requesterIds = [...new Set((requests ?? []).map((row) => row.requested_by).filter((id): id is string => Boolean(id)))];
+  const branchIds = [...new Set([...data.map((row) => row.branch_id), ...(requests ?? []).map((row) => row.branch_id)].filter((id): id is string => Boolean(id)))];
+  const requesterIds = [...new Set([...data.map((row) => row.created_by), ...(requests ?? []).map((row) => row.requested_by)].filter((id): id is string => Boolean(id)))];
   const [{ data: branches, error: branchesError }, { data: requesters, error: requestersError }] = await Promise.all([
     branchIds.length ? supabase.from("branches").select("id, branch_name").in("id", branchIds) : Promise.resolve({ data: [], error: null }),
     requesterIds.length ? supabase.from("staffs").select("id, full_name").in("id", requesterIds) : Promise.resolve({ data: [], error: null }),
@@ -429,8 +429,8 @@ export async function getPurchaseOrders(filters: Filters = {}) {
       ...row,
       supplier_name: supplierById.get(row.supplier_id) ?? null,
       request_no: row.purchase_request_id ? requestById.get(row.purchase_request_id) ?? null : null,
-      branch_name: request?.branch_id ? branchById.get(request.branch_id) ?? null : null,
-      requested_by_name: request?.requested_by ? requesterById.get(request.requested_by) ?? null : null,
+      branch_name: (row.branch_id ? branchById.get(row.branch_id) : null) ?? (request?.branch_id ? branchById.get(request.branch_id) : null) ?? null,
+      requested_by_name: (request?.requested_by ? requesterById.get(request.requested_by) : null) ?? (row.created_by ? requesterById.get(row.created_by) : null) ?? null,
       line_count: ownLines.length,
       order_total: ownLines.reduce((sum, line) => sum + line.qty_ordered * line.unit_price, 0),
     };

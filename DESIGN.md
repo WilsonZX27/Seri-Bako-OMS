@@ -1,5 +1,11 @@
 # Seri Bako OMS responsive design standard
 
+## v9.2.36 (unreleased) — Compact operational controls
+
+- Shared buttons use 12px labels while preserving the existing control height and touch target.
+- Right-console and More-action cards keep a 12px vertical rhythm at every viewport.
+- Dense Purchase Order tables defer to the operational list below 1536px so browser zoom does not compress business fields into unreadable columns.
+
 ## v9.2.35 (unreleased) — Roster and attendance evidence layers
 
 - Schedule cells express the approved plan and may carry a compact comment marker without becoming the source for same-day exceptions.

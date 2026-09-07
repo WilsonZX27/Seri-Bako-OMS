@@ -1,5 +1,7 @@
 # Seri Bako OMS — Schema 与 Table 关系地图
 
+> Current repository authority 2026-09-07: forward-only migration 历史已到 `266`. Migration `266` aligns Finance read access with visible Inventory navigation and adds an audited Finance-to-Purchasing correction return. This is repository evidence only; it does not prove migration application in Production.
+
 > Current repository authority 2026-09-07: forward-only migration 历史已到 `265`. Migration `265` separates immutable published schedules from daily attendance reports, adds the approved compensatory-time ledger, preserves attendance-result revisions, and makes NGTeco mapping changes auditable. This is repository evidence only; it does not prove migration application in Preview or Production.
 
 > Current repository authority 2026-09-05: forward-only migration 历史已到 `264`. Migration `260` introduces the permission-gated Outlet Daily `post` transition, retains `evening_completed` as Ready to post, and uses the historical `reviewed` enum value as the durable Posted state. Migration `261` makes Compliance type creation and active-site requirement rollout atomic through a tenant-scoped RPC. Migration `262` keeps sales reconciliation optional so blank or mismatched sales never blocks wastage completion or posting. Migration `264` preserves Owner self-updates across atomic role replacement and audits the one-time closure of historical Ready-to-post records before 2026-09-05. This is repository evidence only; it does not prove migration application in Preview or Production.

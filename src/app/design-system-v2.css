@@ -691,6 +691,22 @@ nav[aria-label="Pagination"] > span,
   border-top: 1px solid var(--sb-border);
 }
 
+[data-right-console-scroll] > [data-console-section] + [data-console-section],
+[data-mobile-console-content] > [data-console-section] + [data-console-section] {
+  margin-top: 0.75rem !important;
+}
+
+[data-right-console] [data-console-section] :where(a.inline-flex, button.inline-flex),
+[data-mobile-console-content] [data-console-section] :where(a.inline-flex, button.inline-flex) {
+  font-size: 0.75rem !important;
+}
+
+[data-outlet-daily-record-list] {
+  align-self: start;
+  height: max-content;
+  min-height: 0;
+}
+
 [data-right-console] [data-right-console-scroll],
 .scrollbar-none {
   scrollbar-width: none;

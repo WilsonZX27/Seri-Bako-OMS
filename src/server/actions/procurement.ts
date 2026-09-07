@@ -663,6 +663,17 @@ export async function rejectPurchaseRequest(id: string, formData: FormData) {
   try {
     const remarks = z.string().trim().min(1, "Rejection remarks are required.").max(1_000, "Rejection remarks must be 1,000 characters or fewer.").parse(cleanText(formData.get("remarks")) ?? "");
     if (isMockMode()) return;
+    const profile = await getCurrentProfile();
+    if (profile?.role_code === "finance") {
+      const requestId = parsePurchaseRequestId(id);
+      const supabase = await createClient();
+      const { data, error } = await looseSupabase(supabase).rpc("return_finance_purchase_request_to_purchasing", { target_purchase_request_id: requestId, correction_reason: remarks });
+      if (error) throw new Error(error.message);
+      const updated = data as { id: string; request_no: string; branch_id: string | null; company_id: string | null };
+      await notifyNextPrRole({ pr: updated, nextStatus: "admin_review" });
+      revalidateWorkspaceState(["/purchase-requests", `/purchase-requests/${requestId}`]);
+      safeRedirectWithMessage(`/purchase-requests/${requestId}`, "success", `${updated.request_no} returned to Purchasing Review.`);
+    }
     const updated = await transitionPurchaseRequest(id, "reject", remarks);
     safeRedirectWithMessage(`/purchase-requests/${id}`, "success", `${updated.request_no} rejected. Requester has been notified.`);
   } catch (error) {

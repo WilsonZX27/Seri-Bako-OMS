@@ -1,5 +1,13 @@
 # Seri Bako Operations Management System
 
+### v9.2.36 (unreleased) — Operational density and Finance access alignment
+
+- Uses a consistent 12px action-label scale and a visible 12px gap between cards in desktop and mobile action rails.
+- Keeps Purchase Orders readable under browser zoom, restores direct-PO outlet and creator context, and removes duplicated Direct PO labels.
+- Aligns Finance inventory navigation with database grants and returns Finance corrections directly to Purchasing Review.
+
+Repository migrations reviewed through `266`. Migration `266` is repository implementation evidence only and must be applied before this application version is deployed; it is not Production proof.
+
 ### v9.2.35 (unreleased) — Published roster and actual attendance separation
 
 - Keeps Manager-approved schedules immutable while daily MC, emergency leave, punch corrections, and compensatory-time use follow a separate approval trail.

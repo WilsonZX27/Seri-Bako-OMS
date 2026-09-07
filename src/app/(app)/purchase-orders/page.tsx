@@ -105,7 +105,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
             </UnifiedListHeader>
           <div className="sb-list-content-card overflow-hidden" data-mobile-list-content-card>
           <DataGridHint text="Pro-tip: Double-click any row to open the purchase order." />
-          <Table mobileHidden aria-label="Purchase orders" stickyColumn="second">
+          <Table mobileHidden compactUntil="2xl" aria-label="Purchase orders" stickyColumn="second">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-10 text-center">Action</TableHead>
@@ -123,8 +123,8 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                 {orders?.rows.map((order) => (
                   <DataGridRow key={order.id} href={`/purchase-orders/${order.id}`} className="[&>td]:h-16 [&>td]:align-top">
                     <TableCell className="w-10 p-0 text-center"><TableActionLink href={`/purchase-orders/${order.id}`} label={`Open ${order.po_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
-                    <TableCell className="min-w-36"><DocumentNumber value={order.po_no} size="sm" /><span className="mt-1 block text-[10px] italic text-muted-foreground">{order.purchase_request_id && order.request_no ? <Link href={`/purchase-requests/${order.purchase_request_id}`} className="text-[var(--sb-link)] underline-offset-4 hover:underline">{order.request_no}</Link> : "Direct PO"}</span></TableCell>
-                    <TableCell className="w-40 max-w-40"><p className="truncate">{order.branch_name ?? "No outlet"}</p><p className="mt-1 truncate text-[11px] text-muted-foreground">{order.requested_by_name ? `Submitted by ${order.requested_by_name}` : "Direct PO"}</p></TableCell>
+                    <TableCell className="min-w-36"><DocumentNumber value={order.po_no} size="sm" />{order.purchase_request_id && order.request_no ? <span className="mt-1 block text-[10px] italic text-muted-foreground"><Link href={`/purchase-requests/${order.purchase_request_id}`} className="text-[var(--sb-link)] underline-offset-4 hover:underline">{order.request_no}</Link></span> : null}</TableCell>
+                    <TableCell className="w-40 max-w-40"><p className="truncate">{order.branch_name ?? "No outlet assigned"}</p><p className="mt-1 truncate text-[11px] text-muted-foreground">{order.requested_by_name ? `${order.purchase_request_id ? "Submitted" : "Created"} by ${order.requested_by_name}` : "Creator unavailable"}</p></TableCell>
                     <TableCell className="w-52 max-w-52"><span className="line-clamp-2 leading-4">{order.supplier_name ?? "-"}</span></TableCell>
                     <TableCell className="hidden md:table-cell">{formatDateOnly(order.order_date)}</TableCell>
                     <TableCell className="hidden lg:table-cell">{formatDateOnly(order.expected_delivery_date, "-")}</TableCell>
@@ -136,7 +136,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                 {!orders?.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title={ordersResult.unavailable ? "Purchase order data unavailable" : filtered ? "No orders match these filters" : "No purchase orders yet"} description={ordersResult.unavailable ? "The order source could not be verified. No record count or order total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={ordersResult.unavailable ? { href: "/purchase-orders", label: "Retry orders" } : emptyStateAction} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
-            <OperationalList ariaLabel="Purchase orders">
+            <OperationalList ariaLabel="Purchase orders" showUntil="2xl">
               {orders?.rows.map((order) => <OperationalListRow
                 key={order.id}
                 label={`Open ${order.po_no}`}

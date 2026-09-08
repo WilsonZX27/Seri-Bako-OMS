@@ -150,14 +150,14 @@ export async function postGoodsReceiving(id: string, formData: FormData) {
         over_receipt_reason: cleanText(reasons[index] ?? null),
       })));
       const { error: updateError } = await supabase.rpc("update_goods_receiving_draft_atomic" as never, { p_goods_receiving_id: goodsReceivingId, p_lines: lines } as never);
-      if (updateError) throw new Error(updateError.message);
+      if (updateError) throw new Error(`GRN_DRAFT_UPDATE_FAILED: ${updateError.message}`);
     }
     const doExceptionReason = z.string().trim().max(1_000).nullable().parse(cleanText(formData.get("do_exception_reason")));
     const { data, error } = await supabase.rpc("post_goods_receiving_atomic", {
       p_goods_receiving_id: goodsReceivingId,
       p_do_exception_reason: doExceptionReason,
     });
-    if (error) throw new Error(error.message);
+    if (error) throw new Error(`GRN_STOCK_POST_FAILED: ${error.message}`);
     const result = data as { document_id?: string | null; grn_no?: string; purchase_order_id?: string; already_posted?: boolean } | null;
     if (result?.document_id && !result.already_posted) {
       // Activity history is useful audit metadata, but it is not the posting
@@ -178,7 +178,13 @@ export async function postGoodsReceiving(id: string, formData: FormData) {
     safeRedirectWithMessage(`/goods-receivings/${id}`, "success", result?.already_posted ? "This receiving was already posted. No duplicate stock movement was created." : `${result?.grn_no ?? "Goods receiving"} posted to stock.`);
   } catch (error) {
     rethrowRedirect(error);
-    safeRedirectWithMessage(`/goods-receivings/${id}`, "error", formatActionError(error, "Could not post this receiving to stock."));
+    const message = error instanceof Error ? error.message : String(error ?? "");
+    const userMessage = message.startsWith("GRN_DRAFT_UPDATE_FAILED:")
+      ? `Could not save the received quantities before posting. ${formatActionError(new Error(message.replace(/^GRN_DRAFT_UPDATE_FAILED:\s*/, "")), "Review the quantities and try again.")}`
+      : message.startsWith("GRN_STOCK_POST_FAILED:")
+        ? `The quantities were saved, but stock posting failed. ${formatActionError(new Error(message.replace(/^GRN_STOCK_POST_FAILED:\s*/, "")), "Try again or contact an Owner.")}`
+        : formatActionError(error, "Could not post this receiving to stock.");
+    safeRedirectWithMessage(`/goods-receivings/${id}`, "error", userMessage);
   }
 }
 

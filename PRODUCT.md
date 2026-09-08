@@ -1,6 +1,8 @@
-### v9.2.47 (unreleased) — Attendance workspace alignment
+### v9.2.48 (unreleased) — Attendance weekly operations and Kitchen GRN access
 
-- Schedule navigation, pending requests, and the roster now use one layout authority so the main workflow remains visually aligned with its action rail.
+- Actual Attendance combines weekly import, Schedule-versus-punch comparison, server-side filtering, pagination, exception details and time-off review in one workspace.
+- Employment type is editable throughout Staff and People, Compliance records own their supporting documents, and outlet visibility follows the Supervisor boundary.
+- Migration 269 repairs canonical and legacy Kitchen GRN posting grants and adds bounded weekly Attendance review indexes.
 
 # Seri Bako Operations Management System
 
@@ -10,9 +12,9 @@
 - NGTeco Timecard Report files become actual punch evidence with an inferred Monday–Sunday week, explicit one-sided-punch exceptions, and immutable source rows.
 - Attendance mapping includes Central Kitchen and uses a compact Location table; Schedule leave shortcuts use distinct restrained semantic colours.
 
-Repository migrations reviewed through `268`. Migration `268` contains the server-authoritative scheduling, Timecard import, and Central Kitchen mapping rules and remains unapplied until release.
+Repository migrations reviewed through `269`. Migration `269` repairs canonical and legacy Kitchen GRN posting grants and narrows outlet Compliance/Calendar access to Supervisor-and-above status visibility. It is repository evidence only until applied to the linked database.
 
-> Current repository authority: forward-only migration 历史已到 `268`.
+> Current repository authority: forward-only migration 历史已到 `269`.
 
 ### v9.2.39 (unreleased) — Finance PR return permission
 

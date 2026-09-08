@@ -49,7 +49,7 @@ test("dashboard and compliance surface actionable exceptions", () => {
   assert.match(dashboard, /label="Compliance issues"/);
   assert.match(dashboard, /href="\/outlet-compliance"/);
   assert.doesNotMatch(compliance, /backHref="\/outlet-compliance"/);
-  assert.match(compliance, /missing: \{ label: "Missing", variant: "secondary" \}/);
+  assert.match(compliance, /missing: \{ label: "Missing document", variant: "secondary" \}/);
 });
 
 test("document numbers retain the exact external format", () => {

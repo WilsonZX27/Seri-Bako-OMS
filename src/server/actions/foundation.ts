@@ -46,6 +46,7 @@ export async function updateCompany(formData: FormData) {
     registration_no: formValue(formData, "registration_no"),
     tax_no: formValue(formData, "tax_no"),
     phone: formValue(formData, "phone"),
+    employment_type: formValue(formData, "employment_type") ?? "full_time",
     email: formValue(formData, "email"),
     address: formValue(formData, "address"),
     status: formValue(formData, "status") ?? "active",

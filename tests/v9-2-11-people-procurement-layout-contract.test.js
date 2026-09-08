@@ -5,11 +5,11 @@ const path = require("node:path");
 
 const read = (file) => fs.readFileSync(path.join(process.cwd(), file), "utf8");
 
-test("People compliance and documents use explicit sibling work cards", () => {
+test("People compliance and documents share one record and upload flow", () => {
   const page = read("src/app/(app)/people/[id]/page.tsx");
-  assert.match(page, /title="Compliance summary"/);
+  assert.match(page, /title="Compliance & documents"/);
   assert.match(page, /id="add-compliance-record" title="Add compliance record"/);
-  assert.match(page, /id="add-employee-document" title="Add employee document"/);
+  assert.doesNotMatch(page, /id="add-employee-document"/);
   assert.match(page, /ComplianceRecordForm/);
   assert.doesNotMatch(page, /<details className="mt-3 border-t pt-3">/);
   assert.match(page, /staff\.email\?\.toLowerCase\(\)/);

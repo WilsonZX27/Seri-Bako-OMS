@@ -18,7 +18,7 @@ export default async function AttendancePage() {
   const tasks = [
     ...(canSchedule?[{ label: "Schedule decisions", value: data.pendingApprovals+data.pendingRequests, detail:`${data.pendingApprovals} awaiting Manager · ${data.pendingRequests} staff requests`, icon: CalendarDays, href: "/attendance/schedule" }]:[]),
     ...(canReview?[{ label: "Attendance exceptions", value: data.unresolvedExceptions+data.pendingActualReports, detail:`${data.unresolvedExceptions} punch exceptions · ${data.pendingActualReports} daily reports`, icon: AlertTriangle, href: "/attendance/review" }]:[]),
-    ...(canImport?[{ label: "Missing Person ID mappings", value: data.missingMappings, detail:"Map people before calculating attendance", icon: UsersRound, href: "/attendance/imports" }]:[]),
+    ...(canImport?[{ label: "Missing Person ID mappings", value: data.missingMappings, detail:"Map people before calculating attendance", icon: UsersRound, href: "/attendance/review" }]:[]),
   ];
   return <>
     <PageHeader title="Attendance" description="Your outlet schedule and the items that need attention this week." contentWidth="wide" />
@@ -26,7 +26,7 @@ export default async function AttendancePage() {
       <ConsoleSection title="Actions">
         {canSchedule ? <Button asChild size="sm" className="w-full"><Link href="/attendance/schedule">Open Schedule Planner</Link></Button> : null}
         {canReview ? <Button asChild size="sm" variant="outline" className="w-full"><Link href="/attendance/review">Review attendance</Link></Button> : null}
-        {canImport ? <Button asChild size="sm" variant="outline" className="w-full"><Link href="/attendance/imports">Import NGTeco file</Link></Button> : null}
+        {canImport ? <Button asChild size="sm" variant="outline" className="w-full"><Link href="/attendance/review">Import NGTeco file</Link></Button> : null}
       </ConsoleSection>
       <ConsoleSection title="Current week"><p className="font-semibold">{data.weekStart} – {data.weekEnd}</p><StatusBadge status={data.scheduleStatus} /></ConsoleSection>
       <ConsoleSection title="Period"><p>{data.activeLocks ? `${data.activeLocks} locked scope${data.activeLocks === 1 ? "" : "s"}` : "Open for scheduling and review"}</p></ConsoleSection>

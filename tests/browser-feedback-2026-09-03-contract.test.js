@@ -20,7 +20,7 @@ test("calendar, settings, review and imports expose direct context instead of hi
   assert.match(read("src", "app", "(app)", "outlet-calendar", "page.tsx"), /rightRail=\{rightRail\}/);
   assert.match(read("src", "app", "(app)", "attendance", "settings", "page.tsx"), /rightRail=\{rightRail\}/);
   const review = read("src", "app", "(app)", "attendance", "review", "page.tsx");
-  assert.match(review, /Attendance review filters/);
+  assert.match(review, /Actual attendance filters/);
   assert.match(review, /All accessible outlets/);
   const mappings = read("src", "components", "attendance", "mapping-admin.tsx");
   assert.doesNotMatch(mappings, /NGTeco Person ID[\s\S]*OMS employee/);

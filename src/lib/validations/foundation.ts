@@ -47,6 +47,7 @@ export const staffSchema = z.object({
   full_name: z.string().trim().min(1, "Full name is required").max(160),
   email: z.email("Enter a valid email").trim().toLowerCase(),
   phone: z.string().trim().max(48).optional().nullable().transform((value) => (value ? value : null)),
+  employment_type: z.enum(["full_time", "part_time"]),
   default_branch_id: z.string().uuid().optional().nullable().transform((value) => (value ? value : null)),
   status: staffStatusSchema,
 });

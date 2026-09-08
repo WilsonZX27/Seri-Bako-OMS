@@ -198,8 +198,8 @@ export const rolePermissionMatrix = {
     "outlet_daily_record.post",
     "branches.read",
   ],
-  outlet_staff: ["dashboard.view", "outlet_daily_record.view", "outlet_daily_record.create", "outlet_daily_record.update", "outlet_compliance.read", "outlet_compliance.upload"],
-  outlet_supervisor: ["dashboard.view", "outlet_daily_record.view", "outlet_daily_record.create", "outlet_daily_record.update", "outlet_compliance.read", "outlet_compliance.upload", "schedule.read", "schedule.draft", "schedule.submit", "schedule.request", "schedule.swap_review", "attendance.read", "attendance.review", "attendance.report.submit", "comp_time.read", "comp_time.submit"],
+  outlet_staff: ["dashboard.view", "outlet_daily_record.view", "outlet_daily_record.create", "outlet_daily_record.update"],
+  outlet_supervisor: ["dashboard.view", "outlet_daily_record.view", "outlet_daily_record.create", "outlet_daily_record.update", "outlet_compliance.read", "schedule.read", "schedule.draft", "schedule.submit", "schedule.request", "schedule.swap_review", "attendance.read", "attendance.review", "attendance.report.submit", "comp_time.read", "comp_time.submit"],
   kitchen: [
     "dashboard.view",
     "inventory.read",
@@ -232,7 +232,6 @@ export const rolePermissionMatrix = {
     "outlet_daily_record.view_all",
     "outlet_daily_record.create",
     "outlet_daily_record.qty_sent",
-    "outlet_compliance.read",
   ],
 } as const satisfies Record<string, readonly string[]>;
 

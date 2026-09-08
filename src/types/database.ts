@@ -139,7 +139,8 @@ export type Database = {
             phone: string | null;
             avatar_url: string | null;
             avatar_path: string | null;
-            default_branch_id: string | null;
+          default_branch_id: string | null;
+          employment_type: "full_time" | "part_time";
           status: StaffStatus;
           invited_at: string | null;
           invited_by: string | null;
@@ -167,7 +168,8 @@ export type Database = {
             phone?: string | null;
             avatar_url?: string | null;
             avatar_path?: string | null;
-            default_branch_id?: string | null;
+          default_branch_id?: string | null;
+          employment_type?: "full_time" | "part_time";
           status?: StaffStatus;
           invited_at?: string | null;
           invited_by?: string | null;

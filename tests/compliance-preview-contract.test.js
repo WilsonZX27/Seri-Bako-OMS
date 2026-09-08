@@ -76,13 +76,12 @@ test("People profile exposes authorised employment editing and staff document ca
   const action = read("src","server","actions","compliance.ts");
   assert.doesNotMatch(people, /Edit employment & outlets/);
   assert.match(people, /Manage account & access/);
-  assert.match(people, /Compliance summary/);
+  assert.match(people, /Compliance & documents/);
   assert.match(people, /Add compliance record/);
-  assert.match(people, /Add employee document/);
   assert.match(people, /Save record & file/);
   assert.match(people, /people\.compliance\.document\.read/);
   assert.doesNotMatch(people, /Additional outlets use the existing staff assignment model/);
-  assert.match(people, /text-\[10px\][^>]*>Original files/);
+  assert.match(people, /Each requirement keeps its status, expiry and supporting original together/);
   assert.match(action, /value\.subject_kind === "staff" \? "people\.compliance\.document\.read"/);
   assert.match(action, /File storage could not accept this upload/);
   assert.match(action, /Nothing was retained; retry after migration 258 is applied/);

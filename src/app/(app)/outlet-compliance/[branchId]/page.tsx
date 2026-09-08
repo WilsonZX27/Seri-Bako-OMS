@@ -20,10 +20,10 @@ import { addOutletComplianceAttachment, archiveOutletComplianceAttachment, creat
 import { getOutletComplianceWorkspace } from "@/server/queries/compliance";
 
 const meta: Record<string, { label: string; variant: "success" | "warning" | "danger" | "secondary" }> = {
-  missing: { label: "Missing", variant: "secondary" }, valid: { label: "Current", variant: "success" },
+  missing: { label: "Missing document", variant: "secondary" }, valid: { label: "All requirements valid", variant: "success" },
   due_7: { label: "Expiring", variant: "warning" }, due_30: { label: "Expiring", variant: "warning" },
   due_60: { label: "Expiring", variant: "warning" }, due_90: { label: "Expiring", variant: "warning" },
-  expired: { label: "Expired", variant: "danger" }, uploaded: { label: "Current", variant: "success" },
+  expired: { label: "Expired", variant: "danger" }, uploaded: { label: "Document uploaded", variant: "success" },
 };
 
 export default async function OutletChecklistPage({ params, searchParams }: { params: Promise<{ branchId: string }>; searchParams: Promise<{ error?: string; success?: string }> }) {
@@ -43,7 +43,7 @@ export default async function OutletChecklistPage({ params, searchParams }: { pa
   const missing = rows.filter((row) => !row.record || row.record.state === "missing").length;
   const canUpload = permissions["outlet_compliance.upload"];
   const canRead = permissions["outlet_compliance.document.read"];
-  const rail = <><ConsoleSection title="Actions" kind="action"><Button asChild size="sm" variant="outline" className="w-full"><Link href="/outlet-calendar">Open calendar</Link></Button></ConsoleSection><ConsoleSection title="Checklist" kind="status"><dl className="divide-y divide-[var(--sb-border-soft)]"><Fact label="Current" value={`${current}/${rows.length}`}/><Fact label="Missing" value={missing}/></dl></ConsoleSection><ConsoleSection title="File access" kind="reference"><p className="text-muted-foreground">Attachments remain with their matching requirement and audit history.</p></ConsoleSection></>;
+  const rail = <><ConsoleSection title="Actions" kind="action"><Button asChild size="sm" variant="outline" className="w-full"><Link href="/outlet-calendar">Open calendar</Link></Button></ConsoleSection><ConsoleSection title="Checklist" kind="status"><dl className="divide-y divide-[var(--sb-border-soft)]"><Fact label="Valid requirements" value={`${current}/${rows.length}`}/><Fact label="Missing" value={missing}/></dl></ConsoleSection><ConsoleSection title="File access" kind="reference"><p className="text-muted-foreground">Attachments remain with their matching requirement and audit history.</p></ConsoleSection></>;
   return <><PageHeader title={branch.branch_name} description="Required licences and operating documents." contentWidth="wide"/><WorkspaceGrid tabletCanvas="wide" hideMobileConsole rightRail={rail} tabletRailBreakpoint="lg">
     {message.error || message.success ? <div role="status" className={`rounded-[var(--sb-panel-radius)] border px-3 py-2 text-sm ${message.error ? "border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]" : "border-[var(--sb-success)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]"}`}>{message.error ?? message.success}</div> : null}
     <section aria-labelledby="checklist-title"><div className="mb-3"><h2 id="checklist-title" className="text-sm font-semibold">Compliance checklist</h2><p className="mt-0.5 text-[11px] text-muted-foreground">Select a requirement to maintain its record and files.</p></div><div className="mx-auto grid max-w-5xl gap-2">{rows.map((row) => {

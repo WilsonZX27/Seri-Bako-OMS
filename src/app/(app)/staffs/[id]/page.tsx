@@ -12,7 +12,7 @@ import { canAssignRoleCode, getRoleDisplayLabel, normalizeRoleCode, sortRolesFor
 import { formatStatusLabel } from "@/lib/status-label";
 import { formatDateTime } from "@/lib/utils";
 import { getStaffAuthState, staffAuthStateLabels } from "@/lib/staff-auth-state";
-import { disableStaff, enableStaff, forceStaffPasswordChange, permanentlyDeleteStaff, repairStaffSignInLink, resetStaffPermissionOverrides, resetStaffTemporaryPassword, updateStaff, updateStaffPermissionOverrides } from "@/server/actions/foundation";
+import { forceStaffPasswordChange, permanentlyDeleteStaff, repairStaffSignInLink, resetStaffPermissionOverrides, resetStaffTemporaryPassword, updateStaff, updateStaffPermissionOverrides } from "@/server/actions/foundation";
 import { hasPermission } from "@/server/auth/permissions";
 import { getCurrentProfile } from "@/server/queries/common";
 import { readTemporaryPasswordHandoff } from "@/server/auth/temporary-password-handoff";
@@ -87,37 +87,12 @@ export default async function EditStaffPage({
                 Save Staff
               </SubmitButton>
 
-              <div className="grid gap-2">
-                {staff.status === "disabled" ? (
-                  <form action={enableStaff.bind(null, id)}>
-                    <SubmitButton type="submit" variant="outline" className="w-full" pendingLabel="Processing...">
-                      Reactivate staff
-                    </SubmitButton>
-                  </form>
-                ) : (
-                  <DangerConfirmForm
-                    action={disableStaff.bind(null, id)}
-                    title="Disable sign-in?"
-                    description="This staff will no longer be able to sign in. Existing documents and stock history will remain linked."
-                    warning="This action is blocked if it would deactivate the last Super Admin / Owner."
-                    checkboxLabel="I understand this staff will no longer be able to sign in."
-                    confirmWord="DISABLE"
-                    buttonLabel="Disable sign-in"
-                    pendingLabel="Disabling..."
-                  />
-                )}
-              </div>
-
               <div className="rounded-[2px] border bg-secondary/30 p-3 text-xs">
                 <p className="font-semibold">Auth Setup</p>
                 <div className="mt-3 grid gap-2 text-xs">
                   <div className="flex justify-between gap-3">
                     <span className="text-muted-foreground">Account state</span>
                     <span className="font-medium">{staffAuthStateLabels[authState]}</span>
-                  </div>
-                  <div className="flex justify-between gap-3">
-                    <span className="text-muted-foreground">Setup method</span>
-                    <span className="font-medium">{staff.auth_setup_method === "email_invitation" ? "Email invitation" : staff.auth_setup_method === "temporary_password" ? "Temporary password" : "Not configured"}</span>
                   </div>
                   <div className="flex justify-between gap-3">
                     <span className="text-muted-foreground">Must change password</span>

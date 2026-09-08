@@ -36,7 +36,8 @@ export function ComplianceMonthCalendar({ baseHref, month, events }: { baseHref:
   const router = useRouter();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const cursor = cursorOf(month);
-  const go = (date: Date) => router.push(`${baseHref}?month=${monthKey(date)}`);
+  const monthHref = (value: string) => `${baseHref}${baseHref.includes("?") ? "&" : "?"}month=${value}`;
+  const go = (date: Date) => router.push(monthHref(monthKey(date)));
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -67,7 +68,7 @@ export function ComplianceMonthCalendar({ baseHref, month, events }: { baseHref:
       <Button variant="outline" size="sm" className="shrink-0" onClick={() => go(new Date())}>Today</Button>
       <div className="grid min-w-0 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center justify-self-center">
         <Button variant="ghost" size="icon" onClick={() => go(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))} aria-label="Previous month"><ChevronLeft className="h-4 w-4" /></Button>
-        <input aria-label="Choose year and month" type="month" value={prefix} onChange={(event) => event.target.value && router.push(`${baseHref}?month=${event.target.value}`)} className="h-10 min-w-0 w-full border-0 bg-transparent text-center text-sm font-semibold sm:w-44" />
+        <input aria-label="Choose year and month" type="month" value={prefix} onChange={(event) => event.target.value && router.push(monthHref(event.target.value))} className="h-10 min-w-0 w-full border-0 bg-transparent text-center text-sm font-semibold sm:w-44" />
         <Button variant="ghost" size="icon" onClick={() => go(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))} aria-label="Next month"><ChevronRight className="h-4 w-4" /></Button>
       </div>
       <span className="w-[4.5rem]" aria-hidden="true" />

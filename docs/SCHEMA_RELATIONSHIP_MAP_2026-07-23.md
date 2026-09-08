@@ -1,5 +1,7 @@
 # Seri Bako OMS — Schema 与 Table 关系地图
 
+> Current repository authority 2026-09-08: forward-only migration 历史已到 `269`. Migration `269` repairs canonical and legacy Kitchen GRN posting grants and removes Compliance/Calendar access from Outlet Staff and Kitchen while retaining Outlet Supervisor status-only visibility. This is repository evidence only until the linked migration is applied.
+
 > Current repository authority 2026-09-07: forward-only migration 历史已到 `268`. Migration `268` adds Manager roster ownership, NGTeco Timecard Report import provenance, and active Outlet/Central Kitchen device mapping. This is repository evidence only until the linked migration is applied.
 
 > Current repository authority 2026-09-07: forward-only migration 历史已到 `267`. Migration `267` grants Finance the existing purchase-request correction permission required by the audited Finance-to-Purchasing return RPC. This is repository evidence only until the linked migration is applied.

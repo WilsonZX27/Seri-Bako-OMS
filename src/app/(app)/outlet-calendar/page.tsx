@@ -6,14 +6,14 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { getOutletComplianceWorkspace } from "@/server/queries/compliance";
 
-export default async function OutletCalendarPage({ searchParams }: { searchParams: Promise<{ month?: string }> }) {
-  const [{ month }, workspace] = await Promise.all([searchParams, getOutletComplianceWorkspace()]);
+export default async function OutletCalendarPage({ searchParams }: { searchParams: Promise<{ month?: string; branch?: string }> }) {
+  const [{ month, branch }, workspace] = await Promise.all([searchParams, getOutletComplianceWorkspace()]);
   const branchById = new Map(workspace.branches.map((row) => [row.id, row]));
-  const events = workspace.records.filter((row) => row.expires_on && row.branch_id).map((event) => ({ id: event.id, date: event.expires_on!, title: event.type_name, context: branchById.get(event.branch_id!)?.branch_name ?? "Outlet", href: `/outlet-compliance/${event.branch_id}`, state: event.state }));
+  const events = workspace.records.filter((row) => row.expires_on && row.branch_id && (!branch || row.branch_id === branch)).map((event) => ({ id: event.id, date: event.expires_on!, title: event.type_name, context: branchById.get(event.branch_id!)?.branch_name ?? "Outlet", href: `/outlet-compliance/${event.branch_id}`, state: event.state }));
   const urgent = events.filter((event) => ["expired", "due_7", "due_30"].includes(event.state)).length;
   const rightRail = <>
     <ConsoleSection title="Actions" kind="action"><Button asChild size="sm" className="w-full"><Link href="/outlet-compliance">Open outlet register</Link></Button></ConsoleSection>
     <ConsoleSection title="Calendar" kind="status"><p><strong>{events.length}</strong> dated requirements</p><p><strong>{urgent}</strong> due soon or expired</p></ConsoleSection>
   </>;
-  return <><PageHeader title="Outlet Calendar" description="Expiry and renewal dates by outlet." contentWidth="wide"/><WorkspaceGrid tabletCanvas="wide" hideMobileConsole rightRail={rightRail}><ComplianceMonthCalendar baseHref="/outlet-calendar" month={month} events={events}/></WorkspaceGrid></>;
+  return <><PageHeader title="Outlet Calendar" description="Expiry and renewal dates by outlet." contentWidth="wide"/><WorkspaceGrid tabletCanvas="wide" hideMobileConsole rightRail={rightRail}><form className="sb-work-surface flex flex-wrap items-center gap-3 p-3"><label className="text-xs font-medium">Outlet<select name="branch" defaultValue={branch??""} className="ml-2 h-10 rounded-[var(--sb-radius-control)] border bg-white px-3"><option value="">All accessible outlets</option>{workspace.branches.map((outlet)=><option key={outlet.id} value={outlet.id}>{outlet.branch_name}</option>)}</select></label><Button type="submit" size="sm" variant="outline">Apply</Button></form><ComplianceMonthCalendar baseHref={branch?`/outlet-calendar?branch=${encodeURIComponent(branch)}`:"/outlet-calendar"} month={month} events={events}/></WorkspaceGrid></>;
 }

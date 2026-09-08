@@ -96,11 +96,22 @@ export async function getScheduleOverview(weekStart = malaysiaWeekStart()) {
   });
 }
 
-export async function getAttendanceReview(weekStart = malaysiaWeekStart()) {
+export async function getAttendanceReview(weekStart = malaysiaWeekStart(), filters: { branch?: string; status?: string; employee?: string; page?: number; detail?: string } = {}) {
   if (!(await hasPermission("attendance.read"))) throw new Error("Missing permission: attendance.read");
   const db = looseSupabase(await createClient()); const end = new Date(`${weekStart}T00:00:00Z`); end.setUTCDate(end.getUTCDate() + 6);
-  const { data, error } = await db.from("daily_attendance_results").select("*,staffs(full_name,staff_code),branches(branch_name)").eq("is_current", true).gte("work_date", weekStart).lte("work_date", end.toISOString().slice(0, 10)).order("work_date").order("created_at");
-  if (error) throw error; return data ?? [];
+  const weekEnd=end.toISOString().slice(0,10),page=Math.max(1,filters.page??1),pageSize=100;
+  let staffIds:string[]|null=null;
+  if(filters.employee?.trim()){const people=await db.from("staffs").select("id").ilike("full_name",`%${filters.employee.trim()}%`).is("deleted_at",null).limit(100);if(people.error)throw people.error;staffIds=(people.data??[]).map((row:Record<string,unknown>)=>String(row.id));}
+  let query=db.from("daily_attendance_results").select("*,staffs(full_name,staff_code,employment_type),branches(branch_name)",{count:"exact"}).eq("is_current",true).gte("work_date",weekStart).lte("work_date",weekEnd);
+  if(filters.branch)query=query.eq("branch_id",filters.branch);
+  if(filters.status&&filters.status!=="all")query=query.contains("statuses",[filters.status]);
+  if(staffIds)query=staffIds.length?query.in("staff_id",staffIds):query.eq("staff_id","00000000-0000-0000-0000-000000000000");
+  const detailQuery=filters.detail?db.from("daily_attendance_results").select("*,staffs(full_name,staff_code,employment_type),branches(branch_name),attendance_import_batches(file_name,parser_profile,finalised_at)").eq("id",filters.detail).eq("is_current",true).maybeSingle():Promise.resolve({data:null,error:null});
+  const [result,branches,batches,detail]=await Promise.all([query.order("work_date").order("created_at").range((page-1)*pageSize,page*pageSize-1),db.from("branches").select("id,branch_name").in("branch_type",["outlet","central_kitchen"]).eq("status","active").is("deleted_at",null).order("branch_name"),db.from("attendance_import_batches").select("id,file_name,parser_profile,row_count,error_count,warning_count,status,finalised_at").eq("week_start",weekStart).order("created_at",{ascending:false}).limit(5),detailQuery]);
+  for(const item of [result,branches,batches,detail])if(item.error)throw item.error;
+  const [exceptions,adjustments]=detail.data?await Promise.all([db.from("attendance_exceptions").select("id,exception_code,severity,details,resolved_at,resolution_note,created_at").eq("result_id",filters.detail).order("created_at"),db.from("attendance_adjustments").select("id,reason,before_state,after_state,created_at").eq("result_id",filters.detail).order("created_at",{ascending:false})]):[{data:[],error:null},{data:[],error:null}];
+  for(const item of [exceptions,adjustments])if(item.error)throw item.error;
+  return {rows:result.data??[],total:result.count??0,page,pageSize,branches:branches.data??[],batches:batches.data??[],detail:detail.data?{...detail.data,exceptions:exceptions.data??[],adjustments:adjustments.data??[]}:null};
 }
 
 export async function getAttendanceActuals(weekStart = malaysiaWeekStart()) {

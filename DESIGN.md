@@ -1,6 +1,8 @@
-## v9.2.47 (unreleased) — Unified Attendance workspace
+## v9.2.48 (unreleased) — Weekly Attendance operations
 
-- The schedule navigation and roster now share the same workspace grid and main-column width beside the action console.
+- Attendance uses four destinations: Overview, Schedule, Actual Attendance and Settings. Import belongs to Actual Attendance and opens directly into the weekly comparison.
+- The comparison keeps one employee day per row, restrained semantic status colour, a contextual audit rail and bounded pagination for large outlet portfolios.
+- Staff editing uses two balanced desktop columns, Compliance and supporting documents share one record, file actions use the established pale green treatment, and switches keep full capsule tracks.
 
 # Seri Bako OMS responsive design standard
 

@@ -49,6 +49,7 @@ type Staff = {
   accepted_at?: string | null;
   last_login_at?: string | null;
   invite_email?: string | null;
+  employment_type?: "full_time" | "part_time";
 };
 
 type StaffAccess = {
@@ -150,7 +151,7 @@ export function BranchForm({ branch, companies, action, formId, showSubmit = tru
       <CompanyHidden companies={companies} companyId={branch?.company_id} />
       <input type="hidden" name="status" value={branch?.status ?? "active"} />
       <RecordSection title="Identity" description="Branch reference, name, and operating type. Lifecycle changes stay in the action panel.">
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2">
           <Field label="Branch Code">
             <Input name="branch_code" defaultValue={branch?.branch_code ?? ""} required />
           </Field>
@@ -221,11 +222,11 @@ export function StaffForm({
 }) {
   const branchOptions = branches.filter((branch) => branch.status === "active");
   return (
-    <form id={formId} action={action} className="space-y-5">
+    <form id={formId} action={action} className="grid gap-5 xl:grid-cols-2">
       <RecordSection title="Staff Profile" description="Core identity and contact details for this staff member.">
           <CompanyHidden companies={companies} companyId={staff?.company_id} />
           <input type="hidden" name="status" value={staff?.status ?? "invited"} />
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2">
           <Field label="Staff Code">
             <Input name="staff_code" defaultValue={staff?.staff_code?.toUpperCase() ?? ""} className="form-control-compact uppercase" />
           </Field>
@@ -237,6 +238,12 @@ export function StaffForm({
           </Field>
           <Field label="Phone">
             <Input name="phone" defaultValue={staff?.phone ?? ""} className="form-control-compact" />
+          </Field>
+          <Field label="Employment Type" required>
+            <SelectNative name="employment_type" defaultValue={staff?.employment_type ?? "full_time"} className="form-control-compact">
+              <option value="full_time">Full-time</option>
+              <option value="part_time">Part-time</option>
+            </SelectNative>
           </Field>
         </div>
       </RecordSection>
@@ -256,7 +263,7 @@ export function StaffForm({
       {includeAuthSetup ? <StaffAuthSetupFields /> : null}
 
       {showSubmit ? (
-        <Card>
+        <Card className="xl:col-span-2">
           <CardContent className="flex justify-end p-5">
             <SubmitButton type="submit" pendingLabel={staff ? "Saving..." : "Creating account..."} showOverlay overlayLabel={staff ? "Saving changes..." : "Creating staff account..."}>{staff ? "Save staff" : "Create staff"}</SubmitButton>
           </CardContent>

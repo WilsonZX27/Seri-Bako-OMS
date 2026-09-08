@@ -1,8 +1,11 @@
-### v9.2.48 (unreleased) — Attendance weekly operations and Kitchen GRN access
+### v9.2.48 (unreleased) — Attendance weekly operations, pay rules and Kitchen GRN access
 
 - Actual Attendance combines weekly import, Schedule-versus-punch comparison, server-side filtering, pagination, exception details and time-off review in one workspace.
 - Employment type is editable throughout Staff and People, Compliance records own their supporting documents, and outlet visibility follows the Supervisor boundary.
 - Migration 269 repairs canonical and legacy Kitchen GRN posting grants and adds bounded weekly Attendance review indexes.
+- Migration 272 separates presence, worked, payable and approved OT time, applies employment-type break rules, and adds branch public holidays with effective-dated payroll-equivalent multipliers.
+
+Repository migrations reviewed through `272`. Migration `272` is implemented locally and remains unapplied until the linked database dry-run and release are separately approved.
 
 # Seri Bako Operations Management System
 

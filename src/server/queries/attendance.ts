@@ -114,6 +114,18 @@ export async function getAttendanceReview(weekStart = malaysiaWeekStart(), filte
   return {rows:result.data??[],total:result.count??0,page,pageSize,branches:branches.data??[],batches:batches.data??[],detail:detail.data?{...detail.data,exceptions:exceptions.data??[],adjustments:adjustments.data??[]}:null};
 }
 
+export async function getAttendancePaySettings() {
+  if (!(await hasPermission("attendance.read"))) throw new Error("Missing permission: attendance.read");
+  const db=looseSupabase(await createClient());
+  const [rules,holidays,branches]=await Promise.all([
+    db.from("attendance_pay_rule_versions").select("*").eq("is_active",true).order("effective_from",{ascending:false}).limit(20),
+    db.from("public_holidays").select("*,public_holiday_branches(branch_id,branches(branch_name))").order("holiday_date",{ascending:false}).limit(100),
+    db.from("branches").select("id,branch_name").in("branch_type",["outlet","central_kitchen"]).eq("status","active").is("deleted_at",null).order("branch_name"),
+  ]);
+  for(const item of [rules,holidays,branches])if(item.error)throw item.error;
+  return {rules:rules.data??[],holidays:holidays.data??[],branches:branches.data??[]};
+}
+
 export async function getAttendanceActuals(weekStart = malaysiaWeekStart()) {
   if (!(await hasPermission("attendance.read"))) throw new Error("Missing permission: attendance.read");
   const db=looseSupabase(await createClient());const end=new Date(`${weekStart}T00:00:00Z`);end.setUTCDate(end.getUTCDate()+6);const weekEnd=end.toISOString().slice(0,10);

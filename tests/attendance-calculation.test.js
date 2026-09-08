@@ -30,8 +30,8 @@ test("08 pairs three work intervals",()=>assert.equal(pairPunches([event("09:00:
 test("09 reports an odd punch without fabricating an OUT",()=>{const result=pairPunches([event("09:00:00"),event("13:00:00"),event("14:00:00")]);assert.equal(result.intervals.length,1);assert.ok(result.exceptions.includes("Odd Punch Count"))});
 test("10 reports a required missing break",()=>assert.ok(calculateAttendance(standard,[event("09:00:00"),event("18:30:00")]).exceptions.includes("Missing Break Punch")));
 test("11 enforces the 510-minute full-time cap",()=>assert.equal(calculateAttendance({...standard,requiresBreak:false},[event("08:00:00"),event("20:00:00")]).recognisedPaidSeconds,510*60));
-test("12 enforces a lower part-time cap",()=>assert.equal(calculateAttendance({...standard,requiresBreak:false,maximumRecognisedSeconds:4*3600},[event("09:00:00"),event("18:30:00")]).recognisedPaidSeconds,4*3600));
-test("13 matches an approved cross-day shift",()=>assert.equal(calculateAttendance({scheduledStart:new Date("2026-09-01T22:00:00+08:00"),scheduledEnd:new Date("2026-09-02T06:00:00+08:00"),maximumRecognisedSeconds:28800},[{occurredAt:new Date("2026-09-01T22:00:00+08:00")},{occurredAt:new Date("2026-09-02T06:00:00+08:00")}]).recognisedPaidSeconds,28800));
+test("12 enforces a lower part-time schedule cap",()=>assert.equal(calculateAttendance({...standard,employmentType:"part_time",requiresBreak:false,maximumRecognisedSeconds:4*3600},[event("09:00:00"),event("18:30:00")]).recognisedPaidSeconds,4*3600));
+test("13 gives a complete cross-day full-time shift the fixed 8.5 hours",()=>assert.equal(calculateAttendance({scheduledStart:new Date("2026-09-01T22:00:00+08:00"),scheduledEnd:new Date("2026-09-02T06:00:00+08:00"),maximumRecognisedSeconds:28800},[{occurredAt:new Date("2026-09-01T22:00:00+08:00")},{occurredAt:new Date("2026-09-02T06:00:00+08:00")}]).recognisedPaidSeconds,30600));
 test("14 reports a device mismatch",()=>assert.ok(calculateAttendance(standard,[event("09:00:00","OTHER"),event("18:30:00","OTHER")]).exceptions.includes("Wrong Branch/Device")));
 test("15 rejects impossible explicit OUT then IN ordering",()=>assert.equal(pairPunches([{...event("09:00:00"),type:"out"},{...event("18:30:00"),type:"in"}]).intervals.length,0));
 test("16 does not fabricate missing punches",()=>{const result=calculateAttendance(standard,[]);assert.equal(result.actualFirstIn,null);assert.equal(result.intervals.length,0)});
@@ -47,12 +47,12 @@ test("required attendance examples remain exact to the second", () => {
   assert.equal(veryEarly.postShiftSeconds, 900);
   const late = calculateAttendance(standard, [event("09:05:00"), event("13:00:00"), event("14:00:00"), event("18:30:00")]);
   assert.equal(late.lateSeconds, 300);
-  assert.equal(late.recognisedPaidSeconds, 30300);
+  assert.equal(late.recognisedPaidSeconds, 30600);
   const lateWithSeconds = calculateAttendance(standard, [event("09:05:59"), event("13:00:00"), event("14:00:00"), event("18:30:00")]);
   assert.equal(lateWithSeconds.lateSeconds, 359);
   const earlyLeave = calculateAttendance(standard, [event("09:00:00"), event("13:00:00"), event("14:00:00"), event("18:00:00")]);
   assert.equal(earlyLeave.earlyLeaveSeconds, 1800);
-  assert.equal(earlyLeave.recognisedPaidSeconds, 28800);
+  assert.equal(earlyLeave.recognisedPaidSeconds, 30600);
 });
 
 test("four and six punches pair work intervals and actual gaps are unpaid", () => {
@@ -72,14 +72,31 @@ test("odd and missing-break punches create exceptions without invented events", 
 test("full-time and part-time caps are shift-owned", () => {
   const events = [event("08:00:00"), event("19:00:00")];
   assert.equal(calculateAttendance({ ...standard, requiresBreak: false }, events).recognisedPaidSeconds, 30600);
-  assert.equal(calculateAttendance({ ...standard, requiresBreak: false, maximumRecognisedSeconds: 14400 }, events).recognisedPaidSeconds, 14400);
+  assert.equal(calculateAttendance({ ...standard, employmentType: "part_time", requiresBreak: false, maximumRecognisedSeconds: 14400 }, events).recognisedPaidSeconds, 14400);
 });
 
 test("cross-day shifts, unscheduled states and wrong devices are explicit", () => {
   const crossDay = calculateAttendance({ scheduledStart: new Date("2026-09-01T22:00:00+08:00"), scheduledEnd: new Date("2026-09-02T06:00:00+08:00"), maximumRecognisedSeconds: 28800 }, [{ occurredAt: new Date("2026-09-01T21:55:00+08:00") }, { occurredAt: new Date("2026-09-02T06:05:00+08:00") }]);
-  assert.equal(crossDay.recognisedPaidSeconds, 28800);
+  assert.equal(crossDay.recognisedPaidSeconds, 30600);
   assert.ok(calculateAttendance(standard, [event("09:00:00", "WRONG"), event("18:30:00", "WRONG")]).exceptions.includes("Wrong Branch/Device"));
   assert.equal(calculateAttendance(standard, []).actualFirstIn, null);
+});
+
+test("part-time floors the daily worked total after unpaid breaks",()=>{
+ const fourTwentyTwo=calculateAttendance({...standard,employmentType:"part_time",maximumRecognisedSeconds:8*3600},[event("09:00:00"),event("13:22:00")]);
+ const fourFiftyNine=calculateAttendance({...standard,employmentType:"part_time",maximumRecognisedSeconds:8*3600},[event("09:00:00"),event("13:59:00")]);
+ assert.equal(fourTwentyTwo.payableSeconds,4*3600);assert.equal(fourFiftyNine.payableSeconds,4.5*3600);
+});
+
+test("full-time full-day is automatic and requires two one-hour breaks",()=>{
+ const shift={...standard,scheduledEnd:date("19:00:01"),maximumRecognisedSeconds:34200};
+ const result=calculateAttendance(shift,[event("09:00:00"),event("11:00:00"),event("12:00:00"),event("15:00:00"),event("16:00:00"),event("19:00:01")]);
+ assert.equal(result.shiftClass,"full_day");assert.equal(result.payableSeconds,34200);assert.equal(result.paidBreakSeconds,7200);assert.ok(!result.exceptions.includes("Short Break"));
+});
+
+test("holiday output returns equivalent hours only when HR configured multipliers",()=>{
+ const result=calculateAttendance({...standard,holidayNormalMultiplier:2,holidayOtMultiplier:3},[event("09:00:00"),event("13:00:00"),event("14:00:00"),event("18:30:00")]);
+ assert.equal(result.holidayNormalEquivalentSeconds,61200);assert.equal(result.holidayOtEquivalentSeconds,0);
 });
 
 test("attendance engine encodes exact-second, pairing, cap and exception contracts", () => {

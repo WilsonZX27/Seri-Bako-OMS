@@ -13,7 +13,7 @@ export type AttendanceShift = {
 };
 export type AttendanceException =
   | "Odd Punch Count" | "Missing Break Punch" | "Short Break" | "Wrong Branch/Device"
-  | "Unapproved Pre-shift Time" | "Unapproved Post-shift Time";
+  | "Missing Check In" | "Missing Check Out" | "Unapproved Pre-shift Time" | "Unapproved Post-shift Time";
 
 const secondsBetween = (start: Date, end: Date) => Math.max(0, Math.floor((end.getTime() - start.getTime()) / 1000));
 
@@ -52,10 +52,12 @@ export function calculateAttendance(shift: AttendanceShift, events: PunchEvent[]
   const employmentType = shift.employmentType ?? "full_time";
   const scheduleSpanSeconds = secondsBetween(shift.scheduledStart, shift.scheduledEnd);
   const shiftClass = employmentType === "full_time" && scheduleSpanSeconds > 9.5 * 3600 ? "full_day" : "morning_afternoon";
-  const requiredBreakCount = employmentType === "full_time" ? (shiftClass === "full_day" ? 2 : 1) : 1;
+  const requiredBreakCount = employmentType === "full_time" ? (shiftClass === "full_day" ? 2 : 1) : scheduleSpanSeconds > 5 * 3600 ? 1 : 0;
+  const expectedPunchCount = 2 + requiredBreakCount * 2;
   const breakDurations = intervals.slice(1).map((interval, index) => secondsBetween(intervals[index].end.occurredAt, interval.start.occurredAt));
-  if (shift.requiresBreak && breakDurations.length < requiredBreakCount) exceptions.push("Missing Break Punch");
-  if (employmentType === "full_time" && breakDurations.length >= requiredBreakCount && breakDurations.filter(value => value >= 3600).length < requiredBreakCount) exceptions.push("Short Break");
+  if (breakDurations.length < requiredBreakCount) exceptions.push("Missing Break Punch");
+  const minimumBreakSeconds = employmentType === "full_time" ? 3600 : 1800;
+  if (breakDurations.length >= requiredBreakCount && breakDurations.filter(value => value >= minimumBreakSeconds).length < requiredBreakCount) exceptions.push("Short Break");
   if (first && first < shift.scheduledStart) exceptions.push("Unapproved Pre-shift Time");
   if (last && last > shift.scheduledEnd) exceptions.push("Unapproved Post-shift Time");
   if (shift.expectedBranchSource && ordered.some((event) => event.source !== shift.expectedBranchSource)) exceptions.push("Wrong Branch/Device");
@@ -67,9 +69,17 @@ export function calculateAttendance(shift: AttendanceShift, events: PunchEvent[]
   const completePunches = ordered.length >= 2 && ordered.length % 2 === 0 && intervals.length * 2 === ordered.length;
   const normalCapSeconds = employmentType === "full_time" ? (shiftClass === "full_day" ? 34200 : 30600) : Math.min(shift.maximumRecognisedSeconds, scheduleSpanSeconds);
   const payableSeconds = !completePunches ? null : employmentType === "full_time" ? normalCapSeconds : Math.floor(rawWorkSeconds / 1800) * 1800;
-  const overtimeCandidateSeconds = completePunches ? Math.min(Math.floor(Math.max(0, rawWorkSeconds - normalCapSeconds) / 1800) * 1800, Math.floor(postShiftSeconds / 1800) * 1800) : 0;
+  const postScheduleWorkedSeconds = completePunches ? intervals.reduce((total, interval) => {
+    const start = new Date(Math.max(interval.start.occurredAt.getTime(), shift.scheduledEnd.getTime()));
+    return total + secondsBetween(start, interval.end.occurredAt);
+  }, 0) : 0;
+  const overtimeCandidateSeconds = employmentType === "full_time" ? Math.floor(postScheduleWorkedSeconds / 1800) * 1800 : 0;
   const overtimeSeconds = Math.min(overtimeCandidateSeconds, Math.max(0, shift.approvedOvertimeSeconds ?? 0));
-  const normalPayableSeconds = payableSeconds == null ? null : Math.min(payableSeconds, normalCapSeconds);
+  const normalPayableSeconds = payableSeconds == null
+    ? null
+    : employmentType === "part_time"
+      ? payableSeconds
+      : Math.min(payableSeconds, normalCapSeconds);
   return {
     intervals,
     actualFirstIn: first,
@@ -92,6 +102,9 @@ export function calculateAttendance(shift: AttendanceShift, events: PunchEvent[]
     employmentType,
     shiftClass,
     requiredBreakCount,
+    expectedPunchCount,
+    actualPunchCount: ordered.length,
+    missingPunchCount: Math.max(0, expectedPunchCount - ordered.length),
     breakDurations,
     holidayNormalEquivalentSeconds: normalPayableSeconds == null || shift.holidayNormalMultiplier == null ? null : normalPayableSeconds * shift.holidayNormalMultiplier,
     holidayOtEquivalentSeconds: shift.holidayOtMultiplier == null ? null : overtimeSeconds * shift.holidayOtMultiplier,

@@ -292,3 +292,4 @@ flowchart LR
 6. 每一项通过**新的 forward-only migration**处理；绝不改或删除已经上线过的历史 migration。
 
 Migration `263` adds atomic compliance renewal with history. Source reviewed locally; database execution and remote application are pending.
+> Current repository authority 2026-09-09: forward-only migration 历史已到 `274`. Migration `274` adds People-owned OT decisions, schedule-bound RO reservations, FIFO ledger allocations, protected employment details and the atomic weekly close. This repository record and linked dry-run do not prove Production application.

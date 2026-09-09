@@ -1,4 +1,10 @@
-## v9.2.49 (unreleased) — Actionable attendance operations
+## v9.2.50 (unreleased) — OT-to-RO weekly attendance close
+
+- Schedule exposes the actual shift templates again and lets Supervisors attach a partial Full-time RO redemption to a shift by moving one edge in 30-minute units.
+- Actual Attendance shows expected/actual punches, monthly missing-punch follow-up, OT claims and a People-owned weekly close.
+- Sensitive weekly workbooks use one employee per sheet and remain restricted to People Operations and Owner after the week is locked.
+
+## v9.2.49 — Actionable attendance operations
 
 - Schedule warnings name the affected employee in the action rail and on the employee row without blocking submission.
 - Raw punch import shows multi-week scope, daily event coverage, AM/PM timestamps and a per-week review destination.

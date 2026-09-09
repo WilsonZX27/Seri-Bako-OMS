@@ -1,4 +1,12 @@
-### v9.2.49 (unreleased) — Raw Punch attendance and schedule repair
+### v9.2.50 (unreleased) — Attendance OT, RO and weekly close
+
+- NGTeco Raw Punch remains the attendance source. The weekly calculation now records expected punches, missing-punch follow-up and Full-time post-schedule OT candidates.
+- Supervisor submits OT; People/Owner decides credit. Published partial RO reserves approved balance, weekly close confirms actual use, and FIFO allocations preserve the source earning.
+- Protected People data stores passport and basic salary outside the general staff row and is used only for the People/Owner workbook after close.
+
+Repository migrations reviewed through `274`. Migration `274` is implemented and linked-database dry-run discovery is complete; schema application and Production verification remain separate release steps.
+
+### v9.2.49 — Raw Punch attendance and schedule repair
 
 - Schedule validation names blocking staff and treats a missing weekly rest marker as an audited warning that does not prevent submission.
 - People Operations can read outlet employees wherever it has schedule-read branch scope, including published rosters.

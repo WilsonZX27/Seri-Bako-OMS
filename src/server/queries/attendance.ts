@@ -62,7 +62,7 @@ export async function getSchedulePlanner(weekStart = malaysiaWeekStart(), reques
     week ? db.from("shift_assignment_revisions").select("*").eq("schedule_week_id", week.id).eq("is_current", true) : Promise.resolve({ data: [], error: null }),
   ]);
   if (templates.error) throw templates.error; if (assignments.error) throw assignments.error;
-  return { branches: branchRows, branchId, week: week as unknown as { id: string; status: string } | null, previousWeekId: previousWeeks?.[0]?.id ? String(previousWeeks[0].id) : null, templates: (templates.data ?? []) as unknown as Array<{ id:string;code:string;name:string;planned_start:string;planned_end:string;planned_break_seconds:number;maximum_recognised_seconds:number;colour:string }>, people: (scheduleStaff ?? []) as unknown as Array<{ id:string;full_name:string;staff_code:string|null;status:string;employment_type:string;role_code:string }>, assignments: (assignments.data ?? []) as unknown as Array<{staff_id:string;work_date:string;assignment_kind:string;shift_template_id:string|null;custom_start:string|null;custom_end:string|null;custom_crosses_midnight:boolean;custom_break_seconds:number|null;custom_maximum_recognised_seconds:number|null;custom_reason:string|null}> };
+  return { branches: branchRows, branchId, week: week as unknown as { id: string; status: string } | null, previousWeekId: previousWeeks?.[0]?.id ? String(previousWeeks[0].id) : null, templates: (templates.data ?? []) as unknown as Array<{ id:string;code:string;name:string;planned_start:string;planned_end:string;planned_break_seconds:number;maximum_recognised_seconds:number;colour:string }>, people: (scheduleStaff ?? []) as unknown as Array<{ id:string;full_name:string;staff_code:string|null;status:string;employment_type:string;role_code:string }>, assignments: (assignments.data ?? []) as unknown as Array<{staff_id:string;work_date:string;assignment_kind:string;shift_template_id:string|null;custom_start:string|null;custom_end:string|null;custom_crosses_midnight:boolean;custom_break_seconds:number|null;custom_maximum_recognised_seconds:number|null;custom_reason:string|null;ro_minutes:number|null;ro_original_start:string|null;ro_original_end:string|null;ro_direction:string|null}> };
 }
 
 export async function getScheduleOverview(weekStart = malaysiaWeekStart()) {
@@ -104,7 +104,8 @@ export async function getAttendanceReview(weekStart = malaysiaWeekStart(), filte
   if(filters.employee?.trim()){const people=await db.from("staffs").select("id").ilike("full_name",`%${filters.employee.trim()}%`).is("deleted_at",null).limit(100);if(people.error)throw people.error;staffIds=(people.data??[]).map((row:Record<string,unknown>)=>String(row.id));}
   let query=db.from("daily_attendance_results").select("*,staffs(full_name,staff_code,employment_type),branches(branch_name)",{count:"exact"}).eq("is_current",true).gte("work_date",weekStart).lte("work_date",weekEnd);
   if(filters.branch)query=query.eq("branch_id",filters.branch);
-  if(filters.status&&filters.status!=="all")query=query.contains("statuses",[filters.status]);
+  if(filters.status==="repeated_missing_punch")query=query.gte("monthly_missing_punch_count",4);
+  else if(filters.status&&filters.status!=="all")query=query.contains("statuses",[filters.status]);
   if(staffIds)query=staffIds.length?query.in("staff_id",staffIds):query.eq("staff_id","00000000-0000-0000-0000-000000000000");
   const detailQuery=filters.detail?db.from("daily_attendance_results").select("*,staffs(full_name,staff_code,employment_type),branches(branch_name),attendance_import_batches(file_name,parser_profile,finalised_at)").eq("id",filters.detail).eq("is_current",true).maybeSingle():Promise.resolve({data:null,error:null});
   const [result,branches,batches,detail]=await Promise.all([query.order("work_date").order("created_at").range((page-1)*pageSize,page*pageSize-1),db.from("branches").select("id,branch_name").in("branch_type",["outlet","central_kitchen"]).eq("status","active").is("deleted_at",null).order("branch_name"),db.from("attendance_import_batches").select("id,file_name,parser_profile,row_count,error_count,warning_count,status,finalised_at").eq("week_start",weekStart).order("created_at",{ascending:false}).limit(5),detailQuery]);
@@ -136,18 +137,21 @@ export async function getAttendancePaySettings() {
 export async function getAttendanceActuals(weekStart = malaysiaWeekStart()) {
   if (!(await hasPermission("attendance.read"))) throw new Error("Missing permission: attendance.read");
   const db=looseSupabase(await createClient());const end=new Date(`${weekStart}T00:00:00Z`);end.setUTCDate(end.getUTCDate()+6);const weekEnd=end.toISOString().slice(0,10);
-  const [weeks,reports,ledger]=await Promise.all([
+  const [weeks,reports,ledger,claims,reservations,locks]=await Promise.all([
     db.from("schedule_weeks").select("id").eq("week_start",weekStart).in("status",["published","locked"]),
     db.from("daily_attendance_reports").select("*,staffs!daily_attendance_reports_staff_id_fkey(full_name,staff_code),branches!daily_attendance_reports_branch_id_fkey(branch_name),attachments!daily_attendance_reports_evidence_attachment_id_fkey(file_name)").gte("work_date",weekStart).lte("work_date",weekEnd).order("submitted_at",{ascending:false}),
     db.from("comp_time_transactions").select("*,staffs!comp_time_transactions_staff_id_fkey(full_name,staff_code),branches!comp_time_transactions_branch_id_fkey(branch_name)").lte("work_date",weekEnd).order("work_date",{ascending:false}).order("created_at",{ascending:false}),
+    db.from("attendance_ot_claims").select("*,staffs!attendance_ot_claims_staff_id_fkey(full_name,staff_code),branches!attendance_ot_claims_branch_id_fkey(branch_name)").gte("work_date",weekStart).lte("work_date",weekEnd).order("work_date"),
+    db.from("attendance_ro_reservations").select("*,staffs!attendance_ro_reservations_staff_id_fkey(full_name,staff_code),branches!attendance_ro_reservations_branch_id_fkey(branch_name)").gte("work_date",weekStart).lte("work_date",weekEnd).order("work_date"),
+    db.from("attendance_period_locks").select("id,branch_id,week_start,locked_at,unlocked_at").eq("week_start",weekStart).is("unlocked_at",null),
   ]);
-  for(const result of [weeks,reports,ledger])if(result.error)throw result.error;
+  for(const result of [weeks,reports,ledger,claims,reservations,locks])if(result.error)throw result.error;
   const weekIds=(weeks.data??[]).map((row:Record<string,unknown>)=>String(row.id));
-  const assignments=weekIds.length?await db.from("shift_assignment_revisions").select("id,staff_id,branch_id,work_date,assignment_kind,custom_start,custom_end,custom_reason,shift_templates(name,planned_start,planned_end),staffs!shift_assignment_revisions_staff_id_fkey(full_name,staff_code),branches!shift_assignment_revisions_branch_id_fkey(branch_name)").in("schedule_week_id",weekIds).eq("is_current",true).order("work_date"):{data:[],error:null};
+  const assignments=weekIds.length?await db.from("shift_assignment_revisions").select("id,staff_id,branch_id,work_date,assignment_kind,custom_start,custom_end,custom_reason,ro_minutes,ro_original_start,ro_original_end,ro_direction,shift_templates(name,planned_start,planned_end),staffs!shift_assignment_revisions_staff_id_fkey(full_name,staff_code),branches!shift_assignment_revisions_branch_id_fkey(branch_name)").in("schedule_week_id",weekIds).eq("is_current",true).order("work_date"):{data:[],error:null};
   if(assignments.error)throw assignments.error;
   const ledgerRows=(ledger.data??[]) as Array<Record<string,unknown>>;const balances:Record<string,number>={};
   for(const row of ledgerRows)if(row.status==="approved")balances[String(row.staff_id)]=(balances[String(row.staff_id)]??0)+Number(row.minutes??0);
-  return {assignments:assignments.data??[],reports:reports.data??[],ledger:ledgerRows,balances};
+  return {assignments:assignments.data??[],reports:reports.data??[],ledger:ledgerRows,balances,claims:claims.data??[],reservations:reservations.data??[],locks:locks.data??[]};
 }
 
 export async function getStaffCompTime(staffId:string){

@@ -62,8 +62,10 @@ create function public.get_schedule_staff(p_branch_id uuid,p_week_id uuid defaul
 language sql security definer set search_path=public stable as $$
  select distinct s.id,s.full_name,s.staff_code,s.status,s.employment_type,r.role_code
  from public.staffs s
- join public.roles r on r.id=s.role_id
+ join public.staff_roles sr on sr.staff_id=s.id and sr.is_primary=true and sr.effective_from<=current_date and (sr.effective_to is null or sr.effective_to>=current_date)
+ join public.roles r on r.id=sr.role_id and r.company_id=s.company_id
  where s.company_id=public.current_staff_company_id() and s.deleted_at is null
+   and s.status in ('active','invited') and r.role_code in ('outlet_staff','outlet_supervisor')
    and public.can_access_company_branch(s.company_id,p_branch_id) and public.has_permission('schedule.read')
    and (exists(select 1 from public.staff_branches sb where sb.staff_id=s.id and sb.branch_id=p_branch_id)
      or exists(select 1 from public.shift_assignment_revisions a where a.staff_id=s.id and a.branch_id=p_branch_id and a.schedule_week_id=p_week_id and a.is_current))

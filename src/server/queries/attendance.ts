@@ -49,11 +49,11 @@ export async function getSchedulePlanner(weekStart = malaysiaWeekStart(), reques
   const branchRows = (branches ?? []) as unknown as Array<{ id: string; branch_name: string }>;
   const branchId = requestedBranchId && branchRows.some((b) => b.id === requestedBranchId) ? requestedBranchId : branchRows[0]?.id;
   if (!branchId) return { branches: [], branchId: null, week: null, previousWeekId: null, templates: [], people: [], assignments: [] };
-  const { data: scheduleStaff, error: staffError } = await db.rpc("get_schedule_staff", { p_branch_id: branchId });
-  if (staffError) throw staffError;
   const { data: weeks, error: weekError } = await db.from("schedule_weeks").select("*").eq("branch_id", branchId).eq("week_start", weekStart).order("revision", { ascending: false }).limit(1);
   if (weekError) throw weekError;
   const week = weeks?.[0] ?? null;
+  const { data: scheduleStaff, error: staffError } = await db.rpc("get_schedule_staff", { p_branch_id: branchId,p_week_id:week?.id??null });
+  if (staffError) throw staffError;
   const previousStart = new Date(`${weekStart}T00:00:00Z`); previousStart.setUTCDate(previousStart.getUTCDate() - 7);
   const { data: previousWeeks, error: previousError } = await db.from("schedule_weeks").select("id").eq("branch_id", branchId).eq("week_start", previousStart.toISOString().slice(0, 10)).in("status", ["published", "locked"]).order("revision", { ascending: false }).limit(1);
   if (previousError) throw previousError;
@@ -112,6 +112,13 @@ export async function getAttendanceReview(weekStart = malaysiaWeekStart(), filte
   const [exceptions,adjustments]=detail.data?await Promise.all([db.from("attendance_exceptions").select("id,exception_code,severity,details,resolved_at,resolution_note,created_at").eq("result_id",filters.detail).order("created_at"),db.from("attendance_adjustments").select("id,reason,before_state,after_state,created_at").eq("result_id",filters.detail).order("created_at",{ascending:false})]):[{data:[],error:null},{data:[],error:null}];
   for(const item of [exceptions,adjustments])if(item.error)throw item.error;
   return {rows:result.data??[],total:result.count??0,page,pageSize,branches:branches.data??[],batches:batches.data??[],detail:detail.data?{...detail.data,exceptions:exceptions.data??[],adjustments:adjustments.data??[]}:null};
+}
+
+export async function getScheduleValidation(weekId:string){
+  const db=looseSupabase(await createClient());
+  const {data,error}=await db.rpc("validate_schedule_week",{p_week_id:weekId});
+  if(error)throw error;
+  return (data??{status:"ready",blockers:[],warnings:[]}) as {status:string;blockers:Array<{code:string;message:string;staffId?:string;staffName?:string;workDate?:string}>;warnings:Array<{code:string;message:string;staffId?:string;staffName?:string;workDate?:string}>};
 }
 
 export async function getAttendancePaySettings() {

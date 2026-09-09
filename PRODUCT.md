@@ -1,3 +1,12 @@
+### v9.2.49 (unreleased) — Raw Punch attendance and schedule repair
+
+- Schedule validation names blocking staff and treats a missing weekly rest marker as an audited warning that does not prevent submission.
+- People Operations can read outlet employees wherever it has schedule-read branch scope, including published rosters.
+- Actual Attendance accepts only NGTeco View Attendance Punch, splits multi-week files into Monday–Sunday batches, flags sparse date coverage and excludes historical Timecard-derived events from calculation.
+- Attendance displays use 12-hour AM/PM time while database values remain unchanged.
+
+Repository migrations reviewed through `273`. Migration `273` is implemented locally and remains unapplied until the linked database dry-run and release are separately approved.
+
 ### v9.2.48 (unreleased) — Attendance weekly operations, pay rules and Kitchen GRN access
 
 - Actual Attendance combines weekly import, Schedule-versus-punch comparison, server-side filtering, pagination, exception details and time-off review in one workspace.

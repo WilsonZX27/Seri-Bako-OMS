@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ShiftRequestButton } from "./shift-request-button";
 import type { getOwnPublishedShifts } from "@/server/queries/attendance";
+import { formatAttendanceTime } from "@/lib/attendance/time";
 
 export function PublishedScheduleList({ shifts }: { shifts: Awaited<ReturnType<typeof getOwnPublishedShifts>> }) {
   const [outlet, setOutlet] = useState("all");
@@ -19,7 +20,7 @@ export function PublishedScheduleList({ shifts }: { shifts: Awaited<ReturnType<t
         const start = shift.shift_templates?.planned_start ?? shift.custom_start;
         const end = shift.shift_templates?.planned_end ?? shift.custom_end;
         return <li key={shift.id} className="flex items-center justify-between gap-3 px-3 py-2 text-xs">
-          <div><strong className="block tabular-nums">{shift.work_date}</strong><span className="text-muted-foreground">{start && end ? `${start.slice(0, 5)}–${end.slice(0, 5)}` : shift.assignment_kind.toUpperCase()}</span></div>
+          <div><strong className="block tabular-nums">{shift.work_date}</strong><span className="text-muted-foreground">{start && end ? `${formatAttendanceTime(start)}–${formatAttendanceTime(end)}` : shift.assignment_kind.toUpperCase()}</span></div>
           <ShiftRequestButton assignmentId={shift.id} />
         </li>;
       })}</ul>

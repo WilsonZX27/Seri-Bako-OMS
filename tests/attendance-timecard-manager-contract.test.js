@@ -11,7 +11,7 @@ const mappings = fs.readFileSync("src/components/attendance/mapping-admin.tsx", 
 const schedule = fs.readFileSync("src/components/attendance/schedule-planner.tsx", "utf8");
 const permissions = fs.readFileSync("src/server/auth/permissions.ts", "utf8");
 
-test("Timecard parser detects the supplied export shape and infers its Monday week", () => {
+test("Timecard is detected only so the UI can reject it as derived evidence", () => {
   const moduleUrl = pathToFileURL(path.resolve("src/lib/attendance/ngteco.ts")).href;
   const script = `import(${JSON.stringify(moduleUrl)}).then(m=>console.log(JSON.stringify({profile:m.detectParserProfile(['Person ID','Person Name','Date','Clock In','Clock Out']),week:m.inferTimecardWeek([{'Date':'09/05/2026'},{'Date':'09/06/2026'}]),rows:m.parseTimecardRows([{'Person ID':'10','Person Name':'Employee','Date':'09/05/2026','Clock In':'07:18:27','Clock Out':'20:16:25'},{'Person ID':'11','Person Name':'Employee 2','Date':'09/06/2026','Clock In':'','Clock Out':''}])})))`;
   const result = JSON.parse(execFileSync(process.execPath, ["--experimental-strip-types", "--input-type=module", "-e", script], { encoding: "utf8" }));
@@ -21,16 +21,16 @@ test("Timecard parser detects the supplied export shape and infers its Monday we
   assert.match(result.rows[1].warnings.join(" "), /skipped/);
 });
 
-test("Timecard import is server-authoritative, idempotent, and preserves one-sided exceptions", () => {
-  assert.match(migration, /finalise_timecard_attendance_import/);
-  assert.match(migration, /event_fingerprint/);
-  assert.match(migration, /on conflict\(company_id,event_fingerprint\) do nothing/);
-  assert.match(migration, /missing_check_in/);
-  assert.match(migration, /missing_check_out/);
-  assert.match(migration, /parser_profile='timecard_report'/);
-  assert.match(workflow, /Attendance week/);
-  assert.match(workflow, /more than one attendance week/);
-  assert.doesNotMatch(workflow, /profile === "timecard_report"[^\n]+unmappedSources/);
+test("Actual Attendance accepts only immutable multi-week raw punches", () => {
+  const repair=fs.readFileSync("supabase/migrations/273_schedule_validation_and_raw_punch_files.sql","utf8");
+  const route=fs.readFileSync("src/app/api/attendance/imports/confirm/route.ts","utf8");
+  assert.match(repair,/finalise_attendance_punch_file/);
+  assert.match(repair,/excluded_from_calculation/);
+  assert.match(repair,/date_trunc\('week'/);
+  assert.match(route,/z\.literal\("view_attendance_punch"\)/);
+  assert.doesNotMatch(route,/timecardPunches/);
+  assert.match(workflow,/This file is not raw punch evidence/);
+  assert.match(workflow,/Multi-week files are split automatically/);
 });
 
 test("Manager can own an audited roster while Supervisor self approval remains blocked", () => {
@@ -48,9 +48,9 @@ test("Attendance mapping and quick assignments use the compact location vocabula
   for (const tone of ["slate", "blue", "violet", "amber", "teal"]) assert.match(schedule, new RegExp(`border-${tone}-200`));
 });
 
-test("invalid or empty Timecard rows do not block valid punches", () => {
+test("invalid raw punch rows do not block valid rows", () => {
   assert.match(workflow, /const importableRows/);
   assert.match(workflow, /rows:importableRows\.map/);
-  assert.match(workflow, /incomplete or invalid rows will be excluded for review/);
+  assert.match(workflow, /invalid rows will be excluded/);
   assert.doesNotMatch(workflow, /errors>0\|\|saving/);
 });

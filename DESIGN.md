@@ -1,3 +1,9 @@
+## v9.2.49 (unreleased) — Actionable attendance operations
+
+- Schedule warnings name the affected employee in the action rail and on the employee row without blocking submission.
+- Raw punch import shows multi-week scope, daily event coverage, AM/PM timestamps and a per-week review destination.
+- People Operations sees the roster population allowed by the same branch-scoped schedule-read authority as the page.
+
 ## v9.2.48 (unreleased) — Weekly Attendance operations
 
 - Attendance uses four destinations: Overview, Schedule, Actual Attendance and Settings. Import belongs to Actual Attendance and opens directly into the weekly comparison.

@@ -1,80 +1,39 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { AlertTriangle, CheckCircle2, FileSpreadsheet, Upload } from "lucide-react";
+import { useMemo,useState } from "react";
+import { AlertTriangle,CheckCircle2,FileSpreadsheet,Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { StatusBadge } from "@/components/ui/status-badge";
-import { parseCsv, parseXlsx } from "@/components/imports/import-workflow";
-import { detectParserProfile, inferTimecardWeek, parsePunchRows, parseReportRows, parseTimecardRows, validateHeaders, type ParserProfile, type ParsedRow } from "@/lib/attendance/ngteco";
-import { sha256Hex } from "@/lib/attendance/ngteco";
+import { parseCsv,parseXlsx } from "@/components/imports/import-workflow";
+import { detectParserProfile,parsePunchRows,sha256Hex,validateHeaders,weekStartFromUsDate,type ParsedRow } from "@/lib/attendance/ngteco";
+import { formatAttendanceTime } from "@/lib/attendance/time";
 
-function currentMalaysiaWeekStart(){const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kuala_Lumpur",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());const date=new Date(`${parts}T00:00:00Z`);const offset=(date.getUTCDay()+6)%7;date.setUTCDate(date.getUTCDate()-offset);return date.toISOString().slice(0,10);}
-function addDays(day:string,amount:number){const date=new Date(`${day}T00:00:00Z`);date.setUTCDate(date.getUTCDate()+amount);return date.toISOString().slice(0,10)}
-function displayDate(day:string){return new Intl.DateTimeFormat("en-MY",{day:"2-digit",month:"2-digit",year:"numeric",timeZone:"UTC"}).format(new Date(`${day}T00:00:00Z`))}
+type StaffOption={id:string;full_name:string;staff_code:string|null};
+type ImportSummary={batches:Array<{id:string;weekStart:string;rowCount:number;duplicateRows:number}>;dateRange:{from:string;to:string};acceptedRows:number;duplicateRows:number;invalidRows:number;reviewUrl?:string};
+const normalizedName=(value:string)=>value.trim().replace(/\s+/g," ").toLocaleUpperCase("en-MY");
 
-type StaffOption = { id: string; full_name: string; staff_code: string | null };
-const normalizedName = (value: string) => value.trim().replace(/\s+/g, " ").toLocaleUpperCase("en-MY");
+export function AttendanceImportWorkflow({staffs=[],mappedPersonIds=[],mappedSources=[],canMap=false}:{staffs?:StaffOption[];mappedPersonIds?:string[];mappedSources?:string[];canMap?:boolean}){
+ const [rows,setRows]=useState<ParsedRow[]>([]),[fileName,setFileName]=useState(""),[fileHash,setFileHash]=useState(""),[message,setMessage]=useState(""),[saving,setSaving]=useState(false),[summary,setSummary]=useState<ImportSummary|null>(null),[unsupported,setUnsupported]=useState(false),[knownPersonIds,setKnownPersonIds]=useState(mappedPersonIds);
+ const errors=useMemo(()=>rows.reduce((sum,row)=>sum+row.errors.length,0),[rows]);
+ const importableRows=useMemo(()=>rows.filter(row=>!row.errors.length),[rows]);
+ const uniqueStaffByName=useMemo(()=>{const grouped=new Map<string,StaffOption[]>();for(const staff of staffs){const key=normalizedName(staff.full_name);grouped.set(key,[...(grouped.get(key)??[]),staff]);}return grouped;},[staffs]);
+ const suggestions=useMemo(()=>{const known=new Set(knownPersonIds),seen=new Set<string>();return rows.flatMap(row=>{const personId=row.values["Person ID"]?.trim(),personName=row.values["Person Name"]?.trim();if(!personId||!personName||known.has(personId)||seen.has(personId))return[];seen.add(personId);const matches=uniqueStaffByName.get(normalizedName(personName))??[];return matches.length===1?[{personId,staff:matches[0]}]:[];});},[knownPersonIds,rows,uniqueStaffByName]);
+ const matched=new Set([...knownPersonIds,...suggestions.map(item=>item.personId)]);
+ const unmatched=[...new Set(rows.map(row=>row.values["Person ID"]?.trim()).filter(Boolean))].filter(id=>!matched.has(id));
+ const unmappedSources=[...new Set(rows.map(row=>row.values.Source?.trim()).filter(Boolean))].filter(source=>!mappedSources.includes(source));
+ const coverage=useMemo(()=>{const counts=new Map<string,number>();for(const row of importableRows){const date=row.values["Punch Date"];if(date)counts.set(date,(counts.get(date)??0)+1);}return [...counts.entries()].sort(([a],[b])=>a.localeCompare(b));},[importableRows]),coverageThreshold=Math.max(10,Math.ceil(Math.max(0,...coverage.map(([,count])=>count))*0.35));
+ const weeks=[...new Set(importableRows.map(row=>weekStartFromUsDate(row.values["Punch Date"]??"")).filter(Boolean))];
 
-export function AttendanceImportWorkflow({ staffs = [], mappedPersonIds = [], mappedSources = [], canMap = false }: { staffs?: StaffOption[]; mappedPersonIds?: string[]; mappedSources?: string[]; canMap?: boolean }) {
-  const [profile, setProfile] = useState<ParserProfile>("view_attendance_punch");
-  const [rows, setRows] = useState<ParsedRow[]>([]);
-  const [fileName, setFileName] = useState("");
-  const [message, setMessage] = useState("");
-  const [fileHash,setFileHash]=useState("");
-  const [saving,setSaving]=useState(false);
-  const [completedBatch,setCompletedBatch]=useState<{id:string;row_count:number}|null>(null);
-  const [weekStart,setWeekStart]=useState(currentMalaysiaWeekStart());
-  const [knownPersonIds,setKnownPersonIds]=useState(mappedPersonIds);
-  const errors = useMemo(() => rows.reduce((sum, row) => sum + row.errors.length, 0), [rows]);
-  const warnings = useMemo(() => rows.reduce((sum, row) => sum + row.warnings.length, 0), [rows]);
-  const validMonday = /^\d{4}-\d{2}-\d{2}$/.test(weekStart) && new Date(`${weekStart}T00:00:00Z`).getUTCDay() === 1;
-  const uniqueStaffByName = useMemo(() => { const grouped = new Map<string, StaffOption[]>(); for (const staff of staffs) { const key = normalizedName(staff.full_name); grouped.set(key, [...(grouped.get(key) ?? []), staff]); } return grouped; }, [staffs]);
-  const suggestions = useMemo(() => { const known = new Set(knownPersonIds); const seen = new Set<string>(); return rows.flatMap(row => { const personId = row.values["Person ID"]?.trim(); const personName = row.values["Person Name"]?.trim(); if (!personId || !personName || known.has(personId) || seen.has(personId)) return []; seen.add(personId); const matches = uniqueStaffByName.get(normalizedName(personName)) ?? []; return matches.length === 1 ? [{ personId, personName, staff: matches[0] }] : []; }); }, [knownPersonIds, rows, uniqueStaffByName]);
-  const unmappedPersonIds = useMemo(() => profile !== "attendance_report" ? [...new Set(rows.map(row => row.values["Person ID"]?.trim()).filter(Boolean))].filter(id => !knownPersonIds.includes(id)) : [], [knownPersonIds, profile, rows]);
-  const autoMatchedPersonIds = useMemo(() => new Set(suggestions.map((item) => item.personId)), [suggestions]);
-  const unmatchedEmployees = useMemo(() => unmappedPersonIds.filter((id) => !autoMatchedPersonIds.has(id)), [autoMatchedPersonIds, unmappedPersonIds]);
-  const unmappedSources = useMemo(() => profile === "view_attendance_punch" ? [...new Set(rows.map(row => row.values.Source?.trim()).filter(Boolean))].filter(source => !mappedSources.includes(source)) : [], [mappedSources, profile, rows]);
-  const usableTimecardRows = useMemo(() => profile === "timecard_report" ? rows.filter(row => row.values["Clock In"]?.trim() || row.values["Clock Out"]?.trim()).length : rows.length, [profile, rows]);
-  const importableRows = useMemo(() => rows.filter(row => !row.errors.length && (profile !== "timecard_report" || row.values["Clock In"]?.trim() || row.values["Clock Out"]?.trim())), [profile, rows]);
-  const excludedRows = rows.length - importableRows.length;
-
-  async function load(file?: File) {
-    if (!file) return;
-    setFileName(file.name);
-    try {
-      const parsed = file.name.toLowerCase().endsWith(".xlsx") ? await parseXlsx(file) : parseCsv(await file.text());
-      setFileHash(await sha256Hex(await file.arrayBuffer()));
-      const detected = detectParserProfile(parsed.headers);
-      const missing = validateHeaders(detected, parsed.headers);
-      setProfile(detected);
-      if (missing.length) { setRows([]); setMessage(`Missing required columns: ${missing.join(", ")}`); return; }
-      const inferredWeek = detected === "timecard_report" ? inferTimecardWeek(parsed.dataRows) : null;
-      if (detected === "timecard_report" && !inferredWeek) { setRows([]); setMessage("This Timecard Report contains invalid dates or more than one attendance week. Export and upload one week at a time."); return; }
-      if (inferredWeek) setWeekStart(inferredWeek);
-      const next = detected === "view_attendance_punch" ? parsePunchRows(parsed.dataRows) : detected === "timecard_report" ? parseTimecardRows(parsed.dataRows) : parseReportRows(parsed.dataRows);
-      setRows(next);
-      const label=detected === "view_attendance_punch" ? "View Attendance Punch" : detected === "timecard_report" ? "Timecard Report" : "Attendance Report";
-      setMessage(`${next.length} rows previewed from ${label}. No records changed.`);
-    } catch { setRows([]); setMessage("This file could not be parsed. Use the original NGTeco CSV/XLSX export."); }
-  }
-
-  async function confirm(){setSaving(true);setCompletedBatch(null);try{for(const suggestion of suggestions){const mappingResponse=await fetch("/api/attendance/mappings",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({kind:"person",personId:suggestion.personId,staffId:suggestion.staff.id,active:true})});if(!mappingResponse.ok)throw new Error("automatic employee match failed");}const response=await fetch("/api/attendance/imports/confirm",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({profile,weekStart,fileName,fileHash,rows:importableRows.map(row=>row.values)})});const result=await response.json() as {ok:boolean;message:string;batch?:{id:string;row_count:number};reviewUrl?:string};if(!response.ok||!result.ok)throw new Error(result.message);setKnownPersonIds(current=>[...new Set([...current,...suggestions.map(suggestion=>suggestion.personId)])]);setCompletedBatch(result.batch??null);setMessage(excludedRows?`Import completed. ${importableRows.length} rows accepted; ${excludedRows} rows excluded for review.`:`Import completed. ${importableRows.length} rows accepted.`);window.location.assign(result.reviewUrl??`/attendance/review?week=${weekStart}`);}catch{setMessage("Import failed. No partial result was accepted; you can correct mappings or retry this file.");}finally{setSaving(false)}}
-
-  return <div className="space-y-4">
-    <section className="sb-work-surface p-3">
-      <div className="grid min-w-0 gap-3 md:items-start lg:grid-cols-[minmax(14rem,1fr)_minmax(13rem,0.7fr)_minmax(17rem,1fr)] lg:items-end">
-        <div className="self-center"><h2 className="text-sm font-semibold">Import attendance file</h2></div>
-        <div><p className="text-xs font-medium">Attendance week</p><p className="mt-1 flex h-10 items-center rounded-[var(--sb-radius-control)] border bg-[var(--sb-surface-muted)] px-3 text-xs font-semibold tabular-nums">{displayDate(weekStart)} – {displayDate(addDays(weekStart,6))}</p></div>
-        <label className="grid gap-1 text-xs font-medium"><span>Upload NGTeco CSV or XLSX</span><Input className="h-10" type="file" accept=".csv,.xlsx" onChange={(event) => void load(event.currentTarget.files?.[0])}/></label>
-      </div>
-      <p className={`mt-3 text-xs ${completedBatch?"font-semibold text-[var(--sb-success)]":"text-muted-foreground"}`} role="status">{message}</p>{completedBatch?<div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[var(--sb-border-soft)] pt-3"><Button asChild size="sm"><Link href={`/attendance/review?week=${weekStart}`}>Review calculated attendance</Link></Button><Button asChild size="sm" variant="outline"><Link href="/attendance/settings">Resolve Person ID mappings</Link></Button></div>:profile!=="attendance_report"&&rows.length?<div className="mt-3 flex flex-wrap items-center gap-2 border-t border-[var(--sb-border-soft)] pt-3 text-xs"><span><strong>{suggestions.length}</strong> employees matched automatically · <strong>{unmatchedEmployees.length}</strong> Person IDs will remain unmapped · <strong>{unmappedSources.length}</strong> unmapped devices</span><span className="text-muted-foreground">Unmapped employees import as exceptions and can be linked later in Settings.</span></div>:null}
-    </section>
-    {fileName ? <section className="sb-work-surface overflow-hidden">
-      <div className="flex flex-wrap items-center gap-2 border-b border-[var(--sb-border-soft)] px-3 py-2"><FileSpreadsheet className="h-4 w-4"/><strong className="min-w-0 truncate text-sm">{fileName}</strong><StatusBadge status={profile}/><span className="ml-auto text-xs text-muted-foreground">{rows.length} rows · {errors} errors · {warnings} warnings</span></div>
-      <div className="max-h-[32rem] overflow-auto"><table className="w-full min-w-[48rem] text-left text-xs"><thead className="sticky top-0 bg-[var(--sb-surface-muted)]"><tr><th className="px-3 py-2">Row</th><th className="px-3 py-2">Person ID</th><th className="px-3 py-2">Name</th><th className="px-3 py-2">Date / period</th><th className="px-3 py-2">Time / work</th><th className="px-3 py-2">Source</th><th className="px-3 py-2">Validation</th></tr></thead><tbody>{rows.map((row)=><tr key={row.rowNumber} className="border-t border-[var(--sb-border-soft)]"><td className="px-3 py-2 tabular-nums">{row.rowNumber}</td><td className="px-3 py-2 font-medium">{row.values["Person ID"]}</td><td className="px-3 py-2">{row.values["Person Name"]||"—"}</td><td className="px-3 py-2 tabular-nums">{row.values["Punch Date"]||row.values.Date}</td><td className="px-3 py-2 tabular-nums">{profile==="timecard_report"?`${row.values["Clock In"]||"—"} → ${row.values["Clock Out"]||"—"}`:row.values["Attendance record"]||row.values["Total Work Hours(h)"]||"—"}</td><td className="px-3 py-2">{profile==="timecard_report"?"Timecard Report":row.values.Source||"—"}</td><td className="px-3 py-2">{row.errors.length?<span className="inline-flex gap-1 text-destructive"><AlertTriangle className="h-3.5 w-3.5"/>{row.errors.join("; ")}</span>:row.warnings.length?<span className="inline-flex gap-1 text-amber-800"><AlertTriangle className="h-3.5 w-3.5"/>{row.warnings.join("; ")}</span>:<span className="inline-flex gap-1 text-[var(--sb-success)]"><CheckCircle2 className="h-3.5 w-3.5"/>Ready</span>}</td></tr>)}</tbody></table></div>
-      <div className="flex items-center justify-between gap-3 border-t border-[var(--sb-border-soft)] p-3"><p className="text-xs text-muted-foreground">{!validMonday?"The file must resolve to one Monday–Sunday attendance week.":unmappedSources.length?"Map each NGTeco device source to its location in Settings.":excludedRows?`${importableRows.length} rows will import · ${excludedRows} incomplete or invalid rows will be excluded for review.`:unmatchedEmployees.length?`${unmatchedEmployees.length} Person IDs will import as unmapped exceptions for later review.`:"Employees will be matched automatically when you confirm."}</p><Button disabled={!rows.length||!usableTimecardRows||!importableRows.length||saving||!validMonday||unmappedSources.length>0||!canMap} onClick={()=>void confirm()}><Upload className="mr-2 h-4 w-4"/>{saving?"Finalising…":"Confirm import"}</Button></div>
-    </section>:null}
-  </div>;
+ async function load(file?:File){if(!file)return;setFileName(file.name);setSummary(null);setUnsupported(false);try{const parsed=file.name.toLowerCase().endsWith(".xlsx")?await parseXlsx(file):parseCsv(await file.text());const profile=detectParserProfile(parsed.headers);if(profile!=="view_attendance_punch"){setRows([]);setUnsupported(true);setMessage("This file is not raw punch evidence. Export NGTeco View Attendance Punch and upload that file instead.");return;}const missing=validateHeaders(profile,parsed.headers);if(missing.length){setRows([]);setMessage(`Missing required columns: ${missing.join(", ")}`);return;}setFileHash(await sha256Hex(await file.arrayBuffer()));const next=parsePunchRows(parsed.dataRows);setRows(next);setMessage(`${next.length} raw punch rows previewed across ${new Set(next.map(row=>weekStartFromUsDate(row.values["Punch Date"]??""))).size} attendance weeks. No records changed.`);}catch{setRows([]);setMessage("This file could not be parsed. Use the original NGTeco View Attendance Punch CSV or XLSX export.");}}
+ async function confirm(){setSaving(true);try{for(const suggestion of suggestions){const response=await fetch("/api/attendance/mappings",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({kind:"person",personId:suggestion.personId,staffId:suggestion.staff.id,active:true})});if(!response.ok)throw new Error("Employee matching failed.");}const response=await fetch("/api/attendance/imports/confirm",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({profile:"view_attendance_punch",fileName,fileHash,rows:importableRows.map(row=>row.values)})});const result=await response.json() as {ok:boolean;message:string}&ImportSummary;if(!response.ok||!result.ok)throw new Error(result.message);setKnownPersonIds(current=>[...new Set([...current,...suggestions.map(item=>item.personId)])]);setSummary(result);setMessage(`${result.acceptedRows} raw punches accepted across ${result.batches.length} weeks; ${result.duplicateRows} duplicates skipped.`);}catch(error){setMessage(error instanceof Error?error.message:"Import failed. No partial result was accepted.");}finally{setSaving(false)}}
+ return <div className="space-y-3">
+  <section className="sb-work-surface p-3"><div className="flex flex-wrap items-end gap-3"><div className="min-w-52 flex-1"><h2 className="text-sm font-semibold">Import raw fingerprint punches</h2><p className="mt-1 text-xs text-muted-foreground">NGTeco → Attendance → View Attendance Punch. Multi-week files are split automatically.</p></div><label className="grid min-w-64 gap-1 text-xs font-medium"><span>Raw punch CSV or XLSX</span><Input className="h-10" type="file" accept=".csv,.xlsx" onChange={event=>void load(event.currentTarget.files?.[0])}/></label></div><p className={`mt-3 text-xs ${unsupported?"font-medium text-amber-900":summary?"font-semibold text-[var(--sb-success)]":"text-muted-foreground"}`} role="status">{message}</p></section>
+  {fileName&&rows.length?<section className="sb-work-surface overflow-hidden"><header className="flex flex-wrap items-center gap-2 border-b border-[var(--sb-border-soft)] px-3 py-2"><FileSpreadsheet className="h-4 w-4"/><strong className="min-w-0 truncate text-sm">{fileName}</strong><span className="rounded-full bg-[var(--sb-green-100)] px-2 py-1 text-[10px] font-semibold text-[var(--sb-green-900)]">Raw punches</span><span className="ml-auto text-xs text-muted-foreground">{rows.length} rows · {weeks.length} weeks · {errors} errors</span></header>
+   <div className="grid gap-px bg-[var(--sb-border-soft)] sm:grid-cols-2 lg:grid-cols-4">{coverage.map(([date,count])=><div key={date} className="bg-white px-3 py-2 text-xs"><span className="text-muted-foreground">{date}</span><strong className="ml-2 tabular-nums">{count} punches</strong>{count<coverageThreshold?<span className="mt-1 block text-[10px] font-medium text-amber-900">Incomplete coverage</span>:null}</div>)}</div>
+   <div className="max-h-[24rem] overflow-auto"><table className="w-full min-w-[48rem] text-left text-xs"><thead className="sticky top-0 bg-[var(--sb-surface-muted)]"><tr>{["Row","Person ID","Name","Date","Punch time","Source","Validation"].map(label=><th key={label} className="px-3 py-2">{label}</th>)}</tr></thead><tbody>{rows.map(row=><tr key={row.rowNumber} className="border-t border-[var(--sb-border-soft)]"><td className="px-3 py-2 tabular-nums">{row.rowNumber}</td><td className="px-3 py-2 font-medium">{row.values["Person ID"]}</td><td className="px-3 py-2">{row.values["Person Name"]||"—"}</td><td className="px-3 py-2 tabular-nums">{row.values["Punch Date"]}</td><td className="px-3 py-2 tabular-nums">{formatAttendanceTime(row.values["Attendance record"],{seconds:true})}</td><td className="px-3 py-2">{row.values.Source}</td><td className="px-3 py-2">{row.errors.length?<span className="inline-flex gap-1 text-destructive"><AlertTriangle className="h-3.5 w-3.5"/>{row.errors.join("; ")}</span>:<span className="inline-flex gap-1 text-[var(--sb-success)]"><CheckCircle2 className="h-3.5 w-3.5"/>Ready</span>}</td></tr>)}</tbody></table></div>
+   <footer className="flex flex-wrap items-center gap-3 border-t border-[var(--sb-border-soft)] p-3"><p className="min-w-0 flex-1 text-xs text-muted-foreground">{unmappedSources.length?`Map ${unmappedSources.length} device source${unmappedSources.length===1?"":"s"} in Settings first.`:unmatched.length?`${unmatched.length} Person IDs will remain unmatched for later review.`:errors?`${importableRows.length} valid rows will import; ${rows.length-importableRows.length} invalid rows will be excluded.`:"Raw events remain immutable and duplicate uploads are safe."}</p><Button disabled={!importableRows.length||saving||unmappedSources.length>0||!canMap} onClick={()=>void confirm()}><Upload className="h-4 w-4"/>{saving?"Importing…":"Confirm raw punches"}</Button></footer>
+  </section>:null}
+  {summary?<section className="sb-work-surface overflow-hidden"><header className="border-b border-[var(--sb-border-soft)] px-3 py-2"><h3 className="text-sm font-semibold">Import completed</h3><p className="text-xs text-muted-foreground">{summary.dateRange.from} – {summary.dateRange.to}</p></header><div className="divide-y divide-[var(--sb-border-soft)]">{summary.batches.map(batch=><div key={batch.id} className="flex flex-wrap items-center gap-3 px-3 py-2 text-xs"><strong>Week of {batch.weekStart}</strong><span>{batch.rowCount} rows</span><span>{batch.duplicateRows} duplicates</span><Button asChild size="sm" variant="ghost" className="ml-auto"><Link href={`/attendance/review?week=${batch.weekStart}&batch=${batch.id}`}>Review week</Link></Button></div>)}</div></section>:null}
+ </div>;
 }

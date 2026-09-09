@@ -26,8 +26,9 @@ test("calendar, settings, review and imports expose direct context instead of hi
   assert.doesNotMatch(mappings, /NGTeco Person ID[\s\S]*OMS employee/);
   assert.match(mappings, /NGTeco Source[\s\S]*Outlet/);
   const workflow = read("src", "components", "attendance", "attendance-import-workflow.tsx");
-  assert.match(workflow, /employees matched automatically/);
-  assert.match(workflow, /md:items-start/);
+  assert.match(workflow, /Person IDs will remain unmatched for later review/);
+  assert.match(workflow, /flex flex-wrap items-end/);
+  assert.match(workflow, /Multi-week files are split automatically/);
   assert.doesNotMatch(workflow, /Choose an NGTeco CSV or XLSX file\. Preview never writes to the database\./);
 });
 

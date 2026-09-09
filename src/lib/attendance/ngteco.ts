@@ -38,6 +38,10 @@ export function detectParserProfile(headers: string[]): ParserProfile {
   return "attendance_report";
 }
 
+export function isRawPunchProfile(headers:string[]){
+  return detectParserProfile(headers)==="view_attendance_punch";
+}
+
 export function weekStartFromUsDate(value: string) {
   const date = exactDate(value);
   if (!date) return null;

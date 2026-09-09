@@ -1,5 +1,7 @@
 # Seri Bako OMS — Schema 与 Table 关系地图
 
+> Current repository authority 2026-09-10: forward-only migration 历史已到 `275`. Migration `275` restores attendance recalculation for published direct-time schedules by using custom and revision snapshot times before optional Shift Template defaults. This is repository evidence only until the linked migration is applied.
+
 > Current repository authority 2026-09-09: forward-only migration 历史已到 `273`. Migration `273` adds structured Schedule validation, restores branch-scoped staff reads for People Operations, makes raw Punch files multi-week, and excludes Timecard-derived events from attendance calculation. This is repository evidence only until the linked migration is applied.
 
 > Current repository authority 2026-09-08: forward-only migration 历史已到 `272`. Migration `272` separates presence, worked, payable and approved OT time, applies Full-time and Part-time break rules, and adds branch public holidays with effective-dated payroll-equivalent multipliers. This is repository evidence only until the linked migration is applied.

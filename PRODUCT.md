@@ -4,7 +4,7 @@
 - Supervisor submits OT; People/Owner decides credit. Published partial RO reserves approved balance, weekly close confirms actual use, and FIFO allocations preserve the source earning.
 - Protected People data stores passport and basic salary outside the general staff row and is used only for the People/Owner workbook after close.
 
-Repository migrations reviewed through `274`. Migration `274` is implemented and linked-database dry-run discovery is complete; schema application and Production verification remain separate release steps.
+Repository migrations reviewed through `275`. Migration `275` restores attendance recalculation for published direct-time schedules while preserving custom and RO-adjusted times ahead of optional Shift Template defaults. Schema application and Production verification remain separate release steps.
 
 ### v9.2.49 — Raw Punch attendance and schedule repair
 

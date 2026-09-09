@@ -1,5 +1,7 @@
 # Seri Bako OMS — Schema 与 Table 关系地图
 
+> Current repository authority 2026-09-10: forward-only migration 历史已到 `277`. Migration `277` allocates attendance calculation revisions from complete immutable history under a per-staff-day transaction lock, so superseded rows cannot cause duplicate revision numbers. This is repository evidence only until the linked migration is applied.
+
 > Current repository authority 2026-09-10: forward-only migration 历史已到 `276`. Migration `276` keeps ordinary non-holiday attendance recalculation valid by recording a nullable scalar pay-rule identifier instead of dereferencing an unassigned holiday-only record. This is repository evidence only until the linked migration is applied.
 
 > Current repository authority 2026-09-10: forward-only migration 历史已到 `275`. Migration `275` restores attendance recalculation for published direct-time schedules by using custom and revision snapshot times before optional Shift Template defaults. This is repository evidence only until the linked migration is applied.

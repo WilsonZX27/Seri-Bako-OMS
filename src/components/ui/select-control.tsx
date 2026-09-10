@@ -27,6 +27,7 @@ export function SelectControl({
   searchPlaceholder = "Search options",
   startEmpty = false,
   emptyValue,
+  portalContainer,
 }: {
   id?: string;
   name?: string;
@@ -43,6 +44,7 @@ export function SelectControl({
   searchPlaceholder?: string;
   startEmpty?: boolean;
   emptyValue?: string;
+  portalContainer?: HTMLElement | null;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -125,7 +127,7 @@ export function SelectControl({
             <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           </Select.Icon>
         </Select.Trigger>
-        <Select.Portal>
+        <Select.Portal container={portalContainer}>
           <Select.Content
             position="popper"
             sideOffset={4}

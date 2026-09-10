@@ -296,7 +296,17 @@ export default async function AttendanceReviewPage({
             </span>
           </header>
           <div className="hidden overflow-auto md:block">
-            <table className="w-full min-w-[50rem] table-fixed text-left text-xs">
+            <table className="w-full min-w-[58rem] table-fixed text-left text-xs">
+              <colgroup>
+                <col className="w-[16%]" />
+                <col className="w-[10%]" />
+                <col className="w-[14%]" />
+                <col className="w-[10%]" />
+                <col className="w-[14%]" />
+                <col className="w-[10%]" />
+                <col className="w-[10%]" />
+                <col className="w-[16%]" />
+              </colgroup>
               <thead className="sticky top-0 z-10 bg-[var(--sb-surface-muted)]">
                 <tr>
                   {[
@@ -350,7 +360,7 @@ export default async function AttendanceReviewPage({
                           {Number(row.missing_punch_count ?? 0) > 0 ? (
                             <span className="block text-[10px] text-amber-800">
                               {Number(row.monthly_missing_punch_count ?? 0) >= 4
-                                ? "Repeated"
+                                ? `${Number(row.monthly_missing_punch_count)} missing this month`
                                 : "Missing punch"}
                             </span>
                           ) : null}
@@ -548,8 +558,8 @@ function RowActions({
   href: string;
 }) {
   return (
-    <div className="grid min-w-28 gap-0.5">
-      <Button asChild size="sm" variant="ghost" className="w-full justify-start gap-2 bg-[var(--sb-surface-muted)] px-2">
+    <div className="grid min-w-32 gap-0.5 [&_button]:font-normal">
+      <Button asChild size="sm" variant="ghost" className="w-full justify-start gap-2 bg-white px-2 font-normal hover:bg-[var(--sb-surface-muted)]">
         <Link href={href}><Eye className="h-4 w-4"/>View details</Link>
       </Button>
       {permissions["attendance.adjust"] ? (

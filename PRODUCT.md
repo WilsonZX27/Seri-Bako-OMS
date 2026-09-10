@@ -1,4 +1,12 @@
-### v9.2.53 (unreleased) — Attendance adjustment and RO traceability
+### v9.2.54 (unreleased) — Attendance action and picker correction
+
+- Actual Attendance reserves stable width for row actions, keeps default actions white until hover/focus, uses regular-weight labels and replaces ambiguous `Repeated` copy with the monthly missing-punch count.
+- Schedule restores direct OFF, AL, PH and UPL quick actions while retaining a compact Working time selector for shift templates.
+- Select menus opened inside Working time stay in the native dialog top layer, and Manager self-decision failures now explain that another authorised Manager is required.
+
+This is repository implementation evidence only until committed, deployed and verified with authenticated roles.
+
+### v9.2.53 — Attendance adjustment and RO traceability
 
 - Actual Attendance uses calm vertical row actions, localised day headings, label-free compact filters and a dedicated RO tracking column.
 - Adjust opens an audited form for actual clock-in, clock-out, payable minutes and mandatory remarks while preserving raw NGTeco evidence.

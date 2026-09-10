@@ -191,6 +191,10 @@ const scheduleBusinessErrors: Array<[string, string]> = [
     "A different authorised Manager must publish this roster.",
   ],
   [
+    "A roster submitter cannot make this decision.",
+    "This roster was submitted by you. A different authorised Manager must publish or return it.",
+  ],
+  [
     "Only an editable roster may be submitted.",
     "Only a Draft, Returned, Rejected, or Amendment Pending roster can be submitted.",
   ],

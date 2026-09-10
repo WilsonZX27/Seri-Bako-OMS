@@ -124,10 +124,12 @@ function TimeSelect({
   label,
   value,
   onChange,
+  portalContainer,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  portalContainer?: HTMLElement | null;
 }) {
   return (
     <label className="grid gap-1 text-xs">
@@ -138,6 +140,7 @@ function TimeSelect({
         onValueChange={onChange}
         options={timeOptions}
         className="tabular-nums"
+        portalContainer={portalContainer}
       />
     </label>
   );
@@ -781,27 +784,44 @@ export function SchedulePlanner({
               <span className="shrink-0 text-xs font-semibold">
                 Quick assign
               </span>
-              <SelectControl
-                className="w-full sm:w-[min(28rem,55vw)]"
-                ariaLabel="Quick assignment"
-                value={active?.key ?? "none"}
-                onValueChange={(value) =>
-                  choose(
-                    value === "none"
-                      ? null
-                      : (palette.find((item) => item.key === value) ?? null),
-                  )
-                }
-                options={[
-                  { value: "none", label: "Select a shift or status" },
-                  ...palette.map((item) => ({
-                    value: item.key,
-                    label: item.label,
-                  })),
-                ]}
-                searchable
-                searchPlaceholder="Search shifts and statuses"
-              />
+              <div className="flex flex-wrap items-center gap-2">
+                {leavePalette.map((item) => (
+                  <Button
+                    key={item.key}
+                    type="button"
+                    size="sm"
+                    variant={active?.key === item.key ? "secondary" : "outline"}
+                    className={cn(
+                      "min-w-12 px-3 font-medium",
+                      active?.key === item.key &&
+                        "border-[var(--sb-green-300)] bg-[var(--sb-green-100)] text-[var(--sb-green-900)]",
+                    )}
+                    onClick={() => choose(active?.key === item.key ? null : item)}
+                  >
+                    {item.label}
+                  </Button>
+                ))}
+                {palette.some((item) => item.kind === "shift") ? (
+                  <SelectControl
+                    className="w-full sm:w-[min(22rem,42vw)]"
+                    ariaLabel="Shift template"
+                    value={active?.kind === "shift" ? active.key : "none"}
+                    onValueChange={(value) =>
+                      choose(
+                        value === "none"
+                          ? null
+                          : (palette.find((item) => item.key === value) ?? null),
+                      )
+                    }
+                    options={[
+                      { value: "none", label: "Working time" },
+                      ...palette
+                        .filter((item) => item.kind === "shift")
+                        .map((item) => ({ value: item.key, label: item.label })),
+                    ]}
+                  />
+                ) : null}
+              </div>
               <div className="ml-auto flex shrink-0 items-center gap-1">
                 <Button
                   size="sm"
@@ -1248,6 +1268,7 @@ export function SchedulePlanner({
               <TimeSelect
                 label="Check in"
                 value={custom.start}
+                portalContainer={customDialog.current}
                 onChange={(start) =>
                   setCustom((value) => ({
                     ...value,
@@ -1261,6 +1282,7 @@ export function SchedulePlanner({
               <TimeSelect
                 label="Check out"
                 value={custom.end}
+                portalContainer={customDialog.current}
                 onChange={(end) =>
                   setCustom((value) => ({
                     ...value,
@@ -1321,6 +1343,7 @@ export function SchedulePlanner({
                     Adjustment
                     <SelectControl
                       ariaLabel="RO adjustment direction"
+                      portalContainer={customDialog.current}
                       value={custom.roDirection}
                       onValueChange={(direction) =>
                         setCustom((value) => {
@@ -1354,6 +1377,7 @@ export function SchedulePlanner({
                     RO amount
                     <SelectControl
                       ariaLabel="RO amount"
+                      portalContainer={customDialog.current}
                       value={String(custom.roMinutes)}
                       onValueChange={(amount) =>
                         setCustom((value) => {
@@ -1389,23 +1413,6 @@ export function SchedulePlanner({
                       ]}
                     />
                   </label>
-                </div>
-                <div className="border-t border-[var(--sb-border-soft)] pt-3">
-                  <p className="text-xs font-semibold">
-                    Earn RO from actual overtime
-                  </p>
-                  <p className="mt-1 text-xs text-[var(--sb-text-muted)]">
-                    A new RO claim is available only after fingerprint punches
-                    produce an OT candidate.
-                  </p>
-                  {[...selected][0].split(":")[1] <= currentDate() ? (
-                    <a
-                      className="mt-2 inline-flex text-xs font-semibold text-[var(--sb-link)] underline-offset-4 hover:underline"
-                      href={`/attendance/review?week=${weekStart}&employee=${encodeURIComponent(people.find((person) => person.id === [...selected][0].split(":")[0])?.full_name ?? "")}`}
-                    >
-                      Open Actual Attendance to claim RO
-                    </a>
-                  ) : null}
                 </div>
               </fieldset>
             ) : null}

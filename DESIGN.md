@@ -1,4 +1,10 @@
-## v9.2.53 (unreleased) — Attendance action and evidence polish
+## v9.2.54 (unreleased) — Attendance action and picker correction
+
+- Table action groups use a stable final column, white default surfaces, regular label weight and muted hover/focus feedback; inactive actions never appear selected.
+- High-frequency leave states remain direct compact controls. Shift templates use one bounded selector so the palette stays recognizable without becoming a chip wall.
+- A dropdown launched from a native dialog portals into that dialog so it participates in the browser top layer and remains operable.
+
+## v9.2.53 — Attendance action and evidence polish
 
 - Row actions use one quiet vertical icon menu; status remains with attendance evidence instead of becoming a competing button-like pill.
 - Grouped dates use the product date grammar and RO state gets a bounded trace column.

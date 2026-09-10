@@ -232,6 +232,7 @@ export async function getStaffProfileSummary(staffId: string) {
   return {
     role_name: (roles ?? []).map((role) => getRoleDisplayLabel(role.role_code, role.role_name)).join(", ") || null,
     default_branch_name: branch?.branch_name ?? null,
+    default_branch_id: defaultBranchId ?? null,
   };
 }
 

@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
+  Eye,
   FileCheck2,
   TriangleAlert,
 } from "lucide-react";
@@ -52,6 +53,11 @@ function time(value: unknown) {
 function duration(value: unknown) {
   const seconds = Number(value ?? 0);
   return seconds > 0 ? durationLabel(seconds) : "—";
+}
+function dateHeading(value: unknown) {
+  const raw=String(value);const [year,month,day]=raw.split("-");
+  const weekday=new Intl.DateTimeFormat("en-MY",{weekday:"long",timeZone:"UTC"}).format(new Date(`${raw}T00:00:00Z`));
+  return `${day}/${month}/${year} (${weekday})`;
 }
 function signedDuration(value: unknown, tone: "late" | "earlyLeave" | "ot") {
   const seconds = Number(value ?? 0);
@@ -128,6 +134,9 @@ export default async function AttendanceReviewPage({
     reserved_minutes: number;
     recommended_used_minutes: number | null;
     work_date: string;
+    staff_id?: string;
+    status?: string;
+    final_used_minutes?: number | null;
     staffs?: { full_name?: string } | null;
   }>;
   const exceptionCount = rows.filter(
@@ -158,7 +167,8 @@ export default async function AttendanceReviewPage({
         String(item.work_date) === String(row.work_date) &&
         ["submitted", "approved", "credited"].includes(String(item.status)),
     ) as Claim | undefined;
-    return { staff, candidate, claim, status: primaryStatus(row) };
+    const reservation=reservations.find(item=>String(item.staff_id)===String(row.staff_id)&&String(item.work_date)===String(row.work_date));
+    return { staff, candidate, claim, reservation, status: primaryStatus(row) };
   };
 
   return (
@@ -296,6 +306,7 @@ export default async function AttendanceReviewPage({
                     "Break",
                     "Clock out",
                     "Worked",
+                    "RO",
                     "Actions",
                   ].map((label) => (
                     <th key={label} className="px-3 py-2.5">
@@ -306,7 +317,7 @@ export default async function AttendanceReviewPage({
               </thead>
               <tbody>
                 {rows.map((row, index) => {
-                  const { staff, candidate, claim, status } = rowContext(row);
+                  const { staff, candidate, claim, reservation } = rowContext(row);
                   const newDay =
                     index === 0 ||
                     String(rows[index - 1]?.work_date) !==
@@ -315,8 +326,8 @@ export default async function AttendanceReviewPage({
                     <Fragment key={String(row.id)}>
                       {newDay ? (
                         <tr className="border-t border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)]">
-                          <th colSpan={7} className="px-3 py-2 font-semibold">
-                            {String(row.work_date)}
+                          <th colSpan={8} className="px-3 py-2 font-semibold">
+                            {dateHeading(row.work_date)}
                           </th>
                         </tr>
                       ) : null}
@@ -363,7 +374,9 @@ export default async function AttendanceReviewPage({
                           {duration(row.worked_seconds)}
                         </td>
                         <td className="px-3 py-3">
-                          <div className="mb-1.5"><StatusBadge status={claim?.status ?? status} /></div>
+                          {reservation?<><strong className="block tabular-nums">{reservation.final_used_minutes??reservation.reserved_minutes} min</strong><span className="text-[11px] capitalize text-muted-foreground">{reservation.status??"reserved"}</span></>:<span className="text-muted-foreground">—</span>}
+                        </td>
+                        <td className="px-3 py-3">
                           <RowActions
                             row={row}
                             claim={claim}
@@ -381,7 +394,7 @@ export default async function AttendanceReviewPage({
           </div>
           <div className="divide-y divide-[var(--sb-border-soft)] md:hidden">
             {rows.map((row, index) => {
-              const { staff, candidate, claim, status } = rowContext(row);
+              const { staff, candidate, claim, reservation, status } = rowContext(row);
               const newDay =
                 index === 0 ||
                 String(rows[index - 1]?.work_date) !== String(row.work_date);
@@ -389,7 +402,7 @@ export default async function AttendanceReviewPage({
                 <div key={String(row.id)}>
                   {newDay ? (
                     <h3 className="bg-[var(--sb-surface-muted)] px-3 py-2 text-xs font-semibold">
-                      {String(row.work_date)}
+                      {dateHeading(row.work_date)}
                     </h3>
                   ) : null}
                   <article className="p-3">
@@ -444,6 +457,7 @@ export default async function AttendanceReviewPage({
                           <dd>{duration(candidate)}</dd>
                         </div>
                       ) : null}
+                      {reservation ? <div><dt className="text-muted-foreground">RO</dt><dd>{reservation.final_used_minutes??reservation.reserved_minutes} min · <span className="capitalize">{reservation.status??"reserved"}</span></dd></div>:null}
                     </dl>
                     <div className="mt-3">
                       <RowActions
@@ -534,14 +548,16 @@ function RowActions({
   href: string;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-1">
-      <Button asChild size="sm" variant="outline">
-        <Link href={href}>Details</Link>
+    <div className="grid min-w-28 gap-0.5">
+      <Button asChild size="sm" variant="ghost" className="w-full justify-start gap-2 bg-[var(--sb-surface-muted)] px-2">
+        <Link href={href}><Eye className="h-4 w-4"/>View details</Link>
       </Button>
       {permissions["attendance.adjust"] ? (
         <AttendanceAdjustmentButton
           resultId={String(row.id)}
           currentSeconds={Number(row.payable_seconds ?? 0)}
+          actualFirstIn={typeof row.actual_first_in==="string"?row.actual_first_in:null}
+          actualLastOut={typeof row.actual_last_out==="string"?row.actual_last_out:null}
         />
       ) : (
         <StatusBadge status={String(row.review_status)} />

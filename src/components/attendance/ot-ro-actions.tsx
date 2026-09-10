@@ -100,7 +100,8 @@ export function OtClaimAction({
     <>
       <Button
         size="sm"
-        variant="outline"
+        variant="ghost"
+        className="w-full justify-start gap-2 px-2"
         disabled={!actionable}
         onClick={() => dialog.current?.showModal()}
       >

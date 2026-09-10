@@ -20,12 +20,13 @@ const statusOptions: SelectControlOption[] = [
   { value: "unmapped_person", label: "Unmatched" },
 ];
 
-function FilterFields({ branchOptions, defaults }: { branchOptions: SelectControlOption[]; defaults: FilterDefaults }) {
+function FilterFields({ branchOptions, defaults, showLabels=true }: { branchOptions: SelectControlOption[]; defaults: FilterDefaults; showLabels?:boolean }) {
+  const labelClass=showLabels?"mb-1 block text-xs font-medium":"sr-only";
   return <>
-    <label className="grid min-w-0 gap-1 text-xs font-medium">Outlet<SelectControl name="branch" ariaLabel="Filter by outlet" defaultValue={defaults.branch} options={branchOptions} searchable searchPlaceholder="Search outlets" /></label>
-    <label className="grid min-w-0 gap-1 text-xs font-medium">Week<Input name="week" type="date" defaultValue={defaults.week} /></label>
-    <label className="grid min-w-0 gap-1 text-xs font-medium">Employee<span className="relative"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--sb-text-muted)]"/><Input className="pl-9" name="employee" defaultValue={defaults.employee} placeholder="Search employee"/></span></label>
-    <label className="grid min-w-0 gap-1 text-xs font-medium">Status<SelectControl name="status" ariaLabel="Filter by attendance status" defaultValue={defaults.status} options={statusOptions} /></label>
+    <label className="min-w-0"><span className={labelClass}>Outlet</span><SelectControl name="branch" ariaLabel="Filter by outlet" defaultValue={defaults.branch} options={branchOptions} searchable searchPlaceholder="Search outlets" /></label>
+    <label className="min-w-0"><span className={labelClass}>Week</span><Input name="week" type="date" defaultValue={defaults.week} aria-label="Attendance week" /></label>
+    <label className="min-w-0"><span className={labelClass}>Employee</span><span className="relative block"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--sb-text-muted)]"/><Input className="pl-9" name="employee" defaultValue={defaults.employee} placeholder="Search employee"/></span></label>
+    <label className="min-w-0"><span className={labelClass}>Status</span><SelectControl name="status" ariaLabel="Filter by attendance status" defaultValue={defaults.status} options={statusOptions} /></label>
   </>;
 }
 
@@ -36,7 +37,7 @@ export function AttendanceReviewFilters({ branches, defaults, total }: { branche
   const branchOptions = [{ value: "all", label: "All accessible outlets" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))];
   return <section className="sb-work-surface p-3" aria-label="Actual attendance filters">
     <form className="hidden min-w-0 items-end gap-2 md:grid md:grid-cols-[minmax(0,1.15fr)_minmax(0,.9fr)_minmax(0,1.25fr)_minmax(0,1fr)_5.5rem]">
-      <FilterFields branchOptions={branchOptions} defaults={defaults}/>
+      <FilterFields branchOptions={branchOptions} defaults={defaults} showLabels={false}/>
       <Button type="submit" className="h-[var(--sb-control-height)]">Search</Button>
     </form>
     <div className="flex items-center gap-2 md:hidden">

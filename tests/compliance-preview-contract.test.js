@@ -128,7 +128,7 @@ test("v9.2 uses the OMS register, progressive checklist and real month calendars
   assert.match(checklist, /Checklist temporarily unavailable/);
   assert.match(checklist, /tabletCanvas="wide"/);
   assert.match(people, /WorkspaceGrid/);
-  assert.doesNotMatch(people, /lg:grid-cols-2/);
+  assert.match(people, /lg:grid-cols-2 \[&>section\]:h-full/);
   assert.match(people, /aria-current/);
   assert.doesNotMatch(people, /backHref/);
   assert.match(calendar, /grid-cols-7/);

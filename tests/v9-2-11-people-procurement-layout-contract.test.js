@@ -9,7 +9,7 @@ test("People compliance and documents share one record and upload flow", () => {
   const page = read("src/app/(app)/people/[id]/page.tsx");
   assert.match(page, /title="Documents"/);
   assert.match(page, /id="add-compliance-record" title="Add Record"/);
-  assert.match(page, /lg:grid-cols-\[minmax\(0,1\.45fr\)_minmax\(18rem,0\.75fr\)\]/);
+  assert.match(page, /lg:grid-cols-2 \[&>section\]:h-full/);
   assert.doesNotMatch(page, /id="add-employee-document"/);
   assert.match(page, /ComplianceRecordForm/);
   assert.doesNotMatch(page, /<details className="mt-3 border-t pt-3">/);

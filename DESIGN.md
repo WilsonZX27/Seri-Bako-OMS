@@ -1,3 +1,9 @@
+## v9.2.53 (unreleased) — Attendance action and evidence polish
+
+- Row actions use one quiet vertical icon menu; status remains with attendance evidence instead of becoming a competing button-like pill.
+- Grouped dates use the product date grammar and RO state gets a bounded trace column.
+- Employee documents divide available width evenly and stretch both task surfaces to the same height.
+
 ## v9.2.52 (unreleased) — Attendance review density correction
 
 - Attendance review combines plan, actual and variance in the same clock cells so the desktop table remains legible inside the main workspace without hiding evidence.

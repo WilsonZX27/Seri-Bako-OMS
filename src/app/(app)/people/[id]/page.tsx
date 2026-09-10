@@ -22,6 +22,7 @@ import { createComplianceRecord } from "@/server/actions/compliance";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { detailOrNotFound } from "@/server/queries/detail";
 import { getStaffCompTime } from "@/server/queries/attendance";
+import { CompTimeCorrectionForm } from "@/components/attendance/comp-time-correction-form";
 
 type ProfileSectionId = "overview" | "employment" | "compliance";
 export default async function PeopleProfilePage({
@@ -37,6 +38,7 @@ export default async function PeopleProfilePage({
     "people.compliance.document.read",
     "people.sensitive.read",
     "people.sensitive.manage",
+    "comp_time.submit",
   ]);
   const [
     message,
@@ -165,6 +167,7 @@ export default async function PeopleProfilePage({
                       <Link href="/attendance/review">Open attendance</Link>
                     </Button>
                   </div>
+                  {permissions["comp_time.submit"] ? <div className="mt-3"><CompTimeCorrectionForm staffId={staff.id} branchId={staffSummary?.default_branch_id??null}/></div>:null}
                   <div className="mt-3 divide-y border-t border-[var(--sb-border-soft)]">
                     {(compTime.ledger as Array<Record<string, unknown>>).map(
                       (row) => (
@@ -289,7 +292,7 @@ export default async function PeopleProfilePage({
             </>
           ) : null}
           {activeSection === "compliance" ? (
-            <div className="grid items-start gap-3 lg:grid-cols-[minmax(0,1.45fr)_minmax(18rem,0.75fr)]">
+            <div className="grid items-stretch gap-3 lg:grid-cols-2 [&>section]:h-full">
               <ProfileSection id="compliance" title="Documents">
                 <div className="divide-y">
                   {compliance.map((record) => (

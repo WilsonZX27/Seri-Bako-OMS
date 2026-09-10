@@ -1,3 +1,11 @@
+### v9.2.53 (unreleased) — Attendance adjustment and RO traceability
+
+- Actual Attendance uses calm vertical row actions, localised day headings, label-free compact filters and a dedicated RO tracking column.
+- Adjust opens an audited form for actual clock-in, clock-out, payable minutes and mandatory remarks while preserving raw NGTeco evidence.
+- People may submit dated historical time-off corrections through the existing approval ledger; employee Documents use an equal-height 50/50 workspace and device mappings include row numbers.
+
+This is repository implementation evidence only until committed, deployed and verified with authenticated roles.
+
 ### v9.2.52 (unreleased) — Attendance review density correction
 
 - Actual Attendance fits the operational canvas with seven decision columns, pairing scheduled and actual clock times with their variance instead of forcing a 12-column horizontal table.

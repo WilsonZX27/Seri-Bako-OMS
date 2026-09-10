@@ -1,8 +1,8 @@
 "use client";
 
 import * as Select from "@radix-ui/react-select";
-import { useEffect, useState } from "react";
-import { Check, ChevronDown } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Check, ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type SelectControlOption = {
@@ -23,6 +23,10 @@ export function SelectControl({
   required,
   disabled,
   className,
+  searchable = false,
+  searchPlaceholder = "Search options",
+  startEmpty = false,
+  emptyValue,
 }: {
   id?: string;
   name?: string;
@@ -35,18 +39,35 @@ export function SelectControl({
   required?: boolean;
   disabled?: boolean;
   className?: string;
+  searchable?: boolean;
+  searchPlaceholder?: string;
+  startEmpty?: boolean;
+  emptyValue?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
   // Keep the trigger value controlled after hydration. Radix can otherwise
   // render an empty trigger when a server-provided default value is only
   // available during the first render (most visible in the shared tablet
   // filter bar). Preserve the public controlled `value` contract while using
   // local state for the uncontrolled/defaultValue variant.
   const isControlled = value !== undefined;
-  const fallbackValue = defaultValue ?? options[0]?.value;
+  const fallbackValue = startEmpty
+    ? defaultValue
+    : (defaultValue ?? options[0]?.value);
   const [internalValue, setInternalValue] = useState(fallbackValue);
   const selectedValue = isControlled ? value : internalValue;
-  const selectedLabel = options.find((option) => option.value === selectedValue)?.label;
+  const selectedLabel = options.find(
+    (option) => option.value === selectedValue,
+  )?.label;
+  const visibleOptions = useMemo(() => {
+    const needle = query.trim().toLocaleLowerCase();
+    return needle
+      ? options.filter((option) =>
+          option.label.toLocaleLowerCase().includes(needle),
+        )
+      : options;
+  }, [options, query]);
 
   useEffect(() => {
     if (!isControlled) setInternalValue(fallbackValue);
@@ -55,12 +76,15 @@ export function SelectControl({
   useEffect(() => {
     const closeForMore = () => setOpen(false);
     document.addEventListener("sb:close-select-controls", closeForMore);
-    return () => document.removeEventListener("sb:close-select-controls", closeForMore);
+    return () =>
+      document.removeEventListener("sb:close-select-controls", closeForMore);
   }, []);
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen);
-    if (nextOpen) document.dispatchEvent(new CustomEvent("sb:close-filter-more"));
+    if (!nextOpen) setQuery("");
+    if (nextOpen)
+      document.dispatchEvent(new CustomEvent("sb:close-filter-more"));
   };
 
   const handleValueChange = (nextValue: string) => {
@@ -68,50 +92,87 @@ export function SelectControl({
     onValueChange?.(nextValue);
   };
 
+  const submittedValue =
+    emptyValue !== undefined && selectedValue === emptyValue
+      ? ""
+      : selectedValue;
+
   return (
-    <Select.Root
-      value={selectedValue}
-      open={open}
-      onOpenChange={handleOpenChange}
-      name={name}
-      onValueChange={handleValueChange}
-      required={required}
-      disabled={disabled}
-    >
-      <Select.Trigger
-        id={id}
-        data-select-control
-        aria-label={ariaLabel}
-        className={cn(
-          "flex h-[var(--sb-control-height)] w-full min-w-0 items-center justify-between gap-2 overflow-hidden whitespace-nowrap rounded-[var(--sb-radius-control)] border border-input bg-background px-2.5 text-left text-sm outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span:first-child]:min-w-0 [&>span:first-child]:truncate",
-          className,
-        )}
+    <>
+      {name && emptyValue !== undefined ? (
+        <input type="hidden" name={name} value={submittedValue ?? ""} />
+      ) : null}
+      <Select.Root
+        value={selectedValue}
+        open={open}
+        onOpenChange={handleOpenChange}
+        name={emptyValue === undefined ? name : undefined}
+        onValueChange={handleValueChange}
+        required={required}
+        disabled={disabled}
       >
-        <Select.Value placeholder={placeholder}>{selectedLabel}</Select.Value>
-        <Select.Icon aria-hidden="true"><ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" /></Select.Icon>
-      </Select.Trigger>
-      <Select.Portal>
-        <Select.Content
-          position="popper"
-          sideOffset={4}
-          collisionPadding={8}
-          className="sb-popover-surface z-[var(--sb-z-dropdown)] max-h-[min(18rem,var(--radix-select-content-available-height))] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[var(--sb-radius-control)] text-foreground"
+        <Select.Trigger
+          id={id}
+          data-select-control
+          aria-label={ariaLabel}
+          className={cn(
+            "flex min-h-[var(--sb-control-height)] w-full min-w-0 items-center justify-between gap-2 overflow-hidden whitespace-nowrap rounded-[var(--sb-radius-control)] border border-input bg-background px-2.5 text-left text-sm outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span:first-child]:min-w-0 [&>span:first-child]:truncate",
+            className,
+          )}
         >
-          <Select.Viewport className="p-1">
-            {options.map((option) => (
-              <Select.Item
-                key={option.value}
-                value={option.value}
-                disabled={option.disabled}
-                className="relative flex min-h-[var(--sb-control-height)] cursor-default select-none items-center rounded-md py-1.5 pl-7 pr-2 text-sm outline-none focus:bg-[var(--sb-green-100)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[state=checked]:font-medium"
-              >
-                <Select.ItemIndicator className="absolute left-2"><Check className="h-3.5 w-3.5" /></Select.ItemIndicator>
-                <Select.ItemText>{option.label}</Select.ItemText>
-              </Select.Item>
-            ))}
-          </Select.Viewport>
-        </Select.Content>
-      </Select.Portal>
-    </Select.Root>
+          <Select.Value placeholder={placeholder}>{selectedLabel}</Select.Value>
+          <Select.Icon aria-hidden="true">
+            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+          </Select.Icon>
+        </Select.Trigger>
+        <Select.Portal>
+          <Select.Content
+            position="popper"
+            sideOffset={4}
+            collisionPadding={8}
+            className="sb-popover-surface z-[var(--sb-z-dropdown)] max-h-[min(18rem,var(--radix-select-content-available-height))] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[var(--sb-radius-control)] text-foreground"
+          >
+            {searchable ? (
+              <div className="border-b border-[var(--sb-border-soft)] p-2">
+                <label className="relative block">
+                  <span className="sr-only">{searchPlaceholder}</span>
+                  <Search
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--sb-text-muted)]"
+                  />
+                  <input
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    onKeyDown={(event) => event.stopPropagation()}
+                    placeholder={searchPlaceholder}
+                    className="h-9 w-full rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white pl-8 pr-2 text-xs outline-none placeholder:text-[var(--sb-text-muted)] focus:ring-2 focus:ring-[var(--sb-green-700)]"
+                  />
+                </label>
+              </div>
+            ) : null}
+            <Select.Viewport className="p-1">
+              {visibleOptions.map((option) => (
+                <Select.Item
+                  key={option.value}
+                  value={option.value}
+                  disabled={option.disabled}
+                  className="relative flex min-h-9 cursor-default select-none items-center rounded-md py-1.5 pl-7 pr-2 text-xs outline-none focus:bg-[var(--sb-green-100)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[state=checked]:font-medium"
+                >
+                  <Select.ItemIndicator className="absolute left-2">
+                    <Check className="h-3.5 w-3.5" />
+                  </Select.ItemIndicator>
+                  <Select.ItemText>{option.label}</Select.ItemText>
+                </Select.Item>
+              ))}
+              {!visibleOptions.length ? (
+                <p className="px-3 py-4 text-center text-xs text-[var(--sb-text-muted)]">
+                  No matching options
+                </p>
+              ) : null}
+            </Select.Viewport>
+          </Select.Content>
+        </Select.Portal>
+      </Select.Root>
+    </>
   );
 }

@@ -1,0 +1,416 @@
+{
+  "mode": "dry-run",
+  "source_file": "09 SERI BAKO SEPT SCHEDULE 2026.xlsx",
+  "source_sha256": "fc2cf5383331f2f1678a9e1d9ae918d252768b2bda870069a8ccbc9aeb2c4ec6",
+  "week_start": "2026-08-31",
+  "week_end": "2026-09-06",
+  "worksheets": 10,
+  "outlets": [
+    {
+      "sheet": "GURNEY PLAZA",
+      "outlet": "Gurney Plaza",
+      "branch_id": null,
+      "parsed_cell_count": 20,
+      "matched_assignment_count": 0,
+      "diff_count": 0,
+      "ready": false
+    },
+    {
+      "sheet": "QUEENSBAY",
+      "outlet": "Queensbay Mall",
+      "branch_id": null,
+      "parsed_cell_count": 32,
+      "matched_assignment_count": 0,
+      "diff_count": 0,
+      "ready": false
+    },
+    {
+      "sheet": "PUBLIKA",
+      "outlet": "Kwan Kee @ Publika",
+      "branch_id": null,
+      "parsed_cell_count": 14,
+      "matched_assignment_count": 0,
+      "diff_count": 0,
+      "ready": false
+    },
+    {
+      "sheet": "IOI PUCHONG",
+      "outlet": "IOI Mall Puchong",
+      "branch_id": null,
+      "parsed_cell_count": 21,
+      "matched_assignment_count": 0,
+      "diff_count": 0,
+      "ready": false
+    },
+    {
+      "sheet": "JAKEL SQUARE",
+      "outlet": "Jakel Mall",
+      "branch_id": null,
+      "parsed_cell_count": 27,
+      "matched_assignment_count": 0,
+      "diff_count": 0,
+      "ready": false
+    },
+    {
+      "sheet": "TRX",
+      "outlet": "TRX",
+      "branch_id": null,
+      "parsed_cell_count": 8,
+      "matched_assignment_count": 0,
+      "diff_count": 0,
+      "ready": false
+    },
+    {
+      "sheet": "PETALING STREET",
+      "outlet": "Kwan Kee Store @ Petaling Street",
+      "branch_id": null,
+      "parsed_cell_count": 0,
+      "matched_assignment_count": 0,
+      "diff_count": 0,
+      "ready": false
+    },
+    {
+      "sheet": "SUNWAY PYRAMID",
+      "outlet": "Kwan Kee Store @ Sunway Pyramid",
+      "branch_id": null,
+      "parsed_cell_count": 34,
+      "matched_assignment_count": 0,
+      "diff_count": 0,
+      "ready": false
+    },
+    {
+      "sheet": "MID VALLEY",
+      "outlet": "Kwan Kee Store @ Mid Valley",
+      "branch_id": null,
+      "parsed_cell_count": 28,
+      "matched_assignment_count": 0,
+      "diff_count": 0,
+      "ready": false
+    },
+    {
+      "sheet": "VELOCITY",
+      "outlet": "Kwan Kee Store @ Sunway Velocity",
+      "branch_id": null,
+      "parsed_cell_count": 25,
+      "matched_assignment_count": 0,
+      "diff_count": 0,
+      "ready": false
+    }
+  ],
+  "totals": {
+    "parseable_cells": 209,
+    "matched_assignments": 0,
+    "candidate_cells": 212,
+    "match_rate": 0.0,
+    "unresolved": 48
+  },
+  "unresolved_by_reason": {
+    "canonical_outlet_not_found": 10,
+    "employee_not_found": 35,
+    "blocked_instruction": 2,
+    "suspicious_time_span": 1
+  },
+  "unresolved": [
+    {
+      "sheet": "GURNEY PLAZA",
+      "outlet": "Gurney Plaza",
+      "reason": "canonical_outlet_not_found"
+    },
+    {
+      "sheet": "GURNEY PLAZA",
+      "row": 4,
+      "employee": "LEE SEE KIM",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "GURNEY PLAZA",
+      "row": 4,
+      "employee": "LEE SEE KIM",
+      "date": "2026-09-03",
+      "value": "CLEAR OT",
+      "value_2": "",
+      "reason": "blocked_instruction"
+    },
+    {
+      "sheet": "GURNEY PLAZA",
+      "row": 5,
+      "employee": "KOK PHEI YONG",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "GURNEY PLAZA",
+      "row": 5,
+      "employee": "KOK PHEI YONG",
+      "date": "2026-09-04",
+      "value": "CLEAR OT",
+      "value_2": "",
+      "reason": "blocked_instruction"
+    },
+    {
+      "sheet": "GURNEY PLAZA",
+      "row": 6,
+      "employee": "PRISCILLA LIM YEAN YIN",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "GURNEY PLAZA",
+      "row": 7,
+      "employee": "KEE MEI LING",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "QUEENSBAY",
+      "outlet": "Queensbay Mall",
+      "reason": "canonical_outlet_not_found"
+    },
+    {
+      "sheet": "QUEENSBAY",
+      "row": 3,
+      "employee": "CHUAH MEI CHEEN",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "QUEENSBAY",
+      "row": 4,
+      "employee": "YEOW SOOK WEN",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "QUEENSBAY",
+      "row": 5,
+      "employee": "LAW BAK EAN",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "QUEENSBAY",
+      "row": 6,
+      "employee": "LIM ZHI YING",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "QUEENSBAY",
+      "row": 7,
+      "employee": "TAN LEE KUAN",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "QUEENSBAY",
+      "row": 8,
+      "employee": "PRECILLA CHUA MEI CHI",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "PUBLIKA",
+      "outlet": "Kwan Kee @ Publika",
+      "reason": "canonical_outlet_not_found"
+    },
+    {
+      "sheet": "PUBLIKA",
+      "row": 4,
+      "employee": "FENDY",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "PUBLIKA",
+      "row": 5,
+      "employee": "MEE MEE",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "IOI PUCHONG",
+      "outlet": "IOI Mall Puchong",
+      "reason": "canonical_outlet_not_found"
+    },
+    {
+      "sheet": "IOI PUCHONG",
+      "row": 4,
+      "employee": "PUTERI",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "IOI PUCHONG",
+      "row": 5,
+      "employee": "ASSUNTA",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "IOI PUCHONG",
+      "row": 6,
+      "employee": "SHARIFAH",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "JAKEL SQUARE",
+      "outlet": "Jakel Mall",
+      "reason": "canonical_outlet_not_found"
+    },
+    {
+      "sheet": "JAKEL SQUARE",
+      "row": 4,
+      "employee": "JIMIYATI",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "JAKEL SQUARE",
+      "row": 5,
+      "employee": "SALFIYANAH",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "JAKEL SQUARE",
+      "row": 6,
+      "employee": "MIN CHIN AUNG",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "JAKEL SQUARE",
+      "row": 7,
+      "employee": "SI THU MIN",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "TRX",
+      "outlet": "TRX",
+      "reason": "canonical_outlet_not_found"
+    },
+    {
+      "sheet": "TRX",
+      "row": 4,
+      "employee": "BENDA LISA",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "TRX",
+      "row": 5,
+      "employee": "SHINE HTET AUNG",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "TRX",
+      "row": 6,
+      "employee": "MYA KOKO",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "PETALING STREET",
+      "outlet": "Kwan Kee Store @ Petaling Street",
+      "reason": "canonical_outlet_not_found"
+    },
+    {
+      "sheet": "SUNWAY PYRAMID",
+      "outlet": "Kwan Kee Store @ Sunway Pyramid",
+      "reason": "canonical_outlet_not_found"
+    },
+    {
+      "sheet": "SUNWAY PYRAMID",
+      "row": 4,
+      "employee": "NORISAH",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "SUNWAY PYRAMID",
+      "row": 5,
+      "employee": "SITI LAILI NURAIN",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "SUNWAY PYRAMID",
+      "row": 5,
+      "employee": "SITI LAILI NURAIN",
+      "date": "2026-09-03",
+      "value": "01:30:00",
+      "value_2": "22:00:00",
+      "reason": "suspicious_time_span"
+    },
+    {
+      "sheet": "SUNWAY PYRAMID",
+      "row": 6,
+      "employee": "NAY LIN AUNG",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "SUNWAY PYRAMID",
+      "row": 7,
+      "employee": "SHINE HTET AUNG",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "SUNWAY PYRAMID",
+      "row": 8,
+      "employee": "MYA KOKO",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "MID VALLEY",
+      "outlet": "Kwan Kee Store @ Mid Valley",
+      "reason": "canonical_outlet_not_found"
+    },
+    {
+      "sheet": "MID VALLEY",
+      "row": 4,
+      "employee": "AIDIL ADHA",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "MID VALLEY",
+      "row": 5,
+      "employee": "PUVANESWARY",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "MID VALLEY",
+      "row": 6,
+      "employee": "AYE KYAW NAING",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "MID VALLEY",
+      "row": 7,
+      "employee": "AUNG ZIN MOE",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "VELOCITY",
+      "outlet": "Kwan Kee Store @ Sunway Velocity",
+      "reason": "canonical_outlet_not_found"
+    },
+    {
+      "sheet": "VELOCITY",
+      "row": 4,
+      "employee": "ADAM HAIQAL",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "VELOCITY",
+      "row": 5,
+      "employee": "SYAFIKA HUDA",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "VELOCITY",
+      "row": 6,
+      "employee": "AUNG THU PHYOE",
+      "reason": "employee_not_found"
+    },
+    {
+      "sheet": "VELOCITY",
+      "row": 7,
+      "employee": "PUNGAA",
+      "reason": "employee_not_found"
+    }
+  ],
+  "suspicious_times": [
+    {
+      "sheet": "SUNWAY PYRAMID",
+      "row": 5,
+      "employee": "SITI LAILI NURAIN",
+      "date": "2026-09-03",
+      "start": "01:30",
+      "end": "22:00",
+      "minutes": 1230
+    }
+  ],
+  "cross_store_records": [],
+  "draft_payloads": [],
+  "ready_for_authenticated_draft_import": false
+}

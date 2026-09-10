@@ -7,9 +7,9 @@ const page = fs.readFileSync("src/app/(app)/attendance/schedule/page.tsx", "utf8
 const query = fs.readFileSync("src/server/queries/attendance.ts", "utf8");
 
 test("schedule editor and draft actions only exist in editable workflow states", () => {
-  assert.match(source, /\["draft","returned","rejected","amendment_pending"\]\.includes\(week\.status\)/);
-  assert.match(source, /editableStatus&&canDraft/);
-  assert.match(source, /disabled=\{!editableStatus\|\|!canDraft\}/);
+  assert.match(source, /\["draft", "returned", "rejected", "amendment_pending"\]\.includes\([\s\S]*?week\.status/);
+  assert.match(source, /editableStatus && canDraft/);
+  assert.match(source, /disabled=\{!editableStatus \|\| !canDraft\}/);
 });
 
 test("schedule offers a separate cross-outlet weekly overview without replacing the planner", () => {
@@ -25,7 +25,7 @@ test("schedule offers a separate cross-outlet weekly overview without replacing 
 });
 
 test("submitted schedules expose one primary Manager decision and readable failures", () => {
-  assert.match(source, /week\?\.status==="submitted"/);
+  assert.match(source, /week\?\.status\s*===\s*"submitted"/);
   assert.match(source, /Approve & publish[\s\S]*Return to Supervisor/);
   assert.match(source, /readJsonResponse/);
   assert.match(source, /actionFeedback/);

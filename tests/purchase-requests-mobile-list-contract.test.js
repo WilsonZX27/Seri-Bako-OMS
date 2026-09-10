@@ -28,7 +28,8 @@ test("purchase-request creation remains permission guarded", () => {
 });
 
 test("phone list clears fixed actions and keeps the active status visible", () => {
-  assert.match(workspace, /rightRail && !hideMobileConsole && "pb-32 xl:pb-3"/);
+  assert.doesNotMatch(workspace, /pb-32/);
+  assert.match(workspace, /rightRail && !hideMobileConsole && "xl:pb-3"/);
   assert.match(tabs, /SelectControl/);
   assert.match(tabs, /value=\{selected\}/);
   assert.match(tabs, /options=\{tabs\}/);

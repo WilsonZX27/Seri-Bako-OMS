@@ -11,7 +11,7 @@ test("dashboard and attendance workspaces follow the corrected visual hierarchy"
   assert.doesNotMatch(navigation, /border-b-2/);
   const planner = read("src", "components", "attendance", "schedule-planner.tsx");
   assert.match(planner, /editableStatus[\s\S]*?Save draft[\s\S]*?Submit to Manager/);
-  assert.match(planner, /week\?\.status==="submitted"/);
+  assert.match(planner, /week\?\.status\s*===\s*"submitted"/);
   assert.match(read("src", "app", "globals.css"), /dialog\.m-auto\[open\][\s\S]*position: fixed;[\s\S]*inset: 0;/);
   assert.match(read("src", "app", "(app)", "attendance", "schedule", "loading.tsx"), /PageLoadingState/);
 });
@@ -20,11 +20,14 @@ test("calendar, settings, review and imports expose direct context instead of hi
   assert.match(read("src", "app", "(app)", "outlet-calendar", "page.tsx"), /rightRail=\{rightRail\}/);
   assert.match(read("src", "app", "(app)", "attendance", "settings", "page.tsx"), /rightRail=\{rightRail\}/);
   const review = read("src", "app", "(app)", "attendance", "review", "page.tsx");
-  assert.match(review, /Actual attendance filters/);
-  assert.match(review, /All accessible outlets/);
+  const filters = read("src", "components", "attendance", "attendance-review-filters.tsx");
+  assert.match(review, /AttendanceReviewFilters/);
+  assert.match(filters, /Actual attendance filters/);
+  assert.match(filters, /All accessible outlets/);
   const mappings = read("src", "components", "attendance", "mapping-admin.tsx");
   assert.doesNotMatch(mappings, /NGTeco Person ID[\s\S]*OMS employee/);
-  assert.match(mappings, /NGTeco Source[\s\S]*Outlet/);
+  assert.match(mappings, /NGTeco Source[\s\S]*Location/);
+  assert.match(mappings, /Assigned location/);
   const workflow = read("src", "components", "attendance", "attendance-import-workflow.tsx");
   assert.match(workflow, /Person IDs will remain unmatched for later review/);
   assert.match(workflow, /flex flex-wrap items-end/);

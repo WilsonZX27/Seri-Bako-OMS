@@ -1,7 +1,9 @@
 import { StaffForm } from "@/components/foundation-forms";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { RecordActionPanel, RecordWorkspace } from "@/components/record-workspace";
 import { CopyTextButton } from "@/components/ui/copy-text-button";
+import { Button } from "@/components/ui/button";
 import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
@@ -58,12 +60,16 @@ export default async function EditStaffPage({
 
   return (
     <>
-      <PageHeader title={staff.full_name} description="Update staff identity, access, and account actions." />
+      <PageHeader title={staff.full_name} />
       <RecordWorkspace
         tabletRailBreakpoint="lg"
         actionPanel={
           <>
             <RecordActionPanel title="Staff Actions">
+              <Button asChild variant="outline" className="w-full">
+                <Link href={`/people/${staff.id}`}>Open profile</Link>
+              </Button>
+
               <div className="rounded-[2px] border bg-white p-3">
                 <p className="text-[11px] font-medium uppercase text-muted-foreground">Current Status</p>
                 <div className="mt-2 flex items-center justify-between gap-3">

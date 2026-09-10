@@ -2293,6 +2293,7 @@ export type Database = {
       ngteco_person_mappings: TableDefinition<{ id:string; company_id:string; person_id:string; staff_id:string; is_active:boolean; created_by:string; created_at:string }>;
       ngteco_device_mappings: TableDefinition<{ id:string; company_id:string; source_code:string; branch_id:string; is_active:boolean; created_by:string; created_at:string }>;
       attendance_import_batches: TableDefinition<{ id:string; company_id:string; parser_profile:"view_attendance_punch"|"attendance_report"|"timecard_report"; week_start:string; file_name:string; file_hash:string; status:"validated"|"finalised"|"rolled_back"; uploader_staff_id:string; row_count:number; error_count:number; warning_count:number; source_metadata:Json; created_at:string; finalised_at:string|null }>;
+      schedule_import_batches: TableDefinition<{ id:string; company_id:string; week_start:string; file_name:string; file_hash:string; status:"drafted"|"published"|"superseded"; outlet_count:number; assignment_count:number; unresolved_count:number; source_metadata:Json; imported_by:string; created_at:string }>;
       attendance_raw_punch_events: TableDefinition<{ id:string; company_id:string; person_id:string; person_name:string|null; occurred_at:string; local_timestamp:string; timezone_offset:string; verify_type:string|null; source_code:string; punch_type:string|null; event_fingerprint:string; raw_row:Json; created_at:string }>;
       attendance_import_batch_events: TableDefinition<{ batch_id:string; event_id:string; source_row_number:number; disposition:"inserted"|"duplicate" }>;
       attendance_reconciliation_rows: TableDefinition<{ id:string; batch_id:string; company_id:string; person_id:string; person_name:string|null; period_label:string; ngteco_late_seconds:number|null; ngteco_early_seconds:number|null; ngteco_break_seconds:number|null; ngteco_work_seconds:number|null; ngteco_overtime_seconds:number|null; ngteco_total_seconds:number|null; raw_row:Json; created_at:string }>;
@@ -2447,6 +2448,18 @@ export type Database = {
       };
     };
     Functions: {
+      submit_schedule_week_atomic: {
+        Args: { p_branch_id:string; p_week_start:string; p_assignments:Json; p_expected_updated_at?:string|null; p_comment?:string|null };
+        Returns: Json;
+      };
+      edit_and_publish_schedule_week: {
+        Args: { p_week_id:string; p_assignments:Json; p_expected_updated_at:string; p_reason:string };
+        Returns: Json;
+      };
+      import_schedule_workbook_drafts: {
+        Args: { p_week_start:string; p_file_name:string; p_file_hash:string; p_outlets:Json; p_unresolved_count?:number; p_source_metadata?:Json };
+        Returns: Json;
+      };
       save_staff_sensitive_employment: { Args: { p_staff_id:string; p_passport_number:string|null; p_basic_salary:number|null }; Returns: Json };
       get_comp_time_available_balance: { Args: { p_staff_id:string }; Returns: number };
       submit_attendance_ot_claim: { Args: { p_result_id:string; p_requested_minutes:number; p_reason:string; p_review_note?:string|null }; Returns: Json };

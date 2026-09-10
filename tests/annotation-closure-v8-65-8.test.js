@@ -11,8 +11,10 @@ test("dashboard panels retain their hierarchy without a nested sage canvas", () 
   const design = read("src", "app", "design-system-v2.css");
   assert.match(dashboard, /data-dashboard-panel-body/);
   assert.match(dashboard, /gap-y-1 px-3 py-2\.5/);
-  assert.match(design, /\[data-dashboard-panel\] > :last-child\s*\{[\s\S]*padding:\s*0\.5rem;[\s\S]*background:\s*#f4f7f5/);
-  assert.match(design, /\[data-dashboard-panel\] > :first-child\s*\{[\s\S]*background:\s*#c9ded4/);
+  assert.match(design, /\[data-dashboard-panel\] > :last-child\s*\{[\s\S]*padding:\s*0\.5rem;[\s\S]*background:\s*var\(--sb-surface-raised\)/);
+  assert.match(design, /\[data-dashboard-panel\] > :first-child\s*\{[\s\S]*background:\s*var\(--sb-surface-raised\)/);
+  assert.match(design, /\[data-dashboard-panel="today"\] > :first-child\s*\{[\s\S]*background:\s*#fff7d6/);
+  assert.match(dashboard, /title="Today's completion" dataAttribute="today"/);
   assert.match(design, /\[data-dashboard-attention-summary\]\s*\{[\s\S]*background:\s*var\(--sb-green-900\)/);
   assert.match(design, /\[data-dashboard-layout\]\s*\{[\s\S]*min-width:\s*0/);
   assert.doesNotMatch(design, /\[data-dashboard-layout\]\s*\{[\s\S]{0,160}background:/);

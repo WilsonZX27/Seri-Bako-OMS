@@ -439,13 +439,17 @@ html[data-design-layer="v2"] :is(a, button, summary, [role="button"]) {
 }
 
 [data-dashboard-panel] > :first-child {
-  background: #c9ded4;
+  background: var(--sb-surface-raised);
 }
 
 [data-dashboard-panel] > :last-child {
   min-height: 0;
   padding: 0.5rem;
-  background: #f4f7f5;
+  background: var(--sb-surface-raised);
+}
+
+[data-dashboard-panel="today"] > :first-child {
+  background: #fff7d6;
 }
 
 /* FilterBar has one authoritative responsive grammar in globals.css. Keep

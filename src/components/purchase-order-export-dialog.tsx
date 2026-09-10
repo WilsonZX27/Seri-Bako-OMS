@@ -5,6 +5,7 @@ import { Download } from "lucide-react";
 
 import { ModalShell } from "@/components/ui/modal-shell";
 import { Button } from "@/components/ui/button";
+import { SelectControl } from "@/components/ui/select-control";
 
 type PurchaseOrderExportDialogProps = {
   branches?: Array<{ id: string; branch_name: string }>;
@@ -17,7 +18,10 @@ function todayValue() {
   return new Date(now.getTime() - offset * 60_000).toISOString().slice(0, 10);
 }
 
-export function PurchaseOrderExportDialog({ branches = [], className }: PurchaseOrderExportDialogProps) {
+export function PurchaseOrderExportDialog({
+  branches = [],
+  className,
+}: PurchaseOrderExportDialogProps) {
   const titleId = useId();
   const today = useMemo(todayValue, []);
   const [open, setOpen] = useState(false);
@@ -41,8 +45,11 @@ export function PurchaseOrderExportDialog({ branches = [], className }: Purchase
       const params = new URLSearchParams({ from, to });
       if (branchId !== "all") params.set("branch_id", branchId);
       if (status !== "all") params.set("status", status);
-      const response = await fetch(`/api/export/purchase-orders?${params.toString()}`);
-      if (!response.ok) throw new Error("The purchase order export could not be prepared.");
+      const response = await fetch(
+        `/api/export/purchase-orders?${params.toString()}`,
+      );
+      if (!response.ok)
+        throw new Error("The purchase order export could not be prepared.");
 
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
@@ -55,7 +62,11 @@ export function PurchaseOrderExportDialog({ branches = [], className }: Purchase
       URL.revokeObjectURL(url);
       setOpen(false);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "The export could not be prepared.");
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "The export could not be prepared.",
+      );
     } finally {
       setPending(false);
     }
@@ -86,37 +97,67 @@ export function PurchaseOrderExportDialog({ branches = [], className }: Purchase
         className="max-w-xl overflow-hidden rounded-[var(--sb-panel-radius)] p-0"
       >
         <header className="border-b px-5 py-4">
-          <h2 id={titleId} className="text-lg font-semibold">Export Purchase Orders</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Choose the period and document status to include.</p>
+          <h2 id={titleId} className="text-lg font-semibold">
+            Export Purchase Orders
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Choose the period and document status to include.
+          </p>
         </header>
         <div className="grid gap-4 px-5 py-4 sm:grid-cols-2">
           <label className="grid gap-1.5 text-sm font-medium">
             From date
-            <input className="h-[var(--sb-control-height)] rounded-[var(--sb-radius-control)] border border-input bg-background px-3 text-sm" type="date" value={from} max={to} onChange={(event) => setFrom(event.target.value)} />
+            <input
+              className="h-[var(--sb-control-height)] rounded-[var(--sb-radius-control)] border border-input bg-background px-3 text-sm"
+              type="date"
+              value={from}
+              max={to}
+              onChange={(event) => setFrom(event.target.value)}
+            />
           </label>
           <label className="grid gap-1.5 text-sm font-medium">
             To date
-            <input className="h-[var(--sb-control-height)] rounded-[var(--sb-radius-control)] border border-input bg-background px-3 text-sm" type="date" value={to} min={from} onChange={(event) => setTo(event.target.value)} />
+            <input
+              className="h-[var(--sb-control-height)] rounded-[var(--sb-radius-control)] border border-input bg-background px-3 text-sm"
+              type="date"
+              value={to}
+              min={from}
+              onChange={(event) => setTo(event.target.value)}
+            />
           </label>
           <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
             Store
-            <select className="h-[var(--sb-control-height)] rounded-[var(--sb-radius-control)] border border-input bg-background px-3 text-sm" value={branchId} onChange={(event) => setBranchId(event.target.value)}>
-              <option value="all">All assigned stores</option>
-              {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
-            </select>
+            <SelectControl
+              ariaLabel="Export store"
+              value={branchId}
+              onValueChange={setBranchId}
+              searchable
+              options={[
+                { value: "all", label: "All assigned stores" },
+                ...branches.map((branch) => ({
+                  value: branch.id,
+                  label: branch.branch_name,
+                })),
+              ]}
+            />
           </label>
           <label className="grid gap-1.5 text-sm font-medium sm:col-span-2">
             Status
-            <select className="h-[var(--sb-control-height)] rounded-[var(--sb-radius-control)] border border-input bg-background px-3 text-sm" value={status} onChange={(event) => setStatus(event.target.value)}>
-              <option value="all">All statuses</option>
-              <option value="draft">Draft</option>
-              <option value="approved">Ready to send</option>
-              <option value="sent">Sent to supplier</option>
-              <option value="receiving">Receiving</option>
-              <option value="received">Received</option>
-              <option value="closed">Closed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
+            <SelectControl
+              ariaLabel="Export status"
+              value={status}
+              onValueChange={setStatus}
+              options={[
+                { value: "all", label: "All statuses" },
+                { value: "draft", label: "Draft" },
+                { value: "approved", label: "Ready to send" },
+                { value: "sent", label: "Sent to supplier" },
+                { value: "receiving", label: "Receiving" },
+                { value: "received", label: "Received" },
+                { value: "closed", label: "Closed" },
+                { value: "cancelled", label: "Cancelled" },
+              ]}
+            />
           </label>
           {error ? (
             <p role="alert" className="sb-alert-error sm:col-span-2">
@@ -125,7 +166,12 @@ export function PurchaseOrderExportDialog({ branches = [], className }: Purchase
           ) : null}
         </div>
         <footer className="flex justify-end gap-2 border-t px-5 py-4">
-          <Button type="button" variant="outline" disabled={pending} onClick={() => setOpen(false)}>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={pending}
+            onClick={() => setOpen(false)}
+          >
             Cancel
           </Button>
           <Button type="button" disabled={pending} onClick={downloadExport}>

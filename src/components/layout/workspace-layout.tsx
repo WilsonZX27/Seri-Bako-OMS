@@ -47,7 +47,7 @@ export function WorkspaceGrid({
       data-canvas-mode={effectiveTabletCanvas}
       data-tablet-canvas={effectiveTabletCanvas}
       data-tablet-content={rightRail && effectiveTabletCanvas !== "full" ? "contained" : undefined}
-      className={cn("sb-workspace-canvas min-h-0", rightRail && !hideMobileConsole && "pb-32 xl:pb-3", className)}
+      className={cn("sb-workspace-canvas min-h-0", rightRail && !hideMobileConsole && "xl:pb-3", className)}
     >
       {usesTabletSplit ? (
         <div

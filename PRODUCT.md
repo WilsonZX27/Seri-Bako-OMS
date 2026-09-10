@@ -1,3 +1,12 @@
+### v9.2.51 (unreleased) — Attendance workflow and UI convergence
+
+- Schedule submission atomically saves, validates and submits current assignments. Managers may return with a mandatory reason or publish an audited correction revision.
+- Actual Attendance groups staff days by date, uses responsive employee cards on phones, hides payroll-only values and calculation JSON from the normal review surface, and prioritises weekly close.
+- Attendance controls converge on searchable compact selects, AM/PM display and a spaced mobile filter sheet while People documents use a list-and-add layout.
+- The fixed 31 August–6 September 2026 workbook importer is dry-run first, exact-match only, fingerprinted and unable to replace Published or Locked weeks.
+
+Repository migrations reviewed through `279`. Migration `279`, authenticated Preview UAT, linked database application, schedule Draft import, publication, Attendance recalculation and Production verification remain separate evidence and authorization steps.
+
 ### v9.2.50 (unreleased) — Attendance OT, RO and weekly close
 
 - NGTeco Raw Punch remains the attendance source. The weekly calculation now records expected punches, missing-punch follow-up and Full-time post-schedule OT candidates.

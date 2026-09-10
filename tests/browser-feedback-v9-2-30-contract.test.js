@@ -25,9 +25,9 @@ test("new Staff hides generated auth fields and states the temporary-password fl
 
 test("schedule asks for time per Add and avoids the native time picker", () => {
   const planner = read("src", "components", "attendance", "schedule-planner.tsx");
-  assert.match(planner, /const \[active,setActive\]=useState<Palette\|null>\(null\)/);
+  assert.match(planner, /const \[active,\s*setActive\]\s*=\s*useState<Palette \| null>\(null\)/);
   assert.match(planner, /customDialog\.current\?\.showModal\(\)/);
-  assert.match(planner, /\.\.\.templates\.map\(template=>/);
+  assert.match(planner, /\.\.\.templates\.map\(\(template\)\s*=>/);
   assert.match(planner, /\.\.\.leavePalette/);
   assert.doesNotMatch(planner, /type="time"/);
   assert.match(planner, /fixed left-1\/2 top-1\/2 m-0/);

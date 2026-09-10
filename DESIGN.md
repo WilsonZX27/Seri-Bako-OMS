@@ -1,3 +1,10 @@
+## v9.2.51 (unreleased) — Operational UI convergence
+
+- Shared compact Select controls own searchable outlet, staff, status and time choices; a native select is not introduced in the migrated Attendance surfaces.
+- Desktop list filters remain one command row. Phones expose Search, Filter and result count, then place secondary filters in a spaced bottom sheet with explicit Reset and Apply actions.
+- Attendance tables group by date on wide screens and become employee cards on phones. Payroll-only values and raw audit JSON remain available to authorised exports and database evidence, not the everyday review view.
+- A workflow action reports the concrete business result and next correction. A generic failure message is only the final unexpected-error fallback.
+
 ## v9.2.50 (unreleased) — OT-to-RO weekly attendance close
 
 - Schedule exposes the actual shift templates again and lets Supervisors attach a partial Full-time RO redemption to a shift by moving one edge in 30-minute units.

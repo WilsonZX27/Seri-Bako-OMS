@@ -248,7 +248,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                 {!summary.upcomingShifts.length?<p className="px-3 py-4 text-xs text-muted-foreground">No published shift is available for the next seven days.</p>:null}
               </div>
             </Panel>
-            <Panel title="Today's completion">
+            <Panel title="Today's completion" dataAttribute="today">
               <Link
                 prefetch={false}
                 href={summary.outletToday?.id ? `/outlet-daily-records/${summary.outletToday.id}` : "/outlet-daily-records/new"}

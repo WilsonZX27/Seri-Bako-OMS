@@ -59,7 +59,9 @@ test("mobile shell respects safe areas, action stacking, and standalone web inst
   assert.doesNotMatch(css, /\.sb-mobile-action-bar\s*\{\s*bottom: env\(safe-area-inset-bottom\)/);
   assert.match(css, /\[data-mobile-document-action\][\s\S]*padding-bottom: max\(0\.75rem, env\(safe-area-inset-bottom\)\)/);
   assert.match(appLayout, /pb-\[calc\(var\(--sb-mobile-nav-height\)\+env\(safe-area-inset-bottom\)\+1rem\)\]/);
-  assert.match(workspace, /rightRail && !hideMobileConsole && "pb-32 xl:pb-3"/);
+  assert.doesNotMatch(workspace, /pb-32/);
+  assert.match(workspace, /rightRail && !hideMobileConsole && "xl:pb-3"/);
+  assert.match(css, /html\[data-mobile-action-page="true"\] \[data-workspace-canvas\][\s\S]*?padding-bottom:/);
   assert.match(rootLayout, /viewportFit: "cover"/);
   assert.match(rootLayout, /appleWebApp/);
   assert.match(rootLayout, /id="touch-tablet-bootstrap"/);

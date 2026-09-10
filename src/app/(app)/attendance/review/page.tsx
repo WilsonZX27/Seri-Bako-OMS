@@ -1,43 +1,607 @@
+import { Fragment } from "react";
 import Link from "next/link";
-import { CheckCircle2, ChevronLeft, ChevronRight, Download, FileCheck2, Search, TriangleAlert } from "lucide-react";
+import {
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  FileCheck2,
+  TriangleAlert,
+} from "lucide-react";
 import { AttendanceWorkspaceNav } from "@/components/attendance/attendance-workspace-nav";
 import { AttendanceImportWorkflow } from "@/components/attendance/attendance-import-workflow";
-import { AttendanceAdjustmentButton, AttendanceRecalculateButton } from "@/components/attendance/review-actions";
-import { OtClaimAction, WeeklyCloseButton } from "@/components/attendance/ot-ro-actions";
+import { AttendanceReviewFilters } from "@/components/attendance/attendance-review-filters";
+import {
+  AttendanceAdjustmentButton,
+  AttendanceRecalculateButton,
+} from "@/components/attendance/review-actions";
+import {
+  OtClaimAction,
+  WeeklyCloseButton,
+} from "@/components/attendance/ot-ro-actions";
 import { ActualAttendancePanel } from "@/components/attendance/actual-attendance-panel";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
-import { SelectNative } from "@/components/ui/select-native";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { durationLabel } from "@/lib/attendance/calculation";
 import { formatAttendanceTime } from "@/lib/attendance/time";
 import { getPermissionMap } from "@/server/auth/permissions";
-import { getAttendanceActuals, getAttendanceMappings, getAttendanceReview, malaysiaWeekStart } from "@/server/queries/attendance";
+import {
+  getAttendanceActuals,
+  getAttendanceMappings,
+  getAttendanceReview,
+  malaysiaWeekStart,
+} from "@/server/queries/attendance";
 
-function time(value:unknown){return typeof value==="string"?formatAttendanceTime(value,{seconds:true}):"—"}
-function primaryStatus(row:Record<string,unknown>){const values=Array.isArray(row.statuses)?row.statuses.map(String).filter(value=>value!=="public_holiday"):[];return values[0]??(row.holiday_id?"public_holiday":"normal")}
-function pageHref(params:Record<string,string|undefined>,page:number){const query=new URLSearchParams();for(const [key,value] of Object.entries(params))if(value)query.set(key,value);query.set("page",String(page));return `/attendance/review?${query}`}
+type Row = Record<string, unknown>;
+type Claim = {
+  id: string;
+  status: string;
+  candidate_minutes: number;
+  requested_minutes: number;
+  decided_minutes: number | null;
+};
 
-export default async function AttendanceReviewPage({searchParams}:{searchParams:Promise<{week?:string;branch?:string;status?:string;employee?:string;page?:string;batch?:string;detail?:string}>}){
-  const params=await searchParams,week=/^\d{4}-\d{2}-\d{2}$/.test(params.week??"")?params.week!:malaysiaWeekStart(),page=Math.max(1,Number(params.page)||1);
-  const permissions=await getPermissionMap(["attendance.adjust","attendance.import","attendance.map","attendance.report.submit","attendance.report.approve","comp_time.submit","comp_time.approve","attendance.ot.submit","attendance.ot.approve","attendance.week.close","attendance.sensitive.export"]);
-  const [review,actuals,mappings]=await Promise.all([getAttendanceReview(week,{branch:params.branch,status:params.status,employee:params.employee,page,detail:params.detail}),getAttendanceActuals(week),permissions["attendance.import"]?getAttendanceMappings():Promise.resolve(null)]);
-  const rows=review.rows as Array<Record<string,unknown>>,claims=actuals.claims as Array<Record<string,unknown>>,reservations=actuals.reservations as Array<{id:string;reserved_minutes:number;recommended_used_minutes:number|null;work_date:string;staffs?:{full_name?:string}|null}>,exceptionCount=rows.filter(row=>primaryStatus(row)!=="normal").length,latest=review.batches[0] as Record<string,unknown>|undefined,totalPages=Math.max(1,Math.ceil(review.total/review.pageSize)),weekLocked=(actuals.locks as Array<unknown>).length>0;
-  const filterParams={week,branch:params.branch,status:params.status,employee:params.employee};
-  return <><PageHeader title="Actual Attendance" description="Import the weekly fingerprint file, then compare each staff day with the published schedule." contentWidth="wide"/>
-    <WorkspaceGrid tabletCanvas="wide" className="sb-portrait-tablet-rail" hideMobileConsole rightRail={<><ConsoleSection title="Week status" kind="status"><p className="font-semibold">{week}</p><p>{review.total} staff days · {exceptionCount} shown exceptions</p><StatusBadge status={weekLocked?"locked":"open"}/>{latest?<div className="mt-2 border-t border-[var(--sb-border-soft)] pt-2"><p className="font-medium">Latest import</p><p className="break-words text-muted-foreground">{String(latest.file_name)}</p><p>{String(latest.row_count)} rows · {String(latest.status)}</p></div>:<p className="text-muted-foreground">No import finalised for this week.</p>}</ConsoleSection>{review.detail?<AttendanceDetail detail={review.detail as Record<string,unknown>}/>:null}<ConsoleSection title="Actions" kind="action">{latest&&(permissions["attendance.import"]||permissions["attendance.adjust"])?<AttendanceRecalculateButton batchId={String(latest.id)}/>:null}{permissions["attendance.sensitive.export"]?<Button asChild size="sm" className="w-full"><a href={`/api/attendance/export?week=${week}&format=xlsx`}><Download className="h-4 w-4"/>Download People workbook</a></Button>:null}{permissions["attendance.week.close"]?<WeeklyCloseButton weekStart={week} reservations={reservations.filter(row=>(row as unknown as Record<string,unknown>).status==="reserved")} disabled={weekLocked}/>:null}</ConsoleSection></>}>
-      <AttendanceWorkspaceNav current="review"/>
-      {mappings?.allowed?<details className="group sb-work-surface overflow-hidden" open={!latest}><summary className="flex min-h-12 cursor-pointer list-none items-center gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--sb-green-100)] text-[var(--sb-green-900)]">{latest?<CheckCircle2 className="h-4 w-4"/>:<FileCheck2 className="h-4 w-4"/>}</span><span className="min-w-0 flex-1"><strong className="block text-sm">{latest?"Import another raw punch file":"Import NGTeco raw punches"}</strong><span className="block truncate text-xs text-muted-foreground">Use View Attendance Punch. One file may contain multiple Monday–Sunday weeks.</span></span><ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90"/></summary><div className="border-t border-[var(--sb-border-soft)] p-3"><AttendanceImportWorkflow staffs={mappings.staffs} mappedPersonIds={(mappings.people as Array<Record<string,unknown>>).filter(row=>row.is_active!==false).map(row=>String(row.person_id))} mappedSources={(mappings.devices as Array<Record<string,unknown>>).filter(row=>row.is_active!==false).map(row=>String(row.source_code))} canMap={mappings.allowed}/></div></details>:null}
-      <form className="flex flex-wrap items-end gap-2" aria-label="Actual attendance filters"><label className="grid min-w-52 flex-1 gap-1 text-xs font-medium">Outlet<SelectNative name="branch" defaultValue={params.branch??""}><option value="">All accessible outlets</option>{review.branches.map((branch:Record<string,unknown>)=><option key={String(branch.id)} value={String(branch.id)}>{String(branch.branch_name)}</option>)}</SelectNative></label><label className="grid min-w-40 gap-1 text-xs font-medium">Week<Input name="week" type="date" defaultValue={week}/></label><label className="grid min-w-48 flex-1 gap-1 text-xs font-medium">Employee<span className="relative"><Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-muted-foreground"/><Input className="pl-9" name="employee" defaultValue={params.employee??""} placeholder="Search employee"/></span></label><label className="grid min-w-40 gap-1 text-xs font-medium">Status<SelectNative name="status" defaultValue={params.status??"all"}><option value="all">All records</option><option value="late">Late</option><option value="early_leave">Early leave</option><option value="overtime">OT</option><option value="missing_check_in">Missing check-in</option><option value="missing_check_out">Missing check-out</option><option value="missing_break_punch">Missing break punch</option><option value="repeated_missing_punch">Repeated missing punch</option><option value="short_break">Short break</option><option value="public_holiday">Public holiday</option><option value="unmapped_person">Unmatched</option></SelectNative></label><Button type="submit">Apply</Button></form>
-      <section className="sb-work-surface overflow-hidden"><header className="flex flex-wrap items-center gap-3 border-b border-[var(--sb-border-soft)] px-4 py-3"><div><h2 className="text-sm font-semibold">Schedule vs fingerprint punches</h2><p className="text-xs text-muted-foreground">One staff day per row. Times preserve NGTeco seconds.</p></div><StatusBadge status={exceptionCount?"attention":"reviewed"}/><span className="ml-auto text-xs text-muted-foreground">{review.total} results</span></header>
-        <div className="overflow-auto"><table className="w-full min-w-[88rem] text-left text-xs"><thead className="sticky top-0 bg-[var(--sb-surface-muted)]"><tr>{["Employee","Employment type","Date","Schedule","Punches","Clock in","Breaks","Clock out","Worked","Payable","Late","Early leave","OT candidate","Status","Review"].map(label=><th key={label} className="px-3 py-2.5">{label}</th>)}</tr></thead><tbody>{rows.map(row=>{const staff=row.staffs as {full_name?:string;employment_type?:string}|null,worked=row.worked_seconds==null?null:Number(row.worked_seconds),paid=row.payable_seconds==null?null:Number(row.payable_seconds),candidate=Number(row.overtime_candidate_seconds??(row.calculation as Record<string,unknown>|null)?.overtime_candidate_seconds??0),claim=claims.find(item=>String(item.staff_id)===String(row.staff_id)&&String(item.work_date)===String(row.work_date)&&["submitted","approved","credited"].includes(String(item.status))),status=primaryStatus(row);return <tr key={String(row.id)} className="border-t border-[var(--sb-border-soft)] hover:bg-[var(--sb-surface-muted)]"><td className="px-3 py-3 font-semibold">{staff?.full_name??"Unmatched employee"}</td><td className="px-3 py-3">{staff?.employment_type==="part_time"?"Part-time":"Full-time"}</td><td className="px-3 py-3 tabular-nums">{String(row.work_date)}</td><td className="px-3 py-3 tabular-nums">{time(row.scheduled_start)}–{time(row.scheduled_end)}</td><td className="px-3 py-3"><strong className="tabular-nums">{Number(row.actual_punch_count??0)}/{Number(row.expected_punch_count??0)}</strong>{Number(row.missing_punch_count??0)>0?<span className="block text-[10px] text-amber-800">Month {Number(row.monthly_missing_punch_count??0)}/3{Number(row.monthly_missing_punch_count??0)>=4?" · Repeated":""}</span>:null}</td><td className="px-3 py-3 font-medium tabular-nums">{time(row.actual_first_in)}</td><td className="px-3 py-3 tabular-nums">{durationLabel(Number(row.break_seconds??0))}</td><td className="px-3 py-3 font-medium tabular-nums">{time(row.actual_last_out)}</td><td className="px-3 py-3 tabular-nums">{worked==null?"—":durationLabel(worked)}</td><td className="px-3 py-3 font-semibold tabular-nums">{paid==null?"—":durationLabel(paid)}{row.holiday_id&&row.holiday_normal_multiplier?<span className="block text-[10px] text-muted-foreground">Holiday ×{String(row.holiday_normal_multiplier)}</span>:null}</td><td className="px-3 py-3 tabular-nums">{durationLabel(Number(row.late_seconds??0))}</td><td className="px-3 py-3 tabular-nums">{durationLabel(Number(row.early_leave_seconds??0))}</td><td className="px-3 py-3"><span className="block tabular-nums">{durationLabel(candidate)}</span>{claim?<StatusBadge status={String(claim.status)}/>:null}</td><td className="px-3 py-3"><StatusBadge status={status}/></td><td className="px-3 py-3"><div className="flex items-center gap-1"><Button asChild size="sm" variant="ghost"><Link href={`${pageHref(filterParams,page)}&detail=${encodeURIComponent(String(row.id))}`}>Details</Link></Button>{permissions["attendance.adjust"]?<AttendanceAdjustmentButton resultId={String(row.id)} currentSeconds={paid??0}/>:<StatusBadge status={String(row.review_status)}/>}<OtClaimAction resultId={String(row.id)} candidateSeconds={candidate} claim={claim as unknown as {id:string;status:string;candidate_minutes:number;requested_minutes:number;decided_minutes:number|null}|undefined} canSubmit={permissions["attendance.ot.submit"]} canApprove={permissions["attendance.ot.approve"]}/></div></td></tr>})}</tbody></table>{!rows.length?<div className="p-10 text-center"><TriangleAlert className="mx-auto h-5 w-5 text-muted-foreground"/><p className="mt-2 text-sm font-semibold">No matching attendance records</p><p className="mt-1 text-xs text-muted-foreground">Import NGTeco View Attendance Punch or change the filters.</p></div>:null}</div>
-        {totalPages>1?<footer className="flex items-center justify-between border-t border-[var(--sb-border-soft)] px-3 py-2"><Button asChild size="sm" variant="ghost" disabled={page<=1}><Link href={pageHref(filterParams,Math.max(1,page-1))}><ChevronLeft className="h-4 w-4"/>Previous</Link></Button><span className="text-xs text-muted-foreground">Page {page} of {totalPages}</span><Button asChild size="sm" variant="ghost" disabled={page>=totalPages}><Link href={pageHref(filterParams,Math.min(totalPages,page+1))}>Next<ChevronRight className="h-4 w-4"/></Link></Button></footer>:null}
-      </section>
-      <details className="group sb-work-surface overflow-hidden"><summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">Reports & time-off balance<ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90"/></summary><div className="border-t border-[var(--sb-border-soft)] p-3"><ActualAttendancePanel assignments={actuals.assignments as Array<Record<string,unknown>>} reports={actuals.reports as Array<Record<string,unknown>>} ledger={actuals.ledger} balances={actuals.balances} canSubmit={permissions["attendance.report.submit"]} canApprove={permissions["attendance.report.approve"]} canSubmitComp={permissions["comp_time.submit"]} canApproveComp={permissions["comp_time.approve"]}/></div></details>
-    </WorkspaceGrid></>;
+function time(value: unknown) {
+  return typeof value === "string"
+    ? formatAttendanceTime(value, { seconds: true })
+    : "—";
+}
+function duration(value: unknown) {
+  const seconds = Number(value ?? 0);
+  return seconds > 0 ? durationLabel(seconds) : "—";
+}
+function primaryStatus(row: Row) {
+  const values = Array.isArray(row.statuses)
+    ? row.statuses.map(String).filter((value) => value !== "public_holiday")
+    : [];
+  return values[0] ?? (row.holiday_id ? "public_holiday" : "normal");
+}
+function pageHref(params: Record<string, string | undefined>, page: number) {
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(params))
+    if (value) query.set(key, value);
+  query.set("page", String(page));
+  return `/attendance/review?${query}`;
 }
 
-function AttendanceDetail({detail}:{detail:Record<string,unknown>}){const staff=detail.staffs as {full_name?:string}|null,batch=detail.attendance_import_batches as {file_name?:string;parser_profile?:string}|null,exceptions=(detail.exceptions??[]) as Array<Record<string,unknown>>,adjustments=(detail.adjustments??[]) as Array<Record<string,unknown>>;return <ConsoleSection title="Attendance details" kind="reference"><p className="font-semibold">{staff?.full_name??"Employee"}</p><p>{String(detail.work_date)} · {time(detail.actual_first_in)}–{time(detail.actual_last_out)}</p><dl className="mt-2 divide-y divide-[var(--sb-border-soft)]"><div className="flex justify-between gap-2 py-2"><dt className="text-muted-foreground">Import file</dt><dd className="break-all text-right">{batch?.file_name??"—"}</dd></div><div className="flex justify-between gap-2 py-2"><dt className="text-muted-foreground">Exceptions</dt><dd>{exceptions.length}</dd></div><div className="flex justify-between gap-2 py-2"><dt className="text-muted-foreground">Adjustments</dt><dd>{adjustments.length}</dd></div></dl>{exceptions.map(item=><div key={String(item.id)} className="mt-2 rounded-[var(--sb-radius-control)] bg-[var(--sb-warning-bg)] p-2"><strong>{String(item.exception_code).replaceAll("_"," ")}</strong><p>{String(item.resolution_note??"Needs review")}</p></div>)}<details className="mt-2"><summary className="cursor-pointer text-xs font-semibold">Calculation audit</summary><pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] p-2 text-[10px]">{JSON.stringify(detail.calculation,null,2)}</pre></details></ConsoleSection>}
+export default async function AttendanceReviewPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    week?: string;
+    branch?: string;
+    status?: string;
+    employee?: string;
+    page?: string;
+    batch?: string;
+    detail?: string;
+  }>;
+}) {
+  const params = await searchParams;
+  const week = /^\d{4}-\d{2}-\d{2}$/.test(params.week ?? "")
+    ? params.week!
+    : malaysiaWeekStart();
+  const page = Math.max(1, Number(params.page) || 1);
+  const branch =
+    params.branch && params.branch !== "all" ? params.branch : undefined;
+  const permissions = await getPermissionMap([
+    "attendance.adjust",
+    "attendance.import",
+    "attendance.map",
+    "attendance.report.submit",
+    "attendance.report.approve",
+    "comp_time.submit",
+    "comp_time.approve",
+    "attendance.ot.submit",
+    "attendance.ot.approve",
+    "attendance.week.close",
+    "attendance.sensitive.export",
+  ]);
+  const [review, actuals, mappings] = await Promise.all([
+    getAttendanceReview(week, {
+      branch,
+      status: params.status,
+      employee: params.employee,
+      page,
+      detail: params.detail,
+    }),
+    getAttendanceActuals(week),
+    permissions["attendance.import"]
+      ? getAttendanceMappings()
+      : Promise.resolve(null),
+  ]);
+  const rows = review.rows as Row[];
+  const claims = actuals.claims as Row[];
+  const reservations = actuals.reservations as Array<{
+    id: string;
+    reserved_minutes: number;
+    recommended_used_minutes: number | null;
+    work_date: string;
+    staffs?: { full_name?: string } | null;
+  }>;
+  const exceptionCount = rows.filter(
+    (row) => primaryStatus(row) !== "normal",
+  ).length;
+  const latest = review.batches[0] as Row | undefined;
+  const totalPages = Math.max(1, Math.ceil(review.total / review.pageSize));
+  const weekLocked = (actuals.locks as unknown[]).length > 0;
+  const filterParams = {
+    week,
+    branch,
+    status: params.status,
+    employee: params.employee,
+  };
+  const rowContext = (row: Row) => {
+    const staff = row.staffs as {
+      full_name?: string;
+      employment_type?: string;
+    } | null;
+    const candidate = Number(
+      row.overtime_candidate_seconds ??
+        (row.calculation as Row | null)?.overtime_candidate_seconds ??
+        0,
+    );
+    const claim = claims.find(
+      (item) =>
+        String(item.staff_id) === String(row.staff_id) &&
+        String(item.work_date) === String(row.work_date) &&
+        ["submitted", "approved", "credited"].includes(String(item.status)),
+    ) as Claim | undefined;
+    return { staff, candidate, claim, status: primaryStatus(row) };
+  };
+
+  return (
+    <>
+      <PageHeader
+        title="Actual Attendance"
+        description="Compare each staff day with the published schedule and resolve exceptions before closing the week."
+        contentWidth="wide"
+      />
+      <WorkspaceGrid
+        tabletCanvas="wide"
+        className="sb-portrait-tablet-rail"
+        hideMobileConsole
+        rightRail={
+          <>
+            <ConsoleSection title="Week status" kind="status">
+              <p className="font-semibold">{week}</p>
+              <p>
+                {review.total} staff days · {exceptionCount} shown exceptions
+              </p>
+              <StatusBadge status={weekLocked ? "locked" : "open"} />
+              {latest ? (
+                <div className="mt-2 border-t border-[var(--sb-border-soft)] pt-2">
+                  <p className="font-medium">Latest import</p>
+                  <p className="break-words text-muted-foreground">
+                    {String(latest.file_name)}
+                  </p>
+                  <p>
+                    {String(latest.row_count)} rows · {String(latest.status)}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-muted-foreground">
+                  No import finalised for this week.
+                </p>
+              )}
+            </ConsoleSection>
+            {review.detail ? (
+              <AttendanceDetail detail={review.detail as Row} />
+            ) : null}
+            <ConsoleSection title="Actions" kind="action">
+              {permissions["attendance.week.close"] ? (
+                <WeeklyCloseButton
+                  weekStart={week}
+                  reservations={reservations.filter(
+                    (row) => (row as unknown as Row).status === "reserved",
+                  )}
+                  disabled={weekLocked}
+                />
+              ) : null}
+              {latest &&
+              (permissions["attendance.import"] ||
+                permissions["attendance.adjust"]) ? (
+                <AttendanceRecalculateButton batchId={String(latest.id)} />
+              ) : null}
+              {permissions["attendance.sensitive.export"] ? (
+                <Button asChild size="sm" variant="outline" className="w-full">
+                  <a href={`/api/attendance/export?week=${week}&format=xlsx`}>
+                    <Download className="h-4 w-4" />
+                    Download People workbook
+                  </a>
+                </Button>
+              ) : null}
+            </ConsoleSection>
+          </>
+        }
+      >
+        <AttendanceWorkspaceNav current="review" />
+        {mappings?.allowed ? (
+          <details
+            className="group sb-work-surface overflow-hidden"
+            open={!latest}
+          >
+            <summary className="flex min-h-12 cursor-pointer list-none items-center gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--sb-green-100)] text-[var(--sb-green-900)]">
+                {latest ? (
+                  <CheckCircle2 className="h-4 w-4" />
+                ) : (
+                  <FileCheck2 className="h-4 w-4" />
+                )}
+              </span>
+              <strong className="min-w-0 flex-1 truncate text-sm">
+                {latest
+                  ? "Import another raw punch file"
+                  : "Import NGTeco raw punches"}
+              </strong>
+              <ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" />
+            </summary>
+            <div className="border-t border-[var(--sb-border-soft)] p-3">
+              <AttendanceImportWorkflow
+                staffs={mappings.staffs}
+                mappedPersonIds={(mappings.people as Row[])
+                  .filter((row) => row.is_active !== false)
+                  .map((row) => String(row.person_id))}
+                mappedSources={(mappings.devices as Row[])
+                  .filter((row) => row.is_active !== false)
+                  .map((row) => String(row.source_code))}
+                canMap={mappings.allowed}
+              />
+            </div>
+          </details>
+        ) : null}
+        <AttendanceReviewFilters
+          branches={(review.branches as Row[]).map((item) => ({
+            id: String(item.id),
+            branch_name: String(item.branch_name),
+          }))}
+          defaults={{
+            branch: branch ?? "all",
+            week,
+            employee: params.employee ?? "",
+            status: params.status ?? "all",
+          }}
+          total={review.total}
+        />
+
+        <section className="sb-work-surface overflow-hidden">
+          <header className="flex flex-wrap items-center gap-3 border-b border-[var(--sb-border-soft)] px-4 py-3">
+            <h2 className="text-sm font-semibold">
+              Schedule vs fingerprint punches
+            </h2>
+            <StatusBadge status={exceptionCount ? "attention" : "reviewed"} />
+            <span className="ml-auto text-xs text-muted-foreground">
+              {review.total} results
+            </span>
+          </header>
+          <div className="hidden overflow-auto md:block">
+            <table className="w-full min-w-[74rem] text-left text-xs">
+              <thead className="sticky top-0 z-10 bg-[var(--sb-surface-muted)]">
+                <tr>
+                  {[
+                    "Employee",
+                    "Schedule",
+                    "Punches",
+                    "Clock in",
+                    "Breaks",
+                    "Clock out",
+                    "Worked",
+                    "Late",
+                    "Early leave",
+                    "OT candidate",
+                    "Status",
+                    "Review",
+                  ].map((label) => (
+                    <th key={label} className="px-3 py-2.5">
+                      {label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row, index) => {
+                  const { staff, candidate, claim, status } = rowContext(row);
+                  const newDay =
+                    index === 0 ||
+                    String(rows[index - 1]?.work_date) !==
+                      String(row.work_date);
+                  return (
+                    <Fragment key={String(row.id)}>
+                      {newDay ? (
+                        <tr className="border-t border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)]">
+                          <th colSpan={12} className="px-3 py-2 font-semibold">
+                            {String(row.work_date)}
+                          </th>
+                        </tr>
+                      ) : null}
+                      <tr className="border-t border-[var(--sb-border-soft)] hover:bg-[var(--sb-surface-muted)]">
+                        <td className="px-3 py-3">
+                          <strong className="block">
+                            {staff?.full_name ?? "Unmatched employee"}
+                          </strong>
+                          <span className="text-[11px] text-muted-foreground">
+                            {staff?.employment_type === "part_time"
+                              ? "Part-time"
+                              : "Full-time"}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3 tabular-nums">
+                          {time(row.scheduled_start)}–{time(row.scheduled_end)}
+                        </td>
+                        <td className="px-3 py-3">
+                          <strong className="tabular-nums">
+                            {Number(row.actual_punch_count ?? 0)} of{" "}
+                            {Number(row.expected_punch_count ?? 0)}
+                          </strong>
+                          {Number(row.missing_punch_count ?? 0) > 0 ? (
+                            <span className="block text-[10px] text-amber-800">
+                              {Number(row.monthly_missing_punch_count ?? 0) >= 4
+                                ? "Repeated"
+                                : "Missing punch"}
+                            </span>
+                          ) : null}
+                        </td>
+                        <td className="px-3 py-3 font-medium tabular-nums">
+                          {time(row.actual_first_in)}
+                        </td>
+                        <td className="px-3 py-3 tabular-nums">
+                          {duration(row.break_seconds)}
+                        </td>
+                        <td className="px-3 py-3 font-medium tabular-nums">
+                          {time(row.actual_last_out)}
+                        </td>
+                        <td className="px-3 py-3 tabular-nums">
+                          {duration(row.worked_seconds)}
+                        </td>
+                        <td className="px-3 py-3 tabular-nums">
+                          {duration(row.late_seconds)}
+                        </td>
+                        <td className="px-3 py-3 tabular-nums">
+                          {duration(row.early_leave_seconds)}
+                        </td>
+                        <td className="px-3 py-3">
+                          <span className="block tabular-nums">
+                            {duration(candidate)}
+                          </span>
+                          {claim ? <StatusBadge status={claim.status} /> : null}
+                        </td>
+                        <td className="px-3 py-3">
+                          <StatusBadge status={status} />
+                        </td>
+                        <td className="px-3 py-3">
+                          <RowActions
+                            row={row}
+                            claim={claim}
+                            candidate={candidate}
+                            permissions={permissions}
+                            href={`${pageHref(filterParams, page)}&detail=${encodeURIComponent(String(row.id))}`}
+                          />
+                        </td>
+                      </tr>
+                    </Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <div className="divide-y divide-[var(--sb-border-soft)] md:hidden">
+            {rows.map((row, index) => {
+              const { staff, candidate, claim, status } = rowContext(row);
+              const newDay =
+                index === 0 ||
+                String(rows[index - 1]?.work_date) !== String(row.work_date);
+              return (
+                <div key={String(row.id)}>
+                  {newDay ? (
+                    <h3 className="bg-[var(--sb-surface-muted)] px-3 py-2 text-xs font-semibold">
+                      {String(row.work_date)}
+                    </h3>
+                  ) : null}
+                  <article className="p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <strong className="text-sm">
+                          {staff?.full_name ?? "Unmatched employee"}
+                        </strong>
+                        <p className="text-[11px] text-muted-foreground">
+                          {staff?.employment_type === "part_time"
+                            ? "Part-time"
+                            : "Full-time"}{" "}
+                          · {time(row.scheduled_start)}–
+                          {time(row.scheduled_end)}
+                        </p>
+                      </div>
+                      <StatusBadge status={status} />
+                    </div>
+                    <dl className="mt-3 grid grid-cols-3 gap-x-3 gap-y-2 text-xs">
+                      <div>
+                        <dt className="text-muted-foreground">Punches</dt>
+                        <dd className="font-semibold">
+                          {Number(row.actual_punch_count ?? 0)} of{" "}
+                          {Number(row.expected_punch_count ?? 0)}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground">Clock in</dt>
+                        <dd>{time(row.actual_first_in)}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground">Clock out</dt>
+                        <dd>{time(row.actual_last_out)}</dd>
+                      </div>
+                      {Number(row.late_seconds ?? 0) > 0 ? (
+                        <div>
+                          <dt className="text-muted-foreground">Late</dt>
+                          <dd>{duration(row.late_seconds)}</dd>
+                        </div>
+                      ) : null}
+                      {Number(row.early_leave_seconds ?? 0) > 0 ? (
+                        <div>
+                          <dt className="text-muted-foreground">Early leave</dt>
+                          <dd>{duration(row.early_leave_seconds)}</dd>
+                        </div>
+                      ) : null}
+                      {candidate > 0 ? (
+                        <div>
+                          <dt className="text-muted-foreground">
+                            OT candidate
+                          </dt>
+                          <dd>{duration(candidate)}</dd>
+                        </div>
+                      ) : null}
+                    </dl>
+                    <div className="mt-3">
+                      <RowActions
+                        row={row}
+                        claim={claim}
+                        candidate={candidate}
+                        permissions={permissions}
+                        href={`${pageHref(filterParams, page)}&detail=${encodeURIComponent(String(row.id))}`}
+                      />
+                    </div>
+                  </article>
+                </div>
+              );
+            })}
+          </div>
+          {!rows.length ? (
+            <div className="p-10 text-center">
+              <TriangleAlert className="mx-auto h-5 w-5 text-muted-foreground" />
+              <p className="mt-2 text-sm font-semibold">
+                No matching attendance records
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Import a raw punch file or change the filters.
+              </p>
+            </div>
+          ) : null}
+          {totalPages > 1 ? (
+            <footer className="flex items-center justify-between border-t border-[var(--sb-border-soft)] px-3 py-2">
+              <Button asChild size="sm" variant="ghost" disabled={page <= 1}>
+                <Link href={pageHref(filterParams, Math.max(1, page - 1))}>
+                  <ChevronLeft className="h-4 w-4" />
+                  Previous
+                </Link>
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                Page {page} of {totalPages}
+              </span>
+              <Button
+                asChild
+                size="sm"
+                variant="ghost"
+                disabled={page >= totalPages}
+              >
+                <Link
+                  href={pageHref(filterParams, Math.min(totalPages, page + 1))}
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </footer>
+          ) : null}
+        </section>
+        <details className="group sb-work-surface overflow-hidden">
+          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
+            Reports & time-off balance
+            <ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" />
+          </summary>
+          <div className="border-t border-[var(--sb-border-soft)] p-3">
+            <ActualAttendancePanel
+              assignments={actuals.assignments as Row[]}
+              reports={actuals.reports as Row[]}
+              ledger={actuals.ledger}
+              balances={actuals.balances}
+              canSubmit={permissions["attendance.report.submit"]}
+              canApprove={permissions["attendance.report.approve"]}
+              canSubmitComp={permissions["comp_time.submit"]}
+              canApproveComp={permissions["comp_time.approve"]}
+            />
+          </div>
+        </details>
+      </WorkspaceGrid>
+    </>
+  );
+}
+
+function RowActions({
+  row,
+  claim,
+  candidate,
+  permissions,
+  href,
+}: {
+  row: Row;
+  claim?: Claim;
+  candidate: number;
+  permissions: Record<string, boolean>;
+  href: string;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-1">
+      <Button asChild size="sm" variant="outline">
+        <Link href={href}>Details</Link>
+      </Button>
+      {permissions["attendance.adjust"] ? (
+        <AttendanceAdjustmentButton
+          resultId={String(row.id)}
+          currentSeconds={Number(row.payable_seconds ?? 0)}
+        />
+      ) : (
+        <StatusBadge status={String(row.review_status)} />
+      )}
+      <OtClaimAction
+        resultId={String(row.id)}
+        candidateSeconds={candidate}
+        claim={claim}
+        canSubmit={permissions["attendance.ot.submit"]}
+        canApprove={permissions["attendance.ot.approve"]}
+      />
+    </div>
+  );
+}
+
+function AttendanceDetail({ detail }: { detail: Row }) {
+  const staff = detail.staffs as { full_name?: string } | null;
+  const batch = detail.attendance_import_batches as {
+    file_name?: string;
+  } | null;
+  const exceptions = (detail.exceptions ?? []) as Row[];
+  const adjustments = (detail.adjustments ?? []) as Row[];
+  return (
+    <ConsoleSection title="Attendance details" kind="reference">
+      <p className="font-semibold">{staff?.full_name ?? "Employee"}</p>
+      <p>
+        {String(detail.work_date)} · {time(detail.actual_first_in)}–
+        {time(detail.actual_last_out)}
+      </p>
+      <dl className="mt-2 divide-y divide-[var(--sb-border-soft)]">
+        <div className="flex justify-between gap-2 py-2">
+          <dt className="text-muted-foreground">Import file</dt>
+          <dd className="break-all text-right">{batch?.file_name ?? "—"}</dd>
+        </div>
+        <div className="flex justify-between gap-2 py-2">
+          <dt className="text-muted-foreground">Exceptions</dt>
+          <dd>{exceptions.length}</dd>
+        </div>
+        <div className="flex justify-between gap-2 py-2">
+          <dt className="text-muted-foreground">Adjustments</dt>
+          <dd>{adjustments.length}</dd>
+        </div>
+      </dl>
+      {exceptions.map((item) => (
+        <div
+          key={String(item.id)}
+          className="mt-2 rounded-[var(--sb-radius-control)] bg-[var(--sb-warning-bg)] p-2"
+        >
+          <strong>{String(item.exception_code).replaceAll("_", " ")}</strong>
+          <p>{String(item.resolution_note ?? "Needs review")}</p>
+        </div>
+      ))}
+    </ConsoleSection>
+  );
+}

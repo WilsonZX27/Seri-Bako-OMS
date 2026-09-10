@@ -17,6 +17,7 @@ function formatDateDisplay(value: string) {
 
 const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
   ({ className, defaultValue, value, onChange, disabled, ...props }, ref) => {
+    const localRef = React.useRef<HTMLInputElement | null>(null);
     const controlled = value !== undefined;
     const [uncontrolledValue, setUncontrolledValue] = React.useState(() => normalizeDateValue(defaultValue));
     const displayedValue = controlled ? normalizeDateValue(value) : uncontrolledValue;
@@ -31,6 +32,12 @@ const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
           "relative flex h-[var(--sb-control-height)] w-full min-w-0 max-w-full items-center rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white px-2.5 py-1.5 text-sm text-[var(--sb-text)] transition-colors focus-within:ring-2 focus-within:ring-[var(--sb-green-700)] focus-within:ring-offset-1 has-[:disabled]:cursor-not-allowed has-[:disabled]:bg-[var(--sb-surface-muted)] has-[:disabled]:opacity-70 unified-list-date-control",
           className,
         )}
+        onClick={() => {
+          if (disabled) return;
+          const picker = localRef.current as (HTMLInputElement & { showPicker?: () => void }) | null;
+          picker?.focus();
+          try { picker?.showPicker?.(); } catch { /* Browser may restrict programmatic picker opening. */ }
+        }}
       >
         <span aria-hidden="true" className={cn("min-w-0 flex-1 truncate tabular-nums", !displayedValue && "text-[var(--sb-text-muted)]")}>
           {displayedValue ? formatDateDisplay(displayedValue) : "DD/MM/YYYY"}
@@ -38,7 +45,11 @@ const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
         <CalendarDays aria-hidden="true" className="ml-2 h-4 w-4 shrink-0 text-[var(--sb-text-muted)]" />
         <input
           {...props}
-          ref={ref}
+          ref={(node) => {
+            localRef.current = node;
+            if (typeof ref === "function") ref(node);
+            else if (ref) ref.current = node;
+          }}
           type="date"
           value={controlled ? displayedValue : undefined}
           defaultValue={controlled ? undefined : displayedValue}

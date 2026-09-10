@@ -15,8 +15,8 @@ test("OT claims credit RO only after a People decision",()=>{
 
 test("partial RO is schedule-bound, reserved atomically and allocated FIFO",()=>{
  for(const contract of ["attendance_ro_reservations","ro_original_start","ro_original_end","get_comp_time_available_balance","pg_advisory_xact_lock","comp_time_allocations","order by t.work_date,t.created_at,t.id for update"])assert.ok(migration.includes(contract),contract);
- assert.ok(schedule.includes("Redeem approved RO"));
- assert.ok(schedule.includes("Balance is reserved when the Manager publishes"));
+ assert.ok(schedule.includes("Use approved RO"));
+ assert.ok(schedule.includes("The amount is reserved when the Manager publishes"));
  assert.ok(!schedule.includes('{key:"ro",label:"RO"'));
 });
 

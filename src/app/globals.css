@@ -652,6 +652,10 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 @media (max-width: 1279px) {
+  html[data-mobile-action-page="true"] [data-workspace-canvas] {
+    padding-bottom: calc(5.75rem + env(safe-area-inset-bottom));
+  }
+
   .sb-filter-more[open] > .sb-filter-more-backdrop {
     position: fixed;
     z-index: var(--sb-z-backdrop);

@@ -45,6 +45,7 @@ export const BACKUP_DATASETS: readonly BackupDataset[] = [
   { table: "schedule_weeks", classification: "company_id filtered", column: "company_id" },
   { table: "shift_assignment_revisions", classification: "company_id filtered", column: "company_id" },
   { table: "schedule_approval_events", classification: "company_id filtered", column: "company_id", optional: "logs" },
+  { table: "schedule_import_batches", classification: "company_id filtered", column: "company_id", optional: "logs" },
   { table: "shift_change_requests", classification: "company_id filtered", column: "company_id" },
   { table: "ngteco_person_mappings", classification: "company_id filtered", column: "company_id" },
   { table: "ngteco_device_mappings", classification: "company_id filtered", column: "company_id" },

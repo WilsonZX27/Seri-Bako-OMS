@@ -14,8 +14,8 @@ test("weekly rest is a named audited warning while real schedule blockers remain
  assert.match(migration,/warning_note/);
  assert.doesNotMatch(migration,/raise exception 'Every scheduled employee requires/);
  for(const blocker of ["inactive_staff","cross_branch_collision","not_editable","no_assignments"])assert.match(migration,new RegExp(blocker));
- assert.match(route,/blockers\?\.length/);
- assert.match(planner,/Submission remains available/);
+ assert.match(route,/submit_schedule_week_atomic/);
+ assert.match(planner,/Schedule submitted with/);
 });
 
 test("People Operations schedule reads use branch scope without edit authority",()=>{

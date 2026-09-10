@@ -1,3 +1,11 @@
+### v9.2.52 (unreleased) — Attendance review density correction
+
+- Actual Attendance fits the operational canvas with seven decision columns, pairing scheduled and actual clock times with their variance instead of forcing a 12-column horizontal table.
+- Attendance filters remain in one bounded desktop row; payroll rules lead Settings while device mappings are collapsible.
+- Outlet Calendar removes the redundant outlet query surface, Dashboard metric tiles explicitly use the white surface, and Purchase Orders restores its table from the desktop breakpoint.
+
+This is repository implementation evidence only until the change is committed, pushed, deployed and verified in an authenticated environment.
+
 ### v9.2.51 (unreleased) — Attendance workflow and UI convergence
 
 - Schedule submission atomically saves, validates and submits current assignments. Managers may return with a mandatory reason or publish an audited correction revision.

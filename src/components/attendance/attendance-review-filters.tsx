@@ -35,10 +35,9 @@ export function AttendanceReviewFilters({ branches, defaults, total }: { branche
   const [open, setOpen] = useState(false);
   const branchOptions = [{ value: "all", label: "All accessible outlets" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))];
   return <section className="sb-work-surface p-3" aria-label="Actual attendance filters">
-    <form className="hidden items-end gap-2 md:grid md:grid-cols-[minmax(12rem,1fr)_10rem_minmax(13rem,1fr)_12rem_8rem_auto]">
+    <form className="hidden min-w-0 items-end gap-2 md:grid md:grid-cols-[minmax(0,1.15fr)_minmax(0,.9fr)_minmax(0,1.25fr)_minmax(0,1fr)_5.5rem]">
       <FilterFields branchOptions={branchOptions} defaults={defaults}/>
       <Button type="submit" className="h-[var(--sb-control-height)]">Search</Button>
-      <span className="self-center whitespace-nowrap text-xs text-[var(--sb-text-muted)]"><strong className="text-sm text-[var(--sb-text)]">{total}</strong> records</span>
     </form>
     <div className="flex items-center gap-2 md:hidden">
       <div className="relative min-w-0 flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--sb-text-muted)]"/><Input form="attendance-mobile-search" name="employee" defaultValue={defaults.employee} placeholder="Search employee" className="pl-9"/></div>

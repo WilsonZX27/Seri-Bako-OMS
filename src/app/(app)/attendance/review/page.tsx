@@ -53,6 +53,14 @@ function duration(value: unknown) {
   const seconds = Number(value ?? 0);
   return seconds > 0 ? durationLabel(seconds) : "—";
 }
+function signedDuration(value: unknown, tone: "late" | "earlyLeave" | "ot") {
+  const seconds = Number(value ?? 0);
+  if (seconds <= 0) return null;
+  const prefix = tone === "earlyLeave" ? "−" : "+";
+  const label = tone === "ot" ? "OT" : tone === "earlyLeave" ? "early" : "late";
+  const className = tone === "ot" ? "text-[var(--sb-success)]" : "text-[var(--sb-danger)]";
+  return <span className={`mt-0.5 block text-[11px] font-medium tabular-nums ${className}`}>{prefix}{durationLabel(seconds)} {label}</span>;
+}
 function primaryStatus(row: Row) {
   const values = Array.isArray(row.statuses)
     ? row.statuses.map(String).filter((value) => value !== "public_holiday")
@@ -232,7 +240,7 @@ export default async function AttendanceReviewPage({
                   <FileCheck2 className="h-4 w-4" />
                 )}
               </span>
-              <strong className="min-w-0 flex-1 truncate text-sm">
+              <strong className="min-w-0 flex-1 truncate text-sm font-medium">
                 {latest
                   ? "Import another raw punch file"
                   : "Import NGTeco raw punches"}
@@ -278,22 +286,17 @@ export default async function AttendanceReviewPage({
             </span>
           </header>
           <div className="hidden overflow-auto md:block">
-            <table className="w-full min-w-[74rem] text-left text-xs">
+            <table className="w-full min-w-[50rem] table-fixed text-left text-xs">
               <thead className="sticky top-0 z-10 bg-[var(--sb-surface-muted)]">
                 <tr>
                   {[
                     "Employee",
-                    "Schedule",
                     "Punches",
                     "Clock in",
-                    "Breaks",
+                    "Break",
                     "Clock out",
                     "Worked",
-                    "Late",
-                    "Early leave",
-                    "OT candidate",
-                    "Status",
-                    "Review",
+                    "Actions",
                   ].map((label) => (
                     <th key={label} className="px-3 py-2.5">
                       {label}
@@ -312,7 +315,7 @@ export default async function AttendanceReviewPage({
                     <Fragment key={String(row.id)}>
                       {newDay ? (
                         <tr className="border-t border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)]">
-                          <th colSpan={12} className="px-3 py-2 font-semibold">
+                          <th colSpan={7} className="px-3 py-2 font-semibold">
                             {String(row.work_date)}
                           </th>
                         </tr>
@@ -328,9 +331,6 @@ export default async function AttendanceReviewPage({
                               : "Full-time"}
                           </span>
                         </td>
-                        <td className="px-3 py-3 tabular-nums">
-                          {time(row.scheduled_start)}–{time(row.scheduled_end)}
-                        </td>
                         <td className="px-3 py-3">
                           <strong className="tabular-nums">
                             {Number(row.actual_punch_count ?? 0)} of{" "}
@@ -344,34 +344,26 @@ export default async function AttendanceReviewPage({
                             </span>
                           ) : null}
                         </td>
-                        <td className="px-3 py-3 font-medium tabular-nums">
-                          {time(row.actual_first_in)}
+                        <td className="px-3 py-3 tabular-nums">
+                          <span className="block text-[11px] text-muted-foreground">{time(row.scheduled_start)}</span>
+                          <strong className="block">{time(row.actual_first_in)}</strong>
+                          {signedDuration(row.late_seconds, "late")}
                         </td>
                         <td className="px-3 py-3 tabular-nums">
                           {duration(row.break_seconds)}
                         </td>
-                        <td className="px-3 py-3 font-medium tabular-nums">
-                          {time(row.actual_last_out)}
+                        <td className="px-3 py-3 tabular-nums">
+                          <span className="block text-[11px] text-muted-foreground">{time(row.scheduled_end)}</span>
+                          <strong className="block">{time(row.actual_last_out)}</strong>
+                          {Number(row.early_leave_seconds ?? 0) > 0
+                            ? signedDuration(row.early_leave_seconds, "earlyLeave")
+                            : signedDuration(candidate, "ot")}
                         </td>
                         <td className="px-3 py-3 tabular-nums">
                           {duration(row.worked_seconds)}
                         </td>
-                        <td className="px-3 py-3 tabular-nums">
-                          {duration(row.late_seconds)}
-                        </td>
-                        <td className="px-3 py-3 tabular-nums">
-                          {duration(row.early_leave_seconds)}
-                        </td>
                         <td className="px-3 py-3">
-                          <span className="block tabular-nums">
-                            {duration(candidate)}
-                          </span>
-                          {claim ? <StatusBadge status={claim.status} /> : null}
-                        </td>
-                        <td className="px-3 py-3">
-                          <StatusBadge status={status} />
-                        </td>
-                        <td className="px-3 py-3">
+                          <div className="mb-1.5"><StatusBadge status={claim?.status ?? status} /></div>
                           <RowActions
                             row={row}
                             claim={claim}

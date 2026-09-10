@@ -35,7 +35,7 @@ function Metric({
   return (
     <Link prefetch={false}
       href={href}
-      className={`${variant === "tile" ? density === "compact" ? "group grid min-h-[4.25rem] min-w-0 grid-cols-[auto_minmax(0,1fr)] grid-rows-[auto_auto] items-center gap-x-2 gap-y-1 px-2 py-2.5 transition-colors duration-200 hover:bg-[var(--sb-surface-muted)] sm:min-h-[4.75rem] sm:px-3" : "group grid min-h-[5.25rem] min-w-0 grid-cols-[auto_minmax(0,1fr)] grid-rows-[auto_auto] items-center gap-x-2 gap-y-1.5 px-3 py-3 transition-colors duration-200 hover:bg-[var(--sb-surface-muted)]" : "group flex min-h-10 items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] px-2 py-2.5 transition-colors duration-300 hover:bg-[var(--sb-surface-muted)] last:border-b-0"} ${className ?? ""}`}
+      className={`${variant === "tile" ? density === "compact" ? "group grid min-h-[4.25rem] min-w-0 grid-cols-[auto_minmax(0,1fr)] grid-rows-[auto_auto] items-center gap-x-2 gap-y-1 bg-[var(--sb-surface)] px-2 py-2.5 transition-colors duration-200 hover:bg-[var(--sb-surface-muted)] sm:min-h-[4.75rem] sm:px-3" : "group grid min-h-[5.25rem] min-w-0 grid-cols-[auto_minmax(0,1fr)] grid-rows-[auto_auto] items-center gap-x-2 gap-y-1.5 bg-[var(--sb-surface)] px-3 py-3 transition-colors duration-200 hover:bg-[var(--sb-surface-muted)]" : "group flex min-h-10 items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] px-2 py-2.5 transition-colors duration-300 hover:bg-[var(--sb-surface-muted)] last:border-b-0"} ${className ?? ""}`}
     >
       <span className={variant === "tile" ? "contents" : "flex min-w-0 items-center gap-2 text-xs font-medium text-[var(--sb-text-muted)]"}>
         <span

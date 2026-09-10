@@ -1,3 +1,9 @@
+## v9.2.52 (unreleased) — Attendance review density correction
+
+- Attendance review combines plan, actual and variance in the same clock cells so the desktop table remains legible inside the main workspace without hiding evidence.
+- Settings disclosures use one quiet row grammar, with payroll rules first and device mappings collapsed until needed.
+- Desktop lists begin at the desktop breakpoint; tablet and phone keep the operational list pattern.
+
 ## v9.2.51 (unreleased) — Operational UI convergence
 
 - Shared compact Select controls own searchable outlet, staff, status and time choices; a native select is not introduced in the migrated Attendance surfaces.

@@ -4,7 +4,6 @@ import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
-import { SelectControl } from "@/components/ui/select-control";
 import { getOutletComplianceWorkspace } from "@/server/queries/compliance";
 
 export default async function OutletCalendarPage({ searchParams }: { searchParams: Promise<{ month?: string; branch?: string }> }) {
@@ -17,5 +16,5 @@ export default async function OutletCalendarPage({ searchParams }: { searchParam
     <ConsoleSection title="Actions" kind="action"><Button asChild size="sm" className="w-full"><Link href="/outlet-compliance">Open Outlet Compliance</Link></Button></ConsoleSection>
     <ConsoleSection title="Calendar" kind="status"><p><strong>{events.length}</strong> dated requirements</p><p><strong>{urgent}</strong> due soon or expired</p></ConsoleSection>
   </>;
-  return <><PageHeader title="Outlet Calendar" description="Expiry and renewal dates by outlet." contentWidth="wide"/><WorkspaceGrid tabletCanvas="wide" hideMobileConsole rightRail={rightRail}><form className="sb-work-surface flex flex-wrap items-end gap-2 p-3"><label className="grid min-w-56 gap-1 text-xs font-medium">Outlet<SelectControl name="branch" ariaLabel="Outlet" searchable defaultValue={branch??"all"} options={[{value:"all",label:"All accessible outlets"},...workspace.branches.map((outlet)=>({value:outlet.id,label:outlet.branch_name}))]}/></label><Button type="submit" size="sm" variant="outline">Apply</Button></form><ComplianceMonthCalendar baseHref={branch?`/outlet-calendar?branch=${encodeURIComponent(branch)}`:"/outlet-calendar"} month={month} events={events}/></WorkspaceGrid></>;
+  return <><PageHeader title="Outlet Calendar" description="Expiry and renewal dates by outlet." contentWidth="wide"/><WorkspaceGrid tabletCanvas="wide" hideMobileConsole rightRail={rightRail}><ComplianceMonthCalendar baseHref={branch?`/outlet-calendar?branch=${encodeURIComponent(branch)}`:"/outlet-calendar"} month={month} events={events}/></WorkspaceGrid></>;
 }

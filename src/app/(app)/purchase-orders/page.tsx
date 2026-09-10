@@ -105,7 +105,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
             </UnifiedListHeader>
           <div className="sb-list-content-card overflow-hidden" data-mobile-list-content-card>
           <DataGridHint text="Pro-tip: Double-click any row to open the purchase order." />
-          <Table mobileHidden compactUntil="2xl" aria-label="Purchase orders" stickyColumn="second">
+          <Table mobileHidden compactUntil="md" aria-label="Purchase orders" stickyColumn="second">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-10 text-center">Action</TableHead>
@@ -136,7 +136,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                 {!orders?.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title={ordersResult.unavailable ? "Purchase order data unavailable" : filtered ? "No orders match these filters" : "No purchase orders yet"} description={ordersResult.unavailable ? "The order source could not be verified. No record count or order total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={ordersResult.unavailable ? { href: "/purchase-orders", label: "Retry orders" } : emptyStateAction} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
-            <OperationalList ariaLabel="Purchase orders" showUntil="2xl">
+            <OperationalList ariaLabel="Purchase orders" showUntil="md">
               {orders?.rows.map((order) => <OperationalListRow
                 key={order.id}
                 label={`Open ${order.po_no}`}

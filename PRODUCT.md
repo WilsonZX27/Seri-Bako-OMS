@@ -1,4 +1,4 @@
-### v9.2.55 (unreleased) — Attendance mobile and tracking closure
+### v9.2.56 — Attendance workflow convergence
 
 - Restores the mobile Add Employee action and compacts attendance schedule controls for a usable 430px workflow.
 - Requires an explicit outlet selection before attendance review data loads.
@@ -7,7 +7,7 @@
 - Repairs composite-row handling across schedule save, submit, copy, approval and workbook-import RPCs so business blockers return actionable responses instead of UUID conversion failures.
 - Restores active Attendance adjustment and OT-decision RPCs to the released result schema, and removes the superseded Timecard finalisation RPC so raw punches remain the single ingestion authority.
 
-Repository migrations reviewed through `280`. Migration `280` is implemented and verified only against the isolated local Supabase stack. Linked database application, deployment and Production verification remain separately authorised release steps.
+Repository migrations are reviewed through `280`. Migration `280` passed isolated local schema/UAT verification and was applied to the linked Production database before application promotion. Production application and authenticated workflow verification remain separate release evidence.
 
 ### v9.2.54 (unreleased) — Attendance action and picker correction
 

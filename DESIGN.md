@@ -1,4 +1,4 @@
-## v9.2.55 (unreleased) — Attendance responsive convergence
+## v9.2.56 — Attendance workflow convergence
 
 - Mobile schedule cells use the full available column width, while compact icon-only secondary decisions preserve a single action row.
 - The mobile date strip removes repeated staff totals and keeps weekday/date selection compact.

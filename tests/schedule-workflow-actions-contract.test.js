@@ -48,3 +48,8 @@ test("schedule actions retain independent pending states", () => {
   assert.match(source, /busyAction === "save" \? "Saving…"/);
   assert.doesNotMatch(source, /const \[busy, setBusy\]/);
 });
+
+test("unscheduled punch evidence embeds the mapped staff relationship explicitly", () => {
+  assert.match(query, /staffs!ngteco_person_mappings_staff_id_fkey\(full_name\)/);
+  assert.doesNotMatch(query, /person_id,staff_id,staffs\(full_name\)/);
+});

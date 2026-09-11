@@ -122,7 +122,7 @@ export async function getAttendanceReview(weekStart = malaysiaWeekStart(), filte
   if (filters.branch) {
     const [raw, people, devices] = await Promise.all([
       db.from("attendance_raw_punch_events").select("person_id,local_timestamp,occurred_at,source_code").gte("local_timestamp",`${weekStart} 00:00:00`).lte("local_timestamp",`${weekEnd} 23:59:59`).order("occurred_at"),
-      db.from("ngteco_person_mappings").select("person_id,staff_id,staffs(full_name)").eq("is_active",true),
+      db.from("ngteco_person_mappings").select("person_id,staff_id,staffs!ngteco_person_mappings_staff_id_fkey(full_name)").eq("is_active",true),
       db.from("ngteco_device_mappings").select("source_code,branch_id").eq("branch_id",filters.branch).eq("is_active",true),
     ]);
     for (const item of [raw, people, devices]) if (item.error) throw item.error;

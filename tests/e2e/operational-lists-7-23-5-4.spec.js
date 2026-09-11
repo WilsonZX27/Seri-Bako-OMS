@@ -63,7 +63,11 @@ for (const width of widths) {
       await test.step(`${route} at ${width}px`, async () => {
         errors.length = 0;
         await page.goto(route, { waitUntil: "load" });
-        await expect(page.locator("h1").first()).toBeVisible();
+        if (width >= 768) {
+          await expect(page.locator("h1").first()).toBeVisible();
+        } else {
+          await expect(page.locator("[data-mobile-page-title]")).toBeVisible();
+        }
         await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
         await expect(page.locator("body")).not.toContainText(/Application error|Internal Server Error|Page actions/i);
         expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
@@ -76,7 +80,7 @@ for (const width of widths) {
 
         const table = page.locator(".sb-table-region").first();
         const list = page.locator('div[role="list"].divide-y').first();
-        if (width >= 768) {
+        if (width >= 1280) {
           await expect(table).toBeVisible();
           await expect(list).toBeHidden();
         } else {

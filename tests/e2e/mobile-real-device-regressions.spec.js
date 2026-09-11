@@ -64,8 +64,8 @@ test.describe("real-device mobile regressions", () => {
     expect(Math.abs(geometry.quantityTop - geometry.uomTop)).toBeLessThanOrEqual(1);
     expect(Math.abs(geometry.quantityTop - geometry.commentTop)).toBeLessThanOrEqual(1);
     expect(Math.abs(geometry.quantityWidth - geometry.uomWidth)).toBeLessThanOrEqual(1);
-    expect(geometry.commentWidth).toBe(40);
-    expect(geometry.commentHeight).toBe(40);
+    expect(geometry.commentWidth).toBe(48);
+    expect(geometry.commentHeight).toBe(48);
     expect(geometry.numberWidth).toBe(24);
     expect(geometry.numberHeight).toBe(24);
     expect(geometry.quantityRight).toBeLessThanOrEqual(geometry.uomLeft);

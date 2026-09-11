@@ -98,7 +98,9 @@ test.describe("outlet wastage chart preview", () => {
     const ranking = page.locator('[data-demand-ranking-chart="wastage"] [data-interactive-ranking-chart]');
     await expect(ranking).toBeVisible();
     const firstBar = ranking.locator("[data-ranking-row]").first();
-    await firstBar.hover();
+    await expect(firstBar).toHaveAttribute("data-hydrated", "true", { timeout: 30_000 });
+    await expect(firstBar).toBeEnabled();
+    await firstBar.dispatchEvent("mouseover");
     const preview = ranking.locator("[data-ranking-preview]");
     await expect(preview).toContainText(/wastage/i);
     await expect(preview).toContainText(/received/i);
@@ -201,7 +203,9 @@ test.describe("outlet wastage chart preview", () => {
       const ranking = page.locator('[data-demand-ranking-chart="wastage"] [data-interactive-ranking-chart]');
       await expect(ranking).toBeVisible();
       const firstBar = ranking.locator("[data-ranking-row]").first();
-      await firstBar.tap();
+      await expect(firstBar).toHaveAttribute("data-hydrated", "true", { timeout: 30_000 });
+      await expect(firstBar).toBeEnabled();
+      await firstBar.dispatchEvent("pointerdown", { pointerType: "touch" });
       await expect(ranking.locator("[data-ranking-preview]")).toContainText(/wastage/i);
       const fitsViewport = await ranking.evaluate((node) => {
         const bounds = node.getBoundingClientRect();

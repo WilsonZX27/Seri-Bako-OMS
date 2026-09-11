@@ -4,10 +4,10 @@ const { requireAccount } = require("./helpers");
 const terminalRoutes = {
   superAdmin: "/dashboard",
   manager: "/dashboard",
-  finance: "/supplier-invoices",
-  purchasing: "/purchase-requests",
-  kitchen: "/production/jobs",
-  outlet: "/outlet-daily-records",
+  finance: "/dashboard",
+  purchasing: "/dashboard",
+  kitchen: "/dashboard",
+  outlet: "/dashboard",
 };
 
 for (const [role, terminalRoute] of Object.entries(terminalRoutes)) {
@@ -31,10 +31,8 @@ for (const [role, terminalRoute] of Object.entries(terminalRoutes)) {
     await page.getByRole("button", { name: /sign in/i }).click();
     await page.waitForURL((url) => !["/", "/login"].includes(url.pathname), { timeout: 20_000 });
 
-    if (["finance", "purchasing", "kitchen", "outlet"].includes(role)) {
-      await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
-      await page.waitForURL((url) => url.pathname === terminalRoute, { timeout: 20_000 });
-    }
+    await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+    await page.waitForURL((url) => url.pathname === terminalRoute, { timeout: 20_000 });
 
     await page.waitForTimeout(500);
     expect(new URL(page.url()).pathname).toBe(terminalRoute);

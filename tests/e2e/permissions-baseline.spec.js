@@ -4,10 +4,10 @@ const { login } = require("./helpers");
 test("super admin keeps core operational access and ledger export", async ({ page }) => {
   expect(await login(page, "superAdmin")).toBe(true);
   await page.goto("/stock-transactions", { waitUntil: "domcontentloaded" });
-  await expect(page.locator("body")).toContainText("v0.2.34 / Sprint 7.22.1");
+  await expect(page.locator("body")).toContainText(/v\d+\.\d+\.\d+/);
   await expect(page.getByRole("link", { name: /CSV/i })).toBeVisible();
   expect((await page.request.get("/stock-transactions/export?search=QA-ING-A-721A")).status()).toBe(200);
-  for (const label of ["Purchase Requests", "Goods Receiving", "Supplier Invoices", "Stock Count", "Stock Wastage", "Movement Ledger", "Production Jobs", "Users & Roles"]) {
+  for (const label of ["Purchase Requests", "Goods Receiving", "Supplier Invoices", "Stock Count", "Stock Wastage", "Movement Ledger", "Production Jobs", "Roles & Permissions"]) {
     await expect(page.locator("body")).toContainText(label);
   }
 });
@@ -17,9 +17,10 @@ test("purchasing can reach PR creation but not role administration", async ({ pa
   expect(await login(page, "purchasing")).toBe(true);
   await page.goto("/purchase-requests/new", { waitUntil: "domcontentloaded" });
   await expect(page.locator("form#purchase-request-form")).toBeVisible();
-  await expect(page.locator("body")).not.toContainText("Users & Roles");
+  await expect(page.locator("body")).not.toContainText("Roles & Permissions");
   await page.goto("/stock-transactions", { waitUntil: "domcontentloaded" });
-  expect((await page.request.get("/stock-transactions/export?search=QA-ING-A-721A")).status()).toBe(200);
+  await expect(page.getByRole("link", { name: /CSV/i })).toHaveCount(0);
+  expect((await page.request.get("/stock-transactions/export?search=QA-ING-A-721A")).status()).toBe(403);
 });
 
 test("kitchen can read production but cannot export ledger or manage roles", async ({ page }) => {
@@ -27,7 +28,7 @@ test("kitchen can read production but cannot export ledger or manage roles", asy
   expect(await login(page, "kitchen")).toBe(true);
   await page.goto("/production/jobs", { waitUntil: "domcontentloaded" });
   await expect(page.locator("body")).toContainText(/Production/i);
-  await expect(page.locator("body")).not.toContainText("Users & Roles");
+  await expect(page.locator("body")).not.toContainText("Roles & Permissions");
   await page.goto("/stock-transactions", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("link", { name: /CSV/i })).toHaveCount(0);
   expect((await page.request.get("/stock-transactions/export?search=QA-ING-A-721A")).status()).toBe(403);

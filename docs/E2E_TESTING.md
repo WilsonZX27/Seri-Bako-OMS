@@ -1,5 +1,13 @@
 # E2E Testing
 
+## Full-system execution strategy
+
+Run route-heavy responsive audits in bounded viewport shards with one worker. A single dev-server process that traverses every route and viewport can exceed the Windows Node memory ceiling and produce aborted navigations that are infrastructure failures, not product failures. Keep phone, tablet portrait, tablet landscape, desktop and ultra-wide evidence separate, and preserve the first failing trace.
+
+Hydration-sensitive controls expose `data-hydrated`. Wait for `true` before pointer or touch assertions. When CSS transitions make Playwright's actionability geometry continuously unstable, dispatch the authored pointer event and assert the resulting preview plus viewport bounds independently.
+
+Screenshots that share a page with console hydration assertions must use `caret: "initial"`; Playwright's default hidden-caret style changes DOM attributes during capture and can create a false React hydration warning.
+
 ## Dynamic Scheduling and Attendance
 
 Use disposable local data and the eight-role matrix. Verify roster submission/publication, return/reject comments, own-schedule visibility, pure swap versus material escalation, immutable history, both NGTeco samples, preview-before-mutation, duplicate import, exception review, adjustment revision, period lock and Owner reasoned unlock. Responsive targets are 320, 390×844, 768, 820×1180, 1180×820 and 1440×900.

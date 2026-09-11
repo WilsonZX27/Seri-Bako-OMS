@@ -20,7 +20,7 @@ test("core list and document pages keep the operational UX skeleton", async ({ p
   // Both desktop and mobile filter shells are rendered for responsive hydration;
   // assert the canonical desktop shell explicitly at this viewport.
   await expect(page.locator('form[data-unified-list-desktop="true"]').filter({ has: page.locator('input[name="search"]') })).toBeVisible();
-  await expect(page.locator("table thead")).toContainText("PR No");
+  await expect(page.locator("table thead")).toContainText("Request");
   await expectNoPageOverflow(page);
 
   await page.goto("/production/jobs?search=PJ-00001", { waitUntil: "domcontentloaded" });

@@ -11,7 +11,9 @@ for (const viewport of [
     await page.setViewportSize(viewport);
     await page.goto("/branches", { waitUntil: "domcontentloaded" });
 
-    const rowCheckbox = page.getByLabel("Select row").first();
+    const rowCheckbox = viewport.label === "phone"
+      ? page.getByRole("checkbox", { name: /^Select (?!all visible)/ }).first()
+      : page.getByLabel("Select row").first();
     await expect(rowCheckbox).toBeVisible();
     await rowCheckbox.check();
 

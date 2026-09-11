@@ -93,19 +93,23 @@ for (const viewport of [
 test("v8.64.66 guided PR review uses a large dialog, black backdrop, combined quantity/UOM, and real supplier options", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`/purchase-requests/${GUIDED_REVIEW_PR_ID}`, { waitUntil: "domcontentloaded" });
-  const review = page.getByRole("button", { name: /^Review / }).first();
+  const review = page.getByRole("button", { name: /^Edit / }).first();
   await expect(review, "Run setup-local-dashboard-e2e.mjs --annotation-fixture before this suite.").toBeVisible({ timeout: 30_000 });
   await review.click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
-  expect((await dialog.boundingBox()).width).toBeGreaterThan(900);
+  const dialogBox = await dialog.boundingBox();
+  expect(dialogBox.width).toBeGreaterThan(600);
+  expect(dialogBox.width).toBeLessThanOrEqual(700);
   expect(await dialog.evaluate((node) => getComputedStyle(node, "::backdrop").backgroundColor)).toBe("rgba(0, 0, 0, 0.6)");
-  await expect(dialog.getByText("Quantity / UOM", { exact: true })).toBeVisible();
+  await expect(dialog.getByText("Purchase quantity / UOM", { exact: true })).toBeVisible();
+  await dialog.getByRole("button", { name: "Replace", exact: true }).click();
   expect(Number(await dialog.getAttribute("data-supplier-option-count"))).toBeGreaterThan(0);
-  const supplier = dialog.locator('select[name="supplier_id"]');
-  const options = await supplier.locator("option").allTextContents();
-  expect(options.filter((value) => value !== "Needs supplier setup").length).toBeGreaterThan(0);
-  await expect(dialog.getByRole("link", { name: "Create supplier mapping" })).toBeVisible();
+  expect(Number(await dialog.getAttribute("data-supplier-catalogue-count"))).toBeGreaterThan(0);
+  const replacement = dialog.getByRole("combobox", { name: "Replacement Item" });
+  await expect(replacement).toHaveAttribute("data-hydrated", "true");
+  await replacement.fill("E2E-SOURCE-A-ITEM");
+  await expect(page.getByRole("option").filter({ hasText: "Alpha Mapped Ingredient" })).toBeVisible();
 });
 
 test("v8.64.67 portrait PR rail exposes the complete Comments panel", async ({ page }) => {
@@ -125,13 +129,13 @@ test("v8.64.67 portrait PR rail exposes the complete Comments panel", async ({ p
 test("v8.64.67 portrait PR review dialog stays operable with a black backdrop", async ({ page }) => {
   await page.setViewportSize({ width: 820, height: 1180 });
   await page.goto(`/purchase-requests/${GUIDED_REVIEW_PR_ID}`, { waitUntil: "domcontentloaded" });
-  const review = page.getByRole("button", { name: /^Review / }).first();
+  const review = page.getByRole("button", { name: /^Edit / }).first();
   await expect(review, "Run setup-local-dashboard-e2e.mjs --annotation-fixture before this suite.").toBeVisible({ timeout: 30_000 });
   await review.click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   const box = await dialog.boundingBox();
-  expect(box.width).toBeGreaterThan(700);
+  expect(box.width).toBeGreaterThan(600);
   expect(box.width).toBeLessThanOrEqual(820);
   expect(box.height).toBeLessThanOrEqual(1180);
   expect(await dialog.evaluate((node) => getComputedStyle(node, "::backdrop").backgroundColor)).toBe("rgba(0, 0, 0, 0.6)");
@@ -148,20 +152,21 @@ test("guided PR review applies a replacement and records the local mutation", as
 
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`/purchase-requests/${GUIDED_REVIEW_PR_ID}`, { waitUntil: "domcontentloaded" });
-  const review = page.getByRole("button", { name: /^Review / }).first();
+  const review = page.getByRole("button", { name: /^Edit / }).first();
   await expect(review).toBeVisible({ timeout: 30_000 });
   await review.click();
 
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
-  await dialog.locator('select').first().selectOption("replace");
-  await dialog.getByRole("combobox", { name: "Replacement Item" }).fill("E2E-SOURCE-A-ITEM");
+  await dialog.getByRole("button", { name: "Replace", exact: true }).click();
+  const replacement = dialog.getByRole("combobox", { name: "Replacement Item" });
+  await expect(replacement).toBeEnabled();
+  await expect(replacement).toHaveAttribute("data-hydrated", "true");
+  await replacement.fill("E2E-SOURCE-A-ITEM");
   await expect(page.getByRole("option").filter({ hasText: "Alpha Mapped Ingredient" })).toBeVisible();
   await dialog.getByRole("combobox", { name: "Replacement Item" }).press("Enter");
   await dialog.locator('input[name="qty"]').fill("3");
-  const supplierOption = dialog.locator('select[name="supplier_id"] option').filter({ hasText: "Local E2E Source Alpha" }).first();
-  await expect(supplierOption).toHaveCount(1);
-  await dialog.locator('select[name="supplier_id"]').selectOption(await supplierOption.getAttribute("value"));
+  await expect(dialog.locator('input[name="supplier_id"]')).not.toHaveValue("");
   await dialog.locator('textarea[name="reason"]').fill("Confirm mapped supplier and controlled purchase UOM during local review.");
   await dialog.getByRole("button", { name: /apply and revalidate/i }).click();
 

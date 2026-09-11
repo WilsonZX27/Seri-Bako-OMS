@@ -25,7 +25,7 @@ export function InteractiveRankingChart({
   idlePrompt?: string;
 }) {
   const previewId = useId();
-  const { activeValue: activeId, optionProps, boundaryProps } = usePreviewSelection<string>();
+  const { hydrated, activeValue: activeId, optionProps, boundaryProps } = usePreviewSelection<string>();
   const maximum = Math.max(...items.map((item) => item.value), 1);
   const activeItem = items.find((item) => item.id === activeId) ?? null;
 
@@ -57,6 +57,8 @@ export function InteractiveRankingChart({
               "aria-pressed": active,
               "aria-label": `${index + 1}. ${item.label}, ${item.formattedValue}`,
               "data-ranking-row": true,
+              "data-hydrated": hydrated,
+              disabled: !hydrated,
               className: cn(
                 "group grid min-h-11 w-full grid-cols-[1.25rem_minmax(0,1fr)_auto] grid-rows-[auto_auto] items-center gap-x-2 gap-y-1 rounded-[var(--sb-radius-control)] px-1.5 py-1.5 text-left outline-none transition-colors xl:grid-cols-[1.25rem_minmax(0,0.9fr)_minmax(7rem,1.6fr)_auto] xl:grid-rows-1 xl:gap-2 xl:min-h-9",
                 "hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-green-100)] focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1",

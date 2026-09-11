@@ -1718,3 +1718,10 @@ A module is considered operationally complete when its intended core workflow ha
 - Outlet Daily exposes `In progress / Ready to post / Posted`, gives Reason and Comment deliberate responsive widths, and records actor plus per-product before/after activity.
 
 Migration `263` adds atomic compliance renewal with history. Source reviewed locally; database execution and remote application are pending.
+### v9.2.58 (unreleased) — Operational quality closure
+
+- Preserves the released business workflows while tightening hydration safety, responsive geometry, role-aware UAT contracts and failure-state evidence.
+- Purchase-request phone entry uses equal bounded commercial tracks; rejected requests expose the recorded reason and a direct correction/resubmission next step.
+- Route-heavy E2E runs are viewport-sharded so dev-server memory pressure cannot be confused with a product navigation failure.
+
+Repository migrations reviewed through `281`. v9.2.58 remains unreleased until final gates, deployment and authenticated Production UAT are complete.

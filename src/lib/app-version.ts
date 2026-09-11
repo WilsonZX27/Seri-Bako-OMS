@@ -1,6 +1,6 @@
-export const APP_VERSION = "9.2.57";
+export const APP_VERSION = "9.2.58";
 export const APP_SPRINT = `v${APP_VERSION}`;
-export const APP_RELEASE_TITLE = "Attendance workflow convergence";
+export const APP_RELEASE_TITLE = "Operational quality closure";
 // Keep the shell footer concise; the detailed release title belongs in release
 // notes, not in a narrow navigation rail where it is clipped on small screens.
 export const APP_RELEASE_NOTE = APP_SPRINT;

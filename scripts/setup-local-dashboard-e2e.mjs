@@ -265,6 +265,13 @@ if (includeAnnotationFixture) {
     updated_by: requesterId,
   });
   if (documentWrite.error) throw documentWrite.error;
+  // The mutation UAT replaces this fixed line and records revisions. Reset the
+  // disposable dependency first so repeated full-suite runs remain idempotent
+  // without weakening the single-supplier database guard.
+  const revisionCleanup = await admin.from("document_line_revisions").delete().eq("line_id", prLineId);
+  if (revisionCleanup.error) throw revisionCleanup.error;
+  const guidedLineCleanup = await admin.from("purchase_request_lines").delete().eq("id", prLineId);
+  if (guidedLineCleanup.error) throw guidedLineCleanup.error;
   const requestWrite = await admin.from("purchase_requests").upsert({
     id: prId,
     company_id: company.id,
@@ -274,6 +281,7 @@ if (includeAnnotationFixture) {
     request_date: today,
     priority: "normal",
     branch_id: branch.id,
+    assigned_supplier_id: alphaOption.supplier.id,
     status: "manager_review",
     remarks: "Disposable local guided-review and comments fixture.",
     deleted_at: null,
@@ -288,7 +296,9 @@ if (includeAnnotationFixture) {
     qty: 2,
     uom: "KG",
     estimated_unit_cost: 3.5,
-    suggested_supplier_id: reviewSupplier.id,
+    // Keep the review line intentionally unmapped while anchoring its recovery
+    // catalogue to a supplier that has a valid replacement item.
+    suggested_supplier_id: alphaOption.supplier.id,
     reason: "Local guided-review validation fixture.",
   });
   if (lineWrite.error) throw lineWrite.error;

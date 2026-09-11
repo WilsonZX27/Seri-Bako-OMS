@@ -54,7 +54,12 @@ async function assertBounds(page, route, viewport) {
         parent = parent.parentElement;
       }
       return rect.left < -1 || rect.right > window.innerWidth + 1;
-    }).map((node) => ({ tag: node.tagName, right: node.getBoundingClientRect().right })),
+    }).map((node) => ({
+      tag: node.tagName,
+      right: node.getBoundingClientRect().right,
+      label: node.getAttribute("aria-label") || node.textContent?.trim().replace(/\s+/g, " ").slice(0, 80),
+      className: typeof node.className === "string" ? node.className : "",
+    })),
   }));
   expect(result.overflow, `${viewport.label} ${route} must not overflow`).toBeLessThanOrEqual(5);
   expect(result.controls, `${viewport.label} ${route} controls must remain in bounds`).toEqual([]);

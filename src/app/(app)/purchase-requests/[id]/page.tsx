@@ -315,8 +315,9 @@ export default async function PurchaseRequestDetailPage({
         <CardContent className="flex items-start gap-3 p-3">
           <CircleX className="mt-0.5 h-4 w-4 shrink-0 text-[var(--sb-danger)]" aria-hidden="true" />
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-[var(--sb-danger)]">Purchase request was rejected. Correct it, then resubmit.</p>
-            <div className="mt-2 space-y-1.5 text-sm leading-5 text-[var(--sb-text)]"><p className="flex items-start gap-2"><MessageSquare className="mt-0.5 h-4 w-4 shrink-0 text-[var(--sb-danger)]" /><span>Comment: {rejectionReason || "No rejection reason was recorded."}</span></p><p className="flex items-center gap-2"><UserRound className="h-4 w-4 shrink-0 text-[var(--sb-danger)]" /><span>Rejected by {String(("created_by_name" in rejectionActivity ? rejectionActivity.created_by_name : null) ?? "Approver")}</span></p><p className="flex items-center gap-2"><Clock className="h-4 w-4 shrink-0 text-[var(--sb-danger)]" /><span>{formatDateTime(rejectionActivity.created_at)}</span></p></div>
+            <h2 className="text-sm font-semibold text-[var(--sb-danger)]">Why this request was returned</h2>
+            <p className="mt-0.5 text-xs text-[var(--sb-danger)]">Correct the issue below, then resubmit the purchase request.</p>
+            <div className="mt-2 space-y-1.5 text-sm leading-5 text-[var(--sb-text)]"><p className="flex items-start gap-2"><MessageSquare className="mt-0.5 h-4 w-4 shrink-0 text-[var(--sb-danger)]" /><span><span className="mr-1 font-medium">Reason:</span><span>{rejectionReason || "No rejection reason was recorded."}</span></span></p><p className="flex items-center gap-2"><UserRound className="h-4 w-4 shrink-0 text-[var(--sb-danger)]" /><span>Rejected by {String(("created_by_name" in rejectionActivity ? rejectionActivity.created_by_name : null) ?? "Approver")}</span></p><p className="flex items-center gap-2"><Clock className="h-4 w-4 shrink-0 text-[var(--sb-danger)]" /><span>{formatDateTime(rejectionActivity.created_at)}</span></p></div>
           </div>
         </CardContent>
       </Card> : null}
@@ -334,7 +335,7 @@ export default async function PurchaseRequestDetailPage({
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Submitted By</p><p className="text-sm font-medium text-[var(--sb-text)]">{request.requested_by_name ?? "—"}</p></div>
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Requested Lines</p><p className="text-sm font-medium text-[var(--sb-text)]">{requestedItemCount}</p></div>
                 {canViewCommercial ? <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Est. Total Cost</p><p className="text-sm font-medium text-[var(--sb-text)]">{formatCurrency(total)}</p></div> : null}
-                {summarySuppliers.length ? <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Supplier</p><p className="whitespace-normal break-words text-sm font-medium text-[var(--sb-text)]">{summarySuppliers.join(", ")}</p></div> : null}
+                <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Supplier</p><p className="whitespace-normal break-words text-sm font-medium text-[var(--sb-text)]">{summarySuppliers.length ? summarySuppliers.join(", ") : "Not assigned"}</p></div>
                 <div className="hidden" aria-hidden="true"><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Priority</p><PriorityBadge priority={request.priority} /></div>
                 {request.required_date ? <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Required Date</p><p className="text-sm font-medium text-[var(--sb-text)]">{formatDateOnly(request.required_date)}</p></div> : null}
                 {request.needed_by_date ? <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Needed By</p><p className="text-sm font-medium text-[var(--sb-text)]">{formatDateOnly(request.needed_by_date)}</p></div> : null}

@@ -1,7 +1,7 @@
 # Attendance and UI convergence closure ledger
 
-Version: `9.2.51`  
-Scope: browser comments 23–52 and the 31 August–6 September 2026 schedule workbook.
+Version: `9.2.58`
+Scope: attendance browser comments, the 31 August–6 September 2026 schedule workbook, and third-stage operational quality closure.
 
 ## Implemented locally
 
@@ -19,7 +19,13 @@ Scope: browser comments 23–52 and the 31 August–6 September 2026 schedule wo
 - Confirmed blockers in source data include `CLEAR OT`, `Resign` and one `01:30–22:00` span. They are reported and never guessed.
 - The current local run has no authenticated OMS catalog, so canonical branch/staff matching and Draft differences remain intentionally unresolved. No schedule was written.
 
-## Evidence boundary
+## v9.2.58 follow-up
+
+- Production v9.2.57 and migration 281 were previously deployed and the authorised schedule publish flow completed successfully.
+- The third-stage candidate adds deterministic hydration guards, balanced phone PR line geometry, current role/route contracts, and bounded viewport-sharded E2E execution.
+- Historical evidence below remains a snapshot of the earlier v9.2.51 checkpoint; current release evidence must be recorded separately after final build, migration dry-run, deployment and authenticated Production UAT.
+
+## Historical v9.2.51 evidence boundary
 
 - `implemented`: local source and migration only.
 - `locally verified`: TypeScript passed; ESLint passed for `src`; 1,224 contract tests passed; the production build generated all 102 pages using local placeholder Supabase variables. The build proves compilation only.

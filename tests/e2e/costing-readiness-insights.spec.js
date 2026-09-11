@@ -17,6 +17,8 @@ test("Costing Readiness module concentration previews before exact drill-through
     const ranking = insight.locator("[data-interactive-ranking-chart]");
     await expect(ranking.getByRole("listitem")).toHaveCount(4);
     const firstModule = ranking.locator("[data-ranking-row]").first();
+    await expect(firstModule).toHaveAttribute("data-hydrated", "true");
+    await expect(firstModule).toBeEnabled();
     const reportUrl = page.url();
     if (viewport.width === 393) await firstModule.tap();
     else await firstModule.focus();

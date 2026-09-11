@@ -86,10 +86,10 @@ const actionRouteAuthorities = new Map([
 const accessAuthorities = [
   ["/attendance/imports", ATTENDANCE_IMPORT],
   ["/attendance", ATTENDANCE],
-  ["/outlet-compliance", ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]],
-  ["/outlet-calendar", ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]],
+  ["/outlet-compliance", ["superAdmin", "peopleOperations", "manager", "purchasing", "outletSupervisor"]],
+  ["/outlet-calendar", ["superAdmin", "peopleOperations", "manager", "purchasing", "outletSupervisor"]],
   ["/people", ["superAdmin", "peopleOperations", "manager"]],
-  ["/compliance", ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]],
+  ["/compliance", ["superAdmin", "peopleOperations", "manager", "purchasing", "outletSupervisor"]],
   ["/reports/costing-readiness", ["superAdmin", "finance"]],
   ["/reports/product-margin", ["superAdmin", "finance"]],
   ["/reports/recipe-costing", ["superAdmin", "finance"]],

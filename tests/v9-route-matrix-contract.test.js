@@ -45,9 +45,10 @@ test("Attendance routes follow the eighth-role permission boundary", () => {
 });
 
 test("Outlet Supervisor retains the approved outlet compliance workspace", () => {
-  assert.deepEqual(permittedRolesFor("/compliance"), ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]);
-  assert.deepEqual(permittedRolesFor("/outlet-compliance"), ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]);
-  assert.deepEqual(permittedRolesFor("/outlet-calendar"), ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]);
+  const complianceRoles = ["superAdmin", "peopleOperations", "manager", "purchasing", "outletSupervisor"];
+  assert.deepEqual(permittedRolesFor("/compliance"), complianceRoles);
+  assert.deepEqual(permittedRolesFor("/outlet-compliance"), complianceRoles);
+  assert.deepEqual(permittedRolesFor("/outlet-calendar"), complianceRoles);
   assert.deepEqual(permittedRolesFor("/outlet-daily-records"), ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]);
   assert.deepEqual(permittedRolesFor("/outlet-daily-records/new"), ["superAdmin", "kitchen", "outletSupervisor", "outlet"]);
 });
@@ -121,8 +122,8 @@ test("People Operations is audited only across its approved OMS modules", () => 
   assert.deepEqual(permittedRolesFor("/staffs"), ["superAdmin", "peopleOperations", "manager"]);
   assert.deepEqual(permittedRolesFor("/staffs/new"), ["superAdmin", "peopleOperations", "manager"]);
   assert.deepEqual(permittedRolesFor("/staffs/00000000-0000-4000-8000-000000000000"), ["superAdmin", "peopleOperations", "manager"]);
-  assert.deepEqual(permittedRolesFor("/outlet-compliance"), ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]);
-  assert.deepEqual(permittedRolesFor("/outlet-calendar"), ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]);
+  assert.deepEqual(permittedRolesFor("/outlet-compliance"), ["superAdmin", "peopleOperations", "manager", "purchasing", "outletSupervisor"]);
+  assert.deepEqual(permittedRolesFor("/outlet-calendar"), ["superAdmin", "peopleOperations", "manager", "purchasing", "outletSupervisor"]);
   assert.deepEqual(permittedRolesFor("/document-sequences"), ["superAdmin", "finance"]);
   assert.deepEqual(permittedRolesFor("/outlet-daily-records"), ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]);
   assert.deepEqual(permittedRolesFor("/purchase-requests"), ["superAdmin", "finance", "manager", "purchasing", "kitchen"]);

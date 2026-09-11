@@ -12,7 +12,7 @@ test("outlet daily entry exposes one role-aware action and usable conditional de
   ]) {
     await page.setViewportSize(viewport);
     await page.goto("/outlet-daily-records/new", { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("button", { name: /Complete(?: Daily)? Record/i }).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: /Mark Ready to Post/i }).first()).toBeVisible();
     await expect(page.locator("[data-outlet-daily-setup] > summary")).toContainText("Record setup");
     await expect(page.locator("[data-outlet-daily-setup] > summary")).not.toContainText("·");
 
@@ -20,8 +20,8 @@ test("outlet daily entry exposes one role-aware action and usable conditional de
     await wastage.fill("1");
     const line = wastage.locator("xpath=ancestor::div[contains(@class, 'grid')][1]");
     await expect(line.locator('select[name="wastage_reason"]')).toHaveValue("unsold");
-    await line.getByRole("button", { name: /Add remarks/ }).click();
-    await expect(line.locator('input[name="line_notes"]')).toBeVisible();
+    await page.getByRole("button", { name: /Add remarks for/ }).first().click();
+    await expect(page.locator('input[name="line_notes"]:visible').first()).toBeVisible();
 
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow).toBeLessThanOrEqual(1);

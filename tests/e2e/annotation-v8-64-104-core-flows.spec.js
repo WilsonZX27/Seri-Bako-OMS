@@ -27,6 +27,8 @@ test("supplier item combobox supports keyboard selection and keeps Base UOM in I
   await page.goto("/supplier-items/new", { waitUntil: "domcontentloaded" });
   const item = page.getByRole("combobox", { name: "Search Item Master by name, code, or brand" });
   await expect(item).toBeVisible({ timeout: 30_000 });
+  await expect(item).toBeEnabled();
+  await expect(item).toHaveAttribute("data-hydrated", "true");
   await item.fill("E2E-NAT-1");
   const option = page.getByRole("option", { name: /^Natural Sort 1 E2E-NAT-1\b/ });
   await expect(option).toContainText("E2E-NAT-1");
@@ -135,11 +137,12 @@ test("PR item catalogue is supplier-scoped, identifies its source, and explains 
   const supplier = page.getByLabel("Request supplier");
   await supplier.selectOption({ label: "Local E2E Source Alpha" });
   const item = page.getByRole("combobox", { name: "Item for request line 1" });
+  await expect(item).toBeEnabled();
+  await expect(item).toHaveAttribute("data-hydrated", "true");
   await item.fill("E2E-SOURCE-B-ITEM");
-  // The combobox keeps the readable code + item name label after resolving an
-  // exact code. Assert the stable code prefix rather than discarding the
-  // operator-facing name that makes the selected line understandable.
-  await expect(item).toHaveValue(/^E2E-SOURCE-B-ITEM\s-\sBeta Mapped Ingredient$/);
+  // An exact code outside the selected supplier catalogue remains unselected;
+  // typed text must never bypass the branch + supplier sourcing boundary.
+  await expect(item).toHaveValue("E2E-SOURCE-B-ITEM");
   await expect(page.getByRole("option", { name: /Beta Mapped Ingredient/ })).toHaveCount(0);
 
   await item.fill("SOURCE-A");
@@ -236,8 +239,8 @@ test("Production Jobs uses two readable filter rows on portrait tablet", async (
   await page.goto("/production/jobs", { waitUntil: "domcontentloaded" });
   const filters = page.locator("form.sb-production-jobs-filters[data-unified-list-desktop='true']");
   const query = filters.locator('input[name="search"]');
-  const actions = filters.locator(".unified-list-desktop-actions");
-  const status = filters.locator(".sb-status-filter");
+  const actions = filters.getByRole("button", { name: "Search" });
+  const status = filters.getByRole("combobox", { name: "Filter by status" });
   const branch = filters.getByRole("combobox", { name: "Branch" });
   const more = filters.locator(".sb-filter-more");
   for (const control of [query, actions, status, branch, more]) await expect(control).toBeVisible();
@@ -274,7 +277,7 @@ test("Outlet Daily distinguishes missing Qty Sent, confirmed zero denominator, a
   await expect(page.getByRole("combobox", { name: "Qty sent state" })).toBeVisible();
   const row = page.locator('table[aria-label="Outlet daily records"] tbody tr').filter({ hasText: "Local E2E Outlet" });
   await expect(row).toContainText("0 · verify");
-  await expect(row).toContainText("Unavailable");
+  await expect(row.locator('td[title^="Wastage rate"]')).toContainText("—");
   await expect(row).not.toContainText("0%");
 
   await page.goto("/outlet-daily-records?sent_state=missing", { waitUntil: "domcontentloaded" });

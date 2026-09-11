@@ -23,12 +23,11 @@ const viewports = [
   { name: "desktop", width: 1440, height: 900 },
 ];
 
-test("list query and content surfaces keep the shared responsive contract", async ({ page }) => {
-  test.setTimeout(3 * 60_000);
-  test.skip(!hasAccount("superAdmin"), "Missing Super Admin test credentials.");
-  await login(page, "superAdmin");
-
-  for (const viewport of viewports) {
+for (const viewport of viewports) {
+  test(`list query and content surfaces keep the shared responsive contract at ${viewport.name}`, async ({ page }) => {
+    test.setTimeout(2 * 60_000);
+    test.skip(!hasAccount("superAdmin"), "Missing Super Admin test credentials.");
+    await login(page, "superAdmin");
     await page.setViewportSize(viewport);
     for (const route of routes) {
       await page.goto(route, { waitUntil: "domcontentloaded" });
@@ -56,7 +55,8 @@ test("list query and content surfaces keep the shared responsive contract", asyn
 
       expect(geometry.contentTop, `${route} ${viewport.name} surfaces must not overlap`).toBeGreaterThanOrEqual(geometry.queryBottom);
       expect(geometry.horizontalOverflow, `${route} ${viewport.name} must not overflow`).toBeLessThanOrEqual(1);
-      expect(geometry.controlHeights.every((height) => height === 44), `${route} ${viewport.name} controls must share the 44px contract: ${geometry.controlHeights}`).toBe(true);
+      const expectedControlHeight = viewport.name === "phone" ? 44 : 36;
+      expect(geometry.controlHeights.every((height) => height === expectedControlHeight), `${route} ${viewport.name} controls must share the ${expectedControlHeight}px contract: ${geometry.controlHeights}`).toBe(true);
     }
-  }
-});
+  });
+}

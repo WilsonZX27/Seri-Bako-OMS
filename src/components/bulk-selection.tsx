@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, type ReactNode, useContext, useId, useMemo, useRef, useState } from "react";
+import { createContext, type ReactNode, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ModalShell } from "@/components/ui/modal-shell";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -8,6 +8,7 @@ import { SubmitButton } from "@/components/ui/submit-button";
 type BulkSelectionContextValue = {
   selectedIds: Set<string>;
   visibleIds: string[];
+  hydrated: boolean;
   toggleOne: (id: string) => void;
   toggleAll: () => void;
   clear: () => void;
@@ -46,15 +47,19 @@ export function BulkSelectionProvider(props: {
     selectionActions,
   } = props;
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const [hydrated, setHydrated] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const confirmTitleId = useId();
   const confirmTriggerRef = useRef<HTMLButtonElement>(null);
   const confirmCancelRef = useRef<HTMLButtonElement>(null);
   const visibleIds = useMemo(() => ids, [ids]);
 
+  useEffect(() => setHydrated(true), []);
+
   const value = useMemo<BulkSelectionContextValue>(() => ({
     selectedIds: selected,
     visibleIds,
+    hydrated,
     toggleOne(id) {
       setSelected((current) => {
         const next = new Set(current);
@@ -72,7 +77,7 @@ export function BulkSelectionProvider(props: {
     clear() {
       setSelected(new Set());
     },
-  }), [selected, visibleIds]);
+  }), [hydrated, selected, visibleIds]);
 
   return (
     <BulkSelectionContext.Provider value={value}>
@@ -129,7 +134,7 @@ export function BulkSelectionProvider(props: {
 }
 
 export function BulkSelectAllCheckbox({ touchTarget = false }: { touchTarget?: boolean } = {}) {
-  const { selectedIds, visibleIds, toggleAll } = useBulkSelection();
+  const { selectedIds, visibleIds, hydrated, toggleAll } = useBulkSelection();
   const checked = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
   const indeterminate = !checked && visibleIds.some((id) => selectedIds.has(id));
   const checkbox = <input
@@ -139,6 +144,8 @@ export function BulkSelectAllCheckbox({ touchTarget = false }: { touchTarget?: b
         if (node) node.indeterminate = indeterminate;
       }}
       onChange={toggleAll}
+      disabled={!hydrated}
+      data-hydrated={hydrated ? "true" : "false"}
       aria-label="Select all visible rows"
       className="h-4 w-4 rounded border-slate-300"
     />;
@@ -146,11 +153,13 @@ export function BulkSelectAllCheckbox({ touchTarget = false }: { touchTarget?: b
 }
 
 export function BulkSelectRowCheckbox({ id, label = "Select row", touchTarget = false }: { id: string; label?: string; touchTarget?: boolean }) {
-  const { selectedIds, toggleOne } = useBulkSelection();
+  const { selectedIds, hydrated, toggleOne } = useBulkSelection();
   const checkbox = <input
       type="checkbox"
       checked={selectedIds.has(id)}
       onChange={() => toggleOne(id)}
+      disabled={!hydrated}
+      data-hydrated={hydrated ? "true" : "false"}
       aria-label={label}
       className="h-4 w-4 rounded border-slate-300"
     />;

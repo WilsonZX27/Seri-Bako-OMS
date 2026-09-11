@@ -54,7 +54,7 @@ for (const [role, route] of Object.entries(roleRoutes)) {
       await expect(page).toHaveURL(new RegExp(`${route.replaceAll("/", "\\/")}(?:\\?.*)?$`));
       await assertGeometry(page, viewport);
       await page.addStyleTag({ content: 'tbody td:not(:last-child), [role="listitem"] > div { filter: blur(3px); }' });
-      await page.screenshot({ path: path.join(evidence, `${role}-${viewport.label}.png`), fullPage: true });
+      await page.screenshot({ path: path.join(evidence, `${role}-${viewport.label}.png`), fullPage: true, caret: "initial" });
     }
     expect(critical.filter((message) => /hydration|server component|uncaught|typeerror|referenceerror/i.test(message))).toEqual([]);
   });

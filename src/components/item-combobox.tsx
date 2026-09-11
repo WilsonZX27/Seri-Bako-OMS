@@ -41,12 +41,15 @@ export function ItemCombobox({ items, value, selectedItemId = "", onValueChange,
 }) {
   const generatedId = useId();
   const listboxId = `item-combobox-${generatedId.replaceAll(":", "")}`;
+  const [hydrated, setHydrated] = useState(false);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const anchorRef = useRef<HTMLDivElement>(null);
   const [listboxStyle, setListboxStyle] = useState<{ left: number; top: number; width: number; maxHeight: number } | null>(null);
   const matches = useMemo(() => items.filter((item) => itemMatchesSearch(item, value)).slice(0, 8), [items, value]);
   const showSuggestions = open && !selectedItemId;
+
+  useEffect(() => setHydrated(true), []);
 
   useEffect(() => {
     setActiveIndex((current) => matches.length ? Math.min(Math.max(current, 0), matches.length - 1) : -1);
@@ -106,6 +109,8 @@ export function ItemCombobox({ items, value, selectedItemId = "", onValueChange,
       aria-controls={listboxId}
       aria-activedescendant={showSuggestions && activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined}
       aria-invalid={ariaInvalid || undefined}
+      data-hydrated={hydrated ? "true" : "false"}
+      disabled={!hydrated}
       autoComplete="off"
       placeholder={placeholder}
       className={`overflow-hidden text-ellipsis whitespace-nowrap ${className}`}

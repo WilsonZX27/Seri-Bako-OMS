@@ -19,7 +19,7 @@ test("outlet completion matrix previews exact outlet-days without document overf
     await expect(matrix.getByRole("columnheader")).toHaveCount(8);
 
     const firstCell = matrix.locator("tbody td button").first();
-    await firstCell.hover();
+    await firstCell.click();
     const preview = matrix.locator("[data-outlet-completion-preview]");
     await expect(preview).toBeVisible();
     const cellLabel = await firstCell.getAttribute("aria-label");
@@ -27,7 +27,6 @@ test("outlet completion matrix previews exact outlet-days without document overf
     await expect(preview).toContainText(cellLabel.split(",")[0]);
     await firstCell.focus();
     await expect(firstCell).toBeFocused();
-    await firstCell.click();
     await expect(firstCell).toHaveAttribute("aria-pressed", "true");
     await expect(page).toHaveURL(/\/outlet-daily-records(?:\?|$)/);
     const openRecord = preview.getByRole("link", { name: "Open daily record" });

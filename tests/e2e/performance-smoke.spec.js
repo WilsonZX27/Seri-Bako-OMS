@@ -10,6 +10,6 @@ test("dashboard responds within smoke threshold", async ({ page }) => {
   await page.waitForLoadState("networkidle");
   expect(response?.ok()).toBe(true);
   await expect(page).toHaveURL(/\/dashboard(?:\?|$)/);
-  await expect(page.getByRole("heading", { name: /Workdesk$/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Local purchasing", exact: true })).toBeVisible();
   expect(Date.now() - started).toBeLessThan(8000);
 });

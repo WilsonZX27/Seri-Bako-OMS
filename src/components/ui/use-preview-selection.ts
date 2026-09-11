@@ -1,11 +1,14 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FocusEvent, KeyboardEvent, MouseEvent, PointerEvent } from "react";
 
 export function usePreviewSelection<Value>() {
+  const [hydrated, setHydrated] = useState(false);
   const [activeValue, setActiveValue] = useState<Value | null>(null);
   const committedSelectionRef = useRef(false);
+
+  useEffect(() => setHydrated(true), []);
 
   const previewValue = (value: Value) => {
     committedSelectionRef.current = false;
@@ -47,5 +50,5 @@ export function usePreviewSelection<Value>() {
     },
   };
 
-  return { activeValue, previewValue, commitValue, clearSelection, optionProps, boundaryProps };
+  return { hydrated, activeValue, previewValue, commitValue, clearSelection, optionProps, boundaryProps };
 }

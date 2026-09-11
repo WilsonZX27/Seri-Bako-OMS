@@ -1,3 +1,12 @@
+## v9.2.58 (unreleased) — Operational quality closure
+
+- Hydration-sensitive selection controls render inert until the client owns them; native form and chart controls keep identical server/client geometry and expose deterministic readiness to E2E.
+- Phone purchase-request lines use two equal commercial tracks plus a control-token-sized action track. No child may silently exceed its grid column.
+- Dense operational tables begin at `xl`; tablet and phone use the same touch-first list contract. Phone page identity belongs to the fixed app topbar, while document workflow actions may temporarily own the bottom safe-area slot.
+- Automated screenshots preserve the authored caret state so test instrumentation cannot be misclassified as a React hydration defect.
+
+This is an unreleased implementation note. The currently released application is `v9.2.57` until deployment and authenticated Production UAT complete.
+
 ## v9.2.57 (deployed) — Attendance stability and weekly roster refinement
 
 - One-shot quick assignment prevents sticky modes; OFF uses the established danger palette without turning routine work states into alerts.

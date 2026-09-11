@@ -6,7 +6,7 @@ import { getPermissionMap } from "@/server/auth/permissions";
 const items = [
   { id: "overview", href: "/attendance", label: "Overview", icon: LayoutDashboard },
   { id: "schedule", href: "/attendance/schedule", label: "Schedule", icon: CalendarRange },
-  { id: "review", href: "/attendance/review", label: "Actual Attendance", icon: ClipboardCheck },
+  { id: "review", href: "/attendance/review", label: "Attendance", icon: ClipboardCheck },
 ];
 
 export async function AttendanceWorkspaceNav({ current }: { current: "overview" | "schedule" | "review" | "settings" }) {

@@ -119,6 +119,47 @@ export async function getAttendanceReview(weekStart = malaysiaWeekStart(), filte
   return {rows:result.data??[],total:result.count??0,page,pageSize,branches:branches.data??[],batches:batches.data??[],detail:detail.data?{...detail.data,exceptions:exceptions.data??[],adjustments:adjustments.data??[]}:null};
 }
 
+export async function getAttendanceReviewBranches() {
+  if (!(await hasPermission("attendance.read")))
+    throw new Error("Missing permission: attendance.read");
+  const db = looseSupabase(await createClient());
+  const { data, error } = await db
+    .from("branches")
+    .select("id,branch_name")
+    .in("branch_type", ["outlet", "central_kitchen"])
+    .eq("status", "active")
+    .is("deleted_at", null)
+    .order("branch_name");
+  if (error) throw error;
+  return data ?? [];
+}
+
+export const ATTENDANCE_TRACKING_START_DATE = "2026-09-11";
+
+export async function getStaffAttendanceTracking(staffId: string) {
+  if (!(await hasPermission("attendance.read")))
+    return { allowed: false, startsOn: ATTENDANCE_TRACKING_START_DATE, months: [] };
+  const db = looseSupabase(await createClient());
+  const { data, error } = await db
+    .from("daily_attendance_results")
+    .select("work_date,missing_punch_count")
+    .eq("staff_id", staffId)
+    .eq("is_current", true)
+    .gte("work_date", ATTENDANCE_TRACKING_START_DATE)
+    .order("work_date", { ascending: false });
+  if (error) throw error;
+  const totals = new Map<string, number>();
+  for (const row of data ?? []) {
+    const month = String(row.work_date).slice(0, 7);
+    totals.set(month, (totals.get(month) ?? 0) + Number(row.missing_punch_count ?? 0));
+  }
+  return {
+    allowed: true,
+    startsOn: ATTENDANCE_TRACKING_START_DATE,
+    months: [...totals].map(([month, missingPunches]) => ({ month, missingPunches })),
+  };
+}
+
 export async function getScheduleValidation(weekId:string){
   const db=looseSupabase(await createClient());
   const {data,error}=await db.rpc("validate_schedule_week",{p_week_id:weekId});

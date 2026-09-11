@@ -8,10 +8,10 @@ import {
   ChevronRight,
   Copy,
   MessageSquareText,
+  Pencil,
   Save,
   Send,
   Undo2,
-  UserRound,
   X,
 } from "lucide-react";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -722,7 +722,7 @@ export function SchedulePlanner({
     <WorkspaceGrid
       rightRail={workflowActions}
       hideMobileConsole
-      className="sb-schedule-workspace"
+      className="sb-schedule-workspace px-3 md:px-0"
     >
       <div className="space-y-3" data-schedule-planner>
         {headerContent}
@@ -886,7 +886,7 @@ export function SchedulePlanner({
                   type="button"
                   onClick={() => setSelectedMobileDate(date)}
                   className={cn(
-                    "min-h-12 rounded-[var(--sb-radius-control)] px-0.5 py-1 text-center leading-tight",
+                    "min-h-11 rounded-[var(--sb-radius-control)] px-0.5 py-1 text-center leading-tight",
                     complete && "bg-emerald-50 text-emerald-900",
                     selectedMobileDate === date &&
                       "text-[var(--sb-green-900)] ring-2 ring-[var(--sb-green-200)]",
@@ -901,13 +901,7 @@ export function SchedulePlanner({
                   <span className="block text-[10px] text-current opacity-70">
                     {date.slice(8)}
                   </span>
-                  <span
-                    className="mt-1 flex items-center justify-center gap-0.5 text-[9px] font-semibold"
-                    aria-label={`${staff} working staff${complete ? ", all assigned" : ""}`}
-                  >
-                    <UserRound className="h-2.5 w-2.5" aria-hidden="true" />
-                    {staff}
-                  </span>
+                  <span className="sr-only">{staff} working staff{complete ? ", all assigned" : ""}</span>
                 </button>
               );
             })}
@@ -952,7 +946,7 @@ export function SchedulePlanner({
                     disabled={!editableStatus || !canDraft}
                     onClick={(event) => clickCell(key, event)}
                     className={cn(
-                      "relative min-h-11 rounded-[var(--sb-radius-control)] border px-2 text-[11px] font-semibold",
+                      "relative min-h-11 w-full rounded-[var(--sb-radius-control)] border px-2 text-[11px] font-semibold",
                       tone === "empty" &&
                         "border-[var(--sb-border-soft)] text-[var(--sb-text)]",
                       tone === "work" &&
@@ -1013,7 +1007,12 @@ export function SchedulePlanner({
         (editableStatus && canSubmit && week) ||
         (canApprove && week?.status === "submitted") ? (
           <section
-            className="grid grid-cols-2 gap-2 border-y border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)] p-3 md:hidden"
+            className={cn(
+              "grid gap-2 rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)] p-2 md:hidden",
+              canApprove && week?.status === "submitted" && !managerEditing
+                ? "grid-cols-[minmax(0,1fr)_3rem_3rem]"
+                : "grid-cols-2",
+            )}
             data-schedule-mobile-actions
           >
             {editableStatus && canDraft ? (
@@ -1048,6 +1047,7 @@ export function SchedulePlanner({
               <>
                 <Button
                   size="sm"
+                  className="col-span-1"
                   disabled={busy}
                   onClick={() =>
                     void action({
@@ -1062,21 +1062,28 @@ export function SchedulePlanner({
                 <Button
                   size="sm"
                   variant="outline"
+                  className="px-0"
+                  aria-label="Edit schedule"
+                  title="Edit schedule"
                   onClick={() => {
                     setManagerEditing(true);
                     setMessage("Manager editing is active.");
                   }}
                 >
-                  Edit
+                  <Pencil className="h-4 w-4" aria-hidden="true" />
+                  <span className="sr-only">Edit schedule</span>
                 </Button>
                 <Button
                   size="sm"
                   variant="outline"
+                  className="px-0"
+                  aria-label="Return to Supervisor"
+                  title="Return to Supervisor"
                   disabled={busy}
                   onClick={() => openDecision("return")}
                 >
                   <Undo2 className="h-4 w-4" />
-                  Return
+                  <span className="sr-only">Return to Supervisor</span>
                 </Button>
               </>
             ) : null}

@@ -195,6 +195,18 @@ const scheduleBusinessErrors: Array<[string, string]> = [
     "This roster was submitted by you. A different authorised Manager must publish or return it.",
   ],
   [
+    "Schedule decision is not authorised.",
+    "You are not authorised to publish or return this outlet roster.",
+  ],
+  [
+    "Only a submitted roster may be decided.",
+    "This roster is no longer awaiting approval. Reload the schedule to see its current status.",
+  ],
+  [
+    "A valid decision and comment are required.",
+    "Add a decision note and try again.",
+  ],
+  [
     "Only an editable roster may be submitted.",
     "Only a Draft, Returned, Rejected, or Amendment Pending roster can be submitted.",
   ],
@@ -219,7 +231,7 @@ const scheduleBusinessErrors: Array<[string, string]> = [
     "The employee no longer has enough available RO. Review the amount and try again.",
   ],
 ];
-function scheduleErrorResponse(error: unknown) {
+function scheduleErrorResponse(error: unknown, reference: string) {
   const raw =
     error &&
     typeof error === "object" &&
@@ -231,7 +243,7 @@ function scheduleErrorResponse(error: unknown) {
   return match
     ? NextResponse.json({ ok: false, message: match[1] }, { status: 409 })
     : NextResponse.json(
-        { ok: false, message: "Schedule action could not be completed." },
+        { ok: false, message: `Schedule action could not be completed. Reload and try again. Support reference: ${reference}.` },
         { status: 500 },
       );
 }
@@ -358,7 +370,8 @@ export async function POST(request: Request) {
     if (result.error) throw result.error;
     return NextResponse.json({ ok: true, data: result.data });
   } catch (error) {
-    logServerError(error, { source: "api.attendance.schedule" });
-    return scheduleErrorResponse(error);
+    const reference = crypto.randomUUID().slice(0, 8).toUpperCase();
+    logServerError(error, { source: "api.attendance.schedule", requestId: reference });
+    return scheduleErrorResponse(error, reference);
   }
 }

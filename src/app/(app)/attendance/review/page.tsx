@@ -33,6 +33,8 @@ import {
   getAttendanceActuals,
   getAttendanceMappings,
   getAttendanceReview,
+  getAttendanceReviewBranches,
+  ATTENDANCE_TRACKING_START_DATE,
   malaysiaWeekStart,
 } from "@/server/queries/attendance";
 
@@ -99,8 +101,7 @@ export default async function AttendanceReviewPage({
     ? params.week!
     : malaysiaWeekStart();
   const page = Math.max(1, Number(params.page) || 1);
-  const branch =
-    params.branch && params.branch !== "all" ? params.branch : undefined;
+  const branch = params.branch && params.branch !== "select" ? params.branch : undefined;
   const permissions = await getPermissionMap([
     "attendance.adjust",
     "attendance.import",
@@ -115,14 +116,14 @@ export default async function AttendanceReviewPage({
     "attendance.sensitive.export",
   ]);
   const [review, actuals, mappings] = await Promise.all([
-    getAttendanceReview(week, {
+    branch ? getAttendanceReview(week, {
       branch,
       status: params.status,
       employee: params.employee,
       page,
       detail: params.detail,
-    }),
-    getAttendanceActuals(week),
+    }) : getAttendanceReviewBranches().then((branches) => ({ rows: [], total: 0, page: 1, pageSize: 100, branches, batches: [], detail: null })),
+    branch ? getAttendanceActuals(week) : Promise.resolve({ assignments: [], reports: [], ledger: [], balances: {}, claims: [], reservations: [], locks: [] }),
     permissions["attendance.import"]
       ? getAttendanceMappings()
       : Promise.resolve(null),
@@ -277,7 +278,7 @@ export default async function AttendanceReviewPage({
             branch_name: String(item.branch_name),
           }))}
           defaults={{
-            branch: branch ?? "all",
+            branch: branch ?? "select",
             week,
             employee: params.employee ?? "",
             status: params.status ?? "all",
@@ -285,7 +286,15 @@ export default async function AttendanceReviewPage({
           total={review.total}
         />
 
-        <section className="sb-work-surface overflow-hidden">
+        {!branch ? (
+          <section className="sb-work-surface p-10 text-center">
+            <TriangleAlert className="mx-auto h-5 w-5 text-muted-foreground" />
+            <p className="mt-2 text-sm font-semibold">Select an outlet to load attendance</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Attendance records stay unloaded until you choose an outlet above.
+            </p>
+          </section>
+        ) : <section className="sb-work-surface overflow-hidden">
           <header className="flex flex-wrap items-center gap-3 border-b border-[var(--sb-border-soft)] px-4 py-3">
             <h2 className="text-sm font-semibold">
               Schedule vs fingerprint punches
@@ -359,7 +368,7 @@ export default async function AttendanceReviewPage({
                           </strong>
                           {Number(row.missing_punch_count ?? 0) > 0 ? (
                             <span className="block text-[10px] text-amber-800">
-                              {Number(row.monthly_missing_punch_count ?? 0) >= 4
+                              {String(row.work_date) >= ATTENDANCE_TRACKING_START_DATE && Number(row.monthly_missing_punch_count ?? 0) >= 4
                                 ? `${Number(row.monthly_missing_punch_count)} missing this month`
                                 : "Missing punch"}
                             </span>
@@ -489,9 +498,7 @@ export default async function AttendanceReviewPage({
               <p className="mt-2 text-sm font-semibold">
                 No matching attendance records
               </p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Import a raw punch file or change the filters.
-              </p>
+              <p className="mt-1 text-xs text-muted-foreground">No records match these filters.</p>
             </div>
           ) : null}
           {totalPages > 1 ? (
@@ -520,7 +527,7 @@ export default async function AttendanceReviewPage({
               </Button>
             </footer>
           ) : null}
-        </section>
+        </section>}
         <details className="group sb-work-surface overflow-hidden">
           <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
             Reports & time-off balance
@@ -558,8 +565,8 @@ function RowActions({
   href: string;
 }) {
   return (
-    <div className="grid min-w-32 gap-0.5 [&_button]:font-normal">
-      <Button asChild size="sm" variant="ghost" className="w-full justify-start gap-2 bg-white px-2 font-normal hover:bg-[var(--sb-surface-muted)]">
+    <div className="grid min-w-32 grid-cols-2 gap-1 md:grid-cols-1 [&_button]:font-normal">
+      <Button asChild size="sm" variant="ghost" className="w-full justify-start gap-2 bg-transparent px-2 font-normal hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-surface-muted)]">
         <Link href={href}><Eye className="h-4 w-4"/>View details</Link>
       </Button>
       {permissions["attendance.adjust"] ? (

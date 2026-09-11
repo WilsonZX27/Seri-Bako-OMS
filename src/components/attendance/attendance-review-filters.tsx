@@ -34,7 +34,7 @@ type FilterDefaults = { branch: string; week: string; employee: string; status: 
 
 export function AttendanceReviewFilters({ branches, defaults, total }: { branches: Array<{ id: string; branch_name: string }>; defaults: FilterDefaults; total: number }) {
   const [open, setOpen] = useState(false);
-  const branchOptions = [{ value: "all", label: "All accessible outlets" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))];
+  const branchOptions = [{ value: "select", label: "Select outlet" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))];
   return <section className="sb-work-surface p-3" aria-label="Actual attendance filters">
     <form className="hidden min-w-0 items-end gap-2 md:grid md:grid-cols-[minmax(0,1.15fr)_minmax(0,.9fr)_minmax(0,1.25fr)_minmax(0,1fr)_5.5rem]">
       <FilterFields branchOptions={branchOptions} defaults={defaults} showLabels={false}/>

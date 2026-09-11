@@ -1,3 +1,9 @@
+## v9.2.55 (unreleased) — Attendance responsive convergence
+
+- Mobile schedule cells use the full available column width, while compact icon-only secondary decisions preserve a single action row.
+- The mobile date strip removes repeated staff totals and keeps weekday/date selection compact.
+- Attendance review actions share one neutral surface and reveal hover/focus feedback instead of permanently highlighting View details.
+
 ## v9.2.54 (unreleased) — Attendance action and picker correction
 
 - Table action groups use a stable final column, white default surfaces, regular label weight and muted hover/focus feedback; inactive actions never appear selected.

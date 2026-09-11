@@ -21,7 +21,7 @@ import {
 import { createComplianceRecord } from "@/server/actions/compliance";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { detailOrNotFound } from "@/server/queries/detail";
-import { getStaffCompTime } from "@/server/queries/attendance";
+import { getStaffAttendanceTracking, getStaffCompTime } from "@/server/queries/attendance";
 import { CompTimeCorrectionForm } from "@/components/attendance/comp-time-correction-form";
 
 type ProfileSectionId = "overview" | "employment" | "compliance";
@@ -47,6 +47,7 @@ export default async function PeopleProfilePage({
     compliance,
     complianceTypes,
     compTime,
+    attendanceTracking,
     sensitive,
   ] = await Promise.all([
     searchParams,
@@ -55,6 +56,7 @@ export default async function PeopleProfilePage({
     getPeopleCompliance(id),
     getPeopleComplianceTypes(),
     getStaffCompTime(id),
+    getStaffAttendanceTracking(id),
     permissions["people.sensitive.read"]
       ? getStaffSensitiveEmployment(id)
       : Promise.resolve(null),
@@ -192,6 +194,39 @@ export default async function PeopleProfilePage({
                     {!compTime.ledger.length ? (
                       <p className="py-3 text-xs text-muted-foreground">
                         No approved time-off balance yet.
+                      </p>
+                    ) : null}
+                  </div>
+                </ProfileSection>
+              ) : null}
+              {attendanceTracking.allowed ? (
+                <ProfileSection id="attendance-follow-up" title="Attendance follow-up">
+                  <div className="flex flex-wrap items-end justify-between gap-3">
+                    <div>
+                      <p className="text-xs text-muted-foreground">
+                        Missing and forgotten punches tracked since {attendanceTracking.startsOn}
+                      </p>
+                      <strong className="text-2xl tabular-nums">
+                        {attendanceTracking.months[0]?.missingPunches ?? 0}
+                      </strong>
+                      <span className="ml-1 text-sm text-muted-foreground">this month</span>
+                    </div>
+                    <Button asChild size="sm" variant="outline">
+                      <Link href={`/attendance/review?branch=${staffSummary?.default_branch_id ?? "select"}&employee=${encodeURIComponent(staff.full_name)}`}>
+                        Review &amp; adjust
+                      </Link>
+                    </Button>
+                  </div>
+                  <div className="mt-3 divide-y border-t border-[var(--sb-border-soft)]">
+                    {attendanceTracking.months.map((row) => (
+                      <div key={row.month} className="flex items-center justify-between py-2 text-xs">
+                        <span>{row.month}</span>
+                        <strong className="tabular-nums">{row.missingPunches} missing punches</strong>
+                      </div>
+                    ))}
+                    {!attendanceTracking.months.length ? (
+                      <p className="py-3 text-xs text-muted-foreground">
+                        No missing punches since tracking began.
                       </p>
                     ) : null}
                   </div>

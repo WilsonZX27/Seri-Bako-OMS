@@ -1,3 +1,10 @@
+### v9.2.55 (unreleased) — Attendance mobile and tracking closure
+
+- Restores the mobile Add Employee action and compacts attendance schedule controls for a usable 430px workflow.
+- Requires an explicit outlet selection before attendance review data loads.
+- Starts employee missing-punch tracking from 2026-09-11 without deleting historical punch evidence, with profile-level monthly review and adjustment access.
+- Gives schedule decision failures a safe support reference and actionable recovery message.
+
 ### v9.2.54 (unreleased) — Attendance action and picker correction
 
 - Actual Attendance reserves stable width for row actions, keeps default actions white until hover/focus, uses regular-weight labels and replaces ambiguous `Repeated` copy with the monthly missing-punch count.

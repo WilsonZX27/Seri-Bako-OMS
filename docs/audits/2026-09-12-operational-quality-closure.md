@@ -1,6 +1,6 @@
 # OMS v9.2.58 operational quality closure
 
-Status: release candidate under verification  
+Status: release candidate under verification
 Scope: UI consistency, hydration safety, responsive geometry, permissions, performance, Attendance stability, documentation and Production UAT.
 
 ## Product decisions preserved

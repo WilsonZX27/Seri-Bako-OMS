@@ -44,7 +44,7 @@ export default async function SystemHealthPage({ searchParams }: { searchParams:
           </ConsoleSection>
         ) : (
           <ConsoleSection title="Reliability policy">
-            <p className="text-xs text-[var(--sb-text-muted)]">Automatic recovery retries only safe transient operations. It never guesses stock, money, workflow status, supplier, or permission data.</p>
+            <p className="text-xs text-[var(--sb-text-muted)]">Automatic detection is active for instrumented server operations. Safe transient reads retry; repeated signals escalate.</p>
           </ConsoleSection>
         )}
       >

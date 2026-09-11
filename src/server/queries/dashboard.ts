@@ -6,7 +6,7 @@ import { getCurrentUserPendingActionSnapshot } from "@/server/queries/pending-ac
 import { getPayablesAttention } from "@/server/queries/ap-aging";
 import { getRoleDisplayLabel } from "@/lib/roles";
 import { getOutletComplianceWorkspace } from "@/server/queries/compliance";
-import { getOutletDailyCompletionMatrix } from "@/server/queries/outlet-daily-records";
+import { getOutletDailyCompletionMatrix, getOutletDailyDemandTrend } from "@/server/queries/outlet-daily-records";
 import { getLowStockResult } from "@/server/queries/inventory";
 import { logServerWarning } from "@/server/observability/logger";
 import {
@@ -318,6 +318,7 @@ export async function getDashboardSummary() {
       wastageUnavailable: false,
       receivingFollowupUnavailable: false,
       operationsControl: null,
+      wastageTrend: null,
       compliance: null,
       productionSummary: null,
       outletToday: null,
@@ -348,7 +349,7 @@ export async function getDashboardSummary() {
   const db = looseSupabase(supabase);
   const empty = { data: [], error: null, count: 0 };
   const nextWeek = new Date(`${today}T00:00:00Z`); nextWeek.setUTCDate(nextWeek.getUTCDate()+7);
-  const [coreSnapshotRpcResult, pendingApprovalsSnapshot, notifications, recentActivities, outletToday, currentStaff, assignedBranches, payablesAttention, lowStockViewResult, upcomingShifts, outletCompletion, complianceWorkspace] = await Promise.all([
+  const [coreSnapshotRpcResult, pendingApprovalsSnapshot, notifications, recentActivities, outletToday, currentStaff, assignedBranches, payablesAttention, lowStockViewResult, upcomingShifts, outletCompletion, wastageTrend, complianceWorkspace] = await Promise.all([
     (needsProcurement || needsInventory) ? supabase.rpc("get_dashboard_core_snapshot", { p_today: today }) : Promise.resolve({ data: null, error: null }),
     getCurrentUserPendingActionSnapshot(5, false),
     getVisibleNotificationsForCurrentUser(),
@@ -371,6 +372,7 @@ export async function getDashboardSummary() {
       : Promise.resolve({ rows: [], count: 0, unavailable: false }),
     isOutlet && scope.staffId ? db.from("shift_assignment_revisions").select("id,work_date,assignment_kind,custom_start,custom_end,shift_templates(code,name,planned_start,planned_end,crosses_midnight),schedule_weeks!inner(status)").eq("staff_id",scope.staffId).eq("is_current",true).gte("work_date",today).lte("work_date",nextWeek.toISOString().slice(0,10)).in("schedule_weeks.status",["published","locked"]).order("work_date").limit(8) : Promise.resolve({data:[],error:null}),
     needsOperations ? getOutletDailyCompletionMatrix({ history_date: today }).catch((error) => { warnOptionalQuery("outlet completion", error); return null; }) : Promise.resolve(null),
+    needsOperations ? getOutletDailyDemandTrend({ period: "7", history_date: today }).catch((error) => { warnOptionalQuery("outlet wastage trend", error); return null; }) : Promise.resolve(null),
     needsCompliance ? getOutletComplianceWorkspace().catch((error) => { warnOptionalQuery("outlet compliance", error); return null; }) : Promise.resolve(null),
   ]);
 
@@ -500,6 +502,7 @@ export async function getDashboardSummary() {
       planning: null,
       unavailable: { outlet: false, demand: true },
     } : null,
+    wastageTrend: wastageTrend ? wastageTrend.daily.map((row) => ({ date: row.name, rate: row.wastage_percent })) : null,
     productionSummary: needsProduction && !productionUnavailable ? {
       todayPosted: Number(coreSnapshot?.production_today_posted ?? 0),
       pendingApproval: Number(coreSnapshot?.production_pending_approval ?? 0),

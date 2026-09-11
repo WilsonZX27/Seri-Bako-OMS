@@ -12,9 +12,16 @@ export default async function OutletCalendarPage({ searchParams }: { searchParam
   const branchById = new Map(workspace.branches.map((row) => [row.id, row]));
   const events = workspace.records.filter((row) => row.expires_on && row.branch_id && (!branch || row.branch_id === branch)).map((event) => ({ id: event.id, date: event.expires_on!, title: event.type_name, context: branchById.get(event.branch_id!)?.branch_name ?? "Outlet", href: `/outlet-compliance/${event.branch_id}`, state: event.state }));
   const urgent = events.filter((event) => ["expired", "due_7", "due_30"].includes(event.state)).length;
+  const urgentEvents = events.filter((event) => ["expired", "due_7", "due_30"].includes(event.state)).sort((a, b) => a.date.localeCompare(b.date));
   const rightRail = <>
     <ConsoleSection title="Actions" kind="action"><Button asChild size="sm" className="w-full"><Link href="/outlet-compliance">Open Outlet Compliance</Link></Button></ConsoleSection>
     <ConsoleSection title="Calendar" kind="status"><p><strong>{events.length}</strong> dated requirements</p><p><strong>{urgent}</strong> due soon or expired</p></ConsoleSection>
+    <ConsoleSection title="Due soon & expired" kind="reference">
+      <div className="divide-y divide-[var(--sb-border-soft)]">
+        {urgentEvents.map((event) => <Link key={event.id} href={event.href} className="block py-2 first:pt-0 last:pb-0 hover:text-[var(--sb-green-800)]"><time className="block text-[11px] font-semibold tabular-nums">{event.date}</time><span className="mt-0.5 block text-xs font-medium">{event.title}</span><span className="block text-[11px] text-muted-foreground">{event.context}</span></Link>)}
+        {!urgentEvents.length ? <p className="text-xs text-muted-foreground">No due or expired requirements.</p> : null}
+      </div>
+    </ConsoleSection>
   </>;
   return <><PageHeader title="Outlet Calendar" description="Expiry and renewal dates by outlet." contentWidth="wide"/><WorkspaceGrid tabletCanvas="wide" hideMobileConsole rightRail={rightRail}><ComplianceMonthCalendar baseHref={branch?`/outlet-calendar?branch=${encodeURIComponent(branch)}`:"/outlet-calendar"} month={month} events={events}/></WorkspaceGrid></>;
 }

@@ -113,6 +113,17 @@ function QuickActionsCluster({ actions, className }: { actions: { href: string; 
   );
 }
 
+function WastageTrendCard({ points }: { points: Array<{ date: string; rate: number }> | null }) {
+  const values = points ?? [];
+  const maximum = Math.max(10, ...values.map((point) => point.rate));
+  const coordinates = values.map((point, index) => `${values.length === 1 ? 50 : (index / (values.length - 1)) * 100},${36 - (point.rate / maximum) * 30}`).join(" ");
+  return <Panel title="7-day wastage rate" action={{ href: "/outlet-daily-records", label: "Open daily records" }}>
+    <Link href="/outlet-daily-records" className="block px-3 py-3 transition-colors hover:bg-[var(--sb-surface-muted)]" aria-label="Open Outlet Daily Records wastage history">
+      {values.length ? <><svg viewBox="0 0 100 40" className="h-24 w-full overflow-visible" role="img" aria-label={`Wastage rate from ${values[0].date} to ${values[values.length-1].date}`}><path d="M0 36H100" stroke="var(--sb-border-soft)" strokeWidth="0.8"/><polyline points={coordinates} fill="none" stroke="var(--sb-green-700)" strokeWidth="1.5" vectorEffect="non-scaling-stroke"/>{values.map((point,index)=><circle key={point.date} cx={values.length===1?50:(index/(values.length-1))*100} cy={36-(point.rate/maximum)*30} r="1.7" fill="white" stroke="var(--sb-green-700)" strokeWidth="1" vectorEffect="non-scaling-stroke"/>)}</svg><div className="flex justify-between text-[11px] text-muted-foreground"><span>{values[0].date}</span><strong className="text-[var(--sb-text)]">Latest {values[values.length-1].rate.toFixed(1)}%</strong><span>{values[values.length-1].date}</span></div></> : <p className="text-xs text-muted-foreground">No completed Outlet Daily records with a reliable received quantity in this seven-day window.</p>}
+    </Link>
+  </Panel>;
+}
+
 export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   const role = summary.role;
   const isOwner = role === "super_admin";
@@ -332,6 +343,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
           </div>
 
           <div className="flex flex-col gap-4 lg:col-span-6" data-dashboard-secondary-column>
+        {showOperations ? <div className="order-1"><WastageTrendCard points={summary.wastageTrend} /></div> : null}
         {!isOutlet ? (
           <div className="order-2 space-y-4" data-dashboard-activity-group>
             <Panel title={isPurchasing ? "Purchasing pipeline" : isKitchen ? "Production and receiving" : "Operational pipeline"}>

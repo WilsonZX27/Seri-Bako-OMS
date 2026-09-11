@@ -48,12 +48,16 @@ export async function getSchedulePlanner(weekStart = malaysiaWeekStart(), reques
   if (branchError) throw branchError;
   const branchRows = (branches ?? []) as unknown as Array<{ id: string; branch_name: string }>;
   const branchId = requestedBranchId && branchRows.some((b) => b.id === requestedBranchId) ? requestedBranchId : branchRows[0]?.id;
-  if (!branchId) return { branches: [], branchId: null, week: null, previousWeekId: null, templates: [], people: [], assignments: [], roBalances: {} as Record<string,number> };
+  if (!branchId) return { branches: [], branchId: null, week: null, previousWeekId: null, templates: [], people: [], candidates: [], assignments: [], roBalances: {} as Record<string,number>, submittedByName: null };
   const { data: weeks, error: weekError } = await db.from("schedule_weeks").select("*").eq("branch_id", branchId).eq("week_start", weekStart).order("revision", { ascending: false }).limit(1);
   if (weekError) throw weekError;
   const week = weeks?.[0] ?? null;
+  const submitter = week?.submitted_by ? await db.from("staffs").select("full_name").eq("id",week.submitted_by).maybeSingle() : {data:null,error:null};
+  if (submitter.error) throw submitter.error;
   const { data: scheduleStaff, error: staffError } = await db.rpc("get_schedule_staff", { p_branch_id: branchId,p_week_id:week?.id??null });
   if (staffError) throw staffError;
+  const { data: scheduleCandidates, error: candidateError } = await db.rpc("get_schedule_staff_candidates", { p_branch_id: branchId });
+  if (candidateError) throw candidateError;
   const previousStart = new Date(`${weekStart}T00:00:00Z`); previousStart.setUTCDate(previousStart.getUTCDate() - 7);
   const { data: previousWeeks, error: previousError } = await db.from("schedule_weeks").select("id").eq("branch_id", branchId).eq("week_start", previousStart.toISOString().slice(0, 10)).in("status", ["published", "locked"]).order("revision", { ascending: false }).limit(1);
   if (previousError) throw previousError;
@@ -66,7 +70,7 @@ export async function getSchedulePlanner(weekStart = malaysiaWeekStart(), reques
   ]);
   if (templates.error) throw templates.error; if (assignments.error) throw assignments.error; if(compTime.error)throw compTime.error;if(reservations.error)throw reservations.error;
   const roBalances:Record<string,number>={};for(const id of staffIds)roBalances[id]=0;for(const row of (compTime.data??[]) as Array<{staff_id:string;minutes:number}>)roBalances[row.staff_id]=(roBalances[row.staff_id]??0)+Number(row.minutes);for(const row of (reservations.data??[]) as Array<{staff_id:string;reserved_minutes:number}>)roBalances[row.staff_id]=Math.max(0,(roBalances[row.staff_id]??0)-Number(row.reserved_minutes));
-  return { branches: branchRows, branchId, week: week as unknown as { id: string; status: string;updated_at:string } | null, previousWeekId: previousWeeks?.[0]?.id ? String(previousWeeks[0].id) : null, templates: (templates.data ?? []) as unknown as Array<{ id:string;code:string;name:string;planned_start:string;planned_end:string;planned_break_seconds:number;maximum_recognised_seconds:number;colour:string }>, people: (scheduleStaff ?? []) as unknown as Array<{ id:string;full_name:string;staff_code:string|null;status:string;employment_type:string;role_code:string }>, assignments: (assignments.data ?? []) as unknown as Array<{staff_id:string;work_date:string;assignment_kind:string;shift_template_id:string|null;custom_start:string|null;custom_end:string|null;custom_crosses_midnight:boolean;custom_break_seconds:number|null;custom_maximum_recognised_seconds:number|null;custom_reason:string|null;ro_minutes:number|null;ro_original_start:string|null;ro_original_end:string|null;ro_direction:string|null}>,roBalances };
+  return { branches: branchRows, branchId, week: week as unknown as { id: string; status: string;updated_at:string } | null, previousWeekId: previousWeeks?.[0]?.id ? String(previousWeeks[0].id) : null, templates: (templates.data ?? []) as unknown as Array<{ id:string;code:string;name:string;planned_start:string;planned_end:string;planned_break_seconds:number;maximum_recognised_seconds:number;colour:string }>, people: (scheduleStaff ?? []) as unknown as Array<{ id:string;full_name:string;staff_code:string|null;status:string;employment_type:string;role_code:string }>, candidates: (scheduleCandidates ?? []) as unknown as Array<{ id:string;full_name:string;staff_code:string|null;status:string;employment_type:string;role_code:string }>, assignments: (assignments.data ?? []) as unknown as Array<{staff_id:string;work_date:string;assignment_kind:string;shift_template_id:string|null;custom_start:string|null;custom_end:string|null;custom_crosses_midnight:boolean;custom_break_seconds:number|null;custom_maximum_recognised_seconds:number|null;custom_reason:string|null;ro_minutes:number|null;ro_original_start:string|null;ro_original_end:string|null;ro_direction:string|null}>,roBalances,submittedByName:submitter.data?.full_name?String(submitter.data.full_name):null };
 }
 
 export async function getScheduleOverview(weekStart = malaysiaWeekStart()) {
@@ -114,9 +118,33 @@ export async function getAttendanceReview(weekStart = malaysiaWeekStart(), filte
   const detailQuery=filters.detail?db.from("daily_attendance_results").select("*,staffs(full_name,staff_code,employment_type),branches(branch_name),attendance_import_batches(file_name,parser_profile,finalised_at)").eq("id",filters.detail).eq("is_current",true).maybeSingle():Promise.resolve({data:null,error:null});
   const [result,branches,batches,detail]=await Promise.all([query.order("work_date").order("created_at").range((page-1)*pageSize,page*pageSize-1),db.from("branches").select("id,branch_name").in("branch_type",["outlet","central_kitchen"]).eq("status","active").is("deleted_at",null).order("branch_name"),db.from("attendance_import_batches").select("id,file_name,parser_profile,row_count,error_count,warning_count,status,finalised_at").eq("week_start",weekStart).order("created_at",{ascending:false}).limit(5),detailQuery]);
   for(const item of [result,branches,batches,detail])if(item.error)throw item.error;
+  const unscheduledPunches: Array<{staff_id:string;full_name:string;work_date:string;punch_count:number;first_punch:string;last_punch:string}> = [];
+  if (filters.branch) {
+    const [raw, people, devices] = await Promise.all([
+      db.from("attendance_raw_punch_events").select("person_id,local_timestamp,occurred_at,source_code").gte("local_timestamp",`${weekStart} 00:00:00`).lte("local_timestamp",`${weekEnd} 23:59:59`).order("occurred_at"),
+      db.from("ngteco_person_mappings").select("person_id,staff_id,staffs(full_name)").eq("is_active",true),
+      db.from("ngteco_device_mappings").select("source_code,branch_id").eq("branch_id",filters.branch).eq("is_active",true),
+    ]);
+    for (const item of [raw, people, devices]) if (item.error) throw item.error;
+    const sources = new Set((devices.data ?? []).map((row:Record<string,unknown>)=>String(row.source_code)));
+    const mapped = new Map((people.data ?? []).map((row:Record<string,unknown>)=>[String(row.person_id),row]));
+    const covered = new Set((result.data ?? []).map((row:Record<string,unknown>)=>`${row.staff_id}:${row.work_date}`));
+    const grouped = new Map<string,{staff_id:string;full_name:string;work_date:string;values:string[]}>();
+    for (const row of (raw.data ?? []) as Array<Record<string,unknown>>) {
+      if (!sources.has(String(row.source_code))) continue;
+      const person = mapped.get(String(row.person_id)) as Record<string,unknown> | undefined;
+      if (!person) continue;
+      const staffId=String(person.staff_id),workDate=String(row.local_timestamp).slice(0,10),key=`${staffId}:${workDate}`;
+      if (covered.has(key)) continue;
+      const staff=person.staffs as {full_name?:string}|null;
+      const current=grouped.get(key)??{staff_id:staffId,full_name:staff?.full_name??"Mapped employee",work_date:workDate,values:[]};
+      current.values.push(String(row.occurred_at));grouped.set(key,current);
+    }
+    for (const item of grouped.values()) unscheduledPunches.push({staff_id:item.staff_id,full_name:item.full_name,work_date:item.work_date,punch_count:item.values.length,first_punch:item.values[0],last_punch:item.values[item.values.length-1]});
+  }
   const [exceptions,adjustments]=detail.data?await Promise.all([db.from("attendance_exceptions").select("id,exception_code,severity,details,resolved_at,resolution_note,created_at").eq("result_id",filters.detail).order("created_at"),db.from("attendance_adjustments").select("id,reason,before_state,after_state,created_at").eq("result_id",filters.detail).order("created_at",{ascending:false})]):[{data:[],error:null},{data:[],error:null}];
   for(const item of [exceptions,adjustments])if(item.error)throw item.error;
-  return {rows:result.data??[],total:result.count??0,page,pageSize,branches:branches.data??[],batches:batches.data??[],detail:detail.data?{...detail.data,exceptions:exceptions.data??[],adjustments:adjustments.data??[]}:null};
+  return {rows:result.data??[],total:result.count??0,page,pageSize,branches:branches.data??[],batches:batches.data??[],unscheduledPunches,detail:detail.data?{...detail.data,exceptions:exceptions.data??[],adjustments:adjustments.data??[]}:null};
 }
 
 export async function getAttendanceReviewBranches() {

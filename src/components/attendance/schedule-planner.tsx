@@ -13,6 +13,7 @@ import {
   Save,
   Send,
   Undo2,
+  UserRound,
   X,
 } from "lucide-react";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -77,7 +78,7 @@ const leavePalette: Palette[] = [
   { key: "upl", label: "UPL", kind: "upl", tone: "upl" },
 ];
 function paletteButtonTone(tone: Palette["tone"]) {
-  if (tone === "off") return "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100";
+  if (tone === "off") return "border-rose-200 bg-rose-50 text-rose-800 hover:bg-rose-100";
   if (tone === "al") return "border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100";
   if (tone === "ph") return "border-violet-200 bg-violet-50 text-violet-800 hover:bg-violet-100";
   if (tone === "upl") return "border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100";
@@ -127,6 +128,11 @@ function durationSeconds(start: string, end: string, crosses = false) {
   if (crosses || value < 0) value += 86400;
   return Math.max(value, 0);
 }
+function signedDuration(value: number) {
+  const sign = value >= 0 ? "+" : "−";
+  const seconds = Math.abs(Math.round(value));
+  return `${sign}${String(Math.floor(seconds / 3600)).padStart(2, "0")}:${String(Math.floor((seconds % 3600) / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
+}
 const timeOptions = attendanceTimeOptions();
 function TimeSelect({
   label,
@@ -171,8 +177,10 @@ export function SchedulePlanner({
   branchId,
   weekStart,
   week,
+  submittedByName,
   previousWeekId,
   people,
+  candidates,
   templates,
   initialAssignments,
   roBalances = {},
@@ -188,8 +196,10 @@ export function SchedulePlanner({
   branchId: string;
   weekStart: string;
   week: Week;
+  submittedByName?: string | null;
   previousWeekId: string | null;
   people: Person[];
+  candidates: Person[];
   templates: Template[];
   initialAssignments: Assignment[];
   roBalances?: Record<string, number>;
@@ -213,6 +223,9 @@ export function SchedulePlanner({
     [initialAssignments],
   );
   const [cells, setCells] = useState<Map<string, Assignment>>(initial);
+  const [visiblePersonIds, setVisiblePersonIds] = useState(() => new Set(people.map((person) => person.id)));
+  const rosterPeople = candidates.filter((person) => visiblePersonIds.has(person.id));
+  const availablePeople = candidates.filter((person) => !visiblePersonIds.has(person.id));
   const [selectedMobileDate, setSelectedMobileDate] = useState(() =>
     dates.includes(currentDate()) ? currentDate() : dates[0],
   );
@@ -220,7 +233,7 @@ export function SchedulePlanner({
   const [active, setActive] = useState<Palette | null>(null);
   const [copied, setCopied] = useState<Assignment | null>(null);
   const [dirty, setDirty] = useState(false),
-    [busy, setBusy] = useState(false),
+    [busyAction, setBusyAction] = useState<string | null>(null),
     [managerEditing, setManagerEditing] = useState(false),
     [decisionMode, setDecisionMode] = useState<"return" | "edit" | null>(null),
     [message, setMessage] = useState(
@@ -320,6 +333,7 @@ export function SchedulePlanner({
     if (item && selected.size) {
       applyKeys(selected, item);
       setMessage(`${selected.size} selected days updated.`);
+      setActive(null);
     }
   }
   function clickCell(key: string, event: React.MouseEvent) {
@@ -337,6 +351,7 @@ export function SchedulePlanner({
     if (active) {
       applyKeys([key], active);
       setMessage(`${active.label} assigned. Save draft when ready.`);
+      setActive(null);
       return;
     }
     const existing = cells.get(key);
@@ -411,6 +426,17 @@ export function SchedulePlanner({
     setDirty(true);
     setMessage("Selected days cleared.");
   }
+  function removePersonFromWeek(person: Person) {
+    setCells((current) => {
+      const next = new Map(current);
+      for (const date of dates) next.delete(`${person.id}:${date}`);
+      return next;
+    });
+    setVisiblePersonIds((current) => { const next = new Set(current); next.delete(person.id); return next; });
+    setSelected((current) => new Set([...current].filter((key) => !key.startsWith(`${person.id}:`))));
+    setDirty(true);
+    setMessage(`${person.full_name} removed from this outlet week.`);
+  }
   function cellSeconds(value?: Assignment) {
     if (!value || value.assignment_kind !== "shift") return 0;
     const template = value.shift_template_id
@@ -461,7 +487,7 @@ export function SchedulePlanner({
     return result;
   }
   async function action(payload: Record<string, unknown>) {
-    setBusy(true);
+    setBusyAction(String(payload.action ?? "action"));
     setActionFeedback(null);
     try {
       await requestAction(payload);
@@ -474,11 +500,11 @@ export function SchedulePlanner({
       setActionFeedback(feedback);
       setMessage(feedback);
     } finally {
-      setBusy(false);
+      setBusyAction(null);
     }
   }
   async function submitCurrentSchedule() {
-    setBusy(true);
+    setBusyAction("submit");
     setActionFeedback(null);
     try {
       const result = (await requestAction({
@@ -504,7 +530,7 @@ export function SchedulePlanner({
       setActionFeedback(feedback);
       setMessage(`${feedback} Review the highlighted days, then retry.`);
     } finally {
-      setBusy(false);
+      setBusyAction(null);
     }
   }
   const assignments = useMemo(() => [...cells.values()], [cells]),
@@ -574,12 +600,12 @@ export function SchedulePlanner({
             <Button
               className="w-full justify-start"
               size="sm"
-              disabled={busy || !assignments.length}
+              disabled={busyAction !== null || !assignments.length}
               data-mobile-primary-action
               onClick={() => void submitCurrentSchedule()}
             >
               <Send className="h-4 w-4" />
-              {busy
+              {busyAction === "submit"
                 ? "Submitting…"
                 : canApprove
                   ? "Submit for publication"
@@ -591,7 +617,7 @@ export function SchedulePlanner({
               className="w-full justify-start"
               size="sm"
               variant="outline"
-              disabled={busy || !dirty}
+              disabled={busyAction !== null || !dirty}
               onClick={() =>
                 void action({
                   action: "save",
@@ -602,7 +628,7 @@ export function SchedulePlanner({
               }
             >
               <Save className="h-4 w-4" />
-              {busy ? "Saving…" : "Save draft"}
+              {busyAction === "save" ? "Saving…" : "Save draft"}
             </Button>
           ) : null}
           {editableStatus && canDraft && previousWeekId ? (
@@ -610,7 +636,7 @@ export function SchedulePlanner({
               className="w-full justify-start"
               size="sm"
               variant="ghost"
-              disabled={busy}
+              disabled={busyAction !== null}
               onClick={() =>
                 void action({
                   action: "copy",
@@ -628,7 +654,7 @@ export function SchedulePlanner({
               <Button
                 className="w-full justify-start"
                 size="sm"
-                disabled={busy}
+                disabled={busyAction !== null}
                 data-mobile-primary-action
                 onClick={() =>
                   void action({
@@ -638,13 +664,13 @@ export function SchedulePlanner({
                   })
                 }
               >
-                {busy ? "Publishing…" : "Approve & publish"}
+                {busyAction === "decide" ? "Publishing…" : "Approve & publish"}
               </Button>
               <Button
                 className="w-full justify-start"
                 size="sm"
                 variant="outline"
-                disabled={busy}
+                disabled={busyAction !== null}
                 onClick={() => {
                   setManagerEditing(true);
                   setMessage(
@@ -658,7 +684,7 @@ export function SchedulePlanner({
                 className="w-full justify-start"
                 size="sm"
                 variant="outline"
-                disabled={busy}
+                disabled={busyAction !== null}
                 onClick={() => openDecision("return")}
               >
                 <Undo2 className="h-4 w-4" />
@@ -671,11 +697,11 @@ export function SchedulePlanner({
               <Button
                 className="w-full justify-start"
                 size="sm"
-                disabled={busy || !dirty}
+                disabled={busyAction !== null || !dirty}
                 data-mobile-primary-action
                 onClick={() => openDecision("edit")}
               >
-                {busy ? "Publishing…" : "Publish corrected schedule"}
+                {busyAction === "edit_and_publish" ? "Publishing…" : "Publish corrected schedule"}
               </Button>
               <Button
                 className="w-full justify-start"
@@ -728,7 +754,7 @@ export function SchedulePlanner({
       {rightRailDetails}
     </>
   );
-  const selectedDayValues = people.map((person) =>
+  const selectedDayValues = rosterPeople.map((person) =>
     cells.get(`${person.id}:${selectedMobileDate}`),
   );
   const warnedStaff = new Set(
@@ -899,7 +925,7 @@ export function SchedulePlanner({
         >
           <div className="grid grid-cols-7 border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] p-1">
             {dates.map((date) => {
-              const values = people.map((person) =>
+              const values = rosterPeople.map((person) =>
                 cells.get(`${person.id}:${date}`),
               );
               const staff = values.filter(
@@ -927,13 +953,16 @@ export function SchedulePlanner({
                   <span className="block text-[10px] text-current opacity-70">
                     {date.slice(8)}
                   </span>
-                  <span className="sr-only">{staff} working staff{complete ? ", all assigned" : ""}</span>
+                  <span className="mt-0.5 flex items-center justify-center gap-0.5 text-[9px] font-semibold tabular-nums" aria-label={`${staff} working staff`}>
+                    <UserRound className="h-2.5 w-2.5" aria-hidden="true" /> {staff}
+                  </span>
+                  <span className="sr-only">{complete ? "All staff assigned" : "Assignments incomplete"}</span>
                 </button>
               );
             })}
           </div>
           <div className="divide-y divide-[var(--sb-border-soft)] bg-white">
-            {people.map((person) => {
+            {rosterPeople.map((person) => {
               const key = `${person.id}:${selectedMobileDate}`,
                 value = cells.get(key),
                 tone = cellTone(value),
@@ -984,7 +1013,7 @@ export function SchedulePlanner({
                       tone === "work" &&
                         "border-emerald-200 bg-emerald-50 text-emerald-900",
                       tone === "off" &&
-                        "border-slate-200 bg-slate-50 text-slate-700",
+                        "border-rose-200 bg-rose-50 text-rose-800",
                       tone === "al" &&
                         "border-blue-200 bg-blue-50 text-blue-800",
                       tone === "ph" &&
@@ -1013,6 +1042,7 @@ export function SchedulePlanner({
                 </div>
               );
             })}
+            {editableStatus && canDraft && availablePeople.length ? <div className="px-3 py-2"><SelectControl ariaLabel="Add employee to this outlet week" value="none" onValueChange={(id) => { if (id !== "none") setVisiblePersonIds((current) => new Set(current).add(id)); }} options={[{value:"none",label:"+ Add employee for this week"},...availablePeople.map((person)=>({value:person.id,label:person.full_name}))]} searchable searchPlaceholder="Search company employees" /></div> : null}
           </div>
           <div className="flex items-center justify-between bg-[var(--sb-surface-muted)] px-3 py-2 text-xs">
             <strong>Daily coverage</strong>
@@ -1052,7 +1082,7 @@ export function SchedulePlanner({
               <Button
                 size="sm"
                 variant="outline"
-                disabled={busy || !dirty}
+                disabled={busyAction !== null || !dirty}
                 onClick={() =>
                   void action({
                     action: "save",
@@ -1063,17 +1093,17 @@ export function SchedulePlanner({
                 }
               >
                 <Save className="h-4 w-4" />
-                {busy ? "Saving…" : "Save draft"}
+                {busyAction === "save" ? "Saving…" : "Save draft"}
               </Button>
             ) : null}
             {editableStatus && canSubmit && !managerEditing ? (
               <Button
                 size="sm"
-                disabled={busy || !assignments.length}
+                disabled={busyAction !== null || !assignments.length}
                 onClick={() => void submitCurrentSchedule()}
               >
                 <Send className="h-4 w-4" />
-                {busy ? "Submitting…" : "Submit"}
+                {busyAction === "submit" ? "Submitting…" : "Submit"}
               </Button>
             ) : null}
             {canApprove && week?.status === "submitted" && !managerEditing ? (
@@ -1081,7 +1111,7 @@ export function SchedulePlanner({
                 <Button
                   size="sm"
                   className="col-span-1"
-                  disabled={busy}
+                  disabled={busyAction !== null}
                   onClick={() =>
                     void action({
                       action: "decide",
@@ -1090,7 +1120,7 @@ export function SchedulePlanner({
                     })
                   }
                 >
-                  {busy ? "Publishing…" : "Approve & publish"}
+                  {busyAction === "decide" ? "Publishing…" : "Approve & publish"}
                 </Button>
                 <Button
                   size="sm"
@@ -1112,7 +1142,7 @@ export function SchedulePlanner({
                   className="px-0"
                   aria-label="Return to Supervisor"
                   title="Return to Supervisor"
-                  disabled={busy}
+                  disabled={busyAction !== null}
                   onClick={() => openDecision("return")}
                 >
                   <Undo2 className="h-4 w-4" />
@@ -1124,7 +1154,7 @@ export function SchedulePlanner({
               <>
                 <Button
                   size="sm"
-                  disabled={busy || !dirty}
+                  disabled={busyAction !== null || !dirty}
                   onClick={() => openDecision("edit")}
                 >
                   Publish changes
@@ -1175,7 +1205,7 @@ export function SchedulePlanner({
                 </tr>
               </thead>
               <tbody>
-                {people.map((person) => {
+                {rosterPeople.map((person) => {
                   const weekly = dates.reduce(
                     (sum, date) =>
                       sum + cellSeconds(cells.get(`${person.id}:${date}`)),
@@ -1206,6 +1236,7 @@ export function SchedulePlanner({
                           <span className="shrink-0 text-right text-[11px] font-semibold tabular-nums">
                             {(weekly / 3600).toFixed(1)}h
                           </span>
+                          {editableStatus && canDraft ? <button type="button" className="grid h-7 w-7 shrink-0 place-items-center rounded-[var(--sb-radius-control)] text-muted-foreground hover:bg-rose-50 hover:text-rose-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)]" aria-label={`Remove ${person.full_name} from this outlet week`} title="Remove from this outlet week" onClick={() => removePersonFromWeek(person)}><X className="h-3.5 w-3.5" /></button> : null}
                         </div>
                       </th>
                       {dates.map((date) => {
@@ -1226,7 +1257,7 @@ export function SchedulePlanner({
                                 tone === "work" &&
                                   "border-emerald-200 bg-emerald-50 text-emerald-900",
                                 tone === "off" &&
-                                  "border-slate-200 bg-slate-50 text-slate-700",
+                                  "border-rose-200 bg-rose-50 text-rose-800",
                                 tone === "al" &&
                                   "border-blue-200 bg-blue-50 text-blue-800",
                                 tone === "ph" &&
@@ -1262,6 +1293,7 @@ export function SchedulePlanner({
                     </tr>
                   );
                 })}
+                {editableStatus && canDraft && availablePeople.length ? <tr><th className="sticky left-0 z-10 border-b border-r bg-white px-3 py-2 text-left" colSpan={8}><div className="max-w-sm"><SelectControl ariaLabel="Add employee to this outlet week" value="none" onValueChange={(id) => { if (id !== "none") setVisiblePersonIds((current) => new Set(current).add(id)); }} options={[{value:"none",label:"+ Add employee for this week"},...availablePeople.map((person)=>({value:person.id,label:person.full_name}))]} searchable searchPlaceholder="Search company employees" /></div></th></tr> : null}
               </tbody>
               <tfoot>
                 <tr>
@@ -1269,7 +1301,7 @@ export function SchedulePlanner({
                     Daily coverage
                   </th>
                   {dates.map((date) => {
-                    const values = people.map((person) =>
+                    const values = rosterPeople.map((person) =>
                       cells.get(`${person.id}:${date}`),
                     );
                     const staff = values.filter(
@@ -1312,7 +1344,9 @@ export function SchedulePlanner({
                 Working time
               </h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                Choose the hours for the selected staff day.
+                {selected.size === 1
+                  ? `${candidates.find((person) => person.id === [...selected][0].split(":")[0])?.full_name ?? "Employee"} · ${[...selected][0].split(":")[1]}`
+                  : `${selected.size} staff days selected`}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
@@ -1344,23 +1378,12 @@ export function SchedulePlanner({
               />
             </div>
             <div className="flex items-center justify-between gap-3 rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] px-3 py-2 text-xs">
-              <span className="text-muted-foreground">Paid time summary</span>
+              <span className="text-muted-foreground">Scheduled span · compared with 8.5h</span>
               <strong className="tabular-nums">
-                {(
-                  Math.max(
-                    0,
-                    Math.min(
-                      custom.capMinutes,
-                      durationSeconds(
-                        custom.start,
-                        custom.end,
-                        custom.end <= custom.start,
-                      ) /
-                        60 -
-                        custom.breakMinutes,
-                    ),
-                  ) / 60
-                ).toFixed(2).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1")} hours
+                {(durationSeconds(custom.start, custom.end, custom.end <= custom.start) / 3600).toFixed(2).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1")} hours
+                <span className={cn("ml-1", durationSeconds(custom.start, custom.end, custom.end <= custom.start) > 30600 ? "text-rose-700" : "text-muted-foreground")}>
+                  ({signedDuration(durationSeconds(custom.start, custom.end, custom.end <= custom.start) - 30600)})
+                </span>
               </strong>
             </div>
             <div className="flex flex-wrap items-center gap-2" aria-label="Quick non-working assignment">
@@ -1416,7 +1439,7 @@ export function SchedulePlanner({
               </label>
             </div>
             {selected.size === 1 &&
-            people.find(
+            candidates.find(
               (person) => person.id === [...selected][0].split(":")[0],
             )?.employment_type === "full_time" ? (
               <fieldset className="space-y-3 rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] p-3">
@@ -1601,8 +1624,9 @@ export function SchedulePlanner({
                   : "Publish corrected schedule"}
               </h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                The reason and your identity will remain in the schedule audit
-                history.
+                {decisionMode === "return" && submittedByName
+                  ? `This roster will return to ${submittedByName}. Add a clear reason for the correction.`
+                  : "The reason and your identity will remain in the schedule audit history."}
               </p>
             </div>
             <label className="grid gap-1 text-xs font-medium">
@@ -1632,7 +1656,7 @@ export function SchedulePlanner({
               >
                 Cancel
               </Button>
-              <Button disabled={busy}>
+              <Button disabled={busyAction !== null}>
                 {decisionMode === "return"
                   ? "Return schedule"
                   : "Publish changes"}

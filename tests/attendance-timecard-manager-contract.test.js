@@ -45,7 +45,7 @@ test("Attendance mapping and quick assignments use the compact location vocabula
   assert.match(migration, /branch_type in \('outlet','central_kitchen'\)/);
   assert.match(mappings, /Source<\/span><span>Assigned location<\/span><span>Actions/);
   assert.match(mappings, />Change<\/Button>/);
-  for (const tone of ["slate", "blue", "violet", "amber", "teal"]) assert.match(schedule, new RegExp(`border-${tone}-200`));
+  for (const tone of ["rose", "blue", "violet", "amber", "teal"]) assert.match(schedule, new RegExp(`border-${tone}-200`));
 });
 
 test("invalid raw punch rows do not block valid rows", () => {

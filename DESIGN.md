@@ -1,4 +1,11 @@
-## v9.2.56 — Attendance workflow convergence
+## v9.2.57 (unreleased) — Attendance stability and weekly roster refinement
+
+- One-shot quick assignment prevents sticky modes; OFF uses the established danger palette without turning routine work states into alerts.
+- The mobile day strip pairs weekday/date with a small staff-count icon, while the working-time dialog uses employee/date context and a tabular signed variance from the 8.5-hour reference.
+- Cross-outlet movement is represented as a week-scoped roster addition/removal, preserving permanent assignment and the existing grid.
+- Missing profile facts use a muted em dash, action headers wrap safely at tablet widths, and paired cards stretch to equal height only in the two-column layout.
+
+## v9.2.56 (deployed) — Attendance workflow convergence
 
 - Mobile schedule cells use the full available column width, while compact icon-only secondary decisions preserve a single action row.
 - The mobile date strip removes repeated staff totals and keeps weekday/date selection compact.

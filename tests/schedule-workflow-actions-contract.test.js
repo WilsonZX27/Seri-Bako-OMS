@@ -5,6 +5,7 @@ const test = require("node:test");
 const source = fs.readFileSync("src/components/attendance/schedule-planner.tsx", "utf8");
 const page = fs.readFileSync("src/app/(app)/attendance/schedule/page.tsx", "utf8");
 const query = fs.readFileSync("src/server/queries/attendance.ts", "utf8");
+const migration281 = fs.readFileSync("supabase/migrations/281_schedule_publish_recalculates_attendance.sql", "utf8");
 
 test("schedule editor and draft actions only exist in editable workflow states", () => {
   assert.match(source, /\["draft", "returned", "rejected", "amendment_pending"\]\.includes\([\s\S]*?week\.status/);
@@ -29,5 +30,21 @@ test("submitted schedules expose one primary Manager decision and readable failu
   assert.match(source, /Approve & publish[\s\S]*Return to Supervisor/);
   assert.match(source, /readJsonResponse/);
   assert.match(source, /actionFeedback/);
-  assert.match(source, /disabled=\{busy\}/);
+  assert.match(source, /disabled=\{busyAction !== null\}/);
+});
+
+test("weekly scheduling supports cross-outlet staff and recalculates imported punches after approval", () => {
+  assert.match(query, /get_schedule_staff_candidates/);
+  assert.match(source, /Add employee/);
+  assert.match(source, /Remove from this outlet week/);
+  assert.match(migration281, /Staff is not eligible for outlet scheduling/);
+  assert.doesNotMatch(migration281, /Staff is not active in the selected outlet/);
+  assert.match(migration281, /parser_profile='view_attendance_punch'/);
+  assert.match(migration281, /recalculate_attendance_week\(batch\.id\)/);
+});
+
+test("schedule actions retain independent pending states", () => {
+  assert.match(source, /busyAction === "submit" \? "Submitting…"/);
+  assert.match(source, /busyAction === "save" \? "Saving…"/);
+  assert.doesNotMatch(source, /const \[busy, setBusy\]/);
 });

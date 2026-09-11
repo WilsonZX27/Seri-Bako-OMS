@@ -60,5 +60,5 @@ test("system health is an Owner workspace with actionable and recovered separati
   assert.match(healthPage, /Action required/);
   assert.match(healthPage, /Recovery rate/);
   assert.match(healthPage, /Acknowledge/);
-  assert.match(healthPage, /Automatic recovery retries only safe transient operations/);
+  assert.match(healthPage, /Automatic detection is active for instrumented server operations/);
 });

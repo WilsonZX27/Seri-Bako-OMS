@@ -122,7 +122,7 @@ export default async function AttendanceReviewPage({
       employee: params.employee,
       page,
       detail: params.detail,
-    }) : getAttendanceReviewBranches().then((branches) => ({ rows: [], total: 0, page: 1, pageSize: 100, branches, batches: [], detail: null })),
+    }) : getAttendanceReviewBranches().then((branches) => ({ rows: [], total: 0, page: 1, pageSize: 100, branches, batches: [], unscheduledPunches: [], detail: null })),
     branch ? getAttendanceActuals(week) : Promise.resolve({ assignments: [], reports: [], ledger: [], balances: {}, claims: [], reservations: [], locks: [] }),
     permissions["attendance.import"]
       ? getAttendanceMappings()
@@ -285,6 +285,18 @@ export default async function AttendanceReviewPage({
           }}
           total={review.total}
         />
+
+        {branch && review.unscheduledPunches.length ? (
+          <section className="overflow-hidden rounded-[var(--sb-panel-radius)] border border-amber-200 bg-amber-50">
+            <header className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 px-4 py-3">
+              <div><h2 className="text-sm font-semibold">Imported punches awaiting schedule</h2><p className="mt-0.5 text-xs text-muted-foreground">Punch evidence is preserved. Add or publish the missing staff day, then recalculate the latest import.</p></div>
+              <Button asChild size="sm" variant="outline"><Link href={`/attendance/schedule?branch=${encodeURIComponent(branch)}&week=${week}`}>Add schedule</Link></Button>
+            </header>
+            <div className="divide-y divide-amber-200">
+              {review.unscheduledPunches.map((item) => <div key={`${item.staff_id}:${item.work_date}`} className="grid gap-1 px-4 py-2.5 text-xs sm:grid-cols-[minmax(0,1fr)_7rem_10rem] sm:items-center"><strong>{item.full_name}</strong><span className="tabular-nums">{item.work_date}</span><span className="tabular-nums text-muted-foreground">{item.punch_count} punches · {time(item.first_punch)}–{time(item.last_punch)}</span></div>)}
+            </div>
+          </section>
+        ) : null}
 
         {!branch ? (
           <section className="sb-work-surface p-10 text-center">

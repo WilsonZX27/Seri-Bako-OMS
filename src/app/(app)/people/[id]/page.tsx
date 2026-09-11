@@ -154,7 +154,7 @@ export default async function PeopleProfilePage({
                   <Fact label="Status" value={staff.status} capitalize />
                 </dl>
               </ProfileSection>
-              <div className="grid items-start gap-3 md:grid-cols-2">
+              <div className="grid items-stretch gap-3 lg:grid-cols-2 [&>section]:h-full">
               {compTime.allowed ? (
                 <ProfileSection id="time-off" title="Time-off balance" action={<div className="flex flex-wrap justify-end gap-2"><Button asChild size="sm" variant="outline"><Link href="/attendance/review">Open attendance</Link></Button>{permissions["comp_time.submit"] ? <CompTimeCorrectionForm staffId={staff.id} branchId={staffSummary?.default_branch_id??null}/> : null}</div>}>
                   <div className="flex items-end justify-between gap-3">
@@ -413,11 +413,11 @@ function ProfileSection({
   return (
     <section
       id={id}
-      className="scroll-mt-16 rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)] p-4"
+      className="min-w-0 scroll-mt-16 rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)] p-4"
     >
-      <div className="mb-3 flex min-h-9 items-start justify-between gap-3">
+      <div className="mb-3 flex min-h-9 flex-wrap items-start justify-between gap-3">
         <h2 className="pt-2 text-sm font-semibold">{title}</h2>
-        {action ? <div className="shrink-0">{action}</div> : null}
+        {action ? <div className="min-w-0 max-w-full">{action}</div> : null}
       </div>
       {children}
     </section>
@@ -437,10 +437,8 @@ function Fact({
       <dt className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
         {label}
       </dt>
-      <dd
-        className={`mt-1 break-words text-sm font-medium ${capitalize ? "capitalize" : ""}`}
-      >
-        {value ?? "Not recorded"}
+      <dd className={`mt-1 break-words text-sm ${value ? "font-medium" : "font-normal text-muted-foreground"} ${capitalize ? "capitalize" : ""}`}>
+        {value || "—"}
       </dd>
     </div>
   );

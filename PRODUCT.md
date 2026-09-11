@@ -1,10 +1,10 @@
-### v9.2.57 (unreleased) — Attendance stability and weekly roster refinement
+### v9.2.57 (deployed) — Attendance stability and weekly roster refinement
 
 - Imported raw punches remain visible as explicit unscheduled evidence until a roster exists; publishing a later schedule recalculates the immutable batch into a new Attendance result revision.
 - Weekly outlet rosters can include any eligible company outlet employee without changing permanent outlet ownership, and removing a person clears only the current week.
 - Schedule actions have independent loading states, quick assignment is single-use, OFF uses the danger semantic, working time shows the selected employee/date and the raw span against 8.5 hours.
 
-Repository migrations reviewed through `281`. Migration `281` is repository implementation evidence until database application and Production verification are recorded separately.
+Repository migrations reviewed through `281`. Migration `281` passed the local schema gate, was applied to the linked Production database, and the v9.2.57 application was verified on the Production custom domain.
 
 ### v9.2.56 (deployed) — Attendance workflow convergence
 

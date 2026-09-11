@@ -1,4 +1,4 @@
-## v9.2.57 (unreleased) — Attendance stability and weekly roster refinement
+## v9.2.57 (deployed) — Attendance stability and weekly roster refinement
 
 - One-shot quick assignment prevents sticky modes; OFF uses the established danger palette without turning routine work states into alerts.
 - The mobile day strip pairs weekday/date with a small staff-count icon, while the working-time dialog uses employee/date context and a tabular signed variance from the 8.5-hour reference.

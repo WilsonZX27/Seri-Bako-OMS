@@ -4,6 +4,10 @@
 - Requires an explicit outlet selection before attendance review data loads.
 - Starts employee missing-punch tracking from 2026-09-11 without deleting historical punch evidence, with profile-level monthly review and adjustment access.
 - Gives schedule decision failures a safe support reference and actionable recovery message.
+- Repairs composite-row handling across schedule save, submit, copy, approval and workbook-import RPCs so business blockers return actionable responses instead of UUID conversion failures.
+- Restores active Attendance adjustment and OT-decision RPCs to the released result schema, and removes the superseded Timecard finalisation RPC so raw punches remain the single ingestion authority.
+
+Repository migrations reviewed through `280`. Migration `280` is implemented and verified only against the isolated local Supabase stack. Linked database application, deployment and Production verification remain separately authorised release steps.
 
 ### v9.2.54 (unreleased) — Attendance action and picker correction
 

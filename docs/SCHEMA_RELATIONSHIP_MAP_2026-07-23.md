@@ -1,5 +1,7 @@
 # Seri Bako OMS — Schema 与 Table 关系地图
 
+> Current repository authority 2026-09-11: forward-only migration 历史已到 `280`. Migration `280` repairs composite schedule-row handling across save, submit, copy, approval and workbook-import RPC wrappers; it also aligns active Attendance adjustment/OT-decision RPCs with the released result schema and removes the superseded Timecard finaliser. The isolated local stack returns the intended actionable business blocker; linked database application and Production verification remain separate authorised steps.
+
 > Current repository authority 2026-09-10: forward-only migration 历史已到 `279`. Migration `279` adds atomic Schedule save-submit, reason-required Manager return/edit-and-publish revisions, and an idempotent Draft-only workbook import ledger. This is repository evidence only until the linked migration is applied.
 
 > Current repository authority 2026-09-10: forward-only migration 历史已到 `278`. Migration `278` reapplies each batch's immutable raw-punch coverage map after manual recalculation, so absent or incomplete dates cannot create inferred missing-punch results without punch evidence. This is repository evidence only until the linked migration is applied.

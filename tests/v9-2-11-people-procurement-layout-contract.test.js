@@ -8,7 +8,7 @@ const read = (file) => fs.readFileSync(path.join(process.cwd(), file), "utf8");
 test("People compliance and documents share one record and upload flow", () => {
   const page = read("src/app/(app)/people/[id]/page.tsx");
   assert.match(page, /title="Documents"/);
-  assert.match(page, /id="add-compliance-record" title="Add Record"/);
+  assert.match(page, /id="add-compliance-record"[\s\S]*title="Add Record"/);
   assert.match(page, /lg:grid-cols-2 \[&>section\]:h-full/);
   assert.doesNotMatch(page, /id="add-employee-document"/);
   assert.match(page, /ComplianceRecordForm/);

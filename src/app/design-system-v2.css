@@ -2348,14 +2348,13 @@ html[data-touch-tablet="true"] [data-app-topbar] > .hidden.min-w-0.items-center 
 }
 
 @media (max-width: 767px) {
-  .sb-schedule-workspace [data-schedule-planner] {
-    margin-inline: -1rem;
+  .sb-schedule-workspace {
+    padding-inline: 1rem !important;
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom)) !important;
   }
 
-  .sb-schedule-workspace [data-schedule-planner] > :not([data-schedule-mobile-actions]) {
-    border-left: 0;
-    border-right: 0;
-    border-radius: 0;
+  html:has(a[href="/attendance/settings"][aria-current="page"]) [data-workspace-canvas] {
+    padding-bottom: calc(var(--sb-mobile-nav-height) + env(safe-area-inset-bottom) + 1.5rem) !important;
   }
 
   /* The weekly spreadsheet remains the high-density desktop editor. Phones
@@ -2372,15 +2371,17 @@ html[data-touch-tablet="true"] [data-app-topbar] > .hidden.min-w-0.items-center 
 /* Workflow actions remain reachable while editing long mobile forms. */
 @media (max-width: 767px) {
   html:has([data-schedule-mobile-actions]) [data-mobile-bottom-nav],
-  html:has([data-template-mobile-actions]) [data-mobile-bottom-nav] { display: none; }
+  html:has(details[open] [data-template-mobile-actions]) [data-mobile-bottom-nav] { display: none; }
   [data-schedule-mobile-actions], [data-template-mobile-actions] {
     position: fixed;
-    inset: auto 0 0;
+    inset: auto 1rem calc(.75rem + env(safe-area-inset-bottom));
     z-index: var(--sb-z-sticky);
-    padding-bottom: calc(.75rem + env(safe-area-inset-bottom));
+    padding: .5rem;
+    border: 1px solid var(--sb-border-soft);
+    border-radius: var(--sb-radius-card);
     background: var(--sb-surface-raised);
+    box-shadow: var(--sb-shadow-card);
   }
-  .sb-schedule-workspace { padding-bottom: 6rem; }
 }
 
 [data-outlet-completion-matrix] th[aria-current="date"] {

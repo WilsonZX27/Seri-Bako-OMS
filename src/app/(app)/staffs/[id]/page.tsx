@@ -66,6 +66,9 @@ export default async function EditStaffPage({
         actionPanel={
           <>
             <RecordActionPanel title="Staff Actions">
+              <SubmitButton type="submit" form={formId} className="w-full" pendingLabel="Saving..." data-mobile-primary-action>
+                Save Staff
+              </SubmitButton>
               <Button asChild variant="outline" className="w-full">
                 <Link href={`/people/${staff.id}`}>Open profile</Link>
               </Button>
@@ -88,10 +91,6 @@ export default async function EditStaffPage({
                   <div className="flex justify-between gap-3"><span className="text-muted-foreground">Password changed</span><span className="font-medium">{staff.password_changed_at ? formatDateTime(staff.password_changed_at) : "-"}</span></div>
                 </div>
               </div>
-
-              <SubmitButton type="submit" form={formId} className="w-full" pendingLabel="Saving..." data-mobile-primary-action>
-                Save Staff
-              </SubmitButton>
 
               <div className="rounded-[2px] border bg-secondary/30 p-3 text-xs">
                 <p className="font-semibold">Auth Setup</p>

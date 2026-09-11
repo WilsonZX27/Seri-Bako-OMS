@@ -154,8 +154,9 @@ export default async function PeopleProfilePage({
                   <Fact label="Status" value={staff.status} capitalize />
                 </dl>
               </ProfileSection>
+              <div className="grid items-start gap-3 md:grid-cols-2">
               {compTime.allowed ? (
-                <ProfileSection id="time-off" title="Time-off balance">
+                <ProfileSection id="time-off" title="Time-off balance" action={<div className="flex flex-wrap justify-end gap-2"><Button asChild size="sm" variant="outline"><Link href="/attendance/review">Open attendance</Link></Button>{permissions["comp_time.submit"] ? <CompTimeCorrectionForm staffId={staff.id} branchId={staffSummary?.default_branch_id??null}/> : null}</div>}>
                   <div className="flex items-end justify-between gap-3">
                     <div>
                       <p className="text-xs text-muted-foreground">
@@ -165,11 +166,7 @@ export default async function PeopleProfilePage({
                         {compTime.balance} min
                       </strong>
                     </div>
-                    <Button asChild size="sm" variant="outline">
-                      <Link href="/attendance/review">Open attendance</Link>
-                    </Button>
                   </div>
-                  {permissions["comp_time.submit"] ? <div className="mt-3"><CompTimeCorrectionForm staffId={staff.id} branchId={staffSummary?.default_branch_id??null}/></div>:null}
                   <div className="mt-3 divide-y border-t border-[var(--sb-border-soft)]">
                     {(compTime.ledger as Array<Record<string, unknown>>).map(
                       (row) => (
@@ -200,7 +197,7 @@ export default async function PeopleProfilePage({
                 </ProfileSection>
               ) : null}
               {attendanceTracking.allowed ? (
-                <ProfileSection id="attendance-follow-up" title="Attendance follow-up">
+                <ProfileSection id="attendance-follow-up" title="Attendance follow-up" action={<Button asChild size="sm" variant="outline"><Link href={`/attendance/review?branch=${staffSummary?.default_branch_id ?? "select"}&employee=${encodeURIComponent(staff.full_name)}`}>Review &amp; adjust</Link></Button>}>
                   <div className="flex flex-wrap items-end justify-between gap-3">
                     <div>
                       <p className="text-xs text-muted-foreground">
@@ -211,11 +208,6 @@ export default async function PeopleProfilePage({
                       </strong>
                       <span className="ml-1 text-sm text-muted-foreground">this month</span>
                     </div>
-                    <Button asChild size="sm" variant="outline">
-                      <Link href={`/attendance/review?branch=${staffSummary?.default_branch_id ?? "select"}&employee=${encodeURIComponent(staff.full_name)}`}>
-                        Review &amp; adjust
-                      </Link>
-                    </Button>
                   </div>
                   <div className="mt-3 divide-y border-t border-[var(--sb-border-soft)]">
                     {attendanceTracking.months.map((row) => (
@@ -232,6 +224,7 @@ export default async function PeopleProfilePage({
                   </div>
                 </ProfileSection>
               ) : null}
+              </div>
             </>
           ) : null}
           {activeSection === "employment" ? (
@@ -239,6 +232,7 @@ export default async function PeopleProfilePage({
               <ProfileSection
                 id="employment"
                 title="Employment & outlet assignments"
+                action={<Button asChild size="sm"><Link href={`/staffs/${staff.id}`}>Edit employment &amp; access</Link></Button>}
               >
                 <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
                   <Fact
@@ -254,19 +248,13 @@ export default async function PeopleProfilePage({
                     label="Default outlet"
                     value={staffSummary?.default_branch_name}
                   />
-                  <div>
-                    <Button asChild size="sm">
-                      <Link href={`/staffs/${staff.id}`}>
-                        Edit employment & access
-                      </Link>
-                    </Button>
-                  </div>
                 </dl>
               </ProfileSection>
               {permissions["people.sensitive.read"] ? (
                 <ProfileSection
                   id="payroll-details"
                   title="Sensitive payroll details"
+                  action={permissions["people.sensitive.manage"] ? <Button type="submit" form="protected-payroll-form" size="sm">Save protected details</Button> : null}
                 >
                   <p className="mb-3 text-xs text-muted-foreground">
                     Restricted to People Operations and Owner. These fields are
@@ -274,6 +262,7 @@ export default async function PeopleProfilePage({
                   </p>
                   {permissions["people.sensitive.manage"] ? (
                     <form
+                      id="protected-payroll-form"
                       action={updateStaffSensitiveEmployment.bind(
                         null,
                         staff.id,
@@ -298,13 +287,6 @@ export default async function PeopleProfilePage({
                           className={controlClass}
                         />
                       </FormField>
-                      <Button
-                        type="submit"
-                        size="sm"
-                        className="sm:col-span-2 sm:justify-self-start"
-                      >
-                        Save protected details
-                      </Button>
                     </form>
                   ) : (
                     <dl className="grid gap-3 sm:grid-cols-2">
@@ -388,7 +370,20 @@ export default async function PeopleProfilePage({
                 </div>
               </ProfileSection>
               {permissions["people.compliance.manage"] ? (
-                <ProfileSection id="add-compliance-record" title="Add Record">
+                <ProfileSection
+                  id="add-compliance-record"
+                  title="Add Record"
+                  action={
+                    <Button
+                      type="submit"
+                      form="staff-compliance-record-form"
+                      size="sm"
+                      disabled={!complianceTypes.length}
+                    >
+                      {"Save record & file"}
+                    </Button>
+                  }
+                >
                   <ComplianceRecordForm
                     staffId={staff.id}
                     staffName={staff.full_name}
@@ -407,10 +402,12 @@ export default async function PeopleProfilePage({
 function ProfileSection({
   id,
   title,
+  action,
   children,
 }: {
   id: string;
   title: string;
+  action?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -418,7 +415,10 @@ function ProfileSection({
       id={id}
       className="scroll-mt-16 rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)] p-4"
     >
-      <h2 className="mb-3 text-sm font-semibold">{title}</h2>
+      <div className="mb-3 flex min-h-9 items-start justify-between gap-3">
+        <h2 className="pt-2 text-sm font-semibold">{title}</h2>
+        {action ? <div className="shrink-0">{action}</div> : null}
+      </div>
       {children}
     </section>
   );
@@ -471,7 +471,11 @@ function ComplianceRecordForm({
   complianceTypes: Array<{ id: string; type_name: string }>;
 }) {
   return (
-    <form action={createComplianceRecord} className="grid gap-3 sm:grid-cols-2">
+    <form
+      id="staff-compliance-record-form"
+      action={createComplianceRecord}
+      className="grid gap-3 sm:grid-cols-2"
+    >
       <input type="hidden" name="subject_kind" value="staff" />
       <input type="hidden" name="staff_id" value={staffId} />
       <input type="hidden" name="branch_id" value="" />
@@ -518,14 +522,6 @@ function ComplianceRecordForm({
           className="mt-2 block w-full text-xs file:mr-2 file:min-h-9 file:rounded-[var(--sb-radius-control)] file:border-0 file:bg-[var(--sb-green-100)] file:px-3 file:text-[var(--sb-green-900)]"
         />
       </label>
-      <Button
-        type="submit"
-        size="sm"
-        disabled={!complianceTypes.length}
-        className="sm:col-span-2 sm:justify-self-start"
-      >
-        Save record & file
-      </Button>
     </form>
   );
 }

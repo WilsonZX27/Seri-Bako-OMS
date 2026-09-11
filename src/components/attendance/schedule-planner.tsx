@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
@@ -75,6 +76,13 @@ const leavePalette: Palette[] = [
   { key: "ph", label: "PH", kind: "ph", tone: "ph" },
   { key: "upl", label: "UPL", kind: "upl", tone: "upl" },
 ];
+function paletteButtonTone(tone: Palette["tone"]) {
+  if (tone === "off") return "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100";
+  if (tone === "al") return "border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100";
+  if (tone === "ph") return "border-violet-200 bg-violet-50 text-violet-800 hover:bg-violet-100";
+  if (tone === "upl") return "border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100";
+  return "";
+}
 
 function addDays(day: string, amount: number) {
   const value = new Date(`${day}T00:00:00Z`);
@@ -249,6 +257,23 @@ export function SchedulePlanner({
     ],
     [templates],
   );
+  const templateColours = useMemo(
+    () => new Map(templates.map((template) => [template.id, template.colour])),
+    [templates],
+  );
+
+  function shiftColourStyle(value?: Assignment) {
+    const colour = value?.shift_template_id
+      ? templateColours.get(value.shift_template_id)
+      : null;
+    return colour
+      ? {
+          borderColor: colour,
+          backgroundColor: `color-mix(in srgb, ${colour} 12%, white)`,
+          color: `color-mix(in srgb, ${colour} 70%, black)`,
+        }
+      : undefined;
+  }
 
   function assignmentFor(
     staffId: string,
@@ -545,6 +570,22 @@ export function SchedulePlanner({
     <>
       <ConsoleSection title="Schedule actions" kind="action">
         <div className="grid gap-2">
+          {editableStatus && canSubmit ? (
+            <Button
+              className="w-full justify-start"
+              size="sm"
+              disabled={busy || !assignments.length}
+              data-mobile-primary-action
+              onClick={() => void submitCurrentSchedule()}
+            >
+              <Send className="h-4 w-4" />
+              {busy
+                ? "Submitting…"
+                : canApprove
+                  ? "Submit for publication"
+                  : "Submit to Manager"}
+            </Button>
+          ) : null}
           {editableStatus && canDraft ? (
             <Button
               className="w-full justify-start"
@@ -562,22 +603,6 @@ export function SchedulePlanner({
             >
               <Save className="h-4 w-4" />
               {busy ? "Saving…" : "Save draft"}
-            </Button>
-          ) : null}
-          {editableStatus && canSubmit ? (
-            <Button
-              className="w-full justify-start"
-              size="sm"
-              disabled={busy || !assignments.length}
-              data-mobile-primary-action
-              onClick={() => void submitCurrentSchedule()}
-            >
-              <Send className="h-4 w-4" />
-              {busy
-                ? "Submitting…"
-                : canApprove
-                  ? "Submit for publication"
-                  : "Submit to Manager"}
             </Button>
           ) : null}
           {editableStatus && canDraft && previousWeekId ? (
@@ -722,7 +747,7 @@ export function SchedulePlanner({
     <WorkspaceGrid
       rightRail={workflowActions}
       hideMobileConsole
-      className="sb-schedule-workspace px-3 md:px-0"
+      className="sb-schedule-workspace px-4 pb-24 md:px-0 md:pb-0"
     >
       <div className="space-y-3" data-schedule-planner>
         {headerContent}
@@ -792,9 +817,10 @@ export function SchedulePlanner({
                     size="sm"
                     variant={active?.key === item.key ? "secondary" : "outline"}
                     className={cn(
-                      "min-w-12 px-3 font-medium",
+                      "min-w-14 px-3 font-medium",
+                      paletteButtonTone(item.tone),
                       active?.key === item.key &&
-                        "border-[var(--sb-green-300)] bg-[var(--sb-green-100)] text-[var(--sb-green-900)]",
+                        "ring-2 ring-[var(--sb-green-700)]",
                     )}
                     onClick={() => choose(active?.key === item.key ? null : item)}
                   >
@@ -919,14 +945,20 @@ export function SchedulePlanner({
               return (
                 <div
                   key={person.id}
-                  className="grid grid-cols-[auto_minmax(0,1fr)_minmax(5.5rem,auto)] items-center gap-2 px-3 py-2"
+                  className="grid grid-cols-[auto_minmax(0,1fr)_7.5rem] items-center gap-2 px-3 py-2"
                 >
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--sb-green-100)] text-[10px] font-bold text-[var(--sb-green-900)]">
                     {initials(person.full_name)}
                   </span>
                   <span className="min-w-0">
                     <strong className="flex items-center gap-1 truncate text-xs">
-                      {person.full_name}
+                      <Link
+                        href={`/people/${person.id}`}
+                        prefetch={false}
+                        className="truncate hover:underline focus-visible:underline"
+                      >
+                        {person.full_name}
+                      </Link>
                       {warnedStaff.has(person.id) ? (
                         <AlertTriangle
                           className="h-3.5 w-3.5 shrink-0 text-amber-800"
@@ -966,6 +998,7 @@ export function SchedulePlanner({
                       selected.has(key) &&
                         "ring-2 ring-[var(--sb-green-700)] ring-offset-1",
                     )}
+                    style={tone === "work" ? shiftColourStyle(value) : undefined}
                     aria-label={`${person.full_name}, ${selectedMobileDate}: ${cellLabel(value) || "unassigned"}`}
                   >
                     {cellLabel(value) || "Add"}
@@ -1015,7 +1048,7 @@ export function SchedulePlanner({
             )}
             data-schedule-mobile-actions
           >
-            {editableStatus && canDraft ? (
+            {editableStatus && canDraft && !managerEditing ? (
               <Button
                 size="sm"
                 variant="outline"
@@ -1033,7 +1066,7 @@ export function SchedulePlanner({
                 {busy ? "Saving…" : "Save draft"}
               </Button>
             ) : null}
-            {editableStatus && canSubmit ? (
+            {editableStatus && canSubmit && !managerEditing ? (
               <Button
                 size="sm"
                 disabled={busy || !assignments.length}
@@ -1156,9 +1189,13 @@ export function SchedulePlanner({
                             {initials(person.full_name)}
                           </span>
                           <span className="min-w-0 flex-1">
-                            <span className="block truncate font-semibold">
+                            <Link
+                              href={`/people/${person.id}`}
+                              prefetch={false}
+                              className="block truncate font-semibold hover:underline focus-visible:underline"
+                            >
                               {person.full_name}
-                            </span>
+                            </Link>
                             <span className="block truncate font-normal text-[var(--sb-text)] opacity-70">
                               {person.role_code === "outlet_supervisor"
                                 ? "Supervisor"
@@ -1203,6 +1240,11 @@ export function SchedulePlanner({
                                 selected.has(key) &&
                                   "ring-2 ring-[var(--sb-green-700)] ring-offset-1",
                               )}
+                              style={
+                                tone === "work"
+                                  ? shiftColourStyle(value)
+                                  : undefined
+                              }
                             >
                               {cellLabel(value) || "Add"}
                               {value?.custom_reason &&
@@ -1256,11 +1298,13 @@ export function SchedulePlanner({
         </section>
         <dialog
           ref={customDialog}
+          aria-labelledby="schedule-working-time-title"
           className="fixed left-1/2 top-1/2 m-0 max-h-[calc(100dvh-2rem)] w-[min(32rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-auto rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50"
         >
           <form method="dialog" className="space-y-4 p-4">
             <div>
               <h2
+                id="schedule-working-time-title"
                 ref={customTitle}
                 tabIndex={-1}
                 className="text-base font-semibold focus:outline-none"
@@ -1298,6 +1342,44 @@ export function SchedulePlanner({
                   }))
                 }
               />
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] px-3 py-2 text-xs">
+              <span className="text-muted-foreground">Paid time summary</span>
+              <strong className="tabular-nums">
+                {(
+                  Math.max(
+                    0,
+                    Math.min(
+                      custom.capMinutes,
+                      durationSeconds(
+                        custom.start,
+                        custom.end,
+                        custom.end <= custom.start,
+                      ) /
+                        60 -
+                        custom.breakMinutes,
+                    ),
+                  ) / 60
+                ).toFixed(2).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1")} hours
+              </strong>
+            </div>
+            <div className="flex flex-wrap items-center gap-2" aria-label="Quick non-working assignment">
+              <span className="mr-1 text-xs font-semibold">Quick assign</span>
+              {leavePalette.map((item) => (
+                <Button
+                  key={item.key}
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className={cn("min-w-12", paletteButtonTone(item.tone))}
+                  onClick={() => {
+                    choose(item);
+                    customDialog.current?.close();
+                  }}
+                >
+                  {item.label}
+                </Button>
+              ))}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <label className="grid gap-1 text-xs">
@@ -1502,6 +1584,7 @@ export function SchedulePlanner({
         </dialog>
         <dialog
           ref={decisionDialog}
+          aria-labelledby="schedule-decision-title"
           className="m-auto w-[min(30rem,calc(100vw-2rem))] rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50"
         >
           <form
@@ -1512,7 +1595,7 @@ export function SchedulePlanner({
             }}
           >
             <div>
-              <h2 className="text-base font-semibold">
+              <h2 id="schedule-decision-title" className="text-base font-semibold">
                 {decisionMode === "return"
                   ? "Return schedule to Supervisor"
                   : "Publish corrected schedule"}

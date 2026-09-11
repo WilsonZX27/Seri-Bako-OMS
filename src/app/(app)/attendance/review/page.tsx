@@ -290,9 +290,6 @@ export default async function AttendanceReviewPage({
           <section className="sb-work-surface p-10 text-center">
             <TriangleAlert className="mx-auto h-5 w-5 text-muted-foreground" />
             <p className="mt-2 text-sm font-semibold">Select an outlet to load attendance</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Attendance records stay unloaded until you choose an outlet above.
-            </p>
           </section>
         ) : <section className="sb-work-surface overflow-hidden">
           <header className="flex flex-wrap items-center gap-3 border-b border-[var(--sb-border-soft)] px-4 py-3">
@@ -367,7 +364,7 @@ export default async function AttendanceReviewPage({
                             {Number(row.expected_punch_count ?? 0)}
                           </strong>
                           {Number(row.missing_punch_count ?? 0) > 0 ? (
-                            <span className="block text-[10px] text-amber-800">
+                            <span className="block whitespace-nowrap text-[10px] text-amber-800">
                               {String(row.work_date) >= ATTENDANCE_TRACKING_START_DATE && Number(row.monthly_missing_punch_count ?? 0) >= 4
                                 ? `${Number(row.monthly_missing_punch_count)} missing this month`
                                 : "Missing punch"}
@@ -447,6 +444,13 @@ export default async function AttendanceReviewPage({
                           {Number(row.actual_punch_count ?? 0)} of{" "}
                           {Number(row.expected_punch_count ?? 0)}
                         </dd>
+                        {Number(row.missing_punch_count ?? 0) > 0 ? (
+                          <dd className="whitespace-nowrap text-[10px] text-amber-800">
+                            {String(row.work_date) >= ATTENDANCE_TRACKING_START_DATE && Number(row.monthly_missing_punch_count ?? 0) >= 4
+                              ? `${Number(row.monthly_missing_punch_count)} missing this month`
+                              : "Missing punch"}
+                          </dd>
+                        ) : null}
                       </div>
                       <div>
                         <dt className="text-muted-foreground">Clock in</dt>
@@ -565,7 +569,7 @@ function RowActions({
   href: string;
 }) {
   return (
-    <div className="grid min-w-32 grid-cols-2 gap-1 md:grid-cols-1 [&_button]:font-normal">
+    <div className="grid min-w-32 grid-cols-1 gap-1 [&_button]:font-normal">
       <Button asChild size="sm" variant="ghost" className="w-full justify-start gap-2 bg-transparent px-2 font-normal hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-surface-muted)]">
         <Link href={href}><Eye className="h-4 w-4"/>View details</Link>
       </Button>

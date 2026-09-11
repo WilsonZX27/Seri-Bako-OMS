@@ -3,7 +3,7 @@ import { AlertTriangle, ArrowUpRight, Boxes, CheckCircle2, ClipboardCheck, Clipb
 import { Button } from "@/components/ui/button";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import { formatCurrency, formatNumber } from "@/lib/utils";
+import { cn, formatCurrency, formatNumber } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 import { StatusBadge } from "@/components/ui/status-badge";
 
@@ -62,16 +62,18 @@ function Panel({
   children,
   action,
   dataAttribute,
+  tone = "default",
 }: {
   title: string;
   empty?: string;
   children?: React.ReactNode;
   action?: { href: string; label: string };
   dataAttribute?: string;
+  tone?: "default" | "danger";
 }) {
   return (
-    <section data-dashboard-panel={dataAttribute ?? "true"} className="sb-work-surface overflow-hidden">
-      <div className="flex min-h-10 items-center justify-between gap-2 border-b border-[var(--sb-border-soft)] bg-[var(--sb-green-050)] px-3">
+    <section data-dashboard-panel={dataAttribute ?? "true"} className={cn("sb-work-surface overflow-hidden", tone === "danger" && "border-rose-200 bg-rose-50")}>
+      <div className={cn("flex min-h-10 items-center justify-between gap-2 border-b border-[var(--sb-border-soft)] px-3", tone === "danger" ? "bg-rose-100" : "bg-[var(--sb-green-050)]")}>
         <h2 className="text-sm font-semibold text-[var(--sb-text)]">{title}</h2>
         {action ? (
           <Button asChild variant="ghost" size="sm" className="h-8 px-2 text-[11px]">
@@ -301,7 +303,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
 
         <QuickActionsCluster actions={quickActions} className="hidden lg:block xl:hidden" />
 
-        <Panel title={isKitchen ? "Purchase request progress" : "Actions awaiting you"}>
+        <Panel title={isKitchen ? "Purchase request progress" : "Actions awaiting you"} tone={summary.pendingApprovals.length ? "danger" : "default"}>
           {summary.pendingApprovals.length ? (
             <div className="divide-y divide-[var(--sb-border-soft)]">
               {summary.pendingApprovals.map((row: DashboardSummary["pendingApprovals"][number]) => {

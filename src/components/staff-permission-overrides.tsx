@@ -31,16 +31,29 @@ export function StaffPermissionOverrides({ permissions, canManage, protectedRole
   const resetCategory = () => setOverrides((current) => ({ ...current, ...Object.fromEntries(activePermissions.map((permission) => [permission.id, "inherit"])) }));
 
   return (
-    <RecordSection title="Permission Settings" description="Access follows the role by default. Switch only the exceptions this staff member needs.">
+    <RecordSection
+      title="Permission Settings"
+      description="Access follows the role by default. Switch only the exceptions this staff member needs."
+      action={
+        canManage && !protectedRole ? (
+          <SubmitButton
+            type="submit"
+            form="staff-permissions-form"
+            pendingLabel="Saving permissions..."
+          >
+            Save permissions
+          </SubmitButton>
+        ) : null
+      }
+    >
       <div className="mb-3 flex flex-wrap gap-x-6 gap-y-2 rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-3 py-2 text-xs">
         <span><strong className="mr-1 text-sm text-[var(--sb-text)]">{effectiveCount}</strong>Effective access</span>
         <span><strong className="mr-1 text-sm text-[var(--sb-text)]">{overrideCount}</strong>Overrides</span>
       </div>
       {protectedRole ? <p className="mb-3 border border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] p-2 text-xs text-[var(--sb-warning)]">Super Admin / Owner permissions are protected and cannot be overridden.</p> : null}
       {!canManage ? <p className="mb-3 text-xs text-muted-foreground">You can view effective access but cannot change it.</p> : null}
-      <form action={updateAction} className="space-y-3">
+      <form id="staff-permissions-form" action={updateAction} className="space-y-3">
         {permissions.map((permission) => <input key={permission.id} type="hidden" name={`permission:${permission.id}`} value={overrides[permission.id] ?? "inherit"} />)}
-        {canManage && !protectedRole ? <div className="flex justify-end"><SubmitButton type="submit" pendingLabel="Saving permissions...">Save permissions</SubmitButton></div> : null}
         <div className="grid items-start gap-3 md:grid-cols-[11rem_minmax(0,1fr)]">
           <nav aria-label="Permission categories" className="flex gap-1 overflow-x-auto pb-1 md:flex-col md:overflow-visible">
             {grouped.map((group) => <button key={group.name} type="button" onClick={() => setActiveCategory(group.name)} aria-current={activeCategory === group.name ? "page" : undefined} className={`shrink-0 rounded-[var(--sb-radius-control)] px-3 py-2 text-left text-xs font-semibold transition-colors ${activeCategory === group.name ? "bg-[var(--sb-green-900)] text-white" : "bg-[var(--sb-surface-muted)] text-[var(--sb-text)] hover:bg-[var(--sb-green-50)]"}`}>{group.name} <span className="opacity-70">{group.permissions.length}</span></button>)}

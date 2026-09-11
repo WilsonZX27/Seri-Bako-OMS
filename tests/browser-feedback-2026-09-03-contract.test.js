@@ -25,7 +25,7 @@ test("calendar, settings, review and imports expose direct context instead of hi
   assert.match(filters, /Actual attendance filters/);
   assert.match(filters, /Select outlet/);
   assert.doesNotMatch(filters, /All accessible outlets/);
-  assert.match(review, /Attendance records stay unloaded until you choose an outlet above/);
+  assert.doesNotMatch(review, /Attendance records stay unloaded until you choose an outlet above/);
   const mappings = read("src", "components", "attendance", "mapping-admin.tsx");
   assert.doesNotMatch(mappings, /NGTeco Person ID[\s\S]*OMS employee/);
   assert.match(mappings, /NGTeco Source[\s\S]*Location/);

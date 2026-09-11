@@ -86,7 +86,7 @@ const schema = z.discriminatedUnion("action", [
     branchId: uuid,
     weekStart: date,
     assignments: z.array(assignment).max(1000),
-    expectedUpdatedAt: z.string().datetime().nullable().optional(),
+    expectedUpdatedAt: z.string().datetime({ offset: true }).nullable().optional(),
     comment: z.string().max(1000).optional(),
   }),
   z.object({ action: z.literal("validate"), weekId: uuid }),
@@ -102,7 +102,7 @@ const schema = z.discriminatedUnion("action", [
     branchId: uuid,
     weekStart: date,
     assignments: z.array(assignment).max(1000),
-    expectedUpdatedAt: z.string().datetime(),
+    expectedUpdatedAt: z.string().datetime({ offset: true }),
     reason: z.string().trim().min(1).max(1000),
   }),
   z.object({
@@ -163,6 +163,10 @@ const schema = z.discriminatedUnion("action", [
 ]);
 const scheduleBusinessErrors: Array<[string, string]> = [
   [
+    "Add at least one shift, OFF, leave, public holiday, or off-in-lieu day before submitting.",
+    "Add at least one shift, OFF, leave, public holiday, or off-in-lieu day before submitting.",
+  ],
+  [
     "A roster cannot be submitted without assignments.",
     "Add at least one shift, OFF, leave, public holiday, or emergency leave day before submitting.",
   ],
@@ -179,12 +183,24 @@ const scheduleBusinessErrors: Array<[string, string]> = [
     "You do not have permission to submit this outlet schedule.",
   ],
   [
+    "You do not have permission to submit this outlet schedule.",
+    "You do not have permission to submit this outlet schedule.",
+  ],
+  [
     "Inactive staff cannot be scheduled.",
     "Remove inactive staff assignments before submitting.",
   ],
   [
+    " is inactive and must be removed before submission.",
+    "One or more employees are inactive. Remove their assignments before submitting.",
+  ],
+  [
     "Cross-branch schedule collision detected.",
     "Resolve the employee's same-day assignment at another outlet before submitting.",
+  ],
+  [
+    " has another outlet shift on ",
+    "An employee already has a shift at another outlet on the same day. Resolve the conflicting assignment before submitting.",
   ],
   [
     "A roster submitter cannot approve their own roster.",
@@ -209,6 +225,10 @@ const scheduleBusinessErrors: Array<[string, string]> = [
   [
     "Only an editable roster may be submitted.",
     "Only a Draft, Returned, Rejected, or Amendment Pending roster can be submitted.",
+  ],
+  [
+    "Only a Draft, Returned, Rejected, or Amendment Pending schedule can be submitted.",
+    "Only a Draft, Returned, Rejected, or Amendment Pending schedule can be submitted.",
   ],
   [
     "This schedule week is not editable.",

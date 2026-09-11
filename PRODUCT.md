@@ -1,3 +1,11 @@
+### v9.2.58 (deployed) — Operational quality closure
+
+- Hydration-sensitive selection controls remain inert until the client owns them, preserving server/client geometry and preventing first-paint action races.
+- Phone purchase-request lines use equal Quantity/UOM tracks with a token-sized action column, and dense operational tables switch to touch-first lists below `xl`.
+- Production UAT on the custom domain completed a real Schedule Draft → Submitted → Published flow for Kwan Kee Store @ Mid Valley; the persisted OFF assignment and Published state survived reload.
+
+Repository migrations are reviewed through `281`. The final tree passed 1,235/1,235 contracts, lint, strict typecheck, the 102-route Production build and local `V9_SCHEMA_OK`; Production runtime logs recorded both Schedule mutation requests as HTTP 200. Native Supabase log review was unavailable because the dashboard session was signed out and the CLI transport failed, while Vercel retained only the most recent hour.
+
 ### v9.2.57 (deployed) — Attendance stability and weekly roster refinement
 
 - Imported raw punches remain visible as explicit unscheduled evidence until a roster exists; publishing a later schedule recalculates the immutable batch into a new Attendance result revision.

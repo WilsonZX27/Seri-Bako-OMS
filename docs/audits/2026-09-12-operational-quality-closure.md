@@ -1,6 +1,6 @@
 # OMS v9.2.58 operational quality closure
 
-Status: release candidate under verification
+Status: deployed and authenticated Production UAT complete
 Scope: UI consistency, hydration safety, responsive geometry, permissions, performance, Attendance stability, documentation and Production UAT.
 
 ## Product decisions preserved
@@ -28,4 +28,7 @@ Scope: UI consistency, hydration safety, responsive geometry, permissions, perfo
 ## Evidence boundary
 
 - Current local evidence includes 1,235/1,235 contract tests, lint, strict typecheck, a 102-route Production build, local schema `V9_SCHEMA_OK`, broad responsive route audits, role permissions and real mutation workflows.
-- Final commit, push, linked migration check, deployment, 24-hour log review and post-deploy Production UAT remain pending until the candidate gates are rerun from the final tree.
+- Commits `06f25095` and `0926f3e5` were fast-forwarded to `main`; Vercel reported the Production deployment Ready and the custom domain rendered `v9.2.58`.
+- Authenticated Owner UAT used Kwan Kee Store @ Mid Valley for 2026-09-07 through 2026-09-13: an OFF assignment was saved by Submit, survived reload in Submitted state, then was approved and survived a second reload in Published state.
+- The two corresponding `POST /api/attendance/schedule` requests returned HTTP 200; the surrounding Production page reads also returned HTTP 200.
+- A complete 24-hour runtime-log claim is not possible on the current Vercel plan because the dashboard reports a one-hour maximum retention window. Native Supabase logs also remain unverified: the browser required sign-in and the CLI failed at the Management API transport boundary. These observability limits do not invalidate the successful mutation and persisted-state evidence, but they remain an operations follow-up.

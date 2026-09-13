@@ -28,8 +28,7 @@ except ModuleNotFoundError as error:
     raise SystemExit("openpyxl is required. Install scripts/attendance/requirements.txt first.") from error
 
 
-WEEK_START = dt.date(2026, 8, 31)
-WEEK_END = dt.date(2026, 9, 6)
+DEFAULT_WEEK_START = dt.date(2026, 8, 31)
 SHEET_BRANCHES = {
     "GURNEY PLAZA": "Gurney Plaza",
     "QUEENSBAY": "Queensbay Mall",
@@ -65,12 +64,11 @@ def hhmm(value: object) -> str | None:
     return None
 
 
-def date_for_header(value: object) -> dt.date | None:
+def day_for_header(value: object) -> int | None:
     if not isinstance(value, (int, float)):
         return None
     day = int(value)
-    candidate = dt.date(2026, 8 if day == 31 else 9, day)
-    return candidate if WEEK_START <= candidate <= WEEK_END else None
+    return day if 1 <= day <= 31 else None
 
 
 def duration_minutes(start: str, end: str) -> int:
@@ -93,7 +91,10 @@ def current_signature(row: dict) -> tuple:
     )
 
 
-def parse(workbook_path: Path, catalog: dict) -> dict:
+def parse(workbook_path: Path, catalog: dict, week_start: dt.date = DEFAULT_WEEK_START) -> dict:
+    if week_start.weekday() != 0:
+        raise ValueError("week_start must be a Monday")
+    week_end = week_start + dt.timedelta(days=6)
     workbook = openpyxl.load_workbook(workbook_path, data_only=True)
     branch_by_name = {key(row.get("name")): row for row in catalog.get("branches", [])}
     staff_by_name = defaultdict(list)
@@ -126,13 +127,13 @@ def parse(workbook_path: Path, catalog: dict) -> dict:
             unresolved.append({"sheet": sheet_name, "outlet": canonical_name, "reason": "published_or_locked_week"})
 
         date_row = max(range(1, 4), key=lambda row: sum(isinstance(sheet.cell(row, column).value, (int, float)) for column in range(3, sheet.max_column + 1, 2)))
-        all_date_columns = [(column, date_for_header(sheet.cell(date_row, column).value)) for column in range(3, sheet.max_column + 1, 2)]
-        expected_dates = [WEEK_START + dt.timedelta(days=index) for index in range(7)]
+        all_date_columns = [(column, day_for_header(sheet.cell(date_row, column).value)) for column in range(3, sheet.max_column + 1, 2)]
+        expected_dates = [week_start + dt.timedelta(days=index) for index in range(7)]
         date_columns: list[tuple[int, dt.date]] = []
         for index in range(0, len(all_date_columns) - 6):
             candidate = all_date_columns[index:index + 7]
-            if [value for _, value in candidate] == expected_dates:
-                date_columns = [(column, value) for column, value in candidate if value is not None]
+            if [value for _, value in candidate] == [value.day for value in expected_dates]:
+                date_columns = [(column, expected_dates[offset]) for offset, (column, _) in enumerate(candidate)]
                 break
         if [work_date for _, work_date in date_columns] != expected_dates:
             unresolved.append({"sheet": sheet_name, "reason": "date_window_mismatch", "dates": [str(value) for _, value in date_columns]})
@@ -193,7 +194,7 @@ def parse(workbook_path: Path, catalog: dict) -> dict:
         differences = []
         if branch:
             proposed = {(str(branch["id"]), str(row["staff_id"]), row["work_date"]): row for row in assignments}
-            relevant_current = {k: v for k, v in current.items() if k[0] == str(branch["id"]) and WEEK_START.isoformat() <= k[2] <= WEEK_END.isoformat()}
+            relevant_current = {k: v for k, v in current.items() if k[0] == str(branch["id"]) and week_start.isoformat() <= k[2] <= week_end.isoformat()}
             for assignment_key in sorted(set(proposed) | set(relevant_current)):
                 before, after = relevant_current.get(assignment_key), proposed.get(assignment_key)
                 if before is None or after is None or current_signature(before) != current_signature(after):
@@ -210,8 +211,8 @@ def parse(workbook_path: Path, catalog: dict) -> dict:
         "mode": "dry-run",
         "source_file": workbook_path.name,
         "source_sha256": hashlib.sha256(workbook_path.read_bytes()).hexdigest(),
-        "week_start": str(WEEK_START),
-        "week_end": str(WEEK_END),
+        "week_start": str(week_start),
+        "week_end": str(week_end),
         "worksheets": len(workbook.sheetnames),
         "outlets": outlet_reports,
         "totals": {"parseable_cells": parsed_cells, "matched_assignments": matched_cells, "candidate_cells": total_cells, "match_rate": round(matched_cells / total_cells, 4) if total_cells else 0, "unresolved": len(unresolved)},
@@ -225,14 +226,18 @@ def parse(workbook_path: Path, catalog: dict) -> dict:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Dry-run the fixed 31 Aug-6 Sep 2026 OMS schedule workbook import.")
+    parser = argparse.ArgumentParser(description="Dry-run one Monday-Sunday window from an OMS schedule workbook.")
     parser.add_argument("workbook", type=Path)
+    parser.add_argument("--week-start", type=dt.date.fromisoformat, default=DEFAULT_WEEK_START, help="Monday in YYYY-MM-DD format (default: 2026-08-31)")
     parser.add_argument("--catalog", type=Path, help="Canonical branch/staff/current-assignment JSON export")
     parser.add_argument("--output", type=Path, help="Write the full JSON report")
     args = parser.parse_args()
     if not args.workbook.is_file():
         parser.error(f"Workbook not found: {args.workbook}")
-    report = parse(args.workbook, load_catalog(args.catalog))
+    try:
+        report = parse(args.workbook, load_catalog(args.catalog), args.week_start)
+    except ValueError as error:
+        parser.error(str(error))
     encoded = json.dumps(report, ensure_ascii=False, indent=2, default=str)
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)

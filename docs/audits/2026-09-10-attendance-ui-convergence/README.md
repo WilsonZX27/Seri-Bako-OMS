@@ -10,7 +10,7 @@ Scope: attendance browser comments, the 31 August–6 September 2026 schedule wo
 - Schedule template dropdown, AM/PM Working Time controls, approved-RO balance and edge choice, actual-OT claim route, atomic submit, audited Manager edit-and-publish and mandatory return reason.
 - Attendance Settings prioritises Device Source mapping and collapses Holiday/Pay and Shift Template administration into compact maintenance sections.
 - People Documents uses a desktop list/add split and mobile stacking; permission save sits before the permission matrix.
-- Strict workbook parser, catalog endpoint, idempotent Draft-import RPC and immutable Published/Locked guard.
+- Strict Monday-Sunday workbook parser, catalog endpoint, idempotent Draft-import RPC and immutable Published/Locked guard. The parser accepts an explicit `--week-start`, so adjacent weeks are reconciled independently instead of being merged into one opaque import.
 
 ## Workbook dry-run boundary
 

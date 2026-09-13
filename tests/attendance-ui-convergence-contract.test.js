@@ -78,10 +78,11 @@ test("business UI cannot add native selects outside the legacy wrapper", () => {
   assert.deepEqual(offenders, []);
 });
 
-test("workbook importer is fixed to the approved week and fails closed", () => {
+test("workbook importer accepts an explicit Monday window and fails closed", () => {
   for (const contract of [
-    "2026, 8, 31",
-    "2026, 9, 6",
+    "DEFAULT_WEEK_START",
+    '"--week-start"',
+    "week_start must be a Monday",
     "CLEAR OT",
     "RESIGN",
     "LATE",

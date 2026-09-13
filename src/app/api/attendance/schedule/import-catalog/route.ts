@@ -23,7 +23,7 @@ export async function GET(request: Request) {
     const latest = new Map<string, { id: string; status: string }>();
     for (const row of (weekResult.data ?? []) as Array<{ id: string; branch_id: string; status: string }>) if (!latest.has(row.branch_id)) latest.set(row.branch_id, row);
     const weekIds = [...latest.values()].map((row) => row.id);
-    const assignmentResult = weekIds.length ? await db.from("shift_assignment_revisions").select("schedule_week_id,staff_id,work_date,assignment_kind,shift_template_id,custom_start,custom_end,custom_crosses_midnight,custom_break_seconds,custom_maximum_recognised_seconds").in("schedule_week_id", weekIds).eq("is_current", true) : { data: [], error: null };
+    const assignmentResult = weekIds.length ? await db.from("shift_assignment_revisions").select("schedule_week_id,staff_id,work_date,assignment_kind,shift_template_id,custom_start,custom_end,custom_crosses_midnight,custom_break_seconds,custom_maximum_recognised_seconds,work_site_label").in("schedule_week_id", weekIds).eq("is_current", true) : { data: [], error: null };
     if (assignmentResult.error) throw assignmentResult.error;
     const staff: Array<{ id: string; name: string; branch_id: string }> = [];
     for (const branch of branches) {

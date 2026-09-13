@@ -87,7 +87,7 @@ def current_signature(row: dict) -> tuple:
     return (
         row.get("assignment_kind"), row.get("custom_start"), row.get("custom_end"),
         row.get("shift_template_id"), row.get("custom_break_seconds"),
-        row.get("custom_maximum_recognised_seconds"),
+        row.get("custom_maximum_recognised_seconds"), row.get("work_site_label"),
     )
 
 
@@ -145,18 +145,18 @@ def parse(workbook_path: Path, catalog: dict, week_start: dt.date = DEFAULT_WEEK
             employee_name = clean(sheet.cell(row_number, 1).value)
             if not employee_name or key(employee_name) == "remark":
                 break
-            candidates = staff_by_name.get(key(employee_name), [])
+            candidates = list({str(row.get("id")): row for row in staff_by_name.get(key(employee_name), [])}.values())
             if branch:
                 same_branch = [row for row in candidates if str(row.get("branch_id")) == str(branch.get("id"))]
             else:
                 same_branch = []
-            staff = same_branch[0] if len(same_branch) == 1 else None
+            staff = same_branch[0] if len(same_branch) == 1 else candidates[0] if len(candidates) == 1 else None
             if staff is None:
-                reason = "cross_outlet_employee" if candidates and not same_branch else "employee_not_found" if not candidates else "ambiguous_employee"
+                reason = "employee_not_found" if not candidates else "ambiguous_employee"
                 issue = {"sheet": sheet_name, "row": row_number, "employee": employee_name, "reason": reason}
                 unresolved.append(issue)
-                if reason == "cross_outlet_employee":
-                    cross_store.append(issue)
+            elif branch and str(staff.get("branch_id")) != str(branch.get("id")):
+                cross_store.append({"sheet": sheet_name, "row": row_number, "employee": employee_name, "staff_id": staff.get("id"), "home_branch_id": staff.get("branch_id"), "destination_branch_id": branch.get("id"), "reason": "cross_outlet_employee"})
 
             for column, work_date in date_columns:
                 first = sheet.cell(row_number, column).value

@@ -88,6 +88,8 @@ test("workbook importer accepts an explicit Monday window and fails closed", () 
     "LATE",
     "suspicious_time_span",
     "published_or_locked_week",
+    "cross_outlet_employee",
+    "work_site_label",
     "source_sha256",
     "ready_for_authenticated_draft_import",
   ])
@@ -95,6 +97,7 @@ test("workbook importer accepts an explicit Monday window and fails closed", () 
   assert.match(migration, /unique\(company_id,week_start,file_hash\)/);
   assert.match(migration, /Published or locked schedules cannot be replaced/);
   assert.match(migration, /p_unresolved_count<>0/);
+  assert.match(read("src/app/api/attendance/schedule/import-catalog/route.ts"), /work_site_label/);
 });
 
 test("staff detail leads with the profile and removes the redundant helper paragraph", () => {

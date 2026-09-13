@@ -1,3 +1,13 @@
+### v9.2.59 (unreleased) — Roster integrity closure
+
+- Full-time home-outlet staff now require an explicit assignment for every day before submission. A canonical shift already submitted or published by another outlet resolves that day without duplicating the shift or disguising it as OFF.
+- Home rosters show cross-outlet shifts as read-only `At [outlet]` projections. Borrowed staff are added from the company roster and only their actual destination shift days count toward that outlet. Central Kitchen is available as a real roster location; an optional bounded work-site label records Event or temporary sites without creating a fake branch or granting branch permissions.
+- Publishing requires an explicit confirmation. Published, unlocked schedules can be corrected and republished by an authorised Manager with a mandatory reason, immutable assignment revisions, approval history and Attendance recalculation; locked Attendance periods remain protected.
+- Phone Schedule actions use the attached shared bottom-action pattern, the seven-day strip has deliberate spacing, and the desktop Add employee control remains pinned to the employee column.
+- Outlet Daily phone rows use bounded Qty sent, Received and Wastage fields; Outlet Calendar exposes its urgent list below the calendar on phones; device mappings use a denser mobile action layout; Attendance replaces ambiguous `Posted` with `Calculated` in result context.
+
+Repository migrations reviewed through `282`. Local verification, linked migration application, deployment, authenticated UAT and Production verification remain separate evidence.
+
 ### v9.2.58 (deployed) — Operational quality closure
 
 - Hydration-sensitive selection controls remain inert until the client owns them, preserving server/client geometry and preventing first-paint action races.

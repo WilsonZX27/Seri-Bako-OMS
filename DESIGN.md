@@ -1,3 +1,10 @@
+## v9.2.59 (unreleased) — Roster integrity closure
+
+- A shift has one owning outlet roster. A home-outlet planner may render an authorised, read-only `At [outlet]` projection, but it never clones the assignment or credits coverage to the origin outlet.
+- Missing full-time staff days are planning errors with employee-and-date feedback. OFF and leave remain real dispositions and are never used to represent a transfer.
+- Publish is a confirmed boundary. Published schedules remain correctable until Attendance is locked; every correction requires a reason and produces immutable assignment and approval evidence.
+- Mobile workflow actions attach edge-to-edge to the safe-area bottom. Compact operational rows use bounded grids, direct labels and truncation rather than allowing long fallback prose to squeeze identity.
+
 ## v9.2.58 (deployed) — Operational quality closure
 
 - Hydration-sensitive selection controls render inert until the client owns them; native form and chart controls keep identical server/client geometry and expose deterministic readiness to E2E.

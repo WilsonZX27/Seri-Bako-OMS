@@ -57,10 +57,19 @@ type Assignment = {
   custom_break_seconds?: number | null;
   custom_maximum_recognised_seconds?: number | null;
   custom_reason?: string | null;
+  work_site_label?: string | null;
   ro_minutes?: number | null;
   ro_original_start?: string | null;
   ro_original_end?: string | null;
   ro_direction?: string | null;
+};
+type ExternalAssignment = {
+  staff_id: string;
+  work_date: string;
+  branch_id: string;
+  branch_name: string;
+  planned_start: string;
+  planned_end: string;
 };
 type Week = { id: string; status: string; updated_at?: string } | null;
 type Palette = {
@@ -183,6 +192,7 @@ export function SchedulePlanner({
   candidates,
   templates,
   initialAssignments,
+  externalAssignments = [],
   roBalances = {},
   canDraft,
   canSubmit,
@@ -202,6 +212,7 @@ export function SchedulePlanner({
   candidates: Person[];
   templates: Template[];
   initialAssignments: Assignment[];
+  externalAssignments?: ExternalAssignment[];
   roBalances?: Record<string, number>;
   canDraft: boolean;
   canSubmit: boolean;
@@ -223,6 +234,7 @@ export function SchedulePlanner({
     [initialAssignments],
   );
   const [cells, setCells] = useState<Map<string, Assignment>>(initial);
+  const externalCells = useMemo(() => new Map(externalAssignments.map((item) => [`${item.staff_id}:${item.work_date}`, item])), [externalAssignments]);
   const [visiblePersonIds, setVisiblePersonIds] = useState(() => new Set(people.map((person) => person.id)));
   const rosterPeople = candidates.filter((person) => visiblePersonIds.has(person.id));
   const availablePeople = candidates.filter((person) => !visiblePersonIds.has(person.id));
@@ -235,7 +247,7 @@ export function SchedulePlanner({
   const [dirty, setDirty] = useState(false),
     [busyAction, setBusyAction] = useState<string | null>(null),
     [managerEditing, setManagerEditing] = useState(false),
-    [decisionMode, setDecisionMode] = useState<"return" | "edit" | null>(null),
+    [decisionMode, setDecisionMode] = useState<"approve" | "return" | "edit" | null>(null),
     [message, setMessage] = useState(
       people.length
         ? "Choose an assignment, then select staff days."
@@ -248,6 +260,7 @@ export function SchedulePlanner({
     breakMinutes: 60,
     capMinutes: 510,
     comment: "",
+    workSiteLabel: "",
     templateId: null as string | null,
     originalStart: "08:00",
     originalEnd: "16:30",
@@ -313,6 +326,7 @@ export function SchedulePlanner({
             custom_break_seconds: custom.breakMinutes * 60,
             custom_maximum_recognised_seconds: custom.capMinutes * 60,
             custom_reason: custom.comment.trim() || "Outlet roster custom time",
+            work_site_label: custom.workSiteLabel.trim() || null,
           }
         : {}),
     };
@@ -338,6 +352,10 @@ export function SchedulePlanner({
   }
   function clickCell(key: string, event: React.MouseEvent) {
     if (!editableStatus || !canDraft) return;
+    if (externalCells.has(key)) {
+      setMessage("This shift is owned by another outlet. Open that outlet schedule to change it.");
+      return;
+    }
     if (event.shiftKey || event.ctrlKey || event.metaKey) {
       setSelected((current) => {
         const next = new Set(current);
@@ -392,6 +410,7 @@ export function SchedulePlanner({
           existing.custom_reason === "Outlet roster custom time"
             ? ""
             : (existing.custom_reason ?? ""),
+        workSiteLabel: existing.work_site_label ?? "",
         templateId: existing.shift_template_id,
         originalStart,
         originalEnd,
@@ -405,6 +424,7 @@ export function SchedulePlanner({
       setCustom((value) => ({
         ...value,
         comment: "",
+        workSiteLabel: "",
         templateId: null,
         roMinutes: 0,
         roDirection: "late_start",
@@ -547,7 +567,7 @@ export function SchedulePlanner({
     const start = value.custom_start ?? template?.planned_start,
       end = value.custom_end ?? template?.planned_end;
     return start && end
-      ? `${formatAttendanceTime(start)}–${formatAttendanceTime(end)}${value.ro_minutes ? ` · RO ${value.ro_minutes / 60}h` : ""}`
+      ? `${value.work_site_label ? `${value.work_site_label} · ` : ""}${formatAttendanceTime(start)}–${formatAttendanceTime(end)}${value.ro_minutes ? ` · RO ${value.ro_minutes / 60}h` : ""}`
       : "Shift";
   };
   const cellTone = (value?: Assignment) =>
@@ -564,15 +584,17 @@ export function SchedulePlanner({
       week.status,
     ) ||
     managerEditing;
-  function openDecision(mode: "return" | "edit") {
+  function openDecision(mode: "approve" | "return" | "edit") {
     setDecisionMode(mode);
     decisionDialog.current?.showModal();
   }
   async function submitDecision(form: HTMLFormElement) {
     if (!week || !decisionMode) return;
     const reason = String(new FormData(form).get("reason") ?? "").trim();
-    if (!reason) return;
-    if (decisionMode === "return")
+    if (decisionMode !== "approve" && !reason) return;
+    if (decisionMode === "approve")
+      await action({ action: "decide", weekId: week.id, decision: "approve" });
+    else if (decisionMode === "return")
       await action({
         action: "decide",
         weekId: week.id,
@@ -656,13 +678,7 @@ export function SchedulePlanner({
                 size="sm"
                 disabled={busyAction !== null}
                 data-mobile-primary-action
-                onClick={() =>
-                  void action({
-                    action: "decide",
-                    weekId: week.id,
-                    decision: "approve",
-                  })
-                }
+                onClick={() => openDecision("approve")}
               >
                 {busyAction === "decide" ? "Publishing…" : "Approve & publish"}
               </Button>
@@ -717,6 +733,11 @@ export function SchedulePlanner({
                 Cancel corrections
               </Button>
             </>
+          ) : null}
+          {canApprove && week?.status === "published" && !managerEditing ? (
+            <Button className="w-full justify-start" size="sm" variant="outline" disabled={busyAction !== null} onClick={() => { setManagerEditing(true); setMessage("Published correction mode is active. Changes require a reason and create an audit revision."); }}>
+              <Pencil className="h-4 w-4" /> Correct published schedule
+            </Button>
           ) : null}
           {!editableStatus && week?.status !== "submitted" ? (
             <p className="text-xs text-muted-foreground">
@@ -923,7 +944,7 @@ export function SchedulePlanner({
           className="overflow-hidden border-y border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)] md:hidden"
           data-schedule-mobile-day
         >
-          <div className="grid grid-cols-7 border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] p-1">
+          <div className="grid grid-cols-7 gap-1 border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-2 py-1.5">
             {dates.map((date) => {
               const values = rosterPeople.map((person) =>
                 cells.get(`${person.id}:${date}`),
@@ -931,7 +952,7 @@ export function SchedulePlanner({
               const staff = values.filter(
                 (value) => value?.assignment_kind === "shift",
               ).length;
-              const complete = values.length > 0 && values.every(Boolean);
+              const complete = values.length > 0 && rosterPeople.every((person) => Boolean(cells.get(`${person.id}:${date}`) ?? externalCells.get(`${person.id}:${date}`)));
               return (
                 <button
                   key={date}
@@ -965,6 +986,7 @@ export function SchedulePlanner({
             {rosterPeople.map((person) => {
               const key = `${person.id}:${selectedMobileDate}`,
                 value = cells.get(key),
+                external = externalCells.get(key),
                 tone = cellTone(value),
                 weekly = dates.reduce(
                   (sum, date) =>
@@ -1004,7 +1026,7 @@ export function SchedulePlanner({
                   </span>
                   <button
                     type="button"
-                    disabled={!editableStatus || !canDraft}
+                    disabled={!editableStatus || !canDraft || Boolean(external)}
                     onClick={(event) => clickCell(key, event)}
                     className={cn(
                       "relative min-h-11 w-full rounded-[var(--sb-radius-control)] border px-2 text-[11px] font-semibold",
@@ -1028,9 +1050,9 @@ export function SchedulePlanner({
                         "ring-2 ring-[var(--sb-green-700)] ring-offset-1",
                     )}
                     style={tone === "work" ? shiftColourStyle(value) : undefined}
-                    aria-label={`${person.full_name}, ${selectedMobileDate}: ${cellLabel(value) || "unassigned"}`}
+                    aria-label={`${person.full_name}, ${selectedMobileDate}: ${external ? `working at ${external.branch_name}` : cellLabel(value) || "unassigned"}`}
                   >
-                    {cellLabel(value) || "Add"}
+                    {external ? <><span className="block truncate">At {external.branch_name}</span><span className="block text-[9px] font-normal opacity-75">{formatAttendanceTime(external.planned_start)}–{formatAttendanceTime(external.planned_end)}</span></> : cellLabel(value) || "Add"}
                     {value?.custom_reason &&
                     value.custom_reason !== "Outlet roster custom time" ? (
                       <MessageSquareText
@@ -1042,7 +1064,7 @@ export function SchedulePlanner({
                 </div>
               );
             })}
-            {editableStatus && canDraft && availablePeople.length ? <div className="px-3 py-2"><SelectControl ariaLabel="Add employee to this outlet week" value="none" onValueChange={(id) => { if (id !== "none") setVisiblePersonIds((current) => new Set(current).add(id)); }} options={[{value:"none",label:"+ Add employee for this week"},...availablePeople.map((person)=>({value:person.id,label:person.full_name}))]} searchable searchPlaceholder="Search company employees" /></div> : null}
+            {editableStatus && canDraft && availablePeople.length ? <div className="px-3 py-2"><SelectControl ariaLabel="Add employee to this outlet week" value="none" onValueChange={(id) => { if (id !== "none") { setVisiblePersonIds((current) => new Set(current).add(id)); setMessage("Employee added. Assign only the days worked at this outlet; other days remain with their home roster."); } }} options={[{value:"none",label:"+ Add employee for this week"},...availablePeople.map((person)=>({value:person.id,label:person.full_name}))]} searchable searchPlaceholder="Search company employees" /></div> : null}
           </div>
           <div className="flex items-center justify-between bg-[var(--sb-surface-muted)] px-3 py-2 text-xs">
             <strong>Daily coverage</strong>
@@ -1071,7 +1093,7 @@ export function SchedulePlanner({
         (canApprove && week?.status === "submitted") ? (
           <section
             className={cn(
-              "grid gap-2 rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)] p-2 md:hidden",
+              "grid gap-2 bg-white p-2 md:hidden",
               canApprove && week?.status === "submitted" && !managerEditing
                 ? "grid-cols-[minmax(0,1fr)_3rem_3rem]"
                 : "grid-cols-2",
@@ -1112,13 +1134,7 @@ export function SchedulePlanner({
                   size="sm"
                   className="col-span-1"
                   disabled={busyAction !== null}
-                  onClick={() =>
-                    void action({
-                      action: "decide",
-                      weekId: week.id,
-                      decision: "approve",
-                    })
-                  }
+                  onClick={() => openDecision("approve")}
                 >
                   {busyAction === "decide" ? "Publishing…" : "Approve & publish"}
                 </Button>
@@ -1171,6 +1187,11 @@ export function SchedulePlanner({
                   Cancel
                 </Button>
               </>
+            ) : null}
+            {canApprove && week?.status === "published" && !managerEditing ? (
+              <Button size="sm" variant="outline" className="col-span-2" disabled={busyAction !== null} onClick={() => { setManagerEditing(true); setMessage("Published correction mode is active. Changes require a reason and create an audit revision."); }}>
+                <Pencil className="h-4 w-4" /> Correct published schedule
+              </Button>
             ) : null}
           </section>
         ) : null}
@@ -1242,14 +1263,15 @@ export function SchedulePlanner({
                       {dates.map((date) => {
                         const key = `${person.id}:${date}`,
                           value = cells.get(key),
+                          external = externalCells.get(key),
                           tone = cellTone(value);
                         return (
                           <td key={date} className="border-b border-r p-1">
                             <button
                               type="button"
-                              disabled={!editableStatus || !canDraft}
+                              disabled={!editableStatus || !canDraft || Boolean(external)}
                               onClick={(event) => clickCell(key, event)}
-                              aria-label={`${person.full_name}, ${date}: ${cellLabel(value) || "unassigned"}`}
+                              aria-label={`${person.full_name}, ${date}: ${external ? `working at ${external.branch_name}` : cellLabel(value) || "unassigned"}`}
                               className={cn(
                                 "relative h-11 w-full rounded-[var(--sb-radius-control)] border px-1.5 text-xs font-semibold transition-colors disabled:cursor-default",
                                 tone === "empty" &&
@@ -1277,7 +1299,7 @@ export function SchedulePlanner({
                                   : undefined
                               }
                             >
-                              {cellLabel(value) || "Add"}
+                              {external ? <><span className="block truncate">At {external.branch_name}</span><span className="block text-[9px] font-normal opacity-75">{formatAttendanceTime(external.planned_start)}–{formatAttendanceTime(external.planned_end)}</span></> : cellLabel(value) || "Add"}
                               {value?.custom_reason &&
                               value.custom_reason !==
                                 "Outlet roster custom time" ? (
@@ -1293,7 +1315,7 @@ export function SchedulePlanner({
                     </tr>
                   );
                 })}
-                {editableStatus && canDraft && availablePeople.length ? <tr><th className="sticky left-0 z-10 border-b border-r bg-white px-3 py-2 text-left" colSpan={8}><div className="max-w-sm"><SelectControl ariaLabel="Add employee to this outlet week" value="none" onValueChange={(id) => { if (id !== "none") setVisiblePersonIds((current) => new Set(current).add(id)); }} options={[{value:"none",label:"+ Add employee for this week"},...availablePeople.map((person)=>({value:person.id,label:person.full_name}))]} searchable searchPlaceholder="Search company employees" /></div></th></tr> : null}
+                {editableStatus && canDraft && availablePeople.length ? <tr><th className="sticky left-0 z-20 border-b border-r bg-white px-3 py-2 text-left"><SelectControl ariaLabel="Add employee to this outlet week" value="none" onValueChange={(id) => { if (id !== "none") { setVisiblePersonIds((current) => new Set(current).add(id)); setMessage("Employee added. Assign only the days worked at this outlet; other days remain with their home roster."); } }} options={[{value:"none",label:"+ Add employee for this week"},...availablePeople.map((person)=>({value:person.id,label:person.full_name}))]} searchable searchPlaceholder="Search company employees" /></th><td colSpan={7} className="border-b bg-[var(--sb-surface-muted)] px-3 py-2 text-[11px] text-muted-foreground">Borrowed staff belong to this outlet only on assigned shift days.</td></tr> : null}
               </tbody>
               <tfoot>
                 <tr>
@@ -1377,6 +1399,10 @@ export function SchedulePlanner({
                 }
               />
             </div>
+            <label className="grid gap-1 text-xs">
+              Work location <span className="font-normal text-muted-foreground">(optional for event or temporary site)</span>
+              <Input value={custom.workSiteLabel} maxLength={120} onChange={(event) => setCustom((value) => ({ ...value, workSiteLabel: event.target.value }))} placeholder="Example: Event Bukit Jalil" />
+            </label>
             <div className="flex items-center justify-between gap-3 rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] px-3 py-2 text-xs">
               <span className="text-muted-foreground">Scheduled span · compared with 8.5h</span>
               <strong className="tabular-nums">
@@ -1575,6 +1601,7 @@ export function SchedulePlanner({
                           custom_reason:
                             custom.comment.trim() ||
                             "Outlet roster custom time",
+                          work_site_label: custom.workSiteLabel.trim() || null,
                           ro_minutes: custom.roMinutes || null,
                           ro_original_start: custom.roMinutes
                             ? custom.originalStart
@@ -1619,17 +1646,17 @@ export function SchedulePlanner({
           >
             <div>
               <h2 id="schedule-decision-title" className="text-base font-semibold">
-                {decisionMode === "return"
-                  ? "Return schedule to Supervisor"
-                  : "Publish corrected schedule"}
+                {decisionMode === "approve" ? "Publish this schedule?" : decisionMode === "return" ? "Return schedule to Supervisor" : "Publish corrected schedule"}
               </h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                {decisionMode === "return" && submittedByName
+                {decisionMode === "approve"
+                  ? `This will publish ${assignments.length} staff-day assignments. Confirm that every full-time employee day is resolved.`
+                  : decisionMode === "return" && submittedByName
                   ? `This roster will return to ${submittedByName}. Add a clear reason for the correction.`
                   : "The reason and your identity will remain in the schedule audit history."}
               </p>
             </div>
-            <label className="grid gap-1 text-xs font-medium">
+            {decisionMode !== "approve" ? <label className="grid gap-1 text-xs font-medium">
               Reason
               <textarea
                 name="reason"
@@ -1639,7 +1666,7 @@ export function SchedulePlanner({
                 maxLength={1000}
                 className="rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] px-3 py-2 text-sm"
               />
-            </label>
+            </label> : null}
             {actionFeedback ? (
               <p
                 role="alert"
@@ -1657,9 +1684,7 @@ export function SchedulePlanner({
                 Cancel
               </Button>
               <Button disabled={busyAction !== null}>
-                {decisionMode === "return"
-                  ? "Return schedule"
-                  : "Publish changes"}
+                {decisionMode === "approve" ? "Confirm & publish" : decisionMode === "return" ? "Return schedule" : "Publish changes"}
               </Button>
             </div>
           </form>

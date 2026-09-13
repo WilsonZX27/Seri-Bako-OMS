@@ -11,7 +11,8 @@ test("outlet daily rows retain the next operational step and wastage signal on p
 
   assert.match(source, /outletProgress\(row\)/);
   assert.match(source, /row\.total_wastage > 0/);
-  assert.match(source, /formatNumber\(row\.total_received\)\} received/);
+  assert.match(source, /Received<\/dt>/);
+  assert.match(source, /formatNumber\(row\.total_received\)/);
 });
 
 test("production jobs use the shared workspace status rail and reserve shared FAB clearance", () => {

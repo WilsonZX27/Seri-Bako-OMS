@@ -3,7 +3,7 @@ import { AlertTriangle, CircleCheck, CircleX, FilePenLine, Landmark, PackageChec
 import { formatStatusLabel } from "@/lib/status-label";
 import { cn } from "@/lib/utils";
 
-export function StatusBadge({ status, className }: { status: string; className?: string }) {
+export function StatusBadge({ status, className, label }: { status: string; className?: string; label?: string }) {
   const normalized = status.toLowerCase();
   const workflowTone: Record<string, string> = {
     manager_review: "border-[#E8DCF7] bg-[#F3EDFA] text-[#684095]",
@@ -58,5 +58,6 @@ export function StatusBadge({ status, className }: { status: string; className?:
           ? "default"
         : "secondary";
   const description = normalized === "ready_to_post" ? "All required values are present, but the daily record has not been posted yet." : normalized === "posted" ? "The daily record is finalised and posted." : normalized === "attention" ? "The record is posted but needs follow-up." : undefined;
-  return <Badge variant={variant} title={description} aria-label={description ? `${formatStatusLabel(status)}. ${description}` : undefined} data-status={normalized} data-status-icon={StatusIcon ? "true" : undefined} className={cn("gap-1.5", stageClassName, className)}>{StatusIcon ? <StatusIcon className="h-3 w-3 shrink-0" aria-hidden="true" /> : null}{formatStatusLabel(status)}</Badge>;
+  const visibleLabel = label ?? formatStatusLabel(status);
+  return <Badge variant={variant} title={description} aria-label={description ? `${visibleLabel}. ${description}` : undefined} data-status={normalized} data-status-icon={StatusIcon ? "true" : undefined} className={cn("gap-1.5", stageClassName, className)}>{StatusIcon ? <StatusIcon className="h-3 w-3 shrink-0" aria-hidden="true" /> : null}{visibleLabel}</Badge>;
 }

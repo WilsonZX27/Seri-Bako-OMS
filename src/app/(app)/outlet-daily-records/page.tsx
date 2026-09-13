@@ -128,8 +128,8 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
             label={`Open ${row.branch_name} daily record`}
             primary={<span>{row.branch_name}</span>}
             status={<StatusBadge status={outletProgress(row).status} />}
-            secondary={`${formatDateOnly(row.record_date)}${row.record_date === data.summary.today ? " · Today" : ""}${row.total_wastage > 0 ? ` · ${formatNumber(row.total_wastage)} waste` : ""}`}
-            meta={`${canViewSentGaps ? `Qty Sent ${row.qty_sent_state === "confirmed" ? "confirmed" : row.qty_sent_state === "draft" ? "needs confirmation" : "missing"} · ` : ""}${row.total_received === null ? "Received unavailable · verify source data" : row.received_zero_with_sent ? "0 received · verify" : `${formatNumber(row.total_received)} received`}`}
+            secondary={`${formatDateOnly(row.record_date)}${row.record_date === data.summary.today ? " · Today" : ""}`}
+            detail={<dl className="mt-1 grid max-w-sm grid-cols-3 gap-2"><div className="min-w-0"><dt className="text-[10px] uppercase tracking-wide">Qty sent</dt><dd className="truncate font-medium">{canViewSentGaps ? row.qty_sent_state === "confirmed" ? "Recorded" : row.qty_sent_state === "draft" ? "Confirm" : "Missing" : "Restricted"}</dd></div><div className="min-w-0"><dt className="text-[10px] uppercase tracking-wide">Received</dt><dd className="truncate font-medium">{row.total_received === null ? "Unavailable" : row.received_zero_with_sent ? "0 · verify" : formatNumber(row.total_received)}</dd></div><div className="min-w-0"><dt className="text-[10px] uppercase tracking-wide">Wastage</dt><dd className="truncate font-medium">{row.total_wastage > 0 ? formatNumber(row.total_wastage) : "0"}</dd></div></dl>}
           />)}
           {!data.rows.length ? <EmptyState title={filtered ? "No daily records match these filters" : "No outlet daily records yet"} description={filtered ? "Reset the filters or widen the search." : "Daily receiving and wastage records will appear here."} action={filtered ? { href: "/outlet-daily-records", label: "Reset filters" } : undefined} /> : null}
         </OperationalList>

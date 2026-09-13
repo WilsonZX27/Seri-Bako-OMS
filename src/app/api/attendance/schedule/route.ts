@@ -49,6 +49,7 @@ const assignment = z.object({
     .nullable()
     .optional(),
   custom_reason: z.string().trim().max(500).nullable().optional(),
+  work_site_label: z.string().trim().min(1).max(120).nullable().optional(),
   ro_minutes: z
     .number()
     .int()

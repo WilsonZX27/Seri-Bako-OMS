@@ -44,7 +44,7 @@ test("Manager can own an audited roster while Supervisor self approval remains b
 test("Attendance mapping and quick assignments use the compact location vocabulary", () => {
   assert.match(migration, /branch_type in \('outlet','central_kitchen'\)/);
   assert.match(mappings, /Source<\/span><span>Assigned location<\/span><span>Actions/);
-  assert.match(mappings, />Change<\/Button>/);
+  assert.match(mappings, />Change<\/span>/);
   for (const tone of ["rose", "blue", "violet", "amber", "teal"]) assert.match(schedule, new RegExp(`border-${tone}-200`));
 });
 

@@ -447,7 +447,7 @@ export default async function AttendanceReviewPage({
                           {time(row.scheduled_end)}
                         </p>
                       </div>
-                      <StatusBadge status={status} />
+                      <StatusBadge status={status} label={["posted", "reviewed"].includes(status) ? "Calculated" : undefined} />
                     </div>
                     <dl className="mt-3 grid grid-cols-3 gap-x-3 gap-y-2 text-xs">
                       <div>
@@ -593,7 +593,7 @@ function RowActions({
           actualLastOut={typeof row.actual_last_out==="string"?row.actual_last_out:null}
         />
       ) : (
-        <StatusBadge status={String(row.review_status)} />
+        <StatusBadge status={String(row.review_status)} label={String(row.review_status) === "reviewed" ? "Calculated" : undefined} />
       )}
       <OtClaimAction
         resultId={String(row.id)}

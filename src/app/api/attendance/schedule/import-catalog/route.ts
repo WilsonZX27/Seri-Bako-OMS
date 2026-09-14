@@ -51,10 +51,10 @@ export async function GET(request: Request) {
     for (const staffId of staffIds) {
       const rows = rolesByStaff.get(staffId) ?? [];
       const roleCode = (row: (typeof roleRows)[number]) => Array.isArray(row.roles) ? row.roles[0]?.role_code : row.roles?.role_code;
-      const currentSchedulable = rows.some((row) => ["outlet_staff", "outlet_supervisor"].includes(roleCode(row) ?? "") && row.effective_from <= today && (!row.effective_to || row.effective_to >= today));
+      const currentSchedulable = rows.some((row) => ["outlet_staff", "outlet_supervisor", "kitchen"].includes(roleCode(row) ?? "") && row.effective_from <= today && (!row.effective_to || row.effective_to >= today));
       const eligibleDays = days.filter((day) => {
         const covering = rows.filter((row) => row.effective_from <= day && (!row.effective_to || row.effective_to >= day));
-        return covering.some((row) => ["outlet_staff", "outlet_supervisor"].includes(roleCode(row) ?? "")) || (day < today && covering.length === 0 && currentSchedulable);
+        return covering.some((row) => ["outlet_staff", "outlet_supervisor", "kitchen"].includes(roleCode(row) ?? "")) || (day < today && covering.length === 0 && currentSchedulable);
       });
       eligibilityByStaff.set(staffId, eligibleDays.map((day) => ({ from: day, to: day })));
     }

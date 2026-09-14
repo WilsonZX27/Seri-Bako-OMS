@@ -1,3 +1,7 @@
+## v9.2.67 (unreleased) — Cross-outlet employee-day integrity
+
+- Completeness follows the canonical company employee-day, not the currently viewed outlet. A published OFF or leave elsewhere must not produce a contradictory empty-day blocker in a borrowed outlet roster.
+
 ## v9.2.66 (unreleased) — Schedule import replay integrity
 
 - An immutable roster owns its employee-day visibly and operationally. Import preview must project that fact into other outlets instead of creating an editable duplicate that later appears as a hidden submission conflict.

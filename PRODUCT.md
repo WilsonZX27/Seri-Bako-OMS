@@ -1,3 +1,9 @@
+### v9.2.67 (unreleased) — Cross-outlet employee-day integrity
+
+- An employee-day already recorded in another Submitted, Published or Locked roster satisfies completeness whether it is a shift, OFF, public holiday or leave. The destination outlet does not duplicate or contradict the immutable disposition.
+
+Repository migrations reviewed through `286`. This boundary was identified by Production corrective-replay UAT and remains subject to linked migration and Production verification.
+
 ### v9.2.66 (unreleased) — Schedule import replay integrity
 
 - Workbook import treats an existing Submitted, Published or Locked assignment as the canonical employee-day owner and does not recreate the same working day in an editable outlet draft.

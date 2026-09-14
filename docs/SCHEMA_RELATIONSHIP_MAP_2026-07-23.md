@@ -1,6 +1,6 @@
 # Seri Bako OMS — Schema 与 Table 关系地图
 
-> Current repository authority 2026-09-14: forward-only migration 历史已到 `285`. Migration `284` adds one tenant-bound historical schedule-eligibility authority. Migration `285` preserves immutable employee-day ownership during workbook import, permits one audited parser-version replay of an older batch, and aligns invited-staff validation with catalog and save. Local and Production verification remain separate release evidence.
+> Current repository authority 2026-09-14: forward-only migration 历史已到 `286`. Migration `284` adds one tenant-bound historical schedule-eligibility authority; migration `285` preserves immutable employee-day ownership during parser-versioned workbook replay; migration `286` makes every immutable cross-outlet disposition satisfy employee-day completeness. Local and Production verification remain separate release evidence.
 
 > Current repository authority 2026-09-12: forward-only migration 历史已到 `281`. Migration `281` recalculates finalised raw-punch batches after a later Schedule publication and exposes a permission-gated company employee candidate list for week-scoped outlet rostering. It does not change immutable punch evidence or permanent staff outlet ownership. Database application and Production verification remain separate evidence.
 

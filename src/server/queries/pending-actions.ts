@@ -34,7 +34,7 @@ function ageLabel(updatedAt?: string | null) {
   return `${days} days`;
 }
 
-export const getCurrentUserPendingActionSnapshot = cache(async function getCurrentUserPendingActionSnapshot(limit = 5, includeOutletDaily = true, includeDetails = true): Promise<PendingActionSnapshot> {
+export const getCurrentUserPendingActionSnapshot = cache(async function getCurrentUserPendingActionSnapshot(limit = 5, includeOutletDaily = true, includeDetails = true, includeTotal = true): Promise<PendingActionSnapshot> {
   const scope = await getCurrentUserScope();
   if (!scope) return { items: [], total: null, unavailable: true };
 
@@ -66,7 +66,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
     filters.map(async (filter) => {
       let query = supabase
         .from("purchase_requests")
-        .select("id, request_no, branch_id, requested_by, status, updated_at, branches(branch_name)", { count: "exact" })
+        .select("id, request_no, branch_id, requested_by, status, updated_at, branches(branch_name)", includeTotal ? { count: "exact" } : {})
         .eq("status", filter.status)
         .is("deleted_at", null)
         .order("updated_at", { ascending: false })
@@ -83,7 +83,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
         return { items: [] as PendingAction[], count: 0, unavailable: true };
       }
 
-      if (!data || count === null) {
+      if (!data || (includeTotal && count === null)) {
         return { items: [] as PendingAction[], count: null, unavailable: true };
       }
 
@@ -130,7 +130,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
     if (!canApproveSchedule) return { items: [] as PendingAction[], count: 0, unavailable: false };
     let query = supabase
       .from("schedule_weeks")
-      .select("id,branch_id,week_start,status,updated_at,branches(branch_name)", { count: "exact" })
+      .select("id,branch_id,week_start,status,updated_at,branches(branch_name)", includeTotal ? { count: "exact" } : {})
       .eq("status", "submitted")
       .order("updated_at", { ascending: false })
       .limit(limit);
@@ -139,7 +139,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
       query = query.in("branch_id", scope.branchIds);
     }
     const { data, error, count } = await query;
-    if (error || !data || count === null) {
+    if (error || !data || (includeTotal && count === null)) {
       if (error) logServerWarning(error, { source: "pending-actions.schedule" });
       return { items: [] as PendingAction[], count: null, unavailable: true };
     }
@@ -174,7 +174,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
     if (!includeOutletDaily || !canPostOutletDaily) return { items: [] as PendingAction[], count: 0, unavailable: false };
     let query = supabase
       .from("outlet_daily_records")
-      .select("id,branch_id,record_date,updated_at,branch:branches!outlet_daily_records_branch_id_fkey(branch_name)", { count: "exact" })
+      .select("id,branch_id,record_date,updated_at,branch:branches!outlet_daily_records_branch_id_fkey(branch_name)", includeTotal ? { count: "exact" } : {})
       .eq("status", "evening_completed")
       .order("updated_at", { ascending: false })
       .limit(limit);
@@ -183,7 +183,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
       query = query.in("branch_id", scope.branchIds);
     }
     const { data, error, count } = await query;
-    if (error || !data || count === null) {
+    if (error || !data || (includeTotal && count === null)) {
       if (error) logServerWarning(error, { source: "pending-actions.outlet-daily" });
       return { items: [] as PendingAction[], count: null, unavailable: true };
     }
@@ -221,13 +221,13 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
     .slice(0, limit);
   return {
     items,
-    total: unavailable ? null : results.reduce((sum, result) => sum + (result.count ?? 0), 0),
+    total: unavailable || !includeTotal ? null : results.reduce((sum, result) => sum + (result.count ?? 0), 0),
     unavailable,
   };
 });
 
 export const getCurrentUserPendingActions = cache(async function getCurrentUserPendingActions(limit = 5): Promise<PendingAction[]> {
-  const snapshot = await getCurrentUserPendingActionSnapshot(limit, true, false);
+  const snapshot = await getCurrentUserPendingActionSnapshot(limit, true, false, false);
   if (snapshot.unavailable) throw new Error("Pending actions are temporarily unavailable.");
   return snapshot.items;
 });

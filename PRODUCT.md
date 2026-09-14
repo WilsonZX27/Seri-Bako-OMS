@@ -1,11 +1,13 @@
 ### v9.2.69 (unreleased) — Operational clarity and roster coverage
 
-- Kitchen employees share the canonical roster eligibility path with Outlet Staff and Supervisors; tenant, branch, role-date and workflow permissions remain enforced. Migration 287 is pending linked verification.
+- Kitchen employees share the canonical roster eligibility path with Outlet Staff and Supervisors; tenant, branch, role-date and workflow permissions remain enforced. Migration 287 was applied and its four function bodies verified against the repository on 2026-09-14; live ALMA and PJS10 rosters show 8 and 12 staff respectively.
 - Schedule completeness checks group missing dates by employee without merging identities, inventing OFF days or bypassing submission blockers. Staff codes distinguish similar names.
 - Mobile document actions remain on one row with an accessible More options icon. Receiving summaries and purchase-chain links use two phone columns. PR rows display the submitter name without redundant wording.
 - Posted receipts show the remaining quantity after that receipt, preserving the original pre-receipt snapshot and distinguishing it from later PO activity. Receiving document and purchase-chain reads run concurrently.
 
-Repository migrations reviewed through `287`; linked and Production verification remain separate gates.
+- Topbar pending actions omit unused exact counts; Dashboard totals retain exact counting and unavailable-state handling.
+
+Repository migrations reviewed and linked ledger verified through `287`; authenticated v9.2.69 application verification and promotion remain pending. See `docs/qa/SYSTEM_QUALITY_2026-09-14.md`.
 
 ### v9.2.68 (unreleased) — Faster workspace reads
 

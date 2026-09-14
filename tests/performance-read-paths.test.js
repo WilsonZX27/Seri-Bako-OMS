@@ -209,10 +209,10 @@ function pendingActions(db, grants, permissionCalls) {
   });
 }
 
-test("topbar batches permissions and skips unused supplier/cost hydration while preserving branch filters", async () => {
+test("topbar batches permissions and skips full counts and unused details while preserving branch filters", async () => {
   const db = database((call) => ({
     data: [{ id: call.table, request_no: "PR-1", branch_id: "allowed", requested_by: "requester", status: "manager_review", updated_at: "2026-09-14", week_start: "2026-09-14", record_date: "2026-09-14", branches: { branch_name: "Outlet" }, branch: { branch_name: "Outlet" } }],
-    count: 1, error: null,
+    count: null, error: null,
   }));
   const permissionCalls = [];
   const api = pendingActions(db, { "pr.manager_approve": true, "schedule.approve": true, "outlet_daily_record.post": true }, permissionCalls);
@@ -222,10 +222,21 @@ test("topbar batches permissions and skips unused supplier/cost hydration while 
   assert.equal(items.length, 3);
   assert.deepEqual(db.calls.map((call) => call.table).sort(), ["outlet_daily_records", "purchase_requests", "schedule_weeks"]);
   for (const call of db.calls) {
+    assert.equal(call.options.count, undefined);
     assert.ok(call.filters.some(([method, column, ids]) => method === "in" && column === "branch_id" && ids[0] === "allowed"));
   }
   assert.ok(items.some((item) => item.title === "Schedule approval required"));
   assert.ok(items.some((item) => item.title === "Outlet daily record ready to post"));
+});
+
+test("dashboard pending totals remain exact and a missing requested count remains unavailable", async () => {
+  for (const count of [12, null]) {
+    const db = database(() => ({ data: [], count, error: null }));
+    const result = await pendingActions(db, { "schedule.approve": true }, []).getCurrentUserPendingActionSnapshot(5);
+    assert.equal(db.calls[0].options.count, "exact");
+    assert.equal(result.total, count);
+    assert.equal(result.unavailable, count === null);
+  }
 });
 
 test("pending actions with denied grants do not fetch workflow records", async () => {

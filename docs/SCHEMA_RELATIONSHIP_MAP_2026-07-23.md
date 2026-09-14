@@ -1,4 +1,4 @@
-Current repository forward-only migration 历史已到 `287` (Kitchen schedule eligibility); linked application is pending verification.
+Current repository and linked Production migration ledger 已到 `287` (Kitchen schedule eligibility), verified 2026-09-14. All four resulting function bodies match the committed migration; ALMA and PJS10 show 8 and 12 roster staff. Application v9.2.69 remains a separate Preview verification gate. See `docs/qa/SYSTEM_QUALITY_2026-09-14.md`.
 
 # Seri Bako OMS — Schema 与 Table 关系地图
 

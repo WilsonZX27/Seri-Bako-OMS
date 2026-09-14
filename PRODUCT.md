@@ -1,18 +1,18 @@
-### v9.2.67 (unreleased) — Cross-outlet employee-day integrity
+### v9.2.67 (Production verified 2026-09-14) — Cross-outlet employee-day integrity
 
 - An employee-day already recorded in another Submitted, Published or Locked roster satisfies completeness whether it is a shift, OFF, public holiday or leave. The destination outlet does not duplicate or contradict the immutable disposition.
 
-Repository migrations reviewed through `286`. This boundary was identified by Production corrective-replay UAT and remains subject to linked migration and Production verification.
+Repository and Production migrations are verified through `286`. This boundary was identified by Production corrective-replay UAT and was rechecked against the linked migration ledger on 2026-09-14.
 
-### v9.2.66 (unreleased) — Schedule import replay integrity
+### v9.2.66 (Production verified 2026-09-14) — Schedule import replay integrity
 
 - Workbook import treats an existing Submitted, Published or Locked assignment as the canonical employee-day owner and does not recreate the same working day in an editable outlet draft.
 - A parser-versioned replay can repair a prior import of the same file and week exactly once. It replaces only editable drafts, preserves immutable rosters, retains assignment revisions and embeds the previous batch metadata in the audit record.
 - Invited staff remain schedulable consistently across catalog, persistence and submission validation; deleted or genuinely inactive staff remain blocked.
 
-Repository migrations reviewed through `285`. Production workbook UAT exposed this consistency gap after the v9.2.65 import; release verification and the corrective replay remain separate evidence.
+Repository and Production migrations were verified through `285` before the parser-v2 corrective replay. Production workbook UAT exposed this consistency gap after the v9.2.65 import; the replay then preserved immutable employee-days and replaced editable drafts only.
 
-### v9.2.65 (unreleased) — Historical schedule backfill integrity
+### v9.2.65 (Production verified 2026-09-14) — Historical schedule backfill integrity
 
 - Past roster dates with no recorded primary-role history may use the employee's current schedulable outlet role during an audited workbook backfill; this closes false import rejections caused by role records created after the historical schedule date.
 - A known role covering the historical day remains authoritative, and future schedules continue to require an exact date-effective `outlet_staff` or `outlet_supervisor` role. Role history itself is never backdated or rewritten.

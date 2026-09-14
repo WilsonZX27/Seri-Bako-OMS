@@ -1,13 +1,13 @@
-## v9.2.67 (unreleased) — Cross-outlet employee-day integrity
+## v9.2.67 (Production verified 2026-09-14) — Cross-outlet employee-day integrity
 
 - Completeness follows the canonical company employee-day, not the currently viewed outlet. A published OFF or leave elsewhere must not produce a contradictory empty-day blocker in a borrowed outlet roster.
 
-## v9.2.66 (unreleased) — Schedule import replay integrity
+## v9.2.66 (Production verified 2026-09-14) — Schedule import replay integrity
 
 - An immutable roster owns its employee-day visibly and operationally. Import preview must project that fact into other outlets instead of creating an editable duplicate that later appears as a hidden submission conflict.
 - Corrective replay keeps the familiar upload flow and the same source hash; parser-version metadata communicates the system correction without asking an operator to rename or alter the company workbook.
 
-## v9.2.65 (unreleased) — Historical schedule backfill integrity
+## v9.2.65 (Production verified 2026-09-14) — Historical schedule backfill integrity
 
 - Historical scheduling distinguishes an unknown role-history gap from a known ineligible role. Only the unknown past gap may inherit today's schedulable status; the UI must not describe that fallback as a historical role fact.
 - Preview and save use one eligibility contract. Operators see unresolved source facts before import, while verified assignments remain usable without a late database rejection.

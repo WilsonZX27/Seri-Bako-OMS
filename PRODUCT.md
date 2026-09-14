@@ -7,7 +7,9 @@
 
 - Topbar pending actions omit unused exact counts; Dashboard totals retain exact counting and unavailable-state handling.
 
-Repository migrations reviewed through `287`; linked ledger verified through `287`; authenticated v9.2.69 application verification and promotion remain pending. See `docs/qa/SYSTEM_QUALITY_2026-09-14.md`.
+Repository migrations reviewed through `290`; linked ledger verified through `290`; authenticated Owner Preview verification passed on 2026-09-15. Production application promotion remains separate. See `docs/qa/SYSTEM_QUALITY_2026-09-15.md`.
+
+- Follow-up verification: SQL timestamp validation dates preserve their calendar day; mobile list rows no longer prefetch every unopened document. Migration 288 indexes the ready-to-post daily queue; migration 289 aggregates inventory once per Dashboard request with identical verified results. Migration 290 reuses parent SELECT RLS for daily lines and evaluates the request-constant view permission once; verified visible rows are unchanged.
 
 ### v9.2.68 (unreleased) — Faster workspace reads
 

@@ -1,3 +1,5 @@
+Current repository forward-only migration 历史已到 `290`; linked Production ledger verified through `290` on 2026-09-15. Migration 288 indexes the ready-to-post daily queue; migration 289 combines three inventory aggregations while retaining security invoker, row policies, function grants and output keys. Migration 290 removes duplicate child read checks by inheriting the parent SELECT policy; company/branch gates and writes are unchanged. See `docs/qa/SYSTEM_QUALITY_2026-09-15.md`.
+
 Current repository forward-only migration 历史已到 `287`; linked Production migration ledger 已到 `287` (Kitchen schedule eligibility), verified 2026-09-14. All four resulting function bodies match the committed migration; ALMA and PJS10 show 8 and 12 roster staff. Application v9.2.69 remains a separate Preview verification gate. See `docs/qa/SYSTEM_QUALITY_2026-09-14.md`.
 
 # Seri Bako OMS — Schema 与 Table 关系地图

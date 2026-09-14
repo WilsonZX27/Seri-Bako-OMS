@@ -1,6 +1,6 @@
 export type ScheduleImportCatalog = {
   branches: Array<{ id: string; name: string; status: string }>;
-  staff: Array<{ id: string; name: string; branch_id: string; home_branch_id?: string | null }>;
+  staff: Array<{ id: string; name: string; branch_id: string; home_branch_id?: string | null; eligibility?: Array<{ from: string; to: string | null }> }>;
   current_assignments: Array<Record<string, unknown>>;
 };
 
@@ -165,8 +165,9 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
   for (const item of staged) {
     const outlet = outlets.get(item.branchId) ?? { branchId: item.branchId, branchName: item.branchName, status: item.status, assignments: [] };
     outlets.set(item.branchId, outlet);
-    const staff = catalog.staff.find((person) => person.branch_id === item.branchId && key(person.name) === key(item.employee));
-    if (!staff) { if (cellText(item.first) || cellText(item.second)) issues.push({ sheet: item.sheet, employee: item.employee, date: item.date, reason: "employee_not_found", message: `${item.sheet} · ${item.employee}: employee is not available at this outlet.` }); continue; }
+    const outletStaff = catalog.staff.find((person) => person.branch_id === item.branchId && key(person.name) === key(item.employee));
+    const staff = outletStaff && (outletStaff.eligibility ?? []).some((range) => range.from <= item.date && (!range.to || range.to >= item.date)) ? outletStaff : null;
+    if (!staff) { if (cellText(item.first) || cellText(item.second)) issues.push({ sheet: item.sheet, employee: item.employee, date: item.date, reason: outletStaff ? "employee_not_eligible" : "employee_not_found", message: outletStaff ? `${item.sheet} · ${item.employee} · ${item.date}: employee has no active schedulable role for this date.` : `${item.sheet} · ${item.employee}: employee is not available at this outlet.` }); continue; }
     const start = time(item.first), end = time(item.second), label = cellText(item.first).toUpperCase(), secondText = cellText(item.second);
     if (start && end) {
       const sameDay = timedByPersonDay.get(`${key(item.employee)}:${item.date}`) ?? [];

@@ -1,4 +1,9 @@
-### v9.2.61 (unreleased) — Production schedule catalog repair
+### v9.2.62 (unreleased) — Partial draft schedule import
+
+- Schedule workbook preview applies the same active primary `outlet_staff` / `outlet_supervisor` role window enforced by schedule persistence.
+- Editable outlets can receive every verified assignment as a Partial Draft while ambiguous or ineligible employee-days remain empty and auditable. Existing Submitted, Published and Locked weeks remain immutable.
+
+### v9.2.61 (deployed) — Production schedule catalog repair
 
 - Production UAT repaired schedule workbook catalog resolution to use the canonical `staffs.default_branch_id` ownership field.
 - Catalog failure remains a hard stop: the system does not import, overwrite, or infer a roster without verified live staff and outlet identities.

@@ -8,7 +8,7 @@ For UI and interaction standards, read `DESIGN.md`.
 
 ## Current Release Baseline
 
-- Application release candidate: `v9.2.61 — Production Schedule Catalog Repair`.
+- Application release candidate: `v9.2.62 — Partial Draft Schedule Import`.
 - Database migration ceiling: `282_schedule_completeness_and_cross_outlet_projection`.
 - Vercel builds use Node.js 22 LTS and `npm ci --no-audit --no-fund`; `package.json`, `package-lock.json`, and the visible application version must remain synchronized.
 - Tenant isolation, inventory posting atomicity, procurement/document transitions, concurrency controls, and credential handoff are database-authoritative.

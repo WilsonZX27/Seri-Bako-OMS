@@ -7,6 +7,11 @@
 - Authenticated Production UAT surfaced `42703: column staffs.branch_id does not exist` before any workbook assignment was written.
 - The catalog now reads the canonical `staffs.default_branch_id` field and retains the fail-closed import boundary.
 
+### v9.2.62 Production eligibility and partial-draft repair
+
+- Authenticated write UAT then exposed a second contract mismatch: staff returned by outlet visibility were not necessarily eligible under the date-effective primary-role rule enforced by `save_schedule_week`.
+- Preview now applies that same role rule before constructing assignments. Verified rows from a source-affected outlet may enter a Partial Draft; each ambiguous or ineligible employee-day remains empty and stays in the imported audit metadata for deliberate correction.
+
 - Added an authenticated Schedule workbook preview using the existing import RPC and permission boundary. It reconciles the chosen week with live branches, schedulable staff, true employee home assignment and current roster status.
 - Ready outlets import as one audited draft batch; source-blocked and Submitted/Published/Locked outlets remain unchanged. The UI exposes exact reasons and never converts a blank, location note or HR instruction into OFF/leave.
 - The September 2026 company workbook revealed real source ambiguities before Production write: `CLEAR OT` and `Resign` instructions, one `01:30–22:00` span, an untimed Central Kitchen move and unattached destination/event notes. These require business facts rather than inference.

@@ -1,4 +1,9 @@
-## v9.2.61 (unreleased) — Production schedule catalog repair
+## v9.2.62 (unreleased) — Partial draft schedule import
+
+- Workbook preview now mirrors the database's date-effective schedulable-role rule instead of treating every visible employee as writable.
+- One unclear spreadsheet cell no longer strands an entire outlet. Verified rows enter a clearly labelled Partial Draft; flagged cells stay empty with their source evidence visible for deliberate completion.
+
+## v9.2.61 (deployed) — Production schedule catalog repair
 
 - The schedule workbook catalog reads the canonical `staffs.default_branch_id` field. Production UAT exposed and closed the stale `branch_id` assumption before any roster mutation was allowed.
 - The importer continues to fail closed: a missing live catalog cannot be bypassed and never falls back to guessed staff ownership.

@@ -1,5 +1,12 @@
 # OMS v9.2.59 roster integrity closure
 
+## v9.2.60 follow-through — company workbook UAT
+
+- Added an authenticated Schedule workbook preview using the existing import RPC and permission boundary. It reconciles the chosen week with live branches, schedulable staff, true employee home assignment and current roster status.
+- Ready outlets import as one audited draft batch; source-blocked and Submitted/Published/Locked outlets remain unchanged. The UI exposes exact reasons and never converts a blank, location note or HR instruction into OFF/leave.
+- The September 2026 company workbook revealed real source ambiguities before Production write: `CLEAR OT` and `Resign` instructions, one `01:30–22:00` span, an untimed Central Kitchen move and unattached destination/event notes. These require business facts rather than inference.
+- Production Supabase unified-log Explorer returned its own backend error for both focused and aggregate 24-hour queries on 2026-09-14. Vercel Hobby exposed one hour only; that visible hour contained zero Warning/Error/Fatal events. This is an observability limitation, not proof of a clean 24-hour window.
+
 Date: 2026-09-13
 Scope: Attendance Schedule integrity and correction, cross-outlet staff movement, mobile layout closure, Outlet Daily, Outlet Calendar and Attendance Settings.
 

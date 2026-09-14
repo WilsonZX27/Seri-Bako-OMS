@@ -1,4 +1,10 @@
-### v9.2.59 (unreleased) — Roster integrity closure
+### v9.2.60 (unreleased) — Audited schedule workbook import
+
+- Authorised schedule editors can upload the established monthly `.xlsx` roster from Schedule, select the visible Monday–Sunday window and review a live branch/staff/status reconciliation before writing.
+- The import is fail-closed and auditable. It imports only verified Draft/Returned/Rejected/Amendment Pending outlets, preserves the source filename/hash and issue ledger, never replaces Submitted/Published/Locked weeks, and leaves source-blocked outlets untouched for explicit correction.
+- Cross-outlet staff retain one canonical timed shift at the destination outlet with a read-only home projection. Standalone location notes without a named employee or time, HR instructions such as `Resign`/`Clear OT`, incomplete pairs and shifts over 16 hours are surfaced instead of guessed.
+
+### v9.2.59 (deployed) — Roster integrity closure
 
 - Full-time home-outlet staff now require an explicit assignment for every day before submission. A canonical shift already submitted or published by another outlet resolves that day without duplicating the shift or disguising it as OFF.
 - Home rosters show cross-outlet shifts as read-only `At [outlet]` projections. Borrowed staff are added from the company roster and only their actual destination shift days count toward that outlet. Central Kitchen is available as a real roster location; an optional bounded work-site label records Event or temporary sites without creating a fake branch or granting branch permissions.

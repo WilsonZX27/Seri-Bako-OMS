@@ -11,6 +11,8 @@ const migration = read(
   "supabase/migrations/279_schedule_atomic_submit_manager_edit.sql",
 );
 const importer = read("scripts/attendance/import_schedule_workbook.py");
+const workbookImportUi = read("src/components/attendance/schedule-workbook-import.tsx");
+const workbookParser = read("src/lib/attendance/schedule-workbook.ts");
 
 function tsxFiles(directory) {
   return fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -98,6 +100,16 @@ test("workbook importer accepts an explicit Monday window and fails closed", () 
   assert.match(migration, /Published or locked schedules cannot be replaced/);
   assert.match(migration, /p_unresolved_count<>0/);
   assert.match(read("src/app/api/attendance/schedule/import-catalog/route.ts"), /work_site_label/);
+});
+
+test("schedule workbook UI previews live identities and imports only verified editable outlets", () => {
+  for (const contract of ["import-catalog", "parseScheduleWorkbook", "sourceIssues", "Published and source-blocked outlets were not changed", "only the green Ready outlets"])
+    assert.match(workbookImportUi, new RegExp(contract, "i"));
+  for (const contract of ["home_branch_id", "multiple_destination_shifts", "unattached_schedule_note", "suspicious_time_span", "needs a destination shift time"])
+    assert.match(workbookParser, new RegExp(contract));
+  for (const contract of ["MAX_WORKBOOK_BYTES", "MAX_XML_BYTES", "MAX_TOTAL_XML_BYTES"])
+    assert.match(workbookParser, new RegExp(contract));
+  assert.match(read("src/app/api/attendance/schedule/import-catalog/route.ts"), /home_branch_id/);
 });
 
 test("staff detail leads with the profile and removes the redundant helper paragraph", () => {

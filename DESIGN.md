@@ -1,4 +1,10 @@
-## v9.2.59 (unreleased) — Roster integrity closure
+## v9.2.60 (unreleased) — Audited schedule workbook import
+
+- Schedule owns a compact workbook entry point rather than hiding import behind a script. The modal previews one Monday–Sunday window against current OMS outlet, staff and roster state before any write.
+- Preview metrics and one restrained outlet list distinguish Ready, source-blocked and already-published rosters. Only Ready outlets are imported; unclear notes, incomplete or implausible times, HR instructions and immutable workflow states fail closed with the exact employee/date context.
+- Cross-outlet rows resolve from the employee's authoritative home assignment: an identical home-row copy is suppressed when one destination outlet owns the timed shift, and the canonical destination shift carries its work-site label. The layout remains bounded at phone width and uses the shared surface, control, spacing, colour and dialog tokens.
+
+## v9.2.59 (deployed) — Roster integrity closure
 
 - A shift has one owning outlet roster. A home-outlet planner may render an authorised, read-only `At [outlet]` projection, but it never clones the assignment or credits coverage to the origin outlet.
 - Missing full-time staff days are planning errors with employee-and-date feedback. OFF and leave remain real dispositions and are never used to represent a transfer.

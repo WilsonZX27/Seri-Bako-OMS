@@ -25,16 +25,20 @@ export async function GET(request: Request) {
     const weekIds = [...latest.values()].map((row) => row.id);
     const assignmentResult = weekIds.length ? await db.from("shift_assignment_revisions").select("schedule_week_id,staff_id,work_date,assignment_kind,shift_template_id,custom_start,custom_end,custom_crosses_midnight,custom_break_seconds,custom_maximum_recognised_seconds,work_site_label").in("schedule_week_id", weekIds).eq("is_current", true) : { data: [], error: null };
     if (assignmentResult.error) throw assignmentResult.error;
-    const staff: Array<{ id: string; name: string; branch_id: string }> = [];
-    for (const branch of branches) {
+    const staffIds = new Set<string>(), staff: Array<{ id: string; name: string; branch_id: string; home_branch_id?: string | null }> = [];
+    const staffResults = await Promise.all(branches.map(async (branch) => {
       const staffResult = await db.rpc("get_schedule_staff", { p_branch_id: branch.id, p_week_id: latest.get(branch.id)?.id ?? null });
       if (staffResult.error) throw staffResult.error;
-      for (const person of (staffResult.data ?? []) as Array<{ id: string; full_name: string }>) staff.push({ id: person.id, name: person.full_name, branch_id: branch.id });
-    }
+      return { branchId: branch.id, people: (staffResult.data ?? []) as Array<{ id: string; full_name: string }> };
+    }));
+    for (const result of staffResults) for (const person of result.people) { staffIds.add(person.id); staff.push({ id: person.id, name: person.full_name, branch_id: result.branchId }); }
+    const homeResult = staffIds.size ? await db.from("staffs").select("id,branch_id").in("id", [...staffIds]) : { data: [], error: null };
+    if (homeResult.error) throw homeResult.error;
+    const homeByStaff = new Map(((homeResult.data ?? []) as Array<{ id: string; branch_id: string | null }>).map((person) => [person.id, person.branch_id]));
     const branchForWeek = new Map([...latest].map(([branchId, row]) => [row.id, branchId]));
     return NextResponse.json({
       branches: branches.map((branch) => ({ id: branch.id, name: branch.branch_name, status: latest.get(branch.id)?.status ?? "not_started" })),
-      staff,
+      staff: staff.map((person) => ({ ...person, home_branch_id: homeByStaff.get(person.id) ?? null })),
       current_assignments: (assignmentResult.data ?? []).map((row: Record<string, unknown>) => ({ ...row, branch_id: branchForWeek.get(String(row.schedule_week_id)) })),
     });
   } catch (error) {

@@ -1,4 +1,9 @@
-### v9.2.60 (unreleased) — Audited schedule workbook import
+### v9.2.61 (unreleased) — Production schedule catalog repair
+
+- Production UAT repaired schedule workbook catalog resolution to use the canonical `staffs.default_branch_id` ownership field.
+- Catalog failure remains a hard stop: the system does not import, overwrite, or infer a roster without verified live staff and outlet identities.
+
+### v9.2.60 (deployed) — Audited schedule workbook import
 
 - Authorised schedule editors can upload the established monthly `.xlsx` roster from Schedule, select the visible Monday–Sunday window and review a live branch/staff/status reconciliation before writing.
 - The import is fail-closed and auditable. It imports only verified Draft/Returned/Rejected/Amendment Pending outlets, preserves the source filename/hash and issue ledger, never replaces Submitted/Published/Locked weeks, and leaves source-blocked outlets untouched for explicit correction.

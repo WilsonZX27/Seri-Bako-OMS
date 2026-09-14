@@ -2,6 +2,11 @@
 
 ## v9.2.60 follow-through — company workbook UAT
 
+### v9.2.61 Production catalog repair
+
+- Authenticated Production UAT surfaced `42703: column staffs.branch_id does not exist` before any workbook assignment was written.
+- The catalog now reads the canonical `staffs.default_branch_id` field and retains the fail-closed import boundary.
+
 - Added an authenticated Schedule workbook preview using the existing import RPC and permission boundary. It reconciles the chosen week with live branches, schedulable staff, true employee home assignment and current roster status.
 - Ready outlets import as one audited draft batch; source-blocked and Submitted/Published/Locked outlets remain unchanged. The UI exposes exact reasons and never converts a blank, location note or HR instruction into OFF/leave.
 - The September 2026 company workbook revealed real source ambiguities before Production write: `CLEAR OT` and `Resign` instructions, one `01:30–22:00` span, an untimed Central Kitchen move and unattached destination/event notes. These require business facts rather than inference.

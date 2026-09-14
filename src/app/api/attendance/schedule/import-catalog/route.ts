@@ -32,9 +32,9 @@ export async function GET(request: Request) {
       return { branchId: branch.id, people: (staffResult.data ?? []) as Array<{ id: string; full_name: string }> };
     }));
     for (const result of staffResults) for (const person of result.people) { staffIds.add(person.id); staff.push({ id: person.id, name: person.full_name, branch_id: result.branchId }); }
-    const homeResult = staffIds.size ? await db.from("staffs").select("id,branch_id").in("id", [...staffIds]) : { data: [], error: null };
+    const homeResult = staffIds.size ? await db.from("staffs").select("id,default_branch_id").in("id", [...staffIds]) : { data: [], error: null };
     if (homeResult.error) throw homeResult.error;
-    const homeByStaff = new Map(((homeResult.data ?? []) as Array<{ id: string; branch_id: string | null }>).map((person) => [person.id, person.branch_id]));
+    const homeByStaff = new Map(((homeResult.data ?? []) as Array<{ id: string; default_branch_id: string | null }>).map((person) => [person.id, person.default_branch_id]));
     const branchForWeek = new Map([...latest].map(([branchId, row]) => [row.id, branchId]));
     return NextResponse.json({
       branches: branches.map((branch) => ({ id: branch.id, name: branch.branch_name, status: latest.get(branch.id)?.status ?? "not_started" })),

@@ -1,4 +1,9 @@
-## v9.2.60 (unreleased) — Audited schedule workbook import
+## v9.2.61 (unreleased) — Production schedule catalog repair
+
+- The schedule workbook catalog reads the canonical `staffs.default_branch_id` field. Production UAT exposed and closed the stale `branch_id` assumption before any roster mutation was allowed.
+- The importer continues to fail closed: a missing live catalog cannot be bypassed and never falls back to guessed staff ownership.
+
+## v9.2.60 (deployed) — Audited schedule workbook import
 
 - Schedule owns a compact workbook entry point rather than hiding import behind a script. The modal previews one Monday–Sunday window against current OMS outlet, staff and roster state before any write.
 - Preview metrics and one restrained outlet list distinguish Ready, source-blocked and already-published rosters. Only Ready outlets are imported; unclear notes, incomplete or implausible times, HR instructions and immutable workflow states fail closed with the exact employee/date context.

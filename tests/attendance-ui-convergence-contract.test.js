@@ -110,6 +110,7 @@ test("schedule workbook UI previews live identities and imports only verified ed
   for (const contract of ["MAX_WORKBOOK_BYTES", "MAX_XML_BYTES", "MAX_TOTAL_XML_BYTES"])
     assert.match(workbookParser, new RegExp(contract));
   assert.match(read("src/app/api/attendance/schedule/import-catalog/route.ts"), /home_branch_id/);
+  assert.match(read("src/app/api/attendance/schedule/import-catalog/route.ts"), /default_branch_id/);
 });
 
 test("staff detail leads with the profile and removes the redundant helper paragraph", () => {

@@ -8,8 +8,8 @@ For UI and interaction standards, read `DESIGN.md`.
 
 ## Current Release Baseline
 
-- Application release candidate: `v9.2.65 — Historical Schedule Backfill Integrity`.
-- Database migration ceiling: `284_historical_schedule_role_gap_backfill`.
+- Application release candidate: `v9.2.66 — Schedule Import Replay Integrity`.
+- Database migration ceiling: `285_schedule_import_replay_integrity`.
 - Vercel builds use Node.js 22 LTS and `npm ci --no-audit --no-fund`; `package.json`, `package-lock.json`, and the visible application version must remain synchronized.
 - Tenant isolation, inventory posting atomicity, procurement/document transitions, concurrency controls, and credential handoff are database-authoritative.
 - Start with `docs/PILOT_BASELINE.md`, use the controlled CSV files in `docs/import-templates/`, and record sign-off in `docs/PILOT_QA_CHECKLIST.md`.

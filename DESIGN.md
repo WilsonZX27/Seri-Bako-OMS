@@ -1,3 +1,8 @@
+## v9.2.66 (unreleased) — Schedule import replay integrity
+
+- An immutable roster owns its employee-day visibly and operationally. Import preview must project that fact into other outlets instead of creating an editable duplicate that later appears as a hidden submission conflict.
+- Corrective replay keeps the familiar upload flow and the same source hash; parser-version metadata communicates the system correction without asking an operator to rename or alter the company workbook.
+
 ## v9.2.65 (unreleased) — Historical schedule backfill integrity
 
 - Historical scheduling distinguishes an unknown role-history gap from a known ineligible role. Only the unknown past gap may inherit today's schedulable status; the UI must not describe that fallback as a historical role fact.

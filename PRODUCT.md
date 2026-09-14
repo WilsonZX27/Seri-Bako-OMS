@@ -1,3 +1,11 @@
+### v9.2.66 (unreleased) — Schedule import replay integrity
+
+- Workbook import treats an existing Submitted, Published or Locked assignment as the canonical employee-day owner and does not recreate the same working day in an editable outlet draft.
+- A parser-versioned replay can repair a prior import of the same file and week exactly once. It replaces only editable drafts, preserves immutable rosters, retains assignment revisions and embeds the previous batch metadata in the audit record.
+- Invited staff remain schedulable consistently across catalog, persistence and submission validation; deleted or genuinely inactive staff remain blocked.
+
+Repository migrations reviewed through `285`. Production workbook UAT exposed this consistency gap after the v9.2.65 import; release verification and the corrective replay remain separate evidence.
+
 ### v9.2.65 (unreleased) — Historical schedule backfill integrity
 
 - Past roster dates with no recorded primary-role history may use the employee's current schedulable outlet role during an audited workbook backfill; this closes false import rejections caused by role records created after the historical schedule date.

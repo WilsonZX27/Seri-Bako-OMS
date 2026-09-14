@@ -161,6 +161,12 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
     rows.push(item); timedByPersonDay.set(personDay, rows);
   }
   const destinationKeys = new Set(timedByPersonDay.keys());
+  const immutableBranchByStaffDay = new Map<string, string>();
+  const immutableBranchIds = new Set(catalog.branches.filter((branch) => ["submitted", "published", "locked"].includes(branch.status)).map((branch) => branch.id));
+  for (const assignment of catalog.current_assignments) {
+    const staffId = String(assignment.staff_id ?? ""), workDate = String(assignment.work_date ?? ""), branchId = String(assignment.branch_id ?? "");
+    if (staffId && workDate && immutableBranchIds.has(branchId)) immutableBranchByStaffDay.set(`${staffId}:${workDate}`, branchId);
+  }
   const outlets = new Map<string, { branchId: string; branchName: string; status: string; assignments: ScheduleWorkbookAssignment[] }>();
   for (const item of staged) {
     const outlet = outlets.get(item.branchId) ?? { branchId: item.branchId, branchName: item.branchName, status: item.status, assignments: [] };
@@ -168,6 +174,8 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
     const outletStaff = catalog.staff.find((person) => person.branch_id === item.branchId && key(person.name) === key(item.employee));
     const staff = outletStaff && (outletStaff.eligibility ?? []).some((range) => range.from <= item.date && (!range.to || range.to >= item.date)) ? outletStaff : null;
     if (!staff) { if (cellText(item.first) || cellText(item.second)) issues.push({ sheet: item.sheet, employee: item.employee, date: item.date, reason: outletStaff ? "employee_not_eligible" : "employee_not_found", message: outletStaff ? `${item.sheet} · ${item.employee} · ${item.date}: employee has no active schedulable role for this date.` : `${item.sheet} · ${item.employee}: employee is not available at this outlet.` }); continue; }
+    const immutableBranchId = immutableBranchByStaffDay.get(`${staff.id}:${item.date}`);
+    if (immutableBranchId && immutableBranchId !== item.branchId) continue;
     const start = time(item.first), end = time(item.second), label = cellText(item.first).toUpperCase(), secondText = cellText(item.second);
     if (start && end) {
       const sameDay = timedByPersonDay.get(`${key(item.employee)}:${item.date}`) ?? [];

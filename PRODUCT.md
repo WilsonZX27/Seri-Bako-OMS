@@ -1,3 +1,8 @@
+### v9.2.63 (unreleased) — Staff credential handoff clarity
+
+- New Staff account creation lands directly on the one-time credential card instead of repeating the same instruction in a page-level success banner and card helper line.
+- The one-time title, copy action, secure-sharing instruction and first-login password-change requirement remain visible; account creation and credential handoff behavior are unchanged.
+
 ### v9.2.62 (unreleased) — Partial draft schedule import
 
 - Schedule workbook preview applies the same active primary `outlet_staff` / `outlet_supervisor` role window enforced by schedule persistence.

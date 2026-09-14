@@ -1,3 +1,7 @@
+## v9.2.63 (unreleased) — Staff credential handoff clarity
+
+- A one-time credential surface owns one concise hierarchy: state in the heading, credential and copy action as the task, then the secure-sharing and password-change consequence. A separate success banner or helper sentence must not repeat that same instruction.
+
 ## v9.2.62 (unreleased) — Partial draft schedule import
 
 - Workbook preview now mirrors the database's date-effective schedulable-role rule instead of treating every visible employee as writable.

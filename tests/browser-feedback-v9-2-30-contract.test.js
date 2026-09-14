@@ -18,9 +18,16 @@ test("People rows keep identity compact and omit redundant open copy", () => {
 test("new Staff hides generated auth fields and states the temporary-password flow", () => {
   const form = read("src", "components", "foundation-forms.tsx");
   const page = read("src", "app", "(app)", "staffs", "new", "page.tsx");
+  const detail = read("src", "app", "(app)", "staffs", "[id]", "page.tsx");
+  const actions = read("src", "server", "actions", "foundation.ts");
   assert.match(form, /type="hidden" name="temporary_password" value=""/);
   assert.doesNotMatch(form, /Leave blank to auto-generate/);
   assert.match(page, /issue an auto-generated temporary password/);
+  assert.match(detail, /Temporary password shown once/);
+  assert.match(detail, /Share it securely\. The staff member must change it after first login\./);
+  assert.doesNotMatch(detail, /Copy this temporary password now/);
+  assert.doesNotMatch(actions, /Staff account created\. Copy the temporary password now\./);
+  assert.match(actions, /redirect\(`\/staffs\/\$\{createdStaffId\}`\)/);
 });
 
 test("schedule asks for time per Add and avoids the native time picker", () => {

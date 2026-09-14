@@ -776,7 +776,7 @@ export async function createStaff(formData: FormData) {
   revalidatePath("/staffs");
   if (createdStaffId && temporaryPassword) {
     await setTemporaryPasswordHandoff(createdStaffId, temporaryPassword);
-    redirect(`/staffs/${createdStaffId}?success=${encodeURIComponent("Staff account created. Copy the temporary password now.")}`);
+    redirect(`/staffs/${createdStaffId}`);
   }
   safeRedirectWithMessage("/staffs", "success", "Staff created.");
 }

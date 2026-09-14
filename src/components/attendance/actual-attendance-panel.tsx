@@ -19,6 +19,7 @@ type Props = {
   canApprove: boolean;
   canSubmitComp: boolean;
   canApproveComp: boolean;
+  embedded?: boolean;
 };
 const reportLabels: Record<string, string> = {
   mc: "Medical certificate (MC)",
@@ -42,8 +43,8 @@ function minutes(value: unknown) {
 export function ActualAttendancePanel(props: Props) {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
-  const reportDialog = useRef<HTMLDialogElement>(null);
-  const compDialog = useRef<HTMLDialogElement>(null);
+  const [reportDialog, setReportDialog] = useState<HTMLDialogElement | null>(null);
+  const [compDialog, setCompDialog] = useState<HTMLDialogElement | null>(null);
   const decisionDialog = useRef<HTMLDialogElement>(null);
   const [decision, setDecision] = useState<{
     kind: "report" | "comp";
@@ -169,7 +170,7 @@ export function ActualAttendancePanel(props: Props) {
     (row) => row.status === "pending",
   );
   return (
-    <div className="space-y-3" data-attendance-actuals>
+    <div className={props.embedded ? "space-y-px [&>section]:rounded-none [&>section]:border-0 [&>section]:shadow-none" : "space-y-3"} data-attendance-actuals>
       <section className="sb-work-surface overflow-hidden">
         <div className="flex flex-wrap items-center gap-2 border-b border-[var(--sb-border-soft)] p-3">
           <div>
@@ -186,7 +187,7 @@ export function ActualAttendancePanel(props: Props) {
             <Button
               size="sm"
               className="ml-auto"
-              onClick={() => reportDialog.current?.showModal()}
+              onClick={() => reportDialog?.showModal()}
             >
               <Plus className="h-4 w-4" />
               New report
@@ -197,7 +198,7 @@ export function ActualAttendancePanel(props: Props) {
           {props.reports.map((row) => (
             <article
               key={String(row.id)}
-              className="grid gap-2 p-3 text-xs sm:grid-cols-[minmax(10rem,1fr)_9rem_9rem_minmax(12rem,1.4fr)_auto] sm:items-center"
+              className={props.embedded ? "grid gap-2 p-3 text-xs" : "grid gap-2 p-3 text-xs sm:grid-cols-[minmax(10rem,1fr)_9rem_9rem_minmax(12rem,1.4fr)_auto] sm:items-center"}
             >
               <div>
                 <strong className="block text-sm">
@@ -296,14 +297,14 @@ export function ActualAttendancePanel(props: Props) {
               size="sm"
               variant="outline"
               className="ml-auto"
-              onClick={() => compDialog.current?.showModal()}
+              onClick={() => compDialog?.showModal()}
             >
               <Clock3 className="h-4 w-4" />
               Add correction
             </Button>
           ) : null}
         </div>
-        <div className="grid gap-px bg-[var(--sb-border-soft)] sm:grid-cols-3">
+        <div className={props.embedded ? "grid gap-px bg-[var(--sb-border-soft)]" : "grid gap-px bg-[var(--sb-border-soft)] sm:grid-cols-3"}>
           {Object.entries(props.balances).map(([staffId, balance]) => {
             const assignment = props.assignments.find(
               (row) => String(row.staff_id) === staffId,
@@ -319,7 +320,7 @@ export function ActualAttendancePanel(props: Props) {
             );
           })}
           {!Object.keys(props.balances).length ? (
-            <p className="bg-white p-4 text-xs text-muted-foreground sm:col-span-3">
+            <p className={props.embedded ? "bg-white p-4 text-xs text-muted-foreground" : "bg-white p-4 text-xs text-muted-foreground sm:col-span-3"}>
               No approved comp time balance yet.
             </p>
           ) : null}
@@ -380,7 +381,7 @@ export function ActualAttendancePanel(props: Props) {
         </p>
       ) : null}
       <dialog
-        ref={reportDialog}
+        ref={setReportDialog}
         className="m-auto w-[min(36rem,calc(100vw-2rem))] rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50"
       >
         <form
@@ -410,6 +411,7 @@ export function ActualAttendancePanel(props: Props) {
                 value: String(row.id),
                 label: `${relation(row, "staffs")?.full_name} · ${String(row.work_date)} · ${relation(row, "branches")?.branch_name}`,
               }))}
+              portalContainer={reportDialog}
             />
           </label>
           <div className="rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] p-3 text-xs">
@@ -489,7 +491,7 @@ export function ActualAttendancePanel(props: Props) {
             <Button
               type="button"
               variant="outline"
-              onClick={() => reportDialog.current?.close()}
+              onClick={() => reportDialog?.close()}
             >
               Cancel
             </Button>
@@ -500,7 +502,7 @@ export function ActualAttendancePanel(props: Props) {
         </form>
       </dialog>
       <dialog
-        ref={compDialog}
+        ref={setCompDialog}
         className="m-auto w-[min(32rem,calc(100vw-2rem))] rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50"
       >
         <form
@@ -534,6 +536,7 @@ export function ActualAttendancePanel(props: Props) {
                 value: String(row.staff_id),
                 label: relation(row, "staffs")?.full_name ?? "Employee",
               }))}
+              portalContainer={compDialog}
             />
           </label>
           <label className="grid gap-1 text-xs font-medium">
@@ -558,6 +561,7 @@ export function ActualAttendancePanel(props: Props) {
                   label: relation(row, "branches")?.branch_name ?? "Outlet",
                 })),
               ]}
+              portalContainer={compDialog}
             />
           </label>
           <input type="hidden" name="kind" value="correction" />
@@ -603,7 +607,7 @@ export function ActualAttendancePanel(props: Props) {
             <Button
               type="button"
               variant="outline"
-              onClick={() => compDialog.current?.close()}
+              onClick={() => compDialog?.close()}
             >
               Cancel
             </Button>

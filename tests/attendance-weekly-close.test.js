@@ -32,7 +32,7 @@ test("protected workbook is locked, role-gated and one sheet per employee",()=>{
 
 test("review exposes punch expectations and monthly follow-up",()=>{
  for(const contract of ["expected_punch_count","actual_punch_count","missing_punch_count","monthly_missing_punch_count","overtime_candidate_seconds"])assert.ok(migration.includes(contract),contract);
- for(const label of ["Punches","missing this month","OT candidate"])assert.ok(review.includes(label),label);
+ for(const label of ["Punches","missing this month","Actual OT"])assert.ok(review.includes(label),label);
 });
 
 test("schedule quick actions and dialog selects remain operable",()=>{

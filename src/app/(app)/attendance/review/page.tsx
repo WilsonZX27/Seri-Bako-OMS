@@ -56,6 +56,10 @@ function duration(value: unknown) {
   const seconds = Number(value ?? 0);
   return seconds > 0 ? durationLabel(seconds) : "—";
 }
+function minuteDuration(value: unknown) {
+  const totalMinutes = Math.floor(Math.max(0, Number(value ?? 0)) / 60);
+  return `${String(Math.floor(totalMinutes / 60)).padStart(2, "0")}:${String(totalMinutes % 60).padStart(2, "0")}`;
+}
 function dateHeading(value: unknown) {
   const raw=String(value);const [year,month,day]=raw.split("-");
   const weekday=new Intl.DateTimeFormat("en-MY",{weekday:"long",timeZone:"UTC"}).format(new Date(`${raw}T00:00:00Z`));
@@ -68,6 +72,11 @@ function signedDuration(value: unknown, tone: "late" | "earlyLeave" | "ot") {
   const label = tone === "ot" ? "OT" : tone === "earlyLeave" ? "early" : "late";
   const className = tone === "ot" ? "text-[var(--sb-success)]" : "text-[var(--sb-danger)]";
   return <span className={`mt-0.5 block text-[11px] font-medium tabular-nums ${className}`}>{prefix}{durationLabel(seconds)} {label}</span>;
+}
+function signedMinuteDuration(value: unknown, label: string) {
+  const seconds = Number(value ?? 0);
+  if (seconds <= 0) return null;
+  return <span className="mt-0.5 block text-[11px] font-medium tabular-nums text-[var(--sb-success)]">+{minuteDuration(seconds)} {label}</span>;
 }
 function primaryStatus(row: Row) {
   const values = Array.isArray(row.statuses)
@@ -169,7 +178,8 @@ export default async function AttendanceReviewPage({
         ["submitted", "approved", "credited"].includes(String(item.status)),
     ) as Claim | undefined;
     const reservation=reservations.find(item=>String(item.staff_id)===String(row.staff_id)&&String(item.work_date)===String(row.work_date));
-    return { staff, candidate, claim, reservation, status: primaryStatus(row) };
+    const actualOvertime = Number(row.post_shift_seconds ?? 0);
+    return { staff, candidate, actualOvertime, claim, reservation, status: primaryStatus(row) };
   };
 
   return (
@@ -234,6 +244,25 @@ export default async function AttendanceReviewPage({
                 </Button>
               ) : null}
             </ConsoleSection>
+            <details className="group sb-work-surface overflow-hidden" open>
+              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-3 py-2 text-xs font-semibold [&::-webkit-details-marker]:hidden">
+                Reports & time-off balance
+                <ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" />
+              </summary>
+              <div className="border-t border-[var(--sb-border-soft)] p-2">
+                <ActualAttendancePanel
+                  assignments={actuals.assignments as Row[]}
+                  reports={actuals.reports as Row[]}
+                  ledger={actuals.ledger}
+                  balances={actuals.balances}
+                  canSubmit={permissions["attendance.report.submit"]}
+                  canApprove={permissions["attendance.report.approve"]}
+                  canSubmitComp={permissions["comp_time.submit"]}
+                  canApproveComp={permissions["comp_time.approve"]}
+                  embedded
+                />
+              </div>
+            </details>
           </>
         }
       >
@@ -334,10 +363,10 @@ export default async function AttendanceReviewPage({
                     "Break",
                     "Clock out",
                     "Worked",
-                    "RO",
+                    "RO\nOT",
                     "Actions",
                   ].map((label) => (
-                    <th key={label} className="px-3 py-2.5">
+                    <th key={label} className="whitespace-pre-line px-3 py-2.5">
                       {label}
                     </th>
                   ))}
@@ -345,7 +374,7 @@ export default async function AttendanceReviewPage({
               </thead>
               <tbody>
                 {rows.map((row, index) => {
-                  const { staff, candidate, claim, reservation } = rowContext(row);
+                  const { staff, candidate, actualOvertime, claim, reservation } = rowContext(row);
                   const newDay =
                     index === 0 ||
                     String(rows[index - 1]?.work_date) !==
@@ -376,7 +405,7 @@ export default async function AttendanceReviewPage({
                             {Number(row.expected_punch_count ?? 0)}
                           </strong>
                           {Number(row.missing_punch_count ?? 0) > 0 ? (
-                            <span className="block whitespace-nowrap text-[10px] text-amber-800">
+                            <span className="block max-w-full text-[10px] leading-tight text-amber-800">
                               {String(row.work_date) >= ATTENDANCE_TRACKING_START_DATE && Number(row.monthly_missing_punch_count ?? 0) >= 4
                                 ? `${Number(row.monthly_missing_punch_count)} missing this month`
                                 : "Missing punch"}
@@ -396,13 +425,14 @@ export default async function AttendanceReviewPage({
                           <strong className="block">{time(row.actual_last_out)}</strong>
                           {Number(row.early_leave_seconds ?? 0) > 0
                             ? signedDuration(row.early_leave_seconds, "earlyLeave")
-                            : signedDuration(candidate, "ot")}
+                            : signedMinuteDuration(actualOvertime, "OT")}
                         </td>
                         <td className="px-3 py-3 tabular-nums">
                           {duration(row.worked_seconds)}
                         </td>
-                        <td className="px-3 py-3">
-                          {reservation?<><strong className="block tabular-nums">{reservation.final_used_minutes??reservation.reserved_minutes} min</strong><span className="text-[11px] capitalize text-muted-foreground">{reservation.status??"reserved"}</span></>:<span className="text-muted-foreground">—</span>}
+                        <td className="px-3 py-3 tabular-nums">
+                          <span className="block text-[11px] text-muted-foreground">RO {reservation ? `${Math.floor(Number(reservation.final_used_minutes??reservation.reserved_minutes) / 30)} × 30m` : "—"}</span>
+                          <strong className="block">OT {actualOvertime > 0 ? minuteDuration(actualOvertime) : "—"}</strong>
                         </td>
                         <td className="px-3 py-3">
                           <RowActions
@@ -422,7 +452,7 @@ export default async function AttendanceReviewPage({
           </div>
           <div className="divide-y divide-[var(--sb-border-soft)] md:hidden">
             {rows.map((row, index) => {
-              const { staff, candidate, claim, reservation, status } = rowContext(row);
+              const { staff, candidate, actualOvertime, claim, reservation, status } = rowContext(row);
               const newDay =
                 index === 0 ||
                 String(rows[index - 1]?.work_date) !== String(row.work_date);
@@ -457,7 +487,7 @@ export default async function AttendanceReviewPage({
                           {Number(row.expected_punch_count ?? 0)}
                         </dd>
                         {Number(row.missing_punch_count ?? 0) > 0 ? (
-                          <dd className="whitespace-nowrap text-[10px] text-amber-800">
+                          <dd className="max-w-full text-[10px] leading-tight text-amber-800">
                             {String(row.work_date) >= ATTENDANCE_TRACKING_START_DATE && Number(row.monthly_missing_punch_count ?? 0) >= 4
                               ? `${Number(row.monthly_missing_punch_count)} missing this month`
                               : "Missing punch"}
@@ -484,12 +514,10 @@ export default async function AttendanceReviewPage({
                           <dd>{duration(row.early_leave_seconds)}</dd>
                         </div>
                       ) : null}
-                      {candidate > 0 ? (
+                      {actualOvertime > 0 ? (
                         <div>
-                          <dt className="text-muted-foreground">
-                            OT candidate
-                          </dt>
-                          <dd>{duration(candidate)}</dd>
+                          <dt className="text-muted-foreground">Actual OT</dt>
+                          <dd>{minuteDuration(actualOvertime)}</dd>
                         </div>
                       ) : null}
                       {reservation ? <div><dt className="text-muted-foreground">RO</dt><dd>{reservation.final_used_minutes??reservation.reserved_minutes} min · <span className="capitalize">{reservation.status??"reserved"}</span></dd></div>:null}
@@ -544,7 +572,7 @@ export default async function AttendanceReviewPage({
             </footer>
           ) : null}
         </section>}
-        <details className="group sb-work-surface overflow-hidden">
+        <details className="group sb-work-surface overflow-hidden xl:hidden">
           <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
             Reports & time-off balance
             <ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" />
@@ -634,15 +662,18 @@ function AttendanceDetail({ detail }: { detail: Row }) {
           <dd>{adjustments.length}</dd>
         </div>
       </dl>
-      {exceptions.map((item) => (
+      {exceptions.map((item) => {
+        const code = String(item.exception_code);
+        const isLocationMismatch = code === "wrong_branch_device";
+        return (
         <div
           key={String(item.id)}
           className="mt-2 rounded-[var(--sb-radius-control)] bg-[var(--sb-warning-bg)] p-2"
         >
-          <strong>{String(item.exception_code).replaceAll("_", " ")}</strong>
-          <p>{String(item.resolution_note ?? "Needs review")}</p>
+          <strong>{isLocationMismatch ? "Punch location differs from schedule" : code.replaceAll("_", " ")}</strong>
+          <p>{isLocationMismatch ? "The punch came from a device mapped to another outlet. System access does not change the fingerprint device location; verify the staff day or device mapping." : String(item.resolution_note ?? "Needs review")}</p>
         </div>
-      ))}
+      )})}
     </ConsoleSection>
   );
 }

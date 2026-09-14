@@ -7,6 +7,11 @@ import { hasPermission } from "@/server/auth/permissions";
 import { logServerError } from "@/server/observability/logger";
 
 const weekSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const addDays = (day: string, amount: number) => {
+  const value = new Date(`${day}T00:00:00Z`);
+  value.setUTCDate(value.getUTCDate() + amount);
+  return value.toISOString().slice(0, 10);
+};
 
 export async function GET(request: Request) {
   try {
@@ -37,11 +42,21 @@ export async function GET(request: Request) {
     const homeByStaff = new Map(((homeResult.data ?? []) as Array<{ id: string; default_branch_id: string | null }>).map((person) => [person.id, person.default_branch_id]));
     const roleResult = staffIds.size ? await db.from("staff_roles").select("staff_id,effective_from,effective_to,is_primary,roles(role_code)").in("staff_id", [...staffIds]).eq("is_primary", true) : { data: [], error: null };
     if (roleResult.error) throw roleResult.error;
+    const roleRows = (roleResult.data ?? []) as Array<{ staff_id: string; effective_from: string; effective_to: string | null; roles: { role_code?: string } | Array<{ role_code?: string }> | null }>;
+    const rolesByStaff = new Map<string, typeof roleRows>();
+    for (const row of roleRows) rolesByStaff.set(row.staff_id, [...(rolesByStaff.get(row.staff_id) ?? []), row]);
     const eligibilityByStaff = new Map<string, Array<{ from: string; to: string | null }>>();
-    for (const row of (roleResult.data ?? []) as Array<{ staff_id: string; effective_from: string; effective_to: string | null; roles: { role_code?: string } | Array<{ role_code?: string }> | null }>) {
-      const role = Array.isArray(row.roles) ? row.roles[0]?.role_code : row.roles?.role_code;
-      if (!role || !["outlet_staff", "outlet_supervisor"].includes(role)) continue;
-      eligibilityByStaff.set(row.staff_id, [...(eligibilityByStaff.get(row.staff_id) ?? []), { from: row.effective_from, to: row.effective_to }]);
+    const today = new Date().toISOString().slice(0, 10);
+    const days = Array.from({ length: 7 }, (_, index) => addDays(week.data, index));
+    for (const staffId of staffIds) {
+      const rows = rolesByStaff.get(staffId) ?? [];
+      const roleCode = (row: (typeof roleRows)[number]) => Array.isArray(row.roles) ? row.roles[0]?.role_code : row.roles?.role_code;
+      const currentSchedulable = rows.some((row) => ["outlet_staff", "outlet_supervisor"].includes(roleCode(row) ?? "") && row.effective_from <= today && (!row.effective_to || row.effective_to >= today));
+      const eligibleDays = days.filter((day) => {
+        const covering = rows.filter((row) => row.effective_from <= day && (!row.effective_to || row.effective_to >= day));
+        return covering.some((row) => ["outlet_staff", "outlet_supervisor"].includes(roleCode(row) ?? "")) || (day < today && covering.length === 0 && currentSchedulable);
+      });
+      eligibilityByStaff.set(staffId, eligibleDays.map((day) => ({ from: day, to: day })));
     }
     const branchForWeek = new Map([...latest].map(([branchId, row]) => [row.id, branchId]));
     return NextResponse.json({

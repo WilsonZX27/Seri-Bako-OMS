@@ -1,3 +1,11 @@
+### v9.2.65 (unreleased) — Historical schedule backfill integrity
+
+- Past roster dates with no recorded primary-role history may use the employee's current schedulable outlet role during an audited workbook backfill; this closes false import rejections caused by role records created after the historical schedule date.
+- A known role covering the historical day remains authoritative, and future schedules continue to require an exact date-effective `outlet_staff` or `outlet_supervisor` role. Role history itself is never backdated or rewritten.
+- Workbook preview and database persistence now share the same eligibility rule so an assignment accepted in preview cannot fail later for a hidden role-window mismatch.
+
+Repository migrations reviewed through `284`. Local schema and focused contracts passed; linked migration application, deployment, authenticated workbook UAT and Production verification remain separate release evidence.
+
 ### v9.2.64 (unreleased) — Attendance publish reliability
 
 - Schedule completeness failures return the named employee and day as an actionable conflict instead of a generic server error.

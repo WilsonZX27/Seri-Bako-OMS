@@ -1,6 +1,6 @@
 # Seri Bako OMS — Schema 与 Table 关系地图
 
-> Current repository authority 2026-09-14: forward-only migration 历史已到 `283`. Migration `283` repairs the Published Schedule correction RPC so composite `schedule_weeks` results remain typed rows instead of being coerced into UUIDs. Local schema and authenticated mutation UAT passed; linked migration application and Production verification remain separate evidence.
+> Current repository authority 2026-09-14: forward-only migration 历史已到 `284`. Migration `284` adds one tenant-bound schedule-eligibility authority used by persistence: exact date-effective outlet roles remain authoritative, while a past date with no recorded primary role may use the employee's current schedulable role for audited backfill. Known historical non-outlet roles and future role gaps remain ineligible. Local schema and focused contracts passed; linked migration application and Production verification remain separate evidence.
 
 > Current repository authority 2026-09-12: forward-only migration 历史已到 `281`. Migration `281` recalculates finalised raw-punch batches after a later Schedule publication and exposes a permission-gated company employee candidate list for week-scoped outlet rostering. It does not change immutable punch evidence or permanent staff outlet ownership. Database application and Production verification remain separate evidence.
 

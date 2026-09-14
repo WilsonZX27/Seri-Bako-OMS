@@ -32,7 +32,7 @@ Adjustments create a new result revision and immutable before/after history. Loc
 
 Upload preview parses and validates without mutation. Confirmation records the SHA-256 file hash, uploader, parser profile, period, raw row JSON and immutable event fingerprints. Event uniqueness is tenant + Person ID + exact timestamp + device + punch type, so overlapping exports remain idempotent while every batch keeps its source-row association.
 
-Apply forward-only migrations in numeric order. The documented migration ceiling is **282**. Migration 282 adds full-time day completeness, permission-gated cross-outlet projections and audited correction of published-but-unlocked schedules. The internal legacy `oil` value is displayed as **EL — Emergency Leave**. Keep migration application, deployment and Production verification as separate release evidence.
+Apply forward-only migrations in numeric order. The documented migration ceiling is **284**. Migration 282 adds full-time day completeness, permission-gated cross-outlet projections and audited correction of published-but-unlocked schedules; migration 283 repairs composite-row handling in published corrections; migration 284 aligns workbook preview and persistence for audited historical role-history gaps without weakening known historical or future eligibility. The internal legacy `oil` value is displayed as **EL — Emergency Leave**. Keep migration application, deployment and Production verification as separate release evidence.
 
 ## Test checklist
 

@@ -1,3 +1,8 @@
+## v9.2.65 (unreleased) — Historical schedule backfill integrity
+
+- Historical scheduling distinguishes an unknown role-history gap from a known ineligible role. Only the unknown past gap may inherit today's schedulable status; the UI must not describe that fallback as a historical role fact.
+- Preview and save use one eligibility contract. Operators see unresolved source facts before import, while verified assignments remain usable without a late database rejection.
+
 ## v9.2.64 (unreleased) — Attendance publish reliability
 
 - An incomplete roster is a correctable business state, not an incident: feedback names the employee and date and tells the scheduler to add a local assignment or schedule the employee at the destination outlet.

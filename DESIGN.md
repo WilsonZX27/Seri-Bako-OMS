@@ -7,7 +7,7 @@
 
 - Topbar pending actions omit unused exact counts; Dashboard totals retain exact counting and unavailable-state handling.
 
-Repository migrations reviewed and linked ledger verified through `287`; authenticated v9.2.69 application verification and promotion remain pending. See `docs/qa/SYSTEM_QUALITY_2026-09-14.md`.
+Repository migrations reviewed through `287`; linked ledger verified through `287`; authenticated v9.2.69 application verification and promotion remain pending. See `docs/qa/SYSTEM_QUALITY_2026-09-14.md`.
 
 ## v9.2.68 (unreleased) — Faster workspace reads
 

@@ -7,7 +7,7 @@ import { getPayablesAttention } from "@/server/queries/ap-aging";
 import { getRoleDisplayLabel } from "@/lib/roles";
 import { getOutletComplianceWorkspace } from "@/server/queries/compliance";
 import { getOutletDailyCompletionMatrix, getOutletDailyDemandTrend } from "@/server/queries/outlet-daily-records";
-import { getLowStockResult } from "@/server/queries/inventory";
+import { getLowStockCount } from "@/server/queries/inventory";
 import { logServerWarning } from "@/server/observability/logger";
 import {
   getMockLowStockItems,
@@ -368,7 +368,7 @@ export async function getDashboardSummary() {
         })
       : Promise.resolve(null),
     needsInventory
-      ? getLowStockResult()
+      ? getLowStockCount()
       : Promise.resolve({ rows: [], count: 0, unavailable: false }),
     isOutlet && scope.staffId ? db.from("shift_assignment_revisions").select("id,work_date,assignment_kind,custom_start,custom_end,shift_templates(code,name,planned_start,planned_end,crosses_midnight),schedule_weeks!inner(status)").eq("staff_id",scope.staffId).eq("is_current",true).gte("work_date",today).lte("work_date",nextWeek.toISOString().slice(0,10)).in("schedule_weeks.status",["published","locked"]).order("work_date").limit(8) : Promise.resolve({data:[],error:null}),
     needsOperations ? getOutletDailyCompletionMatrix({ history_date: today }).catch((error) => { warnOptionalQuery("outlet completion", error); return null; }) : Promise.resolve(null),

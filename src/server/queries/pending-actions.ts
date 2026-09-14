@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { hasPermission } from "@/server/auth/permissions";
+import { getPermissionMap } from "@/server/auth/permissions";
 import { getCurrentUserScope } from "@/server/queries/notifications";
 import type { PurchaseRequestStatus } from "@/lib/status-contracts";
 import { logServerWarning } from "@/server/observability/logger";
@@ -34,20 +34,22 @@ function ageLabel(updatedAt?: string | null) {
   return `${days} days`;
 }
 
-export const getCurrentUserPendingActionSnapshot = cache(async function getCurrentUserPendingActionSnapshot(limit = 5, includeOutletDaily = true): Promise<PendingActionSnapshot> {
+export const getCurrentUserPendingActionSnapshot = cache(async function getCurrentUserPendingActionSnapshot(limit = 5, includeOutletDaily = true, includeDetails = true): Promise<PendingActionSnapshot> {
   const scope = await getCurrentUserScope();
   if (!scope) return { items: [], total: null, unavailable: true };
 
-  const [canAdminReview, canPurchasingReview, canManagerApprove, canFinanceReview, canConvertPo, canViewAll, canApproveSchedule, canPostOutletDaily] = await Promise.all([
-    hasPermission("pr.admin_review"),
-    hasPermission("pr.purchasing_review"),
-    hasPermission("pr.manager_approve"),
-    hasPermission("pr.finance_review"),
-    hasPermission("pr.convert_to_po"),
-    hasPermission("pr.view_all"),
-    hasPermission("schedule.approve"),
-    hasPermission("outlet_daily_record.post"),
+  const permissions = await getPermissionMap([
+    "pr.admin_review", "pr.purchasing_review", "pr.manager_approve", "pr.finance_review",
+    "pr.convert_to_po", "pr.view_all", "schedule.approve", "outlet_daily_record.post",
   ]);
+  const canAdminReview = permissions["pr.admin_review"];
+  const canPurchasingReview = permissions["pr.purchasing_review"];
+  const canManagerApprove = permissions["pr.manager_approve"];
+  const canFinanceReview = permissions["pr.finance_review"];
+  const canConvertPo = permissions["pr.convert_to_po"];
+  const canViewAll = permissions["pr.view_all"];
+  const canApproveSchedule = permissions["schedule.approve"];
+  const canPostOutletDaily = permissions["outlet_daily_record.post"];
 
   const prStatusFilters: Array<{ status: PurchaseRequestStatus; allowed: boolean; step: string; title: string }> = [
     { status: "manager_review", allowed: canManagerApprove, step: "Manager Review", title: "Manager review required" },
@@ -60,7 +62,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
   const supabase = await createClient();
   const canSeeAllBranches = canViewAll || scope.companyWideAccess || scope.roleCode === "super_admin";
 
-  const prResults = await Promise.all(
+  const prResultsPromise = Promise.all(
     filters.map(async (filter) => {
       let query = supabase
         .from("purchase_requests")
@@ -85,8 +87,9 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
         return { items: [] as PendingAction[], count: null, unavailable: true };
       }
 
-      const requestIds = data.map((row) => row.id);
-      const requesterIds = [...new Set(data.map((row) => row.requested_by).filter((value): value is string => Boolean(value)))];
+      // The topbar displays links and workflow labels, not costs or suppliers.
+      const requestIds = includeDetails ? data.map((row) => row.id) : [];
+      const requesterIds = includeDetails ? [...new Set(data.map((row) => row.requested_by).filter((value): value is string => Boolean(value)))] : [];
       const [lineResult, requesterResult] = await Promise.all([
         requestIds.length ? supabase.from("purchase_request_lines").select("purchase_request_id, qty, estimated_unit_cost, suggested_supplier_id").in("purchase_request_id", requestIds) : Promise.resolve({ data: [], error: null }),
         requesterIds.length ? supabase.from("staffs").select("id, full_name").in("id", requesterIds) : Promise.resolve({ data: [], error: null }),
@@ -123,7 +126,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
     }),
   );
 
-  const scheduleResult = await (async () => {
+  const scheduleResultPromise = (async () => {
     if (!canApproveSchedule) return { items: [] as PendingAction[], count: 0, unavailable: false };
     let query = supabase
       .from("schedule_weeks")
@@ -167,7 +170,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
     };
   })();
 
-  const outletDailyResult = await (async () => {
+  const outletDailyResultPromise = (async () => {
     if (!includeOutletDaily || !canPostOutletDaily) return { items: [] as PendingAction[], count: 0, unavailable: false };
     let query = supabase
       .from("outlet_daily_records")
@@ -209,6 +212,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
     };
   })();
 
+  const [prResults, scheduleResult, outletDailyResult] = await Promise.all([prResultsPromise, scheduleResultPromise, outletDailyResultPromise]);
   const results = [...prResults, scheduleResult, ...(includeOutletDaily ? [outletDailyResult] : [])];
   const unavailable = results.some((result) => result.unavailable);
   const items = results
@@ -223,5 +227,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
 });
 
 export const getCurrentUserPendingActions = cache(async function getCurrentUserPendingActions(limit = 5): Promise<PendingAction[]> {
-  return (await getCurrentUserPendingActionSnapshot(limit)).items;
+  const snapshot = await getCurrentUserPendingActionSnapshot(limit, true, false);
+  if (snapshot.unavailable) throw new Error("Pending actions are temporarily unavailable.");
+  return snapshot.items;
 });

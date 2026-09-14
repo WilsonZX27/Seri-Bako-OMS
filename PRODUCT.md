@@ -1,3 +1,12 @@
+### v9.2.68 (unreleased) — Faster workspace reads
+
+- Schedule overview loads only overview data. The outlet planner fetches independent reads concurrently while preserving authorised branch selection, workflow state and cross-outlet assignments.
+- Dashboard low-stock counts use the same branch-item eligibility source without transferring full detail rows. Missing counts remain unavailable, not zero.
+- Workspace updates load independently of the topbar shell and omit unused procurement detail hydration. Their workflow permission checks are batched; session verification is reused only within one server render.
+- Slow upstream request logs contain endpoint names, durations and status only, without credentials, filters or business records.
+
+Repository migrations reviewed through `286`; this patch adds no migration. Production remains on the separately verified release until this patch is deployed and checked.
+
 ### v9.2.67 (Production verified 2026-09-14) — Cross-outlet employee-day integrity
 
 - An employee-day already recorded in another Submitted, Published or Locked roster satisfies completeness whether it is a shift, OFF, public holiday or leave. The destination outlet does not duplicate or contradict the immutable disposition.

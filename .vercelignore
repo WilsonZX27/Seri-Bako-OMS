@@ -1,4 +1,8 @@
 # Local import workbooks and audit artifacts; never ship with the web bundle.
+env.test.local
+gitignore.txt
+.env
+.env.*.local
 .tmp_sheet/
 05_findings/
 findings/

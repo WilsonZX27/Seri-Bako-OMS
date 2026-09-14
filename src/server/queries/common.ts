@@ -3,6 +3,7 @@ import { todayInKualaLumpur } from "@/lib/business-date";
 import { isMockMode, mockBranches, mockCompany, mockItems, mockProfile, mockSuppliers } from "@/lib/mock-mode";
 import { getCurrentUserScope } from "@/server/queries/notifications";
 import { cache } from "react";
+import { getCurrentAuthUser } from "@/server/queries/auth-user";
 
 /**
  * Read boundaries must distinguish a real empty result from a failed or
@@ -27,7 +28,7 @@ export const getCurrentProfile = cache(async function getCurrentProfile() {
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getCurrentAuthUser();
 
   if (!user) return null;
 
@@ -73,7 +74,7 @@ export const getCompanyBranding = cache(async function getCompanyBranding() {
   }
 
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await getCurrentAuthUser();
   // The companies table remains tenant-protected before authentication. The
   // company-assets bucket is deliberately public, so the auth shell can still
   // show the uploaded brand mark without exposing company records.

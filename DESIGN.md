@@ -1,3 +1,9 @@
+## v9.2.68 (unreleased) — Faster workspace reads
+
+- The workspace header remains available while notifications and pending actions load behind a stable, disabled bell with an explicit loading label.
+- Schedule overview describes the accessible outlets instead of showing a hidden default outlet's roster state or fetching its editable planner.
+- Loading and unavailable are distinct from an empty workflow queue or zero low-stock count. This patch preserves existing visual controls and business actions.
+
 ## v9.2.67 (Production verified 2026-09-14) — Cross-outlet employee-day integrity
 
 - Completeness follows the canonical company employee-day, not the currently viewed outlet. A published OFF or leave elsewhere must not produce a contradictory empty-day blocker in a borrowed outlet roster.

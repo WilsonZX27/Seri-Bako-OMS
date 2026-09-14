@@ -45,7 +45,7 @@ test("ready outlet records enter the controlled posting queue", () => {
   assert.match(migration, /outlet_daily_record\.post/);
   assert.match(migration, /p_action = 'post'/);
   assert.match(migration, /target\.status <> 'evening_completed'/);
-  assert.match(pending, /hasPermission\("outlet_daily_record\.post"\)/);
+  assert.match(pending, /permissions\["outlet_daily_record\.post"\]/);
   assert.match(pending, /eq\("status", "evening_completed"\)/);
   assert.match(pending, /title: "Outlet daily record ready to post"/);
 });

@@ -21,9 +21,20 @@ function release() {
 
 export async function limitedServerFetch(input: RequestInfo | URL, init?: RequestInit) {
   const target = input instanceof Request ? input.url : input.toString();
-  const hostname = new URL(target).hostname;
+  const url = new URL(target);
+  const hostname = url.hostname;
   const method = (init?.method ?? (input instanceof Request ? input.method : "GET")).toUpperCase();
-  const execute = () => fetch(input, { ...init, cache: "no-store" });
+  const execute = async () => {
+    const started = performance.now();
+    let status: number | null = null;
+    try {
+      const response = await fetch(input, { ...init, cache: "no-store" });
+      status = response.status;
+      return response;
+    } finally {
+      if (reliabilityFlags.observation) reportSlowSupabaseRequest(url, method, performance.now() - started, status);
+    }
+  };
   const safeRead = method === "GET" || method === "HEAD";
   const fetchWithPolicy = () => reliabilityFlags.readRetry && safeRead
     ? withReadRetry(execute, { circuitKey: `supabase:${hostname}` })
@@ -40,3 +51,4 @@ export async function limitedServerFetch(input: RequestInfo | URL, init?: Reques
 }
 import { reliabilityFlags } from "@/lib/reliability/flags";
 import { withReadRetry } from "@/lib/reliability/retry";
+import { reportSlowSupabaseRequest } from "@/server/observability/supabase-timing";

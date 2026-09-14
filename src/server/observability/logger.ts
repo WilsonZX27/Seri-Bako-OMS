@@ -7,6 +7,10 @@ export type LogContext = {
   module?: string;
   errorCode?: string;
   source?: string;
+  event?: string;
+  durationMs?: number;
+  httpStatus?: number | null;
+  httpMethod?: string;
 };
 
 function redact(value: unknown): unknown {

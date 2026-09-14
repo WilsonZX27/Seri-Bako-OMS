@@ -1145,6 +1145,26 @@ async function loadLowStockItems(filters: Filters = {}) {
 
 export type LowStockResult = { rows: Awaited<ReturnType<typeof loadLowStockItems>>; count: number | null; unavailable: boolean };
 
+/** Dashboard needs only a count, including mapped items before their first movement. */
+export async function getLowStockCount(): Promise<{ count: number | null; unavailable: boolean }> {
+  if (isMockMode()) return { count: getMockLowStockItems().length, unavailable: false };
+  try {
+    const supabase = await createClient();
+    const { count, error } = await supabase
+      .from("stock_count_eligible_items" as "stock_balances_summary")
+      .select("item_id", { count: "exact", head: true })
+      .eq("status", "active")
+      .eq("is_low_stock", true);
+    if (error) throw error;
+    if (count === null) throw new Error("Low stock count returned no data.");
+    return { count, unavailable: false };
+  } catch (error) {
+    // Do not turn a failed summary into repeated full-ledger scans.
+    warnOptionalInventoryQuery("low stock count", error instanceof Error ? error : new Error(String(error)));
+    return { count: null, unavailable: true };
+  }
+}
+
 export async function getLowStockResult(filters: Filters = {}): Promise<LowStockResult> {
   try {
     const rows = await loadLowStockItems(filters);

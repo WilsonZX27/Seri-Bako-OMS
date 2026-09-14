@@ -7,6 +7,7 @@ import { hasCompanyWideOperationalScope } from "@/lib/roles";
 import { getCanonicalEntityHref } from "@/lib/document-routing";
 import { actorDisplayName, formatActivityWithActor, resolveActorDisplayMap } from "@/server/actors/display";
 import { cache } from "react";
+import { getCurrentAuthUser } from "@/server/queries/auth-user";
 
 export type CurrentUserScope = {
   authUserId: string;
@@ -21,7 +22,7 @@ export const getCurrentUserScope = cache(async function getCurrentUserScope(): P
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getCurrentAuthUser();
   if (!user) return null;
 
   const { data: staff, error: staffError } = await supabase.from("staffs").select("id, auth_user_id").eq("auth_user_id", user.id).maybeSingle();

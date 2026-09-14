@@ -19,6 +19,8 @@ playwright/.cache/
 *.tsbuildinfo
 
 # Environment
+env.test.local
+gitignore.txt
 .env
 .env.local
 .env.development.local

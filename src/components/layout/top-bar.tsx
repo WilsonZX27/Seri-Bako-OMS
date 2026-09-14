@@ -7,9 +7,15 @@ import { MobileContextBack, MobileContextTitle } from "@/components/layout/mobil
 import { getRoleDisplayLabel } from "@/lib/roles";
 import { getTopBarActivity } from "@/server/queries/topbar";
 import type { UserRole } from "@/types/database";
+import { Suspense } from "react";
+import { Bell } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-export async function TopBar({ permissionMap, role, companyName, companyLogoUrl, displayName }: { permissionMap: Record<string, boolean>; role: UserRole; companyName: string; companyLogoUrl: string | null; displayName: string }) {
-  const activity = await getTopBarActivity();
+async function WorkspaceUpdates() {
+  return <TopBarActivityMenu data={await getTopBarActivity()} />;
+}
+
+export function TopBar({ permissionMap, role, companyName, companyLogoUrl, displayName }: { permissionMap: Record<string, boolean>; role: UserRole; companyName: string; companyLogoUrl: string | null; displayName: string }) {
   const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
@@ -24,7 +30,9 @@ export async function TopBar({ permissionMap, role, companyName, companyLogoUrl,
         <div data-testid="topbar-search-region" className="hidden md:block">
           <GlobalSearch permissionMap={permissionMap} />
         </div>
-        <TopBarActivityMenu data={activity} />
+        <Suspense fallback={<Button type="button" variant="ghost" size="icon" disabled aria-label="Loading workspace updates" aria-busy="true"><Bell className="h-5 w-5" /></Button>}>
+          <WorkspaceUpdates />
+        </Suspense>
         <div className="hidden md:block"><AccountMenu displayName={displayName} roleLabel={getRoleDisplayLabel(role)} initials={initials} /></div>
       </div>
     </header>

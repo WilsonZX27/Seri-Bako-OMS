@@ -49,27 +49,39 @@ export async function getSchedulePlanner(weekStart = malaysiaWeekStart(), reques
   const branchRows = (branches ?? []) as unknown as Array<{ id: string; branch_name: string }>;
   const branchId = requestedBranchId && branchRows.some((b) => b.id === requestedBranchId) ? requestedBranchId : branchRows[0]?.id;
   if (!branchId) return { branches: [], branchId: null, week: null, previousWeekId: null, templates: [], people: [], candidates: [], assignments: [], externalAssignments: [], roBalances: {} as Record<string,number>, submittedByName: null };
-  const { data: weeks, error: weekError } = await db.from("schedule_weeks").select("*").eq("branch_id", branchId).eq("week_start", weekStart).order("revision", { ascending: false }).limit(1);
-  if (weekError) throw weekError;
-  const week = weeks?.[0] ?? null;
-  const submitter = week?.submitted_by ? await db.from("staffs").select("full_name").eq("id",week.submitted_by).maybeSingle() : {data:null,error:null};
-  if (submitter.error) throw submitter.error;
-  const { data: scheduleStaff, error: staffError } = await db.rpc("get_schedule_staff", { p_branch_id: branchId,p_week_id:week?.id??null });
-  if (staffError) throw staffError;
-  const { data: scheduleCandidates, error: candidateError } = await db.rpc("get_schedule_staff_candidates", { p_branch_id: branchId });
-  if (candidateError) throw candidateError;
   const previousStart = new Date(`${weekStart}T00:00:00Z`); previousStart.setUTCDate(previousStart.getUTCDate() - 7);
-  const { data: previousWeeks, error: previousError } = await db.from("schedule_weeks").select("id").eq("branch_id", branchId).eq("week_start", previousStart.toISOString().slice(0, 10)).in("status", ["published", "locked"]).order("revision", { ascending: false }).limit(1);
-  if (previousError) throw previousError;
-  const staffIds=((scheduleStaff ?? []) as Array<{id:string}>).map((staff)=>staff.id);
-  const [templates, assignments, externalAssignments, compTime, reservations] = await Promise.all([
-    db.from("shift_templates").select("*").eq("is_active", true).order("code"),
-    week ? db.from("shift_assignment_revisions").select("*").eq("schedule_week_id", week.id).eq("is_current", true) : Promise.resolve({ data: [], error: null }),
+  // These reads depend only on the authorised branch, not on each other.
+  const [weekResult, candidateResult, previousResult, templates, externalAssignments] = await Promise.all([
+    db.from("schedule_weeks").select("id,status,updated_at,submitted_by").eq("branch_id", branchId).eq("week_start", weekStart).order("revision", { ascending: false }).limit(1),
+    db.rpc("get_schedule_staff_candidates", { p_branch_id: branchId }),
+    db.from("schedule_weeks").select("id").eq("branch_id", branchId).eq("week_start", previousStart.toISOString().slice(0, 10)).in("status", ["published", "locked"]).order("revision", { ascending: false }).limit(1),
+    db.from("shift_templates").select("id,code,name,planned_start,planned_end,planned_break_seconds,maximum_recognised_seconds,colour").eq("is_active", true).order("code"),
     db.rpc("get_schedule_external_assignments", { p_branch_id: branchId, p_week_start: weekStart }),
+  ]);
+  const { data: weeks, error: weekError } = weekResult;
+  if (weekError) throw weekError;
+  if (candidateResult.error) throw candidateResult.error;
+  if (previousResult.error) throw previousResult.error;
+  if (templates.error) throw templates.error;
+  if (externalAssignments.error) throw externalAssignments.error;
+  const scheduleCandidates = candidateResult.data;
+  const previousWeeks = previousResult.data;
+  const week = weeks?.[0] ?? null;
+  const [submitter, staffResult, assignments] = await Promise.all([
+    week?.submitted_by ? db.from("staffs").select("full_name").eq("id",week.submitted_by).maybeSingle() : Promise.resolve({data:null,error:null}),
+    db.rpc("get_schedule_staff", { p_branch_id: branchId,p_week_id:week?.id??null }),
+    week ? db.from("shift_assignment_revisions").select("staff_id,work_date,assignment_kind,shift_template_id,custom_start,custom_end,custom_crosses_midnight,custom_break_seconds,custom_maximum_recognised_seconds,custom_reason,work_site_label,ro_minutes,ro_original_start,ro_original_end,ro_direction").eq("schedule_week_id", week.id).eq("is_current", true) : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (submitter.error) throw submitter.error;
+  const { data: scheduleStaff, error: staffError } = staffResult;
+  if (staffError) throw staffError;
+  if (assignments.error) throw assignments.error;
+  const staffIds=((scheduleStaff ?? []) as Array<{id:string}>).map((staff)=>staff.id);
+  const [compTime, reservations] = await Promise.all([
     staffIds.length ? db.from("comp_time_transactions").select("staff_id,minutes").in("staff_id",staffIds).eq("status","approved") : Promise.resolve({data:[],error:null}),
     staffIds.length ? db.from("attendance_ro_reservations").select("staff_id,reserved_minutes").in("staff_id",staffIds).eq("status","reserved") : Promise.resolve({data:[],error:null}),
   ]);
-  if (templates.error) throw templates.error; if (assignments.error) throw assignments.error; if(externalAssignments.error)throw externalAssignments.error;if(compTime.error)throw compTime.error;if(reservations.error)throw reservations.error;
+  if(compTime.error)throw compTime.error;if(reservations.error)throw reservations.error;
   const roBalances:Record<string,number>={};for(const id of staffIds)roBalances[id]=0;for(const row of (compTime.data??[]) as Array<{staff_id:string;minutes:number}>)roBalances[row.staff_id]=(roBalances[row.staff_id]??0)+Number(row.minutes);for(const row of (reservations.data??[]) as Array<{staff_id:string;reserved_minutes:number}>)roBalances[row.staff_id]=Math.max(0,(roBalances[row.staff_id]??0)-Number(row.reserved_minutes));
   return { branches: branchRows, branchId, week: week as unknown as { id: string; status: string;updated_at:string } | null, previousWeekId: previousWeeks?.[0]?.id ? String(previousWeeks[0].id) : null, templates: (templates.data ?? []) as unknown as Array<{ id:string;code:string;name:string;planned_start:string;planned_end:string;planned_break_seconds:number;maximum_recognised_seconds:number;colour:string }>, people: (scheduleStaff ?? []) as unknown as Array<{ id:string;full_name:string;staff_code:string|null;status:string;employment_type:string;role_code:string }>, candidates: (scheduleCandidates ?? []) as unknown as Array<{ id:string;full_name:string;staff_code:string|null;status:string;employment_type:string;role_code:string }>, assignments: (assignments.data ?? []) as unknown as Array<{staff_id:string;work_date:string;assignment_kind:string;shift_template_id:string|null;custom_start:string|null;custom_end:string|null;custom_crosses_midnight:boolean;custom_break_seconds:number|null;custom_maximum_recognised_seconds:number|null;custom_reason:string|null;work_site_label:string|null;ro_minutes:number|null;ro_original_start:string|null;ro_original_end:string|null;ro_direction:string|null}>, externalAssignments: (externalAssignments.data ?? []) as unknown as Array<{staff_id:string;work_date:string;branch_id:string;branch_name:string;planned_start:string;planned_end:string}>,roBalances,submittedByName:submitter.data?.full_name?String(submitter.data.full_name):null };
 }

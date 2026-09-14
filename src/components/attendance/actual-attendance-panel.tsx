@@ -19,7 +19,7 @@ type Props = {
   canApprove: boolean;
   canSubmitComp: boolean;
   canApproveComp: boolean;
-  embedded?: boolean;
+  compact?: boolean;
 };
 const reportLabels: Record<string, string> = {
   mc: "Medical certificate (MC)",
@@ -170,7 +170,7 @@ export function ActualAttendancePanel(props: Props) {
     (row) => row.status === "pending",
   );
   return (
-    <div className={props.embedded ? "space-y-px [&>section]:rounded-none [&>section]:border-0 [&>section]:shadow-none" : "space-y-3"} data-attendance-actuals>
+    <div className="space-y-3" data-attendance-actuals>
       <section className="sb-work-surface overflow-hidden">
         <div className="flex flex-wrap items-center gap-2 border-b border-[var(--sb-border-soft)] p-3">
           <div>
@@ -198,7 +198,7 @@ export function ActualAttendancePanel(props: Props) {
           {props.reports.map((row) => (
             <article
               key={String(row.id)}
-              className={props.embedded ? "grid gap-2 p-3 text-xs" : "grid gap-2 p-3 text-xs sm:grid-cols-[minmax(10rem,1fr)_9rem_9rem_minmax(12rem,1.4fr)_auto] sm:items-center"}
+              className={props.compact ? "grid gap-2 p-3 text-xs" : "grid gap-2 p-3 text-xs sm:grid-cols-[minmax(10rem,1fr)_9rem_9rem_minmax(12rem,1.4fr)_auto] sm:items-center"}
             >
               <div>
                 <strong className="block text-sm">
@@ -304,7 +304,7 @@ export function ActualAttendancePanel(props: Props) {
             </Button>
           ) : null}
         </div>
-        <div className={props.embedded ? "grid gap-px bg-[var(--sb-border-soft)]" : "grid gap-px bg-[var(--sb-border-soft)] sm:grid-cols-3"}>
+        <div className={props.compact ? "grid gap-px bg-[var(--sb-border-soft)]" : "grid gap-px bg-[var(--sb-border-soft)] sm:grid-cols-3"}>
           {Object.entries(props.balances).map(([staffId, balance]) => {
             const assignment = props.assignments.find(
               (row) => String(row.staff_id) === staffId,
@@ -320,7 +320,7 @@ export function ActualAttendancePanel(props: Props) {
             );
           })}
           {!Object.keys(props.balances).length ? (
-            <p className={props.embedded ? "bg-white p-4 text-xs text-muted-foreground" : "bg-white p-4 text-xs text-muted-foreground sm:col-span-3"}>
+            <p className={props.compact ? "bg-white p-4 text-xs text-muted-foreground" : "bg-white p-4 text-xs text-muted-foreground sm:col-span-3"}>
               No approved comp time balance yet.
             </p>
           ) : null}

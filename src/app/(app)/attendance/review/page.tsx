@@ -57,7 +57,9 @@ function duration(value: unknown) {
   return seconds > 0 ? durationLabel(seconds) : "—";
 }
 function minuteDuration(value: unknown) {
-  const totalMinutes = Math.floor(Math.max(0, Number(value ?? 0)) / 60);
+  const seconds = Math.max(0, Number(value ?? 0));
+  if (seconds > 0 && seconds < 60) return "<00:01";
+  const totalMinutes = Math.floor(seconds / 60);
   return `${String(Math.floor(totalMinutes / 60)).padStart(2, "0")}:${String(totalMinutes % 60).padStart(2, "0")}`;
 }
 function dateHeading(value: unknown) {
@@ -65,18 +67,13 @@ function dateHeading(value: unknown) {
   const weekday=new Intl.DateTimeFormat("en-MY",{weekday:"long",timeZone:"UTC"}).format(new Date(`${raw}T00:00:00Z`));
   return `${day}/${month}/${year} (${weekday})`;
 }
-function signedDuration(value: unknown, tone: "late" | "earlyLeave" | "ot") {
+function signedDuration(value: unknown, tone: "late" | "earlyLeave") {
   const seconds = Number(value ?? 0);
   if (seconds <= 0) return null;
   const prefix = tone === "earlyLeave" ? "−" : "+";
-  const label = tone === "ot" ? "OT" : tone === "earlyLeave" ? "early" : "late";
-  const className = tone === "ot" ? "text-[var(--sb-success)]" : "text-[var(--sb-danger)]";
+  const label = tone === "earlyLeave" ? "early" : "late";
+  const className = "text-[var(--sb-danger)]";
   return <span className={`mt-0.5 block text-[11px] font-medium tabular-nums ${className}`}>{prefix}{durationLabel(seconds)} {label}</span>;
-}
-function signedMinuteDuration(value: unknown, label: string) {
-  const seconds = Number(value ?? 0);
-  if (seconds <= 0) return null;
-  return <span className="mt-0.5 block text-[11px] font-medium tabular-nums text-[var(--sb-success)]">+{minuteDuration(seconds)} {label}</span>;
 }
 function primaryStatus(row: Row) {
   const values = Array.isArray(row.statuses)
@@ -244,12 +241,8 @@ export default async function AttendanceReviewPage({
                 </Button>
               ) : null}
             </ConsoleSection>
-            <details className="group sb-work-surface overflow-hidden" open>
-              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between px-3 py-2 text-xs font-semibold [&::-webkit-details-marker]:hidden">
-                Reports & time-off balance
-                <ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" />
-              </summary>
-              <div className="border-t border-[var(--sb-border-soft)] p-2">
+            <div className="space-y-2" aria-labelledby="attendance-tools-title">
+              <h2 id="attendance-tools-title" className="px-1 text-xs font-semibold">Reports & time-off balance</h2>
                 <ActualAttendancePanel
                   assignments={actuals.assignments as Row[]}
                   reports={actuals.reports as Row[]}
@@ -259,10 +252,9 @@ export default async function AttendanceReviewPage({
                   canApprove={permissions["attendance.report.approve"]}
                   canSubmitComp={permissions["comp_time.submit"]}
                   canApproveComp={permissions["comp_time.approve"]}
-                  embedded
+                  compact
                 />
-              </div>
-            </details>
+            </div>
           </>
         }
       >
@@ -425,7 +417,7 @@ export default async function AttendanceReviewPage({
                           <strong className="block">{time(row.actual_last_out)}</strong>
                           {Number(row.early_leave_seconds ?? 0) > 0
                             ? signedDuration(row.early_leave_seconds, "earlyLeave")
-                            : signedMinuteDuration(actualOvertime, "OT")}
+                            : null}
                         </td>
                         <td className="px-3 py-3 tabular-nums">
                           {duration(row.worked_seconds)}

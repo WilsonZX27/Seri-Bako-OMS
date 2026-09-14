@@ -55,3 +55,15 @@ test('Kitchen scheduling uses one role set in catalog, eligibility and completen
   const catalog = fs.readFileSync('src/app/api/attendance/schedule/import-catalog/route.ts', 'utf8');
   assert.match(catalog, /\["outlet_staff", "outlet_supervisor", "kitchen"\]/);
 });
+
+test('schedule checks accept SQL timestamp days, deduplicate dates and preserve malformed blockers', () => {
+  const { ScheduleValidationSummary } = load('src/components/attendance/schedule-validation-summary.tsx');
+  const issues = ['2026-09-07T00:00:00+00:00', '2026-09-07', '2026-09-08T00:00:00+08:00', '2026-02-30', 'invalid'].map((workDate) => ({
+    code: 'unresolved_staff_day', staffId: 'a', staffName: 'Employee A', workDate, message: `Unresolved: ${workDate}`,
+  }));
+  const html = renderToStaticMarkup(React.createElement(ScheduleValidationSummary, { issues, dirty: false }));
+  assert.match(html, /Review missing days \(2\)/);
+  assert.match(html, /Mon 07 Sept · Tue 08 Sept/);
+  assert.match(html, /Unresolved: 2026-02-30/);
+  assert.match(html, /Unresolved: invalid/);
+});

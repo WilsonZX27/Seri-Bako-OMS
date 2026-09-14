@@ -1,16 +1,26 @@
 type Issue = { code: string; message: string; staffId?: string; staffName?: string; workDate?: string };
 
+// SQL generate_series returns a timestamp, while assignment rows return a date.
+// Preserve the roster's calendar day rather than converting an offset to UTC.
+function calendarDay(value?: string) {
+  if (!value || !/^\d{4}-\d{2}-\d{2}(?:$|[T ])/.test(value)) return null;
+  const day = value.slice(0, 10);
+  const date = new Date(`${day}T00:00:00Z`);
+  return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === day ? day : null;
+}
+
 export function ScheduleValidationSummary({ issues, dirty }: { issues: Issue[]; dirty: boolean }) {
   if (!issues.length) return null;
   const missing = new Map<string, { name: string; days: string[] }>();
   const other: Issue[] = [];
   for (const issue of issues) {
-    if (issue.code !== "unresolved_staff_day" || !issue.staffId || !issue.workDate) {
+    const day = calendarDay(issue.workDate);
+    if (issue.code !== "unresolved_staff_day" || !issue.staffId || !day) {
       other.push(issue);
       continue;
     }
     const group = missing.get(issue.staffId) ?? { name: issue.staffName ?? "Employee", days: [] };
-    if (!group.days.includes(issue.workDate)) group.days.push(issue.workDate);
+    if (!group.days.includes(day)) group.days.push(day);
     missing.set(issue.staffId, group);
   }
   return <section aria-label="Schedule completeness" className="min-w-0 space-y-2 rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] p-2 text-xs">

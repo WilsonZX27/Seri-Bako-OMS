@@ -8,8 +8,8 @@ For UI and interaction standards, read `DESIGN.md`.
 
 ## Current Release Baseline
 
-- Application release candidate: `v9.2.63 — Staff Credential Handoff Clarity`.
-- Database migration ceiling: `282_schedule_completeness_and_cross_outlet_projection`.
+- Application release candidate: `v9.2.64 — Attendance Publish Reliability`.
+- Database migration ceiling: `283_schedule_published_correction_composite_repair`.
 - Vercel builds use Node.js 22 LTS and `npm ci --no-audit --no-fund`; `package.json`, `package-lock.json`, and the visible application version must remain synchronized.
 - Tenant isolation, inventory posting atomicity, procurement/document transitions, concurrency controls, and credential handoff are database-authoritative.
 - Start with `docs/PILOT_BASELINE.md`, use the controlled CSV files in `docs/import-templates/`, and record sign-off in `docs/PILOT_QA_CHECKLIST.md`.

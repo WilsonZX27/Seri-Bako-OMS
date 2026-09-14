@@ -1,3 +1,11 @@
+### v9.2.64 (unreleased) — Attendance publish reliability
+
+- Schedule completeness failures return the named employee and day as an actionable conflict instead of a generic server error.
+- Manager correction preserves the existing Published → Amendment Pending → Submitted → Published audit flow while safely handling PostgreSQL composite schedule rows.
+- End-to-end mutation coverage now exercises a complete outlet roster through submit, independent approval, copy and corrected publication.
+
+Repository migrations reviewed through `283`. Local schema and authenticated mutation UAT passed; linked migration application, deployment and Production verification remain separate release evidence.
+
 ### v9.2.63 (unreleased) — Staff credential handoff clarity
 
 - New Staff account creation lands directly on the one-time credential card instead of repeating the same instruction in a page-level success banner and card helper line.

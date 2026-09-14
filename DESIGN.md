@@ -1,3 +1,9 @@
+## v9.2.64 (unreleased) — Attendance publish reliability
+
+- An incomplete roster is a correctable business state, not an incident: feedback names the employee and date and tells the scheduler to add a local assignment or schedule the employee at the destination outlet.
+- Mobile Schedule actions remain attached edge-to-edge to the bottom action surface. Responsive title actions may share a row or stack deliberately when the phone width cannot preserve readable controls.
+- Working-time dialogs describe the scheduled span against the 8.5-hour reference and retain a signed `HH:MM:SS` difference for quick visual checking.
+
 ## v9.2.63 (unreleased) — Staff credential handoff clarity
 
 - A one-time credential surface owns one concise hierarchy: state in the heading, credential and copy action as the task, then the secure-sharing and password-change consequence. A separate success banner or helper sentence must not repeat that same instruction.

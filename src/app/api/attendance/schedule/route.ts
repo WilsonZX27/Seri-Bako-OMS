@@ -260,6 +260,15 @@ function scheduleErrorResponse(error: unknown, reference: string) {
     typeof error.message === "string"
       ? error.message
       : "";
+  const incompleteDayMessage = raw.match(
+    /[^.]+ has no schedule for [^.]+\. Add a shift, OFF or leave, or schedule the employee at the destination outlet\./,
+  )?.[0];
+  if (incompleteDayMessage) {
+    return NextResponse.json(
+      { ok: false, message: incompleteDayMessage },
+      { status: 409 },
+    );
+  }
   const match = scheduleBusinessErrors.find(([source]) => raw.includes(source));
   return match
     ? NextResponse.json({ ok: false, message: match[1] }, { status: 409 })

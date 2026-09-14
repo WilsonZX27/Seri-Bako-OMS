@@ -277,7 +277,7 @@ test("schedule business blockers return actionable 409 responses", async ({ page
 
 test("schedule submit, independent approval and copy complete without composite UUID failures", async ({ page }) => {
   await login(page, "outletSupervisor");
-  const submit = await page.evaluate(async ({ branchId, employeeId }) => {
+  const submit = await page.evaluate(async ({ branchId, employeeId, supervisorId }) => {
     const response = await fetch("/api/attendance/schedule", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -285,28 +285,27 @@ test("schedule submit, independent approval and copy complete without composite 
         action: "submit",
         branchId,
         weekStart: "2026-10-12",
-        assignments: [
-          {
-            staff_id: employeeId,
-            work_date: "2026-10-12",
+        assignments: [employeeId, supervisorId].flatMap((staffId) =>
+          ["2026-10-12", "2026-10-13", "2026-10-14", "2026-10-15", "2026-10-16", "2026-10-17", "2026-10-18"].map((workDate, index) => index === 1 ? {
+            staff_id: staffId,
+            work_date: workDate,
+            assignment_kind: "off",
+          } : {
+            staff_id: staffId,
+            work_date: workDate,
             assignment_kind: "shift",
             custom_start: "09:00",
             custom_end: "17:00",
             custom_break_seconds: 1800,
             custom_maximum_recognised_seconds: 27000,
             custom_reason: "Local annotation UAT shift",
-          },
-          {
-            staff_id: employeeId,
-            work_date: "2026-10-13",
-            assignment_kind: "off",
-          },
-        ],
+          }),
+        ),
         expectedUpdatedAt: null,
       }),
     });
     return { status: response.status, body: await response.json() };
-  }, { branchId: fixture.branchId, employeeId: fixture.employeeId });
+  }, { branchId: fixture.branchId, employeeId: fixture.employeeId, supervisorId: fixture.supervisorId });
   expect(submit.status).toBe(200);
   expect(submit.body.data.week.status).toBe("submitted");
   const weekId = submit.body.data.week.id;
@@ -337,23 +336,22 @@ test("schedule submit, independent approval and copy complete without composite 
   expect(copy.status).toBe(200);
   expect(copy.body.data.status).toBe("draft");
 
-  const copiedAssignments = [
-    {
-      staff_id: fixture.employeeId,
-      work_date: "2026-10-19",
+  const copiedAssignments = [fixture.employeeId, fixture.supervisorId].flatMap((staffId) =>
+    ["2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23", "2026-10-24", "2026-10-25"].map((workDate, index) => index === 1 ? {
+      staff_id: staffId,
+      work_date: workDate,
+      assignment_kind: "off",
+    } : {
+      staff_id: staffId,
+      work_date: workDate,
       assignment_kind: "shift",
       custom_start: "09:00",
       custom_end: "17:00",
       custom_break_seconds: 1800,
       custom_maximum_recognised_seconds: 27000,
       custom_reason: "Local copied UAT shift",
-    },
-    {
-      staff_id: fixture.employeeId,
-      work_date: "2026-10-20",
-      assignment_kind: "off",
-    },
-  ];
+    }),
+  );
   await logout(page);
   await login(page, "outletSupervisor");
   const copiedSubmit = await page.evaluate(async ({ branchId, assignments, expectedUpdatedAt }) => {
@@ -496,7 +494,7 @@ test("Attendance mobile controls stay bounded and Settings clears the bottom nav
   expect(templateActionBox.x + templateActionBox.width).toBeLessThanOrEqual(414);
 });
 
-test("People and Staff actions share the title row across supported viewports", async ({ page }) => {
+test("People and Staff actions share a row when space permits and stack safely on phones", async ({ page }) => {
   await login(page, "superAdmin");
   const viewports = [
     { width: 430, height: 932 },
@@ -508,9 +506,17 @@ test("People and Staff actions share the title row across supported viewports", 
     const [titleBox, actionBox] = await Promise.all([title.boundingBox(), action.boundingBox()]);
     expect(titleBox).not.toBeNull();
     expect(actionBox).not.toBeNull();
-    expect(titleBox.y).toBeLessThan(actionBox.y + actionBox.height);
-    expect(actionBox.y).toBeLessThan(titleBox.y + titleBox.height);
-    expect(actionBox.x).toBeGreaterThan(titleBox.x);
+    const sharesRow = titleBox.y < actionBox.y + actionBox.height && actionBox.y < titleBox.y + titleBox.height;
+    if (viewportWidth < 640) {
+      if (sharesRow) expect(actionBox.x).toBeGreaterThan(titleBox.x);
+      else {
+        expect(actionBox.y).toBeGreaterThanOrEqual(titleBox.y + titleBox.height);
+        expect(actionBox.x).toBeGreaterThanOrEqual(titleBox.x);
+      }
+    } else {
+      expect(sharesRow).toBe(true);
+      expect(actionBox.x).toBeGreaterThan(titleBox.x);
+    }
     expect(actionBox.x + actionBox.width).toBeLessThanOrEqual(viewportWidth - 8);
   };
 
@@ -569,15 +575,15 @@ test("mobile Schedule is inset, aligned and exposes the new working-time tools",
   const mobileActions = page.locator("[data-schedule-mobile-actions]");
   await expect(mobileActions).toBeVisible();
   const actionBox = await mobileActions.boundingBox();
-  expect(actionBox.x).toBeGreaterThanOrEqual(15);
-  expect(actionBox.x + actionBox.width).toBeLessThanOrEqual(375);
+  expect(actionBox.x).toBeLessThanOrEqual(1);
+  expect(actionBox.x + actionBox.width).toBeLessThanOrEqual(390);
   await expect(mobileActions.getByRole("button")).toHaveCount(2);
 
   await assignmentCells.first().click();
   const dialog = page.getByRole("dialog", { name: /Working time/i });
   await expect(dialog).toBeVisible();
-  await expect(dialog.getByText("Paid time summary")).toBeVisible();
-  await expect(dialog.getByText(/hours$/)).toBeVisible();
+  await expect(dialog.getByText("Scheduled span · compared with 8.5h")).toBeVisible();
+  await expect(dialog.getByText(/hours\(\+[0-9]{2}:[0-9]{2}:[0-9]{2}\)$/)).toBeVisible();
   const quickButtons = dialog.getByRole("button", { name: /^(OFF|AL|PH|UPL)$/ });
   await expect(quickButtons).toHaveCount(4);
   const backgrounds = await quickButtons.evaluateAll((nodes) => nodes.map((node) => getComputedStyle(node).backgroundColor));

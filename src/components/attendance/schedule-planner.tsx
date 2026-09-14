@@ -21,6 +21,7 @@ import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SelectControl } from "@/components/ui/select-control";
+import { ScheduleValidationSummary } from "@/components/attendance/schedule-validation-summary";
 import { cn } from "@/lib/utils";
 import { readJsonResponse } from "@/lib/http/read-json-response";
 import {
@@ -251,7 +252,7 @@ export function SchedulePlanner({
     [message, setMessage] = useState(
       people.length
         ? "Choose an assignment, then select staff days."
-        : "No outlet employees are assigned here.",
+        : "No schedulable employees are assigned here. Check the branch assignment and active Kitchen or Outlet role in Employees.",
     ),
     [actionFeedback, setActionFeedback] = useState<string | null>(null);
   const [custom, setCustom] = useState({
@@ -745,15 +746,7 @@ export function SchedulePlanner({
               schedule.
             </p>
           ) : null}
-          {initialBlockers.map((item) => (
-            <p
-              key={`${item.code}:${item.staffId ?? ""}:${item.workDate ?? ""}`}
-              role="alert"
-              className="rounded-[var(--sb-radius-control)] bg-rose-50 p-2 text-xs text-rose-900"
-            >
-              {item.message}
-            </p>
-          ))}
+          <ScheduleValidationSummary issues={initialBlockers} dirty={dirty} />
           {initialWarnings.map((item) => (
             <p
               key={`${item.code}:${item.staffId ?? ""}:${item.workDate ?? ""}`}
@@ -1020,8 +1013,8 @@ export function SchedulePlanner({
                     <span className="block truncate text-[10px] text-[var(--sb-text)] opacity-70">
                       {person.role_code === "outlet_supervisor"
                         ? "Supervisor"
-                        : "Staff"}{" "}
-                      · {(weekly / 3600).toFixed(1)}h week
+                        : person.role_code === "kitchen" ? "Kitchen" : "Staff"}{" "}
+                      · {person.staff_code ? `#${person.staff_code} · ` : ""}{(weekly / 3600).toFixed(1)}h week
                     </span>
                   </span>
                   <button
@@ -1250,8 +1243,8 @@ export function SchedulePlanner({
                             <span className="block truncate font-normal text-[var(--sb-text)] opacity-70">
                               {person.role_code === "outlet_supervisor"
                                 ? "Supervisor"
-                                : "Staff"}{" "}
-                              · {person.employment_type.replace("_", " ")}
+                                : person.role_code === "kitchen" ? "Kitchen" : "Staff"}{" "}
+                              · {person.staff_code ? `#${person.staff_code} · ` : ""}{person.employment_type.replace("_", " ")}
                             </span>
                           </span>
                           <span className="shrink-0 text-right text-[11px] font-semibold tabular-nums">

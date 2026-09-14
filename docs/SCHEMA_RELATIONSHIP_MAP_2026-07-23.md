@@ -1,3 +1,5 @@
+Current repository forward-only migration 历史已到 `287` (Kitchen schedule eligibility); linked application is pending verification.
+
 # Seri Bako OMS — Schema 与 Table 关系地图
 
 > Repository review 2026-09-14: forward-only migration 历史已到 `286`. The v9.2.68 performance patch changes application read orchestration only and adds no database migration. Production schema verification remains separate from this source review.

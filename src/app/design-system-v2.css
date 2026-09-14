@@ -1632,6 +1632,19 @@ html[data-design-layer="v2"] :where(.erp-surface[class~="rounded-[2px]"], .sb-wo
     min-width: 0 !important;
   }
 
+  html[data-design-layer="v2"] [data-mobile-document-action][data-action-count="3"].sb-mobile-action-bar {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 2.75rem !important;
+    gap: .5rem !important;
+  }
+
+  html[data-design-layer="v2"] [data-mobile-document-action][data-action-count="2"][data-has-more="true"].sb-mobile-action-bar {
+    grid-template-columns: minmax(0, 1fr) 2.75rem !important;
+  }
+
+  html[data-design-layer="v2"] [data-mobile-document-action][data-action-count="1"].sb-mobile-action-bar {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
   html[data-design-layer="v2"] [data-mobile-document-action].sb-mobile-action-bar > :first-child {
     width: 100% !important;
   }

@@ -1,3 +1,12 @@
+### v9.2.69 (unreleased) — Operational clarity and roster coverage
+
+- Kitchen employees share the canonical roster eligibility path with Outlet Staff and Supervisors; tenant, branch, role-date and workflow permissions remain enforced. Migration 287 is pending linked verification.
+- Schedule completeness checks group missing dates by employee without merging identities, inventing OFF days or bypassing submission blockers. Staff codes distinguish similar names.
+- Mobile document actions remain on one row with an accessible More options icon. Receiving summaries and purchase-chain links use two phone columns. PR rows display the submitter name without redundant wording.
+- Posted receipts show the remaining quantity after that receipt, preserving the original pre-receipt snapshot and distinguishing it from later PO activity. Receiving document and purchase-chain reads run concurrently.
+
+Repository migrations reviewed through `287`; linked and Production verification remain separate gates.
+
 ### v9.2.68 (unreleased) — Faster workspace reads
 
 - Schedule overview loads only overview data. The outlet planner fetches independent reads concurrently while preserving authorised branch selection, workflow state and cross-outlet assignments.

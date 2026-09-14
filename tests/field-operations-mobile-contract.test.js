@@ -138,7 +138,8 @@ test("goods receiving detail replaces the ten-column phone table with a complete
   assert.match(source, />Received<\/p>/);
   assert.match(source, />Ordered<\/dt>/);
   assert.match(source, />Previously<\/dt>/);
-  assert.match(source, />Pending<\/dt>/);
+  assert.match(source, /"Remaining" : "Pending"/);
+  assert.match(source, /remainingAfterReceipt\(line, receiving.status\)/);
   assert.match(source, /excluded from stock/);
   assert.match(source, /Batch \{line\.batch_no/);
   assert.match(source, /Stock value \{formatCurrency/);

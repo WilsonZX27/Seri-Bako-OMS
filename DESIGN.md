@@ -7,9 +7,10 @@
 
 - Topbar pending actions omit unused exact counts; Dashboard totals retain exact counting and unavailable-state handling.
 
-Repository migrations reviewed through `290`; linked ledger verified through `290`; authenticated Owner Preview verification passed on 2026-09-15. Production application promotion remains separate. See `docs/qa/SYSTEM_QUALITY_2026-09-15.md`.
+Repository migrations reviewed through `291`; linked Production ledger verified through `291`; authenticated Owner Preview verification passed on 2026-09-15. Production application promotion remains separate. See `docs/qa/SYSTEM_QUALITY_2026-09-15.md`.
 
 - Follow-up verification: SQL timestamp validation dates preserve their calendar day; mobile list rows no longer prefetch every unopened document. Migration 288 indexes the ready-to-post daily queue; migration 289 aggregates inventory once per Dashboard request with identical verified results. Migration 290 reuses parent SELECT RLS for daily lines and evaluates the request-constant view permission once; verified visible rows are unchanged.
+- Observability follow-up: migration 291 aligns the remaining high-frequency queue indexes with their real filters and newest-first ordering. No interface, workflow or permission behavior changes.
 - Apple-style interaction review keeps the existing information architecture and task habits: press feedback begins immediately, reduced motion remains authoritative, completed imports cannot look actionable, modal selects share the modal top layer, and desktop attendance tools occupy the existing right rail. Exact post-shift evidence is displayed separately from the unchanged 30-minute OT claim rule.
 
 ## v9.2.68 (unreleased) — Faster workspace reads

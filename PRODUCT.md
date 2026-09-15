@@ -7,9 +7,10 @@
 
 - Topbar pending actions omit unused exact counts; Dashboard totals retain exact counting and unavailable-state handling.
 
-Repository migrations reviewed through `290`; linked ledger verified through `290`; authenticated Owner Preview verification passed on 2026-09-15. Production application promotion remains separate. See `docs/qa/SYSTEM_QUALITY_2026-09-15.md`.
+Repository migrations reviewed through `291`; linked Production ledger verified through `291`; authenticated Owner Preview verification passed on 2026-09-15. Production application promotion remains separate. See `docs/qa/SYSTEM_QUALITY_2026-09-15.md`.
 
 - Follow-up verification: SQL timestamp validation dates preserve their calendar day; mobile list rows no longer prefetch every unopened document. Migration 288 indexes the ready-to-post daily queue; migration 289 aggregates inventory once per Dashboard request with identical verified results. Migration 290 reuses parent SELECT RLS for daily lines and evaluates the request-constant view permission once; verified visible rows are unchanged.
+- Observability follow-up: migration 291 adds filter-and-sort indexes for the Documents approval queue, active Purchase Request status queue and newest-first Notifications read. Production catalog and migration ledger were verified after application; workflows and row visibility are unchanged.
 - Attendance review now makes completed imports unmistakably disabled, shows exact recorded post-shift time to the minute beside 30-minute RO units, wraps repeated-missing warnings, keeps report tools in the desktop action rail, and opens searchable choices inside their modal layer. Shared buttons and selects respond immediately on press while respecting reduced-motion settings. Business rules, permissions and mutation workflows are unchanged.
 
 ### v9.2.68 (unreleased) — Faster workspace reads

@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { looseSupabase } from "@/lib/supabase/loose";
 import { requireDetailRow } from "@/server/queries/detail";
 import { getCurrentProfile } from "@/server/queries/common";
-import { hasUniqueValidAuthLink, listAuthUserSummaries } from "@/server/auth/admin-users";
+import { getAuthUserSummary, hasUniqueValidAuthLink, listAuthUserSummaries } from "@/server/auth/admin-users";
 import { getRoleDisplayLabel, sortRolesForDisplay, SYSTEM_ROLE_CODES } from "@/lib/roles";
 import type { Database } from "@/types/database";
 import {
@@ -185,15 +185,20 @@ export async function getStaffs(filters: Filters = {}) {
 
 export async function getStaff(id: string) {
   if (isMockMode()) {
-    return requireDetailRow(mockStaffs.find((row) => row.id === id), "Staff", id);
+    return { ...requireDetailRow(mockStaffs.find((row) => row.id === id), "Staff", id), auth_last_sign_in_at: null };
   }
 
   const supabase = await createClient();
   const { data, error } = await supabase.from("staffs").select("*").eq("id", id).maybeSingle();
   if (error) throw new Error(error.message);
   const staff = requireDetailRow(data, "Staff", id);
-  const authUsers = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() ? await listAuthUserSummaries() : [];
-  return { ...staff, auth_link_valid: hasUniqueValidAuthLink(staff, authUsers) };
+  const hasAdminAuth = Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY?.trim());
+  const authUser = hasAdminAuth && staff.auth_user_id ? await getAuthUserSummary(staff.auth_user_id) : null;
+  return {
+    ...staff,
+    auth_link_valid: Boolean(authUser && hasUniqueValidAuthLink(staff, [authUser])),
+    auth_last_sign_in_at: authUser?.lastSignInAt ?? null,
+  };
 }
 
 export async function getStaffSensitiveEmployment(staffId:string){

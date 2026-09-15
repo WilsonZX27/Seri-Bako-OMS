@@ -50,7 +50,7 @@ export function StaffPermissionOverrides({ permissions, canManage, protectedRole
         <span><strong className="mr-1 text-sm text-[var(--sb-text)]">{effectiveCount}</strong>Effective access</span>
         <span><strong className="mr-1 text-sm text-[var(--sb-text)]">{overrideCount}</strong>Overrides</span>
       </div>
-      {protectedRole ? <p className="mb-3 border border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] p-2 text-xs text-[var(--sb-warning)]">Super Admin / Owner permissions are protected and cannot be overridden.</p> : null}
+      {protectedRole ? <p className="mb-3 rounded-[var(--sb-radius-control)] border border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] p-2 text-xs text-[var(--sb-warning)]">Super Admin / Owner permissions are protected and cannot be overridden.</p> : null}
       {!canManage ? <p className="mb-3 text-xs text-muted-foreground">You can view effective access but cannot change it.</p> : null}
       <form id="staff-permissions-form" action={updateAction} className="space-y-3">
         {permissions.map((permission) => <input key={permission.id} type="hidden" name={`permission:${permission.id}`} value={overrides[permission.id] ?? "inherit"} />)}
@@ -58,7 +58,7 @@ export function StaffPermissionOverrides({ permissions, canManage, protectedRole
           <nav aria-label="Permission categories" className="flex gap-1 overflow-x-auto pb-1 md:flex-col md:overflow-visible">
             {grouped.map((group) => <button key={group.name} type="button" onClick={() => setActiveCategory(group.name)} aria-current={activeCategory === group.name ? "page" : undefined} className={`shrink-0 rounded-[var(--sb-radius-control)] px-3 py-2 text-left text-xs font-semibold transition-colors ${activeCategory === group.name ? "bg-[var(--sb-green-900)] text-white" : "bg-[var(--sb-surface-muted)] text-[var(--sb-text)] hover:bg-[var(--sb-green-50)]"}`}>{group.name} <span className="opacity-70">{group.permissions.length}</span></button>)}
           </nav>
-          <div className="overflow-hidden rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-white">
+          <div className="overflow-hidden rounded-[var(--sb-radius-panel)] border border-[var(--sb-border-soft)] bg-white">
             <div className="flex items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] px-3 py-2"><h3 className="text-sm font-semibold">{activeCategory}</h3>{!disabled ? <button type="button" onClick={resetCategory} className="text-xs font-semibold text-[var(--sb-green-800)] hover:underline">Reset category</button> : null}</div>
             <div className="divide-y divide-[var(--sb-border-soft)]">
               {activePermissions.map((permission) => {

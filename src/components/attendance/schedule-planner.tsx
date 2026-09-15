@@ -1035,7 +1035,7 @@ export function SchedulePlanner({
               const key = `${person.id}:${selectedMobileDate}`,
                 value = cells.get(key),
                 external = externalCells.get(key),
-                awayLabel = external?.branch_name ?? value?.work_site_label ?? null,
+                awayLabel = value?.work_site_label ?? (!value ? external?.branch_name : null),
                 tone = awayLabel ? "external" : cellTone(value),
                 weekly = dates.reduce(
                   (sum, date) =>
@@ -1301,7 +1301,7 @@ export function SchedulePlanner({
                         const key = `${person.id}:${date}`,
                           value = cells.get(key),
                           external = externalCells.get(key),
-                          awayLabel = external?.branch_name ?? value?.work_site_label ?? null,
+                          awayLabel = value?.work_site_label ?? (!value ? external?.branch_name : null),
                           tone = awayLabel ? "external" : cellTone(value);
                         return (
                           <td key={date} className="border-b border-r p-1">

@@ -95,7 +95,7 @@ async function unzip(bytes: Uint8Array) {
     if (view.getUint32(cursor, true) !== 0x02014b50) break;
     const method = view.getUint16(cursor + 10, true), size = view.getUint32(cursor + 20, true), expandedSize = view.getUint32(cursor + 24, true), nameLength = view.getUint16(cursor + 28, true), extraLength = view.getUint16(cursor + 30, true), commentLength = view.getUint16(cursor + 32, true), localOffset = view.getUint32(cursor + 42, true);
     const name = decoder.decode(bytes.slice(cursor + 46, cursor + 46 + nameLength));
-    const required = name === "xl/workbook.xml" || name === "xl/_rels/workbook.xml.rels" || name === "xl/sharedStrings.xml" || /^xl\/worksheets\/sheet\d+\.xml$/.test(name);
+    const required = name === "xl/workbook.xml" || name === "xl/_rels/workbook.xml.rels" || name === "xl/sharedStrings.xml" || name === "xl/styles.xml" || /^xl\/worksheets\/sheet\d+\.xml$/.test(name);
     if (!required) { cursor += 46 + nameLength + extraLength + commentLength; continue; }
     expandedBytes += expandedSize;
     if (expandedSize > MAX_XML_BYTES || expandedBytes > MAX_TOTAL_XML_BYTES) throw new Error("This workbook is too large to preview safely.");
@@ -109,21 +109,30 @@ async function unzip(bytes: Uint8Array) {
 
 function workbookSheets(files: Map<string, string>) {
   const shared = [...(files.get("xl/sharedStrings.xml") ?? "").matchAll(/<si[\s\S]*?<\/si>/g)].map((match) => decodeXml(match[0]));
+  const stylesXml = files.get("xl/styles.xml") ?? "";
+  const fillKeys = [...(stylesXml.match(/<fills[^>]*>([\s\S]*?)<\/fills>/)?.[1] ?? "").matchAll(/<fill>([\s\S]*?)<\/fill>/g)].map((match) => {
+    const colour = match[1].match(/<fgColor\s+([^>]+)\/?/i)?.[1] ?? "";
+    return colour.match(/rgb="([^"]+)"/i)?.[1] ?? colour.match(/indexed="([^"]+)"/i)?.[1] ?? colour.match(/theme="([^"]+)"/i)?.[1] ?? "";
+  });
+  const styleFillKeys = [...(stylesXml.match(/<cellXfs[^>]*>([\s\S]*?)<\/cellXfs>/)?.[1] ?? "").matchAll(/<xf\s+([^>]+)\/?/g)].map((match) => fillKeys[Number(match[1].match(/fillId="(\d+)"/)?.[1] ?? 0)] ?? "");
   const relationships = new Map([...((files.get("xl/_rels/workbook.xml.rels") ?? "").matchAll(/<Relationship[^>]*Id="([^"]+)"[^>]*Target="([^"]+)"[^>]*\/>/g))].map((match) => [match[1], `xl/${match[2].replace(/^\//, "").replace(/^xl\//, "")}`]));
   const workbook = files.get("xl/workbook.xml") ?? "";
   return [...workbook.matchAll(/<sheet[^>]*name="([^"]+)"[^>]*(?:r:id|id)="([^"]+)"[^>]*\/>/g)].map((match) => {
-    const xml = files.get(relationships.get(match[2]) ?? "") ?? "", rows = new Map<number, Map<number, string | number>>();
+    const xml = files.get(relationships.get(match[2]) ?? "") ?? "", rows = new Map<number, Map<number, string | number>>(), fills = new Map<number, Map<number, string>>();
     for (const rowMatch of xml.matchAll(/<row[^>]*r="(\d+)"[^>]*>([\s\S]*?)<\/row>/g)) {
-      const row = new Map<number, string | number>();
+      const row = new Map<number, string | number>(), rowFills = new Map<number, string>();
       for (const cell of rowMatch[2].matchAll(/<c([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)) {
         const reference = cell[1].match(/\br="([A-Z]+\d+)"/)?.[1];
         if (!reference) continue;
         const type = cell[1].match(/\bt="([^"]+)"/)?.[1], body = cell[2] ?? "", raw = body.match(/<v[^>]*>([\s\S]*?)<\/v>/)?.[1] ?? body.match(/<t[^>]*>([\s\S]*?)<\/t>/)?.[1] ?? "";
-        row.set(columnIndex(reference), type === "s" ? shared[Number(raw)] ?? "" : type === "inlineStr" || type === "str" ? decodeXml(raw) : raw === "" ? "" : Number.isFinite(Number(raw)) ? Number(raw) : decodeXml(raw));
+        const column = columnIndex(reference), styleIndex = Number(cell[1].match(/\bs="(\d+)"/)?.[1] ?? 0);
+        row.set(column, type === "s" ? shared[Number(raw)] ?? "" : type === "inlineStr" || type === "str" ? decodeXml(raw) : raw === "" ? "" : Number.isFinite(Number(raw)) ? Number(raw) : decodeXml(raw));
+        if (styleFillKeys[styleIndex]) rowFills.set(column, styleFillKeys[styleIndex]);
       }
       rows.set(Number(rowMatch[1]), row);
+      fills.set(Number(rowMatch[1]), rowFills);
     }
-    return { name: decodeXml(match[1]), rows };
+    return { name: decodeXml(match[1]), rows, fills };
   });
 }
 
@@ -138,7 +147,7 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
   if (file.size > MAX_WORKBOOK_BYTES) throw new Error("The schedule workbook must be 10 MB or smaller.");
   const bytes = new Uint8Array(await file.arrayBuffer()), digest = await crypto.subtle.digest("SHA-256", bytes);
   const fileHash = [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, "0")).join("");
-  const sheets = await workbookSheets(await unzip(bytes)), issues: ScheduleWorkbookIssue[] = [], staged: Array<{ sheet: string; branchId: string; branchName: string; status: string; employee: string; date: string; first: unknown; second: unknown }> = [];
+  const sheets = await workbookSheets(await unzip(bytes)), issues: ScheduleWorkbookIssue[] = [], staged: Array<{ sheet: string; branchId: string; branchName: string; status: string; employee: string; date: string; first: unknown; second: unknown; firstFill: string; secondFill: string }> = [], locationMarkers: Array<{ sheet: string; date: string; label: string; fill: string }> = [];
   const expectedDays = Array.from({ length: 7 }, (_, index) => Number(addDays(weekStart, index).slice(-2)));
   for (const sheet of sheets) {
     const branchName = SHEET_BRANCHES[sheet.name];
@@ -154,14 +163,18 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
     for (let index = 0; index <= pairs.length - 7; index += 1) if (pairs.slice(index, index + 7).every((pair, offset) => pair[1] === expectedDays[offset])) { window = pairs.slice(index, index + 7); break; }
     if (!window.length) { issues.push({ sheet: sheet.name, reason: "date_window_mismatch", message: `${sheet.name}: ${weekStart} date columns were not found (${pairs.slice(0, 8).map((pair) => `${pair[0]}:${pair[1]}`).join(", ") || "no date values"}).` }); continue; }
     for (let rowNumber = dateRow + 2; rowNumber <= Math.max(...sheet.rows.keys()); rowNumber += 1) {
-      const values = sheet.rows.get(rowNumber) ?? new Map(), employee = clean(values.get(0));
+      const values = sheet.rows.get(rowNumber) ?? new Map(), fills = sheet.fills.get(rowNumber) ?? new Map(), employee = clean(values.get(0));
       if (key(employee) === "remark") break;
       if (!employee) {
-        const notes = window.map(([column], offset) => ({ date: addDays(weekStart, offset), value: cellText(values.get(column)) })).filter((note) => note.value);
-        for (const note of notes) issues.push({ sheet: sheet.name, date: note.date, value: note.value, reason: "unattached_schedule_note", message: `${sheet.name} · ${note.date}: “${note.value}” is not attached to a named employee row.` });
+        const notes = window.map(([column], offset) => ({ date: addDays(weekStart, offset), value: cellText(values.get(column)), fill: fills.get(column) ?? "" })).filter((note) => note.value);
+        for (const note of notes) {
+          const label = note.value.toUpperCase();
+          if (LOCATION_ALIASES[label] && note.fill) locationMarkers.push({ sheet: sheet.name, date: note.date, label, fill: note.fill });
+          else issues.push({ sheet: sheet.name, date: note.date, value: note.value, reason: "unattached_schedule_note", message: `${sheet.name} · ${note.date}: “${note.value}” is not attached to a named employee row.` });
+        }
         continue;
       }
-      for (let offset = 0; offset < 7; offset += 1) staged.push({ sheet: sheet.name, branchId: branch.id, branchName, status: branch.status, employee, date: addDays(weekStart, offset), first: values.get(window[offset][0]), second: values.get(window[offset][0] + 1) });
+      for (let offset = 0; offset < 7; offset += 1) staged.push({ sheet: sheet.name, branchId: branch.id, branchName, status: branch.status, employee, date: addDays(weekStart, offset), first: values.get(window[offset][0]), second: values.get(window[offset][0] + 1), firstFill: fills.get(window[offset][0]) ?? "", secondFill: fills.get(window[offset][0] + 1) ?? "" });
     }
   }
   const timedByPersonDay = new Map<string, typeof staged>();
@@ -176,6 +189,12 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
     if (label && !time(item.first) && !KINDS[label] && !BLOCKED.has(label) && !cellText(item.second)) {
       locationByPersonDay.set(`${key(item.employee)}:${item.date}`, label);
     }
+  }
+  for (const marker of locationMarkers) {
+    const candidates = staged.filter((item) => item.sheet === marker.sheet && item.date === marker.date && time(item.first) && time(item.second) && (item.firstFill === marker.fill || item.secondFill === marker.fill));
+    const employees = [...new Set(candidates.map((item) => item.employee))];
+    if (employees.length === 1) locationByPersonDay.set(`${key(employees[0])}:${marker.date}`, marker.label);
+    else issues.push({ sheet: marker.sheet, date: marker.date, value: marker.label, reason: "unattached_schedule_note", message: `${marker.sheet} · ${marker.date}: “${marker.label}” could not be linked to one coloured employee row.` });
   }
   const immutableBranchByStaffDay = new Map<string, string>();
   const immutableBranchIds = new Set(catalog.branches.filter((branch) => ["submitted", "published", "locked"].includes(branch.status)).map((branch) => branch.id));

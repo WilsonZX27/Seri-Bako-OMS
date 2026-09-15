@@ -33,6 +33,24 @@ After migration 290, the authenticated Dashboard rendered its full workdesk and 
 
 ## Validation and boundaries
 
+### Migration 291 evidence correction
+
+Three queue indexes were installed and their catalog entries and migration ledger
+verified on 2026-09-15. No authenticated before/after execution plans, latency
+comparison or write-overhead measurement was captured for this migration. Their
+performance benefit remains unverified; the measurements for 288–290 above do
+not apply to 291.
+
+The cumulative Query Performance count of 465 does not establish how many queries
+remain slow after deployment, nor establish that all entries are obsolete. The
+reported Database error rate of 3.7% was not investigated to a confirmed cause.
+No error-rate reduction can be attributed to these indexes.
+
+The SQL-text-only index test was removed: it repeated the implementation without
+testing planner selection, correctness or performance. Keep the deployed migration
+history intact; retention or removal of these indexes needs representative query
+plans and usage evidence rather than another speculative schema change.
+
 - Full application suite: 1,257 tests passed (follow-up date regression included); lint, TypeScript and production build passed for the application changes.
 - Additional isolated PostgreSQL fixture: seven scenarios passed.
 - Production DB ledger: 290. Application changes are on `codex/system-quality-verification`; Production application promotion is a separate step.

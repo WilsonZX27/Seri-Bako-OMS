@@ -1,6 +1,6 @@
--- Match the remaining high-frequency queue reads reported by pg_stat_statements.
--- These partial indexes preserve every workflow and RLS rule while avoiding
--- sorting historical/deleted rows for the newest actionable records.
+-- Candidate indexes matching queue reads observed in cumulative statistics.
+-- Only the Purchase Request index is partial. Catalog verification confirms
+-- installation, not planner selection or a measured latency improvement.
 create index if not exists documents_approval_updated_idx
   on public.documents (approval_status, updated_at desc);
 

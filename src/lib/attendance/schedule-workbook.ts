@@ -62,6 +62,7 @@ const LOCATION_ALIASES: Record<string, string> = {
   "SHINE TRX": "TRX",
   TRX: "TRX",
 };
+const LOCATION_MARKERS = new Set([...Object.keys(LOCATION_ALIASES), "EVENT BUKIT JALIL"]);
 const MAX_WORKBOOK_BYTES = 10 * 1024 * 1024;
 const MAX_XML_BYTES = 12 * 1024 * 1024;
 const MAX_TOTAL_XML_BYTES = 48 * 1024 * 1024;
@@ -118,7 +119,7 @@ function workbookSheets(files: Map<string, string>) {
   const relationships = new Map([...((files.get("xl/_rels/workbook.xml.rels") ?? "").matchAll(/<Relationship[^>]*Id="([^"]+)"[^>]*Target="([^"]+)"[^>]*\/>/g))].map((match) => [match[1], `xl/${match[2].replace(/^\//, "").replace(/^xl\//, "")}`]));
   const workbook = files.get("xl/workbook.xml") ?? "";
   return [...workbook.matchAll(/<sheet[^>]*name="([^"]+)"[^>]*(?:r:id|id)="([^"]+)"[^>]*\/>/g)].map((match) => {
-    const xml = files.get(relationships.get(match[2]) ?? "") ?? "", rows = new Map<number, Map<number, string | number>>(), fills = new Map<number, Map<number, string>>();
+    const xml = files.get(relationships.get(match[2]) ?? "") ?? "", rows = new Map<number, Map<number, string | number>>(), fills = new Map<number, Map<number, string>>(), mergedCells = new Map<string, readonly [number, number]>();
     for (const rowMatch of xml.matchAll(/<row[^>]*r="(\d+)"[^>]*>([\s\S]*?)<\/row>/g)) {
       const row = new Map<number, string | number>(), rowFills = new Map<number, string>();
       for (const cell of rowMatch[2].matchAll(/<c([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)) {
@@ -132,7 +133,11 @@ function workbookSheets(files: Map<string, string>) {
       rows.set(Number(rowMatch[1]), row);
       fills.set(Number(rowMatch[1]), rowFills);
     }
-    return { name: decodeXml(match[1]), rows, fills };
+    for (const merged of xml.matchAll(/<mergeCell\s+ref="([A-Z]+)(\d+):([A-Z]+)(\d+)"\s*\/>/g)) {
+      const startColumn = columnIndex(`${merged[1]}${merged[2]}`), startRow = Number(merged[2]), endColumn = columnIndex(`${merged[3]}${merged[4]}`), endRow = Number(merged[4]);
+      for (let row = startRow; row <= endRow; row += 1) for (let column = startColumn; column <= endColumn; column += 1) mergedCells.set(`${row}:${column}`, [startRow, startColumn]);
+    }
+    return { name: decodeXml(match[1]), rows, fills, mergedCells };
   });
 }
 
@@ -166,10 +171,13 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
       const values = sheet.rows.get(rowNumber) ?? new Map(), fills = sheet.fills.get(rowNumber) ?? new Map(), employee = clean(values.get(0));
       if (key(employee) === "remark") break;
       if (!employee) {
-        const notes = window.map(([column], offset) => ({ date: addDays(weekStart, offset), value: cellText(values.get(column)), fill: fills.get(column) ?? "" })).filter((note) => note.value);
+        const notes = window.map(([column], offset) => {
+          const anchor = sheet.mergedCells.get(`${rowNumber}:${column}`), anchorValues = anchor ? sheet.rows.get(anchor[0]) : null, anchorFills = anchor ? sheet.fills.get(anchor[0]) : null;
+          return { date: addDays(weekStart, offset), value: cellText(values.get(column) ?? anchorValues?.get(anchor?.[1] ?? -1)), fill: fills.get(column) ?? anchorFills?.get(anchor?.[1] ?? -1) ?? "" };
+        }).filter((note) => note.value);
         for (const note of notes) {
           const label = note.value.toUpperCase();
-          if (LOCATION_ALIASES[label] && note.fill) locationMarkers.push({ sheet: sheet.name, date: note.date, label, fill: note.fill });
+          if (LOCATION_MARKERS.has(label) && note.fill) locationMarkers.push({ sheet: sheet.name, date: note.date, label, fill: note.fill });
           else issues.push({ sheet: sheet.name, date: note.date, value: note.value, reason: "unattached_schedule_note", message: `${sheet.name} · ${note.date}: “${note.value}” is not attached to a named employee row.` });
         }
         continue;

@@ -227,7 +227,6 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
       const locationBranchName = locationLabel ? LOCATION_ALIASES[locationLabel] : null;
       const locationBranchId = locationBranchName ? catalog.branches.find((branch) => key(branch.name) === key(locationBranchName))?.id ?? null : null;
       if (locationBranchId && item.branchId !== locationBranchId) continue;
-      if (locationLabel && !locationBranchId && item.branchId !== homeBranchId) continue;
       const destinationRows = sameDay.filter((row) => row.branchId !== homeBranchId);
       if (!locationLabel && sameDay.length > 1 && item.branchId === homeBranchId && destinationRows.length === 1) continue;
       if (!locationLabel && destinationRows.length > 1) {

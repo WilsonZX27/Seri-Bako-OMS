@@ -1035,7 +1035,8 @@ export function SchedulePlanner({
               const key = `${person.id}:${selectedMobileDate}`,
                 value = cells.get(key),
                 external = externalCells.get(key),
-                tone = external ? "external" : cellTone(value),
+                awayLabel = external?.branch_name ?? value?.work_site_label ?? null,
+                tone = awayLabel ? "external" : cellTone(value),
                 weekly = dates.reduce(
                   (sum, date) =>
                     sum + cellSeconds(cells.get(`${person.id}:${date}`)),
@@ -1096,9 +1097,9 @@ export function SchedulePlanner({
                         "ring-2 ring-[var(--sb-green-700)] ring-offset-1",
                     )}
                     style={!external && tone === "work" ? shiftColourStyle(value) : undefined}
-                    aria-label={`${person.full_name}, ${selectedMobileDate}: ${external ? `working at ${external.branch_name}` : cellLabel(value) || "unassigned"}`}
+                    aria-label={`${person.full_name}, ${selectedMobileDate}: ${awayLabel ? `working at ${awayLabel}` : cellLabel(value) || "unassigned"}`}
                   >
-                    {external ? <span className="block break-words">At {external.branch_name}</span> : <span className="block break-words">{cellLabel(value) || "Add"}</span>}
+                    {awayLabel ? <span className="block break-words">At {awayLabel}</span> : <span className="block break-words">{cellLabel(value) || "Add"}</span>}
                     {value?.custom_reason &&
                     value.custom_reason !== "Outlet roster custom time" && !isImportAuditReason(value.custom_reason) ? (
                       <MessageSquareText
@@ -1300,14 +1301,15 @@ export function SchedulePlanner({
                         const key = `${person.id}:${date}`,
                           value = cells.get(key),
                           external = externalCells.get(key),
-                          tone = external ? "external" : cellTone(value);
+                          awayLabel = external?.branch_name ?? value?.work_site_label ?? null,
+                          tone = awayLabel ? "external" : cellTone(value);
                         return (
                           <td key={date} className="border-b border-r p-1">
                             <button
                               type="button"
                               disabled={!editableStatus || !canDraft || Boolean(external)}
                               onClick={(event) => clickCell(key, event)}
-                              aria-label={`${person.full_name}, ${date}: ${external ? `working at ${external.branch_name}` : cellLabel(value) || "unassigned"}`}
+                              aria-label={`${person.full_name}, ${date}: ${awayLabel ? `working at ${awayLabel}` : cellLabel(value) || "unassigned"}`}
                               className={cn(
                                 "relative min-h-11 w-full rounded-[var(--sb-radius-control)] border px-1.5 py-1 text-xs font-semibold leading-tight transition-colors disabled:cursor-default",
                                 external && "border-cyan-300 bg-cyan-50 text-cyan-950",
@@ -1336,7 +1338,7 @@ export function SchedulePlanner({
                                   : undefined
                               }
                             >
-                              {external ? <span className="block break-words">At {external.branch_name}</span> : <span className="block break-words">{cellLabel(value) || "Add"}</span>}
+                              {awayLabel ? <span className="block break-words">At {awayLabel}</span> : <span className="block break-words">{cellLabel(value) || "Add"}</span>}
                               {value?.custom_reason &&
                           value.custom_reason !== "Outlet roster custom time" &&
                               !isImportAuditReason(value.custom_reason) ? (

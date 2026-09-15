@@ -1078,7 +1078,7 @@ export function SchedulePlanner({
                     onClick={(event) => clickCell(key, event)}
                     className={cn(
                       "relative min-h-11 w-full rounded-[var(--sb-radius-control)] border px-2 py-1 text-[11px] font-semibold leading-tight",
-                      external && "border-cyan-300 bg-cyan-50 text-cyan-950",
+                      tone === "external" && "border-cyan-300 bg-cyan-50 text-cyan-950",
                       tone === "empty" &&
                         "border-[var(--sb-border-soft)] text-[var(--sb-text)]",
                       tone === "work" &&
@@ -1314,7 +1314,7 @@ export function SchedulePlanner({
                               aria-label={`${person.full_name}, ${date}: ${awayLabel ? `working at ${awayLabel}` : cellLabel(value) || "unassigned"}`}
                               className={cn(
                                 "relative min-h-11 w-full rounded-[var(--sb-radius-control)] border px-1.5 py-1 text-xs font-semibold leading-tight transition-colors disabled:cursor-default",
-                                external && "border-cyan-300 bg-cyan-50 text-cyan-950",
+                                tone === "external" && "border-cyan-300 bg-cyan-50 text-cyan-950",
                                 tone === "empty" &&
                                   "border-transparent text-[var(--sb-text)] opacity-70 enabled:hover:border-[var(--sb-border-soft)] enabled:hover:bg-[var(--sb-surface-muted)]",
                                 tone === "work" &&

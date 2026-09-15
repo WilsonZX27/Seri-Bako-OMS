@@ -8,7 +8,7 @@ export type ScheduleWorkbookAssignment = {
   staff_id: string;
   work_date: string;
   assignment_kind: "shift" | "off" | "ph" | "al" | "mc" | "upl" | "ro" | "oil";
-  shift_template_id: null;
+  shift_template_id: string | null;
   custom_start?: string;
   custom_end?: string;
   custom_crosses_midnight?: boolean;
@@ -53,6 +53,15 @@ const KINDS: Record<string, ScheduleWorkbookAssignment["assignment_kind"]> = {
   OFF: "off", "OFF DAY": "off", PH: "ph", AL: "al", MC: "mc", UPL: "upl", RO: "ro", OIL: "oil",
 };
 const BLOCKED = new Set(["CLEAR OT", "RESIGN", "LATE"]);
+const LOCATION_ALIASES: Record<string, string> = {
+  PYRAMID: "Kwan Kee Store @ Sunway Pyramid",
+  "SUNWAY PYRAMID": "Kwan Kee Store @ Sunway Pyramid",
+  "PETALING STREET": "Kwan Kee Store @ Petaling Street",
+  IOI: "IOI Mall Puchong",
+  "IOI PUCHONG": "IOI Mall Puchong",
+  "SHINE TRX": "TRX",
+  TRX: "TRX",
+};
 const MAX_WORKBOOK_BYTES = 10 * 1024 * 1024;
 const MAX_XML_BYTES = 12 * 1024 * 1024;
 const MAX_TOTAL_XML_BYTES = 48 * 1024 * 1024;
@@ -161,6 +170,13 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
     rows.push(item); timedByPersonDay.set(personDay, rows);
   }
   const destinationKeys = new Set(timedByPersonDay.keys());
+  const locationByPersonDay = new Map<string, string>();
+  for (const item of staged) {
+    const label = cellText(item.first).toUpperCase();
+    if (label && !time(item.first) && !KINDS[label] && !BLOCKED.has(label) && !cellText(item.second)) {
+      locationByPersonDay.set(`${key(item.employee)}:${item.date}`, label);
+    }
+  }
   const immutableBranchByStaffDay = new Map<string, string>();
   const immutableBranchIds = new Set(catalog.branches.filter((branch) => ["submitted", "published", "locked"].includes(branch.status)).map((branch) => branch.id));
   for (const assignment of catalog.current_assignments) {
@@ -180,19 +196,29 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
     if (start && end) {
       const sameDay = timedByPersonDay.get(`${key(item.employee)}:${item.date}`) ?? [];
       const homeBranchId = staff.home_branch_id ?? item.branchId;
+      const locationLabel = locationByPersonDay.get(`${key(item.employee)}:${item.date}`) ?? null;
+      const locationBranchName = locationLabel ? LOCATION_ALIASES[locationLabel] : null;
+      const locationBranchId = locationBranchName ? catalog.branches.find((branch) => key(branch.name) === key(locationBranchName))?.id ?? null : null;
+      if (locationBranchId && item.branchId !== locationBranchId) continue;
+      if (locationLabel && !locationBranchId && item.branchId !== homeBranchId) continue;
       const destinationRows = sameDay.filter((row) => row.branchId !== homeBranchId);
-      if (sameDay.length > 1 && item.branchId === homeBranchId && destinationRows.length === 1) continue;
-      if (destinationRows.length > 1) {
+      if (!locationLabel && sameDay.length > 1 && item.branchId === homeBranchId && destinationRows.length === 1) continue;
+      if (!locationLabel && destinationRows.length > 1) {
         issues.push({ sheet: item.sheet, employee: item.employee, date: item.date, reason: "multiple_destination_shifts", message: `${item.employee} · ${item.date}: more than one destination outlet has working time.` });
         continue;
       }
       const from = Number(start.slice(0, 2)) * 60 + Number(start.slice(3)), to = Number(end.slice(0, 2)) * 60 + Number(end.slice(3)), minutes = to > from ? to - from : to + 1440 - from;
       if (minutes > 960) issues.push({ sheet: item.sheet, employee: item.employee, date: item.date, value: `${start}–${end}`, reason: "suspicious_time_span", message: `${item.sheet} · ${item.employee} · ${item.date}: ${start}–${end} is longer than 16 hours.` });
-      else outlet.assignments.push({ staff_id: staff.id, work_date: item.date, assignment_kind: "shift", shift_template_id: null, custom_start: start, custom_end: end, custom_crosses_midnight: end <= start, custom_break_seconds: 0, custom_maximum_recognised_seconds: 86400, custom_reason: `Imported from ${file.name}`, work_site_label: item.branchId === homeBranchId ? null : item.branchName });
+      else outlet.assignments.push({ staff_id: staff.id, work_date: item.date, assignment_kind: "shift", shift_template_id: null, custom_start: start, custom_end: end, custom_crosses_midnight: end <= start, custom_break_seconds: 0, custom_maximum_recognised_seconds: 86400, custom_reason: "Schedule workbook import", work_site_label: locationLabel && !locationBranchId ? locationLabel : item.branchId === homeBranchId ? null : item.branchName });
     } else if (start || end) issues.push({ sheet: item.sheet, employee: item.employee, date: item.date, value: `${cellText(item.first)} ${secondText}`, reason: "incomplete_time_pair", message: `${item.sheet} · ${item.employee} · ${item.date}: both start and end time are required.` });
+    else if (label === "MC" && !secondText) {
+      const existing = catalog.current_assignments.find((assignment) => String(assignment.staff_id) === staff.id && String(assignment.work_date) === item.date && String(assignment.branch_id) === item.branchId && String(assignment.assignment_kind) === "shift");
+      if (existing) outlet.assignments.push({ staff_id: staff.id, work_date: item.date, assignment_kind: "shift", shift_template_id: existing.shift_template_id ? String(existing.shift_template_id) : null, custom_start: existing.custom_start ? String(existing.custom_start) : undefined, custom_end: existing.custom_end ? String(existing.custom_end) : undefined, custom_crosses_midnight: Boolean(existing.custom_crosses_midnight), custom_break_seconds: existing.custom_break_seconds == null ? undefined : Number(existing.custom_break_seconds), custom_maximum_recognised_seconds: existing.custom_maximum_recognised_seconds == null ? undefined : Number(existing.custom_maximum_recognised_seconds), work_site_label: existing.work_site_label ? String(existing.work_site_label) : null });
+      issues.push({ sheet: item.sheet, employee: item.employee, date: item.date, value: label, reason: "actual_attendance_exception", message: `${item.sheet} · ${item.employee} · ${item.date}: MC belongs in actual attendance; the existing scheduled shift ${existing ? "was retained" : "must be reported separately"}.` });
+    }
     else if (KINDS[label] && !secondText) outlet.assignments.push({ staff_id: staff.id, work_date: item.date, assignment_kind: KINDS[label], shift_template_id: null });
     else if (BLOCKED.has(label)) issues.push({ sheet: item.sheet, employee: item.employee, date: item.date, value: label, reason: "business_instruction", message: `${item.sheet} · ${item.employee} · ${item.date}: “${label}” is not a schedule assignment.` });
-    else if (label && !destinationKeys.has(`${key(item.employee)}:${item.date}`)) issues.push({ sheet: item.sheet, employee: item.employee, date: item.date, value: label, reason: "external_time_missing", message: `${item.sheet} · ${item.employee} · ${item.date}: “${label}” needs a destination shift time.` });
+    else if (label && !locationByPersonDay.has(`${key(item.employee)}:${item.date}`) && !destinationKeys.has(`${key(item.employee)}:${item.date}`)) issues.push({ sheet: item.sheet, employee: item.employee, date: item.date, value: label, reason: "external_time_missing", message: `${item.sheet} · ${item.employee} · ${item.date}: “${label}” needs a destination shift time.` });
   }
   const result = [...outlets.values()];
   return { fileName: file.name, fileHash, weekStart, weekEnd: addDays(weekStart, 6), outlets: result, issues, assignmentCount: result.reduce((sum, outlet) => sum + outlet.assignments.length, 0) };

@@ -21,6 +21,7 @@ import {
   WeeklyCloseButton,
 } from "@/components/attendance/ot-ro-actions";
 import { ActualAttendancePanel } from "@/components/attendance/actual-attendance-panel";
+import { EmployeeAttendanceSummary } from "@/components/attendance/employee-attendance-summary";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Button } from "@/components/ui/button";
@@ -71,9 +72,9 @@ function signedDuration(value: unknown, tone: "late" | "earlyLeave" | "ot") {
   const seconds = Number(value ?? 0);
   if (seconds <= 0) return null;
   const prefix = tone === "earlyLeave" ? "−" : "+";
-  const label = tone === "ot" ? "OT" : tone === "earlyLeave" ? "early" : "late";
+  const label = tone === "ot" ? "" : tone === "earlyLeave" ? "early" : "late";
   const className = tone === "ot" ? "text-[var(--sb-success)]" : "text-[var(--sb-danger)]";
-  return <span className={`mt-0.5 block text-[11px] font-medium tabular-nums ${className}`}>{prefix}{durationLabel(seconds)} {label}</span>;
+  return <span className={`mt-0.5 block text-[11px] font-medium tabular-nums ${className}`}>{prefix}{durationLabel(seconds)}{label ? ` ${label}` : ""}</span>;
 }
 function primaryStatus(row: Row) {
   const values = Array.isArray(row.statuses)
@@ -161,6 +162,7 @@ export default async function AttendanceReviewPage({
   const rowContext = (row: Row) => {
     const staff = row.staffs as {
       full_name?: string;
+      staff_code?: string;
       employment_type?: string;
     } | null;
     const candidate = Number(
@@ -177,6 +179,15 @@ export default async function AttendanceReviewPage({
     const reservation=reservations.find(item=>String(item.staff_id)===String(row.staff_id)&&String(item.work_date)===String(row.work_date));
     const actualOvertime = Number(row.post_shift_seconds ?? 0);
     return { staff, candidate, actualOvertime, claim, reservation, status: primaryStatus(row) };
+  };
+  const employeeSummary = (row: Row, staff: { full_name?: string; staff_code?: string; employment_type?: string } | null) => {
+    const detailHref = `${pageHref(filterParams, page)}&detail=${encodeURIComponent(String(row.id))}`;
+    const missingHistory = (Array.isArray(row.monthly_missing_punch_dates) ? row.monthly_missing_punch_dates : []).map((value) => {
+      const [date, count = "1"] = String(value).replace(/[()]/g, "").split(" ");
+      return { date, label: `${count} missing` };
+    });
+    const reportHistory = (actuals.reports as Row[]).filter((report) => String(report.staff_id) === String(row.staff_id)).map((report) => ({ date: String(report.work_date), label: String(report.report_type ?? report.status ?? "Attendance report").replaceAll("_", " ").toUpperCase() }));
+    return <EmployeeAttendanceSummary name={staff?.full_name ?? "Unmatched employee"} staffCode={staff?.staff_code} employmentType={staff?.employment_type ?? "full_time"} workDate={String(row.work_date)} punches={`${Number(row.actual_punch_count ?? 0)} of ${Number(row.expected_punch_count ?? 0)} punches`} missingHistory={missingHistory} reportHistory={reportHistory} detailHref={detailHref} />;
   };
 
   return (
@@ -382,9 +393,7 @@ export default async function AttendanceReviewPage({
                       ) : null}
                       <tr className="border-t border-[var(--sb-border-soft)] hover:bg-[var(--sb-surface-muted)]">
                         <td className="px-3 py-3">
-                          <strong className="block">
-                            {staff?.full_name ?? "Unmatched employee"}
-                          </strong>
+                          {employeeSummary(row, staff)}
                           <span className="text-[11px] text-muted-foreground">
                             {staff?.employment_type === "part_time"
                               ? "Part-time"
@@ -397,7 +406,7 @@ export default async function AttendanceReviewPage({
                             {Number(row.expected_punch_count ?? 0)}
                           </strong>
                           {Number(row.missing_punch_count ?? 0) > 0 ? (
-                            <span className="block max-w-full text-[10px] leading-tight text-amber-800">
+                            <span title={`Advisory only; payroll is unchanged. Tracking starts ${ATTENDANCE_TRACKING_START_DATE}.${Array.isArray(row.monthly_missing_punch_dates) && row.monthly_missing_punch_dates.length ? ` Missing records: ${row.monthly_missing_punch_dates.join(", ")}.` : ""}`} className="block max-w-full cursor-help text-[10px] leading-tight text-amber-800">
                               {String(row.work_date) >= ATTENDANCE_TRACKING_START_DATE && Number(row.monthly_missing_punch_count ?? 0) >= 4
                                 ? `${Number(row.monthly_missing_punch_count)} missing this month`
                                 : "Missing punch"}
@@ -424,7 +433,7 @@ export default async function AttendanceReviewPage({
                         </td>
                         <td className="px-3 py-3 tabular-nums">
                           <span className="block text-[11px] text-muted-foreground">RO {reservation ? `${Math.floor(Number(reservation.final_used_minutes??reservation.reserved_minutes) / 30)} × 30m` : "—"}</span>
-                          <strong className="block">OT {candidate >= 1800 ? `${Math.floor(candidate / 1800)} × 00:30` : "—"}</strong>
+                          <strong className="block text-[var(--sb-success)]">{candidate >= 1800 ? `${Math.floor(candidate / 1800)} × 00:30` : "—"}</strong>
                         </td>
                         <td className="px-3 py-3">
                           <RowActions
@@ -458,9 +467,7 @@ export default async function AttendanceReviewPage({
                   <article className="p-3">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <strong className="text-sm">
-                          {staff?.full_name ?? "Unmatched employee"}
-                        </strong>
+                        {employeeSummary(row, staff)}
                         <p className="text-[11px] text-muted-foreground">
                           {staff?.employment_type === "part_time"
                             ? "Part-time"
@@ -479,7 +486,7 @@ export default async function AttendanceReviewPage({
                           {Number(row.expected_punch_count ?? 0)}
                         </dd>
                         {Number(row.missing_punch_count ?? 0) > 0 ? (
-                          <dd className="max-w-full text-[10px] leading-tight text-amber-800">
+                          <dd title={`Advisory only; payroll is unchanged. Tracking starts ${ATTENDANCE_TRACKING_START_DATE}.${Array.isArray(row.monthly_missing_punch_dates) && row.monthly_missing_punch_dates.length ? ` Missing records: ${row.monthly_missing_punch_dates.join(", ")}.` : ""}`} className="max-w-full cursor-help text-[10px] leading-tight text-amber-800">
                             {String(row.work_date) >= ATTENDANCE_TRACKING_START_DATE && Number(row.monthly_missing_punch_count ?? 0) >= 4
                               ? `${Number(row.monthly_missing_punch_count)} missing this month`
                               : "Missing punch"}
@@ -601,8 +608,8 @@ function RowActions({
   href: string;
 }) {
   return (
-    <div className="grid min-w-32 grid-cols-1 gap-1 [&_button]:font-normal">
-      <Button asChild size="sm" variant="ghost" className="w-full justify-start gap-2 bg-transparent px-2 font-normal hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-surface-muted)]">
+    <div className="inline-grid min-w-0 grid-cols-1 justify-items-start gap-1 [&_button]:font-normal">
+      <Button asChild size="sm" variant="ghost" className="w-auto justify-start gap-2 bg-transparent px-2 font-normal hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-surface-muted)]">
         <Link href={href}><Eye className="h-4 w-4"/>View details</Link>
       </Button>
       {permissions["attendance.adjust"] ? (

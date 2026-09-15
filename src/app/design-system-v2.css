@@ -709,7 +709,8 @@ nav[aria-label="Pagination"] > span,
 }
 
 [data-outlet-daily-record-list] {
-  align-self: start;
+  align-self: stretch;
+  width: 100%;
   height: max-content;
   min-height: 0;
 }

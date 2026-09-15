@@ -535,7 +535,7 @@ export function StockCountForm({
               <p className="text-xs text-right font-semibold">Variance</p>
               <p className="text-xs font-semibold">Count</p>
             </div>
-            <div className="grid grid-cols-2 gap-2 p-2 sm:block sm:divide-y sm:gap-0 sm:p-0">
+            <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-2 p-2 lg:block lg:divide-y lg:gap-0 lg:p-0">
               {visibleLines.map((line, visibleIndex) => {
                 const displayIndex = visibleIndex + 1;
                 const hasPhysical = line.physicalQty.trim() !== "";
@@ -546,9 +546,9 @@ export function StockCountForm({
                   <div
                     key={line.item_id}
                     data-stock-count-line
-                    className={`grid min-h-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-2 rounded-[var(--sb-control-radius)] border px-3 py-3 ${validationAttempted && !hasPhysical ? "border-destructive/50 bg-destructive/10" : line.adjusted ? "border-[var(--sb-border-soft)] bg-[var(--sb-green-100)]" : line.prefill_source === "unavailable" ? "border-[var(--sb-border-soft)] bg-[var(--sb-warning-bg)]" : "border-[var(--sb-border-soft)] bg-[var(--sb-surface)]"} sm:min-h-14 sm:items-center sm:gap-x-2 sm:gap-y-1.5 sm:rounded-none sm:border-x-0 sm:border-t-0 sm:px-4 sm:py-2 md:min-h-14 lg:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] lg:gap-4 xl:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]`}
+                    className={`grid min-h-0 h-full grid-cols-[minmax(0,1fr)_auto] items-start gap-2 rounded-[var(--sb-control-radius)] border px-3 py-3 ${validationAttempted && !hasPhysical ? "border-destructive/50 bg-destructive/10" : line.adjusted ? "border-[var(--sb-border-soft)] bg-[var(--sb-green-100)]" : line.prefill_source === "unavailable" ? "border-[var(--sb-border-soft)] bg-[var(--sb-warning-bg)]" : "border-[var(--sb-border-soft)] bg-[var(--sb-surface)]"} lg:min-h-14 lg:items-center lg:gap-x-2 lg:gap-y-1.5 lg:rounded-none lg:border-x-0 lg:border-t-0 lg:px-4 lg:py-2 md:min-h-14 lg:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] lg:gap-4 xl:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]`}
                   >
-                    <div className="order-1 flex min-w-0 items-start gap-2">
+                    <div className="order-1 col-span-2 flex min-w-0 items-start gap-2 lg:col-span-1">
                       <div className="flex w-7 shrink-0 flex-col items-center gap-0.5">
                         <span className="mt-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--sb-surface-muted)] px-1 text-[10px] font-semibold tabular-nums text-muted-foreground" aria-label={`Item ${displayIndex}`}>{displayIndex}</span>
                         <TableActionMenuPortal label={`More options for ${line.item_name}`}>
@@ -563,16 +563,16 @@ export function StockCountForm({
                       </div>
                       <div className="min-w-0">
                         <p className="break-words text-[13px] font-medium leading-tight text-slate-800">{line.item_name}</p>
-                        <p className="min-w-0 break-all text-[10px] leading-3 tracking-[0.01em] text-slate-400">{line.item_code}</p>
-                        <p className="mt-1 hidden text-[10px] leading-3 text-muted-foreground sm:block">{line.prefill_source === "unavailable" ? "No prior ledger balance · enter count" : `Starting balance · ${formatQuantity(line.theoretical_qty)} ${line.uom}`}</p>
+                        <p className="min-w-0 break-all text-[10px] leading-3 tracking-[0.01em] text-muted-foreground">{line.item_code}</p>
+                        <p className="mt-1 hidden text-[10px] leading-3 text-muted-foreground lg:block">{line.prefill_source === "unavailable" ? "No prior ledger balance · enter count" : `Starting balance · ${formatQuantity(line.theoretical_qty)} ${line.uom}`}</p>
                       </div>
                     </div>
 
-                    <div className={`order-2 min-w-0 text-right text-xs font-medium sm:justify-self-end ${variance < 0 ? "text-red-600" : variance > 0 ? "text-emerald-700" : "text-muted-foreground"}`}>
+                    <div className={`order-2 col-span-2 flex min-w-0 justify-end items-baseline gap-1 text-right text-xs font-medium lg:col-span-1 lg:block lg:justify-self-end ${variance < 0 ? "text-red-600" : variance > 0 ? "text-emerald-700" : "text-muted-foreground"}`}>
                       {hasPhysical ? <><span className="block whitespace-nowrap">{variance > 0 ? "+" : ""}{formatQuantity(variance)}</span><span className="block text-[10px] font-normal">{formatVariancePercent(percent)}</span></> : <span className="font-normal">—</span>}
                     </div>
 
-                    <div className="order-3 col-span-2 grid min-w-0 grid-cols-[minmax(0,1fr)_3.5rem] items-center gap-2 lg:col-span-1 lg:justify-self-stretch">
+                    <div className="order-3 mt-auto col-span-2 grid min-w-0 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_3.5rem] items-center gap-2 lg:col-span-1 lg:justify-self-stretch">
                         <div className="flex min-w-0 flex-1 overflow-hidden rounded-sm border border-[var(--sb-border)] bg-[var(--sb-surface)]">
                           <button type="button" className="flex h-10 w-10 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, -1)} aria-label={`Decrease physical quantity for ${line.item_name}`}><Minus className="h-4 w-4" /></button>
                         <Input
@@ -593,7 +593,7 @@ export function StockCountForm({
                         />
                           <button type="button" className="flex h-10 w-10 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, 1)} aria-label={`Increase physical quantity for ${line.item_name}`}><Plus className="h-4 w-4" /></button>
                         </div>
-                      <span className="truncate text-left text-[11px] text-muted-foreground" title={line.uom}>{line.uom}</span>
+                      <span className="truncate text-right lg:text-left text-[11px] text-muted-foreground" title={line.uom}>{line.uom}</span>
                       {validationAttempted && !hasPhysical ? <span id={`physical-error-${line.item_id}`} className="sr-only">Physical count required</span> : null}
                     </div>
 

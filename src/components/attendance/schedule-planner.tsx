@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
   AlertTriangle,
@@ -93,6 +93,9 @@ function paletteButtonTone(tone: Palette["tone"]) {
   if (tone === "ph") return "border-violet-200 bg-violet-50 text-violet-800 hover:bg-violet-100";
   if (tone === "upl") return "border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100";
   return "";
+}
+function isImportAuditReason(value?: string | null) {
+  return Boolean(value && (/^Imported from /i.test(value) || value === "Schedule workbook import"));
 }
 
 function addDays(day: string, amount: number) {
@@ -188,6 +191,7 @@ export function SchedulePlanner({
   weekStart,
   week,
   submittedByName,
+  importSource,
   previousWeekId,
   people,
   candidates,
@@ -208,6 +212,7 @@ export function SchedulePlanner({
   weekStart: string;
   week: Week;
   submittedByName?: string | null;
+  importSource?: { fileName: string; createdAt: string } | null;
   previousWeekId: string | null;
   people: Person[];
   candidates: Person[];
@@ -234,6 +239,7 @@ export function SchedulePlanner({
       ),
     [initialAssignments],
   );
+  const importFile = importSource?.fileName ?? initialAssignments.map((item) => item.custom_reason).find((reason) => reason?.startsWith("Imported from "))?.replace(/^Imported from /, "") ?? null;
   const [cells, setCells] = useState<Map<string, Assignment>>(initial);
   const externalCells = useMemo(() => new Map(externalAssignments.map((item) => [`${item.staff_id}:${item.work_date}`, item])), [externalAssignments]);
   const [visiblePersonIds, setVisiblePersonIds] = useState(() => new Set(people.map((person) => person.id)));
@@ -254,7 +260,9 @@ export function SchedulePlanner({
         ? "Choose an assignment, then select staff days."
         : "No schedulable employees are assigned here. Check the branch assignment and active Kitchen or Outlet role in Employees.",
     ),
-    [actionFeedback, setActionFeedback] = useState<string | null>(null);
+    [actionFeedback, setActionFeedback] = useState<string | null>(null),
+    [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle"),
+    [removeCandidate, setRemoveCandidate] = useState<Person | null>(null);
   const [custom, setCustom] = useState({
     start: "08:00",
     end: "16:30",
@@ -271,6 +279,8 @@ export function SchedulePlanner({
   const customDialog = useRef<HTMLDialogElement>(null);
   const customTitle = useRef<HTMLHeadingElement>(null);
   const decisionDialog = useRef<HTMLDialogElement>(null);
+  const removeDialog = useRef<HTMLDialogElement>(null);
+  const saveDraftRef = useRef<(automatic?: boolean) => Promise<void>>(async () => {});
   const palette = useMemo<Palette[]>(
     () => [
       ...templates.map((template) => ({
@@ -408,7 +418,7 @@ export function SchedulePlanner({
             30600) / 60,
         ),
         comment:
-          existing.custom_reason === "Outlet roster custom time"
+          existing.custom_reason === "Outlet roster custom time" || isImportAuditReason(existing.custom_reason)
             ? ""
             : (existing.custom_reason ?? ""),
         workSiteLabel: existing.work_site_label ?? "",
@@ -524,6 +534,23 @@ export function SchedulePlanner({
       setBusyAction(null);
     }
   }
+  async function saveDraft(automatic = false) {
+    setBusyAction(automatic ? "autosave" : "save");
+    setSaveStatus("saving");
+    try {
+      await requestAction({ action: "save", branchId, weekStart, assignments });
+      setDirty(false);
+      setSaveStatus("saved");
+      setActionFeedback(null);
+    } catch (error) {
+      const feedback = error instanceof Error ? error.message : "Draft could not be saved.";
+      setSaveStatus("error");
+      setActionFeedback(feedback);
+    } finally {
+      setBusyAction(null);
+    }
+  }
+  saveDraftRef.current = saveDraft;
   async function submitCurrentSchedule() {
     setBusyAction("submit");
     setActionFeedback(null);
@@ -585,6 +612,17 @@ export function SchedulePlanner({
       week.status,
     ) ||
     managerEditing;
+  useEffect(() => {
+    if (!dirty || !editableStatus || !canDraft || busyAction) return;
+    const timer = window.setTimeout(() => void saveDraftRef.current(true), 900);
+    return () => window.clearTimeout(timer);
+  }, [assignments, busyAction, canDraft, dirty, editableStatus]);
+  useEffect(() => {
+    const dialog = removeDialog.current;
+    if (!dialog) return;
+    if (removeCandidate && !dialog.open) dialog.showModal();
+    if (!removeCandidate && dialog.open) dialog.close();
+  }, [removeCandidate]);
   function openDecision(mode: "approve" | "return" | "edit") {
     setDecisionMode(mode);
     decisionDialog.current?.showModal();
@@ -636,23 +674,20 @@ export function SchedulePlanner({
             </Button>
           ) : null}
           {editableStatus && canDraft ? (
-            <Button
+            <><Button
               className="w-full justify-start"
               size="sm"
               variant="outline"
               disabled={busyAction !== null || !dirty}
-              onClick={() =>
-                void action({
-                  action: "save",
-                  branchId,
-                  weekStart,
-                  assignments,
-                })
-              }
+              onClick={() => void saveDraft()}
             >
               <Save className="h-4 w-4" />
               {busyAction === "save" ? "Saving…" : "Save draft"}
             </Button>
+            <p className="px-1 text-[11px] text-muted-foreground" role="status">
+              {saveStatus === "saving" ? "Auto saving…" : saveStatus === "saved" ? "Draft saved" : saveStatus === "error" ? "Draft not saved" : "Changes save automatically"}
+            </p>
+            </>
           ) : null}
           {editableStatus && canDraft && previousWeekId ? (
             <Button
@@ -765,6 +800,13 @@ export function SchedulePlanner({
           ) : null}
         </div>
       </ConsoleSection>
+      {week ? <ConsoleSection title="Schedule history" kind="reference">
+        <div className="space-y-1 text-xs">
+          {importFile ? <p><span className="text-muted-foreground">Imported from </span><strong className="break-words">{importFile}</strong></p> : null}
+          <p><span className="text-muted-foreground">Scheduled by </span><strong>{submittedByName ?? "Unknown user"}</strong></p>
+          <p className="text-muted-foreground">{importSource ? "Uploaded " : "Updated "}{importSource?.createdAt || week.updated_at ? new Intl.DateTimeFormat("en-MY", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kuala_Lumpur" }).format(new Date(importSource?.createdAt ?? week.updated_at!)) : "Draft created"}</p>
+        </div>
+      </ConsoleSection> : null}
       {rightRailDetails}
     </>
   );
@@ -887,6 +929,19 @@ export function SchedulePlanner({
                     ]}
                   />
                 ) : null}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={selected.size !== 1 || cells.get([...selected][0])?.assignment_kind !== "shift"}
+                  title="Select one working day, then adjust its approved RO"
+                  onClick={() => {
+                    const key = [...selected][0];
+                    if (key) clickCell(key, { shiftKey: false, ctrlKey: false, metaKey: false } as React.MouseEvent);
+                  }}
+                >
+                  Quick RO
+                </Button>
               </div>
               <div className="ml-auto flex shrink-0 items-center gap-1">
                 <Button
@@ -980,7 +1035,7 @@ export function SchedulePlanner({
               const key = `${person.id}:${selectedMobileDate}`,
                 value = cells.get(key),
                 external = externalCells.get(key),
-                tone = cellTone(value),
+                tone = external ? "external" : cellTone(value),
                 weekly = dates.reduce(
                   (sum, date) =>
                     sum + cellSeconds(cells.get(`${person.id}:${date}`)),
@@ -1019,7 +1074,8 @@ export function SchedulePlanner({
                     disabled={!editableStatus || !canDraft || Boolean(external)}
                     onClick={(event) => clickCell(key, event)}
                     className={cn(
-                      "relative min-h-11 w-full rounded-[var(--sb-radius-control)] border px-2 text-[11px] font-semibold",
+                      "relative min-h-11 w-full rounded-[var(--sb-radius-control)] border px-2 py-1 text-[11px] font-semibold leading-tight",
+                      external && "border-cyan-300 bg-cyan-50 text-cyan-950",
                       tone === "empty" &&
                         "border-[var(--sb-border-soft)] text-[var(--sb-text)]",
                       tone === "work" &&
@@ -1039,12 +1095,12 @@ export function SchedulePlanner({
                       selected.has(key) &&
                         "ring-2 ring-[var(--sb-green-700)] ring-offset-1",
                     )}
-                    style={tone === "work" ? shiftColourStyle(value) : undefined}
+                    style={!external && tone === "work" ? shiftColourStyle(value) : undefined}
                     aria-label={`${person.full_name}, ${selectedMobileDate}: ${external ? `working at ${external.branch_name}` : cellLabel(value) || "unassigned"}`}
                   >
-                    {external ? <><span className="block truncate">At {external.branch_name}</span><span className="block text-[9px] font-normal opacity-75">{formatAttendanceTime(external.planned_start)}–{formatAttendanceTime(external.planned_end)}</span></> : cellLabel(value) || "Add"}
+                    {external ? <span className="block break-words">At {external.branch_name}</span> : <span className="block break-words">{cellLabel(value) || "Add"}</span>}
                     {value?.custom_reason &&
-                    value.custom_reason !== "Outlet roster custom time" ? (
+                    value.custom_reason !== "Outlet roster custom time" && !isImportAuditReason(value.custom_reason) ? (
                       <MessageSquareText
                         className="absolute right-1 top-1 h-3 w-3"
                         aria-label={`Comment: ${value.custom_reason}`}
@@ -1070,7 +1126,7 @@ export function SchedulePlanner({
               dirty ? "font-medium text-amber-800" : "text-muted-foreground"
             }
           >
-            {dirty ? "Unsaved changes will be saved when you submit." : message}
+            {message}
           </p>
           {selected.size > 1 ? (
             <span className="text-muted-foreground">
@@ -1095,14 +1151,7 @@ export function SchedulePlanner({
                 size="sm"
                 variant="outline"
                 disabled={busyAction !== null || !dirty}
-                onClick={() =>
-                  void action({
-                    action: "save",
-                    branchId,
-                    weekStart,
-                    assignments,
-                  })
-                }
+                onClick={() => void saveDraft()}
               >
                 <Save className="h-4 w-4" />
                 {busyAction === "save" ? "Saving…" : "Save draft"}
@@ -1244,14 +1293,14 @@ export function SchedulePlanner({
                           <span className="shrink-0 text-right text-[11px] font-semibold tabular-nums">
                             {(weekly / 3600).toFixed(1)}h
                           </span>
-                          {editableStatus && canDraft ? <button type="button" className="grid h-7 w-7 shrink-0 place-items-center rounded-[var(--sb-radius-control)] text-muted-foreground hover:bg-rose-50 hover:text-rose-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)]" aria-label={`Remove ${person.full_name} from this outlet week`} title="Remove from this outlet week" onClick={() => removePersonFromWeek(person)}><X className="h-3.5 w-3.5" /></button> : null}
+                          {editableStatus && canDraft ? <button type="button" className="grid h-7 w-7 shrink-0 place-items-center rounded-[var(--sb-radius-control)] text-muted-foreground hover:bg-rose-50 hover:text-rose-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)]" aria-label={`Remove ${person.full_name} from this outlet week`} title="Remove from this outlet week" onClick={() => setRemoveCandidate(person)}><X className="h-3.5 w-3.5" /></button> : null}
                         </div>
                       </th>
                       {dates.map((date) => {
                         const key = `${person.id}:${date}`,
                           value = cells.get(key),
                           external = externalCells.get(key),
-                          tone = cellTone(value);
+                          tone = external ? "external" : cellTone(value);
                         return (
                           <td key={date} className="border-b border-r p-1">
                             <button
@@ -1260,7 +1309,8 @@ export function SchedulePlanner({
                               onClick={(event) => clickCell(key, event)}
                               aria-label={`${person.full_name}, ${date}: ${external ? `working at ${external.branch_name}` : cellLabel(value) || "unassigned"}`}
                               className={cn(
-                                "relative h-11 w-full rounded-[var(--sb-radius-control)] border px-1.5 text-xs font-semibold transition-colors disabled:cursor-default",
+                                "relative min-h-11 w-full rounded-[var(--sb-radius-control)] border px-1.5 py-1 text-xs font-semibold leading-tight transition-colors disabled:cursor-default",
+                                external && "border-cyan-300 bg-cyan-50 text-cyan-950",
                                 tone === "empty" &&
                                   "border-transparent text-[var(--sb-text)] opacity-70 enabled:hover:border-[var(--sb-border-soft)] enabled:hover:bg-[var(--sb-surface-muted)]",
                                 tone === "work" &&
@@ -1281,15 +1331,15 @@ export function SchedulePlanner({
                                   "ring-2 ring-[var(--sb-green-700)] ring-offset-1",
                               )}
                               style={
-                                tone === "work"
+                                !external && tone === "work"
                                   ? shiftColourStyle(value)
                                   : undefined
                               }
                             >
-                              {external ? <><span className="block truncate">At {external.branch_name}</span><span className="block text-[9px] font-normal opacity-75">{formatAttendanceTime(external.planned_start)}–{formatAttendanceTime(external.planned_end)}</span></> : cellLabel(value) || "Add"}
+                              {external ? <span className="block break-words">At {external.branch_name}</span> : <span className="block break-words">{cellLabel(value) || "Add"}</span>}
                               {value?.custom_reason &&
-                              value.custom_reason !==
-                                "Outlet roster custom time" ? (
+                          value.custom_reason !== "Outlet roster custom time" &&
+                              !isImportAuditReason(value.custom_reason) ? (
                                 <MessageSquareText
                                   className="absolute right-1 top-1 h-3 w-3"
                                   aria-label={`Comment: ${value.custom_reason}`}
@@ -1618,6 +1668,12 @@ export function SchedulePlanner({
               </Button>
             </div>
           </form>
+        </dialog>
+        <dialog ref={removeDialog} onCancel={() => setRemoveCandidate(null)} aria-labelledby="remove-staff-week-title" className="m-auto w-[min(28rem,calc(100vw-2rem))] rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50">
+          <div className="space-y-4 p-4">
+            <div><h2 id="remove-staff-week-title" className="text-base font-semibold">Remove from this outlet week?</h2><p className="mt-1 text-xs text-muted-foreground">This removes {removeCandidate?.full_name ?? "this employee"} and all of their assignments from this outlet for {weekStart}–{dates[6]}.</p></div>
+            <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setRemoveCandidate(null)}>Cancel</Button><Button type="button" variant="destructive" onClick={() => { if (removeCandidate) removePersonFromWeek(removeCandidate); setRemoveCandidate(null); }}>Remove employee</Button></div>
+          </div>
         </dialog>
         <dialog
           ref={decisionDialog}

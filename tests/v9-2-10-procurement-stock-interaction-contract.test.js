@@ -13,7 +13,7 @@ test("PR matching is dialog based and constrained to the canonical supplier rout
 
   assert.match(page, /matchingItemsFor/);
   assert.match(page, /mapping\.supplier_id === canonicalSupplierId/);
-  assert.match(page, /mapping\.purchase_uom\.trim\(\)\.toUpperCase\(\) === normalizedUom/);
+  assert.match(page, /supplierItemIds\.has\(item\.id\) \|\| item\.supplier_id === canonicalSupplierId/);
   assert.match(dialog, /<ModalShell/);
   assert.match(dialog, /PR supplier/);
   assert.match(dialog, /Open supplier item setup/);
@@ -31,6 +31,16 @@ test("PR matching accepts the same Item Master fallback that the UI offers", () 
   assert.match(migration, /not exists \([\s\S]*from public\.branch_supplier_items bsi/);
   assert.match(migration, /select item\.cost into mapped_unit_cost/);
   assert.match(migration, /if not found then[\s\S]*raise exception 'The selected item is not mapped/);
+});
+
+test("legacy PR units remain reviewable without inventing carton conversions", () => {
+  const migration = read("supabase", "migrations", "293_allow_pr_match_across_legacy_purchase_uom.sql");
+  assert.match(migration, /then si\.unit_cost else 0/);
+  assert.match(migration, /then item\.cost else 0/);
+  assert.match(migration, /order by \(bsi\.branch_id=request_row\.branch_id\) desc, \(upper\(trim\(si\.purchase_uom\)\)=upper\(trim\(unresolved_row\.requested_uom\)\)\) desc/);
+  assert.match(migration, /'where bsi\.branch_id=request_row\.branch_id and bsi\.item_id=target_item_id',[\s\S]*'where bsi\.item_id=target_item_id'/);
+  assert.doesNotMatch(migration, /update public\.items/);
+  assert.doesNotMatch(migration, /update public\.supplier_items/);
 });
 
 test("Stock Count line controls align UOMs and confirm destructive removal", () => {

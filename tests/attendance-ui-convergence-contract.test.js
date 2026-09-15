@@ -53,7 +53,8 @@ test("schedule submit and Manager correction are atomic, audited and reason-boun
   ])
     assert.match(`${api}\n${migration}`, new RegExp(contract));
   assert.match(migration, /before_state,after_state/);
-  assert.match(planner, /Unsaved changes will be saved when you submit/);
+  assert.match(planner, /Auto saving…/);
+  assert.match(planner, /Draft saved/);
 });
 
 test("annotated Attendance controls use the shared select authority", () => {

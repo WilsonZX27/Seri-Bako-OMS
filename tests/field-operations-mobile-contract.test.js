@@ -56,9 +56,9 @@ test("stock count list header never relies on a guessed shell offset", () => {
   assert.match(source, /hidden border-y[^\n]+lg:grid/);
 });
 
-test("stock count phone cards reserve vertical space for counting", () => {
+test("stock count phone and tablet cards reserve vertical space for counting", () => {
   const source = read("src/components/stock-count-form.tsx");
-  assert.match(source, /mt-1 hidden text-\[10px\][^\n]+sm:block[^\n]+Starting balance/);
+  assert.match(source, /mt-1 hidden text-\[10px\][^\n]+lg:block[^\n]+Starting balance/);
 });
 
 test("goods receiving prioritizes physical receipt before reference quantities on phones", () => {

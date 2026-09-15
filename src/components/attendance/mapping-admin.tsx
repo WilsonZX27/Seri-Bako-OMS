@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Link2Off, Pencil, X } from "lucide-react";
+import { Link2Off, Pencil, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -26,7 +26,6 @@ export function MappingAdmin({ branches, devices }: { branches: Option[]; device
 
   return <section className="min-w-0">
     <div className="p-4">
-      <h2 className="text-sm font-semibold">NGTeco Source <ArrowRight className="mx-1 inline h-3.5 w-3.5" aria-hidden="true" /> Location</h2>
       <form className="mt-3 grid min-w-0 items-end gap-2 sm:grid-cols-[minmax(10rem,1fr)_minmax(12rem,1.4fr)_auto]" onSubmit={(event) => { event.preventDefault(); void submit(event.currentTarget); }}>
         <label className="grid gap-1 text-xs font-medium">NGTeco Source<Input name="sourceCode" required maxLength={100} /></label>
         <label className="grid gap-1 text-xs font-medium">Location<SelectControl name="branchId" required ariaLabel="Device location" defaultValue="none" searchable searchPlaceholder="Search locations" options={[{value:"none",label:"Select location",disabled:true},...branches.map(branch=>({value:branch.id,label:branch.branch_name??"Location"}))]}/></label>

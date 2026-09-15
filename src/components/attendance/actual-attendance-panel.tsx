@@ -382,7 +382,7 @@ export function ActualAttendancePanel(props: Props) {
       ) : null}
       <dialog
         ref={setReportDialog}
-        className="sb-dialog-workspace-centered m-auto w-[min(36rem,calc(100vw-2rem))] rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50"
+        className="sb-dialog-workspace-centered m-auto max-h-[calc(100dvh-2rem)] w-[min(36rem,calc(100vw-2rem))] overflow-y-auto rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50"
       >
         <form
           className="space-y-4 p-4"
@@ -451,6 +451,7 @@ export function ActualAttendancePanel(props: Props) {
                 value,
                 label,
               }))}
+              portalContainer={reportDialog}
             />
           </label>
           {reportType === "punch_correction" ? (
@@ -503,7 +504,7 @@ export function ActualAttendancePanel(props: Props) {
       </dialog>
       <dialog
         ref={setCompDialog}
-        className="sb-dialog-workspace-centered m-auto w-[min(32rem,calc(100vw-2rem))] rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50"
+        className="sb-dialog-workspace-centered m-auto max-h-[calc(100dvh-2rem)] w-[min(32rem,calc(100vw-2rem))] overflow-y-auto rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50"
       >
         <form
           className="space-y-4 p-4"

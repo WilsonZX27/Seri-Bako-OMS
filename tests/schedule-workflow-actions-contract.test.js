@@ -20,7 +20,8 @@ test("full-time roster days are complete and cross-outlet shifts stay canonical"
   assert.match(migration282, /aw\.branch_id<>w\.branch_id/);
   assert.match(migration282, /work_site_label/);
   assert.match(migration282, /branch_type in \('outlet','central_kitchen'\)/);
-  assert.match(source, /At \{external\.branch_name\}/);
+  assert.match(source, /At \{awayLabel\}/);
+  assert.match(source, /tone === "external" && "border-cyan-300 bg-cyan-50 text-cyan-950"/);
   assert.match(source, /Correct published schedule/);
   assert.match(source, /Confirm & publish/);
 });

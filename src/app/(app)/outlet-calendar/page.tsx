@@ -16,7 +16,7 @@ export default async function OutletCalendarPage({ searchParams }: { searchParam
   const rightRail = <>
     <ConsoleSection title="Actions" kind="action"><Button asChild size="sm" className="w-full"><Link href="/outlet-compliance">Open Outlet Compliance</Link></Button></ConsoleSection>
     <ConsoleSection title="Calendar" kind="status"><p><strong>{events.length}</strong> dated requirements</p><p><strong>{urgent}</strong> due soon or expired</p></ConsoleSection>
-    <ConsoleSection title="Due soon & expired" kind="reference">
+    <ConsoleSection title="Due soon & expired" kind="danger">
       <div className="divide-y divide-[var(--sb-border-soft)]">
         {urgentEvents.map((event) => <Link key={event.id} href={event.href} className="block py-2 first:pt-0 last:pb-0 hover:text-[var(--sb-green-800)]"><time className="block text-[11px] font-semibold tabular-nums">{event.date}</time><span className="mt-0.5 block text-xs font-medium">{event.title}</span><span className="block text-[11px] text-muted-foreground">{event.context}</span></Link>)}
         {!urgentEvents.length ? <p className="text-xs text-muted-foreground">No due or expired requirements.</p> : null}

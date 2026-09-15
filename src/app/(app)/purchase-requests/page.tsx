@@ -97,9 +97,9 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                 <TableRow>
                   <TableSelectionHead><BulkSelectAllCheckbox /></TableSelectionHead>
                   <TableHead>Action</TableHead>
-                  <SortableHead label="Request" column="request_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <SortableHead label="PR number / Priority" column="request_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Schedule" column="request_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <TableHead>Request context</TableHead>
+                  <TableHead>Location / Requested by</TableHead>
                   <TableHead>Supplier</TableHead>
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead className="pr-5 text-right">Request value</TableHead>
@@ -110,9 +110,9 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                   <DataGridRow key={request.id} href={`/purchase-requests/${request.id}`}>
                     <TableSelectionCell><BulkSelectRowCheckbox id={request.id} /></TableSelectionCell>
                     <TableCell><TableActionLink className="mx-0" href={`/purchase-requests/${request.id}`} label={`Open ${request.request_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
-                    <TableCell><div className="min-w-0"><DocumentNumber value={request.request_no} size="sm" /><p className="mt-0.5 text-[11px] text-muted-foreground">{request.requested_by_name}</p></div></TableCell>
+                    <TableCell><div className="min-w-0"><DocumentNumber value={request.request_no} size="sm" /><div className="mt-1"><PriorityBadge priority={request.priority} /></div></div></TableCell>
                     <TableCell><p>{formatDateOnly(request.request_date)}</p>{request.needed_by_date ? <p className="mt-1 text-[11px] italic text-muted-foreground">{formatDateOnly(request.needed_by_date)}</p> : null}</TableCell>
-                    <TableCell><p>{request.branch_name ?? "—"}</p><div className="mt-1"><PriorityBadge priority={request.priority} /></div></TableCell>
+                    <TableCell><p>{request.branch_name ?? "—"}</p><p className="mt-1 text-[11px] text-muted-foreground">{request.requested_by_name}</p></TableCell>
                     <TableCell className="whitespace-normal break-words align-top"><span className={request.supplier_state === "assigned" ? "text-[var(--sb-text)]" : "font-medium text-[var(--sb-warning)]"}>{request.supplier_state === "assigned" ? request.supplier_names.join(", ") : request.supplier_state === "assignment_required" ? "Supplier assignment required" : request.supplier_state === "details_unavailable" ? "Supplier details unavailable" : "—"}</span></TableCell>
                     <TableCell className="whitespace-normal"><StatusBadge status={request.status === "converted_to_po" && request.procurement_status ? request.procurement_status : request.status} /></TableCell>
                     <TableCell className="text-right"><p>{request.line_count} lines</p><p className="mt-1 text-[11px] text-muted-foreground">{formatCurrency(request.estimated_total)}</p></TableCell>

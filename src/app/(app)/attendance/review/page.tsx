@@ -67,12 +67,12 @@ function dateHeading(value: unknown) {
   const weekday=new Intl.DateTimeFormat("en-MY",{weekday:"long",timeZone:"UTC"}).format(new Date(`${raw}T00:00:00Z`));
   return `${day}/${month}/${year} (${weekday})`;
 }
-function signedDuration(value: unknown, tone: "late" | "earlyLeave") {
+function signedDuration(value: unknown, tone: "late" | "earlyLeave" | "ot") {
   const seconds = Number(value ?? 0);
   if (seconds <= 0) return null;
   const prefix = tone === "earlyLeave" ? "−" : "+";
-  const label = tone === "earlyLeave" ? "early" : "late";
-  const className = "text-[var(--sb-danger)]";
+  const label = tone === "ot" ? "OT" : tone === "earlyLeave" ? "early" : "late";
+  const className = tone === "ot" ? "text-[var(--sb-success)]" : "text-[var(--sb-danger)]";
   return <span className={`mt-0.5 block text-[11px] font-medium tabular-nums ${className}`}>{prefix}{durationLabel(seconds)} {label}</span>;
 }
 function primaryStatus(row: Row) {
@@ -417,14 +417,14 @@ export default async function AttendanceReviewPage({
                           <strong className="block">{time(row.actual_last_out)}</strong>
                           {Number(row.early_leave_seconds ?? 0) > 0
                             ? signedDuration(row.early_leave_seconds, "earlyLeave")
-                            : null}
+                            : signedDuration(actualOvertime, "ot")}
                         </td>
                         <td className="px-3 py-3 tabular-nums">
                           {duration(row.worked_seconds)}
                         </td>
                         <td className="px-3 py-3 tabular-nums">
                           <span className="block text-[11px] text-muted-foreground">RO {reservation ? `${Math.floor(Number(reservation.final_used_minutes??reservation.reserved_minutes) / 30)} × 30m` : "—"}</span>
-                          <strong className="block">OT {actualOvertime > 0 ? minuteDuration(actualOvertime) : "—"}</strong>
+                          <strong className="block">OT {candidate >= 1800 ? `${Math.floor(candidate / 1800)} × 00:30` : "—"}</strong>
                         </td>
                         <td className="px-3 py-3">
                           <RowActions

@@ -1049,3 +1049,9 @@ dialog.m-auto[open] {
   inset: 0;
   margin: auto;
 }
+
+@media (min-width: 1280px) {
+  dialog.sb-dialog-workspace-centered[open] {
+    transform: translateX(calc(var(--sb-sidebar-width) / 2));
+  }
+}

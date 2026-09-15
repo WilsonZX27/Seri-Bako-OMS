@@ -213,9 +213,9 @@ export function RightConsoleMount({ children, hideMobileBar = false, hideDesktop
   return null;
 }
 
-export function ConsoleSection({ title, children, titleClassName, kind = "reference" }: { title: ReactNode; children: ReactNode; titleClassName?: string; kind?: "action" | "status" | "reference" }) {
+export function ConsoleSection({ title, children, titleClassName, kind = "reference" }: { title: ReactNode; children: ReactNode; titleClassName?: string; kind?: "action" | "status" | "reference" | "danger" }) {
   return (
-    <section data-console-section data-console-kind={kind} className="rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)] px-3 py-3">
+    <section data-console-section data-console-kind={kind} className={cn("rounded-[var(--sb-panel-radius)] border px-3 py-3", kind === "danger" ? "border-red-200 bg-[var(--sb-danger-bg)]" : "border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)]")}>
       <div className="mb-3 flex items-center gap-2">
         <h2 className={cn("shrink-0 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--sb-text-muted)]", titleClassName)}>{title}</h2>
         <span aria-hidden="true" className="h-px min-w-0 flex-1 bg-[var(--sb-border-soft)]" />

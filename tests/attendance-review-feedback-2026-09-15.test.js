@@ -16,8 +16,8 @@ test("attendance review separates actual OT display from 30-minute claims", () =
   assert.match(review, /post_shift_seconds/);
   assert.match(review, /RO\\nOT/);
   assert.match(review, /RO \{reservation \?/);
-  assert.match(review, /OT \{actualOvertime/);
-  assert.match(review, /minuteDuration\(actualOvertime\)/);
+  assert.match(review, /signedDuration\(actualOvertime, "ot"\)/);
+  assert.match(review, /OT \{candidate >= 1800 \? `\$\{Math\.floor\(candidate \/ 1800\)\} × 00:30`/);
   assert.match(review, /seconds > 0 && seconds < 60\) return "<00:01"/);
   assert.doesNotMatch(review, /signedMinuteDuration/);
 });
@@ -25,6 +25,7 @@ test("attendance review separates actual OT display from 30-minute claims", () =
 test("attendance dialogs keep searchable menus in the modal top layer", () => {
   assert.match(actuals, /portalContainer=\{reportDialog\}/);
   assert.equal((actuals.match(/portalContainer=\{compDialog\}/g) || []).length, 2);
+  assert.equal((actuals.match(/sb-dialog-workspace-centered/g) || []).length, 2);
 });
 
 test("desktop report tools live in the right rail and warnings wrap", () => {

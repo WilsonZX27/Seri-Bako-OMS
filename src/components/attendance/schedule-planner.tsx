@@ -1011,10 +1011,7 @@ export function SchedulePlanner({
                       ) : null}
                     </strong>
                     <span className="block truncate text-[10px] text-[var(--sb-text)] opacity-70">
-                      {person.role_code === "outlet_supervisor"
-                        ? "Supervisor"
-                        : person.role_code === "kitchen" ? "Kitchen" : "Staff"}{" "}
-                      · {person.staff_code ? `#${person.staff_code} · ` : ""}{(weekly / 3600).toFixed(1)}h week
+                      {person.staff_code ? `#${person.staff_code} · ` : ""}{(weekly / 3600).toFixed(1)}h week
                     </span>
                   </span>
                   <button
@@ -1241,10 +1238,7 @@ export function SchedulePlanner({
                               {person.full_name}
                             </Link>
                             <span className="block truncate font-normal text-[var(--sb-text)] opacity-70">
-                              {person.role_code === "outlet_supervisor"
-                                ? "Supervisor"
-                                : person.role_code === "kitchen" ? "Kitchen" : "Staff"}{" "}
-                              · {person.staff_code ? `#${person.staff_code} · ` : ""}{person.employment_type.replace("_", " ")}
+                              {person.staff_code ? `#${person.staff_code} · ` : ""}{person.employment_type.replace("_", " ")}
                             </span>
                           </span>
                           <span className="shrink-0 text-right text-[11px] font-semibold tabular-nums">

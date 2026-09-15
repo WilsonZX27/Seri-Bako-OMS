@@ -11,7 +11,7 @@ const workspace = fs.readFileSync(path.join(root, "src", "components", "layout",
 test("purchase-request list uses device-appropriate list surfaces and anchors the request identity", () => {
   assert.match(page, /<Table className="sb-purchase-request-table" mobileHidden compactUntil="xl" aria-label="Purchase requests" stickyColumn="third">/);
   assert.match(page, /<TableSelectionHead><BulkSelectAllCheckbox \/><\/TableSelectionHead>/);
-  assert.match(page, /<SortableHead label="Request" column="request_no"/);
+  assert.match(page, /<SortableHead label="PR number \/ Priority" column="request_no"/);
   assert.match(page, /<TableSelectionCell><BulkSelectRowCheckbox id=\{request\.id\} \/><\/TableSelectionCell>[\s\S]*<TableActionLink[\s\S]*<DocumentNumber/);
   assert.match(page, /<OperationalList ariaLabel="Purchase requests" showUntil="xl">/);
   assert.match(page, /tabletRailBreakpoint="md"/);

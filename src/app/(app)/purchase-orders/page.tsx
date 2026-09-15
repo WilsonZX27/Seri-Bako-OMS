@@ -115,8 +115,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                   <SortableHead className="hidden md:table-cell" label="Date" column="order_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead className="hidden lg:table-cell" label="Delivery" column="expected_delivery_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <TableHead className="hidden text-right lg:table-cell">Lines</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">Total</TableHead>
+                  <TableHead className="hidden text-right md:table-cell">Order value</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -129,11 +128,10 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                     <TableCell className="hidden md:table-cell">{formatDateOnly(order.order_date)}</TableCell>
                     <TableCell className="hidden lg:table-cell">{formatDateOnly(order.expected_delivery_date, "-")}</TableCell>
                     <TableCell><StatusBadge status={order.status} /></TableCell>
-                    <TableCell className="hidden text-right lg:table-cell">{order.line_count}</TableCell>
-                    <TableCell className="hidden text-right md:table-cell">{formatCurrency(order.order_total)}</TableCell>
+                    <TableCell className="hidden text-right md:table-cell"><p>{order.line_count} lines</p><p className="mt-1 text-[11px] text-muted-foreground">{formatCurrency(order.order_total)}</p></TableCell>
                   </DataGridRow>
                 ))}
-                {!orders?.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title={ordersResult.unavailable ? "Purchase order data unavailable" : filtered ? "No orders match these filters" : "No purchase orders yet"} description={ordersResult.unavailable ? "The order source could not be verified. No record count or order total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={ordersResult.unavailable ? { href: "/purchase-orders", label: "Retry orders" } : emptyStateAction} /></TableCell></TableRow> : null}
+                {!orders?.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={ordersResult.unavailable ? "Purchase order data unavailable" : filtered ? "No orders match these filters" : "No purchase orders yet"} description={ordersResult.unavailable ? "The order source could not be verified. No record count or order total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={ordersResult.unavailable ? { href: "/purchase-orders", label: "Retry orders" } : emptyStateAction} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Purchase orders" showUntil="md">

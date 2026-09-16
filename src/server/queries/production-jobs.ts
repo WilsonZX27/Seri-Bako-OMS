@@ -2,7 +2,7 @@ import { isMockMode } from "@/lib/mock-mode";
 import { todayInKualaLumpur } from "@/lib/business-date";
 import { looseSupabase } from "@/lib/supabase/loose";
 import { createClient } from "@/lib/supabase/server";
-import { compareTableValues, paginateRows, type PaginationResult } from "@/lib/table-state";
+import { paginateRows, type PaginationResult } from "@/lib/table-state";
 import { actorDisplayName, resolveActorDisplayMap } from "@/server/actors/display";
 import { getStockBalanceDetails } from "@/server/queries/inventory";
 import { requireReadCount, requireReadRows } from "@/server/queries/common";
@@ -98,24 +98,16 @@ export type ProductionRecipeOption = {
   }>;
 };
 
-function filterRows(rows: ProductionJob[], filters: Filters) {
-  const search = filters.search?.trim().toLowerCase();
-  const status = filters.status && filters.status !== "all" ? filters.status : null;
-  const branch = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
-  const sort = filters.sort ?? "production_date";
-  const dir = filters.dir ?? "desc";
-  return rows
-    .filter((row) => {
-      const matchesSearch = search
-        ? [row.production_job_no, row.recipe_no, row.product_name, row.remarks].some((value) => String(value ?? "").toLowerCase().includes(search))
-        : true;
-      const matchesStatus = status ? row.status === status : true;
-      const matchesBranch = branch ? row.branch_id === branch : true;
-      const matchesFrom = filters.from ? String(row.production_date ?? "") >= filters.from : true;
-      const matchesTo = filters.to ? String(row.production_date ?? "") <= filters.to : true;
-      return matchesSearch && matchesStatus && matchesBranch && matchesFrom && matchesTo;
-    })
-    .sort((a, b) => compareTableValues(a[sort as keyof ProductionJob], b[sort as keyof ProductionJob], dir));
+const PRODUCTION_JOB_PAGE_SIZE = 15;
+const PRODUCTION_JOB_SORT_COLUMNS = new Set(["production_job_no", "production_date", "status", "updated_at"]);
+
+function requestedPage(value?: string) {
+  const parsed = Number(value ?? "1");
+  return Number.isFinite(parsed) ? Math.max(Math.trunc(parsed), 1) : 1;
+}
+
+function safeSearch(value?: string) {
+  return value?.trim().replace(/[(),]/g, " ").replace(/[\\%_]/g, "\\$&") || null;
 }
 
 function asProductionJob(row: Record<string, unknown>): ProductionJob {
@@ -131,10 +123,37 @@ export async function getProductionJobs(filters: Filters = {}): Promise<Paginati
 
   const supabase = await createClient();
   const db = looseSupabase(supabase);
-  const { data, error } = await db.from("production_jobs").select("*").is("deleted_at", null);
+  const search = safeSearch(filters.search);
+  const [matchingBranches, matchingProducts] = search ? await Promise.all([
+    supabase.from("branches").select("id").ilike("branch_name", `%${search}%`).limit(50),
+    supabase.from("products").select("id").ilike("product_name", `%${search}%`).limit(50),
+  ]) : [{ data: [], error: null }, { data: [], error: null }];
+  if (matchingBranches.error || matchingProducts.error) throw new Error((matchingBranches.error ?? matchingProducts.error)!.message);
+  const branchMatches = (matchingBranches.data ?? []).map((row) => row.id);
+  const productMatches = (matchingProducts.data ?? []).map((row) => row.id);
+  const sort = PRODUCTION_JOB_SORT_COLUMNS.has(filters.sort ?? "") ? filters.sort! : "production_date";
+  let query = db.from("production_jobs").select("*", { count: "exact" }).is("deleted_at", null);
+  if (filters.status && filters.status !== "all") query = query.eq("status", filters.status);
+  if (filters.branch_id && filters.branch_id !== "all") query = query.eq("branch_id", filters.branch_id);
+  if (filters.from) query = query.gte("production_date", filters.from);
+  if (filters.to) query = query.lte("production_date", filters.to);
+  if (search) {
+    const related = [
+      branchMatches.length ? `branch_id.in.(${branchMatches.join(",")})` : null,
+      productMatches.length ? `product_id.in.(${productMatches.join(",")})` : null,
+    ].filter(Boolean);
+    query = query.or([`production_job_no.ilike.%${search}%`, `remarks.ilike.%${search}%`, ...related].join(","));
+  }
+  query = query.order(sort, { ascending: filters.dir === "asc" }).order("id", { ascending: false });
+  const requested = requestedPage(filters.page);
+  if (filters.page !== "all") query = query.range((requested - 1) * PRODUCTION_JOB_PAGE_SIZE, requested * PRODUCTION_JOB_PAGE_SIZE - 1);
+  const { data, error, count } = await query;
   if (error) throw new Error(error.message);
   const productionRows = requireReadRows(data, "Production jobs") as Array<Record<string, unknown>>;
-  if (productionRows.length === 0) return paginateRows([], filters.page, 15);
+  const totalRows = requireReadCount(count, "Production job count");
+  const totalPages = Math.max(Math.ceil(totalRows / PRODUCTION_JOB_PAGE_SIZE), 1);
+  const page = filters.page === "all" ? 1 : Math.min(requested, totalPages);
+  if (productionRows.length === 0) return { rows: [], totalRows, page, pageSize: PRODUCTION_JOB_PAGE_SIZE, totalPages };
   const jobs = productionRows.map(asProductionJob);
   const branchIds = [...new Set(jobs.map((job) => job.branch_id))];
   const productIds = [...new Set(jobs.map((job) => job.product_id).filter((id): id is string => Boolean(id)))];
@@ -160,7 +179,25 @@ export async function getProductionJobs(filters: Filters = {}): Promise<Paginati
     };
   });
 
-  return paginateRows(filterRows(rows, filters), filters.page, 15);
+  return { rows, totalRows, page, pageSize: PRODUCTION_JOB_PAGE_SIZE, totalPages };
+}
+
+export type ProductionJobSummary = { total: number; draft: number; submitted: number; approved: number; posted: number; cancelled: number };
+
+export async function getProductionJobSummary(): Promise<ProductionJobSummary> {
+  if (isMockMode()) return { total: 0, draft: 0, submitted: 0, approved: 0, posted: 0, cancelled: 0 };
+  const supabase = await createClient();
+  const db = looseSupabase(supabase);
+  const statuses = ["draft", "submitted", "approved", "posted", "cancelled"] as const;
+  const [totalResult, ...statusResults] = await Promise.all([
+    db.from("production_jobs").select("id", { count: "exact", head: true }).is("deleted_at", null),
+    ...statuses.map((status) => db.from("production_jobs").select("id", { count: "exact", head: true }).eq("status", status).is("deleted_at", null)),
+  ]);
+  for (const result of [totalResult, ...statusResults]) if (result.error) throw new Error(result.error.message);
+  return {
+    total: requireReadCount(totalResult.count, "Production job total"),
+    ...Object.fromEntries(statuses.map((status, index) => [status, requireReadCount(statusResults[index].count, `Production job ${status} count`)])),
+  } as ProductionJobSummary;
 }
 
 export async function getProductionJob(id: string): Promise<{ job: ProductionJob; ingredientLines: ProductionIngredientLine[]; outputLines: ProductionOutputLine[] }> {

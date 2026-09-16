@@ -38,5 +38,6 @@ test("production jobs preserve explicit unavailable states for list, summary, an
   assert.match(page, /Production jobs are unavailable/);
   assert.match(page, /Branch filter unavailable/);
   assert.match(page, /!branches && filters\.branch_id[\s\S]*type="hidden" name="branch_id"/);
-  assert.match(page, /allJobsResult\.unavailable[\s\S]*Unavailable/);
+  assert.match(page, /summaryResult\.unavailable[\s\S]*Unavailable/);
+  assert.doesNotMatch(page, /loadProductionJobs\(\{ page: "all" \}\)/);
 });

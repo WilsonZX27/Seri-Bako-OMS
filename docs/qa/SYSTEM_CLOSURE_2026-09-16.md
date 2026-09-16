@@ -8,7 +8,7 @@ This is repository evidence for v9.2.69. Migrations 298–301 are Production app
 | --- | --- | --- |
 | Strict TypeScript | `npm run typecheck:strict` | Pass |
 | ESLint | `npm run lint` | Pass |
-| Contract suite | 1,290 tests | Pass; the loopback lifecycle contract was run outside the restricted socket sandbox |
+| Contract suite | 1,292 tests | Pass; the loopback lifecycle contract was run outside the restricted socket sandbox |
 | Production build | Next.js 15.5.21, 102 routes, 102 kB shared first load | Pass with isolated test environment |
 | Stock Count integrity | 148 focused inventory/Stock Count contracts | Pass |
 | Responsive browser UAT | Production: 18 critical workspaces at 430×932; create flow at 390×844; populated Item, Stock Count and Purchase Request details at 820×1180; 13 shared list surfaces at 430×932, 820×1180, 1180×820 and 1440×900 | Pass for the recorded Production matrix; the exhaustive local role fixture matrix remains outstanding |
@@ -36,6 +36,7 @@ This is repository evidence for v9.2.69. Migrations 298–301 are Production app
 17. **Recipe lifecycle atomicity.** Migration 301 moves submit, approve, activate, reject and archive into one tenant-scoped transaction. Recipe and Document states, revision history, activity and superseded active versions now commit together; activating a version locks competing active versions and retains the existing partial unique index as the final concurrency guard. Production read-back confirmed the function, authenticated grant, anonymous revoke and internal permission guard.
 18. **Latest Production verification.** Vercel Production deployment `H8mWwdnxGNzvbRcN4XS1thNhb6Ap` reached Ready from commit `e0e56504`. The authenticated custom-domain run passed 6/6 responsive list/filter tests across phone, tablet portrait, tablet landscape and desktop, plus 2/2 dashboard-performance and Costing Readiness tests. The dashboard was ready in 2,583 ms.
 19. **Procurement Variance scaling.** The report now requests explicit calculation projections from all nine source tables. It indexes receiving lines by PO line, invoice lines by receiving/PO identity and supplier prices by supplier/item/UOM once, replacing repeated complete-dataset scans inside every order-line comparison. The resulting in-process work is linear in the fetched source rows plus emitted comparisons. Production deployment `6RGP4cHi8xjQqVDb4VJyHK7mqb2R` reached Ready from commit `ad0b8082`; authenticated phone, tablet and desktop checks loaded the workspace in 2,933 ms, 1,753 ms and 1,662 ms with no page errors or horizontal overflow.
+20. **Latency percentile evidence.** Server-side observability now records a bounded 25-sample window for all Supabase requests and for the Dashboard and Procurement Variance data-loading boundaries. Each window emits p50, p95, p99, maximum and failure count without retaining or logging URLs, query strings, filters, credentials, record identifiers or bodies. The collector caps series cardinality and clears each emitted window, so observability cannot grow process memory without bound.
 
 ## Architecture judgement
 
@@ -49,6 +50,6 @@ The visual system is more coherent, but `design-system-v2.css` still contains a 
 
 1. Start an isolated Supabase/Docker target through 301, seed the role fixture and run the exhaustive role and mutation matrix without exercising mutation flows against Production.
 2. Continue reducing the compatibility CSS only alongside phone, tablet and desktop screenshots and geometry assertions.
-3. Add server-side observability for route and database latency percentiles; browser smoke timing alone cannot prove sustained tail latency under concurrent load.
+3. Accumulate Production latency windows under representative concurrent use and set alert thresholds from the observed Dashboard, Procurement Variance and database p95/p99 distributions. Instrument additional critical route-data boundaries as they enter the performance audit.
 
 The reviewed release is deployed and its recorded critical read paths are Production-verified. The wider system-quality goal remains open for exhaustive role/responsive coverage, sustained performance evidence and incremental compatibility-CSS retirement.

@@ -11,7 +11,7 @@ function load(file, mocks = {}) {
   }).outputText;
   const module = { exports: {} };
   vm.runInNewContext(code, {
-    module, exports: module.exports, URL, console,
+    module, exports: module.exports, URL, console, performance,
     require(name) {
       if (name in mocks) return mocks[name];
       if (name === "react" || name === "react/jsx-runtime") return require(name);
@@ -164,6 +164,7 @@ test("slow-request logging excludes URLs, filters, credentials and storage objec
   const entries = [];
   const { reportSlowSupabaseRequest } = load("src/server/observability/supabase-timing.ts", {
     "@/server/observability/logger": { logServerWarning: (message, fields) => entries.push({ message, ...fields }) },
+    "@/server/observability/latency-percentiles": { recordLatencySample() {} },
   });
   reportSlowSupabaseRequest(new URL("https://example.test/rest/v1/staffs?email=eq.private@example.test&token=secret"), "GET", 1500.1, 200);
   reportSlowSupabaseRequest(new URL("https://example.test/storage/v1/object/private/private-name.pdf?token=secret"), "GET", 2100, null);
@@ -173,6 +174,44 @@ test("slow-request logging excludes URLs, filters, credentials and storage objec
   assert.equal(entries[0].durationMs, 1500);
   assert.equal(entries[1].source, "supabase.other");
   assert.doesNotMatch(JSON.stringify(entries), /secret|private|example\.test|token|email|https/);
+});
+
+test("database latency observability emits bounded p50, p95 and p99 windows without request data", () => {
+  const entries = [];
+  const { recordLatencySample } = load("src/server/observability/latency-percentiles.ts", {
+    "@/server/observability/logger": { logServerInfo: (message, fields) => entries.push({ message, ...fields }) },
+  });
+  for (let duration = 1; duration <= 25; duration++) recordLatencySample("supabase.database", duration, duration === 25);
+  assert.deepEqual(entries, [{
+    message: "Server latency window",
+    event: "server_latency_percentiles",
+    source: "supabase.database",
+    sampleCount: 25,
+    failureCount: 1,
+    p50Ms: 13,
+    p95Ms: 24,
+    p99Ms: 25,
+    maxMs: 25,
+  }]);
+  assert.doesNotMatch(JSON.stringify(entries), /url|query|filter|record|body|token|secret/i);
+});
+
+test("route data timing records both successful and failed operations without changing their result", async () => {
+  const entries = [];
+  const api = load("src/server/observability/latency-percentiles.ts", {
+    "@/server/observability/logger": { logServerInfo: (message, fields) => entries.push({ message, ...fields }) },
+  });
+  const original = api.recordLatencySample;
+  // The exported helper and recorder share the module-local binding. Fill a
+  // complete window so success and failure are observable through one summary.
+  for (let index = 0; index < 23; index++) original("route.test.data", index + 1);
+  const value = await api.measureServerOperation("route.test.data", async () => "ready");
+  assert.equal(value, "ready");
+  await assert.rejects(api.measureServerOperation("route.test.data", async () => { throw new Error("unavailable"); }), /unavailable/);
+  assert.equal(entries.length, 1);
+  assert.equal(entries[0].source, "route.test.data");
+  assert.equal(entries[0].sampleCount, 25);
+  assert.equal(entries[0].failureCount, 1);
 });
 
 test("topbar shell renders without awaiting notification or workflow queries", async () => {

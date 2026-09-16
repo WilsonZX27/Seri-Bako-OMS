@@ -1,13 +1,14 @@
 import { DashboardWorkspace } from "@/components/dashboard-workspace";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatPageError } from "@/server/actions/error-handling";
+import { measureServerOperation } from "@/server/observability/latency-percentiles";
 import { getDashboardSummary } from "@/server/queries/dashboard";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   try {
-    const summary = await getDashboardSummary();
+    const summary = await measureServerOperation("route.dashboard.data", getDashboardSummary);
 
     return <DashboardWorkspace summary={summary} />;
   } catch (error) {

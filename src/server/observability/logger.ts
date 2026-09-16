@@ -11,6 +11,12 @@ export type LogContext = {
   durationMs?: number;
   httpStatus?: number | null;
   httpMethod?: string;
+  sampleCount?: number;
+  failureCount?: number;
+  p50Ms?: number;
+  p95Ms?: number;
+  p99Ms?: number;
+  maxMs?: number;
 };
 
 function redact(value: unknown): unknown {
@@ -28,4 +34,8 @@ export function logServerError(error: unknown, context: LogContext = {}) {
 
 export function logServerWarning(error: unknown, context: LogContext = {}) {
   console.warn(JSON.stringify({ level: "warn", timestamp: new Date().toISOString(), ...context, error: redact(error) }));
+}
+
+export function logServerInfo(message: string, context: LogContext = {}) {
+  console.info(JSON.stringify({ level: "info", timestamp: new Date().toISOString(), ...context, message: redact(message) }));
 }

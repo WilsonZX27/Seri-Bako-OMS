@@ -24,6 +24,7 @@ import {
 import { hasActiveFilters } from "@/lib/table-state";
 import { formatCurrency, formatDateOnly, formatNumber } from "@/lib/utils";
 import { logServerError } from "@/server/observability/logger";
+import { measureServerOperation } from "@/server/observability/latency-percentiles";
 import { getProcurementVariance } from "@/server/queries/procurement-variance";
 
 export const dynamic = "force-dynamic";
@@ -71,7 +72,7 @@ function ProcurementStageComparison({ row }: { row: VarianceRow }) {
 
 export default async function ProcurementVariancePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const rows = await getProcurementVariance(filters).catch((error) => {
+  const rows = await measureServerOperation("route.procurement-variance.data", () => getProcurementVariance(filters)).catch((error) => {
     logServerError(error, { source: "page.procurementVariance.report" });
     return null;
   });

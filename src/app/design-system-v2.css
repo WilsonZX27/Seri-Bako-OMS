@@ -103,8 +103,9 @@ html[data-design-layer="v2"] :where(.erp-surface, .sb-work-surface, .border.bg-c
 }
 
 html[data-design-layer="v2"] :where(.sb-list-filters:not(.unified-list-header):not(.sb-list-query-card), .sb-filter-more-panel, .sb-right-console, .sb-pr-basket-sheet) {
-  border-color: var(--sb-border-soft);
-  border-radius: var(--sb-panel-radius) !important;
+  border: 1px solid var(--sb-border-soft);
+  border-radius: var(--sb-panel-radius);
+  background: var(--sb-surface-raised);
   box-shadow: var(--sb-shadow-sm);
 }
 
@@ -113,7 +114,7 @@ html[data-design-layer="v2"] :where(.sb-list-filters:not(.unified-list-header):n
 }
 
 html[data-design-layer="v2"] :where(.sb-list-filters:not(.unified-list-header):not(.sb-list-query-card) input, .sb-list-filters:not(.unified-list-header):not(.sb-list-query-card) select, .sb-list-filters:not(.unified-list-header):not(.sb-list-query-card) button, .sb-list-filters:not(.unified-list-header):not(.sb-list-query-card) a, .sb-filter-more-panel input, .sb-filter-more-panel select, .sb-filter-more-panel button) {
-  border-radius: var(--sb-radius-control) !important;
+  border-radius: var(--sb-radius-control);
 }
 
 html[data-design-layer="v2"] :where(.sb-list-filters:not(.unified-list-header):not(.sb-list-query-card) input, .sb-list-filters:not(.unified-list-header):not(.sb-list-query-card) select, .sb-filter-more-panel input, .sb-filter-more-panel select) {

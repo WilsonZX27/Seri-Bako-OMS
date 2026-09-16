@@ -4,7 +4,7 @@ import { looseSupabase } from "@/lib/supabase/loose";
 import { createClient } from "@/lib/supabase/server";
 import { paginateRows, type PaginationResult } from "@/lib/table-state";
 import { actorDisplayName, resolveActorDisplayMap } from "@/server/actors/display";
-import { getStockBalanceDetails } from "@/server/queries/inventory";
+import { getStockAvailabilityOptions } from "@/server/queries/inventory";
 import { requireReadCount, requireReadRows } from "@/server/queries/common";
 
 type Filters = Record<string, string | undefined>;
@@ -262,11 +262,12 @@ export async function getProductionJobFormOptions() {
     .eq("status", "active")
     .order("branch_name", { ascending: true });
   if (error) throw new Error(error.message);
-  const balances = await getStockBalanceDetails({ page: "all", view: "branch" });
+  const ingredientItemIds = recipes.flatMap((recipe) => recipe.lines.map((line) => line.item_id));
+  const balances = await getStockAvailabilityOptions({ itemIds: ingredientItemIds });
   return {
     branches: requireReadRows(branches, "Production branch options"),
     recipes,
-    balances: balances.rows.map((row) => ({
+    balances: balances.map((row) => ({
       branch_id: row.branch_id,
       item_id: row.item_id,
       current_qty: Number(row.current_qty ?? 0),

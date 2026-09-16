@@ -3,7 +3,7 @@ import { todayInKualaLumpur } from "@/lib/business-date";
 import { createClient } from "@/lib/supabase/server";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
 import { actorDisplayName, resolveActorDisplayMap } from "@/server/actors/display";
-import { getStockBalanceDetails } from "@/server/queries/inventory";
+import { getStockAvailabilityOptions } from "@/server/queries/inventory";
 import type { Database } from "@/types/database";
 import { requireReadCount, requireReadRows } from "@/server/queries/common";
 import { requireDetailRow } from "@/server/queries/detail";
@@ -257,8 +257,8 @@ export async function getStockWastageDetail(id: string) {
 }
 
 export async function getOperationSeedLines(branchId?: string) {
-  const balances = await getStockBalanceDetails({ page: "all", branch_id: branchId });
-  return balances.rows
-    .filter((row) => branchId ? row.branch_id === branchId : true)
+  if (!branchId) return [];
+  const balances = await getStockAvailabilityOptions({ branchId });
+  return balances
     .map((row) => ({ item_id: row.item_id, item_code: row.item_code, item_name: row.item_name, available_qty: row.current_qty, quantity: Math.min(Math.max(row.current_qty, 1), 5), uom: row.base_unit }));
 }

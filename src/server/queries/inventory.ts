@@ -884,6 +884,47 @@ export async function getStockBalanceDetails(filters: Filters = {}): Promise<Pag
 
 export type StockBalanceSummary = { total: number; lowStock: number; negative: number; inventoryValue: number };
 
+export type StockAvailabilityOption = {
+  branch_id: string | null;
+  item_id: string;
+  item_code: string;
+  item_name: string;
+  base_unit: string;
+  current_qty: number;
+};
+
+export async function getStockAvailabilityOptions(input: { branchId?: string; itemIds?: string[] } = {}): Promise<StockAvailabilityOption[]> {
+  const itemIds = [...new Set(input.itemIds?.filter(Boolean) ?? [])];
+  if (input.itemIds && !itemIds.length) return [];
+  if (isMockMode()) {
+    const balances = await getStockBalanceDetails({ page: "all", view: "branch", branch_id: input.branchId });
+    if (balances.unavailable || balances.error) throw new Error(balances.error ?? "Stock availability is unavailable.");
+    const allowedItems = itemIds.length ? new Set(itemIds) : null;
+    return balances.rows
+      .filter((row) => (!input.branchId || row.branch_id === input.branchId) && (!allowedItems || allowedItems.has(row.item_id)))
+      .map((row) => ({
+        branch_id: row.branch_id,
+        item_id: row.item_id,
+        item_code: row.item_code,
+        item_name: row.item_name,
+        base_unit: row.base_unit,
+        current_qty: Number(row.current_qty),
+      }));
+  }
+  const supabase = await createClient();
+  let query = supabase
+    .from("stock_balances_summary")
+    .select("branch_id,item_id,item_code,item_name,base_unit,current_qty")
+    .order("item_name", { ascending: true })
+    .order("item_id", { ascending: true });
+  if (input.branchId) query = query.eq("branch_id", input.branchId);
+  if (itemIds.length) query = query.in("item_id", itemIds);
+  const { data, error } = await query;
+  if (error) throw new Error(`Stock availability could not be loaded: ${error.message}`);
+  if (!Array.isArray(data)) throw new Error("Stock availability returned invalid data.");
+  return data.map((row) => ({ ...row, current_qty: Number(row.current_qty) }));
+}
+
 export async function getStockBalanceSummary(filters: Filters = {}): Promise<StockBalanceSummary> {
   if (isMockMode()) {
     const balances = await getStockBalanceDetails({ ...filters, page: "all" });

@@ -1,6 +1,6 @@
 # System closure review — 2026-09-16
 
-This is repository evidence for v9.2.69. Migrations 298–300 are Production applied and read-back verified; the current application commits are not yet deployed.
+This is repository evidence for v9.2.69. Migrations 298–300 are Production applied and read-back verified. Application commit `40ffb110` was deployed through Vercel Production deployment `5g5SetJPo2CXjPQREndgfSK8kMkt` and verified through `https://system.seribako.com.my`.
 
 ## Release gates
 
@@ -11,9 +11,9 @@ This is repository evidence for v9.2.69. Migrations 298–300 are Production app
 | Contract suite | 1,282 tests | Pass |
 | Production build | Next.js 15.5.21, 102 routes, 102 kB shared first load | Pass with isolated test environment |
 | Stock Count integrity | 148 focused inventory/Stock Count contracts | Pass |
-| Responsive browser UAT | Stock Count at 390×844, 768×1024, 820×1180 and 1440×960 | Blocked: the configured local Supabase at `127.0.0.1:55431` is not running and Docker Desktop is not installed |
+| Responsive browser UAT | Production: 18 critical workspaces at 430×932; create flow at 390×844; populated Item, Stock Count and Purchase Request details at 820×1180; core workspace at 1440×900 | Pass for the recorded Production matrix; the exhaustive local fixture matrix remains unavailable because local Supabase is not running |
 | Linked schema | Repository and linked Production ledger verified through 300 | Pass; all three summary functions are security-invoker, authenticated-only |
-| Production runtime | Authenticated Production session expired during this review | Not reverified |
+| Production runtime | Purchasing and Super Admin authenticated checks on the custom domain; bounded PR list; dashboard ready in 3,230 ms; 18 mobile routes returned 200 with no page/browser errors or horizontal overflow | Pass |
 
 ## Findings closed in this review
 
@@ -29,6 +29,8 @@ This is repository evidence for v9.2.69. Migrations 298–300 are Production app
 10. **Inventory form payloads.** Stock Transfer and Stock Wastage creation now read the selected source branch through a six-field availability projection. Production creation reads only active-recipe ingredient balances and does not fetch form options before the create permission succeeds.
 11. **Item detail stock truth.** An Item detail now reads only that item's branch-visible balances and sums them. It no longer loads every item and no longer risks presenting one arbitrary branch balance as the company-visible total.
 12. **Items fallback stock truth.** The non-RPC Items workspace fallback now aggregates every visible branch balance per item instead of retaining whichever branch row happened to be last.
+13. **Production deployment evidence.** Vercel Production deployment `5g5SetJPo2CXjPQREndgfSK8kMkt` reached Ready from commit `40ffb110`. Authenticated checks on the custom domain passed for the bounded Purchase Request list, the dashboard performance threshold, desktop operational structure, a 390px create flow, three populated 820px detail surfaces and 18 critical 430px workspaces. The mobile sweep recorded no console/page errors and no horizontal overflow.
+14. **Dashboard smoke contract.** The performance test now follows the current accessible dashboard contract: a visible level-one user heading plus the Purchasing role. It no longer waits for the removed `Local purchasing` heading.
 
 ## Architecture judgement
 
@@ -40,9 +42,8 @@ The visual system is more coherent, but `design-system-v2.css` still contains a 
 
 ## Remaining release work
 
-1. Start an isolated Supabase/Docker target, apply migrations through 300, seed the role fixture and run the full responsive matrix.
-2. Push the reviewed application commits, then deploy the compatible application build.
-3. Reverify authenticated Production routes and performance after deployment; record measured server timing rather than inferring it from build output.
-4. Continue reducing the compatibility CSS only alongside phone, tablet and desktop screenshots and geometry assertions.
+1. Start an isolated Supabase/Docker target, apply migrations through 300, seed the role fixture and run the exhaustive responsive and role matrix without exercising mutation flows against Production.
+2. Continue reducing the compatibility CSS only alongside phone, tablet and desktop screenshots and geometry assertions.
+3. Add server-side observability for route and database latency percentiles; browser smoke timing alone cannot prove sustained tail latency under concurrent load.
 
-Until those four items have evidence, the repository is release-candidate quality, not fully closed Production evidence.
+The reviewed release is deployed and its recorded critical read paths are Production-verified. The wider system-quality goal remains open for exhaustive role/responsive coverage, sustained performance evidence and incremental compatibility-CSS retirement.

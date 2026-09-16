@@ -2,6 +2,7 @@ import { isMockMode, mockItems, mockProducts, mockRecipeLines, mockRecipes } fro
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission } from "@/server/auth/permissions";
 import { requireReadRows } from "@/server/queries/common";
+import type { Database } from "@/types/database";
 
 export type RecipeCostingRow = {
   id: string;
@@ -22,7 +23,11 @@ export type RecipeCostingRow = {
 };
 
 type Filters = { search?: string; status?: string; confidence?: string; missing_cost?: string };
-type Data = { items: typeof mockItems; products: typeof mockProducts; recipes: typeof mockRecipes; recipeLines: typeof mockRecipeLines };
+type Item = Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "status" | "cost" | "base_unit">;
+type Product = Pick<Database["public"]["Tables"]["products"]["Row"], "id" | "product_name">;
+type Recipe = Pick<Database["public"]["Tables"]["recipes"]["Row"], "id" | "product_id" | "recipe_no" | "status" | "deleted_at" | "yield_qty" | "yield_unit" | "approval_status">;
+type RecipeLine = Pick<Database["public"]["Tables"]["recipe_lines"]["Row"], "id" | "recipe_id" | "ingredient_item_id" | "base_qty_required" | "base_uom">;
+type Data = { items: Item[]; products: Product[]; recipes: Recipe[]; recipeLines: RecipeLine[] };
 
 // Item master cost is the only normalized base-unit cost in the current schema.
 function lineCost(line: Data["recipeLines"][number], item: Data["items"][number] | undefined) {
@@ -33,8 +38,14 @@ function lineCost(line: Data["recipeLines"][number], item: Data["items"][number]
 export function buildRecipeCosting(data: Data, filters: Filters = {}) {
   const items = new Map(data.items.map((item) => [item.id, item]));
   const products = new Map(data.products.map((product) => [product.id, product]));
+  const linesByRecipe = new Map<string, typeof data.recipeLines>();
+  for (const line of data.recipeLines) {
+    const lines = linesByRecipe.get(line.recipe_id);
+    if (lines) lines.push(line);
+    else linesByRecipe.set(line.recipe_id, [line]);
+  }
   const rows = data.recipes.filter((recipe) => !recipe.deleted_at).map((recipe) => {
-    const lines = data.recipeLines.filter((line) => line.recipe_id === recipe.id);
+    const lines = linesByRecipe.get(recipe.id) ?? [];
     const lineStates = lines.map((line) => {
       const item = items.get(line.ingredient_item_id);
       const uomMismatch = Boolean(item && line.base_uom !== item.base_unit);
@@ -82,10 +93,10 @@ export async function getRecipeCosting(filters: Filters = {}) {
   if (isMockMode()) return buildRecipeCosting({ items: mockItems, products: mockProducts, recipes: mockRecipes, recipeLines: mockRecipeLines }, filters);
   const supabase = await createClient();
   const [items, products, recipes, recipeLines] = await Promise.all([
-    supabase.from("items").select("*").is("deleted_at", null),
-    supabase.from("products").select("*").is("deleted_at", null),
-    supabase.from("recipes").select("*").is("deleted_at", null),
-    supabase.from("recipe_lines").select("*"),
+    supabase.from("items").select("id,status,cost,base_unit").is("deleted_at", null),
+    supabase.from("products").select("id,product_name").is("deleted_at", null),
+    supabase.from("recipes").select("id,product_id,recipe_no,status,deleted_at,yield_qty,yield_unit,approval_status").is("deleted_at", null),
+    supabase.from("recipe_lines").select("id,recipe_id,ingredient_item_id,base_qty_required,base_uom"),
   ]);
   for (const result of [items, products, recipes, recipeLines]) if (result.error) throw new Error(result.error.message);
   return buildRecipeCosting({

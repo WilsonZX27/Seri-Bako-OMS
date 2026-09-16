@@ -8,7 +8,7 @@ This is repository evidence for v9.2.69. Migrations 298–300 are Production app
 | --- | --- | --- |
 | Strict TypeScript | `npm run typecheck:strict` | Pass |
 | ESLint | `npm run lint` | Pass |
-| Contract suite | 1,282 tests | Pass |
+| Contract suite | 1,284 tests | Pass; the loopback lifecycle contract was rerun outside the restricted socket sandbox |
 | Production build | Next.js 15.5.21, 102 routes, 102 kB shared first load | Pass with isolated test environment |
 | Stock Count integrity | 148 focused inventory/Stock Count contracts | Pass |
 | Responsive browser UAT | Production: 18 critical workspaces at 430×932; create flow at 390×844; populated Item, Stock Count and Purchase Request details at 820×1180; core workspace at 1440×900 | Pass for the recorded Production matrix; the exhaustive local fixture matrix remains unavailable because local Supabase is not running |
@@ -31,6 +31,7 @@ This is repository evidence for v9.2.69. Migrations 298–300 are Production app
 12. **Items fallback stock truth.** The non-RPC Items workspace fallback now aggregates every visible branch balance per item instead of retaining whichever branch row happened to be last.
 13. **Production deployment evidence.** Vercel Production deployment `5g5SetJPo2CXjPQREndgfSK8kMkt` reached Ready from commit `40ffb110`. Authenticated checks on the custom domain passed for the bounded Purchase Request list, the dashboard performance threshold, desktop operational structure, a 390px create flow, three populated 820px detail surfaces and 18 critical 430px workspaces. The mobile sweep recorded no console/page errors and no horizontal overflow.
 14. **Dashboard smoke contract.** The performance test now follows the current accessible dashboard contract: a visible level-one user heading plus the Purchasing role. It no longer waits for the removed `Local purchasing` heading.
+15. **Costing report scaling.** Recipe Costing and Costing Readiness now index recipe lines once instead of rescanning the full line collection for every recipe. Recipe Costing, Costing Readiness and Product Margin also request explicit calculation projections rather than complete Item, Product, Supplier, Packaging, Recipe and Recipe Line rows. The in-process computation is linear in recipes plus lines, and database payloads exclude unrelated master-data fields.
 
 ## Architecture judgement
 

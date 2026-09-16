@@ -2,6 +2,7 @@ import { isMockMode, mockItems, mockProducts, mockRecipeLines, mockRecipes, mock
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission } from "@/server/auth/permissions";
 import { requireReadRows } from "@/server/queries/common";
+import type { Database } from "@/types/database";
 
 export type CostingIssue = {
   id: string;
@@ -21,14 +22,13 @@ export type CostingModuleSummary = {
   warning: number;
   info: number;
 };
-type Data = {
-  items: typeof mockItems;
-  suppliers: typeof mockSuppliers;
-  supplierItems: typeof mockSupplierItems;
-  products: typeof mockProducts;
-  recipes: typeof mockRecipes;
-  recipeLines: typeof mockRecipeLines;
-};
+type Item = Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "status" | "deleted_at" | "cost" | "base_unit" | "category">;
+type Supplier = Pick<Database["public"]["Tables"]["suppliers"]["Row"], "id" | "status" | "deleted_at">;
+type SupplierItem = Pick<Database["public"]["Tables"]["supplier_items"]["Row"], "id" | "supplier_id" | "item_id" | "supplier_item_code" | "supplier_item_name" | "purchase_uom" | "conversion_to_base_uom" | "unit_cost" | "status" | "deleted_at">;
+type Product = Pick<Database["public"]["Tables"]["products"]["Row"], "id" | "product_code" | "product_name" | "status" | "deleted_at">;
+type Recipe = Pick<Database["public"]["Tables"]["recipes"]["Row"], "id" | "product_id" | "recipe_no" | "yield_qty" | "yield_unit" | "status" | "deleted_at">;
+type RecipeLine = Pick<Database["public"]["Tables"]["recipe_lines"]["Row"], "id" | "recipe_id" | "ingredient_item_id" | "cost_per_unit">;
+type Data = { items: Item[]; suppliers: Supplier[]; supplierItems: SupplierItem[]; products: Product[]; recipes: Recipe[]; recipeLines: RecipeLine[] };
 
 const active = (row: { status: string; deleted_at?: string | null }) => row.status === "active" && !row.deleted_at;
 const record = (code: string, name: string) => `${code} — ${name}`;
@@ -39,6 +39,12 @@ export function buildCostingReadiness(data: Data, filters: Filters = {}) {
   const supplierById = new Map(data.suppliers.map((row) => [row.id, row]));
   const recipesByProduct = new Map<string, typeof data.recipes>();
   for (const recipe of data.recipes) recipesByProduct.set(recipe.product_id, [...(recipesByProduct.get(recipe.product_id) ?? []), recipe]);
+  const linesByRecipe = new Map<string, typeof data.recipeLines>();
+  for (const line of data.recipeLines) {
+    const lines = linesByRecipe.get(line.recipe_id);
+    if (lines) lines.push(line);
+    else linesByRecipe.set(line.recipe_id, [line]);
+  }
 
   for (const item of data.items.filter(active)) {
     const target = record(item.item_code, item.item_name);
@@ -56,7 +62,7 @@ export function buildCostingReadiness(data: Data, filters: Filters = {}) {
   }
 
   for (const recipe of data.recipes.filter(active)) {
-    const lines = data.recipeLines.filter((line) => line.recipe_id === recipe.id);
+    const lines = linesByRecipe.get(recipe.id) ?? [];
     const target = recipe.recipe_no;
     if (!lines.length) issues.push({ id: `recipe-lines-${recipe.id}`, severity: "critical", module: "recipe", record: target, reason: "Active recipe has no ingredient lines.", action: "Add recipe lines.", href: `/recipes/${recipe.id}` });
     if (Number(recipe.yield_qty) <= 0 || !recipe.yield_unit) issues.push({ id: `recipe-yield-${recipe.id}`, severity: "critical", module: "recipe", record: target, reason: "Output quantity or UOM is missing.", action: "Set a valid recipe output quantity and UOM.", href: `/recipes/${recipe.id}` });
@@ -95,12 +101,12 @@ export async function getCostingReadiness(filters: Filters = {}) {
 
   const supabase = await createClient();
   const [items, suppliers, supplierItems, products, recipes, recipeLines] = await Promise.all([
-    supabase.from("items").select("*").is("deleted_at", null),
-    supabase.from("suppliers").select("*").is("deleted_at", null),
-    supabase.from("supplier_items").select("*").is("deleted_at", null),
-    supabase.from("products").select("*"),
-    supabase.from("recipes").select("*").is("deleted_at", null),
-    supabase.from("recipe_lines").select("*"),
+    supabase.from("items").select("id,item_code,item_name,status,deleted_at,cost,base_unit,category").is("deleted_at", null),
+    supabase.from("suppliers").select("id,status,deleted_at").is("deleted_at", null),
+    supabase.from("supplier_items").select("id,supplier_id,item_id,supplier_item_code,supplier_item_name,purchase_uom,conversion_to_base_uom,unit_cost,status,deleted_at").is("deleted_at", null),
+    supabase.from("products").select("id,product_code,product_name,status,deleted_at"),
+    supabase.from("recipes").select("id,product_id,recipe_no,yield_qty,yield_unit,status,deleted_at").is("deleted_at", null),
+    supabase.from("recipe_lines").select("id,recipe_id,ingredient_item_id,cost_per_unit"),
   ]);
   for (const result of [items, suppliers, supplierItems, products, recipes, recipeLines]) if (result.error) throw new Error(result.error.message);
   return buildCostingReadiness({

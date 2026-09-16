@@ -131,7 +131,7 @@ function LineGrid({ seedLines, mode }: { seedLines: SeedLine[]; mode: "transfer"
     }
   }
   return (
-    <section data-stock-operation-lines className="erp-surface overflow-hidden md:rounded-[2px]">
+    <section data-stock-operation-lines className="erp-surface overflow-hidden md:rounded-[var(--sb-control-radius)]">
       <div className="border-b bg-secondary/40 p-3">
         <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-semibold">Items</p><p className="text-xs text-muted-foreground">Select an item to enter its quantity.</p></div><span className="text-xs tabular-nums text-muted-foreground">{selectedItems.size} selected · {visibleCount} shown</span></div>
         <label className="relative mt-2 block"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search item code or name" aria-label="Search item code or name" className="pl-9" /></label>

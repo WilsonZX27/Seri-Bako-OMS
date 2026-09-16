@@ -19,7 +19,7 @@ import { detailOrNotFound } from "@/server/queries/detail";
 
 function imageFallback(label: string) {
   return (
-    <div className="flex h-10 w-10 items-center justify-center rounded-[2px] bg-secondary text-xs font-semibold text-muted-foreground">
+    <div className="flex h-10 w-10 items-center justify-center rounded-[var(--sb-control-radius)] bg-secondary text-xs font-semibold text-muted-foreground">
       {label.slice(0, 2).toUpperCase()}
     </div>
   );
@@ -52,7 +52,7 @@ export default async function RecipeDetailPage({
               {permissions["recipes.approve"] && recipe.status === "pending_approval" ? (
                 <>
                   <form action={approveRecipe.bind(null, recipe.id)}><SubmitButton type="submit" className="w-full" pendingLabel="Approving..." data-mobile-primary-action>Approve</SubmitButton></form>
-                  <DestructiveActionDialog action={rejectRecipe.bind(null, recipe.id)} label="Reject Recipe" title="Reject this recipe?" description="The recipe will return to its owner for correction and cannot progress until resubmitted." pendingLabel="Rejecting..."><input name="remarks" className="h-9 w-full rounded-[2px] border bg-background px-3 text-sm" placeholder="Rejection remarks required" required /></DestructiveActionDialog>
+                  <DestructiveActionDialog action={rejectRecipe.bind(null, recipe.id)} label="Reject Recipe" title="Reject this recipe?" description="The recipe will return to its owner for correction and cannot progress until resubmitted." pendingLabel="Rejecting..."><input name="remarks" className="h-9 w-full rounded-[var(--sb-control-radius)] border bg-background px-3 text-sm" placeholder="Rejection remarks required" required /></DestructiveActionDialog>
                 </>
               ) : null}
               {permissions["recipes.approve"] && recipe.status === "approved" ? <form action={activateRecipe.bind(null, recipe.id)}><SubmitButton type="submit" className="w-full" pendingLabel="Activating..." data-mobile-primary-action>Activate</SubmitButton></form> : null}
@@ -78,7 +78,7 @@ export default async function RecipeDetailPage({
             </CardContent>
           </Card>
         ) : null}
-        <section aria-labelledby="recipe-summary" className="overflow-hidden rounded-[2px] border bg-card">
+        <section aria-labelledby="recipe-summary" className="overflow-hidden rounded-[var(--sb-panel-radius)] border bg-card">
           <div className="border-b px-4 py-3"><h2 id="recipe-summary" className="text-sm font-semibold">Recipe Summary</h2></div>
           <dl className="grid divide-y sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-5">
             <div className="min-w-0 px-4 py-3"><dt className="text-xs text-muted-foreground">Version</dt><dd className="mt-1 font-mono text-sm font-semibold">v{recipe.version}</dd></div>
@@ -122,7 +122,7 @@ export default async function RecipeDetailPage({
         <Card>
           <CardHeader><CardTitle>Ingredient Lines</CardTitle></CardHeader>
           <CardContent>
-            <div className="rounded-[2px] border">
+            <div className="rounded-[var(--sb-panel-radius)] border">
               <Table mobileHidden aria-label="Recipe ingredient availability">
                 <TableHeader>
                     <TableRow>
@@ -140,7 +140,7 @@ export default async function RecipeDetailPage({
                     <TableRow key={line.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          {line.ingredient_image_url ? <Image src={line.ingredient_image_url} alt="" width={40} height={40} className="h-10 w-10 rounded-[2px] object-cover" /> : imageFallback(line.ingredient_item_code)}
+                          {line.ingredient_image_url ? <Image src={line.ingredient_image_url} alt="" width={40} height={40} className="h-10 w-10 rounded-[var(--sb-control-radius)] object-cover" /> : imageFallback(line.ingredient_item_code)}
                           <div>
                             <p className="font-medium">{line.ingredient_name}</p>
                             <p className="text-xs text-muted-foreground">{line.ingredient_item_code}</p>
@@ -160,7 +160,7 @@ export default async function RecipeDetailPage({
                 </TableBody>
               </Table>
               <div className="divide-y xl:hidden" role="list" aria-label="Recipe ingredient availability" data-recipe-ingredient-detail-list>
-                {recipe.lines.map((line) => { const action = line.stock_status === "available" ? "Use stock" : line.stock_status === "unknown" ? "Check stock" : "Create PR"; return <article key={line.id} className="space-y-3 p-3" role="listitem"><div className="flex items-start gap-3">{line.ingredient_image_url ? <Image src={line.ingredient_image_url} alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-[2px] object-cover" /> : imageFallback(line.ingredient_item_code)}<div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="font-medium leading-snug">{line.ingredient_name}</h3><p className="text-xs text-muted-foreground">{line.ingredient_item_code}</p></div><strong className="shrink-0">{formatNumber(line.base_qty_required)} {line.base_uom}</strong></div></div></div><dl className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-md bg-secondary/35 p-3 text-xs"><div><dt className="text-muted-foreground">Current stock</dt><dd className="mt-1 font-medium">{line.current_stock == null ? "Unknown" : `${formatNumber(line.current_stock)} ${line.base_uom}`}</dd></div><div><dt className="text-muted-foreground">Shortage</dt><dd className="mt-1 font-medium">{line.shortage_qty == null ? "Unavailable" : `${formatNumber(line.shortage_qty)} ${line.base_uom}`}</dd></div><div><dt className="text-muted-foreground">Suggested action</dt><dd className="mt-1 font-medium">{action}</dd></div><div><dt className="text-muted-foreground">Line cost</dt><dd className="mt-1 font-medium">{formatCurrency(line.calculated_line_cost)}</dd></div></dl><Badge variant={line.stock_status === "available" ? "success" : line.stock_status === "short" ? "danger" : "secondary"}>{line.stock_status === "need_purchase" ? "Need Purchase" : line.stock_status}</Badge></article>; })}
+                {recipe.lines.map((line) => { const action = line.stock_status === "available" ? "Use stock" : line.stock_status === "unknown" ? "Check stock" : "Create PR"; return <article key={line.id} className="space-y-3 p-3" role="listitem"><div className="flex items-start gap-3">{line.ingredient_image_url ? <Image src={line.ingredient_image_url} alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-[var(--sb-control-radius)] object-cover" /> : imageFallback(line.ingredient_item_code)}<div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="font-medium leading-snug">{line.ingredient_name}</h3><p className="text-xs text-muted-foreground">{line.ingredient_item_code}</p></div><strong className="shrink-0">{formatNumber(line.base_qty_required)} {line.base_uom}</strong></div></div></div><dl className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-md bg-secondary/35 p-3 text-xs"><div><dt className="text-muted-foreground">Current stock</dt><dd className="mt-1 font-medium">{line.current_stock == null ? "Unknown" : `${formatNumber(line.current_stock)} ${line.base_uom}`}</dd></div><div><dt className="text-muted-foreground">Shortage</dt><dd className="mt-1 font-medium">{line.shortage_qty == null ? "Unavailable" : `${formatNumber(line.shortage_qty)} ${line.base_uom}`}</dd></div><div><dt className="text-muted-foreground">Suggested action</dt><dd className="mt-1 font-medium">{action}</dd></div><div><dt className="text-muted-foreground">Line cost</dt><dd className="mt-1 font-medium">{formatCurrency(line.calculated_line_cost)}</dd></div></dl><Badge variant={line.stock_status === "available" ? "success" : line.stock_status === "short" ? "danger" : "secondary"}>{line.stock_status === "need_purchase" ? "Need Purchase" : line.stock_status}</Badge></article>; })}
               </div>
             </div>
           </CardContent>

@@ -444,7 +444,7 @@ function Fact({
   );
 }
 const controlClass =
-  "mt-1 h-[var(--sb-control-height)] w-full rounded-[2px] border bg-white px-3 text-sm";
+  "mt-1 h-[var(--sb-control-height)] w-full rounded-[var(--sb-panel-radius)] border bg-white px-3 text-sm";
 function FormField({
   label,
   children,

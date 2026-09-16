@@ -10,7 +10,7 @@ const source = fs.readFileSync(
 
 test("inventory uses a phone-only operational hub and preserves the desktop workspace", () => {
   assert.match(source, /<div className="md:hidden">\s*<OperationalHub/);
-  assert.match(source, /className="hidden overflow-hidden rounded-\[2px\] border bg-card md:block"/);
+  assert.match(source, /className="hidden overflow-hidden rounded-\[var\(--sb-panel-radius\)\] border bg-card md:block"/);
   assert.match(source, /<WorkspaceGrid[\s\S]*?rightRail=/);
 });
 

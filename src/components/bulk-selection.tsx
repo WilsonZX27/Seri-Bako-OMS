@@ -83,7 +83,7 @@ export function BulkSelectionProvider(props: {
     <BulkSelectionContext.Provider value={value}>
       <div className="space-y-3">
         {selected.size > 0 ? (
-          <div className="flex flex-col gap-2 rounded-[2px] border bg-white px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-2 rounded-[var(--sb-panel-radius)] border bg-white px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <p className="text-xs font-semibold">Selected {selected.size} item{selected.size === 1 ? "" : "s"}</p>
               <p className="text-[11px] leading-4 text-muted-foreground">{actionHint}</p>

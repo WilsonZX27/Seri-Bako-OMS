@@ -31,7 +31,7 @@ export default async function StaffsPage({ searchParams }: { searchParams: Promi
             </CardContent>
           </Card>
         ) : null}
-        <div className="overflow-hidden rounded-[2px] border bg-card">
+        <div className="overflow-hidden rounded-[var(--sb-panel-radius)] border bg-card">
         <MasterDataFilters
           search={filters.search}
           status={filters.status}

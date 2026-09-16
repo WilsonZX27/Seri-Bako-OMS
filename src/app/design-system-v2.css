@@ -417,13 +417,6 @@ html[data-design-layer="v2"] :is(a, button, summary, [role="button"]) {
   background: var(--sb-green-100) !important;
 }
 
-/* Legacy utility classes resolve to the shared control token. They are used
-   by both cards and controls in older routes, so they must not impersonate
-   the larger panel radius. New panels should use the panel token explicitly. */
-[class~="rounded-[2px]"] {
-  border-radius: var(--sb-radius-control) !important;
-}
-
 [data-dashboard-panel] {
   position: relative;
   border: 1px solid var(--sb-border-soft);
@@ -1389,21 +1382,6 @@ html[data-design-layer="v2"] form:has([data-mobile-document-action]) {
   }
 }
 
-/* Legacy 2px utility classes are still emitted by a few shared surfaces. Keep
-   the class names for compatibility, but make their rendered geometry obey
-   the canonical control/panel radius contract. */
-html[data-design-layer="v2"] :where([class~="rounded-[2px]"]) {
-  border-radius: var(--sb-control-radius) !important;
-}
-
-html[data-design-layer="v2"] :where([class~="rounded-[2px]"][class~="border"]) {
-  border-radius: var(--sb-panel-radius) !important;
-}
-
-html[data-design-layer="v2"] :where(.sb-popover-surface[class~="rounded-[2px]"]) {
-  border-radius: var(--sb-panel-radius) !important;
-}
-
 html[data-design-layer="v2"] .sb-filter-more-panel--anchored {
   position: fixed !important;
   right: auto !important;
@@ -1539,18 +1517,6 @@ html[data-design-layer="v2"] [data-mobile-document-action] :where(button, a) {
     width: auto !important;
     max-height: min(70dvh, 30rem);
   }
-}
-
-html[data-design-layer="v2"] :where([class~="rounded-[2px]"][class~="bg-secondary"]) {
-  border-radius: var(--sb-panel-radius) !important;
-}
-
-html[data-design-layer="v2"] :where([class~="rounded-[2px]"][class~="bg-primary\/10"]) {
-  border-radius: var(--sb-panel-radius) !important;
-}
-
-html[data-design-layer="v2"] :where(.erp-surface[class~="rounded-[2px]"], .sb-work-surface[class~="rounded-[2px]"], .border.bg-card[class~="rounded-[2px]"], [role="alert"][class~="rounded-[2px]"], [role="status"][class~="rounded-[2px]"]) {
-  border-radius: var(--sb-panel-radius) !important;
 }
 
 /* Final mobile filter contract: ordinary controls share a compact two-column

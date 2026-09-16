@@ -37,3 +37,19 @@ test("responsive design layer consumes global geometry tokens instead of redefin
     assert.doesNotMatch(designLayer, new RegExp(`${token}:`), `${token} must not be redefined by design-system-v2.css`);
   }
 });
+
+test("source declares panel and control radius intent instead of relying on the legacy 2px override", () => {
+  const sourceRoot = path.join(root, "src");
+  const legacyOwners = [];
+  const visit = (directory) => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const candidate = path.join(directory, entry.name);
+      if (entry.isDirectory()) visit(candidate);
+      else if (/\.(?:css|ts|tsx)$/.test(entry.name) && fs.readFileSync(candidate, "utf8").includes("rounded-[2px]")) {
+        legacyOwners.push(path.relative(root, candidate));
+      }
+    }
+  };
+  visit(sourceRoot);
+  assert.deepEqual(legacyOwners, [], `Legacy radius utility still owned by:\n${legacyOwners.join("\n")}`);
+});

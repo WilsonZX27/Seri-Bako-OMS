@@ -81,7 +81,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
         ) : null}
       </Button>
       {open ? (
-        <div ref={menuRef} data-topbar-activity-menu role="dialog" aria-label="Workspace Updates" className="sb-popover-surface fixed right-4 top-12 z-40 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-[2px]">
+        <div ref={menuRef} data-topbar-activity-menu role="dialog" aria-label="Workspace Updates" className="sb-popover-surface fixed right-4 top-12 z-40 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-[var(--sb-panel-radius)]">
           <div className="border-b p-3">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -114,7 +114,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
                 {notificationCount ? <span className="rounded-full bg-[var(--sb-warning-bg)] px-2 py-0.5 text-xs font-medium text-[var(--sb-warning)]">{notificationCount}</span> : null}
               </div>
               {notifications.map((notification) => (
-                <Link key={notification.id} href={notification.action_url ?? "/activity"} onClick={() => setOpen(false)} className="flex gap-2 rounded-[2px] p-2 text-xs hover:bg-secondary">
+                <Link key={notification.id} href={notification.action_url ?? "/activity"} onClick={() => setOpen(false)} className="flex gap-2 rounded-[var(--sb-control-radius)] p-2 text-xs hover:bg-secondary">
                   <ShieldAlert className="mt-0.5 h-4 w-4 text-primary" />
                   <span><span className="block">{notification.title}</span>{notification.message ? <span className="block text-xs text-muted-foreground">{notification.message}</span> : null}</span>
                 </Link>

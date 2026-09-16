@@ -181,7 +181,7 @@ test("stock count responsive audit keeps one status and medium-width stacking", 
 test("production ingredient snapshots replace the phone table with a scannable list", () => {
   const source = read("src/components/production-job-form.tsx");
 
-  assert.match(source, /sb-table-region hidden rounded-\[2px\] border md:block/);
+  assert.match(source, /sb-table-region hidden rounded-\[var\(--sb-panel-radius\)\] border md:block/);
   assert.match(source, /data-production-ingredient-list/);
   assert.match(source, /grid grid-cols-2 gap-x-4 gap-y-2 text-xs/);
   assert.match(source, /CardContent className="grid grid-cols-2 gap-4 p-4 md:grid-cols-4/);
@@ -229,7 +229,7 @@ test("recipe BOM editing replaces the phone table with input-first continuous in
   const source = read("src/components/recipe-form.tsx");
 
   assert.match(source, /data-recipe-setup/);
-  assert.match(source, /sb-table-region hidden overflow-x-auto rounded-\[2px\] border md:block/);
+  assert.match(source, /sb-table-region hidden overflow-x-auto rounded-\[var\(--sb-panel-radius\)\] border md:block/);
   assert.match(source, /data-recipe-ingredient-list/);
   assert.match(source, /placeholder="Ingredient code or name"/);
   assert.match(source, /label="Qty required"/);

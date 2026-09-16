@@ -846,10 +846,22 @@ export async function getStockBalanceDetails(filters: Filters = {}): Promise<Pag
   if (suppliersError) warnOptionalInventoryQuery("Stock Balance supplier names", suppliersError);
   const relationshipById = new Map((supplierItems ?? []).map((relationship) => [relationship.id, relationship]));
   const supplierNameById = new Map((suppliers ?? []).map((supplier) => [supplier.id, supplier.name]));
+  const branchMappingsByPair = new Map<string, Array<{
+    branch_id: string;
+    item_id: string;
+    supplier_item_id: string;
+    is_preferred: boolean;
+  }>>();
+  for (const mapping of branchMappings ?? []) {
+    const key = `${mapping.branch_id}:${mapping.item_id}`;
+    const pairMappings = branchMappingsByPair.get(key) ?? [];
+    pairMappings.push(mapping);
+    branchMappingsByPair.set(key, pairMappings);
+  }
   const rows = balanceRows.map((row) => ({
     ...(() => {
       if (branchMappingsError || suppliersError) return { ...row, supplier_id: null, supplier_name: null };
-      const pairMappings = (branchMappings ?? []).filter((mapping) => mapping.branch_id === row.branch_id && mapping.item_id === row.item_id);
+      const pairMappings = branchMappingsByPair.get(`${row.branch_id}:${row.item_id}`) ?? [];
       if (!pairMappings.length) {
         const itemDefault = itemDefaultById.get(row.item_id);
         const supplierName = itemDefault?.supplier_id ? supplierNameById.get(itemDefault.supplier_id) : null;

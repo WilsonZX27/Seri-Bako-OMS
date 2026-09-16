@@ -56,6 +56,9 @@ test("stock balance basket uses branch-authoritative sourcing and an editable pu
   const query = fs.readFileSync(path.join(root, "src", "server", "queries", "inventory.ts"), "utf8");
   assert.match(query, /branch_supplier_items/);
   assert.match(query, /pairMappings\.find\(\(mapping\) => mapping\.is_preferred\)/);
+  assert.match(query, /const branchMappingsByPair = new Map/);
+  assert.match(query, /branchMappingsByPair\.get\(`\$\{row\.branch_id\}:\$\{row\.item_id\}`\)/);
+  assert.doesNotMatch(query, /\(branchMappings \?\? \[\]\)\.filter/);
   assert.match(query, /itemDefaultById\.get\(row\.item_id\)/);
   assert.match(query, /supplier_id: itemDefault\.supplier_id/);
   assert.match(query, /if \(branchMappingsError \|\| suppliersError\)/);

@@ -97,3 +97,13 @@ test("source declares panel and control radius intent instead of relying on the 
   visit(sourceRoot);
   assert.deepEqual(legacyOwners, [], `Legacy radius utility still owned by:\n${legacyOwners.join("\n")}`);
 });
+
+test("retired mobile list filter compatibility selector cannot return", () => {
+  const sourceRoot = path.join(root, "src");
+  const sourceFiles = fs.readdirSync(sourceRoot, { recursive: true })
+    .filter((entry) => /\.(?:css|tsx?|jsx?)$/.test(String(entry)))
+    .map((entry) => path.join(sourceRoot, String(entry)));
+  for (const file of sourceFiles) {
+    assert.doesNotMatch(fs.readFileSync(file, "utf8"), /sb-mobile-list-filter/, `${file} revives a retired filter layout owner`);
+  }
+});

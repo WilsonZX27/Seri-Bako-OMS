@@ -8,7 +8,7 @@ This is repository evidence for v9.2.69. Migrations 298–302 are Production app
 | --- | --- | --- |
 | Strict TypeScript | `npm run typecheck:strict` | Pass |
 | ESLint | `npm run lint` | Pass |
-| Contract suite | 1,297 tests | Pass; the loopback lifecycle contract was run outside the restricted socket sandbox |
+| Contract suite | 1,299 tests | Pass; the loopback lifecycle contract was run outside the restricted socket sandbox |
 | Production build | Next.js 15.5.21, 102 routes, 102 kB shared first load | Pass with isolated test environment |
 | Stock Count integrity | 148 focused inventory/Stock Count contracts | Pass |
 | Responsive browser UAT | Production: 18 critical workspaces at 430×932; create flow at 390×844; populated Item, Stock Count and Purchase Request details at 820×1180; 13 shared list surfaces at 430×932, 820×1180, 1180×820 and 1440×900; 13 compatibility-migrated routes at phone width | Pass for the recorded Production matrix; the exhaustive local role fixture matrix remains outstanding |
@@ -40,6 +40,7 @@ This is repository evidence for v9.2.69. Migrations 298–302 are Production app
 21. **Explicit radius ownership.** All 58 legacy `rounded-[2px]` utilities were replaced with the panel or control radius token at their source sites. This removed 34 compatibility-CSS lines that previously guessed radius ownership from utility combinations, and a recursive source contract plus rendered phone assertion prevents that legacy utility from returning. Commit `a3995824` reached Ready in Production deployment `JA67tTahNtP2Wk5TuQWRo9mi13LA`; an authenticated custom-domain sweep passed across 13 migrated routes with no legacy radius utilities, horizontal overflow or conflicting action-color systems.
 22. **Stock Balance enrichment latency.** Item image/default-supplier chunks and branch supplier mappings now share one parallel request wave. A 500-item page therefore uses one enrichment wave instead of as many as six sequential waves while retaining the existing optional-read warnings and fail-closed supplier presentation. Commit `cbc585e7` reached Ready in Production deployment `ChgB6zkm83X3m8A5FT3Rr2N6aG2o`; the authenticated custom-domain check rendered 335 records in 3,377 ms on phone, 1,743 ms on tablet and 1,662 ms on desktop, with no page errors or horizontal overflow.
 23. **Cross-outlet projection ownership.** Destination-roster shifts now carry the source branch and source schedule-week identity. Removing, repatriating or moving a staff-day retires only that source roster's exact projection; an immutable destination week fails closed. Destination edits preserve provenance, and weekly copy plus Manager correction use the structured destination RPC so copied or corrected away shifts remain canonical at the destination.
+24. **Dead responsive filter authority.** The retired `.sb-mobile-list-filter` selector had no TS/TSX owner but still carried two phone layout implementations and one override. Removing the unreachable rules eliminated 25 forced declarations from the compatibility layer without changing rendered components; a recursive source contract prevents the selector from returning.
 
 ## Architecture judgement
 

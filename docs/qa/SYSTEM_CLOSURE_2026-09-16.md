@@ -8,7 +8,7 @@ This is repository evidence for v9.2.69. Migrations 298–300 are Production app
 | --- | --- | --- |
 | Strict TypeScript | `npm run typecheck:strict` | Pass |
 | ESLint | `npm run lint` | Pass |
-| Contract suite | 1,284 tests | Pass; the loopback lifecycle contract was rerun outside the restricted socket sandbox |
+| Contract suite | 1,288 tests | Pass; the loopback lifecycle contract was run outside the restricted socket sandbox |
 | Production build | Next.js 15.5.21, 102 routes, 102 kB shared first load | Pass with isolated test environment |
 | Stock Count integrity | 148 focused inventory/Stock Count contracts | Pass |
 | Responsive browser UAT | Production: 18 critical workspaces at 430×932; create flow at 390×844; populated Item, Stock Count and Purchase Request details at 820×1180; core workspace at 1440×900 | Pass for the recorded Production matrix; the exhaustive local fixture matrix remains unavailable because local Supabase is not running |
@@ -33,6 +33,7 @@ This is repository evidence for v9.2.69. Migrations 298–300 are Production app
 14. **Dashboard smoke contract.** The performance test now follows the current accessible dashboard contract: a visible level-one user heading plus the Purchasing role. It no longer waits for the removed `Local purchasing` heading.
 15. **Costing report scaling.** Recipe Costing and Costing Readiness now index recipe lines once instead of rescanning the full line collection for every recipe. Recipe Costing, Costing Readiness and Product Margin also request explicit calculation projections rather than complete Item, Product, Supplier, Packaging, Recipe and Recipe Line rows. The in-process computation is linear in recipes plus lines, and database payloads exclude unrelated master-data fields.
 16. **Filter-surface cascade ownership.** Legacy filter CSS now retains layout only. The v2 design layer exclusively owns list-filter and More-panel borders, background, radius and elevation, and no longer needs `!important` for the shared panel/control radii. The compatibility layer is two forced declarations smaller and a contract prevents visual ownership from drifting back into `globals.css`.
+17. **Recipe lifecycle atomicity.** Repository migration 301 moves submit, approve, activate, reject and archive into one tenant-scoped transaction. Recipe and Document states, revision history, activity and superseded active versions now commit together; activating a version locks competing active versions and retains the existing partial unique index as the final concurrency guard. Production remains verified through migration 300 until migration 301 is applied and read back.
 
 ## Architecture judgement
 
@@ -44,7 +45,7 @@ The visual system is more coherent, but `design-system-v2.css` still contains a 
 
 ## Remaining release work
 
-1. Start an isolated Supabase/Docker target, apply migrations through 300, seed the role fixture and run the exhaustive responsive and role matrix without exercising mutation flows against Production.
+1. Apply and read back repository migration 301, then start an isolated Supabase/Docker target through 301, seed the role fixture and run the exhaustive responsive and role matrix without exercising mutation flows against Production.
 2. Continue reducing the compatibility CSS only alongside phone, tablet and desktop screenshots and geometry assertions.
 3. Add server-side observability for route and database latency percentiles; browser smoke timing alone cannot prove sustained tail latency under concurrent load.
 

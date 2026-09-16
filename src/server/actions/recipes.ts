@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { isMockMode, mockItems, mockProducts, mockProfile } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
+import { looseSupabase } from "@/lib/supabase/loose";
 import { recipeSchema } from "@/lib/validations/recipe";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
@@ -12,7 +13,6 @@ import { getCurrentProfile } from "@/server/queries/common";
 import { getRecipe } from "@/server/queries/recipes";
 import { parseBoundedJson } from "@/server/validation/json-input";
 import type { RecipeInput } from "@/lib/validations/recipe";
-import type { ApprovalStatus, DocumentStatus, RecipeStatus } from "@/types/database";
 import { z } from "zod";
 
 function cleanText(value: FormDataEntryValue | null) {
@@ -247,74 +247,45 @@ export async function updateRecipe(id: string, formData: FormData) {
   redirect(`/recipes/${recipeId}`);
 }
 
-async function updateRecipeStatus(id: string, status: RecipeStatus, approvalStatus: ApprovalStatus, documentStatus: DocumentStatus, step: string, message: string) {
-  const profile = await identity();
+async function transitionRecipe(id: string, action: "submit" | "approve" | "activate" | "reject" | "archive", remarks?: string) {
   if (isMockMode()) return;
   const recipeId = parseRecipeId(id);
-  const supabase = await createClient();
-  const { data: recipe, error: recipeError } = await supabase.from("recipes").select("document_id,product_id").eq("id", recipeId).single();
-  if (recipeError) throw new Error(recipeError.message);
-  const now = new Date().toISOString();
-
-  if (status === "active") {
-    await supabase.from("recipes").update({ status: "archived", archived_at: now, updated_by: profile?.id ?? null }).eq("product_id", recipe.product_id).eq("status", "active").neq("id", recipeId);
-  }
-
-  const stamp =
-    status === "pending_approval" ? { submitted_at: now } :
-    status === "approved" ? { approved_at: now } :
-    status === "active" ? { activated_at: now, approved_at: now } :
-    status === "rejected" ? { rejected_at: now } :
-    status === "archived" ? { archived_at: now } :
-    {};
-
-  const recipeUpdate = await supabase
-    .from("recipes")
-    .update({ status, approval_status: approvalStatus, updated_by: profile?.id ?? null, ...stamp })
-    .eq("id", recipeId)
-    .select("id,status,approval_status")
-    .single();
-  if (recipeUpdate.error) throw new Error(recipeUpdate.error.message);
-  if (recipe.document_id) {
-    const documentUpdate = await supabase
-      .from("documents")
-      .update({ status: documentStatus, approval_status: approvalStatus, current_step: step, updated_by: profile?.id ?? null })
-      .eq("id", recipe.document_id)
-      .select("id,status,approval_status")
-      .single();
-    if (documentUpdate.error) throw new Error(documentUpdate.error.message);
-  }
-  if (recipe.document_id) await writeActivityLog({ entityType: "document", entityId: recipe.document_id, activityType: status, message });
+  const { error } = await looseSupabase(await createClient()).rpc("transition_recipe_atomic", {
+    p_recipe_id: recipeId,
+    p_action: action,
+    p_remarks: remarks ?? null,
+  });
+  if (error) throw new Error(error.message);
   revalidatePath("/recipes");
   revalidatePath(`/recipes/${recipeId}`);
 }
 
 export async function submitRecipe(id: string) {
   await requirePermission("recipes.submit");
-  await updateRecipeStatus(id, "pending_approval", "pending", "pending_approval", "Manager approval", "Recipe submitted for approval");
+  await transitionRecipe(id, "submit");
 }
 
 export async function approveRecipe(id: string) {
   await requirePermission("recipes.approve");
-  await updateRecipeStatus(id, "approved", "approved", "approved", "Approved", "Recipe approved");
+  await transitionRecipe(id, "approve");
 }
 
 export async function activateRecipe(id: string) {
   await requirePermission("recipes.approve");
-  await updateRecipeStatus(id, "active", "approved", "approved", "Active recipe", "Recipe activated");
+  await transitionRecipe(id, "activate");
 }
 
 export async function rejectRecipe(id: string, formData: FormData) {
   await requirePermission("recipes.approve");
   const remarks = z.string().trim().min(1, "Rejection remarks are required.").max(1_000, "Rejection remarks must be 1,000 characters or fewer.").parse(cleanText(formData.get("remarks")) ?? "");
   if (!remarks) throw new Error("Rejection remarks are required.");
-  await updateRecipeStatus(id, "rejected", "rejected", "rejected", "Rejected", `Recipe rejected: ${remarks}`);
+  await transitionRecipe(id, "reject", remarks);
 }
 
 export async function archiveRecipe(id: string) {
   await requirePermissionOrRedirect("recipes.archive", `/recipes/${id}`);
   try {
-    await updateRecipeStatus(id, "archived", "approved", "closed", "Archived", "Recipe archived");
+    await transitionRecipe(id, "archive");
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/recipes/${id}`, "error", formatActionError(error, "Could not archive this recipe."));

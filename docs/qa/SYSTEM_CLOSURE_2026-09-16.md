@@ -1,6 +1,6 @@
 # System closure review — 2026-09-16
 
-This is repository evidence for v9.2.69. Migrations 298–301 are Production applied and read-back verified. Application commit `e0e56504` was deployed through Vercel Production deployment `H8mWwdnxGNzvbRcN4XS1thNhb6Ap` and verified through `https://system.seribako.com.my`.
+This is repository evidence for v9.2.69. Migrations 298–301 are Production applied and read-back verified. Application commit `ad0b8082` was deployed through Vercel Production deployment `6RGP4cHi8xjQqVDb4VJyHK7mqb2R` and verified through `https://system.seribako.com.my`.
 
 ## Release gates
 
@@ -13,7 +13,7 @@ This is repository evidence for v9.2.69. Migrations 298–301 are Production app
 | Stock Count integrity | 148 focused inventory/Stock Count contracts | Pass |
 | Responsive browser UAT | Production: 18 critical workspaces at 430×932; create flow at 390×844; populated Item, Stock Count and Purchase Request details at 820×1180; 13 shared list surfaces at 430×932, 820×1180, 1180×820 and 1440×900 | Pass for the recorded Production matrix; the exhaustive local role fixture matrix remains outstanding |
 | Linked schema | Repository and linked Production ledger verified through 301 | Pass; Recipe transition is security-definer with an internal permission guard, authenticated-only; the three summary functions remain security-invoker |
-| Production runtime | Purchasing and Super Admin authenticated checks on the custom domain; bounded PR list; latest dashboard ready in 2,583 ms; responsive list and costing-readiness smoke suites passed 8/8 | Pass |
+| Production runtime | Purchasing and Super Admin authenticated checks on the custom domain; bounded PR list; dashboard ready in 2,583 ms; responsive list and costing-readiness smoke suites passed 8/8; Procurement Variance phone/tablet/desktop ready in 2,933/1,753/1,662 ms | Pass |
 
 ## Findings closed in this review
 
@@ -35,7 +35,7 @@ This is repository evidence for v9.2.69. Migrations 298–301 are Production app
 16. **Filter-surface cascade ownership.** Legacy filter CSS now retains layout only. The v2 design layer exclusively owns list-filter and More-panel borders, background, radius and elevation, and no longer needs `!important` for the shared panel/control radii. The compatibility layer is two forced declarations smaller and a contract prevents visual ownership from drifting back into `globals.css`.
 17. **Recipe lifecycle atomicity.** Migration 301 moves submit, approve, activate, reject and archive into one tenant-scoped transaction. Recipe and Document states, revision history, activity and superseded active versions now commit together; activating a version locks competing active versions and retains the existing partial unique index as the final concurrency guard. Production read-back confirmed the function, authenticated grant, anonymous revoke and internal permission guard.
 18. **Latest Production verification.** Vercel Production deployment `H8mWwdnxGNzvbRcN4XS1thNhb6Ap` reached Ready from commit `e0e56504`. The authenticated custom-domain run passed 6/6 responsive list/filter tests across phone, tablet portrait, tablet landscape and desktop, plus 2/2 dashboard-performance and Costing Readiness tests. The dashboard was ready in 2,583 ms.
-19. **Procurement Variance scaling.** The report now requests explicit calculation projections from all nine source tables. It indexes receiving lines by PO line, invoice lines by receiving/PO identity and supplier prices by supplier/item/UOM once, replacing repeated complete-dataset scans inside every order-line comparison. The resulting in-process work is linear in the fetched source rows plus emitted comparisons.
+19. **Procurement Variance scaling.** The report now requests explicit calculation projections from all nine source tables. It indexes receiving lines by PO line, invoice lines by receiving/PO identity and supplier prices by supplier/item/UOM once, replacing repeated complete-dataset scans inside every order-line comparison. The resulting in-process work is linear in the fetched source rows plus emitted comparisons. Production deployment `6RGP4cHi8xjQqVDb4VJyHK7mqb2R` reached Ready from commit `ad0b8082`; authenticated phone, tablet and desktop checks loaded the workspace in 2,933 ms, 1,753 ms and 1,662 ms with no page errors or horizontal overflow.
 
 ## Architecture judgement
 

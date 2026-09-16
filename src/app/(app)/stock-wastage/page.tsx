@@ -18,17 +18,16 @@ import { formatDateOnly } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { wastageReasons } from "@/lib/validations/stock-operations";
 import { hasPermission } from "@/server/auth/permissions";
-import { getStockWastage } from "@/server/queries/stock-operations";
+import { getStockWastage, getStockWastageSummary } from "@/server/queries/stock-operations";
 import { logServerError } from "@/server/observability/logger";
 
 const statuses = ["draft", "submitted", "approved", "posted", "rejected", "cancelled"];
 
 export default async function StockWastagePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [data, canCreate, [allDataResult]] = await Promise.all([getStockWastage(filters), hasPermission("stock_wastage.create"), Promise.allSettled([getStockWastage({ page: "all" })])]);
-  if (allDataResult.status === "rejected") logServerError(allDataResult.reason, { source: "page.stockWastage.summary" });
-  const rows = allDataResult.status === "fulfilled" ? allDataResult.value.rows : null;
-  const count = (...values: string[]) => (rows ?? []).filter((row) => values.includes(row.status)).length;
+  const [data, canCreate, [summaryResult]] = await Promise.all([getStockWastage(filters), hasPermission("stock_wastage.create"), Promise.allSettled([getStockWastageSummary()])]);
+  if (summaryResult.status === "rejected") logServerError(summaryResult.reason, { source: "page.stockWastage.summary" });
+  const summary = summaryResult.status === "fulfilled" ? summaryResult.value : null;
   const filtered = hasActiveFilters(filters);
   const emptyAction = filtered ? { href: "/stock-wastage", label: "Reset filters" } : canCreate ? { href: "/stock-wastage/new", label: "New Wastage" } : undefined;
 
@@ -38,7 +37,7 @@ export default async function StockWastagePage({ searchParams }: { searchParams:
       <ConsoleSection title="Wastage">
         <div className="space-y-3">
           {canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/stock-wastage/new">New Wastage</Link></Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}
-          {rows ? <dl className="grid grid-cols-3 gap-2 border-t border-[var(--sb-border-soft)] pt-3 text-center text-xs"><div><dt className="text-muted-foreground">Total</dt><dd className="mt-0.5 font-semibold">{rows.length}</dd></div><div><dt className="text-muted-foreground">In review</dt><dd className="mt-0.5 font-semibold">{count("submitted", "approved")}</dd></div><div><dt className="text-muted-foreground">Posted</dt><dd className="mt-0.5 font-semibold">{count("posted")}</dd></div></dl> : <div role="status" className="border-t border-[var(--sb-border-soft)] pt-3"><p className="text-xs font-semibold text-[var(--sb-warning)]">Summary unavailable</p><p className="mt-1 text-xs text-muted-foreground">The current queue remains available.</p></div>}
+          {summary ? <dl className="grid grid-cols-3 gap-2 border-t border-[var(--sb-border-soft)] pt-3 text-center text-xs"><div><dt className="text-muted-foreground">Total</dt><dd className="mt-0.5 font-semibold">{summary.total}</dd></div><div><dt className="text-muted-foreground">In review</dt><dd className="mt-0.5 font-semibold">{summary.inReview}</dd></div><div><dt className="text-muted-foreground">Posted</dt><dd className="mt-0.5 font-semibold">{summary.posted}</dd></div></dl> : <div role="status" className="border-t border-[var(--sb-border-soft)] pt-3"><p className="text-xs font-semibold text-[var(--sb-warning)]">Summary unavailable</p><p className="mt-1 text-xs text-muted-foreground">The current queue remains available.</p></div>}
         </div>
       </ConsoleSection>
     }>

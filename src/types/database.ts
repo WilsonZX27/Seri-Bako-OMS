@@ -2462,6 +2462,14 @@ export type Database = {
       };
     };
     Functions: {
+      get_stock_transfer_summary: {
+        Args: Record<string, never>;
+        Returns: Array<{ total: number; draft: number; in_transit: number; completed: number }>;
+      };
+      get_stock_wastage_summary: {
+        Args: Record<string, never>;
+        Returns: Array<{ total: number; in_review: number; posted: number }>;
+      };
       get_purchase_return_summary: {
         Args: Record<string, never>;
         Returns: Array<{ total: number; draft: number; posted: number; cancelled: number; value: number }>;

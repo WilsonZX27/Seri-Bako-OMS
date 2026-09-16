@@ -2,7 +2,7 @@
 
 ## Current repository baseline (v9.2.69)
 
-The repository contains migrations through `298_purchase_return_read_model`. Production deployment and migration evidence remain separate and are recorded in the current QA ledger; this architecture document never infers Production state from the repository alone.
+The repository contains migrations through `299_stock_operation_summary_reads`. Production deployment and migration evidence remain separate and are recorded in the current QA ledger; this architecture document never infers Production state from the repository alone.
 
 The application shell uses dynamic viewport sizing (`dvh`) instead of a fixed
 `100vh` contract. Mobile-safe content reserves space for bottom navigation and

@@ -17,12 +17,15 @@ test("secondary full reads cannot replace paginated queues with false zero summa
   assert.match(purchaseReturnsPage, /page\.purchaseReturns\.summary/);
   assert.match(purchaseReturnsPage, /return queue remains current/);
 
-  for (const [route, query, source, continuity] of [
-    ["stock-transfers", "getStockTransfers", "page.stockTransfers.summary", "transfer queue remains current"],
-    ["stock-wastage", "getStockWastage", "page.stockWastage.summary", "current queue remains available"],
+  for (const [route, listQuery, summaryQuery, rpc, source, continuity] of [
+    ["stock-transfers", "getStockTransfers", "getStockTransferSummary", "get_stock_transfer_summary", "page.stockTransfers.summary", "transfer queue remains current"],
+    ["stock-wastage", "getStockWastage", "getStockWastageSummary", "get_stock_wastage_summary", "page.stockWastage.summary", "current queue remains available"],
   ]) {
     const page = read("src", "app", "(app)", route, "page.tsx");
-    assert.match(page, new RegExp(`Promise\\.allSettled\\(\\[${query}\\(\\{ page: "all" \\}\\)\\]\\)`), route);
+    const query = read("src", "server", "queries", "stock-operations.ts");
+    assert.match(page, new RegExp(`Promise\\.allSettled\\(\\[${summaryQuery}\\(\\)\\]\\)`), route);
+    assert.doesNotMatch(page, new RegExp(`${listQuery}\\(\\{ page: "all" \\}\\)`), route);
+    assert.match(query, new RegExp(`rpc\\("${rpc}"\\)`), route);
     assert.match(page, new RegExp(source.replaceAll(".", "\\.")), route);
     assert.match(page, new RegExp(continuity), route);
   }

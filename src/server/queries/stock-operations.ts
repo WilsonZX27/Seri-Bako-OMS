@@ -17,6 +17,9 @@ const OPERATION_PAGE_SIZE = 12;
 const TRANSFER_SORT_COLUMNS = new Set(["transfer_no", "transfer_date", "status", "updated_at"]);
 const WASTAGE_SORT_COLUMNS = new Set(["wastage_no", "wastage_date", "status", "reason", "updated_at"]);
 
+export type StockTransferSummary = { total: number; draft: number; inTransit: number; completed: number };
+export type StockWastageSummary = { total: number; inReview: number; posted: number };
+
 function requestedPage(pageValue?: string) {
   const parsed = Number(pageValue ?? "1");
   return Number.isFinite(parsed) ? Math.max(Math.trunc(parsed), 1) : 1;
@@ -110,6 +113,24 @@ export async function getStockTransfers(filters: Filters = {}) {
   return databasePagination(rows, trustedCount, filters.page);
 }
 
+export async function getStockTransferSummary(): Promise<StockTransferSummary> {
+  if (isMockMode()) {
+    const rows = mockStockTransfers.filter((row) => !row.deleted_at);
+    return {
+      total: rows.length,
+      draft: rows.filter((row) => row.status === "draft").length,
+      inTransit: rows.filter((row) => row.status === "in_transit").length,
+      completed: rows.filter((row) => row.status === "completed").length,
+    };
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_stock_transfer_summary");
+  if (error) throw new Error(error.message);
+  const summary = requireReadRows(data, "Stock transfer summary")[0];
+  if (!summary) throw new Error("Stock transfer summary returned no data.");
+  return { total: Number(summary.total), draft: Number(summary.draft), inTransit: Number(summary.in_transit), completed: Number(summary.completed) };
+}
+
 export async function getStockTransfer(id: string) {
   if (isMockMode()) {
     const transfer = requireDetailRow(mockStockTransfers.find((row) => row.id === id), "Stock transfer", id);
@@ -185,6 +206,23 @@ export async function getStockWastage(filters: Filters = {}) {
   const displayMap = await resolveActorDisplayMap(trustedData.map((row) => row.created_by));
   const rows = (trustedData as Wastage[]).map((row) => ({ ...row, branch_name: row.branch_id ? branch.get(row.branch_id) ?? null : null, created_by_name: actorDisplayName(displayMap, row.created_by), line_count: trustedLines.filter((line) => line.stock_wastage_id === row.id).length }));
   return databasePagination(rows, trustedCount, filters.page);
+}
+
+export async function getStockWastageSummary(): Promise<StockWastageSummary> {
+  if (isMockMode()) {
+    const rows = mockStockWastage.filter((row) => !row.deleted_at);
+    return {
+      total: rows.length,
+      inReview: rows.filter((row) => row.status === "submitted" || row.status === "approved").length,
+      posted: rows.filter((row) => row.status === "posted").length,
+    };
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_stock_wastage_summary");
+  if (error) throw new Error(error.message);
+  const summary = requireReadRows(data, "Stock wastage summary")[0];
+  if (!summary) throw new Error("Stock wastage summary returned no data.");
+  return { total: Number(summary.total), inReview: Number(summary.in_review), posted: Number(summary.posted) };
 }
 
 export async function getStockWastageDetail(id: string) {

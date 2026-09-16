@@ -1,6 +1,6 @@
 # System closure review — 2026-09-16
 
-This is repository evidence for v9.2.69. It does not claim that migration 298 or the current application commit is deployed to Production.
+This is repository evidence for v9.2.69. Migration 298 is Production applied and read-back verified; migration 299 and the current application commit are not yet deployed.
 
 ## Release gates
 
@@ -12,7 +12,7 @@ This is repository evidence for v9.2.69. It does not claim that migration 298 or
 | Production build | Next.js 15.5.21, 102 routes, 102 kB shared first load | Pass with isolated test environment |
 | Stock Count integrity | 148 focused inventory/Stock Count contracts | Pass |
 | Responsive browser UAT | Stock Count at 390×844, 768×1024, 820×1180 and 1440×960 | Blocked: the configured local Supabase at `127.0.0.1:55431` is not running and Docker Desktop is not installed |
-| Linked schema | Repository migration ceiling 298; linked Production ledger separately verified through 296 | Migration 298 not yet applied |
+| Linked schema | Repository migration ceiling 299; linked Production ledger verified through 298 | Migration 299 not yet applied |
 | Production runtime | Authenticated Production session expired during this review | Not reverified |
 
 ## Findings closed in this review
@@ -24,6 +24,7 @@ This is repository evidence for v9.2.69. It does not claim that migration 298 or
 5. **Stock Count integrity.** Focused tests cover PJS10 catalog repair, eligibility, KG alignment, zero-only retirement, UOM identity, complete-line submission, exact variance, autosave recovery, atomic create/post/cancel/void, concurrency reconciliation and touch geometry.
 6. **Purchase Return load path.** The queue now filters, sorts and paginates in PostgreSQL through a security-invoker view. Its right-rail summary is one aggregate RPC instead of repeated full reads and line downloads.
 7. **Local build guard.** The prebuild check now reads `.env.local` before validating the same public variables that Next.js consumes.
+8. **Stock-operation summaries.** Stock Transfer and Stock Wastage right rails now use constant-size, security-invoker aggregate RPCs instead of loading each complete queue into the application.
 
 ## Architecture judgement
 
@@ -35,8 +36,8 @@ The visual system is more coherent, but `design-system-v2.css` still contains a 
 
 ## Remaining release work
 
-1. Start an isolated Supabase/Docker target, apply migrations through 298, seed the role fixture and run the full responsive matrix.
-2. Apply migration 298 to the linked target before deploying application code that reads `purchase_returns_list_view`.
+1. Start an isolated Supabase/Docker target, apply migrations through 299, seed the role fixture and run the full responsive matrix.
+2. Apply migration 299 to the linked target before deploying application code that invokes its two summary RPCs.
 3. Reverify authenticated Production routes and performance after deployment; record measured server timing rather than inferring it from build output.
 4. Continue reducing the compatibility CSS only alongside phone, tablet and desktop screenshots and geometry assertions.
 

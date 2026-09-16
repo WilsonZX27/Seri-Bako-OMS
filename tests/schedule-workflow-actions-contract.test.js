@@ -10,6 +10,7 @@ const migration282 = fs.readFileSync("supabase/migrations/282_schedule_completen
 const migration295 = fs.readFileSync("supabase/migrations/295_schedule_revision_replay_sequence.sql", "utf8");
 const migration297 = fs.readFileSync("supabase/migrations/297_structured_cross_outlet_scheduling.sql", "utf8");
 const migration302 = fs.readFileSync("supabase/migrations/302_cross_outlet_projection_provenance.sql", "utf8");
+const verification302 = fs.readFileSync("supabase/verification/production_migration_302_readonly.sql", "utf8");
 
 test("schedule editor and draft actions only exist in editable workflow states", () => {
   assert.match(source, /\["draft", "returned", "rejected", "amendment_pending"\]\.includes\([\s\S]*?week\.status/);
@@ -57,6 +58,16 @@ test("copy and Manager correction keep structured destination shifts", () => {
   assert.match(migration302, /result:=public\.save_schedule_week_with_destinations/);
   assert.match(migration302, /saved_week:=public\.save_schedule_week_with_destinations/);
   assert.match(migration302, /a\.schedule_week_id=roster\.id or a\.projected_from_schedule_week_id=roster\.id/);
+});
+
+test("migration 302 has a reusable read-only Production verification", () => {
+  assert.match(verification302, /version='302'/);
+  assert.match(verification302, /shift_assignment_projection_source_pair/);
+  assert.match(verification302, /schedule_assignment_one_current_projection/);
+  assert.match(verification302, /save_has_exact_retraction/);
+  assert.match(verification302, /authenticated_execute/);
+  assert.match(verification302, /anon_execute/);
+  assert.doesNotMatch(verification302, /\b(insert|update|delete|alter|drop|create|grant|revoke)\b/i);
 });
 
 test("schedule offers a separate cross-outlet weekly overview without replacing the planner", () => {

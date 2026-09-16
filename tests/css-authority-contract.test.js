@@ -98,12 +98,16 @@ test("source declares panel and control radius intent instead of relying on the 
   assert.deepEqual(legacyOwners, [], `Legacy radius utility still owned by:\n${legacyOwners.join("\n")}`);
 });
 
-test("retired mobile list filter compatibility selector cannot return", () => {
+test("retired list filter compatibility selectors cannot return", () => {
   const sourceRoot = path.join(root, "src");
   const sourceFiles = fs.readdirSync(sourceRoot, { recursive: true })
     .filter((entry) => /\.(?:css|tsx?|jsx?)$/.test(String(entry)))
     .map((entry) => path.join(sourceRoot, String(entry)));
   for (const file of sourceFiles) {
-    assert.doesNotMatch(fs.readFileSync(file, "utf8"), /sb-mobile-list-filter/, `${file} revives a retired filter layout owner`);
+    assert.doesNotMatch(
+      fs.readFileSync(file, "utf8"),
+      /sb-(?:mobile-list-filter|list-filter-actions|list-filters--dense|pagination-current)/,
+      `${file} revives a retired filter or pagination layout owner`,
+    );
   }
 });

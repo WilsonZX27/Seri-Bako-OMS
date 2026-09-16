@@ -525,18 +525,6 @@ html[data-design-layer="v2"] .sb-command-surface {
   box-shadow: none;
 }
 
-html[data-design-layer="v2"] form.sb-list-filters > .sb-list-filter-actions {
-  display: flex;
-  flex: 1 1 100% !important;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  margin-left: auto;
-}
-
-html[data-design-layer="v2"] form.sb-list-filters > .sb-list-filter-actions > * {
-  min-width: 6.5rem;
-}
-
 [data-right-console] section,
 aside > div > div > section {
   padding-block: 1rem;
@@ -630,8 +618,7 @@ aside section > h2 {
   display: none;
 }
 
-nav[aria-label="Pagination"] > span,
-.sb-pagination-current {
+nav[aria-label="Pagination"] > span {
   border-radius: var(--sb-radius-control) !important;
 }
 
@@ -1452,30 +1439,6 @@ html[data-design-layer="v2"] [data-mobile-document-action] :where(button, a) {
   }
 }
 
-/* AP Aging is the only intentionally dense query surface. Keep this opt-in
-   variant independent from the canonical list toolbar below. */
-@media (min-width: 768px) {
-  html[data-design-layer="v2"] form.sb-list-filters.sb-list-filters--dense {
-    flex-wrap: wrap !important;
-    gap: 0.5rem;
-  }
-
-  html[data-design-layer="v2"] form.sb-list-filters.sb-list-filters--dense > :where(select, [data-select-control]) {
-    flex: 1 1 8rem !important;
-    width: auto !important;
-  }
-
-  html[data-design-layer="v2"] form.sb-list-filters.sb-list-filters--dense > label {
-    flex: 0 0 auto !important;
-    min-width: 7rem;
-    white-space: nowrap;
-  }
-
-  html[data-design-layer="v2"] form.sb-list-filters.sb-list-filters--dense > .sb-list-filter-actions {
-    flex: 1 1 auto !important;
-    min-width: 14rem;
-  }
-}
 @media (max-width: 639px) {
   html[data-design-layer="v2"] [data-document-workspace-header][data-context-compact="true"] {
     padding-top: .25rem !important;

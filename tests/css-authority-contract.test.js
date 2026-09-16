@@ -38,6 +38,15 @@ test("responsive design layer consumes global geometry tokens instead of redefin
   }
 });
 
+test("global stylesheet exclusively owns the universal reduced-motion fallback", () => {
+  const globals = fs.readFileSync(path.join(root, "src/app/globals.css"), "utf8");
+  const designLayer = fs.readFileSync(path.join(root, "src/app/design-system-v2.css"), "utf8");
+
+  assert.match(globals, /@media \(prefers-reduced-motion: reduce\)[\s\S]*?animation-duration: 0\.01ms !important;/);
+  assert.doesNotMatch(designLayer, /html\[data-design-layer="v2"\] \*/);
+  assert.match(designLayer, /@media \(prefers-reduced-motion: reduce\) \{\s*\.sb-skeleton::after \{ display: none; \}\s*\}/);
+});
+
 test("source declares panel and control radius intent instead of relying on the legacy 2px override", () => {
   const sourceRoot = path.join(root, "src");
   const legacyOwners = [];

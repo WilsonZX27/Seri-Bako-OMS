@@ -294,14 +294,6 @@ html[data-design-layer="v2"] :is(a, button, summary, [role="button"]) {
 
 @media (prefers-reduced-motion: reduce) {
   .sb-skeleton::after { display: none; }
-  html[data-design-layer="v2"] *,
-  html[data-design-layer="v2"] *::before,
-  html[data-design-layer="v2"] *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
 }
 
 [data-app-shell] {

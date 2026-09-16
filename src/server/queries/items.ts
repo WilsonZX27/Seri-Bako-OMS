@@ -120,6 +120,23 @@ export async function getItemsWithStock(filters: ItemFilters = {}) {
   return filterItems(await getItemsWithStockBase(), filters);
 }
 
+export async function getItemStockTotal(itemId: string): Promise<number> {
+  if (isMockMode()) {
+    const balances = await getStockBalances();
+    return balances
+      .filter((balance) => balance.item_id === itemId)
+      .reduce((sum, balance) => sum + Number(balance.current_stock ?? balance.current_qty ?? 0), 0);
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("stock_balances_summary")
+    .select("current_qty")
+    .eq("item_id", itemId);
+  if (error) throw new Error(`Item stock total could not be loaded: ${error.message}`);
+  if (!Array.isArray(data)) throw new Error("Item stock total returned invalid data.");
+  return data.reduce((sum, balance) => sum + Number(balance.current_qty), 0);
+}
+
 export async function getItemsWithStockPage(filters: ItemFilters = {}) {
   if (!isMockMode()) {
     const supabase = await createClient();

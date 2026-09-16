@@ -51,7 +51,8 @@
   --sb-muted: var(--sb-surface-muted);
   --sb-border: #d8ded9;
   /* Canonical control geometry: 8px controls, 12px panels across every viewport. */
-  --sb-radius-control: 0.5rem;
+  --sb-control-radius: 0.5rem;
+  --sb-radius-control: var(--sb-control-radius);
   --sb-shadow-card: 0 1px 2px rgb(6 44 31 / 0.04), 0 8px 24px rgb(6 44 31 / 0.06);
   --sb-border-soft: #e7ebe7;
   --sb-text: #13261f;

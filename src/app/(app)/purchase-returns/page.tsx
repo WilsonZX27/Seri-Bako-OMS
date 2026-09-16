@@ -15,7 +15,7 @@ import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
-import { getPurchaseReturns } from "@/server/queries/purchase-returns";
+import { getPurchaseReturns, getPurchaseReturnSummary } from "@/server/queries/purchase-returns";
 import { hasPermission } from "@/server/auth/permissions";
 import { logServerError } from "@/server/observability/logger";
 
@@ -23,10 +23,9 @@ const statuses = ["draft", "posted", "cancelled"];
 
 export default async function PurchaseReturnsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [returns, canCreate, [allReturnsResult]] = await Promise.all([getPurchaseReturns(filters), hasPermission("purchase_return.create"), Promise.allSettled([getPurchaseReturns({ page: "all" })])]);
-  if (allReturnsResult.status === "rejected") logServerError(allReturnsResult.reason, { source: "page.purchaseReturns.summary" });
-  const rows = allReturnsResult.status === "fulfilled" ? allReturnsResult.value.rows : null;
-  const count = (...items: string[]) => (rows ?? []).filter((row) => items.includes(row.status)).length;
+  const [returns, canCreate, [summaryResult]] = await Promise.all([getPurchaseReturns(filters), hasPermission("purchase_return.create"), Promise.allSettled([getPurchaseReturnSummary()])]);
+  if (summaryResult.status === "rejected") logServerError(summaryResult.reason, { source: "page.purchaseReturns.summary" });
+  const summary = summaryResult.status === "fulfilled" ? summaryResult.value : null;
   const filtered = hasActiveFilters(filters);
   const emptyAction = filtered ? { href: "/purchase-returns", label: "Reset filters" } : canCreate ? { href: "/purchase-returns/new", label: "New Return" } : undefined;
   return (
@@ -43,11 +42,11 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
                 </Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}
               </ConsoleSection>
               <ConsoleSection title="Return Summary">
-                {rows ? <div className="grid gap-2 text-xs">
-                  <div className="flex justify-between"><span className="text-muted-foreground">Total</span><strong>{rows.length}</strong></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Draft</span><strong>{count("draft")}</strong></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Posted</span><strong>{count("posted")}</strong></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Value</span><strong>{formatCurrency(rows.reduce((sum, row) => sum + row.return_value, 0))}</strong></div>
+                {summary ? <div className="grid gap-2 text-xs">
+                  <div className="flex justify-between"><span className="text-muted-foreground">Total</span><strong>{summary.total}</strong></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Draft</span><strong>{summary.draft}</strong></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Posted</span><strong>{summary.posted}</strong></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Value</span><strong>{formatCurrency(summary.value)}</strong></div>
                 </div> : <div role="status"><p className="text-xs font-semibold text-[var(--sb-warning)]">Unavailable</p><p className="mt-1 text-xs text-muted-foreground">The return queue remains current. Retry to load return totals.</p></div>}
               </ConsoleSection>
           </>

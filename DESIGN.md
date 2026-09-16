@@ -1,3 +1,9 @@
+# Seri Bako OMS Design Authority
+
+The unversioned foundation in `docs/DESIGN_SYSTEM.md` is the current visual and interaction contract. `src/app/globals.css` owns tokens and structural compatibility; `src/app/design-system-v2.css` consumes those tokens and owns authenticated responsive composition. Versioned entries in this file are release history. They explain decisions but do not override the current foundation.
+
+Current geometry is 12px panels, 8px controls, and 44px shared query controls at all release viewports. Touch targets remain at least 44px. Dense pointer-only row actions may render a smaller visual glyph inside that hit area. Current working-time dialogs show an unsigned scheduled span; obsolete signed comparisons against 8.5 hours are historical and must not return.
+
 ### v9.2.69 (unreleased) — Operational clarity and roster coverage
 
 - Kitchen employees share the canonical roster eligibility path with Outlet Staff and Supervisors; tenant, branch, role-date and workflow permissions remain enforced. Migration 287 was applied and its four function bodies verified against the repository on 2026-09-14; live ALMA and PJS10 rosters show 8 and 12 staff respectively.

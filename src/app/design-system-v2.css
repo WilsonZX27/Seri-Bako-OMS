@@ -56,9 +56,6 @@ html[data-design-layer="v2"] {
   --sb-design-layer-active: v2;
   /* One radius source for Tailwind's `rounded-lg` and shared panel primitives. */
   --radius: var(--sb-panel-radius);
-  --sb-panel-radius: 12px;
-  --sb-control-radius: 8px;
-  --sb-radius-control: var(--sb-control-radius);
   --sb-z-mobile-nav: 50;
   --sb-z-sheet-backdrop: 100;
   --sb-z-sheet: 101;

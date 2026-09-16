@@ -4,12 +4,15 @@ Seri Bako Operations Management System is an internal operations platform for pr
 
 For product scope and operating principles, read `PRODUCT.md`.
 
-For UI and interaction standards, read `DESIGN.md`.
+For current UI and interaction standards, read `docs/DESIGN_SYSTEM.md`. `DESIGN.md` is the chronological design decision history.
+
+For document authority and conflict resolution, read `docs/SOURCE_OF_TRUTH.md`.
 
 ## Current Release Baseline
 
-- Current Production release: `v9.2.67 — Cross-outlet Employee-day Integrity` (verified 2026-09-14).
-- Database migration ceiling: `286_schedule_cross_outlet_day_coverage`.
+- Repository release candidate: `v9.2.69 — Operational clarity and roster coverage`.
+- Verified Production application and database versions are recorded separately in `docs/qa/SYSTEM_QUALITY_2026-09-15.md`; repository state must never be described as deployed merely because code or a migration exists locally.
+- Repository migration ceiling: `298_purchase_return_read_model`.
 - Vercel builds use Node.js 22 LTS and `npm ci --no-audit --no-fund`; `package.json`, `package-lock.json`, and the visible application version must remain synchronized.
 - Tenant isolation, inventory posting atomicity, procurement/document transitions, concurrency controls, and credential handoff are database-authoritative.
 - Start with `docs/PILOT_BASELINE.md`, use the controlled CSV files in `docs/import-templates/`, and record sign-off in `docs/PILOT_QA_CHECKLIST.md`.

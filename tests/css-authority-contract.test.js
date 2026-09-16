@@ -27,3 +27,13 @@ test("canonical design layer has one rule owner per selector and media scope", (
 
   assert.deepEqual(duplicates, [], `Split CSS authority found:\n${duplicates.join("\n")}`);
 });
+
+test("responsive design layer consumes global geometry tokens instead of redefining them", () => {
+  const globals = fs.readFileSync(path.join(root, "src/app/globals.css"), "utf8");
+  const designLayer = fs.readFileSync(path.join(root, "src/app/design-system-v2.css"), "utf8");
+
+  for (const token of ["--sb-panel-radius", "--sb-control-radius", "--sb-radius-control"]) {
+    assert.match(globals, new RegExp(`${token}:`), `${token} must be owned by globals.css`);
+    assert.doesNotMatch(designLayer, new RegExp(`${token}:`), `${token} must not be redefined by design-system-v2.css`);
+  }
+});

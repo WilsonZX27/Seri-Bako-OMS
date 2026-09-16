@@ -7,8 +7,17 @@ const root = path.resolve(__dirname, "..");
 const read = (...parts) => fs.readFileSync(path.join(root, ...parts), "utf8");
 
 test("secondary full reads cannot replace paginated queues with false zero summaries", () => {
+  const purchaseReturnsPage = read("src", "app", "(app)", "purchase-returns", "page.tsx");
+  const purchaseReturnsQuery = read("src", "server", "queries", "purchase-returns.ts");
+  assert.match(purchaseReturnsPage, /Promise\.allSettled\(\[getPurchaseReturnSummary\(\)\]\)/);
+  assert.doesNotMatch(purchaseReturnsPage, /getPurchaseReturns\(\{ page: "all" \}\)/);
+  assert.match(purchaseReturnsQuery, /from\("purchase_returns_list_view"\)\.select\("\*", \{ count: "exact" \}\)/);
+  assert.match(purchaseReturnsQuery, /query\.range\(/);
+  assert.match(purchaseReturnsQuery, /rpc\("get_purchase_return_summary"\)/);
+  assert.match(purchaseReturnsPage, /page\.purchaseReturns\.summary/);
+  assert.match(purchaseReturnsPage, /return queue remains current/);
+
   for (const [route, query, source, continuity] of [
-    ["purchase-returns", "getPurchaseReturns", "page.purchaseReturns.summary", "return queue remains current"],
     ["stock-transfers", "getStockTransfers", "page.stockTransfers.summary", "transfer queue remains current"],
     ["stock-wastage", "getStockWastage", "page.stockWastage.summary", "current queue remains available"],
   ]) {

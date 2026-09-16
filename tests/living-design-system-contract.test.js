@@ -4,6 +4,7 @@ import test from "node:test";
 
 const design = fs.readFileSync("DESIGN.md", "utf8");
 const system = fs.readFileSync("docs/DESIGN_SYSTEM.md", "utf8");
+const authority = fs.readFileSync("docs/SOURCE_OF_TRUTH.md", "utf8");
 
 test("living design contract keeps browser full-height independent from installation", () => {
   assert.match(design, /Browser-Native Mobile Canvas/);
@@ -15,4 +16,11 @@ test("performance contract covers interaction latency and bounded ledgers", () =
   assert.match(system, /INP `<= 200ms`/);
   assert.match(system, /Ledger\/history filters default to a useful bounded period/);
   assert.match(design, /may not read an entire ledger view/);
+});
+
+test("documentation separates current rules from historical evidence", () => {
+  assert.match(authority, /Database constraints, RLS policies and transaction\/RPC invariants/);
+  assert.match(authority, /Versioned entries in this file are release history|chronological design decision history/);
+  assert.match(authority, /Panel radius: 12px/);
+  assert.match(authority, /Shared query-control height: 44px/);
 });

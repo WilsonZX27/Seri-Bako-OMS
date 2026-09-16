@@ -37,10 +37,11 @@ test("mobile scheduling retains bounded, aligned and state-specific actions", ()
   assert.match(css, /\[data-schedule-mobile-actions\][\s\S]*inset: auto 1rem/);
 });
 
-test("schedule working-time tools expose quick states and a paid-hours summary", () => {
+test("schedule working-time tools expose quick states and an unambiguous span summary", () => {
   const planner = read("src/components/attendance/schedule-planner.tsx");
 
-  assert.match(planner, /Scheduled span · compared with 8\.5h/);
+  assert.match(planner, />Scheduled span</);
+  assert.doesNotMatch(planner, /compared with 8\.5h|−\d{2}:\d{2}:\d{2}/);
   assert.match(planner, /Quick non-working assignment/);
   assert.match(planner, /aria-labelledby="schedule-working-time-title"/);
   for (const state of ['label: "OFF"', 'label: "AL"', 'label: "PH"', 'label: "UPL"']) {

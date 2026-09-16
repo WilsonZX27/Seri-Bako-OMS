@@ -2312,6 +2312,20 @@ export type Database = {
       attendance_period_locks: TableDefinition<{ id:string; company_id:string; branch_id:string|null; week_start:string; locked_by:string; locked_at:string; unlocked_by:string|null; unlocked_at:string|null; unlock_reason:string|null }>;
     };
     Views: {
+      purchase_returns_list_view: {
+        Row: Database["public"]["Tables"]["purchase_returns"]["Row"] & {
+          grn_no: string;
+          po_no: string;
+          supplier_name: string;
+          branch_name: string | null;
+          line_count: number;
+          return_total: number;
+          return_value: number;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       stock_balances_view: {
         Row: {
           item_id: string;
@@ -2448,6 +2462,10 @@ export type Database = {
       };
     };
     Functions: {
+      get_purchase_return_summary: {
+        Args: Record<string, never>;
+        Returns: Array<{ total: number; draft: number; posted: number; cancelled: number; value: number }>;
+      };
       submit_schedule_week_atomic: {
         Args: { p_branch_id:string; p_week_start:string; p_assignments:Json; p_expected_updated_at?:string|null; p_comment?:string|null };
         Returns: Json;

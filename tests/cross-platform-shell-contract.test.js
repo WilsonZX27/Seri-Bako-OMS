@@ -45,10 +45,11 @@ test("desktop and tablet shared geometry remains token based", () => {
   assert.match(tailwind, /sm: "var\(--sb-radius-control\)"/);
   assert.match(design, /Tablet \(`768px-1279px`\)/);
   assert.match(design, /Desktop \(`>=1280px`\)/);
-  assert.match(globals, /--sb-radius-control:\s*0\.5rem/);
+  assert.match(globals, /--sb-control-radius:\s*0\.5rem/);
+  assert.match(globals, /--sb-radius-control:\s*var\(--sb-control-radius\)/);
   assert.match(globals, /--sb-panel-radius:\s*0\.75rem/);
-  assert.match(designLayer, /--sb-panel-radius:\s*12px/);
-  assert.match(designLayer, /--sb-control-radius:\s*8px/);
+  assert.doesNotMatch(designLayer, /--sb-panel-radius\s*:/);
+  assert.doesNotMatch(designLayer, /--sb-control-radius\s*:/);
   assert.doesNotMatch(`${dashboard}\n${operationalHub}`, /--sb-radius-panel/);
 });
 

@@ -81,10 +81,10 @@ Additional implementation references: [Vercel Geist typography](https://vercel.c
 ## Geometry and spacing
 
 - Use an 8px spatial rhythm with 4px half-steps for dense controls.
-- Panel radius: `8px`; control radius: `4px`; tiny status indicators may use a pill only when their semantic shape is intentional.
+- Panel radius: `12px`; control radius: `8px`; tiny status indicators may use a pill only when their semantic shape is intentional. These values are defined once in `globals.css`; later design layers consume them without redefining them.
 - A component and its siblings must use the same radius. Screen-edge rails and full-width mobile action bars remain square at the viewport edge.
 - Shadows indicate elevation or sticky separation only. Default panels use one restrained card shadow, never stacked glow effects.
-- Radius is tokenized, never improvised: panels use `8px`, controls use `4px`, compact chips use `999px`, and viewport-edge surfaces use `0`. A single component may not mix multiple panel/control radii.
+- Radius is tokenized, never improvised: panels use `12px`, controls use `8px`, compact chips use `999px`, and viewport-edge surfaces use `0`. A single component may not mix multiple panel/control radii.
 - Use three elevation levels only: canvas (`none`), persistent panel (`0 1px 2px` plus a low-contrast border), and transient overlay/sticky separation (one stronger shadow). Elevation must communicate containment or overlap, not luxury decoration.
 - Typography uses named roles rather than arbitrary size/weight combinations: page heading, section heading, body copy, compact label, metadata, tabular value, and button label. Operational numbers use tabular figures; labels pair with icons on one baseline and do not become bold merely because they are table headers.
 
@@ -121,7 +121,7 @@ The phone filter trigger opens a full-viewport backdrop at `z-index: 100` and a 
 
 At `640px–1023px`, retain inline filters and the documented master/list-to-rail split. At desktop, retain inline filters and the right action rail. Responsive presentation may change density and placement, but it must not change query semantics, authorization, business logic, or Supabase data sources.
 
-The newest versioned rule is authoritative when it conflicts with an older historical note in this document. Promote a rule only after evidence from representative phone, tablet, and desktop routes demonstrates a real usability or density improvement.
+The unversioned foundation above is authoritative. Versioned sections below are historical implementation evidence and may explain why a rule changed, but they cannot override the foundation. Promote a rule into the foundation only after evidence from representative phone, tablet, and desktop routes demonstrates a real usability or density improvement.
 # v8.36.3 shared list and daily-entry contract
 
 - A list workspace has two sibling surfaces: `sb-list-query-card` and `sb-list-content-card`. Do not wrap both inside a third visual card.

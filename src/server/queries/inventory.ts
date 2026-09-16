@@ -809,11 +809,17 @@ export async function getStockBalanceDetails(filters: Filters = {}): Promise<Pag
   const branchIds = Array.from(new Set(balanceRows.map((row) => row.branch_id).filter((id): id is string => Boolean(id))));
   const imageByItemId = new Map<string, string | null>();
   const itemDefaultById = new Map<string, { supplier_id: string | null; purchase_unit: string; base_unit: string; status: string }>();
-  for (let offset = 0; offset < itemIds.length; offset += 100) {
-    const images = await supabase
+  const itemIdChunks = Array.from({ length: Math.ceil(itemIds.length / 100) }, (_, index) => itemIds.slice(index * 100, (index + 1) * 100));
+  const [imageResults, branchMappingsResult] = await Promise.all([
+    Promise.all(itemIdChunks.map((chunk) => supabase
       .from("items")
       .select("id, item_image_url, supplier_id, purchase_unit, base_unit, status")
-      .in("id", itemIds.slice(offset, offset + 100));
+      .in("id", chunk))),
+    itemIds.length && branchIds.length
+      ? supabase.from("branch_supplier_items").select("branch_id, item_id, supplier_item_id, is_preferred").in("branch_id", branchIds).in("item_id", itemIds).eq("status", "active").is("deleted_at", null)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  for (const images of imageResults) {
     if (images.error) {
       warnOptionalInventoryQuery("Stock Balance item images", images.error);
       break;
@@ -823,9 +829,7 @@ export async function getStockBalanceDetails(filters: Filters = {}): Promise<Pag
       itemDefaultById.set(item.id, { supplier_id: item.supplier_id, purchase_unit: item.purchase_unit, base_unit: item.base_unit, status: item.status });
     });
   }
-  const { data: branchMappings, error: branchMappingsError } = itemIds.length && branchIds.length
-    ? await supabase.from("branch_supplier_items").select("branch_id, item_id, supplier_item_id, is_preferred").in("branch_id", branchIds).in("item_id", itemIds).eq("status", "active").is("deleted_at", null)
-    : { data: [], error: null };
+  const { data: branchMappings, error: branchMappingsError } = branchMappingsResult;
   if (branchMappingsError) warnOptionalInventoryQuery("Stock Balance branch sourcing", branchMappingsError);
   const supplierItemIds = [...new Set((branchMappings ?? []).map((mapping) => mapping.supplier_item_id))];
   const { data: supplierItems, error: supplierItemsError } = supplierItemIds.length

@@ -69,8 +69,10 @@ test("stock balance basket uses branch-authoritative sourcing and an editable pu
 test("stock balance hydrates item images into compact rows and keeps the mapped PR UOM", () => {
   const rows = fs.readFileSync(path.join(root, "src", "components", "stock-balance-table.tsx"), "utf8");
 
-  assert.match(inventoryQuery, /for \(let offset = 0; offset < itemIds\.length; offset \+= 100\)/);
-  assert.match(inventoryQuery, /itemIds\.slice\(offset, offset \+ 100\)/);
+  assert.match(inventoryQuery, /const \[imageResults, branchMappingsResult\] = await Promise\.all/);
+  assert.match(inventoryQuery, /Promise\.all\(itemIdChunks\.map/);
+  assert.match(inventoryQuery, /for \(const images of imageResults\)/);
+  assert.doesNotMatch(inventoryQuery, /for \(let offset = 0; offset < itemIds\.length; offset \+= 100\)/);
   assert.match(rows, /ItemThumbnail src=\{item\.image_url\}/);
   assert.match(source, /ItemThumbnail src=\{line\.image_url\}/);
   assert.match(source, /Purchase UOM for/);

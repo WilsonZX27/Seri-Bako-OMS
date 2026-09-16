@@ -8,7 +8,7 @@ This is repository evidence for v9.2.69. Migrations 298–301 are Production app
 | --- | --- | --- |
 | Strict TypeScript | `npm run typecheck:strict` | Pass |
 | ESLint | `npm run lint` | Pass |
-| Contract suite | 1,288 tests | Pass; the loopback lifecycle contract was run outside the restricted socket sandbox |
+| Contract suite | 1,290 tests | Pass; the loopback lifecycle contract was run outside the restricted socket sandbox |
 | Production build | Next.js 15.5.21, 102 routes, 102 kB shared first load | Pass with isolated test environment |
 | Stock Count integrity | 148 focused inventory/Stock Count contracts | Pass |
 | Responsive browser UAT | Production: 18 critical workspaces at 430×932; create flow at 390×844; populated Item, Stock Count and Purchase Request details at 820×1180; 13 shared list surfaces at 430×932, 820×1180, 1180×820 and 1440×900 | Pass for the recorded Production matrix; the exhaustive local role fixture matrix remains outstanding |
@@ -35,6 +35,7 @@ This is repository evidence for v9.2.69. Migrations 298–301 are Production app
 16. **Filter-surface cascade ownership.** Legacy filter CSS now retains layout only. The v2 design layer exclusively owns list-filter and More-panel borders, background, radius and elevation, and no longer needs `!important` for the shared panel/control radii. The compatibility layer is two forced declarations smaller and a contract prevents visual ownership from drifting back into `globals.css`.
 17. **Recipe lifecycle atomicity.** Migration 301 moves submit, approve, activate, reject and archive into one tenant-scoped transaction. Recipe and Document states, revision history, activity and superseded active versions now commit together; activating a version locks competing active versions and retains the existing partial unique index as the final concurrency guard. Production read-back confirmed the function, authenticated grant, anonymous revoke and internal permission guard.
 18. **Latest Production verification.** Vercel Production deployment `H8mWwdnxGNzvbRcN4XS1thNhb6Ap` reached Ready from commit `e0e56504`. The authenticated custom-domain run passed 6/6 responsive list/filter tests across phone, tablet portrait, tablet landscape and desktop, plus 2/2 dashboard-performance and Costing Readiness tests. The dashboard was ready in 2,583 ms.
+19. **Procurement Variance scaling.** The report now requests explicit calculation projections from all nine source tables. It indexes receiving lines by PO line, invoice lines by receiving/PO identity and supplier prices by supplier/item/UOM once, replacing repeated complete-dataset scans inside every order-line comparison. The resulting in-process work is linear in the fetched source rows plus emitted comparisons.
 
 ## Architecture judgement
 

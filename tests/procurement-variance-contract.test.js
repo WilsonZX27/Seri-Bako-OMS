@@ -9,8 +9,8 @@ const ranking = fs.readFileSync("src/components/ui/interactive-ranking-chart.tsx
 const version = fs.readFileSync("src/lib/app-version.ts", "utf8");
 
 test("procurement variance only compares existing document-line links", () => {
-  assert.match(query, /goods_receiving_line_id === grnLine\.id/);
-  assert.match(query, /purchase_order_line_id === line\.id/);
+  assert.match(query, /`\$\{row\.goods_receiving_line_id\}:\$\{row\.purchase_order_line_id\}`/);
+  assert.match(query, /invoiceLinesByReceivingAndOrderLine\.get\(`\$\{grnLine\.id\}:\$\{line\.id\}`\)/);
   assert.match(query, /Missing GRN|Missing invoice|Review manually/);
   assert.match(query, /comparison_date >= filters\.date_from/);
   assert.doesNotMatch(query, /suppliers\.company_id/);

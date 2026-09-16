@@ -1,6 +1,6 @@
 # System closure review — 2026-09-16
 
-This is repository evidence for v9.2.69. Migrations 298–302 are Production applied and read-back verified. Application commit `cbc585e7` was deployed through Vercel Production deployment `ChgB6zkm83X3m8A5FT3Rr2N6aG2o` and verified through `https://system.seribako.com.my`.
+This is repository evidence for v9.2.69. Migrations 298–302 are Production applied and read-back verified. Application commit `40439d5a` was deployed through Vercel Production deployment `GSoECdtU1uFSz2QkGqQA4MKYk54N` and verified through `https://system.seribako.com.my`.
 
 ## Release gates
 
@@ -40,7 +40,7 @@ This is repository evidence for v9.2.69. Migrations 298–302 are Production app
 21. **Explicit radius ownership.** All 58 legacy `rounded-[2px]` utilities were replaced with the panel or control radius token at their source sites. This removed 34 compatibility-CSS lines that previously guessed radius ownership from utility combinations, and a recursive source contract plus rendered phone assertion prevents that legacy utility from returning. Commit `a3995824` reached Ready in Production deployment `JA67tTahNtP2Wk5TuQWRo9mi13LA`; an authenticated custom-domain sweep passed across 13 migrated routes with no legacy radius utilities, horizontal overflow or conflicting action-color systems.
 22. **Stock Balance enrichment latency.** Item image/default-supplier chunks and branch supplier mappings now share one parallel request wave. A 500-item page therefore uses one enrichment wave instead of as many as six sequential waves while retaining the existing optional-read warnings and fail-closed supplier presentation. Commit `cbc585e7` reached Ready in Production deployment `ChgB6zkm83X3m8A5FT3Rr2N6aG2o`; the authenticated custom-domain check rendered 335 records in 3,377 ms on phone, 1,743 ms on tablet and 1,662 ms on desktop, with no page errors or horizontal overflow.
 23. **Cross-outlet projection ownership.** Destination-roster shifts now carry the source branch and source schedule-week identity. Removing, repatriating or moving a staff-day retires only that source roster's exact projection; an immutable destination week fails closed. Destination edits preserve provenance, and weekly copy plus Manager correction use the structured destination RPC so copied or corrected away shifts remain canonical at the destination.
-24. **Dead responsive filter authority.** The retired `.sb-mobile-list-filter` selector had no TS/TSX owner but still carried two phone layout implementations and one override. Removing the unreachable rules eliminated 25 forced declarations from the compatibility layer without changing rendered components; a recursive source contract prevents the selector from returning.
+24. **Dead responsive filter authority.** The retired `.sb-mobile-list-filter` selector had no TS/TSX owner but still carried two phone layout implementations and one override. Removing the unreachable rules eliminated 25 forced declarations from the compatibility layer without changing rendered components; a recursive source contract prevents the selector from returning. Commit `40439d5a` reached Ready in Vercel Production deployment `GSoECdtU1uFSz2QkGqQA4MKYk54N`; Vercel assigned `system.seribako.com.my`, and the custom domain returned the application access-status surface without a server error.
 
 ## Architecture judgement
 

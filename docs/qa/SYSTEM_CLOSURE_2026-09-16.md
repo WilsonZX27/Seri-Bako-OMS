@@ -1,6 +1,6 @@
 # System closure review — 2026-09-16
 
-This is repository evidence for v9.2.69. Migrations 298–301 are Production applied and read-back verified; migration 302 is repository-reviewed and awaits linked application. Application commit `cbc585e7` was deployed through Vercel Production deployment `ChgB6zkm83X3m8A5FT3Rr2N6aG2o` and verified through `https://system.seribako.com.my`.
+This is repository evidence for v9.2.69. Migrations 298–302 are Production applied and read-back verified. Application commit `cbc585e7` was deployed through Vercel Production deployment `ChgB6zkm83X3m8A5FT3Rr2N6aG2o` and verified through `https://system.seribako.com.my`.
 
 ## Release gates
 
@@ -12,7 +12,7 @@ This is repository evidence for v9.2.69. Migrations 298–301 are Production app
 | Production build | Next.js 15.5.21, 102 routes, 102 kB shared first load | Pass with isolated test environment |
 | Stock Count integrity | 148 focused inventory/Stock Count contracts | Pass |
 | Responsive browser UAT | Production: 18 critical workspaces at 430×932; create flow at 390×844; populated Item, Stock Count and Purchase Request details at 820×1180; 13 shared list surfaces at 430×932, 820×1180, 1180×820 and 1440×900; 13 compatibility-migrated routes at phone width | Pass for the recorded Production matrix; the exhaustive local role fixture matrix remains outstanding |
-| Linked schema | Repository reviewed through 302; linked Production ledger verified through 301 | Migration 302 linked application and read-back remain open; Recipe transition is security-definer with an internal permission guard, authenticated-only; the three summary functions remain security-invoker |
+| Linked schema | Repository and linked Production ledger verified through 302 | Pass; migration 302 columns, pair constraint, partial unique index, three security-definer function bodies, authenticated grants and anonymous revocation were read back independently |
 | Production runtime | Purchasing and Super Admin authenticated checks on the custom domain; bounded PR list; dashboard ready in 2,962 ms; responsive list and costing-readiness smoke suites passed 8/8; latest Procurement Variance phone/tablet/desktop ready in 2,535/1,467/2,070 ms; Stock Balance ready in 3,377/1,743/1,662 ms | Pass |
 
 ## Findings closed in this review
@@ -51,7 +51,7 @@ The visual system is more coherent, but `design-system-v2.css` still contains a 
 
 ## Remaining release work
 
-1. Apply migration 302 to the linked target, read back its columns, constraint, index, function bodies and grants, then start an isolated Supabase/Docker target through 302, seed the role fixture and run the exhaustive role and mutation matrix without exercising mutation flows against Production.
+1. Start an isolated Supabase/Docker target through 302, seed the role fixture and run the exhaustive role and mutation matrix without exercising mutation flows against Production.
 2. Continue reducing the compatibility CSS only alongside phone, tablet and desktop screenshots and geometry assertions.
 3. Accumulate Production latency windows under representative concurrent use and set alert thresholds from the observed Dashboard, Procurement Variance and database p95/p99 distributions. Instrument additional critical route-data boundaries as they enter the performance audit.
 

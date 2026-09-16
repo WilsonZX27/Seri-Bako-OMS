@@ -882,6 +882,38 @@ export async function getStockBalanceDetails(filters: Filters = {}): Promise<Pag
   return databasePaginationOrError(rows, count, filters.page, null);
 }
 
+export type StockBalanceSummary = { total: number; lowStock: number; negative: number; inventoryValue: number };
+
+export async function getStockBalanceSummary(filters: Filters = {}): Promise<StockBalanceSummary> {
+  if (isMockMode()) {
+    const balances = await getStockBalanceDetails({ ...filters, page: "all" });
+    if (balances.unavailable || balances.error) throw new Error(balances.error ?? "Stock Balance summary is unavailable.");
+    return {
+      total: balances.totalRows,
+      lowStock: balances.rows.filter((row) => row.status === "low_stock").length,
+      negative: balances.rows.filter((row) => row.status === "negative").length,
+      inventoryValue: balances.rows.reduce((sum, row) => sum + Number(row.inventory_value), 0),
+    };
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_stock_balance_summary", {
+    p_branch_id: filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null,
+    p_supplier_id: filters.supplier_id && filters.supplier_id !== "all" ? filters.supplier_id : null,
+    p_status: filters.status && filters.status !== "all" ? filters.status : null,
+    p_search: filters.search?.trim() || null,
+  });
+  if (error) throw new Error(error.message);
+  if (!Array.isArray(data)) throw new Error("Stock Balance summary returned invalid data.");
+  const summary = data[0];
+  if (!summary) throw new Error("Stock Balance summary returned no data.");
+  return {
+    total: Number(summary.total),
+    lowStock: Number(summary.low_stock),
+    negative: Number(summary.negative),
+    inventoryValue: Number(summary.inventory_value),
+  };
+}
+
 export async function getInventoryDashboard(period: "7d" | "30d" | "month" = "30d") {
   if (isMockMode()) {
     const balances = getMockStockBalances();

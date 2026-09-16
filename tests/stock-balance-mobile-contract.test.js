@@ -96,9 +96,10 @@ test("stock balance error mode uses an explicit error component", () => {
 test("stock balance query failure preserves error state instead of success values", () => {
   assert.match(inventoryQuery, /Stock Balance could not be loaded/);
   assert.match(inventoryQuery, /databasePaginationOrError<StockBalanceRow>\(\[\], 0, filters\.page, message\)/);
-  assert.match(source, /queryError \? "—" : totalRows/);
-  assert.match(source, /queryError \? "—" : lowStock/);
-  assert.match(source, /queryError \? "—" : negative/);
+  assert.match(source, /queryError \|\| summaryTotal === null \? "—" : summaryTotal/);
+  assert.match(source, /queryError \|\| lowStock === null \? "—" : lowStock/);
+  assert.match(source, /queryError \|\| negative === null \? "—" : negative/);
+  assert.match(source, /queryError \|\| totalValue === null \? "—" : formatCurrency\(totalValue\)/);
 });
 
 test("recipe stock availability fails closed when the balance view fails", () => {

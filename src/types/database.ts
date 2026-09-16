@@ -2470,6 +2470,10 @@ export type Database = {
         Args: Record<string, never>;
         Returns: Array<{ total: number; in_review: number; posted: number }>;
       };
+      get_stock_balance_summary: {
+        Args: { p_branch_id?: string | null; p_supplier_id?: string | null; p_status?: string | null; p_search?: string | null };
+        Returns: Array<{ total: number; low_stock: number; negative: number; inventory_value: number }>;
+      };
       get_purchase_return_summary: {
         Args: Record<string, never>;
         Returns: Array<{ total: number; draft: number; posted: number; cancelled: number; value: number }>;

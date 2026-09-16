@@ -61,6 +61,7 @@ export function StockBalanceWorkspace({
   branches,
   suppliers = [],
   totalRows,
+  summaryTotal,
   totalPages,
   page,
   lowStock,
@@ -69,15 +70,16 @@ export function StockBalanceWorkspace({
   hasCreatePr,
 }: {
   rows: StockBalanceRow[];
-  totalValue: number;
+  totalValue: number | null;
   filters: Record<string, string | undefined>;
   branches: BranchOption[];
   suppliers?: Array<{ id: string; name: string }>;
   totalRows: number;
+  summaryTotal: number | null;
   totalPages: number;
   page: number;
-  lowStock: number;
-  negative: number;
+  lowStock: number | null;
+  negative: number | null;
   queryError: string | null;
   hasCreatePr: boolean;
 }) {
@@ -199,15 +201,15 @@ export function StockBalanceWorkspace({
             </ConsoleSection>
             <ConsoleSection title="Stock Summary">
               <div className="grid gap-2 text-xs">
-                <div className="flex justify-between"><span className="text-muted-foreground">Rows Shown</span><strong>{queryError ? "—" : totalRows}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Low Stock</span><strong>{queryError ? "—" : lowStock}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Negative</span><strong>{queryError ? "—" : negative}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Rows</span><strong>{queryError || summaryTotal === null ? "—" : summaryTotal}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Low Stock</span><strong>{queryError || lowStock === null ? "—" : lowStock}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Negative</span><strong>{queryError || negative === null ? "—" : negative}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Scope</span><strong>Branch</strong></div>
               </div>
               <div className="my-3 border-t" />
               <div className="flex justify-between gap-3 text-xs">
                 <span className="text-muted-foreground">Inventory Value</span>
-                <strong>{queryError ? "—" : formatCurrency(totalValue)}</strong>
+                <strong>{queryError || totalValue === null ? "—" : formatCurrency(totalValue)}</strong>
               </div>
             </ConsoleSection>
             <ConsoleSection title="PR basket">

@@ -12,7 +12,7 @@ For document authority and conflict resolution, read `docs/SOURCE_OF_TRUTH.md`.
 
 - Repository release candidate: `v9.2.69 — Operational clarity and roster coverage`.
 - Verified Production application and database versions are recorded separately in `docs/qa/SYSTEM_QUALITY_2026-09-15.md`; repository state must never be described as deployed merely because code or a migration exists locally.
-- Repository migration ceiling: `299_stock_operation_summary_reads`.
+- Repository migration ceiling: `300_stock_balance_summary`.
 - Vercel builds use Node.js 22 LTS and `npm ci --no-audit --no-fund`; `package.json`, `package-lock.json`, and the visible application version must remain synchronized.
 - Tenant isolation, inventory posting atomicity, procurement/document transitions, concurrency controls, and credential handoff are database-authoritative.
 - Start with `docs/PILOT_BASELINE.md`, use the controlled CSV files in `docs/import-templates/`, and record sign-off in `docs/PILOT_QA_CHECKLIST.md`.

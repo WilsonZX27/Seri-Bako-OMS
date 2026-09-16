@@ -1,6 +1,6 @@
 # System closure review — 2026-09-16
 
-This is repository evidence for v9.2.69. Migration 298 is Production applied and read-back verified; migration 299 and the current application commit are not yet deployed.
+This is repository evidence for v9.2.69. Migration 298 is Production applied and read-back verified; migrations 299–300 and the current application commits are not yet deployed.
 
 ## Release gates
 
@@ -8,11 +8,11 @@ This is repository evidence for v9.2.69. Migration 298 is Production applied and
 | --- | --- | --- |
 | Strict TypeScript | `npm run typecheck:strict` | Pass |
 | ESLint | `npm run lint` | Pass |
-| Contract suite | 1,274 tests | Pass |
+| Contract suite | 1,277 tests | Pass |
 | Production build | Next.js 15.5.21, 102 routes, 102 kB shared first load | Pass with isolated test environment |
 | Stock Count integrity | 148 focused inventory/Stock Count contracts | Pass |
 | Responsive browser UAT | Stock Count at 390×844, 768×1024, 820×1180 and 1440×960 | Blocked: the configured local Supabase at `127.0.0.1:55431` is not running and Docker Desktop is not installed |
-| Linked schema | Repository migration ceiling 299; linked Production ledger verified through 298 | Migration 299 not yet applied |
+| Linked schema | Repository migration ceiling 300; linked Production ledger verified through 298 | Migrations 299–300 not yet applied |
 | Production runtime | Authenticated Production session expired during this review | Not reverified |
 
 ## Findings closed in this review
@@ -25,6 +25,7 @@ This is repository evidence for v9.2.69. Migration 298 is Production applied and
 6. **Purchase Return load path.** The queue now filters, sorts and paginates in PostgreSQL through a security-invoker view. Its right-rail summary is one aggregate RPC instead of repeated full reads and line downloads.
 7. **Local build guard.** The prebuild check now reads `.env.local` before validating the same public variables that Next.js consumes.
 8. **Stock-operation summaries.** Stock Transfer and Stock Wastage right rails now use constant-size, security-invoker aggregate RPCs instead of loading each complete queue into the application.
+9. **Stock Balance summary truth.** Stock Balance metrics now cover the full filtered scope rather than the visible page, and Movement Ledger valuation no longer downloads every balance row.
 
 ## Architecture judgement
 
@@ -36,8 +37,8 @@ The visual system is more coherent, but `design-system-v2.css` still contains a 
 
 ## Remaining release work
 
-1. Start an isolated Supabase/Docker target, apply migrations through 299, seed the role fixture and run the full responsive matrix.
-2. Apply migration 299 to the linked target before deploying application code that invokes its two summary RPCs.
+1. Start an isolated Supabase/Docker target, apply migrations through 300, seed the role fixture and run the full responsive matrix.
+2. Apply migrations 299–300 to the linked target before deploying application code that invokes their summary RPCs.
 3. Reverify authenticated Production routes and performance after deployment; record measured server timing rather than inferring it from build output.
 4. Continue reducing the compatibility CSS only alongside phone, tablet and desktop screenshots and geometry assertions.
 

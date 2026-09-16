@@ -356,6 +356,8 @@ export function StockCountForm({
 
   function confirmRetirement() {
     if (!retirementItemId || retirementNote.trim().length < 3) return;
+    const selectedLine = lines.find((line) => line.item_id === retirementItemId);
+    if (toNumber(selectedLine?.physicalQty ?? 0) !== 0) return;
     markDirty();
     setLines((current) => current.map((line) => line.item_id === retirementItemId ? { ...line, retireAfterCount: true, retirementReason, retirementNote: retirementNote.trim() } : line));
     setRetirementItemId(null);
@@ -630,8 +632,8 @@ export function StockCountForm({
             <div className="mt-4 space-y-4">
               <Field label="Retirement reason"><SelectNative value={retirementReason} onChange={(event) => setRetirementReason(event.target.value as RetirementReason)}><option value="used_up">Used up and no longer required</option><option value="wrong_or_duplicate_code">Wrong or duplicate item code</option><option value="branch_no_longer_uses">This branch no longer uses it</option><option value="other">Other</option></SelectNative></Field>
               <Field label="What happened and what Purchasing should update"><Textarea value={retirementNote} onChange={(event) => setRetirementNote(event.target.value)} minLength={3} maxLength={1000} required placeholder="Explain why this item is retiring and any AutoCount correction needed." /></Field>
-              <p className="rounded-[var(--sb-control-radius)] bg-[var(--sb-surface-muted)] p-3 text-xs text-muted-foreground">Final actual stock: <strong className="text-foreground">{formatQuantity(toNumber(lines.find((line) => line.item_id === retirementItemId)?.physicalQty ?? 0))} {lines.find((line) => line.item_id === retirementItemId)?.uom ?? ""}</strong>. Change the count field first if this is not correct.</p>
-              <div className="flex justify-end gap-2"><Button ref={retirementCancelRef} type="button" variant="outline" onClick={() => setRetirementItemId(null)}>Keep active</Button><Button type="button" disabled={retirementNote.trim().length < 3} onClick={confirmRetirement}>Retire after posting</Button></div>
+              <p className="rounded-[var(--sb-control-radius)] bg-[var(--sb-surface-muted)] p-3 text-xs text-muted-foreground">Final actual stock: <strong className="text-foreground">{formatQuantity(toNumber(lines.find((line) => line.item_id === retirementItemId)?.physicalQty ?? 0))} {lines.find((line) => line.item_id === retirementItemId)?.uom ?? ""}</strong>. An item can retire only when this count is zero.</p>
+              <div className="flex justify-end gap-2"><Button ref={retirementCancelRef} type="button" variant="outline" onClick={() => setRetirementItemId(null)}>Keep active</Button><Button type="button" disabled={retirementNote.trim().length < 3 || toNumber(lines.find((line) => line.item_id === retirementItemId)?.physicalQty ?? 0) !== 0} onClick={confirmRetirement}>Retire after posting</Button></div>
             </div>
           </ModalShell>
 

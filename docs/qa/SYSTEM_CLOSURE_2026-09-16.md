@@ -8,7 +8,7 @@ This is repository evidence for v9.2.69. Migrations 298–300 are Production app
 | --- | --- | --- |
 | Strict TypeScript | `npm run typecheck:strict` | Pass |
 | ESLint | `npm run lint` | Pass |
-| Contract suite | 1,281 tests | Pass |
+| Contract suite | 1,282 tests | Pass |
 | Production build | Next.js 15.5.21, 102 routes, 102 kB shared first load | Pass with isolated test environment |
 | Stock Count integrity | 148 focused inventory/Stock Count contracts | Pass |
 | Responsive browser UAT | Stock Count at 390×844, 768×1024, 820×1180 and 1440×960 | Blocked: the configured local Supabase at `127.0.0.1:55431` is not running and Docker Desktop is not installed |
@@ -28,6 +28,7 @@ This is repository evidence for v9.2.69. Migrations 298–300 are Production app
 9. **Stock Balance summary truth.** Stock Balance metrics now cover the full filtered scope rather than the visible page, and Movement Ledger valuation no longer downloads every balance row.
 10. **Inventory form payloads.** Stock Transfer and Stock Wastage creation now read the selected source branch through a six-field availability projection. Production creation reads only active-recipe ingredient balances and does not fetch form options before the create permission succeeds.
 11. **Item detail stock truth.** An Item detail now reads only that item's branch-visible balances and sums them. It no longer loads every item and no longer risks presenting one arbitrary branch balance as the company-visible total.
+12. **Items fallback stock truth.** The non-RPC Items workspace fallback now aggregates every visible branch balance per item instead of retaining whichever branch row happened to be last.
 
 ## Architecture judgement
 

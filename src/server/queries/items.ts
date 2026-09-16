@@ -105,7 +105,15 @@ export async function getItems(filters: ItemFilters = {}) {
 const getItemsWithStockBase = cache(async () => {
   const balances = await getStockBalances();
   const itemDetails = isMockMode() ? mockItems : await getItems();
-  const balanceByItemId = new Map(balances.map((balance) => [balance.item_id, balance]));
+  const balanceByItemId = new Map<string, (typeof balances)[number] & { current_stock: number }>();
+  for (const balance of balances) {
+    const currentStock = Number(balance.current_stock ?? balance.current_qty ?? 0);
+    const existing = balanceByItemId.get(balance.item_id);
+    balanceByItemId.set(balance.item_id, {
+      ...balance,
+      current_stock: Number(existing?.current_stock ?? 0) + currentStock,
+    });
+  }
   return itemDetails.map((item) => {
     const balance = balanceByItemId.get(item.id);
     return {

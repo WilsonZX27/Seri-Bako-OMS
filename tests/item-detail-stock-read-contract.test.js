@@ -17,3 +17,13 @@ test("item detail reads and sums only its own branch-visible balances", () => {
   assert.match(page, /getItemStockTotal\(id\)/);
   assert.doesNotMatch(page, /getItemsWithStock\(\)/);
 });
+
+test("the Items fallback aggregates repeated branch rows instead of keeping one branch", () => {
+  const fallback = query.slice(
+    query.indexOf("const getItemsWithStockBase"),
+    query.indexOf("export async function getItemsWithStock("),
+  );
+  assert.match(fallback, /const existing = balanceByItemId\.get\(balance\.item_id\)/);
+  assert.match(fallback, /Number\(existing\?\.current_stock \?\? 0\) \+ currentStock/);
+  assert.doesNotMatch(fallback, /new Map\(balances\.map/);
+});

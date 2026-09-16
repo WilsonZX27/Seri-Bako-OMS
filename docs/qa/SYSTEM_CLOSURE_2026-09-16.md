@@ -1,6 +1,6 @@
 # System closure review — 2026-09-16
 
-This is repository evidence for v9.2.69. Migrations 298–300 are Production applied and read-back verified. Application commit `40ffb110` was deployed through Vercel Production deployment `5g5SetJPo2CXjPQREndgfSK8kMkt` and verified through `https://system.seribako.com.my`.
+This is repository evidence for v9.2.69. Migrations 298–301 are Production applied and read-back verified. Application commit `e0e56504` was deployed through Vercel Production deployment `H8mWwdnxGNzvbRcN4XS1thNhb6Ap` and verified through `https://system.seribako.com.my`.
 
 ## Release gates
 
@@ -11,9 +11,9 @@ This is repository evidence for v9.2.69. Migrations 298–300 are Production app
 | Contract suite | 1,288 tests | Pass; the loopback lifecycle contract was run outside the restricted socket sandbox |
 | Production build | Next.js 15.5.21, 102 routes, 102 kB shared first load | Pass with isolated test environment |
 | Stock Count integrity | 148 focused inventory/Stock Count contracts | Pass |
-| Responsive browser UAT | Production: 18 critical workspaces at 430×932; create flow at 390×844; populated Item, Stock Count and Purchase Request details at 820×1180; core workspace at 1440×900 | Pass for the recorded Production matrix; the exhaustive local fixture matrix remains unavailable because local Supabase is not running |
-| Linked schema | Repository and linked Production ledger verified through 300 | Pass; all three summary functions are security-invoker, authenticated-only |
-| Production runtime | Purchasing and Super Admin authenticated checks on the custom domain; bounded PR list; dashboard ready in 3,230 ms; 18 mobile routes returned 200 with no page/browser errors or horizontal overflow | Pass |
+| Responsive browser UAT | Production: 18 critical workspaces at 430×932; create flow at 390×844; populated Item, Stock Count and Purchase Request details at 820×1180; 13 shared list surfaces at 430×932, 820×1180, 1180×820 and 1440×900 | Pass for the recorded Production matrix; the exhaustive local role fixture matrix remains outstanding |
+| Linked schema | Repository and linked Production ledger verified through 301 | Pass; Recipe transition is security-definer with an internal permission guard, authenticated-only; the three summary functions remain security-invoker |
+| Production runtime | Purchasing and Super Admin authenticated checks on the custom domain; bounded PR list; latest dashboard ready in 2,583 ms; responsive list and costing-readiness smoke suites passed 8/8 | Pass |
 
 ## Findings closed in this review
 
@@ -33,7 +33,8 @@ This is repository evidence for v9.2.69. Migrations 298–300 are Production app
 14. **Dashboard smoke contract.** The performance test now follows the current accessible dashboard contract: a visible level-one user heading plus the Purchasing role. It no longer waits for the removed `Local purchasing` heading.
 15. **Costing report scaling.** Recipe Costing and Costing Readiness now index recipe lines once instead of rescanning the full line collection for every recipe. Recipe Costing, Costing Readiness and Product Margin also request explicit calculation projections rather than complete Item, Product, Supplier, Packaging, Recipe and Recipe Line rows. The in-process computation is linear in recipes plus lines, and database payloads exclude unrelated master-data fields.
 16. **Filter-surface cascade ownership.** Legacy filter CSS now retains layout only. The v2 design layer exclusively owns list-filter and More-panel borders, background, radius and elevation, and no longer needs `!important` for the shared panel/control radii. The compatibility layer is two forced declarations smaller and a contract prevents visual ownership from drifting back into `globals.css`.
-17. **Recipe lifecycle atomicity.** Repository migration 301 moves submit, approve, activate, reject and archive into one tenant-scoped transaction. Recipe and Document states, revision history, activity and superseded active versions now commit together; activating a version locks competing active versions and retains the existing partial unique index as the final concurrency guard. Production remains verified through migration 300 until migration 301 is applied and read back.
+17. **Recipe lifecycle atomicity.** Migration 301 moves submit, approve, activate, reject and archive into one tenant-scoped transaction. Recipe and Document states, revision history, activity and superseded active versions now commit together; activating a version locks competing active versions and retains the existing partial unique index as the final concurrency guard. Production read-back confirmed the function, authenticated grant, anonymous revoke and internal permission guard.
+18. **Latest Production verification.** Vercel Production deployment `H8mWwdnxGNzvbRcN4XS1thNhb6Ap` reached Ready from commit `e0e56504`. The authenticated custom-domain run passed 6/6 responsive list/filter tests across phone, tablet portrait, tablet landscape and desktop, plus 2/2 dashboard-performance and Costing Readiness tests. The dashboard was ready in 2,583 ms.
 
 ## Architecture judgement
 
@@ -45,7 +46,7 @@ The visual system is more coherent, but `design-system-v2.css` still contains a 
 
 ## Remaining release work
 
-1. Apply and read back repository migration 301, then start an isolated Supabase/Docker target through 301, seed the role fixture and run the exhaustive responsive and role matrix without exercising mutation flows against Production.
+1. Start an isolated Supabase/Docker target through 301, seed the role fixture and run the exhaustive role and mutation matrix without exercising mutation flows against Production.
 2. Continue reducing the compatibility CSS only alongside phone, tablet and desktop screenshots and geometry assertions.
 3. Add server-side observability for route and database latency percentiles; browser smoke timing alone cannot prove sustained tail latency under concurrent load.
 

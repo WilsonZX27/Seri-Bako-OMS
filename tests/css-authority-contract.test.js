@@ -6,6 +6,24 @@ const postcss = require("postcss");
 
 const root = path.resolve(__dirname, "..");
 
+function cssPropertyOwners(file) {
+  const stylesheet = postcss.parse(fs.readFileSync(file, "utf8"), { from: file });
+  const owners = new Map();
+  stylesheet.walkRules((rule) => {
+    const scopes = [];
+    for (let parent = rule.parent; parent && parent.type !== "root"; parent = parent.parent) {
+      if (parent.type === "atrule") scopes.unshift(`@${parent.name} ${parent.params}`);
+    }
+    for (const selector of rule.selectors ?? [rule.selector]) {
+      const key = `${scopes.join(" > ") || "base"} :: ${selector.trim()}`;
+      const properties = owners.get(key) ?? new Map();
+      rule.walkDecls((declaration) => properties.set(declaration.prop, declaration.source?.start?.line ?? 0));
+      owners.set(key, properties);
+    }
+  });
+  return owners;
+}
+
 test("canonical design layer has one rule owner per selector and media scope", () => {
   const file = path.join(root, "src/app/design-system-v2.css");
   const stylesheet = postcss.parse(fs.readFileSync(file, "utf8"), { from: file });
@@ -26,6 +44,23 @@ test("canonical design layer has one rule owner per selector and media scope", (
     .map(([key, lines]) => `${key} at lines ${lines.join(", ")}`);
 
   assert.deepEqual(duplicates, [], `Split CSS authority found:\n${duplicates.join("\n")}`);
+});
+
+test("global and responsive layers never own the same property for the same selector scope", () => {
+  const globalOwners = cssPropertyOwners(path.join(root, "src/app/globals.css"));
+  const designOwners = cssPropertyOwners(path.join(root, "src/app/design-system-v2.css"));
+  const conflicts = [];
+
+  for (const [selector, globalProperties] of globalOwners) {
+    const designProperties = designOwners.get(selector);
+    if (!designProperties) continue;
+    for (const [property, globalLine] of globalProperties) {
+      const designLine = designProperties.get(property);
+      if (designLine) conflicts.push(`${selector} :: ${property} at globals:${globalLine}, v2:${designLine}`);
+    }
+  }
+
+  assert.deepEqual(conflicts, [], `Cross-file CSS authority conflict:\n${conflicts.join("\n")}`);
 });
 
 test("responsive design layer consumes global geometry tokens instead of redefining them", () => {

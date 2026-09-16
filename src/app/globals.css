@@ -342,7 +342,6 @@ input[type="date"]::-webkit-date-and-time-value {
 
 .sb-filter-more > summary {
   display: inline-flex;
-  min-height: 2.125rem;
   cursor: pointer;
   list-style: none;
   align-items: center;

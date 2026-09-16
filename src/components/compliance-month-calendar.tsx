@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -68,7 +68,11 @@ export function ComplianceMonthCalendar({ baseHref, month, events }: { baseHref:
       <Button variant="outline" size="sm" className="shrink-0 border-amber-300 bg-amber-50 text-amber-950 hover:bg-amber-100" onClick={() => go(new Date())}>Today</Button>
       <div className="grid min-w-0 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center justify-self-center">
         <Button variant="ghost" size="icon" onClick={() => go(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))} aria-label="Previous month"><ChevronLeft className="h-4 w-4" /></Button>
-        <input aria-label="Choose year and month" type="month" value={prefix} onChange={(event) => event.target.value && router.push(monthHref(event.target.value))} className="h-10 min-w-0 w-full border-0 bg-transparent text-center text-sm font-semibold sm:w-44" />
+        <label className="relative min-w-0 cursor-pointer rounded-md hover:bg-[var(--sb-surface-muted)] focus-within:ring-2 focus-within:ring-[var(--sb-green-700)]">
+          <span className="sr-only">Choose year and month</span>
+          <input aria-label="Choose year and month" type="month" value={prefix} onChange={(event) => event.target.value && router.push(monthHref(event.target.value))} className="h-10 min-w-0 w-full cursor-pointer appearance-none border-0 bg-transparent px-1 pr-5 text-center text-sm font-semibold outline-none [color-scheme:light] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0 sm:w-44" />
+          <ChevronDown className="pointer-events-none absolute right-1 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+        </label>
         <Button variant="ghost" size="icon" onClick={() => go(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))} aria-label="Next month"><ChevronRight className="h-4 w-4" /></Button>
       </div>
       <span className="w-[4.5rem]" aria-hidden="true" />
@@ -79,7 +83,7 @@ export function ComplianceMonthCalendar({ baseHref, month, events }: { baseHref:
       const dateKey = day ? `${prefix}-${String(day).padStart(2, "0")}` : "";
       return <div key={index} className={cn("min-h-16 border-b border-r border-[var(--sb-border-soft)] p-1 sm:min-h-28 sm:p-2", !day && "bg-[var(--sb-surface-muted)]/45")}>
         {day ? <>
-          <button type="button" onClick={() => setSelectedDate(dateKey)} aria-label={`${dateKey}, ${dayEvents.length} events`} aria-pressed={selectedDate === dateKey} className={cn("ml-auto flex h-10 w-full items-center justify-end rounded px-2 text-xs tabular-nums", dateKey === todayKey && "font-bold text-[var(--sb-green-800)]", selectedDate === dateKey && "bg-[var(--sb-green-100)] ring-1 ring-inset ring-[var(--sb-green-700)]")}>{day}</button>
+          <button type="button" onClick={() => setSelectedDate(dateKey)} aria-label={`${dateKey}, ${dayEvents.length} events`} aria-pressed={selectedDate === dateKey} className={cn("ml-auto flex h-10 w-full items-center justify-end gap-0.5 rounded px-1 text-xs tabular-nums transition-colors hover:bg-[var(--sb-surface-muted)]", dateKey === todayKey && "font-bold text-[var(--sb-green-800)]", selectedDate === dateKey && "bg-[var(--sb-green-100)] ring-1 ring-inset ring-[var(--sb-green-700)]")}>{day}<ChevronRight className="h-3 w-3 text-muted-foreground sm:hidden" aria-hidden="true" /></button>
           {dayEvents.length ? <>
             <div className="mt-1 flex flex-wrap justify-end gap-1 sm:hidden">{dayEvents.slice(0, 3).map((event) => <Link key={event.id} href={event.href} aria-label={`${event.title}: ${event.context}`} className={cn("h-2.5 w-2.5 rounded-full ring-2 ring-white", eventTone(event.state))} />)}{dayEvents.length > 3 ? <span className="text-[9px] font-semibold text-muted-foreground">+{dayEvents.length - 3}</span> : null}</div>
             <div className="mt-1 hidden space-y-1 sm:block">{dayEvents.slice(0, 2).map((event) => <Link key={event.id} href={event.href} className="block min-h-10 rounded-[2px] bg-[var(--sb-surface-muted)] px-1.5 py-1 text-[10px] leading-3 hover:bg-[var(--sb-green-50)]"><span className="flex items-center gap-1"><i className={cn("h-1.5 w-1.5 shrink-0 rounded-full", eventTone(event.state))} /><strong className="truncate">{event.title}</strong></span><span className="mt-0.5 block truncate text-muted-foreground">{event.context}</span></Link>)}</div>

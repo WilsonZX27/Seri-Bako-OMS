@@ -8,11 +8,12 @@ const query = fs.readFileSync("src/server/queries/attendance.ts", "utf8");
 const migration281 = fs.readFileSync("supabase/migrations/281_schedule_publish_recalculates_attendance.sql", "utf8");
 const migration282 = fs.readFileSync("supabase/migrations/282_schedule_completeness_and_cross_outlet_projection.sql", "utf8");
 const migration295 = fs.readFileSync("supabase/migrations/295_schedule_revision_replay_sequence.sql", "utf8");
+const migration297 = fs.readFileSync("supabase/migrations/297_structured_cross_outlet_scheduling.sql", "utf8");
 
 test("schedule editor and draft actions only exist in editable workflow states", () => {
   assert.match(source, /\["draft", "returned", "rejected", "amendment_pending"\]\.includes\([\s\S]*?week\.status/);
   assert.match(source, /editableStatus && canDraft/);
-  assert.match(source, /disabled=\{!editableStatus \|\| !canDraft \|\| Boolean\(external\)\}/);
+  assert.match(source, /disabled=\{!editableStatus \|\| !canDraft\}/);
 });
 
 test("workbook replays continue cleared assignment revision history", () => {
@@ -27,7 +28,10 @@ test("full-time roster days are complete and cross-outlet shifts stay canonical"
   assert.match(migration282, /aw\.branch_id<>w\.branch_id/);
   assert.match(migration282, /work_site_label/);
   assert.match(migration282, /branch_type in \('outlet','central_kitchen'\)/);
-  assert.match(source, /At \{awayLabel\}/);
+  assert.doesNotMatch(source, /At \{awayLabel\}/);
+  assert.match(source, /destinationBranchId/);
+  assert.match(migration297, /save_schedule_week_with_destinations/);
+  assert.match(migration297, /destination outlet's canonical roster/);
   assert.match(source, /tone === "external" && "border-cyan-300 bg-cyan-50 text-cyan-950"/);
   assert.match(source, /Correct published schedule/);
   assert.match(source, /Confirm & publish/);

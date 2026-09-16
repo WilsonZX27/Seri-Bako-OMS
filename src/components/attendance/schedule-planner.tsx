@@ -59,6 +59,7 @@ type Assignment = {
   custom_maximum_recognised_seconds?: number | null;
   custom_reason?: string | null;
   work_site_label?: string | null;
+  destination_branch_id?: string | null;
   ro_minutes?: number | null;
   ro_original_start?: string | null;
   ro_original_end?: string | null;
@@ -140,11 +141,6 @@ function durationSeconds(start: string, end: string, crosses = false) {
   let value = (eh * 60 + em - sh * 60 - sm) * 60;
   if (crosses || value < 0) value += 86400;
   return Math.max(value, 0);
-}
-function signedDuration(value: number) {
-  const sign = value >= 0 ? "+" : "−";
-  const seconds = Math.abs(Math.round(value));
-  return `${sign}${String(Math.floor(seconds / 3600)).padStart(2, "0")}:${String(Math.floor((seconds % 3600) / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 }
 const timeOptions = attendanceTimeOptions();
 function TimeSelect({
@@ -270,6 +266,7 @@ export function SchedulePlanner({
     capMinutes: 510,
     comment: "",
     workSiteLabel: "",
+    destinationBranchId: "current",
     templateId: null as string | null,
     originalStart: "08:00",
     originalEnd: "16:30",
@@ -337,7 +334,8 @@ export function SchedulePlanner({
             custom_break_seconds: custom.breakMinutes * 60,
             custom_maximum_recognised_seconds: custom.capMinutes * 60,
             custom_reason: custom.comment.trim() || "Outlet roster custom time",
-            work_site_label: custom.workSiteLabel.trim() || null,
+            work_site_label: custom.destinationBranchId === "event" ? custom.workSiteLabel.trim() || null : null,
+            destination_branch_id: !["current", "event"].includes(custom.destinationBranchId) ? custom.destinationBranchId : null,
           }
         : {}),
     };
@@ -363,10 +361,6 @@ export function SchedulePlanner({
   }
   function clickCell(key: string, event: React.MouseEvent) {
     if (!editableStatus || !canDraft) return;
-    if (externalCells.has(key)) {
-      setMessage("This shift is owned by another outlet. Open that outlet schedule to change it.");
-      return;
-    }
     if (event.shiftKey || event.ctrlKey || event.metaKey) {
       setSelected((current) => {
         const next = new Set(current);
@@ -384,6 +378,8 @@ export function SchedulePlanner({
       return;
     }
     const existing = cells.get(key);
+    const external = externalCells.get(key);
+    const selectedPerson = candidates.find((item) => item.id === key.split(":")[0]);
     if (existing?.assignment_kind === "shift") {
       const template = existing.shift_template_id
         ? templates.find((item) => item.id === existing.shift_template_id)
@@ -400,28 +396,22 @@ export function SchedulePlanner({
               template?.planned_end ??
               existing.custom_end,
           ) || "16:30";
+      const start = compactTime(existing.custom_start ?? template?.planned_start) || originalStart;
+      const end = compactTime(existing.custom_end ?? template?.planned_end) || originalEnd;
+      const spanMinutes = durationSeconds(start, end, end <= start) / 60;
+      const storedBreakMinutes = Number((template?.planned_break_seconds ?? existing.custom_break_seconds ?? 0) / 60);
+      const breakMinutes = selectedPerson?.employment_type === "part_time" ? 0 : spanMinutes > 300 && storedBreakMinutes === 0 ? 60 : storedBreakMinutes;
       setCustom({
-        start:
-          compactTime(existing.custom_start ?? template?.planned_start) ||
-          originalStart,
-        end:
-          compactTime(existing.custom_end ?? template?.planned_end) ||
-          originalEnd,
-        breakMinutes: Number(
-          (template?.planned_break_seconds ??
-            existing.custom_break_seconds ??
-            3600) / 60,
-        ),
-        capMinutes: Number(
-          (template?.maximum_recognised_seconds ??
-            existing.custom_maximum_recognised_seconds ??
-            30600) / 60,
-        ),
+        start,
+        end,
+        breakMinutes,
+        capMinutes: Math.min(Number((template?.maximum_recognised_seconds ?? existing.custom_maximum_recognised_seconds ?? 30600) / 60), Math.max(spanMinutes - breakMinutes, 1), 720),
         comment:
           existing.custom_reason === "Outlet roster custom time" || isImportAuditReason(existing.custom_reason)
             ? ""
             : (existing.custom_reason ?? ""),
         workSiteLabel: existing.work_site_label ?? "",
+        destinationBranchId: existing.destination_branch_id ?? branches.find((branch) => branch.branch_name === existing.work_site_label)?.id ?? (existing.work_site_label ? "event" : "current"),
         templateId: existing.shift_template_id,
         originalStart,
         originalEnd,
@@ -431,11 +421,33 @@ export function SchedulePlanner({
             ? "early_finish"
             : "late_start",
       });
+    } else if (external) {
+      const start = compactTime(external.planned_start);
+      const end = compactTime(external.planned_end);
+      const spanMinutes = durationSeconds(start, end, end <= start) / 60;
+      setCustom((value) => ({
+        ...value,
+        start,
+        end,
+        breakMinutes: selectedPerson?.employment_type === "part_time" ? 0 : 60,
+        capMinutes: Math.min(selectedPerson?.employment_type === "part_time" ? spanMinutes : 510, spanMinutes),
+        comment: "",
+        workSiteLabel: "",
+        destinationBranchId: external.branch_id,
+        templateId: null,
+        roMinutes: 0,
+        roDirection: "late_start",
+        originalStart: start,
+        originalEnd: end,
+      }));
     } else {
       setCustom((value) => ({
         ...value,
+        breakMinutes: selectedPerson?.employment_type === "part_time" ? 0 : 60,
+        capMinutes: selectedPerson?.employment_type === "part_time" ? 300 : 510,
         comment: "",
         workSiteLabel: "",
+        destinationBranchId: "current",
         templateId: null,
         roMinutes: 0,
         roDirection: "late_start",
@@ -1074,7 +1086,7 @@ export function SchedulePlanner({
                   </span>
                   <button
                     type="button"
-                    disabled={!editableStatus || !canDraft || Boolean(external)}
+                    disabled={!editableStatus || !canDraft}
                     onClick={(event) => clickCell(key, event)}
                     className={cn(
                       "relative min-h-11 w-full rounded-[var(--sb-radius-control)] border px-2 py-1 text-[11px] font-semibold leading-tight",
@@ -1101,7 +1113,7 @@ export function SchedulePlanner({
                     style={!external && tone === "work" ? shiftColourStyle(value) : undefined}
                     aria-label={`${person.full_name}, ${selectedMobileDate}: ${awayLabel ? `working at ${awayLabel}` : cellLabel(value) || "unassigned"}`}
                   >
-                    {awayLabel ? <span className="block break-words">At {awayLabel}</span> : <span className="block break-words">{cellLabel(value) || "Add"}</span>}
+                    {awayLabel ? <span className="block break-words">{awayLabel}</span> : <span className="block break-words">{cellLabel(value) || "Add"}</span>}
                     {value?.custom_reason &&
                     value.custom_reason !== "Outlet roster custom time" && !isImportAuditReason(value.custom_reason) ? (
                       <MessageSquareText
@@ -1309,7 +1321,7 @@ export function SchedulePlanner({
                           <td key={date} className="border-b border-r p-1">
                             <button
                               type="button"
-                              disabled={!editableStatus || !canDraft || Boolean(external)}
+                              disabled={!editableStatus || !canDraft}
                               onClick={(event) => clickCell(key, event)}
                               aria-label={`${person.full_name}, ${date}: ${awayLabel ? `working at ${awayLabel}` : cellLabel(value) || "unassigned"}`}
                               className={cn(
@@ -1340,7 +1352,7 @@ export function SchedulePlanner({
                                   : undefined
                               }
                             >
-                              {awayLabel ? <span className="block break-words">At {awayLabel}</span> : <span className="block break-words">{cellLabel(value) || "Add"}</span>}
+                              {awayLabel ? <span className="block break-words">{awayLabel}</span> : <span className="block break-words">{cellLabel(value) || "Add"}</span>}
                               {value?.custom_reason &&
                           value.custom_reason !== "Outlet roster custom time" &&
                               !isImportAuditReason(value.custom_reason) ? (
@@ -1441,16 +1453,17 @@ export function SchedulePlanner({
               />
             </div>
             <label className="grid gap-1 text-xs">
-              Work location <span className="font-normal text-muted-foreground">(optional for event or temporary site)</span>
-              <Input value={custom.workSiteLabel} maxLength={120} onChange={(event) => setCustom((value) => ({ ...value, workSiteLabel: event.target.value }))} placeholder="Example: Event Bukit Jalil" />
+              Work location
+              <SelectControl ariaLabel="Work location" portalContainer={customDialog.current} value={custom.destinationBranchId} onValueChange={(destinationBranchId) => setCustom((value) => ({ ...value, destinationBranchId, workSiteLabel: destinationBranchId === "event" ? value.workSiteLabel : "", templateId: destinationBranchId === "current" ? value.templateId : null }))} options={[{ value: "current", label: currentBranchName }, ...branches.filter((branch) => branch.id !== branchId).map((branch) => ({ value: branch.id, label: branch.branch_name })), { value: "event", label: "Event" }]} searchable searchPlaceholder="Search outlets" />
             </label>
+            {custom.destinationBranchId === "event" ? <label className="grid gap-1 text-xs">
+              Event name
+              <Input value={custom.workSiteLabel} maxLength={120} onChange={(event) => setCustom((value) => ({ ...value, workSiteLabel: event.target.value }))} placeholder="Example: Bukit Jalil roadshow" />
+            </label> : null}
             <div className="flex items-center justify-between gap-3 rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] px-3 py-2 text-xs">
-              <span className="text-muted-foreground">Scheduled span · compared with 8.5h</span>
+              <span className="text-muted-foreground">Scheduled span</span>
               <strong className="tabular-nums">
                 {(durationSeconds(custom.start, custom.end, custom.end <= custom.start) / 3600).toFixed(2).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1")} hours
-                <span className={cn("ml-1", durationSeconds(custom.start, custom.end, custom.end <= custom.start) > 30600 ? "text-rose-700" : "text-muted-foreground")}>
-                  ({signedDuration(durationSeconds(custom.start, custom.end, custom.end <= custom.start) - 30600)})
-                </span>
               </strong>
             </div>
             <div className="flex flex-wrap items-center gap-2" aria-label="Quick non-working assignment">
@@ -1489,11 +1502,11 @@ export function SchedulePlanner({
                 />
               </label>
               <label className="grid gap-1 text-xs">
-                Maximum paid time (minutes)
+                Paid time limit (minutes)
                 <Input
                   type="number"
                   min={1}
-                  max={1440}
+                  max={720}
                   step={1}
                   value={custom.capMinutes}
                   onChange={(event) =>
@@ -1642,7 +1655,8 @@ export function SchedulePlanner({
                           custom_reason:
                             custom.comment.trim() ||
                             "Outlet roster custom time",
-                          work_site_label: custom.workSiteLabel.trim() || null,
+                          work_site_label: custom.destinationBranchId === "event" ? custom.workSiteLabel.trim() || null : null,
+                          destination_branch_id: !["current", "event"].includes(custom.destinationBranchId) ? custom.destinationBranchId : null,
                           ro_minutes: custom.roMinutes || null,
                           ro_original_start: custom.roMinutes
                             ? custom.originalStart

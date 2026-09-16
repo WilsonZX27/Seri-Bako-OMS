@@ -1,6 +1,6 @@
 # System closure review — 2026-09-16
 
-This is repository evidence for v9.2.69. Migrations 298–301 are Production applied and read-back verified. Application commit `a3995824` was deployed through Vercel Production deployment `JA67tTahNtP2Wk5TuQWRo9mi13LA` and verified through `https://system.seribako.com.my`.
+This is repository evidence for v9.2.69. Migrations 298–301 are Production applied and read-back verified. Application commit `cbc585e7` was deployed through Vercel Production deployment `ChgB6zkm83X3m8A5FT3Rr2N6aG2o` and verified through `https://system.seribako.com.my`.
 
 ## Release gates
 
@@ -13,7 +13,7 @@ This is repository evidence for v9.2.69. Migrations 298–301 are Production app
 | Stock Count integrity | 148 focused inventory/Stock Count contracts | Pass |
 | Responsive browser UAT | Production: 18 critical workspaces at 430×932; create flow at 390×844; populated Item, Stock Count and Purchase Request details at 820×1180; 13 shared list surfaces at 430×932, 820×1180, 1180×820 and 1440×900; 13 compatibility-migrated routes at phone width | Pass for the recorded Production matrix; the exhaustive local role fixture matrix remains outstanding |
 | Linked schema | Repository and linked Production ledger verified through 301 | Pass; Recipe transition is security-definer with an internal permission guard, authenticated-only; the three summary functions remain security-invoker |
-| Production runtime | Purchasing and Super Admin authenticated checks on the custom domain; bounded PR list; dashboard ready in 2,962 ms; responsive list and costing-readiness smoke suites passed 8/8; latest Procurement Variance phone/tablet/desktop ready in 2,535/1,467/2,070 ms | Pass |
+| Production runtime | Purchasing and Super Admin authenticated checks on the custom domain; bounded PR list; dashboard ready in 2,962 ms; responsive list and costing-readiness smoke suites passed 8/8; latest Procurement Variance phone/tablet/desktop ready in 2,535/1,467/2,070 ms; Stock Balance ready in 3,377/1,743/1,662 ms | Pass |
 
 ## Findings closed in this review
 
@@ -38,6 +38,7 @@ This is repository evidence for v9.2.69. Migrations 298–301 are Production app
 19. **Procurement Variance scaling.** The report now requests explicit calculation projections from all nine source tables. It indexes receiving lines by PO line, invoice lines by receiving/PO identity and supplier prices by supplier/item/UOM once, replacing repeated complete-dataset scans inside every order-line comparison. The resulting in-process work is linear in the fetched source rows plus emitted comparisons. Production deployment `6RGP4cHi8xjQqVDb4VJyHK7mqb2R` reached Ready from commit `ad0b8082`; authenticated phone, tablet and desktop checks loaded the workspace in 2,933 ms, 1,753 ms and 1,662 ms with no page errors or horizontal overflow.
 20. **Latency percentile evidence.** Server-side observability now records a bounded 25-sample window for all Supabase requests and for the Dashboard and Procurement Variance data-loading boundaries. Each window emits p50, p95, p99, maximum and failure count without retaining or logging URLs, query strings, filters, credentials, record identifiers or bodies. The collector caps series cardinality and clears each emitted window, so observability cannot grow process memory without bound. Commit `7ade9a58` reached Ready in Production deployment `CqfobriRudVA9ybksgCJxg6z9F2R`; authenticated custom-domain checks passed with Dashboard ready in 2,962 ms and Procurement Variance ready in 2,535/1,467/2,070 ms at phone/tablet/desktop widths.
 21. **Explicit radius ownership.** All 58 legacy `rounded-[2px]` utilities were replaced with the panel or control radius token at their source sites. This removed 34 compatibility-CSS lines that previously guessed radius ownership from utility combinations, and a recursive source contract plus rendered phone assertion prevents that legacy utility from returning. Commit `a3995824` reached Ready in Production deployment `JA67tTahNtP2Wk5TuQWRo9mi13LA`; an authenticated custom-domain sweep passed across 13 migrated routes with no legacy radius utilities, horizontal overflow or conflicting action-color systems.
+22. **Stock Balance enrichment latency.** Item image/default-supplier chunks and branch supplier mappings now share one parallel request wave. A 500-item page therefore uses one enrichment wave instead of as many as six sequential waves while retaining the existing optional-read warnings and fail-closed supplier presentation. Commit `cbc585e7` reached Ready in Production deployment `ChgB6zkm83X3m8A5FT3Rr2N6aG2o`; the authenticated custom-domain check rendered 335 records in 3,377 ms on phone, 1,743 ms on tablet and 1,662 ms on desktop, with no page errors or horizontal overflow.
 
 ## Architecture judgement
 

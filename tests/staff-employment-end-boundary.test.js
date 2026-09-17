@@ -14,11 +14,13 @@ test("staff form and planner expose the date-effective offboarding boundary", ()
   const form = fs.readFileSync("src/components/foundation-forms.tsx", "utf8");
   const planner = fs.readFileSync("src/components/attendance/schedule-planner.tsx", "utf8");
   const importer = fs.readFileSync("src/components/attendance/schedule-workbook-import.tsx", "utf8");
+  const styles = fs.readFileSync("src/app/globals.css", "utf8");
   assert.match(form, /name="employment_end_date" type="date"/);
   assert.match(planner, /date > person\.employment_end_date/);
   assert.match(planner, /Employment ended/);
-  assert.match(importer, /fixed left-1\/2 top-1\/2 m-0/);
-  assert.match(importer, /-translate-x-1\/2 -translate-y-1\/2/);
+  assert.match(importer, /sb-schedule-import-dialog/);
+  assert.match(styles, /dialog\.sb-schedule-import-dialog\[open\][\s\S]*inset: 50% auto auto 50%/);
+  assert.match(styles, /dialog\.sb-schedule-import-dialog\[open\][\s\S]*transform: translate\(-50%, -50%\)/);
 });
 
 test("RESIGN is an HR marker rather than a fabricated schedule assignment", () => {

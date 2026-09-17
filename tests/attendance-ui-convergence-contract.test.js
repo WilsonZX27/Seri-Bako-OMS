@@ -114,6 +114,8 @@ test("schedule workbook UI previews live identities and imports only verified ed
   assert.match(read("src/app/api/attendance/schedule/import-catalog/route.ts"), /default_branch_id/);
   assert.match(read("src/app/api/attendance/schedule/import-catalog/route.ts"), /outlet_supervisor/);
   assert.match(read("src/components/attendance/schedule-workbook-import.tsx"), /Partial draft/);
+  assert.match(workbookImportUi, /sb-schedule-import-dialog/);
+  assert.match(read("src/app/globals.css"), /dialog\.sb-schedule-import-dialog\[open\][\s\S]*inset: 50% auto auto 50%;[\s\S]*transform: translate\(-50%, -50%\);/);
 });
 
 test("staff detail leads with the profile and removes the redundant helper paragraph", () => {

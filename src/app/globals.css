@@ -1045,6 +1045,15 @@ dialog.m-auto[open] {
   margin: auto;
 }
 
+/* Native dialog positioning varies between browser engines. Keep the schedule
+   import anchored to the visual center with one explicit owning selector. */
+dialog.sb-schedule-import-dialog[open] {
+  position: fixed;
+  inset: 50% auto auto 50%;
+  margin: 0;
+  transform: translate(-50%, -50%);
+}
+
 @media (min-width: 1280px) {
   dialog.sb-dialog-workspace-centered[open] {
     transform: translateX(calc(var(--sb-sidebar-width) / 2));

@@ -47,7 +47,7 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
       <div className="min-w-0 flex-1"><h2 className="text-sm font-semibold">Schedule workbook</h2><p className="mt-0.5 text-xs text-muted-foreground">Preview the company workbook against live staff, outlets and existing week status before anything changes.</p></div>
       <Button size="sm" variant="outline" onClick={() => dialog.current?.showModal()}><FileSpreadsheet className="h-4 w-4"/>Import workbook</Button>
     </section>
-    <dialog ref={dialog} className="fixed left-1/2 top-1/2 m-0 max-h-[calc(100dvh-2rem)] w-[min(48rem,calc(100vw-2rem))] max-w-none -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-2xl backdrop:bg-black/55">
+    <dialog ref={dialog} className="sb-schedule-import-dialog max-h-[calc(100dvh-2rem)] w-[min(48rem,calc(100vw-2rem))] max-w-none overflow-hidden rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-2xl backdrop:bg-black/55">
       <div className="flex max-h-[calc(100dvh-2rem)] flex-col">
         <header className="flex items-start gap-3 border-b border-[var(--sb-border-soft)] p-4"><div className="min-w-0 flex-1"><h2 className="text-base font-semibold">Import schedule workbook</h2><p className="mt-1 text-xs text-muted-foreground">Week {weekStart}. This preview fails closed: unclear times, HR instructions and published rosters are never overwritten.</p></div><Button size="icon" variant="ghost" aria-label="Close schedule import" onClick={() => dialog.current?.close()}><X className="h-4 w-4"/></Button></header>
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">

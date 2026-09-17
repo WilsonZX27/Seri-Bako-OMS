@@ -1,6 +1,6 @@
 # System closure review — 2026-09-16
 
-This is repository evidence for v9.2.69. Migrations 298–304 are Production applied and read-back verified. The latest verified Production application before the current release candidate is commit `521527d3` through Vercel deployment `Ezfs2HJnB3cL7h1HfYGtM7VmWPta` on `https://system.seribako.com.my`; the dedicated dialog-centering and compliance convergence changes remain in the release candidate until promotion.
+This is repository evidence for v9.2.69. Migrations 298–305 are Production applied and read-back verified. The latest verified Production application before the current release candidate is commit `521527d3` through Vercel deployment `Ezfs2HJnB3cL7h1HfYGtM7VmWPta` on `https://system.seribako.com.my`; the dedicated dialog-centering and compliance convergence application changes remain in the release candidate until promotion. Migration 305 is already live and safe with the older application because it retires a duplicate checklist requirement while preserving historical records.
 
 ## Release gates
 
@@ -12,7 +12,7 @@ This is repository evidence for v9.2.69. Migrations 298–304 are Production app
 | Production build | Next.js 15.5.21, 102 routes, 102 kB shared first load | Pass with isolated test environment |
 | Stock Count integrity | 148 focused inventory/Stock Count contracts | Pass |
 | Responsive browser UAT | Production: 18 critical workspaces at 430×932; create flow at 390×844; populated Item, Stock Count and Purchase Request details at 820×1180; 13 shared list surfaces at 430×932, 820×1180, 1180×820 and 1440×900; 13 compatibility-migrated routes at phone width | Pass for the recorded Production matrix; the exhaustive local role fixture matrix remains outstanding |
-| Linked schema | Repository reviewed through 305; linked Production ledger verified through 304 | Pass for Production 304; migration 305 is the pending release dependency |
+| Linked schema | Repository reviewed through 305; linked Production migration 305 returned `active_bomba_types=0`, `required_bomba_assignments=0`, and preserved one historical BOMBA record | Pass through Production 305 |
 | Production runtime | Purchasing and Super Admin authenticated checks on the custom domain; bounded PR list; dashboard ready in 2,962 ms; responsive list and costing-readiness smoke suites passed 8/8; latest Procurement Variance phone/tablet/desktop ready in 2,535/1,467/2,070 ms; Stock Balance ready in 3,377/1,743/1,662 ms | Pass |
 
 ## Findings closed in this review

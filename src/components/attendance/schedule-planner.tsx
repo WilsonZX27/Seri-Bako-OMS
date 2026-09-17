@@ -36,6 +36,7 @@ type Person = {
   staff_code: string | null;
   employment_type: string;
   role_code: string;
+  employment_end_date?: string | null;
 };
 type Template = {
   id: string;
@@ -1316,16 +1317,18 @@ export function SchedulePlanner({
                           value = cells.get(key),
                           external = externalCells.get(key),
                           awayLabel = localAwayLabel(value) ?? (!value ? external?.branch_name : null),
+                          ended = Boolean(person.employment_end_date && date > person.employment_end_date),
                           tone = awayLabel ? "external" : cellTone(value);
                         return (
                           <td key={date} className="border-b border-r p-1">
                             <button
                               type="button"
-                              disabled={!editableStatus || !canDraft}
+                              disabled={ended || !editableStatus || !canDraft}
                               onClick={(event) => clickCell(key, event)}
                               aria-label={`${person.full_name}, ${date}: ${awayLabel ? `working at ${awayLabel}` : cellLabel(value) || "unassigned"}`}
                               className={cn(
                                 "relative min-h-11 w-full rounded-[var(--sb-radius-control)] border px-1.5 py-1 text-xs font-semibold leading-tight transition-colors disabled:cursor-default",
+                                ended && "border-slate-200 bg-slate-100 text-slate-500",
                                 tone === "external" && "border-cyan-300 bg-cyan-50 text-cyan-950",
                                 tone === "empty" &&
                                   "border-transparent text-[var(--sb-text)] opacity-70 enabled:hover:border-[var(--sb-border-soft)] enabled:hover:bg-[var(--sb-surface-muted)]",
@@ -1352,7 +1355,7 @@ export function SchedulePlanner({
                                   : undefined
                               }
                             >
-                              {awayLabel ? <span className="block break-words">{awayLabel}</span> : <span className="block break-words">{cellLabel(value) || "Add"}</span>}
+                              {ended ? <span className="block break-words">Employment ended</span> : awayLabel ? <span className="block break-words">{awayLabel}</span> : <span className="block break-words">{cellLabel(value) || "Add"}</span>}
                               {value?.custom_reason &&
                           value.custom_reason !== "Outlet roster custom time" &&
                               !isImportAuditReason(value.custom_reason) ? (

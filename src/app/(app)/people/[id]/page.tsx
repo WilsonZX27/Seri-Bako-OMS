@@ -244,6 +244,7 @@ export default async function PeopleProfilePage({
                     }
                   />
                   <Fact label="Role" value={staffSummary?.role_name} />
+                  <Fact label="Last working date" value={staff.employment_end_date} />
                   <Fact
                     label="Default outlet"
                     value={staffSummary?.default_branch_name}

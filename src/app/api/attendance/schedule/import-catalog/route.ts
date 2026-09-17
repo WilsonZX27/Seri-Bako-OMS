@@ -37,9 +37,10 @@ export async function GET(request: Request) {
       return { branchId: branch.id, people: (staffResult.data ?? []) as Array<{ id: string; full_name: string }> };
     }));
     for (const result of staffResults) for (const person of result.people) { staffIds.add(person.id); staff.push({ id: person.id, name: person.full_name, branch_id: result.branchId }); }
-    const homeResult = staffIds.size ? await db.from("staffs").select("id,default_branch_id").in("id", [...staffIds]) : { data: [], error: null };
+    const homeResult = staffIds.size ? await db.from("staffs").select("id,default_branch_id,employment_end_date").in("id", [...staffIds]) : { data: [], error: null };
     if (homeResult.error) throw homeResult.error;
     const homeByStaff = new Map(((homeResult.data ?? []) as Array<{ id: string; default_branch_id: string | null }>).map((person) => [person.id, person.default_branch_id]));
+    const employmentEndByStaff = new Map(((homeResult.data ?? []) as Array<{ id: string; employment_end_date: string | null }>).map((person) => [person.id, person.employment_end_date]));
     const roleResult = staffIds.size ? await db.from("staff_roles").select("staff_id,effective_from,effective_to,is_primary,roles(role_code)").in("staff_id", [...staffIds]).eq("is_primary", true) : { data: [], error: null };
     if (roleResult.error) throw roleResult.error;
     const roleRows = (roleResult.data ?? []) as Array<{ staff_id: string; effective_from: string; effective_to: string | null; roles: { role_code?: string } | Array<{ role_code?: string }> | null }>;
@@ -53,6 +54,8 @@ export async function GET(request: Request) {
       const roleCode = (row: (typeof roleRows)[number]) => Array.isArray(row.roles) ? row.roles[0]?.role_code : row.roles?.role_code;
       const currentSchedulable = rows.some((row) => ["outlet_staff", "outlet_supervisor", "kitchen"].includes(roleCode(row) ?? "") && row.effective_from <= today && (!row.effective_to || row.effective_to >= today));
       const eligibleDays = days.filter((day) => {
+        const employmentEnd = employmentEndByStaff.get(staffId);
+        if (employmentEnd && day > employmentEnd) return false;
         const covering = rows.filter((row) => row.effective_from <= day && (!row.effective_to || row.effective_to >= day));
         return covering.some((row) => ["outlet_staff", "outlet_supervisor", "kitchen"].includes(roleCode(row) ?? "")) || (day < today && covering.length === 0 && currentSchedulable);
       });

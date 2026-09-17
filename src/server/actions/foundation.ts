@@ -387,6 +387,7 @@ function staffPayload(formData: FormData, companyId: string) {
     email: formValue(formData, "email"),
     phone: formValue(formData, "phone"),
     employment_type: formValue(formData, "employment_type") ?? "full_time",
+    employment_end_date: formValue(formData, "employment_end_date"),
     default_branch_id: null,
     status: formValue(formData, "status") ?? "invited",
   });
@@ -437,7 +438,7 @@ async function replaceStaffAccess(staffId: string, formData: FormData, payload?:
     p_phone: payload?.phone,
   });
   if (error) throw new Error(error.message);
-  if(payload){const actor=await requireActiveTenantActor();const admin=createAdminClient();const {error:employmentError}=await admin.from("staffs").update({employment_type:payload.employment_type}).eq("id",staffId).eq("company_id",actor.companyId);if(employmentError)throw new Error(employmentError.message);}
+  if(payload){const actor=await requireActiveTenantActor();const admin=createAdminClient();const {error:employmentError}=await admin.from("staffs").update({employment_type:payload.employment_type,employment_end_date:payload.employment_end_date}).eq("id",staffId).eq("company_id",actor.companyId);if(employmentError)throw new Error(employmentError.message);}
 }
 
 async function getCurrentStaffId() {

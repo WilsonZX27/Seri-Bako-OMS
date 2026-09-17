@@ -34,10 +34,10 @@ export const getCurrentProfile = cache(async function getCurrentProfile() {
 
   const { data: staff } = await supabase
     .from("staffs")
-    .select("id,company_id,auth_user_id,staff_code,full_name,email,phone,avatar_url,default_branch_id,employment_type,status,must_change_password,invitation_status,deleted_at")
+    .select("id,company_id,auth_user_id,staff_code,full_name,email,phone,avatar_url,default_branch_id,employment_type,employment_end_date,status,must_change_password,invitation_status,deleted_at")
     .eq("auth_user_id", user.id)
     .maybeSingle();
-  if (staff && staff.status === "active" && !staff.deleted_at) {
+  if (staff && staff.status === "active" && !staff.deleted_at && (!staff.employment_end_date || staff.employment_end_date >= todayInKualaLumpur())) {
     const { data: staffRoles } = await supabase
       .from("staff_roles")
       .select("role_id, is_primary, effective_from, effective_to")

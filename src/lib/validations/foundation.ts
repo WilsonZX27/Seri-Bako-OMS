@@ -48,6 +48,7 @@ export const staffSchema = z.object({
   email: z.email("Enter a valid email").trim().toLowerCase(),
   phone: z.string().trim().max(48).optional().nullable().transform((value) => (value ? value : null)),
   employment_type: z.enum(["full_time", "part_time"]),
+  employment_end_date: z.union([z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Enter a valid last working date"), z.literal("")]).optional().nullable().transform((value) => (value ? value : null)),
   default_branch_id: z.string().uuid().optional().nullable().transform((value) => (value ? value : null)),
   status: staffStatusSchema,
 });

@@ -55,13 +55,15 @@ async function requireLinkedStaffForAuthUser(userId: string, userEmail: string |
   const admin = createAdminClient();
   const { data: linked, error } = await admin
     .from("staffs")
-    .select("id, email, invite_email, status")
+    .select("id, email, invite_email, status, employment_end_date")
     .eq("auth_user_id", userId)
     .is("deleted_at", null)
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!linked) throw new Error("This sign-in is not linked to a staff profile. Ask the Super Admin / Owner to repair the sign-in link.");
   if (linked.status === "disabled") throw new Error("This staff account is disabled.");
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  if (linked.employment_end_date && linked.employment_end_date < today) throw new Error("This staff account has reached its last working date.");
   const normalized = userEmail.trim().toLowerCase();
   const staffEmails = [linked.email, linked.invite_email].filter(Boolean).map((value) => value!.trim().toLowerCase());
   if (!staffEmails.length || !staffEmails.some((value) => value === normalized)) {

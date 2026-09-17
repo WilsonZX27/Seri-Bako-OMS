@@ -50,6 +50,7 @@ type Staff = {
   last_login_at?: string | null;
   invite_email?: string | null;
   employment_type?: "full_time" | "part_time";
+  employment_end_date?: string | null;
 };
 
 type StaffAccess = {
@@ -244,6 +245,10 @@ export function StaffForm({
               <option value="full_time">Full-time</option>
               <option value="part_time">Part-time</option>
             </SelectNative>
+          </Field>
+          <Field label="Last Working Date">
+            <Input name="employment_end_date" type="date" defaultValue={staff?.employment_end_date ?? ""} className="form-control-compact" />
+            <p className="mt-1 text-xs text-muted-foreground">The account stops working after this date. Historical schedules and payroll stay intact.</p>
           </Field>
         </div>
       </RecordSection>

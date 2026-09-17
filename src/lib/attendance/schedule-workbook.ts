@@ -52,7 +52,7 @@ const SHEET_BRANCHES: Record<string, string> = {
 const KINDS: Record<string, ScheduleWorkbookAssignment["assignment_kind"]> = {
   OFF: "off", "OFF DAY": "off", PH: "ph", AL: "al", MC: "mc", UPL: "upl", RO: "ro", OIL: "oil",
 };
-const BLOCKED = new Set(["CLEAR OT", "RESIGN", "LATE"]);
+const BLOCKED = new Set(["CLEAR OT", "LATE"]);
 const LOCATION_ALIASES: Record<string, string> = {
   PYRAMID: "Kwan Kee Store @ Sunway Pyramid",
   "SUNWAY PYRAMID": "Kwan Kee Store @ Sunway Pyramid",
@@ -243,6 +243,7 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
       issues.push({ sheet: item.sheet, employee: item.employee, date: item.date, value: label, reason: "actual_attendance_exception", message: `${item.sheet} · ${item.employee} · ${item.date}: MC belongs in actual attendance; the existing scheduled shift ${existing ? "was retained" : "must be reported separately"}.` });
     }
     else if (KINDS[label] && !secondText) outlet.assignments.push({ staff_id: staff.id, work_date: item.date, assignment_kind: KINDS[label], shift_template_id: null });
+    else if (label === "RESIGN" && !secondText) { /* HR marker: the profile's last working date owns future eligibility. */ }
     else if (BLOCKED.has(label)) issues.push({ sheet: item.sheet, employee: item.employee, date: item.date, value: label, reason: "business_instruction", message: `${item.sheet} · ${item.employee} · ${item.date}: “${label}” is not a schedule assignment.` });
     else if (label && !locationByPersonDay.has(`${key(item.employee)}:${item.date}`) && !destinationKeys.has(`${key(item.employee)}:${item.date}`)) issues.push({ sheet: item.sheet, employee: item.employee, date: item.date, value: label, reason: "external_time_missing", message: `${item.sheet} · ${item.employee} · ${item.date}: “${label}” needs a destination shift time.` });
   }

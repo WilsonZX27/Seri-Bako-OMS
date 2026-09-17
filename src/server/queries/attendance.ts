@@ -14,30 +14,31 @@ export async function getAttendanceWorkspace(weekStart = malaysiaWeekStart()) {
   if (!(await hasPermission("attendance.read"))) throw new Error("Missing permission: attendance.read");
   const db = looseSupabase(await createClient());
   const weekEnd = new Date(`${weekStart}T00:00:00Z`); weekEnd.setUTCDate(weekEnd.getUTCDate() + 6);
+  const weekEndDate = weekEnd.toISOString().slice(0, 10);
   const [weeks, requests, exceptions, reports, batches, rawPeople, mappings, locks] = await Promise.all([
     db.from("schedule_weeks").select("id,status,branch_id,week_start,updated_at").eq("week_start", weekStart),
-    db.from("shift_change_requests").select("id,status,created_at").in("status", ["pending_supervisor", "pending_manager"]),
-    db.from("attendance_exceptions").select("id,severity,resolved_at").is("resolved_at", null),
-    db.from("daily_attendance_reports").select("id").eq("status","pending").gte("work_date",weekStart).lte("work_date",weekEnd.toISOString().slice(0,10)),
-    db.from("attendance_import_batches").select("id,parser_profile,file_name,status,row_count,error_count,warning_count,finalised_at").eq("week_start", weekStart).order("created_at", { ascending: false }).limit(5),
-    db.from("attendance_raw_punch_events").select("person_id").gte("local_timestamp", `${weekStart} 00:00:00`).lte("local_timestamp", `${weekEnd.toISOString().slice(0, 10)} 23:59:59`),
+    db.from("shift_change_requests").select("id", { count: "exact", head: true }).in("status", ["pending_supervisor", "pending_manager"]),
+    db.from("attendance_exceptions").select("id,daily_attendance_results!attendance_exceptions_result_id_fkey!inner(work_date)", { count: "exact", head: true }).is("resolved_at", null).gte("daily_attendance_results.work_date", weekStart).lte("daily_attendance_results.work_date", weekEndDate),
+    db.from("daily_attendance_reports").select("id", { count: "exact", head: true }).eq("status","pending").gte("work_date",weekStart).lte("work_date",weekEndDate),
+    db.from("attendance_import_batches").select("id,parser_profile,file_name,status,row_count,error_count,warning_count,finalised_at").eq("week_start", weekStart).order("created_at", { ascending: false }).limit(1),
+    db.from("attendance_raw_punch_events").select("person_id").gte("local_timestamp", `${weekStart} 00:00:00`).lte("local_timestamp", `${weekEndDate} 23:59:59`),
     db.from("ngteco_person_mappings").select("person_id").eq("is_active", true),
-    db.from("attendance_period_locks").select("id,branch_id,locked_at,unlocked_at").eq("week_start", weekStart).is("unlocked_at", null),
+    db.from("attendance_period_locks").select("id", { count: "exact", head: true }).eq("week_start", weekStart).is("unlocked_at", null),
   ]);
   for (const result of [weeks, requests, exceptions, reports, batches, rawPeople, mappings, locks]) if (result.error) throw result.error;
   const scheduleWeeks = (weeks.data ?? []) as unknown as Array<{ status: string }>;
   const mappedIds = new Set(((mappings.data ?? []) as unknown as Array<{ person_id: string }>).map((row) => row.person_id));
   return {
     weekStart,
-    weekEnd: weekEnd.toISOString().slice(0, 10),
+    weekEnd: weekEndDate,
     pendingApprovals: scheduleWeeks.filter((week: { status: string }) => week.status === "submitted").length,
-    pendingRequests: (requests.data ?? []).length,
-    unresolvedExceptions: (exceptions.data ?? []).length,
-    pendingActualReports: (reports.data ?? []).length,
+    pendingRequests: requests.count ?? 0,
+    unresolvedExceptions: exceptions.count ?? 0,
+    pendingActualReports: reports.count ?? 0,
     missingMappings: new Set(((rawPeople.data ?? []) as unknown as Array<{ person_id: string }>).map((row) => row.person_id).filter((id) => !mappedIds.has(id))).size,
     scheduleStatus: scheduleWeeks.length ? (scheduleWeeks.every((week: { status: string }) => week.status === "locked") ? "locked" : scheduleWeeks.some((week: { status: string }) => week.status === "submitted") ? "submitted" : "draft") : "not_started",
     latestBatch: (batches.data ?? [])[0] ?? null,
-    activeLocks: (locks.data ?? []).length,
+    activeLocks: locks.count ?? 0,
   };
 }
 

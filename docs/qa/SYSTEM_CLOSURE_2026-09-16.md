@@ -1,6 +1,6 @@
 # System closure review — 2026-09-16
 
-This is repository evidence for v9.2.69. Migrations 298–302 are Production applied and read-back verified. Application commit `8fc02d3f` was deployed through Vercel Production deployment `FtgUgQ6e2nNT41cX4QtVryiwTaRw` and verified through `https://system.seribako.com.my`.
+This is repository evidence for v9.2.69. Migrations 298–302 are Production applied and read-back verified. Application commit `4e2bef79` was deployed through Vercel Production deployment `Anwx2U1shX5h1tkjoUi91cxtg7iM` and verified through `https://system.seribako.com.my`.
 
 ## Release gates
 
@@ -49,7 +49,7 @@ This is repository evidence for v9.2.69. Migrations 298–302 are Production app
 30. **Shared supplier-option payload.** The cached supplier directory and branch-supplier mapping boundary now share the same five-field supplier projection used by their consumers. Procurement, inventory, item and import pages no longer download complete supplier records merely to render an option label or resolve a supplier mapping; a source contract fixes both projections together.
 31. **Purchase-return picker scaling.** The new-return GRN picker now reads only the five receiving fields and three line fields required to label eligible receipts and calculate remaining quantity. It aggregates all receiving lines into a GRN-keyed map once, replacing the former full-record downloads and repeated complete-line scan for every receipt. The in-process work is now linear in receipts plus lines.
 32. **Dashboard compliance summary boundary.** The dashboard now calls a purpose-built issue-count query instead of loading the complete Outlet Compliance workspace. It reads only outlet/type identities, the status fields needed to select the latest record, and attachment entity identities; file metadata, uploaders, requirement forms and full page models no longer enter the dashboard critical path. The issue definition remains identical: required outlet/type pairs with no record, missing evidence or an expired latest record.
-33. **Current-user role scope boundary.** The shared request-scope resolver now embeds only the current staff member's assigned role metadata and filters retired roles in memory. It no longer downloads the tenant-wide role directory for every cold scope resolution, while retaining the same primary-role ordering, effective-date checks, branch scope and fail-closed read behavior. High-frequency dashboard, topbar, notification and procurement consumers therefore use two parallel scoped reads instead of three.
+33. **Current-user role scope boundary.** The shared request-scope resolver now embeds only the current staff member's assigned role metadata and filters retired roles in memory. It no longer downloads the tenant-wide role directory for every cold scope resolution, while retaining the same primary-role ordering, effective-date checks, branch scope and fail-closed read behavior. High-frequency dashboard, topbar, notification and procurement consumers therefore use two parallel scoped reads instead of three. Commit `4e2bef79` reached Ready in Vercel Production deployment `Anwx2U1shX5h1tkjoUi91cxtg7iM`; the custom domain was reassigned and the authenticated Attendance workspace loaded its four navigation surfaces, current attention counts and latest NGTeco import after a fresh reload.
 
 ## Architecture judgement
 

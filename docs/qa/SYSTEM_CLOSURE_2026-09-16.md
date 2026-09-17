@@ -1,6 +1,6 @@
 # System closure review — 2026-09-16
 
-This is repository evidence for v9.2.69. Migrations 298–302 are Production applied and read-back verified. Application commit `40439d5a` was deployed through Vercel Production deployment `GSoECdtU1uFSz2QkGqQA4MKYk54N` and verified through `https://system.seribako.com.my`.
+This is repository evidence for v9.2.69. Migrations 298–302 are Production applied and read-back verified. Application commit `fa19a132` was deployed through Vercel Production deployment `312HmQKHf7YBD6egeLams2VP5nUc` and verified through `https://system.seribako.com.my`.
 
 ## Release gates
 
@@ -8,7 +8,7 @@ This is repository evidence for v9.2.69. Migrations 298–302 are Production app
 | --- | --- | --- |
 | Strict TypeScript | `npm run typecheck:strict` | Pass |
 | ESLint | `npm run lint` | Pass |
-| Contract suite | 1,299 tests | Pass; the loopback lifecycle contract was run outside the restricted socket sandbox |
+| Contract suite | 1,301 tests | Pass; the loopback lifecycle contract was run outside the restricted socket sandbox |
 | Production build | Next.js 15.5.21, 102 routes, 102 kB shared first load | Pass with isolated test environment |
 | Stock Count integrity | 148 focused inventory/Stock Count contracts | Pass |
 | Responsive browser UAT | Production: 18 critical workspaces at 430×932; create flow at 390×844; populated Item, Stock Count and Purchase Request details at 820×1180; 13 shared list surfaces at 430×932, 820×1180, 1180×820 and 1440×900; 13 compatibility-migrated routes at phone width | Pass for the recorded Production matrix; the exhaustive local role fixture matrix remains outstanding |
@@ -42,6 +42,7 @@ This is repository evidence for v9.2.69. Migrations 298–302 are Production app
 23. **Cross-outlet projection ownership.** Destination-roster shifts now carry the source branch and source schedule-week identity. Removing, repatriating or moving a staff-day retires only that source roster's exact projection; an immutable destination week fails closed. Destination edits preserve provenance, and weekly copy plus Manager correction use the structured destination RPC so copied or corrected away shifts remain canonical at the destination.
 24. **Dead responsive filter authority.** The retired `.sb-mobile-list-filter` selector had no TS/TSX owner but still carried two phone layout implementations and one override. Removing the unreachable rules eliminated 25 forced declarations from the compatibility layer without changing rendered components; a recursive source contract prevents the selector from returning. Commit `40439d5a` reached Ready in Vercel Production deployment `GSoECdtU1uFSz2QkGqQA4MKYk54N`; Vercel assigned `system.seribako.com.my`, and the custom domain returned the application access-status surface without a server error.
 25. **Dead list-toolbar authority.** `.sb-list-filter-actions`, `.sb-list-filters--dense` and `.sb-pagination-current` no longer had a TS/TSX owner, but their compatibility rules still claimed desktop filter and pagination geometry. Removing those unreachable rules eliminated seven further forced declarations; the recursive source contract now rejects all four retired selector families.
+26. **Attendance navigation and employee scope.** Migration 302 introduced a second relationship from shift revisions to schedule weeks, so the overview and outlet dashboard now name the canonical schedule-week foreign key instead of relying on an ambiguous PostgREST embed. Both employee-profile attendance actions carry the employee and default outlet into review. Unscheduled-punch detection now compares raw punches with the complete outlet-week coverage set and applies the selected employee scope, rather than treating rows excluded by search or status filters as missing schedules. Commit `fa19a132` reached Ready in Vercel Production deployment `312HmQKHf7YBD6egeLams2VP5nUc`; authenticated custom-domain verification confirmed the Attendance overview, ADAM HAIQAL deep link and employee-scoped empty result without unrelated unscheduled staff.
 
 ## Architecture judgement
 

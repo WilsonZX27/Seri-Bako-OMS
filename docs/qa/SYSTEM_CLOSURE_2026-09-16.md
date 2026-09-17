@@ -8,7 +8,7 @@ This is repository evidence for v9.2.69. Migrations 298–302 are Production app
 | --- | --- | --- |
 | Strict TypeScript | `npm run typecheck:strict` | Pass |
 | ESLint | `npm run lint` | Pass |
-| Contract suite | 1,309 tests | Pass; the loopback lifecycle contract was run outside the restricted socket sandbox |
+| Contract suite | 1,310 tests | Pass; the loopback lifecycle contract was run outside the restricted socket sandbox |
 | Production build | Next.js 15.5.21, 102 routes, 102 kB shared first load | Pass with isolated test environment |
 | Stock Count integrity | 148 focused inventory/Stock Count contracts | Pass |
 | Responsive browser UAT | Production: 18 critical workspaces at 430×932; create flow at 390×844; populated Item, Stock Count and Purchase Request details at 820×1180; 13 shared list surfaces at 430×932, 820×1180, 1180×820 and 1440×900; 13 compatibility-migrated routes at phone width | Pass for the recorded Production matrix; the exhaustive local role fixture matrix remains outstanding |
@@ -49,6 +49,7 @@ This is repository evidence for v9.2.69. Migrations 298–302 are Production app
 30. **Shared supplier-option payload.** The cached supplier directory and branch-supplier mapping boundary now share the same five-field supplier projection used by their consumers. Procurement, inventory, item and import pages no longer download complete supplier records merely to render an option label or resolve a supplier mapping; a source contract fixes both projections together.
 31. **Purchase-return picker scaling.** The new-return GRN picker now reads only the five receiving fields and three line fields required to label eligible receipts and calculate remaining quantity. It aggregates all receiving lines into a GRN-keyed map once, replacing the former full-record downloads and repeated complete-line scan for every receipt. The in-process work is now linear in receipts plus lines.
 32. **Dashboard compliance summary boundary.** The dashboard now calls a purpose-built issue-count query instead of loading the complete Outlet Compliance workspace. It reads only outlet/type identities, the status fields needed to select the latest record, and attachment entity identities; file metadata, uploaders, requirement forms and full page models no longer enter the dashboard critical path. The issue definition remains identical: required outlet/type pairs with no record, missing evidence or an expired latest record.
+33. **Current-user role scope boundary.** The shared request-scope resolver now embeds only the current staff member's assigned role metadata and filters retired roles in memory. It no longer downloads the tenant-wide role directory for every cold scope resolution, while retaining the same primary-role ordering, effective-date checks, branch scope and fail-closed read behavior. High-frequency dashboard, topbar, notification and procurement consumers therefore use two parallel scoped reads instead of three.
 
 ## Architecture judgement
 

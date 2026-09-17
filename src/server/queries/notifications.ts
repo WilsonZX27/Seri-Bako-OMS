@@ -41,23 +41,38 @@ export const getCurrentUserScope = cache(async function getCurrentUserScope(): P
   }
 
   const today = todayInKualaLumpur();
-  const [staffRolesResult, staffBranchesResult, rolesResult] = await Promise.all([
-    supabase.from("staff_roles").select("role_id, branch_id, is_primary, effective_from").eq("staff_id", staffId).lte("effective_from", today).or(`effective_to.is.null,effective_to.gte.${today}`),
+  const [staffRolesResult, staffBranchesResult] = await Promise.all([
+    supabase
+      .from("staff_roles")
+      .select("role_id, branch_id, is_primary, effective_from, roles(role_code, status, deleted_at)")
+      .eq("staff_id", staffId)
+      .lte("effective_from", today)
+      .or(`effective_to.is.null,effective_to.gte.${today}`),
     supabase.from("staff_branches").select("branch_id").eq("staff_id", staffId),
-    supabase.from("roles").select("id, role_code"),
   ]);
-  for (const result of [staffRolesResult, staffBranchesResult, rolesResult]) {
+  for (const result of [staffRolesResult, staffBranchesResult]) {
     if (result.error) throw new Error(result.error.message);
   }
-  const staffRoles = staffRolesResult.data;
+  const staffRoles = (staffRolesResult.data ?? []) as unknown as Array<{
+    role_id: string;
+    branch_id: string | null;
+    is_primary: boolean;
+    effective_from: string | null;
+    roles: { role_code: string; status: string; deleted_at: string | null } | Array<{ role_code: string; status: string; deleted_at: string | null }> | null;
+  }>;
   const staffBranches = staffBranchesResult.data;
-  const roles = rolesResult.data;
 
-  const activeRoles = [...(staffRoles ?? [])].sort((a, b) => Number(Boolean(b.is_primary)) - Number(Boolean(a.is_primary)));
+  const activeRoles = staffRoles
+    .filter((row) => {
+      const role = Array.isArray(row.roles) ? row.roles[0] : row.roles;
+      return role?.status === "active" && role.deleted_at === null;
+    })
+    .sort((a, b) => Number(Boolean(b.is_primary)) - Number(Boolean(a.is_primary)));
   const roleIds = activeRoles.map((row) => row.role_id);
   const branchIds = (staffBranches ?? []).map((row) => row.branch_id);
-  const roleById = new Map((roles ?? []).map((row) => [row.id, row.role_code]));
-  const roleCode = roleIds.map((id) => roleById.get(id)).find(Boolean) ?? "outlet_staff";
+  const roleCode = activeRoles
+    .map((row) => Array.isArray(row.roles) ? row.roles[0]?.role_code : row.roles?.role_code)
+    .find(Boolean) ?? "outlet_staff";
   const companyWideAccess = hasCompanyWideOperationalScope(roleCode);
 
   return { authUserId: user.id, staffId, roleIds, branchIds, roleCode, companyWideAccess };

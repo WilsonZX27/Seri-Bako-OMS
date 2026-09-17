@@ -419,7 +419,7 @@ export default async function AttendanceReviewPage({
                           {signedDuration(row.late_seconds, "late")}
                         </td>
                         <td className="px-3 py-3 tabular-nums">
-                          {duration(row.break_seconds)}
+                          {row.actual_break_out && row.actual_break_in ? <><strong className="block">{time(row.actual_break_out)}–{time(row.actual_break_in)}</strong><span className="block text-[11px] text-muted-foreground">{duration(row.break_seconds)}</span></> : duration(row.break_seconds)}
                         </td>
                         <td className="px-3 py-3 tabular-nums">
                           <span className="block text-[11px] text-muted-foreground">{time(row.scheduled_end)}</span>
@@ -617,6 +617,8 @@ function RowActions({
           resultId={String(row.id)}
           currentSeconds={Number(row.payable_seconds ?? 0)}
           actualFirstIn={typeof row.actual_first_in==="string"?row.actual_first_in:null}
+          actualBreakOut={typeof row.actual_break_out==="string"?row.actual_break_out:null}
+          actualBreakIn={typeof row.actual_break_in==="string"?row.actual_break_in:null}
           actualLastOut={typeof row.actual_last_out==="string"?row.actual_last_out:null}
         />
       ) : (

@@ -116,7 +116,14 @@ export async function getAttendanceReview(weekStart = malaysiaWeekStart(), filte
   let reviewRows = (result.data ?? []) as Array<Record<string, unknown>>;
   const resultStaffIds = [...new Set(reviewRows.map((row) => String(row.staff_id)).filter(Boolean))];
   if (resultStaffIds.length) {
-    const monthly = await db.from("daily_attendance_results").select("staff_id,work_date,missing_punch_count").in("staff_id", resultStaffIds).eq("is_current", true).gte("work_date", ATTENDANCE_TRACKING_START_DATE).order("work_date");
+    const visibleMonths = [...new Set(reviewRows.map((row) => String(row.work_date).slice(0, 7)))];
+    const monthStart = `${visibleMonths.sort()[0]}-01`;
+    const lastMonth = visibleMonths.sort().at(-1)!;
+    const monthEndDate = new Date(`${lastMonth}-01T00:00:00Z`);
+    monthEndDate.setUTCMonth(monthEndDate.getUTCMonth() + 1);
+    monthEndDate.setUTCDate(0);
+    const monthEnd = monthEndDate.toISOString().slice(0, 10);
+    const monthly = await db.from("daily_attendance_results").select("staff_id,work_date,missing_punch_count").in("staff_id", resultStaffIds).eq("is_current", true).gte("work_date", monthStart < ATTENDANCE_TRACKING_START_DATE ? ATTENDANCE_TRACKING_START_DATE : monthStart).lte("work_date", monthEnd).order("work_date");
     if (monthly.error) throw monthly.error;
     const byStaffMonth = new Map<string, { count: number; dates: string[] }>();
     for (const row of (monthly.data ?? []) as Array<{staff_id:string;work_date:string;missing_punch_count:number}>) {
@@ -230,21 +237,31 @@ export async function getAttendancePaySettings() {
   return {rules:rules.data??[],holidays:holidays.data??[],branches:branches.data??[]};
 }
 
-export async function getAttendanceActuals(weekStart = malaysiaWeekStart()) {
+export async function getAttendanceActuals(weekStart = malaysiaWeekStart(), branchId?: string) {
   if (!(await hasPermission("attendance.read"))) throw new Error("Missing permission: attendance.read");
   const db=looseSupabase(await createClient());const end=new Date(`${weekStart}T00:00:00Z`);end.setUTCDate(end.getUTCDate()+6);const weekEnd=end.toISOString().slice(0,10);
-  const [weeks,reports,ledger,claims,reservations,locks]=await Promise.all([
-    db.from("schedule_weeks").select("id").eq("week_start",weekStart).in("status",["published","locked"]),
-    db.from("daily_attendance_reports").select("*,staffs!daily_attendance_reports_staff_id_fkey(full_name,staff_code),branches!daily_attendance_reports_branch_id_fkey(branch_name),attachments!daily_attendance_reports_evidence_attachment_id_fkey(file_name)").gte("work_date",weekStart).lte("work_date",weekEnd).order("submitted_at",{ascending:false}),
-    db.from("comp_time_transactions").select("*,staffs!comp_time_transactions_staff_id_fkey(full_name,staff_code),branches!comp_time_transactions_branch_id_fkey(branch_name)").lte("work_date",weekEnd).order("work_date",{ascending:false}).order("created_at",{ascending:false}),
-    db.from("attendance_ot_claims").select("*,staffs!attendance_ot_claims_staff_id_fkey(full_name,staff_code),branches!attendance_ot_claims_branch_id_fkey(branch_name)").gte("work_date",weekStart).lte("work_date",weekEnd).order("work_date"),
-    db.from("attendance_ro_reservations").select("*,staffs!attendance_ro_reservations_staff_id_fkey(full_name,staff_code),branches!attendance_ro_reservations_branch_id_fkey(branch_name)").gte("work_date",weekStart).lte("work_date",weekEnd).order("work_date"),
-    db.from("attendance_period_locks").select("id,branch_id,week_start,locked_at,unlocked_at").eq("week_start",weekStart).is("unlocked_at",null),
+  const byBranch = <T extends { eq: (column: string, value: string) => T }>(query: T) => branchId ? query.eq("branch_id", branchId) : query;
+  const [weeks,reports,claims,reservations,locks]=await Promise.all([
+    byBranch(db.from("schedule_weeks").select("id").eq("week_start",weekStart).in("status",["published","locked"])),
+    byBranch(db.from("daily_attendance_reports").select("*,staffs!daily_attendance_reports_staff_id_fkey(full_name,staff_code),branches!daily_attendance_reports_branch_id_fkey(branch_name),attachments!daily_attendance_reports_evidence_attachment_id_fkey(file_name)").gte("work_date",weekStart).lte("work_date",weekEnd)).order("submitted_at",{ascending:false}),
+    byBranch(db.from("attendance_ot_claims").select("*,staffs!attendance_ot_claims_staff_id_fkey(full_name,staff_code),branches!attendance_ot_claims_branch_id_fkey(branch_name)").gte("work_date",weekStart).lte("work_date",weekEnd)).order("work_date"),
+    byBranch(db.from("attendance_ro_reservations").select("*,staffs!attendance_ro_reservations_staff_id_fkey(full_name,staff_code),branches!attendance_ro_reservations_branch_id_fkey(branch_name)").gte("work_date",weekStart).lte("work_date",weekEnd)).order("work_date"),
+    byBranch(db.from("attendance_period_locks").select("id,branch_id,week_start,locked_at,unlocked_at").eq("week_start",weekStart).is("unlocked_at",null)),
   ]);
-  for(const result of [weeks,reports,ledger,claims,reservations,locks])if(result.error)throw result.error;
+  for(const result of [weeks,reports,claims,reservations,locks])if(result.error)throw result.error;
   const weekIds=(weeks.data??[]).map((row:Record<string,unknown>)=>String(row.id));
   const assignments=weekIds.length?await db.from("shift_assignment_revisions").select("id,staff_id,branch_id,work_date,assignment_kind,custom_start,custom_end,custom_reason,ro_minutes,ro_original_start,ro_original_end,ro_direction,shift_templates(name,planned_start,planned_end),staffs!shift_assignment_revisions_staff_id_fkey(full_name,staff_code),branches!shift_assignment_revisions_branch_id_fkey(branch_name)").in("schedule_week_id",weekIds).eq("is_current",true).order("work_date"):{data:[],error:null};
   if(assignments.error)throw assignments.error;
+  const relevantStaffIds = [...new Set([
+    ...(assignments.data ?? []),
+    ...(reports.data ?? []),
+    ...(claims.data ?? []),
+    ...(reservations.data ?? []),
+  ].map((row:Record<string,unknown>) => String(row.staff_id ?? "")).filter(Boolean))];
+  const ledger = relevantStaffIds.length
+    ? await db.from("comp_time_transactions").select("*,staffs!comp_time_transactions_staff_id_fkey(full_name,staff_code),branches!comp_time_transactions_branch_id_fkey(branch_name)").in("staff_id", relevantStaffIds).lte("work_date",weekEnd).order("work_date",{ascending:false}).order("created_at",{ascending:false})
+    : {data:[],error:null};
+  if(ledger.error)throw ledger.error;
   const ledgerRows=(ledger.data??[]) as Array<Record<string,unknown>>;const balances:Record<string,number>={};
   for(const row of ledgerRows)if(row.status==="approved")balances[String(row.staff_id)]=(balances[String(row.staff_id)]??0)+Number(row.minutes??0);
   return {assignments:assignments.data??[],reports:reports.data??[],ledger:ledgerRows,balances,claims:claims.data??[],reservations:reservations.data??[],locks:locks.data??[]};

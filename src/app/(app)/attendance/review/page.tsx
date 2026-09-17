@@ -130,7 +130,7 @@ export default async function AttendanceReviewPage({
       page,
       detail: params.detail,
     }) : getAttendanceReviewBranches().then((branches) => ({ rows: [], total: 0, page: 1, pageSize: 100, branches, batches: [], unscheduledPunches: [], detail: null })),
-    branch ? getAttendanceActuals(week) : Promise.resolve({ assignments: [], reports: [], ledger: [], balances: {}, claims: [], reservations: [], locks: [] }),
+    branch ? getAttendanceActuals(week, branch) : Promise.resolve({ assignments: [], reports: [], ledger: [], balances: {}, claims: [], reservations: [], locks: [] }),
     permissions["attendance.import"]
       ? getAttendanceMappings()
       : Promise.resolve(null),

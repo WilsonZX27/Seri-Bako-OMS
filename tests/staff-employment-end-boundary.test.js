@@ -17,7 +17,8 @@ test("staff form and planner expose the date-effective offboarding boundary", ()
   assert.match(form, /name="employment_end_date" type="date"/);
   assert.match(planner, /date > person\.employment_end_date/);
   assert.match(planner, /Employment ended/);
-  assert.match(importer, /fixed inset-0 m-auto/);
+  assert.match(importer, /fixed left-1\/2 top-1\/2 m-0/);
+  assert.match(importer, /-translate-x-1\/2 -translate-y-1\/2/);
 });
 
 test("RESIGN is an HR marker rather than a fabricated schedule assignment", () => {

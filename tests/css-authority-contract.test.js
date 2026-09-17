@@ -125,3 +125,17 @@ test("retired component class selectors cannot return after data-boundary migrat
     );
   }
 });
+
+test("retired data-boundary selectors cannot return", () => {
+  const sourceRoot = path.join(root, "src");
+  const sourceFiles = fs.readdirSync(sourceRoot, { recursive: true })
+    .filter((entry) => /\.(?:css|tsx?|jsx?)$/.test(String(entry)))
+    .map((entry) => path.join(sourceRoot, String(entry)));
+  for (const file of sourceFiles) {
+    assert.doesNotMatch(
+      fs.readFileSync(file, "utf8"),
+      /data-(?:dashboard-primary-column|operational-list|table-scroll|ui-surface)/,
+      `${file} revives a retired data-boundary selector`,
+    );
+  }
+});

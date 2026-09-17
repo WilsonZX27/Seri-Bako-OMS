@@ -370,7 +370,7 @@ export async function getDashboardSummary() {
     needsInventory
       ? getLowStockCount()
       : Promise.resolve({ rows: [], count: 0, unavailable: false }),
-    isOutlet && scope.staffId ? db.from("shift_assignment_revisions").select("id,work_date,assignment_kind,custom_start,custom_end,shift_templates(code,name,planned_start,planned_end,crosses_midnight),schedule_weeks!inner(status)").eq("staff_id",scope.staffId).eq("is_current",true).gte("work_date",today).lte("work_date",nextWeek.toISOString().slice(0,10)).in("schedule_weeks.status",["published","locked"]).order("work_date").limit(8) : Promise.resolve({data:[],error:null}),
+    isOutlet && scope.staffId ? db.from("shift_assignment_revisions").select("id,work_date,assignment_kind,custom_start,custom_end,shift_templates(code,name,planned_start,planned_end,crosses_midnight),schedule_weeks!shift_assignment_revisions_schedule_week_id_fkey!inner(status)").eq("staff_id",scope.staffId).eq("is_current",true).gte("work_date",today).lte("work_date",nextWeek.toISOString().slice(0,10)).in("schedule_weeks.status",["published","locked"]).order("work_date").limit(8) : Promise.resolve({data:[],error:null}),
     needsOperations ? getOutletDailyCompletionMatrix({ history_date: today }).catch((error) => { warnOptionalQuery("outlet completion", error); return null; }) : Promise.resolve(null),
     needsOperations ? getOutletDailyDemandTrend({ period: "7", history_date: today }).catch((error) => { warnOptionalQuery("outlet wastage trend", error); return null; }) : Promise.resolve(null),
     needsCompliance ? getOutletComplianceWorkspace().catch((error) => { warnOptionalQuery("outlet compliance", error); return null; }) : Promise.resolve(null),

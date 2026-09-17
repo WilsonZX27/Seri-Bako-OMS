@@ -155,21 +155,24 @@ export async function getAttendanceReview(weekStart = malaysiaWeekStart(), filte
   }
   const unscheduledPunches: Array<{staff_id:string;full_name:string;work_date:string;punch_count:number;first_punch:string;last_punch:string}> = [];
   if (filters.branch) {
-    const [raw, people, devices] = await Promise.all([
+    const [raw, people, devices, coverage] = await Promise.all([
       db.from("attendance_raw_punch_events").select("person_id,local_timestamp,occurred_at,source_code").gte("local_timestamp",`${weekStart} 00:00:00`).lte("local_timestamp",`${weekEnd} 23:59:59`).order("occurred_at"),
       db.from("ngteco_person_mappings").select("person_id,staff_id,staffs!ngteco_person_mappings_staff_id_fkey(full_name)").eq("is_active",true),
       db.from("ngteco_device_mappings").select("source_code,branch_id").eq("branch_id",filters.branch).eq("is_active",true),
+      db.from("daily_attendance_results").select("staff_id,work_date").eq("branch_id",filters.branch).eq("is_current",true).gte("work_date",weekStart).lte("work_date",weekEnd),
     ]);
-    for (const item of [raw, people, devices]) if (item.error) throw item.error;
+    for (const item of [raw, people, devices, coverage]) if (item.error) throw item.error;
     const sources = new Set((devices.data ?? []).map((row:Record<string,unknown>)=>String(row.source_code)));
     const mapped = new Map((people.data ?? []).map((row:Record<string,unknown>)=>[String(row.person_id),row]));
-    const covered = new Set(reviewRows.map((row:Record<string,unknown>)=>`${row.staff_id}:${row.work_date}`));
+    const covered = new Set((coverage.data ?? []).map((row:Record<string,unknown>)=>`${row.staff_id}:${row.work_date}`));
+    const allowedStaff = staffIds ? new Set(staffIds) : null;
     const grouped = new Map<string,{staff_id:string;full_name:string;work_date:string;values:string[]}>();
     for (const row of (raw.data ?? []) as Array<Record<string,unknown>>) {
       if (!sources.has(String(row.source_code))) continue;
       const person = mapped.get(String(row.person_id)) as Record<string,unknown> | undefined;
       if (!person) continue;
       const staffId=String(person.staff_id),workDate=String(row.local_timestamp).slice(0,10),key=`${staffId}:${workDate}`;
+      if (allowedStaff && !allowedStaff.has(staffId)) continue;
       if (covered.has(key)) continue;
       const staff=person.staffs as {full_name?:string}|null;
       const current=grouped.get(key)??{staff_id:staffId,full_name:staff?.full_name??"Mapped employee",work_date:workDate,values:[]};
@@ -271,7 +274,7 @@ export async function getOwnPublishedShifts(weekStart = malaysiaWeekStart()) {
   if (!(await hasPermission("schedule.request"))) return [];
   const actor = await requireActiveTenantActor();
   const db=looseSupabase(await createClient());const end=new Date(`${weekStart}T00:00:00Z`);end.setUTCDate(end.getUTCDate()+6);
-  const {data,error}=await db.from("shift_assignment_revisions").select("id,work_date,assignment_kind,custom_start,custom_end,shift_templates(code,name,planned_start,planned_end),branches!shift_assignment_revisions_branch_id_fkey(branch_name),schedule_weeks!inner(status)").eq("staff_id",actor.staffId).eq("is_current",true).gte("work_date",weekStart).lte("work_date",end.toISOString().slice(0,10)).in("schedule_weeks.status",["published","locked"]).order("work_date");if(error)throw error;return (data??[]) as unknown as Array<{id:string;work_date:string;assignment_kind:string;custom_start:string|null;custom_end:string|null;shift_templates:{code:string;name:string;planned_start:string;planned_end:string}|null;branches:{branch_name:string}|null}>;
+  const {data,error}=await db.from("shift_assignment_revisions").select("id,work_date,assignment_kind,custom_start,custom_end,shift_templates(code,name,planned_start,planned_end),branches!shift_assignment_revisions_branch_id_fkey(branch_name),schedule_weeks!shift_assignment_revisions_schedule_week_id_fkey!inner(status)").eq("staff_id",actor.staffId).eq("is_current",true).gte("work_date",weekStart).lte("work_date",end.toISOString().slice(0,10)).in("schedule_weeks.status",["published","locked"]).order("work_date");if(error)throw error;return (data??[]) as unknown as Array<{id:string;work_date:string;assignment_kind:string;custom_start:string|null;custom_end:string|null;shift_templates:{code:string;name:string;planned_start:string;planned_end:string}|null;branches:{branch_name:string}|null}>;
 }
 
 export async function getPendingShiftRequests() {

@@ -5,6 +5,9 @@ const fs = require("node:fs");
 const review = fs.readFileSync("src/app/(app)/attendance/review/page.tsx", "utf8");
 const actuals = fs.readFileSync("src/components/attendance/actual-attendance-panel.tsx", "utf8");
 const importer = fs.readFileSync("src/components/attendance/attendance-import-workflow.tsx", "utf8");
+const queries = fs.readFileSync("src/server/queries/attendance.ts", "utf8");
+const dashboardQueries = fs.readFileSync("src/server/queries/dashboard.ts", "utf8");
+const peopleDetail = fs.readFileSync("src/app/(app)/people/[id]/page.tsx", "utf8");
 
 test("completed punch imports cannot be submitted twice", () => {
   assert.match(importer, /disabled=\{Boolean\(summary\)\|\|/);
@@ -34,4 +37,20 @@ test("desktop report tools live in the right rail and warnings wrap", () => {
   assert.match(review, /overflow-hidden xl:hidden/);
   assert.doesNotMatch(review, /whitespace-nowrap text-\[10px\] text-amber-800/);
   assert.match(review, /Punch location differs from schedule/);
+});
+
+test("attendance reads identify the canonical schedule-week relationship after projection provenance", () => {
+  const canonicalRelation = /schedule_weeks!shift_assignment_revisions_schedule_week_id_fkey!inner\(status\)/;
+  assert.match(queries, canonicalRelation);
+  assert.match(dashboardQueries, canonicalRelation);
+  assert.doesNotMatch(queries, /schedule_weeks!inner\(status\)/);
+  assert.doesNotMatch(dashboardQueries, /schedule_weeks!inner\(status\)/);
+});
+
+test("employee attendance links and unscheduled punches retain the selected employee scope", () => {
+  assert.match(peopleDetail, /Open attendance[\s\S]*?employee=\$\{encodeURIComponent\(staff\.full_name\)\}/);
+  assert.match(queries, /daily_attendance_results"\)\.select\("staff_id,work_date"\).*?\.eq\("branch_id",filters\.branch\)/);
+  assert.match(queries, /const allowedStaff = staffIds \? new Set\(staffIds\) : null/);
+  assert.match(queries, /if \(allowedStaff && !allowedStaff\.has\(staffId\)\) continue/);
+  assert.doesNotMatch(queries, /const covered = new Set\(reviewRows\.map/);
 });

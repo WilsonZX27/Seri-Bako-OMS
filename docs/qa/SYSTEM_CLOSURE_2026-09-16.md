@@ -1,6 +1,6 @@
 # System closure review — 2026-09-16
 
-This is repository evidence for v9.2.69. Migrations 298–305 are Production applied and read-back verified. Commit `ec34b5ba` is verified Ready in Vercel Production deployment `HAxuTd147JMEWRVtqPZr7BhGWn5Q` and assigned to `https://system.seribako.com.my`. The release includes the dedicated attendance dialog centering, compliance and People convergence, and the latest retired-selector cleanup.
+This is repository evidence for v9.2.69. Migrations 298–305 are Production applied and read-back verified. Commit `54540d4e` is verified Ready in Vercel Production deployment `6rQdvt5UoTrwy4x8rKDGs9VhnwPd` and assigned to `https://system.seribako.com.my`. The release includes the dedicated attendance dialog centering, compliance and People convergence, retired-selector cleanup and the audited unused-account deletion repair.
 
 ## Release gates
 
@@ -59,6 +59,7 @@ This is repository evidence for v9.2.69. Migrations 298–305 are Production app
 40. **Current Production promotion.** Vercel Production deployment `HAxuTd147JMEWRVtqPZr7BhGWn5Q` reached Ready from commit `ec34b5ba`; alias inspection confirmed `system.seribako.com.my` points to its deployment host. Authenticated custom-domain verification confirmed that the TRX checklist contains eight requirements with no duplicate BOMBA entry, Internet Service renders service-specific labels with optional dates and provider/plan guidance, and `/staffs?search=...` preserves its query while redirecting to the canonical `/people` directory.
 41. **Safe test-account deletion.** The deletion guard no longer mistakes immutable audit rows *about* a Staff entity (including the automatic account-created event) for business activity performed *by* that Staff member. Purchase, receiving, stock, comment, attachment and actor-owned activity history still blocks deletion; entity audit remains preserved, including the final deletion event. This repairs the formerly impossible deletion path for unused duplicate accounts without weakening historical staff protection.
 42. **Auth foreign-key-safe deletion.** Permanent deletion now unlinks the disabled Staff profile before deleting its Auth user, satisfying the Staff-to-Auth foreign key. If Auth deletion fails, the action restores the exact link before reporting the real error; it does not leave a Staff profile silently detached. Role, outlet and Staff removal continues only after Auth deletion succeeds.
+43. **Duplicate Jason closure.** Production deployment `6rQdvt5UoTrwy4x8rKDGs9VhnwPd` reached Ready from commit `54540d4e` and received the custom domain. The unused disabled `LIEW LIK HAO JASON` profile with no Staff Code was then permanently deleted through the guarded application action. Production read-back returned `staff_rows=0`, `auth_rows=0`, and `canonical_rows=1`; the remaining canonical employee is active Staff Code `57` with an exact Auth link.
 
 ## Architecture judgement
 

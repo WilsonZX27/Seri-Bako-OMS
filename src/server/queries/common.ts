@@ -32,7 +32,11 @@ export const getCurrentProfile = cache(async function getCurrentProfile() {
 
   if (!user) return null;
 
-  const { data: staff } = await supabase.from("staffs").select("*").eq("auth_user_id", user.id).maybeSingle();
+  const { data: staff } = await supabase
+    .from("staffs")
+    .select("id,company_id,auth_user_id,staff_code,full_name,email,phone,avatar_url,default_branch_id,employment_type,status,must_change_password,invitation_status,deleted_at")
+    .eq("auth_user_id", user.id)
+    .maybeSingle();
   if (staff && staff.status === "active" && !staff.deleted_at) {
     const { data: staffRoles } = await supabase
       .from("staff_roles")

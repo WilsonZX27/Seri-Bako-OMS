@@ -122,7 +122,7 @@ export const getSuppliersForSelect = cache(async function getSuppliersForSelect(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("suppliers")
-    .select("*")
+    .select("id,supplier_code,supplier_group,name,status")
     .eq("status", "active")
     .order("name", { ascending: true })
     .limit(200);
@@ -166,7 +166,7 @@ export const getBranchSupplierMappingsForSelect = cache(async function getBranch
   const masterSupplierIds = items.map((item) => item.supplier_id).filter((id): id is string => Boolean(id));
   const allSupplierIds = [...new Set([...supplierIds, ...masterSupplierIds])];
   const { data: suppliers, error: suppliersError } = allSupplierIds.length
-    ? await supabase.from("suppliers").select("*").in("id", allSupplierIds).eq("status", "active").is("deleted_at", null)
+    ? await supabase.from("suppliers").select("id,supplier_code,supplier_group,name,status").in("id", allSupplierIds).eq("status", "active").is("deleted_at", null)
     : { data: [], error: null };
   if (suppliersError) throw new Error(suppliersError.message);
   if (!suppliers) throw new Error("Supplier mapping options returned no data.");

@@ -102,7 +102,7 @@ html[data-design-layer="v2"] :where(.erp-surface, .sb-work-surface, .border.bg-c
   box-shadow: var(--sb-shadow-xs);
 }
 
-html[data-design-layer="v2"] :where(.sb-list-filters:not(.unified-list-header):not(.sb-list-query-card), .sb-filter-more-panel, .sb-right-console, .sb-pr-basket-sheet) {
+html[data-design-layer="v2"] :where(.sb-list-filters:not(.unified-list-header):not(.sb-list-query-card), .sb-filter-more-panel, .sb-pr-basket-sheet) {
   border: 1px solid var(--sb-border-soft);
   border-radius: var(--sb-panel-radius);
   background: var(--sb-surface-raised);
@@ -132,12 +132,12 @@ html[data-design-layer="v2"] :where([data-mobile-app-nav], .sb-mobile-action-bar
   box-shadow: var(--sb-shadow-lg);
 }
 
-html[data-design-layer="v2"] :where(.sb-table-scroll, .sb-scroll-container, [data-table-scroll]) {
+html[data-design-layer="v2"] [data-table-scroll] {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 
-html[data-design-layer="v2"] :where(.sb-table-scroll, .sb-scroll-container, [data-table-scroll])::-webkit-scrollbar {
+html[data-design-layer="v2"] [data-table-scroll]::-webkit-scrollbar {
   width: 0;
   height: 0;
 }
@@ -515,16 +515,6 @@ html[data-design-layer="v2"] #purchase-request-form [data-purchase-request-line]
   min-height: var(--sb-control-height) !important;
 }
 
-html[data-design-layer="v2"] .sb-command-surface {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgb(255 255 255 / 0.13);
-  border-radius: var(--sb-panel-radius);
-  background: var(--sb-green-900);
-  color: var(--sb-surface-raised);
-  box-shadow: none;
-}
-
 [data-right-console] section,
 aside > div > div > section {
   padding-block: 1rem;
@@ -594,8 +584,7 @@ aside section > h2 {
 
   .erp-surface,
   .sb-work-surface,
-  .border.bg-card,
-  .sb-command-surface {
+  .border.bg-card {
     border-radius: var(--sb-panel-radius);
   }
 }
@@ -736,12 +725,11 @@ nav[aria-label="Pagination"] > span {
     display: none !important;
   }
 
-  #main-content > header:not(.sb-document-workspace-header):not([data-document-workspace-header]) {
+  #main-content > header:not([data-document-workspace-header]) {
     display: none;
   }
 
   .sb-work-surface,
-  .sb-command-surface,
   aside > section {
     border-radius: var(--sb-panel-radius);
   }
@@ -890,9 +878,7 @@ nav[aria-label="Pagination"] > span {
 @media (max-width: 639px) {
   body:has(.unified-list-layer) [data-mobile-bottom-nav],
   body:has([data-mobile-document-action]) nav.fixed.bottom-0,
-  body:has([data-mobile-document-action]) .sb-mobile-bottom-nav,
-  html[data-mobile-action-page="true"] nav.fixed.bottom-0,
-  html[data-mobile-action-page="true"] .sb-mobile-bottom-nav {
+  html[data-mobile-action-page="true"] nav.fixed.bottom-0 {
     visibility: hidden;
     pointer-events: none;
   }
@@ -2076,7 +2062,7 @@ html[data-design-layer="v2"] :where([class~="bg-card"], [class~="overflow-hidden
   margin-bottom: .75rem;
 }
 
-html[data-design-layer="v2"] :where([class~="bg-card"], [class~="overflow-hidden"]):has(> form.sb-list-query-card) > :where(.sb-table-shell, table, [role="table"], [data-operational-list]) {
+html[data-design-layer="v2"] :where([class~="bg-card"], [class~="overflow-hidden"]):has(> form.sb-list-query-card) > :where(table, [role="table"], [data-operational-list]) {
   border-radius: var(--sb-panel-radius);
   background: var(--sb-surface-raised);
   box-shadow: var(--sb-shadow-card);

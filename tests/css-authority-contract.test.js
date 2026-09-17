@@ -111,3 +111,17 @@ test("retired list filter compatibility selectors cannot return", () => {
     );
   }
 });
+
+test("retired component class selectors cannot return after data-boundary migration", () => {
+  const sourceRoot = path.join(root, "src");
+  const sourceFiles = fs.readdirSync(sourceRoot, { recursive: true })
+    .filter((entry) => /\.(?:css|tsx?|jsx?)$/.test(String(entry)))
+    .map((entry) => path.join(sourceRoot, String(entry)));
+  for (const file of sourceFiles) {
+    assert.doesNotMatch(
+      fs.readFileSync(file, "utf8"),
+      /sb-(?:command-surface|document-workspace-header|mobile-bottom-nav|right-console|scroll-container|table-scroll|table-shell)/,
+      `${file} revives a retired component class selector`,
+    );
+  }
+});

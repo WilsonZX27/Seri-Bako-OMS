@@ -42,10 +42,12 @@ test("loading surfaces are lightweight, route-shaped and never expose placeholde
 
 test("dashboard and compliance surface actionable exceptions", () => {
   const query = read("src/server/queries/dashboard.ts");
+  const complianceQuery = read("src/server/queries/compliance.ts");
   const dashboard = read("src/components/dashboard-workspace.tsx");
   const compliance = read("src/app/(app)/outlet-compliance/[branchId]/page.tsx");
   assert.match(query, /\["missing", "draft", "morning_recorded", "evening_completed"\]\.includes\(todayCell\.status\)/);
-  assert.match(query, /\["missing", "expired"\]\.includes\(row\.record\.state\)/);
+  assert.match(query, /getOutletComplianceIssueCount/);
+  assert.match(complianceQuery, /state === "missing" \|\| state === "expired"/);
   assert.match(dashboard, /label="Compliance issues"/);
   assert.match(dashboard, /href="\/outlet-compliance"/);
   assert.doesNotMatch(compliance, /backHref="\/outlet-compliance"/);

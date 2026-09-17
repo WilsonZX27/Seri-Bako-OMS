@@ -79,6 +79,9 @@ test("safe Staff deletion preserves entity audit without treating account creati
   assert.match(history, /from\("activity_logs"\)[\s\S]*\.eq\("created_by", staffId\)/);
   assert.doesNotMatch(history, /entity_id\.eq\.\$\{staffId\}/);
   assert.match(source, /writeActivityLog\(\{ entityType: "staff", entityId: id, activityType: "deleted"/);
+  const deletion = source.slice(source.indexOf("export async function permanentlyDeleteStaff"), source.indexOf("function documentSequencePayload"));
+  assert.match(deletion, /update\(\{ auth_user_id: null \}\)[\s\S]*deleteUser\(staff\.auth_user_id\)/);
+  assert.match(deletion, /if \(authError\)[\s\S]*update\(\{ auth_user_id: staff\.auth_user_id \}\)/);
 });
 
 test("v7.23.7.2 release blockers keep onboarding input singular and collapse permission fan-out", () => {

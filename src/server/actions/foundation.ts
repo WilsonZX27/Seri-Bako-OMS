@@ -1067,8 +1067,22 @@ export async function permanentlyDeleteStaff(id: string) {
       await writeActivityLog({ entityType: "staff", entityId: id, activityType: "deleted", message: `Permanent staff delete approved for ${staff.full_name}` });
 
       if (staff.auth_user_id) {
+        const { error: unlinkError } = await supabase
+          .from("staffs")
+          .update({ auth_user_id: null })
+          .eq("id", id)
+          .eq("company_id", actor.companyId);
+        if (unlinkError) throw new Error(unlinkError.message);
         const { error: authError } = await supabase.auth.admin.deleteUser(staff.auth_user_id);
-        if (authError) throw new Error(authError.message);
+        if (authError) {
+          const { error: restoreError } = await supabase
+            .from("staffs")
+            .update({ auth_user_id: staff.auth_user_id })
+            .eq("id", id)
+            .eq("company_id", actor.companyId);
+          if (restoreError) throw new Error(`${authError.message}; sign-in link restoration also failed: ${restoreError.message}`);
+          throw new Error(authError.message);
+        }
       }
 
       const [{ error: roleError }, { error: branchError }] = await Promise.all([

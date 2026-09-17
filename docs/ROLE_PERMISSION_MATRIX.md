@@ -31,9 +31,10 @@ v9.2.2 keeps seven system-controlled roles. The database is authoritative; this 
 | Procurement workspace | `/procurement` | Allowed | Denied | Allowed | Allowed | Allowed | Allowed when a child module is permitted | Denied |
 | Inventory workspace | `/inventory` | Allowed | Denied | Allowed | Allowed | Allowed when a child module is permitted | Allowed when a child module is permitted | Denied unless a child module is permitted |
 | Outlet Compliance | `/outlet-compliance` | Manage | Manage/review | Denied | Manage within scope | Denied | Status only | Status/upload only |
-| People | `/people` | Manage | Manage | Denied | Scoped status | Denied | Denied | Denied |
+| People directory | `/people` | Manage | Manage | Denied | Scoped status | Denied | Denied | Denied |
 | Branches / Outlets | `/branches` | Manage | Read | Manage | Manage within scope | Read | Denied | Denied |
-| Staff / Users | `/staffs` | Manage | Manage employees | Manage non-Owner | Manage within scope | Denied | Denied | Denied |
+| Employee account creation | `/staffs/new` | Manage | Manage employees | Manage non-Owner | Manage within scope | Denied | Denied | Denied |
+| Employee account & access | `/staffs/[id]` | Manage | Manage employees | Manage non-Owner | Manage within scope | Denied | Denied | Denied |
 | Document Sequences | `/document-sequences` | Manage | Denied | Manage | Denied | Denied | Denied | Denied |
 | Imports | `/imports` | Run | Denied | Run | Denied | Run | Denied | Denied |
 | Backup | `/administration/backups` | Allowed | Denied | Denied | Denied | Denied | Denied | Denied |
@@ -48,6 +49,7 @@ v9.2.2 keeps seven system-controlled roles. The database is authoritative; this 
 - Role controls actions. Assigned Branches / Outlets control record visibility; a default Branch / Outlet is context only.
 - Purchasing can view and select branches needed for procurement but cannot create or edit them.
 - Kitchen and Outlet Staff retain only their intended operational scope.
+- `/people` is the only employee directory. `/staffs` is a compatibility redirect that preserves existing query parameters; it must not regain a second list implementation. Account creation and access administration remain at `/staffs/new` and `/staffs/[id]` because those are privileged administration tasks linked from the People profile.
 
 ## Purchase Request sequence
 

@@ -18,6 +18,8 @@ Inventory date: 2026-07-18. All routes below are discovered from `src/app/(app)`
 
 Dynamic `/**` entries cover list, new, edit, and detail pages found under the matching route directories. No route was deleted in this sprint.
 
+Current routing note (2026-09-17): `/people` is the canonical employee directory. The legacy `/staffs` list redirects there while preserving filters; `/staffs/new` and `/staffs/[id]` remain the privileged account-and-access administration surfaces. Historical route inventories below retain their original sprint evidence and should not be read as permission to reintroduce a second employee list.
+
 ## Detailed Routes Needing Review
 
 | Route | Reason for review | Classification in Sprint 7.21.5 | Proposed next action after pilot |

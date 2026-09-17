@@ -18,7 +18,7 @@ const masterDataFilters = read("src/components/master-data-filters.tsx");
 const procurementPage = read("src/app/(app)/procurement/page.tsx");
 const supplierItemsPage = read("src/app/(app)/supplier-items/page.tsx");
 const uomConversionsPage = read("src/app/(app)/uom-conversions/page.tsx");
-const staffsPage = read("src/app/(app)/staffs/page.tsx");
+const staffsPage = read("src/app/(app)/people/page.tsx");
 const purchaseReturnForm = read("src/components/purchase-return-form.tsx");
 
 test("UI consistency keeps imports upload-only and permission details user-facing", () => {
@@ -49,7 +49,7 @@ test("a visible status tab strip remains the only primary status filter", () => 
     "src/app/(app)/branches/page.tsx",
     "src/app/(app)/items/page.tsx",
     "src/app/(app)/recipes/page.tsx",
-    "src/app/(app)/staffs/page.tsx",
+    "src/app/(app)/people/page.tsx",
     "src/app/(app)/suppliers/page.tsx",
   ]) {
     const source = read(page);
@@ -109,7 +109,7 @@ test("shared operational feedback uses semantic state tokens instead of one-off 
 test("administration decision directories replace narrow tables with shared operational lists", () => {
   const cleanup = read("src/app/(app)/administration/master-data-cleanup/page.tsx");
   const sequences = read("src/app/(app)/document-sequences/page.tsx");
-  const staffs = read("src/app/(app)/staffs/page.tsx");
+  const staffs = read("src/app/(app)/people/page.tsx");
 
   assert.match(cleanup, /<Table mobileHidden stickyColumn="second" aria-label="Master data cleanup issues">/);
   assert.match(cleanup, /<OperationalList ariaLabel="Master data cleanup issues">/);
@@ -118,10 +118,10 @@ test("administration decision directories replace narrow tables with shared oper
   assert.match(sequences, /<OperationalList ariaLabel="Document sequences">/);
   assert.match(sequences, /Current period \$\{sequence\.preview_number/);
   assert.match(sequences, /Next \$\{sequence\.next_number\}/);
-  assert.match(staffs, /<Table[^>]*mobileHidden[^>]*aria-label="Staff members"/);
-  assert.match(staffs, /<OperationalList ariaLabel="Staff members" className="erp-surface overflow-hidden">/);
+  assert.match(staffs, /<Table[^>]*mobileHidden[^>]*aria-label="Employees"/);
+  assert.match(staffs, /<OperationalList ariaLabel="Employees" className="erp-surface overflow-hidden">/);
   assert.match(staffs, /staffAuthStateLabels\[getStaffAuthState\(staff\)\]/);
-  assert.match(staffs, /staff\.default_branch_name \?\? "No default branch"/);
+  assert.match(staffs, /staff\.default_branch_name\?\?"No default outlet"/);
 });
 
 test("status filters identify the field when showing the unfiltered view", () => {

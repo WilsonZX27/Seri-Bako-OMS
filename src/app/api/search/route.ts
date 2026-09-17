@@ -73,7 +73,7 @@ export async function GET(request: Request) {
       ...mockStaffs
         .filter((staff) => matches([staff.staff_code, staff.full_name, staff.email], query))
         .slice(0, 5)
-        .map((staff) => ({ type: "User", title: staff.full_name, subtitle: staff.staff_code ?? "-", href: `/staffs/${staff.id}` })),
+        .map((staff) => ({ type: "User", title: staff.full_name, subtitle: staff.staff_code ?? "-", href: `/people/${staff.id}` })),
       ];
       return NextResponse.json({ results: results.slice(0, 20) });
     }

@@ -6,7 +6,7 @@ const test = require("node:test");
 const app = (route) => fs.readFileSync(path.join(__dirname, "..", "src/app/(app)", route, "page.tsx"), "utf8");
 
 test("high-frequency administration registers show a consistent filter result summary", () => {
-  for (const [route, label] of [["branches", "Branches"], ["staffs", "Staff members"], ["document-sequences", "Document sequences"]]) {
+  for (const [route, label] of [["branches", "Branches"], ["people", "Employees"], ["document-sequences", "Document sequences"]]) {
     const source = app(route);
     assert.match(source, /resultCount=\{(?:branches|staffs|sequences)\.length\}/, `${route}: result count`);
     assert.match(source, /filtered=\{filtered\}/, `${route}: reset state`);

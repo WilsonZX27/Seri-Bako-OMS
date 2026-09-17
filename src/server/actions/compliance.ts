@@ -27,18 +27,6 @@ const schema = z
   })
   .superRefine((value, context) => {
     if (value.subject_kind !== "outlet") return;
-    if (!value.issued_on)
-      context.addIssue({
-        code: "custom",
-        path: ["issued_on"],
-        message: "Issued or inspection date is required.",
-      });
-    if (!value.expires_on)
-      context.addIssue({
-        code: "custom",
-        path: ["expires_on"],
-        message: "Expiry or next inspection date is required.",
-      });
     if (
       value.issued_on &&
       value.expires_on &&
@@ -98,6 +86,18 @@ export async function createComplianceRecord(formData: FormData) {
       complianceMessageUrl(returnPath, "error", "Choose the matching subject."),
     );
   const supabase = await createClient();
+  if (value.subject_kind === "outlet") {
+    const { data: type, error: typeError } = await supabase
+      .from("compliance_types")
+      .select("type_code")
+      .eq("id", value.compliance_type_id)
+      .eq("company_id", actor.companyId)
+      .single();
+    if (typeError || !type)
+      redirect(complianceMessageUrl(returnPath, "error", "The requirement type is unavailable."));
+    if (type.type_code !== "INTERNET_SERVICE" && (!value.issued_on || !value.expires_on))
+      redirect(complianceMessageUrl(returnPath, "error", "Issue and expiry dates are required for this document."));
+  }
   const recordId = crypto.randomUUID();
   const fileValue = formData.get("file");
   const file =
@@ -418,11 +418,11 @@ export async function reviewComplianceRecord(formData: FormData) {
 const outletDetailsSchema = z
   .object({
     reference_no: z.string().trim().max(120).optional(),
-    issued_on: z.string().date(),
-    expires_on: z.string().date(),
+    issued_on: z.union([z.string().date(), z.literal("")]).optional(),
+    expires_on: z.union([z.string().date(), z.literal("")]).optional(),
     notes: z.string().trim().max(1000).optional(),
   })
-  .refine((value) => value.expires_on >= value.issued_on, {
+  .refine((value) => !value.issued_on || !value.expires_on || value.expires_on >= value.issued_on, {
     path: ["expires_on"],
     message: "Expiry must be on or after the issue date.",
   });
@@ -438,7 +438,7 @@ export async function updateOutletComplianceDetails(
   const supabase = await createClient();
   const { data: current } = await supabase
     .from("compliance_records")
-    .select("branch_id,expires_on")
+    .select("branch_id,expires_on,compliance_type_id")
     .eq("id", id)
     .eq("company_id", actor.companyId)
     .eq("subject_kind", "outlet")
@@ -452,12 +452,20 @@ export async function updateOutletComplianceDetails(
       complianceMessageUrl(path, "error", "Check the required record fields."),
     );
   const value = parsed.data;
+  const { data: type } = await supabase
+    .from("compliance_types")
+    .select("type_code")
+    .eq("id", current.compliance_type_id)
+    .eq("company_id", actor.companyId)
+    .single();
+  if (!type || (type.type_code !== "INTERNET_SERVICE" && (!value.issued_on || !value.expires_on)))
+    redirect(complianceMessageUrl(path, "error", "Issue and expiry dates are required for this document."));
   const { error } = await supabase
     .from("compliance_records")
     .update({
       reference_no: value.reference_no || null,
-      issued_on: value.issued_on,
-      expires_on: value.expires_on,
+      issued_on: value.issued_on || null,
+      expires_on: value.expires_on || null,
       notes: value.notes || null,
       updated_by: actor.staffId,
     })

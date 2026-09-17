@@ -53,13 +53,15 @@ test("repair transaction is exact-match, Owner-only, atomic, and audited", () =>
 test("Staff UI exposes explicit states and only Owners receive the repair control", () => {
   const state = read("src/lib/staff-auth-state.ts");
   const detail = read("src/app/(app)/staffs/[id]/page.tsx");
-  const list = read("src/app/(app)/staffs/page.tsx");
+  const list = read("src/app/(app)/people/page.tsx");
+  const compatibility = read("src/app/(app)/staffs/page.tsx");
   assert.match(state, /"Auth linked"/);
   assert.match(state, /"Setup pending"/);
   assert.match(state, /"Link needs repair"/);
   assert.match(detail, /isOwner && authState === "link_needs_repair"/);
   assert.match(detail, />\s*Repair sign-in link\s*</);
   assert.match(list, /staffAuthStateLabels\[getStaffAuthState\(staff\)\]/);
+  assert.match(compatibility, /redirect\(query\.size \? `\/people\?/);
   assert.doesNotMatch(detail, /target_auth_user_id|auth_user_id\}/);
 });
 
@@ -87,4 +89,3 @@ test("v7.23.7.2 release blockers keep onboarding input singular and collapse per
   assert.match(permissionSource, /rpc\("get_allowed_permissions"/);
   assert.doesNotMatch(permissionSource, /Promise\.all\(permissions\.map/);
 });
-

@@ -8,7 +8,7 @@ const read = (...parts) => fs.readFileSync(path.join(root, ...parts), "utf8");
 
 test("People rows keep identity compact and omit redundant open copy", () => {
   const people = read("src", "app", "(app)", "people", "page.tsx");
-  const staff = read("src", "app", "(app)", "staffs", "page.tsx");
+  const staff = read("src", "app", "(app)", "people", "page.tsx");
   const table = read("src", "components", "ui", "table.tsx");
   assert.doesNotMatch(people, /meta="Open profile"/);
   assert.match(staff, /className="erp-surface overflow-hidden"/);

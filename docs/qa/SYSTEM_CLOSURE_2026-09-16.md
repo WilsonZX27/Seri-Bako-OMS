@@ -1,6 +1,6 @@
 # System closure review — 2026-09-16
 
-This is repository evidence for v9.2.69. Migrations 298–302 are Production applied and read-back verified. Application commit `4e2bef79` was deployed through Vercel Production deployment `Anwx2U1shX5h1tkjoUi91cxtg7iM` and verified through `https://system.seribako.com.my`.
+This is repository evidence for v9.2.69. Migrations 298–304 are Production applied and read-back verified. The latest verified Production application before the current release candidate is commit `521527d3` through Vercel deployment `Ezfs2HJnB3cL7h1HfYGtM7VmWPta` on `https://system.seribako.com.my`; the dedicated dialog-centering and compliance convergence changes remain in the release candidate until promotion.
 
 ## Release gates
 
@@ -8,11 +8,11 @@ This is repository evidence for v9.2.69. Migrations 298–302 are Production app
 | --- | --- | --- |
 | Strict TypeScript | `npm run typecheck:strict` | Pass |
 | ESLint | `npm run lint` | Pass |
-| Contract suite | 1,315 tests | Pass; the loopback lifecycle contract was run outside the restricted socket sandbox |
+| Contract suite | 1,318 tests | Pass apart from the expected restricted-sandbox loopback lifecycle case; that lifecycle contract is run outside the socket sandbox |
 | Production build | Next.js 15.5.21, 102 routes, 102 kB shared first load | Pass with isolated test environment |
 | Stock Count integrity | 148 focused inventory/Stock Count contracts | Pass |
 | Responsive browser UAT | Production: 18 critical workspaces at 430×932; create flow at 390×844; populated Item, Stock Count and Purchase Request details at 820×1180; 13 shared list surfaces at 430×932, 820×1180, 1180×820 and 1440×900; 13 compatibility-migrated routes at phone width | Pass for the recorded Production matrix; the exhaustive local role fixture matrix remains outstanding |
-| Linked schema | Repository reviewed through 304; linked Production ledger verified through 303 | Pass for Production 303; migration 304 is the pending release dependency |
+| Linked schema | Repository reviewed through 305; linked Production ledger verified through 304 | Pass for Production 304; migration 305 is the pending release dependency |
 | Production runtime | Purchasing and Super Admin authenticated checks on the custom domain; bounded PR list; dashboard ready in 2,962 ms; responsive list and costing-readiness smoke suites passed 8/8; latest Procurement Variance phone/tablet/desktop ready in 2,535/1,467/2,070 ms; Stock Balance ready in 3,377/1,743/1,662 ms | Pass |
 
 ## Findings closed in this review
@@ -54,6 +54,7 @@ This is repository evidence for v9.2.69. Migrations 298–302 are Production app
 35. **Supplier-invoice queue summary boundary.** Migration 303 replaces the queue side rail's complete AP Aging payload with a fixed three-value aggregate: open payable count, paid count and outstanding balance. The function preserves the payment ledger as balance authority, checks `supplier_invoice.view`, scopes invoices and payments to the actor's company and denies anonymous execution. Linked Production read-back confirmed the migration, security-definer boundary, authenticated grant, anonymous denial, permission guard and both company scopes.
 36. **Retired selector removal.** Seven compatibility classes with no TS/TSX owner were removed from the canonical responsive layer: the former command surface, document header, mobile bottom navigation, right console, scroll container, table scroll and table shell classes. A second ownership pass removed four equally unreachable data boundaries: the old UI-surface variants, table-scroll marker, operational-list marker and dashboard-primary-column marker. Their live replacements already use explicit component boundaries or canonical table/work surfaces. Recursive source contracts now prevent all eleven selector families from returning, reducing cascade surface without altering current component geometry.
 37. **Date-effective employee offboarding.** Migration 304 adds a last-working-date boundary without deleting historical rosters, punches or payroll evidence. The identity functions stop granting tenant access after the Malaysia-local date, schedule persistence refuses later employee-days, planner RPCs return the boundary without an extra request wave, and later cells render as disabled grey `Employment ended` states. Workbook `RESIGN` cells are treated as HR markers rather than fabricated assignments; the employee profile remains the audited authority for the actual date.
+38. **Compliance and People convergence.** Migration 305 retires the duplicate BOMBA checklist assignment while preserving its historical records and attachments. Internet Service now uses account, activation, contract-renewal and provider/plan language, with optional dates enforced consistently in the UI and server boundary. `/people` is the canonical employee directory; the legacy `/staffs` list preserves its query string and redirects there while staff account-management details remain available.
 
 ## Architecture judgement
 
@@ -65,7 +66,7 @@ The visual system is more coherent, but `design-system-v2.css` still contains a 
 
 ## Remaining release work
 
-1. Start an isolated Supabase/Docker target through 304, seed the role fixture and run the exhaustive role and mutation matrix without exercising mutation flows against Production.
+1. Start an isolated Supabase/Docker target through 305, seed the role fixture and run the exhaustive role and mutation matrix without exercising mutation flows against Production.
 2. Continue reducing the compatibility CSS only alongside phone, tablet and desktop screenshots and geometry assertions.
 3. Accumulate Production latency windows under representative concurrent use and set alert thresholds from the observed Dashboard, Procurement Variance and database p95/p99 distributions. Instrument additional critical route-data boundaries as they enter the performance audit.
 

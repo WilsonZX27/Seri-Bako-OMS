@@ -38,7 +38,7 @@ test("technical tables use the shared pinned lead band without overlap", () => {
     "src/app/(app)/items/page.tsx",
     "src/app/(app)/production/jobs/page.tsx",
     "src/app/(app)/purchase-orders/page.tsx",
-    "src/app/(app)/staffs/page.tsx",
+    "src/app/(app)/people/page.tsx",
     "src/app/(app)/stock-transactions/page.tsx",
     "src/app/(app)/stock-wastage/page.tsx",
     "src/app/(app)/supplier-items/page.tsx",

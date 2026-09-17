@@ -3,7 +3,6 @@ import { shiftBusinessDate, todayInKualaLumpur } from "@/lib/business-date";
 import { compareTableValues } from "@/lib/table-state";
 import type { Database } from "@/types/database";
 import { getCurrentProfile } from "@/server/queries/common";
-import { getApAgingReport } from "@/server/queries/ap-aging";
 import { requireDetailRow } from "@/server/queries/detail";
 
 type Filters = Record<string, string | undefined>;
@@ -136,19 +135,12 @@ export async function getSupplierInvoices(filters: Filters = {}) {
 
 export async function getSupplierInvoiceSummary() {
   const supabase = await createClient();
-  const [report, paidResult] = await Promise.all([
-    getApAgingReport({ page: "1" }),
-    supabase
-      .from("supplier_invoices")
-      .select("id", { count: "exact", head: true })
-      .is("deleted_at", null)
-      .eq("status", "paid"),
-  ]);
-  if (paidResult.error) throw new Error(paidResult.error.message);
+  const { data, error } = await supabase.rpc("get_supplier_invoice_queue_summary").single();
+  if (error) throw new Error(error.message);
   return {
-    open: report.total_rows,
-    paid: paidResult.count ?? 0,
-    balance: report.summary.total_outstanding,
+    open: Number(data?.open_count ?? 0),
+    paid: Number(data?.paid_count ?? 0),
+    balance: Number(data?.balance ?? 0),
   };
 }
 

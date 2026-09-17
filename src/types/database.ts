@@ -2915,6 +2915,10 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_supplier_invoice_queue_summary: {
+        Args: Record<string, never>;
+        Returns: Array<{ open_count: number; paid_count: number; balance: number }>;
+      };
       can_access_outlet_daily_branch: {
         Args: { target_branch_id: string };
         Returns: boolean;

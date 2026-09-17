@@ -136,14 +136,18 @@ export async function getAttendanceReview(weekStart = malaysiaWeekStart(), filte
   }
   const unscheduledPunches: Array<{staff_id:string;full_name:string;work_date:string;punch_count:number;first_punch:string;last_punch:string}> = [];
   if (filters.branch) {
-    const [raw, people, devices, coverage] = await Promise.all([
-      db.from("attendance_raw_punch_events").select("person_id,local_timestamp,occurred_at,source_code").gte("local_timestamp",`${weekStart} 00:00:00`).lte("local_timestamp",`${weekEnd} 23:59:59`).order("occurred_at"),
+    const devices = await db.from("ngteco_device_mappings").select("source_code").eq("branch_id",filters.branch).eq("is_active",true);
+    if (devices.error) throw devices.error;
+    const sources = new Set((devices.data ?? []).map((row:Record<string,unknown>)=>String(row.source_code)));
+    const sourceCodes = [...sources];
+    const [raw, people, coverage] = await Promise.all([
+      sourceCodes.length
+        ? db.from("attendance_raw_punch_events").select("person_id,local_timestamp,occurred_at,source_code").in("source_code",sourceCodes).gte("local_timestamp",`${weekStart} 00:00:00`).lte("local_timestamp",`${weekEnd} 23:59:59`).order("occurred_at")
+        : Promise.resolve({data:[],error:null}),
       db.from("ngteco_person_mappings").select("person_id,staff_id,staffs!ngteco_person_mappings_staff_id_fkey(full_name)").eq("is_active",true),
-      db.from("ngteco_device_mappings").select("source_code,branch_id").eq("branch_id",filters.branch).eq("is_active",true),
       db.from("daily_attendance_results").select("staff_id,work_date").eq("branch_id",filters.branch).eq("is_current",true).gte("work_date",weekStart).lte("work_date",weekEnd),
     ]);
-    for (const item of [raw, people, devices, coverage]) if (item.error) throw item.error;
-    const sources = new Set((devices.data ?? []).map((row:Record<string,unknown>)=>String(row.source_code)));
+    for (const item of [raw, people, coverage]) if (item.error) throw item.error;
     const mapped = new Map((people.data ?? []).map((row:Record<string,unknown>)=>[String(row.person_id),row]));
     const covered = new Set((coverage.data ?? []).map((row:Record<string,unknown>)=>`${row.staff_id}:${row.work_date}`));
     const allowedStaff = staffIds ? new Set(staffIds) : null;

@@ -261,11 +261,6 @@ summary {
   color: var(--sb-green-950);
 }
 
-.sb-section-label {
-  font-size: var(--sb-text-meta);
-  @apply font-medium text-muted-foreground;
-}
-
 .sb-icon-tile {
   @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary;
 }
@@ -722,16 +717,6 @@ input[type="date"]::-webkit-date-and-time-value {
   table[aria-label="Product cost and margin estimates"] td:nth-child(5)::before { content: "Product cost"; }
   table[aria-label="Product cost and margin estimates"] td:nth-child(6)::before { content: "Margin"; }
   table[aria-label="Product cost and margin estimates"] td:nth-child(7)::before { content: "Margin %"; }
-}
-
-@media (min-width: 1024px) {
-  .sb-stock-count-settings:not([open]) > .sb-stock-count-settings-content {
-    display: grid !important;
-  }
-
-  .sb-stock-count-settings:not([open]) > div.sb-stock-count-settings-content {
-    display: block !important;
-  }
 }
 
 @media (min-width: 768px) and (max-width: 1279px) {

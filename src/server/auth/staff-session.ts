@@ -95,7 +95,7 @@ export async function getPasswordSetupContext(): Promise<PasswordSetupContext | 
   if (!admin) return null;
   const { data: linkedStaff, error: linkedError } = await admin
     .from("staffs")
-    .select("*")
+    .select("id,email,invite_email,status,company_id,default_branch_id,invited_by,full_name,invited_at")
     .eq("auth_user_id", user.id)
     .is("deleted_at", null)
     .maybeSingle();

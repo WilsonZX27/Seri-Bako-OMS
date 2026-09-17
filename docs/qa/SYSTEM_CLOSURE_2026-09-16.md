@@ -8,7 +8,7 @@ This is repository evidence for v9.2.69. Migrations 298–302 are Production app
 | --- | --- | --- |
 | Strict TypeScript | `npm run typecheck:strict` | Pass |
 | ESLint | `npm run lint` | Pass |
-| Contract suite | 1,306 tests | Pass; the loopback lifecycle contract was run outside the restricted socket sandbox |
+| Contract suite | 1,307 tests | Pass; the loopback lifecycle contract was run outside the restricted socket sandbox |
 | Production build | Next.js 15.5.21, 102 routes, 102 kB shared first load | Pass with isolated test environment |
 | Stock Count integrity | 148 focused inventory/Stock Count contracts | Pass |
 | Responsive browser UAT | Production: 18 critical workspaces at 430×932; create flow at 390×844; populated Item, Stock Count and Purchase Request details at 820×1180; 13 shared list surfaces at 430×932, 820×1180, 1180×820 and 1440×900; 13 compatibility-migrated routes at phone width | Pass for the recorded Production matrix; the exhaustive local role fixture matrix remains outstanding |
@@ -47,6 +47,7 @@ This is repository evidence for v9.2.69. Migrations 298–302 are Production app
 28. **Shared profile payload.** The cached authenticated-profile boundary now requests only the staff identity, tenant, access, presentation and employment fields consumed by the shell and authorization helpers. It no longer downloads every staff column on each cold profile lookup, and a source contract fixes the required projection so future schema growth cannot silently enlarge this high-frequency read. Commit `8fc02d3f` reached Ready in Vercel Production deployment `FtgUgQ6e2nNT41cX4QtVryiwTaRw`; the authenticated custom-domain check confirmed that Attendance completed loading with its current-week status, attention counts and latest NGTeco import visible.
 29. **Password-setup data minimisation.** The service-role lookup used to build the password-setup context now reads only the nine staff identity and invitation fields required by that page. It no longer brings unrelated employee or HR columns into the authentication boundary, reducing both payload and the sensitive-data surface; a source contract rejects a wildcard staff read in this flow.
 30. **Shared supplier-option payload.** The cached supplier directory and branch-supplier mapping boundary now share the same five-field supplier projection used by their consumers. Procurement, inventory, item and import pages no longer download complete supplier records merely to render an option label or resolve a supplier mapping; a source contract fixes both projections together.
+31. **Purchase-return picker scaling.** The new-return GRN picker now reads only the five receiving fields and three line fields required to label eligible receipts and calculate remaining quantity. It aggregates all receiving lines into a GRN-keyed map once, replacing the former full-record downloads and repeated complete-line scan for every receipt. The in-process work is now linear in receipts plus lines.
 
 ## Architecture judgement
 

@@ -19,8 +19,7 @@ export type PurchaseReturnRow = PurchaseReturn & {
   return_value: number;
 };
 
-export type ReturnableGoodsReceiving = GoodsReceiving & {
-  grn_no: string;
+export type ReturnableGoodsReceiving = Pick<GoodsReceiving, "id" | "grn_no" | "purchase_order_id" | "supplier_id" | "updated_at"> & {
   po_no: string | null;
   supplier_name: string | null;
   returnable_qty: number;
@@ -92,25 +91,36 @@ export async function getPurchaseReturnSummary(): Promise<PurchaseReturnSummary>
 
 export async function getPostedGoodsReceivingsForReturn() {
   const supabase = await createClient();
-  const { data: grns, error } = await supabase.from("goods_receivings").select("*").eq("status", "posted").is("deleted_at", null);
+  const { data: grns, error } = await supabase
+    .from("goods_receivings")
+    .select("id,grn_no,purchase_order_id,supplier_id,updated_at")
+    .eq("status", "posted")
+    .is("deleted_at", null);
   if (error) throw new Error(error.message);
-  const receivings = requireReadRows(grns, "Posted goods receivings") as GoodsReceiving[];
+  const receivings = requireReadRows(grns, "Posted goods receivings");
   if (receivings.length === 0) return [];
   const receivingIds = receivings.map((grn) => grn.id);
   const poIds = [...new Set(receivings.map((grn) => grn.purchase_order_id))];
   const supplierIds = [...new Set(receivings.map((grn) => grn.supplier_id))];
   const [{ data: lines, error: linesError }, { data: pos, error: posError }, { data: suppliers, error: suppliersError }] = await Promise.all([
-    supabase.from("goods_receiving_lines").select("*").in("goods_receiving_id", receivingIds),
+    supabase.from("goods_receiving_lines").select("goods_receiving_id,received_qty,returned_qty").in("goods_receiving_id", receivingIds),
     supabase.from("purchase_orders").select("id, po_no").in("id", poIds),
     supabase.from("suppliers").select("id, name").in("id", supplierIds),
   ]);
   if (linesError || posError || suppliersError) throw new Error((linesError ?? posError ?? suppliersError)!.message);
   const poById = new Map((pos ?? []).map((row) => [row.id, row.po_no]));
   const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
+  const returnableByReceivingId = new Map<string, number>();
+  for (const line of requireReadRows(lines, "Posted goods receiving returnable quantities")) {
+    const remaining = Math.max(Number(line.received_qty) - Number(line.returned_qty ?? 0), 0);
+    returnableByReceivingId.set(
+      line.goods_receiving_id,
+      (returnableByReceivingId.get(line.goods_receiving_id) ?? 0) + remaining,
+    );
+  }
   return receivings
     .map((grn) => {
-      const ownLines = ((lines ?? []) as GoodsReceivingLine[]).filter((line) => line.goods_receiving_id === grn.id);
-      const returnable_qty = ownLines.reduce((sum, line) => sum + Math.max(Number(line.received_qty) - Number(line.returned_qty ?? 0), 0), 0);
+      const returnable_qty = returnableByReceivingId.get(grn.id) ?? 0;
       return { ...grn, po_no: poById.get(grn.purchase_order_id) ?? null, supplier_name: supplierById.get(grn.supplier_id) ?? null, returnable_qty };
     })
     .filter((grn) => grn.returnable_qty > 0)

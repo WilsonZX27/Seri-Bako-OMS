@@ -5,10 +5,11 @@ const path = require("node:path");
 
 const source = fs.readFileSync(path.join(process.cwd(), "src/server/queries/purchase-returns.ts"), "utf8");
 
-test("purchase return candidate queries hydrate only referenced rows", () => {
+test("purchase return candidate queries hydrate only referenced rows and fields", () => {
   assert.match(source, /purchase_returns_list_view"\)\.select\("\*", \{ count: "exact" \}\)/);
   assert.match(source, /query\.range\(/);
-  assert.match(source, /goods_receiving_lines"\)\.select\("\*"\)\.in\("goods_receiving_id", receivingIds\)/);
+  assert.match(source, /goods_receivings"\)[\s\S]*?\.select\("id,grn_no,purchase_order_id,supplier_id,updated_at"\)/);
+  assert.match(source, /goods_receiving_lines"\)\.select\("goods_receiving_id,received_qty,returned_qty"\)\.in\("goods_receiving_id", receivingIds\)/);
   assert.match(source, /suppliers"\)\.select\("id, name"\)\.in\("id", supplierIds\)/);
 });
 

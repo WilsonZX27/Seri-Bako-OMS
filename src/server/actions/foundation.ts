@@ -558,7 +558,10 @@ async function countStaffHistory(admin: ReturnType<typeof createAdminClient>, st
     admin.from("stock_transactions").select("id", { count: "exact", head: true }).eq("created_by", staffId),
     admin.from("document_comments").select("id", { count: "exact", head: true }).eq("created_by", staffId),
     admin.from("attachments").select("id", { count: "exact", head: true }).or(`uploaded_by.eq.${staffId},created_by.eq.${staffId}`),
-    admin.from("activity_logs").select("id", { count: "exact", head: true }).or(`entity_id.eq.${staffId},created_by.eq.${staffId}`),
+    // Audit rows about the Staff entity must survive deletion and must not make
+    // every newly-created test account undeletable. Only activity performed by
+    // this Staff member is historical usage that blocks permanent deletion.
+    admin.from("activity_logs").select("id", { count: "exact", head: true }).eq("created_by", staffId),
   ]);
 
   for (const check of checks) {

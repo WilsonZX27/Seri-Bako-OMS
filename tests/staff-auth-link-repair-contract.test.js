@@ -73,6 +73,14 @@ test("unlinked Auth users remain outside operational workspaces", () => {
   assert.match(resolver, /missing-profile/);
 });
 
+test("safe Staff deletion preserves entity audit without treating account creation as business usage", () => {
+  const source = read("src/server/actions/foundation.ts");
+  const history = source.slice(source.indexOf("async function countStaffHistory"), source.indexOf("async function inviteStaffByEmail"));
+  assert.match(history, /from\("activity_logs"\)[\s\S]*\.eq\("created_by", staffId\)/);
+  assert.doesNotMatch(history, /entity_id\.eq\.\$\{staffId\}/);
+  assert.match(source, /writeActivityLog\(\{ entityType: "staff", entityId: id, activityType: "deleted"/);
+});
+
 test("v7.23.7.2 release blockers keep onboarding input singular and collapse permission fan-out", () => {
   const newStaff = read("src/app/(app)/staffs/new/page.tsx");
   const forms = read("src/components/foundation-forms.tsx");

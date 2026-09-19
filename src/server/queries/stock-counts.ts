@@ -131,39 +131,7 @@ export async function getStockCounts(filters: Filters = {}) {
   }
   const { data, error, count } = await query;
   if (error) {
-    // Keep the workspace usable when the denormalized list view is unavailable
-    // during a migration or a partial deployment. The base tables remain the
-    // authoritative fallback and preserve the same filters/pagination.
-    const [{ data: rawCounts, error: rawCountsError }, { data: branches, error: branchesError }, { data: lines, error: linesError }] = await Promise.all([
-      supabase.from("stock_counts").select("*").is("deleted_at", null),
-      supabase.from("branches").select("id, branch_name"),
-      supabase.from("stock_count_lines").select("stock_count_id, variance_percent"),
-    ]);
-    if (rawCountsError || branchesError || linesError || !rawCounts || !branches || !lines) throw new Error(error.message);
-    const branchById = new Map((branches ?? []).map((branch) => [branch.id, branch.branch_name]));
-    const toleranceByCount = new Map((rawCounts ?? []).map((row) => [row.id, Number(row.tolerance_percent)]));
-    const linesByCount = new Map<string, { line_count: number; high_variance_count: number }>();
-    for (const line of lines ?? []) {
-      const stockCountId = line.stock_count_id;
-      if (!stockCountId) continue;
-      const current = linesByCount.get(stockCountId) ?? { line_count: 0, high_variance_count: 0 };
-      current.line_count += 1;
-      if (Math.abs(Number(line.variance_percent ?? 0)) > (toleranceByCount.get(stockCountId) ?? 0)) current.high_variance_count += 1;
-      linesByCount.set(stockCountId, current);
-    }
-    const fallbackRows = (rawCounts ?? []).map((rawRow) => {
-      const row = rawRow as StockCount;
-      const rowId = row.id ?? "";
-      const branchIdForLabel = row.branch_id ?? "";
-      return ({
-      ...row,
-      branch_name: branchById.get(branchIdForLabel) ?? null,
-      counted_by_name: row.counted_by,
-      line_count: linesByCount.get(rowId)?.line_count ?? 0,
-      high_variance_count: linesByCount.get(rowId)?.high_variance_count ?? 0,
-      });
-    }) as StockCountRow[];
-    return databasePagination(filterRows(fallbackRows, filters, ["count_no", "status", "branch_name", "remarks"], "count_no"), fallbackRows.length, filters.page);
+    throw new Error(`Stock count list is temporarily unavailable: ${error.message}`);
   }
   if (!data || count === null) throw new Error("Stock count list returned incomplete data.");
   return databasePagination(data as StockCountRow[], count, filters.page);
@@ -338,21 +306,12 @@ export async function getStockCountSummary() {
     };
   }
 
-  const supabase = await createClient();
-  const statuses = ["draft", "submitted", "reviewed", "approved", "posted", "cancelled"] as const;
-  const results = await Promise.all(statuses.map(async (status) => {
-    const { count, error } = await supabase
-      .from("stock_counts_list_view")
-      .select("id", { count: "exact", head: true })
-      .eq("status", status);
-    if (error || count === null) throw new Error(error?.message ?? "Stock count summary returned incomplete data.");
-    return { status, count };
-  }));
-  const byStatus = new Map(results.map((result) => [result.status, result.count]));
-  const draft = ["draft", "submitted", "reviewed", "approved"].reduce((sum, status) => sum + (byStatus.get(status as typeof statuses[number]) ?? 0), 0);
-  const posted = byStatus.get("posted") ?? 0;
-  const cancelled = byStatus.get("cancelled") ?? 0;
-  return { total: draft + posted + cancelled, draft, posted, cancelled };
+  const supabase = looseSupabase(await createClient());
+  const { data, error } = await supabase.rpc("get_stock_count_summary");
+  if (error) throw new Error(error.message);
+  const row = (Array.isArray(data) ? data[0] : data) as { total?: number; draft?: number; posted?: number; cancelled?: number } | null;
+  if (!row || row.total == null || row.draft == null || row.posted == null || row.cancelled == null) throw new Error("Stock count summary returned incomplete data.");
+  return { total: Number(row.total), draft: Number(row.draft), posted: Number(row.posted), cancelled: Number(row.cancelled) };
 }
 
 export async function getStockCount(id: string) {

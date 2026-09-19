@@ -21,12 +21,12 @@ test("stock counts preserve independent list, summary, and branch unavailable st
   assert.match(page, /counts \? <PaginationControls/);
 });
 
-test("stock count fallback rejects incomplete branch or line hydration", () => {
+test("stock count list fails closed instead of scanning every count and line", () => {
   const query = read("src", "server", "queries", "stock-counts.ts");
 
-  assert.match(query, /branches, error: branchesError/);
-  assert.match(query, /lines, error: linesError/);
-  assert.match(query, /rawCountsError \|\| branchesError \|\| linesError/);
+  assert.match(query, /Stock count list is temporarily unavailable/);
+  assert.doesNotMatch(query, /rawCountsError \|\| branchesError \|\| linesError/);
+  assert.doesNotMatch(query, /from\("stock_count_lines"\)\.select\("stock_count_id, variance_percent"\)/);
   assert.match(query, /stockCounts\.varianceInsight\.branch/);
   assert.match(query, /logServerWarning\(error, \{ source: "stockCounts\.varianceInsight\.rpc" \}\)/);
 });
@@ -35,10 +35,19 @@ test("stock count reads never coerce incomplete payloads into zero or empty veri
   const query = read("src", "server", "queries", "stock-counts.ts");
 
   assert.match(query, /!data \|\| count === null/);
+  assert.match(query, /rpc\("get_stock_count_summary"\)/);
   assert.match(query, /Stock count summary returned incomplete data/);
   assert.match(query, /Stock Count detail returned incomplete line data/);
   assert.match(query, /Stock Count variance counts returned no data/);
   assert.match(query, /Stock Count variance lines returned no data/);
   assert.match(query, /Stock Count variance items returned no data/);
   assert.doesNotMatch(query, /return databasePagination\(\(data \?\? \[\]\)/);
+});
+
+test("stock count summary is one constant-size RLS-preserving database read", () => {
+  const migration = read("supabase", "migrations", "309_stock_count_bounded_reads.sql");
+  assert.match(migration, /create or replace function public\.get_stock_count_summary\(\)/);
+  assert.match(migration, /language sql[\s\S]*stable/);
+  assert.doesNotMatch(migration, /security definer/);
+  assert.match(migration, /grant execute on function public\.get_stock_count_summary\(\) to authenticated/);
 });

@@ -3,6 +3,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 
 const migration = fs.readFileSync("supabase/migrations/306_attendance_evidence_integrity.sql", "utf8");
+const currentSummaryMigration = fs.readFileSync("supabase/migrations/311_attendance_current_exception_summary.sql", "utf8");
 const reviewRoute = fs.readFileSync("src/app/api/attendance/review/route.ts", "utf8");
 const reviewActions = fs.readFileSync("src/components/attendance/review-actions.tsx", "utf8");
 const queries = fs.readFileSync("src/server/queries/attendance.ts", "utf8");
@@ -52,4 +53,12 @@ test("attendance home uses one bounded database summary instead of loading raw p
   assert.doesNotMatch(workspaceBody, /attendance_raw_punch_events/);
   assert.doesNotMatch(workspaceBody, /hasPermission/);
   assert.match(attendancePage, /<Suspense[\s\S]+Loading your published schedule/);
+});
+
+test("attendance home excludes superseded calculation exceptions", () => {
+  assert.match(currentSummaryMigration, /r\.is_current/);
+  assert.match(currentSummaryMigration, /count\(distinct e\.result_id\)/);
+  assert.match(currentSummaryMigration, /attendance_exceptions_open_company_result_idx/);
+  assert.match(currentSummaryMigration, /where resolved_at is null/);
+  assert.match(currentSummaryMigration, /r\.work_date between p_week_start and week_end/);
 });

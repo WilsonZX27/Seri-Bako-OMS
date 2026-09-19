@@ -7,6 +7,7 @@ import { getCurrentProfile, requireReadRows } from "@/server/queries/common";
 import { requireDetailRow } from "@/server/queries/detail";
 import type { Database } from "@/types/database";
 import { compareProductDisplayOrder, sortProductsForDisplay } from "@/lib/product-order";
+import { looseSupabase } from "@/lib/supabase/loose";
 
 type Filters = Record<string, string | undefined>;
 type RecordRow = Database["public"]["Tables"]["outlet_daily_records"]["Row"];
@@ -382,37 +383,38 @@ export async function getOutletDailyRecords(filters: Filters = {}) {
     return { rows: [], totalRows: 0, page: 1, pageSize: 15, totalPages: 1, summary: { today: todayInKualaLumpur(), today_records: 0, today_sent: 0, today_received: 0, today_received_unavailable: 0, today_received_zero_with_sent: 0, missing_evening: 0, ready_to_post: 0, posted_today: 0 } };
   }
   const db = await createClient();
-  const pageResult = await loadRows(filters);
   const today = todayInKualaLumpur();
-  const { data: todayRecords, error: todayError } = await db
-    .from("outlet_daily_records")
-    .select("*")
-    .eq("record_date", today)
-    .neq("status", "void");
-  if (todayError) throw new Error(todayError.message);
-  if (!todayRecords) throw new Error("Outlet daily record summary returned no data.");
-  const todayRows = await hydrateRows(db, todayRecords as RecordRow[]);
+  const summaryPromise = looseSupabase(db).rpc("get_outlet_daily_today_summary", { p_record_date: today }) as unknown as Promise<{
+    data: unknown;
+    error: { message: string } | null;
+  }>;
+  const [pageResult, summaryResult] = await Promise.all([loadRows(filters), summaryPromise]);
+  if (summaryResult.error) throw new Error(summaryResult.error.message);
+  const summary = (Array.isArray(summaryResult.data) ? summaryResult.data[0] : summaryResult.data) as {
+    today_records?: number;
+    today_sent?: number | null;
+    today_received?: number | null;
+    today_received_unavailable?: number;
+    today_received_zero_with_sent?: number;
+    missing_evening?: number;
+    ready_to_post?: number;
+    posted_today?: number;
+  } | null;
+  if (!summary || summary.today_records == null || summary.today_received_unavailable == null || summary.today_received_zero_with_sent == null || summary.missing_evening == null || summary.ready_to_post == null || summary.posted_today == null) {
+    throw new Error("Outlet daily record summary returned incomplete data.");
+  }
   return {
     ...pageResult,
     summary: {
       today,
-      today_records: todayRows.length,
-      today_sent: todayRows.length === 0
-        ? 0
-        : todayRows.every((row) => row.total_sent !== null)
-          ? todayRows.reduce((sum, row) => sum + (row.total_sent ?? 0), 0)
-          : null,
-      today_received: todayRows.length > 0 && todayRows.every((row) => row.total_received !== null)
-        ? todayRows.reduce((sum, row) => sum + (row.total_received ?? 0), 0)
-        : null,
-      today_received_unavailable: todayRows.filter((row) => row.total_received === null).length,
-      today_received_zero_with_sent: todayRows.filter((row) => row.received_zero_with_sent).length,
-      missing_evening: todayRows.filter((row) => ["draft", "morning_recorded"].includes(row.status)).length,
-      ready_to_post: todayRows.filter((row) => row.status === "evening_completed").length,
-      // Outlet staff post the evening record directly. Keep the completed
-      // count visible for operational context, but do not turn it into a
-      // fictitious review queue.
-      posted_today: todayRows.filter((row) => row.status === "reviewed").length,
+      today_records: Number(summary.today_records),
+      today_sent: summary.today_sent == null ? null : Number(summary.today_sent),
+      today_received: summary.today_received == null ? null : Number(summary.today_received),
+      today_received_unavailable: Number(summary.today_received_unavailable),
+      today_received_zero_with_sent: Number(summary.today_received_zero_with_sent),
+      missing_evening: Number(summary.missing_evening),
+      ready_to_post: Number(summary.ready_to_post),
+      posted_today: Number(summary.posted_today),
     },
   };
 }

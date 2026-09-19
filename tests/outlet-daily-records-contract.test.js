@@ -88,12 +88,23 @@ test("ready and posted outlet records retain separate operator-facing labels", (
 
 test("outlet completion creates the controlled ready-to-post queue", () => {
   const page = read("src/app/(app)/outlet-daily-records/page.tsx");
-  assert.match(query, /posted_today: todayRows\.filter\(\(row\) => row\.status === "reviewed"\)\.length/);
-  assert.match(query, /missing_evening: todayRows\.filter\(\(row\) => \["draft", "morning_recorded"\]\.includes\(row\.status\)\)\.length/);
-  assert.match(query, /ready_to_post: todayRows\.filter\(\(row\) => row\.status === "evening_completed"\)\.length/);
+  assert.match(query, /posted_today: Number\(summary\.posted_today\)/);
+  assert.match(query, /rpc\("get_outlet_daily_today_summary", \{ p_record_date: today \}\)/);
+  assert.match(query, /const \[pageResult, summaryResult\] = await Promise\.all\(\[loadRows\(filters\), summaryPromise\]\)/);
+  assert.match(query, /missing_evening: Number\(summary\.missing_evening\)/);
+  assert.match(query, /ready_to_post: Number\(summary\.ready_to_post\)/);
   assert.match(page, /<dt className="text-\[10px\] text-muted-foreground">Posted<\/dt>/);
   assert.match(page, /Ready to post/);
   assert.doesNotMatch(page, /<StatusBadge status=\{progress\.status\} \/><p/);
+});
+
+test("Outlet Daily today summary is one constant-size RLS-preserving database read", () => {
+  const migration = read("supabase/migrations/310_outlet_daily_today_summary.sql");
+  assert.match(migration, /create or replace function public\.get_outlet_daily_today_summary\(p_record_date date\)/);
+  assert.match(migration, /language sql[\s\S]*stable/);
+  assert.doesNotMatch(migration, /security definer/);
+  assert.match(migration, /grant execute on function public\.get_outlet_daily_today_summary\(date\) to authenticated/);
+  assert.match(migration, /where r\.record_date = p_record_date[\s\S]*r\.status <> 'void'/);
 });
 
 test("new outlet daily saves route existing outlet-days back to their authoritative record", () => {
@@ -174,7 +185,9 @@ test("received totals never turn an unverified default zero into a business fact
   assert.match(query, /received_pending_lines: number/);
   assert.match(query, /total_received: number \| null/);
   assert.match(query, /today_received_unavailable/);
-  assert.match(query, /todayRows\.length > 0 && todayRows\.every/);
+  const summaryMigration = read("supabase/migrations/310_outlet_daily_today_summary.sql");
+  assert.match(summaryMigration, /count\(l\.id\) as line_count/);
+  assert.match(summaryMigration, /bool_and\(coalesce\(l\.morning_received_provided, false\)\) as received_verified/);
   assert.match(query, /morning_received_provided: receivedValueIsTrusted\(line\)/);
   assert.match(query, /morning_received_qty: receivedValueIsTrusted\(line\) \? line\.morning_received_qty : null/);
   assert.match(form, /receivedIsKnown && source\?\.morning_received_qty != null/);
@@ -186,7 +199,9 @@ test("Qty Sent totals never turn an unavailable default zero into a business fac
   assert.match(query, /const qtySentState = lines\.length > 0 && lines\.every/);
   assert.match(query, /const totalSent = qtySentState === "confirmed"/);
   assert.match(query, /totalReceived === 0 && totalSent !== null && totalSent > 0/);
-  assert.match(query, /todayRows\.every\(\(row\) => row\.total_sent !== null\)/);
+  const summaryMigration = read("supabase/migrations/310_outlet_daily_today_summary.sql");
+  assert.match(summaryMigration, /when bool_and\(total_sent is not null\) then coalesce\(sum\(total_sent\), 0\)/);
+  assert.match(summaryMigration, /when count\(\*\) > 0 and bool_and\(total_received is not null\)/);
   assert.match(page, /data\.summary\.today_sent === null \? "Unavailable"/);
   assert.match(detail, /record\.total_sent === null \? "Pending"/);
   assert.match(detail, /Needs confirmation/);

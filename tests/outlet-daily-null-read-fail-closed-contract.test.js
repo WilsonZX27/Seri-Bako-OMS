@@ -6,7 +6,7 @@ const source = fs.readFileSync("src/server/queries/outlet-daily-records.ts", "ut
 
 test("outlet daily list and summary reads never coerce null payloads into zero", () => {
   assert.match(source, /if \(!data \|\| count === null\) throw new Error\("Outlet daily record list returned no data\."\)/);
-  assert.match(source, /if \(!todayRecords\) throw new Error\("Outlet daily record summary returned no data\."\)/);
+  assert.match(source, /Outlet daily record summary returned incomplete data\./);
   assert.match(source, /if \(!lines \|\| !branches\) throw new Error/);
   assert.match(source, /resolveActorDisplayMap\(staffIds\)/);
 });

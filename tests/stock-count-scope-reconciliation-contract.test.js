@@ -15,7 +15,7 @@ test("posting-time inventory movement is reconciled without replacing Kitchen ph
   assert.match(migration, /physical_qty,line\.physical_qty-current_balance/);
   assert.match(migration, /variance := line\.physical_qty - current_balance/);
   assert.match(migration, /Inventory changed during count; reconciled automatically at posting/);
-  assert.match(detail, /Your entered physical quantities were kept/);
+  assert.match(detail, /Physical quantities were kept; final variance uses the latest ledger balance/);
   assert.match(detail, /Retired by this Stock Count/);
 });
 

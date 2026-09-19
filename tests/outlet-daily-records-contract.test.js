@@ -107,6 +107,13 @@ test("Outlet Daily today summary is one constant-size RLS-preserving database re
   assert.match(migration, /where r\.record_date = p_record_date[\s\S]*r\.status <> 'void'/);
 });
 
+test("Outlet Daily shares its identical option catalog within one server render", () => {
+  assert.match(query, /import \{ cache \} from "react"/);
+  assert.match(query, /export const getOutletDailyFormOptions = cache\(async function getOutletDailyFormOptions/);
+  assert.match(query, /const \[db, profile, canViewAll\] = await Promise\.all\(\[/);
+  assert.equal((query.match(/const options = await getOutletDailyFormOptions\(\)/g) ?? []).length, 2);
+});
+
 test("new outlet daily saves route existing outlet-days back to their authoritative record", () => {
   const action = read("src/server/actions/outlet-daily-records.ts");
   assert.match(action, /\.from\("outlet_daily_records"\)[\s\S]*\.eq\("branch_id", payload\.branch_id\)[\s\S]*\.eq\("record_date", payload\.record_date\)/);

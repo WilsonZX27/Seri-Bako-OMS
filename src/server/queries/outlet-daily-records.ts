@@ -8,6 +8,7 @@ import { requireDetailRow } from "@/server/queries/detail";
 import type { Database } from "@/types/database";
 import { compareProductDisplayOrder, sortProductsForDisplay } from "@/lib/product-order";
 import { looseSupabase } from "@/lib/supabase/loose";
+import { cache } from "react";
 
 type Filters = Record<string, string | undefined>;
 type RecordRow = Database["public"]["Tables"]["outlet_daily_records"]["Row"];
@@ -253,7 +254,7 @@ async function getOutletDailyDefaults(db: Awaited<ReturnType<typeof createClient
   }, {});
 }
 
-export async function getOutletDailyFormOptions(recordDate?: string) {
+export const getOutletDailyFormOptions = cache(async function getOutletDailyFormOptions(recordDate?: string) {
   if (isMockMode()) {
     const branches = mockBranches.filter((row) => row.status === "active");
     return {
@@ -263,9 +264,11 @@ export async function getOutletDailyFormOptions(recordDate?: string) {
       defaultsByBranch: {},
     };
   }
-  const db = await createClient();
-  const profile = await getCurrentProfile();
-  const canViewAll = await hasPermission("outlet_daily_record.view_all");
+  const [db, profile, canViewAll] = await Promise.all([
+    createClient(),
+    getCurrentProfile(),
+    hasPermission("outlet_daily_record.view_all"),
+  ]);
   const [{ data: branches, error: branchError }, { data: products, error: productError }] = await Promise.all([
     db.from("branches").select("id,branch_code,branch_name,branch_type,status").eq("branch_type", "outlet").eq("status", "active").is("deleted_at", null).order("branch_name"),
     db.from("products").select("id,product_code,product_name,category,selling_unit,status,display_order").eq("status", "active"),
@@ -305,7 +308,7 @@ export async function getOutletDailyFormOptions(recordDate?: string) {
       : allowedBranches.length === 1 ? allowedBranches[0].id : undefined,
     defaultsByBranch: recordDate ? await getOutletDailyDefaults(db, allowedBranches.map((branch) => branch.id), recordDate) : {},
   };
-}
+});
 
 async function hydrateRows(db: Awaited<ReturnType<typeof createClient>>, records: RecordRow[]) {
   if (!records.length) return [] as OutletDailyRecordRow[];

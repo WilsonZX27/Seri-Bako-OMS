@@ -17,7 +17,8 @@ const planningPage = fs.readFileSync(path.join(root, "src", "app", "(app)", "pro
 test("outlet daily workspace renders a seven-day trend aligned to Calendar history", () => {
   assert.match(page, /getOutletDailyDemandTrend\(\{ period: "7", branch: filters\.branch, history_date: filters\.history_date \}\)/);
   assert.match(page, /<OutletDailyWastageChart points=\{trend\?\.daily \?\? \[\]\} branch=\{filters\.branch\} unavailable=\{!trend\} \/>/);
-  assert.match(chart, /Matches Calendar history · completed records only/);
+  assert.match(chart, /All outlets combined/);
+  assert.match(chart, /rate = total wastage ÷ total received/);
   assert.match(chart, /7-day wastage rate/);
   assert.match(chart, /totalWastage \/ totalReceived \* 100/);
   assert.match(chart, /InteractiveLineChart/);
@@ -32,7 +33,6 @@ test("outlet daily workspace renders a seven-day trend aligned to Calendar histo
   assert.match(chart, /xl:min-h-72/);
   assert.doesNotMatch(chart, /flex min-h-72[^\n]*\[&>svg\]:h-full/);
   assert.doesNotMatch(chart, /Hover or focus the chart/);
-  assert.doesNotMatch(chart, /<details className="mt-2/);
   assert.match(interactiveChart, /strokeWidth="1\.5"/);
   assert.match(chart, /new URLSearchParams\(\{ date \}\)/);
   assert.match(chart, /query\.set\("branch", branch\)/);

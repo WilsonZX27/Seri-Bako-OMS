@@ -31,7 +31,7 @@ export default async function AttendancePage() {
   const tasks = [
     ...(canSchedule?[{ label: "Schedule decisions", value: data.pendingApprovals+data.pendingRequests, detail:`${data.pendingApprovals} awaiting Manager · ${data.pendingRequests} staff requests`, icon: CalendarDays, href: "/attendance/schedule" }]:[]),
     ...(canReview?[{ label: "Attendance exceptions", value: data.unresolvedExceptions+data.pendingActualReports, detail:`${data.unresolvedExceptions} punch exceptions · ${data.pendingActualReports} daily reports`, icon: AlertTriangle, href: "/attendance/review" }]:[]),
-    ...(canImport?[{ label: "Missing Person ID mappings", value: data.missingMappings, detail:"Map people before calculating attendance", icon: UsersRound, href: "/attendance/review" }]:[]),
+    ...(canImport?[{ label: "Missing Person ID mappings", value: data.missingMappings, detail:"Map people before calculating attendance", icon: UsersRound, href: "/attendance/review?mapping=1" }]:[]),
   ];
   return <>
     <PageHeader title="Attendance" description="Your outlet schedule and the items that need attention this week." contentWidth="wide" />

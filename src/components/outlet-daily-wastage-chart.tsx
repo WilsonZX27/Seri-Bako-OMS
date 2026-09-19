@@ -38,7 +38,7 @@ export function OutletDailyWastageChart({ points, branch, unavailable = false }:
       <div className="flex flex-wrap items-end justify-between gap-2 border-b border-[var(--sb-border-soft)] px-3 py-2.5">
         <div>
           <h2 id="outlet-wastage-trend-title" className="text-sm font-semibold">7-day wastage rate</h2>
-          <p className="text-xs text-muted-foreground">Matches Calendar history · completed records only</p>
+          <p className="text-xs text-muted-foreground">{branch && branch !== "all" ? "Selected outlet" : "All outlets combined"} · completed records only · rate = total wastage ÷ total received</p>
         </div>
         <p className="text-xs text-muted-foreground">7-day rate <strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable ? "Unavailable" : `${formatPercent(periodRate)}%`}</strong></p>
       </div>

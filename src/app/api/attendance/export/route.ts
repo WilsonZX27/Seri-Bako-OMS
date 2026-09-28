@@ -3,21 +3,163 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { looseSupabase } from "@/lib/supabase/loose";
 import { hasPermission } from "@/server/auth/permissions";
-import { durationLabel } from "@/lib/attendance/calculation";
 import { formatAttendanceTime } from "@/lib/attendance/time";
 import { logServerError } from "@/server/observability/logger";
-import { exportExceptionLabels, exportPunches, exportWorkedSeconds } from "@/lib/attendance/export-policy";
+import { exportPunches, exportWorkedSeconds } from "@/lib/attendance/export-policy";
+import { buildPeopleWorkbook, type PeopleWorkbookDay, type PeopleWorkbookSheet } from "@/lib/attendance/people-workbook";
 
-const schema=z.object({week:z.string().regex(/^\d{4}-\d{2}-\d{2}$/),format:z.literal("xlsx"),branch:z.string().uuid().optional()});
-const columns=["Date","Day","Outlet","Published schedule","Punch 1","Punch 2","Punch 3","Punch 4","Punch 5","Punch 6","Worked","Payable","Late","Early leave","Approved OT","Exceptions"];
-function xml(value:unknown){return String(value??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
-const crcTable=Array.from({length:256},(_,index)=>{let value=index;for(let bit=0;bit<8;bit++)value=value&1?0xedb88320^(value>>>1):value>>>1;return value>>>0});
-function crc32(input:Buffer){let value=0xffffffff;for(const byte of input)value=crcTable[(value^byte)&0xff]^(value>>>8);return(value^0xffffffff)>>>0}
-function zip(files:Array<{name:string;content:string}>){const locals:Buffer[]=[],centrals:Buffer[]=[];let offset=0;for(const file of files){const name=Buffer.from(file.name),content=Buffer.from(file.content),local=Buffer.alloc(30+name.length);local.writeUInt32LE(0x04034b50);local.writeUInt16LE(20,4);local.writeUInt32LE(crc32(content),14);local.writeUInt32LE(content.length,18);local.writeUInt32LE(content.length,22);local.writeUInt16LE(name.length,26);name.copy(local,30);locals.push(local,content);const central=Buffer.alloc(46+name.length);central.writeUInt32LE(0x02014b50);central.writeUInt16LE(20,4);central.writeUInt16LE(20,6);central.writeUInt32LE(crc32(content),16);central.writeUInt32LE(content.length,20);central.writeUInt32LE(content.length,24);central.writeUInt16LE(name.length,28);central.writeUInt32LE(offset,42);name.copy(central,46);centrals.push(central);offset+=local.length+content.length}const directory=Buffer.concat(centrals),end=Buffer.alloc(22);end.writeUInt32LE(0x06054b50);end.writeUInt16LE(files.length,8);end.writeUInt16LE(files.length,10);end.writeUInt32LE(directory.length,12);end.writeUInt32LE(offset,16);return Buffer.concat([...locals,directory,end])}
-function cell(value:unknown,style=0){return `<c t="inlineStr" s="${style}"><is><t xml:space="preserve">${xml(value)}</t></is></c>`}
-function worksheet(rows:Array<Array<unknown>>,headerRows=new Set<number>()){const body=rows.map((row,index)=>`<row r="${index+1}"${index<4?' ht="22" customHeight="1"':''}>${row.map(value=>cell(value,headerRows.has(index)?1:0)).join("")}</row>`).join("");return `<?xml version="1.0"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols><col min="1" max="3" width="14" customWidth="1"/><col min="4" max="10" width="18" customWidth="1"/><col min="11" max="16" width="15" customWidth="1"/></cols><sheetViews><sheetView workbookViewId="0"><pane ySplit="5" topLeftCell="A6" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetData>${body}</sheetData><autoFilter ref="A5:P${rows.length}"/></worksheet>`}
-function safeSheetName(name:string,index:number,used:Set<string>){const base=name.replace(/[\\/*?:[\]]/g," ").trim().slice(0,31)||`Employee ${index+1}`;let candidate=base,n=2;while(used.has(candidate.toLowerCase()))candidate=`${base.slice(0,27)} ${n++}`;used.add(candidate.toLowerCase());return candidate}
-function workbook(sheets:Array<{name:string;rows:Array<Array<unknown>>}>){const used=new Set<string>(),named=sheets.map((sheet,index)=>({...sheet,name:safeSheetName(sheet.name,index,used)}));const files=[{name:"[Content_Types].xml",content:`<?xml version="1.0"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${named.map((_,index)=>`<Override PartName="/xl/worksheets/sheet${index+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("")}</Types>`},{name:"_rels/.rels",content:'<?xml version="1.0"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'},{name:"xl/workbook.xml",content:`<?xml version="1.0"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>${named.map((sheet,index)=>`<sheet name="${xml(sheet.name)}" sheetId="${index+1}" r:id="rId${index+1}"/>`).join("")}</sheets></workbook>`},{name:"xl/_rels/workbook.xml.rels",content:`<?xml version="1.0"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${named.map((_,index)=>`<Relationship Id="rId${index+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${index+1}.xml"/>`).join("")}<Relationship Id="rId${named.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`},{name:"xl/styles.xml",content:'<?xml version="1.0"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="10"/><name val="Aptos"/></font><font><b/><color rgb="FFFFFFFF"/><sz val="10"/><name val="Aptos"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF0B5D45"/></patternFill></fill></fills><borders count="1"><border/></borders><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" applyFont="1" applyFill="1"/></cellXfs></styleSheet>'}];named.forEach((sheet,index)=>files.push({name:`xl/worksheets/sheet${index+1}.xml`,content:worksheet(sheet.rows,new Set([4]))}));return zip(files)}
-function punchTimes(row:Record<string,unknown>){return exportPunches(row).slice(0,6).map(value=>formatAttendanceTime(String(value),{seconds:true}))}
+const schema = z.object({
+  week: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  format: z.literal("xlsx"),
+  branch: z.string().uuid().optional(),
+});
 
-export async function GET(request:Request){try{if(!(await hasPermission("attendance.sensitive.export")))return NextResponse.json({ok:false,message:"People or Owner permission is required for this protected workbook."},{status:403});const url=new URL(request.url),input=schema.parse({week:url.searchParams.get("week"),format:url.searchParams.get("format"),branch:url.searchParams.get("branch")||undefined}),end=new Date(`${input.week}T00:00:00Z`);end.setUTCDate(end.getUTCDate()+6);const weekEnd=end.toISOString().slice(0,10),db=looseSupabase(await createClient());let resultsQuery=db.from("daily_attendance_results").select("*,staffs(full_name,staff_code,employment_type),branches(branch_name)").eq("is_current",true).gte("work_date",input.week).lte("work_date",weekEnd).order("work_date").limit(10000);let ledgerQuery=db.from("comp_time_transactions").select("staff_id,branch_id,work_date,transaction_kind,minutes,status").eq("status","approved").lte("work_date",weekEnd).order("work_date");const lockQuery=input.branch?db.from("attendance_period_locks").select("id").eq("week_start",input.week).eq("branch_id",input.branch).is("unlocked_at",null).maybeSingle():db.from("attendance_period_locks").select("id").eq("week_start",input.week).is("branch_id",null).is("unlocked_at",null).maybeSingle();if(input.branch){resultsQuery=resultsQuery.eq("branch_id",input.branch);ledgerQuery=ledgerQuery.eq("branch_id",input.branch)}const [results,sensitive,ledger,lock]=await Promise.all([resultsQuery,db.from("staff_sensitive_employment").select("staff_id,passport_number,basic_salary"),ledgerQuery,lockQuery]);for(const item of [results,sensitive,ledger,lock])if(item.error)throw item.error;if(!lock.data)return NextResponse.json({ok:false,message:"Close this attendance week before downloading the protected workbook."},{status:409});const rows=(results.data??[]) as Array<Record<string,unknown>>,sensitiveByStaff=new Map(((sensitive.data??[]) as Array<Record<string,unknown>>).map(row=>[String(row.staff_id),row])),ledgerRows=(ledger.data??[]) as Array<Record<string,unknown>>,byStaff=new Map<string,Array<Record<string,unknown>>>();for(const row of rows){const id=String(row.staff_id);byStaff.set(id,[...(byStaff.get(id)??[]),row])}const sheets=[...byStaff.entries()].map(([staffId,staffRows])=>{const staff=staffRows[0].staffs as Record<string,unknown>,protectedRow=sensitiveByStaff.get(staffId),before=ledgerRows.filter(row=>String(row.staff_id)===staffId&&String(row.work_date)<input.week).reduce((sum,row)=>sum+Number(row.minutes??0),0),weekLedger=ledgerRows.filter(row=>String(row.staff_id)===staffId&&String(row.work_date)>=input.week),earned=weekLedger.filter(row=>row.transaction_kind==="earned").reduce((sum,row)=>sum+Number(row.minutes??0),0),used=-weekLedger.filter(row=>row.transaction_kind==="used").reduce((sum,row)=>sum+Number(row.minutes??0),0),correction=weekLedger.filter(row=>row.transaction_kind==="correction").reduce((sum,row)=>sum+Number(row.minutes??0),0);const sheetRows:Array<Array<unknown>>=[["Employee",staff.full_name,"Staff code",staff.staff_code],["Week",`${input.week} – ${weekEnd}`,"Employment type",staff.employment_type],["Passport number",protectedRow?.passport_number??"","Basic salary (RM)",protectedRow?.basic_salary??""],["RO opening",`${before} min`,`Earned ${earned} min · Used ${used} min · Correction ${correction} min`,`Closing ${before+earned-used+correction} min`],columns];for(const row of staffRows){const branch=row.branches as Record<string,unknown>|null,punches=punchTimes(row),workedSeconds=exportWorkedSeconds(row),statuses=exportExceptionLabels(row);sheetRows.push([row.work_date,new Intl.DateTimeFormat("en-MY",{weekday:"short",timeZone:"UTC"}).format(new Date(`${row.work_date}T00:00:00Z`)),branch?.branch_name??"",`${formatAttendanceTime(String(row.scheduled_start))}–${formatAttendanceTime(String(row.scheduled_end))}`,...Array.from({length:6},(_,index)=>punches[index]??""),workedSeconds==null?"":durationLabel(workedSeconds),row.payable_seconds==null?"":durationLabel(Number(row.payable_seconds)),durationLabel(Number(row.late_seconds??0)),durationLabel(Number(row.early_leave_seconds??0)),durationLabel(Number(row.overtime_seconds??0)),statuses])}return{name:String(staff.full_name),rows:sheetRows}});const output=workbook(sheets);return new NextResponse(new Uint8Array(output),{headers:{"content-type":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","content-disposition":`attachment; filename="attendance-week-${input.week}.xlsx"`}})}catch(error){logServerError(error,{source:"api.attendance.export"});return NextResponse.json({ok:false,message:"Protected attendance workbook could not be generated."},{status:500})}}
+type Row = Record<string, unknown>;
+type Nested = unknown;
+
+function monthEnd(month: string) {
+  const [year, monthNumber] = month.split("-").map(Number);
+  return `${month}-${String(new Date(Date.UTC(year, monthNumber, 0)).getUTCDate()).padStart(2, "0")}`;
+}
+
+function monthDates(month: string) {
+  const end = Number(monthEnd(month).slice(-2));
+  return Array.from({ length: end }, (_, index) => `${month}-${String(index + 1).padStart(2, "0")}`);
+}
+
+function scheduleRangeStart(month: string) {
+  const start = new Date(`${month}-01T00:00:00Z`);
+  start.setUTCDate(start.getUTCDate() - ((start.getUTCDay() + 6) % 7));
+  return start.toISOString().slice(0, 10);
+}
+
+function clock(value: unknown) {
+  if (!value) return null;
+  const text = String(value);
+  return text.includes("T") ? formatAttendanceTime(text) : text.slice(0, 5);
+}
+
+function object(value: Nested): Row {
+  return value && typeof value === "object" ? value as Row : {};
+}
+
+function branchName(value: Nested) {
+  const item = object(value);
+  return typeof item.branch_name === "string" ? item.branch_name : "";
+}
+
+function assignmentSchedule(value: Nested) {
+  const assignment = object(value);
+  const template = object(assignment.shift_templates);
+  return {
+    start: typeof assignment.custom_start === "string" ? assignment.custom_start : typeof template.planned_start === "string" ? template.planned_start : null,
+    end: typeof assignment.custom_end === "string" ? assignment.custom_end : typeof template.planned_end === "string" ? template.planned_end : null,
+  };
+}
+
+function isOffAssignment(value: Nested) {
+  const kind = String(object(value).assignment_kind ?? "").toLowerCase();
+  return kind !== "" && kind !== "shift";
+}
+
+function dayLabel(date: string) {
+  return new Intl.DateTimeFormat("en-MY", { weekday: "short", timeZone: "UTC" }).format(new Date(`${date}T00:00:00Z`));
+}
+
+function sheetDay(date: string, result: Nested, assignment: Nested, outlet: string): PeopleWorkbookDay {
+  const row = object(result);
+  const schedule = assignmentSchedule(assignment);
+  const punches = result ? exportPunches(row).map((value) => clock(value)).filter((value): value is string => Boolean(value)) : [];
+  const scheduledStart = clock(row.scheduled_start) ?? clock(schedule.start);
+  const scheduledEnd = clock(row.scheduled_end) ?? clock(schedule.end);
+  return {
+    date,
+    day: dayLabel(date),
+    outlet: branchName(row.branches) || outlet,
+    scheduleStart: scheduledStart,
+    scheduleEnd: scheduledEnd,
+    off: isOffAssignment(assignment),
+    punches,
+    workedSeconds: result ? exportWorkedSeconds(row) : null,
+    overtimeSeconds: result ? Number(row.overtime_seconds ?? 0) : null,
+    shortHoursSeconds: result ? Number(row.early_leave_seconds ?? 0) : null,
+    pphSeconds: result ? Number(row.holiday_ot_equivalent_seconds ?? row.holiday_normal_equivalent_seconds ?? 0) : null,
+  };
+}
+
+export async function GET(request: Request) {
+  try {
+    if (!(await hasPermission("attendance.sensitive.export"))) {
+      return NextResponse.json({ ok: false, message: "People or Owner permission is required for this protected workbook." }, { status: 403 });
+    }
+    const url = new URL(request.url);
+    const input = schema.parse({ week: url.searchParams.get("week"), format: url.searchParams.get("format"), branch: url.searchParams.get("branch") || undefined });
+    const month = input.week.slice(0, 7);
+    const end = monthEnd(month);
+    const db = looseSupabase(await createClient());
+
+    let resultQuery = db.from("daily_attendance_results")
+      .select("*,staffs(full_name,staff_code,employment_type),branches(branch_name)")
+      .eq("is_current", true).gte("work_date", `${month}-01`).lte("work_date", end).order("work_date").limit(10000);
+    if (input.branch) resultQuery = resultQuery.eq("branch_id", input.branch);
+
+    let weekQuery = db.from("schedule_weeks").select("id,branch_id,status,revision,week_start").gte("week_start", scheduleRangeStart(month)).lte("week_start", end).in("status", ["published", "locked"]);
+    if (input.branch) weekQuery = weekQuery.eq("branch_id", input.branch);
+
+    const lockQuery = input.branch
+      ? db.from("attendance_period_locks").select("id").eq("week_start", input.week).eq("branch_id", input.branch).is("unlocked_at", null).maybeSingle()
+      : db.from("attendance_period_locks").select("id").eq("week_start", input.week).is("branch_id", null).is("unlocked_at", null).maybeSingle();
+
+    const [results, weeks, sensitive, lock] = await Promise.all([
+      resultQuery,
+      weekQuery,
+      db.from("staff_sensitive_employment").select("staff_id,basic_salary"),
+      lockQuery,
+    ]);
+    for (const item of [results, weeks, sensitive, lock]) if (item.error) throw item.error;
+    if (!lock.data) return NextResponse.json({ ok: false, message: "Close this attendance week before downloading the protected workbook." }, { status: 409 });
+
+    const weekRows = (weeks.data ?? []) as Row[];
+    const latestWeekByBranchAndStart = new Map<string, Row>();
+    for (const week of weekRows.sort((a, b) => Number(b.revision ?? 0) - Number(a.revision ?? 0))) {
+      const key = `${week.branch_id}|${week.week_start}`;
+      if (!latestWeekByBranchAndStart.has(key)) latestWeekByBranchAndStart.set(key, week);
+    }
+    const weekIds = [...latestWeekByBranchAndStart.values()].map((week) => String(week.id));
+    const assignmentResult = weekIds.length
+      ? await db.from("shift_assignment_revisions").select("staff_id,branch_id,work_date,assignment_kind,custom_start,custom_end,shift_templates(planned_start,planned_end),staffs!shift_assignment_revisions_staff_id_fkey(full_name,staff_code,employment_type),branches!shift_assignment_revisions_branch_id_fkey(branch_name)").in("schedule_week_id", weekIds).eq("is_current", true).gte("work_date", `${month}-01`).lte("work_date", end).order("work_date")
+      : { data: [], error: null };
+    if (assignmentResult.error) throw assignmentResult.error;
+
+    const resultRows = (results.data ?? []) as Row[];
+    const assignments = (assignmentResult.data ?? []) as Row[];
+    const resultByKey = new Map(resultRows.map((row) => [`${row.staff_id}|${row.work_date}`, row]));
+    const assignmentByKey = new Map(assignments.map((row) => [`${row.staff_id}|${row.work_date}`, row]));
+    const staffMap = new Map<string, { profile: Row; outlet: string }>();
+    for (const row of [...assignments, ...resultRows]) {
+      const id = String(row.staff_id);
+      if (!staffMap.has(id)) staffMap.set(id, { profile: object(row.staffs), outlet: branchName(row.branches) });
+    }
+    const sensitiveByStaff = new Map(((sensitive.data ?? []) as Row[]).map((row) => [String(row.staff_id), row]));
+    const dates = monthDates(month);
+    const sheets: PeopleWorkbookSheet[] = [...staffMap.entries()].sort((a, b) => String(a[1].profile.full_name ?? "").localeCompare(String(b[1].profile.full_name ?? ""))).map(([staffId, entry]) => {
+      const profile = entry.profile;
+      const days = dates.map((date) => sheetDay(date, resultByKey.get(`${staffId}|${date}`), assignmentByKey.get(`${staffId}|${date}`), entry.outlet));
+      return {
+        name: String(profile.full_name ?? staffId),
+        employee: String(profile.full_name ?? staffId),
+        staffCode: profile.staff_code == null ? null : String(profile.staff_code),
+        employmentType: profile.employment_type == null ? null : String(profile.employment_type),
+        outlet: entry.outlet,
+        month,
+        basicSalary: sensitiveByStaff.get(staffId)?.basic_salary == null ? null : String(sensitiveByStaff.get(staffId)?.basic_salary),
+        days,
+      };
+    });
+    const output = buildPeopleWorkbook(sheets);
+    return new NextResponse(new Uint8Array(output), { headers: { "content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "content-disposition": `attachment; filename="attendance-${month}.xlsx"` } });
+  } catch (error) {
+    logServerError(error, { source: "api.attendance.export" });
+    return NextResponse.json({ ok: false, message: "Protected attendance workbook could not be generated." }, { status: 500 });
+  }
+}

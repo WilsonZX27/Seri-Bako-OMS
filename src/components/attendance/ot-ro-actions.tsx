@@ -48,12 +48,14 @@ export function OtClaimAction({
   claim,
   canSubmit,
   canApprove,
+  disabled = false,
 }: {
   resultId: string;
   candidateSeconds: number;
   claim?: Claim;
   canSubmit: boolean;
   canApprove: boolean;
+  disabled?: boolean;
 }) {
   const dialog = useRef<HTMLDialogElement>(null),
     [busy, setBusy] = useState(false),
@@ -96,7 +98,7 @@ export function OtClaimAction({
     }
   }
   const actionable =
-    (!claim && canSubmit) || (claim?.status === "submitted" && canApprove);
+    !disabled && ((!claim && canSubmit) || (claim?.status === "submitted" && canApprove));
   return (
     <>
       <Button
@@ -107,7 +109,9 @@ export function OtClaimAction({
         onClick={() => dialog.current?.showModal()}
       >
         <Clock3 className="h-3.5 w-3.5" />
-        {claim
+        {disabled
+          ? "Locked"
+          : claim
           ? claim.status === "submitted"
             ? "Review OT"
             : claim.status

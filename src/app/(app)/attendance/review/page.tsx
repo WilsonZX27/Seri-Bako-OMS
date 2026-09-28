@@ -86,6 +86,13 @@ function primaryStatus(row: Row) {
 function expectedPunchesFor(row: Row, staff: { employment_type?: string } | null) {
   return staff?.employment_type === "part_time" ? 2 : Number(row.expected_punch_count ?? 0);
 }
+const BLOCKING_ATTENDANCE_STATUSES = new Set([
+  "missing_punches",
+  "missing_check_in",
+  "missing_check_out",
+  "odd_punch_count",
+  "impossible_ordering",
+]);
 function pageHref(params: Record<string, string | undefined>, page: number) {
   const query = new URLSearchParams();
   for (const [key, value] of Object.entries(params))
@@ -153,8 +160,11 @@ export default async function AttendanceReviewPage({
     final_used_minutes?: number | null;
     staffs?: { full_name?: string } | null;
   }>;
-  const exceptionCount = rows.filter(
+  const attentionCount = rows.filter(
     (row) => primaryStatus(row) !== "normal",
+  ).length;
+  const blockerCount = rows.filter((row) =>
+    Array.isArray(row.statuses) && row.statuses.some((status) => BLOCKING_ATTENDANCE_STATUSES.has(String(status))),
   ).length;
   const latest = review.batches[0] as Row | undefined;
   const totalPages = Math.max(1, Math.ceil(review.total / review.pageSize));
@@ -212,7 +222,7 @@ export default async function AttendanceReviewPage({
             <ConsoleSection title="Week status" kind="status">
               <p className="font-semibold">{week}</p>
               <p>
-                {review.total} staff days · {exceptionCount} shown exceptions
+                {review.total} staff days · {blockerCount} blockers · {attentionCount} attention items
               </p>
               <StatusBadge status={weekLocked ? "locked" : "open"} />
               {latest ? (
@@ -242,7 +252,7 @@ export default async function AttendanceReviewPage({
                   reservations={reservations.filter(
                     (row) => (row as unknown as Row).status === "reserved",
                   )}
-                  exceptionCount={exceptionCount}
+                  exceptionCount={blockerCount}
                   pendingReportCount={(actuals.reports as Row[]).filter((row) => String(row.status) === "pending").length}
                   submittedClaimCount={claims.filter((row) => String(row.status) === "submitted").length}
                   reviewHref={pageHref(filterParams, page)}
@@ -252,7 +262,7 @@ export default async function AttendanceReviewPage({
               {latest &&
               (permissions["attendance.import"] ||
                 permissions["attendance.adjust"]) ? (
-                <AttendanceRecalculateButton batchId={String(latest.id)} />
+                <AttendanceRecalculateButton batchId={String(latest.id)} disabled={weekLocked} />
               ) : null}
               {permissions["attendance.sensitive.export"] ? (
                 <Button asChild size="sm" variant="outline" className="w-full">
@@ -353,7 +363,7 @@ export default async function AttendanceReviewPage({
             <h2 className="text-sm font-semibold">
               Schedule vs fingerprint punches
             </h2>
-            <StatusBadge status={exceptionCount ? "attention" : "reviewed"} />
+            <StatusBadge status={attentionCount ? "attention" : "reviewed"} />
             <span className="ml-auto text-xs text-muted-foreground">
               {review.total} results
             </span>
@@ -456,6 +466,7 @@ export default async function AttendanceReviewPage({
                             claim={claim}
                             candidate={candidate}
                             permissions={permissions}
+                            weekLocked={weekLocked}
                             href={`${pageHref(filterParams, page)}&detail=${encodeURIComponent(String(row.id))}`}
                           />
                         </td>
@@ -544,6 +555,7 @@ export default async function AttendanceReviewPage({
                         claim={claim}
                         candidate={candidate}
                         permissions={permissions}
+                        weekLocked={weekLocked}
                         href={`${pageHref(filterParams, page)}&detail=${encodeURIComponent(String(row.id))}`}
                       />
                     </div>
@@ -617,12 +629,14 @@ function RowActions({
   candidate,
   permissions,
   href,
+  weekLocked,
 }: {
   row: Row;
   claim?: Claim;
   candidate: number;
   permissions: Record<string, boolean>;
   href: string;
+  weekLocked: boolean;
 }) {
   return (
     <div className="inline-grid min-w-0 grid-cols-1 justify-items-start gap-1 [&_button]:font-normal">
@@ -637,6 +651,7 @@ function RowActions({
           actualBreakOut={typeof row.actual_break_out==="string"?row.actual_break_out:null}
           actualBreakIn={typeof row.actual_break_in==="string"?row.actual_break_in:null}
           actualLastOut={typeof row.actual_last_out==="string"?row.actual_last_out:null}
+          disabled={weekLocked}
         />
       ) : (
         <StatusBadge status={String(row.review_status)} label={String(row.review_status) === "reviewed" ? "Calculated" : undefined} />
@@ -647,6 +662,7 @@ function RowActions({
         claim={claim}
         canSubmit={permissions["attendance.ot.submit"]}
         canApprove={permissions["attendance.ot.approve"]}
+        disabled={weekLocked}
       />
     </div>
   );

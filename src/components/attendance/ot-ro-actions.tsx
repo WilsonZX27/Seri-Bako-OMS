@@ -239,6 +239,7 @@ export function OtClaimAction({
 
 export function WeeklyCloseButton({
   weekStart,
+  branchId,
   reservations,
   exceptionCount = 0,
   pendingReportCount = 0,
@@ -247,6 +248,7 @@ export function WeeklyCloseButton({
   disabled,
 }: {
   weekStart: string;
+  branchId: string | null;
   reservations: Reservation[];
   exceptionCount?: number;
   pendingReportCount?: number;
@@ -269,7 +271,7 @@ export function WeeklyCloseButton({
     try {
       await post("/api/attendance/weekly-close", {
         weekStart,
-        branchId: null,
+        branchId,
         roDecisions,
       });
       window.location.reload();

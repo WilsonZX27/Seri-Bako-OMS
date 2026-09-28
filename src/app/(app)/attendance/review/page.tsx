@@ -238,6 +238,7 @@ export default async function AttendanceReviewPage({
               {permissions["attendance.week.close"] ? (
                 <WeeklyCloseButton
                   weekStart={week}
+                  branchId={branch ?? null}
                   reservations={reservations.filter(
                     (row) => (row as unknown as Row).status === "reserved",
                   )}

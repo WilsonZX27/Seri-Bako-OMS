@@ -256,7 +256,7 @@ export default async function AttendanceReviewPage({
               ) : null}
               {permissions["attendance.sensitive.export"] ? (
                 <Button asChild size="sm" variant="outline" className="w-full">
-                  <a href={`/api/attendance/export?week=${week}&format=xlsx`}>
+                  <a href={`/api/attendance/export?week=${week}${branch ? `&branch=${encodeURIComponent(branch)}` : ""}&format=xlsx`}>
                     <Download className="h-4 w-4" />
                     Download People workbook
                   </a>

@@ -27,7 +27,7 @@ test("weekly close is People-owned and blocks unresolved source problems",()=>{
 
 test("protected workbook is locked, role-gated and one sheet per employee",()=>{
  for(const contract of ["attendance.sensitive.export","staff_sensitive_employment","people.sensitive.read"])assert.ok(migration.includes(contract),contract);
- for(const contract of ["Close this attendance week","Passport number","Basic salary (RM)","safeSheetName","attendance.sensitive.export"])assert.ok(workbook.includes(contract),contract);
+ for(const contract of ["Close this attendance week","Passport number","Basic salary (RM)","safeSheetName","attendance.sensitive.export","branch_id","input.branch"])assert.ok(workbook.includes(contract),contract);
 });
 
 test("review exposes punch expectations and monthly follow-up",()=>{

@@ -4,6 +4,7 @@ const assert = require("node:assert/strict");
 
 const migration = fs.readFileSync("supabase/migrations/306_attendance_evidence_integrity.sql", "utf8");
 const currentSummaryMigration = fs.readFileSync("supabase/migrations/311_attendance_current_exception_summary.sql", "utf8");
+const partTimePolicyMigration = fs.readFileSync("supabase/migrations/312_part_time_two_punch_policy.sql", "utf8");
 const reviewRoute = fs.readFileSync("src/app/api/attendance/review/route.ts", "utf8");
 const reviewActions = fs.readFileSync("src/components/attendance/review-actions.tsx", "utf8");
 const queries = fs.readFileSync("src/server/queries/attendance.ts", "utf8");
@@ -61,4 +62,13 @@ test("attendance home excludes superseded calculation exceptions", () => {
   assert.match(currentSummaryMigration, /attendance_exceptions_open_company_result_idx/);
   assert.match(currentSummaryMigration, /where resolved_at is null/);
   assert.match(currentSummaryMigration, /r\.work_date between p_week_start and week_end/);
+});
+
+test("part-time attendance requires only IN and OUT and clears stale break blockers", () => {
+  assert.match(partTimePolicyMigration, /recalculate_attendance_week_before_part_time_punch_policy/);
+  assert.match(partTimePolicyMigration, /expected_punch_count=2/);
+  assert.match(partTimePolicyMigration, /missing_punch_count=greatest\(0,2-/);
+  assert.match(partTimePolicyMigration, /missing_break_punch/);
+  assert.match(partTimePolicyMigration, /short_break/);
+  assert.match(partTimePolicyMigration, /monthly_missing_punch_count/);
 });

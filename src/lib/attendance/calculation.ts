@@ -52,7 +52,9 @@ export function calculateAttendance(shift: AttendanceShift, events: PunchEvent[]
   const employmentType = shift.employmentType ?? "full_time";
   const scheduleSpanSeconds = secondsBetween(shift.scheduledStart, shift.scheduledEnd);
   const shiftClass = employmentType === "full_time" && scheduleSpanSeconds > 9.5 * 3600 ? "full_day" : "morning_afternoon";
-  const requiredBreakCount = employmentType === "full_time" ? (shiftClass === "full_day" ? 2 : 1) : scheduleSpanSeconds > 5 * 3600 ? 1 : 0;
+  // Part-time staff record one work interval (IN → OUT). Break punches are
+  // not required by the payroll policy, regardless of scheduled span.
+  const requiredBreakCount = employmentType === "full_time" ? (shiftClass === "full_day" ? 2 : 1) : 0;
   const expectedPunchCount = 2 + requiredBreakCount * 2;
   const breakDurations = intervals.slice(1).map((interval, index) => secondsBetween(intervals[index].end.occurredAt, interval.start.occurredAt));
   if (breakDurations.length < requiredBreakCount) exceptions.push("Missing Break Punch");

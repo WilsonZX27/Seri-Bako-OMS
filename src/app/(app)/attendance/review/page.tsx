@@ -77,10 +77,14 @@ function signedDuration(value: unknown, tone: "late" | "earlyLeave" | "ot") {
   return <span className={`mt-0.5 block text-[11px] font-medium tabular-nums ${className}`}>{prefix}{durationLabel(seconds)}{label ? ` ${label}` : ""}</span>;
 }
 function primaryStatus(row: Row) {
+  const staff = row.staffs as { employment_type?: string } | null;
   const values = Array.isArray(row.statuses)
-    ? row.statuses.map(String).filter((value) => value !== "public_holiday")
+    ? row.statuses.map(String).filter((value) => value !== "public_holiday" && !(staff?.employment_type === "part_time" && ["missing_break_punch", "short_break"].includes(value)))
     : [];
   return values[0] ?? (row.holiday_id ? "public_holiday" : "normal");
+}
+function expectedPunchesFor(row: Row, staff: { employment_type?: string } | null) {
+  return staff?.employment_type === "part_time" ? 2 : Number(row.expected_punch_count ?? 0);
 }
 function pageHref(params: Record<string, string | undefined>, page: number) {
   const query = new URLSearchParams();
@@ -386,6 +390,9 @@ export default async function AttendanceReviewPage({
               <tbody>
                 {rows.map((row, index) => {
                   const { staff, candidate, actualOvertime, claim, reservation } = rowContext(row);
+                  const actualPunches = Number(row.actual_punch_count ?? 0);
+                  const expectedPunches = expectedPunchesFor(row, staff);
+                  const missingPunches = Math.max(0, expectedPunches - actualPunches);
                   const newDay =
                     index === 0 ||
                     String(rows[index - 1]?.work_date) !==
@@ -410,10 +417,9 @@ export default async function AttendanceReviewPage({
                         </td>
                         <td className="px-3 py-3">
                           <strong className="tabular-nums">
-                            {Number(row.actual_punch_count ?? 0)} of{" "}
-                            {Number(row.expected_punch_count ?? 0)}
+                            {actualPunches} of {expectedPunches}
                           </strong>
-                          {Number(row.missing_punch_count ?? 0) > 0 ? (
+                          {missingPunches > 0 ? (
                             <span title={`Advisory only; payroll is unchanged. Tracking starts ${ATTENDANCE_TRACKING_START_DATE}.${Array.isArray(row.monthly_missing_punch_dates) && row.monthly_missing_punch_dates.length ? ` Missing records: ${row.monthly_missing_punch_dates.join(", ")}.` : ""}`} className="block max-w-full cursor-help text-[10px] leading-tight text-amber-800">
                               {String(row.work_date) >= ATTENDANCE_TRACKING_START_DATE && Number(row.monthly_missing_punch_count ?? 0) >= 4
                                 ? `${Number(row.monthly_missing_punch_count)} missing this month`
@@ -462,6 +468,9 @@ export default async function AttendanceReviewPage({
           <div className="divide-y divide-[var(--sb-border-soft)] md:hidden">
             {rows.map((row, index) => {
               const { staff, candidate, actualOvertime, claim, reservation, status } = rowContext(row);
+              const actualPunches = Number(row.actual_punch_count ?? 0);
+              const expectedPunches = expectedPunchesFor(row, staff);
+              const missingPunches = Math.max(0, expectedPunches - actualPunches);
               const newDay =
                 index === 0 ||
                 String(rows[index - 1]?.work_date) !== String(row.work_date);
@@ -490,10 +499,9 @@ export default async function AttendanceReviewPage({
                       <div>
                         <dt className="text-muted-foreground">Punches</dt>
                         <dd className="font-semibold">
-                          {Number(row.actual_punch_count ?? 0)} of{" "}
-                          {Number(row.expected_punch_count ?? 0)}
+                          {actualPunches} of {expectedPunches}
                         </dd>
-                        {Number(row.missing_punch_count ?? 0) > 0 ? (
+                        {missingPunches > 0 ? (
                           <dd title={`Advisory only; payroll is unchanged. Tracking starts ${ATTENDANCE_TRACKING_START_DATE}.${Array.isArray(row.monthly_missing_punch_dates) && row.monthly_missing_punch_dates.length ? ` Missing records: ${row.monthly_missing_punch_dates.join(", ")}.` : ""}`} className="max-w-full cursor-help text-[10px] leading-tight text-amber-800">
                             {String(row.work_date) >= ATTENDANCE_TRACKING_START_DATE && Number(row.monthly_missing_punch_count ?? 0) >= 4
                               ? `${Number(row.monthly_missing_punch_count)} missing this month`

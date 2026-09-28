@@ -8,6 +8,8 @@ const importer = fs.readFileSync("src/components/attendance/attendance-import-wo
 const queries = fs.readFileSync("src/server/queries/attendance.ts", "utf8");
 const dashboardQueries = fs.readFileSync("src/server/queries/dashboard.ts", "utf8");
 const peopleDetail = fs.readFileSync("src/app/(app)/people/[id]/page.tsx", "utf8");
+const employeeSummary = fs.readFileSync("src/components/attendance/employee-attendance-summary.tsx", "utf8");
+const closeDialog = fs.readFileSync("src/components/attendance/ot-ro-actions.tsx", "utf8");
 
 test("completed punch imports cannot be submitted twice", () => {
   assert.match(importer, /disabled=\{Boolean\(summary\)\|\|/);
@@ -53,4 +55,15 @@ test("employee attendance links and unscheduled punches retain the selected empl
   assert.match(queries, /const allowedStaff = staffIds \? new Set\(staffIds\) : null/);
   assert.match(queries, /if \(allowedStaff && !allowedStaff\.has\(staffId\)\) continue/);
   assert.doesNotMatch(queries, /const covered = new Set\(reviewRows\.map/);
+});
+
+test("attendance review explains close blockers and links to the employee profile", () => {
+  assert.match(review, /peopleHref={staff && row\.staff_id \?/);
+  assert.match(review, /exceptionCount={exceptionCount}/);
+  assert.match(review, /pendingReportCount=/);
+  assert.match(review, /submittedClaimCount=/);
+  assert.match(employeeSummary, /Open employee/);
+  assert.match(employeeSummary, /View full attendance/);
+  assert.match(closeDialog, /This week is not ready to close/);
+  assert.match(closeDialog, /Review attendance rows/);
 });

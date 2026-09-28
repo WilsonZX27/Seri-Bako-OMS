@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import { Check, Clock3, LockKeyhole, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -239,10 +240,18 @@ export function OtClaimAction({
 export function WeeklyCloseButton({
   weekStart,
   reservations,
+  exceptionCount = 0,
+  pendingReportCount = 0,
+  submittedClaimCount = 0,
+  reviewHref,
   disabled,
 }: {
   weekStart: string;
   reservations: Reservation[];
+  exceptionCount?: number;
+  pendingReportCount?: number;
+  submittedClaimCount?: number;
+  reviewHref?: string;
   disabled?: boolean;
 }) {
   const dialog = useRef<HTMLDialogElement>(null),
@@ -344,6 +353,17 @@ export function WeeklyCloseButton({
               No RO reservations require a decision this week.
             </p>
           )}
+          {exceptionCount || pendingReportCount || submittedClaimCount ? (
+            <div role="status" className="rounded-[var(--sb-radius-control)] border border-rose-200 bg-rose-50 p-3 text-xs text-rose-950">
+              <p className="font-semibold">This week is not ready to close.</p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                {exceptionCount ? <li>{exceptionCount} attendance exception{exceptionCount === 1 ? "" : "s"} shown below require review.</li> : null}
+                {pendingReportCount ? <li>{pendingReportCount} attendance report{pendingReportCount === 1 ? "" : "s"} are still pending.</li> : null}
+                {submittedClaimCount ? <li>{submittedClaimCount} OT claim{submittedClaimCount === 1 ? "" : "s"} still need a decision.</li> : null}
+              </ul>
+              {reviewHref ? <Link className="mt-2 inline-flex font-semibold underline underline-offset-2" href={reviewHref}>Review attendance rows</Link> : null}
+            </div>
+          ) : null}
           {message ? (
             <p
               role="alert"

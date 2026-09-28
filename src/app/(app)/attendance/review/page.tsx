@@ -189,7 +189,7 @@ export default async function AttendanceReviewPage({
       return { date, label: `${count} missing` };
     });
     const reportHistory = (actuals.reports as Row[]).filter((report) => String(report.staff_id) === String(row.staff_id)).map((report) => ({ date: String(report.work_date), label: String(report.report_type ?? report.status ?? "Attendance report").replaceAll("_", " ").toUpperCase() }));
-    return <EmployeeAttendanceSummary name={staff?.full_name ?? "Unmatched employee"} staffCode={staff?.staff_code} employmentType={staff?.employment_type ?? "full_time"} workDate={String(row.work_date)} punches={`${Number(row.actual_punch_count ?? 0)} of ${Number(row.expected_punch_count ?? 0)} punches`} missingHistory={missingHistory} reportHistory={reportHistory} detailHref={detailHref} />;
+    return <EmployeeAttendanceSummary name={staff?.full_name ?? "Unmatched employee"} staffCode={staff?.staff_code} employmentType={staff?.employment_type ?? "full_time"} workDate={String(row.work_date)} punches={`${Number(row.actual_punch_count ?? 0)} of ${Number(row.expected_punch_count ?? 0)} punches`} missingHistory={missingHistory} reportHistory={reportHistory} detailHref={detailHref} peopleHref={staff && row.staff_id ? `/people/${encodeURIComponent(String(row.staff_id))}` : undefined} />;
   };
 
   return (
@@ -237,6 +237,10 @@ export default async function AttendanceReviewPage({
                   reservations={reservations.filter(
                     (row) => (row as unknown as Row).status === "reserved",
                   )}
+                  exceptionCount={exceptionCount}
+                  pendingReportCount={(actuals.reports as Row[]).filter((row) => String(row.status) === "pending").length}
+                  submittedClaimCount={claims.filter((row) => String(row.status) === "submitted").length}
+                  reviewHref={pageHref(filterParams, page)}
                   disabled={weekLocked}
                 />
               ) : null}
@@ -350,7 +354,7 @@ export default async function AttendanceReviewPage({
             </span>
           </header>
           <div className="hidden overflow-auto md:block">
-            <table className="w-full min-w-[58rem] table-fixed text-left text-xs">
+            <table id="attendance-review-results" className="w-full min-w-[58rem] table-fixed text-left text-xs">
               <colgroup>
                 <col className="w-[16%]" />
                 <col className="w-[10%]" />

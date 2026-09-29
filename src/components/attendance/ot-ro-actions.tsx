@@ -22,6 +22,13 @@ type Reservation = {
   work_date: string;
   staffs?: { full_name?: string } | null;
 };
+type AttendanceBlocker = {
+  id: string;
+  employee: string;
+  date: string;
+  reason: string;
+  href?: string;
+};
 
 async function post(url: string, body: Record<string, unknown>) {
   const response = await fetch(url, {
@@ -249,6 +256,7 @@ export function WeeklyCloseButton({
   pendingReportCount = 0,
   submittedClaimCount = 0,
   reviewHref,
+  blockers = [],
   disabled,
 }: {
   weekStart: string;
@@ -258,6 +266,7 @@ export function WeeklyCloseButton({
   pendingReportCount?: number;
   submittedClaimCount?: number;
   reviewHref?: string;
+  blockers?: AttendanceBlocker[];
   disabled?: boolean;
 }) {
   const dialog = useRef<HTMLDialogElement>(null),
@@ -367,6 +376,22 @@ export function WeeklyCloseButton({
                 {pendingReportCount ? <li>{pendingReportCount} attendance report{pendingReportCount === 1 ? "" : "s"} are still pending.</li> : null}
                 {submittedClaimCount ? <li>{submittedClaimCount} OT claim{submittedClaimCount === 1 ? "" : "s"} still need a decision.</li> : null}
               </ul>
+              {blockers.length ? (
+                <div className="mt-3 overflow-hidden rounded-[var(--sb-radius-control)] border border-rose-200 bg-white">
+                  <p className="border-b border-rose-100 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-rose-900">Rows to review</p>
+                  <ul className="divide-y divide-rose-100">
+                    {blockers.map((blocker) => (
+                      <li key={blocker.id} className="flex items-start justify-between gap-3 px-3 py-2 text-xs">
+                        <span className="min-w-0">
+                          <strong className="block truncate text-rose-950">{blocker.employee}</strong>
+                          <span className="block text-rose-900/80">{blocker.date} · {blocker.reason}</span>
+                        </span>
+                        {blocker.href ? <Link className="shrink-0 font-semibold text-rose-900 underline underline-offset-2" href={blocker.href}>Open row</Link> : null}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
               {reviewHref ? <Link className="mt-2 inline-flex font-semibold underline underline-offset-2" href={reviewHref}>Review attendance rows</Link> : null}
             </div>
           ) : null}

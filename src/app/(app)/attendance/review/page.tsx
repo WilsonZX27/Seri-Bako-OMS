@@ -166,15 +166,33 @@ export default async function AttendanceReviewPage({
   const blockerCount = rows.filter((row) =>
     Array.isArray(row.statuses) && row.statuses.some((status) => BLOCKING_ATTENDANCE_STATUSES.has(String(status))),
   ).length;
-  const latest = review.batches[0] as Row | undefined;
-  const totalPages = Math.max(1, Math.ceil(review.total / review.pageSize));
-  const weekLocked = (actuals.locks as unknown[]).length > 0;
+  const exceptionCount = blockerCount;
   const filterParams = {
     week,
     branch,
     status: params.status,
     employee: params.employee,
   };
+  const blockerRows = rows
+    .filter((row) => Array.isArray(row.statuses) && row.statuses.some((status) => BLOCKING_ATTENDANCE_STATUSES.has(String(status))))
+    .slice(0, 20)
+    .map((row) => {
+      const staff = row.staffs as { full_name?: string } | null;
+      const reason = (Array.isArray(row.statuses) ? row.statuses : [])
+        .map(String)
+        .find((status) => BLOCKING_ATTENDANCE_STATUSES.has(status))
+        ?.replaceAll("_", " ") ?? "Attendance exception";
+      return {
+        id: String(row.id),
+        employee: staff?.full_name ?? "Unmatched employee",
+        date: String(row.work_date),
+        reason,
+        href: `${pageHref({ ...filterParams, detail: undefined }, page)}&detail=${encodeURIComponent(String(row.id))}`,
+      };
+    });
+  const latest = review.batches[0] as Row | undefined;
+  const totalPages = Math.max(1, Math.ceil(review.total / review.pageSize));
+  const weekLocked = (actuals.locks as unknown[]).length > 0;
   const rowContext = (row: Row) => {
     const staff = row.staffs as {
       full_name?: string;
@@ -252,9 +270,10 @@ export default async function AttendanceReviewPage({
                   reservations={reservations.filter(
                     (row) => (row as unknown as Row).status === "reserved",
                   )}
-                  exceptionCount={blockerCount}
+                  exceptionCount={exceptionCount}
                   pendingReportCount={(actuals.reports as Row[]).filter((row) => String(row.status) === "pending").length}
                   submittedClaimCount={claims.filter((row) => String(row.status) === "submitted").length}
+                  blockers={blockerRows}
                   reviewHref={pageHref(filterParams, page)}
                   disabled={weekLocked}
                 />

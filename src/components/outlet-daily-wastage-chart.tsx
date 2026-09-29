@@ -14,7 +14,10 @@ export function OutletDailyWastageChart({ points, branch, unavailable = false }:
   const width = 720;
   const height = 280;
   const inset = { top: 18, right: 18, bottom: 30, left: 54 };
-  const maximum = Math.max(10, ...points.map((point) => point.wastage_percent));
+  // Keep the scale stable at the business maximum. A 100% ceiling makes the
+  // same rate comparable across outlets and avoids a small change looking like
+  // a large spike when the seven-day sample is low.
+  const maximum = 100;
   const totalReceived = points.reduce((sum, point) => sum + point.received, 0);
   const totalWastage = points.reduce((sum, point) => sum + point.wastage, 0);
   const periodRate = totalReceived > 0 ? totalWastage / totalReceived * 100 : 0;

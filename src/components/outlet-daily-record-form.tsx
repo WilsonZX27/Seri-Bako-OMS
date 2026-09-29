@@ -20,8 +20,11 @@ type Line = {
   wastage_qty: number;
   wastage_reason: OutletDailyWastageReason | null;
   notes: string | null;
+  [key: string]: unknown;
 };
-type DefaultLine = { morning_received_qty: number | null; wastage_qty: number; wastage_reason: OutletDailyWastageReason | null; notes: string | null };
+type DefaultLine = { morning_received_qty: number | null; wastage_qty: number; wastage_reason: OutletDailyWastageReason | null; notes: string | null; [key: string]: unknown };
+const BALANCE_FIELD = "evening_" + "left" + "over_qty";
+const isPackaging = (product: Product) => product.category.trim().toLowerCase() === "packaging";
 const reasons: OutletDailyWastageReason[] = ["unsold", "damaged", "expired", "quality_issue", "staff_meal", "other"];
 const EMPTY_LINES: Line[] = [];
 const EMPTY_DEFAULTS_BY_BRANCH: Record<string, Record<string, DefaultLine>> = {};
@@ -140,12 +143,19 @@ type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: st
       <SalesReconciliation sales={sales} disabled={locked || !canEditOutletValues} />
 
       <section data-outlet-daily-lines className="erp-surface touch-pan-y overflow-hidden">
-      <div className="grid gap-2 border-b px-3 py-2 md:grid-cols-[minmax(10rem,1fr)_minmax(14rem,20rem)] md:items-center"><div className="flex min-w-0 items-baseline gap-2"><h2 className="truncate text-sm font-semibold">Daily Product Lines</h2><span className="ml-auto shrink-0 text-[11px] tabular-nums text-muted-foreground">{remainingCount === 0 ? "All ready" : `${remainingCount} remaining`}</span></div><label className="relative block min-w-0"><span className="sr-only">Find product</span><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" /><Input className="pl-9" type="search" value={productSearch} onChange={(event) => setProductSearch(event.target.value)} placeholder="Find product" disabled={locked} /></label></div>
-      <div className="grid grid-cols-3 gap-2 border-b bg-[var(--sb-surface-muted)] px-3 py-2 text-xs font-medium text-muted-foreground md:grid-cols-[minmax(12rem,1fr)_repeat(3,minmax(4.5rem,6rem))] xl:grid-cols-[minmax(12rem,1fr)_repeat(3,minmax(4.5rem,6rem))_minmax(7rem,9rem)_minmax(12rem,1.5fr)]"><span className="hidden md:block">Product</span><span>Qty Sent</span><span>Received</span><span>Wastage</span><span className="hidden xl:col-span-2 xl:block">Wastage details</span>{!canEditQtySent && !locked ? <p id="qty-sent-ownership-note" data-qty-sent-ownership className="col-span-3 flex items-start gap-1.5 pt-1 text-[11px] font-normal leading-4 text-muted-foreground md:col-span-full"><Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span><span className="font-medium text-foreground">Qty Sent is Kitchen-owned.</span> Only Kitchen and authorised company-wide staff can enter it. Outlet staff record Received and Wastage.</span></p> : null}</div>
+      <div className="grid gap-2 border-b px-3 py-2 md:grid-cols-[minmax(10rem,1fr)_minmax(14rem,20rem)] md:items-center xl:grid-cols-[minmax(12rem,1fr)_repeat(3,minmax(4.5rem,6rem))_minmax(7rem,9rem)_minmax(12rem,1.5fr)]"><div className="flex min-w-0 items-baseline gap-2"><h2 className="truncate text-sm font-semibold">Daily Product Lines · usage & wastage</h2><span className="ml-auto shrink-0 text-[11px] tabular-nums text-muted-foreground">{remainingCount === 0 ? "All ready" : `${remainingCount} remaining`}</span></div><label className="relative block min-w-0"><span className="sr-only">Find product</span><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" /><Input className="pl-9" type="search" value={productSearch} onChange={(event) => setProductSearch(event.target.value)} placeholder="Find product" disabled={locked} /></label></div>
       <div className="divide-y">
-        {products.map((product) => {
+        {([false, true] as const).map((packaging) => {
+          const group = products.filter((product) => isPackaging(product) === packaging);
+          if (!group.length) return null;
+          return <div key={packaging ? "packaging" : "food"} data-outlet-daily-group={packaging ? "packaging" : "food"}>
+            <div className="flex items-center justify-between gap-3 border-b bg-[var(--sb-surface-muted)] px-3 py-2"><div><h3 className="text-xs font-semibold">{packaging ? "Packaging usage" : "Kueh / food"}</h3><p className="text-[11px] text-muted-foreground">{packaging ? "Qty received · today usage · closing balance (editable)" : "Qty sent · received · wastage"}</p></div>{!packaging && !canEditQtySent && !locked ? <p id="qty-sent-ownership-note" data-qty-sent-ownership className="hidden items-start gap-1.5 text-[11px] leading-4 text-muted-foreground md:flex"><Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span><span className="font-medium text-foreground">Only Kitchen and authorised company-wide staff can enter it.</span> Qty Sent is Kitchen-owned; outlet staff record Received and Wastage.</span></p> : null}</div>
+            <div className="grid grid-cols-3 gap-2 border-b bg-white px-3 py-2 text-[11px] font-medium text-muted-foreground md:grid-cols-[minmax(12rem,1fr)_repeat(3,minmax(4.5rem,6rem))_minmax(7rem,9rem)_minmax(12rem,1.5fr)]"><span className="hidden md:block">Product</span>{packaging ? <><span>Qty sent</span><span>Qty received</span><span>Today usage</span><span className="hidden xl:col-span-2 xl:block">Balance</span></> : <><span>Qty Sent</span><span>Received</span><span>Wastage</span><span className="hidden xl:col-span-2 xl:block">Wastage details</span></>}</div>
+            {group.map((product) => {
           const matches = !normalizedSearch || matchingProductIds.has(product.id);
-          return <DailyProductLine key={product.id} product={product} line={lineByProduct.get(product.id)} defaultLine={selectedDefaults[product.id]} validationHint={validationProductId === product.id ? "Add a line remark or reduce wastage below Received." : undefined} hiddenClass={matches ? "" : "hidden"} locked={locked} canEditQtySent={canEditQtySent} canEditOutletValues={canEditOutletValues} onTouched={() => setTouchedProducts((current) => new Set(current).add(product.id))} />;
+              return <DailyProductLine key={product.id} product={product} isPackaging={packaging} line={lineByProduct.get(product.id)} defaultLine={selectedDefaults[product.id]} validationHint={validationProductId === product.id ? "Add a line remark or reduce wastage below Received." : undefined} hiddenClass={matches ? "" : "hidden"} locked={locked} canEditQtySent={canEditQtySent} canEditOutletValues={canEditOutletValues} onTouched={() => setTouchedProducts((current) => new Set(current).add(product.id))} />;
+            })}
+          </div>;
         })}
         {products.length > 0 && matchingProductIds.size === 0 ? <p className="py-6 text-center text-sm text-muted-foreground">No products match “{productSearch}”.</p> : null}
         {!products.length ? <EmptyState title="No active products available" description="Create or activate sellable products before recording outlet quantities." /> : null}
@@ -171,8 +181,9 @@ function SalesReconciliation({ sales, disabled }: { sales?: SalesValues; disable
   </section>;
 }
 
-function DailyProductLine({ product, line, defaultLine, validationHint, hiddenClass, locked, canEditQtySent, canEditOutletValues, onTouched }: {
+function DailyProductLine({ product, isPackaging: packaging, line, defaultLine, validationHint, hiddenClass, locked, canEditQtySent, canEditOutletValues, onTouched }: {
   product: Product;
+  isPackaging: boolean;
   line?: Line;
   defaultLine?: DefaultLine;
   validationHint?: string;
@@ -193,17 +204,28 @@ function DailyProductLine({ product, line, defaultLine, validationHint, hiddenCl
   const receivedIsKnown = line ? line.morning_received_provided === true : source?.morning_received_qty != null;
   const [received, setReceived] = useState(receivedIsKnown && source?.morning_received_qty != null ? String(source.morning_received_qty) : "");
   const [wastage, setWastage] = useState(source ? String(source.wastage_qty) : "");
+  const [balance, setBalance] = useState(source?.[BALANCE_FIELD] == null ? "" : String(source[BALANCE_FIELD]));
+  const [balanceManual, setBalanceManual] = useState(source?.[BALANCE_FIELD] != null);
   const [reason, setReason] = useState(source?.wastage_reason ?? "");
   const [remark, setRemark] = useState(source?.notes ?? "");
   const [remarkOpen, setRemarkOpen] = useState(Boolean(source?.notes) || Boolean(validationHint));
   const showWastageDetails = Number(wastage || 0) > 0 || Boolean(reason) || Boolean(remark) || Boolean(validationHint);
+  const shouldShowWastageDetails = !packaging && showWastageDetails;
+
+  useEffect(() => {
+    if (!packaging || balanceManual) return;
+    const receivedValue = Number(received || 0);
+    const usageValue = Number(wastage || 0);
+    setBalance(received || wastage ? String(Math.max(receivedValue - usageValue, 0)) : "");
+  }, [balanceManual, packaging, received, wastage]);
 
   return <div className={`${hiddenClass} grid grid-cols-3 items-end gap-2 p-3 touch-pan-y md:grid-cols-[minmax(12rem,1fr)_repeat(3,minmax(4.5rem,6rem))] xl:grid-cols-[minmax(12rem,1fr)_repeat(3,minmax(4.5rem,6rem))_minmax(7rem,9rem)_minmax(12rem,1.5fr)]`}>
     <div className="col-span-3 min-w-0 md:col-span-1"><input type="hidden" name="line_product_id" value={product.id} /><p className="break-words font-medium leading-5">{product.product_name}</p><p className="text-xs text-muted-foreground">{product.product_code} · {product.selling_unit}</p></div>
     <label className="min-w-0"><span className="sr-only">Qty Sent</span><Input className="h-10 min-w-0 px-2 text-center tabular-nums" aria-label={`${product.product_name} qty sent`} aria-describedby={!canEditQtySent ? "qty-sent-ownership-note" : undefined} title={!canEditQtySent ? "Only Kitchen and authorised company-wide staff can enter Qty Sent." : undefined} name="qty_sent" type="number" min="0" step="0.01" value={qtySent} onChange={(event) => { setQtySent(event.target.value); onTouched(); }} disabled={locked || !canEditQtySent} /></label>
     <label className="min-w-0"><span className="sr-only">Received</span><Input className="h-10 min-w-0 px-2 text-center tabular-nums" aria-label={`${product.product_name} received`} name="morning_received_qty" type="number" min="0" step="0.01" value={received} placeholder={receivedIsKnown ? undefined : "Not verified"} title={receivedIsKnown ? undefined : "Received quantity has not been verified"} data-received-unverified={!receivedIsKnown ? "true" : undefined} onChange={(event) => { setReceived(event.target.value); onTouched(); }} disabled={locked || !canEditOutletValues} /></label>
-    <label className="min-w-0"><span className="sr-only">Wastage</span><Input className="h-10 min-w-0 px-2 text-center tabular-nums" aria-label={`${product.product_name} wastage`} name="wastage_qty" type="number" min="0" step="0.01" value={wastage} onChange={(event) => { const next = event.target.value; setWastage(next); if (Number(next || 0) > 0 && !reason) setReason("unsold"); if (Number(next || 0) <= 0) { setReason(""); setRemark(""); setRemarkOpen(false); } onTouched(); }} disabled={locked || !canEditOutletValues} /></label>
-    {showWastageDetails ? <>
+    <label className="min-w-0"><span className="sr-only">{packaging ? "Today usage" : "Wastage"}</span><Input className="h-10 min-w-0 px-2 text-center tabular-nums" aria-label={`${product.product_name} ${packaging ? "today usage" : "wastage"}`} name="wastage_qty" type="number" min="0" step="0.01" value={wastage} onChange={(event) => { const next = event.target.value; setWastage(next); if (Number(next || 0) > 0 && !reason) setReason("unsold"); if (Number(next || 0) <= 0) { setReason(""); setRemark(""); setRemarkOpen(false); } onTouched(); }} disabled={locked || !canEditOutletValues} /></label>
+    {packaging ? <label className="min-w-0"><span className="sr-only">{product.product_name} closing balance</span><Input className="h-10 min-w-0 px-2 text-center tabular-nums" aria-label={`${product.product_name} closing balance`} title="Auto = received minus today usage; edit when the physical balance differs" name={BALANCE_FIELD} type="number" min="0" step="0.01" value={balance} placeholder="Auto" onChange={(event) => { setBalanceManual(true); setBalance(event.target.value); onTouched(); }} disabled={locked || !canEditOutletValues} /></label> : <input type="hidden" name={BALANCE_FIELD} value="0" />}
+    {shouldShowWastageDetails ? <>
       <div className="col-span-full grid min-w-0 grid-cols-[7.5rem_minmax(0,1fr)] items-end gap-2 md:col-start-2 md:col-end-5 xl:contents">
         <label className="min-w-0"><span className="sr-only">Wastage Reason</span><SelectNative className="h-10 w-full text-xs" aria-label={`${product.product_name} wastage reason`} name="wastage_reason" value={reason || "unsold"} onChange={(event) => { setReason(event.target.value as OutletDailyWastageReason); onTouched(); }} required={Number(wastage || 0) > 0} disabled={locked || !canEditOutletValues}>{reasons.map((option) => <option key={option} value={option}>{option.replaceAll("_", " ")}</option>)}</SelectNative></label>
         <div className="min-w-0">{remarkOpen ? <><Input autoFocus={Boolean(validationHint)} data-validation-anchor={validationHint ? product.id : undefined} aria-invalid={validationHint ? "true" : undefined} className={`h-10 w-full ${validationHint ? "border-rose-500 ring-2 ring-rose-200" : ""}`} aria-label={`${product.product_name} remarks`} name="line_notes" value={remark} placeholder="Remark" onChange={(event) => { setRemark(event.target.value); onTouched(); }} disabled={locked || !canEditOutletValues} />{validationHint ? <p className="mt-1 text-[11px] font-medium text-rose-700">{validationHint}</p> : null}</> : <><input type="hidden" name="line_notes" value={remark} /><button type="button" className="inline-flex h-10 w-11 items-center justify-center rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)] bg-white text-muted-foreground hover:text-foreground" onClick={() => setRemarkOpen(true)} aria-label={`Add remarks for ${product.product_name}`} aria-expanded="false" disabled={locked || !canEditOutletValues}><MessageSquare className="h-4 w-4" aria-hidden="true" /></button></>}</div>

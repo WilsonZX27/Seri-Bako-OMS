@@ -8,6 +8,10 @@ import { logServerError } from "@/server/observability/logger";
 import { exportPunches, exportWorkedSeconds } from "@/lib/attendance/export-policy";
 import { buildPeopleWorkbook, type PeopleWorkbookDay, type PeopleWorkbookSheet } from "@/lib/attendance/people-workbook";
 
+// Protected workbook contract: the export stays locked until the Attendance week is
+// closed, is role-gated by attendance.sensitive.export, and renders Passport number,
+// Basic salary (RM), branch_id and one safeSheetName per employee from input.branch.
+
 const schema = z.object({
   week: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   format: z.literal("xlsx"),
@@ -113,7 +117,7 @@ export async function GET(request: Request) {
     const [results, weeks, sensitive, lock] = await Promise.all([
       resultQuery,
       weekQuery,
-      db.from("staff_sensitive_employment").select("staff_id,basic_salary"),
+      db.from("staff_sensitive_employment").select("staff_id,basic_salary,passport_number"),
       lockQuery,
     ]);
     for (const item of [results, weeks, sensitive, lock]) if (item.error) throw item.error;
@@ -149,6 +153,7 @@ export async function GET(request: Request) {
         name: String(profile.full_name ?? staffId),
         employee: String(profile.full_name ?? staffId),
         staffCode: profile.staff_code == null ? null : String(profile.staff_code),
+        passportNo: sensitiveByStaff.get(staffId)?.passport_number == null ? null : String(sensitiveByStaff.get(staffId)?.passport_number),
         employmentType: profile.employment_type == null ? null : String(profile.employment_type),
         outlet: entry.outlet,
         month,

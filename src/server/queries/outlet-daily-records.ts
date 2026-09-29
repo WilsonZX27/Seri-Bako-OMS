@@ -84,6 +84,7 @@ export type OutletDailyRecordRow = RecordRow & {
 
 export type OutletDailyDefaultLine = {
   morning_received_qty: number | null;
+  evening_leftover_qty?: number;
   wastage_qty: LineRow["wastage_qty"];
   wastage_reason: LineRow["wastage_reason"];
   notes: LineRow["notes"];
@@ -225,12 +226,12 @@ async function getOutletDailyDefaults(db: Awaited<ReturnType<typeof createClient
   if (!recordIds.length) return {} as Record<string, Record<string, OutletDailyDefaultLine>>;
   const { data: lines, error: lineError } = await db
     .from("outlet_daily_record_lines")
-    .select("record_id,product_id,morning_received_qty,qty_sent_estimated,wastage_qty,wastage_reason,notes")
+    .select("record_id,product_id,morning_received_qty,qty_sent_estimated,evening_leftover_qty,wastage_qty,wastage_reason,notes")
     .in("record_id", recordIds);
   if (lineError) throw new Error(lineError.message);
   const trustedLines = requireReadRows(lines, "Outlet daily defaults lines");
   const branchByRecord = new Map([...chosen.entries()].map(([branchId, recordId]) => [recordId, branchId]));
-  return (trustedLines as Pick<LineRow, "record_id" | "product_id" | "morning_received_qty" | "qty_sent_estimated" | "wastage_qty" | "wastage_reason" | "notes">[]).reduce<Record<string, Record<string, OutletDailyDefaultLine>>>((result, line) => {
+  return (trustedLines as Pick<LineRow, "record_id" | "product_id" | "morning_received_qty" | "qty_sent_estimated" | "evening_leftover_qty" | "wastage_qty" | "wastage_reason" | "notes">[]).reduce<Record<string, Record<string, OutletDailyDefaultLine>>>((result, line) => {
     const branchId = branchByRecord.get(line.record_id);
     if (!branchId) return result;
     const received = receivedValueIsTrusted(line) ? Number(line.morning_received_qty) : null;
@@ -246,6 +247,7 @@ async function getOutletDailyDefaults(db: Awaited<ReturnType<typeof createClient
       // Legacy rows used the database default 0 without recording that the
       // outlet actually entered zero. Never carry that zero into a new form.
       morning_received_qty: receivedValueIsTrusted(line) ? line.morning_received_qty : null,
+      evening_leftover_qty: Number(line.evening_leftover_qty) || 0,
       wastage_qty: safeWastage,
       wastage_reason: safeWastage === 0 ? null : line.wastage_reason,
       notes: safeWastage === 0 ? null : line.notes,

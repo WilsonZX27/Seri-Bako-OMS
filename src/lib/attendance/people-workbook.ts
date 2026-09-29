@@ -16,6 +16,7 @@ export type PeopleWorkbookSheet = {
   name: string;
   employee: string;
   staffCode?: string | null;
+  passportNo?: string | null;
   employmentType?: string | null;
   outlet: string;
   month: string;
@@ -71,22 +72,24 @@ function sheetXml(sheet: PeopleWorkbookSheet) {
   const dates = monthDates(sheet.month);
   const byDate = new Map(sheet.days.map((day) => [day.date, day]));
   const body: string[] = [];
-  body.push(row(1, []));
-  body.push(row(2, ["Name:", sheet.employee, "", sheet.employmentType ? `(${sheet.employmentType.replace("_", " ").toUpperCase()})` : "", "Staff code:", sheet.staffCode ?? ""], styles.label));
-  body.push(row(3, ["Outlet :", sheet.outlet, "", "", "Basic :", sheet.basicSalary ?? ""], styles.label));
-  body.push(row(4, []));
-  body.push(row(5, ["Date", "Day", "Working Time", "", "INFO AS PER PUNCH CARD", "", "", "", "Total Working", "OVERTIME", "Short Hours", "PPH(Triple Pay)", "", "Time Out - Time In", ""], styles.header));
-  body.push(row(6, ["", "", "AM In", "PM Out", "Time In", "Time Out", "Time In", "Time Out", "Hours", "Hours", "", "", "", "Total Working Time", ""], styles.subheader));
+  body.push(row(1, [sheet.employee, "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""], styles.header));
+  body.push(row(2, ["Prepared By", "", "Checked By: Staff", "", "Verified by: Supervisor", "", "Approved by: Manager", "", "", "", "", "", "", "", "", ""], styles.subheader));
+  body.push(row(3, ["Signature / date", "", "Signature / date", "", "Signature / date", "", "Signature / date", "", "", "", "", "", "", "", "", ""], styles.label));
+  body.push(row(4, ["Name:", sheet.employee, "Passport No:", sheet.passportNo ?? "", "Month:", sheet.month, "", "", "", "", "", "", "", "", "", ""], styles.label));
+  body.push(row(5, ["Outlet:", sheet.outlet, "Basic Salary:", sheet.basicSalary ?? "", "Employment:", sheet.employmentType ? sheet.employmentType.replace("_", " ").toUpperCase() : "", "Staff code:", sheet.staffCode ?? "", "", "", "", "", "", "", "", ""], styles.label));
+  body.push(row(6, []));
+  body.push(row(7, ["Date", "Day", "Working Time", "", "INFO AS PER PUNCH CARD", "", "", "", "Total Working", "OVERTIME", "Short Hours", "PPH(Triple Pay)", "Events / Normal", "Time Out - Time In", "", "Meal Allowance"], styles.header));
+  body.push(row(8, ["", "", "AM In", "PM Out", "Time In", "Time Out", "Time In", "Time Out", "Hours", "Hours", "", "", "", "Total Working Time", "", ""], styles.subheader));
   dates.forEach((iso, index) => {
     const day = byDate.get(iso);
     const schedule = day?.off ? ["OFF", ""] : [timeLabel(day?.scheduleStart), timeLabel(day?.scheduleEnd)];
     const punches = (day?.punches ?? []).slice(0, 4).map(timeLabel);
     const span = scheduleSpan(day?.scheduleStart, day?.scheduleEnd);
-    const values = [dateLabel(iso), day?.day ?? new Intl.DateTimeFormat("en-MY", { weekday: "short", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`)), schedule[0], schedule[1], punches[0] ?? "", punches[1] ?? "", punches[2] ?? "", punches[3] ?? "", durationLabel(day?.workedSeconds), durationLabel(day?.overtimeSeconds), durationLabel(day?.shortHoursSeconds), durationLabel(day?.pphSeconds), "", durationLabel(span), ""];
-    body.push(row(8 + index, values, day?.off ? styles.off : styles.daily));
+    const values = [dateLabel(iso), day?.day ?? new Intl.DateTimeFormat("en-MY", { weekday: "short", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`)), schedule[0], schedule[1], punches[0] ?? "", punches[1] ?? "", punches[2] ?? "", punches[3] ?? "", durationLabel(day?.workedSeconds), durationLabel(day?.overtimeSeconds), durationLabel(day?.shortHoursSeconds), durationLabel(day?.pphSeconds), day?.off ? "OFF" : "Normal", durationLabel(span), "", ""];
+    body.push(row(10 + index, values, day?.off ? styles.off : styles.daily));
   });
 
-  const dailyEnd = 7 + dates.length;
+  const dailyEnd = 9 + dates.length;
   const blocks: Array<{ start: number; end: number; label: string }> = [];
   let cursor = 1;
   while (cursor <= dates.length) {
@@ -95,7 +98,12 @@ function sheetXml(sheet: PeopleWorkbookSheet) {
     const remaining = dates.length - start + 1;
     const length = cursor === 1 ? Math.min(7 - (startDate.getUTCDay() || 7) + 1, remaining) : Math.min(7, remaining);
     const end = start + length - 1;
-    blocks.push({ start, end, label: `${blocks.length === 0 ? "Total Hours" : `Total Hours (WEEK ${blocks.length})`} ${dateLabel(dates[start - 1])}-${dateLabel(dates[end - 1])}` });
+    const firstDate = dates[start - 1];
+    const priorMonth = new Date(`${firstDate}T00:00:00Z`);
+    priorMonth.setUTCMonth(priorMonth.getUTCMonth() - 1);
+    const continuation = blocks.length === 0 && start === 1 && (new Date(`${firstDate}T00:00:00Z`).getUTCDay() || 7) !== 1;
+    const weekNumber = continuation ? 5 : blocks.length + 1;
+    blocks.push({ start, end, label: `${continuation ? `(Continues with ${priorMonth.toLocaleString("en-MY", { month: "long" })}) ` : ""}Total Hours (WEEK ${weekNumber}) ${dateLabel(firstDate)}-${dateLabel(dates[end - 1])}` });
     cursor = end + 1;
   }
   const totalOvertime = sheet.days.reduce((sum, day) => sum + Number(day.overtimeSeconds ?? 0), 0);
@@ -118,9 +126,9 @@ function sheetXml(sheet: PeopleWorkbookSheet) {
   body.push(row(calcRow + 5, ["Allowance", "", "", "", "", "", "", "", "", ""], styles.summary));
   body.push(row(calcRow + 6, ["Overtime", "", "", "", "", "", "", "", "", money(totalOvertime / 3600 * hourly * 1.5 - totalShort / 3600 * hourly + totalPph / 3600 * hourly * 3)], styles.summary));
   body.push(row(calcRow + 7, ["Grand Total", "", "", "", "", "", "", "", "", money(salaryNumber(sheet.basicSalary) + totalOvertime / 3600 * hourly * 1.5 - totalShort / 3600 * hourly + totalPph / 3600 * hourly * 3)], styles.total));
-  const merges = ["C5:D5", "E5:H5", "A5:A6", "B5:B6", "I5:I6", "J5:J6", "K5:K6", "L5:L6", "M5:M6", "N5:N6", "O5:O6"];
+  const merges = ["A1:P1", "A2:B2", "C2:D2", "E2:F2", "G2:H2", "A7:A8", "B7:B8", "C7:D7", "E7:H7", "I7:I8", "J7:J8", "K7:K8", "L7:L8", "M7:M8", "N7:O7", "P7:P8"];
   const mergeXml = `<mergeCells count="${merges.length}">${merges.map((range) => `<mergeCell ref="${range}"/>`).join("")}</mergeCells>`;
-  return `<?xml version="1.0"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><dimension ref="A1:O${body.length}"/><sheetViews><sheetView workbookViewId="0"><pane ySplit="6" topLeftCell="A8" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="18"/><cols><col min="1" max="1" width="14" customWidth="1"/><col min="2" max="2" width="10" customWidth="1"/><col min="3" max="4" width="12" customWidth="1"/><col min="5" max="8" width="12" customWidth="1"/><col min="9" max="12" width="14" customWidth="1"/><col min="13" max="15" width="15" customWidth="1"/></cols><sheetData>${body.join("")}</sheetData>${mergeXml}<pageMargins left="0.25" right="0.25" top="0.4" bottom="0.4" header="0.2" footer="0.2"/><pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/></worksheet>`;
+  return `<?xml version="1.0"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><dimension ref="A1:P${body.length}"/><sheetViews><sheetView workbookViewId="0"><pane ySplit="8" topLeftCell="A10" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="18"/><cols><col min="1" max="1" width="14" customWidth="1"/><col min="2" max="2" width="10" customWidth="1"/><col min="3" max="4" width="12" customWidth="1"/><col min="5" max="8" width="12" customWidth="1"/><col min="9" max="12" width="14" customWidth="1"/><col min="13" max="16" width="15" customWidth="1"/></cols><sheetData>${body.join("")}</sheetData>${mergeXml}<pageMargins left="0.25" right="0.25" top="0.4" bottom="0.4" header="0.2" footer="0.2"/><pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/></worksheet>`;
 }
 
 function stylesXml() {

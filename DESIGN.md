@@ -4,7 +4,7 @@ The unversioned foundation in `docs/DESIGN_SYSTEM.md` is the current visual and 
 
 Current geometry is 12px panels, 8px controls, and 44px shared query controls at all release viewports. Touch targets remain at least 44px. Dense pointer-only row actions may render a smaller visual glyph inside that hit area. Current working-time dialogs show an unsigned scheduled span; obsolete signed comparisons against 8.5 hours are historical and must not return.
 
-### v9.2.69 (unreleased) — Operational clarity and roster coverage
+### v9.2.70 (unreleased) — Operational clarity and roster coverage
 
 - Kitchen employees share the canonical roster eligibility path with Outlet Staff and Supervisors; tenant, branch, role-date and workflow permissions remain enforced. Migration 287 was applied and its four function bodies verified against the repository on 2026-09-14; live ALMA and PJS10 rosters show 8 and 12 staff respectively.
 - Schedule completeness checks group missing dates by employee without merging identities, inventing OFF days or bypassing submission blockers. Staff codes distinguish similar names.

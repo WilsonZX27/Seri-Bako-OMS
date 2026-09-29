@@ -2,12 +2,12 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const test = require("node:test");
 
-test("phone filter controls stay compact while task controls retain the larger touch contract", () => {
+test("phone filter and task controls share the larger touch contract", () => {
   const css = fs.readFileSync("src/app/globals.css", "utf8");
 
   const phoneRules = css.match(/@media \(max-width: 767px\)[\s\S]*?--sb-control-height: 3rem;/g) ?? [];
   assert.ok(phoneRules.length >= 2, "the phone rule must override both default and compact control heights");
-  assert.match(css, /@media \(max-width: 767px\)[\s\S]*?\.sb-list-filters:not\(\.sb-list-query-card\) input,[\s\S]*?height: 2\.125rem;[\s\S]*?min-height: 2\.125rem;/);
+  assert.match(css, /@media \(max-width: 767px\)[\s\S]*?\.sb-list-filters:not\(\.sb-list-query-card\) input,[\s\S]*?height: var\(--sb-control-height\);[\s\S]*?min-height: var\(--sb-control-height\);/);
   assert.match(css, /\.sb-list-filters:not\(\.sb-list-query-card\) > button:is\(\[type="submit"\], :not\(\[type\]\)\) \{[\s\S]*?order: 4;/);
   assert.match(css, /\.sb-filter-summary \{[\s\S]*?order: 5;/);
   assert.doesNotMatch(css, /data-sticky-column="last"/);

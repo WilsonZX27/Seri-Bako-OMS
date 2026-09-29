@@ -477,8 +477,8 @@ input[type="date"]::-webkit-date-and-time-value {
 .sb-list-filters:not(.sb-list-query-card) select,
 .sb-list-filters:not(.sb-list-query-card) button,
 .sb-list-filters:not(.sb-list-query-card) a {
-  height: 2.125rem;
-  min-height: 2.125rem;
+  height: var(--sb-control-height);
+  min-height: var(--sb-control-height);
   padding-block: 0.25rem;
   font-size: 0.75rem;
 }
@@ -512,8 +512,8 @@ input[type="date"]::-webkit-date-and-time-value {
   .sb-list-filters:not(.sb-list-query-card) select,
   .sb-list-filters:not(.sb-list-query-card) button,
   .sb-list-filters:not(.sb-list-query-card) a {
-    height: 2.125rem;
-    min-height: 2.125rem;
+    height: var(--sb-control-height);
+    min-height: var(--sb-control-height);
   }
 
   .sb-list-filters:not(.sb-list-query-card) > :first-child {
@@ -618,8 +618,8 @@ input[type="date"]::-webkit-date-and-time-value {
   }
 
   input[type="date"] {
-    height: 2.25rem;
-    min-height: 2.25rem;
+    height: var(--sb-control-height);
+    min-height: var(--sb-control-height);
     padding-right: 0.5rem;
     color: var(--sb-text);
     font-variant-numeric: tabular-nums;

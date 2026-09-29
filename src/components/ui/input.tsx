@@ -29,7 +29,7 @@ const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
     return (
       <div
         className={cn(
-          "relative flex h-[var(--sb-control-height)] w-full min-w-0 max-w-full items-center rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white px-2.5 py-1.5 text-sm text-[var(--sb-text)] transition-colors focus-within:ring-2 focus-within:ring-[var(--sb-green-700)] focus-within:ring-offset-1 has-[:disabled]:cursor-not-allowed has-[:disabled]:bg-[var(--sb-surface-muted)] has-[:disabled]:opacity-70 unified-list-date-control",
+          "relative flex h-[var(--sb-control-height)] min-h-[var(--sb-control-height)] w-full min-w-0 max-w-full items-center rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white px-2.5 py-1.5 text-sm text-[var(--sb-text)] transition-colors focus-within:ring-2 focus-within:ring-[var(--sb-green-700)] focus-within:ring-offset-1 has-[:disabled]:cursor-not-allowed has-[:disabled]:bg-[var(--sb-surface-muted)] has-[:disabled]:opacity-70 unified-list-date-control",
           className,
         )}
         onClick={() => {
@@ -59,7 +59,7 @@ const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
             if (!controlled) setUncontrolledValue(event.target.value);
             onChange?.(event);
           }}
-          className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+          className="absolute inset-0 h-full min-h-[var(--sb-control-height)] w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
         />
       </div>
     );
@@ -76,7 +76,7 @@ const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLI
         type={type}
         lang={lang}
         className={cn(
-          "flex h-[var(--sb-control-height)] w-full min-w-0 max-w-full rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white px-2.5 py-1.5 text-sm text-[var(--sb-text)] transition-colors placeholder:text-[var(--sb-text-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:bg-[var(--sb-surface-muted)] disabled:opacity-70",
+          "flex h-[var(--sb-control-height)] min-h-[var(--sb-control-height)] w-full min-w-0 max-w-full rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white px-2.5 py-1.5 text-sm text-[var(--sb-text)] transition-colors placeholder:text-[var(--sb-text-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:bg-[var(--sb-surface-muted)] disabled:opacity-70",
           className,
         )}
         ref={ref}

@@ -24,7 +24,7 @@ export function StockTransferForm({ branches, selectedFromBranchId, seedLines, a
       <form id={formId} action={action} className="space-y-3">
         <input type="hidden" name="idempotency_key" value={idempotencyKey} />
         <details open data-stock-transfer-setup className="erp-surface group overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between border-b px-3 py-2.5 text-sm font-semibold [&::-webkit-details-marker]:hidden">
+          <summary className="flex min-h-[var(--sb-control-height)] cursor-pointer list-none items-center justify-between border-b px-3 py-2.5 text-sm font-semibold [&::-webkit-details-marker]:hidden">
             Transfer setup <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
           </summary>
           <div className="grid grid-cols-2 gap-3 p-3 md:grid-cols-3 md:p-4">
@@ -84,7 +84,7 @@ export function StockWastageForm({ branches, selectedBranchId, seedLines, action
         <input type="hidden" name="idempotency_key" value={idempotencyKey} />
         <input type="hidden" name="wastage_no" value="WST-AUTO" />
         <details open data-stock-wastage-setup className="erp-surface group overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between border-b px-3 py-2.5 text-sm font-semibold [&::-webkit-details-marker]:hidden">
+          <summary className="flex min-h-[var(--sb-control-height)] cursor-pointer list-none items-center justify-between border-b px-3 py-2.5 text-sm font-semibold [&::-webkit-details-marker]:hidden">
             Wastage setup <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
           </summary>
           <div className="grid grid-cols-2 gap-3 p-3 md:grid-cols-3 md:p-4">

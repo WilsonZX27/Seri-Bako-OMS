@@ -694,6 +694,18 @@ nav[aria-label="Pagination"] > span {
   }
 }
 
+@media (min-width: 640px) and (max-width: 1023px) {
+  html[data-design-layer="v2"] [data-purchase-request-line] .pr-line-quantity {
+    grid-column: 2 / 4;
+    grid-row: 2;
+  }
+
+  html[data-design-layer="v2"] [data-purchase-request-line] .pr-line-uom {
+    grid-column: 2 / 4;
+    grid-row: 3;
+  }
+}
+
 @media (max-width: 639px) {
   /* List pages already expose their context in the mobile shell/breadcrumb.
      Remove the repeated desktop header on phones; create actions remain
@@ -1472,13 +1484,13 @@ html[data-design-layer="v2"] [data-mobile-document-action] :where(button, a) {
   }
 
   html[data-design-layer="v2"] [data-purchase-request-line] .pr-line-quantity {
-    grid-column: 2;
+    grid-column: 2 / 4;
     grid-row: 2;
   }
 
   html[data-design-layer="v2"] [data-purchase-request-line] .pr-line-uom {
-    grid-column: 3;
-    grid-row: 2;
+    grid-column: 2 / 4;
+    grid-row: 3;
   }
 
   html[data-design-layer="v2"] [data-purchase-request-line] [data-pr-line-actions] {

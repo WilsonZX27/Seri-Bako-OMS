@@ -81,7 +81,7 @@ export function GoodsReceivingForm({
                   </div>
                 )}
               </div>
-              <button type="button" className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--sb-radius-control)] text-[var(--sb-green-800)] hover:bg-[var(--sb-surface-muted)]" onClick={() => setSetupOpen((open) => !open)} aria-label={setupOpen ? "Collapse receiving setup" : "Expand receiving setup"} aria-expanded={setupOpen} aria-controls="goods-receiving-setup-fields">
+              <button type="button" className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-[var(--sb-radius-control)] text-[var(--sb-green-800)] hover:bg-[var(--sb-surface-muted)] md:h-9 md:w-9" onClick={() => setSetupOpen((open) => !open)} aria-label={setupOpen ? "Collapse receiving setup" : "Expand receiving setup"} aria-expanded={setupOpen} aria-controls="goods-receiving-setup-fields">
                 <ChevronDown className={`h-4 w-4 transition-transform ${setupOpen ? "rotate-180" : ""}`} />
               </button>
             </div>

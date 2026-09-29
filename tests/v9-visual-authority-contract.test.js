@@ -35,8 +35,8 @@ test("v9 motion stays purposeful and respects reduced-motion preferences", () =>
   assert.match(globals, /@media \(prefers-reduced-motion: reduce\)[\s\S]*transition-duration:\s*0\.01ms/);
 });
 
-test("v9 compact mobile workflow controls retain a practical touch target", () => {
-  assert.match(mobileDocumentSurfaces, /triggerClassName="h-9 min-h-9[^\"]*text-\[12px\]/);
+test("v9 mobile workflow controls use the shared touch target", () => {
+  assert.match(mobileDocumentSurfaces, /triggerClassName="h-\[var\(--sb-control-height\)\] min-h-\[var\(--sb-control-height\)\][^\"]*text-\[12px\]/);
   assert.doesNotMatch(mobileDocumentSurfaces, /triggerClassName="h-8 min-h-8[^\"]*Step/);
 });
 

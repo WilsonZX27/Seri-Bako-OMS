@@ -8,11 +8,12 @@ import { SelectNative } from "@/components/ui/select-native";
 import { formatDateOnly, formatNumber } from "@/lib/utils";
 import { getOutletPackagingReport } from "@/server/queries/outlet-packaging";
 import { saveOutletPackagingLink } from "@/server/actions/outlet-packaging";
+import { hasPermission } from "@/server/auth/permissions";
 
 export default async function OutletPackagingPage({ searchParams }: { searchParams: Promise<{ days?: string; error?: string; success?: string }> }) {
   const { days: rawDays, error, success } = await searchParams;
   const days = rawDays === "30" ? 30 : 7;
-  const report = await getOutletPackagingReport(days);
+  const [report, canCreateItem] = await Promise.all([getOutletPackagingReport(days), hasPermission("items.create")]);
   const totals = new Map<string, { name: string; unit: string; usage: number; locations: Set<string> }>();
   const latest = new Map<string, (typeof report.rows)[number]>();
   for (const row of report.rows) {
@@ -67,6 +68,7 @@ export default async function OutletPackagingPage({ searchParams }: { searchPara
         </section>
         <section className="rounded-[var(--sb-panel-radius)] border bg-card" aria-labelledby="packaging-mapping-title">
           <div className="border-b px-4 py-3"><h2 id="packaging-mapping-title" className="font-semibold">SKU mapping</h2><p className="text-xs text-muted-foreground">Choose the inventory item for each Daily Record product and set the base-unit conversion. One inventory item can link to one product.</p></div>
+          {report.products.length > 0 && report.items.length === 0 ? <div role="status" className="m-4 rounded-[var(--sb-radius-control)] border border-amber-300 bg-amber-50 px-3 py-3 text-sm text-amber-950"><p>No packaging Inventory SKUs exist yet. Create them in Items / SKU Master, then link each Daily Record product here. Warehouse and company totals stay incomplete until stock is entered in Inventory.</p>{canCreateItem ? <Link href="/items/new" className="mt-2 inline-block font-semibold underline underline-offset-2">Create packaging Inventory SKU</Link> : <p className="mt-2">Ask Purchasing to create the packaging Inventory SKUs.</p>}</div> : null}
           {!report.mappingReady ? <p className="px-4 py-3 text-sm text-muted-foreground">SKU mapping is waiting for database migration 318. Usage reports remain available.</p> : <div className="divide-y">{report.products.map((product) => {
             const link = linkByProduct.get(product.id);
             return <form key={product.id} action={saveOutletPackagingLink} className="grid gap-3 px-4 py-3 md:grid-cols-[minmax(12rem,1fr)_minmax(12rem,1.5fr)_minmax(9rem,1fr)_auto] md:items-end">

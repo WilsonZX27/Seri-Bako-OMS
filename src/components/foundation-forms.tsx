@@ -224,7 +224,7 @@ export function StaffForm({
   const branchOptions = branches.filter((branch) => branch.status === "active");
   return (
     <form id={formId} action={action} className="grid gap-5 xl:grid-cols-2">
-      <RecordSection title="Staff Profile" description="Core identity and contact details for this staff member.">
+      <RecordSection title="Staff Profile">
           <CompanyHidden companies={companies} companyId={staff?.company_id} />
           <input type="hidden" name="status" value={staff?.status ?? "invited"} />
         <div className="grid gap-4 md:grid-cols-2">

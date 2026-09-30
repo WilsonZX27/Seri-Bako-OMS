@@ -73,7 +73,7 @@ export default async function EditStaffPage({
                 <Link href={`/people/${staff.id}`}>Open profile</Link>
               </Button>
 
-              <div className="rounded-[var(--sb-radius-panel)] border bg-white p-3">
+              <div className="rounded-[var(--sb-panel-radius)] border bg-white p-3">
                 <p className="text-[11px] font-medium uppercase text-muted-foreground">Current Status</p>
                 <div className="mt-2 flex items-center justify-between gap-3">
                   <StatusBadge status={staff.status} />
@@ -84,7 +84,7 @@ export default async function EditStaffPage({
                 </div>
               </div>
 
-              <div className="rounded-[var(--sb-radius-panel)] border bg-white p-3 text-xs">
+              <div className="rounded-[var(--sb-panel-radius)] border bg-white p-3 text-xs">
                 <p className="font-semibold">Recent Account Activity</p>
                 <div className="mt-2 grid gap-2">
                   <div className="flex justify-between gap-3"><span className="text-muted-foreground">Last successful sign-in</span><span className="font-medium">{staff.auth_last_sign_in_at ? formatDateTime(staff.auth_last_sign_in_at) : "-"}</span></div>
@@ -92,7 +92,7 @@ export default async function EditStaffPage({
                 </div>
               </div>
 
-              <div className="rounded-[var(--sb-radius-panel)] border bg-secondary/30 p-3 text-xs">
+              <div className="rounded-[var(--sb-panel-radius)] border bg-secondary/30 p-3 text-xs">
                 <p className="font-semibold">Auth Setup</p>
                 <div className="mt-3 grid gap-2 text-xs">
                   <div className="flex justify-between gap-3">
@@ -131,7 +131,7 @@ export default async function EditStaffPage({
                 </div>
               </div>
 
-              <div className="rounded-[var(--sb-radius-panel)] border bg-secondary/30 p-3 text-xs">
+              <div className="rounded-[var(--sb-panel-radius)] border bg-secondary/30 p-3 text-xs">
                 <p className="font-semibold">Permission Summary</p>
                 <p className="mt-1 text-muted-foreground">{getRoleDisplayLabel(assignedRole?.role_code, assignedRole?.role_name)}</p>
                 {additionalRoles.length ? <p className="mt-1 text-muted-foreground">Additional: {additionalRoles.map((role) => getRoleDisplayLabel(role.role_code, role.role_name)).join(", ")}</p> : null}

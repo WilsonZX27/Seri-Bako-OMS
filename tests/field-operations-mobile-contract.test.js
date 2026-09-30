@@ -215,7 +215,7 @@ test("outlet daily entry keeps three compact quantities in one phone row and rev
   assert.match(source, /touch-pan-y/);
   assert.match(source, /grid grid-cols-3 items-end gap-2 p-3/);
   assert.match(source, /showWastageDetails = Number\(wastage \|\| 0\) > 0/);
-  assert.match(source, /className="h-10 min-w-0 px-2 text-center tabular-nums"/);
+  assert.match(source, /className="min-w-0 px-2 text-center tabular-nums"/);
   assert.match(source, /required=\{Number\(wastage \|\| 0\) > 0\}/);
   assert.match(source, /setReason\("unsold"\)/);
   assert.match(source, /aria-label=\{`Add remarks for \$\{product\.product_name\}`\}/);

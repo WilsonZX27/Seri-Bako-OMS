@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { looseSupabase } from "@/lib/supabase/loose";
 import { requireDetailRow } from "@/server/queries/detail";
 import { getCurrentProfile } from "@/server/queries/common";
 import { getAuthUserSummary, hasUniqueValidAuthLink, listAuthUserSummaries } from "@/server/auth/admin-users";
@@ -199,14 +198,6 @@ export async function getStaff(id: string) {
     auth_link_valid: Boolean(authUser && hasUniqueValidAuthLink(staff, [authUser])),
     auth_last_sign_in_at: authUser?.lastSignInAt ?? null,
   };
-}
-
-export async function getStaffSensitiveEmployment(staffId:string){
- if(isMockMode())return null;
- const supabase=looseSupabase(await createClient());
- const {data,error}=await supabase.from("staff_sensitive_employment").select("passport_number,basic_salary,updated_at").eq("staff_id",staffId).maybeSingle();
- if(error)throw new Error(error.message);
- return data as unknown as {passport_number:string|null;basic_salary:number|null;updated_at:string}|null;
 }
 
 export async function getStaffProfileSummary(staffId: string) {

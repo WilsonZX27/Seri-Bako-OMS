@@ -199,7 +199,7 @@ export const rolePermissionMatrix = {
     "branches.read",
   ],
   outlet_staff: ["dashboard.view", "outlet_daily_record.view", "outlet_daily_record.create", "outlet_daily_record.update"],
-  outlet_supervisor: ["dashboard.view", "outlet_daily_record.view", "outlet_daily_record.create", "outlet_daily_record.update", "outlet_compliance.read", "schedule.read", "schedule.draft", "schedule.submit", "schedule.request", "schedule.swap_review", "attendance.read", "attendance.review", "attendance.report.submit", "comp_time.read", "comp_time.submit"],
+  outlet_supervisor: ["dashboard.view", "outlet_daily_record.view", "outlet_daily_record.create", "outlet_daily_record.update", "schedule.read", "schedule.draft", "schedule.submit", "schedule.request", "schedule.swap_review", "attendance.read", "attendance.review", "attendance.report.submit", "comp_time.read", "comp_time.submit"],
   kitchen: [
     "dashboard.view",
     "inventory.read",

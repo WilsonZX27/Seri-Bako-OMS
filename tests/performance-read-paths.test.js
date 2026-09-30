@@ -114,6 +114,7 @@ test("schedule overview does not fetch or validate a hidden outlet planner", asy
   const calls = [];
   const { default: Page } = load("src/app/(app)/attendance/schedule/page.tsx", {
     "@/server/auth/permissions": { getPermissionMap: async () => ({ "schedule.submit": true }) },
+    "@/server/auth/tenant-actor": { requireActiveTenantActor: async () => ({ roleCode: "manager" }) },
     "@/server/queries/attendance": {
       malaysiaWeekStart: () => "2026-09-14",
       getSchedulePlanner: async () => { throw new Error("Planner should not load"); },

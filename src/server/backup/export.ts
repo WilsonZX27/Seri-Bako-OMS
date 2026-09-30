@@ -41,6 +41,7 @@ export const BACKUP_DATASETS: readonly BackupDataset[] = [
   { table: "compliance_types", classification: "company_id filtered", column: "company_id" },
   { table: "compliance_records", classification: "company_id filtered", column: "company_id" },
   { table: "compliance_record_history", classification: "company_id filtered", column: "company_id", optional: "logs" },
+  { table: "management_email_dispatches", classification: "company_id filtered", column: "company_id", optional: "logs" },
   { table: "shift_templates", classification: "company_id filtered", column: "company_id" },
   { table: "schedule_weeks", classification: "company_id filtered", column: "company_id" },
   { table: "shift_assignment_revisions", classification: "company_id filtered", column: "company_id" },

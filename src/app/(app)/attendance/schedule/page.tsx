@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { getPermissionMap } from "@/server/auth/permissions";
+import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 import { getPendingShiftRequests, getScheduleOverview, getSchedulePlanner, getScheduleValidation, malaysiaWeekStart } from "@/server/queries/attendance";
 
 const shiftWeek = (weekStart: string, days: number) => {
@@ -21,14 +22,15 @@ export default async function SchedulePage({ searchParams }: { searchParams: Pro
   const params = await searchParams;
   const weekStart = /^\d{4}-\d{2}-\d{2}$/.test(params.week ?? "") ? params.week! : malaysiaWeekStart();
   const overviewMode = params.view === "overview";
-  const [data, overview, requests, permissions] = await Promise.all([
+  const [data, overview, requests, permissions, actor] = await Promise.all([
     overviewMode ? Promise.resolve(null) : getSchedulePlanner(weekStart, params.branch),
     overviewMode ? getScheduleOverview(weekStart) : Promise.resolve([]),
     getPendingShiftRequests(),
     getPermissionMap(["schedule.draft", "schedule.submit", "schedule.approve", "attendance.import", "shift_template.manage"]),
+    requireActiveTenantActor(),
   ]);
   const canDraft = permissions["schedule.draft"];
-  const canSubmit = permissions["schedule.submit"];
+  const canSubmit = permissions["schedule.submit"] && ["outlet_supervisor", "manager", "super_admin"].includes(actor.roleCode);
   const canApprove = permissions["schedule.approve"];
   const canImport = permissions["attendance.import"];
   const canManageTemplates = permissions["shift_template.manage"];

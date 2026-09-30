@@ -49,6 +49,8 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
     mobileStatusOnly
     branch={options.branches.find((branch) => branch.id === selectedBranchId)?.branch_name}
     workflowSteps={dailySteps}
+    hideWorkflow
+    hideMobileHeader
     currentStatus="draft"
     mobileContextDate={recordDate}
     sidePanel={sidePanel}

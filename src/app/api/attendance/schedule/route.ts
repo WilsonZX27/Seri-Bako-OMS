@@ -288,7 +288,9 @@ export async function POST(request: Request) {
         { ok: false, message: "Invalid schedule request." },
         { status: 400 },
       );
-    await requireActiveTenantActor();
+    const actor = await requireActiveTenantActor();
+    if (["submit", "validate"].includes(input.data.action) && !["outlet_supervisor", "manager", "super_admin"].includes(actor.roleCode))
+      return NextResponse.json({ ok: false, message: "Only Supervisors and Managers may submit outlet schedules." }, { status: 403 });
     if (
       input.data.action === "decide" &&
       input.data.decision !== "approve" &&

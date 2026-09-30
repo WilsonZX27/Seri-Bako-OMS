@@ -254,7 +254,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
         <div className="border-b border-[var(--sb-border-soft)] pb-3 md:hidden">{workspaceContext}</div>
 
         {isOutlet ? (
-          <div data-dashboard-layout className="grid w-full gap-4 xl:grid-cols-2 xl:items-start">
+          <div data-dashboard-layout className="grid w-full gap-4 xl:grid-cols-2 xl:items-stretch">
             <Panel title="Upcoming shifts" action={{ href: "/attendance", label: "View schedule" }}>
               <div className="divide-y divide-[var(--sb-border-soft)]">
                 {summary.upcomingShifts.map((shift) => { const template=shift.shift_templates as {planned_start?:string;planned_end?:string;code?:string}|null; const start=template?.planned_start??shift.custom_start; const end=template?.planned_end??shift.custom_end; return <Link key={`${shift.work_date}-${shift.assignment_kind}`} href="/attendance" className="flex items-center justify-between gap-3 px-3 py-3 text-xs hover:bg-[var(--sb-surface-muted)]"><span><strong className="block text-sm">{shift.work_date}</strong><span className="mt-0.5 block text-muted-foreground">{template?.code??shift.assignment_kind.toUpperCase()}</span></span>{shift.assignment_kind==="shift"?<span className="font-semibold tabular-nums">{start?.slice(0,5)??"—"}–{end?.slice(0,5)??"—"}</span>:<StatusBadge status={shift.assignment_kind}/>}</Link> })}
@@ -265,7 +265,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               <Link
                 prefetch={false}
                 href={summary.outletToday?.id ? `/outlet-daily-records/${summary.outletToday.id}` : "/outlet-daily-records/new"}
-                className="flex min-h-28 items-center gap-4 rounded-[var(--sb-radius-control)] bg-[var(--sb-surface)] p-4 transition-colors hover:bg-[var(--sb-surface-muted)]"
+                className="flex min-h-28 items-center gap-4 rounded-[var(--sb-radius-control)] bg-white p-4 transition-colors hover:bg-[var(--sb-surface-muted)]"
               >
                 <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-[var(--sb-radius-control)] ${outletPosted ? "bg-[var(--sb-success-bg)] text-[var(--sb-success)]" : "bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]"}`}>
                   {outletPosted ? <CheckCircle2 className="h-5 w-5" /> : <Clock3 className="h-5 w-5" />}
@@ -279,7 +279,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                 <ArrowUpRight className="ml-auto h-4 w-4 shrink-0 text-[var(--sb-text-muted)]" aria-hidden="true" />
               </Link>
             </Panel>
-            <QuickActionsCluster actions={quickActions} className="hidden xl:block" />
+            <QuickActionsCluster actions={quickActions} className="hidden xl:col-span-2 xl:block" />
           </div>
         ) : (
         <div data-dashboard-layout className="grid gap-4 lg:grid-cols-12 lg:items-start">

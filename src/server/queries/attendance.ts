@@ -24,6 +24,7 @@ export async function getAttendanceWorkspace(weekStart = malaysiaWeekStart()) {
 
 export async function getSchedulePlanner(weekStart = malaysiaWeekStart(), requestedBranchId?: string) {
   if (!(await hasPermission("schedule.read"))) throw new Error("Missing permission: schedule.read");
+  const canPlan = await hasPermission("schedule.draft") || await hasPermission("schedule.approve");
   const db = looseSupabase(await createClient());
   const { data: branches, error: branchError } = await db.rpc("get_schedule_branches");
   if (branchError) throw branchError;
@@ -33,12 +34,12 @@ export async function getSchedulePlanner(weekStart = malaysiaWeekStart(), reques
   const previousStart = new Date(`${weekStart}T00:00:00Z`); previousStart.setUTCDate(previousStart.getUTCDate() - 7);
   // These reads depend only on the authorised branch, not on each other.
   const [weekResult, candidateResult, previousResult, templates, externalAssignments, importBatch] = await Promise.all([
-    db.from("schedule_weeks").select("id,status,updated_at,submitted_by").eq("branch_id", branchId).eq("week_start", weekStart).order("revision", { ascending: false }).limit(1),
-    db.rpc("get_schedule_staff_candidates", { p_branch_id: branchId }),
+    db.from("schedule_weeks").select("id,status,updated_at,submitted_by,published_by,published_at").eq("branch_id", branchId).eq("week_start", weekStart).in("status", canPlan ? ["draft", "submitted", "returned", "rejected", "amendment_pending", "published", "locked"] : ["published", "locked"]).order("revision", { ascending: false }).limit(1),
+    canPlan ? db.rpc("get_schedule_staff_candidates", { p_branch_id: branchId }) : Promise.resolve({ data: [], error: null }),
     db.from("schedule_weeks").select("id").eq("branch_id", branchId).eq("week_start", previousStart.toISOString().slice(0, 10)).in("status", ["published", "locked"]).order("revision", { ascending: false }).limit(1),
     db.from("shift_templates").select("id,code,name,planned_start,planned_end,planned_break_seconds,maximum_recognised_seconds,colour").eq("is_active", true).order("code"),
-    db.rpc("get_schedule_external_assignments", { p_branch_id: branchId, p_week_start: weekStart }),
-    db.from("schedule_import_batches").select("file_name,created_at").eq("week_start", weekStart).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    canPlan ? db.rpc("get_schedule_external_assignments", { p_branch_id: branchId, p_week_start: weekStart }) : Promise.resolve({ data: [], error: null }),
+    canPlan ? db.from("schedule_import_batches").select("file_name,created_at").eq("week_start", weekStart).order("created_at", { ascending: false }).limit(1).maybeSingle() : Promise.resolve({ data: null, error: null }),
   ]);
   const { data: weeks, error: weekError } = weekResult;
   if (weekError) throw weekError;
@@ -51,7 +52,7 @@ export async function getSchedulePlanner(weekStart = malaysiaWeekStart(), reques
   const previousWeeks = previousResult.data;
   const week = weeks?.[0] ?? null;
   const [submitter, staffResult, assignments] = await Promise.all([
-    week?.submitted_by ? db.from("staffs").select("full_name").eq("id",week.submitted_by).maybeSingle() : Promise.resolve({data:null,error:null}),
+    (week?.published_by || week?.submitted_by) ? db.from("staffs").select("full_name").eq("id",week.published_by || week.submitted_by).maybeSingle() : Promise.resolve({data:null,error:null}),
     db.rpc("get_schedule_staff", { p_branch_id: branchId,p_week_id:week?.id??null }),
     week ? db.from("shift_assignment_revisions").select("staff_id,work_date,assignment_kind,shift_template_id,custom_start,custom_end,custom_crosses_midnight,custom_break_seconds,custom_maximum_recognised_seconds,custom_reason,work_site_label,ro_minutes,ro_original_start,ro_original_end,ro_direction").eq("schedule_week_id", week.id).eq("is_current", true) : Promise.resolve({ data: [], error: null }),
   ]);
@@ -66,17 +67,18 @@ export async function getSchedulePlanner(weekStart = malaysiaWeekStart(), reques
   ]);
   if(compTime.error)throw compTime.error;if(reservations.error)throw reservations.error;
   const roBalances:Record<string,number>={};for(const id of staffIds)roBalances[id]=0;for(const row of (compTime.data??[]) as Array<{staff_id:string;minutes:number}>)roBalances[row.staff_id]=(roBalances[row.staff_id]??0)+Number(row.minutes);for(const row of (reservations.data??[]) as Array<{staff_id:string;reserved_minutes:number}>)roBalances[row.staff_id]=Math.max(0,(roBalances[row.staff_id]??0)-Number(row.reserved_minutes));
-  return { branches: branchRows, branchId, week: week as unknown as { id: string; status: string;updated_at:string } | null, previousWeekId: previousWeeks?.[0]?.id ? String(previousWeeks[0].id) : null, templates: (templates.data ?? []) as unknown as Array<{ id:string;code:string;name:string;planned_start:string;planned_end:string;planned_break_seconds:number;maximum_recognised_seconds:number;colour:string }>, people: (scheduleStaff ?? []) as unknown as Array<{ id:string;full_name:string;staff_code:string|null;status:string;employment_type:string;role_code:string;employment_end_date:string|null }>, candidates: (scheduleCandidates ?? []) as unknown as Array<{ id:string;full_name:string;staff_code:string|null;status:string;employment_type:string;role_code:string;employment_end_date:string|null }>, assignments: (assignments.data ?? []) as unknown as Array<{staff_id:string;work_date:string;assignment_kind:string;shift_template_id:string|null;custom_start:string|null;custom_end:string|null;custom_crosses_midnight:boolean;custom_break_seconds:number|null;custom_maximum_recognised_seconds:number|null;custom_reason:string|null;work_site_label:string|null;ro_minutes:number|null;ro_original_start:string|null;ro_original_end:string|null;ro_direction:string|null}>, externalAssignments: (externalAssignments.data ?? []) as unknown as Array<{staff_id:string;work_date:string;branch_id:string;branch_name:string;planned_start:string;planned_end:string}>,roBalances,submittedByName:submitter.data?.full_name?String(submitter.data.full_name):null, importSource: importBatch.data ? { fileName: String(importBatch.data.file_name), createdAt: String(importBatch.data.created_at) } : null };
+  return { branches: branchRows, branchId, week: week as unknown as { id: string; status: string;updated_at:string } | null, previousWeekId: previousWeeks?.[0]?.id ? String(previousWeeks[0].id) : null, templates: (templates.data ?? []) as unknown as Array<{ id:string;code:string;name:string;planned_start:string;planned_end:string;planned_break_seconds:number;maximum_recognised_seconds:number;colour:string }>, people: ((scheduleStaff ?? []) as Array<{ id:string; [key:string]:unknown }>).map((staff) => ({ ...staff, home_branch_id: (staff.default_branch_id as string | null | undefined) ?? null })) as unknown as Array<{ id:string;full_name:string;staff_code:string|null;status:string;employment_type:string;role_code:string;employment_end_date:string|null; home_branch_id:string|null }>, candidates: (scheduleCandidates ?? []) as unknown as Array<{ id:string;full_name:string;staff_code:string|null;status:string;employment_type:string;role_code:string;employment_end_date:string|null }>, assignments: (assignments.data ?? []) as unknown as Array<{staff_id:string;work_date:string;assignment_kind:string;shift_template_id:string|null;custom_start:string|null;custom_end:string|null;custom_crosses_midnight:boolean;custom_break_seconds:number|null;custom_maximum_recognised_seconds:number|null;custom_reason:string|null;work_site_label:string|null;ro_minutes:number|null;ro_original_start:string|null;ro_original_end:string|null;ro_direction:string|null}>, externalAssignments: (externalAssignments.data ?? []) as unknown as Array<{staff_id:string;work_date:string;branch_id:string;branch_name:string;planned_start:string;planned_end:string}>,roBalances,submittedByName:submitter.data?.full_name?String(submitter.data.full_name):null, importSource: importBatch.data ? { fileName: String(importBatch.data.file_name), createdAt: String(importBatch.data.created_at) } : null };
 }
 
 export async function getScheduleOverview(weekStart = malaysiaWeekStart()) {
   if (!(await hasPermission("schedule.read"))) throw new Error("Missing permission: schedule.read");
+  const canPlan = await hasPermission("schedule.draft") || await hasPermission("schedule.approve");
   const db = looseSupabase(await createClient());
   const { data: branchData, error: branchError } = await db.rpc("get_schedule_branches");
   if (branchError) throw branchError;
   const branches = (branchData ?? []) as unknown as Array<{ id: string; branch_name: string }>;
   if (!branches.length) return [];
-  const { data: weekData, error: weekError } = await db.from("schedule_weeks").select("id,branch_id,status,revision,updated_at").eq("week_start", weekStart).in("branch_id", branches.map((branch) => branch.id)).order("revision", { ascending: false });
+  const { data: weekData, error: weekError } = await db.from("schedule_weeks").select("id,branch_id,status,revision,updated_at").eq("week_start", weekStart).in("branch_id", branches.map((branch) => branch.id)).in("status", canPlan ? ["draft", "submitted", "returned", "rejected", "amendment_pending", "published", "locked"] : ["published", "locked"]).order("revision", { ascending: false });
   if (weekError) throw weekError;
   const latestByBranch = new Map<string, { id: string; status: string; updated_at: string }>();
   for (const week of (weekData ?? []) as Array<{ id: string; branch_id: string; status: string; updated_at: string }>) if (!latestByBranch.has(week.branch_id)) latestByBranch.set(week.branch_id, week);

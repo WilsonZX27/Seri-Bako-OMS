@@ -114,13 +114,12 @@ export async function GET(request: Request) {
       ? db.from("attendance_period_locks").select("id").eq("week_start", input.week).eq("branch_id", input.branch).is("unlocked_at", null).maybeSingle()
       : db.from("attendance_period_locks").select("id").eq("week_start", input.week).is("branch_id", null).is("unlocked_at", null).maybeSingle();
 
-    const [results, weeks, sensitive, lock] = await Promise.all([
+    const [results, weeks, lock] = await Promise.all([
       resultQuery,
       weekQuery,
-      db.from("staff_sensitive_employment").select("staff_id,basic_salary,passport_number"),
       lockQuery,
     ]);
-    for (const item of [results, weeks, sensitive, lock]) if (item.error) throw item.error;
+    for (const item of [results, weeks, lock]) if (item.error) throw item.error;
     if (!lock.data) return NextResponse.json({ ok: false, message: "Close this attendance week before downloading the protected workbook." }, { status: 409 });
 
     const weekRows = (weeks.data ?? []) as Row[];
@@ -144,7 +143,6 @@ export async function GET(request: Request) {
       const id = String(row.staff_id);
       if (!staffMap.has(id)) staffMap.set(id, { profile: object(row.staffs), outlet: branchName(row.branches) });
     }
-    const sensitiveByStaff = new Map(((sensitive.data ?? []) as Row[]).map((row) => [String(row.staff_id), row]));
     const dates = monthDates(month);
     const sheets: PeopleWorkbookSheet[] = [...staffMap.entries()].sort((a, b) => String(a[1].profile.full_name ?? "").localeCompare(String(b[1].profile.full_name ?? ""))).map(([staffId, entry]) => {
       const profile = entry.profile;
@@ -153,11 +151,9 @@ export async function GET(request: Request) {
         name: String(profile.full_name ?? staffId),
         employee: String(profile.full_name ?? staffId),
         staffCode: profile.staff_code == null ? null : String(profile.staff_code),
-        passportNo: sensitiveByStaff.get(staffId)?.passport_number == null ? null : String(sensitiveByStaff.get(staffId)?.passport_number),
         employmentType: profile.employment_type == null ? null : String(profile.employment_type),
         outlet: entry.outlet,
         month,
-        basicSalary: sensitiveByStaff.get(staffId)?.basic_salary == null ? null : String(sensitiveByStaff.get(staffId)?.basic_salary),
         days,
       };
     });

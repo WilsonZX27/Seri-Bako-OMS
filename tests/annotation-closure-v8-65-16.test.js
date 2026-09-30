@@ -16,6 +16,7 @@ test("Outlet Daily uses one six-column authority only at wide desktop", () => {
   const form = read("src/components/outlet-daily-record-form.tsx");
   const wideGrid = /xl:grid-cols-\[minmax\(12rem,1fr\)_repeat\(3,minmax\(4\.5rem,6rem\)\)_minmax\(7rem,9rem\)_minmax\(12rem,1\.5fr\)\]/g;
   assert.equal(form.match(wideGrid)?.length, 2);
+  assert.match(form, /Daily Product Lines<\/h2>/);
   assert.match(form, /hidden xl:col-span-2 xl:block">Wastage details/);
   assert.match(form, /grid-cols-\[7\.5rem_minmax\(0,1fr\)\][^\n]+xl:contents/);
   assert.doesNotMatch(form, /grid-cols-\[7\.5rem_minmax\(0,1fr\)\][^\n]+md:contents/);

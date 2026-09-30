@@ -1,3 +1,4 @@
+import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 import { isMockMode } from "@/lib/mock-mode";
 import { todayInKualaLumpur } from "@/lib/business-date";
 import { createClient } from "@/lib/supabase/server";
@@ -44,6 +45,8 @@ export async function getComplianceWorkspace(filters: { state?: string; branch?:
 
 export async function getOutletComplianceWorkspace(branchId?: string) {
   if (isMockMode()) return { branches: [], requirements: [], records: [], migrationReady: true };
+  const actor = await requireActiveTenantActor();
+  if (["outlet_staff", "outlet_supervisor"].includes(actor.roleCode)) throw new Error("Outlet compliance is restricted to management.");
   const [supabase, profile] = await Promise.all([createClient(), getCurrentProfile()]);
   if (!profile?.company_id) return { branches: [], requirements: [], records: [], migrationReady: true };
   let branchesQuery = supabase.from("branches").select("id,branch_code,branch_name,branch_type").eq("company_id", profile.company_id).in("branch_type", ["outlet", "central_kitchen"]).eq("status", "active").is("deleted_at", null).order("branch_name");

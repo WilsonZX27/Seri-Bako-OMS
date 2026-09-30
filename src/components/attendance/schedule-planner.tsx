@@ -37,6 +37,7 @@ type Person = {
   employment_type: string;
   role_code: string;
   employment_end_date?: string | null;
+  home_branch_id?: string | null;
 };
 type Template = {
   id: string;
@@ -815,10 +816,10 @@ export function SchedulePlanner({
           ) : null}
         </div>
       </ConsoleSection>
-      {week ? <ConsoleSection title="Schedule history" kind="reference">
+      {canApprove && week ? <ConsoleSection title="Schedule history" kind="reference">
         <div className="space-y-1 text-xs">
           {importFile ? <p><span className="text-muted-foreground">Imported from </span><strong className="break-words">{importFile}</strong></p> : null}
-          <p><span className="text-muted-foreground">Scheduled by </span><strong>{submittedByName ?? "Unknown user"}</strong></p>
+          <p><span className="text-muted-foreground">{week.status === "published" || week.status === "locked" ? "Published by " : "Scheduled by "}</span><strong>{submittedByName ?? "Not recorded"}</strong></p>
           <p className="text-muted-foreground">{importSource ? "Uploaded " : "Updated "}{importSource?.createdAt || week.updated_at ? new Intl.DateTimeFormat("en-MY", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kuala_Lumpur" }).format(new Date(importSource?.createdAt ?? week.updated_at!)) : "Draft created"}</p>
         </div>
       </ConsoleSection> : null}
@@ -1050,7 +1051,7 @@ export function SchedulePlanner({
               const key = `${person.id}:${selectedMobileDate}`,
                 value = cells.get(key),
                 external = externalCells.get(key),
-                awayLabel = localAwayLabel(value) ?? (!value ? external?.branch_name : null),
+                awayLabel = localAwayLabel(value) ?? (!value ? external?.branch_name : person.home_branch_id && person.home_branch_id !== branchId ? currentBranchName : null),
                 tone = awayLabel ? "external" : cellTone(value),
                 weekly = dates.reduce(
                   (sum, date) =>
@@ -1316,7 +1317,7 @@ export function SchedulePlanner({
                         const key = `${person.id}:${date}`,
                           value = cells.get(key),
                           external = externalCells.get(key),
-                          awayLabel = localAwayLabel(value) ?? (!value ? external?.branch_name : null),
+                          awayLabel = localAwayLabel(value) ?? (!value ? external?.branch_name : person.home_branch_id && person.home_branch_id !== branchId ? currentBranchName : null),
                           ended = Boolean(person.employment_end_date && date > person.employment_end_date),
                           tone = awayLabel ? "external" : cellTone(value);
                         return (

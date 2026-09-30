@@ -14,7 +14,7 @@ test("People and Staff keep section actions beside their titles", () => {
   assert.match(section, /CardHeader className="flex-row items-start justify-between/);
   assert.match(permissions, /action=\{[\s\S]*canManage[\s\S]*form="staff-permissions-form"/);
   assert.match(people, /lg:grid-cols-2/);
-  assert.match(people, /form="protected-payroll-form"/);
+  assert.doesNotMatch(people, /protected-payroll-form|Sensitive payroll details/);
   assert.match(people, /form="staff-compliance-record-form"/);
   assert.ok(staff.indexOf("Save Staff") < staff.indexOf("Open profile"));
 });

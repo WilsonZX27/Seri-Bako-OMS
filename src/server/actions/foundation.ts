@@ -10,7 +10,6 @@ import { canAssignRoleCode, isProtectedOwnerAssignableRole, isSuperAdminRole } f
 import { createAdminClient } from "@/lib/supabase/admin";
 import { setTemporaryPasswordHandoff } from "@/server/auth/temporary-password-handoff";
 import { createClient } from "@/lib/supabase/server";
-import { looseSupabase } from "@/lib/supabase/loose";
 import { branchSchema, companySchema, documentSequenceSchema, staffAccessSchema, staffSchema } from "@/lib/validations/foundation";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
@@ -810,14 +809,6 @@ export async function updateStaff(id: string, formData: FormData) {
   revalidatePath(`/staffs/${id}`);
   revalidatePath("/", "layout");
   safeRedirectWithMessage(`/staffs/${id}`, "success", "Staff updated.");
-}
-
-export async function updateStaffSensitiveEmployment(id:string,formData:FormData){
- id=parseRecordId(id);
- await requirePermissionOrRedirect("people.sensitive.manage",`/people/${id}?section=employment`);
- try{const passport=cleanText(formData.get("passport_number"));const salaryText=cleanText(formData.get("basic_salary"));const salary=salaryText===null?null:Number(salaryText);if(salary!==null&&(!Number.isFinite(salary)||salary<0))throw new Error("Basic salary must be a positive amount.");const supabase=looseSupabase(await createClient());const {error}=await supabase.rpc("save_staff_sensitive_employment",{p_staff_id:id,p_passport_number:passport,p_basic_salary:salary});if(error)throw new Error(error.message);}
- catch(error){rethrowRedirect(error);safeRedirectWithMessage(`/people/${id}?section=employment`,"error",formatActionError(error,"Could not update sensitive employment details."));}
- revalidatePath(`/people/${id}`);safeRedirectWithMessage(`/people/${id}?section=employment`,"success","Sensitive employment details updated.");
 }
 
 async function saveStaffPermissionOverrides(id: string, overrides: { permission_id: string; effect: "allow" | "deny" }[]) {

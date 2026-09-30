@@ -16,11 +16,9 @@ export type PeopleWorkbookSheet = {
   name: string;
   employee: string;
   staffCode?: string | null;
-  passportNo?: string | null;
   employmentType?: string | null;
   outlet: string;
   month: string;
-  basicSalary?: string | number | null;
   days: PeopleWorkbookDay[];
 };
 
@@ -60,8 +58,6 @@ function durationLabel(seconds: number | null | undefined) {
   const absolute = Math.max(0, Math.round(seconds));
   return `${Math.floor(absolute / 3600)}:${String(Math.floor((absolute % 3600) / 60)).padStart(2, "0")}`;
 }
-function money(value: number) { return `RM${value.toFixed(2)}`; }
-function salaryNumber(value: string | number | null | undefined) { const match = String(value ?? "").replace(/,/g, "").match(/\d+(?:\.\d+)?/); return match ? Number(match[0]) : 0; }
 function timeSeconds(value: string | null | undefined) { if (!value) return null; const parts = value.slice(0, 8).split(":").map(Number); if (parts.length < 2 || parts.some(Number.isNaN)) return null; return parts[0] * 3600 + parts[1] * 60 + (parts[2] || 0); }
 function scheduleSpan(start: string | null | undefined, end: string | null | undefined) { const a = timeSeconds(start); const b = timeSeconds(end); if (a == null || b == null) return null; return b >= a ? b - a : b + 86400 - a; }
 function dateLabel(iso: string) { const [year, month, day] = iso.split("-").map(Number); return `${String(day).padStart(2, "0")}/${String(month).padStart(2, "0")}/${year}`; }
@@ -75,8 +71,8 @@ function sheetXml(sheet: PeopleWorkbookSheet) {
   body.push(row(1, [sheet.employee, "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""], styles.header));
   body.push(row(2, ["Prepared By", "", "Checked By: Staff", "", "Verified by: Supervisor", "", "Approved by: Manager", "", "", "", "", "", "", "", "", ""], styles.subheader));
   body.push(row(3, ["Signature / date", "", "Signature / date", "", "Signature / date", "", "Signature / date", "", "", "", "", "", "", "", "", ""], styles.label));
-  body.push(row(4, ["Name:", sheet.employee, "Passport No:", sheet.passportNo ?? "", "Month:", sheet.month, "", "", "", "", "", "", "", "", "", ""], styles.label));
-  body.push(row(5, ["Outlet:", sheet.outlet, "Basic Salary:", sheet.basicSalary ?? "", "Employment:", sheet.employmentType ? sheet.employmentType.replace("_", " ").toUpperCase() : "", "Staff code:", sheet.staffCode ?? "", "", "", "", "", "", "", "", ""], styles.label));
+  body.push(row(4, ["Name:", sheet.employee, "Staff code:", sheet.staffCode ?? "", "Month:", sheet.month, "", "", "", "", "", "", "", "", "", ""], styles.label));
+  body.push(row(5, ["Outlet:", sheet.outlet, "Employment:", sheet.employmentType ? sheet.employmentType.replace("_", " ").toUpperCase() : "", "", "", "", "", "", "", "", "", "", ""], styles.label));
   body.push(row(6, []));
   body.push(row(7, ["Date", "Day", "Working Time", "", "INFO AS PER PUNCH CARD", "", "", "", "Total Working", "OVERTIME", "Short Hours", "PPH(Triple Pay)", "Events / Normal", "Time Out - Time In", "", "Meal Allowance"], styles.header));
   body.push(row(8, ["", "", "AM In", "PM Out", "Time In", "Time Out", "Time In", "Time Out", "Hours", "Hours", "", "", "", "Total Working Time", "", ""], styles.subheader));
@@ -106,10 +102,6 @@ function sheetXml(sheet: PeopleWorkbookSheet) {
     blocks.push({ start, end, label: `${continuation ? `(Continues with ${priorMonth.toLocaleString("en-MY", { month: "long" })}) ` : ""}Total Hours (WEEK ${weekNumber}) ${dateLabel(firstDate)}-${dateLabel(dates[end - 1])}` });
     cursor = end + 1;
   }
-  const totalOvertime = sheet.days.reduce((sum, day) => sum + Number(day.overtimeSeconds ?? 0), 0);
-  const totalShort = sheet.days.reduce((sum, day) => sum + Number(day.shortHoursSeconds ?? 0), 0);
-  const totalPph = sheet.days.reduce((sum, day) => sum + Number(day.pphSeconds ?? 0), 0);
-  const hourly = salaryNumber(sheet.basicSalary) / 26 / 8;
   const weekStartRow = dailyEnd + 2;
   blocks.forEach((block, index) => {
     const weekOvertime = sheet.days.slice(block.start - 1, block.end).reduce((sum, day) => sum + Number(day.overtimeSeconds ?? 0), 0);
@@ -118,14 +110,6 @@ function sheetXml(sheet: PeopleWorkbookSheet) {
     body.push(row(weekStartRow + index * 2, [block.label, "", "", "", "", "", "", "", "", durationLabel(weekOvertime), durationLabel(weekShort), durationLabel(weekPph)], styles.summary));
     body.push(row(weekStartRow + index * 2 + 1, ["Total Hours convert to Minutes", "", "", "", "", "", "", "", "", String(Math.round(weekOvertime / 60)), String(Math.round(weekShort / 60)), String(Math.round(weekPph / 60))], styles.summaryValue));
   });
-  const calcRow = weekStartRow + blocks.length * 2 + 1;
-  body.push(row(calcRow, ["Calculation", "", "", "", "", "", "", "", "", "x1.5", "x1", "x3"], styles.section));
-  body.push(row(calcRow + 1, [`${salaryNumber(sheet.basicSalary) || "Salary"}/26/8`, "", "", "", "", "", "", "", "", money(hourly * 1.5), money(hourly), money(hourly * 3)], styles.summaryValue));
-  body.push(row(calcRow + 2, ["Total Overtime (Overtime & Adhoc) in RM", "", "", "", "", "", "", "", "", money(totalOvertime / 3600 * hourly * 1.5), money(totalShort / 3600 * hourly), money(totalPph / 3600 * hourly * 3), money(totalOvertime / 3600 * hourly * 1.5 - totalShort / 3600 * hourly + totalPph / 3600 * hourly * 3)], styles.total));
-  body.push(row(calcRow + 4, ["Salary", "", "", "", "", "", "", "", "", money(salaryNumber(sheet.basicSalary))], styles.summary));
-  body.push(row(calcRow + 5, ["Allowance", "", "", "", "", "", "", "", "", ""], styles.summary));
-  body.push(row(calcRow + 6, ["Overtime", "", "", "", "", "", "", "", "", money(totalOvertime / 3600 * hourly * 1.5 - totalShort / 3600 * hourly + totalPph / 3600 * hourly * 3)], styles.summary));
-  body.push(row(calcRow + 7, ["Grand Total", "", "", "", "", "", "", "", "", money(salaryNumber(sheet.basicSalary) + totalOvertime / 3600 * hourly * 1.5 - totalShort / 3600 * hourly + totalPph / 3600 * hourly * 3)], styles.total));
   const merges = ["A1:P1", "A2:B2", "C2:D2", "E2:F2", "G2:H2", "A7:A8", "B7:B8", "C7:D7", "E7:H7", "I7:I8", "J7:J8", "K7:K8", "L7:L8", "M7:M8", "N7:O7", "P7:P8"];
   const mergeXml = `<mergeCells count="${merges.length}">${merges.map((range) => `<mergeCell ref="${range}"/>`).join("")}</mergeCells>`;
   return `<?xml version="1.0"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><dimension ref="A1:P${body.length}"/><sheetViews><sheetView workbookViewId="0"><pane ySplit="8" topLeftCell="A10" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="18"/><cols><col min="1" max="1" width="14" customWidth="1"/><col min="2" max="2" width="10" customWidth="1"/><col min="3" max="4" width="12" customWidth="1"/><col min="5" max="8" width="12" customWidth="1"/><col min="9" max="12" width="14" customWidth="1"/><col min="13" max="16" width="15" customWidth="1"/></cols><sheetData>${body.join("")}</sheetData>${mergeXml}<pageMargins left="0.25" right="0.25" top="0.4" bottom="0.4" header="0.2" footer="0.2"/><pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/></worksheet>`;

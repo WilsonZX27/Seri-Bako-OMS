@@ -1,8 +1,8 @@
-### v9.2.72 — Packaging report read latency
+### v9.2.72 (deployed) — Packaging report read latency
 
 - Latest-outlet reads and the trend-record read run together; monthly packaging line batches use at most four concurrent requests. Exact-count guards still reject truncated data.
 
-### v9.2.71 — Packaging stock and usage clarity
+### v9.2.71 (deployed) — Packaging stock and usage clarity
 
 - Packaging Usage reads completed Outlet Daily Records directly. Latest active-outlet closing balances remain independent of the trend period and retain record dates and coverage; balances are recorded, not verified physical stock.
 - Seven packaging rows replace the repeated outlet/product ledger. Outlet details and daily usage details open on demand; desktop stock and trend panels sit together, while touch layouts stack. Missing days remain distinct from recorded zero.

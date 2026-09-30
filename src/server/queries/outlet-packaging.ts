@@ -32,14 +32,15 @@ export async function getOutletPackagingReport(days: 7 | 30) {
   if (!products.length || !outlets.length) return empty;
   // Latest balances are independent of the selected trend period. Read each
   // outlet's latest completed record, without imposing a historical cutoff.
-  const latestResults = await Promise.all(outlets.map((outlet) => db.from("outlet_daily_records")
+  const latestPromise = Promise.all(outlets.map((outlet) => db.from("outlet_daily_records")
     .select("id,branch_id,record_date,status").eq("branch_id", outlet.id)
     .in("status", ["evening_completed", "reviewed"]).lte("record_date", today)
     .order("record_date", { ascending: false }).limit(1)));
-  for (const result of latestResults) if (result.error) throw new Error(result.error.message);
-  const trendResult = await db.from("outlet_daily_records").select("id,branch_id,record_date,status", { count: "exact" })
+  const trendPromise = db.from("outlet_daily_records").select("id,branch_id,record_date,status", { count: "exact" })
     .in("branch_id", outlets.map((outlet) => outlet.id)).in("status", ["evening_completed", "reviewed"])
     .gte("record_date", start).lte("record_date", today).order("record_date", { ascending: false }).limit(1000);
+  const [latestResults, trendResult] = await Promise.all([latestPromise, trendPromise]);
+  for (const result of latestResults) if (result.error) throw new Error(result.error.message);
   if (trendResult.error) throw new Error(trendResult.error.message);
   if ((trendResult.count ?? 0) > (trendResult.data?.length ?? 0)) throw new Error("Packaging report exceeded the read limit.");
   const latestRecords = latestResults.flatMap((result) => result.data ?? []);
@@ -49,27 +50,35 @@ export async function getOutletPackagingReport(days: 7 | 30) {
   const latestIds = new Set(latestRecords.map((record) => record.id));
   const rows: PackagingUsageRow[] = [];
   const latest: PackagingUsageRow[] = [];
-  for (let index = 0; index < records.length; index += 20) {
-    const batch = records.slice(index, index + 20);
-    const result = await db.from("outlet_daily_record_lines")
+  const batchSize = Math.max(1, Math.min(100, Math.floor(900 / products.length)));
+  const batches = Array.from({ length: Math.ceil(records.length / batchSize) }, (_, index) => records.slice(index * batchSize, (index + 1) * batchSize));
+  // Cap concurrency so a month does not become a serial request waterfall or
+  // an unbounded database burst. Each request retains its exact-count guard.
+  for (let offset = 0; offset < batches.length; offset += 4) {
+    const group = batches.slice(offset, offset + 4);
+    const results = await Promise.all(group.map((batch) => db.from("outlet_daily_record_lines")
       .select("record_id,product_id,morning_received_qty,morning_received_provided,wastage_qty,evening_leftover_qty", { count: "exact" })
-      .in("record_id", batch.map((record) => record.id)).in("product_id", [...productMap.keys()]);
-    if (result.error) throw new Error(result.error.message);
-    if ((result.count ?? 0) > (result.data?.length ?? 0)) throw new Error("Packaging lines exceeded the read limit.");
-    const recordMap = new Map(batch.map((record) => [record.id, record]));
-    for (const line of result.data ?? []) {
-      const record = recordMap.get(line.record_id);
-      const product = productMap.get(line.product_id);
-      if (!record || !product) continue;
-      const row: PackagingUsageRow = {
-        id: `${record.id}:${product.id}`, date: record.record_date, branchId: record.branch_id,
-        branch: branchMap.get(record.branch_id) ?? "Unknown outlet", product: product.product_name,
-        code: product.product_code, unit: product.selling_unit,
-        received: line.morning_received_provided ? Number(line.morning_received_qty) : null,
-        usage: Number(line.wastage_qty), closing: Number(line.evening_leftover_qty), status: record.status,
-      };
-      if (record.record_date >= start) rows.push(row);
-      if (latestIds.has(record.id)) latest.push(row);
+      .in("record_id", batch.map((record) => record.id)).in("product_id", [...productMap.keys()])));
+    for (let index = 0; index < group.length; index++) {
+      const batch = group[index];
+      const result = results[index];
+      if (result.error) throw new Error(result.error.message);
+      if ((result.count ?? 0) > (result.data?.length ?? 0)) throw new Error("Packaging lines exceeded the read limit.");
+      const recordMap = new Map(batch.map((record) => [record.id, record]));
+      for (const line of result.data ?? []) {
+        const record = recordMap.get(line.record_id);
+        const product = productMap.get(line.product_id);
+        if (!record || !product) continue;
+        const row: PackagingUsageRow = {
+          id: `${record.id}:${product.id}`, date: record.record_date, branchId: record.branch_id,
+          branch: branchMap.get(record.branch_id) ?? "Unknown outlet", product: product.product_name,
+          code: product.product_code, unit: product.selling_unit,
+          received: line.morning_received_provided ? Number(line.morning_received_qty) : null,
+          usage: Number(line.wastage_qty), closing: Number(line.evening_leftover_qty), status: record.status,
+        };
+        if (record.record_date >= start) rows.push(row);
+        if (latestIds.has(record.id)) latest.push(row);
+      }
     }
   }
   return { rows, latest, today,

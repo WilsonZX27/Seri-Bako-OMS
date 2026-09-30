@@ -4,20 +4,32 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const ts = require('typescript');
 
-function loadReport({ overflow = false } = {}) {
+function loadReport({ overflow = false, recordCount = 1, delayed = false } = {}) {
   const calls = [];
+  let active = 0;
+  let peak = 0;
   const old = { id: 'old', branch_id: 'outlet', record_date: '2026-08-01', status: 'reviewed' };
   const recent = { id: 'recent', branch_id: 'outlet', record_date: '2026-09-30', status: 'evening_completed' };
+  const recentRecords = Array.from({ length: recordCount }, (_, index) => ({ ...recent, id: `recent-${index}` }));
   const db = { from(table) {
     const query = { table, filters: [] };
     const chain = new Proxy({}, { get(_, method) {
-      if (method === 'then') return (resolve) => {
+      if (method === 'then') return async (resolve) => {
         calls.push(query);
         let data;
         if (table === 'products') data = [{ id: 'p', product_code: 'PKG01', product_name: 'Bag', selling_unit: 'PCS' }];
         else if (table === 'branches') data = [{ id: 'outlet', branch_name: 'Outlet' }];
-        else if (table === 'outlet_daily_records') data = query.filters.some(([key]) => key === 'gte') ? [recent] : [old];
-        else if (table === 'outlet_daily_record_lines') data = [old, recent].map((record) => ({ record_id: record.id, product_id: 'p', morning_received_provided: false, morning_received_qty: 0, wastage_qty: record.id === 'old' ? 9 : 0, evening_leftover_qty: record.id === 'old' ? 12 : 0 }));
+        else if (table === 'outlet_daily_records') data = query.filters.some(([key]) => key === 'gte') ? recentRecords : [old];
+        else if (table === 'outlet_daily_record_lines') data = [old, ...recentRecords].map((record) => ({ record_id: record.id, product_id: 'p', morning_received_provided: false, morning_received_qty: 0, wastage_qty: record.id === 'old' ? 9 : 0, evening_leftover_qty: record.id === 'old' ? 12 : 0 }));
+        if (delayed && table === 'outlet_daily_record_lines') {
+          active++; peak = Math.max(peak, active);
+          await new Promise((done) => setTimeout(done, 10));
+          active--;
+        }
+        if (table === 'outlet_daily_record_lines') {
+          const ids = query.filters.find(([key, field]) => key === 'in' && field === 'record_id')[2];
+          data = data.filter((line) => ids.includes(line.record_id));
+        }
         resolve({ data, error: null, count: overflow && table === 'outlet_daily_records' && query.filters.some(([key]) => key === 'gte') ? 1001 : data.length });
       };
       return (...args) => { query.filters.push([method, ...args]); return chain; };
@@ -32,7 +44,7 @@ function loadReport({ overflow = false } = {}) {
     if (name.includes('supabase/server')) return { createClient: async () => db };
     throw new Error(name);
   } });
-  return { report: exports.getOutletPackagingReport, calls };
+  return { report: exports.getOutletPackagingReport, calls, peak: () => peak };
 }
 
 test('latest closing remains independent of trend window; recorded zero differs from missing received', async () => {
@@ -50,4 +62,13 @@ test('latest closing remains independent of trend window; recorded zero differs 
 test('incomplete reads fail explicitly instead of displaying partial totals', async () => {
   const { report } = loadReport({ overflow: true });
   await assert.rejects(report(30), /exceeded the read limit/);
+});
+
+
+test('monthly line reads overlap but never exceed four concurrent requests', async () => {
+  const fixture = loadReport({ recordCount: 400, delayed: true });
+  const result = await fixture.report(30);
+  assert.equal(result.rows.length, 400);
+  assert.equal(fixture.peak(), 4);
+  assert.equal(result.latest[0].closing, 12);
 });

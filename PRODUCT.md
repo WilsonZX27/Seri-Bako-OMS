@@ -1,3 +1,9 @@
+### v9.2.71 — Packaging stock and usage clarity
+
+- Packaging Usage reads completed Outlet Daily Records directly. Latest active-outlet closing balances remain independent of the trend period and retain record dates and coverage; balances are recorded, not verified physical stock.
+- Seven packaging rows replace the repeated outlet/product ledger. Outlet details and daily usage details open on demand; desktop stock and trend panels sit together, while touch layouts stack. Missing days remain distinct from recorded zero.
+- Inventory reconciliation, SKU mapping, the empty action rail and unbounded history tables were removed from this report because the owner needs outlet stock and usage trends. Existing mapping schema/data remain intact; no database migration is needed.
+
 ### v9.2.70 (unreleased) — Operational clarity and roster coverage
 
 - Kitchen employees share the canonical roster eligibility path with Outlet Staff and Supervisors; tenant, branch, role-date and workflow permissions remain enforced. Migration 287 was applied and its four function bodies verified against the repository on 2026-09-14; live ALMA and PJS10 rosters show 8 and 12 staff respectively.

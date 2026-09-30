@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 const managementRoles = new Set(["super_admin", "manager", "people_operations"]);
 const sender = "Seri Bako Operations <admin@seribako.com.my>";
 const baseUrl = "https://system.seribako.com.my";
+const pilotRecipient = "wilson@seribako.com.my";
 
 function malaysiaDate(date = new Date()) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
@@ -29,6 +30,9 @@ export async function GET(request: NextRequest) {
   }
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) return NextResponse.json({ error: "Email provider is not configured" }, { status: 503 });
+  if (process.env.MANAGEMENT_EMAIL_PILOT_RECIPIENT?.trim().toLowerCase() !== pilotRecipient) {
+    return NextResponse.json({ error: "Pilot recipient is not configured" }, { status: 503 });
+  }
 
   const db = looseSupabase(createAdminClient());
   const today = malaysiaDate();
@@ -42,7 +46,7 @@ export async function GET(request: NextRequest) {
     db.from("compliance_types").select("id,type_name").limit(2000),
     db.from("branches").select("id,branch_name").limit(2000),
   ]);
-  for (const result of [staffResult, assignmentsResult, rolesResult, weeksResult, recordsResult, typesResult, branchesResult]) {
+  for (const result of [staffResult, assignmentsResult, rolesResult, weeksResult, documentsResult, recordsResult, typesResult, branchesResult]) {
     if (result.error) return NextResponse.json({ error: "Notification data unavailable" }, { status: 503 });
   }
   const roles = new Map<string, string>(((rolesResult.data ?? []) as Array<{ id: string; role_code: string }>).map((role: { id: string; role_code: string }) => [role.id, role.role_code]));
@@ -56,7 +60,7 @@ export async function GET(request: NextRequest) {
   let failed = 0;
   let skipped = 0;
   for (const staff of (staffResult.data ?? []) as Array<{ id: string; company_id: string; email: string }>) {
-    if (!managementRoles.has(roleByStaff.get(staff.id) ?? "") || !staff.email?.trim()) continue;
+    if (staff.email?.trim().toLowerCase() !== pilotRecipient || !managementRoles.has(roleByStaff.get(staff.id) ?? "")) continue;
     const weeks = ((weeksResult.data ?? []) as Array<{ company_id: string; branch_id: string; week_start: string }>).filter((week) => week.company_id === staff.company_id);
     const documents = ((documentsResult.data ?? []) as Array<{ company_id: string; document_no: string; title: string }>).filter((document) => document.company_id === staff.company_id);
     const records = ((recordsResult.data ?? []) as Array<{ company_id: string; branch_id: string; compliance_type_id: string; expires_on: string; review_status: string }>).filter((record) => record.company_id === staff.company_id && record.expires_on);

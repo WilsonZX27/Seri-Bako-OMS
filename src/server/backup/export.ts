@@ -117,6 +117,7 @@ export const BACKUP_DATASETS: readonly BackupDataset[] = [
   { table: "production_job_output_lines", classification: "parent-company filtered", column: "production_job_id", parent: "production_jobs" },
   { table: "outlet_daily_records", classification: "company_id filtered", column: "company_id" },
   { table: "outlet_daily_record_lines", classification: "parent-company filtered", column: "record_id", parent: "outlet_daily_records" },
+  { table: "outlet_packaging_item_links", classification: "company_id filtered", column: "company_id" },
   { table: "outlet_daily_sales_breakdowns", classification: "parent-company filtered", column: "record_id", parent: "outlet_daily_records" },
   { table: "outlet_compliance_requirements", classification: "company_id filtered", column: "company_id" },
   { table: "documents", classification: "company_id filtered", column: "company_id" },

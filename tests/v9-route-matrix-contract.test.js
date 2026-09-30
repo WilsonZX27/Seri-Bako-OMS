@@ -12,7 +12,7 @@ const {
 
 test("v9 UAT classifies every application page", () => {
   const routes = discoverRouteMatrix();
-  assert.equal(routes.length, 111, "Route count changed. Classify the new or removed page deliberately.");
+  assert.equal(routes.length, 112, "Route count changed. Classify the new or removed page deliberately.");
   assert.equal(new Set(routes.map((entry) => entry.file)).size, routes.length);
   assert.equal(new Set(routes.map((entry) => entry.route)).size, routes.length);
   for (const entry of routes) {

@@ -440,6 +440,28 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["outlet_daily_record_lines"]["Insert"]>;
         Relationships: [];
       };
+      outlet_packaging_item_links: {
+        Row: {
+          product_id: string;
+          company_id: string;
+          item_id: string;
+          item_base_units_per_product_unit: number;
+          created_at: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          product_id: string;
+          company_id: string;
+          item_id: string;
+          item_base_units_per_product_unit: number;
+          created_at?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["outlet_packaging_item_links"]["Insert"]>;
+        Relationships: [];
+      };
       document_sequences: {
         Row: {
           id: string;

@@ -12,7 +12,7 @@ test("Reports directory uses complete touch-friendly named rows", () => {
   assert.doesNotMatch(page, /<p className="truncate[^>]*>\{report\.title\}/);
   assert.doesNotMatch(page, /<p className="truncate[^>]*>\{report\.description\}/);
   assert.doesNotMatch(page, /<a href=\{report\.href\}>Open<\/a>/);
-  assert.match(page, /rounded-\[var\(--sb-radius-panel\)\]/);
+  assert.match(page, /rounded-\[var\(--sb-panel-radius\)\]/);
   assert.match(page, /rounded-\[var\(--sb-radius-control\)\]/);
   assert.doesNotMatch(page, /rounded-\[2px\]/);
 });

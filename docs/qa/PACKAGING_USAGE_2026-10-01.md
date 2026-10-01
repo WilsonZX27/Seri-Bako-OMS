@@ -21,3 +21,6 @@ After v9.2.72 became Ready, the final page refresh rendered the correct v9.2.72 
 - Added executable shared-chart regression checks: missing dates break paths, recorded zero retains its circle, complete charts remain continuous. Existing packaging query checks pass.
 - TypeScript and ESLint passed. Full regression: 1342/1342 passed after rerunning with local-port permission (the sandbox initially blocked an unrelated server lifecycle test).
 - Screenshot `/tmp/packaging-v9273-desktop.jpg` is the verified layout with synthetic fixture data, not real stock.
+
+- Production deployment `LW34wuPhEB4sYo9UiPiNAYeRwzBD` Ready, source `e7cf3b447b8c51bbada3866647041e029e39c71f`, custom domain `system.seribako.com.my`, release v9.2.73. Reloaded the formal-domain login page and verified its footer is v9.2.73. Login remained expired, so authenticated production report rendering and initial-load measurements remain pending user sign-in.
+- Production proof screenshot: `/tmp/packaging-v9273-production-ready.jpg`.

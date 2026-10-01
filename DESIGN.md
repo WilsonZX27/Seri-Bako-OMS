@@ -1,4 +1,4 @@
-### v9.2.73 (unreleased) — Packaging workspace consistency
+### v9.2.73 (deployed) — Packaging workspace consistency
 
 - Restore the shared contextual right console with Daily Records access, report coverage and selected-day outlet usage; mobile uses the existing actions sheet.
 - Use the shared filter controls and interactive line chart. Missing dates break the line; recorded zero remains a valid point.

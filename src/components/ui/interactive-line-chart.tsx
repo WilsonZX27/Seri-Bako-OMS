@@ -6,7 +6,7 @@ import type { KeyboardEvent, PointerEvent } from "react";
 export type InteractiveLineChartPoint = {
   id: string;
   label: string;
-  value: number;
+  value: number | null;
   previewValue: string;
   previewDetails: string[];
 };
@@ -27,6 +27,7 @@ type InteractiveLineChartProps = {
   ariaLabel: string;
   valueSuffix?: string;
   maximumFractionDigits?: number;
+  onSelectPoint?: (id: string) => void;
 };
 
 export function InteractiveLineChart({
@@ -38,6 +39,7 @@ export function InteractiveLineChart({
   ariaLabel,
   valueSuffix = "",
   maximumFractionDigits = 1,
+  onSelectPoint,
 }: InteractiveLineChartProps) {
   const previewId = useId();
   const chartRef = useRef<SVGSVGElement>(null);
@@ -61,10 +63,10 @@ export function InteractiveLineChart({
   const safeMaximum = Math.max(1, maximum);
   const x = (index: number) => inset.left + (points.length <= 1 ? innerWidth / 2 : (index / (points.length - 1)) * innerWidth);
   const y = (value: number) => inset.top + innerHeight - (value / safeMaximum) * innerHeight;
-  const path = points.map((point, index) => `${index ? "L" : "M"} ${x(index).toFixed(1)} ${y(point.value).toFixed(1)}`).join(" ");
+  const path = points.map((point, index) => point.value === null ? "" : `${index && points[index - 1].value !== null ? "L" : "M"} ${x(index).toFixed(1)} ${y(point.value).toFixed(1)}`).join(" ");
   const activePoint = activeIndex === null ? null : points[activeIndex];
   const activeX = activeIndex === null ? null : x(activeIndex);
-  const activeY = activePoint ? y(activePoint.value) : null;
+  const activeY = activePoint ? y(activePoint.value ?? 0) : null;
   const activeRatio = activeIndex === null || points.length <= 1 ? 0.5 : activeIndex / (points.length - 1);
   const translateX = activeRatio < 0.2 ? "0%" : activeRatio > 0.8 ? "-100%" : "-50%";
   const placePreviewBelow = activeY !== null && activeY < inset.top + 58;
@@ -83,7 +85,9 @@ export function InteractiveLineChart({
   }
 
   function selectFromPointer(event: PointerEvent<SVGSVGElement>) {
-    setActiveIndex(getIndexFromPointer(event));
+    const index = getIndexFromPointer(event);
+    setActiveIndex(index);
+    if (event.type === "pointerdown" && points[index]) onSelectPoint?.(points[index].id);
   }
 
   function handlePointerDown(event: PointerEvent<SVGSVGElement>) {
@@ -107,13 +111,15 @@ export function InteractiveLineChart({
       return;
     }
 
-    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+    if (!points.length || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
     event.preventDefault();
-    if (event.key === "Home") return setActiveIndex(0);
-    if (event.key === "End") return setActiveIndex(points.length - 1);
+    if (event.key === "Home") { setActiveIndex(0); onSelectPoint?.(points[0]?.id); return; }
+    if (event.key === "End") { setActiveIndex(points.length - 1); onSelectPoint?.(points.at(-1)?.id ?? ""); return; }
     const current = activeIndex ?? 0;
     const direction = event.key === "ArrowLeft" ? -1 : 1;
-    setActiveIndex(Math.max(0, Math.min(points.length - 1, current + direction)));
+    const index = Math.max(0, Math.min(points.length - 1, current + direction));
+    setActiveIndex(index);
+    onSelectPoint?.(points[index]?.id);
   }
 
   return (
@@ -149,7 +155,7 @@ export function InteractiveLineChart({
           );
         })}
         <path d={path} fill="none" stroke="var(--sb-green-700)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" pointerEvents="none" />
-        {points.length <= 14 ? points.map((point, index) => (
+        {points.some((point) => point.value === null) || points.length <= 14 ? points.map((point, index) => point.value === null ? null : (
           <circle
             key={point.id}
             cx={x(index)}
@@ -192,8 +198,8 @@ export function InteractiveLineChart({
               vectorEffect="non-scaling-stroke"
               opacity="0.55"
             />
-              <circle cx={activeX} cy={activeY} r="7" fill="var(--sb-green-100)" opacity="0.9" />
-              <circle cx={activeX} cy={activeY} r="3.75" fill="var(--sb-surface-raised)" stroke="var(--sb-green-800)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+              {activePoint.value !== null && <circle cx={activeX} cy={activeY} r="7" fill="var(--sb-green-100)" opacity="0.9" />}
+              {activePoint.value !== null && <circle cx={activeX} cy={activeY} r="3.75" fill="var(--sb-surface-raised)" stroke="var(--sb-green-800)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />}
           </g>
         ) : null}
       </svg>

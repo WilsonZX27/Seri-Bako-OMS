@@ -1054,3 +1054,29 @@ dialog.sb-schedule-import-dialog[open] {
   background-position: right .75rem center;
   background-size: 1rem;
 }
+
+@media print {
+  @page { size: A4 portrait; margin: 12mm; }
+  body:has(.production-sheet-print) [data-app-sidebar],
+  body:has(.production-sheet-print) aside,
+  body:has(.production-sheet-print) nav,
+  body:has(.production-sheet-print) form,
+  body:has(.production-sheet-print) .production-print > :not(.production-sheet-print) { display: none !important; }
+  body:has(.production-sheet-print) main { height: auto !important; overflow: visible !important; }
+  body:has(.production-sheet-print) .production-print { border: 0 !important; }
+  .production-sheet-print { display: block !important; color: #111; font-size: 10px; }
+  .production-sheet-print h1 { font-size: 18px; font-weight: 700; }
+  .production-sheet-print table { width: 100%; margin-top: 10px; border-collapse: collapse; }
+  .production-sheet-print th, .production-sheet-print td { border: 1px solid #888; padding: 4px; text-align: left; vertical-align: top; }
+  .production-sheet-print tr { break-inside: avoid; }
+  body:has(.do-print-document) [data-app-sidebar],
+  body:has(.do-print-document) aside,
+  body:has(.do-print-document) nav { display: none !important; }
+  .do-print-document { width: 100%; }
+  .do-print-page { break-after: page; border: 0 !important; padding: 0 !important; margin: 0 !important; }
+  .do-print-page:last-child { break-after: auto; }
+  .do-print-table { table-layout: fixed; }
+  .do-print-table th, .do-print-table td { overflow-wrap: anywhere; }
+  .do-print-table th:nth-child(4) { width: 29%; }
+  .do-print-table tr { break-inside: avoid; }
+}

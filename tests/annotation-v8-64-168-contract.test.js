@@ -9,7 +9,7 @@ test("Outlet Daily date owns a readable sortable sticky band", () => {
   const query = read("src/server/queries/outlet-daily-records.ts");
   assert.match(page, /stickyColumn="second"/);
   assert.match(page, /SortableHead label="Date"/);
-  assert.match(page, /SortableHead label="Outlet"/);
+  assert.match(page, /SortableHead label="Record status"/);
   assert.match(page, /SortableHead label="Last Updated"/);
   assert.match(query, /sortColumns = \{ date: "record_date", outlet: "status", updated: "updated_at" \}/);
 });

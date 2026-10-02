@@ -45,12 +45,12 @@ test("dashboard secondary column keeps exceptions ahead of routine activity", ()
   assert.doesNotMatch(dashboard, /rightRail=\{isOutlet \? undefined/);
 });
 
-test("production planning keeps the query surface flat and balanced", () => {
-  assert.match(planning, /<FilterBar resetHref="\/production\/planning" className="sb-list-filters--balanced">/);
-  assert.doesNotMatch(planning, /<div className="overflow-hidden border bg-card"><FilterBar/);
-  assert.match(planning, /aria-label="Planning period"/);
-  assert.match(planning, /aria-label="Planning outlet"/);
-  assert.match(planning, /aria-label="Target days"/);
+test("production planning keeps one familiar delivery-date and kitchen filter surface", () => {
+  const workspace = fs.readFileSync(path.join(root, "src/components/production-planning-workspace.tsx"), "utf8");
+  assert.match(workspace, /Delivery date/);
+  assert.match(workspace, /name="date" type="date"/);
+  assert.match(workspace, /name="kitchen"/);
+  assert.match(workspace, /View plan/);
 });
 
 test("stock count tablet rail has an explicit card contract", () => {

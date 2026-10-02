@@ -5,12 +5,10 @@ import test from "node:test";
 const planning = readFileSync("src/app/(app)/production/planning/page.tsx", "utf8");
 const variance = readFileSync("src/app/(app)/production/variance/page.tsx", "utf8");
 
-test("Production Planning preserves an explicit retryable unavailable state", () => {
-  assert.match(planning, /getProductionPlanning\(filters\)\.catch/);
-  assert.match(planning, /logServerError\(error, \{ source: "page\.productionPlanning\.report" \}\)/);
-  assert.match(planning, /Production Planning Lite is unavailable/);
-  assert.match(planning, /No planning suggestion is shown as zero/);
-  assert.match(planning, /Retry report/);
+test("Production Planning fails closed when stored plans or configuration cannot be verified", () => {
+  assert.match(planning, /logServerError/);
+  assert.match(planning, /Production planning is unavailable/);
+  assert.match(planning, /No quantities have been generated or dispatched/);
 });
 
 test("Production Variance never classifies a failed read as balanced or zero", () => {

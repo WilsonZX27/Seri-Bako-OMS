@@ -75,5 +75,5 @@ test("outlet analytics never presents unverified or no-line records as zero", ()
   assert.match(outletQuery, /no_completed_records/);
   assert.match(demandPage, /report\.coverage\.reliable_lines === 0/);
   assert.match(demandPage, /report\.coverage\.reliable_lines \? formatNumber\(report\.summary\.received\) : "Unavailable"/);
-  assert.match(planningPage, /movement unavailable/);
+  assert.match(planningPage, /No quantities have been generated or dispatched/);
 });

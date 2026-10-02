@@ -40,7 +40,7 @@ test("outlet completion matrix previews before an explicit record open", () => {
   assert.doesNotMatch(component, /<Link href=\{`\/outlet-daily-records\/\$\{cell\.record_id\}`\}/);
   assert.match(component, /h-9 w-full min-w-0[\s\S]*sm:min-w-9/);
   assert.match(component, /inline-flex min-h-11 items-center[\s\S]*xl:min-h-8/);
-  assert.match(component, /not a lateness estimate/);
+  assert.match(component, /Check which outlets have finished each day/);
   assert.match(component, /overflow-x-auto overscroll-x-contain/);
   assert.match(page, /<OutletDailyCompletionMatrix/);
   assert.match(page, /canCreate={canCreate}/);
@@ -83,10 +83,10 @@ test("phone completion insight keeps the summary and seven-day matrix directly s
   assert.doesNotMatch(component, /data-outlet-completion-toggle/);
   assert.doesNotMatch(component, /matrixOpen/);
   assert.match(component, /Complete[\s\S]*Open[\s\S]*Missing/);
-  assert.match(component, /Qty Sent pending[\s\S]*short: "QS"/);
-  assert.match(component, /Outlet Entry pending[\s\S]*short: "OE"/);
-  assert.match(component, /Ready to post[\s\S]*short: "RP"/);
-  assert.match(component, /reviewed: \{ label: "Posted", short: "P"/);
+  assert.match(component, /Qty Sent pending[\s\S]*short: "Send qty"/);
+  assert.match(component, /Outlet Entry pending[\s\S]*short: "Outlet entry"/);
+  assert.match(component, /Ready to post[\s\S]*short: "Ready"/);
+  assert.match(component, /reviewed: \{ label: "Posted", short: "Posted"/);
   assert.doesNotMatch(component, /Morning only|short: "AM"|short: "D"/);
 });
 

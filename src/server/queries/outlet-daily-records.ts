@@ -1,3 +1,4 @@
+import { readCompletePages } from "@/server/queries/read-complete-pages";
 import { isMockMode, mockBranches, mockProducts } from "@/lib/mock-mode";
 import { todayInKualaLumpur } from "@/lib/business-date";
 import { createClient } from "@/lib/supabase/server";
@@ -526,18 +527,15 @@ export async function getOutletDailyDemandTrend(filters: Filters = {}) {
 
   const db = await createClient();
   if (!await hasPermission("outlet_daily_record.view")) throw new Error("Missing permission: outlet_daily_record.view");
-  let recordsQuery = db.from("outlet_daily_records").select("*").gte("record_date", start).lte("record_date", end).order("record_date");
-  if (branchId) recordsQuery = recordsQuery.eq("branch_id", branchId);
-  const { data: records, error } = await recordsQuery;
-  if (error) throw new Error(error.message);
-  if (!records) throw new Error("Outlet daily demand records returned no data.");
-  const typedRecords = records as RecordRow[];
+  const typedRecords = await readCompletePages((from, to) => {
+    let query = db.from("outlet_daily_records").select("*", { count: "exact" }).gte("record_date", start).lte("record_date", end).order("record_date").order("id");
+    if (branchId) query = query.eq("branch_id", branchId);
+    return query.range(from, to);
+  }, 10_000);
   const recordIds = typedRecords.map((record) => record.id);
-  const { data: lines, error: linesError } = recordIds.length
-    ? await db.from("outlet_daily_record_lines").select("*").in("record_id", recordIds)
-    : { data: [], error: null };
-  if (linesError) throw new Error(linesError.message);
-  if (!lines) throw new Error("Outlet daily demand lines returned no data.");
+  const lines = recordIds.length
+    ? await readCompletePages((from, to) => db.from("outlet_daily_record_lines").select("*", { count: "exact" }).in("record_id", recordIds).order("id").range(from, to))
+    : [];
   return buildDemandTrend({ records: typedRecords, lines: lines as LineRow[], branches: options.branches, products: options.products, start, end, period, status, branchId, productId });
 }
 

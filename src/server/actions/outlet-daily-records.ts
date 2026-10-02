@@ -23,6 +23,9 @@ const outletDailyLineSchema = z.object({
   morning_received_provided: z.boolean(),
   evening_leftover_qty: quantitySchema,
   wastage_qty: quantitySchema,
+  wastage_provided: z.boolean(),
+  stockout: z.boolean(),
+  stockout_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/).nullable(),
   wastage_reason: z.enum(["unsold", "damaged", "expired", "quality_issue", "staff_meal", "other"]).nullable(),
   notes: z.string().trim().max(1_000).nullable(),
 });
@@ -91,6 +94,8 @@ function extractOutletDailyPayload(formData: FormData) {
   const leftover = values(formData, "evening_leftover_qty");
   const wastage = values(formData, "wastage_qty");
   const reasons = values(formData, "wastage_reason");
+  const stockouts = values(formData, "stockout");
+  const stockoutTimes = values(formData, "stockout_time");
   const notes = values(formData, "line_notes");
   const salesResult = outletDailyPayloadSchema.pick({ pos_total_sales: true, sales_variance_reason: true, sales_breakdown: true }).safeParse({
     pos_total_sales: String(formData.get("pos_total_sales") ?? ""),
@@ -117,6 +122,9 @@ function extractOutletDailyPayload(formData: FormData) {
       morning_received_provided: received[index] != null && received[index].trim() !== "",
       evening_leftover_qty: leftover[index] ?? "0",
       wastage_qty: wastage[index] ?? "0",
+      wastage_provided: wastage[index] != null && wastage[index].trim() !== "",
+      stockout: stockouts[index] === "true",
+      stockout_time: nullableText(stockoutTimes[index]),
       wastage_reason: nullableText(reasons[index]),
       notes: nullableText(notes[index]),
     })),

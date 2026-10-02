@@ -407,6 +407,10 @@ export type Database = {
           id: string;
           record_id: string;
           product_id: string;
+          do_managed: boolean;
+          wastage_provided: boolean;
+          stockout: boolean;
+          stockout_time: string | null;
           morning_received_qty: number;
           morning_received_provided: boolean;
           qty_sent: number;
@@ -424,6 +428,10 @@ export type Database = {
           id?: string;
           record_id: string;
           product_id: string;
+          do_managed?: boolean;
+          wastage_provided?: boolean;
+          stockout?: boolean;
+          stockout_time?: string | null;
           morning_received_qty?: number;
           morning_received_provided?: boolean;
           qty_sent?: number;
@@ -2260,6 +2268,69 @@ export type Database = {
         output_code: string | null; output_name: string | null; planned_qty: number; product_id: string | null;
         production_job_id: string; remarks: string | null; unit_cost: number | null; uom: string | null;
       }>;
+      production_planning_settings: TableDefinition<{
+        id: string; company_id: string; kitchen_id: string; enabled: boolean; draft_time: string;
+        buffer_percent: number; max_decrease_percent: number; recipients: string[]; updated_by: string | null;
+        created_at: string; updated_at: string;
+      }>;
+      production_batch_rules: TableDefinition<{
+        id: string; company_id: string; kitchen_id: string; product_id: string; yield_per_tray: number;
+        updated_by: string | null; created_at: string; updated_at: string;
+      }>;
+      production_outlet_minimums: TableDefinition<{
+        id: string; company_id: string; kitchen_id: string; branch_id: string; product_id: string;
+        minimum_qty: number; confirmed_by: string; confirmed_at: string; created_at: string;
+      }>;
+      production_planning_events: TableDefinition<{
+        id: string; company_id: string; kitchen_id: string; branch_id: string | null; event_date: string;
+        name: string; notes: string; confirmed: boolean; lines: Json; created_by: string | null; created_at: string;
+      }>;
+      production_plans: TableDefinition<{
+        id: string; company_id: string; kitchen_id: string; delivery_date: string; version: number;
+        revision: number; status: "draft" | "submitted" | "approved" | "superseded";
+        buffer_percent: number; max_decrease_percent: number; forecast_version: string;
+        events: Json; holidays: Json; created_by: string | null; created_at: string;
+        approved_by: string | null; approved_at: string | null;
+      }>;
+      production_plan_products: TableDefinition<{
+        id: string; plan_id: string; product_id: string; yield_per_tray: number | null;
+        trays: number | null; retained_qty: number; actual_qty: number | null; reason: string;
+        event_qty: number; production_job_id: string | null; created_at: string;
+      }>;
+      production_plan_allocations: TableDefinition<{
+        id: string; plan_id: string; product_id: string; branch_id: string;
+        suggested_qty: number | null; approved_qty: number | null; minimum_qty: number | null;
+        event_qty: number; reason: string; evidence: Json; created_at: string;
+      }>;
+      production_delivery_orders: TableDefinition<{
+        id: string; company_id: string; plan_id: string; kitchen_id: string; branch_id: string | null;
+        event_id: string | null; delivery_date: string; plan_version: number; do_no: string;
+        status: "confirmed" | "void"; prepared_by: string; driver: string; vehicle: string;
+        yellow_trays: number; silver_trays: number; reason: string | null;
+        daily_record_id: string | null; created_by: string; created_at: string;
+        voided_by: string | null; voided_at: string | null; void_reason: string | null;
+      }>;
+      production_delivery_order_lines: TableDefinition<{
+        id: string; do_id: string; product_id: string; qty: number; product_code: string;
+        product_name: string; category: string; unit: string; display_order: number; created_at: string;
+      }>;
+      production_delivery_sequences: TableDefinition<{
+        id: string; company_id: string; delivery_date: string; last_number: number; created_at: string;
+      }>;
+      production_planning_requests: TableDefinition<{
+        id: string; company_id: string; request_key: string; operation: string;
+        request_payload: Json; result: Json; created_at: string;
+      }>;
+      production_planning_audit: TableDefinition<{
+        id: string; company_id: string; plan_id: string | null; operation: string;
+        actor_id: string | null; payload: Json; created_at: string;
+      }>;
+      production_planning_email_queue: TableDefinition<{
+        id: string; company_id: string; plan_id: string; recipient: string; dedupe_key: string;
+        subject: string; body: string; status: "pending" | "sending" | "sent" | "failed";
+        attempts: number; next_attempt_at: string; locked_until: string | null;
+        provider_id: string | null; last_error: string | null; created_at: string; sent_at: string | null;
+      }>;
       production_jobs: TableDefinition<{
         actual_output_qty: number | null; branch_id: string; cancelled_at: string | null; cancelled_by: string | null;
         company_id: string | null; created_at: string; created_by: string | null; deleted_at: string | null;
@@ -3018,6 +3089,8 @@ type Assert<T extends true> = T;
 type RequiredOperationalTable =
   | "branch_stock_count_items"
   | "production_jobs"
+  | "production_plans"
+  | "production_delivery_orders"
   | "schedule_weeks"
   | "attendance_import_batches"
   | "attendance_period_locks";

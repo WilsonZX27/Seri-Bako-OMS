@@ -1,3 +1,10 @@
+### Production Planning (unreleased, 2026-10-02)
+
+- Upgrades the reference-only Lite page to versioned daily recommendations, Manager review/release, actual dispatch, printable outlet DOs and automatic source-locked Qty Sent. Received, Wastage and POS remain independently recorded.
+- Forecast v1 uses per-outlet/per-product eight-week history, same weekday weights, cautious fallback, configurable buffer/reduction caps, reviewed minimums, shortage warnings and confirmed event quantities. Whole-tray surplus must be explicitly allocated or retained.
+- Independent leased email outbox and configurable Malaysia-time draft scheduler; automatic generation is disabled until configured. No inventory posting changes and no historical attachment imports.
+- Repository migrations reviewed through `320`. Migrations `319–320` are repository-only; isolated PostgreSQL fixture verification is distinct from full Supabase deployment, authenticated staging UAT, concurrency verification and pilot approval. The linked Production ledger remains verified through `311`.
+
 ### v9.2.73 (deployed) — Packaging workspace consistency
 
 - Restore the shared contextual right console with Daily Records access, report coverage and selected-day outlet usage; mobile uses the existing actions sheet.

@@ -10,13 +10,13 @@ type MatrixRow = { branch_id: string; branch_name: string; cells: OutletDailyCom
 type MatrixSummary = { expected: number; completed: number; incomplete: number; missing: number; voided: number };
 
 const stateMeta = {
-  missing: { label: "Missing", short: "—", className: "border-[var(--sb-border-strong)] bg-[var(--sb-surface)] text-[var(--sb-text-muted)]" },
-  draft: { label: "Qty Sent pending", short: "QS", className: "border-[var(--sb-info)] bg-[var(--sb-info-bg)] text-[var(--sb-info)]" },
-  morning_recorded: { label: "Outlet Entry pending", short: "OE", className: "border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" },
-  evening_completed: { label: "Ready to post", short: "RP", className: "border-[var(--sb-info)] bg-[var(--sb-info-bg)] text-[var(--sb-info)]" },
-  reviewed: { label: "Posted", short: "P", className: "border-[var(--sb-success)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]" },
+  missing: { label: "Missing", short: "Missing", className: "border-[var(--sb-border-strong)] bg-[var(--sb-surface)] text-[var(--sb-text-muted)]" },
+  draft: { label: "Qty Sent pending", short: "Send qty", className: "border-[var(--sb-info)] bg-[var(--sb-info-bg)] text-[var(--sb-info)]" },
+  morning_recorded: { label: "Outlet Entry pending", short: "Outlet entry", className: "border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" },
+  evening_completed: { label: "Ready to post", short: "Ready", className: "border-[var(--sb-info)] bg-[var(--sb-info-bg)] text-[var(--sb-info)]" },
+  reviewed: { label: "Posted", short: "Posted", className: "border-[var(--sb-success)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]" },
   posted_attention: { label: "Attention", short: "!", className: "border-amber-500 bg-amber-100 text-amber-900" },
-  void: { label: "Void", short: "V", className: "border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]" },
+  void: { label: "Void", short: "Void", className: "border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]" },
 } as const;
 
 export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable = false, canCreate = false, showCoverageDetails = true }: { dates: string[]; rows: MatrixRow[]; summary: MatrixSummary | null; unavailable?: boolean; canCreate?: boolean; showCoverageDetails?: boolean }) {
@@ -31,7 +31,7 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
     <div className="flex flex-wrap items-end justify-between gap-2 border-b border-[var(--sb-border-soft)] px-3 py-2.5">
       <div>
         <h2 id="outlet-completion-title" className="text-sm font-semibold">7-day outlet completion</h2>
-        <p className="text-xs text-muted-foreground">Expected outlet-days · explicit record status, not a lateness estimate</p>
+        <p className="text-xs text-muted-foreground">Check which outlets have finished each day. Select a status to open its record.</p>
       </div>
       <p className="text-xs text-muted-foreground"><strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable || completionPercent === null ? "Not available" : `${formatNumber(completionPercent)}%`}</strong>{unavailable || completionPercent === null ? "" : " posted"}</p>
     </div>

@@ -1,3 +1,4 @@
+import { readCompletePages } from "@/server/queries/read-complete-pages";
 import { NextResponse } from "next/server";
 import { rowsToCsv } from "@/server/backup/export";
 import { hasPermission } from "@/server/auth/permissions";
@@ -13,26 +14,26 @@ export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
     const db = await createClient();
-    let query = db
-      .from("outlet_daily_records")
-      .select("id, branch_id, record_date, status, submitted_by, notes, pos_total_sales, sales_variance_reason, sales_review_status, created_at, updated_at")
-      .order("record_date", { ascending: false })
-      .order("updated_at", { ascending: false })
-      .limit(10000);
     const from = url.searchParams.get("from");
     const to = url.searchParams.get("to");
     const date = url.searchParams.get("date");
     const filterBranchIds = (url.searchParams.get("branches") ?? "").split(",").map((value) => value.trim()).filter(Boolean);
-    if (from) query = query.gte("record_date", from);
-    if (to) query = query.lte("record_date", to);
-    if (!from && !to && date) query = query.eq("record_date", date);
-    if (filterBranchIds.length) query = query.in("branch_id", filterBranchIds);
-    else if (url.searchParams.get("branch") && url.searchParams.get("branch") !== "all") query = query.eq("branch_id", url.searchParams.get("branch")!);
-    if (url.searchParams.get("status") && url.searchParams.get("status") !== "all") query = query.eq("status", url.searchParams.get("status")! as never);
-    const { data: records, error: recordsError } = await query;
-    if (recordsError) throw recordsError;
+    const rows = await readCompletePages((offset, end) => {
+      let query = db
+        .from("outlet_daily_records")
+        .select("id, branch_id, record_date, status, submitted_by, notes, pos_total_sales, sales_variance_reason, sales_review_status, created_at, updated_at", { count: "exact" })
+        .order("record_date", { ascending: false })
+        .order("updated_at", { ascending: false })
+        .order("id");
+      if (from) query = query.gte("record_date", from);
+      if (to) query = query.lte("record_date", to);
+      if (!from && !to && date) query = query.eq("record_date", date);
+      if (filterBranchIds.length) query = query.in("branch_id", filterBranchIds);
+      else if (url.searchParams.get("branch") && url.searchParams.get("branch") !== "all") query = query.eq("branch_id", url.searchParams.get("branch")!);
+      if (url.searchParams.get("status") && url.searchParams.get("status") !== "all") query = query.eq("status", url.searchParams.get("status")! as never);
+      return query.range(offset, end);
+    }, 10_000);
 
-    const rows = records ?? [];
     const branchIds = [...new Set(rows.map((row) => row.branch_id))];
     const staffIds = [...new Set(rows.flatMap((row) => row.submitted_by ? [row.submitted_by] : []))];
     const [{ data: branches, error: branchesError }, staffResult] = await Promise.all([
@@ -44,12 +45,10 @@ export async function GET(request: Request) {
     const branchNames = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
     const staffNames = new Map((staffResult.data ?? []).map((row) => [row.id, row.full_name]));
     const recordIds = rows.map((row) => row.id);
-    const { data: lines, error: linesError } = recordIds.length
-      ? await db.from("outlet_daily_record_lines").select("record_id, product_id, qty_sent, qty_sent_estimated, qty_sent_confirmed, qty_sent_source, morning_received_qty, morning_received_provided, evening_leftover_qty, wastage_qty, wastage_reason, notes").in("record_id", recordIds)
-      : { data: [], error: null };
-    if (linesError) throw linesError;
-    const { data: salesBreakdowns, error: salesError } = recordIds.length ? await db.from("outlet_daily_sales_breakdowns").select("record_id,channel,amount").in("record_id", recordIds) : { data: [], error: null };
-    if (salesError) throw salesError;
+    const [lines, salesBreakdowns] = await Promise.all([
+      recordIds.length ? readCompletePages((from, to) => db.from("outlet_daily_record_lines").select("record_id, product_id, qty_sent, qty_sent_estimated, qty_sent_confirmed, qty_sent_source, morning_received_qty, morning_received_provided, evening_leftover_qty, wastage_qty, wastage_reason, notes", { count: "exact" }).in("record_id", recordIds).order("id").range(from, to)) : [],
+      recordIds.length ? readCompletePages((from, to) => db.from("outlet_daily_sales_breakdowns").select("record_id,channel,amount", { count: "exact" }).in("record_id", recordIds).order("record_id").order("channel").range(from, to)) : [],
+    ]);
     const salesByRecord = new Map<string,Record<string,number>>();
     for (const row of salesBreakdowns ?? []) salesByRecord.set(row.record_id,{...(salesByRecord.get(row.record_id)??{}),[row.channel]:Number(row.amount)});
     const productIds = [...new Set((lines ?? []).map((line) => line.product_id))];
@@ -60,17 +59,17 @@ export async function GET(request: Request) {
     if (productsError) throw productsError;
     if (recipesError) throw recipesError;
     const recipeIds = (recipes ?? []).map((recipe) => recipe.id);
-    const { data: snapshots, error: snapshotsError } = recipeIds.length
-      ? await db.from("recipe_cost_snapshots").select("recipe_id, snapshot_no, cost_per_finished_unit").in("recipe_id", recipeIds).order("snapshot_no", { ascending: false })
-      : { data: [], error: null };
-    if (snapshotsError) throw snapshotsError;
+    const snapshots = recipeIds.length
+      ? await readCompletePages((from, to) => db.from("recipe_cost_snapshots").select("recipe_id, snapshot_no, cost_per_finished_unit", { count: "exact" }).in("recipe_id", recipeIds).order("snapshot_no", { ascending: false }).order("recipe_id").range(from, to))
+      : [];
     const productById = new Map((products ?? []).map((product) => [product.id, product]));
     const recipeByProduct = new Map((recipes ?? []).map((recipe) => [recipe.product_id, recipe.id]));
     const latestCostByRecipe = new Map<string, number>();
     for (const snapshot of snapshots ?? []) if (!latestCostByRecipe.has(snapshot.recipe_id)) latestCostByRecipe.set(snapshot.recipe_id, Number(snapshot.cost_per_finished_unit));
     const canViewWastageCost = await hasPermission("outlet_daily_record.view_all");
+    const recordById = new Map(rows.map((row) => [row.id, row]));
     const exportRows: Record<string, unknown>[] = (lines ?? []).map((line) => {
-      const record = rows.find((candidate) => candidate.id === line.record_id);
+      const record = recordById.get(line.record_id);
       const product = productById.get(line.product_id);
       const recipeId = recipeByProduct.get(line.product_id);
       const unitCost = canViewWastageCost && recipeId ? latestCostByRecipe.get(recipeId) ?? null : null;

@@ -43,7 +43,7 @@ export function OutletDailyWastageChart({ points, branch, unavailable = false }:
           <h2 id="outlet-wastage-trend-title" className="text-sm font-semibold">7-day wastage rate</h2>
           <p className="text-xs text-muted-foreground">{branch && branch !== "all" ? "Selected outlet" : "All outlets combined"} · completed records only · rate = total wastage ÷ total received</p>
         </div>
-        <p className="text-xs text-muted-foreground">7-day rate <strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable ? "Unavailable" : `${formatPercent(periodRate)}%`}</strong></p>
+        <p className="text-xs text-muted-foreground">7-day rate <strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable ? "Unavailable" : totalReceived > 0 ? `${formatPercent(periodRate)}%` : "No receipts"}</strong></p>
       </div>
       {unavailable ? <div className="px-4 py-8 text-center" role="status"><p className="text-sm font-medium">Wastage trend unavailable</p><p className="mt-1 text-xs text-muted-foreground">The daily record list remains current. Retry this page to load the selected 7-day insight.</p></div> : points.length ? (
       <div className="grid flex-1 items-stretch gap-3 p-2 pt-3 xl:grid-cols-[minmax(0,3fr)_minmax(18rem,2fr)] xl:p-3" data-outlet-wastage-layout>

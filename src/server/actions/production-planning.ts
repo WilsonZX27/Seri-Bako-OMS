@@ -6,6 +6,8 @@ import { looseSupabase } from "@/lib/supabase/loose";
 import { getCurrentProfile } from "@/server/queries/common";
 import { buildPlanPayload } from "@/server/production-planning/data";
 import { addDays } from "@/lib/production-planning/forecast";
+import { deliverPlanningEmails } from "@/server/production-planning/email";
+import { logServerError } from "@/server/observability/logger";
 
 export type PlanningActionResult = { ok: boolean; message: string; id?: string };
 const quantity = z.number().finite().nonnegative().max(1_000_000);
@@ -13,11 +15,11 @@ const uuid = z.uuid();
 const reason = z.string().trim().max(1000);
 const date = z.string().refine((s) => { try { addDays(s,0); return true; } catch { return false; } }, "Invalid date");
 const destination = z.object({ branch_id: uuid.nullable(), event_id: uuid.nullable(), prepared_by: z.string().trim().min(1).max(120), driver: z.string().max(120), vehicle: z.string().max(60), yellow_trays: quantity.int(), silver_trays: quantity.int(), reason: reason, lines: z.array(z.object({ product_id: uuid, qty: quantity })).min(1).max(500) });
-async function run(operation: () => Promise<{ id?: string }>): Promise<PlanningActionResult> {
+async function run(operation: () => Promise<{ id?: string; message?: string }>): Promise<PlanningActionResult> {
   try {
     const result = await operation();
     revalidatePath("/production/planning"); revalidatePath("/outlet-daily-records"); revalidatePath("/production/delivery-orders");
-    return { ok: true, message: "Saved successfully.", ...result };
+    return { ok: true, message: result.message ?? "Saved successfully.", ...result };
   } catch (error) { return { ok: false, message: error instanceof Error ? error.message : "Could not save. Retry after reloading." }; }
 }
 async function manager() {
@@ -45,7 +47,12 @@ export async function changePlan(planId: string, revision: number, action: strin
       if (p.error) throw new Error(p.error.message);
       parsed=await buildPlanPayload(db,companyId,String(p.data.kitchen_id),String(p.data.delivery_date));
     }
-    const result=await rpc(db,"update_production_plan",{p_plan_id:planId,p_revision:revision,p_action:action,p_payload:parsed,p_key:key}) as {id:string}; return result;
+    const result=await rpc(db,"update_production_plan",{p_plan_id:planId,p_revision:revision,p_action:action,p_payload:parsed,p_key:key}) as {id:string};
+    if (action !== "approve") return result;
+    try {
+      const delivery=await deliverPlanningEmails();
+      return {...result,message:delivery.unavailable?"Plan approved. Kitchen email is queued until the mail provider is configured.":delivery.failed?"Plan approved. Some kitchen emails failed; use Retry failed emails.":"Plan approved and kitchen email processed."};
+    } catch (error) { logServerError(error,{source:"productionPlanning.approvalEmail"}); return {...result,message:"Plan approved. Kitchen email remains queued; retry from the plan."}; }
   });
 }
 export async function confirmDispatch(planId: string, revision: number, payload: unknown, key: string) {
@@ -55,7 +62,7 @@ export async function confirmDispatch(planId: string, revision: number, payload:
 }
 export async function configurePlanning(payload: unknown) {
   return run(async () => { const {db}=await manager();
-    const parsed=z.object({kitchen_id:uuid,enabled:z.boolean(),draft_time:z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/),buffer_percent:quantity.max(100),max_decrease_percent:quantity.max(100),recipients:z.array(z.email()).min(1).max(50),batches:z.array(z.object({product_id:uuid,yield_per_tray:quantity.positive()})).max(500),minimums:z.array(z.object({branch_id:uuid,product_id:uuid,minimum_qty:quantity})).max(10000)}).parse(payload);
+    const parsed=z.object({kitchen_id:uuid,enabled:z.boolean(),draft_time:z.literal("20:00"),buffer_percent:quantity.max(100),max_decrease_percent:quantity.max(100),recipients:z.array(z.email()).min(1).max(50),batches:z.array(z.object({product_id:uuid,yield_per_tray:quantity.positive()})).max(500),minimums:z.array(z.object({branch_id:uuid,product_id:uuid,minimum_qty:quantity})).max(10000)}).parse(payload);
     await rpc(db,"configure_production_planning",{p_payload:parsed}); return {}; });
 }
 export async function savePlanningEvent(payload: unknown) {
@@ -68,5 +75,8 @@ export async function voidDeliveryOrder(id: string, correctionReason: string, re
     await rpc(db,"void_production_delivery",{p_do_id:id,p_reason:correctionReason,p_rebuild:z.boolean().parse(rebuild),p_key:key}); return {}; });
 }
 export async function retryPlanningEmails(planId: string) {
-  return run(async () => { const {db}=await manager(); uuid.parse(planId); await rpc(db,"retry_production_emails",{p_plan_id:planId}); return {}; });
+  return run(async () => { const {db}=await manager(); uuid.parse(planId); await rpc(db,"retry_production_emails",{p_plan_id:planId});
+    try { const delivery=await deliverPlanningEmails(); return {message:delivery.unavailable?"Email is queued until the provider is configured.":delivery.failed?"Some emails failed again. Review the email status.":"Kitchen email retry processed."}; }
+    catch(error){logServerError(error,{source:"productionPlanning.retryEmail"});return {message:"Email remains queued. Retry after checking the mail provider."};}
+  });
 }

@@ -9,7 +9,7 @@
     },
     {
       "path": "/api/cron/production-planning",
-      "schedule": "*/15 * * * *"
+      "schedule": "0 12 * * *"
     }
   ]
 }

@@ -14,6 +14,7 @@ const page = read("src/app/(app)/outlet-daily-records/page.tsx");
 const detail = read("src/app/(app)/outlet-daily-records/[id]/page.tsx");
 const inlineValidation = read("supabase/migrations/167_inline_outlet_daily_validation_context.sql");
 const qtySentGuard = read("supabase/migrations/191_guard_outlet_completion_qty_sent.sql");
+const priorStockFix = read("supabase/migrations/321_outlet_daily_prior_stock_wastage.sql");
 const qtySentRoles = read("supabase/migrations/192_grant_qty_sent_to_kitchen_above.sql");
 const kitchenDailyVisibility = read("supabase/migrations/193_grant_kitchen_outlet_daily_visibility.sql");
 const kitchenDailyRls = read("supabase/migrations/194_fix_kitchen_outlet_daily_rls_scope.sql");
@@ -121,11 +122,19 @@ test("new outlet daily saves route existing outlet-days back to their authoritat
   assert.match(action, /A record already exists for this outlet and date/);
 });
 
-test("new outlet defaults cannot carry an invalid unremarked wastage forward", () => {
-  assert.match(query, /const received = receivedValueIsTrusted\(line\) \? Number\(line\.morning_received_qty\) : null/);
-  assert.match(query, /const safeWastage = wastage > 0 && \(received === null \|\| wastage > received\) && !hasRemark \? 0/);
-  assert.match(query, /wastage_reason: safeWastage === 0 \? null/);
-  assert.match(read("src/server/actions/error-handling.ts"), /Wastage cannot exceed Received without a line remark/);
+test("new outlet days require fresh physical quantities", () => {
+  assert.match(form, /const source = line;/);
+  assert.match(query, /wastage_qty: 0,/);
+  assert.match(form, /placeholder="Physical balance"/);
+  assert.match(form, /required=\{!locked && canEditOutletValues && \(received !== "" \|\| wastage !== ""\)\}/);
+});
+
+test("prior-stock packaging usage and expired food can exceed today's receipt", () => {
+  assert.match(priorStockFix, /drop constraint if exists outlet_daily_wastage_reason_required/);
+  assert.match(priorStockFix, /product_category <> 'packaging' and line_reason not in/);
+  assert.doesNotMatch(priorStockFix, /line_wastage_qty > received_qty/);
+  assert.match(priorStockFix, /evening_leftover_qty = case when can_edit_outlet then excluded\.evening_leftover_qty/);
+  assert.match(priorStockFix, /A wastage reason is required for food/);
 });
 
 test("wastage validation preserves a safe product anchor for inline correction", () => {

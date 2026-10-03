@@ -30,6 +30,7 @@ try {
  await query("insert into role_permissions select $1,id from permissions where permission_code in ('outlet_daily_record.update','outlet_daily_record.create')",[roles.outlet_staff]);
  await db.exec(sql('supabase/migrations/319_production_planning_workflow.sql'));
  await db.exec(sql('supabase/migrations/320_daily_record_do_provenance.sql'));
+ await db.exec(sql('supabase/migrations/321_outlet_daily_prior_stock_wastage.sql'));
  await actor(managerAuth);
  await rpc('configure_production_planning',[{kitchen_id:kitchen,enabled:false,draft_time:'20:00',buffer_percent:10,max_decrease_percent:10,recipients:['kitchen@example.test'],batches:[{product_id:product,yield_per_tray:16}],minimums:[{branch_id:outlet,product_id:product,minimum_qty:4},{branch_id:outlet2,product_id:product,minimum_qty:0}]}]);
  const evidence={version:'quantity-proxy-v1',method:'same-weekday',suggested:12,reductionFloor:0,minimum:4,stockoutRisk:false,evidence:[]};
@@ -59,6 +60,13 @@ try {
  await rpc('save_outlet_daily_record',[record,outlet,'2026-10-03','Outlet data',[{product_id:product,qty_sent:999,morning_received_qty:9,morning_received_provided:true,wastage_qty:0,wastage_provided:true,stockout:true,stockout_time:'15:30'}],'evening_completed']);
  line=(await query('select * from outlet_daily_record_lines where record_id=$1',[record]))[0];check(Number(line.qty_sent),12);check(Number(line.morning_received_qty),9);check(line.stockout,true);check(line.wastage_provided,true);
  await rejected(()=>rpc('save_outlet_daily_record',[record,outlet,'2026-10-03',null,[{product_id:product,morning_received_qty:9,morning_received_provided:true,wastage_qty:0,wastage_provided:false}],'evening_completed']),/Wastage must/);
+ await rpc('save_outlet_daily_record',[record,outlet,'2026-10-03',null,[{product_id:product,morning_received_qty:9,morning_received_provided:true,wastage_qty:11,wastage_provided:true,wastage_reason:'expired',stockout:true,stockout_time:'15:30'}],'evening_completed']);
+ check(Number((await query('select wastage_qty from outlet_daily_record_lines where record_id=$1 and product_id=$2',[record,product]))[0].wastage_qty),11);
+ const packaging=uid();await query("insert into products(id,company_id,product_code,product_name,category) values($1,$2,'PKG02','Small Kuih Box','Packaging')",[packaging,company]);
+ const packagingRecord=await rpc('save_outlet_daily_record',[null,outlet,'2026-10-04',null,[{product_id:packaging,morning_received_qty:0,morning_received_provided:true,evening_leftover_qty:4,wastage_qty:8,wastage_provided:true}],'draft']);
+ const packagingLine=(await query('select evening_leftover_qty,wastage_qty,wastage_reason from outlet_daily_record_lines where record_id=$1',[packagingRecord]))[0];
+ check(Number(packagingLine.wastage_qty),8);check(Number(packagingLine.evening_leftover_qty),4);check(packagingLine.wastage_reason,null);
+ await rejected(()=>query('update outlet_daily_record_lines set wastage_reason=null where record_id=$1 and product_id=$2',[record,product]),/wastage reason is required for food/);
  // Verify database RLS, not only application checks.
  await db.exec('set role authenticated');
  check((await query('select count(*)::int n from production_plans'))[0].n,0);

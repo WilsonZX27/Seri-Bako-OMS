@@ -1,3 +1,10 @@
+### v9.2.75 (unreleased) — Familiar operational workspaces
+
+- Canvas/State: Daily Records owns daily input and the existing list, while optional analytics loads only in Insights. Delivery Orders is a tab within this workspace.
+- Toolbar/Surface/Action: Attendance, Daily Records and Production Planning consume one WorkspaceTabs owner. Planning reuses shared selectors, tables, ModalShell and tokenized surfaces; primary actions stay in the right console and phone action sheet.
+- Density: outlet and product insights are compact tables with distinct trend and completion views. Completion restores the established QS/OE/RP/P legend and one-decimal coverage.
+- Performance: one security-invoker packaging report replaces per-outlet reads; skeletons preserve the stock/trend composition.
+
 ### v9.2.74 (unreleased) — Production planning and delivery orders
 
 - The familiar green operations shell holds the product-by-outlet allocation grid, a contextual action rail and a compact phone view. Product evidence opens on demand; approval and actual dispatch use focused dialogs.

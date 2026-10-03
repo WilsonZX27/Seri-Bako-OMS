@@ -1,4 +1,12 @@
-### v9.2.74 (unreleased) — Production planning and delivery orders
+### v9.2.75 (unreleased) — Restore operational workspaces
+
+- Daily Records opens directly into the existing input/list workflow. Separate Insights and Delivery Orders tabs reuse the Attendance navigation owner; the duplicate sidebar DO entry is removed.
+- Insights uses bounded outlet/product tables and separate trend/completion views. Production Planning reuses shared tabs, filters, selectors, tables, modals and the right action rail for Plan, Settings and Events.
+- Real Supabase builder regression coverage fixes select-before-filter reads across planning, DO and scheduler paths. An unavailable read has an actionable error instead of an incorrect migration explanation.
+- Packaging uses one security-invoker report RPC with the original recorded-zero, missing-receipt, latest-balance and branch visibility semantics. Repository migrations reviewed through `322`; Production is verified through `321` before this release.
+- v9.2.74 deployment and migration success did not establish authenticated workflow acceptance. The owner rejected that interface; this correction requires authenticated route and responsive verification.
+
+### v9.2.74 (deployed) — Production planning and delivery orders
 
 - Upgrades the reference-only Lite page to versioned daily recommendations, Manager review/release, actual dispatch, printable outlet DOs and automatic source-locked Qty Sent. Received, Wastage and POS remain independently recorded.
 - Forecast v1 uses per-outlet/per-product eight-week history, same weekday weights, cautious fallback, configurable buffer/reduction caps, reviewed minimums, shortage warnings and confirmed event quantities. Whole-tray surplus must be explicitly allocated or retained.

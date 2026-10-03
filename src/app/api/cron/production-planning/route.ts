@@ -17,7 +17,7 @@ export async function GET(request:NextRequest) {
  const time=new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Kuala_Lumpur",hour:"2-digit",minute:"2-digit",hour12:false}).format(now);
  let generated=0,failed=0,sent=0;
  try {
-  const configs=await complete(()=>db.from("production_planning_settings").eq("enabled",true),["kitchen_id"]);
+  const configs=await complete(()=>db.from("production_planning_settings").select("*", { count: "exact" }).eq("enabled",true),["kitchen_id"]);
   for(const config of configs) {
    if(time<String(config.draft_time).slice(0,5))continue;
    try {

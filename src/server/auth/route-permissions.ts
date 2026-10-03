@@ -50,6 +50,7 @@ const exactRouteRoles: Record<string, readonly string[]> = {
 };
 
 const routePermissions: Array<{ prefixes: string[]; permissions: string[] }> = [
+  { prefixes: ["/outlet-daily-records/delivery-orders"], permissions: ["production_planning.view"] },
   ...informationArchitecture.map((item) => ({ prefixes: [item.href], permissions: [item.permission] })),
   { prefixes: ["/outlet-daily-records"], permissions: ["outlet_daily_record.view"] },
   { prefixes: ["/attendance"], permissions: ["attendance.read"] },

@@ -18,7 +18,8 @@ test("phone date filters render an explicit readable value above the native pick
 test("outlet daily matrix scroll stays inside its own viewport and cannot collapse the date row", () => {
   assert.match(outletPage, /data-outlet-daily-list-workspace/);
   assert.match(outletPage, /data-outlet-daily-primary/);
-  assert.match(outletPage, /data-outlet-daily-insights/);
+  assert.doesNotMatch(outletPage, /getOutletDailyDemandTrend|getOutletDailyCompletionMatrix/);
+  assert.match(outletPage, /OutletDailyWorkspaceNav current="records"/);
   assert.match(outletPage, /data-outlet-daily-record-list/);
   assert.match(outletPage, /overflow-x-clip/);
   assert.match(matrix, /data-outlet-completion-matrix/);

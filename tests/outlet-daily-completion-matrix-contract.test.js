@@ -25,7 +25,7 @@ test("outlet completion matrix uses a bounded seven-day header query and preserv
 
 test("outlet completion matrix previews before an explicit record open", () => {
   const component = read("src/components/outlet-daily-completion-matrix.tsx");
-  const page = read("src/app/(app)/outlet-daily-records/page.tsx");
+  const page = read("src/app/(app)/outlet-daily-records/insights/page.tsx");
   const newPage = read("src/app/(app)/outlet-daily-records/new/page.tsx");
   assert.doesNotMatch(component, /onMouseEnter=\{\(\) => setActiveKey\(key\)\}/);
   assert.doesNotMatch(component, /onFocus=\{\(\) => setActiveKey\(key\)\}/);
@@ -83,10 +83,10 @@ test("phone completion insight keeps the summary and seven-day matrix directly s
   assert.doesNotMatch(component, /data-outlet-completion-toggle/);
   assert.doesNotMatch(component, /matrixOpen/);
   assert.match(component, /Complete[\s\S]*Open[\s\S]*Missing/);
-  assert.match(component, /Qty Sent pending[\s\S]*short: "Send qty"/);
-  assert.match(component, /Outlet Entry pending[\s\S]*short: "Outlet entry"/);
-  assert.match(component, /Ready to post[\s\S]*short: "Ready"/);
-  assert.match(component, /reviewed: \{ label: "Posted", short: "Posted"/);
+  assert.match(component, /Qty Sent pending[\s\S]*short: "QS"/);
+  assert.match(component, /Outlet Entry pending[\s\S]*short: "OE"/);
+  assert.match(component, /Ready to post[\s\S]*short: "RP"/);
+  assert.match(component, /reviewed: \{ label: "Posted", short: "P"/);
   assert.doesNotMatch(component, /Morning only|short: "AM"|short: "D"/);
 });
 

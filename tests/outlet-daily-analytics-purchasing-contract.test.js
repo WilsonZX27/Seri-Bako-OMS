@@ -4,7 +4,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 
 const root = path.join(__dirname, "..");
-const page = fs.readFileSync(path.join(root, "src", "app", "(app)", "outlet-daily-records", "page.tsx"), "utf8");
+const page = fs.readFileSync(path.join(root, "src", "app", "(app)", "outlet-daily-records", "insights", "page.tsx"), "utf8");
 const chart = fs.readFileSync(path.join(root, "src", "components", "outlet-daily-wastage-chart.tsx"), "utf8");
 const interactiveChart = fs.readFileSync(path.join(root, "src", "components", "ui", "interactive-line-chart.tsx"), "utf8");
 const permissions = fs.readFileSync(path.join(root, "src", "server", "auth", "permissions.ts"), "utf8");
@@ -15,8 +15,8 @@ const demandPage = fs.readFileSync(path.join(root, "src", "app", "(app)", "repor
 const planningPage = fs.readFileSync(path.join(root, "src", "app", "(app)", "production", "planning", "page.tsx"), "utf8");
 
 test("outlet daily workspace renders a seven-day trend aligned to Calendar history", () => {
-  assert.match(page, /getOutletDailyDemandTrend\(\{ period: "7", branch: filters\.branch, history_date: filters\.history_date \}\)/);
-  assert.match(page, /<OutletDailyWastageChart points=\{trend\?\.daily \?\? \[\]\} branch=\{filters\.branch\} unavailable=\{!trend\} \/>/);
+  assert.match(page, /getOutletDailyDemandTrend\(\{period:"7",branch:filters\.branch,history_date:end\}\)/);
+  assert.match(page, /report==="trend"\?<OutletDailyWastageChart/);
   assert.match(chart, /All outlets combined/);
   assert.match(chart, /rate = total wastage ÷ total received/);
   assert.match(chart, /7-day wastage rate/);
@@ -75,5 +75,5 @@ test("outlet analytics never presents unverified or no-line records as zero", ()
   assert.match(outletQuery, /no_completed_records/);
   assert.match(demandPage, /report\.coverage\.reliable_lines === 0/);
   assert.match(demandPage, /report\.coverage\.reliable_lines \? formatNumber\(report\.summary\.received\) : "Unavailable"/);
-  assert.match(planningPage, /No quantities have been generated or dispatched/);
+  assert.match(planningPage, /Production planning could not load/);
 });

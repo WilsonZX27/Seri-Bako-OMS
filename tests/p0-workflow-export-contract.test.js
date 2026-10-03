@@ -51,7 +51,7 @@ test("outlet daily export is permission-checked and preserves list filters", () 
 });
 
 test("wastage cost summary is privileged and never treats missing recipe cost as zero", () => {
-  const page = read("src/app/(app)/outlet-daily-records/page.tsx");
+  const page = read("src/app/(app)/outlet-daily-records/insights/page.tsx");
   const query = read("src/server/queries/outlet-daily-records.ts");
   assert.match(page, /Today's wastage value/);
   assert.match(page, /canViewWastageCost/);

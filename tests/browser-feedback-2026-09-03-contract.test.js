@@ -7,7 +7,8 @@ const read = (...parts) => fs.readFileSync(path.join(process.cwd(), ...parts), "
 test("dashboard and attendance workspaces follow the corrected visual hierarchy", () => {
   assert.doesNotMatch(read("src", "components", "dashboard-workspace.tsx"), /Queue load|QueueLoadChart/);
   const navigation = read("src", "components", "attendance", "attendance-workspace-nav.tsx");
-  assert.match(navigation, /bg-\[var\(--sb-green-100\)\]/);
+  assert.match(navigation, /WorkspaceTabs/);
+  assert.match(read("src", "components", "ui", "workspace-tabs.tsx"), /bg-\[var\(--sb-green-100\)\]/);
   assert.doesNotMatch(navigation, /border-b-2/);
   const planner = read("src", "components", "attendance", "schedule-planner.tsx");
   assert.match(planner, /editableStatus[\s\S]*?Save draft[\s\S]*?Submit to Manager/);

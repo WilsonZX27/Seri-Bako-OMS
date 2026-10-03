@@ -7,8 +7,9 @@ const variance = readFileSync("src/app/(app)/production/variance/page.tsx", "utf
 
 test("Production Planning fails closed when stored plans or configuration cannot be verified", () => {
   assert.match(planning, /logServerError/);
-  assert.match(planning, /Production planning is unavailable/);
-  assert.match(planning, /No quantities have been generated or dispatched/);
+  assert.match(planning, /Production planning could not load/);
+  assert.match(planning, /Reload to retry/);
+  assert.doesNotMatch(planning, /generatePlan\(/);
 });
 
 test("Production Variance never classifies a failed read as balanced or zero", () => {

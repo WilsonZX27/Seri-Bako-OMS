@@ -3,20 +3,20 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { todayInKualaLumpur } from "@/lib/business-date";
-import { formatDateOnly, formatNumber } from "@/lib/utils";
+import { formatDateOnly } from "@/lib/utils";
 import type { OutletDailyCompletionCell } from "@/server/queries/outlet-daily-records";
 
 type MatrixRow = { branch_id: string; branch_name: string; cells: OutletDailyCompletionCell[] };
 type MatrixSummary = { expected: number; completed: number; incomplete: number; missing: number; voided: number };
 
 const stateMeta = {
-  missing: { label: "Missing", short: "Missing", className: "border-[var(--sb-border-strong)] bg-[var(--sb-surface)] text-[var(--sb-text-muted)]" },
-  draft: { label: "Qty Sent pending", short: "Send qty", className: "border-[var(--sb-info)] bg-[var(--sb-info-bg)] text-[var(--sb-info)]" },
-  morning_recorded: { label: "Outlet Entry pending", short: "Outlet entry", className: "border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" },
-  evening_completed: { label: "Ready to post", short: "Ready", className: "border-[var(--sb-info)] bg-[var(--sb-info-bg)] text-[var(--sb-info)]" },
-  reviewed: { label: "Posted", short: "Posted", className: "border-[var(--sb-success)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]" },
+  missing: { label: "Missing", short: "—", className: "border-[var(--sb-border-strong)] bg-[var(--sb-surface)] text-[var(--sb-text-muted)]" },
+  draft: { label: "Qty Sent pending", short: "QS", className: "border-[var(--sb-info)] bg-[var(--sb-info-bg)] text-[var(--sb-info)]" },
+  morning_recorded: { label: "Outlet Entry pending", short: "OE", className: "border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]" },
+  evening_completed: { label: "Ready to post", short: "RP", className: "border-[var(--sb-info)] bg-[var(--sb-info-bg)] text-[var(--sb-info)]" },
+  reviewed: { label: "Posted", short: "P", className: "border-[var(--sb-success)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]" },
   posted_attention: { label: "Attention", short: "!", className: "border-amber-500 bg-amber-100 text-amber-900" },
-  void: { label: "Void", short: "Void", className: "border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]" },
+  void: { label: "Void", short: "V", className: "border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]" },
 } as const;
 
 export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable = false, canCreate = false, showCoverageDetails = true }: { dates: string[]; rows: MatrixRow[]; summary: MatrixSummary | null; unavailable?: boolean; canCreate?: boolean; showCoverageDetails?: boolean }) {
@@ -33,7 +33,7 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
         <h2 id="outlet-completion-title" className="text-sm font-semibold">7-day outlet completion</h2>
         <p className="text-xs text-muted-foreground">Check which outlets have finished each day. Select a status to open its record.</p>
       </div>
-      <p className="text-xs text-muted-foreground"><strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable || completionPercent === null ? "Not available" : `${formatNumber(completionPercent)}%`}</strong>{unavailable || completionPercent === null ? "" : " posted"}</p>
+      <p className="text-xs text-muted-foreground"><strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable || completionPercent === null ? "Not available" : `${new Intl.NumberFormat("en-MY", { maximumFractionDigits: 1 }).format(completionPercent)}%`}</strong>{unavailable || completionPercent === null ? "" : " posted"}</p>
     </div>
     {unavailable ? <div className="px-4 py-8 text-center" role="status"><p className="text-sm font-medium">Completion insight unavailable</p><p className="mt-1 text-xs text-muted-foreground">The daily record list remains current. Retry this page to load outlet-day coverage.</p></div> : rows.length && summary ? <>
       <div className="grid grid-cols-[repeat(3,minmax(0,1fr))] divide-x divide-[var(--sb-border-soft)] border-b border-[var(--sb-border-soft)] sm:hidden" data-outlet-completion-phone-summary>

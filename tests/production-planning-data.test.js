@@ -13,7 +13,7 @@ function fixture(){
  production_outlet_minimums:outlets.flatMap(o=>products.map(p=>({kitchen_id:kitchen,company_id:company,branch_id:o.id,product_id:p.id,minimum_qty:0}))),production_planning_events:[],public_holiday_branches:[],public_holidays:[],outlet_daily_records:records,
  outlet_daily_record_lines:records.flatMap(r=>products.map(p=>({id:r.id+':'+p.id,record_id:r.id,product_id:p.id,morning_received_qty:100,morning_received_provided:true,evening_leftover_qty:0,wastage_qty:60,wastage_provided:true,stockout:false}))) };
  let reads=0;
- const db={from(table){let filters=[],from=0,to=Infinity,sorts=[];const q={select(){return q;},eq(k,v){filters.push(r=>r[k]===v);return q;},is(k,v){filters.push(r=>r[k]===v);return q;},in(k,v){filters.push(r=>v.includes(r[k]));return q;},gte(k,v){filters.push(r=>r[k]>=v);return q;},gt(k,v){filters.push(r=>r[k]>v);return q;},lte(k,v){filters.push(r=>r[k]<=v);return q;},lt(k,v){filters.push(r=>r[k]<v);return q;},order(k){sorts.push(k);return q;},range(a,b){from=a;to=b;return q;},limit(n){to=n-1;return q;},then(resolve){reads++;let rows=(tables[table]??[]).filter(r=>filters.every(f=>f(r)));rows.sort((a,b)=>{for(const k of sorts){const diff=String(a[k]).localeCompare(String(b[k]));if(diff)return diff;}return 0;});return Promise.resolve({data:rows.slice(from,Math.min(to+1,from+200)),count:rows.length,error:null}).then(resolve);}};return q;}};
+ const db={from(table){let filters=[],from=0,to=Infinity,sorts=[];const q={select(){return q;},eq(k,v){filters.push(r=>r[k]===v);return q;},is(k,v){filters.push(r=>r[k]===v);return q;},in(k,v){filters.push(r=>v.includes(r[k]));return q;},gte(k,v){filters.push(r=>r[k]>=v);return q;},gt(k,v){filters.push(r=>r[k]>v);return q;},lte(k,v){filters.push(r=>r[k]<=v);return q;},lt(k,v){filters.push(r=>r[k]<v);return q;},order(k){sorts.push(k);return q;},range(a,b){from=a;to=b;return q;},limit(n){to=n-1;return q;},then(resolve){reads++;let rows=(tables[table]??[]).filter(r=>filters.every(f=>f(r)));rows.sort((a,b)=>{for(const k of sorts){const diff=String(a[k]).localeCompare(String(b[k]));if(diff)return diff;}return 0;});return Promise.resolve({data:rows.slice(from,Math.min(to+1,from+200)),count:rows.length,error:null}).then(resolve);}};return {select:()=>q};}};
  return {db,tables,reads:()=>reads,company,kitchen};
 }
 test('plan loader reads 3,200 historical lines through capped pages and keeps 400 outlet/product series distinct',async()=>{
@@ -23,4 +23,19 @@ test('a missing receipt excludes its whole food record, packaging does not contr
  const f=fixture();const line=f.tables.outlet_daily_record_lines.find(l=>l.record_id==='outlet-0-r-7'&&l.product_id==='p-0');line.morning_received_provided=false;
  f.tables.production_planning_events.push({id:'event-1',company_id:f.company,kitchen_id:f.kitchen,branch_id:null,event_date:'2026-10-03',confirmed:true,name:'Corporate',lines:[{product_id:'p-0',qty:32}]});
  const p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');assert.equal(p.allocations.find(a=>a.branch_id==='outlet-0'&&a.product_id==='p-1').evidence.evidence.length,7);assert.equal(p.product_lines[0].event_qty,32);assert.equal(p.allocations[0].event_qty,0);assert.equal(p.product_lines[0].trays,59);
+});
+
+test('planning reads use the real Supabase query builder including empty plans and DOs',async()=>{
+ const {createClient}=require('@supabase/supabase-js');
+ const calls=[];
+ const db=createClient('https://fixture.supabase.co','fixture-public-key',{auth:{persistSession:false,autoRefreshToken:false},global:{fetch:async(url)=>{
+  const u=new URL(url);calls.push(u);const table=u.pathname.split('/').at(-1);
+  const rows=table==='branches'?[{id:'kitchen',company_id:'company',branch_type:'central_kitchen',branch_name:'Kitchen',status:'active'}]:[];
+  return new Response(JSON.stringify(rows),{status:200,headers:{'Content-Type':'application/json','Content-Range':rows.length?'0-0/1':'*/0'}});
+ }}});
+ const data=load('src/server/production-planning/data.ts');
+ const context=await data.loadPlanningContext(db,'company','kitchen','2026-10-04');assert.equal(context.kitchens.length,1);
+ assert.equal((await data.loadPlans(db,'company','kitchen','2026-10-04')).length,0);
+ assert.equal((await data.loadDeliveryOrders(db,{companyId:'company',date:'2026-10-04'})).length,0);
+ assert.ok(calls.length>=10);assert.ok(calls.every(u=>u.searchParams.has('select')));
 });

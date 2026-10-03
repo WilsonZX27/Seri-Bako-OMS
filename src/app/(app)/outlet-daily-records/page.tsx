@@ -1,4 +1,4 @@
-import { OutletDailyWastageOverview } from "@/components/outlet-daily-wastage-overview";
+import { OutletDailyWorkspaceNav } from "@/components/outlet-daily-workspace-nav";
 import Link from "next/link";
 import { Pencil } from "lucide-react";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -8,8 +8,6 @@ import { DataGridRow } from "@/components/ui/data-grid-row";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar } from "@/components/ui/filter-bar";
-import { OutletDailyWastageChart } from "@/components/outlet-daily-wastage-chart";
-import { OutletDailyCompletionMatrix } from "@/components/outlet-daily-completion-matrix";
 import { OutletDailyExportDialog } from "@/components/outlet-daily-export-dialog";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
@@ -20,7 +18,7 @@ import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody,
 import { formatDateOnly, formatDateTime, formatNumber, formatQuantity } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { hasPermission } from "@/server/auth/permissions";
-import { getOutletDailyCompletionMatrix, getOutletDailyDemandTrend, getOutletDailyFormOptions, getOutletDailyRecords, getOutletDailyWastageCostSummary } from "@/server/queries/outlet-daily-records";
+import { getOutletDailyFormOptions, getOutletDailyRecords } from "@/server/queries/outlet-daily-records";
 import { logServerError } from "@/server/observability/logger";
 
 const statuses = ["draft", "morning_recorded", "evening_completed", "void"];
@@ -42,30 +40,18 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
   let canCreate = false;
   let canExport = false;
   let canViewSentGaps = false;
-  let canViewWastageCost = false;
-  let wastageCost: Awaited<ReturnType<typeof getOutletDailyWastageCostSummary>>;
-  let insights: [
-    PromiseSettledResult<Awaited<ReturnType<typeof getOutletDailyDemandTrend>>>,
-    PromiseSettledResult<Awaited<ReturnType<typeof getOutletDailyCompletionMatrix>>>,
-  ];
   try {
-    [data, options, canCreate, canExport, canViewSentGaps, canViewWastageCost, wastageCost, insights] = await Promise.all([
+    [data, options, canCreate, canExport, canViewSentGaps] = await Promise.all([
       getOutletDailyRecords(filters),
       getOutletDailyFormOptions(),
       hasPermission("outlet_daily_record.create"),
       hasPermission("outlet_daily_record.view"),
       hasPermission("outlet_daily_record.view_all"),
-      hasPermission("outlet_daily_record.view_all"),
-      getOutletDailyWastageCostSummary(),
-      Promise.allSettled([
-        getOutletDailyDemandTrend({ period: "7", branch: filters.branch, history_date: filters.history_date }),
-        getOutletDailyCompletionMatrix({ branch: filters.branch, history_date: filters.history_date }),
-      ]),
     ]);
   } catch (error) {
     logServerError(error, { source: "page.outletDailyRecords.source" });
     return <>
-      <PageHeader title="Outlet Daily Records" description="Review food received and thrown away, then open an outlet’s daily record." contentWidth="wide" />
+      <PageHeader title="Outlet Daily Records" description="Morning receiving and evening wastage by outlet." contentWidth="wide" />
       <WorkspaceGrid tabletCanvas="wide">
         <Notice tone="warning" title="Outlet daily data unavailable">
           Receiving data could not be verified, so no zero totals are shown. Reload to retry once the source is available.
@@ -74,17 +60,9 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
       </WorkspaceGrid>
     </>;
   }
-  const [trendResult, completionResult] = insights;
-  if (trendResult.status === "rejected") logServerError(trendResult.reason, { source: "page.outletDailyRecords.wastageTrend" });
-  if (completionResult.status === "rejected") logServerError(completionResult.reason, { source: "page.outletDailyRecords.completionMatrix" });
-  const trend = trendResult.status === "fulfilled" ? trendResult.value : null;
-  const completion = completionResult.status === "fulfilled" ? completionResult.value : null;
-  const attentionCells = completion?.rows.flatMap((row) => row.cells
-    .filter((cell) => ["missing", "draft", "morning_recorded", "evening_completed"].includes(cell.status))
-    .map((cell) => ({ ...cell, branch_name: row.branch_name }))) ?? [];
   const filtered = hasActiveFilters(filters);
   return <>
-    <PageHeader title="Outlet Daily Records" description="Review food received and thrown away, then open an outlet’s daily record." action={canCreate ? { href: "/outlet-daily-records/new", label: "New Daily Record" } : undefined} hideTabletCreateFab contentWidth="wide" />
+    <PageHeader title="Outlet Daily Records" description="Morning receiving and evening wastage by outlet." action={canCreate ? { href: "/outlet-daily-records/new", label: "New Daily Record" } : undefined} hideTabletCreateFab contentWidth="wide" />
     <WorkspaceGrid className="sb-portrait-tablet-rail" hideMobileConsole rightRail={<>
       <ConsoleSection title="Actions">
         {canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/outlet-daily-records/new">New Daily Record</Link></Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}
@@ -96,17 +74,9 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
         <div className="flex items-start justify-between gap-4 py-2"><dt className="font-medium text-[var(--sb-text)]">Total received</dt><dd className={`text-right font-semibold tabular-nums ${data.summary.today_received === null || data.summary.today_received_zero_with_sent > 0 ? "text-warning" : ""}`}>{data.summary.today_received === null ? "Unavailable" : data.summary.today_received_zero_with_sent > 0 ? `${formatNumber(data.summary.today_received)} · verify` : formatNumber(data.summary.today_received)}</dd></div>
         <div className="grid grid-cols-3 gap-3 pt-2"><div><dt className="text-[10px] text-muted-foreground">Posted</dt><dd className="mt-0.5 font-semibold tabular-nums">{data.summary.posted_today}</dd></div><div><dt className="text-[10px] text-muted-foreground">Ready</dt><dd className="mt-0.5 font-semibold tabular-nums">{data.summary.ready_to_post}</dd></div><div><dt className="text-[10px] text-muted-foreground">In progress</dt><dd className="mt-0.5 font-semibold tabular-nums">{data.summary.missing_evening}</dd></div></div>
       </dl></ConsoleSection>
-      {canViewWastageCost ? <ConsoleSection title="Today's wastage value"><div className="space-y-1 text-xs" data-outlet-wastage-cost-summary><p className="flex justify-between"><span>Costed amount</span><strong>{wastageCost.amount === null ? "Unavailable" : `RM ${wastageCost.amount.toFixed(2)}`}</strong></p><p className="text-[11px] text-muted-foreground">{wastageCost.state === "verified" ? `${wastageCost.priced_lines} costed line${wastageCost.priced_lines === 1 ? "" : "s"}` : wastageCost.state === "partial" ? `${wastageCost.unavailable_lines} line${wastageCost.unavailable_lines === 1 ? "" : "s"} missing recipe cost` : "No active recipe cost snapshot"}</p></div></ConsoleSection> : null}
-
-      {completion ? <ConsoleSection title="Needs attention"><div className="space-y-2 text-xs" data-outlet-daily-attention-list>{attentionCells.length ? attentionCells.slice(0, 12).map((cell) => <Link key={`${cell.branch_id}:${cell.record_date}`} href={cell.record_id ? `/outlet-daily-records/${cell.record_id}` : `/outlet-daily-records/new?branch_id=${encodeURIComponent(cell.branch_id)}&date=${encodeURIComponent(cell.record_date)}`} className="block rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] px-2.5 py-2 hover:border-[var(--sb-green-700)]"><strong className="block truncate">{cell.branch_name}</strong><span className="text-muted-foreground">{formatDateOnly(cell.record_date)} · {cell.status === "missing" ? "Missing record" : cell.status === "draft" ? "Qty Sent pending" : cell.status === "morning_recorded" ? "Received / wastage pending" : "Ready to post"}</span></Link>) : <p className="text-muted-foreground">No missing or open outlet days in this seven-day window.</p>}{attentionCells.length > 12 ? <p className="text-[11px] text-muted-foreground">Showing 12 of {attentionCells.length}; use the matrix for the full list.</p> : null}</div></ConsoleSection> : null}
     </>}>
       <div className="flex min-w-0 max-w-full flex-col gap-3 overflow-x-clip" data-outlet-daily-list-workspace>
-        <div className="flex min-w-0 flex-col gap-3" data-outlet-daily-insights>
-          <div className="erp-surface flex flex-wrap items-center justify-between gap-3 px-3 py-2.5"><div><p className="text-sm font-semibold">Review period</p><p className="text-xs text-muted-foreground">Choose the end date for this seven-day food report.</p></div><form className="flex min-w-0 items-center gap-2"><Input name="history_date" type="date" aria-label="History end date" defaultValue={filters.history_date ?? data.summary.today} className="h-9 min-w-0" />{filters.branch ? <input type="hidden" name="branch" value={filters.branch} /> : null}<Button type="submit" variant="outline" size="sm" className="shrink-0">View</Button></form></div>
-          <OutletDailyWastageOverview trend={trend} />
-          <details className="erp-surface min-w-0 p-3"><summary className="cursor-pointer text-sm font-semibold text-primary">Daily wastage trend</summary><div className="mt-3"><OutletDailyWastageChart points={trend?.daily ?? []} branch={filters.branch} unavailable={!trend} /></div></details>
-          <details className="erp-surface min-w-0 p-3"><summary className="cursor-pointer text-sm font-semibold text-primary">Submission status by outlet and day</summary><div className="mt-3"><OutletDailyCompletionMatrix dates={completion?.dates ?? []} rows={completion?.rows ?? []} summary={completion?.summary ?? null} unavailable={!completion} canCreate={canCreate} showCoverageDetails={false} /></div></details>
-        </div>
+        <OutletDailyWorkspaceNav current="records" />
         <div className="flex min-w-0 flex-col gap-3" data-outlet-daily-primary>
           <FilterBar
           resultCount={data.totalRows}

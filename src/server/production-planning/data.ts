@@ -6,7 +6,7 @@ import { readCompletePages } from "@/server/queries/read-complete-pages";
 
 export async function complete<T extends Record<string, unknown>>(query: () => LooseQuery<T>, orderColumns = ["id"]): Promise<T[]> {
   return readCompletePages(async (from, to) => {
-    let page = query().select("*", { count: "exact" });
+    let page = query();
     for (const column of orderColumns) page = page.order(column);
     const r = await page.range(from, to);
     return { ...r, count: r.count ?? null };
@@ -19,13 +19,13 @@ async function rows<T extends Record<string, unknown>>(query: LooseQuery<T>) {
 }
 export async function loadPlanningContext(db: LooseSupabase, companyId: string, kitchenId: string, date: string) {
   const [branches, products, routes, settings, batches, minimums, events, holidayLinks] = await Promise.all([
-    complete(() => db.from("branches").eq("company_id", companyId).eq("status", "active").is("deleted_at", null)),
-    complete(() => db.from("products").eq("company_id", companyId).eq("status", "active").is("deleted_at", null)),
-    complete(() => db.from("branch_supply_routes").eq("company_id", companyId).eq("source_branch_id", kitchenId).eq("status", "active").eq("is_primary", true).lte("effective_from", date)),
+    complete(() => db.from("branches").select("*", { count: "exact" }).eq("company_id", companyId).eq("status", "active").is("deleted_at", null)),
+    complete(() => db.from("products").select("*", { count: "exact" }).eq("company_id", companyId).eq("status", "active").is("deleted_at", null)),
+    complete(() => db.from("branch_supply_routes").select("*", { count: "exact" }).eq("company_id", companyId).eq("source_branch_id", kitchenId).eq("status", "active").eq("is_primary", true).lte("effective_from", date)),
     rows(db.from("production_planning_settings").select("*").eq("company_id", companyId).eq("kitchen_id", kitchenId)),
-    complete(() => db.from("production_batch_rules").eq("company_id", companyId).eq("kitchen_id", kitchenId), ["product_id"]),
-    complete(() => db.from("production_outlet_minimums").eq("company_id", companyId).eq("kitchen_id", kitchenId), ["branch_id", "product_id"]),
-    complete(() => db.from("production_planning_events").eq("company_id", companyId).eq("kitchen_id", kitchenId).gte("event_date", addDays(date, -56)).lte("event_date", date)),
+    complete(() => db.from("production_batch_rules").select("*", { count: "exact" }).eq("company_id", companyId).eq("kitchen_id", kitchenId), ["product_id"]),
+    complete(() => db.from("production_outlet_minimums").select("*", { count: "exact" }).eq("company_id", companyId).eq("kitchen_id", kitchenId), ["branch_id", "product_id"]),
+    complete(() => db.from("production_planning_events").select("*", { count: "exact" }).eq("company_id", companyId).eq("kitchen_id", kitchenId).gte("event_date", addDays(date, -56)).lte("event_date", date)),
     rows(db.from("public_holiday_branches").select("branch_id,holiday_id").eq("company_id", companyId).eq("holiday_date", date).limit(1000)),
   ]);
   const kitchens = branches.filter((b) => b.branch_type === "central_kitchen") as unknown as PlanningBranch[];
@@ -41,12 +41,12 @@ export async function loadPlanningContext(db: LooseSupabase, companyId: string, 
 export async function buildPlanPayload(db: LooseSupabase, companyId: string, kitchenId: string, date: string) {
   const context = await loadPlanningContext(db, companyId, kitchenId, date);
   if (!context.kitchens.some((k) => k.id === kitchenId)) throw new Error("Kitchen access is required.");
-  const historyRecords = await complete(() => db.from("outlet_daily_records").eq("company_id", companyId).gte("record_date", addDays(date, -56)).lt("record_date", date).in("status", ["evening_completed", "reviewed"]));
+  const historyRecords = await complete(() => db.from("outlet_daily_records").select("*", { count: "exact" }).eq("company_id", companyId).gte("record_date", addDays(date, -56)).lt("record_date", date).in("status", ["evening_completed", "reviewed"]));
   const recordMap = new Map(historyRecords.filter((r) => context.outlets.some((b) => b.id === r.branch_id)).map((r) => [String(r.id), r]));
   const ids = [...recordMap.keys()];
   const historyLines: Record<string, unknown>[] = [];
   // Bounded IN clauses avoid URL limits; every chunk is read to an exact count.
-  for (let i = 0; i < ids.length; i += 100) historyLines.push(...await complete(() => db.from("outlet_daily_record_lines").in("record_id", ids.slice(i, i + 100))));
+  for (let i = 0; i < ids.length; i += 100) historyLines.push(...await complete(() => db.from("outlet_daily_record_lines").select("*", { count: "exact" }).in("record_id", ids.slice(i, i + 100))));
   const foodIds = new Set(context.products.map((p) => p.id));
   const incompleteRecords = new Set(historyLines.filter((l) => foodIds.has(String(l.product_id)) && (l.morning_received_provided !== true || l.wastage_provided !== true)).map((l) => String(l.record_id)));
   const series = new Map<string, HistoryPoint[]>();
@@ -82,12 +82,12 @@ export async function buildPlanPayload(db: LooseSupabase, companyId: string, kit
   return { kitchen_id: kitchenId, delivery_date: date, buffer_percent: Number(context.config.buffer_percent), max_decrease_percent: Number(context.config.max_decrease_percent), forecast_version: FORECAST_VERSION, product_lines, allocations, events, holidays: context.holidays };
 }
 export async function loadPlans(db: LooseSupabase, companyId: string, kitchenId: string, date: string): Promise<Plan[]> {
-  const plans = (await complete(() => db.from("production_plans").eq("company_id", companyId).eq("kitchen_id", kitchenId).eq("delivery_date", date))).sort((a,b) => Number(b.version)-Number(a.version));
+  const plans = (await complete(() => db.from("production_plans").select("*", { count: "exact" }).eq("company_id", companyId).eq("kitchen_id", kitchenId).eq("delivery_date", date))).sort((a,b) => Number(b.version)-Number(a.version));
   if (!plans.length) return [];
   const ids = plans.map((p) => p.id);
   const [products, allocations] = await Promise.all([
-    complete(() => db.from("production_plan_products").in("plan_id", ids), ["plan_id", "product_id"]),
-    complete(() => db.from("production_plan_allocations").in("plan_id", ids), ["plan_id", "branch_id", "product_id"]),
+    complete(() => db.from("production_plan_products").select("*", { count: "exact" }).in("plan_id", ids), ["plan_id", "product_id"]),
+    complete(() => db.from("production_plan_allocations").select("*", { count: "exact" }).in("plan_id", ids), ["plan_id", "branch_id", "product_id"]),
   ]);
   return plans.map((p) => ({ ...p, product_lines: products.filter((l) => l.plan_id===p.id), allocations: allocations.filter((l) => l.plan_id===p.id) })) as unknown as Plan[];
 }
@@ -101,6 +101,6 @@ export async function loadDeliveryOrders(db: LooseSupabase, filters: { companyId
   const orders = await rows(query.limit(501));
   if (orders.length > 500) throw new Error("Too many delivery orders. Choose a narrower scope.");
   if (!orders.length) return [];
-  const lines = await complete(() => db.from("production_delivery_order_lines").in("do_id", orders.map((d) => d.id)), ["do_id", "product_id"]);
+  const lines = await complete(() => db.from("production_delivery_order_lines").select("*", { count: "exact" }).in("do_id", orders.map((d) => d.id)), ["do_id", "product_id"]);
   return orders.map((d) => ({ ...d, lines: lines.filter((l) => l.do_id === d.id).sort((a,b) => compareProductDisplayOrder({product_code:String(a.product_code),display_order:Number(a.display_order)},{product_code:String(b.product_code),display_order:Number(b.display_order)})) })) as unknown as DeliveryOrder[];
 }

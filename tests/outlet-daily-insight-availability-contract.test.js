@@ -6,14 +6,14 @@ const path = require("node:path");
 const root = path.resolve(__dirname, "..");
 const read = (...parts) => fs.readFileSync(path.join(root, ...parts), "utf8");
 
-test("outlet daily operational records survive optional insight failures", () => {
-  const page = read("src", "app", "(app)", "outlet-daily-records", "page.tsx");
-
-  assert.match(page, /Promise\.allSettled\(\[[\s\S]*getOutletDailyDemandTrend[\s\S]*getOutletDailyCompletionMatrix/);
-  assert.match(page, /trendResult\.status === "rejected"[\s\S]*logServerError/);
-  assert.match(page, /completionResult\.status === "rejected"[\s\S]*logServerError/);
-  assert.match(page, /unavailable=\{!completion\}/);
-  assert.match(page, /unavailable=\{!trend\}/);
+test("outlet daily operational records are independent of optional insight failures", () => {
+ const page=read("src","app","(app)","outlet-daily-records","page.tsx");
+ const insight=read("src","app","(app)","outlet-daily-records","insights","page.tsx");
+ assert.doesNotMatch(page,/getOutletDailyDemandTrend|getOutletDailyCompletionMatrix/);
+ assert.match(page,/OutletDailyWorkspaceNav current="records"/);
+ assert.match(insight,/Promise\.allSettled/);
+ assert.match(insight,/loaded\.status==="rejected"/);
+ assert.match(insight,/Insight unavailable/);
 });
 
 test("outlet insights distinguish unavailable from a successful empty result", () => {

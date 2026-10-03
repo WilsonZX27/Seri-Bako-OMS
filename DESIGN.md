@@ -1,3 +1,8 @@
+### v9.2.74 (unreleased) — Production planning and delivery orders
+
+- The familiar green operations shell holds the product-by-outlet allocation grid, a contextual action rail and a compact phone view. Product evidence opens on demand; approval and actual dispatch use focused dialogs.
+- Printable production totals and outlet DOs preserve product order while keeping transport tray counts distinct from production batches.
+
 ### v9.2.73 (deployed) — Packaging workspace consistency
 
 - Restore the shared contextual right console with Daily Records access, report coverage and selected-day outlet usage; mobile uses the existing actions sheet.

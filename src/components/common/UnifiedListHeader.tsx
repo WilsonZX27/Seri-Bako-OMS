@@ -261,8 +261,7 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
 
   if (actions !== undefined) return <form ref={formRef} className={cn("sb-list-query-card sb-query-explicit",className)} method="get" onSubmit={onSubmit}>
     <div className="sb-query-fields">{children}</div>
-    <div className="sb-query-actions">{actions}</div>
-    {typeof resultCount==="number"?<div className="sb-query-result" aria-live="polite">{resultCount} {resultLabel??"records"}</div>:null}
+    <div className="sb-query-actions">{typeof resultCount==="number"?<span className="sb-query-result" aria-live="polite">{resultCount} {resultLabel??"records"}</span>:null}{actions}</div>
   </form>;
 
   if (!mobile) {

@@ -2326,7 +2326,7 @@ html[data-design-layer="v2"] form.sb-query-explicit {
 
 /* Production worksheet: identity and calculated values precede editable allocations. */
 html[data-design-layer="v2"] .sb-planning-worksheet .sb-table-region { max-height: calc(100dvh - 330px); min-height: 280px; overflow: auto; }
-html[data-design-layer="v2"] .sb-planning-matrix { table-layout: fixed; width: max(100%, 544px); }
+html[data-design-layer="v2"] .sb-planning-matrix { table-layout: fixed; width: 100%; min-width: 0; border-collapse: separate; border-spacing: 0; }
 html[data-design-layer="v2"] .sb-planning-matrix :is(th,td) { padding: 8px; white-space: normal; vertical-align: top; }
 html[data-design-layer="v2"] .sb-planning-matrix thead th { position: sticky; top: 0; z-index: 12; background: var(--sb-surface-muted); }
 html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-product { width: 200px; min-width: 200px; max-width: 200px; overflow-wrap: anywhere; }
@@ -2335,9 +2335,9 @@ html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-outlet { min-width
 html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-retention { width: 96px; min-width: 96px; }
 html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-summary button { padding-inline: 4px; white-space: normal; text-align: left; width: 100%; }
 @media (max-width: 1023px) { html[data-design-layer="v2"] .sb-planning-worksheet .sb-table-region { max-height: 65dvh; } }
-html[data-design-layer="v2"] :is(.sb-planning-workspace, .sb-planning-actions, form.sb-query-explicit) { --sb-control-height: 2.75rem; }
+html[data-design-layer="v2"] :is(.sb-planning-workspace, .sb-planning-actions, form.sb-query-explicit) { --sb-control-height: 2.25rem; }
 
-/* Opted-in operational controls override legacy 36px register density; leave other callers unchanged. */
+/* Operational controls share the register density; phone targets are enlarged below. */
 html[data-design-layer="v2"] form.sb-query-explicit :where(input:not([type="hidden"]), button, [data-select-control]),
 html[data-design-layer="v2"] :is(.sb-planning-workspace, .sb-planning-actions) :where(input:not([type="hidden"]), button.inline-flex, [data-select-control], a.inline-flex) {
   height: var(--sb-control-height) !important;
@@ -2345,3 +2345,24 @@ html[data-design-layer="v2"] :is(.sb-planning-workspace, .sb-planning-actions) :
   max-height: var(--sb-control-height) !important;
 }
 html[data-design-layer="v2"] :is(.sb-planning-workspace, .sb-planning-actions, .sb-query-actions) button > svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* Operational desktop density follows the 36px register; phone targets retain 44px. */
+html[data-design-layer="v2"] .sb-query-fields > input[type="date"],
+html[data-design-layer="v2"] .sb-query-fields > label:has(input[type="date"]) { flex: 0 1 168px; }
+html[data-design-layer="v2"] .sb-query-actions { align-items: center; }
+html[data-design-layer="v2"] .sb-query-actions > button { color: #084b37; background: #e7f1eb; }
+html[data-design-layer="v2"] .sb-planning-matrix tbody .sb-planning-product { position: sticky; left: 32px; z-index: 2; background: var(--sb-surface); }
+html[data-design-layer="v2"] .sb-planning-matrix thead .sb-planning-product { left: 32px; z-index: 14; }
+html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-summary .sb-planning-adjust { width: auto; height: 23px !important; min-height: 23px !important; max-height: 23px !important; padding: 0 8px; margin-top: 3px; color: #fff; background: #7c9b8d; font-size: 11px; font-weight: 500; gap: 4px; }
+html[data-design-layer="v2"] .sb-planning-adjust svg { width: 12px; height: 12px; }
+html[data-design-layer="v2"] .sb-planning-product button { min-height: 0; line-height: 18px; }
+@media (max-width: 767px) {
+ html[data-design-layer="v2"] :is(.sb-planning-workspace, .sb-planning-actions, form.sb-query-explicit) { --sb-control-height: 2.75rem; }
+ html[data-design-layer="v2"] .sb-planning-product button { min-height: 44px; }
+ .sb-query-result { font-size: 11px; }
+}
+
+html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-index { width: 32px; min-width: 32px; position: sticky; left: 0; z-index: 2; background: var(--sb-surface); text-align: right; }
+html[data-design-layer="v2"] .sb-planning-matrix thead .sb-planning-index { top: 0; z-index: 14; background: var(--sb-surface-muted); }
+html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-outlet :is(input, [data-select-control]) { width: 96px; max-width: 100%; }
+html[data-design-layer="v2"] .sb-planning-adjust { color: #fff; background: #7c9b8d; }

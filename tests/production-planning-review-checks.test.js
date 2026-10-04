@@ -42,3 +42,14 @@ test('checks retain the correct product and outlet identity without company-wide
  const checks=planReviewChecks([allocation({branch_id:'b',approved_qty:null}),allocation()],[production()]);
  assert.equal(checks.length,1);assert.equal(checks[0].branchId,'b');assert.equal(checks[0].productId,'p');
 });
+
+test('every actionable review gate belongs to exactly one named group without dropping detail',()=>{
+ const checks=planReviewChecks([allocation({approved_qty:null,minimum_qty:null})],[production({yield_per_tray:null,trays:null,retained_qty:1})]);
+ const groups=context.exports.REVIEW_CHECK_GROUPS;
+ assert.equal(checks.length,5);
+ assert.equal(groups.reduce((n,g)=>n+checks.filter(c=>c.category===g.category).length,0),checks.length);
+ assert.equal(checks.filter(c=>c.category==='configuration').length,2);
+ assert.equal(checks.filter(c=>c.category==='quantities').length,2);
+ assert.equal(checks.filter(c=>c.category==='reasons').length,1);
+ assert.equal(planReviewChecks([allocation()],[production({trays:2})])[0].category,'balance');
+});

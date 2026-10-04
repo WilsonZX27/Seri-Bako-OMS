@@ -19,6 +19,7 @@ import { generatePlan, changePlan, confirmDispatch, retryPlanningEmails, type Pl
 import { PlanningEvents } from "@/components/production-planning-events";
 import { PlanningSetup } from "@/components/production-planning-setup";
 import { planReviewChecks } from "@/lib/production-planning/review-checks";
+import { PlanningReviewChecks } from "@/components/production-planning-review-checks";
 import { formatDateOnly, formatNumber } from "@/lib/utils";
 
 export function PlanningDialog({ title, onClose, children }: {title:string;onClose:()=>void;children:ReactNode}) {
@@ -45,7 +46,7 @@ export function ProductionPlanningWorkspace(props:Props) {
   products.findIndex(p=>p.id===a.productId)-products.findIndex(p=>p.id===b.productId)
   || (a.branchId?outlets.findIndex(o=>o.id===a.branchId)+1:0)-(b.branchId?outlets.findIndex(o=>o.id===b.branchId)+1:0));
  const gaps=checks.length;
- const checkLabel=(check:(typeof checks)[number])=>`${products.find(p=>p.id===check.productId)?.product_code??"Product"}${check.branchId?` · ${outlets.find(o=>o.id===check.branchId)?.branch_name??"Outlet"}`:""}: ${check.message}`;
+
  const needsProductionReason=(productId:string)=>{const line=production.find(item=>item.product_id===productId);return Boolean(line&&(line.retained_qty>0||line.reason.trim()||line.trays!==plan?.product_lines.find(item=>item.product_id===productId)?.trays));};
  const altered=(a:Allocation)=>a.approved_qty!==a.suggested_qty;
  const num=(value:number|null)=>value===null?"—":formatNumber(value);
@@ -59,7 +60,7 @@ export function ProductionPlanningWorkspace(props:Props) {
    {plan?<Button variant="outline" onClick={()=>window.print()}>Print production sheet</Button>:null}
    <Button asChild variant="outline"><Link href={`/outlet-daily-records/delivery-orders?date=${date}`}>Delivery orders</Link></Button>
   </>}</div></ConsoleSection>
-  {view==="plan"?<ConsoleSection title="Plan checks"><div className="space-y-2 text-xs">{dirty?<p>Save changes before review.</p>:null}{!plan?<p>Set tray yields, outlet minimums and routes in Settings.</p>:gaps?<><p>{gaps} checks before review</p><ul className="space-y-2">{checks.slice(0,4).map((check,index)=><li key={index}>{checkLabel(check)}</li>)}</ul>{checks.length>4?<details><summary className="min-h-11 cursor-pointer py-3">{checks.length-4} more checks</summary><ul className="space-y-2">{checks.slice(4).map((check,index)=><li key={index}>{checkLabel(check)}</li>)}</ul></details>:null}</>:<p>Ready for review. Allocations and trays are balanced.</p>}</div></ConsoleSection>:null}
+  {view==="plan"?<PlanningReviewChecks hasPlan={Boolean(plan)} dirty={dirty} checks={checks} products={products} outlets={outlets} date={date} kitchenId={kitchenId}/>:null}
   {view==="plan"&&!props.emailConfigured?<ConsoleSection title="Kitchen email"><p className="text-xs">Email is not configured. Released plans can be viewed in the system.</p></ConsoleSection>:null}
   {view==="plan"&&emailStatus.length?<ConsoleSection title="Kitchen email"><ul className="space-y-2 text-xs">{emailStatus.map((e,i)=><li key={i}>{e.recipient} · <strong>{e.status}</strong>{e.last_error?<p>{e.last_error}</p>:null}</li>)}</ul>{canManage&&emailStatus.some((e)=>e.status==="failed")?<Button className="mt-2" variant="outline" disabled={pending} onClick={()=>execute(()=>retryPlanningEmails(plan.id))}>Retry failed emails</Button>:null}</ConsoleSection>:null}
  </>;

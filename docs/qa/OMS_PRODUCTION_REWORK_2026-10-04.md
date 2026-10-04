@@ -1,3 +1,28 @@
+### v9.2.86 final release and annotation ledger
+
+Final production: `dpl_CPtQ5g5r5s8jtDHkhakozG112hsY`, commit `8559a57a`, https://seri-bako-oms-official-2vm9jtsps-seribako.vercel.app, alias https://system.seribako.com.my. Independent Vercel inspect: Ready, functions sin1. Build succeeded. Final full regression1406/1406, strict TypeScript, lint, targeted UI/CSS17/17 and PostgreSQL85/85 pass. Earlier production candidates H4yqJVriUnaWeRyLhPWiV6aMzhus and c5g87n6y6 are superseded.
+
+| Comments | Evidence / status |
+| --- | --- |
+| 1 | Jobs executes inventory posting; Planning decides demand/allocation. Answered; modules remain distinct. |
+| 2–6 | Formal desktop measured Adjust23px, controls36px, WorkspaceTabs46px; shared density source. |
+| 7–8,14–15 | Fixed112px outlet tracks;136px read-only calculation; override input removed from rows;384px focus-managed editor. |
+| 9 | Formal Unsaved changes448px. Allthree choices visible; Cancel returns focus to View plan. Final same-target Discard restoration fix is built; repeat formal check awaits renewed login. |
+| 10 | Actual PJS10 2026-10-05 v1 draft exists and renders52 products. No new plan fabricated. |
+| 11–13 | Formal settings shows separate Kitchen settings and Production yields cards, tops194/444px, removed paragraph, savedSC01 yield16. |
+| 16–17 | Desktop index and frozen identity; scroll1100px keeps header top equal region top206.844px, with opaque layering. Final divider/icon/mobile-index follow-up is built. |
+| 18–20,24–25 | Shared Daily Records/Insights WorkspaceTabs measured46px at820; desktop visible tabs36px. |
+| 21–22 | View palette shared exact requested colors, count in action row. Initial date wrapper missed direct-input selector; final selector fixes wrapper to168px. Final formal width measurement awaits login. |
+| 23,26 | Product Received toggles descending462→137 and ascending137→462; Rate aria-sort descending. Outlet Rate sorts89.9%→45.5%. Original report values unchanged. |
+| 27 | Packaging legacy filter composition preserved in source; full shared regression passes. Renewed formal standalone Packaging/Attendance/Daily Records check remains pending. |
+| 28 | Source-backed16PJS10 yields persist;16draft snapshots nowconfigured, zero entered allocations/production, statusdraft/revision2. ALMA same-tray specification question pending; no assumption made. |
+
+Responsive initial formal checks: Planning and Insights at390/820/1180/1440 have root scroll widths equal viewport widths; Planning phone controls44px and existing Save/More bar remains visible. Evidence: `/tmp/seri-oms-ui-986/planning-820.png`, `planning-1180.png`, `planning-390-initial.png`, `planning-sticky-scroll.png`, `unsaved-compact.png`, `settings-two-cards.png`, `insights-820.png`, `insights-390.png`, `insights-1180.png`. These are signed-in initial v9.2.86 checks; final follow-up screenshots are not yet claimed.
+
+Events read-only initial check: IOI Mall Puchong resolves CK @ PJS10; switching to independent corporate event shows explicit kitchen choice and retains temporaryproductqty2. Products remain expanded and Scheduled Events is in desktop rail. `/tmp/seri-oms-ui-986/events-route-resolved.png`. Date fill briefly showed06 but reverted05; this was not accepted as a successful cross-date test. Re-check using native picker/keyboard is pending. No event submitted. Session expired during this check and now shows Welcome back; user asked to login again via the supported input tool. No credentials exported or auth bypass.
+
+This release does not close Advisor/migration325, broader cold/tail page latency, or Packaging historical closing provenance. Separate closure evidence remains required. Authenticated final proof and the ALMA data-scope answer are the outstanding inputs for this annotation round.
+
 ## v9.2.86 annotation correction — verification in progress
 
 - Scope: 28 comments, owner's compact Packaging register as reference. Desktop >=768px uses 36px operational controls, WorkspaceTabs 36/46px; phone remains 44px. Adjust desktop command 23px, white/#7c9b8d. View text/background #084b37/#e7f1eb.

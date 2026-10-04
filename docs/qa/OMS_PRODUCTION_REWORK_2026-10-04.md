@@ -1,3 +1,7 @@
+## 2026-10-04 current verified release — v9.2.79 / database 324
+
+Deployment `6DUNX69vZnWaH7RBRZAuisokn4WX` succeeded and the formal alias is https://system.seribako.com.my. Commit `0103a2f9` passed strict TypeScript, lint, hosted build and 1,381 regressions. Owner-authenticated checks verified the corrected Plan phone drawer, product-order guidance and focus restoration, and Packaging at 390/820/1180/1440px without root overflow. The phone inline filter card is 130px high with no empty primary row. Earlier release evidence below is historical; the larger QA goal remains open, including database performance/permissions, provenance and complete workflow/a11y acceptance.
+
 # OMS production rework — 2026-10-04
 
 Status: **active; previous feature acceptance is superseded by this wider review.**
@@ -102,3 +106,7 @@ Packaging loading exceeded the initial short wait and completed within the subse
 ## v9.2.79 candidate follow-up
 
 Fixed shared inline filters reserving an empty phone row (visible top gap on Packaging), packaging form bypassing usage confirmation flags, and review checks appearing in UUID order instead of visible product/outlet order. Removed the obsolete packaging-specific empty-row selector. Four actual React render regressions cover absent/explicit zero usage, prior-stock usage above today's receipt, absent blank header rows and genuine zero result counts. TypeScript and lint passed; 1,381 tests passed (loopback lifecycle test run with approved sandbox escalation). No local Supabase started. A suspected state-header bug was disproved: the legacy outlet sort key maps to status on the server; the proposed change was withdrawn, existing sorting remains intact.
+
+## Verified v9.2.79 release follow-up
+
+Deployment 6DUNX69vZnWaH7RBRZAuisokn4WX completed and aliased successfully. Formal authenticated footer reports v9.2.79. Phone Plan drawer opens; checks start SC01 in displayed product order; native Escape closes it and restores Open more actions focus. Screenshot: /tmp/seri-oms-rework-977/live-979-plan-actions-390.png. Packaging phone empty row is absent, filter card measured 130px, and all four actual viewport widths show no root overflow. Screenshots live-979-packaging-{width}.png, JSON live-979-packaging-widths.json in the same directory. Viewport override reset; temporary Events tab closed; user planning tab preserved and formal packaging tab retained for inspection. No approvals, dispatches or inventory created. The packaging form provenance regression is verified with inert actual-component rendering, not a production write. All wider open gates and approval dependencies remain unchanged.

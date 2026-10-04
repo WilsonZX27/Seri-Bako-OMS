@@ -10,9 +10,9 @@ test('a balanced explicit zero plan is ready; missing manual quantities remain d
  const checks=planReviewChecks([allocation({suggested_qty:null,approved_qty:null})],[production({trays:null})]);
  assert.equal(checks.length,2);assert.equal(checks[0].branchId,'a');assert.match(checks[0].message,/quantity/);assert.match(checks[1].message,/trays/);
 });
-test('manual quantities need a reason and incomplete outlet minimums identify their Settings dependency',()=>{
+test('ordinary manual quantities need no reason but incomplete outlet minimums identify Settings dependency',()=>{
  let a=allocation({suggested_qty:null,minimum_qty:null});let checks=planReviewChecks([a],[production()]);
- assert.equal(checks.length,2);assert.ok(checks.some(c=>/Settings/.test(c.message)));assert.ok(checks.some(c=>/reason/.test(c.message)));
+ assert.equal(checks.length,1);assert.ok(checks.some(c=>/Settings/.test(c.message)));assert.ok(!checks.some(c=>/reason/.test(c.message)));
  assert.equal(planReviewChecks([allocation({suggested_qty:null,reason:'Confirmed manual demand'})],[production()]).length,0);
 });
 test('confirmed event quantities cannot be reduced even with an adjustment reason',()=>{

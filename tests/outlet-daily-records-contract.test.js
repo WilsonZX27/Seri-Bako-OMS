@@ -218,7 +218,7 @@ test("Qty Sent totals never turn an unavailable default zero into a business fac
   const summaryMigration = read("supabase/migrations/310_outlet_daily_today_summary.sql");
   assert.match(summaryMigration, /when bool_and\(total_sent is not null\) then coalesce\(sum\(total_sent\), 0\)/);
   assert.match(summaryMigration, /when count\(\*\) > 0 and bool_and\(total_received is not null\)/);
-  assert.match(page, /data\.summary\.today_sent === null \? "Unavailable"/);
+  assert.match(page, /history\.summary\.today_sent === null \? "Unavailable"/);
   assert.match(detail, /record\.total_sent === null \? "Pending"/);
   assert.match(detail, /Needs confirmation/);
 });

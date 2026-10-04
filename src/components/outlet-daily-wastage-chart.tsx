@@ -40,7 +40,7 @@ export function OutletDailyWastageChart({ points, branch, unavailable = false }:
     <section className="erp-surface flex min-h-[26rem] flex-col overflow-hidden" aria-labelledby="outlet-wastage-trend-title">
       <div className="flex flex-wrap items-end justify-between gap-2 border-b border-[var(--sb-border-soft)] px-3 py-2.5">
         <div>
-          <h2 id="outlet-wastage-trend-title" className="text-sm font-semibold">7-day wastage rate</h2>
+          <h2 id="outlet-wastage-trend-title" className="text-sm font-semibold">Period wastage rate</h2>
           <p className="text-xs text-muted-foreground">{branch && branch !== "all" ? "Selected outlet" : "All outlets combined"} · completed records only · rate = total wastage ÷ total received</p>
         </div>
         <p className="text-xs text-muted-foreground">7-day rate <strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable ? "Unavailable" : totalReceived > 0 ? `${formatPercent(periodRate)}%` : "No receipts"}</strong></p>

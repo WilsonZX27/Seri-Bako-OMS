@@ -1,3 +1,4 @@
+import { productAvailableOn } from "@/lib/production-planning/availability";
 import type { LooseSupabase, LooseQuery } from "@/lib/supabase/loose";
 import { addDays, recommendQuantity, FORECAST_VERSION, type HistoryPoint } from "@/lib/production-planning/forecast";
 import type { Allocation, ProductionLine, PlanningProduct, PlanningBranch, PlanningConfig, PlanningEvent, Plan, DeliveryOrder } from "@/lib/production-planning/types";
@@ -24,7 +25,7 @@ export async function loadPlanningContext(db: LooseSupabase, companyId: string, 
   const needsEvents = view === "generation" || view === "events";
   const [branches, products, routes, settings, batches, minimums, events, holidayLinks] = await Promise.all([
     complete(() => { const query = db.from("branches").select("id,branch_name,branch_type", { count: "exact" }).eq("company_id", companyId).eq("status", "active").is("deleted_at", null); return options.kitchens ? query.eq("branch_type", "outlet") : query; }),
-    complete(() => db.from("products").select("id,product_code,product_name,category,display_order,selling_unit", { count: "exact" }).eq("company_id", companyId).eq("status", "active").is("deleted_at", null)),
+    complete(() => db.from("products").select("id,product_code,product_name,category,display_order,selling_unit,available_from,available_until", { count: "exact" }).eq("company_id", companyId).eq("status", "active").is("deleted_at", null)),
     complete(() => db.from("branch_supply_routes").select("id,destination_branch_id,effective_to", { count: "exact" }).eq("company_id", companyId).eq("source_branch_id", kitchenId).eq("status", "active").eq("is_primary", true).lte("effective_from", date)),
     rows(db.from("production_planning_settings").select("kitchen_id,enabled,draft_time,buffer_percent,max_decrease_percent,recipients").eq("company_id", companyId).eq("kitchen_id", kitchenId)),
     needsRules ? complete(() => db.from("production_batch_rules").select("*", { count: "exact" }).eq("company_id", companyId).eq("kitchen_id", kitchenId), ["product_id"]) : Promise.resolve([]),
@@ -40,7 +41,7 @@ export async function loadPlanningContext(db: LooseSupabase, companyId: string, 
   const holidays = holidayIds.length ? await rows(db.from("public_holidays").select("id,name").eq("company_id", companyId).in("id", holidayIds)) : [];
   const holidayNames = new Map(holidays.map((h) => [h.id, h.name]));
   const config = (settings[0] ?? { kitchen_id: kitchenId, enabled: false, draft_time: "20:00:00", buffer_percent: 10, max_decrease_percent: 10, recipients: [] }) as unknown as PlanningConfig;
-  return { kitchens, outlets, products: food, config, batches, minimums, events: events as unknown as PlanningEvent[], holidays: holidayLinks.filter((h) => routeIds.has(h.branch_id)).map((h) => ({ branch_id: String(h.branch_id), name: String(holidayNames.get(h.holiday_id) ?? "Public holiday") })) };
+  return { kitchens, outlets, products: view === "generation" ? food.filter(p=>productAvailableOn(p,date)) : food, config, batches, minimums, events: events as unknown as PlanningEvent[], holidays: holidayLinks.filter((h) => routeIds.has(h.branch_id)).map((h) => ({ branch_id: String(h.branch_id), name: String(holidayNames.get(h.holiday_id) ?? "Public holiday") })) };
 }
 export async function buildPlanPayload(db: LooseSupabase, companyId: string, kitchenId: string, date: string) {
   const context = await loadPlanningContext(db, companyId, kitchenId, date);
@@ -73,6 +74,8 @@ export async function buildPlanPayload(db: LooseSupabase, companyId: string, kit
     series.set(key, points);
   }
   const events = context.events.filter((e) => e.confirmed && e.event_date === date);
+  const availableIds=new Set(context.products.map(p=>p.id));
+  if(events.some(e=>e.lines.some(line=>!availableIds.has(line.product_id))))throw new Error("A confirmed event contains a product outside its supply period. Review the event before recalculating.");
   const allocations: Allocation[] = [];
   const product_lines: ProductionLine[] = [];
   for (const product of context.products) {

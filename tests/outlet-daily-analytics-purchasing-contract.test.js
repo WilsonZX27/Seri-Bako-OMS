@@ -14,12 +14,12 @@ const outletQuery = fs.readFileSync(path.join(root, "src", "server", "queries", 
 const demandPage = fs.readFileSync(path.join(root, "src", "app", "(app)", "reports", "demand-trends", "page.tsx"), "utf8");
 const planningPage = fs.readFileSync(path.join(root, "src", "app", "(app)", "production", "planning", "page.tsx"), "utf8");
 
-test("outlet daily workspace renders a seven-day trend aligned to Calendar history", () => {
-  assert.match(page, /getOutletDailyDemandTrend\(\{period:"7",branch:filters\.branch,history_date:end\}\)/);
+test("outlet daily workspace renders a selected-period trend aligned to Calendar history", () => {
+  assert.match(page, /getOutletDailyDemandTrend\(\{period,branch:filters\.branch,history_date:end\}\)/);
   assert.match(page, /report==="trend"\?<OutletDailyWastageChart/);
   assert.match(chart, /All outlets combined/);
   assert.match(chart, /rate = total wastage ÷ total received/);
-  assert.match(chart, /7-day wastage rate/);
+  assert.match(chart, /Period wastage rate/);
   assert.match(chart, /totalWastage \/ totalReceived \* 100/);
   assert.match(chart, /InteractiveLineChart/);
   assert.match(chart, /maximumFractionDigits: 1/);

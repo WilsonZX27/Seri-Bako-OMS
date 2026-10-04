@@ -12,7 +12,7 @@ export function planReviewChecks(allocations: Allocation[], production: Producti
     if (!validQuantity(line.minimum_qty)) checks.push({...location, category: "configuration", message: "Confirm the outlet minimum in Settings, then recalculate."});
     if (!validQuantity(line.approved_qty)) continue;
     if (line.approved_qty < line.event_qty) checks.push({...location, category: "quantities", message: "Include the full confirmed event quantity."});
-    if (line.approved_qty !== line.suggested_qty && !line.reason.trim()) checks.push({...location, category: "reasons", message: "Add the quantity adjustment reason."});
+    if (line.suggested_qty !== null && line.approved_qty !== line.suggested_qty && !line.reason.trim()) checks.push({...location, category: "reasons", message: "Add the quantity adjustment reason."});
     else if (!line.reason.trim() && (line.approved_qty < (line.minimum_qty ?? 0) + line.event_qty || line.approved_qty < (line.evidence.reductionFloor ?? 0) + line.event_qty)) {
       checks.push({...location, category: "reasons", message: "Add a Manager reason for reducing below the minimum or limit."});
     }

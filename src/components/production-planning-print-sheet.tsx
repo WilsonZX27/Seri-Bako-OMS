@@ -1,0 +1,18 @@
+import type { Allocation, Plan, PlanningBranch, PlanningProduct, ProductionLine } from "@/lib/production-planning/types";
+import { formatDateOnly, formatNumber } from "@/lib/utils";
+
+export function ProductionPrintSheet({ kitchen, date, plan, products, outlets, allocations, production, dirty }: {
+  kitchen: string; date: string; plan: Plan; products: PlanningProduct[]; outlets: PlanningBranch[];
+  allocations: Allocation[]; production: ProductionLine[]; dirty: boolean;
+}) {
+  const quantity = (value: number | null | undefined) => value == null ? "Pending" : formatNumber(value);
+  const rows = products.flatMap(product => { const line = production.find(row => row.product_id === product.id); return line ? [{ product, line }] : []; });
+  const header = (subtitle: string) => <header className="production-document-header"><div><div className="production-document-brand">SERI BAKO</div><h1>{subtitle}</h1><p>{kitchen} · Delivery {formatDateOnly(date)} · Version {plan.version}</p></div><strong className="production-document-status">{dirty ? "UNSAVED DRAFT" : plan.status.toUpperCase()}</strong></header>;
+  const note = <p className="production-document-note">Quantities in PCS unless the product unit states otherwise. Pending means not entered or not configured.{plan.status !== "approved" || dirty ? " This draft is not a released production instruction." : " Approval is not confirmation of actual dispatch."}</p>;
+  // Six outlets per page keep long outlet names and quantity columns legible on A4.
+  const groups = Array.from({ length: Math.ceil(outlets.length / 6) }, (_, index) => outlets.slice(index * 6, index * 6 + 6));
+  return <div className="production-sheet-print hidden">
+    <section className="production-document-page">{header("Production sheet")}{note}<table><colgroup><col style={{ width: "7%" }}/><col style={{ width: "37%" }}/>{Array.from({length:7},(_,i)=><col key={i} style={{width:"8%"}}/>)}</colgroup><thead><tr>{["Code", "Product", "Unit", "Yield / tray", "Trays", "Produce", "Outlets", "Events", "Kitchen"].map(label=><th key={label}>{label}</th>)}</tr></thead><tbody>{rows.map(({product,line})=>{const destinations=allocations.filter(row=>row.product_id===product.id);const demand=destinations.some(row=>row.approved_qty===null)?null:destinations.reduce((sum,row)=>sum+row.approved_qty!,0);return <tr key={product.id}><td>{product.product_code}</td><td>{product.product_name}</td><td>{product.selling_unit}</td><td>{quantity(line.yield_per_tray)}</td><td>{quantity(line.trays)}</td><td className="production-document-total">{quantity(line.trays===null||line.yield_per_tray===null?null:line.trays*line.yield_per_tray)}</td><td>{quantity(demand)}</td><td>{quantity(line.event_qty)}</td><td>{quantity(line.retained_qty)}</td></tr>;})}</tbody></table><footer>Kitchen production summary · {rows.length} products</footer></section>
+    {groups.map((group,index)=><section key={index} className="production-document-page">{header("Outlet allocation")}{note}<p className="production-document-caption">Outlet group {index+1} of {groups.length}</p><table><colgroup><col style={{width:"8%"}}/><col style={{width:"32%"}}/>{group.map(outlet=><col key={outlet.id} style={{width:`${60/group.length}%`}}/>)}</colgroup><thead><tr><th>Code</th><th>Product</th>{group.map(outlet=><th key={outlet.id}>{outlet.branch_name}</th>)}</tr></thead><tbody>{rows.map(({product})=><tr key={product.id}><td>{product.product_code}</td><td>{product.product_name}</td>{group.map(outlet=><td key={outlet.id}>{quantity(allocations.find(row=>row.product_id===product.id&&row.branch_id===outlet.id)?.approved_qty)}</td>)}</tr>)}</tbody></table><footer>{kitchen} · {formatDateOnly(date)} · Allocation group {index+1}/{groups.length}</footer></section>)}
+  </div>;
+}

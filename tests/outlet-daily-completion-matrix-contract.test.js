@@ -6,10 +6,10 @@ const path = require("node:path");
 const root = path.resolve(__dirname, "..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
-test("outlet completion matrix uses a bounded seven-day header query and preserves authoritative states", () => {
+test("outlet completion matrix uses a bounded selected-period header query and preserves authoritative states", () => {
   const query = read("src/server/queries/outlet-daily-records.ts");
   assert.match(query, /getOutletDailyCompletionMatrix/);
-  assert.match(query, /const start = shiftDate\(end, -6\)/);
+  assert.match(query, /insightRange\(insightPeriod\(filters\.period\),end\)/);
   assert.match(query, /select\("id,branch_id,record_date,status,sales_review_status,updated_at"\)/);
   assert.match(query, /\.gte\("record_date", start\)[\s\S]*\.lte\("record_date", end\)/);
   assert.match(query, /record\?\.status \?\? "missing"/);

@@ -1,3 +1,4 @@
+import { insightRange, insightPeriod } from "@/lib/outlet-insight-period";
 import { readCompletePages } from "@/server/queries/read-complete-pages";
 import { isMockMode, mockBranches, mockProducts } from "@/lib/mock-mode";
 import { todayInKualaLumpur } from "@/lib/business-date";
@@ -14,7 +15,7 @@ import { cache } from "react";
 type Filters = Record<string, string | undefined>;
 type RecordRow = Database["public"]["Tables"]["outlet_daily_records"]["Row"];
 type LineRow = Database["public"]["Tables"]["outlet_daily_record_lines"]["Row"];
-type TrendPeriod = "7" | "30" | "month";
+type TrendPeriod = "1" | "7" | "30" | "month";
 type TrendStatus = "all" | "evening_completed";
 type TrendTotals = { received: number; leftover: number; wastage: number; movement: number };
 
@@ -183,7 +184,7 @@ const shiftDate = (date: string, days: number) => {
 
 const trendDateRange = (period: TrendPeriod, requestedEnd?: string) => {
   const end = /^\d{4}-\d{2}-\d{2}$/.test(requestedEnd ?? "") ? requestedEnd! : todayInKualaLumpur();
-  return { start: period === "month" ? `${end.slice(0, 8)}01` : shiftDate(end, period === "30" ? -29 : -6), end };
+  return insightRange(period,end);
 };
 
 const emptyTrendTotals = (): TrendTotals => ({ received: 0, leftover: 0, wastage: 0, movement: 0 });
@@ -508,9 +509,13 @@ export async function getOutletDailyRecord(id: string) {
 }
 
 export async function getOutletDailyDemandTrend(filters: Filters = {}) {
-  const period = (["7", "30", "month"].includes(filters.period ?? "") ? filters.period : "7") as TrendPeriod;
+  const period = insightPeriod(filters.period);
   const status = (["all", "evening_completed"].includes(filters.status ?? "") ? filters.status : "all") as TrendStatus;
-  const { start, end } = trendDateRange(period, filters.history_date);
+  const range = trendDateRange(period, filters.history_date);
+  const end=range.end;
+  const start=filters.history_start??range.start;
+  const rangeDays=Math.round((Date.parse(`${end}T00:00:00Z`)-Date.parse(`${start}T00:00:00Z`))/86400000)+1;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(start)||rangeDays<1||rangeDays>31||!Number.isFinite(rangeDays))throw new Error("Report range must contain 1 to 31 days.");
   const options = await getOutletDailyFormOptions();
   const branchId = filters.branch && filters.branch !== "all" ? filters.branch : undefined;
   const productId = filters.product && filters.product !== "all" ? filters.product : undefined;
@@ -534,12 +539,12 @@ export async function getOutletDailyDemandTrend(filters: Filters = {}) {
 
 export async function getOutletDailyCompletionMatrix(filters: Filters = {}) {
   const end = /^\d{4}-\d{2}-\d{2}$/.test(filters.history_date ?? "") ? filters.history_date! : todayInKualaLumpur();
-  const start = shiftDate(end, -6);
+  const {start,days}=insightRange(insightPeriod(filters.period),end);
   const options = await getOutletDailyFormOptions();
   const selectedBranchId = filters.branch && filters.branch !== "all" ? filters.branch : undefined;
   if (selectedBranchId && !options.branches.some((branch) => branch.id === selectedBranchId)) throw new Error("Selected outlet is not available.");
   const branches = options.branches.filter((branch) => !selectedBranchId || branch.id === selectedBranchId);
-  const dates = Array.from({ length: 7 }, (_, index) => shiftDate(start, index));
+  const dates = Array.from({ length: days }, (_, index) => shiftDate(start, index));
   if (isMockMode()) return buildOutletDailyCompletionMatrix({ branches, dates, records: [] });
 
   if (!await hasPermission("outlet_daily_record.view")) throw new Error("Missing permission: outlet_daily_record.view");
@@ -741,6 +746,7 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
   const coveragePercent = expectedDays ? (completedOutletDays / expectedDays) * 100 : 0;
   const confidence = coveragePercent >= 80 ? "High" : coveragePercent >= 50 ? "Medium" : "Low";
   const toRows = (source: Map<string, TrendTotals>, nameFor: (id: string) => string) => [...source].map(([id, totals]) => ({ id, name: nameFor(id), ...totals, wastage_percent: wastagePercent(totals) }));
+  for(const product of products.filter(p=>operationalProductIds.has(p.id)&&(!productId||p.id===productId)))if(!productsById.has(product.id))productsById.set(product.id,emptyTrendTotals());
   const productRows = toRows(productsById, (id) => productNames.get(id) ?? "Archived product").map((row) => ({ ...row, completed_records: productRecordIds.get(row.id)?.size ?? 0, low_sample: (productRecordIds.get(row.id)?.size ?? 0) < 3 }));
   const outletRows = branches.filter((branch) => !branchId || branch.id === branchId).map((branch) => {
     const outletTotals = outletsById.get(branch.id) ?? emptyTrendTotals();
@@ -768,9 +774,23 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
     summary: { ...summary, wastage_percent: wastagePercent(summary) },
     coverage: { completed: completedOutletDays, expected: expectedDays, reliable_lines: trendLines.length, incomplete: incompleteRecords, unavailable: unavailableRecords, missing: Math.max(expectedDays - completedOutletDays, 0), percent: coveragePercent, confidence },
     top_moving_products: [...productRows].sort((left, right) => right.movement - left.movement).slice(0, 10),
-    top_wastage_products: [...productRows].sort((left, right) => right.wastage - left.wastage).slice(0, 10),
+    top_wastage_products: [...productRows].sort((left, right) => right.wastage - left.wastage),
     outlets: outletRows.sort((left, right) => right.movement - left.movement),
     product_outlets: productOutletRows.sort((left, right) => right.movement - left.movement),
     daily: dailyRows,
   };
+}
+
+/** Before-today context, independent of list pagination and never treating absent entries as zero. */
+export async function getOutletDailyHistoricalContext() {
+  const end=shiftDate(todayInKualaLumpur(),-1);
+  const db=looseSupabase(await createClient());
+  const [summaryResult,completion]=await Promise.all([
+    db.rpc("get_outlet_daily_today_summary",{p_record_date:end}),
+    getOutletDailyCompletionMatrix({history_date:end,period:"30"}),
+  ]);
+  if(summaryResult.error)throw new Error(summaryResult.error.message);
+  const summary=(Array.isArray(summaryResult.data)?summaryResult.data[0]:summaryResult.data) as {today_records:number;today_sent:number|null;today_received:number|null;today_received_zero_with_sent:number;posted_today:number;ready_to_post:number;missing_evening:number}|null;
+  if(!summary)throw new Error("Historical daily summary unavailable.");
+  return {end,start:completion.dates[0],summary,gaps:completion.rows.map(row=>({...row,gaps:row.cells.filter(cell=>cell.status!=="reviewed")})).filter(row=>row.gaps.length>0)};
 }

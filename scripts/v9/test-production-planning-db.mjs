@@ -40,6 +40,7 @@ try {
  check((await query("select proacl::text,proowner,prosecdef from pg_proc where oid='public.update_production_plan(uuid,integer,text,jsonb,uuid)'::regprocedure"))[0],beforePartialFunction);
  await db.exec(sql('supabase/migrations/329_production_tray_modes_event_supply.sql'));
  check((await query("select proacl::text,proowner,prosecdef from pg_proc where oid='public.update_production_plan(uuid,integer,text,jsonb,uuid)'::regprocedure"))[0],beforePartialFunction);
+ await db.exec(sql('supabase/migrations/331_product_supply_periods.sql'));
  await actor(managerAuth);
  await rpc('configure_production_planning',[{kitchen_id:kitchen,enabled:false,draft_time:'20:00',buffer_percent:10,max_decrease_percent:10,recipients:['kitchen@example.test'],batches:[{product_id:product,yield_per_tray:16}],minimums:[{branch_id:outlet,product_id:product,minimum_qty:4},{branch_id:outlet2,product_id:product,minimum_qty:0}]}]);
  check((await query('select forecast_basis from production_batch_rules'))[0].forecast_basis,'manual');
@@ -101,7 +102,12 @@ try {
  check((await query('select approved_qty from production_plan_allocations where plan_id=$1 order by branch_id',[partialPlan])).filter(a=>a.approved_qty===null).length,1);
  check((await query('select trays from production_plan_products where plan_id=$1',[partialPlan]))[0].trays,null);
  await rejected(()=>partialAttempt('update_production_plan',[partialPlan,2,'submit',{},uid()]),/Complete manual quantities/);
- await rejected(()=>partialAttempt('update_production_plan',[partialPlan,2,'save',{...partialSave,allocations:[{...partialSave.allocations[0],approved_qty:3,reason:''}]},uid()]),/Give a reason/);
+ await query('savepoint ordinary_manual');
+ await partialAttempt('update_production_plan',[partialPlan,2,'save',{...partialSave,allocations:[{...partialSave.allocations[0],approved_qty:3,reason:''}]},uid()]);
+ check(Number((await query('select approved_qty from production_plan_allocations where plan_id=$1 and branch_id=$2',[partialPlan,outlet]))[0].approved_qty),3);
+ await partialAttempt('update_production_plan',[partialPlan,3,'recalculate',partialPayload,uid()]);
+ check(Number((await query('select approved_qty from production_plan_allocations where plan_id=$1 and branch_id=$2',[partialPlan,outlet]))[0].approved_qty),3);
+ await query('rollback to savepoint ordinary_manual');
  await rejected(()=>partialAttempt('update_production_plan',[partialPlan,2,'save',{...partialSave,allocations:[{...partialSave.allocations[0],approved_qty:-1}]},uid()]),/Allocation must/);
  await rejected(()=>partialAttempt('update_production_plan',[partialPlan,2,'save',{...partialSave,product_lines:[{...partialSave.product_lines[0],trays:0.5}]},uid()]),/whole numbers/);
  await rejected(()=>partialAttempt('update_production_plan',[partialPlan,2,'save',{...partialSave,product_lines:[{...partialSave.product_lines[0],retained_qty:null}]},uid()]),/retention requires/);
@@ -170,5 +176,23 @@ try {
  await rejected(()=>rpc('update_production_plan',[plan,3,'save',{},uid()]),/Plan changed/);
  const revise=await rpc('update_production_plan',[plan,5,'revise',{},uid()]);
  check((await query('select version,status from production_plans where id=$1',[revise.id]))[0],{version:2,status:'draft'});
- console.log(`Production planning PostgreSQL integration: ${checks} checks passed.`);
+ // Inclusive seasonal dates: UI filtering alone is insufficient; direct RPCs must reject.
+ await db.exec('reset role'); await actor(managerAuth);
+ const seasonal=uid();
+ await query("insert into products(id,company_id,product_code,product_name,available_until) values($1,$2,'MC01','Seasonal fixture','2026-10-01')",[seasonal,company]);
+ const seasonalEvent={kitchen_id:kitchen,branch_id:null,event_date:'2026-10-01',name:'Last seasonal day',confirmed:true,lines:[{product_id:seasonal,qty:1}]};
+ await rpc('save_production_event',[seasonalEvent]);checks++;
+ await rejected(()=>rpc('save_production_event',[{...seasonalEvent,event_date:'2026-10-02'}]),/unavailable on the event date/);
+ await rejected(()=>rpc('create_production_plan',[{...payload,delivery_date:'2026-10-20',product_lines:[{...payload.product_lines[0],product_id:seasonal}],allocations:[]}]),/unavailable on the delivery date/);
+ const historicCount=Number((await query('select count(*) n from production_delivery_order_lines'))[0].n);
+ await query("update products set available_until='2026-10-01' where id=$1",[product]);
+ check(Number((await query('select count(*) n from production_delivery_order_lines'))[0].n),historicCount);
+ const reopened={kitchen_id:kitchen,enabled:false,draft_time:'20:00',buffer_percent:10,max_decrease_percent:10,recipients:[],batches:[],minimums:[],availability:[{product_id:seasonal,available_from:'2026-11-01',available_until:'2026-11-30',expected_from:null,expected_until:'2026-10-01'}]};
+ await rpc('configure_production_planning',[reopened]);
+ await rejected(()=>rpc('configure_production_planning',[reopened]),/supply period changed/);
+ await rejected(()=>rpc('save_production_event',[{...seasonalEvent,event_date:'2026-10-31'}]),/unavailable/);
+ await rpc('save_production_event',[{...seasonalEvent,event_date:'2026-11-01'}]);checks++;
+ await rpc('save_production_event',[{...seasonalEvent,event_date:'2026-11-30'}]);checks++;
+ await rejected(()=>rpc('save_production_event',[{...seasonalEvent,event_date:'2026-12-01'}]),/unavailable/);
+  console.log(`Production planning PostgreSQL integration: ${checks} checks passed.`);
 } finally { await db.close(); }

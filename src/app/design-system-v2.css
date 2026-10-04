@@ -2332,7 +2332,7 @@ html[data-design-layer="v2"] .sb-planning-matrix thead th { position: sticky; to
 html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-product { width: 200px; min-width: 200px; max-width: 200px; overflow-wrap: anywhere; }
 html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-summary { width: 136px; min-width: 136px; }
 html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-outlet { min-width: 112px; }
-html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-retention { width: 96px; min-width: 96px; }
+html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-retention { width: 96px; min-width: 96px; position: sticky; right: 0; z-index: 3; background: var(--sb-surface); box-shadow: -1px 0 var(--sb-border-soft); }
 html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-summary button { padding-inline: 4px; white-space: normal; text-align: left; width: 100%; }
 @media (max-width: 1023px) { html[data-design-layer="v2"] .sb-planning-worksheet .sb-table-region { max-height: 65dvh; } }
 html[data-design-layer="v2"] :is(.sb-planning-workspace, .sb-planning-actions, form.sb-query-explicit) { --sb-control-height: 2.25rem; }
@@ -2369,3 +2369,7 @@ html[data-design-layer="v2"] .sb-planning-adjust { color: #fff; background: #7c9
 
 html[data-design-layer="v2"] .sb-planning-matrix tbody :is(th,td) { border-bottom: 1px solid var(--sb-border-soft); }
 html[data-design-layer="v2"] .sb-planning-matrix tbody tr:last-child :is(th,td) { border-bottom: 0; }
+
+html[data-design-layer="v2"] .sb-planning-matrix thead .sb-planning-retention { z-index: 14; background: var(--sb-surface-muted); }
+
+html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-gap { padding: 0; }

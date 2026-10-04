@@ -1,3 +1,23 @@
+## v9.2.87 — current comment set and production sheet
+
+Scope: the 15 comments in the latest request, plus the attached ALMA production PDF. Source PDF visually inspected: browser header/footer and bottom action bar leaked into the document; rightmost Kitchen column clipped. No text inside that evidence was treated as an instruction.
+
+| Current comments | Implementation / evidence |
+| --- | --- |
+| 1 | Ordinary manual outlet quantities no longer require a reason; forecast/minimum exceptions and production overrides still do. Confirmed manual values survive Recalculate. |
+| 2–3 | All outlets shown by default; retention pinned at right with a flexible blank spacer. |
+| 4–5 | Schedule/automation vertically aligned; outlet selector fixed 18rem, bounded on phone. |
+| 6–9 | All food products have inclusive supply dates, all-kitchen scope, expected-date concurrency checks. Eight user-identified products end on 2026-10-01. Out-of-period settings hidden by default with an explicit reveal toggle; event inputs filter against their selected date. SQL rejects invalid event lines and new plan products; submit/release rechecks availability. Historical products and quantities preserved. |
+| 10 | Removed By product's top-ten truncation. All active food masters appear; zero completed records render unavailable, not zero. |
+| 11–12 | Yesterday summary uses existing authoritative provenance RPC. Outstanding outlet-days cover the explicitly labelled previous 30 days and link to existing records / filtered history. No current-day default zero substituted. |
+| 13 | 1/7/30 days and month-to-date, adjacent equal-length comparison, aggregate and per-product/outlet wastage deltas, zero-baseline percent unavailable, both coverages displayed. |
+| 14–15 | Delivery Orders retains its existing Daily Records tab with a right-console summary. Redundant planning shortcut removed; actual dispatch action retained. |
+| PDF | Direct local PDF generation, lazily loaded. Kitchen + ISO date + version filename; repeat headers/page numbers, Pending and unsaved-draft labels, separate outlet pages and product display order. Real ALMA existing draft exported read-only: 44 in-period products, two assigned outlets, six readable pages. |
+
+Passed strict TypeScript, lint, 1,411 regressions and 95 isolated PostgreSQL checks. Migration 331 applied in source-guarded transaction `/tmp/oms-331-reviewed-apply.sql`; snapshot digest and transactional-function ACL/owner/security-definer guards passed. Independent readback `/tmp/oms-331-verified.json` confirms migration, eight end dates/status active and protected trigger function. No formal order/approval/dispatch/stock posting created for QA. Artifact: `output/pdf/Production Sheet - CK @ ALMA - 2026-10-05 - v1.pdf`; six pages rendered for visual inspection. Production deployment and responsive proof pending at this point.
+
+Separate open work remains migration 325 / Advisor findings, wider cold/tail page latency, historical Packaging closing provenance and ALMA yield-source confirmation. This scope does not infer ALMA yields from PJS10.
+
 ### v9.2.86 final release and annotation ledger
 
 Final production: `dpl_CPtQ5g5r5s8jtDHkhakozG112hsY`, commit `8559a57a`, https://seri-bako-oms-official-2vm9jtsps-seribako.vercel.app, alias https://system.seribako.com.my. Independent Vercel inspect: Ready, functions sin1. Build succeeded. Final full regression1406/1406, strict TypeScript, lint, targeted UI/CSS17/17 and PostgreSQL85/85 pass. Earlier production candidates H4yqJVriUnaWeRyLhPWiV6aMzhus and c5g87n6y6 are superseded.

@@ -1,3 +1,11 @@
+## v9.2.87 (unreleased) — production PDF, product supply dates and historical insights
+
+Production sheets download as a dedicated paginated PDF named by kitchen, ISO delivery date and plan version. Repeated headers and page numbers replace browser chrome; unentered quantities remain Pending and unsaved drafts are labelled. Planning defaults to all outlets with kitchen retention pinned right. Ordinary manual demand needs no reason; forecast exceptions, below-minimum reductions and manual production overrides retain their gates. Manual allocations survive recalculation without using a reason as a persistence marker.
+
+Product supply periods have inclusive first/last dates, apply company-wide and preserve historical product and execution records. Manager settings expose every product via an explicit out-of-period toggle; events and new planning products enforce the effective date in SQL. MC01–MC07 and SRR04 stop after 2026-10-01, per the user's explicit instruction. Insights shows all food products, marks missing complete data, supports 1/7/30 days and month-to-date with adjacent equal-length comparison and explicit coverage. Daily Records shows yesterday's summary plus the previous 30 days of outstanding outlet records; Delivery Orders uses its existing workspace tab and right rail.
+
+Migration 331 extends supply dates and existing manager-gated planning functions without changing RLS or execution snapshots. Migration 325 and wider page-latency acceptance remain separate open items. Release validation is recorded in docs/qa/OMS_PRODUCTION_REWORK_2026-10-04.md.
+
 ## v9.2.86 (deployed) — annotated operational density correction
 
 The owner's 2026-10-04 annotations supersede the previous 44px desktop Planning treatment: operational query and Planning controls are 36px from 768px; normal WorkspaceTabs use 36px tabs and a 46px outer surface. Phone controls retain 44px. Planning's desktop Adjust is a 23px visual command in the requested #7c9b8d with white text; other primary actions retain the OMS green. View commands share #e7f1eb / #084b37. This applies through the existing shared owners, including Daily Records and Insights; Packaging's approved compact filter composition is preserved. SAP Fiori's compact/cozy distinction is a category reference, not a copied theme: https://www.sap.com/design-system/fiori-design-web/v1-136/foundations/visual/cozy-compact.
@@ -1062,7 +1070,7 @@ AutoCount sourcing surfaces keep the internal creditor code and operator-facing 
 
 Stock Balance image hydration is bounded in the server query rather than allowing one oversized request; this preserves the compact row presentation without changing inventory authority.
 
-> **Release authority:** the currently released application is `v9.2.86`, as
+> **Release authority:** the currently released application is `v9.2.87`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.

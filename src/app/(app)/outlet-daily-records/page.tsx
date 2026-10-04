@@ -18,7 +18,7 @@ import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody,
 import { formatDateOnly, formatDateTime, formatNumber, formatQuantity } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { hasPermission } from "@/server/auth/permissions";
-import { getOutletDailyFormOptions, getOutletDailyRecords } from "@/server/queries/outlet-daily-records";
+import { getOutletDailyHistoricalContext, getOutletDailyFormOptions, getOutletDailyRecords } from "@/server/queries/outlet-daily-records";
 import { logServerError } from "@/server/observability/logger";
 
 const statuses = ["draft", "morning_recorded", "evening_completed", "void"];
@@ -37,16 +37,18 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
   const filters = await searchParams;
   let data: Awaited<ReturnType<typeof getOutletDailyRecords>>;
   let options: Awaited<ReturnType<typeof getOutletDailyFormOptions>>;
+  let history: Awaited<ReturnType<typeof getOutletDailyHistoricalContext>>;
   let canCreate = false;
   let canExport = false;
   let canViewSentGaps = false;
   try {
-    [data, options, canCreate, canExport, canViewSentGaps] = await Promise.all([
+    [data, options, canCreate, canExport, canViewSentGaps, history] = await Promise.all([
       getOutletDailyRecords(filters),
       getOutletDailyFormOptions(),
       hasPermission("outlet_daily_record.create"),
       hasPermission("outlet_daily_record.view"),
       hasPermission("outlet_daily_record.view_all"),
+      getOutletDailyHistoricalContext(),
     ]);
   } catch (error) {
     logServerError(error, { source: "page.outletDailyRecords.source" });
@@ -68,12 +70,13 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
         {canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/outlet-daily-records/new">New Daily Record</Link></Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}
         {canExport ? <OutletDailyExportDialog branches={options.branches} /> : null}
       </ConsoleSection>
-      <ConsoleSection title={`Today · ${formatDateOnly(data.summary.today)}`}><dl className="divide-y divide-[var(--sb-border-soft)] text-xs">
-        <div className="flex items-center justify-between gap-4 pb-2"><dt className="font-medium text-[var(--sb-text)]">Records</dt><dd className="text-lg font-semibold tabular-nums text-[var(--sb-text)]">{data.summary.today_records}</dd></div>
-        <div className="flex items-start justify-between gap-4 py-2"><dt className="font-medium text-[var(--sb-text)]">Qty sent</dt><dd className="font-semibold tabular-nums">{data.summary.today_sent === null ? "Unavailable" : formatNumber(data.summary.today_sent)}</dd></div>
-        <div className="flex items-start justify-between gap-4 py-2"><dt className="font-medium text-[var(--sb-text)]">Total received</dt><dd className={`text-right font-semibold tabular-nums ${data.summary.today_received === null || data.summary.today_received_zero_with_sent > 0 ? "text-warning" : ""}`}>{data.summary.today_received === null ? "Unavailable" : data.summary.today_received_zero_with_sent > 0 ? `${formatNumber(data.summary.today_received)} · verify` : formatNumber(data.summary.today_received)}</dd></div>
-        <div className="grid grid-cols-3 gap-3 pt-2"><div><dt className="text-[10px] text-muted-foreground">Posted</dt><dd className="mt-0.5 font-semibold tabular-nums">{data.summary.posted_today}</dd></div><div><dt className="text-[10px] text-muted-foreground">Ready</dt><dd className="mt-0.5 font-semibold tabular-nums">{data.summary.ready_to_post}</dd></div><div><dt className="text-[10px] text-muted-foreground">In progress</dt><dd className="mt-0.5 font-semibold tabular-nums">{data.summary.missing_evening}</dd></div></div>
+      <ConsoleSection title={`Yesterday · ${formatDateOnly(history.end)}`}><dl className="divide-y divide-[var(--sb-border-soft)] text-xs">
+        <div className="flex items-center justify-between gap-4 pb-2"><dt className="font-medium text-[var(--sb-text)]">Records</dt><dd className="text-lg font-semibold tabular-nums text-[var(--sb-text)]">{history.summary.today_records}</dd></div>
+        <div className="flex items-start justify-between gap-4 py-2"><dt className="font-medium text-[var(--sb-text)]">Qty sent</dt><dd className="font-semibold tabular-nums">{history.summary.today_sent === null ? "Unavailable" : formatNumber(history.summary.today_sent)}</dd></div>
+        <div className="flex items-start justify-between gap-4 py-2"><dt className="font-medium text-[var(--sb-text)]">Total received</dt><dd className={`text-right font-semibold tabular-nums ${history.summary.today_received === null || history.summary.today_received_zero_with_sent > 0 ? "text-warning" : ""}`}>{history.summary.today_received === null ? "Unavailable" : history.summary.today_received_zero_with_sent > 0 ? `${formatNumber(history.summary.today_received)} · verify` : formatNumber(history.summary.today_received)}</dd></div>
+        <div className="grid grid-cols-3 gap-3 pt-2"><div><dt className="text-[10px] text-muted-foreground">Posted</dt><dd className="mt-0.5 font-semibold tabular-nums">{history.summary.posted_today}</dd></div><div><dt className="text-[10px] text-muted-foreground">Ready</dt><dd className="mt-0.5 font-semibold tabular-nums">{history.summary.ready_to_post}</dd></div><div><dt className="text-[10px] text-muted-foreground">In progress</dt><dd className="mt-0.5 font-semibold tabular-nums">{history.summary.missing_evening}</dd></div></div>
       </dl></ConsoleSection>
+      <ConsoleSection title="Outstanding daily records"><p className="mb-2 text-xs text-muted-foreground">{formatDateOnly(history.start)} - {formatDateOnly(history.end)} · not posted</p>{history.gaps.length?<ul className="space-y-2">{history.gaps.map(outlet=><li key={outlet.branch_id} className="text-xs"><details><summary className="cursor-pointer py-1 font-medium">{outlet.branch_name} · {outlet.gaps.length} days</summary><ul className="mt-1 space-y-1">{outlet.gaps.map(cell=><li key={cell.record_date}><Link className="underline" href={cell.record_id?`/outlet-daily-records/${cell.record_id}`:`/outlet-daily-records?branch=${cell.branch_id}&date=${cell.record_date}`}>{formatDateOnly(cell.record_date)} · {cell.status==="missing"?"No record":cell.status==="evening_completed"?"Ready to post":cell.status==="void"?"Void":"Incomplete"}</Link></li>)}</ul></details></li>)}</ul>:<p className="text-xs">All records posted in this period.</p>}<Link className="mt-3 block text-xs underline" href={`/outlet-daily-records/insights?report=completion&period=30&history_date=${history.end}`}>View completion history</Link></ConsoleSection>
     </>}>
       <div className="flex min-w-0 max-w-full flex-col gap-3 overflow-x-clip" data-outlet-daily-list-workspace>
         <OutletDailyWorkspaceNav current="records" />

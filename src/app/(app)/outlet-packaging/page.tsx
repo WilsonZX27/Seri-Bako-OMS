@@ -1,15 +1,16 @@
 import { Suspense } from "react";
 import { PageHeader } from "@/components/ui/page-header";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import { SectionLoadingState, Notice } from "@/components/ui/system-states";
+import { SectionLoadingState, ErrorState } from "@/components/ui/system-states";
 import { logServerError } from "@/server/observability/logger";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { OutletPackagingReport } from "@/components/outlet-packaging-report";
+import { RetryButton } from "@/components/ui/retry-button";
 import { getOutletPackagingReport } from "@/server/queries/outlet-packaging";
 
 async function Report({ days }: { days: 7 | 30 }) {
-  // Read one bounded month once. Period, outlet and product changes are local.
-  try { const report = await getOutletPackagingReport(30); return <OutletPackagingReport key={days} report={report} days={days} />; } catch(error) { logServerError(error,{source:"page.outletPackaging"}); return <WorkspaceGrid><Notice tone="warning" title="Packaging report could not load">Reload to retry. No unverified stock totals are shown.</Notice></WorkspaceGrid>; }
+  // Read only the selected period. Product and outlet filters stay local.
+  try { const report = await getOutletPackagingReport(days); return <OutletPackagingReport report={report} days={days} />; } catch(error) { logServerError(error,{source:"page.outletPackaging"}); return <WorkspaceGrid><ErrorState title="Packaging report could not load" description="Try again to load stock and usage for this period." action={<RetryButton />} /></WorkspaceGrid>; }
 }
 
 export default async function OutletPackagingPage({ searchParams }: { searchParams: Promise<{ days?: string }> }) {

@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { buttonVariants } from "@/components/ui/button";
 import { InteractiveLineChart } from "@/components/ui/interactive-line-chart";
 import { FilterBar } from "@/components/ui/filter-bar";
+import { SectionLoadingState } from "@/components/ui/system-states";
 import { SelectNative } from "@/components/ui/select-native";
 import { formatDateOnly, formatNumber } from "@/lib/utils";
 import { shiftBusinessDate } from "@/lib/business-date";
@@ -15,10 +17,20 @@ import type { getOutletPackagingReport } from "@/server/queries/outlet-packaging
 type Report = Awaited<ReturnType<typeof getOutletPackagingReport>>;
 
 export function OutletPackagingReport({ report, days: initialDays }: { report: Report; days: 7 | 30 }) {
-  const [days, setDays] = useState(initialDays);
+  const days = initialDays;
+  const router = useRouter();
+  const [periodPending, startPeriodTransition] = useTransition();
+  const [requestedDays, setRequestedDays] = useState(initialDays);
   const [outlet, setOutlet] = useState("all");
   const [product, setProduct] = useState(report.products[0]?.code ?? "");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const changePeriod = (nextDays: 7 | 30) => {
+    setRequestedDays(nextDays);
+    setSelectedDate(null);
+    const url = new URL(window.location.href);
+    url.searchParams.set("days", String(nextDays));
+    startPeriodTransition(() => router.replace(`${url.pathname}${url.search}`, { scroll: false }));
+  };
   const latest = report.latest.filter((row) => outlet === "all" || row.branchId === outlet);
   const start = shiftBusinessDate(report.today, 1 - days);
   const rows = report.rows.filter((row) => row.date >= start && (outlet === "all" || row.branchId === outlet) && row.code === product);
@@ -37,6 +49,7 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
       <Link href="/outlet-daily-records" className={buttonVariants({ variant: "secondary", className: "w-full" })}>Open Daily Records</Link>
     </ConsoleSection>
     <ConsoleSection title={selected ? "Selected day" : "Report coverage"} kind="status">
+      {periodPending ? <SectionLoadingState label="Loading packaging report coverage" /> : <>
       <p className="text-sm font-semibold">{selectedProduct?.name ?? "Packaging"}</p>
       <p>{outlet === "all" ? "All outlets" : report.outlets.find((item) => item.id === outlet)?.name}</p>
       <div className="flex justify-between gap-3"><span>Period</span><span>{days} days</span></div>
@@ -46,6 +59,7 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
         <p className="mt-1 text-muted-foreground">{selected.value === null ? "No completed records" : `${formatNumber(selected.value)} ${selectedProduct?.unit} used · ${selected.rows.length}/${count} outlets`}</p>
         <div className="mt-2 max-h-72 overflow-y-auto">{selected.rows.map((row) => <div key={row.id} className="flex justify-between gap-3 py-2"><span>{row.branch}</span><span className="shrink-0 tabular-nums">{formatNumber(row.usage)} {row.unit}</span></div>)}</div>
       </div> : <p className="text-muted-foreground">Select a day in the chart to see outlet usage.</p>}
+      </>}
     </ConsoleSection>
   </>;
   return <WorkspaceGrid tabletCanvas="wide" rightRail={rail} tabletRailBreakpoint="lg">
@@ -58,12 +72,7 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
       <SelectNative aria-label="Packaging" className="w-full sm:w-56" value={product} onChange={(event) => { setProduct(event.target.value); setSelectedDate(null); }}>
         {report.products.map((item) => <option key={item.id} value={item.code}>{item.name}</option>)}
       </SelectNative>
-      <SelectNative aria-label="Report period" className="w-full sm:w-32" value={days} onChange={(event) => {
-        const nextDays = event.target.value === "30" ? 30 : 7;
-        setDays(nextDays); setSelectedDate(null);
-        const url = new URL(window.location.href); url.searchParams.set("days", String(nextDays));
-        window.history.replaceState(null, "", url);
-      }}><option value="7">7 days</option><option value="30">30 days</option></SelectNative>
+      <SelectNative aria-label="Report period" className="w-full sm:w-32" value={periodPending ? requestedDays : days} disabled={periodPending} aria-busy={periodPending || undefined} onChange={(event) => changePeriod(event.target.value === "30" ? 30 : 7)}><option value="7">7 days</option><option value="30">30 days</option></SelectNative>
     </FilterBar>
     <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.2fr)]">
     <section className="erp-surface overflow-hidden" aria-labelledby="packaging-stock-title">
@@ -97,16 +106,16 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
         <h2 id="packaging-trend-title" className="text-sm font-semibold">Usage trend</h2>
       </div>
       <div className="p-4">
-        <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm"><span className="font-medium">{selectedProduct?.name ?? "Packaging"}</span><span className="text-muted-foreground"><strong className="font-semibold text-foreground tabular-nums">{rows.length ? formatNumber(rows.reduce((sum, row) => sum + row.usage, 0)) : "—"}</strong> {selectedProduct?.unit} used</span></div>
+        <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm"><span className="font-medium">{selectedProduct?.name ?? "Packaging"}</span><span className="text-muted-foreground">{periodPending ? "Loading…" : <><strong className="font-semibold text-foreground tabular-nums">{rows.length ? formatNumber(rows.reduce((sum, row) => sum + row.usage, 0)) : "—"}</strong> {selectedProduct?.unit} used</>}</span></div>
         <div className="mt-4 h-72" key={`${outlet}:${product}:${days}`}>
-          <InteractiveLineChart width={600} height={288} inset={{ top: 20, right: 12, bottom: 28, left: 42 }} maximum={maximum} maximumFractionDigits={0}
+          {periodPending ? <SectionLoadingState label="Loading packaging usage trend" /> : <InteractiveLineChart width={600} height={288} inset={{ top: 20, right: 12, bottom: 28, left: 42 }} maximum={maximum} maximumFractionDigits={0}
             ariaLabel={`${selectedProduct?.name ?? "Packaging"} daily usage`} onSelectPoint={setSelectedDate}
             points={points.map((point) => ({ id: point.date, label: formatDateOnly(point.date), value: point.value,
               previewValue: point.value === null ? "No completed records" : `${formatNumber(point.value)} ${selectedProduct?.unit}`,
               previewDetails: [`${point.rows.length}/${count} outlets recorded`],
-            }))} />
+            }))} />}
         </div>
-        <p className="mt-3 text-xs text-muted-foreground">{points.filter((point) => point.value !== null).length}/{days} days recorded · select a day for details</p>
+        {!periodPending ? <p className="mt-3 text-xs text-muted-foreground">{points.filter((point) => point.value !== null).length}/{days} days recorded · select a day for details</p> : null}
 
       </div>
     </section>

@@ -18,6 +18,7 @@ import type { Plan, PlanningBranch, PlanningProduct, PlanningConfig, DeliveryOrd
 import { generatePlan, changePlan, confirmDispatch, retryPlanningEmails, type PlanningActionResult } from "@/server/actions/production-planning";
 import { PlanningEvents } from "@/components/production-planning-events";
 import { PlanningSetup } from "@/components/production-planning-setup";
+import { planReviewChecks } from "@/lib/production-planning/review-checks";
 import { formatDateOnly, formatNumber } from "@/lib/utils";
 
 export function PlanningDialog({ title, onClose, children }: {title:string;onClose:()=>void;children:ReactNode}) {
@@ -26,7 +27,7 @@ export function PlanningDialog({ title, onClose, children }: {title:string;onClo
 }
 type Props={ view?:"plan"|"settings"|"events"; companyId:string; selectedPlanId?:string; date:string; kitchenId:string; kitchens:PlanningBranch[]; outlets:PlanningBranch[]; products:PlanningProduct[]; plans:Plan[]; orders:DeliveryOrder[]; config:PlanningConfig; batches:Record<string,unknown>[]; minimums:Record<string,unknown>[]; events?:PlanningEvent[]; canManage:boolean; emailConfigured:boolean; emailStatus:{status:string;recipient:string;last_error:string|null}[] };
 export function ProductionPlanningWorkspace(props:Props) {
- const {date,kitchenId,kitchens,outlets,products,plans,orders,config,canManage,emailStatus}=props;
+ const {date,kitchenId,kitchens,outlets,products,plans,orders,canManage,emailStatus}=props;
  const view=props.view??"plan"; const [setupPending,setSetupPending]=useState(false);
  const router=useRouter(); const [pending,startTransition]=useTransition(); const [message,setMessage]=useState<PlanningActionResult|null>(null);
  const plan=plans.find((p)=>p.id===props.selectedPlanId)??plans[0];
@@ -40,7 +41,8 @@ export function ProductionPlanningWorkspace(props:Props) {
  const working=plan?.status==="draft"&&canManage;
  const total=(id:string)=>allocations.filter((a)=>a.product_id===id).reduce((s,a)=>s+Number(a.approved_qty??0),0)+(production.find((p)=>p.product_id===id)?.event_qty??0);
  const remaining=(id:string)=>{const p=production.find((l)=>l.product_id===id);return p?.trays!=null&&p.yield_per_tray!=null?p.trays*p.yield_per_tray-total(id)-p.retained_qty:null;};
- const gaps=allocations.filter((l)=>l.approved_qty===null||l.minimum_qty===null).length+production.filter((l)=>l.yield_per_tray===null||l.trays===null||remaining(l.product_id)!==0||(l.retained_qty>0&&!l.reason.trim())).length;
+ const checks=planReviewChecks(allocations,production);const gaps=checks.length;
+ const checkLabel=(check:(typeof checks)[number])=>`${products.find(p=>p.id===check.productId)?.product_code??"Product"}${check.branchId?` · ${outlets.find(o=>o.id===check.branchId)?.branch_name??"Outlet"}`:""}: ${check.message}`;
  const needsProductionReason=(productId:string)=>{const line=production.find(item=>item.product_id===productId);return Boolean(line&&(line.retained_qty>0||line.reason.trim()||line.trays!==plan?.product_lines.find(item=>item.product_id===productId)?.trays));};
  const altered=(a:Allocation)=>a.approved_qty!==a.suggested_qty;
  const num=(value:number|null)=>value===null?"—":formatNumber(value);
@@ -54,7 +56,7 @@ export function ProductionPlanningWorkspace(props:Props) {
    {plan?<Button variant="outline" onClick={()=>window.print()}>Print production sheet</Button>:null}
    <Button asChild variant="outline"><Link href={`/outlet-daily-records/delivery-orders?date=${date}`}>Delivery orders</Link></Button>
   </>}</div></ConsoleSection>
-  {view==="plan"?<ConsoleSection title="Plan checks"><div className="space-y-2 text-xs"><p>{!plan?"Set tray yields, outlet minimums and routes in Settings.":dirty?"Unsaved changes. Save before review.":gaps?`${gaps} quantity, minimum or tray checks need attention.`:"Allocations and whole trays are balanced."}</p><p>{config.buffer_percent}% buffer · maximum automatic decrease {config.max_decrease_percent}%.</p><p>Next-day draft: {config.enabled?config.draft_time.slice(0,5)+" Malaysia time":"automatic generation disabled"}.</p></div></ConsoleSection>:null}
+  {view==="plan"?<ConsoleSection title="Plan checks"><div className="space-y-2 text-xs">{dirty?<p>Save changes before review.</p>:null}{!plan?<p>Set tray yields, outlet minimums and routes in Settings.</p>:gaps?<><p>{gaps} checks before review</p><ul className="space-y-2">{checks.slice(0,4).map((check,index)=><li key={index}>{checkLabel(check)}</li>)}</ul>{checks.length>4?<details><summary className="min-h-11 cursor-pointer py-3">{checks.length-4} more checks</summary><ul className="space-y-2">{checks.slice(4).map((check,index)=><li key={index}>{checkLabel(check)}</li>)}</ul></details>:null}</>:<p>Ready for review. Allocations and trays are balanced.</p>}</div></ConsoleSection>:null}
   {view==="plan"&&!props.emailConfigured?<ConsoleSection title="Kitchen email"><p className="text-xs">Email is not configured. Released plans can be viewed in the system.</p></ConsoleSection>:null}
   {view==="plan"&&emailStatus.length?<ConsoleSection title="Kitchen email"><ul className="space-y-2 text-xs">{emailStatus.map((e,i)=><li key={i}>{e.recipient} · <strong>{e.status}</strong>{e.last_error?<p>{e.last_error}</p>:null}</li>)}</ul>{canManage&&emailStatus.some((e)=>e.status==="failed")?<Button className="mt-2" variant="outline" disabled={pending} onClick={()=>execute(()=>retryPlanningEmails(plan.id))}>Retry failed emails</Button>:null}</ConsoleSection>:null}
  </>;

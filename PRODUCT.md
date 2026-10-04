@@ -1,3 +1,7 @@
+## v9.2.78 (unreleased) — actionable validation
+
+Event quantity validation opens the product section, shows the shared inline error and focuses its first quantity input before any action call. Native invalid quantities also reveal the section. Shared action errors classify schema-cache diagnostics as unavailable and keep internal table names in server logs. Six added server-action tests cover invalid/no-write boundaries, role denial, explicit zero minima, empty recipients and truthful unavailable-mail feedback. Production remains v9.2.77 until deployment is verified in the QA ledger.
+
 ## 2026-10-04 current release — v9.2.77
 
 Application deployment `HDzwJWpTrajQF5ErPL2p1vP57ciE` completed and aliased to https://system.seribako.com.my. Hosted production build, strict TypeScript, lint and 1,359 regressions passed. The production login screen independently reports v9.2.77. Authenticated workflow and remaining device acceptance are pending; database remains migration 324, with 325 prepared and unapproved. Historical candidate and acceptance entries below are retained as dated evidence, not overall closure.
@@ -1885,3 +1889,9 @@ Migration `263` adds atomic compliance renewal with history. Source reviewed loc
 - Route-heavy E2E runs are viewport-sharded so dev-server memory pressure cannot be confused with a product navigation failure.
 
 Repository migrations reviewed through `281`. v9.2.58 remains unreleased until final gates, deployment and authenticated Production UAT are complete.
+
+### Shared mobile action validation — v9.2.78
+
+Right Console submits an external page form exactly once with its real submitter before unmounting the drawer. Native validation and the page form own error focus; internal drawer forms and prevented button actions retain their existing behavior. Esc closes the drawer and restores the More actions trigger. Inert phone checks covered invalid event, valid event, bulk minimum Enter and settings save. React hook/component review found no added network reads, dependencies, motion system or duplicated business state.
+
+Plan checks now identify the product/outlet and required correction instead of a generic issue count. Shared domain checks distinguish missing from zero, manual adjustment reasons, confirmed-event quantities, minimum/reduction reasons, configured yields, whole trays, retention and surplus/shortfall. Database authorization, current-route/configuration checks and approval remain authoritative; these client checks do not replace them. Default forecast settings stay in Settings rather than repeating in the action rail.

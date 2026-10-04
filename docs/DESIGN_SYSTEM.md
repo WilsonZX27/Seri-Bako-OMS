@@ -1,3 +1,9 @@
+## 2026-10-04 operational module component ownership
+
+Daily Records, Insights and Delivery Orders share WorkspaceTabs; Planning uses the same tabs for Plan, Settings and Events. WorkspaceGrid owns responsive geometry, FilterBar owns list queries, SelectControl owns choices, Table/OperationalListRow own desktop/touch data, ModalShell owns focus and dialog layers, and system-states owns skeleton/empty/error states. Feature components compose these owners. Attendance remains a shared-navigation regression target.
+
+New operational surfaces reuse existing color, motion and spacing tokens. Validate 390/820/1180/1440 widths, keyboard and focus restoration, reduced motion, 44px touch targets and WCAG 2.2 AA contrast. Only bounded data regions may scroll horizontally. Do not call a shipped layout accepted without live viewport evidence.
+
 # Seri Bako Living Design System
 
 This is an evolving product contract, not a frozen visual specification. `DESIGN.md` defines the workspace architecture; this document defines how that architecture adapts as the product matures. When research, usability evidence, and product-owner approval support a better pattern, update this contract instead of preserving a weaker legacy rule.

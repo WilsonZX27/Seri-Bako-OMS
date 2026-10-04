@@ -62,7 +62,7 @@ export async function confirmDispatch(planId: string, revision: number, payload:
 }
 export async function configurePlanning(payload: unknown) {
   return run(async () => { const {db}=await manager();
-    const parsed=z.object({kitchen_id:uuid,enabled:z.boolean(),draft_time:z.literal("20:00"),buffer_percent:quantity.max(100),max_decrease_percent:quantity.max(100),recipients:z.array(z.email()).min(1).max(50),batches:z.array(z.object({product_id:uuid,yield_per_tray:quantity.positive()})).max(500),minimums:z.array(z.object({branch_id:uuid,product_id:uuid,minimum_qty:quantity})).max(10000)}).parse(payload);
+    const parsed=z.object({kitchen_id:uuid,enabled:z.boolean(),draft_time:z.literal("20:00"),buffer_percent:quantity.max(100),max_decrease_percent:quantity.max(100),recipients:z.array(z.email()).min(1).max(50),batches:z.array(z.object({product_id:uuid,yield_per_tray:quantity.positive(),forecast_basis:z.enum(["same_day","manual"]).default("manual")})).max(500),minimums:z.array(z.object({branch_id:uuid,product_id:uuid,minimum_qty:quantity})).max(10000)}).parse(payload);
     await rpc(db,"configure_production_planning",{p_payload:parsed}); return {}; });
 }
 export async function savePlanningEvent(payload: unknown) {

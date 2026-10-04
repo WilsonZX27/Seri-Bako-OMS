@@ -64,18 +64,19 @@ export async function buildPlanPayload(db: LooseSupabase, companyId: string, kit
   const allocations: Allocation[] = [];
   const product_lines: ProductionLine[] = [];
   for (const product of context.products) {
+    const batch = context.batches.find((b) => b.product_id === product.id);
     let demand = 0, manual = false;
     for (const branch of context.outlets) {
       const rule = context.minimums.find((m) => m.branch_id === branch.id && m.product_id === product.id);
       const minimum = rule ? Number(rule.minimum_qty) : null;
       const evidence = recommendQuantity(series.get(`${branch.id}:${product.id}`) ?? [], date, minimum, Number(context.config.buffer_percent), Number(context.config.max_decrease_percent));
+      if (batch?.forecast_basis !== "same_day") { evidence.method = "manual"; evidence.suggested = null; evidence.weightedMovement = null; evidence.reductionFloor = null; evidence.manualReason = "Multi-day or unconfirmed shelf-life: daily receipts cannot establish demand. Manager quantity required."; }
       const event_qty = events.filter((e) => e.branch_id === branch.id).reduce((sum,e) => sum+e.lines.filter((l) => l.product_id===product.id).reduce((s,l) => s+Number(l.qty),0),0);
       const suggested_qty = evidence.suggested === null ? null : evidence.suggested + event_qty;
       allocations.push({ product_id: product.id, branch_id: branch.id, suggested_qty, approved_qty: suggested_qty, minimum_qty: minimum, reason: "", evidence, event_qty });
       if (suggested_qty === null) manual = true; else demand += suggested_qty;
     }
     const event_qty = events.filter((e) => !e.branch_id).reduce((sum,e) => sum+e.lines.filter((l) => l.product_id===product.id).reduce((s,l) => s+Number(l.qty),0),0);
-    const batch = context.batches.find((b) => b.product_id === product.id);
     const yield_per_tray = batch ? Number(batch.yield_per_tray) : null;
     product_lines.push({ product_id: product.id, yield_per_tray, trays: manual || !yield_per_tray ? null : Math.ceil((demand + event_qty) / yield_per_tray), retained_qty: 0, actual_qty: null, reason: "", event_qty });
   }

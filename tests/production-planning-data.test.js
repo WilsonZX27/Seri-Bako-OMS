@@ -9,7 +9,7 @@ function fixture(){
  const tables={branches:[{id:kitchen,company_id:company,branch_type:'central_kitchen',branch_name:'Kitchen',status:'active',deleted_at:null},...outlets],products,
  branch_supply_routes:outlets.map(o=>({id:'route-'+o.id,company_id:company,source_branch_id:kitchen,destination_branch_id:o.id,status:'active',is_primary:true,effective_from:'2020-01-01',effective_to:null})),
  production_planning_settings:[{kitchen_id:kitchen,company_id:company,enabled:false,draft_time:'20:00:00',buffer_percent:10,max_decrease_percent:10,recipients:[]}],
- production_batch_rules:products.map(p=>({kitchen_id:kitchen,company_id:company,product_id:p.id,yield_per_tray:16})),
+ production_batch_rules:products.map(p=>({kitchen_id:kitchen,company_id:company,product_id:p.id,yield_per_tray:16,forecast_basis:"same_day"})),
  production_outlet_minimums:outlets.flatMap(o=>products.map(p=>({kitchen_id:kitchen,company_id:company,branch_id:o.id,product_id:p.id,minimum_qty:0}))),production_planning_events:[],public_holiday_branches:[],public_holidays:[],outlet_daily_records:records,
  outlet_daily_record_lines:records.flatMap(r=>products.map(p=>({id:r.id+':'+p.id,record_id:r.id,product_id:p.id,morning_received_qty:100,morning_received_provided:true,evening_leftover_qty:0,wastage_qty:60,wastage_provided:true,stockout:false}))) };
  let reads=0;
@@ -39,3 +39,5 @@ test('planning reads use the real Supabase query builder including empty plans a
  assert.equal((await data.loadDeliveryOrders(db,{companyId:'company',date:'2026-10-04'})).length,0);
  assert.ok(calls.length>=10);assert.ok(calls.every(u=>u.searchParams.has('select')));
 });
+
+test("unconfirmed and multi-day products never receive the same-day proxy",async()=>{const f=fixture();delete f.tables.production_batch_rules[0].forecast_basis;const p=await buildPlanPayload(f.db,f.company,f.kitchen,"2026-10-03");const a=p.allocations.find(a=>a.product_id==="p-0");assert.equal(a.suggested_qty,null);assert.equal(a.evidence.method,"manual");assert.match(a.evidence.manualReason,/Multi-day/);});

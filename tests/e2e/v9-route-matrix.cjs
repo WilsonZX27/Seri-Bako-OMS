@@ -99,6 +99,8 @@ const accessAuthorities = [
   ["/opening-stock/import", MASTER_DATA],
   ["/supplier-invoices", ["superAdmin", "finance"]],
   ["/document-sequences", SEQUENCE_MANAGERS],
+  ["/outlet-daily-records/delivery-orders", ["superAdmin", "manager", "kitchen", "outletSupervisor", "outlet"]],
+  ["/outlet-daily-records/insights", OUTLET_DAILY],
   ["/outlet-daily-records", OUTLET_DAILY],
   ["/outlet-packaging", ["superAdmin", "manager", "purchasing"]],
   ["/purchase-requests", PROCUREMENT],

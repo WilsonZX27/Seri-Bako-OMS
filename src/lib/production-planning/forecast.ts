@@ -5,6 +5,7 @@ export type HistoryPoint = {
   receivedProvided: boolean; completed: boolean; specialEvent: boolean; stockout: boolean;
 };
 export type Forecast = {
+  manualReason?: string;
   method: "same-weekday" | "recent-day-type" | "manual";
   suggested: number | null; weightedMovement: number | null; minimum: number | null;
   reductionFloor: number | null; stockoutRisk: boolean; excluded: number;

@@ -1,4 +1,14 @@
-### v9.2.75 (unreleased) — Restore operational workspaces
+## 2026-10-04 closure baseline — v9.2.75 candidate
+
+Code, applied database migrations, production deployment and authenticated acceptance are separate evidence. The first v9.2.75 upload failed; the subsequent deployment EmWcZ4wEdPU7Wqjs1P56x65SKA1L completed and aliased to the production domain. Authenticated acceptance remains pending. Repository migrations reviewed through `323`; linked Production ledger verified through `323` on 2026-10-04. Migration 323 adds reviewed per-product demand basis. Application deployment and authenticated acceptance remain separate gates.
+
+Daily Records owns input/list, Insights and Delivery Orders tabs. Old DO list links redirect. WorkspaceGrid, WorkspaceTabs, FilterBar, Table, SelectControl, ModalShell and system-state primitives are the reusable owners; feature components compose them. No route-specific visual system is permitted. Responsive acceptance covers 390, 820, 1180 and 1440px, keyboard focus, 44px touch controls and reduced motion.
+
+Production recommendations are a daily quantity proxy, never POS sales. Same-day eligibility must be explicitly confirmed per kitchen/product. Multi-day or unknown shelf-life requires Manager quantity; expiry wastage may exceed today's receipt with a food reason. Approval, production and dispatch remain distinct; only confirmed effective DOs populate source-locked Qty Sent. Received, Wastage and POS remain independently entered. Inventory posting stays in the existing production workflow.
+
+Packaging uses one RLS-preserving report RPC; list and optional Insights reads stay separate. Missing, recorded zero, loading, empty and unavailable are distinct. Email needs a configured provider and recipients; an outbox entry is not proof of delivery. Hobby daily scheduling starts after 20:00 Malaysia time, within the provider's scheduling window; exact configurable execution needs a compatible scheduler rather than misleading UI promises.
+
+### v9.2.75 (deployed; authenticated acceptance pending) — Restore operational workspaces
 
 - Daily Records opens directly into the existing input/list workflow. Separate Insights and Delivery Orders tabs reuse the Attendance navigation owner; the duplicate sidebar DO entry is removed.
 - Insights uses bounded outlet/product tables and separate trend/completion views. Production Planning reuses shared tabs, filters, selectors, tables, modals and the right action rail for Plan, Settings and Events.

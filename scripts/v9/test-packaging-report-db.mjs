@@ -20,6 +20,18 @@ try {
  for(let day=4;day<=29;day++){const r=await add(outlet,`2026-09-${String(day).padStart(2,'0')}`,'reviewed',1,2);await q('insert into outlet_daily_record_lines(record_id,product_id,wastage_qty) select $1,id,0 from products where company_id=$2 and category=\'PACKAGING\' and id<>$3',[r,c,p]);}
  assert.ok((await report()).rows.length>1000);
  await db.exec('set role authenticated');const scoped=await report();assert.ok(scoped.latest.every(x=>x.branchId===outlet));assert.ok(scoped.rows.every(x=>x.branchId===outlet));
+ // Compare exact visible line sets before/after the uncorrelated policy candidate.
+ const lineSet=async()=> (await q('select record_id::text,product_id::text from outlet_daily_record_lines order by record_id,product_id'));
+ const beforeLines=await lineSet();const beforeReport=await report();
+ await db.exec('reset role');
+ await db.exec(readFileSync('tests/fixtures/packaging/line-policy-candidate.sql','utf8'));
+ await db.exec('set role authenticated');
+ assert.deepEqual(await lineSet(),beforeLines);assert.deepEqual(await report(),beforeReport);
+ // Missing actors cannot gain access through the changed subquery form.
+ await q("select set_config('request.jwt.claim.sub',$1,false)",[randomUUID()]);
+ assert.equal((await lineSet()).length,0);
+ await q("select set_config('request.jwt.claim.sub',$1,false)",[auth]);
+ assert.deepEqual(await lineSet(),beforeLines);
  await db.exec('reset role; set role anon');await assert.rejects(report,/permission denied/);
- console.log('Packaging SQL: zeros, missing receipt, old balances, draft exclusion, >1,000 rows, company/branch RLS and anonymous denial passed.');
+ console.log('Packaging SQL: zeros, missing receipt, old balances, draft exclusion, >1,000 rows, company/branch RLS, anonymous denial and exact line-policy equivalence passed.');
 }finally{await db.close();}

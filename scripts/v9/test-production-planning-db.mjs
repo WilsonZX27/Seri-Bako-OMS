@@ -15,6 +15,7 @@ const rpc=async(name,args)=>{const params=args.map((_,i)=>`$${i+1}`).join(',');r
 const rejected=async(work,pattern)=>{await assert.rejects(work,pattern);checks++;};
 try {
  await db.exec(sql('tests/fixtures/production-planning/base.sql'));
+ await db.exec(sql('tests/fixtures/production-planning/staff-eligibility.sql'));
  await db.exec(sql('supabase/migrations/191_guard_outlet_completion_qty_sent.sql'));
  await query('insert into companies values($1,\'Fixture\'),($2,\'Other\')',[company,otherCompany]);
  await query("insert into branches(id,company_id,branch_type,branch_name) values($1,$2,'central_kitchen','Kitchen'),($3,$2,'outlet','Outlet'),($4,$2,'outlet','Outlet 2'),($5,$6,'outlet','Foreign')",[kitchen,company,outlet,outlet2,foreignOutlet,otherCompany]);
@@ -33,6 +34,7 @@ try {
  await db.exec(sql('supabase/migrations/321_outlet_daily_prior_stock_wastage.sql'));
  await db.exec(sql('supabase/migrations/323_production_forecast_basis.sql'));
  await db.exec(sql('supabase/migrations/324_production_plan_recalculate_aliases.sql'));
+ await db.exec(sql('supabase/migrations/326_production_planning_staff_eligibility.sql'));
  await actor(managerAuth);
  await rpc('configure_production_planning',[{kitchen_id:kitchen,enabled:false,draft_time:'20:00',buffer_percent:10,max_decrease_percent:10,recipients:['kitchen@example.test'],batches:[{product_id:product,yield_per_tray:16}],minimums:[{branch_id:outlet,product_id:product,minimum_qty:4},{branch_id:outlet2,product_id:product,minimum_qty:0}]}]);
  check((await query('select forecast_basis from production_batch_rules'))[0].forecast_basis,'manual');

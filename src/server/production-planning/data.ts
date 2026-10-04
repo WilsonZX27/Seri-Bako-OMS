@@ -45,7 +45,11 @@ export async function loadPlanningContext(db: LooseSupabase, companyId: string, 
 export async function buildPlanPayload(db: LooseSupabase, companyId: string, kitchenId: string, date: string) {
   const context = await loadPlanningContext(db, companyId, kitchenId, date);
   if (!context.kitchens.some((k) => k.id === kitchenId)) throw new Error("Kitchen access is required.");
-  const historyRecords = await complete(() => db.from("outlet_daily_records").select("id,branch_id,record_date", { count: "exact" }).eq("company_id", companyId).in("branch_id", context.outlets.map(b => b.id)).gte("record_date", addDays(date, -56)).lt("record_date", date).in("status", ["evening_completed", "reviewed"]));
+  // A manual-only plan cannot infer demand from receipts. Do not read eight weeks
+  // of records merely to discard their inferred quantities. Mixed plans retain
+  // the full food-record completeness check before any same-day recommendation.
+  const needsHistory = context.outlets.length > 0 && context.products.some(product => context.batches.some(batch => batch.product_id === product.id && batch.forecast_basis === "same_day"));
+  const historyRecords = needsHistory ? await complete(() => db.from("outlet_daily_records").select("id,branch_id,record_date", { count: "exact" }).eq("company_id", companyId).in("branch_id", context.outlets.map(b => b.id)).gte("record_date", addDays(date, -56)).lt("record_date", date).in("status", ["evening_completed", "reviewed"])) : [];
   const recordMap = new Map(historyRecords.filter((r) => context.outlets.some((b) => b.id === r.branch_id)).map((r) => [String(r.id), r]));
   const ids = [...recordMap.keys()];
   const historyLines: Record<string, unknown>[] = [];

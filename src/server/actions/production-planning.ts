@@ -41,7 +41,7 @@ export async function changePlan(planId: string, revision: number, action: strin
   return run(async () => { const {db,companyId}=await manager(); uuid.parse(planId); uuid.parse(key); z.number().int().positive().parse(revision);
     z.enum(["save","recalculate","submit","approve","return","revise"]).parse(action);
     let parsed: unknown=payload;
-    if (action==="save") parsed=z.object({ allocations:z.array(z.object({product_id:uuid,branch_id:uuid,approved_qty:quantity,reason})).max(10000),product_lines:z.array(z.object({product_id:uuid,trays:quantity.int(),retained_qty:quantity,reason})).max(500) }).parse(payload);
+    if (action==="save") parsed=z.object({ allocations:z.array(z.object({product_id:uuid,branch_id:uuid,approved_qty:quantity.nullable(),reason})).max(10000),product_lines:z.array(z.object({product_id:uuid,trays:quantity.int().nullable(),retained_qty:quantity,reason})).max(500) }).parse(payload);
     if (action==="return") parsed=z.object({reason:reason.min(1)}).parse(payload);
     if (action==="recalculate") {
       const p=await db.from("production_plans").select("kitchen_id,delivery_date").eq("id",planId).eq("company_id",companyId).single();

@@ -66,3 +66,15 @@ test('database failures do not expose table or connection internals as operator 
  const result=await f.actions.configurePlanning(config());assert.equal(result.ok,false);
  assert.ok(!result.message.includes('public.production_planning_settings'));assert.ok(!result.message.includes('schema cache'));
 });
+
+test('draft saves preserve unknown quantities separately from explicit zero',async()=>{
+ const f=fixture();const payload={allocations:[{product_id:product,branch_id:outlet,approved_qty:null,reason:''}],product_lines:[{product_id:product,trays:null,retained_qty:0,reason:''}]};
+ assert.equal((await f.actions.changePlan(kitchen,1,'save',payload,key)).ok,true);
+ assert.equal(f.calls[0].args.p_payload.allocations[0].approved_qty,null);
+ assert.equal(f.calls[0].args.p_payload.product_lines[0].trays,null);
+ assert.equal(f.calls[0].args.p_payload.product_lines[0].retained_qty,0);
+ for (const invalid of [-1,Infinity,1000001]) {
+  const bad=fixture();assert.equal((await bad.actions.changePlan(kitchen,1,'save',{...payload,allocations:[{...payload.allocations[0],approved_qty:invalid}]},key)).ok,false);assert.equal(bad.calls.length,0);
+ }
+ const bad=fixture();assert.equal((await bad.actions.changePlan(kitchen,1,'save',{...payload,product_lines:[{...payload.product_lines[0],trays:0.5}]},key)).ok,false);assert.equal(bad.calls.length,0);
+});

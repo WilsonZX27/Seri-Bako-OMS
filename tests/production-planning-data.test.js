@@ -12,9 +12,9 @@ function fixture(){
  production_batch_rules:products.map(p=>({kitchen_id:kitchen,company_id:company,product_id:p.id,yield_per_tray:16,forecast_basis:"same_day"})),
  production_outlet_minimums:outlets.flatMap(o=>products.map(p=>({kitchen_id:kitchen,company_id:company,branch_id:o.id,product_id:p.id,minimum_qty:0}))),production_planning_events:[],public_holiday_branches:[],public_holidays:[],outlet_daily_records:records,
  outlet_daily_record_lines:records.flatMap(r=>products.map(p=>({id:r.id+':'+p.id,record_id:r.id,product_id:p.id,morning_received_qty:100,morning_received_provided:true,evening_leftover_qty:0,wastage_qty:60,wastage_provided:true,stockout:false}))) };
- let reads=0;
- const db={from(table){let filters=[],from=0,to=Infinity,sorts=[];const q={select(){return q;},eq(k,v){filters.push(r=>r[k]===v);return q;},is(k,v){filters.push(r=>r[k]===v);return q;},in(k,v){filters.push(r=>v.includes(r[k]));return q;},gte(k,v){filters.push(r=>r[k]>=v);return q;},gt(k,v){filters.push(r=>r[k]>v);return q;},lte(k,v){filters.push(r=>r[k]<=v);return q;},lt(k,v){filters.push(r=>r[k]<v);return q;},order(k){sorts.push(k);return q;},range(a,b){from=a;to=b;return q;},limit(n){to=n-1;return q;},then(resolve){reads++;let rows=(tables[table]??[]).filter(r=>filters.every(f=>f(r)));rows.sort((a,b)=>{for(const k of sorts){const diff=String(a[k]).localeCompare(String(b[k]));if(diff)return diff;}return 0;});return Promise.resolve({data:rows.slice(from,Math.min(to+1,from+200)),count:rows.length,error:null}).then(resolve);}};return {select:()=>q};}};
- return {db,tables,reads:()=>reads,company,kitchen};
+ let reads=0;const readTables=[];
+ const db={from(table){let filters=[],from=0,to=Infinity,sorts=[];const q={select(){return q;},eq(k,v){filters.push(r=>r[k]===v);return q;},is(k,v){filters.push(r=>r[k]===v);return q;},in(k,v){filters.push(r=>v.includes(r[k]));return q;},gte(k,v){filters.push(r=>r[k]>=v);return q;},gt(k,v){filters.push(r=>r[k]>v);return q;},lte(k,v){filters.push(r=>r[k]<=v);return q;},lt(k,v){filters.push(r=>r[k]<v);return q;},order(k){sorts.push(k);return q;},range(a,b){from=a;to=b;return q;},limit(n){to=n-1;return q;},then(resolve){reads++;readTables.push(table);let rows=(tables[table]??[]).filter(r=>filters.every(f=>f(r)));rows.sort((a,b)=>{for(const k of sorts){const diff=String(a[k]).localeCompare(String(b[k]));if(diff)return diff;}return 0;});return Promise.resolve({data:rows.slice(from,Math.min(to+1,from+200)),count:rows.length,error:null}).then(resolve);}};return {select:()=>q};}};
+ return {db,tables,readTables,reads:()=>reads,company,kitchen};
 }
 test('plan loader reads 3,200 historical lines through capped pages and keeps 400 outlet/product series distinct',async()=>{
  const f=fixture();const p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');assert.equal(p.allocations.length,400);assert.equal(p.product_lines.length,40);assert.equal(p.allocations[0].evidence.evidence.length,8);assert.equal(p.allocations[0].suggested_qty,90);assert.equal(p.product_lines[0].trays,57);assert.ok(f.reads()>20);
@@ -91,4 +91,12 @@ test('a selected plan reads only its own allocations, products and snapshot; sta
   for(const url of calls.filter(u=>/\/(production_plan_products|production_plan_allocations)$/.test(u.pathname))) assert.equal(url.searchParams.get('plan_id'),'eq.'+selected);
   assert.ok(calls.filter(u=>u.pathname.endsWith('/production_plans')).every(u=>u.searchParams.get('select')!=='*'));
  }
+});
+
+test('manual-only plans skip historical reads without inventing demand or tray counts',async()=>{
+ const f=fixture();f.tables.production_batch_rules.forEach(batch=>batch.forecast_basis='manual');
+ const p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');
+ assert.ok(!f.readTables.includes('outlet_daily_records'));assert.ok(!f.readTables.includes('outlet_daily_record_lines'));
+ assert.equal(p.allocations.length,400);assert.ok(p.allocations.every(a=>a.approved_qty===null&&a.suggested_qty===null&&a.evidence.method==='manual'&&a.evidence.evidence.length===0));
+ assert.ok(p.product_lines.every(p=>p.trays===null));
 });

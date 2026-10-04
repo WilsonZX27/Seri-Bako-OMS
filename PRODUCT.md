@@ -1,4 +1,4 @@
-## v9.2.86 (unreleased) — annotated operational density correction
+## v9.2.86 (deployed) — annotated operational density correction
 
 The owner's 2026-10-04 annotations supersede the previous 44px desktop Planning treatment: operational query and Planning controls are 36px from 768px; normal WorkspaceTabs use 36px tabs and a 46px outer surface. Phone controls retain 44px. Planning's desktop Adjust is a 23px visual command in the requested #7c9b8d with white text; other primary actions retain the OMS green. View commands share #e7f1eb / #084b37. This applies through the existing shared owners, including Daily Records and Insights; Packaging's approved compact filter composition is preserved. SAP Fiori's compact/cozy distinction is a category reference, not a copied theme: https://www.sap.com/design-system/fiori-design-web/v1-136/foundations/visual/cozy-compact.
 
@@ -6,7 +6,7 @@ The worksheet fixes outlet tracks at 112px rather than distributing unused width
 
 Source verification: `01.SERI BAKO ALL KUIH ORDER.xlsx`, coded V2 sheets and matching explicit original yield column, confirms SC01/SC02/SC15/SC16 = 16, SC07 = 28, and SC03–SC06/SC08–SC14 = 32. PJS10's previously empty configuration was populated for these 16 products through the normal Manager Settings action, recorded by its audit, with demand basis manual, minima unfilled, automation disabled. Existing 2026-10-05 PJS10 v1 was found in draft with zero entered allocation/production values; normal Recalculate refreshed its yield snapshots. No new plan, formal order, approval, dispatch or inventory transaction was created. Alma and other products have no confirmed kitchen-specific source in this workbook and are not inferred. The workbook's variable daily allocations are not minimums or new demand orders. Database schema remains reviewed through 330; permission-warning closure, wider cold/tail latency and historical Packaging closing provenance remain separately tracked.
 
-Candidate TypeScript/lint, regressions, production deployment and responsive evidence are recorded in docs/qa/OMS_PRODUCTION_REWORK_2026-10-04.md; this entry is not deployment or visual acceptance evidence until updated.
+Strict TypeScript, lint, 1,406 regressions and 85 isolated PostgreSQL checks pass. Initial v9.2.86 deployment H4yqJVriUnaWeRyLhPWiV6aMzhus is READY and aliased to the formal domain, with sin1 independently inspected. Formal responsive and interaction evidence, including the final row-divider follow-up deployment, is recorded in docs/qa/OMS_PRODUCTION_REWORK_2026-10-04.md.
 
 ## v9.2.85 (deployed) — measured outlet reporting performance
 
@@ -1207,7 +1207,7 @@ Repository migration authority: migrations reviewed through `227`; Production mi
 - Source and local test evidence is not production verification. Authenticated four-viewport, role workflow, linked migration, AutoCount confirmation, and production regression gates remain separately recorded in the annotation ledger.
 - AutoCount Confirm now creates a missing supplier-item relationship before branch mapping and validates the branch only in the branch-mapping phase (migration 171); the authenticated disposable local mirror passed actionable validation, Preview, and one atomic Confirm with zero inventory movements.
 
-The current released application baseline is `v9.2.85` — Measured Outlet Reporting Performance.
+The current released application baseline is `v9.2.86` — Annotated Operational Density Correction.
 
 ### v8.64.65 (unreleased) — Shared Responsive Closure
 

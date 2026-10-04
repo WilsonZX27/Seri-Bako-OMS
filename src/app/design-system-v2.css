@@ -2354,7 +2354,7 @@ html[data-design-layer="v2"] .sb-query-actions > button { color: #084b37; backgr
 html[data-design-layer="v2"] .sb-planning-matrix tbody .sb-planning-product { position: sticky; left: 32px; z-index: 2; background: var(--sb-surface); }
 html[data-design-layer="v2"] .sb-planning-matrix thead .sb-planning-product { left: 32px; z-index: 14; }
 html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-summary .sb-planning-adjust { width: auto; height: 23px !important; min-height: 23px !important; max-height: 23px !important; padding: 0 8px; margin-top: 3px; color: #fff; background: #7c9b8d; font-size: 11px; font-weight: 500; gap: 4px; }
-html[data-design-layer="v2"] .sb-planning-adjust svg { width: 12px; height: 12px; }
+html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-adjust > svg { width: 12px; height: 12px; }
 html[data-design-layer="v2"] .sb-planning-product button { min-height: 0; line-height: 18px; }
 @media (max-width: 767px) {
  html[data-design-layer="v2"] :is(.sb-planning-workspace, .sb-planning-actions, form.sb-query-explicit) { --sb-control-height: 2.75rem; }
@@ -2366,3 +2366,6 @@ html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-index { width: 32p
 html[data-design-layer="v2"] .sb-planning-matrix thead .sb-planning-index { top: 0; z-index: 14; background: var(--sb-surface-muted); }
 html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-outlet :is(input, [data-select-control]) { width: 96px; max-width: 100%; }
 html[data-design-layer="v2"] .sb-planning-adjust { color: #fff; background: #7c9b8d; }
+
+html[data-design-layer="v2"] .sb-planning-matrix tbody :is(th,td) { border-bottom: 1px solid var(--sb-border-soft); }
+html[data-design-layer="v2"] .sb-planning-matrix tbody tr:last-child :is(th,td) { border-bottom: 0; }

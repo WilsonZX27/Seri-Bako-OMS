@@ -41,7 +41,7 @@ export async function changePlan(planId: string, revision: number, action: strin
   return run(async () => { const {db,companyId}=await manager(); uuid.parse(planId); uuid.parse(key); z.number().int().positive().parse(revision);
     z.enum(["save","recalculate","submit","approve","return","revise"]).parse(action);
     let parsed: unknown=payload;
-    if (action==="save") parsed=z.object({ allocations:z.array(z.object({product_id:uuid,branch_id:uuid,approved_qty:quantity.nullable(),reason})).max(10000),product_lines:z.array(z.object({product_id:uuid,trays:quantity.int().nullable(),retained_qty:quantity,reason})).max(500) }).parse(payload);
+    if (action==="save") parsed=z.object({ allocations:z.array(z.object({product_id:uuid,branch_id:uuid,approved_qty:quantity.nullable(),reason})).max(10000),product_lines:z.array(z.object({product_id:uuid,trays:quantity.int().nullable(),tray_mode:z.enum(["automatic","manual"]).nullable().optional(),retained_qty:quantity,reason})).max(500) }).parse(payload);
     if (action==="return") parsed=z.object({reason:reason.min(1)}).parse(payload);
     if (action==="recalculate") {
       const p=await db.from("production_plans").select("kitchen_id,delivery_date").eq("id",planId).eq("company_id",companyId).single();
@@ -80,4 +80,10 @@ export async function retryPlanningEmails(planId: string) {
     try { const delivery=await deliverPlanningEmails(); return {message:delivery.unavailable?"Email is queued until the provider is configured.":delivery.failed?"Some emails failed again. Review the email status.":"Kitchen email retry processed."}; }
     catch(error){logServerError(error,{source:"productionPlanning.retryEmail"});return {message:"Email remains queued. Retry after checking the mail provider."};}
   });
+}
+
+/** Read-only, permission-gated lookup; saving repeats the effective-route validation in SQL. */
+export async function resolveEventSupply(eventDate: string, branchId: string | null): Promise<{ok:boolean;message:string;kitchen_id?:string|null;outlets?:import("@/lib/production-planning/types").PlanningBranch[];kitchens?:import("@/lib/production-planning/types").PlanningBranch[]}> {
+ try {const {db}=await manager();date.parse(eventDate);uuid.nullable().parse(branchId);const result=await rpc(db,"resolve_production_event_supply",{p_date:eventDate,p_branch:branchId}) as {kitchen_id:string|null;outlets:import("@/lib/production-planning/types").PlanningBranch[];kitchens:import("@/lib/production-planning/types").PlanningBranch[]};return {ok:true,message:"",...result};}
+ catch(error){return {ok:false,message:formatActionError(error,"Could not check the supply route. Retry before confirming.")};}
 }

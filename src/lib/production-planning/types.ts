@@ -2,7 +2,7 @@ import type { Forecast } from "./forecast";
 export type PlanningProduct = { id: string; product_code: string; product_name: string; category: string; display_order: number; selling_unit: string };
 export type PlanningBranch = { id: string; branch_name: string; branch_type: string };
 export type Allocation = { product_id: string; branch_id: string; suggested_qty: number | null; approved_qty: number | null; minimum_qty: number | null; reason: string; evidence: Forecast; event_qty: number };
-export type ProductionLine = { product_id: string; yield_per_tray: number | null; trays: number | null; retained_qty: number; actual_qty: number | null; reason: string; event_qty: number };
+export type ProductionLine = { tray_mode?: "automatic" | "manual" | null; product_id: string; yield_per_tray: number | null; trays: number | null; retained_qty: number; actual_qty: number | null; reason: string; event_qty: number };
 export type Plan = { id: string; company_id: string; kitchen_id: string; delivery_date: string; version: number; revision: number; status: "draft" | "submitted" | "approved" | "superseded"; buffer_percent: number; max_decrease_percent: number; created_at: string; approved_at: string | null; product_lines: ProductionLine[]; allocations: Allocation[]; events: PlanningEvent[]; holidays: { branch_id: string; name: string }[] };
 export type PlanningEvent = { id: string; kitchen_id: string; branch_id: string | null; event_date: string; name: string; notes: string; confirmed: boolean; lines: { product_id: string; qty: number }[] };
 export type PlanningConfig = { kitchen_id: string; enabled: boolean; draft_time: string; buffer_percent: number; max_decrease_percent: number; recipients: string[] };

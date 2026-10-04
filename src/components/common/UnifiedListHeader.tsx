@@ -12,6 +12,7 @@ import {
   useState,
   type CSSProperties,
   type FormEvent,
+  type FormEventHandler,
   type ReactElement,
   type ReactNode,
 } from "react";
@@ -22,6 +23,8 @@ import { cn } from "@/lib/utils";
 
 type HeaderProps = {
   children: ReactNode;
+  actions?: ReactNode;
+  onSubmit?: FormEventHandler<HTMLFormElement>;
   resultCount?: number;
   resultLabel?: string;
   resetHref: string;
@@ -165,7 +168,7 @@ function SearchControl({ child, value, onChange }: { child: ReactElement; value:
   );
 }
 
-export function UnifiedListHeader({ children, resultCount, resultLabel, resetHref, filtered = false, activeCount = 0, className, phoneOnly = false, phoneMode = "drawer", phonePrimary = "inline" }: HeaderProps) {
+export function UnifiedListHeader({ children, actions, onSubmit, resultCount, resultLabel, resetHref, filtered = false, activeCount = 0, className, phoneOnly = false, phoneMode = "drawer", phonePrimary = "inline" }: HeaderProps) {
   // The first client render must match SSR exactly. Viewport detection belongs
   // in the effect below; reading matchMedia in the state initializer rendered
   // different desktop/mobile trees and caused hydration recovery on every
@@ -255,6 +258,12 @@ export function UnifiedListHeader({ children, resultCount, resultLabel, resetHre
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
     searchTimerRef.current = setTimeout(() => formRef.current?.requestSubmit(), 300);
   };
+
+  if (actions !== undefined) return <form ref={formRef} className={cn("sb-list-query-card sb-query-explicit",className)} method="get" onSubmit={onSubmit}>
+    <div className="sb-query-fields">{children}</div>
+    <div className="sb-query-actions">{actions}</div>
+    {typeof resultCount==="number"?<div className="sb-query-result" aria-live="polite">{resultCount} {resultLabel??"records"}</div>:null}
+  </form>;
 
   if (!mobile) {
     const availableActions = all.filter(isAction);

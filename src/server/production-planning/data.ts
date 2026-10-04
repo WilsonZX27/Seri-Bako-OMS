@@ -29,12 +29,12 @@ export async function loadPlanningContext(db: LooseSupabase, companyId: string, 
     rows(db.from("production_planning_settings").select("kitchen_id,enabled,draft_time,buffer_percent,max_decrease_percent,recipients").eq("company_id", companyId).eq("kitchen_id", kitchenId)),
     needsRules ? complete(() => db.from("production_batch_rules").select("*", { count: "exact" }).eq("company_id", companyId).eq("kitchen_id", kitchenId), ["product_id"]) : Promise.resolve([]),
     needsRules ? complete(() => db.from("production_outlet_minimums").select("*", { count: "exact" }).eq("company_id", companyId).eq("kitchen_id", kitchenId), ["branch_id", "product_id"]) : Promise.resolve([]),
-    needsEvents ? complete(() => db.from("production_planning_events").select("id,kitchen_id,branch_id,event_date,name,notes,confirmed,lines", { count: "exact" }).eq("company_id", companyId).eq("kitchen_id", kitchenId).gte("event_date", view === "events" ? date : addDays(date, -56)).lte("event_date", view === "events" ? addDays(date, 90) : date)) : Promise.resolve([]),
+    needsEvents ? complete(() => { const query=db.from("production_planning_events").select("id,kitchen_id,branch_id,event_date,name,notes,confirmed,lines", { count: "exact" }).eq("company_id", companyId); return (view==="events"?query:query.eq("kitchen_id",kitchenId)).gte("event_date", view === "events" ? date : addDays(date, -56)).lte("event_date", view === "events" ? addDays(date, 90) : date); }) : Promise.resolve([]),
     view === "generation" ? rows(db.from("public_holiday_branches").select("branch_id,holiday_id").eq("company_id", companyId).eq("holiday_date", date).limit(1000)) : Promise.resolve([]),
   ]);
   const kitchens = options.kitchens ?? branches.filter((b) => b.branch_type === "central_kitchen") as unknown as PlanningBranch[];
   const routeIds = new Set(routes.filter((r) => !r.effective_to || String(r.effective_to) >= date).map((r) => r.destination_branch_id));
-  const outlets = branches.filter((b) => routeIds.has(b.id)) as unknown as PlanningBranch[];
+  const outlets = branches.filter((b) => view==="events"?b.branch_type==="outlet":routeIds.has(b.id)) as unknown as PlanningBranch[];
   const food = (products.filter((p) => String(p.category).trim().toLowerCase() !== "packaging") as unknown as PlanningProduct[]).sort(compareProductDisplayOrder);
   const holidayIds = [...new Set(holidayLinks.map((h) => String(h.holiday_id)))];
   const holidays = holidayIds.length ? await rows(db.from("public_holidays").select("id,name").eq("company_id", companyId).in("id", holidayIds)) : [];
@@ -90,7 +90,7 @@ export async function buildPlanPayload(db: LooseSupabase, companyId: string, kit
     }
     const event_qty = events.filter((e) => !e.branch_id).reduce((sum,e) => sum+e.lines.filter((l) => l.product_id===product.id).reduce((s,l) => s+Number(l.qty),0),0);
     const yield_per_tray = batch ? Number(batch.yield_per_tray) : null;
-    product_lines.push({ product_id: product.id, yield_per_tray, trays: manual || !yield_per_tray ? null : Math.ceil((demand + event_qty) / yield_per_tray), retained_qty: 0, actual_qty: null, reason: "", event_qty });
+    product_lines.push({ tray_mode: "automatic", product_id: product.id, yield_per_tray, trays: manual || !yield_per_tray ? null : Math.ceil((demand + event_qty) / yield_per_tray), retained_qty: 0, actual_qty: null, reason: "", event_qty });
   }
   return { kitchen_id: kitchenId, delivery_date: date, buffer_percent: Number(context.config.buffer_percent), max_decrease_percent: Number(context.config.max_decrease_percent), forecast_version: FORECAST_VERSION, product_lines, allocations, events, holidays: context.holidays };
 }

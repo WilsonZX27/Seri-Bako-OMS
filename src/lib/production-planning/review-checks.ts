@@ -23,7 +23,8 @@ export function planReviewChecks(allocations: Allocation[], production: Producti
     const traysReady = validQuantity(line.trays) && Number.isInteger(line.trays);
     const retentionReady = validQuantity(line.retained_qty);
     if (!yieldReady) checks.push({...location, category: "configuration", message: "Set the tray yield in Settings, then recalculate."});
-    if (!traysReady) checks.push({...location, category: "quantities", message: "Enter a whole number of trays; zero is valid."});
+    if (!traysReady) checks.push({...location, category: "quantities", message: line.tray_mode==="automatic"?"Complete outlet quantities and tray yield to calculate production.":"Enter a whole number of trays; zero is valid."});
+    if(line.tray_mode==="manual"&&!line.reason.trim()) checks.push({...location,category:"reasons",message:"Add the manual production override reason."});
     if (!retentionReady) checks.push({...location, category: "quantities", message: "Enter a valid quantity to keep in the kitchen."});
     if (line.retained_qty > 0 && !line.reason.trim()) checks.push({...location, category: "reasons", message: "Add the reason for keeping stock in the kitchen."});
     const destinations = allocations.filter(item => item.product_id === line.product_id);

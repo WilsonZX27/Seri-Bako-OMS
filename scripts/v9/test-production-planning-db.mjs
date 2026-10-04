@@ -41,6 +41,7 @@ try {
  await db.exec(sql('supabase/migrations/329_production_tray_modes_event_supply.sql'));
  check((await query("select proacl::text,proowner,prosecdef from pg_proc where oid='public.update_production_plan(uuid,integer,text,jsonb,uuid)'::regprocedure"))[0],beforePartialFunction);
  await db.exec(sql('supabase/migrations/331_product_supply_periods.sql'));
+ await db.exec(sql('supabase/migrations/332_outlet_daily_completed_summary.sql'));
  await actor(managerAuth);
  await rpc('configure_production_planning',[{kitchen_id:kitchen,enabled:false,draft_time:'20:00',buffer_percent:10,max_decrease_percent:10,recipients:['kitchen@example.test'],batches:[{product_id:product,yield_per_tray:16}],minimums:[{branch_id:outlet,product_id:product,minimum_qty:4},{branch_id:outlet2,product_id:product,minimum_qty:0}]}]);
  check((await query('select forecast_basis from production_batch_rules'))[0].forecast_basis,'manual');
@@ -176,6 +177,14 @@ try {
  await rejected(()=>rpc('update_production_plan',[plan,3,'save',{},uid()]),/Plan changed/);
  const revise=await rpc('update_production_plan',[plan,5,'revise',{},uid()]);
  check((await query('select version,status from production_plans where id=$1',[revise.id]))[0],{version:2,status:'draft'});
+ await db.exec('reset role'); await actor(managerAuth);
+ const beforeCompleted=(await query('select * from public.get_outlet_daily_completed_summary($1)',['2026-10-03']))[0];
+ const extraDraft=uid();
+ await query("insert into outlet_daily_records(id,company_id,branch_id,record_date,status) values($1,$2,$3,'2026-10-03','draft')",[extraDraft,company,outlet2]);
+ const afterCompleted=(await query('select * from public.get_outlet_daily_completed_summary($1)',['2026-10-03']))[0];
+ check(afterCompleted,beforeCompleted);
+ check(Number(afterCompleted.missing_evening),0);
+ check((await query("select has_function_privilege('anon','public.get_outlet_daily_completed_summary(date)','execute') allowed"))[0].allowed,false);
  // Inclusive seasonal dates: UI filtering alone is insufficient; direct RPCs must reject.
  await db.exec('reset role'); await actor(managerAuth);
  const seasonal=uid();

@@ -785,12 +785,16 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
 export async function getOutletDailyHistoricalContext() {
   const end=shiftDate(todayInKualaLumpur(),-1);
   const db=looseSupabase(await createClient());
-  const [summaryResult,completion]=await Promise.all([
-    db.rpc("get_outlet_daily_today_summary",{p_record_date:end}),
-    getOutletDailyCompletionMatrix({history_date:end,period:"30"}),
-  ]);
+  const summaryPromise=(async()=>{
+    const latest=await db.from("outlet_daily_records").select("record_date").lte("record_date",end).in("status",["evening_completed","reviewed"]).order("record_date",{ascending:false}).limit(1);
+    if(latest.error)throw new Error(latest.error.message);
+    const summaryDate=latest.data?.[0]?.record_date?String(latest.data[0].record_date):null;
+    return {summaryDate,result:await db.rpc("get_outlet_daily_completed_summary",{p_record_date:summaryDate??end})};
+  })();
+  const [historical,completion]=await Promise.all([summaryPromise,getOutletDailyCompletionMatrix({history_date:end,period:"30"})]);
+  const summaryResult=historical.result;
   if(summaryResult.error)throw new Error(summaryResult.error.message);
   const summary=(Array.isArray(summaryResult.data)?summaryResult.data[0]:summaryResult.data) as {today_records:number;today_sent:number|null;today_received:number|null;today_received_zero_with_sent:number;posted_today:number;ready_to_post:number;missing_evening:number}|null;
   if(!summary)throw new Error("Historical daily summary unavailable.");
-  return {end,start:completion.dates[0],summary,gaps:completion.rows.map(row=>({...row,gaps:row.cells.filter(cell=>cell.status!=="reviewed")})).filter(row=>row.gaps.length>0)};
+  return {end,summary_date:historical.summaryDate,start:completion.dates[0],summary,gaps:completion.rows.map(row=>({...row,gaps:row.cells.filter(cell=>cell.status!=="reviewed")})).filter(row=>row.gaps.length>0)};
 }

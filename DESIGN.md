@@ -1,3 +1,7 @@
+### v9.2.77 (unreleased) — Operational rework in progress
+
+Planning reads only the current tab and selected plan version. Settings uses the shared operational phone list and desktop Table; product search preserves edits. Scheduled events reuse the same owners. Routine panels omit repeated forecast/email disclaimers; optional evidence retains the prediction inputs. Settings can be saved without email recipients, while the existing release guard still requires them. Migration 325 remains prepared, not applied, pending explicit approval. Production remains v9.2.76 / database 324 until the QA ledger records a verified deployment; this is not overall closure.
+
 ## 2026-10-04 authenticated closure authority — v9.2.76
 
 Repository migrations reviewed through `325`; forward-only migration 历史已到 `325`. Migration 325 is prepared and rollback-tested but NOT applied: explicit production permission approval is pending. Production remains applied through 324. Migration 324 repairs draft-recalculation SQL aliases without changing authorisation or workflow. Owner UAT identified the failure; the expanded isolated fixture now covers recalculation, removal of obsolete allocations and preservation of reasoned manual quantities/trays. Production v9.2.76 is deployed (8u2otQahGNK3w3XXh7hdbat2mLtx); migration 324 is applied and live draft recalculation passed. Authenticated Owner surface checks and outstanding configuration dependencies are recorded in docs/qa/OMS_FEATURE_CLOSURE_2026-10-04.md; historical entries below do not define current deployment state.

@@ -7,6 +7,7 @@ import { getCurrentProfile } from "@/server/queries/common";
 import { buildPlanPayload } from "@/server/production-planning/data";
 import { addDays } from "@/lib/production-planning/forecast";
 import { deliverPlanningEmails } from "@/server/production-planning/email";
+import { formatActionError } from "@/server/actions/error-handling";
 import { logServerError } from "@/server/observability/logger";
 
 export type PlanningActionResult = { ok: boolean; message: string; id?: string };
@@ -20,7 +21,7 @@ async function run(operation: () => Promise<{ id?: string; message?: string }>):
     const result = await operation();
     revalidatePath("/production/planning"); revalidatePath("/outlet-daily-records"); revalidatePath("/production/delivery-orders"); revalidatePath("/outlet-daily-records/delivery-orders");
     return { ok: true, message: result.message ?? "Saved successfully.", ...result };
-  } catch (error) { return { ok: false, message: error instanceof Error ? error.message : "Could not save. Retry after reloading." }; }
+  } catch (error) { return { ok: false, message: formatActionError(error, "Could not save. Reload and retry.") }; }
 }
 async function manager() {
   const client = await createClient(); const db=looseSupabase(client);
@@ -62,7 +63,7 @@ export async function confirmDispatch(planId: string, revision: number, payload:
 }
 export async function configurePlanning(payload: unknown) {
   return run(async () => { const {db}=await manager();
-    const parsed=z.object({kitchen_id:uuid,enabled:z.boolean(),draft_time:z.literal("20:00"),buffer_percent:quantity.max(100),max_decrease_percent:quantity.max(100),recipients:z.array(z.email()).min(1).max(50),batches:z.array(z.object({product_id:uuid,yield_per_tray:quantity.positive(),forecast_basis:z.enum(["same_day","manual"]).default("manual")})).max(500),minimums:z.array(z.object({branch_id:uuid,product_id:uuid,minimum_qty:quantity})).max(10000)}).parse(payload);
+    const parsed=z.object({kitchen_id:uuid,enabled:z.boolean(),draft_time:z.literal("20:00"),buffer_percent:quantity.max(100),max_decrease_percent:quantity.max(100),recipients:z.array(z.email()).max(50),batches:z.array(z.object({product_id:uuid,yield_per_tray:quantity.positive(),forecast_basis:z.enum(["same_day","manual"]).default("manual")})).max(500),minimums:z.array(z.object({branch_id:uuid,product_id:uuid,minimum_qty:quantity})).max(10000)}).parse(payload);
     await rpc(db,"configure_production_planning",{p_payload:parsed}); return {}; });
 }
 export async function savePlanningEvent(payload: unknown) {

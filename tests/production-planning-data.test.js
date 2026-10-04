@@ -41,3 +41,54 @@ test('planning reads use the real Supabase query builder including empty plans a
 });
 
 test("unconfirmed and multi-day products never receive the same-day proxy",async()=>{const f=fixture();delete f.tables.production_batch_rules[0].forecast_basis;const p=await buildPlanPayload(f.db,f.company,f.kitchen,"2026-10-03");const a=p.allocations.find(a=>a.product_id==="p-0");assert.equal(a.suggested_qty,null);assert.equal(a.evidence.method,"manual");assert.match(a.evidence.manualReason,/Multi-day/);});
+
+test('workspace contexts read only their tab data and reuse the already-authorized kitchen list',async()=>{
+ const {createClient}=require('@supabase/supabase-js');const data=load('src/server/production-planning/data.ts');
+ for(const view of ['plan','settings','events']){
+  const calls=[];
+  const db=createClient('https://fixture.supabase.co','fixture-public-key',{auth:{persistSession:false,autoRefreshToken:false},global:{fetch:async(url)=>{
+   const u=new URL(url);calls.push(u);return new Response('[]',{status:200,headers:{'Content-Type':'application/json','Content-Range':'*/0'}});
+  }}});
+  const kitchens=[{id:'kitchen',branch_type:'central_kitchen',branch_name:'Kitchen'}];
+  const context=await data.loadPlanningContext(db,'company','kitchen','2026-10-04',{view,kitchens});
+  assert.equal(context.kitchens,kitchens);
+  const tables=calls.map(u=>u.pathname.split('/').at(-1));
+  assert.ok(!tables.includes('public_holiday_branches'));
+  assert.equal(tables.includes('production_batch_rules'),view==='settings');
+  assert.equal(tables.includes('production_outlet_minimums'),view==='settings');
+  assert.equal(tables.includes('production_planning_events'),view==='events');
+  const branch=calls.find(u=>u.pathname.endsWith('/branches'));assert.equal(branch.searchParams.get('branch_type'),'eq.outlet');
+  assert.ok(!calls.filter(u=>/\/(branches|products|branch_supply_routes)$/.test(u.pathname)).some(u=>u.searchParams.get('select')==='*'));
+  if(view==='events'){
+   const event=calls.find(u=>u.pathname.endsWith('/production_planning_events'));
+   assert.deepEqual(event.searchParams.getAll('event_date'),['gte.2026-10-04','lte.2027-01-02']);
+  }
+ }
+});
+
+test('packaging with case and whitespace variations never enters food forecasts',async()=>{
+ const f=fixture();f.tables.products[0].category='  Packaging  ';
+ const p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');
+ assert.ok(!p.product_lines.some(line=>line.product_id==='p-0'));
+ assert.ok(!p.allocations.some(line=>line.product_id==='p-0'));
+});
+
+test('a selected plan reads only its own allocations, products and snapshot; stale version links select the latest',async()=>{
+ const {createClient}=require('@supabase/supabase-js');const data=load('src/server/production-planning/data.ts');
+ for(const requested of ['older','missing']){
+  const calls=[];const selected=requested==='older'?'older':'latest';
+  const db=createClient('https://fixture.supabase.co','fixture-public-key',{auth:{persistSession:false,autoRefreshToken:false},global:{fetch:async(url)=>{
+   const u=new URL(url);calls.push(u);const table=u.pathname.split('/').at(-1);let rows=[];
+   if(table==='production_plans') rows=u.searchParams.get('id')?[{id:selected,events:[{id:'event-'+selected}],holidays:[]}]:[{id:'older',version:1,status:'superseded'},{id:'latest',version:2,status:'draft'}];
+   if(table==='production_plan_products') rows=[{plan_id:selected,product_id:'p1',trays:1}];
+   if(table==='production_plan_allocations') rows=[{plan_id:selected,product_id:'p1',branch_id:'outlet',approved_qty:16}];
+   return new Response(JSON.stringify(rows),{status:200,headers:{'Content-Type':'application/json','Content-Range':rows.length?`0-${rows.length-1}/${rows.length}`:'*/0'}});
+  }}});
+  const plans=await data.loadPlans(db,'company','kitchen','2026-10-04',requested);
+  assert.equal(plans.length,2);assert.equal(plans.find(p=>p.id===selected).allocations.length,1);
+  assert.equal(plans.find(p=>p.id!==selected).allocations.length,0);
+  assert.equal(plans.find(p=>p.id!==selected).events.length,0);
+  for(const url of calls.filter(u=>/\/(production_plan_products|production_plan_allocations)$/.test(u.pathname))) assert.equal(url.searchParams.get('plan_id'),'eq.'+selected);
+  assert.ok(calls.filter(u=>u.pathname.endsWith('/production_plans')).every(u=>u.searchParams.get('select')!=='*'));
+ }
+});

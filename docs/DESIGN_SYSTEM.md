@@ -147,3 +147,7 @@ The unversioned foundation above is authoritative. Versioned sections below are 
 ## v9.2.76 acceptance refinements
 
 ModalShell restores focus to its captured trigger when an explicit triggerRef is absent. FilterBar and UnifiedListHeader accept a semantic resultLabel, preserving records as their default. Delivery-order operational actions compose WorkspaceGrid and ConsoleSection; controlled correction uses DestructiveActionDialog. The printable DO table is a semantic print variant with shared tokens and bounded 20-line A4 pages, rather than a second application design system. Authenticated responsive evidence and remaining activation dependencies live in docs/qa/OMS_FEATURE_CLOSURE_2026-10-04.md.
+
+## v9.2.77 candidate ownership
+
+PlanningEvents and PlanningProductRules are business compositions of Table, OperationalList, OperationalListRow, Badge, Input and SelectControl. Desktop and phone show the same controlled data with the established breakpoint contract. The product finder stays local and never submits the parent settings form. No new CSS system or motion primitives are introduced. Routine notes are concise; detailed forecast inputs remain in optional evidence. These are candidate changes until rendered acceptance is recorded.

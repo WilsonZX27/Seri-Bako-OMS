@@ -17,21 +17,25 @@ async function rows<T extends Record<string, unknown>>(query: LooseQuery<T>) {
   if (result.error || !result.data) throw new Error(result.error?.message ?? "Planning data unavailable.");
   return result.data;
 }
-export async function loadPlanningContext(db: LooseSupabase, companyId: string, kitchenId: string, date: string) {
+type ContextOptions = { view?: "generation" | "plan" | "settings" | "events"; kitchens?: PlanningBranch[] };
+export async function loadPlanningContext(db: LooseSupabase, companyId: string, kitchenId: string, date: string, options: ContextOptions = {}) {
+  const view = options.view ?? "generation";
+  const needsRules = view === "generation" || view === "settings";
+  const needsEvents = view === "generation" || view === "events";
   const [branches, products, routes, settings, batches, minimums, events, holidayLinks] = await Promise.all([
-    complete(() => db.from("branches").select("*", { count: "exact" }).eq("company_id", companyId).eq("status", "active").is("deleted_at", null)),
-    complete(() => db.from("products").select("*", { count: "exact" }).eq("company_id", companyId).eq("status", "active").is("deleted_at", null)),
-    complete(() => db.from("branch_supply_routes").select("*", { count: "exact" }).eq("company_id", companyId).eq("source_branch_id", kitchenId).eq("status", "active").eq("is_primary", true).lte("effective_from", date)),
-    rows(db.from("production_planning_settings").select("*").eq("company_id", companyId).eq("kitchen_id", kitchenId)),
-    complete(() => db.from("production_batch_rules").select("*", { count: "exact" }).eq("company_id", companyId).eq("kitchen_id", kitchenId), ["product_id"]),
-    complete(() => db.from("production_outlet_minimums").select("*", { count: "exact" }).eq("company_id", companyId).eq("kitchen_id", kitchenId), ["branch_id", "product_id"]),
-    complete(() => db.from("production_planning_events").select("*", { count: "exact" }).eq("company_id", companyId).eq("kitchen_id", kitchenId).gte("event_date", addDays(date, -56)).lte("event_date", date)),
-    rows(db.from("public_holiday_branches").select("branch_id,holiday_id").eq("company_id", companyId).eq("holiday_date", date).limit(1000)),
+    complete(() => { const query = db.from("branches").select("id,branch_name,branch_type", { count: "exact" }).eq("company_id", companyId).eq("status", "active").is("deleted_at", null); return options.kitchens ? query.eq("branch_type", "outlet") : query; }),
+    complete(() => db.from("products").select("id,product_code,product_name,category,display_order,selling_unit", { count: "exact" }).eq("company_id", companyId).eq("status", "active").is("deleted_at", null)),
+    complete(() => db.from("branch_supply_routes").select("id,destination_branch_id,effective_to", { count: "exact" }).eq("company_id", companyId).eq("source_branch_id", kitchenId).eq("status", "active").eq("is_primary", true).lte("effective_from", date)),
+    rows(db.from("production_planning_settings").select("kitchen_id,enabled,draft_time,buffer_percent,max_decrease_percent,recipients").eq("company_id", companyId).eq("kitchen_id", kitchenId)),
+    needsRules ? complete(() => db.from("production_batch_rules").select("*", { count: "exact" }).eq("company_id", companyId).eq("kitchen_id", kitchenId), ["product_id"]) : Promise.resolve([]),
+    needsRules ? complete(() => db.from("production_outlet_minimums").select("*", { count: "exact" }).eq("company_id", companyId).eq("kitchen_id", kitchenId), ["branch_id", "product_id"]) : Promise.resolve([]),
+    needsEvents ? complete(() => db.from("production_planning_events").select("id,kitchen_id,branch_id,event_date,name,notes,confirmed,lines", { count: "exact" }).eq("company_id", companyId).eq("kitchen_id", kitchenId).gte("event_date", view === "events" ? date : addDays(date, -56)).lte("event_date", view === "events" ? addDays(date, 90) : date)) : Promise.resolve([]),
+    view === "generation" ? rows(db.from("public_holiday_branches").select("branch_id,holiday_id").eq("company_id", companyId).eq("holiday_date", date).limit(1000)) : Promise.resolve([]),
   ]);
-  const kitchens = branches.filter((b) => b.branch_type === "central_kitchen") as unknown as PlanningBranch[];
+  const kitchens = options.kitchens ?? branches.filter((b) => b.branch_type === "central_kitchen") as unknown as PlanningBranch[];
   const routeIds = new Set(routes.filter((r) => !r.effective_to || String(r.effective_to) >= date).map((r) => r.destination_branch_id));
   const outlets = branches.filter((b) => routeIds.has(b.id)) as unknown as PlanningBranch[];
-  const food = (products.filter((p) => String(p.category).toLowerCase() !== "packaging") as unknown as PlanningProduct[]).sort(compareProductDisplayOrder);
+  const food = (products.filter((p) => String(p.category).trim().toLowerCase() !== "packaging") as unknown as PlanningProduct[]).sort(compareProductDisplayOrder);
   const holidayIds = [...new Set(holidayLinks.map((h) => String(h.holiday_id)))];
   const holidays = holidayIds.length ? await rows(db.from("public_holidays").select("id,name").eq("company_id", companyId).in("id", holidayIds)) : [];
   const holidayNames = new Map(holidays.map((h) => [h.id, h.name]));
@@ -41,12 +45,16 @@ export async function loadPlanningContext(db: LooseSupabase, companyId: string, 
 export async function buildPlanPayload(db: LooseSupabase, companyId: string, kitchenId: string, date: string) {
   const context = await loadPlanningContext(db, companyId, kitchenId, date);
   if (!context.kitchens.some((k) => k.id === kitchenId)) throw new Error("Kitchen access is required.");
-  const historyRecords = await complete(() => db.from("outlet_daily_records").select("*", { count: "exact" }).eq("company_id", companyId).in("branch_id", context.outlets.map(b => b.id)).gte("record_date", addDays(date, -56)).lt("record_date", date).in("status", ["evening_completed", "reviewed"]));
+  const historyRecords = await complete(() => db.from("outlet_daily_records").select("id,branch_id,record_date", { count: "exact" }).eq("company_id", companyId).in("branch_id", context.outlets.map(b => b.id)).gte("record_date", addDays(date, -56)).lt("record_date", date).in("status", ["evening_completed", "reviewed"]));
   const recordMap = new Map(historyRecords.filter((r) => context.outlets.some((b) => b.id === r.branch_id)).map((r) => [String(r.id), r]));
   const ids = [...recordMap.keys()];
   const historyLines: Record<string, unknown>[] = [];
   // Bounded IN clauses avoid URL limits; every chunk is read to an exact count.
-  for (let i = 0; i < ids.length; i += 100) historyLines.push(...await complete(() => db.from("outlet_daily_record_lines").select("*", { count: "exact" }).in("record_id", ids.slice(i, i + 100))));
+  for (let offset = 0; offset < ids.length; offset += 400) {
+    const chunks = [0, 100, 200, 300].map(start => ids.slice(offset + start, offset + start + 100)).filter(chunk => chunk.length);
+    const results = await Promise.all(chunks.map(chunk => complete(() => db.from("outlet_daily_record_lines").select("id,record_id,product_id,morning_received_qty,morning_received_provided,evening_leftover_qty,wastage_qty,wastage_provided,stockout", { count: "exact" }).in("record_id", chunk))));
+    for (const result of results) historyLines.push(...result);
+  }
   const foodIds = new Set(context.products.map((p) => p.id));
   const incompleteRecords = new Set(historyLines.filter((l) => foodIds.has(String(l.product_id)) && (l.morning_received_provided !== true || l.wastage_provided !== true)).map((l) => String(l.record_id)));
   const series = new Map<string, HistoryPoint[]>();
@@ -82,15 +90,19 @@ export async function buildPlanPayload(db: LooseSupabase, companyId: string, kit
   }
   return { kitchen_id: kitchenId, delivery_date: date, buffer_percent: Number(context.config.buffer_percent), max_decrease_percent: Number(context.config.max_decrease_percent), forecast_version: FORECAST_VERSION, product_lines, allocations, events, holidays: context.holidays };
 }
-export async function loadPlans(db: LooseSupabase, companyId: string, kitchenId: string, date: string): Promise<Plan[]> {
-  const plans = (await complete(() => db.from("production_plans").select("*", { count: "exact" }).eq("company_id", companyId).eq("kitchen_id", kitchenId).eq("delivery_date", date))).sort((a,b) => Number(b.version)-Number(a.version));
+export async function loadPlans(db: LooseSupabase, companyId: string, kitchenId: string, date: string, selectedId?: string): Promise<Plan[]> {
+  const plans = (await complete(() => db.from("production_plans").select("id,company_id,kitchen_id,delivery_date,version,revision,status,buffer_percent,max_decrease_percent,created_at,approved_at", { count: "exact" }).eq("company_id", companyId).eq("kitchen_id", kitchenId).eq("delivery_date", date))).sort((a,b) => Number(b.version)-Number(a.version));
   if (!plans.length) return [];
-  const ids = plans.map((p) => p.id);
-  const [products, allocations] = await Promise.all([
-    complete(() => db.from("production_plan_products").select("*", { count: "exact" }).in("plan_id", ids), ["plan_id", "product_id"]),
-    complete(() => db.from("production_plan_allocations").select("*", { count: "exact" }).in("plan_id", ids), ["plan_id", "branch_id", "product_id"]),
+  const selected = plans.find(plan => plan.id === selectedId) ?? plans[0];
+  // Historical versions contribute selector metadata only. Forecast evidence and
+  // allocations are read for the chosen version, never for every revision.
+  const [snapshot, products, allocations] = await Promise.all([
+    rows(db.from("production_plans").select("id,events,holidays").eq("company_id", companyId).eq("id", selected.id).limit(1)),
+    complete(() => db.from("production_plan_products").select("*", { count: "exact" }).eq("plan_id", selected.id), ["product_id"]),
+    complete(() => db.from("production_plan_allocations").select("*", { count: "exact" }).eq("plan_id", selected.id), ["branch_id", "product_id"]),
   ]);
-  return plans.map((p) => ({ ...p, product_lines: products.filter((l) => l.plan_id===p.id), allocations: allocations.filter((l) => l.plan_id===p.id) })) as unknown as Plan[];
+  if (!snapshot[0]) throw new Error("This plan is no longer available. Reload to retry.");
+  return plans.map(plan => ({ ...plan, events: plan.id === selected.id ? snapshot[0].events : [], holidays: plan.id === selected.id ? snapshot[0].holidays : [], product_lines: plan.id === selected.id ? products : [], allocations: plan.id === selected.id ? allocations : [] })) as unknown as Plan[];
 }
 export async function loadDeliveryOrders(db: LooseSupabase, filters: { companyId: string; date?: string; id?: string; kitchenId?: string; branchId?: string; recordId?: string }): Promise<DeliveryOrder[]> {
   let query = db.from("production_delivery_orders").select("*").eq("company_id", filters.companyId).order("created_at");

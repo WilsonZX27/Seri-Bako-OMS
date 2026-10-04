@@ -22,16 +22,17 @@ export default async function OutletDailyInsightsPage({ searchParams }: { search
  const filters=await searchParams;
  const report=["products","trend","completion"].includes(filters.report??"")?filters.report!:"outlets";
  const end=filters.history_date??todayInKualaLumpur();
- const [options,canCreate,result]=await Promise.all([
+ const [options,canCreate,result,cost]=await Promise.all([
   getOutletDailyFormOptions(),hasPermission("outlet_daily_record.create"),
   Promise.allSettled([report==="completion"?getOutletDailyCompletionMatrix({branch:filters.branch,history_date:end}):getOutletDailyDemandTrend({period:"7",branch:filters.branch,history_date:end})]),
+  hasPermission("outlet_daily_record.view_all").then(async allowed => ({allowed, summary: allowed ? await getOutletDailyWastageCostSummary() : null})),
  ]);
  const loaded=result[0];
  if(loaded.status==="rejected")logServerError(loaded.reason,{source:"page.outletDailyInsights"});
  const trend=report!=="completion"&&loaded.status==="fulfilled"?loaded.value as Awaited<ReturnType<typeof getOutletDailyDemandTrend>>:null;
  const completion=report==="completion"&&loaded.status==="fulfilled"?loaded.value as Awaited<ReturnType<typeof getOutletDailyCompletionMatrix>>:null;
- const canViewWastageCost=await hasPermission("outlet_daily_record.view_all");
- const wastageCost=canViewWastageCost?await getOutletDailyWastageCostSummary():null;
+ const canViewWastageCost=cost.allowed;
+ const wastageCost=cost.summary;
  const params=new URLSearchParams({history_date:end,...(filters.branch?{branch:filters.branch}:{})});
  const tabs=[{id:"outlets",label:"By outlet",icon:Store},{id:"products",label:"By product",icon:Package},{id:"trend",label:"Trend",icon:ChartNoAxesCombined},{id:"completion",label:"Completion",icon:ClipboardCheck}].map(t=>({...t,href:`/outlet-daily-records/insights?${params}&report=${t.id}`}));
  return <><PageHeader title="Outlet Daily Records" description="Food wastage and submission insights." contentWidth="wide"/><WorkspaceGrid tabletCanvas="wide" rightRail={<><ConsoleSection title="Report coverage"><p className="text-xs">Seven days ending {formatDateOnly(end)} · food only.</p>{trend?<><p className="mt-2 text-xs">{trend.coverage.completed} completed of {trend.coverage.expected} outlet-days.</p><p className="mt-2 text-xs text-muted-foreground">Completed food records only.</p></>:null}</ConsoleSection>{canViewWastageCost&&wastageCost?<ConsoleSection title="Today's wastage value"><p className="flex justify-between text-xs"><span>Costed amount</span><strong>{wastageCost.amount===null?"Unavailable":`RM ${wastageCost.amount.toFixed(2)}`}</strong></p><p className="mt-2 text-xs text-muted-foreground">{wastageCost.amount===null&&wastageCost.state==="verified"?"No completed wastage recorded today":wastageCost.state==="verified"?`${wastageCost.priced_lines} costed lines`:wastageCost.state==="partial"?`${wastageCost.unavailable_lines} lines missing recipe cost`:"No active recipe cost snapshot"}</p></ConsoleSection>:null}</>}>
@@ -40,7 +41,7 @@ export default async function OutletDailyInsightsPage({ searchParams }: { search
    <input type="hidden" name="report" value={report}/><Input name="history_date" type="date" aria-label="History end date" defaultValue={end}/>
    <SelectControl name="branch" value={filters.branch??"all"} ariaLabel="Outlet" options={[{value:"all",label:"All outlets"},...options.branches.map(b=>({value:b.id,label:b.branch_name}))]}/>
   </FilterBar>
-  <WorkspaceTabs label="Insight report" current={report} items={tabs}/>
+  <WorkspaceTabs prefetchOnIntent label="Insight report" current={report} items={tabs}/>
   {trend?<dl className="sb-work-surface grid grid-cols-3 divide-x divide-[var(--sb-border-soft)] text-xs">{[{label:"Received",value:formatNumber(trend.summary.received)},{label:"Wastage",value:formatNumber(trend.summary.wastage)},{label:"Wastage rate",value:trend.summary.received>0?`${new Intl.NumberFormat("en-MY",{maximumFractionDigits:1}).format(trend.summary.wastage/trend.summary.received*100)}%`:"—"}].map(m=><div key={m.label} className="p-3"><dt className="text-muted-foreground">{m.label}</dt><dd className="mt-1 text-base font-semibold tabular-nums">{trend.coverage.reliable_lines?m.value:"—"}</dd></div>)}</dl>:null}
   {loaded.status==="rejected"?<Notice tone="warning" title="Insight unavailable">Reload to retry.</Notice>:report==="completion"?<OutletDailyCompletionMatrix dates={completion?.dates??[]} rows={completion?.rows??[]} summary={completion?.summary??null} canCreate={canCreate}/>:report==="trend"?<OutletDailyWastageChart points={trend?.daily??[]} branch={filters.branch}/>:<OutletDailyWastageOverview trend={trend} view={report==="products"?"products":"outlets"}/>}
  </WorkspaceGrid></>;

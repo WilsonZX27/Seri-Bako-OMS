@@ -11,5 +11,8 @@
       "path": "/api/cron/production-planning",
       "schedule": "0 12 * * *"
     }
+  ],
+  "regions": [
+    "sin1"
   ]
 }

@@ -19,7 +19,7 @@ const destination = z.object({ branch_id: uuid.nullable(), event_id: uuid.nullab
 async function run(operation: () => Promise<{ id?: string; message?: string }>): Promise<PlanningActionResult> {
   try {
     const result = await operation();
-    revalidatePath("/production/planning"); revalidatePath("/outlet-daily-records"); revalidatePath("/production/delivery-orders"); revalidatePath("/outlet-daily-records/delivery-orders");
+    revalidatePath("/production/planning"); revalidatePath("/outlet-daily-records"); revalidatePath("/outlet-daily-records/insights"); revalidatePath("/outlet-packaging"); revalidatePath("/production/delivery-orders"); revalidatePath("/outlet-daily-records/delivery-orders");
     return { ok: true, message: result.message ?? "Saved successfully.", ...result };
   } catch (error) { return { ok: false, message: formatActionError(error, "Could not save. Reload and retry.") }; }
 }

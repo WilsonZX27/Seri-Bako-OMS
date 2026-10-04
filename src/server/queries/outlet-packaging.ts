@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { todayInKualaLumpur } from "@/lib/business-date";
 import { isMockMode } from "@/lib/mock-mode";
 import { looseSupabase } from "@/lib/supabase/loose";
@@ -22,7 +23,8 @@ export type PackagingReport = {
  products: Array<{ id: string; code: string; name: string; unit: string }>;
  outlets: Array<{ id: string; name: string }>;
 };
-export async function getOutletPackagingReport(days: 7 | 30): Promise<PackagingReport> {
+// Request-scoped deduplication only: never reuse authorization or report data across requests.
+export const getOutletPackagingReport = cache(async function getOutletPackagingReport(days: 7 | 30): Promise<PackagingReport> {
  const today=todayInKualaLumpur();
  if(isMockMode())return {rows:[],latest:[],products:[],outlets:[],today};
  const db=looseSupabase(await createClient());
@@ -31,4 +33,4 @@ export async function getOutletPackagingReport(days: 7 | 30): Promise<PackagingR
  const report=result.data as PackagingReport|null;
  if(!report||!Array.isArray(report.rows)||!Array.isArray(report.latest)||!Array.isArray(report.products)||!Array.isArray(report.outlets))throw new Error("Packaging report could not be verified.");
  return report;
-}
+});

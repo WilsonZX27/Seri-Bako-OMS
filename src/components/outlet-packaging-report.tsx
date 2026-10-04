@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
@@ -31,15 +31,23 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
     url.searchParams.set("days", String(nextDays));
     startPeriodTransition(() => router.replace(`${url.pathname}${url.search}`, { scroll: false }));
   };
-  const latest = report.latest.filter((row) => outlet === "all" || row.branchId === outlet);
+  const latest = useMemo(() => report.latest.filter((row) => outlet === "all" || row.branchId === outlet), [report.latest, outlet]);
   const start = shiftBusinessDate(report.today, 1 - days);
-  const rows = report.rows.filter((row) => row.date >= start && (outlet === "all" || row.branchId === outlet) && row.code === product);
+  const rows = useMemo(() => report.rows.filter(row => row.date >= start && (outlet === "all" || row.branchId === outlet) && row.code === product), [report.rows, start, outlet, product]);
   const selectedProduct = report.products.find((item) => item.code === product);
-  const points = Array.from({ length: days }, (_, index) => {
-    const date = shiftBusinessDate(report.today, index + 1 - days);
-    const daily = rows.filter((row) => row.date === date);
-    return { date, rows: daily, value: daily.length ? daily.reduce((sum, row) => sum + row.usage, 0) : null };
-  });
+  const points = useMemo(() => {
+    // Group once, rather than scan every report row again for each day and chart click.
+    const byDate = new Map<string, Report["rows"]>();
+    for (const row of rows) {
+      const group = byDate.get(row.date) ?? [];
+      group.push(row); byDate.set(row.date, group);
+    }
+    return Array.from({ length: days }, (_, index) => {
+      const date = shiftBusinessDate(report.today, index + 1 - days);
+      const daily = byDate.get(date) ?? [];
+      return { date, rows: daily, value: daily.length ? daily.reduce((sum, row) => sum + row.usage, 0) : null };
+    });
+  }, [rows, report.today, days]);
   const maximum = Math.max(1, ...points.map((point) => point.value ?? 0));
   const selected = points.find((point) => point.date === selectedDate);
   const count = outlet === "all" ? report.outlets.length : 1;

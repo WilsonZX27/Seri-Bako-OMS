@@ -1,6 +1,14 @@
+## v9.2.85 (unreleased) — measured outlet reporting performance
+
+Migration 330 is applied: Daily Records resolves the original authorized branch predicate once per statement; child lines inherit the same parent SELECT RLS via a set. No persistent permission cache, changed company/outlet access, write policies, operational values or stock posting. Live rollback comparison across eight active role categories returned identical parent/line/report results. Same Owner, date and 30-day Packaging EXPLAIN ANALYZE: 3,277.739ms before, 151.633ms after (95.4% reduction); this is database execution time, not full browser latency. Migration 325 remains pending and unrelated Advisor findings are not claimed cleared.
+
+Packaging uses request-scoped React cache deduplication only, keeping fresh RLS across requests; local chart series are memoized and grouped in one pass. Insights cost and report reads run independently in parallel. Shared IntentPrefetchLink warms opted-in Planning/Daily Records/Insights tabs only on pointer or keyboard intent, with duplicate warming suppressed; no eager viewport loading of every report. Successful daily save/post/void and Planning writes invalidate Insights and Packaging route data. Forecast results continue to be persisted in plan versions; no new materialized inventory or historical confirmations are introduced. Cross-request report TTL caching is deliberately not enabled without a verified permission/freshness version key. Source convention follows Next.js request/route caching and PostgreSQL statement-level RLS semantics.
+
+Vercel functions are configured in sin1 to colocate with the confirmed ap-southeast-1 database; build location is not used as runtime-region evidence. Application publication and authenticated browser timing remain pending. Isolated scope tests cover company A/B, outlet, routed kitchen, missing assignment/identity, denied permission, immediate scope changes and orphan/anonymous denial. Final test/build counts and screenshots belong to docs/qa/OMS_PRODUCTION_REWORK_2026-10-04.md.
+
 ## Current repository / database distinction
 
-forward-only migration 历史已到 `329`。Migration 329 applied in a source-guarded transaction and was independently read back. Applied ledger: 324, 326, 327, 328, 329; 325 remains pending. Existing product rows receive NULL tray_mode without changing trays or snapshots. Authenticated Manager/Owner resolve_production_event_supply reads only their company; PUBLIC and anon execution is revoked. Existing transactional function ACLs/owners are preserved.
+forward-only migration 历史已到 `330`。Migration 329 applied in a source-guarded transaction and was independently read back. Applied ledger: 324, 326, 327, 328, 329; 325 remains pending. Existing product rows receive NULL tray_mode without changing trays or snapshots. Authenticated Manager/Owner resolve_production_event_supply reads only their company; PUBLIC and anon execution is revoked. Existing transactional function ACLs/owners are preserved.
 
 ## v9.2.84 (deployed) — compact Planning and explicit query actions
 

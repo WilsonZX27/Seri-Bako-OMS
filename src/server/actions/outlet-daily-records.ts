@@ -252,7 +252,7 @@ export async function saveOutletDailyRecord(formData: FormData) {
         },
       });
     }
-    revalidateWorkspaceState(["/outlet-daily-records", `/outlet-daily-records/${data}`]);
+    revalidateWorkspaceState(["/outlet-daily-records", "/outlet-daily-records/insights", "/outlet-packaging", `/outlet-daily-records/${data}`]);
     const successMessage = payload.sales_unavailable
       ? "Outlet daily quantities saved. Sales entries were invalid and were not saved; correct them for Finance follow-up."
       : salesReconciliationUnavailable
@@ -283,7 +283,7 @@ export async function postOutletDailyRecord(id: string) {
       message: "Outlet daily record posted",
       metadata: { status: "reviewed" },
     });
-    revalidateWorkspaceState(["/outlet-daily-records", `/outlet-daily-records/${recordId}`]);
+    revalidateWorkspaceState(["/outlet-daily-records", "/outlet-daily-records/insights", "/outlet-packaging", `/outlet-daily-records/${recordId}`]);
     safeRedirectWithMessage(`/outlet-daily-records/${recordId}`, "success", "Outlet daily record posted. Outlet editing is now locked.");
   } catch (error) {
     rethrowRedirect(error);
@@ -303,7 +303,7 @@ export async function voidOutletDailyRecord(id: string, formData: FormData) {
       p_reason: reason,
     });
     if (error) throw new Error(error.message);
-    revalidateWorkspaceState(["/outlet-daily-records", `/outlet-daily-records/${recordId}`]);
+    revalidateWorkspaceState(["/outlet-daily-records", "/outlet-daily-records/insights", "/outlet-packaging", `/outlet-daily-records/${recordId}`]);
     safeRedirectWithMessage(`/outlet-daily-records/${recordId}`, "success", "Outlet daily record voided.");
   } catch (error) {
     rethrowRedirect(error);

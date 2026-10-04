@@ -1,3 +1,5 @@
+当前 forward-only migration 历史已到 `328`：Goods Receiving 字段歧义热修复已应用；325 仍待单独批准。此条不更新以下历史快照。
+
 ## v9.2.82 (unreleased) — actionable plan review groups
 
 The existing Plan checks console composes shared ConsoleSection/Button with native disclosure groups for Settings, quantities, Manager reasons and production balance. Exact product/outlet messages remain accessible, and the current-date/kitchen Settings link is shown only when configuration is incomplete. Unsaved edits never display Ready for review. Review and database gates are unchanged; no CSS, motion, permission or database changes. The business composition lives in production-planning-review-checks.tsx; generic components retain their existing ownership. Production remains v9.2.81 with 324, 326 and 327 applied, 325 pending. Formal v9.2.82 verification is not yet complete.

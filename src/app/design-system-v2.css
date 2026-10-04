@@ -2348,7 +2348,7 @@ html[data-design-layer="v2"] :is(.sb-planning-workspace, .sb-planning-actions, .
 
 /* Operational desktop density follows the 36px register; phone targets retain 44px. */
 html[data-design-layer="v2"] .sb-query-fields > input[type="date"],
-html[data-design-layer="v2"] .sb-query-fields > label:has(input[type="date"]) { flex: 0 1 168px; }
+html[data-design-layer="v2"] .sb-query-fields > :has(input[type="date"]) { flex: 0 1 168px; }
 html[data-design-layer="v2"] .sb-query-actions { align-items: center; }
 html[data-design-layer="v2"] .sb-query-actions > button { color: #084b37; background: #e7f1eb; }
 html[data-design-layer="v2"] .sb-planning-matrix tbody .sb-planning-product { position: sticky; left: 32px; z-index: 2; background: var(--sb-surface); }

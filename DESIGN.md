@@ -1,6 +1,6 @@
-## v9.2.83 (unreleased) — Purchase Request list chronology hotfix
+## v9.2.83 (deployed) — Purchase Request list chronology hotfix
 
-The default Purchase Request register shows newest creation first, before pagination. Explicit natural document-number sorting remains available. This fixes October requests appearing behind September records because month abbreviations were compared as text. No request status or business records are changed.
+Production deployment dpl_DsLmSB87WZSXxTatYTD61kEdyFnv is Ready and aliased to https://system.seribako.com.my. The default Purchase Request register shows newest creation first, before pagination. Explicit natural document-number sorting remains available. This fixes October requests appearing behind September records because month abbreviations were compared as text. No request status or business records are changed.
 
 ## v9.2.82 (unreleased) — actionable plan review groups
 

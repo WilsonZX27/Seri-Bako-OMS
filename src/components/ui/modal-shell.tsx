@@ -29,7 +29,7 @@ export function ModalShell({
   useEffect(() => {
     if (!open) return;
     const previousOverflow = document.body.style.overflow;
-    const trigger = triggerRef?.current;
+    const trigger = triggerRef?.current ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
     document.body.style.overflow = "hidden";
     const dialog = dialogRef.current;
     const focusable = () => Array.from(dialog?.querySelectorAll<HTMLElement>("button, a, input, select, textarea, [tabindex]:not([tabindex='-1'])") ?? []).filter((element) => !element.hasAttribute("disabled"));

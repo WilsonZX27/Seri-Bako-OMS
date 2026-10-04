@@ -10,6 +10,7 @@ import { UnifiedListHeader } from "@/components/common/UnifiedListHeader";
 export function FilterBar({
   children,
   resultCount,
+  resultLabel,
   resetHref,
   filtered = false,
   activeCount = 0,
@@ -20,6 +21,7 @@ export function FilterBar({
 }: {
   children: ReactNode;
   resultCount?: number;
+  resultLabel?: string;
   resetHref: string;
   filtered?: boolean;
   activeCount?: number;
@@ -28,7 +30,7 @@ export function FilterBar({
   phoneMode?: "drawer" | "inline";
   phonePrimary?: "inline" | "drawer";
 }) {
-  return <UnifiedListHeader {...{ children, resultCount, resetHref, filtered, activeCount, className, phoneOnly, phoneMode, phonePrimary }} />;
+  return <UnifiedListHeader {...{ children, resultCount, resultLabel, resetHref, filtered, activeCount, className, phoneOnly, phoneMode, phonePrimary }} />;
 }
 
 FilterBarMore.displayName = "FilterBarMore";

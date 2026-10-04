@@ -1,3 +1,11 @@
+## 2026-10-04 authenticated closure authority — v9.2.76
+
+Repository migrations reviewed through `324`; forward-only migration 历史已到 `324`. Migration 324 repairs draft-recalculation SQL aliases without changing authorisation or workflow. Owner UAT identified the failure; the expanded isolated fixture now covers recalculation, removal of obsolete allocations and preservation of reasoned manual quantities/trays. Production v9.2.76 is deployed (8u2otQahGNK3w3XXh7hdbat2mLtx); migration 324 is applied and live draft recalculation passed. Authenticated Owner surface checks and outstanding configuration dependencies are recorded in docs/qa/OMS_FEATURE_CLOSURE_2026-10-04.md; historical entries below do not define current deployment state.
+
+### v9.2.76 (deployed) — Authenticated acceptance follow-up
+
+Daily Records list/form, Insights, Planning and Packaging open with Owner authentication. Release-width evidence is tracked in the 2026-10-04 QA ledger. Shared filter counts accept a semantic noun. DO actions use the shared right console and controlled-correction dialog; A4 printing resets responsive split geometry and uses bounded 20-line pages. No production UAT approvals or dispatches were created.
+
 ## 2026-10-04 closure baseline — v9.2.75 candidate
 
 Code, applied database migrations, production deployment and authenticated acceptance are separate evidence. The first v9.2.75 upload failed; the subsequent deployment EmWcZ4wEdPU7Wqjs1P56x65SKA1L completed and aliased to the production domain. Authenticated acceptance remains pending. Repository migrations reviewed through `323`; linked Production ledger verified through `323` on 2026-10-04. Migration 323 adds reviewed per-product demand basis. Application deployment and authenticated acceptance remain separate gates.

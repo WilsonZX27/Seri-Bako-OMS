@@ -1,3 +1,7 @@
+## 2026-10-04 authenticated closure authority — v9.2.76
+
+Repository migrations reviewed through `324`; forward-only migration 历史已到 `324`. Migration 324 repairs draft-recalculation SQL aliases without changing authorisation or workflow. Owner UAT identified the failure; the expanded isolated fixture now covers recalculation, removal of obsolete allocations and preservation of reasoned manual quantities/trays. Production v9.2.76 is deployed (8u2otQahGNK3w3XXh7hdbat2mLtx); migration 324 is applied and live draft recalculation passed. Authenticated Owner surface checks and outstanding configuration dependencies are recorded in docs/qa/OMS_FEATURE_CLOSURE_2026-10-04.md; historical entries below do not define current deployment state.
+
 > Current authority 2026-10-04: forward-only migration 历史已到 `323`; repository migrations reviewed through `323`; linked Production ledger applied through `323`. Migration 322 is the security-invoker packaging report; 323 adds an explicit same-day/manual forecast basis to batch rules. Older version entries below are historical snapshots.
 
 > 2026-10-03 repository authority：forward-only migration 历史已到 `322`。`319–320` 新增生产配货、版本审核、DO 与 Daily Record 来源锁定；`321` 允许跨日报废和包装使用量，并保存包装实际结余。隔离 PostgreSQL fixture 验证不等同于已部署 Production。

@@ -143,3 +143,7 @@ The unversioned foundation above is authoritative. Versioned sections below are 
 - Operational and master-data lists render query controls and result content as sibling surfaces, never as one clipped table card.
 - Shared query controls are 44px high. At tablet and desktop sizes, search may grow while filter controls and Search/Reset stay 8rem wide; the result count stays in the terminal action group.
 - `UnifiedListHeader` is the responsive owner for these rules, including `MasterDataFilters` consumers. Pages supply fields and data only; they do not recreate toolbar geometry.
+
+## v9.2.76 acceptance refinements
+
+ModalShell restores focus to its captured trigger when an explicit triggerRef is absent. FilterBar and UnifiedListHeader accept a semantic resultLabel, preserving records as their default. Delivery-order operational actions compose WorkspaceGrid and ConsoleSection; controlled correction uses DestructiveActionDialog. The printable DO table is a semantic print variant with shared tokens and bounded 20-line A4 pages, rather than a second application design system. Authenticated responsive evidence and remaining activation dependencies live in docs/qa/OMS_FEATURE_CLOSURE_2026-10-04.md.

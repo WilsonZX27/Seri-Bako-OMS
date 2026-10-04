@@ -41,7 +41,7 @@ export async function loadPlanningContext(db: LooseSupabase, companyId: string, 
 export async function buildPlanPayload(db: LooseSupabase, companyId: string, kitchenId: string, date: string) {
   const context = await loadPlanningContext(db, companyId, kitchenId, date);
   if (!context.kitchens.some((k) => k.id === kitchenId)) throw new Error("Kitchen access is required.");
-  const historyRecords = await complete(() => db.from("outlet_daily_records").select("*", { count: "exact" }).eq("company_id", companyId).gte("record_date", addDays(date, -56)).lt("record_date", date).in("status", ["evening_completed", "reviewed"]));
+  const historyRecords = await complete(() => db.from("outlet_daily_records").select("*", { count: "exact" }).eq("company_id", companyId).in("branch_id", context.outlets.map(b => b.id)).gte("record_date", addDays(date, -56)).lt("record_date", date).in("status", ["evening_completed", "reviewed"]));
   const recordMap = new Map(historyRecords.filter((r) => context.outlets.some((b) => b.id === r.branch_id)).map((r) => [String(r.id), r]));
   const ids = [...recordMap.keys()];
   const historyLines: Record<string, unknown>[] = [];
@@ -70,7 +70,7 @@ export async function buildPlanPayload(db: LooseSupabase, companyId: string, kit
       const rule = context.minimums.find((m) => m.branch_id === branch.id && m.product_id === product.id);
       const minimum = rule ? Number(rule.minimum_qty) : null;
       const evidence = recommendQuantity(series.get(`${branch.id}:${product.id}`) ?? [], date, minimum, Number(context.config.buffer_percent), Number(context.config.max_decrease_percent));
-      if (batch?.forecast_basis !== "same_day") { evidence.method = "manual"; evidence.suggested = null; evidence.weightedMovement = null; evidence.reductionFloor = null; evidence.manualReason = "Multi-day or unconfirmed shelf-life: daily receipts cannot establish demand. Manager quantity required."; }
+      if (batch?.forecast_basis !== "same_day") { evidence.stockoutRisk = false; evidence.method = "manual"; evidence.suggested = null; evidence.weightedMovement = null; evidence.reductionFloor = null; evidence.manualReason = "Multi-day or unconfirmed shelf-life: daily receipts cannot establish demand. Manager quantity required."; }
       const event_qty = events.filter((e) => e.branch_id === branch.id).reduce((sum,e) => sum+e.lines.filter((l) => l.product_id===product.id).reduce((s,l) => s+Number(l.qty),0),0);
       const suggested_qty = evidence.suggested === null ? null : evidence.suggested + event_qty;
       allocations.push({ product_id: product.id, branch_id: branch.id, suggested_qty, approved_qty: suggested_qty, minimum_qty: minimum, reason: "", evidence, event_qty });

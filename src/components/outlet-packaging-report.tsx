@@ -50,7 +50,7 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
   </>;
   return <WorkspaceGrid tabletCanvas="wide" rightRail={rail} tabletRailBreakpoint="lg">
   <div className="space-y-4" data-packaging-report>
-    <FilterBar resetHref="/outlet-packaging" phoneMode="inline" className="gap-3 [&_.unified-list-row:empty]:hidden">
+    <FilterBar resetHref="/outlet-packaging" phoneMode="inline" className="gap-3">
       <SelectNative aria-label="Outlet" className="w-full sm:w-64" value={outlet} onChange={(event) => { setOutlet(event.target.value); setSelectedDate(null); }}>
         <option value="all">All outlets</option>
         {report.outlets.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}

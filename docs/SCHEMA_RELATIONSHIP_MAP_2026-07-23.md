@@ -1,3 +1,11 @@
+## 2026-10-04 verified production authority — v9.2.78 / database 324
+
+Deployment `D2xa7BFBHrLG57s2d9n8SHNypRhB` succeeded and is aliased to https://system.seribako.com.my. Owner-authenticated production checks covered Plan, Settings, Events, Daily Records, Insights, the canonical DO list and Packaging at 390/820/1180/1440px without root overflow. Phone Plan actions opened successfully; Escape closed the drawer and restored trigger focus. Strict TypeScript, lint, hosted build and 1,377 regressions passed. These are surface checks, not complete workflow or WCAG certification. See docs/qa/OMS_PRODUCTION_REWORK_2026-10-04.md for evidence and unclosed gates. Database remains 324; prepared 325 and the live packaging RLS experiment are pending specific permission authorization.
+
+## v9.2.79 (unreleased) — provenance and shared phone filters
+
+Candidate removes the blank primary row from shared inline phone filters, keeps unconfirmed packaging usage blank, and orders review checks by the displayed product/outlet sequence. Actual component render tests distinguish explicit zero from absent confirmation and preserve zero result counts. No database policy, grant, quantity or inventory change is included. Production remains verified v9.2.78 until the QA ledger records the next successful deployment.
+
 ## 2026-10-04 internal-table access verification
 
 Production schema remains applied through 324. Read-only catalog and actual anon/authenticated SELECT tests verified the eight zero-policy RLS tables deny client row access. Four supplier audit tables retain old client grants despite RLS denial; caller review and specific approval precede tightening them. No permissive policies were added to hide Advisor Info. Migration 325 remains prepared and unapproved; application v9.2.78 changes do not depend on its permission changes. Detailed evidence and remaining reviews are in docs/qa/OMS_PRODUCTION_REWORK_2026-10-04.md.

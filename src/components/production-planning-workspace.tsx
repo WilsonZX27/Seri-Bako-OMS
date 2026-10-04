@@ -41,7 +41,10 @@ export function ProductionPlanningWorkspace(props:Props) {
  const working=plan?.status==="draft"&&canManage;
  const total=(id:string)=>allocations.filter((a)=>a.product_id===id).reduce((s,a)=>s+Number(a.approved_qty??0),0)+(production.find((p)=>p.product_id===id)?.event_qty??0);
  const remaining=(id:string)=>{const p=production.find((l)=>l.product_id===id);return p?.trays!=null&&p.yield_per_tray!=null?p.trays*p.yield_per_tray-total(id)-p.retained_qty:null;};
- const checks=planReviewChecks(allocations,production);const gaps=checks.length;
+ const checks=planReviewChecks(allocations,production).sort((a,b)=>
+  products.findIndex(p=>p.id===a.productId)-products.findIndex(p=>p.id===b.productId)
+  || (a.branchId?outlets.findIndex(o=>o.id===a.branchId)+1:0)-(b.branchId?outlets.findIndex(o=>o.id===b.branchId)+1:0));
+ const gaps=checks.length;
  const checkLabel=(check:(typeof checks)[number])=>`${products.find(p=>p.id===check.productId)?.product_code??"Product"}${check.branchId?` · ${outlets.find(o=>o.id===check.branchId)?.branch_name??"Outlet"}`:""}: ${check.message}`;
  const needsProductionReason=(productId:string)=>{const line=production.find(item=>item.product_id===productId);return Boolean(line&&(line.retained_qty>0||line.reason.trim()||line.trays!==plan?.product_lines.find(item=>item.product_id===productId)?.trays));};
  const altered=(a:Allocation)=>a.approved_qty!==a.suggested_qty;

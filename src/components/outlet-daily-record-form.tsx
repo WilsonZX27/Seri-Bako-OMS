@@ -203,7 +203,7 @@ function DailyProductLine({ product, isPackaging: packaging, line, validationHin
   // receipt while still allowing an authorised user to enter an explicit 0.
   const receivedIsKnown = line?.morning_received_provided === true;
   const [received, setReceived] = useState(receivedIsKnown && source?.morning_received_qty != null ? String(source.morning_received_qty) : "");
-  const [wastage, setWastage] = useState(source && (packaging || source.wastage_provided === true) ? String(source.wastage_qty) : "");
+  const [wastage, setWastage] = useState(source && source.wastage_provided === true ? String(source.wastage_qty) : "");
   const [stockout, setStockout] = useState(line?.stockout === true);
   const [stockoutTime, setStockoutTime] = useState(line?.stockout_time?.slice(0, 5) ?? "");
   const [balance, setBalance] = useState(source?.[BALANCE_FIELD] == null ? "" : String(source[BALANCE_FIELD]));

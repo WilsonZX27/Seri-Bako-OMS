@@ -1,3 +1,7 @@
+## 2026-10-04 current release — v9.2.77
+
+Application deployment `HDzwJWpTrajQF5ErPL2p1vP57ciE` completed and aliased to https://system.seribako.com.my. Hosted production build, strict TypeScript, lint and 1,359 regressions passed. The production login screen independently reports v9.2.77. Authenticated workflow and remaining device acceptance are pending; database remains migration 324, with 325 prepared and unapproved. Historical candidate and acceptance entries below are retained as dated evidence, not overall closure.
+
 ## v9.2.77 application candidate — scoped reads
 
 Planning context loads current-tab dependencies; Settings/Events do not hydrate plans, DOs or email queues. Existing kitchen authorization results are reused. Plan version metadata remains available for the selector, while only the chosen version’s snapshots, allocations and products are hydrated. Forecast line reads select required fields and use at most four independent chunks concurrently, retaining exact pagination. No report cache crosses users or suppresses RLS. Migration 325 remains pending explicit production permission authorization. Current production database remains 324.

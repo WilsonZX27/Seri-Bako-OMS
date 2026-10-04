@@ -1,3 +1,7 @@
+## 2026-10-04 current release — v9.2.77
+
+Application deployment `HDzwJWpTrajQF5ErPL2p1vP57ciE` completed and aliased to https://system.seribako.com.my. Hosted production build, strict TypeScript, lint and 1,359 regressions passed. The production login screen independently reports v9.2.77. Authenticated workflow and remaining device acceptance are pending; database remains migration 324, with 325 prepared and unapproved. Historical candidate and acceptance entries below are retained as dated evidence, not overall closure.
+
 ## 2026-10-04 operational module component ownership
 
 Daily Records, Insights and Delivery Orders share WorkspaceTabs; Planning uses the same tabs for Plan, Settings and Events. WorkspaceGrid owns responsive geometry, FilterBar owns list queries, SelectControl owns choices, Table/OperationalListRow own desktop/touch data, ModalShell owns focus and dialog layers, and system-states owns skeleton/empty/error states. Feature components compose these owners. Attendance remains a shared-navigation regression target.

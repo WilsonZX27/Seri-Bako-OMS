@@ -65,3 +65,7 @@ Do not mark this rework complete while any required gate lacks direct evidence. 
 - Persistent migration 325 and the rollback-only live RLS experiment remain unapproved after automatic review rejection. Neither was executed. No measured production packaging speed improvement is claimed.
 
 Remaining operational defects to resolve include partial draft save for manual quantities, event quantity error location, full four-width authenticated acceptance and complete Advisor-category disposition. Email provider and unconfirmed business configuration remain dependencies. This release candidate does not close the wider goal.
+
+### Verified v9.2.77 deployment
+
+Deployment `HDzwJWpTrajQF5ErPL2p1vP57ciE` completed its hosted production build and aliased to https://system.seribako.com.my. Fresh login-page reload independently displayed v9.2.77. Application commit `835fc3e8` and baseline commit `9ee40b6d` are pushed to `origin/codex/system-quality-verification`. Authenticated acceptance is still blocked by the browser session redirect; this is deployment evidence only. Database 325 was not applied. Broader rework remains active.

@@ -1,3 +1,7 @@
+## 2026-10-04 current release — v9.2.77
+
+Application deployment `HDzwJWpTrajQF5ErPL2p1vP57ciE` completed and aliased to https://system.seribako.com.my. Hosted production build, strict TypeScript, lint and 1,359 regressions passed. The production login screen independently reports v9.2.77. Authenticated workflow and remaining device acceptance are pending; database remains migration 324, with 325 prepared and unapproved. Historical candidate and acceptance entries below are retained as dated evidence, not overall closure.
+
 ### v9.2.77 (unreleased) — Operational rework in progress
 
 Planning reads only the current tab and selected plan version. Settings uses the shared operational phone list and desktop Table; product search preserves edits. Scheduled events reuse the same owners. Routine panels omit repeated forecast/email disclaimers; optional evidence retains the prediction inputs. Settings can be saved without email recipients, while the existing release guard still requires them. Migration 325 remains prepared, not applied, pending explicit approval. Production remains v9.2.76 / database 324 until the QA ledger records a verified deployment; this is not overall closure.

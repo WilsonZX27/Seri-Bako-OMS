@@ -1,11 +1,11 @@
-## Active layout acceptance — v9.2.84 candidate
+## Active layout acceptance — v9.2.84 follow-up
 
 - Previous v9.2.82 deployment succeeded; independent procurement hotfix v9.2.83 is now formally deployed. Preserve those fixes. Live migration 328 is Goods Receiving, so this feature uses next available 329.
 - Existing live create/update/event function bodies match the reviewed 319/327 sources. Their ACL, owner and SECURITY DEFINER flags were read for the guarded migration; no operational records were changed.
 - Strict TypeScript and lint pass. Disposable PostgreSQL fixture: 85 checks pass, including auto tray recomputation (forged client tray ignored), retention exclusion, override reason, restore auto, old client compatibility, version copying, approval without Qty Sent, missing/conflicting/date-effective routes and company/role denial.
-- Seven calculation/shared-query/actual-worksheet rendering regressions pass, including exact decimal tray boundaries. All 1,400 regressions pass; strict TypeScript and lint pass. Hosted build pending.
+- Seven calculation/shared-query/actual-worksheet rendering regressions pass, including exact decimal tray boundaries. All 1,404 regressions pass; strict TypeScript and lint pass. Initial hosted build 3oZ4NFhHBePd2ksXqzK3R9gUFBbD succeeded; scoped follow-up is publishing.
 - Migration 329 applied in a guarded transaction and independently read back: four SQL definitions match source; existing function ACLs, owners and SECURITY DEFINER flags unchanged; 52 legacy product rows retain NULL mode and quantities. New route resolver denies anonymous execution. Migration 325 was not executed.
-- Formal read-only browser verification redirected to login, showing v9.2.83. User login requested; four-width screenshots and all 13 annotations remain pending. No fabricated formal operational writes.
+- Login restored. Initial v9.2.84 read-only UI checks: zero survives product search and full overview; dirty kitchen switch offers Save & switch / Discard & switch / Cancel; Cancel restores View plan focus; values discarded without writing. Live geometry found legacy 36px important density overriding the 44px token. Follow-up explicitly scopes the override to opted-in query/Planning controls and fixes actual product column sizing with colgroup. Scheduled cards and all four-width final screenshots remain in progress. No formal operational writes.
 - Remaining original closure dependencies: unapproved migration 325 and rollback-only RLS performance experiment, verified Packaging closing-balance source, mail credentials and Manager business configuration.
 
 ## v9.2.82 (unreleased) — actionable plan review groups

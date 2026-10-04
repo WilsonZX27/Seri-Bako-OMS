@@ -78,3 +78,16 @@ test('draft saves preserve unknown quantities separately from explicit zero',asy
  }
  const bad=fixture();assert.equal((await bad.actions.changePlan(kitchen,1,'save',{...payload,product_lines:[{...payload.product_lines[0],trays:0.5}]},key)).ok,false);assert.equal(bad.calls.length,0);
 });
+
+test('event supply lookup validates role, date and outlet before read-only RPC',async()=>{
+ for(const role of ['staff','kitchen']){const f=fixture({role});assert.equal((await f.actions.resolveEventSupply('2026-10-05',outlet)).ok,false);assert.equal(f.calls.length,0);}
+ for(const [dateValue,branchId] of [['invalid',outlet],['2026-10-05','invalid']]){const f=fixture();assert.equal((await f.actions.resolveEventSupply(dateValue,branchId)).ok,false);assert.equal(f.calls.length,0);}
+ const f=fixture();assert.equal((await f.actions.resolveEventSupply('2026-10-05',outlet)).ok,true);assert.equal(f.calls[0].name,'resolve_production_event_supply');assert.equal(f.calls[0].args.p_branch,outlet);assert.equal(f.calls[0].args.p_date,'2026-10-05');assert.equal(f.invalidations.length,0);
+});
+test('event route failure is reported without confirmation or write',async()=>{
+ const f=fixture({rpcError:{message:'No active primary supply route for this outlet on the event date. Configure its route first.'}});const result=await f.actions.resolveEventSupply('2026-10-05',outlet);assert.equal(result.ok,false);assert.match(result.message,/primary supply route/);assert.equal(f.calls.length,1);assert.equal(f.invalidations.length,0);assert.ok(!f.calls.some(call=>call.name==='save_production_event'));
+});
+test('save action preserves explicit automatic/manual modes and legacy omission',async()=>{
+ for(const tray_mode of ['automatic','manual',undefined]){const f=fixture();const production={product_id:product,trays:1,retained_qty:0,reason:'Reviewed override',...(tray_mode?{tray_mode}:{})};assert.equal((await f.actions.changePlan(kitchen,1,'save',{allocations:[],product_lines:[production]},key)).ok,true);assert.equal(f.calls[0].args.p_payload.product_lines[0].tray_mode,tray_mode);}
+ const bad=fixture();assert.equal((await bad.actions.changePlan(kitchen,1,'save',{allocations:[],product_lines:[{product_id:product,trays:1,retained_qty:0,reason:'',tray_mode:'invented'}]},key)).ok,false);assert.equal(bad.calls.length,0);
+});

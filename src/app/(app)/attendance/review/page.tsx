@@ -237,31 +237,6 @@ export default async function AttendanceReviewPage({
         hideMobileConsole
         rightRail={
           <>
-            <ConsoleSection title="Week status" kind="status">
-              <p className="font-semibold">{week}</p>
-              <p>
-                {review.total} staff days · {blockerCount} blockers · {attentionCount} attention items
-              </p>
-              <StatusBadge status={weekLocked ? "locked" : "open"} />
-              {latest ? (
-                <div className="mt-2 border-t border-[var(--sb-border-soft)] pt-2">
-                  <p className="font-medium">Latest import</p>
-                  <p className="break-words text-muted-foreground">
-                    {String(latest.file_name)}
-                  </p>
-                  <p>
-                    {String(latest.row_count)} rows · {String(latest.status)}
-                  </p>
-                </div>
-              ) : (
-                <p className="text-muted-foreground">
-                  No import finalised for this week.
-                </p>
-              )}
-            </ConsoleSection>
-            {review.detail ? (
-              <AttendanceDetail detail={review.detail as Row} />
-            ) : null}
             <ConsoleSection title="Actions" kind="action">
               {permissions["attendance.week.close"] ? (
                 <WeeklyCloseButton
@@ -292,8 +267,34 @@ export default async function AttendanceReviewPage({
                 </Button>
               ) : null}
             </ConsoleSection>
+            <ConsoleSection title="Week status" kind="status">
+              <p className="font-semibold">{week}</p>
+              <p>
+                {review.total} staff days · {blockerCount} blockers · {attentionCount} attention items
+              </p>
+              <StatusBadge status={weekLocked ? "locked" : "open"} />
+              {latest ? (
+                <div className="mt-2 border-t border-[var(--sb-border-soft)] pt-2">
+                  <p className="font-medium">Latest import</p>
+                  <p className="break-words text-muted-foreground">
+                    {String(latest.file_name)}
+                  </p>
+                  <p>
+                    {String(latest.row_count)} rows · {String(latest.status)}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-muted-foreground">
+                  No import finalised for this week.
+                </p>
+              )}
+            </ConsoleSection>
+            {review.detail ? (
+              <AttendanceDetail detail={review.detail as Row} />
+            ) : null}
+
             <div className="space-y-2" aria-labelledby="attendance-tools-title">
-              <h2 id="attendance-tools-title" className="px-1 text-xs font-semibold">Reports & time-off balance</h2>
+              <h2 id="attendance-tools-title" className="sr-only">Reports & time-off balance</h2>
                 <ActualAttendancePanel
                   assignments={actuals.assignments as Row[]}
                   reports={actuals.reports as Row[]}

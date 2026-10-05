@@ -172,7 +172,7 @@ export function ActualAttendancePanel(props: Props) {
   return (
     <div className="space-y-3" data-attendance-actuals>
       <section className="sb-work-surface overflow-hidden">
-        <div className="flex flex-wrap items-center gap-2 border-b border-[var(--sb-border-soft)] p-3">
+        <div className="flex flex-col gap-3 border-b border-[var(--sb-border-soft)] p-3">
           <div>
             <h2 className="text-sm font-semibold">Daily attendance reports</h2>
             <p className="text-xs text-muted-foreground">
@@ -180,19 +180,19 @@ export function ActualAttendancePanel(props: Props) {
               happened.
             </p>
           </div>
-          <StatusBadge
-            status={pendingReports.length ? "attention" : "reviewed"}
-          />
+          <div className="flex flex-col gap-2">
+          <span className="text-xs text-muted-foreground">{pendingReports.length ? `${pendingReports.length} pending reports` : "No pending reports"}</span>
           {props.canSubmit ? (
             <Button
               size="sm"
-              className="ml-auto"
+              className="w-full"
               onClick={() => reportDialog?.showModal()}
             >
               <Plus className="h-4 w-4" />
               New report
             </Button>
           ) : null}
+          </div>
         </div>
         <div className="divide-y divide-[var(--sb-border-soft)]">
           {props.reports.map((row) => (
@@ -277,14 +277,14 @@ export function ActualAttendancePanel(props: Props) {
             </article>
           ))}
           {!props.reports.length ? (
-            <p className="p-4 text-xs text-muted-foreground">
+            <p className="p-3 text-xs text-muted-foreground">
               No daily reports for this week.
             </p>
           ) : null}
         </div>
       </section>
       <section className="sb-work-surface overflow-hidden">
-        <div className="flex flex-wrap items-center gap-2 border-b border-[var(--sb-border-soft)] p-3">
+        <div className="flex flex-col gap-3 border-b border-[var(--sb-border-soft)] p-3">
           <div>
             <h2 className="text-sm font-semibold">Time-off balance</h2>
             <p className="text-xs text-muted-foreground">
@@ -296,7 +296,7 @@ export function ActualAttendancePanel(props: Props) {
             <Button
               size="sm"
               variant="outline"
-              className="ml-auto"
+              className="w-full"
               onClick={() => compDialog?.showModal()}
             >
               <Clock3 className="h-4 w-4" />

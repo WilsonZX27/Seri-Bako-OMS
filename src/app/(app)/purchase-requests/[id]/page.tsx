@@ -1,3 +1,5 @@
+import { PurchaseRequestStock } from "@/components/procurement/purchase-request-stock";
+import { stockUomContext } from "@/lib/procurement/stock-uom-context";
 import { AlertTriangle, BadgeCheck, CircleCheck, CircleX, Clock, FileCheck2, MessageSquare, RotateCcw, Send, ShoppingCart, Trash2, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -414,12 +416,13 @@ export default async function PurchaseRequestDetailPage({
                           const item = itemById.get(line.item_id);
                           const readiness = readinessByLine.get(line.id)!;
                           const stock = stockByItemId.get(line.item_id);
+                          const units = stockUomContext({item, itemId: line.item_id, branchId: request.branch_id, supplierId: line.suggested_supplier_id ?? canonicalSupplierId, purchaseUom: line.uom, mappings: supplierMappings});
                           return (
                               <TableRow key={line.id} data-guided-issue={readiness.issue?.code} className={readiness.issue ? "bg-[var(--sb-danger-bg)]" : undefined}>
                               <TableCell className="text-center text-xs tabular-nums text-muted-foreground">{index + 1}</TableCell>
                               <TableCell><p className="font-medium">{!items ? "Item details unavailable" : item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground">{!items ? `Reference ${line.item_id}` : item?.item_code ?? "No item code"}</p></TableCell>
                               <TableCell className="whitespace-nowrap text-right">{formatNumber(line.qty)} {line.uom}</TableCell>
-                              <TableCell>{stock ? <div><p className="font-medium">{formatNumber(stock.quantity)} {stock.uom}</p><p className="text-[11px] text-muted-foreground">{formatDateOnly(stock.asOf)}</p></div> : <div><p className="font-medium text-muted-foreground">No branch stock history yet</p><p className="text-[11px] text-muted-foreground">New or not previously counted</p></div>}</TableCell>
+                              <TableCell><PurchaseRequestStock stock={stock} units={units}/></TableCell>
                               {canViewCommercial ? <TableCell className="text-right">{formatCurrency(line.estimated_unit_cost)}</TableCell> : null}
                               <TableCell>{line.reason ?? "-"}</TableCell>
                               {canRepairReviewLines && items && suppliers && supplierMappings && request.branch_id ? <TableCell><PurchaseRequestLineRecovery action={revisePurchaseRequestLine.bind(null, request.id)} line={line} itemCode={item?.item_code ?? "No item code"} itemName={item?.item_name ?? line.item_id} items={recoveryItems} mappings={supplierMappings} suppliers={suppliers} branchId={request.branch_id} issue={readiness.issue} suggestedSupplierId={readiness.suggestedSupplierId} /></TableCell> : canRepairReviewLines ? <TableCell><Button asChild variant="outline" size="sm"><a href={`/purchase-requests/${request.id}`}>Retry</a></Button></TableCell> : null}
@@ -443,10 +446,11 @@ export default async function PurchaseRequestDetailPage({
                       const readiness = readinessByLine.get(line.id)!;
                       const supplierName = readiness.supplierName ?? (line.suggested_supplier_id ? supplierById.get(line.suggested_supplier_id)?.name ?? null : null);
                       const stock = stockByItemId.get(line.item_id);
+                          const units = stockUomContext({item, itemId: line.item_id, branchId: request.branch_id, supplierId: line.suggested_supplier_id ?? canonicalSupplierId, purchaseUom: line.uom, mappings: supplierMappings});
                       return <div key={line.id} role="listitem" data-guided-issue={readiness.issue?.code} className={readiness.issue ? "min-w-0 bg-[var(--sb-danger-bg)] px-2 py-3 text-[13px]" : "min-w-0 py-3 text-[13px]"}>
                         <div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="text-[11px] font-semibold tabular-nums text-muted-foreground">Item {index + 1}</p><p className="break-words font-semibold">{!items ? "Item details unavailable" : item?.item_name ?? line.item_id}</p><p className="text-[12px] text-muted-foreground">{!items ? `Reference ${line.item_id}` : item?.item_code ?? "No item code"}</p></div><div className="flex shrink-0 items-start gap-2"><div className="text-right"><p className="font-semibold">{formatNumber(line.qty)} {line.uom}</p>{canViewCommercial ? <p className="mt-0.5 text-[12px] font-medium text-muted-foreground">{formatCurrency(line.estimated_unit_cost)} / {line.uom}</p> : null}</div>{canRepairReviewLines && items && suppliers && supplierMappings && request.branch_id ? <PurchaseRequestLineRecovery action={revisePurchaseRequestLine.bind(null, request.id)} line={line} itemCode={item?.item_code ?? "No item code"} itemName={item?.item_name ?? line.item_id} items={recoveryItems} mappings={supplierMappings} suppliers={suppliers} branchId={request.branch_id} issue={readiness.issue} suggestedSupplierId={readiness.suggestedSupplierId} /> : null}</div></div>
                         {readiness.issue ? <div className="mt-1"><p className="break-words text-[12px] font-medium text-[var(--sb-danger)]">{supplierName ?? readiness.issue.message}</p></div> : null}
-                        {stock ? <p className="mt-1 text-[12px] text-muted-foreground"><span className="font-medium text-foreground">{formatNumber(stock.quantity)} {stock.uom}</span> · {formatDateOnly(stock.asOf)}</p> : <p className="mt-1 text-[12px] text-muted-foreground">No branch stock history yet · New or not previously counted</p>}
+                        <div className="mt-2"><PurchaseRequestStock stock={stock} units={units}/></div>
                         {line.reason ? <p className="mt-1 break-words text-[12px] text-muted-foreground">{line.reason}</p> : null}
                       </div>;
                     })}

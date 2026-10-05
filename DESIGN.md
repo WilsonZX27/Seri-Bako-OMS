@@ -1,3 +1,11 @@
+## v9.2.88 (unreleased) — procurement unit context and operational rail alignment
+
+Purchase Request stock displays retain the balance in its recorded base unit, with a separate purchase-package conversion resolved from the request supplier and branch. Missing, failed, invalid or conflicting mappings remain explicitly unavailable; no guessed factor multiplies the stock. Desktop and phone share one presentation owner. The requested KG corrections for QUIKGROC00060 and QUIKGROC00024 require the actual carton weights and confirmation of historical quantities before changing posted unit semantics; no business quantity has been rewritten.
+
+Sortable table headers inherit the table's typography instead of the global input font. Positive wastage changes are danger red, negative changes success green; unknown and unchanged values remain neutral, and signed values remain visible. Insights shares Daily Records' historical outstanding outlet-day console. Attendance Actions precedes Week status; report and time-off headers use aligned stacked descriptions and full-width commands, with truthful pending-count wording instead of a Posted badge for an empty report list.
+
+Validation and formal acceptance are recorded in docs/qa/OMS_UI_UOM_REWORK_2026-10-05.md. No database migration, permissions change or operational test posting is part of this release.
+
 ## v9.2.87 (deployed) — production PDF, product supply dates and historical insights
 
 Production sheets download as a dedicated paginated PDF named by kitchen, ISO delivery date and plan version. Repeated headers and page numbers replace browser chrome; unentered quantities remain Pending and unsaved drafts are labelled. Planning defaults to all outlets with kitchen retention pinned right. Ordinary manual demand needs no reason; forecast exceptions, below-minimum reductions and manual production overrides retain their gates. Manual allocations survive recalculation without using a reason as a persistence marker.

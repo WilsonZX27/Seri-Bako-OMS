@@ -42,7 +42,15 @@ try {
  check((await query("select proacl::text,proowner,prosecdef from pg_proc where oid='public.update_production_plan(uuid,integer,text,jsonb,uuid)'::regprocedure"))[0],beforePartialFunction);
  await db.exec(sql('supabase/migrations/331_product_supply_periods.sql'));
  await db.exec(sql('supabase/migrations/332_outlet_daily_completed_summary.sql'));
+ await db.exec(sql('supabase/migrations/334_production_external_order_kind.sql'));
  await actor(managerAuth);
+ await query('begin');
+ const externalId=await rpc('save_production_event',[{kitchen_id:kitchen,branch_id:null,event_date:'2026-10-05',name:'BINTANG fixture',confirmed:true,notes:'',demand_kind:'franchise_order',lines:[{product_id:product,qty:32}]}]);
+ check((await query('select branch_id,demand_kind from production_planning_events where id=$1',[externalId]))[0],{branch_id:null,demand_kind:'franchise_order'});
+ await query('savepoint invalid_external');
+ await rejected(()=>rpc('save_production_event',[{kitchen_id:kitchen,branch_id:outlet,event_date:'2026-10-05',name:'Invalid own outlet franchise',confirmed:true,demand_kind:'franchise_order',lines:[{product_id:product,qty:32}]}]),/independent external order/);
+ await query('rollback to savepoint invalid_external');
+ await query('rollback');
  await rpc('configure_production_planning',[{kitchen_id:kitchen,enabled:false,draft_time:'20:00',buffer_percent:10,max_decrease_percent:10,recipients:['kitchen@example.test'],batches:[{product_id:product,yield_per_tray:16}],minimums:[{branch_id:outlet,product_id:product,minimum_qty:4},{branch_id:outlet2,product_id:product,minimum_qty:0}]}]);
  check((await query('select forecast_basis from production_batch_rules'))[0].forecast_basis,'manual');
  const evidence={version:'quantity-proxy-v1',method:'same-weekday',suggested:12,reductionFloor:0,minimum:4,stockoutRisk:false,evidence:[]};

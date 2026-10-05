@@ -7,7 +7,7 @@ const kitchen = '10000000-0000-4000-8000-000000000001';
 const product = '10000000-0000-4000-8000-000000000002';
 const outlet = '10000000-0000-4000-8000-000000000003';
 const key = '10000000-0000-4000-8000-000000000004';
-function fixture({role = 'manager', rpcError = null, mail = {unavailable: true}} = {}) {
+function fixture({role = 'manager', rpcError = null, mail = {unavailable: true}, readDb=null} = {}) {
  const calls = [], invalidations = [];
  const db = {rpc: async (name, args) => { calls.push({name, args}); return {data: name === 'update_production_plan' ? {id: kitchen} : kitchen, error: rpcError}; }};
  const shared = {
@@ -25,9 +25,9 @@ function fixture({role = 'manager', rpcError = null, mail = {unavailable: true}}
  const errors = compile('src/server/actions/error-handling.ts', shared);
  const actions = compile('src/server/actions/production-planning.ts', {
   ...shared, 'zod': require('zod'), 'next/cache': {revalidatePath: path => invalidations.push(path)},
-  '@/lib/supabase/server': {createClient: async () => db}, '@/lib/supabase/loose': {looseSupabase: value => value},
+  '@/lib/supabase/server': {createClient: async () => readDb??db}, '@/lib/supabase/loose': {looseSupabase: value => value},
   '@/server/queries/common': {getCurrentProfile: async () => ({company_id: kitchen, role_code: role})},
-  '@/server/production-planning/data': {buildPlanPayload() {throw Error('Unexpected forecast');}},
+  '@/server/production-planning/data': {buildPlanPayload() {throw Error('Unexpected forecast');},async complete(factory){const result=await factory();if(result.error)throw Error(result.error.message);return result.data;}},
   '@/lib/production-planning/forecast': {addDays(value) {if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw Error('Invalid date'); return value;}},
   '@/server/production-planning/email': {deliverPlanningEmails: async () => mail},
   '@/server/actions/error-handling': errors,
@@ -90,4 +90,15 @@ test('event route failure is reported without confirmation or write',async()=>{
 test('save action preserves explicit automatic/manual modes and legacy omission',async()=>{
  for(const tray_mode of ['automatic','manual',undefined]){const f=fixture();const production={product_id:product,trays:1,retained_qty:0,reason:'Reviewed override',...(tray_mode?{tray_mode}:{})};assert.equal((await f.actions.changePlan(kitchen,1,'save',{allocations:[],product_lines:[production]},key)).ok,true);assert.equal(f.calls[0].args.p_payload.product_lines[0].tray_mode,tray_mode);}
  const bad=fixture();assert.equal((await bad.actions.changePlan(kitchen,1,'save',{allocations:[],product_lines:[{product_id:product,trays:1,retained_qty:0,reason:'',tray_mode:'invented'}]},key)).ok,false);assert.equal(bad.calls.length,0);
+});
+
+test('history preview scopes the parent company, outlets, product and dates without writes; unknown inputs stay null',async()=>{
+ const reads=[];
+ const data={production_plans:{id:kitchen,delivery_date:'2026-10-06'},production_plan_allocations:[{branch_id:outlet}],outlet_daily_records:[{id:key,branch_id:outlet,record_date:'2026-10-04'}],outlet_daily_record_lines:[{id:product,record_id:key,morning_received_qty:0,morning_received_provided:true,evening_leftover_qty:0,wastage_qty:0,wastage_provided:false}]};
+ const readDb={from(table){const calls=[];reads.push({table,calls});const q={};for(const method of ['select','eq','in','gte','lt','order','range'])q[method]=(...args)=>{calls.push({method,args});return q;};q.single=async()=>({data:data[table],error:null});q.then=(resolve,reject)=>Promise.resolve({data:data[table],error:null}).then(resolve,reject);return q;}};
+ const f=fixture({readDb});const result=await f.actions.readPlanningHistory(kitchen,product);
+ assert.equal(result.ok,true);assert.equal(result.rows.length,1);assert.equal(result.rows[0].received,0);assert.equal(result.rows[0].wastage,null);assert.equal(f.calls.length,0);assert.equal(f.invalidations.length,0);
+ assert.ok(reads.find(r=>r.table==='production_plans').calls.some(c=>c.method==='eq'&&c.args[0]==='company_id'&&c.args[1]===kitchen));
+ assert.ok(reads.find(r=>r.table==='outlet_daily_records').calls.some(c=>c.method==='in'&&c.args[0]==='branch_id'&&c.args[1][0]===outlet));
+ assert.ok(reads.find(r=>r.table==='outlet_daily_record_lines').calls.some(c=>c.method==='eq'&&c.args[0]==='product_id'&&c.args[1]===product));
 });

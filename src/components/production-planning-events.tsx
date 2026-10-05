@@ -12,7 +12,7 @@ export function PlanningEvents({ events, outlets, products, compact=false }: {
   const ordered = [...events].sort((a, b) => a.event_date.localeCompare(b.event_date) || a.name.localeCompare(b.name));
   const destination = (event: PlanningEvent) => event.branch_id
     ? outlets.find(outlet => outlet.id === event.branch_id)?.branch_name ?? "Outlet"
-    : "Corporate event";
+    : event.demand_kind==="franchise_order"?"Franchise order":"Corporate event";
   const quantities = (event: PlanningEvent) => event.lines.map(line => {
     const product = products.find(candidate => candidate.id === line.product_id);
     return `${product?.product_code ?? "Product"} × ${formatNumber(line.qty)}`;

@@ -1,0 +1,29 @@
+# Production Planning closure — 2026-10-05
+
+Active user-requested goal: improve the complete planning flow, source-backed calculations and external franchise demand. Application release candidate v9.2.89; authenticated visual acceptance pending a restored browser session. No formal QA orders, approvals, dispatches or stock postings.
+
+## Root cause and readiness
+
+ALMA has no batch rules, both kitchens have no confirmed outlet minimums, and configured KL products use manual demand. Manual-only generation intentionally skips historical reads; the previous modal presented its empty forecast evidence as an empty table. Current history now loads read-only on opening the product modal. This does not regenerate or change a saved plan. Completed record lines use actual receipt/provided and wastage/provided flags; missing values remain unknown, distinct from explicit zero. Current rows may be excluded from forecasting and are labelled accordingly. Same-day forecast snapshot remains the source used for the saved suggestion; live history is reference only.
+
+Independent linked read `/tmp/oms-planning-final-read.json`: Queensbay and Gurney each have48 reviewed record-days in the eight-week window; October2–5 Queensbay and October1–4 Gurney remain drafts. History has not disappeared. Per-product eligible inputs still require completeness checking; reviewed counts alone do not prove eligible demand.
+
+Automatic tray quantity can be calculated immediately after per-kitchen yield and all approved destination quantities are entered. Automatic outlet demand requires confirmed same-day consumption, explicit minimum (zero permitted), and at least3 same weekdays in56 days, or5 comparable weekday/weekend days within14 days. Existing history may already qualify after correct configuration; no arbitrary eight-week waiting period. Multi-day products require opening/closing usable stock and actual movement/sales to infer demand; receipt-minus-leftover-minus-waste is not a defensible sales estimate without that provenance. Do not change same-day mode merely to unblock a number. Template orders are not minimum quantities.
+
+## Franchise path
+
+Migration334 applied, independent read verifies334 present,325 absent and zero invalid destination kinds. Franchise orders are branchless external demand, with customer/order reference, kitchen, delivery date and confirmed product quantities. They are summed per product with own-outlet approved allocations before rounding whole trays. Existing external delivery-order path has no own-outlet daily-record creation. Confirmed contractual quantities are never reduced by the retail forecast. Excel weekday/weekend templates are references, not actual dated confirmed orders. No BINTANG/B.jalil/Maluri retail branches were created.
+
+Complete event rows are now selected for new snapshots; this also resolves an existing mismatch between the partial client event projection and SQL's full-row event comparison. Existing snapshots remain untouched; an affected draft must be recalculated before review. Released versions are preserved.
+
+## Wastage policy proposed for owner acceptance
+
+The current quantity-based retail metric is actual recorded wastage divided by received quantity over the same complete period and own-outlet cohort. Franchise confirmed production orders are separate; a dispatch is not proof of external customer's sell-through or wastage. Leftovers and rounding surplus are not automatically waste. Cross-day old-stock waste needs opening stock/cohort attribution before this received-denominator proxy is interpreted as a physical loss rate.
+
+20% can be an initial operating threshold selected by the owner; it is not represented as an industry universal or a committed automatic cut. Compare the same outlets/products/day types and show completion coverage. Partial-coverage periods cannot establish progress solely from total quantities. Track wastage pieces/rate, recorded stockouts and sales or eligible same-day movement together. Keep the existing default10% maximum decrease and demand buffer; observed sell-outs protect reductions. Protect events and franchise quantities. Review comparable complete periods before subsequent reductions, and increase where demand and stockouts warrant it. This is a proposal; no automatic ordering or changed minimums were enabled.
+
+## Validation
+
+Strict TypeScript and lint pass. Full regression suite1415 passed (local-server teardown test required sandbox escalation). Isolated PostgreSQL planning suite100 checks passed, including external kind constraints; no hosted operational test posting. Additional history regression proves parent-company, allocation-outlet and product scoping, zero-vs-unknown preservation, and no write/invalidation.
+
+Evidence paths: `/tmp/oms-planning-tests-final.log`, `/tmp/oms-planning-db.log`, `/tmp/oms-334-applied.json`, `/tmp/oms-planning-final-read.json`. Browser previously expired to idle-timeout; no claim of authenticated responsive acceptance for this release.

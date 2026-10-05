@@ -4,7 +4,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { looseSupabase } from "@/lib/supabase/loose";
 import { getCurrentProfile } from "@/server/queries/common";
-import { buildPlanPayload } from "@/server/production-planning/data";
+import { complete, buildPlanPayload } from "@/server/production-planning/data";
 import { addDays } from "@/lib/production-planning/forecast";
 import { deliverPlanningEmails } from "@/server/production-planning/email";
 import { formatActionError } from "@/server/actions/error-handling";
@@ -68,7 +68,7 @@ export async function configurePlanning(payload: unknown) {
 }
 export async function savePlanningEvent(payload: unknown) {
   return run(async () => { const {db}=await manager();
-    const parsed=z.object({kitchen_id:uuid,branch_id:uuid.nullable(),event_date:date,name:z.string().trim().min(1).max(150),notes:reason,confirmed:z.boolean(),lines:z.array(z.object({product_id:uuid,qty:quantity.positive()})).min(1).max(500)}).parse(payload);
+    const parsed=z.object({demand_kind:z.enum(["outlet_event","corporate_event","franchise_order"]).optional(),kitchen_id:uuid,branch_id:uuid.nullable(),event_date:date,name:z.string().trim().min(1).max(150),notes:reason,confirmed:z.boolean(),lines:z.array(z.object({product_id:uuid,qty:quantity.positive()})).min(1).max(500)}).parse(payload);
     const id=await rpc(db,"save_production_event",{p_payload:parsed}); return {id:String(id)}; });
 }
 export async function voidDeliveryOrder(id: string, correctionReason: string, rebuild: boolean, key: string) {
@@ -86,4 +86,26 @@ export async function retryPlanningEmails(planId: string) {
 export async function resolveEventSupply(eventDate: string, branchId: string | null): Promise<{ok:boolean;message:string;kitchen_id?:string|null;outlets?:import("@/lib/production-planning/types").PlanningBranch[];kitchens?:import("@/lib/production-planning/types").PlanningBranch[]}> {
  try {const {db}=await manager();date.parse(eventDate);uuid.nullable().parse(branchId);const result=await rpc(db,"resolve_production_event_supply",{p_date:eventDate,p_branch:branchId}) as {kitchen_id:string|null;outlets:import("@/lib/production-planning/types").PlanningBranch[];kitchens:import("@/lib/production-planning/types").PlanningBranch[]};return {ok:true,message:"",...result};}
  catch(error){return {ok:false,message:formatActionError(error,"Could not check the supply route. Retry before confirming.")};}
+}
+
+export type PlanningHistoryRow = {branchId:string;recordId:string;date:string;received:number|null;leftover:number|null;wastage:number|null};
+/** Current observations are a read-only reference, distinct from the saved forecast snapshot. */
+export async function readPlanningHistory(planId:string,productId:string):Promise<{ok:boolean;message:string;rows:PlanningHistoryRow[]}> {
+ try {
+  uuid.parse(planId);uuid.parse(productId);
+  const profile=await getCurrentProfile();if(!profile?.company_id)throw new Error("Sign in to view history.");
+  const db=looseSupabase(await createClient());
+  const plan=await db.from("production_plans").select("id,delivery_date").eq("company_id",profile.company_id).eq("id",planId).single();
+  if(plan.error)throw new Error(plan.error.message);
+  const allocations=await complete(()=>db.from("production_plan_allocations").select("branch_id",{count:"exact"}).eq("plan_id",planId).eq("product_id",productId),["branch_id"]);
+  const branches=[...new Set(allocations.map(a=>String(a.branch_id)))];if(!branches.length)return {ok:true,message:"",rows:[]};
+  const records=await complete(()=>db.from("outlet_daily_records").select("id,branch_id,record_date",{count:"exact"}).eq("company_id",profile.company_id).in("branch_id",branches).gte("record_date",addDays(String(plan.data.delivery_date),-56)).lt("record_date",plan.data.delivery_date).in("status",["evening_completed","reviewed"]));
+  const result:PlanningHistoryRow[]=[];
+  for(let offset=0;offset<records.length;offset+=100){
+   const chunk=records.slice(offset,offset+100);const byId=new Map(chunk.map(r=>[String(r.id),r]));
+   const lines=await complete(()=>db.from("outlet_daily_record_lines").select("id,record_id,morning_received_qty,morning_received_provided,evening_leftover_qty,wastage_qty,wastage_provided",{count:"exact"}).in("record_id",chunk.map(r=>r.id)).eq("product_id",productId));
+   for(const line of lines){const record=byId.get(String(line.record_id));if(!record)throw new Error("History changed. Retry.");result.push({branchId:String(record.branch_id),recordId:String(record.id),date:String(record.record_date),received:line.morning_received_provided===true&&line.morning_received_qty!==null?Number(line.morning_received_qty):null,leftover:line.evening_leftover_qty===null?null:Number(line.evening_leftover_qty),wastage:line.wastage_provided===true&&line.wastage_qty!==null?Number(line.wastage_qty):null});}
+  }
+  return {ok:true,message:"",rows:result.sort((a,b)=>b.date.localeCompare(a.date))};
+ }catch(error){return {ok:false,message:formatActionError(error,"Could not read history. Retry."),rows:[]};}
 }

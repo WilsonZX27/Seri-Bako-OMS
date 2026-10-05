@@ -18,7 +18,7 @@ Vercel functions are configured in sin1 to colocate with the confirmed ap-southe
 
 ## Current repository / database distinction
 
-forward-only migration 历史已到 `332`。Migration 329 applied in a source-guarded transaction and was independently read back. Applied ledger: 324, 326, 327, 328, 329; 325 remains pending. Existing product rows receive NULL tray_mode without changing trays or snapshots. Authenticated Manager/Owner resolve_production_event_supply reads only their company; PUBLIC and anon execution is revoked. Existing transactional function ACLs/owners are preserved.
+forward-only migration 历史已到 `333`。Migration 329 applied in a source-guarded transaction and was independently read back. Applied ledger: 324, 326, 327, 328, 329; 325 remains pending. Existing product rows receive NULL tray_mode without changing trays or snapshots. Authenticated Manager/Owner resolve_production_event_supply reads only their company; PUBLIC and anon execution is revoked. Existing transactional function ACLs/owners are preserved.
 
 ## v9.2.84 (deployed) — compact Planning and explicit query actions
 

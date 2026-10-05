@@ -1,10 +1,10 @@
 ## v9.2.88 (deployed) — procurement unit context and operational rail alignment
 
-Purchase Request stock displays retain the balance in its recorded base unit, with a separate purchase-package conversion resolved from the request supplier and branch. Missing, failed, invalid or conflicting mappings remain explicitly unavailable; no guessed factor multiplies the stock. Desktop and phone share one presentation owner. The requested KG corrections for QUIKGROC00060 and QUIKGROC00024 require the actual carton weights and confirmation of historical quantities before changing posted unit semantics; no business quantity has been rewritten.
+Purchase Request stock displays retain the balance in its recorded base unit, with a separate purchase-package conversion resolved from the request supplier and branch. Missing, failed, invalid or conflicting mappings remain explicitly unavailable; no guessed factor multiplies the stock. Desktop and phone share one presentation owner. The user confirmed QUIKGROC00060 and QUIKGROC00024 quantities were kilograms with incorrect CTN labels. Migration333 corrects both masters, active supplier units and count labels to KG/factor1 without multiplying quantities; count, ledger and balance digest guards and independent readback passed. Existing procurement document snapshots remain preserved.
 
 Sortable table headers inherit the table's typography instead of the global input font. Positive wastage changes are danger red, negative changes success green; unknown and unchanged values remain neutral, and signed values remain visible. Insights shares Daily Records' historical outstanding outlet-day console. Attendance Actions precedes Week status; report and time-off headers use aligned stacked descriptions and full-width commands, with truthful pending-count wording instead of a Posted badge for an empty report list.
 
-Validation and formal acceptance are recorded in docs/qa/OMS_UI_UOM_REWORK_2026-10-05.md. No database migration, permissions change or operational test posting is part of this release.
+Validation and formal acceptance are recorded in docs/qa/OMS_UI_UOM_REWORK_2026-10-05.md. The follow-up data correction333 changes unit labels only; no permissions change or operational test posting.
 
 ## v9.2.87 (deployed) — production PDF, product supply dates and historical insights
 

@@ -1,4 +1,4 @@
-## v9.2.88 (unreleased) — procurement unit context and operational rail alignment
+## v9.2.88 (deployed) — procurement unit context and operational rail alignment
 
 Purchase Request stock displays retain the balance in its recorded base unit, with a separate purchase-package conversion resolved from the request supplier and branch. Missing, failed, invalid or conflicting mappings remain explicitly unavailable; no guessed factor multiplies the stock. Desktop and phone share one presentation owner. The requested KG corrections for QUIKGROC00060 and QUIKGROC00024 require the actual carton weights and confirmation of historical quantities before changing posted unit semantics; no business quantity has been rewritten.
 

@@ -1,5 +1,5 @@
 /** Versioned, deterministic quantity proxy. This is not product POS sales. */
-export const FORECAST_VERSION = "quantity-proxy-v1";
+export const FORECAST_VERSION = "quantity-proxy-v2";
 export type HistoryPoint = {
   recordId: string; date: string; received: number; leftover: number; wastage: number;
   receivedProvided: boolean; completed: boolean; specialEvent: boolean; stockout: boolean;
@@ -31,7 +31,10 @@ export function recommendQuantity(history: HistoryPoint[], date: string, minimum
   const recent = valid.filter((p) => p.date >= addDays(date, -14) && weekend(p.date) === weekend(date));
   const evidence = same.length >= 3 ? same : recent.length >= 5 ? recent : [];
   const method = same.length >= 3 ? "same-weekday" : recent.length >= 5 ? "recent-day-type" : "manual";
-  const latest = same.at(-1);
+  // The fallback must keep the same decrease/stockout protection even when
+  // no observation exists for the delivery weekday. Use its latest comparable
+  // observation; insufficient history retains the existing same-weekday floor.
+  const latest = evidence.at(-1) ?? same.at(-1);
   // Zero leftover/wastage is a potential sell-out; require review before decreasing.
   const stockoutRisk = valid.some((p) => p.date >= addDays(date, -14) && (p.stockout || (p.received > 0 && p.leftover === 0 && p.wastage === 0)));
   const reductionFloor = latest ? Math.ceil(latest.received * (stockoutRisk ? 1 : 1 - maxDecreasePercent / 100)) : null;

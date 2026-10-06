@@ -35,3 +35,12 @@ test('actual batch yields and integer trays leave explicit surplus; no automatic
 test('business dates and parameters reject malformed, rolled-over and non-finite input',()=>{
  assert.equal(addDays('2026-12-31',1),'2027-01-01');assert.throws(()=>addDays('2026-02-30',0),/Invalid/);assert.throws(()=>forecast(three,'2026-10-03',-1),/Invalid/);assert.throws(()=>forecast(three,'2026-10-03',0,NaN),/Invalid/);
 });
+
+test('recent-day-type suggestions retain the decrease cap with no matching weekday observation',()=>{
+ const dates=['2026-09-22','2026-09-23','2026-09-24','2026-09-28','2026-09-29'];
+ const history=dates.map(d=>point(d,100,80));
+ const result=forecast(history,'2026-10-02',0,10,10);
+ assert.equal(result.method,'recent-day-type');assert.equal(result.reductionFloor,90);assert.equal(result.suggested,90);assert.equal(result.version,'quantity-proxy-v2');
+ const shortage=forecast(history.map((p,i)=>({...p,stockout:i===4})),'2026-10-02',0,10,10);
+ assert.equal(shortage.stockoutRisk,true);assert.equal(shortage.reductionFloor,100);assert.equal(shortage.suggested,100);
+});

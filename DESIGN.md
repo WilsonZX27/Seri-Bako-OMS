@@ -1,4 +1,8 @@
-## v9.2.89 (unreleased) — Production Planning closure
+## v9.2.90 (unreleased) — safe comparable-day fallback
+
+Forecast quantity-proxy-v2 uses the most recent selected comparable observation as the reduction-floor reference. Recent-day-type fallback retains the configured decrease cap and stockout protection even when no receipt exists for the exact delivery weekday. Existing plan snapshots and approved quantities remain unchanged; recalculation is explicit. v9.2.89 Planning evidence/franchise improvements remain included. Validation and release evidence belong to docs/qa/PRODUCTION_PLANNING_CLOSE_2026-10-05.md.
+
+## v9.2.89 (deployed) — Production Planning closure
 
 Planning shows all routed outlets with internal worksheet scrolling, no grouping toggle or redundant count row. Kitchen/date/version have consistent icon metadata. The evidence dialog distinguishes saved suggestions from on-demand completed history, exposes loading/error/retry and truthful unknown inputs, and links directly to needed settings. Franchise orders use the existing independent destination flow with customer/order reference and explicit external classification, including delivery labels; they do not look like own outlets.
 

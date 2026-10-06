@@ -44,6 +44,7 @@ export function ProductionPlanningWorkspace(props:Props) {
  const navigate=(url:string)=>{if(dirty)setNextNavigation(url);else router.push(url);};
  const [exporting,setExporting]=useState(false);
  const downloadSheet=async()=>{if(!plan)return;setExporting(true);try{const {buildProductionSheetPdf}=await import("@/lib/production-planning/production-sheet");const kitchen=kitchens.find(k=>k.id===kitchenId)?.branch_name??"Kitchen";const bytes=await buildProductionSheetPdf({kitchen,date,version:plan.version,status:plan.status,dirty,products:planProducts,outlets,allocations,production});const url=URL.createObjectURL(new Blob([new Uint8Array(bytes)],{type:"application/pdf"}));const link=document.createElement("a");link.href=url;link.download=productionSheetFilename(kitchen,date,plan.version);link.click();window.setTimeout(()=>URL.revokeObjectURL(url),60000);}catch{setMessage({ok:false,message:"Could not export the production sheet. Retry or use browser Print."});}finally{setExporting(false);}};
+ const [checkFocus,setCheckFocus]=useState<{id:string;request:number}|null>(null);
  const [evidence,setEvidence]=useState<string|null>(null);
  const [dialog,setDialog]=useState<"review"|"dispatch"|null>(null); const [dirty,setDirty]=useState(false); const [returnReason,setReturnReason]=useState("");
  useEffect(()=>{setAllocations(plan?.allocations??[]);setProduction(plan?.product_lines??[]);setDirty(false);},[plan]);
@@ -71,7 +72,7 @@ export function ProductionPlanningWorkspace(props:Props) {
    {plan?<Button variant="outline" disabled={exporting} onClick={()=>void downloadSheet()}><Printer aria-hidden="true"/>{exporting?"Preparing PDF…":"Download production sheet"}</Button>:null}
   </>}</div></ConsoleSection>
   {view==="events"?<PlanningEvents compact events={props.events??[]} outlets={outlets} products={products}/>:null}
-  {view==="plan"?<PlanningReviewChecks hasPlan={Boolean(plan)} dirty={dirty} checks={checks} products={products} outlets={outlets} date={date} kitchenId={kitchenId}/>:null}
+  {view==="plan"?<PlanningReviewChecks hasPlan={Boolean(plan)} dirty={dirty} checks={checks} products={products} outlets={outlets} date={date} kitchenId={kitchenId} onProduct={id=>setCheckFocus(previous=>({id,request:(previous?.request??0)+1}))}/>:null}
  </div>;
  return <WorkspaceGrid className="sb-planning-workspace" rightRail={rail} tabletRailMode="split" tabletRailBreakpoint="lg">
   <WorkspaceTabs prefetchOnIntent onNavigate={navigate} label="Production Planning workspace" current={view} items={[{id:"plan",label:"Plan",icon:ClipboardList},...(canManage?[{id:"events",label:"Events",icon:CalendarDays},{id:"settings",label:"Settings",icon:Settings2}]:[])].map(t=>({...t,href:`/production/planning?date=${date}&kitchen=${kitchenId}&view=${t.id}`}))}/>
@@ -83,7 +84,7 @@ export function ProductionPlanningWorkspace(props:Props) {
     <ProductionPrintSheet kitchen={kitchens.find(k=>k.id===kitchenId)?.branch_name??"Kitchen"} date={date} plan={plan} products={planProducts} outlets={outlets} allocations={allocations} production={production} dirty={dirty}/>
     {unavailableProducts.length?<p className="border-b bg-amber-50 p-3 text-xs">{unavailableProducts.length} products are outside their supply period. Recalculate this draft to remove them before submitting.</p>:null}
     {plan.holidays.length?<p className="border-b bg-amber-50 p-3 text-xs text-amber-900">Public holiday: {plan.holidays.map((h)=>`${outlets.find((o)=>o.id===h.branch_id)?.branch_name??"Outlet"} · ${h.name}`).join("; ")}. Review demand; no automatic uplift.</p>:null}
-    <PlanningAllocationTable key={plan.id} products={planProducts} outlets={outlets} allocations={allocations} production={production} working={working} allocationCell={allocationCell} editProduction={editProduction} setTrayMode={(id,mode)=>{setDirty(true);setProduction(lines=>lines.map(line=>line.product_id===id?{...line,tray_mode:mode,trays:production.find(p=>p.product_id===id)?.trays??null}:line));}} onEvidence={setEvidence}/>
+    <PlanningAllocationTable focusProduct={checkFocus} key={plan.id} products={planProducts} outlets={outlets} allocations={allocations} production={production} working={working} allocationCell={allocationCell} editProduction={editProduction} setTrayMode={(id,mode)=>{setDirty(true);setProduction(lines=>lines.map(line=>line.product_id===id?{...line,tray_mode:mode,trays:production.find(p=>p.product_id===id)?.trays??null}:line));}} onEvidence={setEvidence}/>
 
    </section>
    {plan.events.length?<section className="sb-work-surface p-3"><h2 className="text-sm font-semibold">Confirmed external orders & events</h2>{plan.events.map((e)=><p className="mt-2 text-sm" key={e.id}>{e.name} · {e.branch_id?outlets.find((o)=>o.id===e.branch_id)?.branch_name:e.demand_kind==="franchise_order"?"Franchise order":"Independent corporate event"} · {e.lines.map((l)=>`${products.find((p)=>p.id===l.product_id)?.product_code} × ${num(l.qty)}`).join(", ")}</p>)}</section>:null}

@@ -1,3 +1,7 @@
+## v9.2.92 (unreleased) — concise actionable production checks
+
+Plan checks group repeated fields into one short line per product. Quantity issues can focus the corresponding product in the existing allocation worksheet without changing quantities or unsaved edits. Configuration uses the existing Settings action. v9.2.91 focused evidence, packaging balance and unified compliance remain included. See docs/qa/OMS_FOCUSED_WORKSPACES_2026-10-06.md for acceptance.
+
 ## v9.2.91 (unreleased) — focused planning evidence and outlet workspaces
 
 Production evidence focuses one outlet at a time, with a selectable daily trend and expandable records. Missing dates stay gaps, live history stays separate from saved suggestions, and manual readiness remains explicit without repeated setup paragraphs. Plan checks lead with affected products and bound expanded details. Planning tabs are Plan, Events, Settings. Kitchen email is retired; migration335 preserves approval authorization and quantity guards while removing the email release prerequisite and retaining in-app kitchen notification.

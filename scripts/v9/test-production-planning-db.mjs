@@ -229,5 +229,22 @@ try {
  await rpc('save_production_event',[{...seasonalEvent,event_date:'2026-11-01'}]);checks++;
  await rpc('save_production_event',[{...seasonalEvent,event_date:'2026-11-30'}]);checks++;
  await rejected(()=>rpc('save_production_event',[{...seasonalEvent,event_date:'2026-12-01'}]),/unavailable/);
+ await db.exec(sql('supabase/migrations/322_outlet_packaging_report.sql'));
+ const packagingAcl=(await query("select proacl::text,proowner,prosecdef from pg_proc where oid='public.get_outlet_packaging_report(date,integer)'::regprocedure"))[0];
+ await db.exec(sql('supabase/migrations/336_packaging_opening_balance_provenance.sql'));
+ check((await query("select proacl::text,proowner,prosecdef from pg_proc where oid='public.get_outlet_packaging_report(date,integer)'::regprocedure"))[0],packagingAcl);
+ await actor(managerAuth);
+ await query('begin');
+ const packagingBaselineId=uid();
+ await query("insert into products(id,company_id,product_code,product_name,category) values($1,$2,'PKG_TEST','Box','PACKAGING')",[packagingBaselineId,company]);
+ for(const [branch,date,closing,status] of [[outlet,'2030-09-29',10,'reviewed'],[outlet2,'2030-09-28',20,'reviewed'],[outlet,'2030-10-03',8,'reviewed'],[outlet2,'2030-10-05',16,'reviewed'],[outlet,'2030-10-06',999,'draft']]){
+ const record=uid();await query('insert into outlet_daily_records(id,company_id,branch_id,record_date,status) values($1,$2,$3,$4,$5)',[record,company,branch,date,status]);
+ await query('insert into outlet_daily_record_lines(record_id,product_id,evening_leftover_qty,wastage_qty) values($1,$2,$3,1)',[record,packagingBaselineId,closing]);
+ }
+ const packageReport=await rpc('get_outlet_packaging_report',['2030-10-06',7]);
+ check(packageReport.opening.filter(r=>r.code==='PKG_TEST').map(r=>r.closing).sort((a,b)=>a-b),[10,20]);
+ check(packageReport.rows.filter(r=>r.code==='PKG_TEST').map(r=>r.closing).sort((a,b)=>a-b),[8,16]);
+ check(packageReport.latest.filter(r=>r.code==='PKG_TEST').map(r=>r.closing).sort((a,b)=>a-b),[8,16]);
+ await query('rollback');
   console.log(`Production planning PostgreSQL integration: ${checks} checks passed.`);
 } finally { await db.close(); }

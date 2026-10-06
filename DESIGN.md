@@ -1,3 +1,7 @@
+## v9.2.93 (unreleased) — comparable packaging balance history
+
+Packaging balance trends use each outlet’s last confirmed closing as of the selected date, seeded by a bounded pre-period observation. Incomplete outlet coverage remains a gap instead of becoming a smaller inventory total. Record dates remain visible on drill-through; these are recorded balances, not live physical stock. Migration336 preserves SECURITY INVOKER and RLS. v9.2.92 focused workspaces remain included.
+
 ## v9.2.92 (unreleased) — concise actionable production checks
 
 Plan checks group repeated fields into one short line per product. Quantity issues can focus the corresponding product in the existing allocation worksheet without changing quantities or unsaved edits. Configuration uses the existing Settings action. v9.2.91 focused evidence, packaging balance and unified compliance remain included. See docs/qa/OMS_FOCUSED_WORKSPACES_2026-10-06.md for acceptance.

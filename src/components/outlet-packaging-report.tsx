@@ -11,6 +11,7 @@ import { FilterBar } from "@/components/ui/filter-bar";
 import { SectionLoadingState } from "@/components/ui/system-states";
 import { SelectNative } from "@/components/ui/select-native";
 import { formatDateOnly, formatNumber } from "@/lib/utils";
+import { packagingTrendPoints } from "@/lib/packaging-trend";
 import { shiftBusinessDate } from "@/lib/business-date";
 import type { getOutletPackagingReport } from "@/server/queries/outlet-packaging";
 
@@ -36,19 +37,7 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
   const start = shiftBusinessDate(report.today, 1 - days);
   const rows = useMemo(() => report.rows.filter(row => row.date >= start && (outlet === "all" || row.branchId === outlet) && row.code === product), [report.rows, start, outlet, product]);
   const selectedProduct = report.products.find((item) => item.code === product);
-  const points = useMemo(() => {
-    // Group once, rather than scan every report row again for each day and chart click.
-    const byDate = new Map<string, Report["rows"]>();
-    for (const row of rows) {
-      const group = byDate.get(row.date) ?? [];
-      group.push(row); byDate.set(row.date, group);
-    }
-    return Array.from({ length: days }, (_, index) => {
-      const date = shiftBusinessDate(report.today, index + 1 - days);
-      const daily = byDate.get(date) ?? [];
-      return { date, rows: daily, value: daily.length ? measure === "usage" ? daily.reduce((sum, row) => sum + row.usage, 0) : daily.some(row=>row.closing==null) ? null : daily.reduce((sum,row)=>sum+(row.closing??0),0) : null };
-    });
-  }, [rows, report.today, days, measure]);
+  const points = useMemo(()=>packagingTrendPoints(report,outlet,product,days,measure),[report,outlet,product,days,measure]);
   const balances=latest.filter(row=>row.code===product&&row.closing!==null);
   const balanceTotal=balances.reduce((sum,row)=>sum+(row.closing??0),0);
   const maximum = Math.max(1, ...points.map((point) => point.value ?? 0));
@@ -67,9 +56,9 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
       <div className="flex justify-between gap-3"><span>Days recorded</span><span className="tabular-nums">{points.filter((point) => point.value !== null).length}/{days}</span></div>
       {selected ? <div className="border-t pt-3" aria-live="polite">
         <p className="font-semibold">{formatDateOnly(selected.date)}</p>
-        <p className="mt-1 text-muted-foreground">{selected.value === null ? "No completed records" : `${formatNumber(selected.value)} ${selectedProduct?.unit} ${measure==="usage"?"used":"closing"} · ${selected.rows.length}/${count} outlets`}</p>
-        <div className="mt-2 max-h-64 overflow-y-auto">{selected.rows.map((row) => <div key={row.id} className="flex justify-between gap-3 py-2"><span>{row.branch}</span><span className="shrink-0 tabular-nums">{formatNumber(measure==="usage"?row.usage:row.closing??0)} {row.unit}</span></div>)}</div>
-      </div> : <p className="text-muted-foreground">Select a day for outlet details.</p>}
+        <p className="mt-1 text-muted-foreground">{selected.value === null ? "Incomplete balance coverage" : `${formatNumber(selected.value)} ${selectedProduct?.unit} ${measure==="usage"?"used":"recorded balance"} · ${selected.rows.length}/${count} outlets`}</p>
+        <div className="mt-2 max-h-64 overflow-y-auto">{selected.rows.map((row) => <div key={row.id} className="flex justify-between gap-3 py-2"><span>{row.branch}{measure==="closing"?<time className="block text-muted-foreground">{formatDateOnly(row.date)}</time>:null}</span><span className="shrink-0 tabular-nums">{formatNumber(measure==="usage"?row.usage:row.closing??0)} {row.unit}</span></div>)}</div>
+      </div> : <p className="text-muted-foreground">{measure==="closing"?"Last confirmed closing per outlet; select a day for record dates.":"Select a day for outlet usage."}</p>}
       </>}
     </ConsoleSection>
   </>;
@@ -118,16 +107,16 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
         <h2 id="packaging-trend-title" className="text-sm font-semibold">Daily trend</h2><div className="flex gap-1"><Button size="sm" variant={measure==="closing"?"secondary":"ghost"} aria-pressed={measure==="closing"} onClick={()=>{setMeasure("closing");setSelectedDate(null);}}>Balance</Button><Button size="sm" variant={measure==="usage"?"secondary":"ghost"} aria-pressed={measure==="usage"} onClick={()=>{setMeasure("usage");setSelectedDate(null);}}>Usage</Button></div>
       </div>
       <div className="p-4">
-        <p className="text-sm font-medium">{selectedProduct?.name??"Packaging"} · {measure==="usage"?"Usage":"Closing balance"}</p>
+        <p className="text-sm font-medium">{selectedProduct?.name??"Packaging"} · {measure==="usage"?"Usage":"Recorded balance"}</p>
         <div className="mt-4 h-64" key={`${outlet}:${product}:${days}:${measure}`}>
           {periodPending ? <SectionLoadingState label="Loading packaging trend" /> : <InteractiveLineChart compact width={600} height={256} inset={{ top: 20, right: 12, bottom: 28, left: 42 }} maximum={maximum} maximumFractionDigits={0}
             ariaLabel={`${selectedProduct?.name ?? "Packaging"} daily ${measure==="usage"?"usage":"closing balance"}`} onSelectPoint={setSelectedDate}
             points={points.map((point) => ({ id: point.date, label: formatDateOnly(point.date), value: point.value,
-              previewValue: point.value === null ? "No completed records" : `${formatNumber(point.value)} ${selectedProduct?.unit}`,
-              previewDetails: [`${point.rows.length}/${count} outlets recorded`],
+              previewValue: point.value === null ? (measure==="closing"?"Incomplete balance coverage":"No completed records") : `${formatNumber(point.value)} ${selectedProduct?.unit}`,
+              previewDetails: [`${point.rows.length}/${count} outlets ${measure==="closing"?"with known balance":"recorded"}`, ...(measure==="closing"?[`${point.updated} updated that day`]:[])],
             }))} />}
         </div>
-        {!periodPending ? <p className="mt-3 text-xs text-muted-foreground">{points.filter((point) => point.value !== null).length}/{days} days recorded · select a day for details</p> : null}
+        {!periodPending ? <p className="mt-3 text-xs text-muted-foreground">{points.filter((point) => point.value !== null).length}/{days} days {measure==="closing"?"with full balance coverage":"recorded"} · select a day for details</p> : null}
 
       </div>
     </section>

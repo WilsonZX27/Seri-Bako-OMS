@@ -19,7 +19,7 @@ export type PackagingUsageRow = {
 };
 
 export type PackagingReport = {
- rows: PackagingUsageRow[]; latest: PackagingUsageRow[]; today: string;
+ opening?: PackagingUsageRow[]; rows: PackagingUsageRow[]; latest: PackagingUsageRow[]; today: string;
  products: Array<{ id: string; code: string; name: string; unit: string }>;
  outlets: Array<{ id: string; name: string }>;
 };

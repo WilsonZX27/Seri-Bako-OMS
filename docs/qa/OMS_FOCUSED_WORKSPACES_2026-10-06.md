@@ -21,3 +21,10 @@ Migration335 replaces only approval workflow and release notification functions 
 ## Verification
 
 Strict TypeScript and lint passed. Full regression:1,416 passed. PGlite integration:105 checks passed, including approval with no email recipients, no queued release emails, preserved function ACL/owner/security-definer and independent franchise dispatch. Browser verification and final publication evidence pending.
+
+
+## Browser-driven refinement
+
+Desktop and phone evidence graph inspected on the authenticated custom domain. Full56-day calendar preserves missing-date gaps; End-key selection on06/10 reports no completed record instead of substituting30/09. Switching to Queensbay/Received shows its actual16-piece receipts and latest01/10 record. Correct Sponge Cake spelling is retained. Actual phone viewport394px/root394px/dialog361.95px; selector, measures, graph, selected date and collapsed guidance fit the viewport. Settings tabs are Plan/Events/Settings and no kitchen email field exists.
+
+Packaging QA found changing daily outlet cohorts could falsely imply stock movement.336 adds one indexed pre-period completed record per authorized outlet to the existing invoker RPC. The balance series now carries each known closing observation forward, never forecasts movement, and leaves incomplete cohorts blank. Each selected day exposes underlying record dates. Usage remains the recorded per-day total. Isolated tests verify opening10+20, later8+16, ignored draft999, zero/missing balance distinctions and preserved ACL/owner/invoker;109 database checks passed. Full regression now1,421 passed; strict TypeScript/lint passed.335 and336 applied;325 remains excluded. Final v9.2.93 build/browser acceptance pending.

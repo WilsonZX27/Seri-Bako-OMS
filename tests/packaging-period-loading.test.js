@@ -21,11 +21,12 @@ function render(pending){const navigations=[];let period;const context={exports:
  if(n.endsWith('/system-states'))return {SectionLoadingState:p=>React.createElement('span',{'role':'status'},p.label)};
  if(n.endsWith('/interactive-line-chart'))return {InteractiveLineChart:p=>React.createElement('div',{'data-chart':true},p.points.map(x=>React.createElement('span',{key:x.id},x.previewValue)))};
  if(n.endsWith('/utils'))return {formatNumber:x=>String(x),formatDateOnly:x=>x};
+ if(n.endsWith('/packaging-trend')){const model={exports:{},require:context.require};vm.runInNewContext(compile(fs.readFileSync('src/lib/packaging-trend.ts','utf8')),model);return model.exports;}
  if(n.endsWith('/business-date'))return {shiftBusinessDate:(date,offset)=>{const d=new Date(date+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+offset);return d.toISOString().slice(0,10);}};throw Error(n);
  }};vm.runInNewContext(compile(fs.readFileSync('src/components/outlet-packaging-report.tsx','utf8')),context);const html=renderToStaticMarkup(React.createElement(context.exports.OutletPackagingReport,{report,days:7}));return {html,period,navigations};}
 test('pending period loads hide stale totals, coverage and chart gaps while keeping genuine stock visible',()=>{
- const {html,period}=render(true);assert.equal(period.disabled,true);assert.equal(period['aria-busy'],true);assert.match(html,/Loading packaging trend/);assert.match(html,/Loading packaging report coverage/);assert.ok(!html.includes('data-chart'));assert.ok(!html.includes('1/7 days recorded'));assert.ok(!html.includes('No completed records'));assert.match(html,/0<span[^>]*>PCS/);
+ const {html,period}=render(true);assert.equal(period.disabled,true);assert.equal(period['aria-busy'],true);assert.match(html,/Loading packaging trend/);assert.match(html,/Loading packaging report coverage/);assert.ok(!html.includes('data-chart'));assert.ok(!html.includes('1/7 days recorded'));assert.ok(!html.includes('Incomplete balance coverage'));assert.match(html,/0<span[^>]*>PCS/);
 });
 test('loaded explicit zero usage is visible and period changes navigate once without eager zero-month data',()=>{
- const {html,period,navigations}=render(false);assert.match(html,/data-chart/);assert.match(html,/0 PCS/);assert.match(html,/1\/7 days recorded/);period.onChange({target:{value:'30'}});assert.equal(navigations.length,1);assert.equal(navigations[0][0],'/outlet-packaging?keep=1&days=30');assert.equal(navigations[0][1].scroll,false);
+ const {html,period,navigations}=render(false);assert.match(html,/data-chart/);assert.match(html,/0 PCS/);assert.match(html,/4\/7 days with full balance coverage/);period.onChange({target:{value:'30'}});assert.equal(navigations.length,1);assert.equal(navigations[0][0],'/outlet-packaging?keep=1&days=30');assert.equal(navigations[0][1].scroll,false);
 });

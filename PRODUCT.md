@@ -1,3 +1,7 @@
+## v9.2.94 (unreleased) — consistent compliance and correction context
+
+Compliance Calendar uses the same current required-document records as Register, so superseded evidence does not become duplicate urgent tasks. Duplicate portfolio counts are removed from the rail. Product correction focus remains stable when unsaved quantities change and does not reset a subsequently edited search. v9.2.93 focused workspaces and comparable balance history remain included.
+
 ## v9.2.93 (unreleased) — comparable packaging balance history
 
 Packaging balance trends use each outlet’s last confirmed closing as of the selected date, seeded by a bounded pre-period observation. Incomplete outlet coverage remains a gap instead of becoming a smaller inventory total. Record dates remain visible on drill-through; these are recorded balances, not live physical stock. Migration336 preserves SECURITY INVOKER and RLS. v9.2.92 focused workspaces remain included.

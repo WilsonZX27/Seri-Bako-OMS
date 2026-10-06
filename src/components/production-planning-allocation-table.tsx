@@ -19,7 +19,8 @@ export function PlanningAllocationTable({ products, outlets, allocations, produc
  const container=useRef<HTMLDivElement>(null); const [width,setWidth]=useState(0);
  const [query,setQuery]=useState(""); const [category,setCategory]=useState("all"); const [mobileOutlet,setMobileOutlet]=useState(outlets[0]?.id??"");
  useEffect(()=>{const node=container.current;if(!node)return;const observer=new ResizeObserver(entries=>setWidth(entries[0].contentRect.width));observer.observe(node);return()=>observer.disconnect();},[]);
- useEffect(()=>{if(!focusProduct)return;const p=products.find(item=>item.id===focusProduct.id);if(!p)return;setQuery(p.product_code);setCategory("all");container.current?.scrollIntoView({block:"start"});container.current?.querySelector<HTMLInputElement>('input[type="search"]')?.focus({preventScroll:true});},[focusProduct,products]);
+ const focusCode=products.find(p=>p.id===focusProduct?.id)?.product_code;
+ useEffect(()=>{if(!focusCode)return;setQuery(focusCode);setCategory("all");container.current?.scrollIntoView({block:"start"});container.current?.querySelector<HTMLInputElement>('input[type="search"]')?.focus({preventScroll:true});},[focusCode,focusProduct?.request]);
  const visibleOutlets=outlets;
  const filtered=products.filter(p=>(category==="all"||p.category===category)&&`${p.product_code} ${p.product_name}`.toLowerCase().includes(query.toLowerCase()));
  const num=(value:number|null)=>value===null?"—":formatNumber(value);

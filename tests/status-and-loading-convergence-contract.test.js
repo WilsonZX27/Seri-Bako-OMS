@@ -70,7 +70,7 @@ test("right-rail action sections are ordered first", () => {
   ];
   for (const page of pages) {
     const source = read(page);
-    assert.ok(source.indexOf('<ConsoleSection title="Actions"') < source.indexOf('<ConsoleSection title="Portfolio"') || source.indexOf('<ConsoleSection title="Actions"') < source.indexOf('<ConsoleSection title="Payables Context"'));
+    assert.ok(source.indexOf('<ConsoleSection title="Actions"') < source.indexOf('<ConsoleSection title="Due soon & expired"') || source.indexOf('<ConsoleSection title="Actions"') < source.indexOf('<ConsoleSection title="Payables Context"'));
   }
 });
 

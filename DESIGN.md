@@ -1,20 +1,20 @@
-## v9.2.94 (unreleased) — consistent compliance and correction context
+## v9.2.94 (deployed) — consistent compliance and correction context
 
 Compliance Calendar uses the same current required-document records as Register, so superseded evidence does not become duplicate urgent tasks. Duplicate portfolio counts are removed from the rail. Product correction focus remains stable when unsaved quantities change and does not reset a subsequently edited search. v9.2.93 focused workspaces and comparable balance history remain included.
 
-## v9.2.93 (unreleased) — comparable packaging balance history
+## v9.2.93 (deployed) — comparable packaging balance history
 
 Packaging balance trends use each outlet’s last confirmed closing as of the selected date, seeded by a bounded pre-period observation. Incomplete outlet coverage remains a gap instead of becoming a smaller inventory total. Record dates remain visible on drill-through; these are recorded balances, not live physical stock. Migration336 preserves SECURITY INVOKER and RLS. v9.2.92 focused workspaces remain included.
 
-## v9.2.92 (unreleased) — concise actionable production checks
+## v9.2.92 (deployed) — concise actionable production checks
 
 Plan checks group repeated fields into one short line per product. Quantity issues can focus the corresponding product in the existing allocation worksheet without changing quantities or unsaved edits. Configuration uses the existing Settings action. v9.2.91 focused evidence, packaging balance and unified compliance remain included. See docs/qa/OMS_FOCUSED_WORKSPACES_2026-10-06.md for acceptance.
 
-## v9.2.91 (unreleased) — focused planning evidence and outlet workspaces
+## v9.2.91 (deployed) — focused planning evidence and outlet workspaces
 
 Production evidence focuses one outlet at a time, with a selectable daily trend and expandable records. Missing dates stay gaps, live history stays separate from saved suggestions, and manual readiness remains explicit without repeated setup paragraphs. Plan checks lead with affected products and bound expanded details. Planning tabs are Plan, Events, Settings. Kitchen email is retired; migration335 preserves approval authorization and quantity guards while removing the email release prerequisite and retaining in-app kitchen notification.
 
-Packaging leads with selected-product recorded balance and usage, then allows Balance/Usage trend selection. Compliance Register and Calendar share one workspace; legacy calendar links redirect with month/branch preserved. No business quantities, historical documents, permissions or grants change. Publication and responsive acceptance are pending.
+Packaging leads with selected-product recorded balance and usage, then allows Balance/Usage trend selection. Compliance Register and Calendar share one workspace; legacy calendar links redirect with month/branch preserved. No business quantities, historical documents, permissions or grants change. Deployment completed; responsive acceptance evidence and remaining authenticated checks are recorded in docs/qa/OMS_FOCUSED_WORKSPACES_2026-10-06.md.
 
 ## v9.2.90 (deployed) — safe comparable-day fallback
 
@@ -1106,7 +1106,7 @@ AutoCount sourcing surfaces keep the internal creditor code and operator-facing 
 
 Stock Balance image hydration is bounded in the server query rather than allowing one oversized request; this preserves the compact row presentation without changing inventory authority.
 
-> **Release authority:** the currently released application is `v9.2.87`, as
+> **Release authority:** the currently released application is `v9.2.94`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.

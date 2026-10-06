@@ -1,3 +1,9 @@
+## v9.2.89 (unreleased) — Production Planning closure
+
+Planning shows all routed outlets with internal worksheet scrolling, no grouping toggle or redundant count row. Kitchen/date/version have consistent icon metadata. The evidence dialog distinguishes saved suggestions from on-demand completed history, exposes loading/error/retry and truthful unknown inputs, and links directly to needed settings. Franchise orders use the existing independent destination flow with customer/order reference and explicit external classification, including delivery labels; they do not look like own outlets.
+
+Source calculations and acceptance status are recorded in docs/qa/PRODUCTION_PLANNING_CLOSE_2026-10-05.md. Database334 is applied,325 remains pending; source release and authenticated browser acceptance remain pending. No decorative motion or new foundational UI system.
+
 ## v9.2.88 (deployed) — procurement unit context and operational rail alignment
 
 Purchase Request stock displays retain the balance in its recorded base unit, with a separate purchase-package conversion resolved from the request supplier and branch. Missing, failed, invalid or conflicting mappings remain explicitly unavailable; no guessed factor multiplies the stock. Desktop and phone share one presentation owner. The user confirmed QUIKGROC00060 and QUIKGROC00024 quantities were kilograms with incorrect CTN labels. Migration333 corrects both masters, active supplier units and count labels to KG/factor1 without multiplying quantities; count, ledger and balance digest guards and independent readback passed. Existing procurement document snapshots remain preserved.

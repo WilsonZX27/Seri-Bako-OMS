@@ -20,6 +20,8 @@ type ChartInset = {
 
 type InteractiveLineChartProps = {
   points: InteractiveLineChartPoint[];
+  compact?: boolean;
+  tone?: "primary" | "danger";
   width: number;
   height: number;
   inset: ChartInset;
@@ -32,6 +34,8 @@ type InteractiveLineChartProps = {
 
 export function InteractiveLineChart({
   points,
+  compact = false,
+  tone = "primary",
   width,
   height,
   inset,
@@ -41,6 +45,7 @@ export function InteractiveLineChart({
   maximumFractionDigits = 1,
   onSelectPoint,
 }: InteractiveLineChartProps) {
+  const stroke = tone === "danger" ? "var(--sb-danger)" : "var(--sb-green-700)";
   const previewId = useId();
   const chartRef = useRef<SVGSVGElement>(null);
   const [chartSize, setChartSize] = useState({ width, height });
@@ -126,7 +131,7 @@ export function InteractiveLineChart({
     <div className="relative h-full min-w-0 w-full" data-interactive-line-chart>
       <svg
         ref={chartRef}
-        className="block h-full min-h-72 w-full touch-pan-y rounded-[var(--sb-radius-control)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-2"
+        className={`block h-full ${compact?"min-h-40":"min-h-72"} w-full touch-pan-y rounded-[var(--sb-radius-control)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-2`}
         viewBox={`0 0 ${width} ${height}`}
         preserveAspectRatio="xMidYMid meet"
         role="img"
@@ -154,7 +159,7 @@ export function InteractiveLineChart({
             </g>
           );
         })}
-        <path d={path} fill="none" stroke="var(--sb-green-700)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" pointerEvents="none" />
+        <path d={path} fill="none" stroke={stroke} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" pointerEvents="none" />
         {points.some((point) => point.value === null) || points.length <= 14 ? points.map((point, index) => point.value === null ? null : (
           <circle
             key={point.id}
@@ -162,7 +167,7 @@ export function InteractiveLineChart({
             cy={y(point.value)}
             r="3.25"
             fill="var(--sb-surface-raised)"
-            stroke="var(--sb-green-700)"
+            stroke={stroke}
             strokeWidth="1.5"
             vectorEffect="non-scaling-stroke"
             pointerEvents="none"
@@ -192,14 +197,14 @@ export function InteractiveLineChart({
               x2={activeX}
               y1={inset.top}
               y2={inset.top + innerHeight}
-              stroke="var(--sb-green-700)"
+              stroke={stroke}
               strokeWidth="1"
               strokeDasharray="3 4"
               vectorEffect="non-scaling-stroke"
               opacity="0.55"
             />
               {activePoint.value !== null && <circle cx={activeX} cy={activeY} r="7" fill="var(--sb-green-100)" opacity="0.9" />}
-              {activePoint.value !== null && <circle cx={activeX} cy={activeY} r="3.75" fill="var(--sb-surface-raised)" stroke="var(--sb-green-800)" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />}
+              {activePoint.value !== null && <circle cx={activeX} cy={activeY} r="3.75" fill="var(--sb-surface-raised)" stroke={stroke} strokeWidth="1.5" vectorEffect="non-scaling-stroke" />}
           </g>
         ) : null}
       </svg>

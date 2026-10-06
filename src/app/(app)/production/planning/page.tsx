@@ -23,9 +23,7 @@ export default async function ProductionPlanningPage({searchParams}:{searchParam
   if(!kitchenId)throw new Error("No accessible central kitchen is configured.");
   const [context,plans,orders]=await Promise.all([loadPlanningContext(db,profile.company_id,kitchenId,date,{view,kitchens:accessible as unknown as PlanningBranch[]}),view==="plan"?loadPlans(db,profile.company_id,kitchenId,date,filters.version):Promise.resolve<Plan[]>([]),view==="plan"?loadDeliveryOrders(db,{companyId:profile.company_id,kitchenId,date}):Promise.resolve<DeliveryOrder[]>([])]);
   const selectedPlanId=plans.find(plan=>plan.id===filters.version)?.id??plans[0]?.id;
-  const emails=plans.length?await db.from("production_planning_email_queue").select("status,recipient,last_error").eq("plan_id",selectedPlanId):{data:[],error:null};
-  if(emails.error)throw new Error(emails.error.message);
-  return <><PageHeader title="Production Planning" description="Daily production and outlet allocation."/><ProductionPlanningWorkspace key={`${kitchenId}:${date}:${view}:${selectedPlanId??""}`} selectedPlanId={selectedPlanId} view={view} companyId={profile.company_id} date={date} kitchenId={kitchenId} {...context} plans={plans} orders={orders} canManage={canManage} emailConfigured={Boolean(process.env.RESEND_API_KEY?.trim())} emailStatus={(emails.data??[]) as {status:string;recipient:string;last_error:string|null}[]}/></>;
+  return <><PageHeader title="Production Planning" description="Daily production and outlet allocation."/><ProductionPlanningWorkspace key={`${kitchenId}:${date}:${view}:${selectedPlanId??""}`} selectedPlanId={selectedPlanId} view={view} companyId={profile.company_id} date={date} kitchenId={kitchenId} {...context} plans={plans} orders={orders} canManage={canManage}/></>;
  } catch(error) {
   logServerError(error,{source:"page.productionPlanning"});
   return <><PageHeader title="Production Planning" description="Daily production, allocation and delivery approval."/><WorkspaceGrid><Notice tone="warning" title="Production planning could not load">Reload to retry. If this continues, check the kitchen configuration and system health.</Notice></WorkspaceGrid></>;

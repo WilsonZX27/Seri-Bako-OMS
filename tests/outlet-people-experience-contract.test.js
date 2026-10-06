@@ -8,7 +8,7 @@ test("Outlet Management and People list workspaces use the shared wide canvas", 
   for (const route of [
     "src/app/(app)/people/page.tsx",
     "src/app/(app)/outlet-compliance/page.tsx",
-    "src/app/(app)/outlet-calendar/page.tsx",
+    "src/app/(app)/outlet-compliance/page.tsx",
   ]) {
     const page = read(route);
     assert.match(page, /contentWidth="wide"/);

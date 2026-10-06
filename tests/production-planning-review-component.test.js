@@ -12,7 +12,7 @@ const props={hasPlan:true,dirty:false,products:[{id:'p',product_code:'SC01'}],ou
 const render=patch=>renderToStaticMarkup(React.createElement(context.exports.PlanningReviewChecks,{...props,...patch}));
 test('actual review component keeps each precise check in a closed accessible group and links to the current Settings',()=>{
  const checks=[{productId:'p',category:'configuration',message:'Set yield.'},{productId:'p',branchId:'b',category:'quantities',message:'Enter quantity.'},{productId:'p',branchId:'b',category:'reasons',message:'Add reason.'},{productId:'p',category:'balance',message:'Allocate remainder.'}];
- const html=render({checks});assert.equal((html.match(/<details>/g)||[]).length,4);assert.equal((html.match(/<li>/g)||[]).length,4);assert.ok(!html.includes('<details open'));assert.match(html,/SC01 · Gurney Plaza: Enter quantity/);assert.match(html,/min-h-11/);assert.match(html,/date=2026-10-05&amp;kitchen=k&amp;view=settings/);assert.ok(!html.includes('checks before review'));
+ const html=render({checks});assert.equal((html.match(/<details /g)||[]).length,4);assert.equal((html.match(/<li /g)||[]).length,4);assert.ok(!html.includes('<details open'));assert.match(html,/SC01 · Gurney Plaza: Enter quantity/);assert.match(html,/min-h-11/);assert.match(html,/date=2026-10-05&amp;kitchen=k&amp;view=settings/);assert.ok(!html.includes('checks before review'));
 });
 test('ready and unsaved states stay truthful without showing empty groups or a configuration action',()=>{
  const html=render({checks:[],dirty:true});assert.match(html,/Save changes before review/);assert.ok(!html.includes("Ready for review"));assert.match(render({checks:[]}),/Ready for review/);assert.ok(!html.includes('<details'));assert.ok(!html.includes('Open Settings'));

@@ -4,7 +4,6 @@ import { looseSupabase } from "@/lib/supabase/loose";
 import { buildPlanPayload, complete } from "@/server/production-planning/data";
 import { addDays } from "@/lib/production-planning/forecast";
 import { logServerError } from "@/server/observability/logger";
-import { deliverPlanningEmails } from "@/server/production-planning/email";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 export const maxDuration=60;
@@ -15,7 +14,8 @@ export async function GET(request:NextRequest) {
  const now=new Date();
  const date=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Kuala_Lumpur",year:"numeric",month:"2-digit",day:"2-digit"}).format(now);
  const time=new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Kuala_Lumpur",hour:"2-digit",minute:"2-digit",hour12:false}).format(now);
- let generated=0,failed=0,sent=0;
+ let generated=0,failed=0;
+ const sent=0;
  try {
   const configs=await complete(()=>db.from("production_planning_settings").select("*", { count: "exact" }).eq("enabled",true),["kitchen_id"]);
   for(const config of configs) {
@@ -30,8 +30,6 @@ export async function GET(request:NextRequest) {
     if(created.error)throw new Error(created.error.message); generated++;
    } catch(error){failed++;logServerError(error,{source:"cron.productionPlanning.generate"});}
   }
-  const delivery=await deliverPlanningEmails(); sent=delivery.sent; failed+=delivery.failed;
-  if(delivery.unavailable)return NextResponse.json({generated,failed,sent,email:"Provider not configured; queued messages remain pending"},{status:503});
   return NextResponse.json({generated,sent,failed},{status:failed?503:200});
  } catch(error){logServerError(error,{source:"cron.productionPlanning"});return NextResponse.json({error:"Planning scheduler unavailable",generated,sent,failed},{status:503});}
 }

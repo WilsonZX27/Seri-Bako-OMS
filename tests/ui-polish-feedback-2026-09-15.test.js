@@ -5,7 +5,7 @@ const fs = require("node:fs");
 const requests = fs.readFileSync("src/app/(app)/purchase-requests/page.tsx", "utf8");
 const requestDetail = fs.readFileSync("src/app/(app)/purchase-requests/[id]/page.tsx", "utf8");
 const orders = fs.readFileSync("src/app/(app)/purchase-orders/page.tsx", "utf8");
-const calendar = fs.readFileSync("src/app/(app)/outlet-calendar/page.tsx", "utf8");
+const calendar = fs.readFileSync("src/app/(app)/outlet-compliance/page.tsx", "utf8");
 const planner = fs.readFileSync("src/components/attendance/schedule-planner.tsx", "utf8");
 
 test("purchase registers use the requested two-line information order", () => {

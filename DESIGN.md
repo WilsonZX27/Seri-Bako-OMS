@@ -1,3 +1,9 @@
+## v9.2.91 (unreleased) — focused planning evidence and outlet workspaces
+
+Production evidence focuses one outlet at a time, with a selectable daily trend and expandable records. Missing dates stay gaps, live history stays separate from saved suggestions, and manual readiness remains explicit without repeated setup paragraphs. Plan checks lead with affected products and bound expanded details. Planning tabs are Plan, Events, Settings. Kitchen email is retired; migration335 preserves approval authorization and quantity guards while removing the email release prerequisite and retaining in-app kitchen notification.
+
+Packaging leads with selected-product recorded balance and usage, then allows Balance/Usage trend selection. Compliance Register and Calendar share one workspace; legacy calendar links redirect with month/branch preserved. No business quantities, historical documents, permissions or grants change. Publication and responsive acceptance are pending.
+
 ## v9.2.90 (deployed) — safe comparable-day fallback
 
 Forecast quantity-proxy-v2 uses the most recent selected comparable observation as the reduction-floor reference. Recent-day-type fallback retains the configured decrease cap and stockout protection even when no receipt exists for the exact delivery weekday. Existing plan snapshots and approved quantities remain unchanged; recalculation is explicit. v9.2.89 Planning evidence/franchise improvements remain included. Validation and release evidence belong to docs/qa/PRODUCTION_PLANNING_CLOSE_2026-10-05.md.

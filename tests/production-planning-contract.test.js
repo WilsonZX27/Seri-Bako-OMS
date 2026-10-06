@@ -14,12 +14,12 @@ test("approval and operational dispatch have separate protected database entry p
   assert.match(read("src/server/auth/route-permissions.ts"), /"\/production\/planning": \["production_planning\.view"\]/);
   assert.match(read("src/app/(app)/production/page.tsx"), /\/production\/planning/);
 });
-test("draft scheduler and independent email outbox cannot auto-approve or reuse management digest recipients", () => {
+test("draft scheduler cannot auto-approve or send retired kitchen emails", () => {
   const cron = read("src/app/api/cron/production-planning/route.ts");
   const email = read("src/server/production-planning/email.ts");
   assert.doesNotMatch(cron, /wilson@|management_email_dispatches|update_production_plan|confirm_production_dispatch/);
   assert.match(cron, /Bearer/);
-  assert.match(cron, /deliverPlanningEmails/);
+  assert.doesNotMatch(cron, /deliverPlanningEmails/);
   assert.match(email, /claim_production_emails/);
   assert.match(read("vercel.json"), /"schedule": "0 12 \* \* \*"/);
 });

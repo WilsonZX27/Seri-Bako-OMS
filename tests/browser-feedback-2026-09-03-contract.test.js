@@ -18,7 +18,7 @@ test("dashboard and attendance workspaces follow the corrected visual hierarchy"
 });
 
 test("calendar, settings, review and imports expose direct context instead of hidden steps", () => {
-  assert.match(read("src", "app", "(app)", "outlet-calendar", "page.tsx"), /rightRail=\{rightRail\}/);
+  assert.match(read("src", "app", "(app)", "outlet-compliance", "page.tsx"), /rightRail=\{rightRail\}/);
   assert.match(read("src", "app", "(app)", "attendance", "settings", "page.tsx"), /rightRail=\{rightRail\}/);
   const review = read("src", "app", "(app)", "attendance", "review", "page.tsx");
   const filters = read("src", "components", "attendance", "attendance-review-filters.tsx");

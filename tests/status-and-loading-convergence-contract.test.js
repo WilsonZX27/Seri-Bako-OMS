@@ -65,17 +65,17 @@ test("document numbers retain the exact external format", () => {
 
 test("right-rail action sections are ordered first", () => {
   const pages = [
-    "src/app/(app)/outlet-calendar/page.tsx",
+    "src/app/(app)/outlet-compliance/page.tsx",
     "src/app/(app)/supplier-invoices/aging/page.tsx",
   ];
   for (const page of pages) {
     const source = read(page);
-    assert.ok(source.indexOf('<ConsoleSection title="Actions"') < source.indexOf('<ConsoleSection title="Calendar"') || source.indexOf('<ConsoleSection title="Actions"') < source.indexOf('<ConsoleSection title="Payables Context"'));
+    assert.ok(source.indexOf('<ConsoleSection title="Actions"') < source.indexOf('<ConsoleSection title="Portfolio"') || source.indexOf('<ConsoleSection title="Actions"') < source.indexOf('<ConsoleSection title="Payables Context"'));
   }
 });
 
 test("reference-only mobile surfaces retain app navigation instead of inventing More actions", () => {
-  const calendar = read("src/app/(app)/outlet-calendar/page.tsx");
+  const calendar = read("src/app/(app)/outlet-compliance/page.tsx");
   const compliance = read("src/app/(app)/outlet-compliance/[branchId]/page.tsx");
   const rightConsole = read("src/components/layout/right-console.tsx");
   const design = read("src/app/design-system-v2.css");

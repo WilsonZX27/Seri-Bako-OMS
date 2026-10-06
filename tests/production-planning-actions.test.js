@@ -56,9 +56,9 @@ test('event quantities must be positive and invalid events do not write',async()
  const result=await f.actions.savePlanningEvent({...event,lines:[{product_id:product,qty:32}]});
  assert.equal(result.ok,true);assert.equal(f.calls[0].name,'save_production_event');assert.equal(f.calls[0].args.p_payload.branch_id,null);
 });
-test('approval remains successful when mail is unavailable and says queued, without claiming delivery',async()=>{
+test('approval uses in-app release without attempting retired email delivery',async()=>{
  const f=fixture();const result=await f.actions.changePlan(kitchen,1,'approve',{},key);
- assert.equal(result.ok,true);assert.match(result.message,/queued/);assert.ok(!/sent|processed/.test(result.message));
+ assert.equal(result.ok,true);assert.match(result.message,/released plan in OMS/);assert.ok(!/email|queued|sent|processed/.test(result.message));
  assert.equal(f.calls.length,1);assert.equal(f.calls[0].args.p_action,'approve');assert.equal(f.calls[0].args.p_key,key);
 });
 test('database failures do not expose table or connection internals as operator instructions',async()=>{

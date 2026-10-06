@@ -6,9 +6,7 @@ import { looseSupabase } from "@/lib/supabase/loose";
 import { getCurrentProfile } from "@/server/queries/common";
 import { complete, buildPlanPayload } from "@/server/production-planning/data";
 import { addDays } from "@/lib/production-planning/forecast";
-import { deliverPlanningEmails } from "@/server/production-planning/email";
 import { formatActionError } from "@/server/actions/error-handling";
-import { logServerError } from "@/server/observability/logger";
 
 export type PlanningActionResult = { ok: boolean; message: string; id?: string };
 const quantity = z.number().finite().nonnegative().max(1_000_000);
@@ -49,11 +47,7 @@ export async function changePlan(planId: string, revision: number, action: strin
       parsed=await buildPlanPayload(db,companyId,String(p.data.kitchen_id),String(p.data.delivery_date));
     }
     const result=await rpc(db,"update_production_plan",{p_plan_id:planId,p_revision:revision,p_action:action,p_payload:parsed,p_key:key}) as {id:string};
-    if (action !== "approve") return result;
-    try {
-      const delivery=await deliverPlanningEmails();
-      return {...result,message:delivery.unavailable?"Plan approved. Kitchen email is queued until the mail provider is configured.":delivery.failed?"Plan approved. Some kitchen emails failed; use Retry failed emails.":"Plan approved and kitchen email processed."};
-    } catch (error) { logServerError(error,{source:"productionPlanning.approvalEmail"}); return {...result,message:"Plan approved. Kitchen email remains queued; retry from the plan."}; }
+    return action==="approve"?{...result,message:"Plan approved. Kitchen can view the released plan in OMS."}:result;
   });
 }
 export async function confirmDispatch(planId: string, revision: number, payload: unknown, key: string) {
@@ -74,12 +68,6 @@ export async function savePlanningEvent(payload: unknown) {
 export async function voidDeliveryOrder(id: string, correctionReason: string, rebuild: boolean, key: string) {
   return run(async () => { const {db}=await manager(); uuid.parse(id); uuid.parse(key); reason.min(1).parse(correctionReason);
     await rpc(db,"void_production_delivery",{p_do_id:id,p_reason:correctionReason,p_rebuild:z.boolean().parse(rebuild),p_key:key}); return {}; });
-}
-export async function retryPlanningEmails(planId: string) {
-  return run(async () => { const {db}=await manager(); uuid.parse(planId); await rpc(db,"retry_production_emails",{p_plan_id:planId});
-    try { const delivery=await deliverPlanningEmails(); return {message:delivery.unavailable?"Email is queued until the provider is configured.":delivery.failed?"Some emails failed again. Review the email status.":"Kitchen email retry processed."}; }
-    catch(error){logServerError(error,{source:"productionPlanning.retryEmail"});return {message:"Email remains queued. Retry after checking the mail provider."};}
-  });
 }
 
 /** Read-only, permission-gated lookup; saving repeats the effective-route validation in SQL. */

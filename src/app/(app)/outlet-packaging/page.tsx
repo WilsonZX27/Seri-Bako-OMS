@@ -17,7 +17,7 @@ export default async function OutletPackagingPage({ searchParams }: { searchPara
   const { days: rawDays } = await searchParams;
   const days = rawDays === "30" ? 30 : 7;
   return <>
-    <PageHeader title="Packaging Usage" />
+    <PageHeader title="Packaging Stock" description="Recorded balances and daily usage." />
     <Suspense fallback={<WorkspaceGrid rightRail={<ConsoleSection title="Packaging actions"><SectionLoadingState label="Loading report coverage"/></ConsoleSection>}><div className="grid gap-3 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]"><section className="sb-work-surface"><SectionLoadingState label="Loading latest packaging stock"/></section><section className="sb-work-surface"><SectionLoadingState label="Loading packaging usage trend"/></section></div></WorkspaceGrid>}>
       <Report days={days} />
     </Suspense>

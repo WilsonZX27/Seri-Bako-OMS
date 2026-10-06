@@ -2,7 +2,7 @@
 
 来源：原始订单模板；不代表某日已确认订单。空白不等于确认零数量。
 
-## Penang 蒸糕（16 件/tray）
+## Penang 左侧蒸糕栏（16 件/tray）
 
 |模板|产品|Queensbay|Gurney|合计件数|整 tray|
 |---|---|---:|---:|---:|---:|
@@ -47,7 +47,7 @@ WEEKDAY!G27:G28：Yam Cake 只在周二、周四、周六、周日制作。普�
 
 ## KL V2 模板（保留 KL 各产品 yield）
 
-常规栏按 D:L 汇总，含 CHAYU / PJS 原始标签；不能据此认定所有栏都是自营零售门店。加盟栏 O:Q 分别为 BINTANG、B.jalil、Maluri。
+以下总计仅汇总有填写数量的产品；空白和“—”并非确认零。常规栏按 D:L 汇总，含 CHAYU / PJS 原始标签；不能据此认定所有栏都是自营零售门店。加盟栏 O:Q 分别为 BINTANG、B.jalil、Maluri。
 
 |模板|代码|产品|常规栏件数|加盟件数|总件数|yield|整 trays|产出余量|
 |---|---|---:|---:|---:|---:|---:|---:|
@@ -61,7 +61,7 @@ WEEKDAY!G27:G28：Yam Cake 只在周二、周四、周六、周日制作。普�
 |WEEK DAY V2|SC08|OSMANTHUS|36.0|28.0|64.0|32|2|0.0|
 |WEEK DAY V2|SC09|RED DATE|46.0|18.0|64.0|32|2|0.0|
 |WEEK DAY V2|SC10|WATER CHESTNUT|56.0|40.0|96.0|32|3|0.0|
-|WEEK DAY V2|SC11|NUTMEG|0|0|0|32|0|0|
+|WEEK DAY V2|SC11|NUTMEG|未填／—|未填|未填|32|待确认|待确认|
 |WEEK DAY V2|SC12|CRYSANTHENUM KUEH|32.0|0|32.0|32|1|0.0|
 |WEEK DAY V2|SC13|ROSELLE KUEH|32.0|0|32.0|32|1|0.0|
 |WEEK DAY V2|SC14|LONGAN SUGAR CANE KUEH|32.0|0|32.0|32|1|0.0|
@@ -78,7 +78,7 @@ WEEKDAY!G27:G28：Yam Cake 只在周二、周四、周六、周日制作。普�
 |WEEKEND V2|SC08|OSMANTHUS|88.0|40.0|128.0|32|4|0.0|
 |WEEKEND V2|SC09|RED DATE|32.0|32.0|64.0|32|2|0.0|
 |WEEKEND V2|SC10|WATER CHESTNUT|56.0|40.0|96.0|32|3|0.0|
-|WEEKEND V2|SC11|NUTMEG|0|0|0|32|0|0|
+|WEEKEND V2|SC11|NUTMEG|未填／—|未填|未填|32|待确认|待确认|
 |WEEKEND V2|SC12|CRYSANTHENUM KUEH|32.0|0|32.0|32|1|0.0|
 |WEEKEND V2|SC13|ROSELLE KUEH|32.0|0|32.0|32|1|0.0|
 |WEEKEND V2|SC14|LONGAN SUGAR CANE KUEH|32.0|0|32.0|32|1|0.0|
@@ -138,3 +138,42 @@ WEEKDAY!G27:G28：Yam Cake 只在周二、周四、周六、周日制作。普�
 |WEEKEND|TIRAMISU BASQUE|未填|2.0|2.0|
 |WEEKEND|COFFEE BUN|3.0|2.0|5.0|
 |WEEKEND|GARLIC CHICKEN BUN|3.0|2.0|5.0|
+
+## 加盟客户分别核算
+
+|模板|BINTANG|B.jalil|Maluri|加盟合计|
+|---|---:|---:|---:|---:|
+|WEEK DAY V2|176|96|72|344|
+|WEEKEND V2|224|154|104|482|
+
+加盟数量是订单要求，不按自营零售减废规则递减。整 tray 仍按产品合并所有目的地后计算，不能把各加盟客户分别取整再相加。
+
+## Penang 特殊页 3107-0208
+
+仅独立核算此页左侧蒸糕栏，不把它并入普通模板。页名没有提供明确年份或确认交货日期。
+
+|产品|Queensbay|Gurney|Event|件数|整 trays|
+|---|---:|---:|---:|---:|---:|
+|PANDAN|22|14|12|48|3|
+|RED BEAN|8|4|4|16|1|
+|BLACK SESAME|8|4|4|16|1|
+|ALMOND|8|4|4|16|1|
+|RED DATE|8|4|4|16|1|
+|HAWTHORN|8|4|4|16|1|
+|OSMANTHUS|16|8|8|32|2|
+|WATER CHESTNUT|8|4|4|16|1|
+|NUTMEG|8|8|0|16|1|
+|WHITE SUGAR SPONGE|16|16|16|48|3|
+|LONGAN SUGAR CANE KUEH|8|4|4|16|1|
+|CRYSANTHENUM KUEH|8|4|4|16|1|
+|ROSELLE KUEH|8|4|4|16|1|
+|YAM CAKE|8|4|4|16|1|
+|SEAFOOD RADISH CAKE|8|4|4|16|1|
+|合计||||320|20|
+
+## 来源与口径
+
+- PG OUTLET ORDER LIST.xlsx：WEEKDAY / WEEKEND!A3:D17 为左侧蒸糕；A18:D26、G3:J15 为其余订单；WEEKDAY!G27:G28 为 Yam 备注；3107-0208!A4:D18 为特殊页蒸糕。
+- 01.SERI BAKO ALL KUIH ORDER.xlsx：WEEK DAY V2 / WEEKEND V2!B4:T19；数量直接从 D:L、O:Q 和 S 重算，未使用缓存 totals。原表 T 栏公式给出 KL yield，SC02 的 N/R 已除16，故不把 N/R 当件数重复除16。
+- Weekday 已填总需求1,105件，按产品整 tray 产出1,116件；weekend 已填总需求1,365件，产出1,368件。相应余量11件和3件，属于待分配余量。
+- 只读打开原文件；用户确认的 WEEKEND!C12 修正仅用于本核算。未改写任何源工作簿。

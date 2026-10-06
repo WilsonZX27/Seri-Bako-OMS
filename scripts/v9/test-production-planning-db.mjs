@@ -55,6 +55,22 @@ try {
  check((await query('select forecast_basis from production_batch_rules'))[0].forecast_basis,'manual');
  const evidence={version:'quantity-proxy-v1',method:'same-weekday',suggested:12,reductionFloor:0,minimum:4,stockoutRisk:false,evidence:[]};
  const payload={kitchen_id:kitchen,delivery_date:'2026-10-03',buffer_percent:10,max_decrease_percent:10,forecast_version:'quantity-proxy-v1',events:[],holidays:[],product_lines:[{product_id:product,yield_per_tray:16,trays:1,event_qty:0}],allocations:[{product_id:product,branch_id:outlet,suggested_qty:12,approved_qty:12,minimum_qty:4,event_qty:0,evidence},{product_id:product,branch_id:outlet2,suggested_qty:4,approved_qty:4,minimum_qty:0,event_qty:0,evidence}]};
+ // A real franchise confirmation follows production -> release -> branchless DO,
+ // while self-operated receipt/coverage rows remain unchanged.
+ await query('begin');
+ const franchise=await rpc('save_production_event',[{kitchen_id:kitchen,branch_id:null,event_date:'2027-01-06',name:'BINTANG fixture order',confirmed:true,demand_kind:'franchise_order',lines:[{product_id:product,qty:32}]}]);
+ const eventSnapshot=(await query('select jsonb_agg(to_jsonb(e)) events from production_planning_events e where id=$1',[franchise]))[0].events;
+ const franchisePayload={...payload,delivery_date:'2027-01-06',events:eventSnapshot,product_lines:[{...payload.product_lines[0],trays:3,tray_mode:'automatic',event_qty:32}]};
+ const franchisePlan=await rpc('create_production_plan',[franchisePayload]);
+ check(Number((await query('select trays from production_plan_products where plan_id=$1',[franchisePlan]))[0].trays),3);
+ await rpc('update_production_plan',[franchisePlan,1,'submit',{},uid()]);
+ await rpc('update_production_plan',[franchisePlan,2,'approve',{},uid()]);
+ const beforeFranchiseDaily=(await query('select count(*)::int n from outlet_daily_records'))[0].n;
+ const franchiseDO=await rpc('confirm_production_dispatch',[franchisePlan,3,{destinations:[{branch_id:null,event_id:franchise,prepared_by:'Manager',driver:'',vehicle:'',yellow_trays:0,silver_trays:0,reason:'',lines:[{product_id:product,qty:32}]}],production:[{product_id:product,actual_qty:48,reason:''}]},uid()]);
+ check((await query('select branch_id,event_id,daily_record_id from production_delivery_orders where id=$1',[franchiseDO[0]]))[0],{branch_id:null,event_id:franchise,daily_record_id:null});
+ check((await query('select count(*)::int n from outlet_daily_records'))[0].n,beforeFranchiseDaily);
+ check(Number((await query('select qty from production_delivery_order_lines where do_id=$1',[franchiseDO[0]]))[0].qty),32);
+ await query('rollback');
  // Automatic mode is server-authoritative and excludes retained stock from demand.
  await query('begin');
  const autoPayload={...payload,delivery_date:'2026-11-01',product_lines:[{...payload.product_lines[0],tray_mode:'automatic',trays:99}]};

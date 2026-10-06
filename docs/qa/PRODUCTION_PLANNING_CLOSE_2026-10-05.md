@@ -24,10 +24,18 @@ The current quantity-based retail metric is actual recorded wastage divided by r
 
 ## Validation
 
-Strict TypeScript and lint pass. Full regression suite1415 passed (local-server teardown test required sandbox escalation). Isolated PostgreSQL planning suite100 checks passed, including external kind constraints; no hosted operational test posting. Additional history regression proves parent-company, allocation-outlet and product scoping, zero-vs-unknown preservation, and no write/invalidation.
+Strict TypeScript and lint pass. Full regression suite1415 passed (local-server teardown test required sandbox escalation). Isolated PostgreSQL planning suite104 checks passed, including external kind constraints; no hosted operational test posting. Additional history regression proves parent-company, allocation-outlet and product scoping, zero-vs-unknown preservation, and no write/invalidation.
 
 Evidence paths: `/tmp/oms-planning-tests-final.log`, `/tmp/oms-planning-db.log`, `/tmp/oms-334-applied.json`, `/tmp/oms-planning-final-read.json`. Browser previously expired to idle-timeout; no claim of authenticated responsive acceptance for this release.
 
 ## Publishing blocker and build limitation (2026-10-06)
 
 Source commit cec0be51 is local. Git push to the existing remote github.com/WilsonZX27/Seri-Bako-OMS was rejected by automatic approval review because destination ownership/privacy and specific payload authorization were not verified. One read-only verification attempt found GitHub CLI unavailable. No indirect push or deployment was attempted as a workaround. Explicit destination/payload publishing authorization requested once. Local build stops at the existing environment guard because NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY are absent; no credentials guessed or security protections bypassed. Hosted build remains required after publication authorization. Formal frontend remains v9.2.88; database migration334 is applied and read back. Browser tab18 remains at idle-timeout, so authenticated QA remains outstanding.
+
+## Additional closure evidence (2026-10-06)
+
+`/tmp/oms-989-franchise-db.log`:104 isolated PostgreSQL checks pass. Explicit franchise test combines16 own-outlet pieces with32 confirmed external pieces into3 trays, submits and releases the plan, then confirms a32-piece branchless delivery order. The DO has event_id but no branch_id or daily_record_id, and own-outlet record count is unchanged. Test transaction rolls back; no hosted execution writes. The fixture snapshots use database JSON to preserve PostgreSQL date/microsecond formats rather than lossy JavaScript Date serialization.
+
+Calculation audit verifies KL yields against original T-column formulas, including SC02's already-normalized N/R trays. Empty Nutmeg inputs now remain unfilled rather than claiming a confirmed zero. Individual BINTANG/B.jalil/Maluri totals are added. Penang special3107-0208 page is320 pieces /20 trays for its left steamed-cake section, separate from ordinary templates; year/date is unconfirmed. Source sheet/ranges are recorded in the report.
+
+The preceding goal turn made concrete progress (implementation, migration334 and verified calculations); this continuation adds workflow verification and source-specific calculation evidence. Publication and authenticated visual acceptance remain genuinely incomplete until authorization/login changes. The existing explicit publication question is still pending; do not repeat or reinterpret silence as approval.

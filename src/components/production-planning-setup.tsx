@@ -8,13 +8,22 @@ import { PlanningProductRules } from "@/components/production-planning-product-r
 import { configurePlanning, type PlanningActionResult } from "@/server/actions/production-planning";
 import type { PlanningBranch, PlanningProduct, PlanningConfig } from "@/lib/production-planning/types";
 import { PlanningEventForm } from "@/components/production-planning-event-form";
-export function PlanningSetup({kitchens,kitchenId,date,outlets,products,config,batches,minimums,mode,onBusyChange,onResult}:{kitchens:PlanningBranch[];kitchenId:string;date:string;outlets:PlanningBranch[];products:PlanningProduct[];config:PlanningConfig;batches:Record<string,unknown>[];minimums:Record<string,unknown>[];mode:"settings"|"events";onBusyChange:(busy:boolean)=>void;onResult:(r:PlanningActionResult)=>void}) {
+export function PlanningSetup({kitchens,kitchenId,date,outlets,products,config,batches,minimums,mode,onBusyChange,onResult,onDirtyChange}:{kitchens:PlanningBranch[];kitchenId:string;date:string;outlets:PlanningBranch[];products:PlanningProduct[];config:PlanningConfig;batches:Record<string,unknown>[];minimums:Record<string,unknown>[];mode:"settings"|"events";onBusyChange:(busy:boolean)=>void;onResult:(r:PlanningActionResult)=>void;onDirtyChange:(dirty:boolean)=>void}) {
  const [pending,start]=useTransition(); const [enabled,setEnabled]=useState(config.enabled); const [buffer,setBuffer]=useState(config.buffer_percent); const [decrease,setDecrease]=useState(config.max_decrease_percent);
  useEffect(()=>{if(mode==="settings")onBusyChange(pending);},[pending,onBusyChange,mode]);
  const [yields,setYields]=useState<Record<string,string>>(()=>Object.fromEntries(batches.map((b)=>[String(b.product_id),String(b.yield_per_tray)])));
  const [basis,setBasis]=useState<Record<string,string>>(()=>Object.fromEntries(batches.map((b)=>[String(b.product_id),String(b.forecast_basis??"manual")])));
  const [mins,setMins]=useState<Record<string,string>>(()=>Object.fromEntries(minimums.map((m)=>[`${m.branch_id}:${m.product_id}`,String(m.minimum_qty)])));
  const [availability,setAvailability]=useState(()=>Object.fromEntries(products.map(p=>[p.id,{available_from:p.available_from??null,available_until:p.available_until??null}])));
+ useEffect(()=>{
+  if(mode!=="settings")return;
+  const changed=enabled!==config.enabled||buffer!==config.buffer_percent||decrease!==config.max_decrease_percent
+   ||products.some(p=>String(yields[p.id]??"")!==String(batches.find(b=>b.product_id===p.id)?.yield_per_tray??"")
+    ||String(basis[p.id]??"manual")!==String(batches.find(b=>b.product_id===p.id)?.forecast_basis??"manual")
+    ||availability[p.id].available_from!==(p.available_from??null)||availability[p.id].available_until!==(p.available_until??null))
+   ||outlets.some(o=>products.some(p=>String(mins[`${o.id}:${p.id}`]??"")!==String(minimums.find(m=>m.branch_id===o.id&&m.product_id===p.id)?.minimum_qty??"")));
+  onDirtyChange(changed);
+ },[mode,enabled,buffer,decrease,yields,basis,mins,availability,config,products,batches,minimums,outlets,onDirtyChange]);
  const [showUnavailable,setShowUnavailable]=useState(false);
  const visibleProducts=products.filter(p=>showUnavailable||productAvailableOn(availability[p.id],date));
  const [outlet,setOutlet]=useState(outlets[0]?.id??"");const [bulk,setBulk]=useState("");
@@ -26,5 +35,5 @@ export function PlanningSetup({kitchens,kitchenId,date,outlets,products,config,b
   <label className="mb-3 flex items-center gap-2 text-xs"><input type="checkbox" checked={showUnavailable} onChange={e=>setShowUnavailable(e.target.checked)}/>Show products outside their supply period</label>
   <PlanningProductRules availability={availability} onAvailability={(id,value)=>setAvailability(old=>({...old,[id]:value}))} products={visibleProducts} outletId={outlet} yields={yields} basis={basis} minimums={mins} onYield={(id,value)=>setYields(old=>({...old,[id]:value}))} onBasis={(id,value)=>setBasis(old=>({...old,[id]:value}))} onMinimum={(id,value)=>setMins(old=>({...old,[`${outlet}:${id}`]:value}))}/>
 
- </section></form>:<PlanningEventForm date={date} kitchens={kitchens} outlets={outlets} products={products} onBusyChange={onBusyChange} onResult={onResult}/>}</div>;
+ </section></form>:<PlanningEventForm date={date} kitchens={kitchens} outlets={outlets} products={products} onBusyChange={onBusyChange} onDirtyChange={onDirtyChange} onResult={onResult}/>}</div>;
 }

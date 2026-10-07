@@ -232,7 +232,7 @@ export function ConsoleSection({ title, children, titleClassName, className, kin
   return (
     <section data-console-section data-console-kind={kind} className={cn("rounded-[var(--sb-panel-radius)] border px-3 py-3", kind === "danger" ? "border-red-200 bg-[var(--sb-danger-bg)]" : "border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)]", className)}>
       <div className="mb-3 flex items-center gap-2">
-        <h2 className={cn("shrink-0 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--sb-text-muted)]", titleClassName)}>{title}</h2>
+        <h2 className={cn("min-w-0 break-words text-xs font-semibold uppercase tracking-[0.06em] text-[var(--sb-text-muted)]", titleClassName)}>{title}</h2>
         <span aria-hidden="true" className="h-px min-w-0 flex-1 bg-[var(--sb-border-soft)]" />
       </div>
       <div className="grid gap-2 text-xs">{children}</div>

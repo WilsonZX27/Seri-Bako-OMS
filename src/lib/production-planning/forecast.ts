@@ -1,8 +1,8 @@
 /** Versioned, deterministic quantity proxy. This is not product POS sales. */
-export const FORECAST_VERSION = "quantity-proxy-v2";
+export const FORECAST_VERSION = "quantity-proxy-v3";
 export type HistoryPoint = {
   recordId: string; date: string; received: number; leftover: number; wastage: number;
-  receivedProvided: boolean; completed: boolean; specialEvent: boolean; stockout: boolean;
+  receivedProvided: boolean; completed: boolean; specialEvent: boolean; stockout: boolean; stockoutObserved?: boolean;
 };
 export type Forecast = {
   manualReason?: string;
@@ -37,7 +37,8 @@ export function recommendQuantity(history: HistoryPoint[], date: string, minimum
   const latest = evidence.at(-1) ?? same.at(-1);
   // Zero leftover/wastage is a potential sell-out; require review before decreasing.
   const stockoutRisk = valid.some((p) => p.date >= addDays(date, -14) && (p.stockout || (p.received > 0 && p.leftover === 0 && p.wastage === 0)));
-  const reductionFloor = latest ? Math.ceil(latest.received * (stockoutRisk ? 1 : 1 - maxDecreasePercent / 100)) : null;
+  const observationMissing = evidence.some((p) => !p.stockout && p.stockoutObserved !== true);
+  const reductionFloor = latest ? Math.ceil(latest.received * (stockoutRisk || observationMissing ? 1 : 1 - maxDecreasePercent / 100)) : null;
   const weights = evidence.reduce((sum, _, i) => sum + i + 1, 0);
   const weightedMovement = evidence.length ? evidence.reduce((sum, p, i) => sum + (p.received - p.leftover - p.wastage) * (i + 1), 0) / weights : null;
   // Unconfirmed minimums are configuration gaps, never inferred from excess stock.

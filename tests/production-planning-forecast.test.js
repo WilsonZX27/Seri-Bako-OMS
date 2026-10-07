@@ -2,7 +2,7 @@ const test=require('node:test');const assert=require('node:assert/strict');const
 const context={exports:{}};
 vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/lib/production-planning/forecast.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,context);
 const {recommendQuantity:forecast,trayRequirement,addDays}=context.exports;
-const point=(date,received,wastage,extra={})=>({recordId:date,date,received,leftover:0,wastage,receivedProvided:true,completed:true,specialEvent:false,stockout:false,...extra});
+const point=(date,received,wastage,extra={})=>({recordId:date,date,received,leftover:0,wastage,receivedProvided:true,completed:true,specialEvent:false,stockout:false,stockoutObserved:true,...extra});
 const three=[point('2026-09-12',100,70),point('2026-09-19',100,60),point('2026-09-26',100,50)];
 test('per outlet/product same-weekday recency weights, buffer and gradual reduction are independent',()=>{
  const r=forecast(three,'2026-10-03',5);assert.equal(r.method,'same-weekday');assert.equal(r.weightedMovement,(30+40*2+50*3)/6);assert.equal(r.suggested,90);assert.equal(r.reductionFloor,90);
@@ -40,7 +40,9 @@ test('recent-day-type suggestions retain the decrease cap with no matching weekd
  const dates=['2026-09-22','2026-09-23','2026-09-24','2026-09-28','2026-09-29'];
  const history=dates.map(d=>point(d,100,80));
  const result=forecast(history,'2026-10-02',0,10,10);
- assert.equal(result.method,'recent-day-type');assert.equal(result.reductionFloor,90);assert.equal(result.suggested,90);assert.equal(result.version,'quantity-proxy-v2');
+ assert.equal(result.method,'recent-day-type');assert.equal(result.reductionFloor,90);assert.equal(result.suggested,90);assert.equal(result.version,'quantity-proxy-v3');
  const shortage=forecast(history.map((p,i)=>({...p,stockout:i===4})),'2026-10-02',0,10,10);
  assert.equal(shortage.stockoutRisk,true);assert.equal(shortage.reductionFloor,100);assert.equal(shortage.suggested,100);
 });
+
+test("unknown stockout observations cannot authorize a decrease",()=>{const history=[point("2026-09-12",100,80),point("2026-09-19",100,80),point("2026-09-26",100,80)].map(p=>({...p,stockoutObserved:undefined}));const result=forecast(history,"2026-10-03",0);assert.equal(result.reductionFloor,100);assert.equal(result.suggested,100);});

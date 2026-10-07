@@ -12,14 +12,13 @@ test("shared number inputs block accidental wheel and arrow stepping", () => {
   assert.match(input, /event\.currentTarget\.blur\(\)/);
 });
 
-test("Outlet Daily uses one six-column authority only at wide desktop", () => {
+test("Outlet Daily aligns quantities and details in five desktop columns", () => {
   const form = read("src/components/outlet-daily-record-form.tsx");
-  const wideGrid = /xl:grid-cols-\[minmax\(12rem,1fr\)_repeat\(3,minmax\(4\.5rem,6rem\)\)_minmax\(7rem,9rem\)_minmax\(12rem,1\.5fr\)\]/g;
-  assert.equal(form.match(wideGrid)?.length, 2);
-  assert.match(form, /Daily Product Lines<\/h2>/);
-  assert.match(form, /hidden xl:col-span-2 xl:block">Wastage details/);
-  assert.match(form, /grid-cols-\[7\.5rem_minmax\(0,1fr\)\][^\n]+xl:contents/);
-  assert.doesNotMatch(form, /grid-cols-\[7\.5rem_minmax\(0,1fr\)\][^\n]+md:contents/);
+  assert.equal(form.split("md:grid-cols-[minmax(0,1fr)_repeat(3,minmax(3.5rem,4.5rem))_minmax(0,1fr)]").length - 1, 2);
+  assert.match(form, /hidden md:block">Wastage details/);
+  assert.match(form, /md:col-start-5 md:col-span-1 md:grid/);
+  assert.doesNotMatch(form, />Sold out</);
+  assert.match(form, /type="hidden" name="stockout"/);
 });
 
 test("dashboard headers and workflow identities have one semantic visual authority", () => {

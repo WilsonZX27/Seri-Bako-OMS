@@ -74,12 +74,12 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
       </SelectNative>
       <SelectNative aria-label="Report period" className="w-full sm:w-32" value={periodPending ? requestedDays : days} disabled={periodPending} aria-busy={periodPending || undefined} onChange={(event) => changePeriod(event.target.value === "30" ? 30 : 7)}><option value="7">7 days</option><option value="30">30 days</option></SelectNative>
     </FilterBar>
-    <section className="grid grid-cols-2 divide-x border-y py-3" aria-label="Selected packaging summary"><div className="px-3"><span className="text-xs text-muted-foreground">Latest recorded balance</span><strong className="block text-2xl tabular-nums">{balances.length?formatNumber(balanceTotal):"—"} <span className="text-sm font-normal">{selectedProduct?.unit}</span></strong><p className="text-xs text-muted-foreground">{balances.length}/{count} outlets · dates may differ</p></div><div className="px-3"><span className="text-xs text-muted-foreground">{days}-day usage</span><strong className="block text-2xl tabular-nums">{periodPending?"Loading…":rows.length?formatNumber(rows.reduce((n,r)=>n+r.usage,0)):"—"} <span className="text-sm font-normal">{selectedProduct?.unit}</span></strong><p className="text-xs text-muted-foreground">Completed records only</p></div></section>
+    <section className="grid grid-cols-2 divide-x border-y py-3" aria-label="Selected packaging summary"><div className="px-3"><span className="text-xs text-muted-foreground">Last counted balance</span><strong className="block text-2xl tabular-nums">{balances.length?formatNumber(balanceTotal):"—"} <span className="text-sm font-normal">{selectedProduct?.unit}</span></strong><p className="text-xs text-muted-foreground">{balances.length}/{count} outlets · dates may differ</p></div><div className="px-3"><span className="text-xs text-muted-foreground">{days}-day usage</span><strong className="block text-2xl tabular-nums">{periodPending?"Loading…":rows.length?formatNumber(rows.reduce((n,r)=>n+r.usage,0)):"—"} <span className="text-sm font-normal">{selectedProduct?.unit}</span></strong><p className="text-xs text-muted-foreground">Completed records only</p></div></section>
     <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.2fr)]">
     <section className="erp-surface overflow-hidden" aria-labelledby="packaging-stock-title">
       <div className="flex flex-wrap items-baseline justify-between gap-2 border-b px-4 py-3">
-        <h2 id="packaging-stock-title" className="text-sm font-semibold">Packaging balances</h2>
-        <span className="text-xs text-muted-foreground">Recorded closing balances</span>
+        <h2 id="packaging-stock-title" className="text-sm font-semibold">Last counted balances</h2>
+        <span className="text-xs text-muted-foreground">Last physical count · not live stock</span>
       </div>
       <div className="divide-y">
         {report.products.map((item) => {
@@ -88,13 +88,13 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
           const dates = balances.map((row) => row.date).sort();
           return <details key={item.id} className={`group ${product===item.code?"bg-muted/30":""}`} >
             <summary className="grid cursor-pointer list-none grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 hover:bg-muted/40 active:bg-muted focus-visible:outline-primary">
-              <div className="min-w-0"><button type="button" className="text-left text-sm font-medium underline-offset-4 hover:underline" onClick={e=>{e.preventDefault();setProduct(item.code);setSelectedDate(null);}}>{item.name}</button><p className="mt-0.5 text-xs text-muted-foreground">{balances.length}/{count} outlets{dates.length ? ` · ${formatDateOnly(dates[0])}${dates[0] !== dates.at(-1) ? ` – ${formatDateOnly(dates.at(-1)!)}` : ""}` : " · No closing record"}</p></div>
+              <div className="min-w-0"><button type="button" className="text-left text-sm font-medium underline-offset-4 hover:underline" onClick={e=>{e.preventDefault();setProduct(item.code);setSelectedDate(null);}}>{item.name}</button><p className="mt-0.5 text-xs text-muted-foreground">{balances.length}/{count} outlets{dates.length ? ` · ${formatDateOnly(dates[0])}${dates[0] !== dates.at(-1) ? ` – ${formatDateOnly(dates.at(-1)!)}` : ""}` : " · Not counted"}</p></div>
               <div className="flex items-center gap-4"><span className="text-base font-semibold tabular-nums">{balances.length ? formatNumber(total) : "—"}<span className="ml-1 text-xs font-normal text-muted-foreground">{item.unit}</span></span><span className="text-muted-foreground transition-transform group-open:rotate-90 motion-reduce:transition-none" aria-hidden="true">›</span></div>
             </summary>
             <div className="max-h-64 overflow-y-auto border-t bg-muted/20 px-4 py-1">
               {report.outlets.filter((item) => outlet === "all" || item.id === outlet).map((branch) => {
                 const balance = balances.find((row) => row.branchId === branch.id);
-                return <div key={branch.id} className="flex items-center justify-between gap-4 py-2 text-xs"><div className="min-w-0"><p className="font-medium">{branch.name}</p><p className="text-muted-foreground">{balance ? formatDateOnly(balance.date) : "No closing record"}</p></div><span className="shrink-0 tabular-nums">{balance ? `${formatNumber(balance.closing ?? 0)} ${item.unit}` : "—"}</span></div>;
+                return <div key={branch.id} className="flex items-center justify-between gap-4 py-2 text-xs"><div className="min-w-0"><p className="font-medium">{branch.name}</p><p className="text-muted-foreground">{balance ? `${formatDateOnly(balance.date)} · ${Math.max(0, Math.round((Date.parse(`${report.today}T00:00:00Z`) - Date.parse(`${balance.date}T00:00:00Z`)) / 86400000))} days ago` : "Not counted"}</p></div><span className="shrink-0 tabular-nums">{balance ? `${formatNumber(balance.closing ?? 0)} ${item.unit}` : "—"}</span></div>;
               })}
             </div>
           </details>;

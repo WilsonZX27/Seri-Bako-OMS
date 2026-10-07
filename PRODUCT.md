@@ -1,3 +1,7 @@
+## v9.2.95 (unreleased) — compact daily operations
+
+Daily Records removes Sold out and time entry while preserving historical values. Product quantities and details share a desktop row; phone details expand on demand, with 44px tablet targets. The compact outlet list combines identity and date and uses warning text for missing values. Insights aligns narrow-rail amounts and reports the selected outlet count. Packaging labels the last physical count with its age. Planning offers the next missing step and protects unsaved settings/event edits. Forecast v3 keeps a received-quantity floor when stockout observations are unknown. No asset migration or asset permissions are part of this application release.
+
 ## v9.2.94 (deployed) — consistent compliance and correction context
 
 Compliance Calendar uses the same current required-document records as Register, so superseded evidence does not become duplicate urgent tasks. Duplicate portfolio counts are removed from the rail. Product correction focus remains stable when unsaved quantities change and does not reset a subsequently edited search. v9.2.93 focused workspaces and comparable balance history remain included.

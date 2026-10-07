@@ -2373,3 +2373,14 @@ html[data-design-layer="v2"] .sb-planning-matrix tbody tr:last-child :is(th,td) 
 html[data-design-layer="v2"] .sb-planning-matrix thead .sb-planning-retention { z-index: 14; background: var(--sb-surface-muted); }
 
 html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-gap { padding: 0; }
+
+/* Tablet quantities remain touch targets even when the row uses desktop columns. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  html[data-design-layer="v2"] [data-outlet-daily-lines] :is(input:not([type="hidden"]), select, button) {
+    min-height: 44px;
+    height: 44px;
+  }
+  html[data-design-layer="v2"] [data-outlet-daily-lines] button:has(svg) {
+    min-width: 44px;
+  }
+}

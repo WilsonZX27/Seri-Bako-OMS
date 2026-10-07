@@ -25,7 +25,7 @@ export function PlanningReviewChecks({hasPlan,dirty,checks,products,outlets,date
  return <ConsoleSection title="Plan checks"><div className="space-y-2 text-xs">
   {dirty?<p>Save changes before review.</p>:null}
   {!hasPlan?<p>Set tray yields, outlet minimums and routes in Settings.</p>:checks.length?<>
-   <p className="font-medium">{affected} products need attention</p>
+   <p className="font-medium">{affected} products need attention</p><p className="rounded-md bg-muted px-2 py-2"><strong>Next step:</strong> {checks.some(c=>c.category==="configuration") ? "Confirm production yields and outlet minimums in Settings." : "Enter outlet quantities, then save this draft."}</p>
    {REVIEW_CHECK_GROUPS.map(group=>{const items=checks.filter(c=>c.category===group.category);const count=new Set(items.map(c=>c.productId)).size;return items.length?<details key={group.category} className="border-b last:border-0"><summary className="flex min-h-11 cursor-pointer items-center justify-between gap-3 py-3"><span>{group.label}</span><strong className="tabular-nums">{count} products</strong></summary><div className="max-h-64 overflow-y-auto pb-3"><p className="mb-2 text-muted-foreground">{items.length} fields to complete</p><ul className="divide-y">{Array.from(new Set(items.map(c=>c.productId))).map(id=>{
  const product=products.find(p=>p.id===id); const productChecks=items.filter(c=>c.productId===id);
  const labels=Array.from(new Set(productChecks.map(short))).map(text=>{const matching=productChecks.filter(c=>short(c)===text);return `${text}${matching.length>1?` ×${matching.length}`:""}`;});

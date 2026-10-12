@@ -100,7 +100,7 @@ test("shared dialogs contain their content within the dynamic mobile viewport an
   assert.match(modal, /createPortal\(/);
   assert.match(modal, /document\.body/);
   assert.match(modal, /event\.key === "Escape"/);
-  assert.match(modal, /event\.key !== "Tab"/);
+  assert.match(modal, /containDialogTab\(event, dialog\)/);
 });
 
 test("top-bar updates stay within the dynamic viewport rather than relying on a fixed popover height", () => {

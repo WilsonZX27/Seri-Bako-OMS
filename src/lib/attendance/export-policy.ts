@@ -24,6 +24,7 @@ const STATUS_LABELS: Record<string, string> = {
   overtime: "Overtime",
   wrong_branch_device: "Wrong branch/device",
   public_holiday: "Public holiday",
+  unpaid_leave_punch_conflict: "Punch evidence conflicts with full-day unpaid leave",
 };
 
 function isFullTime(row: ExportRow) {
@@ -62,5 +63,5 @@ export function exportExceptionLabels(row: ExportRow) {
   const visible = isFullTime(row) && !hasExplicitBreak(row)
     ? statuses.filter((status) => !OT_NO_BREAK_STATUSES.has(status))
     : statuses;
-  return visible.map((status) => STATUS_LABELS[status] ?? status).join(", ");
+  return visible.filter(status=>!["normal","unpaid_leave"].includes(status)).map((status) => STATUS_LABELS[status] ?? status).join(", ");
 }

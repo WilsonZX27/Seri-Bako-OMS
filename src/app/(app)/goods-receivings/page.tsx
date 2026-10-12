@@ -78,7 +78,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
             <UnifiedListHeader resultCount={receivings?.totalRows} resetHref="/goods-receivings" filtered={filtered} activeCount={filters.status ? 1 : 0} className="sb-list-filters--compact-mobile">
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN, PO or supplier" className="min-w-0 flex-1 md:max-w-sm" />
               <StatusTabs statuses={statuses} activeStatus={filters.status} />
-              <Button type="submit" variant="secondary" className="shrink-0" data-list-action="primary">Search</Button>
+
               {filtered ? <Button asChild variant="secondary" className="shrink-0" data-list-action="secondary"><Link href="/goods-receivings">Reset</Link></Button> : null}
               {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
             </UnifiedListHeader>

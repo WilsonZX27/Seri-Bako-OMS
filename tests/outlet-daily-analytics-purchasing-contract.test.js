@@ -15,7 +15,7 @@ const demandPage = fs.readFileSync(path.join(root, "src", "app", "(app)", "repor
 const planningPage = fs.readFileSync(path.join(root, "src", "app", "(app)", "production", "planning", "page.tsx"), "utf8");
 
 test("outlet daily workspace renders a selected-period trend aligned to Calendar history", () => {
-  assert.match(page, /getOutletDailyDemandTrend\(\{period,branch:filters\.branch,history_date:end\}\)/);
+  assert.match(page, /getOutletDailyDemandTrend\(\{period,branch:filters\.branch,history_date:end,history_start:range\.start\}\)/);
   assert.match(page, /report==="trend"\?<OutletDailyWastageChart/);
   assert.match(chart, /All outlets combined/);
   assert.match(chart, /rate = total wastage ÷ total received/);

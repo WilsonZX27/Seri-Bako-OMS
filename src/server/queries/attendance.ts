@@ -1,7 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { looseSupabase } from "@/lib/supabase/loose";
 import { hasPermission } from "@/server/auth/permissions";
+import { logServerError } from "@/server/observability/logger";
 import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
+import { summarizeScheduleWeeks } from "@/lib/attendance/schedule-summary";
 
 export function malaysiaWeekStart(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
@@ -12,9 +14,16 @@ export function malaysiaWeekStart(date = new Date()) {
 
 export async function getAttendanceWorkspace(weekStart = malaysiaWeekStart()) {
   const db = looseSupabase(await createClient());
-  const { data, error } = await db.rpc("get_attendance_workspace_summary", { p_week_start: weekStart });
+  const [{ data, error }, weeks] = await Promise.all([
+    db.rpc("get_attendance_workspace_summary", { p_week_start: weekStart }),
+    db.from("schedule_weeks").select("branch_id,revision,status", { count: "exact" }).eq("week_start", weekStart).limit(1000),
+  ]);
   if (error) throw error;
-  return data as {
+  if (weeks.error) throw weeks.error;
+  if ((weeks.count ?? 0) > 1000) throw new Error("Schedule summary is too large to load safely.");
+  // The legacy RPC maps published/returned/rejected to draft. Read canonical
+  // roster states under the caller's existing RLS instead of inferring them.
+  return { ...(data as Record<string, unknown>), scheduleStatus: summarizeScheduleWeeks((weeks.data ?? []) as Array<{ branch_id: string; revision: number; status: string }>) } as {
     weekStart: string; weekEnd: string; pendingApprovals: number; pendingRequests: number;
     unresolvedExceptions: number; pendingActualReports: number; missingMappings: number;
     scheduleStatus: string; latestBatch: { id:string; parser_profile:string; file_name:string; status:string; row_count:number; error_count:number; warning_count:number; finalised_at:string|null } | null;
@@ -102,6 +111,17 @@ export async function getScheduleOverview(weekStart = malaysiaWeekStart()) {
   });
 }
 
+/** Closing reviews the whole outlet week, independently of list filters or pagination. */
+export async function getAttendanceWeekBlockers(weekStart: string, branchId: string) {
+  if (!(await hasPermission("attendance.week.close"))) throw new Error("Missing permission: attendance.week.close");
+  const db=looseSupabase(await createClient()),end=new Date(`${weekStart}T00:00:00Z`);end.setUTCDate(end.getUTCDate()+6);
+  const result=await db.from("daily_attendance_results").select("id,work_date,statuses,staffs(full_name),attendance_exceptions(exception_code,severity,resolved_at)",{count:"exact"}).eq("branch_id",branchId).eq("is_current",true).gte("work_date",weekStart).lte("work_date",end.toISOString().slice(0,10)).order("work_date").order("id").limit(10000);
+  if(result.error){logServerError(result.error,{module:"attendance",source:"week-blockers"});throw result.error;}
+  if((result.count??0)>10000)throw new Error("This outlet week is too large to review safely. Contact People before closing.");
+  const blocking=new Set(["missing_punches","missing_check_in","missing_check_out","odd_punch_count","impossible_ordering","unpaid_leave_punch_conflict"]);
+  return (result.data??[]).filter(row=>Array.isArray(row.statuses)&&row.statuses.some(value=>blocking.has(String(value))) || Array.isArray(row.attendance_exceptions)&&row.attendance_exceptions.some(value=>value.severity==="blocker"&&value.resolved_at==null));
+}
+
 export async function getAttendanceReview(weekStart = malaysiaWeekStart(), filters: { branch?: string; status?: string; employee?: string; page?: number; detail?: string } = {}) {
   if (!(await hasPermission("attendance.read"))) throw new Error("Missing permission: attendance.read");
   const db = looseSupabase(await createClient()); const end = new Date(`${weekStart}T00:00:00Z`); end.setUTCDate(end.getUTCDate() + 6);
@@ -143,24 +163,25 @@ export async function getAttendanceReview(weekStart = malaysiaWeekStart(), filte
     });
     if (filters.status === "repeated_missing_punch") reviewRows = reviewRows.filter((row) => Number(row.monthly_missing_punch_count) >= 4);
   }
-  const unscheduledPunches: Array<{staff_id:string;full_name:string;work_date:string;punch_count:number;first_punch:string;last_punch:string}> = [];
+  const unscheduledPunches: Array<{staff_id:string;full_name:string;work_date:string;punch_count:number;first_punch:string;last_punch:string;home_branch:string;scheduled_branch:string;schedule_status:string}> = [];
   if (filters.branch) {
     const devices = await db.from("ngteco_device_mappings").select("source_code").eq("branch_id",filters.branch).eq("is_active",true);
     if (devices.error) throw devices.error;
     const sources = new Set((devices.data ?? []).map((row:Record<string,unknown>)=>String(row.source_code)));
     const sourceCodes = [...sources];
-    const [raw, people, coverage] = await Promise.all([
+    const [raw, people, coverage, scheduled] = await Promise.all([
       sourceCodes.length
         ? db.from("attendance_raw_punch_events").select("person_id,local_timestamp,occurred_at,source_code").in("source_code",sourceCodes).gte("local_timestamp",`${weekStart} 00:00:00`).lte("local_timestamp",`${weekEnd} 23:59:59`).order("occurred_at")
         : Promise.resolve({data:[],error:null}),
-      db.from("ngteco_person_mappings").select("person_id,staff_id,staffs!ngteco_person_mappings_staff_id_fkey(full_name)").eq("is_active",true),
-      db.from("daily_attendance_results").select("staff_id,work_date").eq("branch_id",filters.branch).eq("is_current",true).gte("work_date",weekStart).lte("work_date",weekEnd),
+      db.from("ngteco_person_mappings").select("person_id,staff_id,staffs!ngteco_person_mappings_staff_id_fkey(full_name,default_branch_id)").eq("is_active",true),
+      db.from("daily_attendance_results").select("staff_id,work_date").eq("is_current",true).gte("work_date",weekStart).lte("work_date",weekEnd),
+      db.from("shift_assignment_revisions").select("staff_id,work_date,branch_id,schedule_weeks!shift_assignment_revisions_schedule_week_id_fkey!inner(status,revision)").eq("is_current",true).gte("work_date",weekStart).lte("work_date",weekEnd),
     ]);
-    for (const item of [raw, people, coverage]) if (item.error) throw item.error;
+    for (const [source,item] of [["raw",raw],["people",people],["coverage",coverage],["scheduled",scheduled]] as const) if (item.error) {logServerError(item.error,{module:"attendance",source:`review-${source}`});throw item.error;}
     const mapped = new Map((people.data ?? []).map((row:Record<string,unknown>)=>[String(row.person_id),row]));
     const covered = new Set((coverage.data ?? []).map((row:Record<string,unknown>)=>`${row.staff_id}:${row.work_date}`));
     const allowedStaff = staffIds ? new Set(staffIds) : null;
-    const grouped = new Map<string,{staff_id:string;full_name:string;work_date:string;values:string[]}>();
+    const grouped = new Map<string,{staff_id:string;full_name:string;work_date:string;values:string[];home_branch:string;scheduled_branch:string;schedule_status:string}>();
     for (const row of (raw.data ?? []) as Array<Record<string,unknown>>) {
       if (!sources.has(String(row.source_code))) continue;
       const person = mapped.get(String(row.person_id)) as Record<string,unknown> | undefined;
@@ -168,11 +189,13 @@ export async function getAttendanceReview(weekStart = malaysiaWeekStart(), filte
       const staffId=String(person.staff_id),workDate=String(row.local_timestamp).slice(0,10),key=`${staffId}:${workDate}`;
       if (allowedStaff && !allowedStaff.has(staffId)) continue;
       if (covered.has(key)) continue;
-      const staff=person.staffs as {full_name?:string}|null;
-      const current=grouped.get(key)??{staff_id:staffId,full_name:staff?.full_name??"Mapped employee",work_date:workDate,values:[]};
+      const staff=person.staffs as {full_name?:string;default_branch_id?:string}|null;
+      const assignment=(scheduled.data ?? []).filter((item:Record<string,unknown>)=>String(item.staff_id)===staffId && item.work_date===workDate).sort((a:Record<string,unknown>,b:Record<string,unknown>)=>Number((b.schedule_weeks as Record<string,unknown>)?.revision ?? 0)-Number((a.schedule_weeks as Record<string,unknown>)?.revision ?? 0))[0];
+      const branchName=(id:unknown)=>String((branches.data ?? []).find((item:Record<string,unknown>)=>item.id===id)?.branch_name ?? "Unavailable outlet");
+      const current=grouped.get(key)??{staff_id:staffId,full_name:staff?.full_name??"Mapped employee",work_date:workDate,values:[],home_branch:branchName(staff?.default_branch_id),scheduled_branch:assignment ? branchName(assignment.branch_id) : "No schedule",schedule_status:String((assignment?.schedule_weeks as Record<string,unknown> | undefined)?.status ?? "missing")};
       current.values.push(String(row.occurred_at));grouped.set(key,current);
     }
-    for (const item of grouped.values()) unscheduledPunches.push({staff_id:item.staff_id,full_name:item.full_name,work_date:item.work_date,punch_count:item.values.length,first_punch:item.values[0],last_punch:item.values[item.values.length-1]});
+    for (const item of grouped.values()) unscheduledPunches.push({staff_id:item.staff_id,full_name:item.full_name,work_date:item.work_date,punch_count:item.values.length,first_punch:item.values[0],last_punch:item.values[item.values.length-1],home_branch:item.home_branch,scheduled_branch:item.scheduled_branch,schedule_status:item.schedule_status});
   }
   const [exceptions,adjustments]=detail.data?await Promise.all([db.from("attendance_exceptions").select("id,exception_code,severity,details,resolved_at,resolution_note,created_at").eq("result_id",filters.detail).order("created_at"),db.from("attendance_adjustments").select("id,reason,before_state,after_state,created_at").eq("result_id",filters.detail).order("created_at",{ascending:false})]):[{data:[],error:null},{data:[],error:null}];
   for(const item of [exceptions,adjustments])if(item.error)throw item.error;
@@ -244,15 +267,17 @@ export async function getAttendanceActuals(weekStart = malaysiaWeekStart(), bran
   const db=looseSupabase(await createClient());const end=new Date(`${weekStart}T00:00:00Z`);end.setUTCDate(end.getUTCDate()+6);const weekEnd=end.toISOString().slice(0,10);
   const byBranch = <T extends { eq: (column: string, value: string) => T }>(query: T) => branchId ? query.eq("branch_id", branchId) : query;
   const [weeks,reports,claims,reservations,locks]=await Promise.all([
-    byBranch(db.from("schedule_weeks").select("id").eq("week_start",weekStart).in("status",["published","locked"])),
+    byBranch(db.from("schedule_weeks").select("id,branch_id,revision").eq("week_start",weekStart).in("status",["published","locked"]).order("revision",{ascending:false})),
     byBranch(db.from("daily_attendance_reports").select("*,staffs!daily_attendance_reports_staff_id_fkey(full_name,staff_code),branches!daily_attendance_reports_branch_id_fkey(branch_name),attachments!daily_attendance_reports_evidence_attachment_id_fkey(file_name)").gte("work_date",weekStart).lte("work_date",weekEnd)).order("submitted_at",{ascending:false}),
     byBranch(db.from("attendance_ot_claims").select("*,staffs!attendance_ot_claims_staff_id_fkey(full_name,staff_code),branches!attendance_ot_claims_branch_id_fkey(branch_name)").gte("work_date",weekStart).lte("work_date",weekEnd)).order("work_date"),
     byBranch(db.from("attendance_ro_reservations").select("*,staffs!attendance_ro_reservations_staff_id_fkey(full_name,staff_code),branches!attendance_ro_reservations_branch_id_fkey(branch_name)").gte("work_date",weekStart).lte("work_date",weekEnd)).order("work_date"),
     byBranch(db.from("attendance_period_locks").select("id,branch_id,week_start,locked_at,unlocked_at").eq("week_start",weekStart).is("unlocked_at",null)),
   ]);
   for(const result of [weeks,reports,claims,reservations,locks])if(result.error)throw result.error;
-  const weekIds=(weeks.data??[]).map((row:Record<string,unknown>)=>String(row.id));
-  const assignments=weekIds.length?await db.from("shift_assignment_revisions").select("id,staff_id,branch_id,work_date,assignment_kind,custom_start,custom_end,custom_reason,ro_minutes,ro_original_start,ro_original_end,ro_direction,shift_templates(name,planned_start,planned_end),staffs!shift_assignment_revisions_staff_id_fkey(full_name,staff_code),branches!shift_assignment_revisions_branch_id_fkey(branch_name)").in("schedule_week_id",weekIds).eq("is_current",true).order("work_date"):{data:[],error:null};
+  const latestWeeks = new Map<string,Record<string,unknown>>();
+  for(const row of weeks.data ?? []) if(!latestWeeks.has(String(row.branch_id))) latestWeeks.set(String(row.branch_id),row);
+  const weekIds=[...latestWeeks.values()].map(row=>String(row.id));
+  const assignments=weekIds.length?await db.from("shift_assignment_revisions").select("id,staff_id,branch_id,work_date,assignment_kind,custom_start,custom_end,custom_reason,ro_minutes,ro_original_start,ro_original_end,ro_direction,shift_templates(name,planned_start,planned_end),staffs!shift_assignment_revisions_staff_id_fkey(full_name,staff_code),branches!shift_assignment_revisions_branch_id_fkey(branch_name)").in("schedule_week_id",weekIds).eq("is_current",true).gte("work_date",weekStart).lte("work_date",weekEnd).order("work_date"):{data:[],error:null};
   if(assignments.error)throw assignments.error;
   const relevantStaffIds = [...new Set([
     ...(assignments.data ?? []),

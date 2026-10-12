@@ -358,7 +358,11 @@ async function loadRows(filters: Filters = {}) {
   }
   if (filters.date) query = query.eq("record_date", filters.date);
   if (filters.branch && filters.branch !== "all") query = query.eq("branch_id", filters.branch);
-  if (filters.status && filters.status !== "all") query = query.eq("status", filters.status as RecordRow["status"]);
+  if (filters.status === "in_progress") query = query.in("status", ["draft", "morning_recorded"]);
+  else if (filters.status === "ready_to_post") query = query.eq("status", "evening_completed");
+  else if (filters.status === "attention") query = query.eq("status", "reviewed").eq("sales_review_status", "needs_review");
+  else if (filters.status === "posted") query = query.eq("status", "reviewed").or("sales_review_status.is.null,sales_review_status.neq.needs_review");
+  else if (filters.status && filters.status !== "all") query = query.eq("status", filters.status as RecordRow["status"]);
   const sortColumns = { date: "record_date", outlet: "status", updated: "updated_at" } as const;
   const sortColumn = sortColumns[filters.sort as keyof typeof sortColumns] ?? "record_date";
   const ascending = filters.dir === "asc";
@@ -513,7 +517,7 @@ export async function getOutletDailyDemandTrend(filters: Filters = {}) {
   const status = (["all", "evening_completed"].includes(filters.status ?? "") ? filters.status : "all") as TrendStatus;
   const range = trendDateRange(period, filters.history_date);
   const end=range.end;
-  const start=filters.history_start??range.start;
+  const start=insightRange(period, range.end, filters.history_start).start;
   const rangeDays=Math.round((Date.parse(`${end}T00:00:00Z`)-Date.parse(`${start}T00:00:00Z`))/86400000)+1;
   if(!/^\d{4}-\d{2}-\d{2}$/.test(start)||rangeDays<1||rangeDays>31||!Number.isFinite(rangeDays))throw new Error("Report range must contain 1 to 31 days.");
   const options = await getOutletDailyFormOptions();
@@ -539,7 +543,7 @@ export async function getOutletDailyDemandTrend(filters: Filters = {}) {
 
 export async function getOutletDailyCompletionMatrix(filters: Filters = {}) {
   const end = /^\d{4}-\d{2}-\d{2}$/.test(filters.history_date ?? "") ? filters.history_date! : todayInKualaLumpur();
-  const {start,days}=insightRange(insightPeriod(filters.period),end);
+  const {start,days}=insightRange(insightPeriod(filters.period),end,filters.history_start);
   const options = await getOutletDailyFormOptions();
   const selectedBranchId = filters.branch && filters.branch !== "all" ? filters.branch : undefined;
   if (selectedBranchId && !options.branches.some((branch) => branch.id === selectedBranchId)) throw new Error("Selected outlet is not available.");

@@ -324,7 +324,7 @@ export function StockBalanceWorkspace({
             />
             <SelectControl name="supplier_id" defaultValue={filters.supplier_id ?? "all"} ariaLabel="Default supplier" options={[{ value: "all", label: "All default suppliers" }, ...suppliers.map(supplier => ({ value: supplier.id, label: supplier.name }))]} />
             <input type="hidden" name="view" value="branch" />
-            {Boolean(filters.search || filters.branch_id || filters.status || filters.supplier_id) ? <Button asChild variant="secondary"><Link href="/stock-balance">Reset</Link></Button> : <Button type="submit" variant="secondary">Search</Button>}
+            {Boolean(filters.search || filters.branch_id || filters.status || filters.supplier_id) ? <Button asChild variant="secondary"><Link href="/stock-balance">Reset</Link></Button> : null}
           </FilterBar>
           <div className="sb-list-content-card overflow-hidden">
           <Table mobileHidden aria-label="Stock balances" stickyColumn="second">

@@ -17,10 +17,10 @@ test("filter dialog stays above content without removing mobile navigation", () 
 test("mobile filter dialog traps keyboard focus and restores its trigger", () => {
   assert.match(unified, /filterTriggerRef/);
   assert.match(unified, /filterDialogRef/);
-  assert.match(unified, /querySelectorAll<HTMLElement>\("button, a, input, select, textarea/);
+  assert.match(unified, /focusDialog\(dialog\)/);
   assert.match(unified, /event\.key === "Escape"/);
-  assert.match(unified, /event\.shiftKey && document\.activeElement === first/);
-  assert.match(unified, /document\.activeElement === last/);
+  assert.match(unified, /containDialogTab\(event, dialog\)/);
+  assert.match(unified, /tabIndex=\{-1\}/);
   assert.match(unified, /requestAnimationFrame\(\(\) => trigger\?\.focus\(\)\)/);
   assert.match(unified, /aria-haspopup="dialog" aria-expanded=\{open\}/);
 });

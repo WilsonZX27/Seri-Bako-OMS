@@ -50,6 +50,8 @@ function attendance(db, allowed = true) {
     "@/lib/supabase/loose": { looseSupabase: (value) => value },
     "@/server/auth/permissions": { hasPermission: async () => allowed },
     "@/server/auth/tenant-actor": {},
+    "@/server/observability/logger": { logServerError() {} },
+    "@/lib/attendance/schedule-summary": load("src/lib/attendance/schedule-summary.ts"),
   });
 }
 

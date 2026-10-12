@@ -4,7 +4,7 @@ const path = require("node:path");
 const test = require("node:test");
 
 const root = path.resolve(__dirname, "..");
-const globals = fs.readFileSync(path.join(root, "src", "app", "globals.css"), "utf8");
+const globals = fs.readFileSync(path.join(root, "src", "app", "globals.css"), "utf8") + fs.readFileSync("src/app/design-system-v2.css", "utf8");
 const design = fs.readFileSync(path.join(root, "src", "app", "design-system-v2.css"), "utf8");
 const table = fs.readFileSync(path.join(root, "src", "components", "ui", "table.tsx"), "utf8");
 const mobileDocumentSurfaces = fs.readFileSync(path.join(root, "src", "components", "documents", "mobile-document-surfaces.tsx"), "utf8");

@@ -46,7 +46,7 @@ export default async function StockTransferDetailPage({ params }: { params: Prom
       status={transfer.status}
       workflowSteps={transferSteps}
       currentStatus={transfer.status}
-      mobilePrimaryAction={canStart ? <DocumentActionForm action={startStockTransfer.bind(null, transfer.id)} pendingLabel="Reserving...">Send to destination</DocumentActionForm> : canPost ? <SubmitButton form="stock-transfer-receive-form" pendingLabel="Receiving...">Confirm received quantities</SubmitButton> : null}
+      mobilePrimaryAction={canStart ? <DocumentActionForm action={startStockTransfer.bind(null, transfer.id)} pendingLabel="Reserving...">Send to destination</DocumentActionForm> : canPost ? <SubmitButton form="stock-transfer-receive-form" pendingLabel="Receiving...">Confirm receipt</SubmitButton> : null}
       mobileActivity={bundle ? <><AttachmentPanel documentId={bundle.document.id} attachments={bundle.attachments} /><CommentsPanel documentId={bundle.document.id} comments={bundle.comments} /><DocumentTimeline document={bundle.document} activities={bundle.activityLogs} comments={bundle.comments} attachments={bundle.attachments} /></> : null}
       mobileMoreOptions={<DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions>}
       sidePanel={
@@ -55,7 +55,7 @@ export default async function StockTransferDetailPage({ params }: { params: Prom
             {canAct ? (
               <DocumentActionBar>
                 {canStart ? <DocumentActionForm action={startStockTransfer.bind(null, transfer.id)} pendingLabel="Moving...">Move to In Transit</DocumentActionForm> : null}
-                {canPost ? <SubmitButton form="stock-transfer-receive-form" pendingLabel="Receiving...">Confirm received quantities</SubmitButton> : null}
+                {canPost ? <SubmitButton form="stock-transfer-receive-form" pendingLabel="Receiving...">Confirm receipt</SubmitButton> : null}
               </DocumentActionBar>
             ) : (
               <p className="text-xs text-muted-foreground">This transfer is read-only in its current state.</p>

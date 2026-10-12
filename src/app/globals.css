@@ -32,130 +32,7 @@
   display: none;
 }
 
-:root {
-  /* Shared palette: the single source of truth for legacy and v2 surfaces. */
-  --sb-green-950: #053c2c;
-  --sb-green-900: #074b37;
-  --sb-green-800: #096247;
-  --sb-green-700: #0f7757;
-  --sb-green-300: #8fc5ad;
-  --sb-green-200: #c4dfd2;
-  --sb-green-100: #e7f1eb;
-  --sb-primary: var(--sb-green-900);
-  --sb-primary-dark: var(--sb-green-950);
-  --sb-accent: var(--sb-green-700);
-  --sb-bg: #eef1ee;
-  --sb-surface: #FFFFFF;
-  --sb-surface-muted: #f5f6f3;
-  --sb-surface-subtle: #fafafa;
-  --sb-muted: var(--sb-surface-muted);
-  --sb-border: #d8ded9;
-  /* Canonical control geometry: 8px controls, 12px panels across every viewport. */
-  --sb-control-radius: 0.5rem;
-  --sb-radius-control: var(--sb-control-radius);
-  --sb-shadow-card: 0 1px 2px rgb(6 44 31 / 0.04), 0 8px 24px rgb(6 44 31 / 0.06);
-  --sb-border-soft: #e7ebe7;
-  --sb-text: #13261f;
-  --sb-text-muted: #66766f;
-  --sb-text-soft: #8A948E;
-  --sb-text-inverse: #FFFFFF;
-  --sb-success: #0F6B3F;
-  --sb-success-bg: #E6F4EC;
-  --sb-danger: #B42318;
-  --sb-danger-bg: #FDE8E8;
-  --sb-warning: #9A6700;
-  --sb-warning-bg: #FFF4CC;
-  --sb-info: #245A9C;
-  --sb-info-bg: #E8F1FF;
-  --sb-neutral-bg: #EEECE6;
-  --sb-neutral-text: #5E665F;
-  --sb-font-sans: "Segoe UI Variable", Aptos, "SF Pro Text", ui-sans-serif, system-ui, sans-serif;
-  /* v9 type scale uses fixed, intentional steps. Responsive composition owns
-     wrapping and space; typography does not continuously resize itself. */
-  --sb-text-display: 1.5rem;
-  --sb-text-identity: 1.25rem;
-  --sb-text-title: 1.125rem;
-  --sb-text-label: 0.6875rem;
-  --sb-text-page: 1.125rem;
-  --sb-text-section: 0.875rem;
-  --sb-text-body: 0.8125rem;
-  --sb-text-meta: 0.75rem;
-  --sb-leading-tight: 1.35;
-  --sb-leading-body: 1.45;
-  --sb-space-1: 0.25rem;
-  --sb-space-2: 0.5rem;
-  --sb-space-3: 0.75rem;
-  --sb-space-4: 1rem;
-  --sb-space-5: 1.25rem;
-  --sb-space-6: 1.5rem;
-  --sb-space-7: 2rem;
-  --sb-space-8: 2.5rem;
-  --sb-control-height: 2.75rem;
-  --sb-topbar-height: 3rem;
-  --sb-mobile-nav-height: 4rem;
-  --sb-sidebar-width: 14.75rem;
-  --sb-console-width: 20rem;
-  --sb-console-width-compact: 18rem;
-  --sb-canvas-contained: 64rem;
-  --sb-canvas-wide: 76rem;
-  --sb-shell-gutter: 0.75rem;
-  /* Canonical geometry tokens. Every route consumes these values; the app
-     design layer must not redefine them at a later cascade position. */
-  --sb-panel-radius: 0.75rem;
-  --sb-z-dropdown: 30;
-  --sb-z-sticky: 40;
-  --sb-z-action-rail: 45;
-  /* Narrow-screen drawers must fully cover the mobile navigation and any
-     fixed action rail. Desktop/tablet rails keep their normal stacking order;
-     these values are consumed by the narrow-screen drawer rules below. */
-  --sb-z-backdrop: 100;
-  --sb-z-dialog: 101;
-  --sb-z-toast: 70;
-  --sb-motion-fast: 160ms;
-  --sb-motion-standard: 220ms;
-  --sb-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --app-bg: var(--sb-bg);
-  --workspace-bg: #f4f5f2;
-  --rail-bg: #fbfcfa;
-  --border-soft: var(--sb-border);
-  --border-muted: var(--sb-border-soft);
-  --text-main: var(--sb-text);
-  --text-muted: var(--sb-text-muted);
-
-  --background: 150 12% 94%;
-  --foreground: 147 33% 9%;
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  --primary: 147 48% 13%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 150 10% 94%;
-  --secondary-foreground: 147 33% 9%;
-  --muted: 150 10% 94%;
-  --muted-foreground: 148 7% 43%;
-  --accent: 147 48% 13%;
-  --accent-foreground: 147 48% 13%;
-  --destructive: 0 74% 42%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 150 10% 82%;
-  --input: 150 10% 82%;
-  --ring: 155 63% 20%;
-  --radius: 0.5rem;
-}
-
-@media (min-width: 640px) {
-  :root { --sb-shell-gutter: 1rem; }
-}
-
-@media (min-width: 1280px) {
-  :root {
-    --sb-shell-gutter: 1.25rem;
-    --sb-console-width: var(--sb-console-width-compact);
-  }
-}
-
-@media (min-width: 1440px) {
-  :root { --sb-console-width: 20rem; }
-}
+/* Palette, typography, geometry and responsive tokens are owned by design-system-v2.css. */
 
 * {
   @apply border-border;
@@ -484,13 +361,6 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 @media (max-width: 767px) {
-  :root {
-    /* Mobile keeps the same geometry; only target size changes at this breakpoint. */
-    --sb-radius-control: 0.5rem;
-    /* Phone controls meet the 48px minimum target for gloved or wet hands. */
-    --sb-control-height: 3rem;
-  }
-
   [data-app-topbar] {
     height: calc(var(--sb-topbar-height) + env(safe-area-inset-top));
     padding-top: env(safe-area-inset-top);
@@ -845,9 +715,6 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 @media (min-width: 640px) {
-  :root {
-    --sb-control-height: 2.25rem;
-  }
 
   body {
     font-size: var(--sb-text-body);
@@ -859,10 +726,6 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 @media (min-width: 768px) {
-  :root {
-    /* Compact visible controls; shared eight-pixel gaps keep touch targets separated. */
-    --sb-control-height: 2.25rem;
-  }
 
   .sb-list-filters:not(.sb-list-query-card) > :first-child {
     flex: 1 1 14rem;
@@ -931,18 +794,8 @@ input[type="date"]::-webkit-date-and-time-value {
   }
 }
 
-@media (min-width: 1280px) {
-  :root {
-    /* Desktop regains compact enterprise density once pointer precision is primary. */
-    --sb-control-height: 2.25rem;
-  }
-}
 
 @media (max-width: 767px) {
-  :root {
-    /* This comes after the compact 640px rule so 640â€“767px phones remain touch-safe. */
-    --sb-control-height: 3rem;
-  }
 
   [data-center-workspace] main {
     scroll-padding-bottom: 6.5rem;
@@ -1039,10 +892,23 @@ dialog.sb-schedule-import-dialog[open] {
   transform: translate(-50%, -50%);
 }
 
-@media (min-width: 1280px) {
-  dialog.sb-dialog-workspace-centered[open] {
-    transform: translateX(calc(var(--sb-sidebar-width) / 2));
-  }
+dialog.sb-dialog-workspace-centered[open] {
+  position: fixed;
+  inset: 50% auto auto 50%;
+  margin: 0 !important;
+  transform: translate(-50%, -50%);
+  max-height: calc(100dvh - 2rem);
+}
+/* Native disclosures keep their keyboard behavior and put the affordance at the trailing edge. */
+details > summary { list-style: none; display: flex; align-items: center; gap: .75rem; min-height: 44px; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::after { content: ""; width: .5rem; height: .5rem; flex-shrink: 0; margin-left: auto; margin-right: .25rem; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); }
+details[open] > summary::after { transform: rotate(225deg); }
+.sb-asset-check-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(8rem, 9rem); gap: .75rem; padding: 1rem; }
+.sb-asset-check-row > div:last-child { grid-column: 1 / -1; }
+@media (min-width: 1024px) {
+  .sb-asset-check-row { grid-template-columns: minmax(12rem, 2fr) 5rem minmax(10rem, 1fr) minmax(12rem, 1.5fr); align-items: start; }
+  .sb-asset-check-row > div:last-child { grid-column: auto; }
 }
 
 /* Keep native select controls aligned with text inputs at every density. */
@@ -1115,4 +981,16 @@ dialog.sb-schedule-import-dialog[open] {
   font: inherit;
   letter-spacing: inherit;
   text-transform: inherit;
+}
+
+/* Existing explicit chevrons keep one trailing affordance. */
+details > summary:has(> svg[class*="lucide-chevron"])::after { display: none; }
+details > summary > svg[class*="lucide-chevron"] { order: 100; margin-left: auto; flex-shrink: 0; }
+
+/* Touch sizing must not override the desktop's 36px control rhythm. */
+@media (max-width: 1023px) {
+html[data-design-layer="v2"] :is(button, select, [role="combobox"], input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), a.inline-flex, details > summary, label:has(input[type="file"])) {
+  min-height: 44px !important;
+}
+html[data-design-layer="v2"] :is(button, [role="combobox"]) { min-width: 44px; }
 }

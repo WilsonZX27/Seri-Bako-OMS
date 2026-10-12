@@ -95,7 +95,7 @@ test("outlet completion creates the controlled ready-to-post queue", () => {
   assert.match(query, /missing_evening: Number\(summary\.missing_evening\)/);
   assert.match(query, /ready_to_post: Number\(summary\.ready_to_post\)/);
   assert.match(page, /<dt className="text-\[10px\] text-muted-foreground">Posted<\/dt>/);
-  assert.match(page, /Ready to post/);
+  assert.match(read("src/lib/outlet-daily-progress.ts"), /Ready to post/);
   assert.doesNotMatch(page, /<StatusBadge status=\{progress\.status\} \/><p/);
 });
 
@@ -250,8 +250,9 @@ test("outlet daily detail fails closed when its record source cannot be verified
 test("outlet records flag a confirmed zero when stock was sent", () => {
   assert.match(query, /received_zero_with_sent: boolean/);
   assert.match(query, /totalReceived === 0 && totalSent !== null && totalSent > 0/);
-  assert.match(page, /0 · verify/);
-  assert.match(page, /no receipt quantity has been confirmed/);
+  assert.match(read("src/lib/operational-value-display.ts"), /0 · verify/);
+  assert.match(read("src/lib/operational-value-display.ts"), /no receipt quantity has been confirmed/);
+  assert.match(page, /receivedDisplay\(row\)/);
   assert.match(detail, /Receipt check needed/);
   assert.match(detail, /record\.received_zero_with_sent/);
 });

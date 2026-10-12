@@ -1,3 +1,39 @@
+> 2026-10-10 isolated schedule repair: repository migrations reviewed through `343`; forward-only migration 历史已到 `343`. Migration 343 makes version validation, destination save and submit atomic; Wilson approved application only to the isolated local test DB (341 migration rows, maximum 343). No grants changed. This is not evidence of Production schema or deployment changes.
+
+## v9.2.103 approved release verification — 2026-10-09
+
+The user approved migrations 340/341 and candidate builds on the existing Supabase and Vercel projects. Both migrations committed successfully; 13 asset ledger hashes are unchanged. Candidate register loading exposed repeated source-field reads; migration 342 batches the existing whitelisted metadata without broadening original-outlet visibility. Isolation tests pass. Migration 342 is awaiting explicit approval; the formal domain remains v9.2.102 until real-page acceptance passes. Shared interaction targets are now 44px and short-screen modal actions remain visible.
+
+## Pending cohesive repair — 2026-10-09
+
+Migrations 340/341 add full-day actual unpaid-leave reporting and a scoped asset register read model. They are locally verified; Production application and UI acceptance are pending. The previous deployed checkpoint below remains historical evidence, not acceptance of this repair.
+
+## 2026-10-09 asset UI and scope rework (not deployed)
+
+## Final asset interface checkpoint — v9.2.102 deployed, 2026-10-09
+
+Formal system.seribako.com.my is on v9.2.102. Migration 339 remains applied; no business rows changed during subsequent UI releases. All 1,464 regressions passed and the hosted build completed type/lint checks. Daily Checklist filters now precede a compact status register, progress follows the selected location, and historical inspections are collapsed. Its final five-width screenshots show no root or table overflow and fully visible Inspect links. Phone submission remains fixed; the tablet toolbar stays fixed above navigation after scrolling at 820/1143px. Earlier v9.2.99 sticky-toolbar verification failed and is superseded. Both original photos opened after the privacy migration. Evidence and exact limits are in docs/qa/ASSET_SCOPE_UX_2026-10-09.md. Human visual approval, keyboard overlap and real business submission are not claimed; Penang confirmed configuration remains separate.
+
+
+## 正式发布核验 — 2026-10-09 v9.2.98
+
+339 已在正式 Supabase 项目执行，配套部署 dpl_8Nergf2V4zx62ZJkGBEDjEr3sBm1 已提升至 system.seribako.com.my。员工、经理及主管均受所属／获授权门店限制；Overview 与 Maintenance 限 Super Admin、Manager、Supervisor。Super Admin 保留公司范围访问。
+
+正式迁移后 13 张资产业务表的行数及整行指纹全部与冻结快照相符：445 个编号、已知数量 2,080、31 项未知数量，21,988 条历史检查与 2 份已验证附件均保留。八种现有角色身份的线上 SQL 只读验证通过：门店范围、完整历史范围、管理功能限制、原始字段与私人 Storage 隔离、直接写入拒绝。这不是八个独立浏览器登录验收。
+
+预览实际登录后检查了 390／430／820／1143／1440 五个概览宽度，根页面无横向溢出，两张趋势图均为 200px。实际验证桌面右 Console、ALMA 筛选返回 73 项及名称排序、紧凑维修队列、ALMA 检查完整载入 73 项、手机全部勾选／撤销、异常展开和未保存丢弃保护；390px 提交栏固定。正式域名已确认 v9.2.98 与资产数量。截图保存于 outputs/asset-migration-private/2026-10-09/rework-339/。
+
+未宣称完成项：正式检查提交被自动审批阻止，以免测试写入真实业务记录；提交负载与数据库生命周期由隔离测试覆盖。独立员工浏览器会话、每个明细在每个宽度的交互及键盘遮挡尚待完整验收。Penang 厨师长确认资料仍未齐，不应将发布当作整个三批计划收口。原先 v9.2.97 和未应用 339 的记载作为历史阶段保留，以本段为最新状态。
+
+
+Repository migrations reviewed through `342`; forward-only migration 历史已到 `342` (repository sequence, not applied Production schema). Production asset foundation and read optimization 337/338 are applied, and the reconciled final asset batch has completed activation. The interface was subsequently rejected; its visual and operational acceptance is reopened. Migration 339 is applied to Production after explicit owner authorization and hosted rollback rehearsal. It restricts non-Owner asset locations to assigned branches, gates management overview and maintenance by management roles, separates employee checklist summaries, and protects imported JSON and unlocated legacy attachments. No asset source row is deleted or rewritten by this migration. Eight-role live identity checks and both original attachment routes passed after application. The 8 October entries below describe historical staging, not the current activation state.
+
+## 2026-10-08 implementation in progress
+
+Repository migrations reviewed through `338`; forward-only migration 历史已到 `338` (repository sequence, not proof of applied Production schema). Migration 337 is an isolated asset foundation applied alone to Production on 8 October 2026 with owner authorization. The reviewed source is staged and reconciled; its asset batches remain inactive, so this is not formal cutover. Source asset quantities can be unknown: preserve them as NULL and prevent transfers until confirmed. Assets use original IDs with per-location holdings and in-transit quantities. Child references are constrained by company. The thirteen asset tables are included in company-scoped backups. Migration 338 is a reviewed asset read-policy optimization; it is applied to Production with stored migration source verified. It reuses the same RLS-filtered accessible location set without changing mutation helpers or grants.
+
+Daily Records removes stockout entry while preserving historical fields; quantity-proxy-v3 prevents automatic decreases when stockout observations are unknown. Desktop details share the product row; phone details expand on demand. Last-counted packaging balances retain their recorded dates and age. Planning configuration changes now participate in unsaved-navigation protection. Authenticated acceptance, Penang chef confirmation and final asset cutover remain separate outstanding gates.
+
 ## v9.2.86 (deployed) — annotated operational density correction
 
 The owner's 2026-10-04 annotations supersede the previous 44px desktop Planning treatment: operational query and Planning controls are 36px from 768px; normal WorkspaceTabs use 36px tabs and a 46px outer surface. Phone controls retain 44px. Planning's desktop Adjust is a 23px visual command in the requested #7c9b8d with white text; other primary actions retain the OMS green. View commands share #e7f1eb / #084b37. This applies through the existing shared owners, including Daily Records and Insights; Packaging's approved compact filter composition is preserved. SAP Fiori's compact/cozy distinction is a category reference, not a copied theme: https://www.sap.com/design-system/fiori-design-web/v1-136/foundations/visual/cozy-compact.
@@ -18,7 +54,7 @@ Vercel functions are configured in sin1 to colocate with the confirmed ap-southe
 
 ## Current repository / database distinction
 
-forward-only migration 历史已到 `336`。Migration 329 applied in a source-guarded transaction and was independently read back. Applied ledger: 324, 326, 327, 328, 329; 325 remains pending. Existing product rows receive NULL tray_mode without changing trays or snapshots. Authenticated Manager/Owner resolve_production_event_supply reads only their company; PUBLIC and anon execution is revoked. Existing transactional function ACLs/owners are preserved.
+forward-only migration 历史已到 `337`。Migration 329 applied in a source-guarded transaction and was independently read back. Applied ledger: 324, 326, 327, 328, 329; 325 remains pending. Existing product rows receive NULL tray_mode without changing trays or snapshots. Authenticated Manager/Owner resolve_production_event_supply reads only their company; PUBLIC and anon execution is revoked. Existing transactional function ACLs/owners are preserved.
 
 ## v9.2.84 (deployed) — compact Planning and explicit query actions
 
@@ -399,3 +435,27 @@ Migration `263` adds atomic compliance renewal with history. Source reviewed loc
 `products.available_from` and `available_until` are nullable inclusive dates, independent of master status. Dates control new planning products and events, while historical receiving/dispatch records remain readable. Manager settings use optimistic expected dates to prevent stale cross-kitchen overwrites.
 
 Migration 332 adds the security-invoker completed-only historical summary; authenticated execution only, unchanged table RLS.
+
+## Asset relationships — migration 337 (applied; staged, not live)
+
+```mermaid
+erDiagram
+    companies ||--o{ asset_import_batches : imports
+    companies ||--o{ asset_locations : owns
+    branches ||--o| asset_locations : maps
+    asset_locations ||--o{ asset_calendar_days : dated_overrides
+    assets ||--o{ asset_master_updates : master_history
+    assets ||--o{ asset_holdings : held
+    asset_locations ||--o{ asset_holdings : contains
+    assets ||--o{ asset_maintenance : reports
+    asset_maintenance ||--o{ asset_maintenance_updates : history
+    assets ||--o{ asset_daily_checks : inspections
+    assets ||--o{ asset_transfers : partial_moves
+    asset_transfers ||--o{ asset_transfer_updates : history
+    assets ||--o{ asset_attachments : evidence
+    asset_maintenance ||--o{ asset_attachments : scoped_photos
+    asset_locations ||--o{ asset_attachments : photo_scope
+    companies ||--o{ asset_suppliers : suppliers
+```
+
+Thirteen independent asset tables use company constraints. Location overrides use Kuala Lumpur dates; branches default daily, Event defaults inactive. The migration remains unapplied to Production. Permission checks and RLS restrict all operational access to the OMS company and accessible locations.

@@ -29,7 +29,6 @@ function fixture({role = 'manager', rpcError = null, mail = {unavailable: true},
   '@/server/queries/common': {getCurrentProfile: async () => ({company_id: kitchen, role_code: role})},
   '@/server/production-planning/data': {buildPlanPayload() {throw Error('Unexpected forecast');},async complete(factory){const result=await factory();if(result.error)throw Error(result.error.message);return result.data;}},
   '@/lib/production-planning/forecast': {addDays(value) {if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw Error('Invalid date'); return value;}},
-  '@/server/production-planning/email': {deliverPlanningEmails: async () => mail},
   '@/server/actions/error-handling': errors,
  });
  return {actions, calls, invalidations};

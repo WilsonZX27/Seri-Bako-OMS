@@ -136,9 +136,7 @@ export async function saveOutletDailyRecord(formData: FormData) {
   try {
     payload = extractOutletDailyPayload(formData);
   } catch (error) {
-    const rawRecordId = String(formData.get("record_id") ?? "").trim();
-    const recordId = z.uuid().safeParse(rawRecordId).success ? rawRecordId : null;
-    safeRedirectWithMessage(recordId ? `/outlet-daily-records/${recordId}` : "/outlet-daily-records/new", "error", error instanceof z.ZodError ? describeValidation(error) : formatActionError(error, "Could not validate this outlet daily record."));
+    return { error: error instanceof z.ZodError ? describeValidation(error) : formatActionError(error, "Could not validate this outlet daily record.") };
   }
   const recordId = payload.record_id;
   let canUpdateOutletValues = false;
@@ -261,7 +259,7 @@ export async function saveOutletDailyRecord(formData: FormData) {
     safeRedirectWithMessage(`/outlet-daily-records/${data}`, salesReconciliationUnavailable ? "warning" : "success", successMessage);
   } catch (error) {
     rethrowRedirect(error);
-    safeRedirectWithMessage(recordId ? `/outlet-daily-records/${recordId}` : "/outlet-daily-records/new", "error", formatActionError(error, "Could not save this outlet daily record."));
+    return { error: formatActionError(error, "Could not save this outlet daily record.") };
   }
 }
 

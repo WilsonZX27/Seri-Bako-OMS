@@ -63,13 +63,13 @@ test("global and responsive layers never own the same property for the same sele
   assert.deepEqual(conflicts, [], `Cross-file CSS authority conflict:\n${conflicts.join("\n")}`);
 });
 
-test("responsive design layer consumes global geometry tokens instead of redefining them", () => {
+test("canonical design layer exclusively owns geometry tokens", () => {
   const globals = fs.readFileSync(path.join(root, "src/app/globals.css"), "utf8");
   const designLayer = fs.readFileSync(path.join(root, "src/app/design-system-v2.css"), "utf8");
 
   for (const token of ["--sb-panel-radius", "--sb-control-radius", "--sb-radius-control"]) {
-    assert.match(globals, new RegExp(`${token}:`), `${token} must be owned by globals.css`);
-    assert.doesNotMatch(designLayer, new RegExp(`${token}:`), `${token} must not be redefined by design-system-v2.css`);
+    assert.doesNotMatch(globals, new RegExp(`${token}:`), `${token} must not be owned by globals.css`);
+    assert.match(designLayer, new RegExp(`${token}:`), `${token} must be owned by design-system-v2.css`);
   }
 });
 

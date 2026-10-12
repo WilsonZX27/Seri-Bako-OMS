@@ -11,7 +11,7 @@ test("v9 table motion uses the shared token and preserves reduced-motion behavio
 });
 
 test("v9 dashboard identity and panel headings use shared type tokens", () => {
-  const globals = fs.readFileSync("src/app/globals.css", "utf8");
+  const globals = fs.readFileSync("src/app/globals.css", "utf8") + fs.readFileSync("src/app/design-system-v2.css", "utf8");
   assert.match(globals, /--sb-text-identity:\s*1\.25rem/);
   assert.match(globals, /--sb-text-section:\s*0\.875rem/);
   assert.doesNotMatch(globals, /--sb-text-(?:display|identity|title|page|section):\s*clamp\(/);
@@ -20,7 +20,7 @@ test("v9 dashboard identity and panel headings use shared type tokens", () => {
 });
 
 test("v9 surfaces and overlays use semantic color and layer tokens", () => {
-  const globals = fs.readFileSync("src/app/globals.css", "utf8");
+  const globals = fs.readFileSync("src/app/globals.css", "utf8") + fs.readFileSync("src/app/design-system-v2.css", "utf8");
   const upload = fs.readFileSync("src/components/documents/attachment-upload-form.tsx", "utf8");
   const procurement = fs.readFileSync("src/components/procurement-forms.tsx", "utf8");
   assert.match(globals, /--sb-surface-subtle:\s*#fafafa/);

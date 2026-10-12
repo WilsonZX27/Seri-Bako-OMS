@@ -36,8 +36,16 @@ export function SubmitButton({
         setSubmitted(event.submitter === buttonRef.current);
       }
     };
+    const markSettled = (event: Event) => {
+      const targetId = (event as CustomEvent<{ formId?: string }>).detail?.formId;
+      if (targetId && targetId === (formId ?? buttonRef.current?.form?.id)) setSubmitted(false);
+    };
     document.addEventListener("submit", markSubmitted, true);
-    return () => document.removeEventListener("submit", markSubmitted, true);
+    document.addEventListener("sb:form-settled", markSettled);
+    return () => {
+      document.removeEventListener("submit", markSubmitted, true);
+      document.removeEventListener("sb:form-settled", markSettled);
+    };
   }, [formId]);
 
   useEffect(() => {

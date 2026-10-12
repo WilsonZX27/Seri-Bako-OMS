@@ -52,6 +52,19 @@ export type StockTransactionType =
 export type Database = {
   public: {
     Tables: {
+      asset_attachments: TableDefinition<{ id: string; company_id: string; asset_id: string; maintenance_id: string | null; location_id: string | null; created_at: string; source_key: string; source_data: Json; url: string; storage_path: string | null; verified_at: string | null; content_sha256: string | null; }>;
+      asset_calendar_days: TableDefinition<{ id: string; company_id: string; location_id: string; business_date: string; is_open: boolean; reason: string; created_at: string; updated_at: string; created_by: string; updated_by: string; history: Json; }>;
+      asset_daily_checks: TableDefinition<{ id: string; company_id: string; asset_id: string; location_id: string; source_key: string; submission_id: string; check_date: string; result: string; quantity: number | null; author_name: string; source_data: Json; created_at: string; }>;
+      asset_holdings: TableDefinition<{ id: string; created_at: string; company_id: string; asset_id: string; location_id: string; quantity: number | null; condition: string | null; status: string | null; latest_check_date: string | null; latest_check_result: string | null; latest_check_remark: string | null; updated_at: string; }>;
+      asset_import_batches: TableDefinition<{ id: string; company_id: string; source_sha256: string; imported_at: string; reconciliation: Json; state: string; }>;
+      asset_locations: TableDefinition<{ id: string; company_id: string; created_at: string; source_name: string; branch_id: string | null; kind: string; }>;
+      asset_maintenance: TableDefinition<{ id: string; company_id: string; asset_id: string; location_id: string; source_id: string; status: string; priority: string; description: string; author_name: string; source_data: Json; created_at: string; }>;
+      asset_maintenance_updates: TableDefinition<{ id: string; company_id: string; maintenance_id: string; source_id: string; author_name: string; source_data: Json; created_at: string; }>;
+      asset_master_updates: TableDefinition<{ id: string; company_id: string; asset_id: string; source_id: string; author_name: string; source_data: Json; created_at: string; }>;
+      asset_suppliers: TableDefinition<{ id: string; company_id: string; created_at: string; source_id: string; source_data: Json; }>;
+      asset_transfer_updates: TableDefinition<{ id: string; company_id: string; transfer_id: string; source_id: string; author_name: string; source_data: Json; created_at: string; }>;
+      asset_transfers: TableDefinition<{ id: string; company_id: string; asset_id: string; from_location_id: string; to_location_id: string; quantity: number; status: string; reason: string; requested_by: string | null; author_name: string; approved_by: string | null; dispatched_by: string | null; received_by: string | null; source_id: string | null; client_key: string | null; source_data: Json; created_at: string; updated_at: string; }>;
+      assets: TableDefinition<{ id: string; company_id: string; asset_code: string; item_name: string; source_data: Json; current_details: Json; import_batch_id: string | null; created_at: string; updated_at: string; }>;
       companies: {
         Row: {
           id: string;

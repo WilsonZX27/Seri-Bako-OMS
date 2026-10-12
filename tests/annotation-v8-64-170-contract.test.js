@@ -27,7 +27,8 @@ test("unverified receiving explains the exact remaining work", () => {
   const list = read("src", "app", "(app)", "outlet-daily-records", "page.tsx");
   const detail = read("src", "app", "(app)", "outlet-daily-records", "[id]", "page.tsx");
   assert.match(query, /received_pending_lines: receivedPendingLines/);
-  assert.match(list, /row\.received_pending_lines/);
+  assert.match(list, /receivedDisplay\(row\)/);
+  assert.match(read("src", "lib", "operational-value-display.ts"), /received_pending_lines/);
   assert.doesNotMatch(list, /Receiving data is not verified yet">Unavailable/);
   assert.match(detail, /Received entry still in progress/);
 });

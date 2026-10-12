@@ -97,8 +97,9 @@ export function DocumentWorkspace({
       <WorkspaceGrid documentMode tabletRailMode={tabletRailMode} className={cn("min-w-0 p-3", compactMobileSpacing && "pt-0 md:pt-3", mobilePrimaryAction && "pb-20 md:pb-3")} rightRail={sidePanel} hideMobileConsole>
         <div className="min-w-0">
           <div className="min-w-0 space-y-3">
+            {tabletRailMode === "context" && (mobilePrimaryAction || mobileMoreOptions) ? <div data-tablet-document-actions className="hidden md:block xl:hidden"><ConsoleSection title="Actions">{mobilePrimaryAction}{mobileMoreOptions}</ConsoleSection></div> : null}
             {children}
-            {mobileActivity ? <div className="hidden md:block xl:hidden"><MobileActivityAndFiles>{tabletRailMode === "context" && (mobilePrimaryAction || mobileMoreOptions) ? <><div className="hidden space-y-2 md:block xl:hidden"><ConsoleSection title="Actions">{mobilePrimaryAction}{mobileMoreOptions}</ConsoleSection></div>{mobileActivity}</> : mobileActivity}</MobileActivityAndFiles></div> : null}
+            {mobileActivity ? <div className="hidden md:block xl:hidden"><MobileActivityAndFiles>{mobileActivity}</MobileActivityAndFiles></div> : null}
           </div>
         </div>
       </WorkspaceGrid>

@@ -362,16 +362,10 @@ export async function POST(request: Request) {
         p_week_id: input.data.weekId,
       });
     else if (input.data.action === "submit") {
-      const saved = await db.rpc("save_schedule_week_with_destinations", {
+      result = await db.rpc("submit_schedule_week_atomic", {
         p_branch_id: input.data.branchId,
         p_week_start: input.data.weekStart,
         p_assignments: input.data.assignments,
-      });
-      if (saved.error) result = saved;
-      else result = await db.rpc("submit_schedule_week_atomic", {
-        p_branch_id: input.data.branchId,
-        p_week_start: input.data.weekStart,
-        p_assignments: input.data.assignments.filter((item) => !item.destination_branch_id),
         p_expected_updated_at: input.data.expectedUpdatedAt ?? null,
         p_comment: input.data.comment ?? null,
       });

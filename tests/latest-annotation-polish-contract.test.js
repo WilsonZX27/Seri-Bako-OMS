@@ -33,7 +33,7 @@ test("purchase request lines use one responsive control geometry and no duplicat
 test("mobile shell and loading states avoid warm bands, layout shifts, and duplicate status copy", () => {
   const topBar = read("src", "components", "layout", "top-bar.tsx");
   const layout = read("src", "app", "layout.tsx");
-  const globals = read("src", "app", "globals.css");
+  const globals = read("src", "app", "globals.css") + fs.readFileSync("src/app/design-system-v2.css", "utf8");
   const outlet = read("src", "app", "(app)", "outlet-daily-records", "page.tsx");
   const stockLoading = read("src", "app", "(app)", "stock-counts", "new", "loading.tsx");
   assert.match(topBar, /sticky top-0 z-40/);

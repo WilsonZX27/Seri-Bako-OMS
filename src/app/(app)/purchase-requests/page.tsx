@@ -1,3 +1,4 @@
+import { supplierDisplay } from "@/lib/operational-value-display";
 import { Pencil, Plus } from "lucide-react";
 import Link from "next/link";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
@@ -86,7 +87,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, remarks" className="md:max-w-sm" />
               <SelectControl name="status" defaultValue={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status.value, label: status.label }))]} />
               <SelectControl name="priority" defaultValue={filters.priority ?? "all"} ariaLabel="Priority" options={[{ value: "all", label: "All priorities" }, { value: "critical", label: "Critical" }, { value: "urgent", label: "Urgent" }, { value: "normal", label: "Normal" }, { value: "low", label: "Low" }]} />
-              <Button type="submit" className="sb-filter-submit min-w-0" data-list-action="primary">Search</Button>
+
               {filtered ? <Button asChild variant="secondary" className="sb-filter-submit min-w-0" data-list-action="secondary"><Link href="/purchase-requests">Reset</Link></Button> : null}
             </FilterBar>
           <div className="sb-list-content-card overflow-hidden">
@@ -113,7 +114,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                     <TableCell><div className="min-w-0"><DocumentNumber value={request.request_no} size="sm" /><div className="mt-1"><PriorityBadge priority={request.priority} /></div></div></TableCell>
                     <TableCell><p>{formatDateOnly(request.request_date)}</p>{request.needed_by_date ? <p className="mt-1 text-[11px] italic text-muted-foreground">{formatDateOnly(request.needed_by_date)}</p> : null}</TableCell>
                     <TableCell><p>{request.branch_name ?? "—"}</p><p className="mt-1 text-[11px] text-muted-foreground">{request.requested_by_name}</p></TableCell>
-                    <TableCell className="whitespace-normal break-words align-top"><span className={request.supplier_state === "assigned" ? "text-[var(--sb-text)]" : "font-medium text-[var(--sb-warning)]"}>{request.supplier_state === "assigned" ? request.supplier_names.join(", ") : request.supplier_state === "assignment_required" ? "Supplier assignment required" : request.supplier_state === "details_unavailable" ? "Supplier details unavailable" : "—"}</span></TableCell>
+                    <TableCell className="whitespace-normal break-words align-top"><span className={request.supplier_state === "assigned" ? "text-[var(--sb-text)]" : "font-medium text-[var(--sb-warning)]"}>{supplierDisplay(request)}</span></TableCell>
                     <TableCell className="whitespace-normal"><StatusBadge status={request.status === "converted_to_po" && request.procurement_status ? request.procurement_status : request.status} /></TableCell>
                     <TableCell className="text-right"><p>{request.line_count} lines</p><p className="mt-1 text-[11px] text-muted-foreground">{formatCurrency(request.estimated_total)}</p></TableCell>
                   </DataGridRow>
@@ -123,7 +124,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
             </Table>
             <OperationalList ariaLabel="Purchase requests" showUntil="xl">
               {requests?.rows.map((request) => {
-                const supplierLabel = request.supplier_state === "assigned" ? request.supplier_names.join(", ") : "Supplier pending";
+                const supplierLabel = supplierDisplay(request);
                 return <OperationalListRow key={request.id} href={`/purchase-requests/${request.id}`} label={`Open ${request.request_no}`} primary={<DocumentNumber value={request.request_no} size="sm" className="text-sm" />} status={<StatusBadge status={request.status === "converted_to_po" && request.procurement_status ? request.procurement_status : request.status} />} secondary={<span className="flex min-w-0 items-center gap-2 text-[12px] text-[var(--sb-text-muted)]"><span className="shrink-0">{request.branch_name ?? "Unassigned"}</span><span aria-hidden="true">·</span><span className="shrink-0">{formatDateOnly(request.request_date)}</span><span aria-hidden="true">·</span><span className="min-w-0 truncate">{request.requested_by_name}</span></span>} detail={<span className="flex min-w-0 items-center justify-between gap-3 text-[11px] text-muted-foreground"><span className="truncate" title={supplierLabel}>{supplierLabel}</span><span className="shrink-0 tabular-nums">{request.line_count} items · <strong className="font-medium text-foreground">{formatCurrency(request.estimated_total)}</strong></span></span>} />;
               })}
               {!requests?.rows.length ? <EmptyState title={requestsResult.unavailable ? "Purchase request data unavailable" : filtered ? "No requests match these filters" : "No purchase requests yet"} description={requestsResult.unavailable ? "The request source could not be verified. No record count or estimated total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Purchase requests appear here after branch needs are created."} action={requestsResult.unavailable ? { href: "/purchase-requests", label: "Retry requests" } : filtered ? { href: "/purchase-requests", label: "Reset filters" } : undefined} /> : null}

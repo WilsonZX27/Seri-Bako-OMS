@@ -11,7 +11,7 @@ import { OutletDailyWastageOverview } from "@/components/outlet-daily-wastage-ov
 import { OutletDailyWastageChart } from "@/components/outlet-daily-wastage-chart";
 import { OutletDailyCompletionMatrix } from "@/components/outlet-daily-completion-matrix";
 import { FilterBar } from "@/components/ui/filter-bar";
-import { Input } from "@/components/ui/input";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
 import { SelectControl } from "@/components/ui/select-control";
 import { Button } from "@/components/ui/button";
 import { Notice } from "@/components/ui/system-states";
@@ -26,11 +26,11 @@ export default async function OutletDailyInsightsPage({ searchParams }: { search
  const report=["products","trend","completion"].includes(filters.report??"")?filters.report!:"outlets";
  const end=filters.history_date??addDays(todayInKualaLumpur(),-1);
  const period=insightPeriod(filters.period);
- const range=insightRange(period,end);
+ const range=insightRange(period,end,filters.history_start);
  const compare=filters.compare!=="none";
  const [options,canCreate,result,cost,previousResult,historyResult]=await Promise.all([
   getOutletDailyFormOptions(),hasPermission("outlet_daily_record.create"),
-  Promise.allSettled([report==="completion"?getOutletDailyCompletionMatrix({period,branch:filters.branch,history_date:end}):getOutletDailyDemandTrend({period,branch:filters.branch,history_date:end})]),
+  Promise.allSettled([report==="completion"?getOutletDailyCompletionMatrix({period,branch:filters.branch,history_date:end,history_start:range.start}):getOutletDailyDemandTrend({period,branch:filters.branch,history_date:end,history_start:range.start})]),
   hasPermission("outlet_daily_record.view_all").then(async allowed => ({allowed, summary: allowed ? await getOutletDailyWastageCostSummary(end) : null})),
   compare&&report!=="completion"?Promise.allSettled([getOutletDailyDemandTrend({period,branch:filters.branch,history_date:range.previousEnd,history_start:range.previousStart})]):Promise.resolve([]),
   Promise.allSettled([getOutletDailyHistoricalContext()]),
@@ -44,13 +44,13 @@ export default async function OutletDailyInsightsPage({ searchParams }: { search
  const previous=previousResult[0]?.status==="fulfilled"?previousResult[0].value:null;
  const canViewWastageCost=cost.allowed;
  const wastageCost=cost.summary;
- const params=new URLSearchParams({history_date:end,period,compare:compare?"previous":"none",...(filters.branch?{branch:filters.branch}:{})});
+ const params=new URLSearchParams({history_date:end,history_start:range.start,period,compare:compare?"previous":"none",...(filters.branch?{branch:filters.branch}:{})});
  const tabs=[{id:"outlets",label:"By outlet",icon:Store},{id:"products",label:"By product",icon:Package},{id:"trend",label:"Trend",icon:ChartNoAxesCombined},{id:"completion",label:"Completion",icon:ClipboardCheck}].map(t=>({...t,href:`/outlet-daily-records/insights?${params}&report=${t.id}`}));
  return <><PageHeader title="Outlet Daily Records" description="Food wastage and submission insights." contentWidth="wide"/><WorkspaceGrid tabletCanvas="wide" rightRail={<><ConsoleSection title="Report coverage"><p className="text-xs">{formatDateOnly(range.start)} - {formatDateOnly(end)} · food only.</p>{trend?<><p className="mt-2 text-xs">{trend.coverage.completed} completed of {trend.coverage.expected} outlet-days.</p><p className="mt-2 text-xs text-muted-foreground">Completed food records only.</p>{previous?<p className="mt-2 text-xs">Previous period: {previous.coverage.completed}/{previous.coverage.expected} completed outlet-days.</p>:null}</>:null}</ConsoleSection>{canViewWastageCost&&wastageCost?<ConsoleSection title="Period end wastage value"><p className="flex min-w-0 items-start justify-between gap-3 text-xs"><span className="min-w-0 break-words">Costed amount</span><strong className="shrink-0 text-right tabular-nums">{wastageCost.amount===null?"Unavailable":`RM ${wastageCost.amount.toFixed(2)}`}</strong></p><p className="mt-2 text-xs text-muted-foreground">{wastageCost.amount===null&&wastageCost.state==="verified"?"No completed wastage recorded on this date":wastageCost.state==="verified"?`${wastageCost.priced_lines} costed lines`:wastageCost.state==="partial"?`${wastageCost.unavailable_lines} lines missing recipe cost`:"No active recipe cost snapshot"}</p></ConsoleSection>:null}{history?<OutstandingDailyRecords history={history}/>:<ConsoleSection title="Outstanding daily records"><p className="text-xs">Unavailable. Reload to retry.</p></ConsoleSection>}</>}>
   <OutletDailyWorkspaceNav current="insights"/>
-  <FilterBar resultCount={!filters.branch || filters.branch === "all" ? options.branches.length : options.branches.some(branch => branch.id === filters.branch) ? 1 : 0} resultLabel="outlets" resetHref="/outlet-daily-records/insights" filtered={!!filters.branch||!!filters.history_date} phonePrimary="drawer" actions={<Button type="submit" variant="secondary"><Search aria-hidden="true"/>View</Button>}>
-   <SelectControl name="period" value={period} ariaLabel="Report period" options={[{value:"1",label:"1 day"},{value:"7",label:"7 days"},{value:"30",label:"30 days"},{value:"month",label:"Month to date"}]}/><SelectControl name="compare" value={compare?"previous":"none"} ariaLabel="Compare period" options={[{value:"previous",label:"Previous equal period"},{value:"none",label:"No comparison"}]}/>
-   <input type="hidden" name="report" value={report}/><Input name="history_date" type="date" aria-label="History end date" defaultValue={end}/>
+  <FilterBar resultCount={!filters.branch || filters.branch === "all" ? options.branches.length : options.branches.some(branch => branch.id === filters.branch) ? 1 : 0} resultLabel="outlets" resetHref="/outlet-daily-records/insights" filtered={!!filters.branch||!!filters.history_date||!!filters.history_start} phonePrimary="drawer" actions={<Button type="submit" variant="secondary"><Search aria-hidden="true"/>View</Button>}>
+   <DateRangePicker key={`${range.start}:${end}`} start={range.start} end={end} today={todayInKualaLumpur()}/><SelectControl name="compare" value={compare?"previous":"none"} ariaLabel="Compare period" options={[{value:"previous",label:"Previous equal period"},{value:"none",label:"No comparison"}]}/>
+   <input type="hidden" name="report" value={report}/>
    <SelectControl name="branch" value={filters.branch??"all"} ariaLabel="Outlet" options={[{value:"all",label:"All outlets"},...options.branches.map(b=>({value:b.id,label:b.branch_name}))]}/>
   </FilterBar>
   <WorkspaceTabs prefetchOnIntent label="Insight report" current={report} items={tabs}/>

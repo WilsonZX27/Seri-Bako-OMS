@@ -3,6 +3,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/top-bar";
 import { RightConsoleProvider } from "@/components/layout/right-console";
 import { GlobalActionToast } from "@/components/global-action-toast";
+import { FormValidationRecovery } from "@/components/form-validation-recovery";
 import { SessionTimeoutProvider } from "@/components/session-timeout-provider";
 import { isMockMode } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
@@ -58,6 +59,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <RightConsoleProvider>
               <div data-center-workspace className="flex min-h-0 min-w-0 flex-1 flex-col xl:overflow-hidden">
                 <GlobalActionToast />
+                <FormValidationRecovery />
                 <SessionTimeoutProvider />
                 <main id="main-content" className="min-h-0 flex-1 overflow-x-hidden pb-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] xl:pb-0 xl:overflow-y-auto">{children}</main>
               </div>

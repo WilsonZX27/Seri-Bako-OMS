@@ -4,7 +4,6 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  Download,
   Eye,
   FileCheck2,
   TriangleAlert,
@@ -20,6 +19,7 @@ import {
   OtClaimAction,
   WeeklyCloseButton,
 } from "@/components/attendance/ot-ro-actions";
+import { PeopleWorkbookExport } from "@/components/attendance/people-workbook-export";
 import { ActualAttendancePanel } from "@/components/attendance/actual-attendance-panel";
 import { EmployeeAttendanceSummary } from "@/components/attendance/employee-attendance-summary";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -34,6 +34,7 @@ import {
   getAttendanceActuals,
   getAttendanceMappings,
   getAttendanceReview,
+  getAttendanceWeekBlockers,
   getAttendanceReviewBranches,
   ATTENDANCE_TRACKING_START_DATE,
   malaysiaWeekStart,
@@ -81,9 +82,10 @@ function primaryStatus(row: Row) {
   const values = Array.isArray(row.statuses)
     ? row.statuses.map(String).filter((value) => value !== "public_holiday" && !(staff?.employment_type === "part_time" && ["missing_break_punch", "short_break"].includes(value)))
     : [];
-  return values[0] ?? (row.holiday_id ? "public_holiday" : "normal");
+  return values.find(value=>value!=="unpaid_leave") ?? (values.includes("unpaid_leave") ? "unpaid_leave" : undefined) ?? (row.holiday_id ? "public_holiday" : "normal");
 }
 function expectedPunchesFor(row: Row, staff: { employment_type?: string } | null) {
+  if (Array.isArray(row.statuses) && row.statuses.includes("unpaid_leave")) return 0;
   return staff?.employment_type === "part_time" ? 2 : Number(row.expected_punch_count ?? 0);
 }
 const BLOCKING_ATTENDANCE_STATUSES = new Set([
@@ -92,6 +94,7 @@ const BLOCKING_ATTENDANCE_STATUSES = new Set([
   "missing_check_out",
   "odd_punch_count",
   "impossible_ordering",
+  "unpaid_leave_punch_conflict",
 ]);
 function pageHref(params: Record<string, string | undefined>, page: number) {
   const query = new URLSearchParams();
@@ -113,6 +116,7 @@ export default async function AttendanceReviewPage({
     batch?: string;
     detail?: string;
     mapping?: string;
+    report?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -135,7 +139,7 @@ export default async function AttendanceReviewPage({
     "attendance.week.close",
     "attendance.sensitive.export",
   ]);
-  const [review, actuals, mappings] = await Promise.all([
+  const [review, actuals, mappings, closeRows] = await Promise.all([
     branch ? getAttendanceReview(week, {
       branch,
       status: params.status,
@@ -147,6 +151,7 @@ export default async function AttendanceReviewPage({
     permissions["attendance.import"]
       ? getAttendanceMappings()
       : Promise.resolve(null),
+    branch && permissions["attendance.week.close"] ? getAttendanceWeekBlockers(week,branch) : Promise.resolve([]),
   ]);
   const rows = review.rows as Row[];
   const claims = actuals.claims as Row[];
@@ -161,11 +166,9 @@ export default async function AttendanceReviewPage({
     staffs?: { full_name?: string } | null;
   }>;
   const attentionCount = rows.filter(
-    (row) => primaryStatus(row) !== "normal",
+    (row) => !["normal","unpaid_leave"].includes(primaryStatus(row)),
   ).length;
-  const blockerCount = rows.filter((row) =>
-    Array.isArray(row.statuses) && row.statuses.some((status) => BLOCKING_ATTENDANCE_STATUSES.has(String(status))),
-  ).length;
+  const blockerCount = closeRows.length;
   const exceptionCount = blockerCount;
   const filterParams = {
     week,
@@ -173,21 +176,19 @@ export default async function AttendanceReviewPage({
     status: params.status,
     employee: params.employee,
   };
-  const blockerRows = rows
-    .filter((row) => Array.isArray(row.statuses) && row.statuses.some((status) => BLOCKING_ATTENDANCE_STATUSES.has(String(status))))
-    .slice(0, 20)
+  const blockerRows = (closeRows as Row[])
     .map((row) => {
       const staff = row.staffs as { full_name?: string } | null;
       const reason = (Array.isArray(row.statuses) ? row.statuses : [])
         .map(String)
         .find((status) => BLOCKING_ATTENDANCE_STATUSES.has(status))
-        ?.replaceAll("_", " ") ?? "Attendance exception";
+        ?.replaceAll("_", " ") ?? (Array.isArray(row.attendance_exceptions) ? row.attendance_exceptions.find((item)=>item.severity === "blocker" && item.resolved_at == null)?.exception_code?.replaceAll("_"," ") : null) ?? "Attendance exception";
       return {
         id: String(row.id),
         employee: staff?.full_name ?? "Unmatched employee",
         date: String(row.work_date),
         reason,
-        href: `${pageHref({ ...filterParams, detail: undefined }, page)}&detail=${encodeURIComponent(String(row.id))}`,
+        href: `${pageHref({ week, branch }, 1)}&detail=${encodeURIComponent(String(row.id))}`,
       };
     });
   const latest = review.batches[0] as Row | undefined;
@@ -250,21 +251,17 @@ export default async function AttendanceReviewPage({
                   submittedClaimCount={claims.filter((row) => String(row.status) === "submitted").length}
                   blockers={blockerRows}
                   reviewHref={pageHref(filterParams, page)}
-                  disabled={weekLocked}
+                  disabled={weekLocked || !branch}
                 />
               ) : null}
+              {!branch && permissions["attendance.week.close"] ? <p className="mt-2 text-xs text-muted-foreground">Select an outlet to review its blockers and close this week.</p> : null}
               {latest &&
               (permissions["attendance.import"] ||
                 permissions["attendance.adjust"]) ? (
                 <AttendanceRecalculateButton batchId={String(latest.id)} disabled={weekLocked} />
               ) : null}
               {permissions["attendance.sensitive.export"] ? (
-                <Button asChild size="sm" variant="outline" className="w-full">
-                  <a href={`/api/attendance/export?week=${week}${branch ? `&branch=${encodeURIComponent(branch)}` : ""}&format=xlsx`}>
-                    <Download className="h-4 w-4" />
-                    Download People workbook
-                  </a>
-                </Button>
+                <PeopleWorkbookExport branches={review.branches as {id:string;branch_name:string}[]} week={week} branchId={branch}/>
               ) : null}
             </ConsoleSection>
             <ConsoleSection title="Week status" kind="status">
@@ -296,6 +293,7 @@ export default async function AttendanceReviewPage({
             <div className="space-y-2" aria-labelledby="attendance-tools-title">
               <h2 id="attendance-tools-title" className="sr-only">Reports & time-off balance</h2>
                 <ActualAttendancePanel
+                  scheduleHref={`/attendance/schedule?branch=${encodeURIComponent(branch ?? "")}&week=${week}`}
                   assignments={actuals.assignments as Row[]}
                   reports={actuals.reports as Row[]}
                   ledger={actuals.ledger}
@@ -364,11 +362,11 @@ export default async function AttendanceReviewPage({
         {branch && review.unscheduledPunches.length ? (
           <section className="overflow-hidden rounded-[var(--sb-panel-radius)] border border-amber-200 bg-amber-50">
             <header className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 px-4 py-3">
-              <div><h2 className="text-sm font-semibold">Imported punches awaiting schedule</h2><p className="mt-0.5 text-xs text-muted-foreground">Punch evidence is preserved. Add or publish the missing staff day, then recalculate the latest import.</p></div>
+              <div><h2 className="text-sm font-semibold">Imported punches requiring schedule review</h2><p className="mt-0.5 text-xs text-muted-foreground">Device outlet and scheduled work outlet may differ. Review the schedule state below; original punches are preserved.</p></div>
               <Button asChild size="sm" variant="outline"><Link href={`/attendance/schedule?branch=${encodeURIComponent(branch)}&week=${week}`}>Add schedule</Link></Button>
             </header>
             <div className="divide-y divide-amber-200">
-              {review.unscheduledPunches.map((item) => <div key={`${item.staff_id}:${item.work_date}`} className="grid gap-1 px-4 py-2.5 text-xs sm:grid-cols-[minmax(0,1fr)_7rem_10rem] sm:items-center"><strong>{item.full_name}</strong><span className="tabular-nums">{item.work_date}</span><span className="tabular-nums text-muted-foreground">{item.punch_count} punches · {time(item.first_punch)}–{time(item.last_punch)}</span></div>)}
+              {review.unscheduledPunches.map((item) => <div key={`${item.staff_id}:${item.work_date}`} className="grid gap-1 px-4 py-2.5 text-xs sm:grid-cols-[minmax(0,1fr)_7rem_10rem] sm:items-center"><div><strong>{item.full_name}</strong><p className="mt-1 text-muted-foreground">Home: {item.home_branch}</p><p className="mt-1">Schedule: {item.scheduled_branch} · {item.schedule_status}</p></div><span className="tabular-nums">{item.work_date}</span><span className="tabular-nums text-muted-foreground">{item.punch_count} punches · {time(item.first_punch)}–{time(item.last_punch)}</span></div>)}
             </div>
           </section>
         ) : null}
@@ -485,6 +483,7 @@ export default async function AttendanceReviewPage({
                             row={row}
                             claim={claim}
                             candidate={candidate}
+                            reportable={actuals.assignments.some((assignment:Row)=>assignment.id===row.assignment_id)}
                             permissions={permissions}
                             weekLocked={weekLocked}
                             href={`${pageHref(filterParams, page)}&detail=${encodeURIComponent(String(row.id))}`}
@@ -525,7 +524,7 @@ export default async function AttendanceReviewPage({
                           {time(row.scheduled_end)}
                         </p>
                       </div>
-                      <StatusBadge status={status} label={["posted", "reviewed"].includes(status) ? "Calculated" : undefined} />
+                      <StatusBadge status={status} label={status === "unpaid_leave" ? "Approved unpaid leave" : status === "unpaid_leave_punch_conflict" ? "Unpaid leave conflicts with punches" : ["posted", "reviewed"].includes(status) ? "Calculated" : undefined} />
                     </div>
                     <dl className="mt-3 grid grid-cols-3 gap-x-3 gap-y-2 text-xs">
                       <div>
@@ -574,6 +573,7 @@ export default async function AttendanceReviewPage({
                         row={row}
                         claim={claim}
                         candidate={candidate}
+                        reportable={actuals.assignments.some((assignment:Row)=>assignment.id===row.assignment_id)}
                         permissions={permissions}
                         weekLocked={weekLocked}
                         href={`${pageHref(filterParams, page)}&detail=${encodeURIComponent(String(row.id))}`}
@@ -627,6 +627,8 @@ export default async function AttendanceReviewPage({
           </summary>
           <div className="border-t border-[var(--sb-border-soft)] p-3">
             <ActualAttendancePanel
+                  scheduleHref={`/attendance/schedule?branch=${encodeURIComponent(branch ?? "")}&week=${week}`}
+              initialAssignmentId={params.report}
               assignments={actuals.assignments as Row[]}
               reports={actuals.reports as Row[]}
               ledger={actuals.ledger}
@@ -650,7 +652,9 @@ function RowActions({
   permissions,
   href,
   weekLocked,
+  reportable,
 }: {
+  reportable:boolean;
   row: Row;
   claim?: Claim;
   candidate: number;
@@ -663,6 +667,8 @@ function RowActions({
       <Button asChild size="sm" variant="ghost" className="w-auto justify-start gap-2 bg-transparent px-2 font-normal hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-surface-muted)]">
         <Link href={href}><Eye className="h-4 w-4"/>View details</Link>
       </Button>
+      {permissions["attendance.report.submit"] && reportable && !weekLocked ? <Button asChild size="sm" variant="ghost" className="min-h-11 px-2"><Link href={`${href}&report=${encodeURIComponent(String(row.assignment_id))}`}>Report actual attendance</Link></Button> : null}
+      {permissions["attendance.report.submit"] && !reportable && !weekLocked ? <Link className="min-h-11 py-2 text-xs text-warning underline" href={`/attendance/schedule?${href.split("?")[1] ?? ""}`}>Check and publish this staff day before reporting leave.</Link> : null}
       {permissions["attendance.adjust"] ? (
         <AttendanceAdjustmentButton
           resultId={String(row.id)}

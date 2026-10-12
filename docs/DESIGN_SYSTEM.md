@@ -1,4 +1,12 @@
-## v9.2.86 (deployed) — annotated operational density correction
+## Current authority — v9.2.105 and bounded local remediation
+
+PRODUCT.md owns density: controls are 36px at >=1024px and at least44px below1024px. The shell right Console remains >=1280px. WorkspaceGrid with a landscape split keeps actions/context stacked at768–1023px, then inline beside the canvas at1024–1279px. Context-mode documents expose tablet actions independently of Files/Activity. These local action/focus/semantics fixes are not a deployment claim.
+
+Filter sheets and ModalShell use the shared dialog-focus helper: hidden state fields are never tab stops; entry and Tab/Shift+Tab containment stay inside the dialog, and Escape restores the trigger. Field descriptions and errors retain all existing aria-describedby references. Business display formatters preserve pending, unavailable, zero and not-final meanings across table and compact layouts.
+
+All versioned sections below are historical evidence. Their earlier density values and portrait-tablet More placement are superseded by this section and PRODUCT.md; they must not be used as current release contracts.
+
+## v9.2.86 (historical deployed release) — annotated operational density correction
 
 The owner's 2026-10-04 annotations supersede the previous 44px desktop Planning treatment: operational query and Planning controls are 36px from 768px; normal WorkspaceTabs use 36px tabs and a 46px outer surface. Phone controls retain 44px. Planning's desktop Adjust is a 23px visual command in the requested #7c9b8d with white text; other primary actions retain the OMS green. View commands share #e7f1eb / #084b37. This applies through the existing shared owners, including Daily Records and Insights; Packaging's approved compact filter composition is preserved. SAP Fiori's compact/cozy distinction is a category reference, not a copied theme: https://www.sap.com/design-system/fiori-design-web/v1-136/foundations/visual/cozy-compact.
 

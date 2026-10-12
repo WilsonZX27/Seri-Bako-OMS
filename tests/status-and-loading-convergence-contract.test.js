@@ -16,7 +16,7 @@ test("Outlet Daily uses controlled posting without erasing legacy audit fields",
   assert.match(migration, /set status = 'reviewed'/);
   assert.match(actions, /postOutletDailyRecord/);
   assert.match(actions, /p_action: "post"/);
-  assert.match(list, /row\.status === "evening_completed"[\s\S]*ready_to_post/);
+  assert.match(read("src/lib/outlet-daily-progress.ts"), /row\.status === "evening_completed"[\s\S]*ready_to_post/);
   assert.doesNotMatch(list, /const statuses = \[[^\]]*"reviewed"/);
 });
 test("loading surfaces are lightweight, route-shaped and never expose placeholder mobile actions", () => {

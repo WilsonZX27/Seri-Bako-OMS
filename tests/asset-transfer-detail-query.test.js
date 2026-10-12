@@ -1,0 +1,13 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript'),vm=require('node:vm');
+function harness(missing=false){
+ const calls=[],module={exports:{}};
+ const db={from:table=>{const q={};calls.push({table,method:'from'});for(const method of ['select','eq','in','order','range'])q[method]=(...args)=>{calls.push({table,method,args});return q;};q.maybeSingle=async()=>({data:table==='asset_transfers'?(missing?null:{id:'transfer',asset_id:'asset',from_location_id:'source',to_location_id:'destination'}):{id:'asset',asset_code:'SB-SYNTHETIC',item_name:'Tray'},error:null});q.then=(resolve,reject)=>Promise.resolve({data:[],count:3,error:null}).then(resolve,reject);return q;}};
+ const bindings={'@/lib/asset-access':{canAccessAssetManagement:role=>['super_admin','manager','outlet_supervisor'].includes(role)},'react':{cache:fn=>fn},'@/lib/business-date':{},'@/lib/production-planning/forecast':{},'@/server/auth/tenant-actor':{requireActiveTenantActor:async()=>({companyId:'company'})},'@/server/auth/permissions':{requirePermission:async()=>{}},'@/lib/supabase/server':{createClient:async()=>db},'@/lib/supabase/loose':{looseSupabase:v=>v}};
+ vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/server/queries/assets.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module,exports:module.exports,require:n=>bindings[n]??require(n)});return {query:module.exports.getAssetTransferDetail,calls};
+}
+test('transfer history checks parent visibility before loading related records and pages deterministically',async()=>{
+ const h=harness(),result=await h.query('transfer',2);assert.equal(result.total,3);
+ for(const table of ['asset_transfers','assets','asset_locations','asset_transfer_updates'])assert.ok(h.calls.some(c=>c.table===table&&c.method==='eq'&&c.args[0]==='company_id'&&c.args[1]==='company'));
+ const history=h.calls.filter(c=>c.table==='asset_transfer_updates');assert.deepEqual(history.find(c=>c.method==='range').args,[50,99]);assert.deepEqual(history.filter(c=>c.method==='order').map(c=>c.args[0]),['created_at','id']);assert.ok(history.some(c=>c.method==='eq'&&c.args[0]==='transfer_id'&&c.args[1]==='transfer'));
+ const absent=harness(true);assert.equal(await absent.query('transfer',1),null);assert.equal(absent.calls.some(c=>c.table!=='asset_transfers'),false);
+});

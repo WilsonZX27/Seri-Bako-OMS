@@ -1,0 +1,17 @@
+"use client";
+import {useState,useEffect} from 'react';
+import {usePathname} from 'next/navigation';
+import Link from 'next/link';
+import {PublishedScheduleList} from '@/components/attendance/published-schedule-list';
+import {StockTransferReceiveForm,StockTransferForm,StockWastageForm} from '@/components/stock-operation-forms';
+import {StockCountVoidDialog} from '@/components/stock-count-void-dialog';
+const branches=[{id:'fixture-kitchen',branch_code:'TEST',branch_name:'Fixture Kitchen',status:'active'},{id:'fixture-outlet',branch_code:'DEST',branch_name:'Fixture Outlet',status:'active'}];
+const seed=[{item_id:'fixture-item',item_code:'TEST01',item_name:'Fixture flour',available_qty:10,quantity:1,uom:'KG'}];
+const shifts=[{id:'fixture-shift',work_date:'2026-10-10',assignment_kind:'work',branches:{branch_name:'Fixture Outlet'},shift_templates:{planned_start:'09:00',planned_end:'17:00'},custom_start:null,custom_end:null}];
+export default function Page(){const route=usePathname();const [feedback,setFeedback]=useState('');const [reason,setReason]=useState('invalid');useEffect(()=>{const originalPrompt=window.prompt,originalAlert=window.alert;window.prompt=()=>reason==='cancel'?null:reason;window.alert=(message)=>setFeedback(String(message));return()=>{window.prompt=originalPrompt;window.alert=originalAlert}},[reason]);const action=async()=>{await new Promise(r=>setTimeout(r,900));setFeedback('Synthetic local submit received. No business record changed.');};return <div className="min-h-screen"><header className="border-b bg-white p-3 text-sm">ISOLATED SYNTHETIC FIXTURE · role UI only · <Link href="/attendance/my-schedule">Staff schedule</Link> · <Link href="/stock-transfers/fixture">Receive transfer</Link> · <Link href="/stock-transfers/new">New transfer</Link> · <Link href="/stock-wastage/new">Wastage</Link> · <Link href="/stock-counts/fixture">Count review</Link></header><main className="p-3 max-w-5xl mx-auto space-y-4">
+{route==='/attendance/my-schedule'?<><label>Fixture prompt response<input aria-label="Fixture prompt response" value={reason} onChange={e=>setReason(e.target.value)}/></label><p>Staff-facing component. Request reasons: invalid → HTML 503; fail → JSON 503; success → local success. Responses delayed 900 ms.</p><PublishedScheduleList shifts={shifts}/><PublishedScheduleList shifts={[]}/></>:null}
+{route==='/stock-transfers/fixture'?<><h1>Receive synthetic transfer · Kitchen role UI</h1><StockTransferReceiveForm transferId="fixture" lines={[{id:'fixture-line',item_id:'fixture-item',item_code:'TEST01',item_name:'Fixture flour',quantity:10,received_quantity:2,uom:'KG'}]} action={action}/></>:null}
+{route==='/stock-transfers/new'?<StockTransferForm branches={branches} selectedFromBranchId="fixture-kitchen" seedLines={seed} action={action}/>:null}
+{route==='/stock-wastage/new'?<StockWastageForm branches={branches} selectedBranchId="fixture-kitchen" seedLines={seed} action={action}/>:null}
+{route==='/stock-counts/fixture'?<StockCountVoidDialog action={action} preview={{fingerprint:'synthetic',adjustment_line_count:1,reverse_quantity_in:2,reverse_quantity_out:0}}/>:null}
+{feedback?<p role="status">{feedback}</p>:null}</main></div>}

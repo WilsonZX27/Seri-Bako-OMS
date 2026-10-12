@@ -63,14 +63,14 @@ test("stock transfer dispatches and receives exactly once", async ({ page }) => 
 
   if (await page.getByRole("button", { name: "Move to In Transit" }).count()) {
     await page.getByRole("button", { name: "Move to In Transit" }).click();
-    await expect(page.getByRole("button", { name: "Confirm received quantities" }).first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole("button", { name: "Confirm receipt" }).first()).toBeVisible({ timeout: 15000 });
   }
   await page.goto(`/stock-transfers/${transferId}`);
   await page.locator('input[name="receipt_quantity"]').first().fill("1");
-  await page.getByRole("button", { name: "Confirm received quantities" }).first().click();
+  await page.getByRole("button", { name: "Confirm receipt" }).first().click();
   await expect(page.getByRole("button", { name: "Receiving..." })).toHaveCount(0, { timeout: 30000 });
   await page.goto(`/stock-transfers/${transferId}?fresh=${Date.now()}`, { waitUntil: "domcontentloaded" });
   await expect(page).toHaveURL(/\/stock-transfers\/[0-9a-f-]+\?fresh=/);
-  await expect(page.getByRole("button", { name: "Confirm received quantities" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Confirm receipt" })).toHaveCount(0);
   await expect(page.locator("main")).toContainText("Completed");
 });

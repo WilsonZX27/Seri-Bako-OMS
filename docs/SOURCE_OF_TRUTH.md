@@ -21,8 +21,8 @@ This repository keeps current rules separate from historical evidence. When docu
 
 - Panel radius: 12px.
 - Control radius: 8px.
-- Shared query-control height: 44px.
-- Minimum touch target: 44px.
+- Shared query-control height: 36px at >=1024px; 44px below1024px, per PRODUCT.md.
+- Minimum phone and portrait-tablet touch target: 44px. Keep visual control size and hit area explicit.
 - Release viewports: 390×844, 820×1180, 1180×820 and 1440×900.
 - Loading, empty, unavailable and zero are separate states.
 - Phone uses document scrolling and a safe-area-aware bottom navigation/action surface.

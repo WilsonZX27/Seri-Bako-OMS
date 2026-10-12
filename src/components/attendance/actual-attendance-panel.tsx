@@ -1,6 +1,7 @@
 "use client";
+import { NativeDialog } from "@/components/ui/native-dialog";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Clock3, FileUp, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,9 +21,12 @@ type Props = {
   canSubmitComp: boolean;
   canApproveComp: boolean;
   compact?: boolean;
+  initialAssignmentId?: string;
+  scheduleHref?: string;
 };
 const reportLabels: Record<string, string> = {
   mc: "Medical certificate (MC)",
+  unpaid_leave: "Unpaid Leave · full day",
   emergency_leave: "Emergency leave",
   punch_correction: "Punch correction",
   other_exception: "Other exception",
@@ -54,8 +58,18 @@ export function ActualAttendancePanel(props: Props) {
   } | null>(null);
   const [reportType, setReportType] = useState("mc");
   const [selectedAssignment, setSelectedAssignment] = useState(
-    String(props.assignments[0]?.id ?? ""),
+    String(props.initialAssignmentId ?? props.assignments[0]?.id ?? ""),
   );
+  useEffect(()=>{
+    if(props.initialAssignmentId && reportDialog && props.assignments.some(row=>row.id===props.initialAssignmentId)) {
+      const section=reportDialog.closest("details");if(section) section.open=true;
+      if(!reportDialog.open) reportDialog.showModal();
+    }
+  },[props.initialAssignmentId,props.assignments,reportDialog]);
+  function openReport(assignmentId?: string) {
+    setSelectedAssignment(assignmentId ?? props.initialAssignmentId ?? String(props.assignments[0]?.id ?? ""));
+    reportDialog?.showModal();
+  }
   const selected = useMemo(
     () =>
       props.assignments.find((row) => String(row.id) === selectedAssignment),
@@ -79,6 +93,7 @@ export function ActualAttendancePanel(props: Props) {
       );
       if (!response.ok || !result.ok)
         throw new Error(result.message || "Attendance action failed.");
+      const currentUrl=new URL(window.location.href);currentUrl.searchParams.delete("report");window.history.replaceState(null,"",currentUrl);
       window.location.reload();
     } catch (error) {
       setMessage(
@@ -186,7 +201,7 @@ export function ActualAttendancePanel(props: Props) {
             <Button
               size="sm"
               className="w-full"
-              onClick={() => reportDialog?.showModal()}
+              onClick={() => openReport()}
             >
               <Plus className="h-4 w-4" />
               New report
@@ -380,7 +395,7 @@ export function ActualAttendancePanel(props: Props) {
           {message}
         </p>
       ) : null}
-      <dialog
+      <NativeDialog
         ref={setReportDialog}
         className="sb-dialog-workspace-centered m-auto max-h-[calc(100dvh-2rem)] w-[min(36rem,calc(100vw-2rem))] overflow-y-auto rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50"
       >
@@ -401,6 +416,7 @@ export function ActualAttendancePanel(props: Props) {
           </div>
           <label className="grid gap-1 text-xs font-medium">
             Staff day
+            {!props.assignments.length ? <p className="text-sm text-warning">No published staff days in this outlet and week. <a className="underline" href={props.scheduleHref ?? "/attendance/schedule"}>Check and publish the schedule</a>.</p> : null}
             <SelectControl
               required
               ariaLabel="Staff day"
@@ -488,7 +504,7 @@ export function ActualAttendancePanel(props: Props) {
               className="rounded-[var(--sb-radius-control)] border px-3 py-2"
             />
           </label>
-          <div className="flex justify-end gap-2">
+          <div className="sticky bottom-0 z-10 -mx-4 flex justify-end gap-2 border-t border-border bg-white px-4 py-3 sm:-mx-5 sm:px-5">
             <Button
               type="button"
               variant="outline"
@@ -501,8 +517,8 @@ export function ActualAttendancePanel(props: Props) {
             </Button>
           </div>
         </form>
-      </dialog>
-      <dialog
+      </NativeDialog>
+      <NativeDialog
         ref={setCompDialog}
         className="sb-dialog-workspace-centered m-auto max-h-[calc(100dvh-2rem)] w-[min(32rem,calc(100vw-2rem))] overflow-y-auto rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50"
       >
@@ -604,7 +620,7 @@ export function ActualAttendancePanel(props: Props) {
               className="rounded-[var(--sb-radius-control)] border px-3 py-2"
             />
           </label>
-          <div className="flex justify-end gap-2">
+          <div className="sticky bottom-0 z-10 -mx-4 flex justify-end gap-2 border-t border-border bg-white px-4 py-3 sm:-mx-5 sm:px-5">
             <Button
               type="button"
               variant="outline"
@@ -615,8 +631,8 @@ export function ActualAttendancePanel(props: Props) {
             <Button disabled={busy}>Submit correction</Button>
           </div>
         </form>
-      </dialog>
-      <dialog
+      </NativeDialog>
+      <NativeDialog
         ref={decisionDialog}
         className="m-auto w-[min(30rem,calc(100vw-2rem))] rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50"
       >
@@ -666,7 +682,7 @@ export function ActualAttendancePanel(props: Props) {
               className="rounded-[var(--sb-radius-control)] border px-3 py-2"
             />
           </label>
-          <div className="flex justify-end gap-2">
+          <div className="sticky bottom-0 z-10 -mx-4 flex justify-end gap-2 border-t border-border bg-white px-4 py-3 sm:-mx-5 sm:px-5">
             <Button
               type="button"
               variant="outline"
@@ -679,7 +695,7 @@ export function ActualAttendancePanel(props: Props) {
             </Button>
           </div>
         </form>
-      </dialog>
+      </NativeDialog>
     </div>
   );
 }

@@ -136,7 +136,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
             <Input name="from" type="date" defaultValue={filters.from ?? ""} />
             <Input name="to" type="date" defaultValue={filters.to ?? ""} />
             </FilterBarMore>
-            <Button type="submit" variant="secondary">Search</Button>
+
           </FilterBar>
           {ledgerUnavailable ? <Notice tone="error" title="Movement Ledger data is temporarily unavailable">The inventory read service did not return a complete result. No row count, empty state, or zero totals are shown. Retry this page shortly.</Notice> : null}
           {balanceUnavailable ? <Notice tone="error" title="Stock Balance data is temporarily unavailable">The balance read service did not return a complete result. No stock rows or value are shown as zero. Retry this page shortly.</Notice> : null}

@@ -22,5 +22,5 @@ test("documentation separates current rules from historical evidence", () => {
   assert.match(authority, /Database constraints, RLS policies and transaction\/RPC invariants/);
   assert.match(authority, /Versioned entries in this file are release history|chronological design decision history/);
   assert.match(authority, /Panel radius: 12px/);
-  assert.match(authority, /Shared query-control height: 44px/);
+  assert.match(authority, /Shared query-control height: 36px at >=1024px; 44px below1024px/);
 });

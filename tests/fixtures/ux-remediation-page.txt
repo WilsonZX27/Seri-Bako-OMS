@@ -1,0 +1,33 @@
+"use client";
+import {useState} from 'react';
+import {usePathname} from 'next/navigation';
+import Link from 'next/link';
+import {RightConsoleProvider,ConsoleSection} from '@/components/layout/right-console';
+import {DocumentWorkspace} from '@/components/documents/document-workspace';
+import {GoodsReceivingForm} from '@/components/goods-receiving-form';
+import {ProductionPlanningWorkspace} from '@/components/production-planning-workspace';
+import {UnifiedListHeader} from '@/components/common/UnifiedListHeader';
+import {Input} from '@/components/ui/input';
+import {Button} from '@/components/ui/button';
+import {SelectControl} from '@/components/ui/select-control';
+import {SelectNative} from '@/components/ui/select-native';
+import {Field} from '@/components/ui/field';
+import {OperationalValue} from '@/components/operational-value';
+import {receivedDisplay,wastageDisplay,supplierDisplay} from '@/lib/operational-value-display';
+import {Table,TableBody,TableRow,TableCell,OperationalList,OperationalListRow} from '@/components/ui/table';
+const branches=[{id:'fixture-kitchen',branch_code:'TEST',branch_name:'Fixture Kitchen',branch_type:'central_kitchen',status:'active'}];
+const order={id:'fixture-po',po_no:'FIXTURE-PO',supplier_name:'Fixture supplier',branch_id:'fixture-kitchen',pending_qty:10};
+const lines=[{id:'fixture-line',item_id:'fixture-item',uom:'KG',qty_ordered:10,unit_price:1,previously_received_qty:0,pending_qty:10,conversion_to_base_uom:1,item:{id:'fixture-item',item_code:'TEST01',item_name:'Fixture Ingredient',base_unit:'KG',item_image_url:null}}];
+const row={total_received:null,received_pending_lines:3,received_zero_with_sent:false,total_wastage:0,wastage_percent:null,status:'draft'};
+const product={id:'fixture-product',product_code:'TEST01',product_name:'Fixture Product',category:'Test',display_order:1,selling_unit:'pcs'};
+const plan={id:'fixture-plan',company_id:'fixture-company',kitchen_id:'fixture-kitchen',delivery_date:'2026-10-10',version:1,revision:1,status:'draft',buffer_percent:0,max_decrease_percent:0,created_at:'2026-10-10',approved_at:null,product_lines:[{product_id:'fixture-product',yield_per_tray:10,trays:1,retained_qty:0,actual_qty:null,reason:'',event_qty:10}],allocations:[],events:[],holidays:[]};
+export default function Page(){const route=usePathname();const [saved,setSaved]=useState(false);const [error,setError]=useState(true);
+const action=<Button form="goods-receiving-form" type="submit">Save receiving draft</Button>;
+return <div className="min-h-screen"><header className="border-b bg-white p-3 text-sm">LOCAL SYNTHETIC FIXTURE · no business data · <Link href="/purchase-requests">Filters</Link> · <Link href="/goods-receivings/new">Receiving</Link> · <Link href="/production/planning">Planning</Link> · <Link href="/outlet-daily-records">Statuses</Link> · <Link href="/field">Field</Link></header><div className="flex min-w-0"><RightConsoleProvider><main className="min-w-0 flex-1 p-3">
+{route==='/goods-receivings/new'?<><DocumentWorkspace breadcrumbs={[]} documentNo="New Goods Receiving" title="Goods Receiving" status="draft" tabletRailMode="context" sidePanel={<ConsoleSection title="Primary Action">{action}</ConsoleSection>} mobilePrimaryAction={action}><GoodsReceivingForm purchaseOrders={[order]} selectedOrder={order} lines={lines} branches={branches} action={async()=>setSaved(true)}/></DocumentWorkspace>{saved?<p role="status">Fixture submission received locally</p>:null}</>:null}
+{route==='/production/planning'?<ProductionPlanningWorkspace companyId="fixture-company" date="2026-10-10" kitchenId="fixture-kitchen" kitchens={branches} outlets={[]} products={[product]} plans={[plan]} orders={[]} config={{kitchen_id:'fixture-kitchen',enabled:false,draft_time:'06:00',buffer_percent:0,max_decrease_percent:0,recipients:[]}} batches={[]} minimums={[]} canManage/>:null}
+{route==='/purchase-requests'?<><UnifiedListHeader resetHref="/purchase-requests" resultCount={1}><Input name="search" aria-label="Search requests" defaultValue=""/><SelectControl name="status" value="all" ariaLabel="Status" options={[{value:'all',label:'All statuses'},{value:'draft',label:'Draft'}]}/></UnifiedListHeader><a href="/outlet-daily-records" className="block border p-5">Background record</a></>:null}
+{route==='/outlet-daily-records'?<><h1>Same fixture in table and compact list</h1><Table mobileHidden><TableBody><TableRow><TableCell>Fixture Outlet</TableCell><TableCell><OperationalValue display={receivedDisplay(row)}/></TableCell><TableCell><OperationalValue display={wastageDisplay(row)}/></TableCell><TableCell>{supplierDisplay({supplier_state:'no_lines',supplier_names:[]})}</TableCell></TableRow></TableBody></Table><OperationalList ariaLabel="Fixture daily records"><OperationalListRow primary="Fixture Outlet" detail={<div className="flex gap-8"><div>Received<OperationalValue display={receivedDisplay(row)}/></div><div>Wastage<OperationalValue display={wastageDisplay(row)}/></div><span>{supplierDisplay({supplier_state:'no_lines',supplier_names:[]})}</span></div>}/></OperationalList></>:null}
+{route==='/field'?<><p id="existing-help">Existing help retained</p><Field label="Branch" required description="Choose the receiving branch." error={error?'Branch needs review':undefined}><SelectNative id="fixture-branch" aria-describedby="existing-help"><option>Fixture Kitchen</option></SelectNative></Field><Button onClick={()=>setError(!error)}>Toggle error</Button></>:null}
+</main></RightConsoleProvider></div></div>;
+}

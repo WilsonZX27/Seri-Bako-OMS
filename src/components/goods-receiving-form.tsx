@@ -103,11 +103,10 @@ export function GoodsReceivingForm({
                 <Field label="Delivery Order Number">
                   <Input name="delivery_order_no" value={deliveryOrderNo} onChange={(event) => setDeliveryOrderNo(event.target.value)} placeholder="Supplier DO reference" />
                 </Field>
-                <Field label="Branch" required className="col-span-2 lg:col-span-1">
+                <Field label="Branch" required description="Select the branch receiving this delivery." className="col-span-2 lg:col-span-1">
                   <SelectNative name="branch_id" value={branchId} onChange={(event) => setBranchId(event.target.value)} required>
                     {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
                   </SelectNative>
-                  <p className="mt-1 text-xs text-muted-foreground">Select the branch receiving this delivery.</p>
                 </Field>
                 <Field label="Remarks" className="col-span-2 lg:col-span-3">
                   <Textarea name="remarks" value={remarks} onChange={(event) => setRemarks(event.target.value)} placeholder="Delivery notes, vehicle, temperature, or supplier remarks" />

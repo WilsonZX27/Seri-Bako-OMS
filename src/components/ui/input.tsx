@@ -51,6 +51,7 @@ const DateInput = React.forwardRef<HTMLInputElement, DateInputProps>(
             else if (ref) ref.current = node;
           }}
           type="date"
+          style={{ opacity: 0 }}
           value={controlled ? displayedValue : undefined}
           defaultValue={controlled ? undefined : displayedValue}
           disabled={disabled}

@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import type { ReactNode, RefObject } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
+import { containDialogTab, focusDialog } from "@/lib/dialog-focus";
 
 export function ModalShell({
   open,
@@ -23,17 +24,20 @@ export function ModalShell({
   className?: string;
 }) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
   useEffect(() => {
     if (!open) return;
     const previousOverflow = document.body.style.overflow;
-    const trigger = triggerRef?.current ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+    const trigger = triggerRef?.current ?? (dialogRef.current?.contains(document.activeElement)
+      ? returnFocusRef.current
+      : document.activeElement instanceof HTMLElement ? document.activeElement : null);
+    returnFocusRef.current = trigger;
     document.body.style.overflow = "hidden";
     const dialog = dialogRef.current;
-    const focusable = () => Array.from(dialog?.querySelectorAll<HTMLElement>("button, a, input, select, textarea, [tabindex]:not([tabindex='-1'])") ?? []).filter((element) => !element.hasAttribute("disabled"));
-    (initialFocusRef?.current ?? focusable()[0])?.focus();
+    if (dialog) focusDialog(dialog, initialFocusRef?.current);
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
@@ -41,25 +45,16 @@ export function ModalShell({
         onCloseRef.current();
         return;
       }
-      if (event.key !== "Tab") return;
-      const elements = focusable();
-      if (!elements.length) return;
-      const first = elements[0];
-      const last = elements[elements.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
+      if (dialog) containDialogTab(event, dialog);
     }
 
     document.addEventListener("keydown", onKeyDown);
     return () => {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", onKeyDown);
-      requestAnimationFrame(() => trigger?.focus());
+      // Strict Mode replays effects while the dialog remains mounted. Do not
+      // let that cleanup steal focus back after the next setup focused it.
+      requestAnimationFrame(() => { if (!dialog?.isConnected) trigger?.focus(); });
     };
   }, [initialFocusRef, open, triggerRef]);
 
@@ -67,7 +62,7 @@ export function ModalShell({
   return createPortal(
     <div className="fixed inset-0 z-[var(--sb-z-dialog)] flex items-center justify-center p-4">
       <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={onClose} aria-label="Close dialog" />
-      <div ref={dialogRef} data-modal-shell role="dialog" aria-modal="true" aria-labelledby={titleId} className={cn("sb-popover-surface relative max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-[var(--sb-panel-radius)] p-4", className)}>
+      <div ref={dialogRef} tabIndex={-1} data-modal-shell role="dialog" aria-modal="true" aria-labelledby={titleId} className={cn("sb-popover-surface relative max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto rounded-[var(--sb-panel-radius)] p-4", className)}>
         {children}
       </div>
     </div>,

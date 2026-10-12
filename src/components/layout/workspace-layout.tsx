@@ -49,6 +49,7 @@ export function WorkspaceGrid({
       data-tablet-content={rightRail && effectiveTabletCanvas !== "full" ? "contained" : undefined}
       className={cn("sb-workspace-canvas min-h-0", rightRail && !hideMobileConsole && "xl:pb-3", className)}
     >
+      {usesTabletSplit && tabletRailBreakpoint === "lg" ? <aside data-tablet-stacked-actions className="mb-3 hidden min-w-0 space-y-3 md:block lg:hidden">{contextualRail}</aside> : null}
       {usesTabletSplit ? (
         <div
           data-tablet-document-split

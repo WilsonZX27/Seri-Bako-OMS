@@ -1,10 +1,46 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { ActionErrorNotice } from "@/components/action-error-notice";
 import { useSearchParams } from "next/navigation";
 import { AlertTriangle, CheckCircle2, Info, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+function RouteErrorRecovery({ message }: { message: string | null }) {
+  const [host, setHost] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    if (!message) return;
+    let container: HTMLDivElement | null = null;
+    const attach = () => {
+      const main = document.querySelector("main");
+      if (!main) return;
+      // Feature-owned errors take precedence. Observe streamed content so the
+      // global fallback cannot become a duplicate of a later route notice.
+      const ownsError = Array.from(main.querySelectorAll('[role="alert"]:not([data-field-recovery-message])')).some((node) => !container?.contains(node) && node.textContent?.includes(message));
+      if (ownsError) {
+        setHost(null);
+        return;
+      }
+      if (!container || !container.isConnected) {
+        container = document.createElement("div");
+        container.dataset.routeErrorRecovery = "true";
+        main.prepend(container);
+      }
+      setHost(container);
+    };
+    attach();
+    const observer = new MutationObserver(attach);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => {
+      observer.disconnect();
+      container?.remove();
+      setHost(null);
+    };
+  }, [message]);
+  return host && message ? createPortal(<ActionErrorNotice message={message} />, host) : null;
+}
 
 function GlobalActionToastInner() {
   const searchParams = useSearchParams();
@@ -26,6 +62,7 @@ function GlobalActionToastInner() {
     return () => window.clearTimeout(timer);
   }, [message]);
 
+  if (error) return <RouteErrorRecovery message={error} />;
   if (!message || !visible) return null;
 
   return (

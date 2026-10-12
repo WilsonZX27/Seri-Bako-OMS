@@ -1,6 +1,5 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
-const http = require("node:http");
 const path = require("node:path");
 const test = require("node:test");
 
@@ -51,13 +50,9 @@ test("v9 package commands set the explicit mode and local fixture guards", () =>
 
 test("controlled teardown authenticates the request and waits for the local server to close", async () => {
   let authorization = "";
-  const fakeServer = http.createServer((request, response) => {
-    authorization = request.headers.authorization || "";
-    response.writeHead(202, { Connection: "close" });
-    response.end("Shutting down", () => fakeServer.close());
-  });
-  await new Promise((resolve) => fakeServer.listen(0, "localhost", resolve));
-  const port = fakeServer.address().port;
+  let shutdownRequests = 0;
+  const originalFetch = global.fetch;
+  const port = "43129";
   const previous = {
     boundary: process.env.RUN_TENANT_BOUNDARY_E2E,
     manual: process.env.PW_MANUAL_SERVER,
@@ -68,11 +63,20 @@ test("controlled teardown authenticates the request and waits for the local serv
   delete process.env.PW_MANUAL_SERVER;
   process.env.PLAYWRIGHT_LOCAL_PORT = String(port);
   process.env.PLAYWRIGHT_SERVER_SHUTDOWN_TOKEN = "test-shutdown-token";
+  global.fetch = async (url, options = {}) => {
+    if (options.method === "POST") {
+      authorization = new Headers(options.headers).get("authorization") || "";
+      shutdownRequests += 1;
+      return new Response("Shutting down", { status: 202 });
+    }
+    throw new Error("Server closed");
+  };
   try {
     await stopLocalServer();
     assert.equal(authorization, "Bearer test-shutdown-token");
+    assert.equal(shutdownRequests, 1);
   } finally {
-    await new Promise((resolve) => fakeServer.close(resolve));
+    global.fetch = originalFetch;
     for (const [key, value] of Object.entries(previous)) {
       const envKey = { boundary: "RUN_TENANT_BOUNDARY_E2E", manual: "PW_MANUAL_SERVER", port: "PLAYWRIGHT_LOCAL_PORT", token: "PLAYWRIGHT_SERVER_SHUTDOWN_TOKEN" }[key];
       if (value === undefined) delete process.env[envKey];

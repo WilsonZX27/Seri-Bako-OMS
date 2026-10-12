@@ -7,10 +7,13 @@ const source = fs.readFileSync("src/components/action-error-notice.tsx", "utf8")
 test("shared action error notice targets the invalid control instead of only showing a toast", () => {
   assert.match(source, /"use client"/);
   assert.match(source, /role="alert"/);
-  assert.match(source, /scrollIntoView\(\{ behavior: "smooth", block: "center" \}\)/);
-  assert.match(source, /target\.focus\(\{ preventScroll: true \}\)/);
-  assert.match(source, /border-rose-500/);
-  assert.match(source, /ring-2/);
+  const recovery = fs.readFileSync("src/lib/field-recovery.ts", "utf8");
+  assert.match(source, /recoverField\(target, message\)/);
+  assert.match(recovery, /prefers-reduced-motion/);
+  assert.match(recovery, /block: "center"/);
+  assert.match(recovery, /target\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(recovery, /aria-describedby/);
+  assert.match(recovery, /instruction.textContent = message/);
   assert.match(source, /disclosure\.open = true/);
 });
 

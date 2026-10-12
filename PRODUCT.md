@@ -1,4 +1,59 @@
-## v9.2.95 (unreleased) — compact daily operations
+# v9.2.106 (unreleased)
+
+Reviewed operations UI and reliable draft submission candidate. Production remains v9.2.105. Migration 343 is validated only in the isolated test database; production application requires separate authorization. No post-release permission expansion is included.
+
+> 2026-10-10 isolated schedule repair: repository migrations reviewed through `343`; forward-only migration 历史已到 `343`. Migration 343 makes version validation, destination save and submit atomic; Wilson approved application only to the isolated local test DB (341 migration rows, maximum 343). No grants changed. This is not evidence of Production schema or deployment changes.
+
+## v9.2.105 (deployed) — systemic hardening
+
+Current design authority: desktop controls are 36px at widths >=1024px; phone and portrait-tablet controls below1024px retain at least44px touch targets. Preserve OMS semantic colours, radii and elevation. The shared query owner supplies embedded search with300ms debounce and Enter; mutation forms never auto-submit. Sheet backdrop100/sheet101 cover navigation50; native dialogs retain the browser top layer. The right console remains >=1280px, so it never appears on1024–1194px tablets. Mobile creation stays80px above the bottom edge.
+
+All versioned notes below are historical evidence unless explicitly identified as current. Earlier40/44px desktop geometry must not override this contract. Audit receipt: outputs/systemic-audit-104/AUDIT-RECEIPT.md. The currently released application is `v9.2.105`; the current released application baseline is `v9.2.105`. A versioned section above that number is an unreleased implementation note, pending verification and publication.
+
+## v9.2.103 approved release verification — 2026-10-09
+
+The user approved migrations 340/341 and candidate builds on the existing Supabase and Vercel projects. Both migrations committed successfully; 13 asset ledger hashes are unchanged. Candidate register loading exposed repeated source-field reads; migration 342 batches the existing whitelisted metadata without broadening original-outlet visibility. Isolation tests pass. Migration 342 is awaiting explicit approval; the formal domain remains v9.2.102 until real-page acceptance passes. Shared interaction targets are now 44px and short-screen modal actions remain visible.
+
+## v9.2.103 (unreleased) — OMS workflow repair
+
+Implementation and acceptance are in progress. Production remains v9.2.102 until migration rehearsal and complete responsive verification pass.
+
+## Pending cohesive repair — 2026-10-09
+
+Migrations 340/341 add full-day actual unpaid-leave reporting and a scoped asset register read model. They are locally verified; Production application and UI acceptance are pending. The previous deployed checkpoint below remains historical evidence, not acceptance of this repair.
+
+## v9.2.102 (deployed) — tablet inspection submit access
+
+The inspection form keeps a fixed submit toolbar above primary navigation at 768–1279px, while phones use the fixed bottom action and desktop uses the right Console. This corrects a verified gap where both shared actions were hidden on tablets. Daily Checklist now leads with location/date filters, compact status rows and an explicit inspection action; recorded history is collapsed and the progress list follows the selected location. No asset data or permission policy changes.
+
+## Asset rework · 2026-10-09
+
+## 正式发布核验 — 2026-10-09 v9.2.98
+
+339 已在正式 Supabase 项目执行，配套部署 dpl_8Nergf2V4zx62ZJkGBEDjEr3sBm1 已提升至 system.seribako.com.my。员工、经理及主管均受所属／获授权门店限制；Overview 与 Maintenance 限 Super Admin、Manager、Supervisor。Super Admin 保留公司范围访问。
+
+正式迁移后 13 张资产业务表的行数及整行指纹全部与冻结快照相符：445 个编号、已知数量 2,080、31 项未知数量，21,988 条历史检查与 2 份已验证附件均保留。八种现有角色身份的线上 SQL 只读验证通过：门店范围、完整历史范围、管理功能限制、原始字段与私人 Storage 隔离、直接写入拒绝。这不是八个独立浏览器登录验收。
+
+预览实际登录后检查了 390／430／820／1143／1440 五个概览宽度，根页面无横向溢出，两张趋势图均为 200px。实际验证桌面右 Console、ALMA 筛选返回 73 项及名称排序、紧凑维修队列、ALMA 检查完整载入 73 项、手机全部勾选／撤销、异常展开和未保存丢弃保护；390px 提交栏固定。正式域名已确认 v9.2.98 与资产数量。截图保存于 outputs/asset-migration-private/2026-10-09/rework-339/。
+
+未宣称完成项：正式检查提交被自动审批阻止，以免测试写入真实业务记录；提交负载与数据库生命周期由隔离测试覆盖。独立员工浏览器会话、每个明细在每个宽度的交互及键盘遮挡尚待完整验收。Penang 厨师长确认资料仍未齐，不应将发布当作整个三批计划收口。原先 v9.2.97 和未应用 339 的记载作为历史阶段保留，以本段为最新状态。
+
+
+Repository migrations reviewed through `342`; Production asset migrations 337, 338 and 339 are applied. The owner rejected the v9.2.97 interface, so visual and operational acceptance is reopened. Local rework adds assigned-location asset filters, stable ID/name sorting, mobile page selection, compact registers, management-role overview/maintenance gates and a condition-first checklist with an explicit select-all shortcut and fixed shared submit action. Selecting all preserves exceptions and never manufactures physical counts. Migration 339 additionally separates employee summaries and protects raw imported JSON, master history and unlocated legacy attachments by original-location scope. It is applied. Hosted role identities, actual PostgREST location filtering, both original attachments and responsive overview/list/checklist screens were verified; full business submission acceptance remains separately documented.
+
+## v9.2.97 (deployed) — compact asset inspection and history
+
+Inspection mode removes the duplicate holdings list below its input form. Maintenance history shows date, author, update type, comment and changed status first, with original identifiers and fields available in expandable details. Existing OMS surfaces, permission checks, pagination and touch targets remain in place. This presentational refinement is deployed to the formal OMS domain. Original history details and dates remain available; both updated views passed root-overflow checks at 390/430/820/1143/1440. All 1,457 regressions pass. It does not change asset records or mutation rules.
+
+## v9.2.96 (deployed) — asset activation and input recovery
+
+Asset migrations 337 and 338 are applied to the existing OMS Supabase project. Following owner-confirmed legacy entry cessation, the final source delta and both attachment files passed complete reconciliation. On 9 October 2026, the owner authorized activation at action time and the guarded final batch became live. OMS now exposes 445 asset IDs, 2,080 known units, 31 unknown quantities, 15 maintenance requests, 335 maintenance updates and 21,988 daily checks through existing asset permissions and branch scopes. Both verified original photos opened through the actual Owner OMS attachment route. Eight existing-role SQL identity simulations passed full history, holdings/location and private Storage scope checks in the live environment; these are not eight separate browser sessions. Overview, maintenance queue and Gurney check inputs passed root-overflow checks at 390/430/820/1143/1440. Zero-value draft retention and unsaved Stay/discard passed without submitting business records. Full ledger hashes after acceptance match the preactivation checkpoint except for the authorized batch state.
+
+Operational activation is complete. The two density issues identified in live acceptance were corrected and visually verified in v9.2.97. Live browser write workflows and separate role sessions are not claimed. Staging recovery cannot be used after activation to erase subsequent operations. Contextual maintenance/transfer comments and scoped draft recovery are available. Penang chef-confirmed configuration and a valid dated two-outlet plan remain outstanding.
+
+Repository migrations reviewed through `338`. The asset-only read-policy optimization has passed local differential checks and an eight-role full-history rollback rehearsal; it is applied to Production with source text independently verified. It does not change grants, mutation helpers or source data.
+
+## v9.2.95 (deployed) — compact daily operations
 
 Daily Records removes Sold out and time entry while preserving historical values. Product quantities and details share a desktop row; phone details expand on demand, with 44px tablet targets. The compact outlet list combines identity and date and uses warning text for missing values. Insights aligns narrow-rail amounts and reports the selected outlet count. Packaging labels the last physical count with its age. Planning offers the next missing step and protects unsaved settings/event edits. Forecast v3 keeps a received-quantity floor when stockout observations are unknown. No asset migration or asset permissions are part of this application release.
 
@@ -1257,7 +1312,7 @@ Repository migration authority: migrations reviewed through `227`; Production mi
 - Source and local test evidence is not production verification. Authenticated four-viewport, role workflow, linked migration, AutoCount confirmation, and production regression gates remain separately recorded in the annotation ledger.
 - AutoCount Confirm now creates a missing supplier-item relationship before branch mapping and validates the branch only in the branch-mapping phase (migration 171); the authenticated disposable local mirror passed actionable validation, Preview, and one atomic Confirm with zero inventory movements.
 
-The current released application baseline is `v9.2.94` — Focused Operational Workspaces.
+The current released application baseline is `v9.2.102` — Focused Operational Workspaces.
 
 ### v8.64.65 (unreleased) — Shared Responsive Closure
 
@@ -2008,3 +2063,33 @@ Repository migrations reviewed through `281`. v9.2.58 remains unreleased until f
 Right Console submits an external page form exactly once with its real submitter before unmounting the drawer. Native validation and the page form own error focus; internal drawer forms and prevented button actions retain their existing behavior. Esc closes the drawer and restores the More actions trigger. Inert phone checks covered invalid event, valid event, bulk minimum Enter and settings save. React hook/component review found no added network reads, dependencies, motion system or duplicated business state.
 
 Plan checks now identify the product/outlet and required correction instead of a generic issue count. Shared domain checks distinguish missing from zero, manual adjustment reasons, confirmed-event quantities, minimum/reduction reasons, configured yields, whole trays, retention and surplus/shortfall. Database authorization, current-route/configuration checks and approval remain authoritative; these client checks do not replace them. Default forecast settings stay in Settings rather than repeating in the action rail.
+
+## Asset integration — local verification, not deployed
+
+Repository migrations reviewed through `337`. Migration 337 isolates assets from procurement and inventory. Original asset IDs belong to company-scoped masters; per-location holdings preserve known or unknown quantities. Transfers reserve source holdings, show dispatched quantities in transit and increase destination holdings only on confirmed receipt. Maintenance updates, checks, attachments and suppliers retain their source fields and associations. Rehearsal records stay invisible until a verified import batch is activated.
+
+All operating outlets and kitchens default to daily checks, as confirmed by the owner. A manager registers dated temporary closures with a reason; prior decisions remain in history. Event only requires checks on registered activity dates. Asset access reuses OMS company, role and assigned-branch scope; legacy passwords are excluded. Formal cutover, attachment verification and operational acceptance remain pending.
+
+Asset master registration and editing are under local verification. Imported source fields and asset IDs are immutable; current details are separate, with company-scoped master change history. Native registration records initial physical quantity or unknown, and rejects duplicate IDs case-insensitively. Edits require a reason, client key and expected record timestamp. The thirteen asset tables are included in company backups; Production migration remains pending.
+
+Native attachments support JPG, PNG, WebP and PDF up to 10 MB. General master attachments require asset management permission; maintenance operators can add photos to accessible maintenance records. Maintenance photos retain their parent/location and do not become visible merely because the asset is shared with another outlet. Uploads use reserved write-once paths and server byte/hash verification; pending files remain unreadable. Original attachment fields, authors and dates stay available. Legacy Drive files remain unverified and prevent formal cutover.
+
+Master history defaults to changed effective fields and before/after values, with complete change records collapsed. The first edit of an imported master compares against immutable source values, rather than treating unconfigured overrides as empty assets. Staging, final-delta application and staging recovery run in isolated transactions with exact snapshot checks and durable private recovery files. They do not activate assets or erase live operations.
+
+### Asset input recovery — local implementation, 8 October 2026
+
+Asset master, maintenance, transfer, checklist, quantity-confirmation, operating-day and attachment-description inputs use browser-tab session drafts scoped to the server-resolved company, staff and authenticated user. Drafts expire after four hours and do not contain submission keys or change authorization. Changed master versions, holdings, accessible locations or operation status invalidate the relevant drafts. Checklist recovery accepts only current assets and valid inspection dates/results, preserving unknown and zero separately. Successful action completion clears its form draft before refreshed history can remount it. Explicit discard clears only drafts on the current route; entering the workspace under another actor removes previous actor drafts, and identity changes remount the workspace. A recovery notice asks the user to review before saving; restored quantity, operating-day and attachment details expand. Attachment name/type recover, but files must be reselected and upload stays disabled without a file. Disabled/quota-limited browser storage does not prevent normal editing. Local browser verification covers repeated Back recovery in these forms and synthetic file selection: reentering restores the description but requires selecting the file again. A local fixture that throws a browser Storage SecurityError verified that editing remains usable and a visible warning asks the user to save before leaving. This simulates storage denial without changing browser privacy settings. Hosted identity tests remain pending. Files are not stored as drafts.
+
+### Insights date range selection — local implementation, 8 October 2026
+
+Outlet Daily Insights replaces separate period/end-date controls with one reusable range selector. Today, Yesterday, Last 7 Days, Last 30 Days, Month to date and Custom Range use Kuala Lumpur business dates. Draft selection is applied explicitly; Cancel preserves the current range. The enclosing View action submits both dates. Report tabs preserve the selection, completion and trend queries use the same range, and previous-period comparison remains adjacent and equal in length. Server validation retains the existing 1–31 day bound and rejects invalid calendar dates or reversed ranges. This is implemented locally; production deployment and authenticated report acceptance remain separate.
+
+Asset attachment download requires a valid verification timestamp and SHA256, not merely nonempty metadata. Application boundary tests cover upload retry/content verification, rechecking changed sessions and access, contextual maintenance-photo permissions and short-lived private downloads. Actual hosted Auth/Storage acceptance remains a release gate.
+
+Asset and maintenance details preview the five latest accessible attachments with an exact scoped count. When more records exist, a dedicated attachment register pages 50 rows at a time in deterministic created-time/ID order, retaining the maintenance parent scope. This avoids the REST default row cap and keeps operational forms compact. Missing counts fail visibly instead of pretending there are zero attachments. Upload forms reset against the latest attachment identity rather than a capped preview length.
+
+Legacy attachment migration uses a separately reviewed local-file copy plan bound to the exact inactive source export. Service-only preparation/finalization retain original asset/maintenance/location associations and original author/date fields. Storage paths are write-once, stored bytes are read back and verified, and a durable private receipt records progress. Repeated verification cannot change a verified content hash. Copying never activates the asset workspace. Authorized source files, actual Auth/Storage acceptance and formal cutover remain pending.
+
+### Transfer detail and contextual updates
+
+Transfers link directly to their own detail/history rather than back to the asset. The detail shows source/destination access, quantity, request reason/author and in-transit state. Approval and dispatch are shown only with source-location access; receipt is shown only with destination-location access. SQL remains authoritative. A short optional update note is retained with status-before/status-after and author/time; notes over 2,000 characters are rejected rather than truncated. Update history pages 50 rows in stable timestamp/ID order. An incoming destination can read the asset and transfer history before it has any holding; quantity is created/increased only on confirmed receipt.

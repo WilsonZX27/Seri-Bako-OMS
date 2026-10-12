@@ -51,7 +51,8 @@ test("attendance reads identify the canonical schedule-week relationship after p
 
 test("employee attendance links and unscheduled punches retain the selected employee scope", () => {
   assert.match(peopleDetail, /Open attendance[\s\S]*?employee=\$\{encodeURIComponent\(staff\.full_name\)\}/);
-  assert.match(queries, /daily_attendance_results"\)\.select\("staff_id,work_date"\).*?\.eq\("branch_id",filters\.branch\)/);
+  assert.match(queries, /daily_attendance_results"\)\.select\("staff_id,work_date"\)\.eq\("is_current",true\)/);
+  assert.match(queries, /scheduled_branch/);
   assert.match(queries, /const allowedStaff = staffIds \? new Set\(staffIds\) : null/);
   assert.match(queries, /if \(allowedStaff && !allowedStaff\.has\(staffId\)\) continue/);
   assert.doesNotMatch(queries, /const covered = new Set\(reviewRows\.map/);

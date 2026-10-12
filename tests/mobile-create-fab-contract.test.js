@@ -8,7 +8,7 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
 test("new and create links become a phone FAB above the tab bar", () => {
   const consoleSource = read("src/components/layout/right-console.tsx");
-  const css = read("src/app/globals.css");
+  const css = read("src/app/globals.css") + fs.readFileSync("src/app/design-system-v2.css", "utf8");
 
   assert.match(consoleSource, /primaryHref\?\.includes\("\/new"\)/);
   assert.match(consoleSource, /\/\^\(new\|create\)\\b\/i/);
@@ -45,7 +45,7 @@ test("page-header create actions are icon-only below desktop without an empty ac
 });
 
 test("warning semantics remain distinct from blocking danger", () => {
-  const css = read("src/app/globals.css");
+  const css = read("src/app/globals.css") + fs.readFileSync("src/app/design-system-v2.css", "utf8");
   const badge = read("src/components/ui/badge.tsx");
   const states = read("src/components/ui/system-states.tsx");
 

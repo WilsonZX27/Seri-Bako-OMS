@@ -39,8 +39,10 @@ test("Actual Attendance uses responsive grouped views and hides payroll diagnost
     /Calculation audit|One staff day per row|Times preserve NGTeco seconds/,
   );
   assert.doesNotMatch(review, />Payable</);
-  assert.match(filters, /Apply filters/);
-  assert.match(filters, /Reset/);
+  assert.match(filters, /FilterBar/);
+  const sharedFilters = fs.readFileSync("src/components/common/UnifiedListHeader.tsx", "utf8");
+  assert.match(sharedFilters, /Apply filters/);
+  assert.match(sharedFilters, /Reset/);
 });
 
 test("schedule submit and Manager correction are atomic, audited and reason-bound", () => {

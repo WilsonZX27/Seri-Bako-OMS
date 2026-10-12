@@ -41,7 +41,7 @@ export default async function AttendancePage() {
         {canReview ? <Button asChild size="sm" variant="outline" className="w-full"><Link href="/attendance/review">Review attendance</Link></Button> : null}
         {canImport ? <Button asChild size="sm" variant="outline" className="w-full"><Link href="/attendance/review">Import NGTeco file</Link></Button> : null}
       </ConsoleSection>
-      <ConsoleSection title="Current week"><p className="font-semibold">{data.weekStart} – {data.weekEnd}</p><StatusBadge status={data.scheduleStatus} /></ConsoleSection>
+      <ConsoleSection title="Current week"><p className="font-semibold">{data.weekStart} – {data.weekEnd}</p><StatusBadge status={data.scheduleStatus} /><p className="mt-1 text-xs text-muted-foreground">Schedules you can access</p></ConsoleSection>
       <ConsoleSection title="Period"><p>{data.activeLocks ? `${data.activeLocks} locked scope${data.activeLocks === 1 ? "" : "s"}` : "Open for scheduling and review"}</p></ConsoleSection>
     </>}>
       <AttendanceWorkspaceNav current="overview" />

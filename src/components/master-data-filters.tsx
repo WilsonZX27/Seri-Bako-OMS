@@ -88,7 +88,7 @@ export function MasterDataFilters({
       className={`sb-list-filters--equal-controls${compactMobile ? " sb-list-filters--compact-mobile" : ""}`}
     >
       {controls}
-      <Button type="submit" className="w-full" data-list-action="primary">Search</Button>
+
       {filtered ? <Button asChild variant="secondary" className="w-full" data-list-action="secondary"><Link href={resetHref}>Reset</Link></Button> : null}
     </UnifiedListHeader>
   );

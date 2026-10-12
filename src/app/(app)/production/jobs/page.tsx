@@ -121,7 +121,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
               <SelectControl name={branches ? "branch_id" : undefined} defaultValue={branches ? filters.branch_id ?? "all" : "unavailable"} ariaLabel="Branch" disabled={!branches} options={branches ? [{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))] : [{ value: "unavailable", label: "Branch filter unavailable" }]} />
               {!branches && filters.branch_id ? <input type="hidden" name="branch_id" value={filters.branch_id} /> : null}
               <FilterBarMore activeCount={Number(Boolean(filters.from)) + Number(Boolean(filters.to))} resetHref="/production/jobs"><Input name="from" type="date" defaultValue={filters.from ?? ""} /><Input name="to" type="date" defaultValue={filters.to ?? ""} /></FilterBarMore>
-              <Button type="submit">Search</Button>
+
               {selectedStatus !== "all" ? <input type="hidden" name="status" value={selectedStatus} /> : null}
             </FilterBar>
           <div className="sb-list-content-card overflow-hidden">

@@ -10,9 +10,9 @@ test("outlet daily rows retain the next operational step and wastage signal on p
   const source = read("src/app/(app)/outlet-daily-records/page.tsx");
 
   assert.match(source, /outletProgress\(row\)/);
-  assert.match(source, /row\.total_wastage > 0/);
+  assert.match(source, /wastageDisplay\(row\)/);
   assert.match(source, /Received<\/dt>/);
-  assert.match(source, /formatNumber\(row\.total_received\)/);
+  assert.match(source, /receivedDisplay\(row\)/);
 });
 
 test("production jobs use the shared workspace status rail and reserve shared FAB clearance", () => {

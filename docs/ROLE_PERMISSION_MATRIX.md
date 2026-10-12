@@ -1,5 +1,9 @@
 # Fixed role, route, and Branch / Outlet matrix
 
+## Asset rework 2026-10-09 — prepared, not deployed
+
+Migration 339 and local route/query changes require company plus assigned-location authorization for non-Owner asset access, regardless of stale view_all grants. Only Super Admin, Manager and Outlet Supervisor access Overview and Maintenance management. Ordinary staff and kitchen use the independent location-scoped checklist summary and can record exceptions there. Managers and supervisors remain limited to assigned locations; Owner retains the company boundary. Imported raw master JSON and history require original-location access; unlocated legacy attachments follow that same provenance gate. Direct authenticated selection of assets.source_data is revoked; the checked identity RPC returns raw source fields only within that provenance scope. Source values remain unchanged. These restrictions are locally rehearsed, NOT live yet, and require actual hosted identity/storage checks before release.
+
 ## Attendance additions (v9.2.15)
 
 | Role | Schedule | Attendance |
@@ -11,6 +15,21 @@
 | Outlet Staff | Own published schedule and requests | Own attendance only |
 
 All boundaries are enforced by capability checks and RLS; navigation visibility is not an authorisation boundary.
+
+## Asset workspace — local migration 337, not activated in Production
+
+| Default role | Read scope | Master, counts and operating exceptions | Checks | Maintenance and its photos | Request/dispatch/receive transfers | Transfer decisions |
+|---|---|---|---|---|---|---|
+| Owner / Manager | Company-wide asset locations | Allowed | Allowed | Allowed | Allowed | Allowed |
+| Finance / Purchasing | Company-wide asset locations | Denied | Denied | Read only | Read only | Denied |
+| Kitchen / Outlet Supervisor / Outlet Staff | Assigned OMS branches | Denied | Allowed | Allowed within assigned branches | Allowed at accessible source/destination | Denied |
+| People Operations | Denied by default | Denied | Denied | Denied | Denied | Denied |
+
+The seven capabilities are `assets.view`, `assets.view_all`, `assets.manage`, `assets.check`, `assets.maintenance`, `assets.transfer` and `assets.approve`. Existing OMS permission overrides remain authoritative. Event is not an operating branch and requires company-wide asset access. Every operational read/write checks the active company and permitted locations in SQL; hiding navigation does not replace these checks.
+
+General master attachments, invoices and warranty uploads require `assets.manage`. An operator with `assets.maintenance` may add photos only to an accessible maintenance record. Maintenance attachments retain their parent and location; the same asset being held at another outlet does not expose those photos there. Asset, maintenance and attachment locations must agree. Pending files are unreadable in the private bucket; only server-verified bytes become readable. Authenticated clients cannot upload, overwrite, delete or mark Storage files verified directly.
+
+Legacy author names remain history text. No legacy user or password is imported as an OMS account. Staging imports and recovery are privileged operator tools with no activation command, and cannot modify a verified/live ledger. They are not new permissions for ordinary application users.
 
 v9.2.2 keeps seven system-controlled roles. The database is authoritative; this is the sanitized product-level operating matrix.
 
@@ -56,3 +75,5 @@ v9.2.2 keeps seven system-controlled roles. The database is authoritative; this 
 Kitchen Submit → Manager Review → Purchasing Review → Finance Review → Ready to Convert → Purchase Order.
 
 The stored `admin_review` state and `pr.admin_review` permission remain database compatibility identifiers so the verified transition function is unchanged. User-facing vocabulary calls this Purchasing Review.
+
+Migration 337 asset permission grants were applied alone on 8 October 2026 with owner authorization. Independent readback confirmed all preexisting permission rows and role grants remain unchanged. Asset RLS still requires a live import batch; the reconciled production staging batch remains rehearsal. Actual live role/location acceptance and formal cutover are pending.

@@ -38,7 +38,7 @@ test("stock transfer rejection is destination-scoped while cancellation is sourc
 
 test("stock transfer UI exposes explicit receive quantities", () => {
   assert.match(detail, /StockTransferReceiveForm/);
-  assert.match(detail, /Confirm received quantities/);
+  assert.match(detail, /Confirm receipt/);
   assert.match(form, /data-stock-transfer-receive-form/);
   assert.match(form, /Receive quantity for/);
   assert.match(form, /Any remainder stays in transit/);

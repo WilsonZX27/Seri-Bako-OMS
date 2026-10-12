@@ -1,4 +1,59 @@
-## v9.2.95 (unreleased) — compact daily operations
+# v9.2.106 (unreleased)
+
+Reviewed operations UI and reliable draft submission candidate. Production remains v9.2.105. Migration 343 is validated only in the isolated test database; production application requires separate authorization. No post-release permission expansion is included.
+
+## v9.2.105 (deployed) — systemic hardening
+
+Current design authority: desktop controls are 36px at widths >=1024px; phone and portrait-tablet controls below1024px retain at least44px touch targets. Preserve OMS semantic colours, radii and elevation. The shared query owner supplies embedded search with300ms debounce and Enter; mutation forms never auto-submit. Sheet backdrop100/sheet101 cover navigation50; native dialogs retain the browser top layer. The right console remains >=1280px, so it never appears on1024–1194px tablets. Mobile creation stays80px above the bottom edge.
+
+All versioned notes below are historical evidence unless explicitly identified as current. Earlier40/44px desktop geometry must not override this contract. Audit receipt: outputs/systemic-audit-104/AUDIT-RECEIPT.md. The currently released application is `v9.2.105`; the current released application baseline is `v9.2.105`. A versioned section above that number is an unreleased implementation note, pending verification and publication.
+
+## Annotation correction — 2026-10-10, unreleased
+
+Current user-approved direction for annotations 1–13: use 16px control icons; show workflow-level Outlet Daily filters consistent with row badges. Packaging rows select the adjacent trend, with separate labelled disclosure buttons for outlet counts. Asset location checks use two columns from tablet width, semantic priority/status badges, and always-visible distribution/trends. Asset identity and classification group related fields to reduce width. Attendance search leads the shared query and the date control has a bounded 128px desktop width. Preserve 44px touch targets below1024px. These corrections supersede the older collapsed-trends note below. No new palette, permissions, or production data changes.
+
+## Asset review correction — 2026-10-09, unreleased
+
+Asset pages reuse the shared query card and PaginationControls. The phone query keeps search and the Filter sheet; creation belongs to the contextual rail/FAB. Category and ordering use More filters on desktop, with active values preserved through search and pagination. Desktop location/date/action controls share 128×36px; the count precedes the terminal command. A date field has one visible DD/MM/YYYY label and one transparent native interaction target.
+
+The phone workspace uses a scrollable tab strip that reveals the current tab after navigation or viewport changes. Overview leads with complete location check statuses and open maintenance, with distribution and trends in a secondary disclosure. Maintenance cards use asset identity, problem, location, semantic priority/status badges and report date. Data scope and permissions remain server-owned. Isolated preview pages are labelled; synthetic locations and rows are not evidence of production coverage. This correction remains unverified for production until authenticated candidate acceptance and the pending asset query migration are complete.
+
+## v9.2.103 (unreleased) — OMS workflow repair
+
+Uses shared OMS controls, explicit trailing disclosure chevrons, viewport-centered attendance dialogs, responsive asset check rows and task-specific rails. Local synthetic-data screenshots are acceptance evidence; Production release remains pending.
+
+## v9.2.102 (deployed) — tablet inspection submit access
+
+The inspection form keeps a fixed submit toolbar above primary navigation at 768–1279px, while phones use the fixed bottom action and desktop uses the right Console. This corrects a verified gap where both shared actions were hidden on tablets. Daily Checklist now leads with location/date filters, compact status rows and an explicit inspection action; recorded history is collapsed and the progress list follows the selected location. No asset data or permission policy changes.
+
+## Asset rework · 2026-10-09
+
+## 正式发布核验 — 2026-10-09 v9.2.98
+
+339 已在正式 Supabase 项目执行，配套部署 dpl_8Nergf2V4zx62ZJkGBEDjEr3sBm1 已提升至 system.seribako.com.my。员工、经理及主管均受所属／获授权门店限制；Overview 与 Maintenance 限 Super Admin、Manager、Supervisor。Super Admin 保留公司范围访问。
+
+正式迁移后 13 张资产业务表的行数及整行指纹全部与冻结快照相符：445 个编号、已知数量 2,080、31 项未知数量，21,988 条历史检查与 2 份已验证附件均保留。八种现有角色身份的线上 SQL 只读验证通过：门店范围、完整历史范围、管理功能限制、原始字段与私人 Storage 隔离、直接写入拒绝。这不是八个独立浏览器登录验收。
+
+预览实际登录后检查了 390／430／820／1143／1440 五个概览宽度，根页面无横向溢出，两张趋势图均为 200px。实际验证桌面右 Console、ALMA 筛选返回 73 项及名称排序、紧凑维修队列、ALMA 检查完整载入 73 项、手机全部勾选／撤销、异常展开和未保存丢弃保护；390px 提交栏固定。正式域名已确认 v9.2.98 与资产数量。截图保存于 outputs/asset-migration-private/2026-10-09/rework-339/。
+
+未宣称完成项：正式检查提交被自动审批阻止，以免测试写入真实业务记录；提交负载与数据库生命周期由隔离测试覆盖。独立员工浏览器会话、每个明细在每个宽度的交互及键盘遮挡尚待完整验收。Penang 厨师长确认资料仍未齐，不应将发布当作整个三批计划收口。原先 v9.2.97 和未应用 339 的记载作为历史阶段保留，以本段为最新状态。
+
+
+The owner rejected the previous asset workspace. Root-overflow checks do not establish visual acceptance. Rework follows the existing WorkspaceGrid, right Console, Table, FilterBar and mobile task-action owners: compact desktop registers, mobile rows, progressive exception fields, an explicit all-checked shortcut and fixed submit action. Mobile workspace navigation shows the current page with an expandable selection instead of squeezing five labels into one row. Overview prioritizes checks due beside bounded location distribution; charts have an explicit 200px plotting container. These changes are deployed in v9.2.98; five-width actual screenshots and interaction evidence are recorded above. The tablet submit-entry gap was corrected and scroll-verified in v9.2.100; final management-list alignment and filtering are deployed and verified in v9.2.102. Repository migrations reviewed through `339`; the role and original-location privacy migration is applied to Production.
+
+## v9.2.97 (deployed) — compact asset inspection and history
+
+Inspection mode removes the duplicate holdings list below its input form. Maintenance history shows date, author, update type, comment and changed status first, with original identifiers and fields available in expandable details. Existing OMS surfaces, permission checks, pagination and touch targets remain in place. This presentational refinement is deployed to the formal OMS domain. Original history details and dates remain available; both updated views passed root-overflow checks at 390/430/820/1143/1440. All 1,457 regressions pass. It does not change asset records or mutation rules.
+
+## v9.2.96 (deployed) — asset activation and input recovery
+
+Asset migrations 337 and 338 are applied to the existing OMS Supabase project. Following owner-confirmed legacy entry cessation, the final source delta and both attachment files passed complete reconciliation. On 9 October 2026, the owner authorized activation at action time and the guarded final batch became live. OMS now exposes 445 asset IDs, 2,080 known units, 31 unknown quantities, 15 maintenance requests, 335 maintenance updates and 21,988 daily checks through existing asset permissions and branch scopes. Both verified original photos opened through the actual Owner OMS attachment route. Eight existing-role SQL identity simulations passed full history, holdings/location and private Storage scope checks in the live environment; these are not eight separate browser sessions. Overview, maintenance queue and Gurney check inputs passed root-overflow checks at 390/430/820/1143/1440. Zero-value draft retention and unsaved Stay/discard passed without submitting business records. Full ledger hashes after acceptance match the preactivation checkpoint except for the authorized batch state.
+
+Operational activation is complete. The two density issues identified in live acceptance were corrected and visually verified in v9.2.97. Live browser write workflows and separate role sessions are not claimed. Staging recovery cannot be used after activation to erase subsequent operations. Contextual maintenance/transfer comments and scoped draft recovery are available. Penang chef-confirmed configuration and a valid dated two-outlet plan remain outstanding.
+
+Repository migrations reviewed through `338`. The asset-only read-policy optimization has passed local differential checks and an eight-role full-history rollback rehearsal; it is applied to Production with source text independently verified. It does not change grants, mutation helpers or source data.
+
+## v9.2.95 (deployed) — compact daily operations
 
 Daily Records removes Sold out and time entry while preserving historical values. Product quantities and details share a desktop row; phone details expand on demand, with 44px tablet targets. The compact outlet list combines identity and date and uses warning text for missing values. Insights aligns narrow-rail amounts and reports the selected outlet count. Packaging labels the last physical count with its age. Planning offers the next missing step and protects unsaved settings/event edits. Forecast v3 keeps a received-quantity floor when stockout observations are unknown. No asset migration or asset permissions are part of this application release.
 
@@ -1110,7 +1165,7 @@ AutoCount sourcing surfaces keep the internal creditor code and operator-facing 
 
 Stock Balance image hydration is bounded in the server query rather than allowing one oversized request; this preserves the compact row presentation without changing inventory authority.
 
-> **Release authority:** the currently released application is `v9.2.94`, as
+> **Release authority:** the currently released application is `v9.2.102`, as
 > defined by `src/lib/app-version.ts`. A versioned section above that number is
 > an accepted forward design contract or unreleased implementation note—not
 > evidence that the application itself has been released at that version.
@@ -3011,3 +3066,23 @@ the route matrix in `docs/qa/FULL_SYSTEM_AUDIT_MATRIX.md`.
 Right Console submits an external page form exactly once with its real submitter before unmounting the drawer. Native validation and the page form own error focus; internal drawer forms and prevented button actions retain their existing behavior. Esc closes the drawer and restores the More actions trigger. Inert phone checks covered invalid event, valid event, bulk minimum Enter and settings save. React hook/component review found no added network reads, dependencies, motion system or duplicated business state.
 
 Plan checks now identify the product/outlet and required correction instead of a generic issue count. Shared domain checks distinguish missing from zero, manual adjustment reasons, confirmed-event quantities, minimum/reduction reasons, configured yields, whole trays, retention and surplus/shortfall. Database authorization, current-route/configuration checks and approval remain authoritative; these client checks do not replace them. Default forecast settings stay in Settings rather than repeating in the action rail.
+
+## Asset integration — local verification, not deployed
+
+Migration 337 isolates assets from procurement and inventory. Original asset IDs belong to company-scoped masters; per-location holdings preserve known or unknown quantities. Transfers reserve source holdings, show dispatched quantities in transit and increase destination holdings only on confirmed receipt. Maintenance updates, checks, attachments and suppliers retain their source fields and associations. Rehearsal records stay invisible until a verified import batch is activated.
+
+All operating outlets and kitchens default to daily checks, as confirmed by the owner. A manager registers dated temporary closures with a reason; prior decisions remain in history. Event only requires checks on registered activity dates. Asset access reuses OMS company, role and assigned-branch scope; legacy passwords are excluded. Formal cutover, attachment verification and operational acceptance remain pending.
+
+Asset master registration and editing are under local verification. Imported source fields and asset IDs are immutable; current details are separate, with company-scoped master change history. Native registration records initial physical quantity or unknown, and rejects duplicate IDs case-insensitively. Edits require a reason, client key and expected record timestamp. The thirteen asset tables are included in company backups; Production migration remains pending.
+
+Asset history shows changed fields and aligned before/after values by default. On phones the field label spans both value columns; registration uses a compact label/value list. Complete raw records stay collapsed. An imported value carried into current details is not presented as a change. Dates on new OMS records use Kuala Lumpur time; imported attachment dates retain their original date and raw timestamp.
+
+Attachments live within asset and maintenance detail, with one shared list and an optional upload disclosure. Show filename, category, author/date and verified/pending status; an unverified legacy URL is not an active download link. Maintenance photos link to the original request and inherit its location scope. Photo-only operators do not see invoice/warranty choices. Asset inputs retain 48px phone and 44px tablet targets. Long master forms use the existing sticky layer and mobile navigation/safe-area offset for Save; this is a local implementation awaiting authenticated workspace acceptance.
+
+### Date range selection
+
+Use a single date-range entry for interval-based Insights, keeping single operational dates as single-date inputs. Reuse OMS green selection, muted range fill, Button/Input and ModalShell; do not introduce the reference image's orange palette or a calendar dependency. A 760px maximum dialog uses preset choices beside two months from the existing 768px breakpoint. Below that breakpoint, shortcuts wrap above one month. Dates and navigation have at least 44px height; explicit labelled From/To inputs provide direct entry. Apply commits the draft, Cancel/Escape restore the trigger without changing filters. Range selection never submits an unrelated operational form.
+
+Asset attachments use a short latest-five preview in operational details and a separate full-record view when needed. The full register reuses the shared attachment disclosure list, PageHeader and workspace layout; exact result count and Previous/Next navigation sit beside the actual records rather than repeated instructions. Long filenames wrap within the list, and pagination links retain 44px touch height.
+
+Transfer details use one operational summary followed by concise action history. Show source, destination and quantity together; restricted location names stay restricted. In-transit quantity explains the next receipt task once, adjacent to the action. Notes are optional and inline; complete raw updates remain collapsed. Match visible actions to source/destination access, retain touch-sized controls, and reset successful forms against the current status/history identity. Transfer list identity opens that transfer directly.

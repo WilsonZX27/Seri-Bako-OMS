@@ -1,4 +1,5 @@
 "use client";
+import { NativeDialog } from "@/components/ui/native-dialog";
 
 import { useRef, useState } from "react";
 import Link from "next/link";
@@ -124,9 +125,9 @@ export function OtClaimAction({
             : claim.status
           : "Claim OT"}
       </Button>
-      <dialog
+      <NativeDialog
         ref={dialog}
-        className="m-auto w-[min(30rem,calc(100vw-2rem))] rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50"
+        className="sb-dialog-workspace-centered m-auto w-[min(30rem,calc(100vw-2rem))] rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50"
       >
         <form
           className="space-y-4 p-4"
@@ -169,7 +170,7 @@ export function OtClaimAction({
                   placeholder="Required when rejecting"
                 />
               </label>
-              <div className="flex justify-end gap-2">
+              <div className="sticky bottom-0 z-10 -mx-4 flex justify-end gap-2 border-t border-border bg-white px-4 py-3 sm:-mx-5 sm:px-5">
                 <Button
                   name="decision"
                   value="reject"
@@ -222,7 +223,7 @@ export function OtClaimAction({
                   className="rounded-[var(--sb-radius-control)] border px-3 py-2"
                 />
               </label>
-              <div className="flex justify-end gap-2">
+              <div className="sticky bottom-0 z-10 -mx-4 flex justify-end gap-2 border-t border-border bg-white px-4 py-3 sm:-mx-5 sm:px-5">
                 <Button
                   type="button"
                   variant="outline"
@@ -243,7 +244,7 @@ export function OtClaimAction({
             </p>
           ) : null}
         </form>
-      </dialog>
+      </NativeDialog>
     </>
   );
 }
@@ -305,9 +306,9 @@ export function WeeklyCloseButton({
         <LockKeyhole className="h-4 w-4" />
         Review & close week
       </Button>
-      <dialog
+      <NativeDialog
         ref={dialog}
-        className="m-auto max-h-[calc(100dvh-2rem)] w-[min(44rem,calc(100vw-2rem))] overflow-auto rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50"
+        className="sb-dialog-workspace-centered m-auto max-h-[calc(100dvh-2rem)] w-[min(44rem,calc(100vw-2rem))] overflow-auto rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50"
       >
         <form
           className="space-y-4 p-4"
@@ -403,7 +404,7 @@ export function WeeklyCloseButton({
               {message}
             </p>
           ) : null}
-          <div className="flex justify-end gap-2">
+          <div className="sticky bottom-0 z-10 -mx-4 flex justify-end gap-2 border-t border-border bg-white px-4 py-3 sm:-mx-5 sm:px-5">
             <Button
               type="button"
               variant="outline"
@@ -411,12 +412,12 @@ export function WeeklyCloseButton({
             >
               Cancel
             </Button>
-            <Button disabled={busy}>
+            <Button disabled={busy || Boolean(exceptionCount || pendingReportCount || submittedClaimCount)}>
               {busy ? "Closing…" : "Confirm decisions & close"}
             </Button>
           </div>
         </form>
-      </dialog>
+      </NativeDialog>
     </>
   );
 }

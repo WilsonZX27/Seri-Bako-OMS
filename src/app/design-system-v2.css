@@ -2605,7 +2605,9 @@ html[data-design-layer="v2"] .unified-list-date-control {
   }
 }
 @media (min-width: 1280px) {
-  html[data-design-layer="v2"] form.sb-list-filters.sb-list-query-card.sb-attendance-review-query { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+  html[data-design-layer="v2"] form.sb-list-filters.sb-list-query-card.sb-attendance-review-query { grid-template-columns: repeat(4, minmax(0, 1fr)) auto !important; }
+  html[data-design-layer="v2"] form.sb-list-filters.sb-list-query-card.sb-attendance-review-query > .unified-list-desktop-actions { grid-column: auto !important; flex-wrap: nowrap; }
+  html[data-design-layer="v2"] form.sb-attendance-review-query > .unified-list-desktop-actions button { min-width: 0 !important; width: auto !important; padding-inline: .75rem !important; }
 }
 html[data-design-layer="v2"] form.sb-asset-query .unified-list-desktop-actions button > svg {
   width: 1rem; height: 1rem; flex: none;

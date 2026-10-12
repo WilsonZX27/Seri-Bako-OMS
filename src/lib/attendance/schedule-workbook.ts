@@ -187,9 +187,13 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
     };
     let dateRow = 0, columnStep = 2, window: Array<readonly [number, number]> = [];
     const detectedDates: string[] = [];
+    const explicitDates: string[] = [];
     for (const rowNumber of [...sheet.rows.keys()].filter(n => n <= 12)) {
       const pairs = [...sheet.rows.get(rowNumber)!].filter(([column, value]) => column >= 1 && dateValue(value) !== null);
-      if (pairs.length >= 7) detectedDates.push(...pairs.map(([, value]) => String(dateValue(value))));
+      if (pairs.length >= 7) {
+        detectedDates.push(...pairs.map(([, value]) => String(dateValue(value))));
+        explicitDates.push(...pairs.filter(([,value]) => typeof value === "number" ? value > 30000 : /\b\d{4}$/.test(clean(value))).map(([,value]) => String(dateValue(value))));
+      }
       for (let index = 0; index <= pairs.length - 7; index++) {
         const candidate = pairs.slice(index,index+7);
         const step = candidate[1][0] - candidate[0][0];
@@ -199,10 +203,10 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
       }
       if (window.length) break;
     }
-    const fullDates = [...new Set(detectedDates)].filter(date => /^\d{4}-\d{2}-\d{2}$/.test(date));
+    const fullDates = [...new Set(explicitDates)].filter(date => /^\d{4}-\d{2}-\d{2}$/.test(date));
     const suggestedWeekStart = fullDates.length === 7 && fullDates.every((date, index) => date === addDays(fullDates[0], index)) && new Date(`${fullDates[0]}T00:00:00Z`).getUTCDay() === 1 ? fullDates[0] : undefined;
-    if (!window.length) { issues.push({ suggestedWeekStart, sheet: sheet.name, reason: "date_window_mismatch", message: `${sheet.name}: selected week ${weekStart} through ${addDays(weekStart, 6)} does not match the readable date headers. ${detectedDates.length ? `Workbook dates: ${[...new Set(detectedDates)].slice(0, 14).join(", ")}. Open the matching schedule week and upload again; confirming dates does not move shifts to another week.` : "No supported seven-day date header was found. Check the sheet layout."}` }); continue; }
-    if (!knownName && !options.confirmDateContext) { issues.push({sheet: sheet.name, reason:"date_context_required",message:`${sheet.name}: confirm the displayed dates belong to ${weekStart} through ${addDays(weekStart,6)}. Sheet numbers never establish dates.`}); continue; }
+    if (!window.length) { issues.push({ suggestedWeekStart, sheet: sheet.name, reason: "date_window_mismatch", message: `${sheet.name}: selected week ${weekStart} through ${addDays(weekStart, 6)} does not match the readable date headers. ${detectedDates.length ? `Workbook dates: ${[...new Set(detectedDates)].slice(0, 14).join(", ")}. Use the original week shown below; no need to leave this dialog.` : "No supported seven-day date header was found. Check the sheet layout."}` }); continue; }
+    if (!knownName && !suggestedWeekStart && !options.confirmDateContext) { issues.push({sheet: sheet.name, reason:"date_context_required",message:`${sheet.name}: confirm the displayed dates belong to ${weekStart} through ${addDays(weekStart,6)}. Sheet numbers never establish dates.`}); continue; }
     for (let rowNumber = dateRow + (columnStep === 1 ? 1 : 2); rowNumber <= Math.max(...sheet.rows.keys()); rowNumber += 1) {
       const values = sheet.rows.get(rowNumber) ?? new Map(), fills = sheet.fills.get(rowNumber) ?? new Map(), employee = clean(values.get(0));
       if (key(employee) === "remark" || /^job scope\b/i.test(employee)) break;

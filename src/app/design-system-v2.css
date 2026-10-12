@@ -1,3 +1,133 @@
+/* Canonical OMS tokens. globals.css contains structural/Tailwind compatibility only. */
+:root {
+  /* Shared palette: the single source of truth for legacy and v2 surfaces. */
+  --sb-green-950: #053c2c;
+  --sb-green-900: #074b37;
+  --sb-green-800: #096247;
+  --sb-green-700: #0f7757;
+  --sb-green-300: #8fc5ad;
+  --sb-green-200: #c4dfd2;
+  --sb-green-100: #e7f1eb;
+  --sb-primary: var(--sb-green-900);
+  --sb-primary-dark: var(--sb-green-950);
+  --sb-accent: var(--sb-green-700);
+  --sb-bg: #eef1ee;
+  --sb-surface: #FFFFFF;
+  --sb-surface-muted: #f5f6f3;
+  --sb-surface-subtle: #fafafa;
+  --sb-muted: var(--sb-surface-muted);
+  --sb-border: #d8ded9;
+  /* Canonical control geometry: 8px controls, 12px panels across every viewport. */
+  --sb-control-radius: 0.5rem;
+  --sb-radius-control: var(--sb-control-radius);
+  --sb-shadow-card: 0 1px 2px rgb(6 44 31 / 0.04), 0 8px 24px rgb(6 44 31 / 0.06);
+  --sb-border-soft: #e7ebe7;
+  --sb-text: #13261f;
+  --sb-text-muted: #66766f;
+  --sb-text-soft: #8A948E;
+  --sb-text-inverse: #FFFFFF;
+  --sb-success: #0F6B3F;
+  --sb-success-bg: #E6F4EC;
+  --sb-danger: #B42318;
+  --sb-danger-bg: #FDE8E8;
+  --sb-warning: #9A6700;
+  --sb-warning-bg: #FFF4CC;
+  --sb-info: #245A9C;
+  --sb-info-bg: #E8F1FF;
+  --sb-neutral-bg: #EEECE6;
+  --sb-neutral-text: #5E665F;
+  --sb-font-sans: "Segoe UI Variable", Aptos, "SF Pro Text", ui-sans-serif, system-ui, sans-serif;
+  /* v9 type scale uses fixed, intentional steps. Responsive composition owns
+     wrapping and space; typography does not continuously resize itself. */
+  --sb-text-display: 1.5rem;
+  --sb-text-identity: 1.25rem;
+  --sb-text-title: 1.125rem;
+  --sb-text-label: 0.6875rem;
+  --sb-text-page: 1.125rem;
+  --sb-text-section: 0.875rem;
+  --sb-text-body: 0.8125rem;
+  --sb-text-meta: 0.75rem;
+  --sb-leading-tight: 1.35;
+  --sb-leading-body: 1.45;
+  --sb-space-1: 0.25rem;
+  --sb-space-2: 0.5rem;
+  --sb-space-3: 0.75rem;
+  --sb-space-4: 1rem;
+  --sb-space-5: 1.25rem;
+  --sb-space-6: 1.5rem;
+  --sb-space-7: 2rem;
+  --sb-space-8: 2.5rem;
+  --sb-control-height: 2.75rem;
+  --sb-topbar-height: 3rem;
+  --sb-mobile-nav-height: 4rem;
+  --sb-sidebar-width: 14.75rem;
+  --sb-console-width: 20rem;
+  --sb-console-width-compact: 18rem;
+  --sb-canvas-contained: 64rem;
+  --sb-canvas-wide: 76rem;
+  --sb-shell-gutter: 0.75rem;
+  /* Canonical geometry tokens. Every route consumes these values; the app
+     design layer must not redefine them at a later cascade position. */
+  --sb-panel-radius: 0.75rem;
+  --sb-z-dropdown: 30;
+  --sb-z-sticky: 40;
+  --sb-z-action-rail: 45;
+  /* Narrow-screen drawers must fully cover the mobile navigation and any
+     fixed action rail. Desktop/tablet rails keep their normal stacking order;
+     these values are consumed by the narrow-screen drawer rules below. */
+  --sb-z-backdrop: 100;
+  --sb-z-dialog: 101;
+  --sb-z-toast: 70;
+  --sb-motion-fast: 160ms;
+  --sb-motion-standard: 220ms;
+  --sb-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --app-bg: var(--sb-bg);
+  --workspace-bg: #f4f5f2;
+  --rail-bg: #fbfcfa;
+  --border-soft: var(--sb-border);
+  --border-muted: var(--sb-border-soft);
+  --text-main: var(--sb-text);
+  --text-muted: var(--sb-text-muted);
+
+  --background: 150 12% 94%;
+  --foreground: 147 33% 9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --primary: 147 48% 13%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 150 10% 94%;
+  --secondary-foreground: 147 33% 9%;
+  --muted: 150 10% 94%;
+  --muted-foreground: 148 7% 43%;
+  --accent: 147 48% 13%;
+  --accent-foreground: 147 48% 13%;
+  --destructive: 0 74% 42%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 150 10% 82%;
+  --input: 150 10% 82%;
+  --ring: 155 63% 20%;
+  --radius: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  :root { --sb-shell-gutter: 1rem; }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --sb-shell-gutter: 1.25rem;
+    --sb-console-width: var(--sb-console-width-compact);
+  }
+}
+
+@media (min-width: 1440px) {
+  :root { --sb-console-width: 20rem; }
+}
+
+@media (max-width: 767px) {
+  :root { --sb-control-height: 3rem; }
+}
+
 :root:root {
   --sb-surface-raised: #ffffff;
   /*
@@ -16,6 +146,26 @@
   --sb-shadow-lg: 0 -8px 24px rgb(12 43 32 / 0.16);
   --sb-content-gutter: clamp(0.75rem, 1.5vw, 1.25rem);
   --sb-dashboard-header-surface: #d7e7df;
+}
+
+/* All native/server field recovery uses the same restrained error treatment. */
+.unified-list-primary-control { position: relative; min-width: 0; }
+html[data-design-layer="v2"] form[data-unified-list-desktop] .unified-list-primary-control .unified-list-primary-input {
+  width: 100% !important;
+  padding-inline: 2.25rem !important;
+}
+.unified-list-search-icon { position: absolute; z-index: 1; left: .75rem; top: 50%; width: 1rem; height: 1rem; color: var(--sb-text-muted); transform: translateY(-50%); pointer-events: none; }
+.unified-list-clear { position: absolute; right: 0; top: 50%; display: grid; place-items: center; width: var(--sb-control-height); height: var(--sb-control-height); color: var(--sb-text-muted); transform: translateY(-50%); }
+.unified-list-clear svg { width: .875rem; height: .875rem; }
+html[data-design-layer="v2"] [data-field-recovery="true"] {
+  border-color: var(--sb-danger) !important;
+  box-shadow: 0 0 0 2px var(--sb-danger-bg) !important;
+}
+html[data-design-layer="v2"] [data-field-recovery-message] {
+  margin-top: .375rem;
+  color: var(--sb-danger);
+  font-size: .75rem;
+  line-height: 1.4;
 }
 
 /* The completion matrix uses separated cells, so a horizontally scrolled date
@@ -56,9 +206,6 @@ html[data-design-layer="v2"] {
   --sb-design-layer-active: v2;
   /* One radius source for Tailwind's `rounded-lg` and shared panel primitives. */
   --radius: var(--sb-panel-radius);
-  --sb-panel-radius: 12px;
-  --sb-control-radius: 8px;
-  --sb-radius-control: var(--sb-control-radius);
   --sb-z-mobile-nav: 50;
   --sb-z-sheet-backdrop: 100;
   --sb-z-sheet: 101;
@@ -105,9 +252,10 @@ html[data-design-layer="v2"] :where(.erp-surface, .sb-work-surface, .border.bg-c
   box-shadow: var(--sb-shadow-xs);
 }
 
-html[data-design-layer="v2"] :where(.sb-list-filters:not(.unified-list-header):not(.sb-list-query-card), .sb-filter-more-panel, .sb-right-console, .sb-pr-basket-sheet) {
-  border-color: var(--sb-border-soft);
-  border-radius: var(--sb-panel-radius) !important;
+html[data-design-layer="v2"] :where(.sb-list-filters:not(.unified-list-header):not(.sb-list-query-card), .sb-filter-more-panel, .sb-pr-basket-sheet) {
+  border: 1px solid var(--sb-border-soft);
+  border-radius: var(--sb-panel-radius);
+  background: var(--sb-surface-raised);
   box-shadow: var(--sb-shadow-sm);
 }
 
@@ -116,7 +264,7 @@ html[data-design-layer="v2"] :where(.sb-list-filters:not(.unified-list-header):n
 }
 
 html[data-design-layer="v2"] :where(.sb-list-filters:not(.unified-list-header):not(.sb-list-query-card) input, .sb-list-filters:not(.unified-list-header):not(.sb-list-query-card) select, .sb-list-filters:not(.unified-list-header):not(.sb-list-query-card) button, .sb-list-filters:not(.unified-list-header):not(.sb-list-query-card) a, .sb-filter-more-panel input, .sb-filter-more-panel select, .sb-filter-more-panel button) {
-  border-radius: var(--sb-radius-control) !important;
+  border-radius: var(--sb-radius-control);
 }
 
 html[data-design-layer="v2"] :where(.sb-list-filters:not(.unified-list-header):not(.sb-list-query-card) input, .sb-list-filters:not(.unified-list-header):not(.sb-list-query-card) select, .sb-filter-more-panel input, .sb-filter-more-panel select) {
@@ -132,16 +280,6 @@ html[data-design-layer="v2"] :where(.sb-list-filters:not(.unified-list-header):n
 html[data-design-layer="v2"] :where([data-mobile-app-nav], .sb-mobile-action-bar) {
   border-radius: 0;
   box-shadow: var(--sb-shadow-lg);
-}
-
-html[data-design-layer="v2"] :where(.sb-table-scroll, .sb-scroll-container, [data-table-scroll]) {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-html[data-design-layer="v2"] :where(.sb-table-scroll, .sb-scroll-container, [data-table-scroll])::-webkit-scrollbar {
-  width: 0;
-  height: 0;
 }
 
 @media (max-width: 767px) {
@@ -179,41 +317,6 @@ body::-webkit-scrollbar {
   height: 0;
 }
 
-/* Compact list filters: search and primary action share the first row on phones. */
-@media (max-width: 639px) {
-  form.sb-mobile-list-filter {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) auto !important;
-    align-items: center !important;
-    gap: 0.5rem !important;
-  }
-
-  form.sb-mobile-list-filter > :first-child {
-    display: block !important;
-    grid-column: 1 !important;
-    grid-row: 1 !important;
-    min-width: 0 !important;
-    width: 100% !important;
-  }
-
-  form.sb-mobile-list-filter > .sb-filter-submit {
-    grid-column: 2 !important;
-    grid-row: 1 !important;
-    width: auto !important;
-    min-width: 5.5rem !important;
-  }
-
-  form.sb-mobile-list-filter > input[type="hidden"] {
-    display: none !important;
-  }
-
-  form.sb-mobile-list-filter > .sb-filter-summary {
-    grid-column: 1 / -1 !important;
-    justify-self: end !important;
-    width: auto !important;
-  }
-}
-
 /* v9.3 workspace authority -------------------------------------------------
    Header and body consume the same canvas and gutter. The data attributes
    deliberately outrank legacy route-local utilities while those retire. */
@@ -245,20 +348,10 @@ html[data-design-layer="v2"] [data-page-header] > .sb-workspace-canvas {
   padding-block: var(--sb-space-3);
 }
 
-html[data-design-layer="v2"] :is(.sb-work-surface, [data-ui-surface="data"], [data-ui-surface="command"], [data-ui-surface="insight"], [data-ui-surface="inspector"]) {
+html[data-design-layer="v2"] .sb-work-surface {
   border-radius: var(--sb-panel-radius);
   border-color: var(--sb-border-soft);
   background: var(--sb-surface);
-}
-
-html[data-design-layer="v2"] [data-ui-surface="command"] {
-  box-shadow: 0 1px 2px rgb(6 44 31 / 0.04);
-}
-
-html[data-design-layer="v2"] [data-ui-surface="attention"] {
-  border: 1px solid color-mix(in srgb, var(--sb-warning) 24%, transparent);
-  border-radius: var(--sb-radius-control);
-  background: var(--sb-warning-bg);
 }
 
 html[data-design-layer="v2"] [data-console-kind="action"] {
@@ -296,14 +389,6 @@ html[data-design-layer="v2"] :is(a, button, summary, [role="button"]) {
 
 @media (prefers-reduced-motion: reduce) {
   .sb-skeleton::after { display: none; }
-  html[data-design-layer="v2"] *,
-  html[data-design-layer="v2"] *::before,
-  html[data-design-layer="v2"] *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
 }
 
 [data-app-shell] {
@@ -417,13 +502,6 @@ html[data-design-layer="v2"] :is(a, button, summary, [role="button"]) {
 
 .sb-action-row:hover {
   background: var(--sb-green-100) !important;
-}
-
-/* Legacy utility classes resolve to the shared control token. They are used
-   by both cards and controls in older routes, so they must not impersonate
-   the larger panel radius. New panels should use the panel token explicitly. */
-[class~="rounded-[2px]"] {
-  border-radius: var(--sb-radius-control) !important;
 }
 
 [data-dashboard-panel] {
@@ -567,28 +645,6 @@ html[data-design-layer="v2"] #purchase-request-form [data-purchase-request-line]
   min-height: var(--sb-control-height) !important;
 }
 
-html[data-design-layer="v2"] .sb-command-surface {
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgb(255 255 255 / 0.13);
-  border-radius: var(--sb-panel-radius);
-  background: var(--sb-green-900);
-  color: var(--sb-surface-raised);
-  box-shadow: none;
-}
-
-html[data-design-layer="v2"] form.sb-list-filters > .sb-list-filter-actions {
-  display: flex;
-  flex: 1 1 100% !important;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  margin-left: auto;
-}
-
-html[data-design-layer="v2"] form.sb-list-filters > .sb-list-filter-actions > * {
-  min-width: 6.5rem;
-}
-
 [data-right-console] section,
 aside > div > div > section {
   padding-block: 1rem;
@@ -658,8 +714,7 @@ aside section > h2 {
 
   .erp-surface,
   .sb-work-surface,
-  .border.bg-card,
-  .sb-command-surface {
+  .border.bg-card {
     border-radius: var(--sb-panel-radius);
   }
 }
@@ -667,7 +722,6 @@ aside section > h2 {
 /* Preserve touch/trackpad scrolling without a permanent gutter beside data. */
 .overflow-x-auto,
 .overflow-y-auto,
-[data-table-scroll],
 .sb-table-region {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -675,15 +729,13 @@ aside section > h2 {
 
 .overflow-x-auto::-webkit-scrollbar,
 .overflow-y-auto::-webkit-scrollbar,
-[data-table-scroll]::-webkit-scrollbar,
 .sb-table-region::-webkit-scrollbar {
   width: 0;
   height: 0;
   display: none;
 }
 
-nav[aria-label="Pagination"] > span,
-.sb-pagination-current {
+nav[aria-label="Pagination"] > span {
   border-radius: var(--sb-radius-control) !important;
 }
 
@@ -709,7 +761,8 @@ nav[aria-label="Pagination"] > span,
 }
 
 [data-outlet-daily-record-list] {
-  align-self: start;
+  align-self: stretch;
+  width: 100%;
   height: max-content;
   min-height: 0;
 }
@@ -791,6 +844,18 @@ nav[aria-label="Pagination"] > span,
   }
 }
 
+@media (min-width: 640px) and (max-width: 1023px) {
+  html[data-design-layer="v2"] [data-purchase-request-line] .pr-line-quantity {
+    grid-column: 2 / 4;
+    grid-row: 2;
+  }
+
+  html[data-design-layer="v2"] [data-purchase-request-line] .pr-line-uom {
+    grid-column: 2 / 4;
+    grid-row: 3;
+  }
+}
+
 @media (max-width: 639px) {
   /* List pages already expose their context in the mobile shell/breadcrumb.
      Remove the repeated desktop header on phones; create actions remain
@@ -800,61 +865,21 @@ nav[aria-label="Pagination"] > span,
     display: none !important;
   }
 
-  #main-content > header:not(.sb-document-workspace-header):not([data-document-workspace-header]) {
+  #main-content > header:not([data-document-workspace-header]) {
     display: none;
   }
 
   .sb-work-surface,
-  .sb-command-surface,
   aside > section {
     border-radius: var(--sb-panel-radius);
   }
 
-  .sb-mobile-list-filter {
-    display: grid !important;
-    grid-template-columns: minmax(0, 1fr) auto !important;
-    gap: 0.5rem !important;
-    padding: 0.75rem !important;
-  }
-
-  .sb-mobile-list-filter > :first-child {
-    grid-column: 1;
-    grid-row: 1;
-    min-width: 0;
-    width: 100%;
-  }
-
-  .sb-mobile-list-filter > .sb-filter-submit {
-    grid-column: 2;
-    grid-row: 1;
-    min-width: 5rem;
-    width: auto !important;
-  }
-
-  .sb-mobile-list-filter > .sb-filter-summary {
-    align-self: center;
-    grid-column: 2;
-    justify-self: end;
-    min-width: max-content;
-  }
-
-  .sb-mobile-list-filter > .sb-filter-more {
-    justify-self: start;
-  }
-
-  .sb-mobile-list-filter select {
-    max-width: 100%;
-    min-width: 0;
-  }
-
   .sb-table-region,
-  [data-table-scroll],
   .overflow-x-auto {
     scrollbar-width: none;
   }
 
   .sb-table-region::-webkit-scrollbar,
-  [data-table-scroll]::-webkit-scrollbar,
   .overflow-x-auto::-webkit-scrollbar {
     display: none;
   }
@@ -960,24 +985,11 @@ nav[aria-label="Pagination"] > span,
     bottom: 0 !important;
   }
 
-  /* UnifiedListHeader is the phone-only replacement for the legacy grid
-     filter bar. The compound selector intentionally outranks the legacy
-     sb-mobile-list-filter rules so its controls cannot leak into multiple
-     rows on narrow screens. Tablet and desktop retain the original controls. */
-  form.sb-mobile-list-filter.unified-list-header {
-    display: block !important;
-    grid-template-columns: none !important;
-    align-items: initial !important;
-  }
-
   .unified-list-header { display: block !important; padding: .75rem !important; position: relative; }
   form[data-unified-list-desktop="true"] { display: none; }
   .unified-list-row { display: flex; align-items: center; gap: .5rem; min-height: 2.75rem; }
-  .unified-list-primary-control { position: relative; flex: 1 1 auto; min-width: 0; }
+  .unified-list-primary-control { flex: 1 1 auto; }
   .unified-list-primary-input { width: 100% !important; min-width: 0 !important; height: 2.75rem !important; padding-left: 2.25rem !important; padding-right: 2.25rem !important; border-radius: var(--sb-radius-control) !important; }
-  .unified-list-search-icon { position: absolute; z-index: 1; left: .75rem; top: 50%; width: 1rem; height: 1rem; color: var(--sb-muted); transform: translateY(-50%); pointer-events: none; }
-  .unified-list-clear { position: absolute; right: .5rem; top: 50%; display: grid; place-items: center; width: 1.5rem; height: 1.5rem; color: var(--sb-muted); transform: translateY(-50%); }
-  .unified-list-clear svg { width: .875rem; height: .875rem; }
   .unified-list-filter-trigger { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: .4rem; flex: 0 0 auto; min-width: 2.75rem; height: 2.75rem; padding: 0 .75rem; border: 1px solid var(--sb-green-900); border-radius: var(--sb-radius-control); background: var(--sb-green-900); color: white; }
   .unified-list-filter-trigger svg { width: 1.125rem; height: 1.125rem; }
   .unified-list-filter-label { display: inline; font-size: .8125rem; font-weight: 500; white-space: nowrap; }
@@ -1001,9 +1013,7 @@ nav[aria-label="Pagination"] > span,
 @media (max-width: 639px) {
   body:has(.unified-list-layer) [data-mobile-bottom-nav],
   body:has([data-mobile-document-action]) nav.fixed.bottom-0,
-  body:has([data-mobile-document-action]) .sb-mobile-bottom-nav,
-  html[data-mobile-action-page="true"] nav.fixed.bottom-0,
-  html[data-mobile-action-page="true"] .sb-mobile-bottom-nav {
+  html[data-mobile-action-page="true"] nav.fixed.bottom-0 {
     visibility: hidden;
     pointer-events: none;
   }
@@ -1149,7 +1159,7 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
   html[data-design-layer="v2"] form.unified-list-header .unified-list-row {
     position: relative;
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) 104px auto;
+    grid-template-columns: minmax(0, 1fr) 44px 104px auto;
     gap: 8px;
     align-items: stretch;
   }
@@ -1226,7 +1236,7 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
   }
 
   html[data-design-layer="v2"] form.unified-list-header .unified-list-result {
-    grid-column: 3;
+    grid-column: 4;
     align-self: center;
     display: grid !important;
     justify-items: center;
@@ -1240,6 +1250,20 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
 
   html[data-design-layer="v2"] form.unified-list-header button[type="submit"] {
     display: none !important;
+  }
+
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-search-submit {
+    display: inline-flex !important;
+    grid-column: 2;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    justify-content: center;
+    border-color: var(--sb-border);
+    background: var(--sb-surface-raised);
+    color: var(--sb-green-900);
   }
 
   html[data-design-layer="v2"] form.unified-list-header .unified-list-inline-fields {
@@ -1390,21 +1414,6 @@ html[data-design-layer="v2"] form:has([data-mobile-document-action]) {
   }
 }
 
-/* Legacy 2px utility classes are still emitted by a few shared surfaces. Keep
-   the class names for compatibility, but make their rendered geometry obey
-   the canonical control/panel radius contract. */
-html[data-design-layer="v2"] :where([class~="rounded-[2px]"]) {
-  border-radius: var(--sb-control-radius) !important;
-}
-
-html[data-design-layer="v2"] :where([class~="rounded-[2px]"][class~="border"]) {
-  border-radius: var(--sb-panel-radius) !important;
-}
-
-html[data-design-layer="v2"] :where(.sb-popover-surface[class~="rounded-[2px]"]) {
-  border-radius: var(--sb-panel-radius) !important;
-}
-
 html[data-design-layer="v2"] .sb-filter-more-panel--anchored {
   position: fixed !important;
   right: auto !important;
@@ -1542,18 +1551,6 @@ html[data-design-layer="v2"] [data-mobile-document-action] :where(button, a) {
   }
 }
 
-html[data-design-layer="v2"] :where([class~="rounded-[2px]"][class~="bg-secondary"]) {
-  border-radius: var(--sb-panel-radius) !important;
-}
-
-html[data-design-layer="v2"] :where([class~="rounded-[2px]"][class~="bg-primary\/10"]) {
-  border-radius: var(--sb-panel-radius) !important;
-}
-
-html[data-design-layer="v2"] :where(.erp-surface[class~="rounded-[2px]"], .sb-work-surface[class~="rounded-[2px]"], .border.bg-card[class~="rounded-[2px]"], [role="alert"][class~="rounded-[2px]"], [role="status"][class~="rounded-[2px]"]) {
-  border-radius: var(--sb-panel-radius) !important;
-}
-
 /* Final mobile filter contract: ordinary controls share a compact two-column
    rhythm, while legacy nested disclosures still span the sheet. Radix portals
    must sit above the sheet itself so an opened option list is never obscured. */
@@ -1577,30 +1574,6 @@ html[data-design-layer="v2"] :where(.erp-surface[class~="rounded-[2px]"], .sb-wo
   }
 }
 
-/* AP Aging is the only intentionally dense query surface. Keep this opt-in
-   variant independent from the canonical list toolbar below. */
-@media (min-width: 768px) {
-  html[data-design-layer="v2"] form.sb-list-filters.sb-list-filters--dense {
-    flex-wrap: wrap !important;
-    gap: 0.5rem;
-  }
-
-  html[data-design-layer="v2"] form.sb-list-filters.sb-list-filters--dense > :where(select, [data-select-control]) {
-    flex: 1 1 8rem !important;
-    width: auto !important;
-  }
-
-  html[data-design-layer="v2"] form.sb-list-filters.sb-list-filters--dense > label {
-    flex: 0 0 auto !important;
-    min-width: 7rem;
-    white-space: nowrap;
-  }
-
-  html[data-design-layer="v2"] form.sb-list-filters.sb-list-filters--dense > .sb-list-filter-actions {
-    flex: 1 1 auto !important;
-    min-width: 14rem;
-  }
-}
 @media (max-width: 639px) {
   html[data-design-layer="v2"] [data-document-workspace-header][data-context-compact="true"] {
     padding-top: .25rem !important;
@@ -1632,6 +1605,19 @@ html[data-design-layer="v2"] :where(.erp-surface[class~="rounded-[2px]"], .sb-wo
     min-width: 0 !important;
   }
 
+  html[data-design-layer="v2"] [data-mobile-document-action][data-action-count="3"].sb-mobile-action-bar {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 2.75rem !important;
+    gap: .5rem !important;
+  }
+
+  html[data-design-layer="v2"] [data-mobile-document-action][data-action-count="2"][data-has-more="true"].sb-mobile-action-bar {
+    grid-template-columns: minmax(0, 1fr) 2.75rem !important;
+  }
+
+  html[data-design-layer="v2"] [data-mobile-document-action][data-action-count="1"].sb-mobile-action-bar {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
   html[data-design-layer="v2"] [data-mobile-document-action].sb-mobile-action-bar > :first-child {
     width: 100% !important;
   }
@@ -1659,13 +1645,13 @@ html[data-design-layer="v2"] :where(.erp-surface[class~="rounded-[2px]"], .sb-wo
   }
 
   html[data-design-layer="v2"] [data-purchase-request-line] .pr-line-quantity {
-    grid-column: 2;
+    grid-column: 2 / 4;
     grid-row: 2;
   }
 
   html[data-design-layer="v2"] [data-purchase-request-line] .pr-line-uom {
-    grid-column: 3;
-    grid-row: 2;
+    grid-column: 2 / 4;
+    grid-row: 3;
   }
 
   html[data-design-layer="v2"] [data-purchase-request-line] [data-pr-line-actions] {
@@ -1706,7 +1692,7 @@ html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, butto
 /* Established ERP pattern: a 36px visual control rhythm on tablet and
    desktop. Phones retain the larger touch-safe rhythm; tablet/desktop action
    spacing remains generous so controls never collapse into one another. */
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   html[data-design-layer="v2"] {
     --sb-control-height: 2.25rem;
   }
@@ -1877,7 +1863,6 @@ html[data-design-layer="v2"] .sb-filter-summary-label {
 }
 
 @media (min-width: 768px) and (max-width: 1023px) and (orientation: portrait) {
-  html[data-design-layer="v2"] [data-dashboard-primary-column],
   html[data-design-layer="v2"] [data-dashboard-secondary-column] {
     gap: .75rem;
   }
@@ -1902,7 +1887,7 @@ html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th,
 html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(2) { width: 5.5rem; }
 html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(3) { width: 8rem; }
 html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(4) { width: 6.75rem; }
-html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(5) { width: 5.5rem; }
+html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(5) { width: 8rem; }
 html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(6) { width: 4.75rem; }
 html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(7) { width: 5.75rem; }
 html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(8) { width: 6rem; }
@@ -2075,6 +2060,10 @@ html[data-design-layer="v2"] [data-outlet-daily-lines] {
     max-width: none !important;
     height: var(--sb-control-height) !important;
   }
+  html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout] > .unified-list-desktop-actions > .unified-list-search-submit ~ .unified-list-action[data-list-secondary-action="true"] {
+    grid-column: 3;
+    grid-row: 1;
+  }
   html[data-design-layer="v2"] form.sb-list-query-card .sb-filter-more > summary {
     white-space: nowrap;
   }
@@ -2170,7 +2159,7 @@ html[data-design-layer="v2"] table[data-ui-table] > thead > tr > th {
   html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(2) { width: 5rem; }
   html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(3) { width: 7.5rem; }
   html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(4) { width: 6.75rem; }
-  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(5) { width: 5.5rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(5) { width: 8rem; }
   html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(6) { width: 5rem; }
   html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(7) { width: 5.5rem; }
   html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(8) { width: 6rem; }
@@ -2179,7 +2168,7 @@ html[data-design-layer="v2"] table[data-ui-table] > thead > tr > th {
   html[data-design-layer="v2"] .sb-outlet-daily-table:not(:has(th:nth-child(9))) :is(th, td):nth-child(1) { width: 2.5rem; }
   html[data-design-layer="v2"] .sb-outlet-daily-table:not(:has(th:nth-child(9))) :is(th, td):nth-child(2) { width: 5.5rem; }
   html[data-design-layer="v2"] .sb-outlet-daily-table:not(:has(th:nth-child(9))) :is(th, td):nth-child(3) { width: 8.5rem; }
-  html[data-design-layer="v2"] .sb-outlet-daily-table:not(:has(th:nth-child(9))) :is(th, td):nth-child(4) { width: 6rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:not(:has(th:nth-child(9))) :is(th, td):nth-child(4) { width: 8rem; }
   html[data-design-layer="v2"] .sb-outlet-daily-table:not(:has(th:nth-child(9))) :is(th, td):nth-child(5) { width: 5.5rem; }
   html[data-design-layer="v2"] .sb-outlet-daily-table:not(:has(th:nth-child(9))) :is(th, td):nth-child(6) { width: 6rem; }
   html[data-design-layer="v2"] .sb-outlet-daily-table:not(:has(th:nth-child(9))) :is(th, td):nth-child(7) { width: 6rem; }
@@ -2225,7 +2214,7 @@ html[data-design-layer="v2"] :where([class~="bg-card"], [class~="overflow-hidden
   margin-bottom: .75rem;
 }
 
-html[data-design-layer="v2"] :where([class~="bg-card"], [class~="overflow-hidden"]):has(> form.sb-list-query-card) > :where(.sb-table-shell, table, [role="table"], [data-operational-list]) {
+html[data-design-layer="v2"] :where([class~="bg-card"], [class~="overflow-hidden"]):has(> form.sb-list-query-card) > :where(table, [role="table"]) {
   border-radius: var(--sb-panel-radius);
   background: var(--sb-surface-raised);
   box-shadow: var(--sb-shadow-card);
@@ -2480,4 +2469,136 @@ html[data-touch-tablet="true"] [data-app-topbar] > .hidden.min-w-0.items-center 
 
 html[data-design-layer="v2"] [data-console-section] {
   box-shadow: var(--sb-shadow-card);
+}
+
+/* Explicit query slots: controls precede their aligned trailing command. */
+html[data-design-layer="v2"] form.sb-query-explicit {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end; gap: 8px; padding: 8px;
+}
+.sb-query-fields { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; min-width: 0; }
+.sb-query-fields > :not([type="hidden"]) { flex: 1 1 136px; min-width: 0; }
+.sb-query-fields label { display: grid; gap: 4px; }
+.sb-query-fields :is(input:not([type="hidden"]), [data-select-control]), .sb-query-actions > button { min-height: var(--sb-control-height); }
+.sb-query-actions { display: flex; align-items: end; justify-content: end; gap: 8px; }
+.sb-query-result { grid-column: 1 / -1; font-size: 12px; color: var(--sb-text-muted); text-align: right; }
+@media (max-width: 639px) {
+  html[data-design-layer="v2"] form.sb-query-explicit { grid-template-columns: minmax(0, 1fr); }
+  .sb-query-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sb-query-actions > button { width: 100%; }
+  .sb-query-actions { display: block; }
+}
+
+/* Production worksheet: identity and calculated values precede editable allocations. */
+html[data-design-layer="v2"] .sb-planning-worksheet .sb-table-region { max-height: calc(100dvh - 330px); min-height: 280px; overflow: auto; }
+html[data-design-layer="v2"] .sb-planning-matrix { table-layout: fixed; width: 100%; min-width: 0; border-collapse: separate; border-spacing: 0; }
+html[data-design-layer="v2"] .sb-planning-matrix :is(th,td) { padding: 8px; white-space: normal; vertical-align: top; }
+html[data-design-layer="v2"] .sb-planning-matrix thead th { position: sticky; top: 0; z-index: 12; background: var(--sb-surface-muted); }
+html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-product { width: 200px; min-width: 200px; max-width: 200px; overflow-wrap: anywhere; }
+html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-summary { width: 136px; min-width: 136px; }
+html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-outlet { min-width: 112px; }
+html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-retention { width: 96px; min-width: 96px; position: sticky; right: 0; z-index: 3; background: var(--sb-surface); box-shadow: -1px 0 var(--sb-border-soft); }
+html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-summary button { padding-inline: 4px; white-space: normal; text-align: left; width: 100%; }
+@media (max-width: 1023px) { html[data-design-layer="v2"] .sb-planning-worksheet .sb-table-region { max-height: 65dvh; } }
+html[data-design-layer="v2"] :is(.sb-planning-workspace, .sb-planning-actions, form.sb-query-explicit) { --sb-control-height: 2.25rem; }
+
+/* Operational controls share the register density; phone targets are enlarged below. */
+html[data-design-layer="v2"] form.sb-query-explicit :where(input:not([type="hidden"]), button, [data-select-control]),
+html[data-design-layer="v2"] :is(.sb-planning-workspace, .sb-planning-actions) :where(input:not([type="hidden"]), button.inline-flex, [data-select-control], a.inline-flex) {
+  height: var(--sb-control-height) !important;
+  min-height: var(--sb-control-height) !important;
+  max-height: var(--sb-control-height) !important;
+}
+html[data-design-layer="v2"] :is(.sb-planning-workspace, .sb-planning-actions, .sb-query-actions) button > svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* Operational desktop density follows the 36px register; phone targets retain 44px. */
+html[data-design-layer="v2"] .sb-query-fields > input[type="date"],
+html[data-design-layer="v2"] .sb-query-fields > :has(input[type="date"]) { flex: 0 1 168px; }
+html[data-design-layer="v2"] .sb-query-actions { align-items: center; }
+html[data-design-layer="v2"] .sb-query-actions > button { color: #084b37; background: #e7f1eb; }
+html[data-design-layer="v2"] .sb-planning-matrix tbody .sb-planning-product { position: sticky; left: 32px; z-index: 2; background: var(--sb-surface); }
+html[data-design-layer="v2"] .sb-planning-matrix thead .sb-planning-product { left: 32px; z-index: 14; }
+html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-summary .sb-planning-adjust { width: auto; height: 23px !important; min-height: 23px !important; max-height: 23px !important; padding: 0 8px; margin-top: 3px; color: #fff; background: #7c9b8d; font-size: 11px; font-weight: 500; gap: 4px; }
+html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-adjust > svg { width: 12px; height: 12px; }
+html[data-design-layer="v2"] .sb-planning-product button { min-height: 0; line-height: 18px; }
+@media (max-width: 1023px) {
+ html[data-design-layer="v2"] :is(.sb-planning-workspace, .sb-planning-actions, form.sb-query-explicit) { --sb-control-height: 2.75rem; }
+ html[data-design-layer="v2"] .sb-planning-product button { min-height: 44px; }
+ html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-summary .sb-planning-adjust { height: 44px !important; min-height: 44px !important; max-height: 44px !important; }
+ .sb-query-result { font-size: 11px; }
+}
+
+html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-index { width: 32px; min-width: 32px; position: sticky; left: 0; z-index: 2; background: var(--sb-surface); text-align: right; }
+html[data-design-layer="v2"] .sb-planning-matrix thead .sb-planning-index { top: 0; z-index: 14; background: var(--sb-surface-muted); }
+html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-outlet :is(input, [data-select-control]) { width: 96px; max-width: 100%; }
+html[data-design-layer="v2"] .sb-planning-adjust { color: #fff; background: #7c9b8d; }
+
+html[data-design-layer="v2"] .sb-planning-matrix tbody :is(th,td) { border-bottom: 1px solid var(--sb-border-soft); }
+html[data-design-layer="v2"] .sb-planning-matrix tbody tr:last-child :is(th,td) { border-bottom: 0; }
+
+html[data-design-layer="v2"] .sb-planning-matrix thead .sb-planning-retention { z-index: 14; background: var(--sb-surface-muted); }
+
+html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-gap { padding: 0; }
+
+/* Tablet quantities remain touch targets even when the row uses desktop columns. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  html[data-design-layer="v2"] [data-outlet-daily-lines] :is(input:not([type="hidden"]), select, button) {
+    min-height: 44px;
+    height: 44px;
+  }
+  html[data-design-layer="v2"] [data-outlet-daily-lines] button:has(svg) {
+    min-width: 44px;
+  }
+}
+
+/* Asset registers use the shared query card's compact command measure. */
+@media (min-width: 1280px) {
+  html[data-design-layer="v2"] form.sb-asset-query.sb-list-query-card {
+    flex-wrap: wrap !important;
+  }
+
+  html[data-design-layer="v2"] form.sb-asset-query.sb-list-query-card > :is(select, [data-select-control], .sb-filter-more, .unified-list-date-control),
+  html[data-design-layer="v2"] form.sb-asset-query.sb-list-query-card > .unified-list-desktop-actions > .unified-list-action {
+    flex: 0 0 8rem !important;
+    width: 8rem !important;
+    min-width: 8rem !important;
+    max-width: 8rem !important;
+  }
+  html[data-design-layer="v2"] form.sb-asset-query.sb-list-query-card > [data-search-control] {
+    flex: 1 1 10rem !important;
+    min-width: 10rem !important;
+    max-width: 11rem !important;
+  }
+  html[data-design-layer="v2"] form.sb-asset-query .unified-list-desktop-actions > .sb-filter-summary {
+    order: -1;
+  }
+  html[data-design-layer="v2"] form.sb-asset-query .sb-filter-more > summary {
+    white-space: nowrap;
+    gap: .375rem;
+  }
+}
+
+html[data-design-layer="v2"] .unified-list-date-control {
+  height: var(--sb-control-height) !important;
+  min-height: var(--sb-control-height) !important;
+  max-height: var(--sb-control-height) !important;
+}
+
+/* Four equal attendance fields. At compact canvas sizes actions wrap independently. */
+@media (min-width: 640px) {
+  html[data-design-layer="v2"] form.sb-list-filters.sb-list-query-card.sb-attendance-review-query {
+    display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  html[data-design-layer="v2"] form.sb-list-filters.sb-list-query-card.sb-attendance-review-query > :is(.unified-list-date-control, .unified-list-primary-control, button[role="combobox"]) {
+    width: 100% !important; min-width: 0 !important; max-width: none !important; grid-column: auto !important; grid-row: auto !important;
+  }
+  html[data-design-layer="v2"] form.sb-list-filters.sb-list-query-card.sb-attendance-review-query > .unified-list-desktop-actions {
+    grid-column: 1 / -1 !important; grid-row: auto !important; display: flex !important; justify-content: flex-end;
+  }
+}
+@media (min-width: 1280px) {
+  html[data-design-layer="v2"] form.sb-list-filters.sb-list-query-card.sb-attendance-review-query { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+}
+html[data-design-layer="v2"] form.sb-asset-query .unified-list-desktop-actions button > svg {
+  width: 1rem; height: 1rem; flex: none;
 }

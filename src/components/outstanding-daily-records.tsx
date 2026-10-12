@@ -1,0 +1,7 @@
+import Link from "next/link";
+import { ConsoleSection } from "@/components/layout/right-console";
+import { formatDateOnly } from "@/lib/utils";
+import type { getOutletDailyHistoricalContext } from "@/server/queries/outlet-daily-records";
+export function OutstandingDailyRecords({history}:{history:Awaited<ReturnType<typeof getOutletDailyHistoricalContext>>}) {
+ return <ConsoleSection title="Outstanding daily records"><p className="mb-2 text-xs text-muted-foreground">{formatDateOnly(history.start)} - {formatDateOnly(history.end)} · not posted</p>{history.gaps.length?<ul className="space-y-2">{history.gaps.map(outlet=><li key={outlet.branch_id} className="text-xs"><details><summary className="cursor-pointer py-1 font-medium">{outlet.branch_name} · {outlet.gaps.length} days</summary><ul className="mt-1 space-y-1">{outlet.gaps.map(cell=><li key={cell.record_date}><Link className="underline" href={cell.record_id?`/outlet-daily-records/${cell.record_id}`:`/outlet-daily-records?branch=${cell.branch_id}&date=${cell.record_date}`}>{formatDateOnly(cell.record_date)} · {cell.status==="missing"?"No record":cell.status==="evening_completed"?"Ready to post":cell.status==="void"?"Void":"Incomplete"}</Link></li>)}</ul></details></li>)}</ul>:<p className="text-xs">All records posted in this period.</p>}<Link className="mt-3 block text-xs underline" href={`/outlet-daily-records/insights?report=completion&period=30&history_date=${history.end}`}>View completion history</Link></ConsoleSection>;
+}

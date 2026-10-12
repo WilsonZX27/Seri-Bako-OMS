@@ -75,7 +75,7 @@ export async function createStockTransfer(formData: FormData) {
     redirect(`/stock-transfers/${created.id}`);
   } catch (error) {
     rethrowRedirect(error);
-    safeRedirectWithMessage("/stock-transfers/new", "error", formatActionError(error, "Could not create this stock transfer."));
+    return { error: formatActionError(error, "Could not create this stock transfer.") };
   }
 }
 

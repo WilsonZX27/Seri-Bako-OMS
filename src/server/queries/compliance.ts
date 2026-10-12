@@ -1,7 +1,8 @@
+import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 import { isMockMode } from "@/lib/mock-mode";
 import { todayInKualaLumpur } from "@/lib/business-date";
 import { createClient } from "@/lib/supabase/server";
-import { getCurrentProfile } from "@/server/queries/common";
+import { getCurrentProfile, requireReadRows } from "@/server/queries/common";
 
 export type ComplianceState = "expired" | "due_7" | "due_30" | "due_60" | "due_90" | "valid" | "missing" | "pending_review" | "returned";
 export type ComplianceAttachment = { id: string; entity_id: string; file_name: string; file_type: string | null; file_size: number; storage_path: string | null; file_url: string | null; status: string; uploaded_by: string | null; created_at: string; uploaded_by_name: string | null };
@@ -21,29 +22,10 @@ export function complianceState(expiresOn: string | null, reviewStatus: string, 
   return "valid";
 }
 
-export async function getComplianceWorkspace(filters: { state?: string; branch?: string } = {}) {
-  if (isMockMode()) return { records: [], types: [], branches: [], staffs: [] };
-  const [supabase, profile] = await Promise.all([createClient(), getCurrentProfile()]);
-  if (!profile?.company_id) return { records: [], types: [], branches: [], staffs: [] };
-  const [recordsResult, typesResult, branchesResult, staffsResult] = await Promise.all([
-    supabase.from("compliance_records").select("*").eq("company_id", profile.company_id).is("deleted_at", null).order("expires_on", { ascending: true, nullsFirst: false }),
-    supabase.from("compliance_types").select("*").eq("company_id", profile.company_id).eq("status", "active").is("deleted_at", null).order("type_name"),
-    supabase.from("branches").select("id, branch_name").eq("company_id", profile.company_id).eq("status", "active").is("deleted_at", null).order("branch_name"),
-    supabase.from("staffs").select("id, full_name, default_branch_id").eq("company_id", profile.company_id).eq("status", "active").is("deleted_at", null).order("full_name"),
-  ]);
-  for (const result of [recordsResult, typesResult, branchesResult, staffsResult]) if (result.error) throw new Error(result.error.message);
-  const typeById = new Map((typesResult.data ?? []).map((row) => [row.id, row]));
-  const ownerById = new Map((staffsResult.data ?? []).map((row) => [row.id, row.full_name]));
-  const records = (recordsResult.data ?? []).map((record) => {
-    const type = typeById.get(record.compliance_type_id);
-    const state = complianceState(record.expires_on, record.review_status, Boolean(record.attachment_id));
-    return { ...record, type_name: type?.type_name ?? "Unavailable type", is_sensitive: type?.is_sensitive ?? false, state, responsible_name: record.responsible_staff_id ? ownerById.get(record.responsible_staff_id) ?? "Unassigned" : "Unassigned" };
-  }).filter((record) => (!filters.state || filters.state === "all" || record.state === filters.state) && (!filters.branch || filters.branch === "all" || record.branch_id === filters.branch));
-  return { records, types: typesResult.data ?? [], branches: branchesResult.data ?? [], staffs: staffsResult.data ?? [] };
-}
-
 export async function getOutletComplianceWorkspace(branchId?: string) {
   if (isMockMode()) return { branches: [], requirements: [], records: [], migrationReady: true };
+  const actor = await requireActiveTenantActor();
+  if (["outlet_staff", "outlet_supervisor"].includes(actor.roleCode)) throw new Error("Outlet compliance is restricted to management.");
   const [supabase, profile] = await Promise.all([createClient(), getCurrentProfile()]);
   if (!profile?.company_id) return { branches: [], requirements: [], records: [], migrationReady: true };
   let branchesQuery = supabase.from("branches").select("id,branch_code,branch_name,branch_type").eq("company_id", profile.company_id).in("branch_type", ["outlet", "central_kitchen"]).eq("status", "active").is("deleted_at", null).order("branch_name");
@@ -94,6 +76,76 @@ export async function getOutletComplianceWorkspace(branchId?: string) {
   const requirementRows = (branchesResult.data ?? []).flatMap((branch) => (typesResult.data ?? []).map((type) => savedRequirementByKey.get(`${branch.id}:${type.id}`) ?? ({ id: `${branch.id}:${type.id}`, branch_id: branch.id, compliance_type_id: type.id, is_required: true, waiver_reason: null })));
   const requirements = requirementRows.map((row) => ({ ...row, type: typeById.get(row.compliance_type_id)!, record: latestByRequirement.get(`${row.branch_id}:${row.compliance_type_id}`) ?? null }));
   return { branches: branchesResult.data ?? [], requirements, records, migrationReady };
+}
+
+export async function getOutletComplianceIssueCount(): Promise<number> {
+  if (isMockMode()) return 0;
+  const [supabase, profile] = await Promise.all([createClient(), getCurrentProfile()]);
+  if (!profile?.company_id) return 0;
+
+  const [branchesResult, typesResult, recordsResult] = await Promise.all([
+    supabase
+      .from("branches")
+      .select("id")
+      .eq("company_id", profile.company_id)
+      .in("branch_type", ["outlet", "central_kitchen"])
+      .eq("status", "active")
+      .is("deleted_at", null),
+    supabase
+      .from("compliance_types")
+      .select("id")
+      .eq("company_id", profile.company_id)
+      .eq("subject_kind", "outlet")
+      .eq("status", "active")
+      .eq("is_required", true)
+      .eq("module_scope", "outlet")
+      .is("deleted_at", null),
+    supabase
+      .from("compliance_records")
+      .select("id,branch_id,compliance_type_id,expires_on,review_status,updated_at")
+      .eq("company_id", profile.company_id)
+      .eq("subject_kind", "outlet")
+      .is("deleted_at", null)
+      .order("updated_at", { ascending: false }),
+  ]);
+  for (const result of [branchesResult, typesResult, recordsResult]) {
+    if (result.error) throw new Error(result.error.message);
+  }
+
+  const records = requireReadRows(recordsResult.data, "Outlet compliance issue records");
+  const recordIds = records.map((record) => record.id);
+  const attachmentResult = recordIds.length
+    ? await supabase
+      .from("attachments")
+      .select("entity_id")
+      .eq("company_id", profile.company_id)
+      .eq("entity_type", "compliance_record")
+      .in("entity_id", recordIds)
+      .eq("status", "active")
+      .is("deleted_at", null)
+    : { data: [] as { entity_id: string }[], error: null };
+  if (attachmentResult.error) throw new Error(attachmentResult.error.message);
+
+  const recordsWithEvidence = new Set(requireReadRows(attachmentResult.data, "Outlet compliance evidence identities").map((row) => row.entity_id));
+  const latestByRequirement = new Map<string, (typeof records)[number]>();
+  for (const record of records) {
+    const key = `${record.branch_id}:${record.compliance_type_id}`;
+    if (!latestByRequirement.has(key)) latestByRequirement.set(key, record);
+  }
+
+  let issues = 0;
+  for (const branch of requireReadRows(branchesResult.data, "Outlet compliance issue branches")) {
+    for (const type of requireReadRows(typesResult.data, "Outlet compliance issue types")) {
+      const record = latestByRequirement.get(`${branch.id}:${type.id}`);
+      if (!record) {
+        issues += 1;
+        continue;
+      }
+      const state = complianceState(record.expires_on, record.review_status, recordsWithEvidence.has(record.id));
+      if (state === "missing" || state === "expired") issues += 1;
+    }
+  }
+  return issues;
 }
 
 export async function getPeopleCompliance(staffId?: string) {

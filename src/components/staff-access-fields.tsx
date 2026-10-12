@@ -56,7 +56,7 @@ export function StaffAccessFields({ branches, roles, access }: { branches: Branc
       <div className="md:col-span-2">
         <Field label="Accessible Branches" required>
           {availableBranches.length ? (
-            <div className="rounded-[2px] border p-3">
+            <div className="rounded-[var(--sb-panel-radius)] border p-3">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2 border-b pb-2">
                 <span className="text-xs font-medium text-muted-foreground">{branchIds.length} selected</span>
                 <div className="flex gap-2">
@@ -84,7 +84,7 @@ export function StaffAccessFields({ branches, roles, access }: { branches: Branc
               })}
               </div>
             </div>
-          ) : <p className="rounded-[2px] border border-dashed p-3 text-sm text-muted-foreground">Create an eligible active branch before assigning this role.</p>}
+          ) : <p className="rounded-[var(--sb-panel-radius)] border border-dashed p-3 text-sm text-muted-foreground">Create an eligible active branch before assigning this role.</p>}
         </Field>
       </div>
     </div>

@@ -49,7 +49,7 @@ test("Outlet Daily uses clear table labels, width authority, and shared timeline
   assert.match(list, /label="Last Updated"/);
   assert.doesNotMatch(list, /\? "Confirmed"/);
   assert.match(detail, /<TimelineEventList events=/);
-  assert.match(form, /minmax\(14rem,20rem\)/);
+  assert.match(form, /sm:w-64/);
   assert.match(timeline, /relative ml-2 flex gap-3 border-l/);
 });
 

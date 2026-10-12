@@ -1,0 +1,7 @@
+# Management email notifications
+
+The initial pilot sends only to `wilson@seribako.com.my`, and only if this address belongs to an active Owner (`super_admin`), Manager, or People Operations account. It includes pending documents, submitted outlet schedules, and outlet compliance records expiring within 30 days. Outlet Staff and Outlet Supervisors are never recipients. The email contains only a short summary and a dashboard link; compliance attachments and sensitive fields are excluded. Expanding the recipient list requires a code change and review.
+
+At 01:00 UTC (09:00 Malaysia time), Vercel calls `/api/cron/management-email`. The route requires `Authorization: Bearer $CRON_SECRET`. Set `CRON_SECRET`, `RESEND_API_KEY`, and `MANAGEMENT_EMAIL_PILOT_RECIPIENT=wilson@seribako.com.my` in the Vercel project, verify `seribako.com.my` as a sending domain with the provider, then apply migration `315_management_email_dispatches.sql` before enabling the cron. The sender is fixed to `Seri Bako Operations <admin@seribako.com.my>`. A missing or different pilot-recipient setting fails closed.
+
+The database log claims one digest per recipient per Malaysia calendar day before delivery, and Resend receives the same idempotency key. Failed claims remain visible for investigation and are not retried automatically to avoid duplicate emails after provider timeouts. A missing secret or API key fails closed and sends nothing. Check `management_email_dispatches` for `failed` rows and the cron response for delivery counts.

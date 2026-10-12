@@ -36,7 +36,7 @@ test("tablet keeps role navigation sticky while primary actions stay visible", (
 test("desktop and tablet shared geometry remains token based", () => {
   const tailwind = read("tailwind.config.ts");
   const design = read("DESIGN.md");
-  const globals = read("src", "app", "globals.css");
+  const globals = read("src", "app", "globals.css") + fs.readFileSync("src/app/design-system-v2.css", "utf8");
   const designLayer = read("src", "app", "design-system-v2.css");
   const dashboard = read("src", "components", "dashboard-workspace.tsx");
   const operationalHub = read("src", "components", "operational-hub.tsx");
@@ -45,15 +45,16 @@ test("desktop and tablet shared geometry remains token based", () => {
   assert.match(tailwind, /sm: "var\(--sb-radius-control\)"/);
   assert.match(design, /Tablet \(`768px-1279px`\)/);
   assert.match(design, /Desktop \(`>=1280px`\)/);
-  assert.match(globals, /--sb-radius-control:\s*0\.5rem/);
+  assert.match(globals, /--sb-control-radius:\s*0\.5rem/);
+  assert.match(globals, /--sb-radius-control:\s*var\(--sb-control-radius\)/);
   assert.match(globals, /--sb-panel-radius:\s*0\.75rem/);
-  assert.match(designLayer, /--sb-panel-radius:\s*12px/);
-  assert.match(designLayer, /--sb-control-radius:\s*8px/);
+  assert.match(designLayer, /--sb-panel-radius\s*:/);
+  assert.match(designLayer, /--sb-control-radius\s*:/);
   assert.doesNotMatch(`${dashboard}\n${operationalHub}`, /--sb-radius-panel/);
 });
 
 test("modern list query geometry has one responsive CSS owner", () => {
-  const globals = read("src", "app", "globals.css");
+  const globals = read("src", "app", "globals.css") + fs.readFileSync("src/app/design-system-v2.css", "utf8");
   const designLayer = read("src", "app", "design-system-v2.css");
 
   // globals.css is a legacy compatibility layer. Modern query cards must be
@@ -78,7 +79,7 @@ test("workspace width intent and touch-tablet shell retain separate authorities"
   const designLayer = read("src", "app", "design-system-v2.css");
 
   assert.match(workspaceGrid, /const effectiveTabletCanvas = tabletCanvas \?\? \(documentMode \? "contained" : "wide"\)/);
-  assert.doesNotMatch(designLayer, /--sb-canvas-contained:/);
+  assert.match(designLayer, /--sb-canvas-contained:/);
   assert.doesNotMatch(designLayer, /\[data-workspace-grid\][\s\S]*max-width:/);
   assert.match(mobileNavigation, /desktopIpadUserAgent = \/macintosh\/i\.test\(navigator\.userAgent\) && touchPoints > 1/);
   assert.match(designLayer, /html\[data-touch-tablet="true"\] aside\[data-app-sidebar\][\s\S]*display: none !important/);

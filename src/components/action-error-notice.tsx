@@ -3,6 +3,7 @@
 import { AlertTriangle } from "lucide-react";
 import { useEffect, useRef, type ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { recoverField } from "@/lib/field-recovery";
 
 type ActionErrorNoticeProps = {
   message?: string;
@@ -45,17 +46,11 @@ export function ActionErrorNotice({ message, action }: ActionErrorNoticeProps) {
     if (!message) return;
     const targetConfig = FIELD_TARGETS.find(({ pattern }) => pattern.test(message));
     const target = targetConfig ? firstVisibleTarget(targetConfig.selectors) : null;
-    const highlighted = target;
     if (target) {
-      target.classList.add("border-rose-500", "ring-2", "ring-rose-200");
-      target.scrollIntoView({ behavior: "smooth", block: "center" });
-      window.setTimeout(() => target.focus({ preventScroll: true }), 180);
+      return recoverField(target, message);
     } else {
-      wrapperRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      wrapperRef.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
     }
-    return () => {
-      highlighted?.classList.remove("border-rose-500", "ring-2", "ring-rose-200");
-    };
   }, [message]);
 
   if (!message) return null;

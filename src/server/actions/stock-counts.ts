@@ -100,7 +100,7 @@ function extractRetirementRequests(formData: FormData) {
     item_id: z.string().uuid().parse(itemId),
     reason: z.enum(["used_up", "wrong_or_duplicate_code", "branch_no_longer_uses", "other"]).parse(reasons[index]),
     note: z.string().trim().min(3).max(1_000).parse(notes[index]),
-    actual_qty: z.coerce.number().min(0).max(1_000_000).parse(quantities[index]),
+    actual_qty: z.coerce.number().max(0, "An item can retire only after its final physical count is zero.").parse(quantities[index]),
   }] : []);
 }
 

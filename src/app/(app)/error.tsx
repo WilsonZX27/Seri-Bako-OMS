@@ -12,7 +12,7 @@ export default function WorkspaceError({ error, reset }: { error: Error & { dige
         <CardContent className="space-y-3 p-4 sm:p-5">
           <div>
             <h1 className="text-sm font-semibold">{missingRecord ? "Record unavailable" : "This workspace could not finish the request"}</h1>
-            <p className="mt-1 text-xs text-muted-foreground">{missingRecord ? "This record is not available in the current workspace, or it has already been removed." : "Your saved records are unchanged unless a success message was shown. Retry, or return to a safe workspace."}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{missingRecord ? "This record is not available in the current workspace, or it has already been removed." : "The result could not be confirmed. Changes may already be saved. Check the record before trying the action again."}</p>
             {error.digest ? <p className="mt-2 text-xs text-muted-foreground">Reference: {error.digest}</p> : null}
           </div>
           <div className="flex flex-wrap gap-2">

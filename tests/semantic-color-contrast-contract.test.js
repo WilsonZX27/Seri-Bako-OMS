@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-const globals = readFileSync("src/app/globals.css", "utf8");
+const globals = readFileSync("src/app/globals.css", "utf8") + readFileSync("src/app/design-system-v2.css", "utf8");
 const procurement = readFileSync("src/app/(app)/reports/procurement-variance/page.tsx", "utf8");
 const sidebar = readFileSync("src/components/layout/workspace-sidebar.tsx", "utf8");
 

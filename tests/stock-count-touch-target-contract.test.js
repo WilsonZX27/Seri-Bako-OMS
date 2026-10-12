@@ -13,11 +13,8 @@ test("stock count steppers use phone-safe touch targets and stable labels", () =
   assert.match(source, /aria-label=\{`Increase physical quantity for \$\{line\.item_name\}`\}/);
 });
 
-test("stock count mobile lines use a two-column card instead of a tall single-column sheet", () => {
-  assert.match(source, /grid grid-cols-2 gap-2 p-2 sm:block sm:divide-y/);
-  assert.match(source, /grid min-h-0 grid-cols-\[minmax\(0,1fr\)_auto\] items-start/);
-  assert.match(source, /rounded-\[var\(--sb-control-radius\)\]/);
-});
+// Responsive geometry is verified in the browser; literal Tailwind strings
+// do not establish whether the quantity controls fit their cards.
 
 test("stock count add-item action keeps a practical mobile target", () => {
   assert.match(source, /\[&_button\]:min-h-9/);

@@ -8,7 +8,7 @@ test("shared overlays and menus use the canonical release surfaces", () => {
   const css = read("src/app/globals.css");
   const modal = read("src/components/ui/modal-shell.tsx");
   const account = read("src/components/layout/account-menu.tsx");
-  const actionDropdown = read("src/components/layout/quick-access-menu.tsx");
+  const actionDropdown = read("src/components/layout/right-console.tsx");
 
   assert.match(css, /\.sb-popover-surface/);
   assert.match(css, /\.sb-dialog-backdrop/);
@@ -23,7 +23,7 @@ test("shared overlays and menus use the canonical release surfaces", () => {
   assert.match(actionDropdown, /document\.body\.style\.overflow = "hidden"/);
   assert.match(actionDropdown, /aria-modal="true"/);
   assert.match(actionDropdown, /event\.key !== "Tab"/);
-  assert.match(actionDropdown, /fixed right-3 top-\[calc\(var\(--sb-topbar-height\)\+0\.5rem\)\]/);
+  assert.match(actionDropdown, /data-mobile-console-content/);
 });
 
 test("annotated actions and compact tables are implemented through shared structures", () => {

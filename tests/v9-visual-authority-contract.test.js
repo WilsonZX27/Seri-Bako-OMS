@@ -4,7 +4,7 @@ const path = require("node:path");
 const test = require("node:test");
 
 const root = path.resolve(__dirname, "..");
-const globals = fs.readFileSync(path.join(root, "src", "app", "globals.css"), "utf8");
+const globals = fs.readFileSync(path.join(root, "src", "app", "globals.css"), "utf8") + fs.readFileSync("src/app/design-system-v2.css", "utf8");
 const design = fs.readFileSync(path.join(root, "src", "app", "design-system-v2.css"), "utf8");
 const table = fs.readFileSync(path.join(root, "src", "components", "ui", "table.tsx"), "utf8");
 const mobileDocumentSurfaces = fs.readFileSync(path.join(root, "src", "components", "documents", "mobile-document-surfaces.tsx"), "utf8");
@@ -35,8 +35,8 @@ test("v9 motion stays purposeful and respects reduced-motion preferences", () =>
   assert.match(globals, /@media \(prefers-reduced-motion: reduce\)[\s\S]*transition-duration:\s*0\.01ms/);
 });
 
-test("v9 compact mobile workflow controls retain a practical touch target", () => {
-  assert.match(mobileDocumentSurfaces, /triggerClassName="h-9 min-h-9[^\"]*text-\[12px\]/);
+test("v9 mobile workflow controls use the shared touch target", () => {
+  assert.match(mobileDocumentSurfaces, /triggerClassName="h-\[var\(--sb-control-height\)\] min-h-\[var\(--sb-control-height\)\][^\"]*text-\[12px\]/);
   assert.doesNotMatch(mobileDocumentSurfaces, /triggerClassName="h-8 min-h-8[^\"]*Step/);
 });
 

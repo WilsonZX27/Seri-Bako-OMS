@@ -3,7 +3,7 @@ import { todayInKualaLumpur } from "@/lib/business-date";
 import { createClient } from "@/lib/supabase/server";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
 import { actorDisplayName, resolveActorDisplayMap } from "@/server/actors/display";
-import { getStockBalanceDetails } from "@/server/queries/inventory";
+import { getStockAvailabilityOptions } from "@/server/queries/inventory";
 import type { Database } from "@/types/database";
 import { requireReadCount, requireReadRows } from "@/server/queries/common";
 import { requireDetailRow } from "@/server/queries/detail";
@@ -16,6 +16,9 @@ type WastageLine = Database["public"]["Tables"]["stock_wastage_lines"]["Row"];
 const OPERATION_PAGE_SIZE = 12;
 const TRANSFER_SORT_COLUMNS = new Set(["transfer_no", "transfer_date", "status", "updated_at"]);
 const WASTAGE_SORT_COLUMNS = new Set(["wastage_no", "wastage_date", "status", "reason", "updated_at"]);
+
+export type StockTransferSummary = { total: number; draft: number; inTransit: number; completed: number };
+export type StockWastageSummary = { total: number; inReview: number; posted: number };
 
 function requestedPage(pageValue?: string) {
   const parsed = Number(pageValue ?? "1");
@@ -110,6 +113,24 @@ export async function getStockTransfers(filters: Filters = {}) {
   return databasePagination(rows, trustedCount, filters.page);
 }
 
+export async function getStockTransferSummary(): Promise<StockTransferSummary> {
+  if (isMockMode()) {
+    const rows = mockStockTransfers.filter((row) => !row.deleted_at);
+    return {
+      total: rows.length,
+      draft: rows.filter((row) => row.status === "draft").length,
+      inTransit: rows.filter((row) => row.status === "in_transit").length,
+      completed: rows.filter((row) => row.status === "completed").length,
+    };
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_stock_transfer_summary");
+  if (error) throw new Error(error.message);
+  const summary = requireReadRows(data, "Stock transfer summary")[0];
+  if (!summary) throw new Error("Stock transfer summary returned no data.");
+  return { total: Number(summary.total), draft: Number(summary.draft), inTransit: Number(summary.in_transit), completed: Number(summary.completed) };
+}
+
 export async function getStockTransfer(id: string) {
   if (isMockMode()) {
     const transfer = requireDetailRow(mockStockTransfers.find((row) => row.id === id), "Stock transfer", id);
@@ -187,6 +208,23 @@ export async function getStockWastage(filters: Filters = {}) {
   return databasePagination(rows, trustedCount, filters.page);
 }
 
+export async function getStockWastageSummary(): Promise<StockWastageSummary> {
+  if (isMockMode()) {
+    const rows = mockStockWastage.filter((row) => !row.deleted_at);
+    return {
+      total: rows.length,
+      inReview: rows.filter((row) => row.status === "submitted" || row.status === "approved").length,
+      posted: rows.filter((row) => row.status === "posted").length,
+    };
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_stock_wastage_summary");
+  if (error) throw new Error(error.message);
+  const summary = requireReadRows(data, "Stock wastage summary")[0];
+  if (!summary) throw new Error("Stock wastage summary returned no data.");
+  return { total: Number(summary.total), inReview: Number(summary.in_review), posted: Number(summary.posted) };
+}
+
 export async function getStockWastageDetail(id: string) {
   if (isMockMode()) {
     const wastage = requireDetailRow(mockStockWastage.find((row) => row.id === id), "Stock wastage", id);
@@ -219,8 +257,8 @@ export async function getStockWastageDetail(id: string) {
 }
 
 export async function getOperationSeedLines(branchId?: string) {
-  const balances = await getStockBalanceDetails({ page: "all", branch_id: branchId });
-  return balances.rows
-    .filter((row) => branchId ? row.branch_id === branchId : true)
+  if (!branchId) return [];
+  const balances = await getStockAvailabilityOptions({ branchId });
+  return balances
     .map((row) => ({ item_id: row.item_id, item_code: row.item_code, item_name: row.item_name, available_qty: row.current_qty, quantity: Math.min(Math.max(row.current_qty, 1), 5), uom: row.base_unit }));
 }

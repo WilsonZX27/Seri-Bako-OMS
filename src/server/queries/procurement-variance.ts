@@ -4,7 +4,17 @@ import { requirePermission } from "@/server/auth/permissions";
 import { requireReadRows } from "@/server/queries/common";
 
 type Filters = { search?: string; supplier?: string; item?: string; status?: string; date_from?: string; date_to?: string };
-type Data = { orders: typeof mockPurchaseOrders; orderLines: typeof mockPurchaseOrderLines; receivings: typeof mockGoodsReceivings; receivingLines: typeof mockGoodsReceivingLines; invoices: typeof mockSupplierInvoices; invoiceLines: typeof mockSupplierInvoiceLines; suppliers: typeof mockSuppliers; items: typeof mockItems; supplierItems: typeof mockSupplierItems };
+type Data = {
+  orders: Pick<(typeof mockPurchaseOrders)[number], "id" | "deleted_at" | "supplier_id" | "po_no" | "order_date">[];
+  orderLines: Pick<(typeof mockPurchaseOrderLines)[number], "id" | "purchase_order_id" | "item_id" | "qty_ordered" | "unit_price">[];
+  receivings: Pick<(typeof mockGoodsReceivings)[number], "id" | "deleted_at" | "grn_no" | "received_date">[];
+  receivingLines: Pick<(typeof mockGoodsReceivingLines)[number], "id" | "purchase_order_line_id" | "goods_receiving_id" | "uom" | "unit_cost" | "received_qty">[];
+  invoices: Pick<(typeof mockSupplierInvoices)[number], "id" | "deleted_at" | "status" | "invoice_no">[];
+  invoiceLines: Pick<(typeof mockSupplierInvoiceLines)[number], "goods_receiving_line_id" | "purchase_order_line_id" | "supplier_invoice_id" | "invoice_unit_price" | "invoice_qty">[];
+  suppliers: Pick<(typeof mockSuppliers)[number], "id" | "deleted_at" | "name">[];
+  items: Pick<(typeof mockItems)[number], "id" | "deleted_at" | "item_code" | "item_name">[];
+  supplierItems: Pick<(typeof mockSupplierItems)[number], "supplier_id" | "item_id" | "status" | "deleted_at" | "purchase_uom" | "unit_cost">[];
+};
 export type ProcurementVarianceRow = { id: string; item_id: string; item_code: string; item_name: string; supplier: string; po_no: string; grn_no: string | null; invoice_no: string | null; comparison_date: string; ordered_qty: number; received_qty: number | null; invoiced_qty: number | null; po_unit_price: number; grn_unit_price: number | null; invoice_unit_price: number | null; reference_supplier_price: number | null; price_variance_amount: number | null; price_variance_percent: number | null; quantity_variance: number | null; status: "Matched" | "Price variance" | "Quantity variance" | "Missing invoice" | "Missing GRN" | "Not linked" | "Review manually" };
 
 const priceVariance = (expected: number, actual: number) => actual - expected;
@@ -16,15 +26,38 @@ export function buildProcurementVariance(data: Data, filters: Filters = {}) {
   const items = new Map(data.items.filter((row) => !row.deleted_at).map((row) => [row.id, row]));
   const receivings = new Map(data.receivings.filter((row) => !row.deleted_at).map((row) => [row.id, row]));
   const invoiceHeaders = new Map(data.invoices.filter((row) => !row.deleted_at && row.status !== "void").map((row) => [row.id, row]));
+  const receivingLinesByOrderLine = new Map<string, Data["receivingLines"]>();
+  for (const row of data.receivingLines) {
+    if (!receivings.has(row.goods_receiving_id)) continue;
+    const bucket = receivingLinesByOrderLine.get(row.purchase_order_line_id) ?? [];
+    bucket.push(row);
+    receivingLinesByOrderLine.set(row.purchase_order_line_id, bucket);
+  }
+  const invoiceLinesByReceivingAndOrderLine = new Map<string, Data["invoiceLines"]>();
+  for (const row of data.invoiceLines) {
+    if (!invoiceHeaders.has(row.supplier_invoice_id)) continue;
+    const key = `${row.goods_receiving_line_id}:${row.purchase_order_line_id}`;
+    const bucket = invoiceLinesByReceivingAndOrderLine.get(key) ?? [];
+    bucket.push(row);
+    invoiceLinesByReceivingAndOrderLine.set(key, bucket);
+  }
+  const supplierItemsByIdentity = new Map<string, Data["supplierItems"]>();
+  for (const row of data.supplierItems) {
+    if (row.status !== "active" || row.deleted_at) continue;
+    const key = `${row.supplier_id}:${row.item_id}:${row.purchase_uom}`;
+    const bucket = supplierItemsByIdentity.get(key) ?? [];
+    bucket.push(row);
+    supplierItemsByIdentity.set(key, bucket);
+  }
   const rows: ProcurementVarianceRow[] = data.orderLines.flatMap((line): ProcurementVarianceRow[] => {
     const order = orders.get(line.purchase_order_id); const item = items.get(line.item_id);
-    const grnLines = data.receivingLines.filter((row) => row.purchase_order_line_id === line.id && receivings.has(row.goods_receiving_id));
+    const grnLines = receivingLinesByOrderLine.get(line.id) ?? [];
     if (!order || !item) return [];
     if (!grnLines.length) return [{ id: line.id, item_id: line.item_id, item_code: item.item_code, item_name: item.item_name, supplier: suppliers.get(order.supplier_id)?.name ?? "Unknown supplier", po_no: order.po_no, grn_no: null, invoice_no: null, comparison_date: order.order_date, ordered_qty: Number(line.qty_ordered), received_qty: null, invoiced_qty: null, po_unit_price: Number(line.unit_price), grn_unit_price: null, invoice_unit_price: null, reference_supplier_price: null, price_variance_amount: null, price_variance_percent: null, quantity_variance: null, status: "Missing GRN" }];
     return grnLines.map((grnLine) => {
       const grn = receivings.get(grnLine.goods_receiving_id)!;
-      const invoiceLines = data.invoiceLines.filter((row) => row.goods_receiving_line_id === grnLine.id && row.purchase_order_line_id === line.id && invoiceHeaders.has(row.supplier_invoice_id));
-      const supplierItems = data.supplierItems.filter((row) => row.supplier_id === order.supplier_id && row.item_id === line.item_id && row.status === "active" && !row.deleted_at && row.purchase_uom === grnLine.uom);
+      const invoiceLines = invoiceLinesByReceivingAndOrderLine.get(`${grnLine.id}:${line.id}`) ?? [];
+      const supplierItems = supplierItemsByIdentity.get(`${order.supplier_id}:${line.item_id}:${grnLine.uom}`) ?? [];
       const invoice = invoiceLines.length === 1 ? invoiceHeaders.get(invoiceLines[0].supplier_invoice_id)! : null;
       const invoiceLine = invoiceLines.length === 1 ? invoiceLines[0] : null;
       const amount = priceVariance(Number(line.unit_price), Number(grnLine.unit_cost));
@@ -42,7 +75,17 @@ export async function getProcurementVariance(filters: Filters = {}) {
   await requirePermission("reports.view");
   if (isMockMode()) return buildProcurementVariance({ orders: mockPurchaseOrders, orderLines: mockPurchaseOrderLines, receivings: mockGoodsReceivings, receivingLines: mockGoodsReceivingLines, invoices: mockSupplierInvoices, invoiceLines: mockSupplierInvoiceLines, suppliers: mockSuppliers, items: mockItems, supplierItems: mockSupplierItems }, filters);
   const supabase = await createClient();
-  const [orders, orderLines, receivings, receivingLines, invoices, invoiceLines, suppliers, items, supplierItems] = await Promise.all([supabase.from("purchase_orders").select("*").is("deleted_at", null), supabase.from("purchase_order_lines").select("*"), supabase.from("goods_receivings").select("*").is("deleted_at", null), supabase.from("goods_receiving_lines").select("*"), supabase.from("supplier_invoices").select("*").is("deleted_at", null), supabase.from("supplier_invoice_lines").select("*"), supabase.from("suppliers").select("*").is("deleted_at", null), supabase.from("items").select("*").is("deleted_at", null), supabase.from("supplier_items").select("*").is("deleted_at", null)]);
+  const [orders, orderLines, receivings, receivingLines, invoices, invoiceLines, suppliers, items, supplierItems] = await Promise.all([
+    supabase.from("purchase_orders").select("id,deleted_at,supplier_id,po_no,order_date").is("deleted_at", null),
+    supabase.from("purchase_order_lines").select("id,purchase_order_id,item_id,qty_ordered,unit_price"),
+    supabase.from("goods_receivings").select("id,deleted_at,grn_no,received_date").is("deleted_at", null),
+    supabase.from("goods_receiving_lines").select("id,purchase_order_line_id,goods_receiving_id,uom,unit_cost,received_qty"),
+    supabase.from("supplier_invoices").select("id,deleted_at,status,invoice_no").is("deleted_at", null),
+    supabase.from("supplier_invoice_lines").select("goods_receiving_line_id,purchase_order_line_id,supplier_invoice_id,invoice_unit_price,invoice_qty"),
+    supabase.from("suppliers").select("id,deleted_at,name").is("deleted_at", null),
+    supabase.from("items").select("id,deleted_at,item_code,item_name").is("deleted_at", null),
+    supabase.from("supplier_items").select("supplier_id,item_id,status,deleted_at,purchase_uom,unit_cost").is("deleted_at", null),
+  ]);
   for (const result of [orders, orderLines, receivings, receivingLines, invoices, invoiceLines, suppliers, items, supplierItems]) if (result.error) throw new Error(result.error.message);
   return buildProcurementVariance({
     orders: requireReadRows(orders.data, "Procurement variance purchase orders"),

@@ -6,10 +6,10 @@ const path = require("node:path");
 const root = path.resolve(__dirname, "..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
-test("outlet completion matrix uses a bounded seven-day header query and preserves authoritative states", () => {
+test("outlet completion matrix uses a bounded selected-period header query and preserves authoritative states", () => {
   const query = read("src/server/queries/outlet-daily-records.ts");
   assert.match(query, /getOutletDailyCompletionMatrix/);
-  assert.match(query, /const start = shiftDate\(end, -6\)/);
+  assert.match(query, /insightRange\(insightPeriod\(filters\.period\),end,filters\.history_start\)/);
   assert.match(query, /select\("id,branch_id,record_date,status,sales_review_status,updated_at"\)/);
   assert.match(query, /\.gte\("record_date", start\)[\s\S]*\.lte\("record_date", end\)/);
   assert.match(query, /record\?\.status \?\? "missing"/);
@@ -25,7 +25,7 @@ test("outlet completion matrix uses a bounded seven-day header query and preserv
 
 test("outlet completion matrix previews before an explicit record open", () => {
   const component = read("src/components/outlet-daily-completion-matrix.tsx");
-  const page = read("src/app/(app)/outlet-daily-records/page.tsx");
+  const page = read("src/app/(app)/outlet-daily-records/insights/page.tsx");
   const newPage = read("src/app/(app)/outlet-daily-records/new/page.tsx");
   assert.doesNotMatch(component, /onMouseEnter=\{\(\) => setActiveKey\(key\)\}/);
   assert.doesNotMatch(component, /onFocus=\{\(\) => setActiveKey\(key\)\}/);
@@ -40,7 +40,7 @@ test("outlet completion matrix previews before an explicit record open", () => {
   assert.doesNotMatch(component, /<Link href=\{`\/outlet-daily-records\/\$\{cell\.record_id\}`\}/);
   assert.match(component, /h-9 w-full min-w-0[\s\S]*sm:min-w-9/);
   assert.match(component, /inline-flex min-h-11 items-center[\s\S]*xl:min-h-8/);
-  assert.match(component, /not a lateness estimate/);
+  assert.match(component, /Check which outlets have finished each day/);
   assert.match(component, /overflow-x-auto overscroll-x-contain/);
   assert.match(page, /<OutletDailyCompletionMatrix/);
   assert.match(page, /canCreate={canCreate}/);

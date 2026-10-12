@@ -34,12 +34,12 @@ test("Outlet Daily owns its responsive identity without duplicate location", () 
   assert.doesNotMatch(page, /branch=\{record\.branch_name\}/);
 });
 
-test("Today rail has explicit operational hierarchy", () => {
+test("Historical rail has explicit operational hierarchy", () => {
   const page = read("src/app/(app)/outlet-daily-records/page.tsx");
   for (const label of ["Records", "Qty sent", "Total received", "Posted", "In progress"]) assert.match(page, new RegExp(label));
   assert.doesNotMatch(page, />Dispatch</);
   assert.doesNotMatch(page, />Receiving</);
-  assert.match(page, /<ConsoleSection title="Today"><dl/);
+  assert.match(page, /Completed data before today/);
   assert.doesNotMatch(page, /ConsoleSection title="Completion"/);
 });
 

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { PanelRight, Plus, X } from "lucide-react";
 import { Children, cloneElement, createContext, isValidElement, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -38,11 +38,13 @@ function findMobilePrimaryAction(node: ReactNode): ReactNode {
 }
 
 function withoutMobilePrimaryAction(node: ReactNode): ReactNode {
-  return Children.map(node, (child) => {
+  const mapped = Children.map(node, (child) => {
     if (!isValidElement<MobileActionProps>(child)) return child;
     if (isMobilePrimaryAction(child)) return null;
     return cloneElement(child, {}, withoutMobilePrimaryAction(child.props.children));
   });
+  // Slot/asChild requires its original single-element shape, not a mapped array.
+  return isValidElement(node) ? mapped?.[0] ?? null : mapped;
 }
 
 function findActionHref(node: ReactNode): string | null {
@@ -102,7 +104,9 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
 
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
+        event.preventDefault();
         setOpen(false);
+        requestAnimationFrame(() => triggerRef.current?.focus());
         return;
       }
       if (event.key !== "Tab" || !dialog) return;
@@ -129,6 +133,17 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
   function close() {
     setOpen(false);
     requestAnimationFrame(() => triggerRef.current?.focus());
+  }
+
+  function handleMobileFormAction(event: MouseEvent<HTMLDivElement>) {
+    if (event.defaultPrevented) return;
+    const button = event.target instanceof Element ? event.target.closest("button") : null;
+    if (button?.type !== "submit" || !button.form || dialogRef.current?.contains(button.form)) return;
+    // Submit before unmounting the external submitter; native validation
+    // and the page form retain ownership of the resulting focus.
+    event.preventDefault();
+    button.form.requestSubmit(button);
+    setOpen(false);
   }
 
   const consoleContent = desktopConsoleHidden ? null : content;
@@ -193,7 +208,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
               <h2 id={titleId} className="text-sm font-semibold">More actions</h2>
               <Button type="button" variant="ghost" size="icon" onClick={close} aria-label="Close more actions"><X className="h-5 w-5" /></Button>
             </header>
-            <div data-mobile-console-content className="sb-scrollbar-none grid max-h-[calc(82dvh-3rem-env(safe-area-inset-bottom))] gap-3 overflow-y-auto overscroll-contain p-3 [&>[data-console-section]]:mb-3 [&>[data-console-section]:last-child]:mb-0">{secondaryConsoleContent}</div>
+            <div data-mobile-console-content onClick={handleMobileFormAction} className="sb-scrollbar-none grid max-h-[calc(82dvh-3rem-env(safe-area-inset-bottom))] gap-3 overflow-y-auto overscroll-contain p-3 [&>[data-console-section]]:mb-3 [&>[data-console-section]:last-child]:mb-0">{secondaryConsoleContent}</div>
           </div>
         </div>
       ) : null}
@@ -213,11 +228,11 @@ export function RightConsoleMount({ children, hideMobileBar = false, hideDesktop
   return null;
 }
 
-export function ConsoleSection({ title, children, titleClassName, kind = "reference" }: { title: ReactNode; children: ReactNode; titleClassName?: string; kind?: "action" | "status" | "reference" }) {
+export function ConsoleSection({ title, children, titleClassName, className, kind = "reference" }: { title: ReactNode; children: ReactNode; titleClassName?: string; className?: string; kind?: "action" | "status" | "reference" | "danger" }) {
   return (
-    <section data-console-section data-console-kind={kind} className="rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)] px-3 py-3">
+    <section data-console-section data-console-kind={kind} className={cn("rounded-[var(--sb-panel-radius)] border px-3 py-3", kind === "danger" ? "border-red-200 bg-[var(--sb-danger-bg)]" : "border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)]", className)}>
       <div className="mb-3 flex items-center gap-2">
-        <h2 className={cn("shrink-0 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--sb-text-muted)]", titleClassName)}>{title}</h2>
+        <h2 className={cn("min-w-0 break-words text-xs font-semibold uppercase tracking-[0.06em] text-[var(--sb-text-muted)]", titleClassName)}>{title}</h2>
         <span aria-hidden="true" className="h-px min-w-0 flex-1 bg-[var(--sb-border-soft)]" />
       </div>
       <div className="grid gap-2 text-xs">{children}</div>

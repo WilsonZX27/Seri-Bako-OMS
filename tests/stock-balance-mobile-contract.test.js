@@ -56,6 +56,9 @@ test("stock balance basket uses branch-authoritative sourcing and an editable pu
   const query = fs.readFileSync(path.join(root, "src", "server", "queries", "inventory.ts"), "utf8");
   assert.match(query, /branch_supplier_items/);
   assert.match(query, /pairMappings\.find\(\(mapping\) => mapping\.is_preferred\)/);
+  assert.match(query, /const branchMappingsByPair = new Map/);
+  assert.match(query, /branchMappingsByPair\.get\(`\$\{row\.branch_id\}:\$\{row\.item_id\}`\)/);
+  assert.doesNotMatch(query, /\(branchMappings \?\? \[\]\)\.filter/);
   assert.match(query, /itemDefaultById\.get\(row\.item_id\)/);
   assert.match(query, /supplier_id: itemDefault\.supplier_id/);
   assert.match(query, /if \(branchMappingsError \|\| suppliersError\)/);
@@ -69,8 +72,10 @@ test("stock balance basket uses branch-authoritative sourcing and an editable pu
 test("stock balance hydrates item images into compact rows and keeps the mapped PR UOM", () => {
   const rows = fs.readFileSync(path.join(root, "src", "components", "stock-balance-table.tsx"), "utf8");
 
-  assert.match(inventoryQuery, /for \(let offset = 0; offset < itemIds\.length; offset \+= 100\)/);
-  assert.match(inventoryQuery, /itemIds\.slice\(offset, offset \+ 100\)/);
+  assert.match(inventoryQuery, /const \[imageResults, branchMappingsResult\] = await Promise\.all/);
+  assert.match(inventoryQuery, /Promise\.all\(itemIdChunks\.map/);
+  assert.match(inventoryQuery, /for \(const images of imageResults\)/);
+  assert.doesNotMatch(inventoryQuery, /for \(let offset = 0; offset < itemIds\.length; offset \+= 100\)/);
   assert.match(rows, /ItemThumbnail src=\{item\.image_url\}/);
   assert.match(source, /ItemThumbnail src=\{line\.image_url\}/);
   assert.match(source, /Purchase UOM for/);
@@ -96,9 +101,10 @@ test("stock balance error mode uses an explicit error component", () => {
 test("stock balance query failure preserves error state instead of success values", () => {
   assert.match(inventoryQuery, /Stock Balance could not be loaded/);
   assert.match(inventoryQuery, /databasePaginationOrError<StockBalanceRow>\(\[\], 0, filters\.page, message\)/);
-  assert.match(source, /queryError \? "—" : totalRows/);
-  assert.match(source, /queryError \? "—" : lowStock/);
-  assert.match(source, /queryError \? "—" : negative/);
+  assert.match(source, /queryError \|\| summaryTotal === null \? "—" : summaryTotal/);
+  assert.match(source, /queryError \|\| lowStock === null \? "—" : lowStock/);
+  assert.match(source, /queryError \|\| negative === null \? "—" : negative/);
+  assert.match(source, /queryError \|\| totalValue === null \? "—" : formatCurrency\(totalValue\)/);
 });
 
 test("recipe stock availability fails closed when the balance view fails", () => {

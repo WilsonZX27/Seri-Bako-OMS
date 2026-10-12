@@ -78,7 +78,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
             <UnifiedListHeader resultCount={receivings?.totalRows} resetHref="/goods-receivings" filtered={filtered} activeCount={filters.status ? 1 : 0} className="sb-list-filters--compact-mobile">
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN, PO or supplier" className="min-w-0 flex-1 md:max-w-sm" />
               <StatusTabs statuses={statuses} activeStatus={filters.status} />
-              <Button type="submit" variant="secondary" className="shrink-0" data-list-action="primary">Search</Button>
+
               {filtered ? <Button asChild variant="secondary" className="shrink-0" data-list-action="secondary"><Link href="/goods-receivings">Reset</Link></Button> : null}
               {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
             </UnifiedListHeader>
@@ -101,7 +101,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                 {receivings?.rows.map((receiving) => (
                   <DataGridRow key={receiving.id} href={`/goods-receivings/${receiving.id}`} className="[&>td]:h-16 [&>td]:align-top">
                     <TableCell className="w-10 p-0 text-center"><TableActionLink href={`/goods-receivings/${receiving.id}`} label={`Open ${receiving.grn_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
-                    <TableCell><DocumentNumber value={receiving.grn_no} size="sm" /><span className="mt-1 block text-[10px] italic text-muted-foreground">{receiving.purchase_order_id && receiving.po_no ? <Link href={`/purchase-orders/${receiving.purchase_order_id}`} className="text-[var(--sb-link)] underline-offset-4 hover:underline">From {receiving.po_no}</Link> : "No linked PO"}</span></TableCell>
+                    <TableCell><DocumentNumber value={receiving.grn_no} size="sm" className="max-w-full break-all" /><span className="mt-1 block text-[10px] italic text-muted-foreground">{receiving.purchase_order_id && receiving.po_no ? <Link href={`/purchase-orders/${receiving.purchase_order_id}`} className="text-[var(--sb-link)] underline-offset-4 hover:underline">From {receiving.po_no}</Link> : "No linked PO"}</span></TableCell>
                     <TableCell className="w-52 max-w-52"><span className="line-clamp-2 leading-4">{receiving.supplier_name ?? "-"}</span></TableCell>
                     <TableCell>{formatDateOnly(receiving.received_date)}</TableCell>
                     <TableCell>{receiving.branch_name ?? "-"}</TableCell>
@@ -118,7 +118,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                 key={receiving.id}
                 href={`/goods-receivings/${receiving.id}`}
                 label={`Open ${receiving.grn_no}`}
-                primary={<div><DocumentNumber value={receiving.grn_no} size="sm" /><p className="text-[11px] font-normal text-[var(--sb-text-muted)]">{receiving.po_no ?? "No linked PO"} · {formatDateOnly(receiving.received_date)}</p></div>}
+                primary={<div><DocumentNumber value={receiving.grn_no} /><p className="text-[11px] font-normal text-[var(--sb-text-muted)]">{receiving.po_no ?? "No linked PO"} · {formatDateOnly(receiving.received_date)}</p></div>}
                 status={<StatusBadge status={receiving.workflow_status} />}
                 secondary={`${receiving.supplier_name ?? "No supplier"} · ${receiving.branch_name ?? "No branch"}`}
                 meta={`${formatNumber(receiving.received_total)} in · ${formatNumber(receiving.rejected_total)} rejected`}

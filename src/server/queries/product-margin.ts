@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { requirePermission } from "@/server/auth/permissions";
 import { requireReadRows } from "@/server/queries/common";
 import { buildRecipeCosting, type RecipeCostingRow } from "@/server/queries/recipe-costing";
+import type { Database } from "@/types/database";
 
 export type ProductMarginRow = {
   id: string;
@@ -20,7 +21,12 @@ export type ProductMarginRow = {
 };
 
 type Filters = { search?: string; status?: string; margin_band?: string; incomplete?: string };
-type Data = { items: typeof mockItems; products: typeof mockProducts; packaging: typeof mockProductPackaging; recipes: typeof mockRecipes; recipeLines: typeof mockRecipeLines };
+type Item = Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "status" | "cost" | "base_unit">;
+type Product = Pick<Database["public"]["Tables"]["products"]["Row"], "id" | "product_code" | "product_name" | "selling_unit" | "status">;
+type Packaging = Pick<Database["public"]["Tables"]["product_packaging"]["Row"], "product_id" | "status" | "deleted_at" | "price" | "units_per_pack">;
+type Recipe = Pick<Database["public"]["Tables"]["recipes"]["Row"], "id" | "product_id" | "recipe_no" | "status" | "deleted_at" | "yield_qty" | "yield_unit" | "approval_status">;
+type RecipeLine = Pick<Database["public"]["Tables"]["recipe_lines"]["Row"], "id" | "recipe_id" | "ingredient_item_id" | "base_qty_required" | "base_uom">;
+type Data = { items: Item[]; products: Product[]; packaging: Packaging[]; recipes: Recipe[]; recipeLines: RecipeLine[] };
 
 export function buildProductMargin(data: Data, filters: Filters = {}) {
   const recipesByProduct = new Map<string, RecipeCostingRow[]>();
@@ -67,11 +73,11 @@ export async function getProductMargin(filters: Filters = {}) {
   if (isMockMode()) return buildProductMargin({ items: mockItems, products: mockProducts, packaging: mockProductPackaging, recipes: mockRecipes, recipeLines: mockRecipeLines }, filters);
   const supabase = await createClient();
   const [items, products, packaging, recipes, recipeLines] = await Promise.all([
-    supabase.from("items").select("*").is("deleted_at", null),
-    supabase.from("products").select("*"),
-    supabase.from("product_packaging").select("*").is("deleted_at", null),
-    supabase.from("recipes").select("*").is("deleted_at", null),
-    supabase.from("recipe_lines").select("*"),
+    supabase.from("items").select("id,status,cost,base_unit").is("deleted_at", null),
+    supabase.from("products").select("id,product_code,product_name,selling_unit,status"),
+    supabase.from("product_packaging").select("product_id,status,deleted_at,price,units_per_pack").is("deleted_at", null),
+    supabase.from("recipes").select("id,product_id,recipe_no,status,deleted_at,yield_qty,yield_unit,approval_status").is("deleted_at", null),
+    supabase.from("recipe_lines").select("id,recipe_id,ingredient_item_id,base_qty_required,base_uom"),
   ]);
   for (const result of [items, products, packaging, recipes, recipeLines]) if (result.error) throw new Error(result.error.message);
   return buildProductMargin({

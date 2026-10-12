@@ -66,7 +66,7 @@ test("the shared shell gives iPad a contained canvas and an explicit operational
   assert.match(sheets, /requestAnimationFrame\(\(\) => trigger\?\.focus\(\)\)/);
   assert.match(confirm, /ModalShell/);
   assert.match(modal, /role="dialog"/);
-  assert.match(modal, /event\.key !== "Tab"/);
+  assert.match(modal, /containDialogTab\(event, dialog\)/);
   assert.match(styles, /\.sb-mobile-action-bar[\s\S]*border: 1px solid var\(--sb-border\);[\s\S]*background: var\(--sb-surface\);[\s\S]*box-shadow: 0 -3px 10px/);
 });
 

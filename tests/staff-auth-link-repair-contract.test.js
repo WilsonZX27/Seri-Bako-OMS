@@ -53,13 +53,15 @@ test("repair transaction is exact-match, Owner-only, atomic, and audited", () =>
 test("Staff UI exposes explicit states and only Owners receive the repair control", () => {
   const state = read("src/lib/staff-auth-state.ts");
   const detail = read("src/app/(app)/staffs/[id]/page.tsx");
-  const list = read("src/app/(app)/staffs/page.tsx");
+  const list = read("src/app/(app)/people/page.tsx");
+  const compatibility = read("src/app/(app)/staffs/page.tsx");
   assert.match(state, /"Auth linked"/);
   assert.match(state, /"Setup pending"/);
   assert.match(state, /"Link needs repair"/);
   assert.match(detail, /isOwner && authState === "link_needs_repair"/);
   assert.match(detail, />\s*Repair sign-in link\s*</);
   assert.match(list, /staffAuthStateLabels\[getStaffAuthState\(staff\)\]/);
+  assert.match(compatibility, /redirect\(query\.size \? `\/people\?/);
   assert.doesNotMatch(detail, /target_auth_user_id|auth_user_id\}/);
 });
 
@@ -69,6 +71,17 @@ test("unlinked Auth users remain outside operational workspaces", () => {
   assert.match(middleware, /const authUserId = claimsData\?\.claims\?\.sub/);
   assert.match(middleware, /eq\("auth_user_id", authUserId\)/);
   assert.match(resolver, /missing-profile/);
+});
+
+test("safe Staff deletion preserves entity audit without treating account creation as business usage", () => {
+  const source = read("src/server/actions/foundation.ts");
+  const history = source.slice(source.indexOf("async function countStaffHistory"), source.indexOf("async function inviteStaffByEmail"));
+  assert.match(history, /from\("activity_logs"\)[\s\S]*\.eq\("created_by", staffId\)/);
+  assert.doesNotMatch(history, /entity_id\.eq\.\$\{staffId\}/);
+  assert.match(source, /writeActivityLog\(\{ entityType: "staff", entityId: id, activityType: "deleted"/);
+  const deletion = source.slice(source.indexOf("export async function permanentlyDeleteStaff"), source.indexOf("function documentSequencePayload"));
+  assert.match(deletion, /update\(\{ auth_user_id: null \}\)[\s\S]*deleteUser\(staff\.auth_user_id\)/);
+  assert.match(deletion, /if \(authError\)[\s\S]*update\(\{ auth_user_id: staff\.auth_user_id \}\)/);
 });
 
 test("v7.23.7.2 release blockers keep onboarding input singular and collapse permission fan-out", () => {
@@ -87,4 +100,3 @@ test("v7.23.7.2 release blockers keep onboarding input singular and collapse per
   assert.match(permissionSource, /rpc\("get_allowed_permissions"/);
   assert.doesNotMatch(permissionSource, /Promise\.all\(permissions\.map/);
 });
-

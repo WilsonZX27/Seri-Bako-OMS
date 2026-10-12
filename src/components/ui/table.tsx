@@ -73,12 +73,12 @@ export function OperationalListRow({ href, label, primary, status, statusMeta, s
   // that makes a basket/action control navigate to the row destination on tap.
   if (trailing || leading) {
     return <div aria-label={label} role="listitem" className={cn(className, "relative", trailing && "pr-14", leading && "pl-14")}>
-      <Link href={href} aria-label={label} className="contents" data-open-gesture="double-tap" onClick={handlePointerOpen}>{renderContent(false)}</Link>
+      <Link href={href} prefetch={false} aria-label={label} className="contents" data-open-gesture="double-tap" onClick={handlePointerOpen}>{renderContent(false)}</Link>
       {leading ? <div className="absolute left-3 top-2.5">{leading}</div> : null}
       {trailing ? <div className="absolute right-3 top-2.5">{trailing}</div> : null}
     </div>;
   }
-  return <Link href={href} aria-label={label} role="listitem" className={className} data-open-gesture="double-tap" onClick={handlePointerOpen}>{renderContent(true)}</Link>;
+  return <Link href={href} prefetch={false} aria-label={label} role="listitem" className={className} data-open-gesture="double-tap" onClick={handlePointerOpen}>{renderContent(true)}</Link>;
 }
 
 export function TableHeader({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) {

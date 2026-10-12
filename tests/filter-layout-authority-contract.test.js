@@ -38,7 +38,7 @@ test("FilterBar geometry has one authoritative stylesheet", () => {
   assert.match(unifiedListHeader, /data-tablet-query-layout=\{tabletLayout\}/);
   assert.match(unifiedListHeader, /desktopControls\.length > 2[\s\S]*?"controls"/);
   assert.match(unifiedListHeader, /filterCount = desktopControls\.filter\(\(child\) => !isQueryControl\(child\)\)\.length/);
-  assert.match(unifiedListHeader, /commandTrackCount = Math\.max\(2, desktopActions\.length \+ \(typeof resultCount === "number" \? 1 : 0\)\)/);
+  assert.match(unifiedListHeader, /commandTrackCount = Math\.max\(2, desktopActions\.length \+ Number\(showSearchAction\) \+ \(typeof resultCount === "number" \? 1 : 0\)\)/);
   assert.match(unifiedListHeader, /2 \+ filterCount \+ \(hasCommandGroup \? commandTrackCount : 0\)/);
   assert.match(designV2, /grid-row: 2;/);
 });

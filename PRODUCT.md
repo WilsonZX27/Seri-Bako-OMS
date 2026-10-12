@@ -1,3 +1,268 @@
+> 2026-10-12 candidate: migrations reviewed through `344`; forward-only migration 历史已到 `344`. Migration 344 adds an explicit by-order demand basis. Prepared for isolated validation; not applied to Production.
+
+# v9.2.106 (unreleased)
+
+Reviewed operations UI and reliable draft submission candidate. Production remains v9.2.105. Migration 343 is validated only in the isolated test database; production application requires separate authorization. No post-release permission expansion is included.
+
+> 2026-10-10 isolated schedule repair: repository migrations reviewed through `343`; forward-only migration 历史已到 `343`. Migration 343 makes version validation, destination save and submit atomic; Wilson approved application only to the isolated local test DB (341 migration rows, maximum 343). No grants changed. This is not evidence of Production schema or deployment changes.
+
+## v9.2.105 (deployed) — systemic hardening
+
+Current design authority: desktop controls are 36px at widths >=1024px; phone and portrait-tablet controls below1024px retain at least44px touch targets. Preserve OMS semantic colours, radii and elevation. The shared query owner supplies embedded search with300ms debounce and Enter; mutation forms never auto-submit. Sheet backdrop100/sheet101 cover navigation50; native dialogs retain the browser top layer. The right console remains >=1280px, so it never appears on1024–1194px tablets. Mobile creation stays80px above the bottom edge.
+
+All versioned notes below are historical evidence unless explicitly identified as current. Earlier40/44px desktop geometry must not override this contract. Audit receipt: outputs/systemic-audit-104/AUDIT-RECEIPT.md. The currently released application is `v9.2.105`; the current released application baseline is `v9.2.105`. A versioned section above that number is an unreleased implementation note, pending verification and publication.
+
+## v9.2.103 approved release verification — 2026-10-09
+
+The user approved migrations 340/341 and candidate builds on the existing Supabase and Vercel projects. Both migrations committed successfully; 13 asset ledger hashes are unchanged. Candidate register loading exposed repeated source-field reads; migration 342 batches the existing whitelisted metadata without broadening original-outlet visibility. Isolation tests pass. Migration 342 is awaiting explicit approval; the formal domain remains v9.2.102 until real-page acceptance passes. Shared interaction targets are now 44px and short-screen modal actions remain visible.
+
+## v9.2.103 (unreleased) — OMS workflow repair
+
+Implementation and acceptance are in progress. Production remains v9.2.102 until migration rehearsal and complete responsive verification pass.
+
+## Pending cohesive repair — 2026-10-09
+
+Migrations 340/341 add full-day actual unpaid-leave reporting and a scoped asset register read model. They are locally verified; Production application and UI acceptance are pending. The previous deployed checkpoint below remains historical evidence, not acceptance of this repair.
+
+## v9.2.102 (deployed) — tablet inspection submit access
+
+The inspection form keeps a fixed submit toolbar above primary navigation at 768–1279px, while phones use the fixed bottom action and desktop uses the right Console. This corrects a verified gap where both shared actions were hidden on tablets. Daily Checklist now leads with location/date filters, compact status rows and an explicit inspection action; recorded history is collapsed and the progress list follows the selected location. No asset data or permission policy changes.
+
+## Asset rework · 2026-10-09
+
+## 正式发布核验 — 2026-10-09 v9.2.98
+
+339 已在正式 Supabase 项目执行，配套部署 dpl_8Nergf2V4zx62ZJkGBEDjEr3sBm1 已提升至 system.seribako.com.my。员工、经理及主管均受所属／获授权门店限制；Overview 与 Maintenance 限 Super Admin、Manager、Supervisor。Super Admin 保留公司范围访问。
+
+正式迁移后 13 张资产业务表的行数及整行指纹全部与冻结快照相符：445 个编号、已知数量 2,080、31 项未知数量，21,988 条历史检查与 2 份已验证附件均保留。八种现有角色身份的线上 SQL 只读验证通过：门店范围、完整历史范围、管理功能限制、原始字段与私人 Storage 隔离、直接写入拒绝。这不是八个独立浏览器登录验收。
+
+预览实际登录后检查了 390／430／820／1143／1440 五个概览宽度，根页面无横向溢出，两张趋势图均为 200px。实际验证桌面右 Console、ALMA 筛选返回 73 项及名称排序、紧凑维修队列、ALMA 检查完整载入 73 项、手机全部勾选／撤销、异常展开和未保存丢弃保护；390px 提交栏固定。正式域名已确认 v9.2.98 与资产数量。截图保存于 outputs/asset-migration-private/2026-10-09/rework-339/。
+
+未宣称完成项：正式检查提交被自动审批阻止，以免测试写入真实业务记录；提交负载与数据库生命周期由隔离测试覆盖。独立员工浏览器会话、每个明细在每个宽度的交互及键盘遮挡尚待完整验收。Penang 厨师长确认资料仍未齐，不应将发布当作整个三批计划收口。原先 v9.2.97 和未应用 339 的记载作为历史阶段保留，以本段为最新状态。
+
+
+Repository migrations reviewed through `342`; Production asset migrations 337, 338 and 339 are applied. The owner rejected the v9.2.97 interface, so visual and operational acceptance is reopened. Local rework adds assigned-location asset filters, stable ID/name sorting, mobile page selection, compact registers, management-role overview/maintenance gates and a condition-first checklist with an explicit select-all shortcut and fixed shared submit action. Selecting all preserves exceptions and never manufactures physical counts. Migration 339 additionally separates employee summaries and protects raw imported JSON, master history and unlocated legacy attachments by original-location scope. It is applied. Hosted role identities, actual PostgREST location filtering, both original attachments and responsive overview/list/checklist screens were verified; full business submission acceptance remains separately documented.
+
+## v9.2.97 (deployed) — compact asset inspection and history
+
+Inspection mode removes the duplicate holdings list below its input form. Maintenance history shows date, author, update type, comment and changed status first, with original identifiers and fields available in expandable details. Existing OMS surfaces, permission checks, pagination and touch targets remain in place. This presentational refinement is deployed to the formal OMS domain. Original history details and dates remain available; both updated views passed root-overflow checks at 390/430/820/1143/1440. All 1,457 regressions pass. It does not change asset records or mutation rules.
+
+## v9.2.96 (deployed) — asset activation and input recovery
+
+Asset migrations 337 and 338 are applied to the existing OMS Supabase project. Following owner-confirmed legacy entry cessation, the final source delta and both attachment files passed complete reconciliation. On 9 October 2026, the owner authorized activation at action time and the guarded final batch became live. OMS now exposes 445 asset IDs, 2,080 known units, 31 unknown quantities, 15 maintenance requests, 335 maintenance updates and 21,988 daily checks through existing asset permissions and branch scopes. Both verified original photos opened through the actual Owner OMS attachment route. Eight existing-role SQL identity simulations passed full history, holdings/location and private Storage scope checks in the live environment; these are not eight separate browser sessions. Overview, maintenance queue and Gurney check inputs passed root-overflow checks at 390/430/820/1143/1440. Zero-value draft retention and unsaved Stay/discard passed without submitting business records. Full ledger hashes after acceptance match the preactivation checkpoint except for the authorized batch state.
+
+Operational activation is complete. The two density issues identified in live acceptance were corrected and visually verified in v9.2.97. Live browser write workflows and separate role sessions are not claimed. Staging recovery cannot be used after activation to erase subsequent operations. Contextual maintenance/transfer comments and scoped draft recovery are available. Penang chef-confirmed configuration and a valid dated two-outlet plan remain outstanding.
+
+Repository migrations reviewed through `338`. The asset-only read-policy optimization has passed local differential checks and an eight-role full-history rollback rehearsal; it is applied to Production with source text independently verified. It does not change grants, mutation helpers or source data.
+
+## v9.2.95 (deployed) — compact daily operations
+
+Daily Records removes Sold out and time entry while preserving historical values. Product quantities and details share a desktop row; phone details expand on demand, with 44px tablet targets. The compact outlet list combines identity and date and uses warning text for missing values. Insights aligns narrow-rail amounts and reports the selected outlet count. Packaging labels the last physical count with its age. Planning offers the next missing step and protects unsaved settings/event edits. Forecast v3 keeps a received-quantity floor when stockout observations are unknown. No asset migration or asset permissions are part of this application release.
+
+## v9.2.94 (deployed) — consistent compliance and correction context
+
+Compliance Calendar uses the same current required-document records as Register, so superseded evidence does not become duplicate urgent tasks. Duplicate portfolio counts are removed from the rail. Product correction focus remains stable when unsaved quantities change and does not reset a subsequently edited search. v9.2.93 focused workspaces and comparable balance history remain included.
+
+## v9.2.93 (deployed) — comparable packaging balance history
+
+Packaging balance trends use each outlet’s last confirmed closing as of the selected date, seeded by a bounded pre-period observation. Incomplete outlet coverage remains a gap instead of becoming a smaller inventory total. Record dates remain visible on drill-through; these are recorded balances, not live physical stock. Migration336 preserves SECURITY INVOKER and RLS. v9.2.92 focused workspaces remain included.
+
+## v9.2.92 (deployed) — concise actionable production checks
+
+Plan checks group repeated fields into one short line per product. Quantity issues can focus the corresponding product in the existing allocation worksheet without changing quantities or unsaved edits. Configuration uses the existing Settings action. v9.2.91 focused evidence, packaging balance and unified compliance remain included. See docs/qa/OMS_FOCUSED_WORKSPACES_2026-10-06.md for acceptance.
+
+## v9.2.91 (deployed) — focused planning evidence and outlet workspaces
+
+Production evidence focuses one outlet at a time, with a selectable daily trend and expandable records. Missing dates stay gaps, live history stays separate from saved suggestions, and manual readiness remains explicit without repeated setup paragraphs. Plan checks lead with affected products and bound expanded details. Planning tabs are Plan, Events, Settings. Kitchen email is retired; migration335 preserves approval authorization and quantity guards while removing the email release prerequisite and retaining in-app kitchen notification.
+
+Packaging leads with selected-product recorded balance and usage, then allows Balance/Usage trend selection. Compliance Register and Calendar share one workspace; legacy calendar links redirect with month/branch preserved. No business quantities, historical documents, permissions or grants change. Deployment completed; responsive acceptance evidence and remaining authenticated checks are recorded in docs/qa/OMS_FOCUSED_WORKSPACES_2026-10-06.md.
+
+## v9.2.90 (deployed) — safe comparable-day fallback
+
+Forecast quantity-proxy-v2 uses the most recent selected comparable observation as the reduction-floor reference. Recent-day-type fallback retains the configured decrease cap and stockout protection even when no receipt exists for the exact delivery weekday. Existing plan snapshots and approved quantities remain unchanged; recalculation is explicit. v9.2.89 Planning evidence/franchise improvements remain included. Validation and release evidence belong to docs/qa/PRODUCTION_PLANNING_CLOSE_2026-10-05.md.
+
+## v9.2.89 (deployed) — Production Planning closure
+
+Planning always shows all routed outlets in its desktop worksheet. Group controls and the redundant destination-count row are removed. Kitchen, delivery date and version use compact icon metadata. Evidence reads current completed historical lines on demand, with company/plan/product scoping, missing inputs kept unknown and saved suggestions clearly separated from live observations. Manual-only generation remains bounded and does not pretend receipt data establishes multi-day sales. Generation now includes complete event rows in snapshots so the existing server event-change guard can compare equivalent records.
+
+Migration334 adds franchise_order as an independent, branchless confirmed demand category. Its fixed quantities enter the existing external-event production and delivery path; they never become self-operated outlet demand or daily-record coverage. Existing approved snapshots, quantities and delivery orders remain unchanged. Migration325 remains unapplied. Spreadsheet templates are reference calculations, not confirmed dated orders; Penang weekend C12 corrected to16 in the derived report following explicit user confirmation.
+
+Validation and remaining business setup: docs/qa/PRODUCTION_PLANNING_CLOSE_2026-10-05.md. Source calculations: docs/qa/PRODUCTION_PLANNING_ORDER_CALCULATION_2026-10-05.md.
+
+## v9.2.88 (deployed) — procurement unit context and operational rail alignment
+
+Purchase Request stock displays retain the balance in its recorded base unit, with a separate purchase-package conversion resolved from the request supplier and branch. Missing, failed, invalid or conflicting mappings remain explicitly unavailable; no guessed factor multiplies the stock. Desktop and phone share one presentation owner. The user confirmed QUIKGROC00060 and QUIKGROC00024 quantities were kilograms with incorrect CTN labels. Migration333 corrects both masters, active supplier units and count labels to KG/factor1 without multiplying quantities; count, ledger and balance digest guards and independent readback passed. Existing procurement document snapshots remain preserved.
+
+Sortable table headers inherit the table's typography instead of the global input font. Positive wastage changes are danger red, negative changes success green; unknown and unchanged values remain neutral, and signed values remain visible. Insights shares Daily Records' historical outstanding outlet-day console. Attendance Actions precedes Week status; report and time-off headers use aligned stacked descriptions and full-width commands, with truthful pending-count wording instead of a Posted badge for an empty report list.
+
+Validation and formal acceptance are recorded in docs/qa/OMS_UI_UOM_REWORK_2026-10-05.md. The follow-up data correction333 changes unit labels only; no permissions change or operational test posting.
+
+## v9.2.87 (deployed) — production PDF, product supply dates and historical insights
+
+Production sheets download as a dedicated paginated PDF named by kitchen, ISO delivery date and plan version. Repeated headers and page numbers replace browser chrome; unentered quantities remain Pending and unsaved drafts are labelled. Planning defaults to all outlets with kitchen retention pinned right. Ordinary manual demand needs no reason; forecast exceptions, below-minimum reductions and manual production overrides retain their gates. Manual allocations survive recalculation without using a reason as a persistence marker.
+
+Product supply periods have inclusive first/last dates, apply company-wide and preserve historical product and execution records. Manager settings expose every product via an explicit out-of-period toggle; events and new planning products enforce the effective date in SQL. MC01–MC07 and SRR04 stop after 2026-10-01, per the user's explicit instruction. Insights shows all food products, marks missing complete data, supports 1/7/30 days and month-to-date with adjacent equal-length comparison and explicit coverage. Daily Records shows the latest completed historical day summary plus the previous 30 days of outstanding outlet records; Delivery Orders uses its existing workspace tab and right rail.
+
+Migration 331 extends supply dates and existing manager-gated planning functions without changing RLS or execution snapshots. Migration 325 and wider page-latency acceptance remain separate open items. Release validation is recorded in docs/qa/OMS_PRODUCTION_REWORK_2026-10-04.md.
+
+## v9.2.86 (deployed) — annotated operational density correction
+
+The owner's 2026-10-04 annotations supersede the previous 44px desktop Planning treatment: operational query and Planning controls are 36px from 768px; normal WorkspaceTabs use 36px tabs and a 46px outer surface. Phone controls retain 44px. Planning's desktop Adjust is a 23px visual command in the requested #7c9b8d with white text; other primary actions retain the OMS green. View commands share #e7f1eb / #084b37. This applies through the existing shared owners, including Daily Records and Insights; Packaging's approved compact filter composition is preserved. SAP Fiori's compact/cozy distinction is a category reference, not a copied theme: https://www.sap.com/design-system/fiori-design-web/v1-136/foundations/visual/cozy-compact.
+
+The worksheet fixes outlet tracks at 112px rather than distributing unused width between inputs. A 32px indexed lead column and 200px product identity remain frozen; the 136px read-only summary shows unknown values as a dash, never zero. Separate borders and opaque header cells establish stable vertical/horizontal stacking. Adjust opens the existing focus-managed ModalShell, with local trays/reason editing, Apply/Automatic/Cancel; cancelling leaves production unchanged. The unsaved-switch dialog uses a 448px maximum instead of 1024px. Settings uses two vertically stacked shared surfaces in the same form and removes the annotated paragraph. Insights date is capped at 168px, count joins the action group, and Received/Wastage/Rate toggle numeric sorting with aria-sort, stable name ties and unknown values last. Only the two needed aggregate lists cross the server/client boundary.
+
+Source verification: `01.SERI BAKO ALL KUIH ORDER.xlsx`, coded V2 sheets and matching explicit original yield column, confirms SC01/SC02/SC15/SC16 = 16, SC07 = 28, and SC03–SC06/SC08–SC14 = 32. PJS10's previously empty configuration was populated for these 16 products through the normal Manager Settings action, recorded by its audit, with demand basis manual, minima unfilled, automation disabled. Existing 2026-10-05 PJS10 v1 was found in draft with zero entered allocation/production values; normal Recalculate refreshed its yield snapshots. No new plan, formal order, approval, dispatch or inventory transaction was created. Alma and other products have no confirmed kitchen-specific source in this workbook and are not inferred. The workbook's variable daily allocations are not minimums or new demand orders. Database schema remains reviewed through 330; permission-warning closure, wider cold/tail latency and historical Packaging closing provenance remain separately tracked.
+
+Strict TypeScript, lint, 1,406 regressions and 85 isolated PostgreSQL checks pass. Final v9.2.86 deployment CPtQ5g5r5s8jtDHkhakozG112hsY (8559a57a) is READY and aliased to the formal domain, with sin1 independently inspected. Formal responsive and interaction evidence, including the final row-divider follow-up deployment, is recorded in docs/qa/OMS_PRODUCTION_REWORK_2026-10-04.md.
+
+## v9.2.85 (deployed) — measured outlet reporting performance
+
+Migration 330 is applied: Daily Records resolves the original authorized branch predicate once per statement; child lines inherit the same parent SELECT RLS via a set. No persistent permission cache, changed company/outlet access, write policies, operational values or stock posting. Live rollback comparison across eight active role categories returned identical parent/line/report results. Same Owner, date and 30-day Packaging EXPLAIN ANALYZE: 3,277.739ms before, 151.633ms after (95.4% reduction); this is database execution time, not full browser latency. Migration 325 remains pending and unrelated Advisor findings are not claimed cleared.
+
+Packaging uses request-scoped React cache deduplication only, keeping fresh RLS across requests; local chart series are memoized and grouped in one pass. Insights cost and report reads run independently in parallel. Shared IntentPrefetchLink warms opted-in Planning/Daily Records/Insights tabs only on pointer or keyboard intent, with duplicate warming suppressed; no eager viewport loading of every report. Successful daily save/post/void and Planning writes invalidate Insights and Packaging route data. Forecast results continue to be persisted in plan versions; no new materialized inventory or historical confirmations are introduced. Cross-request report TTL caching is deliberately not enabled without a verified permission/freshness version key. Source convention follows Next.js request/route caching and PostgreSQL statement-level RLS semantics.
+
+Vercel functions are configured in sin1 to colocate with the confirmed ap-southeast-1 database; build location is not used as runtime-region evidence. Deployment 2Fj2GWKnfE47gAiEAWqLgEYbghpq (af6ec8d9) is READY and aliased to https://system.seribako.com.my; inspect independently confirms serverless functions in sin1. Authenticated Packaging and Insights show v9.2.85 and load their reports without browser errors. Browser reload-to-visible observations include automation overhead and are not a precise end-to-end benchmark. Isolated scope tests cover company A/B, outlet, routed kitchen, missing assignment/identity, denied permission, immediate scope changes and orphan/anonymous denial. Final test/build counts and screenshots belong to docs/qa/OMS_PRODUCTION_REWORK_2026-10-04.md.
+
+## v9.2.84 (deployed) — compact Planning and explicit query actions
+
+Current release is v9.2.84; final deployment 6uZJm6wU86VskGmYcA3X79BFR2ke (commit 265580f6) completed and aliased to https://system.seribako.com.my. The scoped control-density follow-up is independently verified on the formal page: 44px controls, 200px product column and 136px system summary. v9.2.83 procurement fixes remain included. v9.2.82 also deployed successfully (AxE6dgNLNZYeBPdwapb5TTg9aEuz); its UI acceptance was superseded by the approved layout rework. This version reuses WorkspaceGrid, WorkspaceTabs, FilterBar, Table, SelectControl, Input, Button and ModalShell. No new visual foundation or decorative motion.
+
+Planning and Insights use the backward-compatible FilterBar actions slot; fields precede a right-aligned submit action. Planning scopes 44px controls to its workspace and portal actions. Product identity (200px) and calculated summary (136px) precede outlet quantities (112px) and kitchen retention (96px). ResizeObserver groups outlets using actual container width; full overview scrolls within the worksheet. At <768px the shared responsive-field owner disables the hidden matrix and provides one-outlet cards; at 768–1023px the rail stays in More to preserve editing width; landscape tablets use the existing split rail. Search, category and group changes retain parent-owned unsaved inputs. Existing consumers retain the 1280px responsive-field default. Date/kitchen/version and workspace-tab navigation use the shared confirmation modal for save/discard/cancel.
+
+Automatic trays = ceil((approved outlet demand + independent event quantity)/yield); retention allocates surplus and never manufactures demand. Manual override is explicit and reasoned, with Restore automatic. Migration 329 adds nullable tray_mode, recomputes automatic drafts in SQL, validates review snapshots and preserves legacy NULL modes, old clients and approved versions. Event Details and Products & Quantities are separate visible shared surfaces in one form; Scheduled Events moves to the right rail and below the form on portrait/mobile. Destination/date supply resolution is permission-gated and company-scoped; missing/conflicting effective primary routes block confirmation. Saving rechecks the route. Corporate events require explicit kitchen selection.
+
+Repository migrations reviewed through `336`; applied Production migrations include 324, 326, 327 and the independent Goods Receiving fix 328. Migration 329 is applied with its function definitions and preserved ACLs independently verified; all 52 historical product rows keep NULL mode and unchanged quantities. 325 remains pending explicit permission approval. No local Supabase, fabricated Production orders, approvals, dispatches or inventory writes. Strict TypeScript, lint, 1,404 regressions and 85 isolated PostgreSQL checks pass; Hosted build succeeded. Authenticated Planning and Insights at 390/820/1180/1440px have no root horizontal overflow; screenshot evidence is recorded in the QA ledger. Final Events and shared-consumer acceptance remain pending after the session expired again. Login was restored for the completed checks. Initial read-only checks verified search/overview preserve zero, unsaved switching exposes all three choices, Cancel restores focus to View plan, and test values were discarded without saving. Permissions warnings, 30-day Packaging query performance and verified closing-stock provenance remain open in the QA ledger.
+
+## v9.2.83 (deployed) — Purchase Request list chronology hotfix
+
+Production deployment dpl_DsLmSB87WZSXxTatYTD61kEdyFnv is Ready and aliased to https://system.seribako.com.my. The default Purchase Request register shows newest creation first, before pagination. Explicit natural document-number sorting remains available. This fixes October requests appearing behind September records because month abbreviations were compared as text. No request status or business records are changed. Repository migrations reviewed through `328` (Goods Receiving disambiguation hotfix applied; 325 remains pending).
+
+## v9.2.82 (deployed; acceptance superseded) — actionable plan review groups
+
+The existing Plan checks console composes shared ConsoleSection/Button with native disclosure groups for Settings, quantities, Manager reasons and production balance. Exact product/outlet messages remain accessible, and the current-date/kitchen Settings link is shown only when configuration is incomplete. Unsaved edits never display Ready for review. Review and database gates are unchanged; no CSS, motion, permission or database changes. The business composition lives in production-planning-review-checks.tsx; generic components retain their existing ownership. Production remains v9.2.81 with 324, 326 and 327 applied, 325 pending. Formal v9.2.82 verification is not yet complete.
+
+## v9.2.81 (deployed) — partial manual drafts / migration 327 applied
+
+Draft save preserves unknown allocation quantities and tray counts as NULL, separately from explicit zero; submit/release remain blocked until quantities, minimums, yields and whole-tray balance are complete. Invalid numeric ranges and fractional trays are rejected at the action and database boundaries. The transactional function preserves its permission checks, locking, idempotency, audit and strict review rules. Manual-only generation skips unusable eight-week history; mixed same-day plans retain full food-record completeness checks. No grant or RLS policy change. Production is v9.2.81 with migrations 324, 326 and 327 applied; 325 remains unapproved. Guarded migration 327 applied independently after live function/source comparison, preserving ACLs, SECURITY DEFINER and owner. The old function reproduced the failure; 63 isolated PostgreSQL flow checks and 1,387 regressions pass. No local Supabase or production operational UAT writes. Deployment 8ZTxPzEZnK9tbjGiQJpb18TWrhPq completed successfully and is aliased to https://system.seribako.com.my. Authenticated Owner Planning reports v9.2.81; unknown quantities remain blank and review stays blocked. At 390/820/1180/1440px the document has no root horizontal overflow. No operational records were written.
+
+## v9.2.80 (deployed) — selected-period Packaging reads
+
+Packaging requests only the selected 7/30-day report once; outlet/product filters remain local. A period change performs server navigation, preserves client filter identity, and shows shared loading states instead of treating an unrequested month as missing or zero. Failures use ErrorState with the shared RetryButton, preserving the workspace URL. Latest closing stock remains independently returned by the existing report RPC, including records older than the selected period. No RLS, grant or inventory change. Deployment 2zJb5RgYqK5DR4haWDXcBwBGtrwS succeeded and is aliased to https://system.seribako.com.my. Database 324 and 326 are applied; 325 remains pending. Strict TypeScript, lint, hosted build and 1,385 regressions passed.
+
+## 2026-10-04 current verified release — v9.2.79 / database 324 + 326 (325 pending)
+
+Deployment `6DUNX69vZnWaH7RBRZAuisokn4WX` succeeded and the formal alias is https://system.seribako.com.my. Commit `0103a2f9` passed strict TypeScript, lint, hosted build and 1,381 regressions. Owner-authenticated checks verified the corrected Plan phone drawer, product-order guidance and focus restoration, and Packaging at 390/820/1180/1440px without root overflow. The phone inline filter card is 130px high with no empty primary row. Earlier release evidence below is historical; the larger QA goal remains open, including database performance/permissions, provenance and complete workflow/a11y acceptance.
+
+## Database eligibility follow-up — migration 326 applied independently
+
+Repository migrations reviewed through `327`; production ledger includes 324 and 326; 325 remains unapproved.
+
+A disposable PostgreSQL fixture reproduced expired-but-active staff reading and configuring Planning through the legacy helpers. Migration 326 aligns planning_manager, planning_branch_access and planning_require_manager with the existing current_staff_id eligibility gate; Malaysia employment end dates remain inclusive. It changes no ACL, policy declaration or operational quantity. The fixture verifies ended/inactive/anonymous denial, eligible current-day/open-ended staff, and unchanged ACLs, SECURITY DEFINER flags and ownership. The production-planning integration suite passes 52 checks with 326. Migration 326 was applied in a guarded transaction and independently read back. Original function hashes matched preflight; ACLs, SECURITY DEFINER flags and owners were unchanged. The authenticated Owner still opens the editable draft. Production is application v9.2.79 with 324 and 326 applied; 325 remains unapproved. Future approved db push must include the earlier 325 with --include-all; do not assume a contiguous applied-through version.
+
+
+## 2026-10-04 verified production authority — v9.2.78 / database 324
+
+Deployment `D2xa7BFBHrLG57s2d9n8SHNypRhB` succeeded and is aliased to https://system.seribako.com.my. Owner-authenticated production checks covered Plan, Settings, Events, Daily Records, Insights, the canonical DO list and Packaging at 390/820/1180/1440px without root overflow. Phone Plan actions opened successfully; Escape closed the drawer and restored trigger focus. Strict TypeScript, lint, hosted build and 1,377 regressions passed. These are surface checks, not complete workflow or WCAG certification. See docs/qa/OMS_PRODUCTION_REWORK_2026-10-04.md for evidence and unclosed gates. Database remains 324; prepared 325 and the live packaging RLS experiment are pending specific permission authorization.
+
+## v9.2.79 (deployed) — provenance and shared phone filters
+
+Candidate removes the blank primary row from shared inline phone filters, keeps unconfirmed packaging usage blank, and orders review checks by the displayed product/outlet sequence. Actual component render tests distinguish explicit zero from absent confirmation and preserve zero result counts. No database policy, grant, quantity or inventory change is included. This candidate was deployed and verified as recorded in the current release authority above.
+
+## Historical v9.2.78 candidate — actionable validation
+
+Event quantity validation opens the product section, shows the shared inline error and focuses its first quantity input before any action call. Native invalid quantities also reveal the section. Shared action errors classify schema-cache diagnostics as unavailable and keep internal table names in server logs. Six added server-action tests cover invalid/no-write boundaries, role denial, explicit zero minima, empty recipients and truthful unavailable-mail feedback. Production remains v9.2.77 until deployment is verified in the QA ledger.
+
+## Historical verified release — v9.2.77
+
+Application deployment `HDzwJWpTrajQF5ErPL2p1vP57ciE` completed and aliased to https://system.seribako.com.my. Hosted production build, strict TypeScript, lint and 1,359 regressions passed. The production login screen independently reports v9.2.77. Authenticated workflow and remaining device acceptance are pending; database remains migration 324, with 325 prepared and unapproved. Historical candidate and acceptance entries below are retained as dated evidence, not overall closure.
+
+### v9.2.77 (unreleased) — Operational rework in progress
+
+Planning reads only the current tab and selected plan version. Settings uses the shared operational phone list and desktop Table; product search preserves edits. Scheduled events reuse the same owners. Routine panels omit repeated forecast/email disclaimers; optional evidence retains the prediction inputs. Settings can be saved without email recipients, while the existing release guard still requires them. Migration 325 remains prepared, not applied, pending explicit approval. Production remains v9.2.76 / database 324 until the QA ledger records a verified deployment; this is not overall closure.
+
+## 2026-10-04 authenticated closure authority — v9.2.76
+
+Repository migrations reviewed through `325`; forward-only migration 历史已到 `325`. Migration 325 is prepared and rollback-tested but NOT applied: explicit production permission approval is pending. Production remains applied through 324. Migration 324 repairs draft-recalculation SQL aliases without changing authorisation or workflow. Owner UAT identified the failure; the expanded isolated fixture now covers recalculation, removal of obsolete allocations and preservation of reasoned manual quantities/trays. Production v9.2.76 is deployed (8u2otQahGNK3w3XXh7hdbat2mLtx); migration 324 is applied and live draft recalculation passed. Authenticated Owner surface checks and outstanding configuration dependencies are recorded in docs/qa/OMS_FEATURE_CLOSURE_2026-10-04.md; historical entries below do not define current deployment state.
+
+### v9.2.76 (deployed) — Authenticated acceptance follow-up
+
+Daily Records list/form, Insights, Planning and Packaging open with Owner authentication. Release-width evidence is tracked in the 2026-10-04 QA ledger. Shared filter counts accept a semantic noun. DO actions use the shared right console and controlled-correction dialog; A4 printing resets responsive split geometry and uses bounded 20-line pages. No production UAT approvals or dispatches were created.
+
+## 2026-10-04 closure baseline — v9.2.75 candidate
+
+Code, applied database migrations, production deployment and authenticated acceptance are separate evidence. The first v9.2.75 upload failed; the subsequent deployment EmWcZ4wEdPU7Wqjs1P56x65SKA1L completed and aliased to the production domain. Authenticated acceptance remains pending. Repository migrations reviewed through `323`; linked Production ledger verified through `323` on 2026-10-04. Migration 323 adds reviewed per-product demand basis. Application deployment and authenticated acceptance remain separate gates.
+
+Daily Records owns input/list, Insights and Delivery Orders tabs. Old DO list links redirect. WorkspaceGrid, WorkspaceTabs, FilterBar, Table, SelectControl, ModalShell and system-state primitives are the reusable owners; feature components compose them. No route-specific visual system is permitted. Responsive acceptance covers 390, 820, 1180 and 1440px, keyboard focus, 44px touch controls and reduced motion.
+
+Production recommendations are a daily quantity proxy, never POS sales. Same-day eligibility must be explicitly confirmed per kitchen/product. Multi-day or unknown shelf-life requires Manager quantity; expiry wastage may exceed today's receipt with a food reason. Approval, production and dispatch remain distinct; only confirmed effective DOs populate source-locked Qty Sent. Received, Wastage and POS remain independently entered. Inventory posting stays in the existing production workflow.
+
+Packaging uses one RLS-preserving report RPC; list and optional Insights reads stay separate. Missing, recorded zero, loading, empty and unavailable are distinct. Email needs a configured provider and recipients; an outbox entry is not proof of delivery. Hobby daily scheduling starts after 20:00 Malaysia time, within the provider's scheduling window; exact configurable execution needs a compatible scheduler rather than misleading UI promises.
+
+### v9.2.75 (deployed; authenticated acceptance pending) — Restore operational workspaces
+
+- Daily Records opens directly into the existing input/list workflow. Separate Insights and Delivery Orders tabs reuse the Attendance navigation owner; the duplicate sidebar DO entry is removed.
+- Insights uses bounded outlet/product tables and separate trend/completion views. Production Planning reuses shared tabs, filters, selectors, tables, modals and the right action rail for Plan, Settings and Events.
+- Real Supabase builder regression coverage fixes select-before-filter reads across planning, DO and scheduler paths. An unavailable read has an actionable error instead of an incorrect migration explanation.
+- Packaging uses one security-invoker report RPC with the original recorded-zero, missing-receipt, latest-balance and branch visibility semantics. Repository migrations reviewed through `322`; Production is verified through `321` before this release.
+- v9.2.74 deployment and migration success did not establish authenticated workflow acceptance. The owner rejected that interface; this correction requires authenticated route and responsive verification.
+
+### v9.2.74 (deployed) — Production planning and delivery orders
+
+- Upgrades the reference-only Lite page to versioned daily recommendations, Manager review/release, actual dispatch, printable outlet DOs and automatic source-locked Qty Sent. Received, Wastage and POS remain independently recorded.
+- Forecast v1 uses per-outlet/per-product eight-week history, same weekday weights, cautious fallback, configurable buffer/reduction caps, reviewed minimums, shortage warnings and confirmed event quantities. Whole-tray surplus must be explicitly allocated or retained.
+- Independent leased email outbox sends on approval with a daily retry; the Hobby-plan scheduler creates next-day drafts after 20:00 Malaysia time when enabled. Vercel may run that daily job within the hour. No inventory posting changes and no historical attachment imports.
+- Packaging usage and food expired after several days can exceed the current day's Received. Food still requires a wastage reason; packaging records its actual closing balance, and new days start with unconfirmed physical quantities.
+- Repository migrations reviewed through `321`. Migrations `319–321` are repository-only; isolated PostgreSQL fixture verification is distinct from full Supabase deployment, authenticated staging UAT, concurrency verification and pilot approval. The linked Production ledger remains verified through `311`.
+- Production release requires reconciling and applying pending migrations `312–321` in order, reloading PostgREST, configuring batch yields, outlet minimums, supply routes and recipients, then checking the deployed workflow with authenticated roles.
+
+### v9.2.73 (deployed) — Packaging workspace consistency
+
+- Restore the shared contextual right console with Daily Records access, report coverage and selected-day outlet usage; mobile uses the existing actions sheet.
+- Use the shared filter controls and interactive line chart. Missing dates break the line; recorded zero remains a valid point.
+- Read a bounded 30-day report once, then switch period, outlet and product locally. Stream the header and loading state before the report read completes.
+- No database schema, permission or stock calculation changes.
+
+### v9.2.72 (deployed) — Packaging report read latency
+
+- Latest-outlet reads and the trend-record read run together; monthly packaging line batches use at most four concurrent requests. Exact-count guards still reject truncated data.
+
+### v9.2.71 (deployed) — Packaging stock and usage clarity
+
+- Packaging Usage reads completed Outlet Daily Records directly. Latest active-outlet closing balances remain independent of the trend period and retain record dates and coverage; balances are recorded, not verified physical stock.
+- Seven packaging rows replace the repeated outlet/product ledger. Outlet details and daily usage details open on demand; desktop stock and trend panels sit together, while touch layouts stack. Missing days remain distinct from recorded zero.
+- Inventory reconciliation, SKU mapping, the empty action rail and unbounded history tables were removed from this report because the owner needs outlet stock and usage trends. Existing mapping schema/data remain intact; no database migration is needed.
+
+### v9.2.70 (unreleased) — Operational clarity and roster coverage
+
+- Kitchen employees share the canonical roster eligibility path with Outlet Staff and Supervisors; tenant, branch, role-date and workflow permissions remain enforced. Migration 287 was applied and its four function bodies verified against the repository on 2026-09-14; live ALMA and PJS10 rosters show 8 and 12 staff respectively.
+- Schedule completeness checks group missing dates by employee without merging identities, inventing OFF days or bypassing submission blockers. Staff codes distinguish similar names.
+- Mobile document actions remain on one row with an accessible More options icon. Receiving summaries and purchase-chain links use two phone columns. PR rows display the submitter name without redundant wording.
+- Posted receipts show the remaining quantity after that receipt, preserving the original pre-receipt snapshot and distinguishing it from later PO activity. Receiving document and purchase-chain reads run concurrently.
+
+- Topbar pending actions omit unused exact counts; Dashboard totals retain exact counting and unavailable-state handling.
+- Recipe submit, approve, activate, reject and archive now share one tenant-scoped database transition. Recipe, Document, revisions, activity and the one-active-version invariant commit together; migration 301 is Production applied and read-back verified.
+- Cross-outlet shifts now retain their source roster identity. Removing, repatriating, moving or copying a staff-day updates the exact destination projection atomically, and Manager corrections use the same structured destination path. Migration 302 is Production applied and read-back verified.
+- Attendance review now bounds outlet data to the selected branch, limits repeated-missing calculations to the visible month, and loads company-wide comp-time history only for staff present in the selected week. Scheduled days without punches remain visible, repeated punches are debounced, and incomplete punch inference remains explicit and auditable.
+- People Operations and Managers may import schedule workbooks into guarded drafts. Submission and approval remain separate permissions.
+- Stock Count list failures now stop explicitly instead of falling back to unbounded full-history hydration. Queue totals use one constant-size, RLS-preserving database summary.
+- Outlet Daily loads its bounded page and Today rail concurrently. The Today rail is one constant-size, RLS-preserving aggregate and retains the distinction between verified zero, unavailable sent/received data and no records.
+- Outlet Daily shares one request-local outlet/product option catalog across its list, seven-day trend and completion matrix instead of repeating the same permission, branch, product and supply-route reads three times.
+
+Repository migrations reviewed through `318`; the linked Production ledger is verified through `311`. Migrations `312–318` are repository-only until the target database is explicitly verified; 312–313 repair part-time punch policy, 314 restricts outlet compliance, 315 adds management email delivery logs, and 316 retires sensitive payroll access, 317 exposes staff home outlets in the schedule RPC, and 318 introduces explicit packaging product-to-inventory SKU links. Migration `311` makes the Attendance overview count distinct affected current results and adds the matching tenant-scoped partial index, so multiple flags on one attendance day and immutable superseded revisions remain auditable without inflating the live queue. Migration `310` adds the bounded Outlet Daily Today summary; its function, grants, PostgREST schema reload and 2026-09-19 summary values were applied and read back successfully. Migration `309` adds the bounded Stock Count queue summary. Migration `308` grants People Operations the guarded schedule read and draft permissions used by workbook import without granting submission or approval. Migration `307` adds bounded attendance-review indexes. Migration `306` hardens punch-evidence calculation and incomplete-punch inference. Migration `305` retires the duplicate BOMBA outlet requirement while preserving historical records and attachments. Migrations `298–311` are Production applied; the latest application deployment is tracked separately from database migration evidence. See `docs/qa/SYSTEM_CLOSURE_2026-09-16.md`.
+
+- Follow-up verification: SQL timestamp validation dates preserve their calendar day; mobile list rows no longer prefetch every unopened document. Migration 288 indexes the ready-to-post daily queue; migration 289 aggregates inventory once per Dashboard request with identical verified results. Migration 290 reuses parent SELECT RLS for daily lines and evaluates the request-constant view permission once; verified visible rows are unchanged.
+- Observability follow-up: migration 291 adds filter-and-sort indexes for the Documents approval queue, active Purchase Request status queue and newest-first Notifications read. Production catalog and migration ledger were verified after application; workflows and row visibility are unchanged.
+- Attendance review now makes completed imports unmistakably disabled, shows exact recorded post-shift time to the minute beside 30-minute RO units, wraps repeated-missing warnings, keeps report tools in the desktop action rail, and opens searchable choices inside their modal layer. Shared buttons and selects respond immediately on press while respecting reduced-motion settings. Business rules, permissions and mutation workflows are unchanged.
+
+### v9.2.68 (unreleased) — Faster workspace reads
+
+- Schedule overview loads only overview data. The outlet planner fetches independent reads concurrently while preserving authorised branch selection, workflow state and cross-outlet assignments.
+- Dashboard low-stock counts use the same branch-item eligibility source without transferring full detail rows. Missing counts remain unavailable, not zero.
+- Workspace updates load independently of the topbar shell and omit unused procurement detail hydration. Their workflow permission checks are batched; session verification is reused only within one server render.
+- Slow upstream request logs contain endpoint names, durations and status only, without credentials, filters or business records.
+
+Repository migrations reviewed through `286`; this patch adds no migration. Production remains on the separately verified release until this patch is deployed and checked.
+
 ### v9.2.67 (Production verified 2026-09-14) — Cross-outlet employee-day integrity
 
 - An employee-day already recorded in another Submitted, Published or Locked roster satisfies completeness whether it is a shift, OFF, public holiday or leave. The destination outlet does not duplicate or contradict the immutable disposition.
@@ -1049,7 +1314,7 @@ Repository migration authority: migrations reviewed through `227`; Production mi
 - Source and local test evidence is not production verification. Authenticated four-viewport, role workflow, linked migration, AutoCount confirmation, and production regression gates remain separately recorded in the annotation ledger.
 - AutoCount Confirm now creates a missing supplier-item relationship before branch mapping and validates the branch only in the branch-mapping phase (migration 171); the authenticated disposable local mirror passed actionable validation, Preview, and one atomic Confirm with zero inventory movements.
 
-The current released application baseline is `v8.64.55` — Bounded Reads And Explicit Receipt Provenance.
+The current released application baseline is `v9.2.102` — Focused Operational Workspaces.
 
 ### v8.64.65 (unreleased) — Shared Responsive Closure
 
@@ -1248,7 +1513,7 @@ The current released application baseline is `v8.64.55` — Bounded Reads And Ex
 
 ### Current audit baseline
 
-The current released application baseline is `v8.64.47 — Fail-closed Unverified Receipt Inputs`.
+The historical released application baseline was `v8.64.47 — Fail-closed Unverified Receipt Inputs`.
 
 Item Master lookup now has one authoritative token-matching combobox shared by
 Kitchen PR entry and Purchasing Review. Users may search using partial words
@@ -1794,3 +2059,39 @@ Migration `263` adds atomic compliance renewal with history. Source reviewed loc
 - Route-heavy E2E runs are viewport-sharded so dev-server memory pressure cannot be confused with a product navigation failure.
 
 Repository migrations reviewed through `281`. v9.2.58 remains unreleased until final gates, deployment and authenticated Production UAT are complete.
+
+### Shared mobile action validation — v9.2.78
+
+Right Console submits an external page form exactly once with its real submitter before unmounting the drawer. Native validation and the page form own error focus; internal drawer forms and prevented button actions retain their existing behavior. Esc closes the drawer and restores the More actions trigger. Inert phone checks covered invalid event, valid event, bulk minimum Enter and settings save. React hook/component review found no added network reads, dependencies, motion system or duplicated business state.
+
+Plan checks now identify the product/outlet and required correction instead of a generic issue count. Shared domain checks distinguish missing from zero, manual adjustment reasons, confirmed-event quantities, minimum/reduction reasons, configured yields, whole trays, retention and surplus/shortfall. Database authorization, current-route/configuration checks and approval remain authoritative; these client checks do not replace them. Default forecast settings stay in Settings rather than repeating in the action rail.
+
+## Asset integration — local verification, not deployed
+
+Repository migrations reviewed through `337`. Migration 337 isolates assets from procurement and inventory. Original asset IDs belong to company-scoped masters; per-location holdings preserve known or unknown quantities. Transfers reserve source holdings, show dispatched quantities in transit and increase destination holdings only on confirmed receipt. Maintenance updates, checks, attachments and suppliers retain their source fields and associations. Rehearsal records stay invisible until a verified import batch is activated.
+
+All operating outlets and kitchens default to daily checks, as confirmed by the owner. A manager registers dated temporary closures with a reason; prior decisions remain in history. Event only requires checks on registered activity dates. Asset access reuses OMS company, role and assigned-branch scope; legacy passwords are excluded. Formal cutover, attachment verification and operational acceptance remain pending.
+
+Asset master registration and editing are under local verification. Imported source fields and asset IDs are immutable; current details are separate, with company-scoped master change history. Native registration records initial physical quantity or unknown, and rejects duplicate IDs case-insensitively. Edits require a reason, client key and expected record timestamp. The thirteen asset tables are included in company backups; Production migration remains pending.
+
+Native attachments support JPG, PNG, WebP and PDF up to 10 MB. General master attachments require asset management permission; maintenance operators can add photos to accessible maintenance records. Maintenance photos retain their parent/location and do not become visible merely because the asset is shared with another outlet. Uploads use reserved write-once paths and server byte/hash verification; pending files remain unreadable. Original attachment fields, authors and dates stay available. Legacy Drive files remain unverified and prevent formal cutover.
+
+Master history defaults to changed effective fields and before/after values, with complete change records collapsed. The first edit of an imported master compares against immutable source values, rather than treating unconfigured overrides as empty assets. Staging, final-delta application and staging recovery run in isolated transactions with exact snapshot checks and durable private recovery files. They do not activate assets or erase live operations.
+
+### Asset input recovery — local implementation, 8 October 2026
+
+Asset master, maintenance, transfer, checklist, quantity-confirmation, operating-day and attachment-description inputs use browser-tab session drafts scoped to the server-resolved company, staff and authenticated user. Drafts expire after four hours and do not contain submission keys or change authorization. Changed master versions, holdings, accessible locations or operation status invalidate the relevant drafts. Checklist recovery accepts only current assets and valid inspection dates/results, preserving unknown and zero separately. Successful action completion clears its form draft before refreshed history can remount it. Explicit discard clears only drafts on the current route; entering the workspace under another actor removes previous actor drafts, and identity changes remount the workspace. A recovery notice asks the user to review before saving; restored quantity, operating-day and attachment details expand. Attachment name/type recover, but files must be reselected and upload stays disabled without a file. Disabled/quota-limited browser storage does not prevent normal editing. Local browser verification covers repeated Back recovery in these forms and synthetic file selection: reentering restores the description but requires selecting the file again. A local fixture that throws a browser Storage SecurityError verified that editing remains usable and a visible warning asks the user to save before leaving. This simulates storage denial without changing browser privacy settings. Hosted identity tests remain pending. Files are not stored as drafts.
+
+### Insights date range selection — local implementation, 8 October 2026
+
+Outlet Daily Insights replaces separate period/end-date controls with one reusable range selector. Today, Yesterday, Last 7 Days, Last 30 Days, Month to date and Custom Range use Kuala Lumpur business dates. Draft selection is applied explicitly; Cancel preserves the current range. The enclosing View action submits both dates. Report tabs preserve the selection, completion and trend queries use the same range, and previous-period comparison remains adjacent and equal in length. Server validation retains the existing 1–31 day bound and rejects invalid calendar dates or reversed ranges. This is implemented locally; production deployment and authenticated report acceptance remain separate.
+
+Asset attachment download requires a valid verification timestamp and SHA256, not merely nonempty metadata. Application boundary tests cover upload retry/content verification, rechecking changed sessions and access, contextual maintenance-photo permissions and short-lived private downloads. Actual hosted Auth/Storage acceptance remains a release gate.
+
+Asset and maintenance details preview the five latest accessible attachments with an exact scoped count. When more records exist, a dedicated attachment register pages 50 rows at a time in deterministic created-time/ID order, retaining the maintenance parent scope. This avoids the REST default row cap and keeps operational forms compact. Missing counts fail visibly instead of pretending there are zero attachments. Upload forms reset against the latest attachment identity rather than a capped preview length.
+
+Legacy attachment migration uses a separately reviewed local-file copy plan bound to the exact inactive source export. Service-only preparation/finalization retain original asset/maintenance/location associations and original author/date fields. Storage paths are write-once, stored bytes are read back and verified, and a durable private receipt records progress. Repeated verification cannot change a verified content hash. Copying never activates the asset workspace. Authorized source files, actual Auth/Storage acceptance and formal cutover remain pending.
+
+### Transfer detail and contextual updates
+
+Transfers link directly to their own detail/history rather than back to the asset. The detail shows source/destination access, quantity, request reason/author and in-transit state. Approval and dispatch are shown only with source-location access; receipt is shown only with destination-location access. SQL remains authoritative. A short optional update note is retained with status-before/status-after and author/time; notes over 2,000 characters are rejected rather than truncated. Update history pages 50 rows in stable timestamp/ID order. An incoming destination can read the asset and transfer history before it has any holding; quantity is created/increased only on confirmed receipt.

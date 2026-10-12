@@ -8,7 +8,7 @@ const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
 test("create-capable administration lists promote their new record action to the phone FAB", () => {
   assert.match(read("src/app/(app)/branches/page.tsx"), /data-mobile-primary-action><Link href="\/branches\/new">New branch/);
-  assert.match(read("src/app/(app)/staffs/page.tsx"), /data-mobile-primary-action><Link href="\/staffs\/new">New staff/);
+  assert.match(read("src/app/(app)/people/page.tsx"), /data-mobile-primary-action><Link href="\/staffs\/new">New employee/);
 });
 
 test("company profile preserves save and reuses the canonical tablet split action rail", () => {

@@ -50,7 +50,7 @@ export default async function ProductionPage() {
           toolsTitle="Production tools"
           tools={[
             { href: "/production/jobs", title: "All production jobs", description: "Draft to posted", icon: Factory },
-            { href: "/production/planning", title: "Production planning", description: "Demand references", icon: ClipboardList },
+            { href: "/production/planning", title: "Production planning", description: "Approve daily production and allocation", icon: ClipboardList },
             { href: "/production/variance", title: "Demand variance", description: "Movement and confidence", icon: Scale },
             { href: "/recipes", title: "Recipes / BOM", description: "Versions and ingredients", icon: ClipboardList },
             { href: "/stock-wastage", title: "Wastage review", description: "Loss and expiry records", icon: AlertTriangle },

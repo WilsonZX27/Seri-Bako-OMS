@@ -39,9 +39,11 @@ const SEQUENCE_MANAGERS: readonly UserRole[] = ["super_admin", "finance"];
 export const informationArchitecture: readonly IaItem[] = [
   { href: "/dashboard", label: "Dashboard", group: "operations", icon: "gauge", roles: ALL, permission: "dashboard.view", defaultFor: ["super_admin","finance","manager","purchasing","kitchen","outlet_supervisor","outlet_staff"], keywords: ["home", "alerts", "approvals"] },
   { href: "/production/jobs", label: "Production Jobs", group: "operations", icon: "factory", roles: PRODUCTION, permission: "production.view" },
+  { href: "/production/planning", label: "Production Planning", group: "operations", icon: "clipboard", roles: ["super_admin", "manager", "kitchen"], permission: "production_planning.view" },
+  { href: "/asset-management", label: "Asset Management", group: "operations", icon: "boxes", roles: ["super_admin", "manager", "finance", "purchasing", "kitchen", "outlet_supervisor", "outlet_staff"], permission: "assets.view", keywords: ["assets", "maintenance", "transfers", "checklist"] },
   { href: "/outlet-daily-records", label: "Outlet Daily Records", group: "outlet_management", icon: "clipboard", roles: ALL, permission: "outlet_daily_record.view" },
-  { href: "/outlet-compliance", label: "Outlet Compliance", group: "outlet_management", icon: "check", roles: ["super_admin","people_operations","manager","purchasing","outlet_supervisor"], permission: "outlet_compliance.read", attention: true, keywords: ["bomba", "permit", "expiry", "inspection"] },
-  { href: "/outlet-calendar", label: "Outlet Calendar", group: "outlet_management", icon: "calendar", roles: ["super_admin","people_operations","manager","purchasing","outlet_supervisor"], permission: "outlet_compliance.read" },
+  { href: "/outlet-packaging", label: "Packaging Stock", group: "outlet_management", icon: "package", roles: ["super_admin", "manager", "purchasing"], permission: "outlet_daily_record.view_all", keywords: ["packaging", "usage", "balance", "warehouse"] },
+  { href: "/outlet-compliance", label: "Outlet Compliance", group: "outlet_management", icon: "check", roles: ["super_admin","people_operations","manager","purchasing"], permission: "outlet_compliance.read", attention: true, keywords: ["bomba", "permit", "expiry", "inspection"] },
   { href: "/people", label: "Employees", group: "people", icon: "users", roles: ["super_admin","people_operations","manager"], permission: "people.read", defaultFor: ["people_operations"] },
   { href: "/attendance", label: "Attendance", group: "people", icon: "calendar", roles: ["super_admin","people_operations","manager","outlet_supervisor","outlet_staff"], permission: "attendance.read", attention: true, keywords: ["roster", "shift", "punch", "NGTeco"] },
 

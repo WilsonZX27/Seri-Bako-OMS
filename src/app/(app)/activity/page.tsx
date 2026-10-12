@@ -49,7 +49,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
           )
         }
       >
-        <div className="overflow-hidden rounded-[2px] border bg-card">
+        <div className="overflow-hidden rounded-[var(--sb-panel-radius)] border bg-card">
           <OperationalList ariaLabel="Recent activity" className="bg-card" >
             {activities.map((activity) => {
               const actor = activity.created_by_name ?? "System";
@@ -73,7 +73,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
                 const messageIncludesActor = activity.message.toLocaleLowerCase().startsWith(`${actor.toLocaleLowerCase()}:`);
                 return (
                   <Link key={activity.id} href={`/activity?selected=${activity.id}`} className={`grid grid-cols-[28px_minmax(0,1fr)_auto] items-start gap-x-2 gap-y-0.5 px-3 py-2 hover:bg-secondary/50 md:grid-cols-[32px_minmax(0,1fr)_150px_120px_auto] md:items-center md:gap-3 md:py-2.5 ${active ? "bg-primary/5" : ""}`}>
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[2px] bg-primary/10 text-primary md:h-8 md:w-8">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[var(--sb-control-radius)] bg-primary/10 text-primary md:h-8 md:w-8">
                       <Activity className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">

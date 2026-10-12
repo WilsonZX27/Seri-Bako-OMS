@@ -33,7 +33,7 @@ test("purchase request lines use one responsive control geometry and no duplicat
 test("mobile shell and loading states avoid warm bands, layout shifts, and duplicate status copy", () => {
   const topBar = read("src", "components", "layout", "top-bar.tsx");
   const layout = read("src", "app", "layout.tsx");
-  const globals = read("src", "app", "globals.css");
+  const globals = read("src", "app", "globals.css") + fs.readFileSync("src/app/design-system-v2.css", "utf8");
   const outlet = read("src", "app", "(app)", "outlet-daily-records", "page.tsx");
   const stockLoading = read("src", "app", "(app)", "stock-counts", "new", "loading.tsx");
   assert.match(topBar, /sticky top-0 z-40/);
@@ -71,7 +71,7 @@ test("August 19 annotation closure groups PR data, simplifies loading, and stand
   const design = read("src", "app", "design-system-v2.css");
 
   assert.match(requests, /label="Schedule" column="request_date"/);
-  assert.match(requests, />Request context</);
+  assert.match(requests, />Location \/ Requested by</);
   assert.match(requests, />Request value</);
   assert.match(requests, /BulkSelectRowCheckbox[\s\S]*TableActionLink[\s\S]*DocumentNumber/);
   assert.match(pagination, /aria-label="Go to page"/);

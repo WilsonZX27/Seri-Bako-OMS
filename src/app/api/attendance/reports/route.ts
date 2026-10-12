@@ -9,7 +9,7 @@ import { logServerError } from "@/server/observability/logger";
 
 const optionalTimestamp=z.string().datetime({offset:true}).nullable().optional();
 const schema=z.discriminatedUnion("action",[
-  z.object({action:z.literal("submit"),assignmentId:z.string().uuid(),reportType:z.enum(["mc","emergency_leave","punch_correction","other_exception"]),requestedMinutes:z.number().int().positive().max(1440).nullable().optional(),actualFirstIn:optionalTimestamp,actualLastOut:optionalTimestamp,reason:z.string().trim().min(1).max(1000),note:z.string().trim().max(1000).nullable().optional()}),
+  z.object({action:z.literal("submit"),assignmentId:z.string().uuid(),reportType:z.enum(["mc","unpaid_leave","emergency_leave","punch_correction","other_exception"]),requestedMinutes:z.number().int().positive().max(1440).nullable().optional(),actualFirstIn:optionalTimestamp,actualLastOut:optionalTimestamp,reason:z.string().trim().min(1).max(1000),note:z.string().trim().max(1000).nullable().optional()}),
   z.object({action:z.literal("decide"),reportId:z.string().uuid(),decision:z.enum(["approve","reject"]),comment:z.string().trim().max(1000).nullable().optional(),evidenceWaiverReason:z.string().trim().max(1000).nullable().optional()}),
 ]);
 
@@ -18,6 +18,7 @@ export async function POST(request:Request){
   try{
     const input=schema.safeParse(await request.json());
     if(!input.success)return NextResponse.json({ok:false,message:"Check the daily attendance report fields."},{status:400});
+    if(input.data.action==="submit" && input.data.reportType==="unpaid_leave" && (input.data.requestedMinutes != null || input.data.actualFirstIn != null || input.data.actualLastOut != null)) return NextResponse.json({ok:false,message:"Unpaid leave covers the full scheduled day; minutes and punch corrections are not accepted."},{status:400});
     await requireActiveTenantActor();
     const required=input.data.action==="submit"?"attendance.report.submit":"attendance.report.approve";
     if(!(await hasPermission(required)))return NextResponse.json({ok:false,message:"Daily attendance report permission required."},{status:403});

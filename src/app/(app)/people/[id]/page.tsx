@@ -11,9 +11,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import {
   getStaff,
   getStaffProfileSummary,
-  getStaffSensitiveEmployment,
 } from "@/server/queries/foundation";
-import { updateStaffSensitiveEmployment } from "@/server/actions/foundation";
 import {
   getPeopleCompliance,
   getPeopleComplianceTypes,
@@ -36,8 +34,6 @@ export default async function PeopleProfilePage({
   const permissions = await getPermissionMap([
     "people.compliance.manage",
     "people.compliance.document.read",
-    "people.sensitive.read",
-    "people.sensitive.manage",
     "comp_time.submit",
   ]);
   const [
@@ -48,7 +44,6 @@ export default async function PeopleProfilePage({
     complianceTypes,
     compTime,
     attendanceTracking,
-    sensitive,
   ] = await Promise.all([
     searchParams,
     detailOrNotFound(getStaff(id)),
@@ -57,9 +52,6 @@ export default async function PeopleProfilePage({
     getPeopleComplianceTypes(),
     getStaffCompTime(id),
     getStaffAttendanceTracking(id),
-    permissions["people.sensitive.read"]
-      ? getStaffSensitiveEmployment(id)
-      : Promise.resolve(null),
   ]);
   const { section } = message;
   const activeSection: ProfileSectionId =
@@ -156,7 +148,7 @@ export default async function PeopleProfilePage({
               </ProfileSection>
               <div className="grid items-stretch gap-3 lg:grid-cols-2 [&>section]:h-full">
               {compTime.allowed ? (
-                <ProfileSection id="time-off" title="Time-off balance" action={<div className="flex flex-wrap justify-end gap-2"><Button asChild size="sm" variant="outline"><Link href="/attendance/review">Open attendance</Link></Button>{permissions["comp_time.submit"] ? <CompTimeCorrectionForm staffId={staff.id} branchId={staffSummary?.default_branch_id??null}/> : null}</div>}>
+                <ProfileSection id="time-off" title="Time-off balance" action={<div className="flex flex-wrap justify-end gap-2"><Button asChild size="sm" variant="outline"><Link href={`/attendance/review?branch=${staffSummary?.default_branch_id ?? "select"}&employee=${encodeURIComponent(staff.full_name)}`}>Open attendance</Link></Button>{permissions["comp_time.submit"] ? <CompTimeCorrectionForm staffId={staff.id} branchId={staffSummary?.default_branch_id??null}/> : null}</div>}>
                   <div className="flex items-end justify-between gap-3">
                     <div>
                       <p className="text-xs text-muted-foreground">
@@ -244,68 +236,13 @@ export default async function PeopleProfilePage({
                     }
                   />
                   <Fact label="Role" value={staffSummary?.role_name} />
+                  <Fact label="Last working date" value={staff.employment_end_date} />
                   <Fact
                     label="Default outlet"
                     value={staffSummary?.default_branch_name}
                   />
                 </dl>
               </ProfileSection>
-              {permissions["people.sensitive.read"] ? (
-                <ProfileSection
-                  id="payroll-details"
-                  title="Sensitive payroll details"
-                  action={permissions["people.sensitive.manage"] ? <Button type="submit" form="protected-payroll-form" size="sm">Save protected details</Button> : null}
-                >
-                  <p className="mb-3 text-xs text-muted-foreground">
-                    Restricted to People Operations and Owner. These fields are
-                    used only in the protected weekly workbook.
-                  </p>
-                  {permissions["people.sensitive.manage"] ? (
-                    <form
-                      id="protected-payroll-form"
-                      action={updateStaffSensitiveEmployment.bind(
-                        null,
-                        staff.id,
-                      )}
-                      className="grid gap-3 sm:grid-cols-2"
-                    >
-                      <FormField label="Passport number">
-                        <input
-                          name="passport_number"
-                          defaultValue={sensitive?.passport_number ?? ""}
-                          maxLength={100}
-                          className={controlClass}
-                        />
-                      </FormField>
-                      <FormField label="Basic salary (RM)">
-                        <input
-                          name="basic_salary"
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          defaultValue={sensitive?.basic_salary ?? ""}
-                          className={controlClass}
-                        />
-                      </FormField>
-                    </form>
-                  ) : (
-                    <dl className="grid gap-3 sm:grid-cols-2">
-                      <Fact
-                        label="Passport number"
-                        value={sensitive?.passport_number}
-                      />
-                      <Fact
-                        label="Basic salary"
-                        value={
-                          sensitive?.basic_salary == null
-                            ? null
-                            : `RM ${Number(sensitive.basic_salary).toFixed(2)}`
-                        }
-                      />
-                    </dl>
-                  )}
-                </ProfileSection>
-              ) : null}
             </>
           ) : null}
           {activeSection === "compliance" ? (
@@ -444,7 +381,7 @@ function Fact({
   );
 }
 const controlClass =
-  "mt-1 h-[var(--sb-control-height)] w-full rounded-[2px] border bg-white px-3 text-sm";
+  "mt-1 h-[var(--sb-control-height)] w-full rounded-[var(--sb-panel-radius)] border bg-white px-3 text-sm";
 function FormField({
   label,
   children,

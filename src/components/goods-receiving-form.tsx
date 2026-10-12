@@ -81,7 +81,7 @@ export function GoodsReceivingForm({
                   </div>
                 )}
               </div>
-              <button type="button" className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--sb-radius-control)] text-[var(--sb-green-800)] hover:bg-[var(--sb-surface-muted)]" onClick={() => setSetupOpen((open) => !open)} aria-label={setupOpen ? "Collapse receiving setup" : "Expand receiving setup"} aria-expanded={setupOpen} aria-controls="goods-receiving-setup-fields">
+              <button type="button" className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-[var(--sb-radius-control)] text-[var(--sb-green-800)] hover:bg-[var(--sb-surface-muted)] md:h-9 md:w-9" onClick={() => setSetupOpen((open) => !open)} aria-label={setupOpen ? "Collapse receiving setup" : "Expand receiving setup"} aria-expanded={setupOpen} aria-controls="goods-receiving-setup-fields">
                 <ChevronDown className={`h-4 w-4 transition-transform ${setupOpen ? "rotate-180" : ""}`} />
               </button>
             </div>
@@ -103,11 +103,10 @@ export function GoodsReceivingForm({
                 <Field label="Delivery Order Number">
                   <Input name="delivery_order_no" value={deliveryOrderNo} onChange={(event) => setDeliveryOrderNo(event.target.value)} placeholder="Supplier DO reference" />
                 </Field>
-                <Field label="Branch" required className="col-span-2 lg:col-span-1">
+                <Field label="Branch" required description="Select the branch receiving this delivery." className="col-span-2 lg:col-span-1">
                   <SelectNative name="branch_id" value={branchId} onChange={(event) => setBranchId(event.target.value)} required>
                     {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
                   </SelectNative>
-                  <p className="mt-1 text-xs text-muted-foreground">Select the branch receiving this delivery.</p>
                 </Field>
                 <Field label="Remarks" className="col-span-2 lg:col-span-3">
                   <Textarea name="remarks" value={remarks} onChange={(event) => setRemarks(event.target.value)} placeholder="Delivery notes, vehicle, temperature, or supplier remarks" />

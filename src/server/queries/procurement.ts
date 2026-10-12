@@ -149,12 +149,14 @@ function hydratePo(row: PurchaseOrder, lines: PurchaseOrderLine[]): PurchaseOrde
 export async function getPurchaseRequests(filters: Filters = {}) {
   if (isMockMode()) {
     const rows = mockPurchaseRequests.map((row) => hydratePr(row, mockPurchaseRequestLines));
-    return paginateRows(filterRows(rows, filters, ["request_no", "status", "priority", "branch_name", "remarks"], "request_no"), filters.page, 12);
+    return paginateRows(filterRows(rows, filters, ["request_no", "status", "priority", "branch_name", "remarks"], "created_at"), filters.page, 12);
   }
 
   const supabase = await createClient();
   const page = pageNumber(filters.page);
-  const sort = safeSort(filters.sort, ["request_no", "request_date", "needed_by_date", "status", "updated_at"], "request_no");
+  // Month abbreviations in PR numbers are not chronological (SEP sorts above OCT).
+  // Show newly created requests first; retain natural numbering for explicit sorts.
+  const sort = safeSort(filters.sort, ["created_at", "request_no", "request_date", "needed_by_date", "status", "updated_at"], "created_at");
   const databaseSort = sort === "request_no" ? "request_sort_key" : sort;
   const ascending = filters.dir === "asc";
   let query = supabase

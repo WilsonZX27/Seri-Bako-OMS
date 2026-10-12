@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { compareTableValues, paginateRows } from "@/lib/table-state";
-import type { Database } from "@/types/database";
+import type { Database, PurchaseReturnStatus } from "@/types/database";
 import { requireReadRows } from "@/server/queries/common";
 import { requireDetailRow } from "@/server/queries/detail";
 
@@ -20,8 +19,7 @@ export type PurchaseReturnRow = PurchaseReturn & {
   return_value: number;
 };
 
-export type ReturnableGoodsReceiving = GoodsReceiving & {
-  grn_no: string;
+export type ReturnableGoodsReceiving = Pick<GoodsReceiving, "id" | "grn_no" | "purchase_order_id" | "supplier_id" | "updated_at"> & {
   po_no: string | null;
   supplier_name: string | null;
   returnable_qty: number;
@@ -37,80 +35,92 @@ export type PurchaseReturnLineRow = PurchaseReturnLine & {
   item?: Pick<Database["public"]["Tables"]["items"]["Row"], "id" | "item_code" | "item_name" | "base_unit">;
 };
 
-function filterRows(rows: PurchaseReturnRow[], filters: Filters) {
-  const search = filters.search?.trim().toLowerCase();
-  const status = filters.status && filters.status !== "all" ? filters.status : null;
-  const sort = filters.sort ?? "updated_at";
-  const dir = filters.dir ?? "desc";
-  return rows
-    .filter((row) => {
-      const blob = [row.purchase_return_no, row.grn_no, row.po_no, row.supplier_name, row.status].join(" ").toLowerCase();
-      return (!search || blob.includes(search)) && (!status || row.status === status);
-    })
-    .sort((a, b) => compareTableValues(a[sort as keyof PurchaseReturnRow], b[sort as keyof PurchaseReturnRow], dir));
+export type PurchaseReturnSummary = {
+  total: number;
+  draft: number;
+  posted: number;
+  cancelled: number;
+  value: number;
+};
+
+const PURCHASE_RETURN_PAGE_SIZE = 12;
+const PURCHASE_RETURN_SORT_COLUMNS = new Set(["purchase_return_no", "return_date", "status", "supplier_name", "return_total", "return_value", "updated_at"]);
+
+function requestedPage(pageValue?: string) {
+  const parsed = Number(pageValue ?? "1");
+  return Number.isFinite(parsed) ? Math.max(Math.trunc(parsed), 1) : 1;
 }
 
 export async function getPurchaseReturns(filters: Filters = {}) {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("purchase_returns").select("*").is("deleted_at", null).order("updated_at", { ascending: false });
+  const sort = PURCHASE_RETURN_SORT_COLUMNS.has(filters.sort ?? "") ? filters.sort! : "updated_at";
+  const ascending = filters.dir === "asc";
+  const status = filters.status && filters.status !== "all" ? filters.status as PurchaseReturnStatus : null;
+  const search = filters.search?.trim().replace(/[(),]/g, " ").replace(/[\\%_]/g, "\\$&");
+  let query = supabase.from("purchase_returns_list_view").select("*", { count: "exact" });
+  if (status) query = query.eq("status", status);
+  if (search) query = query.or(["purchase_return_no", "grn_no", "po_no", "supplier_name"].map((column) => `${column}.ilike.%${search}%`).join(","));
+  query = query.order(sort, { ascending }).order("id", { ascending: false });
+  if (filters.page !== "all") {
+    const page = requestedPage(filters.page);
+    query = query.range((page - 1) * PURCHASE_RETURN_PAGE_SIZE, page * PURCHASE_RETURN_PAGE_SIZE - 1);
+  }
+  const { data, error, count } = await query;
   if (error) throw new Error(error.message);
-  const returns = requireReadRows(data, "Purchase returns") as PurchaseReturn[];
-  if (returns.length === 0) return paginateRows([], filters.page, 12);
-  const returnIds = returns.map((row) => row.id);
-  const grnIds = [...new Set(returns.map((row) => row.goods_receiving_id))];
-  const poIds = [...new Set(returns.map((row) => row.purchase_order_id))];
-  const supplierIds = [...new Set(returns.map((row) => row.supplier_id))];
-  const branchIds = [...new Set(returns.map((row) => row.branch_id).filter((id): id is string => Boolean(id)))];
-  const [{ data: lines, error: linesError }, { data: grns, error: grnsError }, { data: pos, error: posError }, { data: suppliers, error: suppliersError }, branchResult] = await Promise.all([
-    supabase.from("purchase_return_lines").select("*").in("purchase_return_id", returnIds),
-    supabase.from("goods_receivings").select("id, grn_no").in("id", grnIds),
-    supabase.from("purchase_orders").select("id, po_no").in("id", poIds),
-    supabase.from("suppliers").select("id, name").in("id", supplierIds),
-    branchIds.length > 0 ? supabase.from("branches").select("id, branch_name").in("id", branchIds) : Promise.resolve({ data: [], error: null }),
-  ]);
-  if (linesError || grnsError || posError || suppliersError || branchResult.error) throw new Error((linesError ?? grnsError ?? posError ?? suppliersError ?? branchResult.error)!.message);
-  const branches = branchResult.data;
-  const grnById = new Map((grns ?? []).map((row) => [row.id, row.grn_no]));
-  const poById = new Map((pos ?? []).map((row) => [row.id, row.po_no]));
-  const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
-  const branchById = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
-  const rows = returns.map((row) => {
-    const ownLines = ((lines ?? []) as PurchaseReturnLine[]).filter((line) => line.purchase_return_id === row.id);
-    return {
-      ...row,
-      grn_no: grnById.get(row.goods_receiving_id) ?? null,
-      po_no: poById.get(row.purchase_order_id) ?? null,
-      supplier_name: supplierById.get(row.supplier_id) ?? null,
-      branch_name: row.branch_id ? branchById.get(row.branch_id) ?? null : null,
-      line_count: ownLines.length,
-      return_total: ownLines.reduce((sum, line) => sum + Number(line.return_qty), 0),
-      return_value: ownLines.reduce((sum, line) => sum + Number(line.return_qty) * Number(line.unit_cost), 0),
-    };
-  });
-  return paginateRows(filterRows(rows, filters), filters.page, 12);
+  const rows = requireReadRows(data, "Purchase returns") as PurchaseReturnRow[];
+  const totalRows = count ?? rows.length;
+  const totalPages = Math.max(Math.ceil(totalRows / PURCHASE_RETURN_PAGE_SIZE), 1);
+  const page = filters.page === "all" ? 1 : Math.min(requestedPage(filters.page), totalPages);
+  return { rows, totalRows, page, pageSize: PURCHASE_RETURN_PAGE_SIZE, totalPages };
+}
+
+export async function getPurchaseReturnSummary(): Promise<PurchaseReturnSummary> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_purchase_return_summary");
+  if (error) throw new Error(error.message);
+  const summary = requireReadRows(data, "Purchase return summary")[0];
+  if (!summary) throw new Error("Purchase return summary returned no data.");
+  return {
+    total: Number(summary.total),
+    draft: Number(summary.draft),
+    posted: Number(summary.posted),
+    cancelled: Number(summary.cancelled),
+    value: Number(summary.value),
+  };
 }
 
 export async function getPostedGoodsReceivingsForReturn() {
   const supabase = await createClient();
-  const { data: grns, error } = await supabase.from("goods_receivings").select("*").eq("status", "posted").is("deleted_at", null);
+  const { data: grns, error } = await supabase
+    .from("goods_receivings")
+    .select("id,grn_no,purchase_order_id,supplier_id,updated_at")
+    .eq("status", "posted")
+    .is("deleted_at", null);
   if (error) throw new Error(error.message);
-  const receivings = requireReadRows(grns, "Posted goods receivings") as GoodsReceiving[];
+  const receivings = requireReadRows(grns, "Posted goods receivings");
   if (receivings.length === 0) return [];
   const receivingIds = receivings.map((grn) => grn.id);
   const poIds = [...new Set(receivings.map((grn) => grn.purchase_order_id))];
   const supplierIds = [...new Set(receivings.map((grn) => grn.supplier_id))];
   const [{ data: lines, error: linesError }, { data: pos, error: posError }, { data: suppliers, error: suppliersError }] = await Promise.all([
-    supabase.from("goods_receiving_lines").select("*").in("goods_receiving_id", receivingIds),
+    supabase.from("goods_receiving_lines").select("goods_receiving_id,received_qty,returned_qty").in("goods_receiving_id", receivingIds),
     supabase.from("purchase_orders").select("id, po_no").in("id", poIds),
     supabase.from("suppliers").select("id, name").in("id", supplierIds),
   ]);
   if (linesError || posError || suppliersError) throw new Error((linesError ?? posError ?? suppliersError)!.message);
   const poById = new Map((pos ?? []).map((row) => [row.id, row.po_no]));
   const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row.name]));
+  const returnableByReceivingId = new Map<string, number>();
+  for (const line of requireReadRows(lines, "Posted goods receiving returnable quantities")) {
+    const remaining = Math.max(Number(line.received_qty) - Number(line.returned_qty ?? 0), 0);
+    returnableByReceivingId.set(
+      line.goods_receiving_id,
+      (returnableByReceivingId.get(line.goods_receiving_id) ?? 0) + remaining,
+    );
+  }
   return receivings
     .map((grn) => {
-      const ownLines = ((lines ?? []) as GoodsReceivingLine[]).filter((line) => line.goods_receiving_id === grn.id);
-      const returnable_qty = ownLines.reduce((sum, line) => sum + Math.max(Number(line.received_qty) - Number(line.returned_qty ?? 0), 0), 0);
+      const returnable_qty = returnableByReceivingId.get(grn.id) ?? 0;
       return { ...grn, po_no: poById.get(grn.purchase_order_id) ?? null, supplier_name: supplierById.get(grn.supplier_id) ?? null, returnable_qty };
     })
     .filter((grn) => grn.returnable_qty > 0)

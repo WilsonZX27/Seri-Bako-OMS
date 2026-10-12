@@ -5,9 +5,9 @@ import { getCurrentUserScope, getVisibleNotificationsForCurrentUser } from "@/se
 import { getCurrentUserPendingActionSnapshot } from "@/server/queries/pending-actions";
 import { getPayablesAttention } from "@/server/queries/ap-aging";
 import { getRoleDisplayLabel } from "@/lib/roles";
-import { getOutletComplianceWorkspace } from "@/server/queries/compliance";
+import { getOutletComplianceIssueCount } from "@/server/queries/compliance";
 import { getOutletDailyCompletionMatrix, getOutletDailyDemandTrend } from "@/server/queries/outlet-daily-records";
-import { getLowStockResult } from "@/server/queries/inventory";
+import { getLowStockCount } from "@/server/queries/inventory";
 import { logServerWarning } from "@/server/observability/logger";
 import {
   getMockLowStockItems,
@@ -349,7 +349,7 @@ export async function getDashboardSummary() {
   const db = looseSupabase(supabase);
   const empty = { data: [], error: null, count: 0 };
   const nextWeek = new Date(`${today}T00:00:00Z`); nextWeek.setUTCDate(nextWeek.getUTCDate()+7);
-  const [coreSnapshotRpcResult, pendingApprovalsSnapshot, notifications, recentActivities, outletToday, currentStaff, assignedBranches, payablesAttention, lowStockViewResult, upcomingShifts, outletCompletion, wastageTrend, complianceWorkspace] = await Promise.all([
+  const [coreSnapshotRpcResult, pendingApprovalsSnapshot, notifications, recentActivities, outletToday, currentStaff, assignedBranches, payablesAttention, lowStockViewResult, upcomingShifts, outletCompletion, wastageTrend, complianceIssueCount] = await Promise.all([
     (needsProcurement || needsInventory) ? supabase.rpc("get_dashboard_core_snapshot", { p_today: today }) : Promise.resolve({ data: null, error: null }),
     getCurrentUserPendingActionSnapshot(5, false),
     getVisibleNotificationsForCurrentUser(),
@@ -368,12 +368,12 @@ export async function getDashboardSummary() {
         })
       : Promise.resolve(null),
     needsInventory
-      ? getLowStockResult()
+      ? getLowStockCount()
       : Promise.resolve({ rows: [], count: 0, unavailable: false }),
-    isOutlet && scope.staffId ? db.from("shift_assignment_revisions").select("id,work_date,assignment_kind,custom_start,custom_end,shift_templates(code,name,planned_start,planned_end,crosses_midnight),schedule_weeks!inner(status)").eq("staff_id",scope.staffId).eq("is_current",true).gte("work_date",today).lte("work_date",nextWeek.toISOString().slice(0,10)).in("schedule_weeks.status",["published","locked"]).order("work_date").limit(8) : Promise.resolve({data:[],error:null}),
+    isOutlet && scope.staffId ? db.from("shift_assignment_revisions").select("id,work_date,assignment_kind,custom_start,custom_end,shift_templates(code,name,planned_start,planned_end,crosses_midnight),schedule_weeks!shift_assignment_revisions_schedule_week_id_fkey!inner(status)").eq("staff_id",scope.staffId).eq("is_current",true).gte("work_date",today).lte("work_date",nextWeek.toISOString().slice(0,10)).in("schedule_weeks.status",["published","locked"]).order("work_date").limit(8) : Promise.resolve({data:[],error:null}),
     needsOperations ? getOutletDailyCompletionMatrix({ history_date: today }).catch((error) => { warnOptionalQuery("outlet completion", error); return null; }) : Promise.resolve(null),
     needsOperations ? getOutletDailyDemandTrend({ period: "7", history_date: today }).catch((error) => { warnOptionalQuery("outlet wastage trend", error); return null; }) : Promise.resolve(null),
-    needsCompliance ? getOutletComplianceWorkspace().catch((error) => { warnOptionalQuery("outlet compliance", error); return null; }) : Promise.resolve(null),
+    needsCompliance ? getOutletComplianceIssueCount().catch((error) => { warnOptionalQuery("outlet compliance", error); return null; }) : Promise.resolve(null),
   ]);
 
   // Keep the exact total for the attention summary, while showing only the
@@ -432,9 +432,6 @@ export async function getDashboardSummary() {
         return total + (!todayCell || ["missing", "draft", "morning_recorded", "evening_completed"].includes(todayCell.status) ? 1 : 0);
       }, 0)
     : null;
-  const complianceIssues = complianceWorkspace
-    ? complianceWorkspace.requirements.filter((row) => !row.record || ["missing", "expired"].includes(row.record.state)).length
-    : null;
   const attentionSummary = createDashboardAttentionSummary({
     pendingApprovals: pendingApprovals.total ?? 0,
     lowStock: inventoryUnavailable ? 0 : (lowStockViewCount ?? Number(coreSnapshot?.low_stock_items_count ?? 0)),
@@ -491,7 +488,7 @@ export async function getDashboardSummary() {
     payablesAttention,
     payablesAttentionUnavailable,
     attentionSummary,
-    compliance: needsCompliance ? { issues: complianceIssues, unavailable: complianceWorkspace === null } : null,
+    compliance: needsCompliance ? { issues: complianceIssueCount, unavailable: complianceIssueCount === null } : null,
     operationsControl: needsOperations && !operationsUnavailable ? {
       outlet: {
         missing_evening: outletCompletionIssues ?? Number(coreSnapshot?.outlet_missing_evening ?? 0),

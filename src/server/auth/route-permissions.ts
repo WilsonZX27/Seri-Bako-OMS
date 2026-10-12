@@ -17,7 +17,7 @@ const exactRoutePermissions: Record<string, string[]> = {
   "/supplier-invoices/cash-flow": ["supplier_invoice.pay"],
   "/administration/master-data-cleanup": ["items.view"],
   "/reports/demand-trends": ["outlet_daily_record.view"],
-  "/production/planning": ["outlet_daily_record.view"],
+  "/production/planning": ["production_planning.view"],
   "/production/variance": ["outlet_daily_record.view"],
   "/branches/new": ["branches.create"],
   "/document-sequences/new": ["document_sequences.create"],
@@ -50,9 +50,11 @@ const exactRouteRoles: Record<string, readonly string[]> = {
 };
 
 const routePermissions: Array<{ prefixes: string[]; permissions: string[] }> = [
+  { prefixes: ["/outlet-daily-records/delivery-orders"], permissions: ["production_planning.view"] },
   ...informationArchitecture.map((item) => ({ prefixes: [item.href], permissions: [item.permission] })),
   { prefixes: ["/outlet-daily-records"], permissions: ["outlet_daily_record.view"] },
   { prefixes: ["/attendance"], permissions: ["attendance.read"] },
+  { prefixes: ["/production/delivery-orders", "/production/planning"], permissions: ["production_planning.view"] },
   { prefixes: ["/production/jobs", "/production", "/products"], permissions: ["production.view"] },
   { prefixes: ["/recipes"], permissions: ["recipes.view"] },
   { prefixes: ["/purchase-requests"], permissions: ["purchase_request.read"] },

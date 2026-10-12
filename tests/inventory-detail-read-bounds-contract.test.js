@@ -30,7 +30,7 @@ test("optional inventory insights use a strict base-table fallback instead of an
 
 test("stock balance failures remain unavailable in ledger valuation", () => {
   assert.match(source, /unavailable: true \}\;/);
-  assert.match(ledgerPage, /const balanceUnavailable = Boolean\(balances\.unavailable \|\| balances\.error\)/);
+  assert.match(ledgerPage, /const balanceUnavailable = balanceSummary === null/);
   assert.match(ledgerPage, /Stock Balance data is temporarily unavailable/);
-  assert.match(ledgerPage, /balanceUnavailable \? "Unavailable"/);
+  assert.match(ledgerPage, /balanceSummary \? balanceSummary\.total : "Unavailable"/);
 });

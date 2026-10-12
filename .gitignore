@@ -19,6 +19,8 @@ playwright/.cache/
 *.tsbuildinfo
 
 # Environment
+env.test.local
+gitignore.txt
 .env
 .env.local
 .env.development.local
@@ -55,3 +57,5 @@ tmp-*.js
 
 # Disposable local Supabase CLI telemetry and traces
 .supabase-home/
+.vercel
+.env*

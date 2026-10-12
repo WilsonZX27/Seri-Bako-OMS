@@ -10,7 +10,6 @@ import { canAssignRoleCode, isProtectedOwnerAssignableRole, isSuperAdminRole } f
 import { createAdminClient } from "@/lib/supabase/admin";
 import { setTemporaryPasswordHandoff } from "@/server/auth/temporary-password-handoff";
 import { createClient } from "@/lib/supabase/server";
-import { looseSupabase } from "@/lib/supabase/loose";
 import { branchSchema, companySchema, documentSequenceSchema, staffAccessSchema, staffSchema } from "@/lib/validations/foundation";
 import { writeActivityLog } from "@/server/activity/log";
 import { requirePermission } from "@/server/auth/permissions";
@@ -387,6 +386,7 @@ function staffPayload(formData: FormData, companyId: string) {
     email: formValue(formData, "email"),
     phone: formValue(formData, "phone"),
     employment_type: formValue(formData, "employment_type") ?? "full_time",
+    employment_end_date: formValue(formData, "employment_end_date"),
     default_branch_id: null,
     status: formValue(formData, "status") ?? "invited",
   });
@@ -437,7 +437,7 @@ async function replaceStaffAccess(staffId: string, formData: FormData, payload?:
     p_phone: payload?.phone,
   });
   if (error) throw new Error(error.message);
-  if(payload){const actor=await requireActiveTenantActor();const admin=createAdminClient();const {error:employmentError}=await admin.from("staffs").update({employment_type:payload.employment_type}).eq("id",staffId).eq("company_id",actor.companyId);if(employmentError)throw new Error(employmentError.message);}
+  if(payload){const actor=await requireActiveTenantActor();const admin=createAdminClient();const {error:employmentError}=await admin.from("staffs").update({employment_type:payload.employment_type,employment_end_date:payload.employment_end_date}).eq("id",staffId).eq("company_id",actor.companyId);if(employmentError)throw new Error(employmentError.message);}
 }
 
 async function getCurrentStaffId() {
@@ -557,7 +557,10 @@ async function countStaffHistory(admin: ReturnType<typeof createAdminClient>, st
     admin.from("stock_transactions").select("id", { count: "exact", head: true }).eq("created_by", staffId),
     admin.from("document_comments").select("id", { count: "exact", head: true }).eq("created_by", staffId),
     admin.from("attachments").select("id", { count: "exact", head: true }).or(`uploaded_by.eq.${staffId},created_by.eq.${staffId}`),
-    admin.from("activity_logs").select("id", { count: "exact", head: true }).or(`entity_id.eq.${staffId},created_by.eq.${staffId}`),
+    // Audit rows about the Staff entity must survive deletion and must not make
+    // every newly-created test account undeletable. Only activity performed by
+    // this Staff member is historical usage that blocks permanent deletion.
+    admin.from("activity_logs").select("id", { count: "exact", head: true }).eq("created_by", staffId),
   ]);
 
   for (const check of checks) {
@@ -808,14 +811,6 @@ export async function updateStaff(id: string, formData: FormData) {
   safeRedirectWithMessage(`/staffs/${id}`, "success", "Staff updated.");
 }
 
-export async function updateStaffSensitiveEmployment(id:string,formData:FormData){
- id=parseRecordId(id);
- await requirePermissionOrRedirect("people.sensitive.manage",`/people/${id}?section=employment`);
- try{const passport=cleanText(formData.get("passport_number"));const salaryText=cleanText(formData.get("basic_salary"));const salary=salaryText===null?null:Number(salaryText);if(salary!==null&&(!Number.isFinite(salary)||salary<0))throw new Error("Basic salary must be a positive amount.");const supabase=looseSupabase(await createClient());const {error}=await supabase.rpc("save_staff_sensitive_employment",{p_staff_id:id,p_passport_number:passport,p_basic_salary:salary});if(error)throw new Error(error.message);}
- catch(error){rethrowRedirect(error);safeRedirectWithMessage(`/people/${id}?section=employment`,"error",formatActionError(error,"Could not update sensitive employment details."));}
- revalidatePath(`/people/${id}`);safeRedirectWithMessage(`/people/${id}?section=employment`,"success","Sensitive employment details updated.");
-}
-
 async function saveStaffPermissionOverrides(id: string, overrides: { permission_id: string; effect: "allow" | "deny" }[]) {
   await requirePermissionOrRedirect("roles.update", `/staffs/${id}`);
   try {
@@ -1063,8 +1058,22 @@ export async function permanentlyDeleteStaff(id: string) {
       await writeActivityLog({ entityType: "staff", entityId: id, activityType: "deleted", message: `Permanent staff delete approved for ${staff.full_name}` });
 
       if (staff.auth_user_id) {
+        const { error: unlinkError } = await supabase
+          .from("staffs")
+          .update({ auth_user_id: null })
+          .eq("id", id)
+          .eq("company_id", actor.companyId);
+        if (unlinkError) throw new Error(unlinkError.message);
         const { error: authError } = await supabase.auth.admin.deleteUser(staff.auth_user_id);
-        if (authError) throw new Error(authError.message);
+        if (authError) {
+          const { error: restoreError } = await supabase
+            .from("staffs")
+            .update({ auth_user_id: staff.auth_user_id })
+            .eq("id", id)
+            .eq("company_id", actor.companyId);
+          if (restoreError) throw new Error(`${authError.message}; sign-in link restoration also failed: ${restoreError.message}`);
+          throw new Error(authError.message);
+        }
       }
 
       const [{ error: roleError }, { error: branchError }] = await Promise.all([

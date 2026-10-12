@@ -16,7 +16,7 @@ import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { StatusTabs } from "@/components/status-tabs";
 import { getBranchesForSelect } from "@/server/queries/common";
-import { getProductionJobs } from "@/server/queries/production-jobs";
+import { getProductionJobs, getProductionJobSummary } from "@/server/queries/production-jobs";
 import { hasPermission } from "@/server/auth/permissions";
 import { formatDateOnly, formatDateTime, formatNumber } from "@/lib/utils";
 import { formatStatusLabel } from "@/lib/status-label";
@@ -49,22 +49,29 @@ async function loadBranches() {
   }
 }
 
+async function loadProductionSummary() {
+  try {
+    return { data: await getProductionJobSummary(), unavailable: false };
+  } catch (error) {
+    logServerError(error, { source: "page.productionJobs.summary" });
+    return { data: null, unavailable: true };
+  }
+}
+
 export default async function ProductionJobsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [jobsResult, allJobsResult, branchesResult, canCreate] = await Promise.all([loadProductionJobs(filters), loadProductionJobs({ page: "all" }), loadBranches(), hasPermission("production.create")]);
+  const [jobsResult, summaryResult, branchesResult, canCreate] = await Promise.all([loadProductionJobs(filters), loadProductionSummary(), loadBranches(), hasPermission("production.create")]);
   const jobs = jobsResult.data;
-  const allJobs = allJobsResult.data;
+  const summary = summaryResult.data;
   const branches = branchesResult.data;
   const selectedStatus = filters.status ?? "all";
-  const rows = allJobs?.rows ?? [];
-  const countByStatus = (...values: string[]) => rows.filter((row) => values.includes(row.status)).length;
   const insights = [
-    { label: "Total", value: rows.length, href: "/production/jobs", active: selectedStatus === "all", icon: FileText },
-    { label: "Draft", value: countByStatus("draft"), href: "/production/jobs?status=draft", active: selectedStatus === "draft", icon: FileText },
-    { label: "In Review", value: countByStatus("submitted"), href: "/production/jobs?status=submitted", active: selectedStatus === "submitted", icon: ClipboardCheck },
-    { label: "Approved", value: countByStatus("approved"), href: "/production/jobs?status=approved", active: selectedStatus === "approved", icon: CheckCircle2 },
-    { label: "Posted", value: countByStatus("posted"), href: "/production/jobs?status=posted", active: selectedStatus === "posted", icon: CheckCircle2 },
-    { label: "Cancelled", value: countByStatus("cancelled"), href: "/production/jobs?status=cancelled", active: selectedStatus === "cancelled", icon: XCircle },
+    { label: "Total", value: summary?.total ?? 0, href: "/production/jobs", active: selectedStatus === "all", icon: FileText },
+    { label: "Draft", value: summary?.draft ?? 0, href: "/production/jobs?status=draft", active: selectedStatus === "draft", icon: FileText },
+    { label: "In Review", value: summary?.submitted ?? 0, href: "/production/jobs?status=submitted", active: selectedStatus === "submitted", icon: ClipboardCheck },
+    { label: "Approved", value: summary?.approved ?? 0, href: "/production/jobs?status=approved", active: selectedStatus === "approved", icon: CheckCircle2 },
+    { label: "Posted", value: summary?.posted ?? 0, href: "/production/jobs?status=posted", active: selectedStatus === "posted", icon: CheckCircle2 },
+    { label: "Cancelled", value: summary?.cancelled ?? 0, href: "/production/jobs?status=cancelled", active: selectedStatus === "cancelled", icon: XCircle },
   ];
   const filtered = hasActiveFilters(filters);
 
@@ -86,7 +93,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
           </Button>
         </ConsoleSection> : null}
         <ConsoleSection title="Production Summary">
-          {allJobsResult.unavailable ? <div role="status"><p className="text-xs font-semibold text-[var(--sb-warning)]">Unavailable</p><p className="mt-1 text-xs text-muted-foreground">The current job queue remains independent. Retry to load production totals.</p></div> : <div className="grid gap-1.5 text-xs">
+          {summaryResult.unavailable ? <div role="status"><p className="text-xs font-semibold text-[var(--sb-warning)]">Unavailable</p><p className="mt-1 text-xs text-muted-foreground">The current job queue remains independent. Retry to load production totals.</p></div> : <div className="grid gap-1.5 text-xs">
             {insights.map((item) => (
               <div key={item.label} className="flex justify-between px-1 py-0.5">
                 <span className={item.active ? "font-semibold text-foreground" : "text-muted-foreground"}>{item.label}</span>
@@ -114,7 +121,7 @@ export default async function ProductionJobsPage({ searchParams }: { searchParam
               <SelectControl name={branches ? "branch_id" : undefined} defaultValue={branches ? filters.branch_id ?? "all" : "unavailable"} ariaLabel="Branch" disabled={!branches} options={branches ? [{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))] : [{ value: "unavailable", label: "Branch filter unavailable" }]} />
               {!branches && filters.branch_id ? <input type="hidden" name="branch_id" value={filters.branch_id} /> : null}
               <FilterBarMore activeCount={Number(Boolean(filters.from)) + Number(Boolean(filters.to))} resetHref="/production/jobs"><Input name="from" type="date" defaultValue={filters.from ?? ""} /><Input name="to" type="date" defaultValue={filters.to ?? ""} /></FilterBarMore>
-              <Button type="submit">Search</Button>
+
               {selectedStatus !== "all" ? <input type="hidden" name="status" value={selectedStatus} /> : null}
             </FilterBar>
           <div className="sb-list-content-card overflow-hidden">

@@ -809,11 +809,17 @@ export async function getStockBalanceDetails(filters: Filters = {}): Promise<Pag
   const branchIds = Array.from(new Set(balanceRows.map((row) => row.branch_id).filter((id): id is string => Boolean(id))));
   const imageByItemId = new Map<string, string | null>();
   const itemDefaultById = new Map<string, { supplier_id: string | null; purchase_unit: string; base_unit: string; status: string }>();
-  for (let offset = 0; offset < itemIds.length; offset += 100) {
-    const images = await supabase
+  const itemIdChunks = Array.from({ length: Math.ceil(itemIds.length / 100) }, (_, index) => itemIds.slice(index * 100, (index + 1) * 100));
+  const [imageResults, branchMappingsResult] = await Promise.all([
+    Promise.all(itemIdChunks.map((chunk) => supabase
       .from("items")
       .select("id, item_image_url, supplier_id, purchase_unit, base_unit, status")
-      .in("id", itemIds.slice(offset, offset + 100));
+      .in("id", chunk))),
+    itemIds.length && branchIds.length
+      ? supabase.from("branch_supplier_items").select("branch_id, item_id, supplier_item_id, is_preferred").in("branch_id", branchIds).in("item_id", itemIds).eq("status", "active").is("deleted_at", null)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  for (const images of imageResults) {
     if (images.error) {
       warnOptionalInventoryQuery("Stock Balance item images", images.error);
       break;
@@ -823,9 +829,7 @@ export async function getStockBalanceDetails(filters: Filters = {}): Promise<Pag
       itemDefaultById.set(item.id, { supplier_id: item.supplier_id, purchase_unit: item.purchase_unit, base_unit: item.base_unit, status: item.status });
     });
   }
-  const { data: branchMappings, error: branchMappingsError } = itemIds.length && branchIds.length
-    ? await supabase.from("branch_supplier_items").select("branch_id, item_id, supplier_item_id, is_preferred").in("branch_id", branchIds).in("item_id", itemIds).eq("status", "active").is("deleted_at", null)
-    : { data: [], error: null };
+  const { data: branchMappings, error: branchMappingsError } = branchMappingsResult;
   if (branchMappingsError) warnOptionalInventoryQuery("Stock Balance branch sourcing", branchMappingsError);
   const supplierItemIds = [...new Set((branchMappings ?? []).map((mapping) => mapping.supplier_item_id))];
   const { data: supplierItems, error: supplierItemsError } = supplierItemIds.length
@@ -842,10 +846,22 @@ export async function getStockBalanceDetails(filters: Filters = {}): Promise<Pag
   if (suppliersError) warnOptionalInventoryQuery("Stock Balance supplier names", suppliersError);
   const relationshipById = new Map((supplierItems ?? []).map((relationship) => [relationship.id, relationship]));
   const supplierNameById = new Map((suppliers ?? []).map((supplier) => [supplier.id, supplier.name]));
+  const branchMappingsByPair = new Map<string, Array<{
+    branch_id: string;
+    item_id: string;
+    supplier_item_id: string;
+    is_preferred: boolean;
+  }>>();
+  for (const mapping of branchMappings ?? []) {
+    const key = `${mapping.branch_id}:${mapping.item_id}`;
+    const pairMappings = branchMappingsByPair.get(key) ?? [];
+    pairMappings.push(mapping);
+    branchMappingsByPair.set(key, pairMappings);
+  }
   const rows = balanceRows.map((row) => ({
     ...(() => {
       if (branchMappingsError || suppliersError) return { ...row, supplier_id: null, supplier_name: null };
-      const pairMappings = (branchMappings ?? []).filter((mapping) => mapping.branch_id === row.branch_id && mapping.item_id === row.item_id);
+      const pairMappings = branchMappingsByPair.get(`${row.branch_id}:${row.item_id}`) ?? [];
       if (!pairMappings.length) {
         const itemDefault = itemDefaultById.get(row.item_id);
         const supplierName = itemDefault?.supplier_id ? supplierNameById.get(itemDefault.supplier_id) : null;
@@ -880,6 +896,79 @@ export async function getStockBalanceDetails(filters: Filters = {}): Promise<Pag
         : "ok",
   }));
   return databasePaginationOrError(rows, count, filters.page, null);
+}
+
+export type StockBalanceSummary = { total: number; lowStock: number; negative: number; inventoryValue: number };
+
+export type StockAvailabilityOption = {
+  branch_id: string | null;
+  item_id: string;
+  item_code: string;
+  item_name: string;
+  base_unit: string;
+  current_qty: number;
+};
+
+export async function getStockAvailabilityOptions(input: { branchId?: string; itemIds?: string[] } = {}): Promise<StockAvailabilityOption[]> {
+  const itemIds = [...new Set(input.itemIds?.filter(Boolean) ?? [])];
+  if (input.itemIds && !itemIds.length) return [];
+  if (isMockMode()) {
+    const balances = await getStockBalanceDetails({ page: "all", view: "branch", branch_id: input.branchId });
+    if (balances.unavailable || balances.error) throw new Error(balances.error ?? "Stock availability is unavailable.");
+    const allowedItems = itemIds.length ? new Set(itemIds) : null;
+    return balances.rows
+      .filter((row) => (!input.branchId || row.branch_id === input.branchId) && (!allowedItems || allowedItems.has(row.item_id)))
+      .map((row) => ({
+        branch_id: row.branch_id,
+        item_id: row.item_id,
+        item_code: row.item_code,
+        item_name: row.item_name,
+        base_unit: row.base_unit,
+        current_qty: Number(row.current_qty),
+      }));
+  }
+  const supabase = await createClient();
+  let query = supabase
+    .from("stock_balances_summary")
+    .select("branch_id,item_id,item_code,item_name,base_unit,current_qty")
+    .order("item_name", { ascending: true })
+    .order("item_id", { ascending: true });
+  if (input.branchId) query = query.eq("branch_id", input.branchId);
+  if (itemIds.length) query = query.in("item_id", itemIds);
+  const { data, error } = await query;
+  if (error) throw new Error(`Stock availability could not be loaded: ${error.message}`);
+  if (!Array.isArray(data)) throw new Error("Stock availability returned invalid data.");
+  return data.map((row) => ({ ...row, current_qty: Number(row.current_qty) }));
+}
+
+export async function getStockBalanceSummary(filters: Filters = {}): Promise<StockBalanceSummary> {
+  if (isMockMode()) {
+    const balances = await getStockBalanceDetails({ ...filters, page: "all" });
+    if (balances.unavailable || balances.error) throw new Error(balances.error ?? "Stock Balance summary is unavailable.");
+    return {
+      total: balances.totalRows,
+      lowStock: balances.rows.filter((row) => row.status === "low_stock").length,
+      negative: balances.rows.filter((row) => row.status === "negative").length,
+      inventoryValue: balances.rows.reduce((sum, row) => sum + Number(row.inventory_value), 0),
+    };
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_stock_balance_summary", {
+    p_branch_id: filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null,
+    p_supplier_id: filters.supplier_id && filters.supplier_id !== "all" ? filters.supplier_id : null,
+    p_status: filters.status && filters.status !== "all" ? filters.status : null,
+    p_search: filters.search?.trim() || null,
+  });
+  if (error) throw new Error(error.message);
+  if (!Array.isArray(data)) throw new Error("Stock Balance summary returned invalid data.");
+  const summary = data[0];
+  if (!summary) throw new Error("Stock Balance summary returned no data.");
+  return {
+    total: Number(summary.total),
+    lowStock: Number(summary.low_stock),
+    negative: Number(summary.negative),
+    inventoryValue: Number(summary.inventory_value),
+  };
 }
 
 export async function getInventoryDashboard(period: "7d" | "30d" | "month" = "30d") {
@@ -1144,6 +1233,26 @@ async function loadLowStockItems(filters: Filters = {}) {
 }
 
 export type LowStockResult = { rows: Awaited<ReturnType<typeof loadLowStockItems>>; count: number | null; unavailable: boolean };
+
+/** Dashboard needs only a count, including mapped items before their first movement. */
+export async function getLowStockCount(): Promise<{ count: number | null; unavailable: boolean }> {
+  if (isMockMode()) return { count: getMockLowStockItems().length, unavailable: false };
+  try {
+    const supabase = await createClient();
+    const { count, error } = await supabase
+      .from("stock_count_eligible_items" as "stock_balances_summary")
+      .select("item_id", { count: "exact", head: true })
+      .eq("status", "active")
+      .eq("is_low_stock", true);
+    if (error) throw error;
+    if (count === null) throw new Error("Low stock count returned no data.");
+    return { count, unavailable: false };
+  } catch (error) {
+    // Do not turn a failed summary into repeated full-ledger scans.
+    warnOptionalInventoryQuery("low stock count", error instanceof Error ? error : new Error(String(error)));
+    return { count: null, unavailable: true };
+  }
+}
 
 export async function getLowStockResult(filters: Filters = {}): Promise<LowStockResult> {
   try {

@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, ChevronRight, Circle, CircleDot, X } from "lucide-react";
+import { CheckCircle2, ChevronRight, Circle, CircleDot, Ellipsis, X } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -83,7 +83,7 @@ export function MobileWorkflowStatus({ steps, currentStatus, trailing }: { steps
 
   return (
     <div data-mobile-workflow-summary className={cn("flex min-w-0 items-center gap-1 md:hidden", trailing && "justify-between")}>
-      <MobileSheet label={<span className="inline-flex items-center gap-1.5 text-left"><span className="font-semibold">Step {activeIndex + 1} of {steps.length}</span><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" /></span>} triggerAriaLabel={`View workflow, step ${activeIndex + 1} of ${steps.length}`} title="Workflow progress" trailingChevron={false} triggerClassName="h-9 min-h-9 w-auto shrink-0 justify-start border-0 px-1.5 text-[12px] shadow-none">
+      <MobileSheet label={<span className="inline-flex items-center gap-1.5 text-left"><span className="font-semibold">Step {activeIndex + 1} of {steps.length}</span><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" /></span>} triggerAriaLabel={`View workflow, step ${activeIndex + 1} of ${steps.length}`} title="Workflow progress" trailingChevron={false} triggerClassName="h-[var(--sb-control-height)] min-h-[var(--sb-control-height)] w-auto shrink-0 justify-start border-0 px-1.5 text-[12px] shadow-none">
         <ol className="space-y-1" aria-label="Document workflow">
           {steps.map((step, index) => {
             const done = index < activeIndex;
@@ -99,7 +99,7 @@ export function MobileWorkflowStatus({ steps, currentStatus, trailing }: { steps
 }
 
 export function MobileActivityAndFiles({ children }: { children: ReactNode }) {
-  return <div data-mobile-activity-files className="xl:hidden"><MobileSheet label="Files & activity" title="Files, activity & revisions" hideAt="xl" triggerClassName="h-11 min-w-0 justify-center px-2" trailingChevron={false}>{children}</MobileSheet></div>;
+  return <div data-mobile-activity-files className="xl:hidden"><MobileSheet label="Files & activity" title="Files, activity & revisions" hideAt="xl" triggerClassName="h-11 min-w-0 justify-center whitespace-nowrap px-2 text-xs" trailingChevron={false}>{children}</MobileSheet></div>;
 }
 
 export function MobileTaskSheet({ label, children, primary = false }: { label: string; children: ReactNode; primary?: boolean }) {
@@ -109,7 +109,7 @@ export function MobileTaskSheet({ label, children, primary = false }: { label: s
 export function DocumentMoreOptions({ children, defaultOpen = true, triggerClassName }: { children: ReactNode; defaultOpen?: boolean; triggerClassName?: string }) {
   return (
     <>
-      <div className="md:hidden"><MobileSheet label="More" title="More options" triggerClassName={triggerClassName ?? "h-11 w-full min-w-0 !justify-center gap-2 px-3"}><div className="grid gap-3 [&_button]:w-full [&_button]:min-h-11">{children}</div></MobileSheet></div>
+      <div className="md:hidden"><MobileSheet label={<Ellipsis className="h-5 w-5" aria-hidden="true" />} triggerAriaLabel="More options" title="More options" trailingChevron={false} triggerClassName={triggerClassName ?? "h-11 w-full min-w-0 !justify-center px-2"}><div className="grid gap-3 [&_button]:w-full [&_button]:min-h-11">{children}</div></MobileSheet></div>
       <details open={defaultOpen} className="hidden border-t border-[var(--sb-border-soft)] pt-2 md:block">
         <summary className="cursor-pointer text-[12px] font-medium text-[var(--sb-text-muted)]">More options</summary>
         <div className="mt-2 grid gap-2 [&_button]:w-full">{children}</div>

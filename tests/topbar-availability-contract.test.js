@@ -18,7 +18,8 @@ test("topbar preserves explicit availability for advisory queues", () => {
 
 test("notification scope and validation reads fail closed instead of returning a false empty tray", () => {
   assert.match(notifications, /if \(staffError\) throw new Error/);
-  assert.match(notifications, /for \(const result of \[staffRolesResult, staffBranchesResult, rolesResult\]\)/);
+  assert.match(notifications, /for \(const result of \[staffRolesResult, staffBranchesResult\]\)/);
+  assert.match(notifications, /roles\(role_code, status, deleted_at\)/);
   assert.match(notifications, /if \(notificationsResult\.error\) throw new Error/);
   assert.match(notifications, /if \(recipientsResult\.error\) throw new Error/);
   assert.match(notifications, /if \(pendingRequestsResult\.error\) throw new Error/);

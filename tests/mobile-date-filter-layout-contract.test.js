@@ -9,8 +9,8 @@ const outletPage = readFileSync("src/app/(app)/outlet-daily-records/page.tsx", "
 const matrix = readFileSync("src/components/outlet-daily-completion-matrix.tsx", "utf8");
 
 test("phone date filters render an explicit readable value above the native picker", () => {
-  assert.match(header, /const visibleDate = value/);
-  assert.match(header, /unified-list-date-placeholder[^>]*aria-hidden="true">\{visibleDate\}/);
+  assert.match(header, /return <Input \{\.\.\.props\} type="date"/);
+  assert.doesNotMatch(header, /unified-list-date-placeholder|const visibleDate/);
   assert.match(design, /\.unified-list-date-control input\[type="date"\][\s\S]*?position: absolute;[\s\S]*?opacity: 0;/);
   assert.match(design, /\.unified-list-date-control:focus-within/);
 });
@@ -18,7 +18,8 @@ test("phone date filters render an explicit readable value above the native pick
 test("outlet daily matrix scroll stays inside its own viewport and cannot collapse the date row", () => {
   assert.match(outletPage, /data-outlet-daily-list-workspace/);
   assert.match(outletPage, /data-outlet-daily-primary/);
-  assert.match(outletPage, /data-outlet-daily-insights/);
+  assert.doesNotMatch(outletPage, /getOutletDailyDemandTrend|getOutletDailyCompletionMatrix/);
+  assert.match(outletPage, /OutletDailyWorkspaceNav current="records"/);
   assert.match(outletPage, /data-outlet-daily-record-list/);
   assert.match(outletPage, /overflow-x-clip/);
   assert.match(matrix, /data-outlet-completion-matrix/);
@@ -30,8 +31,8 @@ test("outlet daily matrix scroll stays inside its own viewport and cannot collap
 });
 
 test("phone result count stays beside the date and filter controls", () => {
-  assert.match(design, /grid-template-columns: minmax\(0, 1fr\) 104px auto;/);
-  assert.match(design, /\.unified-list-result \{[\s\S]*?grid-column: 3;/);
+  assert.match(design, /grid-template-columns: minmax\(0, 1fr\) 44px 104px auto;/);
+  assert.match(design, /\.unified-list-result \{[\s\S]*?grid-column: 4;/);
   assert.match(globals, /form\.sb-list-filters\.sb-list-filters--date-first:not\(\.sb-list-query-card\) > :first-child/);
   assert.doesNotMatch(globals, /form\.sb-list-filters\.sb-list-filters--date-first > :first-child/);
 });

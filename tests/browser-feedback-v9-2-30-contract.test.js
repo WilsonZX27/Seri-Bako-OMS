@@ -8,7 +8,7 @@ const read = (...parts) => fs.readFileSync(path.join(root, ...parts), "utf8");
 
 test("People rows keep identity compact and omit redundant open copy", () => {
   const people = read("src", "app", "(app)", "people", "page.tsx");
-  const staff = read("src", "app", "(app)", "staffs", "page.tsx");
+  const staff = read("src", "app", "(app)", "people", "page.tsx");
   const table = read("src", "components", "ui", "table.tsx");
   assert.doesNotMatch(people, /meta="Open profile"/);
   assert.match(staff, /className="erp-surface overflow-hidden"/);
@@ -39,7 +39,8 @@ test("schedule asks for time per Add and avoids the native time picker", () => {
   assert.doesNotMatch(planner, /type="time"/);
   assert.match(planner, /fixed left-1\/2 top-1\/2 m-0/);
   assert.match(planner, /-translate-x-1\/2 -translate-y-1\/2/);
-  assert.match(planner, /Unsaved changes will be saved when you submit/);
+  assert.match(planner, /Auto saving…/);
+  assert.match(planner, /Draft saved/);
 });
 
 test("Owner self-update and historical Outlet Daily closure are audited", () => {
@@ -54,7 +55,8 @@ test("Attendance, calendar and PO headers retain stable alignment", () => {
   const nav = read("src", "components", "attendance", "attendance-workspace-nav.tsx");
   const calendar = read("src", "components", "compliance-month-calendar.tsx");
   const po = read("src", "app", "(app)", "purchase-orders", "page.tsx");
-  assert.match(nav, /repeat\(\$\{visible\.length\}, minmax\(0, 1fr\)\)/);
+  assert.match(nav, /WorkspaceTabs/);
+  assert.match(read("src", "components", "ui", "workspace-tabs.tsx"), /repeat\(\$\{items\.length\}, minmax\(max-content, 1fr\)\)/);
   assert.match(calendar, /grid-cols-\[auto_minmax\(0,1fr\)_auto\]/);
   assert.match(po, /className="min-w-36" label="PO No \/ PR No"/);
   assert.match(po, /className="w-40 max-w-40">Request context/);

@@ -16,7 +16,7 @@ test("Outlet Daily uses controlled posting without erasing legacy audit fields",
   assert.match(migration, /set status = 'reviewed'/);
   assert.match(actions, /postOutletDailyRecord/);
   assert.match(actions, /p_action: "post"/);
-  assert.match(list, /row\.status === "evening_completed"[\s\S]*ready_to_post/);
+  assert.match(read("src/lib/outlet-daily-progress.ts"), /row\.status === "evening_completed"[\s\S]*ready_to_post/);
   assert.doesNotMatch(list, /const statuses = \[[^\]]*"reviewed"/);
 });
 test("loading surfaces are lightweight, route-shaped and never expose placeholder mobile actions", () => {
@@ -42,10 +42,12 @@ test("loading surfaces are lightweight, route-shaped and never expose placeholde
 
 test("dashboard and compliance surface actionable exceptions", () => {
   const query = read("src/server/queries/dashboard.ts");
+  const complianceQuery = read("src/server/queries/compliance.ts");
   const dashboard = read("src/components/dashboard-workspace.tsx");
   const compliance = read("src/app/(app)/outlet-compliance/[branchId]/page.tsx");
   assert.match(query, /\["missing", "draft", "morning_recorded", "evening_completed"\]\.includes\(todayCell\.status\)/);
-  assert.match(query, /\["missing", "expired"\]\.includes\(row\.record\.state\)/);
+  assert.match(query, /getOutletComplianceIssueCount/);
+  assert.match(complianceQuery, /state === "missing" \|\| state === "expired"/);
   assert.match(dashboard, /label="Compliance issues"/);
   assert.match(dashboard, /href="\/outlet-compliance"/);
   assert.doesNotMatch(compliance, /backHref="\/outlet-compliance"/);
@@ -63,17 +65,17 @@ test("document numbers retain the exact external format", () => {
 
 test("right-rail action sections are ordered first", () => {
   const pages = [
-    "src/app/(app)/outlet-calendar/page.tsx",
+    "src/app/(app)/outlet-compliance/page.tsx",
     "src/app/(app)/supplier-invoices/aging/page.tsx",
   ];
   for (const page of pages) {
     const source = read(page);
-    assert.ok(source.indexOf('<ConsoleSection title="Actions"') < source.indexOf('<ConsoleSection title="Calendar"') || source.indexOf('<ConsoleSection title="Actions"') < source.indexOf('<ConsoleSection title="Payables Context"'));
+    assert.ok(source.indexOf('<ConsoleSection title="Actions"') < source.indexOf('<ConsoleSection title="Due soon & expired"') || source.indexOf('<ConsoleSection title="Actions"') < source.indexOf('<ConsoleSection title="Payables Context"'));
   }
 });
 
 test("reference-only mobile surfaces retain app navigation instead of inventing More actions", () => {
-  const calendar = read("src/app/(app)/outlet-calendar/page.tsx");
+  const calendar = read("src/app/(app)/outlet-compliance/page.tsx");
   const compliance = read("src/app/(app)/outlet-compliance/[branchId]/page.tsx");
   const rightConsole = read("src/components/layout/right-console.tsx");
   const design = read("src/app/design-system-v2.css");

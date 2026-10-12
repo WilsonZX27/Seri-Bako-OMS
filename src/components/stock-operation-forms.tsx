@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { AlertTriangle, ChevronDown, MessageSquare, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
@@ -16,27 +16,37 @@ type Branch = { id: string; branch_code: string; branch_name: string; status: st
 type SeedLine = { item_id: string; item_code: string; item_name: string; available_qty: number; quantity: number; uom: string };
 type TransferReceiveLine = { id: string; item_id: string; item_name: string; item_code?: string | null; quantity: number; received_quantity: number; uom: string };
 
-export function StockTransferForm({ branches, selectedFromBranchId, seedLines, action, formId, showSubmit = true }: { branches: Branch[]; selectedFromBranchId?: string; seedLines: SeedLine[]; action: (formData: FormData) => Promise<void>; formId?: string; showSubmit?: boolean }) {
+export function StockTransferForm({ branches, selectedFromBranchId, seedLines, action, formId, showSubmit = true }: { branches: Branch[]; selectedFromBranchId?: string; seedLines: SeedLine[]; action: (formData: FormData) => Promise<void | { error: string }>; formId?: string; showSubmit?: boolean }) {
   const router = useRouter();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
+  const [result, submitTransfer] = useActionState(async (previous: { error: string; values: Array<[string, string]>; attempt: number } | null, data: FormData) => {
+    const response = await action(data);
+    return response?.error ? { error: response.error, values: Array.from(data.entries()).map(([key, value]) => [key, String(value)] as [string, string]), attempt: (previous?.attempt ?? 0) + 1 } : null;
+  }, null);
+  const saved = new URLSearchParams(result?.values ?? []);
+  useEffect(() => {
+    if (result) document.dispatchEvent(new CustomEvent("sb:form-settled", { detail: { formId } }));
+  }, [result, formId]);
   function selectFromBranch(id: string) { router.push(id ? `/stock-transfers/new?from_branch_id=${id}` : "/stock-transfers/new"); }
   return (
-      <form id={formId} action={action} className="space-y-3">
-        <input type="hidden" name="idempotency_key" value={idempotencyKey} />
+      <form key={result?.attempt ?? 0} id={formId} action={submitTransfer} className="space-y-3">
+        {result?.error ? <p role="alert" className="rounded-sm border border-destructive p-3 text-sm text-destructive">{result.error}</p> : null}
+        {branches.length < 2 ? <p role="status" className="p-3 text-sm text-muted-foreground">A transfer needs access to two different branches. Contact an administrator to review your branch access.</p> : null}
+        <input type="hidden" name="idempotency_key" value={saved.get("idempotency_key") ?? idempotencyKey} />
         <details open data-stock-transfer-setup className="erp-surface group overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between border-b px-3 py-2.5 text-sm font-semibold [&::-webkit-details-marker]:hidden">
+          <summary className="flex min-h-[var(--sb-control-height)] cursor-pointer list-none items-center justify-between border-b px-3 py-2.5 text-sm font-semibold [&::-webkit-details-marker]:hidden">
             Transfer setup <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
           </summary>
           <div className="grid grid-cols-2 gap-3 p-3 md:grid-cols-3 md:p-4">
-            <Field label="Transfer Date" className="col-span-2 md:col-span-1"><Input name="transfer_date" type="date" defaultValue={getToday()} required /></Field>
+            <Field label="Transfer Date" className="col-span-2 md:col-span-1"><Input name="transfer_date" type="date" defaultValue={saved.get("transfer_date") ?? getToday()} required /></Field>
             <Field label="From Branch"><SelectNative name="from_branch_id" value={selectedFromBranchId ?? branches[0]?.id ?? ""} onChange={(e) => selectFromBranch(e.target.value)} required>{branches.map((b) => <option key={b.id} value={b.id}>{b.branch_name}</option>)}</SelectNative></Field>
-            <Field label="To Branch"><SelectNative name="to_branch_id" defaultValue={branches[1]?.id ?? branches[0]?.id ?? ""} required>{branches.map((b) => <option key={b.id} value={b.id}>{b.branch_name}</option>)}</SelectNative></Field>
+            <Field label="To Branch"><SelectNative name="to_branch_id" defaultValue={saved.get("to_branch_id") ?? branches[1]?.id ?? branches[0]?.id ?? ""} required>{branches.map((b) => <option key={b.id} value={b.id}>{b.branch_name}</option>)}</SelectNative></Field>
             <p className="col-span-2 text-xs text-muted-foreground md:col-span-3">From branch → To branch. Stock moves only after posting.</p>
-            <Field label="Remarks" className="col-span-2 md:col-span-3"><Textarea name="remarks" placeholder="Transfer reason or handling note" /></Field>
+            <Field label="Remarks" className="col-span-2 md:col-span-3"><Textarea name="remarks" defaultValue={saved.get("remarks") ?? ""} placeholder="Transfer reason or handling note" /></Field>
           </div>
         </details>
-        <LineGrid seedLines={seedLines} mode="transfer" />
-        {showSubmit ? <div className="flex justify-end"><SubmitButton disabled={!seedLines.length} pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create transfer</SubmitButton></div> : null}
+        <LineGrid seedLines={seedLines} mode="transfer" recoveredValues={result?.values} />
+        {showSubmit ? <div className="flex justify-end"><SubmitButton disabled={!seedLines.length || branches.length < 2} pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create transfer</SubmitButton></div> : null}
       </form>
   );
 }
@@ -49,7 +59,7 @@ export function StockTransferReceiveForm({ transferId, lines, action, formId = "
       <input type="hidden" name="idempotency_key" value={idempotencyKey} />
       <div className="min-w-0 overflow-hidden rounded-sm border">
         <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_96px_92px] gap-2 border-b bg-secondary/30 px-3 py-2 text-xs font-semibold">
-          <span>Item</span><span className="text-right">Sent / received</span><span className="text-right">Receive</span>
+          <span>Item</span><span className="text-right">Received / sent</span><span className="text-right">Receive</span>
         </div>
         <div className="divide-y">
           {lines.map((line) => {
@@ -70,7 +80,7 @@ export function StockTransferReceiveForm({ transferId, lines, action, formId = "
         </div>
       </div>
       <p className="text-xs text-muted-foreground">Enter only the quantity physically received. Any remainder stays in transit and can be received later.</p>
-      <SubmitButton pendingLabel="Receiving..." disabled={!lines.some((line) => line.quantity > line.received_quantity)} showOverlay overlayLabel="Posting received quantities...">Confirm received quantities</SubmitButton>
+      <SubmitButton pendingLabel="Receiving..." disabled={!lines.some((line) => line.quantity > line.received_quantity)} showOverlay overlayLabel="Posting received quantities...">Confirm receipt</SubmitButton>
     </form>
   );
 }
@@ -84,7 +94,7 @@ export function StockWastageForm({ branches, selectedBranchId, seedLines, action
         <input type="hidden" name="idempotency_key" value={idempotencyKey} />
         <input type="hidden" name="wastage_no" value="WST-AUTO" />
         <details open data-stock-wastage-setup className="erp-surface group overflow-hidden">
-          <summary className="flex cursor-pointer list-none items-center justify-between border-b px-3 py-2.5 text-sm font-semibold [&::-webkit-details-marker]:hidden">
+          <summary className="flex min-h-[var(--sb-control-height)] cursor-pointer list-none items-center justify-between border-b px-3 py-2.5 text-sm font-semibold [&::-webkit-details-marker]:hidden">
             Wastage setup <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
           </summary>
           <div className="grid grid-cols-2 gap-3 p-3 md:grid-cols-3 md:p-4">
@@ -100,10 +110,14 @@ export function StockWastageForm({ branches, selectedBranchId, seedLines, action
   );
 }
 
-function LineGrid({ seedLines, mode }: { seedLines: SeedLine[]; mode: "transfer" | "wastage" }) {
+function LineGrid({ seedLines, mode, recoveredValues }: { seedLines: SeedLine[]; mode: "transfer" | "wastage"; recoveredValues?: Array<[string, string]> }) {
+  const recovered = new URLSearchParams(recoveredValues ?? []);
   const [search, setSearch] = useState("");
-  const [openNotes, setOpenNotes] = useState<Set<number>>(() => new Set());
+  const [quantities, setQuantities] = useState<Record<string, string>>({});
+  const [lineRemarks, setLineRemarks] = useState<Record<string, string>>({});
+  const [openNotes, setOpenNotes] = useState<Set<number>>(() => new Set(recovered.getAll("line_remarks").flatMap((note, index) => note ? [index] : [])));
   const [selectedItems, setSelectedItems] = useState<Set<string>>(() => {
+    if (recoveredValues) return new Set(recovered.getAll("line_enabled"));
     const firstAvailable = seedLines.find((line) => line.available_qty > 0);
     return new Set(firstAvailable ? [firstAvailable.item_id] : []);
   });
@@ -131,7 +145,7 @@ function LineGrid({ seedLines, mode }: { seedLines: SeedLine[]; mode: "transfer"
     }
   }
   return (
-    <section data-stock-operation-lines className="erp-surface overflow-hidden md:rounded-[2px]">
+    <section data-stock-operation-lines className="erp-surface overflow-hidden md:rounded-[var(--sb-control-radius)]">
       <div className="border-b bg-secondary/40 p-3">
         <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-semibold">Items</p><p className="text-xs text-muted-foreground">Select an item to enter its quantity.</p></div><span className="text-xs tabular-nums text-muted-foreground">{selectedItems.size} selected · {visibleCount} shown</span></div>
         <label className="relative mt-2 block"><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search item code or name" aria-label="Search item code or name" className="pl-9" /></label>
@@ -151,14 +165,14 @@ function LineGrid({ seedLines, mode }: { seedLines: SeedLine[]; mode: "transfer"
               </div>
             </div>
             <div className={selected ? "contents" : "hidden"} data-stock-operation-line-details>
-              <Field label="Quantity" labelClassName="xl:sr-only"><Input name="line_quantity" type="number" inputMode="decimal" min={line.available_qty > 0 ? "0.0001" : "0"} max={Math.max(0, line.available_qty)} step="0.0001" defaultValue={line.available_qty > 0 ? Math.min(line.quantity, line.available_qty) : 0} /></Field>
+              <Field label="Quantity" labelClassName="xl:sr-only"><Input name="line_quantity" type="number" inputMode="decimal" min={line.available_qty > 0 ? "0.0001" : "0"} max={Math.max(0, line.available_qty)} step="0.0001" value={quantities[line.item_id] ?? recovered.getAll("line_quantity")[index] ?? (line.available_qty > 0 ? Math.min(line.quantity, line.available_qty) : 0)} onChange={(event) => setQuantities((current) => ({ ...current, [line.item_id]: event.target.value }))} /></Field>
               <div className="flex items-center justify-between gap-2 rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] p-2 text-sm"><div><p className="text-xs text-muted-foreground xl:sr-only">Available</p><p className="font-semibold">{formatNumber(line.available_qty)} {line.uom}</p></div>{selected ? <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" aria-label={`Notes for ${line.item_name}`} aria-expanded={openNotes.has(index)} onClick={() => toggleNote(index)}><MessageSquare className="h-4 w-4" /></Button> : null}</div>
               <input type="hidden" name="line_uom" value={line.uom} />
               {mode === "wastage" ? <Field label="Reason" labelClassName="xl:sr-only" className="col-span-2 xl:col-span-1"><SelectNative name="line_reason" defaultValue="damaged">{wastageReasons.map((r) => <option key={r} value={r}>{r.replaceAll("_", " ")}</option>)}</SelectNative></Field> : <input type="hidden" name="line_reason" value="other" />}
               <div className="col-span-2 xl:col-span-1" hidden={!openNotes.has(index)}>
                 <div hidden={!openNotes.has(index)} className="mt-2 grid gap-2">
                   {mode === "wastage" ? <Field label="Batch"><Input name="line_batch_no" placeholder="Batch" /></Field> : <input type="hidden" name="line_batch_no" value="" />}
-                  <Field label="Remarks"><Input name="line_remarks" placeholder="Notes" /></Field>
+                  <Field label="Remarks"><Input name="line_remarks" value={lineRemarks[line.item_id] ?? recovered.getAll("line_remarks")[index] ?? ""} onChange={(event) => setLineRemarks((current) => ({ ...current, [line.item_id]: event.target.value }))} placeholder="Notes" /></Field>
                 </div>
               </div>
               {mode === "wastage" ? <input type="hidden" name="line_expiry_date" value="" /> : null}

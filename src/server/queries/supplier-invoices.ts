@@ -3,7 +3,6 @@ import { shiftBusinessDate, todayInKualaLumpur } from "@/lib/business-date";
 import { compareTableValues } from "@/lib/table-state";
 import type { Database } from "@/types/database";
 import { getCurrentProfile } from "@/server/queries/common";
-import { getApAgingReport } from "@/server/queries/ap-aging";
 import { requireDetailRow } from "@/server/queries/detail";
 
 type Filters = Record<string, string | undefined>;
@@ -13,6 +12,9 @@ type SupplierInvoicePayment = Database["public"]["Tables"]["supplier_invoice_pay
 type GoodsReceiving = Database["public"]["Tables"]["goods_receivings"]["Row"];
 type GoodsReceivingLine = Database["public"]["Tables"]["goods_receiving_lines"]["Row"];
 type PurchaseOrderLine = Database["public"]["Tables"]["purchase_order_lines"]["Row"];
+type InvoiceGrnSource = Pick<GoodsReceiving, "id" | "purchase_order_id" | "grn_no" | "supplier_id" | "updated_at">;
+type InvoiceReceivingSource = Pick<GoodsReceivingLine, "id" | "goods_receiving_id" | "purchase_order_line_id" | "item_id" | "ordered_qty" | "received_qty" | "uom" | "unit_cost">;
+type InvoicePoLineSource = Pick<PurchaseOrderLine, "id" | "qty_ordered" | "unit_price">;
 
 export type SupplierInvoiceRow = SupplierInvoice & {
   supplier_name: string | null;
@@ -23,7 +25,7 @@ export type SupplierInvoiceRow = SupplierInvoice & {
   is_overdue: boolean;
 };
 
-export type InvoiceSourceLine = GoodsReceivingLine & {
+export type InvoiceSourceLine = InvoiceReceivingSource & {
   grn_no: string;
   po_no: string;
   item_code: string | null;
@@ -34,7 +36,7 @@ export type InvoiceSourceLine = GoodsReceivingLine & {
   available_qty: number;
 };
 
-export type PostedGrnForInvoice = GoodsReceiving & {
+export type PostedGrnForInvoice = InvoiceGrnSource & {
   supplier_name: string | null;
   po_no: string | null;
   received_value: number;
@@ -133,19 +135,12 @@ export async function getSupplierInvoices(filters: Filters = {}) {
 
 export async function getSupplierInvoiceSummary() {
   const supabase = await createClient();
-  const [report, paidResult] = await Promise.all([
-    getApAgingReport({ page: "1" }),
-    supabase
-      .from("supplier_invoices")
-      .select("id", { count: "exact", head: true })
-      .is("deleted_at", null)
-      .eq("status", "paid"),
-  ]);
-  if (paidResult.error) throw new Error(paidResult.error.message);
+  const { data, error } = await supabase.rpc("get_supplier_invoice_queue_summary").single();
+  if (error) throw new Error(error.message);
   return {
-    open: report.total_rows,
-    paid: paidResult.count ?? 0,
-    balance: report.summary.total_outstanding,
+    open: Number(data?.open_count ?? 0),
+    paid: Number(data?.paid_count ?? 0),
+    balance: Number(data?.balance ?? 0),
   };
 }
 
@@ -164,46 +159,59 @@ export async function getPostedGrnsForInvoice(supplierId?: string, excludeInvoic
   const profile = await getCurrentProfile();
   if (!profile?.company_id) throw new Error("Company profile is required.");
   const supabase = await createClient();
-  let grnQuery = supabase.from("goods_receivings").select("*").eq("company_id", profile.company_id).eq("status", "posted").is("deleted_at", null);
+  let grnQuery = supabase.from("goods_receivings").select("id, purchase_order_id, grn_no, supplier_id, updated_at").eq("company_id", profile.company_id).eq("status", "posted").is("deleted_at", null);
   if (supplierId) grnQuery = grnQuery.eq("supplier_id", supplierId);
+  let activeInvoicesQuery = supabase
+    .from("supplier_invoices")
+    .select("id")
+    .eq("company_id", profile.company_id)
+    .neq("status", "void")
+    .is("deleted_at", null);
+  if (excludeInvoiceId) activeInvoicesQuery = activeInvoicesQuery.neq("id", excludeInvoiceId);
   const [{ data: grns, error }, { data: invoices, error: invoicesError }, { data: suppliers, error: suppliersError }] = await Promise.all([
     grnQuery,
-    supabase.from("supplier_invoices").select("id, status, deleted_at").eq("company_id", profile.company_id),
+    activeInvoicesQuery,
     supabase.from("suppliers").select("id, name, payment_terms_days").is("deleted_at", null).order("name"),
   ]);
   if (error || invoicesError || suppliersError) throw new Error((error ?? invoicesError ?? suppliersError)!.message);
-  const receivings = (grns ?? []) as GoodsReceiving[];
+  const receivings = (grns ?? []) as InvoiceGrnSource[];
   if (receivings.length === 0) return { grns: [], suppliers: suppliers ?? [] };
   const grnIds = receivings.map((grn) => grn.id);
   const poIds = [...new Set(receivings.map((grn) => grn.purchase_order_id))];
-  const activeInvoiceIds = new Set((invoices ?? []).filter((row) => row.id !== excludeInvoiceId && row.status !== "void" && !row.deleted_at).map((row) => row.id));
+  const activeInvoiceIds = new Set((invoices ?? []).map((row) => row.id));
   const [{ data: grnLines, error: grnLinesError }, invoiceLinesResult, { data: pos, error: posError }] = await Promise.all([
-    supabase.from("goods_receiving_lines").select("*").in("goods_receiving_id", grnIds),
-    activeInvoiceIds.size > 0 ? supabase.from("supplier_invoice_lines").select("*").in("supplier_invoice_id", [...activeInvoiceIds]) : Promise.resolve({ data: [], error: null }),
+    supabase.from("goods_receiving_lines").select("id, goods_receiving_id, purchase_order_line_id, item_id, ordered_qty, received_qty, uom, unit_cost").in("goods_receiving_id", grnIds),
+    activeInvoiceIds.size > 0 ? supabase.from("supplier_invoice_lines").select("supplier_invoice_id, goods_receiving_line_id, invoice_qty").in("supplier_invoice_id", [...activeInvoiceIds]) : Promise.resolve({ data: [], error: null }),
     supabase.from("purchase_orders").select("id, po_no").in("id", poIds),
   ]);
   if (grnLinesError || invoiceLinesResult.error || posError) throw new Error((grnLinesError ?? invoiceLinesResult.error ?? posError)!.message);
   const invoiceLines = invoiceLinesResult.data;
-  const receivingLines = (grnLines ?? []) as GoodsReceivingLine[];
+  const receivingLines = (grnLines ?? []) as InvoiceReceivingSource[];
   const poLineIds = [...new Set(receivingLines.map((line) => line.purchase_order_line_id))];
   const itemIds = [...new Set(receivingLines.map((line) => line.item_id))];
   const [poLinesResult, itemsResult] = await Promise.all([
-    poLineIds.length > 0 ? supabase.from("purchase_order_lines").select("*").in("id", poLineIds) : Promise.resolve({ data: [], error: null }),
+    poLineIds.length > 0 ? supabase.from("purchase_order_lines").select("id, qty_ordered, unit_price").in("id", poLineIds) : Promise.resolve({ data: [], error: null }),
     itemIds.length > 0 ? supabase.from("items").select("id, item_code, item_name").in("id", itemIds) : Promise.resolve({ data: [], error: null }),
   ]);
   if (poLinesResult.error || itemsResult.error) throw new Error((poLinesResult.error ?? itemsResult.error)!.message);
   const poLines = poLinesResult.data;
   const items = itemsResult.data;
   const priorByGrnLine = new Map<string, number>();
-  for (const line of (invoiceLines ?? []) as SupplierInvoiceLine[]) {
+  for (const line of invoiceLines ?? []) {
     if (activeInvoiceIds.has(line.supplier_invoice_id)) priorByGrnLine.set(line.goods_receiving_line_id, (priorByGrnLine.get(line.goods_receiving_line_id) ?? 0) + Number(line.invoice_qty));
   }
   const supplierById = new Map((suppliers ?? []).map((row) => [row.id, row]));
   const poById = new Map((pos ?? []).map((row) => [row.id, row.po_no]));
-  const poLineById = new Map(((poLines ?? []) as PurchaseOrderLine[]).map((row) => [row.id, row]));
+  const poLineById = new Map(((poLines ?? []) as InvoicePoLineSource[]).map((row) => [row.id, row]));
   const itemById = new Map((items ?? []).map((row) => [row.id, row]));
+  const receivingLinesByGrn = new Map<string, InvoiceReceivingSource[]>();
+  for (const line of receivingLines) {
+    const lines = receivingLinesByGrn.get(line.goods_receiving_id) ?? [];
+    lines.push(line);
+    receivingLinesByGrn.set(line.goods_receiving_id, lines);
+  }
   const eligible = receivings.map((grn) => {
-    const lines = receivingLines.filter((line) => line.goods_receiving_id === grn.id).map((line) => {
+    const lines = (receivingLinesByGrn.get(grn.id) ?? []).map((line) => {
       const poLine = poLineById.get(line.purchase_order_line_id);
       const item = itemById.get(line.item_id);
       const prior = priorByGrnLine.get(line.id) ?? 0;

@@ -12,7 +12,7 @@ test("purchase order mobile search and rows expose delivery context", () => {
   assert.match(source, /<UnifiedListHeader resultCount=\{orders\?\.totalRows\} resetHref="\/purchase-orders"/);
   assert.match(source, /sb-list-content-card/);
   assert.match(source, /placeholder="Search PO no or remarks"/);
-  assert.match(source, /Delivery \{formatDateOnly\(order\.expected_delivery_date, "not set"\)\}/);
+  assert.match(source, /Delivery \{formatDateOnly\(order\.expected_delivery_date\)\}/);
   assert.match(source, /order\.line_count/);
   assert.match(source, /formatCurrency\(order\.order_total\)/);
 });

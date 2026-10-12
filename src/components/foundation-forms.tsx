@@ -50,6 +50,7 @@ type Staff = {
   last_login_at?: string | null;
   invite_email?: string | null;
   employment_type?: "full_time" | "part_time";
+  employment_end_date?: string | null;
 };
 
 type StaffAccess = {
@@ -223,7 +224,7 @@ export function StaffForm({
   const branchOptions = branches.filter((branch) => branch.status === "active");
   return (
     <form id={formId} action={action} className="grid gap-5 xl:grid-cols-2">
-      <RecordSection title="Staff Profile" description="Core identity and contact details for this staff member.">
+      <RecordSection title="Staff Profile">
           <CompanyHidden companies={companies} companyId={staff?.company_id} />
           <input type="hidden" name="status" value={staff?.status ?? "invited"} />
         <div className="grid gap-4 md:grid-cols-2">
@@ -244,6 +245,10 @@ export function StaffForm({
               <option value="full_time">Full-time</option>
               <option value="part_time">Part-time</option>
             </SelectNative>
+          </Field>
+          <Field label="Last Working Date">
+            <Input name="employment_end_date" type="date" defaultValue={staff?.employment_end_date ?? ""} className="form-control-compact" />
+            <p className="mt-1 text-xs text-muted-foreground">The account stops working after this date. Historical schedules and payroll stay intact.</p>
           </Field>
         </div>
       </RecordSection>
@@ -323,7 +328,7 @@ export function DocumentSequenceForm({
             <StatusSelect value={sequence?.status} />
           </Field>
           <div className="md:col-span-2">
-            <div className="rounded-[2px] border bg-secondary p-4">
+            <div className="rounded-[var(--sb-panel-radius)] border bg-secondary p-4">
               <p className="text-xs font-medium uppercase text-muted-foreground">Preview Number</p>
               <p className="mt-1 font-mono text-lg font-semibold">{previewDocumentNumber(prefix, nextNumber, padding)}</p>
             </div>

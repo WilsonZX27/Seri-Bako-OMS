@@ -52,6 +52,19 @@ export type StockTransactionType =
 export type Database = {
   public: {
     Tables: {
+      asset_attachments: TableDefinition<{ id: string; company_id: string; asset_id: string; maintenance_id: string | null; location_id: string | null; created_at: string; source_key: string; source_data: Json; url: string; storage_path: string | null; verified_at: string | null; content_sha256: string | null; }>;
+      asset_calendar_days: TableDefinition<{ id: string; company_id: string; location_id: string; business_date: string; is_open: boolean; reason: string; created_at: string; updated_at: string; created_by: string; updated_by: string; history: Json; }>;
+      asset_daily_checks: TableDefinition<{ id: string; company_id: string; asset_id: string; location_id: string; source_key: string; submission_id: string; check_date: string; result: string; quantity: number | null; author_name: string; source_data: Json; created_at: string; }>;
+      asset_holdings: TableDefinition<{ id: string; created_at: string; company_id: string; asset_id: string; location_id: string; quantity: number | null; condition: string | null; status: string | null; latest_check_date: string | null; latest_check_result: string | null; latest_check_remark: string | null; updated_at: string; }>;
+      asset_import_batches: TableDefinition<{ id: string; company_id: string; source_sha256: string; imported_at: string; reconciliation: Json; state: string; }>;
+      asset_locations: TableDefinition<{ id: string; company_id: string; created_at: string; source_name: string; branch_id: string | null; kind: string; }>;
+      asset_maintenance: TableDefinition<{ id: string; company_id: string; asset_id: string; location_id: string; source_id: string; status: string; priority: string; description: string; author_name: string; source_data: Json; created_at: string; }>;
+      asset_maintenance_updates: TableDefinition<{ id: string; company_id: string; maintenance_id: string; source_id: string; author_name: string; source_data: Json; created_at: string; }>;
+      asset_master_updates: TableDefinition<{ id: string; company_id: string; asset_id: string; source_id: string; author_name: string; source_data: Json; created_at: string; }>;
+      asset_suppliers: TableDefinition<{ id: string; company_id: string; created_at: string; source_id: string; source_data: Json; }>;
+      asset_transfer_updates: TableDefinition<{ id: string; company_id: string; transfer_id: string; source_id: string; author_name: string; source_data: Json; created_at: string; }>;
+      asset_transfers: TableDefinition<{ id: string; company_id: string; asset_id: string; from_location_id: string; to_location_id: string; quantity: number; status: string; reason: string; requested_by: string | null; author_name: string; approved_by: string | null; dispatched_by: string | null; received_by: string | null; source_id: string | null; client_key: string | null; source_data: Json; created_at: string; updated_at: string; }>;
+      assets: TableDefinition<{ id: string; company_id: string; asset_code: string; item_name: string; source_data: Json; current_details: Json; import_batch_id: string | null; created_at: string; updated_at: string; }>;
       companies: {
         Row: {
           id: string;
@@ -141,6 +154,7 @@ export type Database = {
             avatar_path: string | null;
           default_branch_id: string | null;
           employment_type: "full_time" | "part_time";
+          employment_end_date: string | null;
           status: StaffStatus;
           invited_at: string | null;
           invited_by: string | null;
@@ -170,6 +184,7 @@ export type Database = {
             avatar_path?: string | null;
           default_branch_id?: string | null;
           employment_type?: "full_time" | "part_time";
+          employment_end_date?: string | null;
           status?: StaffStatus;
           invited_at?: string | null;
           invited_by?: string | null;
@@ -405,6 +420,10 @@ export type Database = {
           id: string;
           record_id: string;
           product_id: string;
+          do_managed: boolean;
+          wastage_provided: boolean;
+          stockout: boolean;
+          stockout_time: string | null;
           morning_received_qty: number;
           morning_received_provided: boolean;
           qty_sent: number;
@@ -422,6 +441,10 @@ export type Database = {
           id?: string;
           record_id: string;
           product_id: string;
+          do_managed?: boolean;
+          wastage_provided?: boolean;
+          stockout?: boolean;
+          stockout_time?: string | null;
           morning_received_qty?: number;
           morning_received_provided?: boolean;
           qty_sent?: number;
@@ -436,6 +459,28 @@ export type Database = {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["outlet_daily_record_lines"]["Insert"]>;
+        Relationships: [];
+      };
+      outlet_packaging_item_links: {
+        Row: {
+          product_id: string;
+          company_id: string;
+          item_id: string;
+          item_base_units_per_product_unit: number;
+          created_at: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          product_id: string;
+          company_id: string;
+          item_id: string;
+          item_base_units_per_product_unit: number;
+          created_at?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["outlet_packaging_item_links"]["Insert"]>;
         Relationships: [];
       };
       document_sequences: {
@@ -2236,6 +2281,69 @@ export type Database = {
         output_code: string | null; output_name: string | null; planned_qty: number; product_id: string | null;
         production_job_id: string; remarks: string | null; unit_cost: number | null; uom: string | null;
       }>;
+      production_planning_settings: TableDefinition<{
+        id: string; company_id: string; kitchen_id: string; enabled: boolean; draft_time: string;
+        buffer_percent: number; max_decrease_percent: number; recipients: string[]; updated_by: string | null;
+        created_at: string; updated_at: string;
+      }>;
+      production_batch_rules: TableDefinition<{
+        id: string; company_id: string; kitchen_id: string; product_id: string; yield_per_tray: number;
+        updated_by: string | null; created_at: string; updated_at: string;
+      }>;
+      production_outlet_minimums: TableDefinition<{
+        id: string; company_id: string; kitchen_id: string; branch_id: string; product_id: string;
+        minimum_qty: number; confirmed_by: string; confirmed_at: string; created_at: string;
+      }>;
+      production_planning_events: TableDefinition<{
+        id: string; company_id: string; kitchen_id: string; branch_id: string | null; event_date: string;
+        name: string; notes: string; confirmed: boolean; lines: Json; created_by: string | null; created_at: string;
+      }>;
+      production_plans: TableDefinition<{
+        id: string; company_id: string; kitchen_id: string; delivery_date: string; version: number;
+        revision: number; status: "draft" | "submitted" | "approved" | "superseded";
+        buffer_percent: number; max_decrease_percent: number; forecast_version: string;
+        events: Json; holidays: Json; created_by: string | null; created_at: string;
+        approved_by: string | null; approved_at: string | null;
+      }>;
+      production_plan_products: TableDefinition<{
+        id: string; plan_id: string; product_id: string; yield_per_tray: number | null;
+        trays: number | null; retained_qty: number; actual_qty: number | null; reason: string;
+        event_qty: number; production_job_id: string | null; created_at: string;
+      }>;
+      production_plan_allocations: TableDefinition<{
+        id: string; plan_id: string; product_id: string; branch_id: string;
+        suggested_qty: number | null; approved_qty: number | null; minimum_qty: number | null;
+        event_qty: number; reason: string; evidence: Json; created_at: string;
+      }>;
+      production_delivery_orders: TableDefinition<{
+        id: string; company_id: string; plan_id: string; kitchen_id: string; branch_id: string | null;
+        event_id: string | null; delivery_date: string; plan_version: number; do_no: string;
+        status: "confirmed" | "void"; prepared_by: string; driver: string; vehicle: string;
+        yellow_trays: number; silver_trays: number; reason: string | null;
+        daily_record_id: string | null; created_by: string; created_at: string;
+        voided_by: string | null; voided_at: string | null; void_reason: string | null;
+      }>;
+      production_delivery_order_lines: TableDefinition<{
+        id: string; do_id: string; product_id: string; qty: number; product_code: string;
+        product_name: string; category: string; unit: string; display_order: number; created_at: string;
+      }>;
+      production_delivery_sequences: TableDefinition<{
+        id: string; company_id: string; delivery_date: string; last_number: number; created_at: string;
+      }>;
+      production_planning_requests: TableDefinition<{
+        id: string; company_id: string; request_key: string; operation: string;
+        request_payload: Json; result: Json; created_at: string;
+      }>;
+      production_planning_audit: TableDefinition<{
+        id: string; company_id: string; plan_id: string | null; operation: string;
+        actor_id: string | null; payload: Json; created_at: string;
+      }>;
+      production_planning_email_queue: TableDefinition<{
+        id: string; company_id: string; plan_id: string; recipient: string; dedupe_key: string;
+        subject: string; body: string; status: "pending" | "sending" | "sent" | "failed";
+        attempts: number; next_attempt_at: string; locked_until: string | null;
+        provider_id: string | null; last_error: string | null; created_at: string; sent_at: string | null;
+      }>;
       production_jobs: TableDefinition<{
         actual_output_qty: number | null; branch_id: string; cancelled_at: string | null; cancelled_by: string | null;
         company_id: string | null; created_at: string; created_by: string | null; deleted_at: string | null;
@@ -2293,6 +2401,7 @@ export type Database = {
       ngteco_person_mappings: TableDefinition<{ id:string; company_id:string; person_id:string; staff_id:string; is_active:boolean; created_by:string; created_at:string }>;
       ngteco_device_mappings: TableDefinition<{ id:string; company_id:string; source_code:string; branch_id:string; is_active:boolean; created_by:string; created_at:string }>;
       attendance_import_batches: TableDefinition<{ id:string; company_id:string; parser_profile:"view_attendance_punch"|"attendance_report"|"timecard_report"; week_start:string; file_name:string; file_hash:string; status:"validated"|"finalised"|"rolled_back"; uploader_staff_id:string; row_count:number; error_count:number; warning_count:number; source_metadata:Json; created_at:string; finalised_at:string|null }>;
+      management_email_dispatches: TableDefinition<{ dedupe_key:string; company_id:string; staff_id:string; recipient_email:string; status:"claimed"|"sent"|"failed"; provider_id:string|null; error_message:string|null; created_at:string; sent_at:string|null }>;
       schedule_import_batches: TableDefinition<{ id:string; company_id:string; week_start:string; file_name:string; file_hash:string; status:"drafted"|"published"|"superseded"; outlet_count:number; assignment_count:number; unresolved_count:number; source_metadata:Json; imported_by:string; created_at:string }>;
       attendance_raw_punch_events: TableDefinition<{ id:string; company_id:string; person_id:string; person_name:string|null; occurred_at:string; local_timestamp:string; timezone_offset:string; verify_type:string|null; source_code:string; punch_type:string|null; event_fingerprint:string; raw_row:Json; created_at:string }>;
       attendance_import_batch_events: TableDefinition<{ batch_id:string; event_id:string; source_row_number:number; disposition:"inserted"|"duplicate" }>;
@@ -2312,6 +2421,20 @@ export type Database = {
       attendance_period_locks: TableDefinition<{ id:string; company_id:string; branch_id:string|null; week_start:string; locked_by:string; locked_at:string; unlocked_by:string|null; unlocked_at:string|null; unlock_reason:string|null }>;
     };
     Views: {
+      purchase_returns_list_view: {
+        Row: Database["public"]["Tables"]["purchase_returns"]["Row"] & {
+          grn_no: string;
+          po_no: string;
+          supplier_name: string;
+          branch_name: string | null;
+          line_count: number;
+          return_total: number;
+          return_value: number;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       stock_balances_view: {
         Row: {
           item_id: string;
@@ -2448,6 +2571,22 @@ export type Database = {
       };
     };
     Functions: {
+      get_stock_transfer_summary: {
+        Args: Record<string, never>;
+        Returns: Array<{ total: number; draft: number; in_transit: number; completed: number }>;
+      };
+      get_stock_wastage_summary: {
+        Args: Record<string, never>;
+        Returns: Array<{ total: number; in_review: number; posted: number }>;
+      };
+      get_stock_balance_summary: {
+        Args: { p_branch_id?: string | null; p_supplier_id?: string | null; p_status?: string | null; p_search?: string | null };
+        Returns: Array<{ total: number; low_stock: number; negative: number; inventory_value: number }>;
+      };
+      get_purchase_return_summary: {
+        Args: Record<string, never>;
+        Returns: Array<{ total: number; draft: number; posted: number; cancelled: number; value: number }>;
+      };
       submit_schedule_week_atomic: {
         Args: { p_branch_id:string; p_week_start:string; p_assignments:Json; p_expected_updated_at?:string|null; p_comment?:string|null };
         Returns: Json;
@@ -2885,6 +3024,10 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_supplier_invoice_queue_summary: {
+        Args: Record<string, never>;
+        Returns: Array<{ open_count: number; paid_count: number; balance: number }>;
+      };
       can_access_outlet_daily_branch: {
         Args: { target_branch_id: string };
         Returns: boolean;
@@ -2959,6 +3102,8 @@ type Assert<T extends true> = T;
 type RequiredOperationalTable =
   | "branch_stock_count_items"
   | "production_jobs"
+  | "production_plans"
+  | "production_delivery_orders"
   | "schedule_weeks"
   | "attendance_import_batches"
   | "attendance_period_locks";

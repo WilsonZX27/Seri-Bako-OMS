@@ -99,11 +99,11 @@ test("holiday output returns equivalent hours only when HR configured multiplier
  assert.equal(result.holidayNormalEquivalentSeconds,61200);assert.equal(result.holidayOtEquivalentSeconds,0);
 });
 
-test("part-time punch expectation changes only above five scheduled hours",()=>{
+test("part-time staff need only one IN and one OUT",()=>{
  const five=calculateAttendance({scheduledStart:date("09:00:00"),scheduledEnd:date("14:00:00"),maximumRecognisedSeconds:18000,employmentType:"part_time"},[event("09:00:00"),event("14:00:00")]);
  const overFive=calculateAttendance({scheduledStart:date("09:00:00"),scheduledEnd:date("14:00:01"),maximumRecognisedSeconds:18001,employmentType:"part_time"},[event("09:00:00"),event("14:00:01")]);
  assert.equal(five.expectedPunchCount,2);assert.equal(five.missingPunchCount,0);assert.ok(!five.exceptions.includes("Missing Break Punch"));
- assert.equal(overFive.expectedPunchCount,4);assert.equal(overFive.missingPunchCount,2);assert.ok(overFive.exceptions.includes("Missing Break Punch"));
+ assert.equal(overFive.expectedPunchCount,2);assert.equal(overFive.missingPunchCount,0);assert.ok(!overFive.exceptions.includes("Missing Break Punch"));
 });
 
 test("full-time OT counts only paired work after the original shift end and floors daily",()=>{

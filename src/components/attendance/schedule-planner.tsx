@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import {
   AlertTriangle,
@@ -21,6 +21,7 @@ import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SelectControl } from "@/components/ui/select-control";
+import { ScheduleValidationSummary } from "@/components/attendance/schedule-validation-summary";
 import { cn } from "@/lib/utils";
 import { readJsonResponse } from "@/lib/http/read-json-response";
 import {
@@ -35,6 +36,8 @@ type Person = {
   staff_code: string | null;
   employment_type: string;
   role_code: string;
+  employment_end_date?: string | null;
+  home_branch_id?: string | null;
 };
 type Template = {
   id: string;
@@ -58,6 +61,7 @@ type Assignment = {
   custom_maximum_recognised_seconds?: number | null;
   custom_reason?: string | null;
   work_site_label?: string | null;
+  destination_branch_id?: string | null;
   ro_minutes?: number | null;
   ro_original_start?: string | null;
   ro_original_end?: string | null;
@@ -92,6 +96,9 @@ function paletteButtonTone(tone: Palette["tone"]) {
   if (tone === "ph") return "border-violet-200 bg-violet-50 text-violet-800 hover:bg-violet-100";
   if (tone === "upl") return "border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100";
   return "";
+}
+function isImportAuditReason(value?: string | null) {
+  return Boolean(value && (/^Imported from /i.test(value) || value === "Schedule workbook import"));
 }
 
 function addDays(day: string, amount: number) {
@@ -136,11 +143,6 @@ function durationSeconds(start: string, end: string, crosses = false) {
   let value = (eh * 60 + em - sh * 60 - sm) * 60;
   if (crosses || value < 0) value += 86400;
   return Math.max(value, 0);
-}
-function signedDuration(value: number) {
-  const sign = value >= 0 ? "+" : "−";
-  const seconds = Math.abs(Math.round(value));
-  return `${sign}${String(Math.floor(seconds / 3600)).padStart(2, "0")}:${String(Math.floor((seconds % 3600) / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
 }
 const timeOptions = attendanceTimeOptions();
 function TimeSelect({
@@ -187,6 +189,7 @@ export function SchedulePlanner({
   weekStart,
   week,
   submittedByName,
+  importSource,
   previousWeekId,
   people,
   candidates,
@@ -207,6 +210,7 @@ export function SchedulePlanner({
   weekStart: string;
   week: Week;
   submittedByName?: string | null;
+  importSource?: { fileName: string; createdAt: string } | null;
   previousWeekId: string | null;
   people: Person[];
   candidates: Person[];
@@ -233,6 +237,7 @@ export function SchedulePlanner({
       ),
     [initialAssignments],
   );
+  const importFile = importSource?.fileName ?? initialAssignments.map((item) => item.custom_reason).find((reason) => reason?.startsWith("Imported from "))?.replace(/^Imported from /, "") ?? null;
   const [cells, setCells] = useState<Map<string, Assignment>>(initial);
   const externalCells = useMemo(() => new Map(externalAssignments.map((item) => [`${item.staff_id}:${item.work_date}`, item])), [externalAssignments]);
   const [visiblePersonIds, setVisiblePersonIds] = useState(() => new Set(people.map((person) => person.id)));
@@ -251,9 +256,11 @@ export function SchedulePlanner({
     [message, setMessage] = useState(
       people.length
         ? "Choose an assignment, then select staff days."
-        : "No outlet employees are assigned here.",
+        : "No schedulable employees are assigned here. Check the branch assignment and active Kitchen or Outlet role in Employees.",
     ),
-    [actionFeedback, setActionFeedback] = useState<string | null>(null);
+    [actionFeedback, setActionFeedback] = useState<string | null>(null),
+    [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle"),
+    [removeCandidate, setRemoveCandidate] = useState<Person | null>(null);
   const [custom, setCustom] = useState({
     start: "08:00",
     end: "16:30",
@@ -261,6 +268,7 @@ export function SchedulePlanner({
     capMinutes: 510,
     comment: "",
     workSiteLabel: "",
+    destinationBranchId: "current",
     templateId: null as string | null,
     originalStart: "08:00",
     originalEnd: "16:30",
@@ -270,6 +278,8 @@ export function SchedulePlanner({
   const customDialog = useRef<HTMLDialogElement>(null);
   const customTitle = useRef<HTMLHeadingElement>(null);
   const decisionDialog = useRef<HTMLDialogElement>(null);
+  const removeDialog = useRef<HTMLDialogElement>(null);
+  const saveDraftRef = useRef<(automatic?: boolean) => Promise<void>>(async () => {});
   const palette = useMemo<Palette[]>(
     () => [
       ...templates.map((template) => ({
@@ -326,7 +336,8 @@ export function SchedulePlanner({
             custom_break_seconds: custom.breakMinutes * 60,
             custom_maximum_recognised_seconds: custom.capMinutes * 60,
             custom_reason: custom.comment.trim() || "Outlet roster custom time",
-            work_site_label: custom.workSiteLabel.trim() || null,
+            work_site_label: custom.destinationBranchId === "event" ? custom.workSiteLabel.trim() || null : null,
+            destination_branch_id: !["current", "event"].includes(custom.destinationBranchId) ? custom.destinationBranchId : null,
           }
         : {}),
     };
@@ -352,10 +363,6 @@ export function SchedulePlanner({
   }
   function clickCell(key: string, event: React.MouseEvent) {
     if (!editableStatus || !canDraft) return;
-    if (externalCells.has(key)) {
-      setMessage("This shift is owned by another outlet. Open that outlet schedule to change it.");
-      return;
-    }
     if (event.shiftKey || event.ctrlKey || event.metaKey) {
       setSelected((current) => {
         const next = new Set(current);
@@ -373,6 +380,8 @@ export function SchedulePlanner({
       return;
     }
     const existing = cells.get(key);
+    const external = externalCells.get(key);
+    const selectedPerson = candidates.find((item) => item.id === key.split(":")[0]);
     if (existing?.assignment_kind === "shift") {
       const template = existing.shift_template_id
         ? templates.find((item) => item.id === existing.shift_template_id)
@@ -389,28 +398,22 @@ export function SchedulePlanner({
               template?.planned_end ??
               existing.custom_end,
           ) || "16:30";
+      const start = compactTime(existing.custom_start ?? template?.planned_start) || originalStart;
+      const end = compactTime(existing.custom_end ?? template?.planned_end) || originalEnd;
+      const spanMinutes = durationSeconds(start, end, end <= start) / 60;
+      const storedBreakMinutes = Number((template?.planned_break_seconds ?? existing.custom_break_seconds ?? 0) / 60);
+      const breakMinutes = selectedPerson?.employment_type === "part_time" ? 0 : spanMinutes > 300 && storedBreakMinutes === 0 ? 60 : storedBreakMinutes;
       setCustom({
-        start:
-          compactTime(existing.custom_start ?? template?.planned_start) ||
-          originalStart,
-        end:
-          compactTime(existing.custom_end ?? template?.planned_end) ||
-          originalEnd,
-        breakMinutes: Number(
-          (template?.planned_break_seconds ??
-            existing.custom_break_seconds ??
-            3600) / 60,
-        ),
-        capMinutes: Number(
-          (template?.maximum_recognised_seconds ??
-            existing.custom_maximum_recognised_seconds ??
-            30600) / 60,
-        ),
+        start,
+        end,
+        breakMinutes,
+        capMinutes: Math.min(Number((template?.maximum_recognised_seconds ?? existing.custom_maximum_recognised_seconds ?? 30600) / 60), Math.max(spanMinutes - breakMinutes, 1), 720),
         comment:
-          existing.custom_reason === "Outlet roster custom time"
+          existing.custom_reason === "Outlet roster custom time" || isImportAuditReason(existing.custom_reason)
             ? ""
             : (existing.custom_reason ?? ""),
         workSiteLabel: existing.work_site_label ?? "",
+        destinationBranchId: existing.destination_branch_id ?? branches.find((branch) => branch.branch_name === existing.work_site_label)?.id ?? (existing.work_site_label ? "event" : "current"),
         templateId: existing.shift_template_id,
         originalStart,
         originalEnd,
@@ -420,11 +423,33 @@ export function SchedulePlanner({
             ? "early_finish"
             : "late_start",
       });
+    } else if (external) {
+      const start = compactTime(external.planned_start);
+      const end = compactTime(external.planned_end);
+      const spanMinutes = durationSeconds(start, end, end <= start) / 60;
+      setCustom((value) => ({
+        ...value,
+        start,
+        end,
+        breakMinutes: selectedPerson?.employment_type === "part_time" ? 0 : 60,
+        capMinutes: Math.min(selectedPerson?.employment_type === "part_time" ? spanMinutes : 510, spanMinutes),
+        comment: "",
+        workSiteLabel: "",
+        destinationBranchId: external.branch_id,
+        templateId: null,
+        roMinutes: 0,
+        roDirection: "late_start",
+        originalStart: start,
+        originalEnd: end,
+      }));
     } else {
       setCustom((value) => ({
         ...value,
+        breakMinutes: selectedPerson?.employment_type === "part_time" ? 0 : 60,
+        capMinutes: selectedPerson?.employment_type === "part_time" ? 300 : 510,
         comment: "",
         workSiteLabel: "",
+        destinationBranchId: "current",
         templateId: null,
         roMinutes: 0,
         roDirection: "late_start",
@@ -523,6 +548,23 @@ export function SchedulePlanner({
       setBusyAction(null);
     }
   }
+  async function saveDraft(automatic = false) {
+    setBusyAction(automatic ? "autosave" : "save");
+    setSaveStatus("saving");
+    try {
+      await requestAction({ action: "save", branchId, weekStart, assignments });
+      setDirty(false);
+      setSaveStatus("saved");
+      setActionFeedback(null);
+    } catch (error) {
+      const feedback = error instanceof Error ? error.message : "Draft could not be saved.";
+      setSaveStatus("error");
+      setActionFeedback(feedback);
+    } finally {
+      setBusyAction(null);
+    }
+  }
+  saveDraftRef.current = saveDraft;
   async function submitCurrentSchedule() {
     setBusyAction("submit");
     setActionFeedback(null);
@@ -554,6 +596,8 @@ export function SchedulePlanner({
     }
   }
   const assignments = useMemo(() => [...cells.values()], [cells]),
+    currentBranchName = branches.find((branch) => branch.id === branchId)?.branch_name ?? "",
+    localAwayLabel = (value?: Assignment) => value?.work_site_label && value.work_site_label.trim().toLocaleLowerCase() !== currentBranchName.trim().toLocaleLowerCase() ? value.work_site_label : null,
     href = (value: string) =>
       `/attendance/schedule?branch=${encodeURIComponent(branchId)}&week=${value}`;
   const cellLabel = (value?: Assignment) => {
@@ -584,6 +628,17 @@ export function SchedulePlanner({
       week.status,
     ) ||
     managerEditing;
+  useEffect(() => {
+    if (!dirty || !editableStatus || !canDraft || busyAction) return;
+    const timer = window.setTimeout(() => void saveDraftRef.current(true), 900);
+    return () => window.clearTimeout(timer);
+  }, [assignments, busyAction, canDraft, dirty, editableStatus]);
+  useEffect(() => {
+    const dialog = removeDialog.current;
+    if (!dialog) return;
+    if (removeCandidate && !dialog.open) dialog.showModal();
+    if (!removeCandidate && dialog.open) dialog.close();
+  }, [removeCandidate]);
   function openDecision(mode: "approve" | "return" | "edit") {
     setDecisionMode(mode);
     decisionDialog.current?.showModal();
@@ -635,23 +690,20 @@ export function SchedulePlanner({
             </Button>
           ) : null}
           {editableStatus && canDraft ? (
-            <Button
+            <><Button
               className="w-full justify-start"
               size="sm"
               variant="outline"
               disabled={busyAction !== null || !dirty}
-              onClick={() =>
-                void action({
-                  action: "save",
-                  branchId,
-                  weekStart,
-                  assignments,
-                })
-              }
+              onClick={() => void saveDraft()}
             >
               <Save className="h-4 w-4" />
               {busyAction === "save" ? "Saving…" : "Save draft"}
             </Button>
+            <p className="px-1 text-[11px] text-muted-foreground" role="status">
+              {saveStatus === "saving" ? "Auto saving…" : saveStatus === "saved" ? "Draft saved" : saveStatus === "error" ? "Draft not saved" : "Changes save automatically"}
+            </p>
+            </>
           ) : null}
           {editableStatus && canDraft && previousWeekId ? (
             <Button
@@ -745,15 +797,7 @@ export function SchedulePlanner({
               schedule.
             </p>
           ) : null}
-          {initialBlockers.map((item) => (
-            <p
-              key={`${item.code}:${item.staffId ?? ""}:${item.workDate ?? ""}`}
-              role="alert"
-              className="rounded-[var(--sb-radius-control)] bg-rose-50 p-2 text-xs text-rose-900"
-            >
-              {item.message}
-            </p>
-          ))}
+          <ScheduleValidationSummary issues={initialBlockers} dirty={dirty} />
           {initialWarnings.map((item) => (
             <p
               key={`${item.code}:${item.staffId ?? ""}:${item.workDate ?? ""}`}
@@ -772,6 +816,13 @@ export function SchedulePlanner({
           ) : null}
         </div>
       </ConsoleSection>
+      {canApprove && week ? <ConsoleSection title="Schedule history" kind="reference">
+        <div className="space-y-1 text-xs">
+          {importFile ? <p><span className="text-muted-foreground">Imported from </span><strong className="break-words">{importFile}</strong></p> : null}
+          <p><span className="text-muted-foreground">{week.status === "published" || week.status === "locked" ? "Published by " : "Scheduled by "}</span><strong>{submittedByName ?? "Not recorded"}</strong></p>
+          <p className="text-muted-foreground">{importSource ? "Uploaded " : "Updated "}{importSource?.createdAt || week.updated_at ? new Intl.DateTimeFormat("en-MY", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kuala_Lumpur" }).format(new Date(importSource?.createdAt ?? week.updated_at!)) : "Draft created"}</p>
+        </div>
+      </ConsoleSection> : null}
       {rightRailDetails}
     </>
   );
@@ -894,6 +945,19 @@ export function SchedulePlanner({
                     ]}
                   />
                 ) : null}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={selected.size !== 1 || cells.get([...selected][0])?.assignment_kind !== "shift"}
+                  title="Select one working day, then adjust its approved RO"
+                  onClick={() => {
+                    const key = [...selected][0];
+                    if (key) clickCell(key, { shiftKey: false, ctrlKey: false, metaKey: false } as React.MouseEvent);
+                  }}
+                >
+                  Quick RO
+                </Button>
               </div>
               <div className="ml-auto flex shrink-0 items-center gap-1">
                 <Button
@@ -987,7 +1051,8 @@ export function SchedulePlanner({
               const key = `${person.id}:${selectedMobileDate}`,
                 value = cells.get(key),
                 external = externalCells.get(key),
-                tone = cellTone(value),
+                awayLabel = localAwayLabel(value) ?? (!value ? external?.branch_name : person.home_branch_id && person.home_branch_id !== branchId ? currentBranchName : null),
+                tone = awayLabel ? "external" : cellTone(value),
                 weekly = dates.reduce(
                   (sum, date) =>
                     sum + cellSeconds(cells.get(`${person.id}:${date}`)),
@@ -1018,18 +1083,16 @@ export function SchedulePlanner({
                       ) : null}
                     </strong>
                     <span className="block truncate text-[10px] text-[var(--sb-text)] opacity-70">
-                      {person.role_code === "outlet_supervisor"
-                        ? "Supervisor"
-                        : "Staff"}{" "}
-                      · {(weekly / 3600).toFixed(1)}h week
+                      {person.staff_code ? `#${person.staff_code} · ` : ""}{(weekly / 3600).toFixed(1)}h week
                     </span>
                   </span>
                   <button
                     type="button"
-                    disabled={!editableStatus || !canDraft || Boolean(external)}
+                    disabled={!editableStatus || !canDraft}
                     onClick={(event) => clickCell(key, event)}
                     className={cn(
-                      "relative min-h-11 w-full rounded-[var(--sb-radius-control)] border px-2 text-[11px] font-semibold",
+                      "relative min-h-11 w-full rounded-[var(--sb-radius-control)] border px-2 py-1 text-[11px] font-semibold leading-tight",
+                      tone === "external" && "border-cyan-300 bg-cyan-50 text-cyan-950",
                       tone === "empty" &&
                         "border-[var(--sb-border-soft)] text-[var(--sb-text)]",
                       tone === "work" &&
@@ -1049,12 +1112,12 @@ export function SchedulePlanner({
                       selected.has(key) &&
                         "ring-2 ring-[var(--sb-green-700)] ring-offset-1",
                     )}
-                    style={tone === "work" ? shiftColourStyle(value) : undefined}
-                    aria-label={`${person.full_name}, ${selectedMobileDate}: ${external ? `working at ${external.branch_name}` : cellLabel(value) || "unassigned"}`}
+                    style={!external && tone === "work" ? shiftColourStyle(value) : undefined}
+                    aria-label={`${person.full_name}, ${selectedMobileDate}: ${awayLabel ? `working at ${awayLabel}` : cellLabel(value) || "unassigned"}`}
                   >
-                    {external ? <><span className="block truncate">At {external.branch_name}</span><span className="block text-[9px] font-normal opacity-75">{formatAttendanceTime(external.planned_start)}–{formatAttendanceTime(external.planned_end)}</span></> : cellLabel(value) || "Add"}
+                    {awayLabel ? <span className="block break-words">{awayLabel}</span> : <span className="block break-words">{cellLabel(value) || "Add"}</span>}
                     {value?.custom_reason &&
-                    value.custom_reason !== "Outlet roster custom time" ? (
+                    value.custom_reason !== "Outlet roster custom time" && !isImportAuditReason(value.custom_reason) ? (
                       <MessageSquareText
                         className="absolute right-1 top-1 h-3 w-3"
                         aria-label={`Comment: ${value.custom_reason}`}
@@ -1080,7 +1143,7 @@ export function SchedulePlanner({
               dirty ? "font-medium text-amber-800" : "text-muted-foreground"
             }
           >
-            {dirty ? "Unsaved changes will be saved when you submit." : message}
+            {message}
           </p>
           {selected.size > 1 ? (
             <span className="text-muted-foreground">
@@ -1105,14 +1168,7 @@ export function SchedulePlanner({
                 size="sm"
                 variant="outline"
                 disabled={busyAction !== null || !dirty}
-                onClick={() =>
-                  void action({
-                    action: "save",
-                    branchId,
-                    weekStart,
-                    assignments,
-                  })
-                }
+                onClick={() => void saveDraft()}
               >
                 <Save className="h-4 w-4" />
                 {busyAction === "save" ? "Saving…" : "Save draft"}
@@ -1248,32 +1304,33 @@ export function SchedulePlanner({
                               {person.full_name}
                             </Link>
                             <span className="block truncate font-normal text-[var(--sb-text)] opacity-70">
-                              {person.role_code === "outlet_supervisor"
-                                ? "Supervisor"
-                                : "Staff"}{" "}
-                              · {person.employment_type.replace("_", " ")}
+                              {person.staff_code ? `#${person.staff_code} · ` : ""}{person.employment_type.replace("_", " ")}
                             </span>
                           </span>
                           <span className="shrink-0 text-right text-[11px] font-semibold tabular-nums">
                             {(weekly / 3600).toFixed(1)}h
                           </span>
-                          {editableStatus && canDraft ? <button type="button" className="grid h-7 w-7 shrink-0 place-items-center rounded-[var(--sb-radius-control)] text-muted-foreground hover:bg-rose-50 hover:text-rose-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)]" aria-label={`Remove ${person.full_name} from this outlet week`} title="Remove from this outlet week" onClick={() => removePersonFromWeek(person)}><X className="h-3.5 w-3.5" /></button> : null}
+                          {editableStatus && canDraft ? <button type="button" className="grid h-7 w-7 shrink-0 place-items-center rounded-[var(--sb-radius-control)] text-muted-foreground hover:bg-rose-50 hover:text-rose-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)]" aria-label={`Remove ${person.full_name} from this outlet week`} title="Remove from this outlet week" onClick={() => setRemoveCandidate(person)}><X className="h-3.5 w-3.5" /></button> : null}
                         </div>
                       </th>
                       {dates.map((date) => {
                         const key = `${person.id}:${date}`,
                           value = cells.get(key),
                           external = externalCells.get(key),
-                          tone = cellTone(value);
+                          awayLabel = localAwayLabel(value) ?? (!value ? external?.branch_name : person.home_branch_id && person.home_branch_id !== branchId ? currentBranchName : null),
+                          ended = Boolean(person.employment_end_date && date > person.employment_end_date),
+                          tone = awayLabel ? "external" : cellTone(value);
                         return (
                           <td key={date} className="border-b border-r p-1">
                             <button
                               type="button"
-                              disabled={!editableStatus || !canDraft || Boolean(external)}
+                              disabled={ended || !editableStatus || !canDraft}
                               onClick={(event) => clickCell(key, event)}
-                              aria-label={`${person.full_name}, ${date}: ${external ? `working at ${external.branch_name}` : cellLabel(value) || "unassigned"}`}
+                              aria-label={`${person.full_name}, ${date}: ${awayLabel ? `working at ${awayLabel}` : cellLabel(value) || "unassigned"}`}
                               className={cn(
-                                "relative h-11 w-full rounded-[var(--sb-radius-control)] border px-1.5 text-xs font-semibold transition-colors disabled:cursor-default",
+                                "relative min-h-11 w-full rounded-[var(--sb-radius-control)] border px-1.5 py-1 text-xs font-semibold leading-tight transition-colors disabled:cursor-default",
+                                ended && "border-slate-200 bg-slate-100 text-slate-500",
+                                tone === "external" && "border-cyan-300 bg-cyan-50 text-cyan-950",
                                 tone === "empty" &&
                                   "border-transparent text-[var(--sb-text)] opacity-70 enabled:hover:border-[var(--sb-border-soft)] enabled:hover:bg-[var(--sb-surface-muted)]",
                                 tone === "work" &&
@@ -1294,15 +1351,15 @@ export function SchedulePlanner({
                                   "ring-2 ring-[var(--sb-green-700)] ring-offset-1",
                               )}
                               style={
-                                tone === "work"
+                                !external && tone === "work"
                                   ? shiftColourStyle(value)
                                   : undefined
                               }
                             >
-                              {external ? <><span className="block truncate">At {external.branch_name}</span><span className="block text-[9px] font-normal opacity-75">{formatAttendanceTime(external.planned_start)}–{formatAttendanceTime(external.planned_end)}</span></> : cellLabel(value) || "Add"}
+                              {ended ? <span className="block break-words">Employment ended</span> : awayLabel ? <span className="block break-words">{awayLabel}</span> : <span className="block break-words">{cellLabel(value) || "Add"}</span>}
                               {value?.custom_reason &&
-                              value.custom_reason !==
-                                "Outlet roster custom time" ? (
+                          value.custom_reason !== "Outlet roster custom time" &&
+                              !isImportAuditReason(value.custom_reason) ? (
                                 <MessageSquareText
                                   className="absolute right-1 top-1 h-3 w-3"
                                   aria-label={`Comment: ${value.custom_reason}`}
@@ -1400,16 +1457,17 @@ export function SchedulePlanner({
               />
             </div>
             <label className="grid gap-1 text-xs">
-              Work location <span className="font-normal text-muted-foreground">(optional for event or temporary site)</span>
-              <Input value={custom.workSiteLabel} maxLength={120} onChange={(event) => setCustom((value) => ({ ...value, workSiteLabel: event.target.value }))} placeholder="Example: Event Bukit Jalil" />
+              Work location
+              <SelectControl ariaLabel="Work location" portalContainer={customDialog.current} value={custom.destinationBranchId} onValueChange={(destinationBranchId) => setCustom((value) => ({ ...value, destinationBranchId, workSiteLabel: destinationBranchId === "event" ? value.workSiteLabel : "", templateId: destinationBranchId === "current" ? value.templateId : null }))} options={[{ value: "current", label: currentBranchName }, ...branches.filter((branch) => branch.id !== branchId).map((branch) => ({ value: branch.id, label: branch.branch_name })), { value: "event", label: "Event" }]} searchable searchPlaceholder="Search outlets" />
             </label>
+            {custom.destinationBranchId === "event" ? <label className="grid gap-1 text-xs">
+              Event name
+              <Input value={custom.workSiteLabel} maxLength={120} onChange={(event) => setCustom((value) => ({ ...value, workSiteLabel: event.target.value }))} placeholder="Example: Bukit Jalil roadshow" />
+            </label> : null}
             <div className="flex items-center justify-between gap-3 rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] px-3 py-2 text-xs">
-              <span className="text-muted-foreground">Scheduled span · compared with 8.5h</span>
+              <span className="text-muted-foreground">Scheduled span</span>
               <strong className="tabular-nums">
                 {(durationSeconds(custom.start, custom.end, custom.end <= custom.start) / 3600).toFixed(2).replace(/\.00$/, "").replace(/(\.\d)0$/, "$1")} hours
-                <span className={cn("ml-1", durationSeconds(custom.start, custom.end, custom.end <= custom.start) > 30600 ? "text-rose-700" : "text-muted-foreground")}>
-                  ({signedDuration(durationSeconds(custom.start, custom.end, custom.end <= custom.start) - 30600)})
-                </span>
               </strong>
             </div>
             <div className="flex flex-wrap items-center gap-2" aria-label="Quick non-working assignment">
@@ -1448,11 +1506,11 @@ export function SchedulePlanner({
                 />
               </label>
               <label className="grid gap-1 text-xs">
-                Maximum paid time (minutes)
+                Paid time limit (minutes)
                 <Input
                   type="number"
                   min={1}
-                  max={1440}
+                  max={720}
                   step={1}
                   value={custom.capMinutes}
                   onChange={(event) =>
@@ -1601,7 +1659,8 @@ export function SchedulePlanner({
                           custom_reason:
                             custom.comment.trim() ||
                             "Outlet roster custom time",
-                          work_site_label: custom.workSiteLabel.trim() || null,
+                          work_site_label: custom.destinationBranchId === "event" ? custom.workSiteLabel.trim() || null : null,
+                          destination_branch_id: !["current", "event"].includes(custom.destinationBranchId) ? custom.destinationBranchId : null,
                           ro_minutes: custom.roMinutes || null,
                           ro_original_start: custom.roMinutes
                             ? custom.originalStart
@@ -1631,6 +1690,12 @@ export function SchedulePlanner({
               </Button>
             </div>
           </form>
+        </dialog>
+        <dialog ref={removeDialog} onCancel={() => setRemoveCandidate(null)} aria-labelledby="remove-staff-week-title" className="m-auto w-[min(28rem,calc(100vw-2rem))] rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50">
+          <div className="space-y-4 p-4">
+            <div><h2 id="remove-staff-week-title" className="text-base font-semibold">Remove from this outlet week?</h2><p className="mt-1 text-xs text-muted-foreground">This removes {removeCandidate?.full_name ?? "this employee"} and all of their assignments from this outlet for {weekStart}–{dates[6]}.</p></div>
+            <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setRemoveCandidate(null)}>Cancel</Button><Button type="button" variant="destructive" onClick={() => { if (removeCandidate) removePersonFromWeek(removeCandidate); setRemoveCandidate(null); }}>Remove employee</Button></div>
+          </div>
         </dialog>
         <dialog
           ref={decisionDialog}

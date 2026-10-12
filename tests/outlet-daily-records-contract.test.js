@@ -14,6 +14,7 @@ const page = read("src/app/(app)/outlet-daily-records/page.tsx");
 const detail = read("src/app/(app)/outlet-daily-records/[id]/page.tsx");
 const inlineValidation = read("supabase/migrations/167_inline_outlet_daily_validation_context.sql");
 const qtySentGuard = read("supabase/migrations/191_guard_outlet_completion_qty_sent.sql");
+const priorStockFix = read("supabase/migrations/321_outlet_daily_prior_stock_wastage.sql");
 const qtySentRoles = read("supabase/migrations/192_grant_qty_sent_to_kitchen_above.sql");
 const kitchenDailyVisibility = read("supabase/migrations/193_grant_kitchen_outlet_daily_visibility.sql");
 const kitchenDailyRls = read("supabase/migrations/194_fix_kitchen_outlet_daily_rls_scope.sql");
@@ -88,12 +89,30 @@ test("ready and posted outlet records retain separate operator-facing labels", (
 
 test("outlet completion creates the controlled ready-to-post queue", () => {
   const page = read("src/app/(app)/outlet-daily-records/page.tsx");
-  assert.match(query, /posted_today: todayRows\.filter\(\(row\) => row\.status === "reviewed"\)\.length/);
-  assert.match(query, /missing_evening: todayRows\.filter\(\(row\) => \["draft", "morning_recorded"\]\.includes\(row\.status\)\)\.length/);
-  assert.match(query, /ready_to_post: todayRows\.filter\(\(row\) => row\.status === "evening_completed"\)\.length/);
+  assert.match(query, /posted_today: Number\(summary\.posted_today\)/);
+  assert.match(query, /rpc\("get_outlet_daily_today_summary", \{ p_record_date: today \}\)/);
+  assert.match(query, /const \[pageResult, summaryResult\] = await Promise\.all\(\[loadRows\(filters\), summaryPromise\]\)/);
+  assert.match(query, /missing_evening: Number\(summary\.missing_evening\)/);
+  assert.match(query, /ready_to_post: Number\(summary\.ready_to_post\)/);
   assert.match(page, /<dt className="text-\[10px\] text-muted-foreground">Posted<\/dt>/);
-  assert.match(page, /Ready to post/);
+  assert.match(read("src/lib/outlet-daily-progress.ts"), /Ready to post/);
   assert.doesNotMatch(page, /<StatusBadge status=\{progress\.status\} \/><p/);
+});
+
+test("Outlet Daily today summary is one constant-size RLS-preserving database read", () => {
+  const migration = read("supabase/migrations/310_outlet_daily_today_summary.sql");
+  assert.match(migration, /create or replace function public\.get_outlet_daily_today_summary\(p_record_date date\)/);
+  assert.match(migration, /language sql[\s\S]*stable/);
+  assert.doesNotMatch(migration, /security definer/);
+  assert.match(migration, /grant execute on function public\.get_outlet_daily_today_summary\(date\) to authenticated/);
+  assert.match(migration, /where r\.record_date = p_record_date[\s\S]*r\.status <> 'void'/);
+});
+
+test("Outlet Daily shares its identical option catalog within one server render", () => {
+  assert.match(query, /import \{ cache \} from "react"/);
+  assert.match(query, /export const getOutletDailyFormOptions = cache\(async function getOutletDailyFormOptions/);
+  assert.match(query, /const \[db, profile, canViewAll\] = await Promise\.all\(\[/);
+  assert.equal((query.match(/const options = await getOutletDailyFormOptions\(\)/g) ?? []).length, 2);
 });
 
 test("new outlet daily saves route existing outlet-days back to their authoritative record", () => {
@@ -103,11 +122,19 @@ test("new outlet daily saves route existing outlet-days back to their authoritat
   assert.match(action, /A record already exists for this outlet and date/);
 });
 
-test("new outlet defaults cannot carry an invalid unremarked wastage forward", () => {
-  assert.match(query, /const received = receivedValueIsTrusted\(line\) \? Number\(line\.morning_received_qty\) : null/);
-  assert.match(query, /const safeWastage = wastage > 0 && \(received === null \|\| wastage > received\) && !hasRemark \? 0/);
-  assert.match(query, /wastage_reason: safeWastage === 0 \? null/);
-  assert.match(read("src/server/actions/error-handling.ts"), /Wastage cannot exceed Received without a line remark/);
+test("new outlet days require fresh physical quantities", () => {
+  assert.match(form, /const source = line;/);
+  assert.match(query, /wastage_qty: 0,/);
+  assert.match(form, /placeholder="Physical balance"/);
+  assert.match(form, /required=\{!locked && canEditOutletValues && \(received !== "" \|\| wastage !== ""\)\}/);
+});
+
+test("prior-stock packaging usage and expired food can exceed today's receipt", () => {
+  assert.match(priorStockFix, /drop constraint if exists outlet_daily_wastage_reason_required/);
+  assert.match(priorStockFix, /product_category <> 'packaging' and line_reason not in/);
+  assert.doesNotMatch(priorStockFix, /line_wastage_qty > received_qty/);
+  assert.match(priorStockFix, /evening_leftover_qty = case when can_edit_outlet then excluded\.evening_leftover_qty/);
+  assert.match(priorStockFix, /A wastage reason is required for food/);
 });
 
 test("wastage validation preserves a safe product anchor for inline correction", () => {
@@ -174,7 +201,9 @@ test("received totals never turn an unverified default zero into a business fact
   assert.match(query, /received_pending_lines: number/);
   assert.match(query, /total_received: number \| null/);
   assert.match(query, /today_received_unavailable/);
-  assert.match(query, /todayRows\.length > 0 && todayRows\.every/);
+  const summaryMigration = read("supabase/migrations/310_outlet_daily_today_summary.sql");
+  assert.match(summaryMigration, /count\(l\.id\) as line_count/);
+  assert.match(summaryMigration, /bool_and\(coalesce\(l\.morning_received_provided, false\)\) as received_verified/);
   assert.match(query, /morning_received_provided: receivedValueIsTrusted\(line\)/);
   assert.match(query, /morning_received_qty: receivedValueIsTrusted\(line\) \? line\.morning_received_qty : null/);
   assert.match(form, /receivedIsKnown && source\?\.morning_received_qty != null/);
@@ -186,8 +215,10 @@ test("Qty Sent totals never turn an unavailable default zero into a business fac
   assert.match(query, /const qtySentState = lines\.length > 0 && lines\.every/);
   assert.match(query, /const totalSent = qtySentState === "confirmed"/);
   assert.match(query, /totalReceived === 0 && totalSent !== null && totalSent > 0/);
-  assert.match(query, /todayRows\.every\(\(row\) => row\.total_sent !== null\)/);
-  assert.match(page, /data\.summary\.today_sent === null \? "Unavailable"/);
+  const summaryMigration = read("supabase/migrations/310_outlet_daily_today_summary.sql");
+  assert.match(summaryMigration, /when bool_and\(total_sent is not null\) then coalesce\(sum\(total_sent\), 0\)/);
+  assert.match(summaryMigration, /when count\(\*\) > 0 and bool_and\(total_received is not null\)/);
+  assert.match(page, /history\.summary\.today_sent === null \? "Unavailable"/);
   assert.match(detail, /record\.total_sent === null \? "Pending"/);
   assert.match(detail, /Needs confirmation/);
 });
@@ -219,8 +250,9 @@ test("outlet daily detail fails closed when its record source cannot be verified
 test("outlet records flag a confirmed zero when stock was sent", () => {
   assert.match(query, /received_zero_with_sent: boolean/);
   assert.match(query, /totalReceived === 0 && totalSent !== null && totalSent > 0/);
-  assert.match(page, /0 · verify/);
-  assert.match(page, /no receipt quantity has been confirmed/);
+  assert.match(read("src/lib/operational-value-display.ts"), /0 · verify/);
+  assert.match(read("src/lib/operational-value-display.ts"), /no receipt quantity has been confirmed/);
+  assert.match(page, /receivedDisplay\(row\)/);
   assert.match(detail, /Receipt check needed/);
   assert.match(detail, /record\.received_zero_with_sent/);
 });
@@ -229,9 +261,7 @@ test("Outlet cannot enter Qty Sent; only the dedicated permission unlocks it", (
   assert.match(detail, /getPermissionMap\(\["outlet_daily_record\.update", "outlet_daily_record\.qty_sent", "outlet_daily_record\.post", "outlet_daily_record\.void"\]\)/);
   assert.match(detail, /const canEditQtySent = !statusLocked && permissions\["outlet_daily_record\.qty_sent"\]/);
   assert.match(form, /name="qty_sent"[\s\S]*disabled=\{locked \|\| !canEditQtySent\}/);
-  assert.match(form, /data-qty-sent-ownership/);
-  assert.match(form, /Only Kitchen and authorised company-wide staff can enter it/);
-  assert.match(form, /aria-describedby=\{!canEditQtySent \? "qty-sent-ownership-note"/);
+  assert.doesNotMatch(form, /data-qty-sent-ownership|qty-sent-ownership-note/);
   assert.match(qtySentGuard, /can_edit_sent boolean := public\.has_permission\('outlet_daily_record\.qty_sent'\)/);
   assert.match(qtySentGuard, /if can_edit_sent then/);
 });

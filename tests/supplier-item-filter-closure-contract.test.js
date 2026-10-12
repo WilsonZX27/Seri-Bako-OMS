@@ -27,17 +27,20 @@ test("duplicate supplier merge preserves the PR mapping guard and records unreso
   );
 });
 
-test("master-data filters keep Search available after filtering and size Reset as a command", () => {
+test("master-data filters expose one visible Search action and keep Reset available", () => {
   const filters = read("src/components/master-data-filters.tsx");
   const header = read("src/components/common/UnifiedListHeader.tsx");
-  assert.match(filters, /data-list-action=\"primary\"/);
+  assert.match(filters, /name="search"/);
+  assert.doesNotMatch(filters, />Search<\/Button>/);
   assert.match(filters, /data-list-action=\"secondary\"/);
   assert.match(filters, /<Link href=\{resetHref\}>Reset<\/Link>/);
   assert.match(header, /props\[\"data-list-action\"\] === \"primary\"/);
   assert.match(header, /commandTrackCount/);
+  assert.match(header, /unified-list-search-submit/);
+  assert.match(header, /showSearchAction = hasTextSearch/);
 });
 
-test("shared list routes do not replace Search with Reset after filtering", () => {
+test("shared list routes retain query fields and Reset with the shared Search action", () => {
   const routes = [
     "src/app/(app)/goods-receivings/page.tsx",
     "src/app/(app)/outlet-daily-records/page.tsx",
@@ -50,10 +53,14 @@ test("shared list routes do not replace Search with Reset after filtering", () =
   ];
   for (const route of routes) {
     const source = read(route);
-    assert.match(source, /data-list-action="primary"/, route);
+    assert.match(source, /FilterBar|UnifiedListHeader/, route);
     assert.match(source, /data-list-action="secondary"/, route);
     assert.doesNotMatch(source, /filtered \? <Button asChild variant="secondary"[\s\S]*: <Button type="submit"/, route);
   }
+  const header = read("src/components/common/UnifiedListHeader.tsx");
+  assert.match(header, /<span>Search<\/span>/);
+  assert.match(header, /data-search-control/);
+  assert.match(header, /closest\?\.\("\[data-search-control\]"\)/);
 });
 
 test("supplier register defaults to active identities while keeping an explicit all-status view", () => {

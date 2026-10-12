@@ -104,7 +104,7 @@ export default async function SetPasswordPage({
           </div>
         </Notice>
       ) : null}
-      <div className="mb-5 rounded-[2px] border bg-white p-4">
+      <div className="mb-5 rounded-[var(--sb-panel-radius)] border bg-white p-4">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-[var(--sb-radius-control)] bg-primary/10 text-sm font-semibold text-primary">
             {setupContext.companyLogoUrl ? (

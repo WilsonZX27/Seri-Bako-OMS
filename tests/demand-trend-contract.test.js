@@ -33,7 +33,7 @@ test("Demand Trend Lite calculates movement and wastage from outlet lines only",
 });
 
 test("Demand Trend Lite applies date, outlet, product and reliable-status filters", () => {
-  assert.match(query, /\["7", "30", "month"\]/);
+  assert.match(query, /insightPeriod\(filters\.period\)/);
   assert.match(query, /filters\.branch/);
   assert.match(query, /filters\.product/);
   assert.match(query, /filters\.status/);

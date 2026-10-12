@@ -19,6 +19,7 @@ import { getCurrentProfile } from "@/server/queries/common";
 import { getProcurementChainForRequest, getPurchaseRequestIdForOrder } from "@/server/queries/procurement";
 import { ProcurementChain } from "@/components/procurement/procurement-chain";
 import { ActionErrorNotice } from "@/components/action-error-notice";
+import { remainingAfterReceipt } from "@/lib/receiving-quantities";
 
 const grnSteps = [
   { key: "draft", label: "Draft", description: "Receiving is being checked." },
@@ -34,10 +35,11 @@ export default async function GoodsReceivingDetailPage({ params, searchParams }:
     getPermissionMap(["grn.post", "goods_receiving.cancel", "goods_receiving.close", "documents.attach"]),
     getCurrentProfile(),
   ]);
-  const requestId = await getPurchaseRequestIdForOrder(receiving.purchase_order_id);
-  const procurementChain = requestId ? await getProcurementChainForRequest(requestId) : null;
+  const [procurementChain, documentBundle] = await Promise.all([
+    getPurchaseRequestIdForOrder(receiving.purchase_order_id).then((requestId) => requestId ? getProcurementChainForRequest(requestId) : null),
+    receiving.document_id ? getDocumentBundle(receiving.document_id) : Promise.resolve(null),
+  ]);
   const isOwner = String(profile?.role_code ?? "").toLowerCase() === "super_admin";
-  const documentBundle = receiving.document_id ? await getDocumentBundle(receiving.document_id) : null;
   const totalReceivedValue = lines.reduce((sum, line) => sum + line.received_qty * line.unit_cost, 0);
   const hasRejected = lines.some((line) => line.rejected_qty > 0);
   const hasDeliveryOrder = Boolean(documentBundle?.attachments.some((attachment) => attachment.status === "active"));
@@ -88,7 +90,7 @@ export default async function GoodsReceivingDetailPage({ params, searchParams }:
           <Card>
             <CardContent className="space-y-4 p-5">
               <h2 className="text-sm font-semibold">Receiving Summary</h2>
-              <div className="grid gap-4 md:grid-cols-4">
+              <div className="grid min-w-0 grid-cols-2 gap-4 break-words xl:grid-cols-4 [&>div]:min-w-0">
                 <div><p className="text-xs uppercase text-muted-foreground">Supplier</p><p className="font-medium">{receivingDisplay.supplier_name ?? receiving.supplier_id}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Received Date</p><p className="font-medium">{formatDateOnly(receiving.received_date)}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{receivingDisplay.branch_name ?? "-"}</p></div>
@@ -112,6 +114,7 @@ export default async function GoodsReceivingDetailPage({ params, searchParams }:
                 <h2 className="text-sm font-semibold">Received Items</h2>
                 <p className="text-sm font-semibold">{formatCurrency(totalReceivedValue)}</p>
               </div>
+              {receiving.status === "posted" ? <p className="mb-3 text-xs text-muted-foreground">Remaining is the order balance after this receipt. Later receipts appear on the purchase order.</p> : null}
               {receiving.status === "draft" && permissions["grn.post"] ? <GoodsReceivingDraftEditor action={postAction} lines={lines} /> : <>
               <Table mobileHidden aria-label="Received items">
                   <TableHeader>
@@ -119,7 +122,7 @@ export default async function GoodsReceivingDetailPage({ params, searchParams }:
                       <TableHead>Item</TableHead>
                       <TableHead className="text-right">Ordered</TableHead>
                       <TableHead className="text-right">Previously Received</TableHead>
-                      <TableHead className="text-right">Pending</TableHead>
+                      <TableHead className="text-right">{receiving.status === "posted" ? "Remaining" : "Pending"}</TableHead>
                       <TableHead className="text-right">Received</TableHead>
                       <TableHead className="text-right">Rejected</TableHead>
                       <TableHead>UOM</TableHead>
@@ -137,7 +140,7 @@ export default async function GoodsReceivingDetailPage({ params, searchParams }:
                         </TableCell>
                         <TableCell className="text-right">{formatNumber(line.ordered_qty)}</TableCell>
                         <TableCell className="text-right">{formatNumber(line.previously_received_qty)}</TableCell>
-                        <TableCell className="text-right">{formatNumber(line.pending_qty)}</TableCell>
+                        <TableCell className="text-right">{formatNumber(remainingAfterReceipt(line, receiving.status))}</TableCell>
                         <TableCell className="text-right font-medium">{formatNumber(line.received_qty)}</TableCell>
                         <TableCell className="text-right">{line.rejected_qty > 0 ? <span className="font-medium text-destructive">{formatNumber(line.rejected_qty)}</span> : formatNumber(0)}</TableCell>
                         <TableCell>{line.uom}</TableCell>
@@ -164,7 +167,7 @@ export default async function GoodsReceivingDetailPage({ params, searchParams }:
                     <dl className="mt-3 grid grid-cols-3 gap-x-3 border-y border-[var(--sb-border-soft)] py-2 text-xs">
                       <div><dt className="text-muted-foreground">Ordered</dt><dd className="mt-0.5 font-medium tabular-nums">{formatNumber(line.ordered_qty)}</dd></div>
                       <div><dt className="text-muted-foreground">Previously</dt><dd className="mt-0.5 font-medium tabular-nums">{formatNumber(line.previously_received_qty)}</dd></div>
-                      <div><dt className="text-muted-foreground">Pending</dt><dd className="mt-0.5 font-medium tabular-nums">{formatNumber(line.pending_qty)}</dd></div>
+                      <div><dt className="text-muted-foreground">{receiving.status === "posted" ? "Remaining" : "Pending"}</dt><dd className="mt-0.5 font-medium tabular-nums">{formatNumber(remainingAfterReceipt(line, receiving.status))}</dd></div>
                     </dl>
                     {line.rejected_qty > 0 ? <p className="mt-2 text-xs font-medium text-destructive">Rejected {formatNumber(line.rejected_qty)} {line.uom} · excluded from stock</p> : null}
                     {line.batch_no || line.expiry_date ? <p className="mt-2 text-xs text-muted-foreground">Batch {line.batch_no ?? "not recorded"}{line.expiry_date ? ` · Expires ${formatDateOnly(line.expiry_date)}` : ""}</p> : null}

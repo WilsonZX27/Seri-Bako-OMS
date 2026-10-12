@@ -99,7 +99,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
             <UnifiedListHeader resultCount={orders?.totalRows} resetHref="/purchase-orders" filtered={filtered} activeCount={Number(Boolean(filters.status))}>
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PO no or remarks" className="min-w-0 flex-1 md:max-w-sm" />
               <StatusTabs statuses={statuses} activeStatus={filters.status} />
-              <Button type="submit" variant="secondary" className="shrink-0" data-list-action="primary">Search</Button>
+
               {filtered ? <Button asChild variant="secondary" className="shrink-0" data-list-action="secondary"><Link href="/purchase-orders">Reset</Link></Button> : null}
               {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
             </UnifiedListHeader>
@@ -115,8 +115,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                   <SortableHead className="hidden md:table-cell" label="Date" column="order_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead className="hidden lg:table-cell" label="Delivery" column="expected_delivery_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <TableHead className="hidden text-right lg:table-cell">Lines</TableHead>
-                  <TableHead className="hidden text-right md:table-cell">Total</TableHead>
+                  <TableHead className="hidden text-right md:table-cell">Order value</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -129,18 +128,17 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                     <TableCell className="hidden md:table-cell">{formatDateOnly(order.order_date)}</TableCell>
                     <TableCell className="hidden lg:table-cell">{formatDateOnly(order.expected_delivery_date, "-")}</TableCell>
                     <TableCell><StatusBadge status={order.status} /></TableCell>
-                    <TableCell className="hidden text-right lg:table-cell">{order.line_count}</TableCell>
-                    <TableCell className="hidden text-right md:table-cell">{formatCurrency(order.order_total)}</TableCell>
+                    <TableCell className="hidden text-right md:table-cell"><p>{order.line_count} lines</p><p className="mt-1 text-[11px] text-muted-foreground">{formatCurrency(order.order_total)}</p></TableCell>
                   </DataGridRow>
                 ))}
-                {!orders?.rows.length ? <TableRow><TableCell colSpan={9}><EmptyState title={ordersResult.unavailable ? "Purchase order data unavailable" : filtered ? "No orders match these filters" : "No purchase orders yet"} description={ordersResult.unavailable ? "The order source could not be verified. No record count or order total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={ordersResult.unavailable ? { href: "/purchase-orders", label: "Retry orders" } : emptyStateAction} /></TableCell></TableRow> : null}
+                {!orders?.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={ordersResult.unavailable ? "Purchase order data unavailable" : filtered ? "No orders match these filters" : "No purchase orders yet"} description={ordersResult.unavailable ? "The order source could not be verified. No record count or order total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={ordersResult.unavailable ? { href: "/purchase-orders", label: "Retry orders" } : emptyStateAction} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Purchase orders" showUntil="md">
               {orders?.rows.map((order) => <OperationalListRow
                 key={order.id}
                 label={`Open ${order.po_no}`}
-                primary={<div><Link href={`/purchase-orders/${order.id}`} className="inline-flex min-h-9 items-center rounded-[var(--sb-radius-control)] font-medium text-[var(--sb-link)] underline-offset-4 hover:underline"><DocumentNumber value={order.po_no} size="sm" /></Link><p className="text-[11px] font-normal text-[var(--sb-text-muted)]">Delivery {formatDateOnly(order.expected_delivery_date, "not set")}</p></div>}
+                primary={<div><Link href={`/purchase-orders/${order.id}`} className="inline-flex min-h-9 items-center rounded-[var(--sb-radius-control)] font-medium text-[var(--sb-link)] underline-offset-4 hover:underline"><DocumentNumber value={order.po_no} /></Link>{order.expected_delivery_date ? <p className="text-[11px] font-normal text-[var(--sb-text-muted)]">Delivery {formatDateOnly(order.expected_delivery_date)}</p> : null}</div>}
                 status={<StatusBadge status={order.status} />}
                 secondary={<span>{order.branch_name ?? "No outlet"} · {order.supplier_name ?? "No supplier"} · {formatDateOnly(order.order_date)}{order.purchase_request_id && order.request_no ? <> · <Link href={`/purchase-requests/${order.purchase_request_id}`} className="font-medium text-[var(--sb-link)] underline-offset-4 hover:underline">{order.request_no}</Link></> : null}</span>}
                 meta={`${order.line_count} items · ${formatCurrency(order.order_total)}`}

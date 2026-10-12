@@ -10,7 +10,7 @@ test("Kitchen canonical and legacy roles receive both GRN posting aliases", () =
   assert.match(migration, /on conflict\(role_id, permission_id\) do nothing/);
 });
 
-test("Outlet compliance visibility stops at Supervisor and protects originals", () => {
+test("Outlet compliance visibility is management-only while historical grants remain documented", () => {
   assert.match(migration, /role_code in \('outlet_staff','kitchen','kitchen_staff'\)/);
   assert.match(migration, /role_code='outlet_supervisor'/);
   assert.match(migration, /'outlet_compliance\.upload','outlet_compliance\.document\.read'/);
@@ -18,7 +18,7 @@ test("Outlet compliance visibility stops at Supervisor and protects originals", 
   const complianceItems = navigation.split("\n").filter((line) => line.includes('href: "/outlet-compliance"') || line.includes('href: "/outlet-calendar"'));
   for (const item of complianceItems) {
     assert.doesNotMatch(item, /"kitchen"|"outlet_staff"/);
-    assert.match(item, /"outlet_supervisor"/);
+    assert.doesNotMatch(item, /"outlet_supervisor"/);
   }
 });
 

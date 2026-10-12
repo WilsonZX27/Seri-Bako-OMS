@@ -1,46 +1,31 @@
-import Link from "next/link";
-import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
-import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
-import { Input } from "@/components/ui/input";
-import { MetricStrip } from "@/components/ui/metric-strip";
+import { Notice } from "@/components/ui/system-states";
 import { PageHeader } from "@/components/ui/page-header";
-import { SelectNative } from "@/components/ui/select-native";
-import { OperationalList, OperationalListRow, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatDateOnly, formatNumber } from "@/lib/utils";
-import { getProductionPlanning } from "@/server/queries/outlet-daily-records";
+import { ProductionPlanningWorkspace } from "@/components/production-planning-workspace";
+import { createClient } from "@/lib/supabase/server";
+import { looseSupabase } from "@/lib/supabase/loose";
+import { getCurrentProfile } from "@/server/queries/common";
+import { loadPlanningContext, loadPlans, loadDeliveryOrders, complete } from "@/server/production-planning/data";
+import { addDays } from "@/lib/production-planning/forecast";
+import { todayInKualaLumpur } from "@/lib/business-date";
+import type { PlanningBranch, Plan, DeliveryOrder } from "@/lib/production-planning/types";
 import { logServerError } from "@/server/observability/logger";
-
-const confidenceBadge = (confidence: string, lowSample: boolean) => lowSample
-  ? <Badge variant="warning">Low sample · Review manually</Badge>
-  : <Badge variant={confidence === "High" ? "success" : confidence === "Medium" ? "warning" : "danger"}>{confidence === "Medium" ? "Medium · Caution" : confidence === "Low" ? "Low · Review manually" : "High"}</Badge>;
-
-export default async function ProductionPlanningPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
-  const filters = await searchParams;
-  const report = await getProductionPlanning(filters).catch((error) => {
-    logServerError(error, { source: "page.productionPlanning.report" });
-    return null;
-  });
-  if (!report) return <>
-    <PageHeader title="Production Planning Lite" description="Planning reference only. HQ/kitchen must check incomplete outlet data before producing." />
-    <WorkspaceGrid hideMobileConsole rightRail={<ConsoleSection title="Report status"><p className="text-xs text-muted-foreground">The demand source could not be verified. No suggestion is calculated from incomplete data.</p></ConsoleSection>} tabletRailMode="split">
-      <Card><CardContent className="p-5"><EmptyState title="Production Planning Lite is unavailable" description="Try again shortly. No planning suggestion is shown as zero, and no production or inventory record was changed." action={{ href: "/production/planning", label: "Retry report" }} /></CardContent></Card>
-    </WorkspaceGrid>
-  </>;
-  return <>
-    <PageHeader title="Production Planning Lite" description="Planning reference only. HQ/kitchen must check incomplete outlet data before producing." />
-    <WorkspaceGrid hideMobileConsole rightRail={<>
-      <ConsoleSection title="Planning Assumptions"><div className="space-y-2 text-xs text-muted-foreground"><p>Uses posted Outlet Daily Records only.</p><p>Suggestions are planning references, not production orders.</p><p>HQ/kitchen must check incomplete outlet records.</p><p>This page does not create production jobs or inventory writes.</p></div></ConsoleSection>
-      <ConsoleSection title="Confidence"><div className="space-y-1 text-xs"><p className="flex justify-between gap-3"><span>Coverage</span><strong>{report.coverage.completed} / {report.coverage.expected} ({formatNumber(report.coverage.percent)}%)</strong></p><p className="flex justify-between gap-3"><span>Confidence</span>{confidenceBadge(report.coverage.confidence, false)}</p><p className="flex justify-between gap-3"><span>Medium</span><span>Suggested with caution</span></p><p className="flex justify-between gap-3"><span>Low / low sample</span><span>Review manually</span></p><p className="flex justify-between gap-3"><span>Incomplete</span><strong>{report.coverage.incomplete}</strong></p><p className="flex justify-between gap-3"><span>Missing outlet-days</span><strong>{report.coverage.missing}</strong></p></div><Button asChild className="mt-3 w-full" variant="outline" size="sm"><Link href="/reports/demand-trends">Open Demand Trends</Link></Button></ConsoleSection>
-    </>} tabletRailMode="split">
-      <FilterBar resetHref="/production/planning" className="sb-list-filters--balanced"><SelectNative name="period" defaultValue={report.filters.period} aria-label="Planning period"><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="month">Current month</option></SelectNative><SelectNative name="branch" defaultValue={report.filters.branch} aria-label="Planning outlet"><option value="all">All accessible outlets</option>{report.branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}</SelectNative><FilterBarMore activeCount={0} resetHref="/production/planning"><label className="grid gap-1 text-xs">Planning date<Input name="planning_date" type="date" defaultValue={report.planning.planning_date} aria-label="Planning date" /></label><SelectNative name="target_days" defaultValue={String(report.planning.target_days)} aria-label="Target days"><option value="1">Target: 1 day</option><option value="2">Target: 2 days</option><option value="3">Target: 3 days</option><option value="7">Target: 7 days</option></SelectNative><label className="grid gap-1 text-xs">Buffer %<Input name="buffer_percent" type="number" min="0" max="100" step="1" defaultValue={report.planning.buffer_percent} aria-label="Buffer percentage" /></label><label className="grid gap-1 text-xs">Round to<Input name="rounding_unit" type="number" min="0.01" step="0.01" defaultValue={report.planning.rounding_unit} aria-label="Rounding unit" /></label></FilterBarMore><Button type="submit" variant="secondary">Update</Button></FilterBar>
-      <MetricStrip items={[{ label: "High confidence", value: report.planning.summary.high }, { label: "Medium confidence", value: report.planning.summary.medium }, { label: "Manual review", value: report.planning.summary.manual }]} className="lg:grid-cols-3" />
-      <section className="overflow-hidden border bg-card"><div className="border-b px-3 py-2"><h2 className="text-sm font-semibold">Suggested planning reference</h2><p className="text-xs text-muted-foreground">Planning date {formatDateOnly(report.planning.planning_date)} · {report.planning.target_days} target day(s) · buffer {report.planning.buffer_percent}% · round to {formatNumber(report.planning.rounding_unit)}</p></div><Table mobileHidden aria-label="Suggested production planning reference"><TableHeader><TableRow><TableHead>Product</TableHead><TableHead className="text-right">Avg. daily movement</TableHead><TableHead className="text-right">Suggested qty</TableHead><TableHead>Confidence</TableHead><TableHead className="text-right">Sample</TableHead><TableHead className="text-right">Wastage %</TableHead><TableHead>HQ/kitchen check</TableHead></TableRow></TableHeader><TableBody>{report.planning.rows.map((row) => <TableRow key={row.id}><TableCell className="font-medium">{row.name}</TableCell><TableCell className="text-right">{formatNumber(row.average_daily_movement)}</TableCell><TableCell className="text-right">{row.suggested_qty === null ? "Review manually" : formatNumber(row.suggested_qty)}</TableCell><TableCell>{confidenceBadge(report.coverage.confidence, row.low_sample)}</TableCell><TableCell className="text-right">{row.completed_records}</TableCell><TableCell className="text-right">{formatNumber(row.wastage_percent)}%</TableCell><TableCell>{row.planning_note}</TableCell></TableRow>)}{!report.planning.rows.length ? <TableRow><TableCell colSpan={7}><EmptyState title="No reliable product data" description="Complete Outlet Daily Records before using this planning reference." /></TableCell></TableRow> : null}</TableBody></Table><OperationalList ariaLabel="Suggested production planning reference">{report.planning.rows.map((row) => <OperationalListRow key={row.id} primary={row.name} status={confidenceBadge(report.coverage.confidence, row.low_sample)} secondary={`Suggested ${row.suggested_qty === null ? "manual review" : formatNumber(row.suggested_qty)} · Avg ${formatNumber(row.average_daily_movement)}/day`} meta={`${row.completed_records} records · Wastage ${formatNumber(row.wastage_percent)}%`} />)}{!report.planning.rows.length ? <EmptyState title="No reliable product data" description="Complete Outlet Daily Records before using this planning reference." /> : null}</OperationalList></section>
-      <section className="overflow-hidden border bg-card"><div className="border-b px-3 py-2"><h2 className="text-sm font-semibold">Outlet coverage</h2></div><Table mobileHidden aria-label="Outlet coverage"><TableHeader><TableRow><TableHead>Outlet</TableHead><TableHead className="text-right">Completed records</TableHead><TableHead className="text-right">Movement</TableHead><TableHead>Coverage note</TableHead></TableRow></TableHeader><TableBody>{report.outlets.map((outlet) => <TableRow key={outlet.id}><TableCell className="font-medium">{outlet.name}</TableCell><TableCell className="text-right">{outlet.completed_records}</TableCell><TableCell className="text-right">{outlet.no_completed_records ? "Unavailable" : formatNumber(outlet.movement)}</TableCell><TableCell>{outlet.no_completed_records ? "No completed records in this range" : "Included in reliable totals"}</TableCell></TableRow>)}</TableBody></Table><OperationalList ariaLabel="Outlet coverage">{report.outlets.map((outlet) => <OperationalListRow key={outlet.id} primary={outlet.name} secondary={`${outlet.completed_records} completed records · ${outlet.no_completed_records ? "movement unavailable" : `${formatNumber(outlet.movement)} movement`}`} meta={outlet.no_completed_records ? "No completed records in this range" : "Included in reliable totals"} />)}</OperationalList></section>
-    </WorkspaceGrid>
-  </>;
+export default async function ProductionPlanningPage({searchParams}:{searchParams:Promise<Record<string,string|undefined>>}) {
+ const filters=await searchParams;
+ try {
+  const profile=await getCurrentProfile(); if(!profile?.company_id)throw new Error("Active company access is required.");
+  const db=looseSupabase(await createClient());
+  const canManage=["super_admin","manager"].includes(profile.role_code??"");
+  const view=canManage && filters.view==="settings"?"settings":canManage && filters.view==="events"?"events":"plan";
+  const accessible=await complete(()=>db.from("branches").select("id,branch_name,branch_type", { count: "exact" }).eq("company_id",profile.company_id).eq("branch_type","central_kitchen").eq("status","active").is("deleted_at",null));
+  const kitchenId=accessible.some((k)=>k.id===filters.kitchen)?String(filters.kitchen):String(accessible[0]?.id??"");
+  const date=filters.date??addDays(todayInKualaLumpur(),1); addDays(date,0);
+  if(!kitchenId)throw new Error("No accessible central kitchen is configured.");
+  const [context,plans,orders]=await Promise.all([loadPlanningContext(db,profile.company_id,kitchenId,date,{view,kitchens:accessible as unknown as PlanningBranch[]}),view==="plan"?loadPlans(db,profile.company_id,kitchenId,date,filters.version):Promise.resolve<Plan[]>([]),view==="plan"?loadDeliveryOrders(db,{companyId:profile.company_id,kitchenId,date}):Promise.resolve<DeliveryOrder[]>([])]);
+  const selectedPlanId=plans.find(plan=>plan.id===filters.version)?.id??plans[0]?.id;
+  return <><PageHeader title="Production Planning" description="Daily production and outlet allocation."/><ProductionPlanningWorkspace key={`${kitchenId}:${date}:${view}:${selectedPlanId??""}`} selectedPlanId={selectedPlanId} view={view} companyId={profile.company_id} date={date} kitchenId={kitchenId} {...context} plans={plans} orders={orders} canManage={canManage}/></>;
+ } catch(error) {
+  logServerError(error,{source:"page.productionPlanning"});
+  return <><PageHeader title="Production Planning" description="Daily production, allocation and delivery approval."/><WorkspaceGrid><Notice tone="warning" title="Production planning could not load">Reload to retry. If this continues, check the kitchen configuration and system health.</Notice></WorkspaceGrid></>;
+ }
 }

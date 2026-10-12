@@ -34,7 +34,7 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
     if (!preview || !importable.length) return;
     setBusy(true); setMessage(`Importing ${importable.length} verified outlet draft${importable.length === 1 ? "" : "s"}…`);
     try {
-      const response = await fetch("/api/attendance/schedule", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "import_drafts", weekStart, fileName: preview.fileName, fileHash: preview.fileHash, outlets: importable.map((outlet) => ({ branch_id: outlet.branchId, assignments: outlet.assignments })), unresolvedCount: 0, sourceMetadata: { source: "schedule_workbook_ui", parserVersion: 2, sourceIssues: preview.issues, importedOutlets: importable.map((outlet) => outlet.branchName) } }) });
+      const response = await fetch("/api/attendance/schedule", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "import_drafts", weekStart, fileName: preview.fileName, fileHash: preview.fileHash, outlets: importable.map((outlet) => ({ branch_id: outlet.branchId, assignments: outlet.assignments })), unresolvedCount: 0, sourceMetadata: { source: "schedule_workbook_ui", parserVersion: 5, sourceIssues: preview.issues, importedOutlets: importable.map((outlet) => outlet.branchName) } }) });
       const result = await readJsonResponse<{ ok: boolean; message?: string }>(response, { unexpectedResponse: "The schedule import returned an unexpected response." });
       if (!response.ok || !result.ok) throw new Error(result.message ?? "Schedule drafts could not be imported.");
       setMessage(`${importable.length} outlet draft${importable.length === 1 ? " was" : "s were"} imported. Published rosters were unchanged; source issues remain empty and auditable.`);
@@ -47,7 +47,7 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
       <div className="min-w-0 flex-1"><h2 className="text-sm font-semibold">Schedule workbook</h2><p className="mt-0.5 text-xs text-muted-foreground">Preview the company workbook against live staff, outlets and existing week status before anything changes.</p></div>
       <Button size="sm" variant="outline" onClick={() => dialog.current?.showModal()}><FileSpreadsheet className="h-4 w-4"/>Import workbook</Button>
     </section>
-    <dialog ref={dialog} className="m-auto max-h-[calc(100dvh-2rem)] w-[min(48rem,calc(100vw-2rem))] max-w-none overflow-hidden rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-2xl backdrop:bg-black/55">
+    <dialog ref={dialog} className="sb-schedule-import-dialog max-h-[calc(100dvh-2rem)] w-[min(48rem,calc(100vw-2rem))] max-w-none overflow-hidden rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-2xl backdrop:bg-black/55">
       <div className="flex max-h-[calc(100dvh-2rem)] flex-col">
         <header className="flex items-start gap-3 border-b border-[var(--sb-border-soft)] p-4"><div className="min-w-0 flex-1"><h2 className="text-base font-semibold">Import schedule workbook</h2><p className="mt-1 text-xs text-muted-foreground">Week {weekStart}. This preview fails closed: unclear times, HR instructions and published rosters are never overwritten.</p></div><Button size="icon" variant="ghost" aria-label="Close schedule import" onClick={() => dialog.current?.close()}><X className="h-4 w-4"/></Button></header>
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">

@@ -14,7 +14,10 @@ export function OutletDailyWastageChart({ points, branch, unavailable = false }:
   const width = 720;
   const height = 280;
   const inset = { top: 18, right: 18, bottom: 30, left: 54 };
-  const maximum = Math.max(10, ...points.map((point) => point.wastage_percent));
+  // Keep the scale stable at the business maximum. A 100% ceiling makes the
+  // same rate comparable across outlets and avoids a small change looking like
+  // a large spike when the seven-day sample is low.
+  const maximum = 100;
   const totalReceived = points.reduce((sum, point) => sum + point.received, 0);
   const totalWastage = points.reduce((sum, point) => sum + point.wastage, 0);
   const periodRate = totalReceived > 0 ? totalWastage / totalReceived * 100 : 0;
@@ -37,10 +40,10 @@ export function OutletDailyWastageChart({ points, branch, unavailable = false }:
     <section className="erp-surface flex min-h-[26rem] flex-col overflow-hidden" aria-labelledby="outlet-wastage-trend-title">
       <div className="flex flex-wrap items-end justify-between gap-2 border-b border-[var(--sb-border-soft)] px-3 py-2.5">
         <div>
-          <h2 id="outlet-wastage-trend-title" className="text-sm font-semibold">7-day wastage rate</h2>
-          <p className="text-xs text-muted-foreground">Matches Calendar history · completed records only</p>
+          <h2 id="outlet-wastage-trend-title" className="text-sm font-semibold">Period wastage rate</h2>
+          <p className="text-xs text-muted-foreground">{branch && branch !== "all" ? "Selected outlet" : "All outlets combined"} · completed records only · rate = total wastage ÷ total received</p>
         </div>
-        <p className="text-xs text-muted-foreground">7-day rate <strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable ? "Unavailable" : `${formatPercent(periodRate)}%`}</strong></p>
+        <p className="text-xs text-muted-foreground">7-day rate <strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable ? "Unavailable" : totalReceived > 0 ? `${formatPercent(periodRate)}%` : "No receipts"}</strong></p>
       </div>
       {unavailable ? <div className="px-4 py-8 text-center" role="status"><p className="text-sm font-medium">Wastage trend unavailable</p><p className="mt-1 text-xs text-muted-foreground">The daily record list remains current. Retry this page to load the selected 7-day insight.</p></div> : points.length ? (
       <div className="grid flex-1 items-stretch gap-3 p-2 pt-3 xl:grid-cols-[minmax(0,3fr)_minmax(18rem,2fr)] xl:p-3" data-outlet-wastage-layout>

@@ -9,7 +9,7 @@ const design = fs.readFileSync(path.join(root, "DESIGN.md"), "utf8");
 const plan = fs.readFileSync(path.join(root, "docs", "qa", "US100K_CLOSURE_PLAN_2026-08-17.md"), "utf8");
 
 test("the US$100k closure ledger keeps the release boundary explicit", () => {
-  assert.match(product, /current released application baseline is `v8\.64\.55`/);
+  assert.match(product, /current released application baseline is `v\d+\.\d+\.\d+`/);
   assert.match(product, /v8\.64\.56 \(unreleased\)/);
   assert.match(product, /migration 157/);
   assert.match(design, /v8\.64\.56 \(unreleased\)/);

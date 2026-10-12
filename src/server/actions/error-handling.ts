@@ -220,7 +220,8 @@ export function isTechnicalDatabaseError(error: unknown) {
   const normalized = message.toLowerCase();
 
   return (
-    normalized.includes("column reference")
+    normalized.includes("schema cache")
+    || normalized.includes("column reference")
     || normalized.includes("operator does not exist")
     || normalized.includes("syntax error at or near")
     || normalized.includes("could not identify an equality operator")

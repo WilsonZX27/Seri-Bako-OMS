@@ -1,3 +1,5 @@
+import { insightRange, insightPeriod } from "@/lib/outlet-insight-period";
+import { readCompletePages } from "@/server/queries/read-complete-pages";
 import { isMockMode, mockBranches, mockProducts } from "@/lib/mock-mode";
 import { todayInKualaLumpur } from "@/lib/business-date";
 import { createClient } from "@/lib/supabase/server";
@@ -7,11 +9,13 @@ import { getCurrentProfile, requireReadRows } from "@/server/queries/common";
 import { requireDetailRow } from "@/server/queries/detail";
 import type { Database } from "@/types/database";
 import { compareProductDisplayOrder, sortProductsForDisplay } from "@/lib/product-order";
+import { looseSupabase } from "@/lib/supabase/loose";
+import { cache } from "react";
 
 type Filters = Record<string, string | undefined>;
 type RecordRow = Database["public"]["Tables"]["outlet_daily_records"]["Row"];
 type LineRow = Database["public"]["Tables"]["outlet_daily_record_lines"]["Row"];
-type TrendPeriod = "7" | "30" | "month";
+type TrendPeriod = "1" | "7" | "30" | "month";
 type TrendStatus = "all" | "evening_completed";
 type TrendTotals = { received: number; leftover: number; wastage: number; movement: number };
 
@@ -82,6 +86,7 @@ export type OutletDailyRecordRow = RecordRow & {
 
 export type OutletDailyDefaultLine = {
   morning_received_qty: number | null;
+  evening_leftover_qty?: number;
   wastage_qty: LineRow["wastage_qty"];
   wastage_reason: LineRow["wastage_reason"];
   notes: LineRow["notes"];
@@ -179,7 +184,7 @@ const shiftDate = (date: string, days: number) => {
 
 const trendDateRange = (period: TrendPeriod, requestedEnd?: string) => {
   const end = /^\d{4}-\d{2}-\d{2}$/.test(requestedEnd ?? "") ? requestedEnd! : todayInKualaLumpur();
-  return { start: period === "month" ? `${end.slice(0, 8)}01` : shiftDate(end, period === "30" ? -29 : -6), end };
+  return insightRange(period,end);
 };
 
 const emptyTrendTotals = (): TrendTotals => ({ received: 0, leftover: 0, wastage: 0, movement: 0 });
@@ -223,36 +228,30 @@ async function getOutletDailyDefaults(db: Awaited<ReturnType<typeof createClient
   if (!recordIds.length) return {} as Record<string, Record<string, OutletDailyDefaultLine>>;
   const { data: lines, error: lineError } = await db
     .from("outlet_daily_record_lines")
-    .select("record_id,product_id,morning_received_qty,qty_sent_estimated,wastage_qty,wastage_reason,notes")
+    .select("record_id,product_id,morning_received_qty,qty_sent_estimated,evening_leftover_qty,wastage_qty,wastage_reason,notes")
     .in("record_id", recordIds);
   if (lineError) throw new Error(lineError.message);
   const trustedLines = requireReadRows(lines, "Outlet daily defaults lines");
   const branchByRecord = new Map([...chosen.entries()].map(([branchId, recordId]) => [recordId, branchId]));
-  return (trustedLines as Pick<LineRow, "record_id" | "product_id" | "morning_received_qty" | "qty_sent_estimated" | "wastage_qty" | "wastage_reason" | "notes">[]).reduce<Record<string, Record<string, OutletDailyDefaultLine>>>((result, line) => {
+  return (trustedLines as Pick<LineRow, "record_id" | "product_id" | "morning_received_qty" | "qty_sent_estimated" | "evening_leftover_qty" | "wastage_qty" | "wastage_reason" | "notes">[]).reduce<Record<string, Record<string, OutletDailyDefaultLine>>>((result, line) => {
     const branchId = branchByRecord.get(line.record_id);
     if (!branchId) return result;
-    const received = receivedValueIsTrusted(line) ? Number(line.morning_received_qty) : null;
-    const wastage = Number(line.wastage_qty);
-    const hasRemark = Boolean(line.notes?.trim());
-    // Defaults are suggestions for a new day, not a second source of truth.
-    // Never carry an already-invalid wastage value into a new record: the
-    // save RPC correctly rejects wastage above an unverified/zero receipt
-    // unless the operator supplies a line remark, but a copied default should
-    // not make a fresh record impossible to complete.
-    const safeWastage = wastage > 0 && (received === null || wastage > received) && !hasRemark ? 0 : line.wastage_qty;
+    // Prior-day disposal is never today's disposal. Cross-day stock can make
+    // today's usage or expiry greater than today's receipt without being invalid.
     (result[branchId] ??= {})[line.product_id] = {
       // Legacy rows used the database default 0 without recording that the
       // outlet actually entered zero. Never carry that zero into a new form.
       morning_received_qty: receivedValueIsTrusted(line) ? line.morning_received_qty : null,
-      wastage_qty: safeWastage,
-      wastage_reason: safeWastage === 0 ? null : line.wastage_reason,
-      notes: safeWastage === 0 ? null : line.notes,
+      evening_leftover_qty: Number(line.evening_leftover_qty) || 0,
+      wastage_qty: 0,
+      wastage_reason: null,
+      notes: null,
     };
     return result;
   }, {});
 }
 
-export async function getOutletDailyFormOptions(recordDate?: string) {
+export const getOutletDailyFormOptions = cache(async function getOutletDailyFormOptions(recordDate?: string) {
   if (isMockMode()) {
     const branches = mockBranches.filter((row) => row.status === "active");
     return {
@@ -262,9 +261,11 @@ export async function getOutletDailyFormOptions(recordDate?: string) {
       defaultsByBranch: {},
     };
   }
-  const db = await createClient();
-  const profile = await getCurrentProfile();
-  const canViewAll = await hasPermission("outlet_daily_record.view_all");
+  const [db, profile, canViewAll] = await Promise.all([
+    createClient(),
+    getCurrentProfile(),
+    hasPermission("outlet_daily_record.view_all"),
+  ]);
   const [{ data: branches, error: branchError }, { data: products, error: productError }] = await Promise.all([
     db.from("branches").select("id,branch_code,branch_name,branch_type,status").eq("branch_type", "outlet").eq("status", "active").is("deleted_at", null).order("branch_name"),
     db.from("products").select("id,product_code,product_name,category,selling_unit,status,display_order").eq("status", "active"),
@@ -304,7 +305,7 @@ export async function getOutletDailyFormOptions(recordDate?: string) {
       : allowedBranches.length === 1 ? allowedBranches[0].id : undefined,
     defaultsByBranch: recordDate ? await getOutletDailyDefaults(db, allowedBranches.map((branch) => branch.id), recordDate) : {},
   };
-}
+});
 
 async function hydrateRows(db: Awaited<ReturnType<typeof createClient>>, records: RecordRow[]) {
   if (!records.length) return [] as OutletDailyRecordRow[];
@@ -357,7 +358,11 @@ async function loadRows(filters: Filters = {}) {
   }
   if (filters.date) query = query.eq("record_date", filters.date);
   if (filters.branch && filters.branch !== "all") query = query.eq("branch_id", filters.branch);
-  if (filters.status && filters.status !== "all") query = query.eq("status", filters.status as RecordRow["status"]);
+  if (filters.status === "in_progress") query = query.in("status", ["draft", "morning_recorded"]);
+  else if (filters.status === "ready_to_post") query = query.eq("status", "evening_completed");
+  else if (filters.status === "attention") query = query.eq("status", "reviewed").eq("sales_review_status", "needs_review");
+  else if (filters.status === "posted") query = query.eq("status", "reviewed").or("sales_review_status.is.null,sales_review_status.neq.needs_review");
+  else if (filters.status && filters.status !== "all") query = query.eq("status", filters.status as RecordRow["status"]);
   const sortColumns = { date: "record_date", outlet: "status", updated: "updated_at" } as const;
   const sortColumn = sortColumns[filters.sort as keyof typeof sortColumns] ?? "record_date";
   const ascending = filters.dir === "asc";
@@ -382,37 +387,38 @@ export async function getOutletDailyRecords(filters: Filters = {}) {
     return { rows: [], totalRows: 0, page: 1, pageSize: 15, totalPages: 1, summary: { today: todayInKualaLumpur(), today_records: 0, today_sent: 0, today_received: 0, today_received_unavailable: 0, today_received_zero_with_sent: 0, missing_evening: 0, ready_to_post: 0, posted_today: 0 } };
   }
   const db = await createClient();
-  const pageResult = await loadRows(filters);
   const today = todayInKualaLumpur();
-  const { data: todayRecords, error: todayError } = await db
-    .from("outlet_daily_records")
-    .select("*")
-    .eq("record_date", today)
-    .neq("status", "void");
-  if (todayError) throw new Error(todayError.message);
-  if (!todayRecords) throw new Error("Outlet daily record summary returned no data.");
-  const todayRows = await hydrateRows(db, todayRecords as RecordRow[]);
+  const summaryPromise = looseSupabase(db).rpc("get_outlet_daily_today_summary", { p_record_date: today }) as unknown as Promise<{
+    data: unknown;
+    error: { message: string } | null;
+  }>;
+  const [pageResult, summaryResult] = await Promise.all([loadRows(filters), summaryPromise]);
+  if (summaryResult.error) throw new Error(summaryResult.error.message);
+  const summary = (Array.isArray(summaryResult.data) ? summaryResult.data[0] : summaryResult.data) as {
+    today_records?: number;
+    today_sent?: number | null;
+    today_received?: number | null;
+    today_received_unavailable?: number;
+    today_received_zero_with_sent?: number;
+    missing_evening?: number;
+    ready_to_post?: number;
+    posted_today?: number;
+  } | null;
+  if (!summary || summary.today_records == null || summary.today_received_unavailable == null || summary.today_received_zero_with_sent == null || summary.missing_evening == null || summary.ready_to_post == null || summary.posted_today == null) {
+    throw new Error("Outlet daily record summary returned incomplete data.");
+  }
   return {
     ...pageResult,
     summary: {
       today,
-      today_records: todayRows.length,
-      today_sent: todayRows.length === 0
-        ? 0
-        : todayRows.every((row) => row.total_sent !== null)
-          ? todayRows.reduce((sum, row) => sum + (row.total_sent ?? 0), 0)
-          : null,
-      today_received: todayRows.length > 0 && todayRows.every((row) => row.total_received !== null)
-        ? todayRows.reduce((sum, row) => sum + (row.total_received ?? 0), 0)
-        : null,
-      today_received_unavailable: todayRows.filter((row) => row.total_received === null).length,
-      today_received_zero_with_sent: todayRows.filter((row) => row.received_zero_with_sent).length,
-      missing_evening: todayRows.filter((row) => ["draft", "morning_recorded"].includes(row.status)).length,
-      ready_to_post: todayRows.filter((row) => row.status === "evening_completed").length,
-      // Outlet staff post the evening record directly. Keep the completed
-      // count visible for operational context, but do not turn it into a
-      // fictitious review queue.
-      posted_today: todayRows.filter((row) => row.status === "reviewed").length,
+      today_records: Number(summary.today_records),
+      today_sent: summary.today_sent == null ? null : Number(summary.today_sent),
+      today_received: summary.today_received == null ? null : Number(summary.today_received),
+      today_received_unavailable: Number(summary.today_received_unavailable),
+      today_received_zero_with_sent: Number(summary.today_received_zero_with_sent),
+      missing_evening: Number(summary.missing_evening),
+      ready_to_post: Number(summary.ready_to_post),
+      posted_today: Number(summary.posted_today),
     },
   };
 }
@@ -507,9 +513,13 @@ export async function getOutletDailyRecord(id: string) {
 }
 
 export async function getOutletDailyDemandTrend(filters: Filters = {}) {
-  const period = (["7", "30", "month"].includes(filters.period ?? "") ? filters.period : "7") as TrendPeriod;
+  const period = insightPeriod(filters.period);
   const status = (["all", "evening_completed"].includes(filters.status ?? "") ? filters.status : "all") as TrendStatus;
-  const { start, end } = trendDateRange(period, filters.history_date);
+  const range = trendDateRange(period, filters.history_date);
+  const end=range.end;
+  const start=insightRange(period, range.end, filters.history_start).start;
+  const rangeDays=Math.round((Date.parse(`${end}T00:00:00Z`)-Date.parse(`${start}T00:00:00Z`))/86400000)+1;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(start)||rangeDays<1||rangeDays>31||!Number.isFinite(rangeDays))throw new Error("Report range must contain 1 to 31 days.");
   const options = await getOutletDailyFormOptions();
   const branchId = filters.branch && filters.branch !== "all" ? filters.branch : undefined;
   const productId = filters.product && filters.product !== "all" ? filters.product : undefined;
@@ -519,29 +529,26 @@ export async function getOutletDailyDemandTrend(filters: Filters = {}) {
 
   const db = await createClient();
   if (!await hasPermission("outlet_daily_record.view")) throw new Error("Missing permission: outlet_daily_record.view");
-  let recordsQuery = db.from("outlet_daily_records").select("*").gte("record_date", start).lte("record_date", end).order("record_date");
-  if (branchId) recordsQuery = recordsQuery.eq("branch_id", branchId);
-  const { data: records, error } = await recordsQuery;
-  if (error) throw new Error(error.message);
-  if (!records) throw new Error("Outlet daily demand records returned no data.");
-  const typedRecords = records as RecordRow[];
+  const typedRecords = await readCompletePages((from, to) => {
+    let query = db.from("outlet_daily_records").select("*", { count: "exact" }).gte("record_date", start).lte("record_date", end).order("record_date").order("id");
+    if (branchId) query = query.eq("branch_id", branchId);
+    return query.range(from, to);
+  }, 10_000);
   const recordIds = typedRecords.map((record) => record.id);
-  const { data: lines, error: linesError } = recordIds.length
-    ? await db.from("outlet_daily_record_lines").select("*").in("record_id", recordIds)
-    : { data: [], error: null };
-  if (linesError) throw new Error(linesError.message);
-  if (!lines) throw new Error("Outlet daily demand lines returned no data.");
+  const lines = recordIds.length
+    ? await readCompletePages((from, to) => db.from("outlet_daily_record_lines").select("*", { count: "exact" }).in("record_id", recordIds).order("id").range(from, to))
+    : [];
   return buildDemandTrend({ records: typedRecords, lines: lines as LineRow[], branches: options.branches, products: options.products, start, end, period, status, branchId, productId });
 }
 
 export async function getOutletDailyCompletionMatrix(filters: Filters = {}) {
   const end = /^\d{4}-\d{2}-\d{2}$/.test(filters.history_date ?? "") ? filters.history_date! : todayInKualaLumpur();
-  const start = shiftDate(end, -6);
+  const {start,days}=insightRange(insightPeriod(filters.period),end,filters.history_start);
   const options = await getOutletDailyFormOptions();
   const selectedBranchId = filters.branch && filters.branch !== "all" ? filters.branch : undefined;
   if (selectedBranchId && !options.branches.some((branch) => branch.id === selectedBranchId)) throw new Error("Selected outlet is not available.");
   const branches = options.branches.filter((branch) => !selectedBranchId || branch.id === selectedBranchId);
-  const dates = Array.from({ length: 7 }, (_, index) => shiftDate(start, index));
+  const dates = Array.from({ length: days }, (_, index) => shiftDate(start, index));
   if (isMockMode()) return buildOutletDailyCompletionMatrix({ branches, dates, records: [] });
 
   if (!await hasPermission("outlet_daily_record.view")) throw new Error("Missing permission: outlet_daily_record.view");
@@ -743,6 +750,7 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
   const coveragePercent = expectedDays ? (completedOutletDays / expectedDays) * 100 : 0;
   const confidence = coveragePercent >= 80 ? "High" : coveragePercent >= 50 ? "Medium" : "Low";
   const toRows = (source: Map<string, TrendTotals>, nameFor: (id: string) => string) => [...source].map(([id, totals]) => ({ id, name: nameFor(id), ...totals, wastage_percent: wastagePercent(totals) }));
+  for(const product of products.filter(p=>operationalProductIds.has(p.id)&&(!productId||p.id===productId)))if(!productsById.has(product.id))productsById.set(product.id,emptyTrendTotals());
   const productRows = toRows(productsById, (id) => productNames.get(id) ?? "Archived product").map((row) => ({ ...row, completed_records: productRecordIds.get(row.id)?.size ?? 0, low_sample: (productRecordIds.get(row.id)?.size ?? 0) < 3 }));
   const outletRows = branches.filter((branch) => !branchId || branch.id === branchId).map((branch) => {
     const outletTotals = outletsById.get(branch.id) ?? emptyTrendTotals();
@@ -770,9 +778,27 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
     summary: { ...summary, wastage_percent: wastagePercent(summary) },
     coverage: { completed: completedOutletDays, expected: expectedDays, reliable_lines: trendLines.length, incomplete: incompleteRecords, unavailable: unavailableRecords, missing: Math.max(expectedDays - completedOutletDays, 0), percent: coveragePercent, confidence },
     top_moving_products: [...productRows].sort((left, right) => right.movement - left.movement).slice(0, 10),
-    top_wastage_products: [...productRows].sort((left, right) => right.wastage - left.wastage).slice(0, 10),
+    top_wastage_products: [...productRows].sort((left, right) => right.wastage - left.wastage),
     outlets: outletRows.sort((left, right) => right.movement - left.movement),
     product_outlets: productOutletRows.sort((left, right) => right.movement - left.movement),
     daily: dailyRows,
   };
+}
+
+/** Before-today context, independent of list pagination and never treating absent entries as zero. */
+export async function getOutletDailyHistoricalContext() {
+  const end=shiftDate(todayInKualaLumpur(),-1);
+  const db=looseSupabase(await createClient());
+  const summaryPromise=(async()=>{
+    const latest=await db.from("outlet_daily_records").select("record_date").lte("record_date",end).in("status",["evening_completed","reviewed"]).order("record_date",{ascending:false}).limit(1);
+    if(latest.error)throw new Error(latest.error.message);
+    const summaryDate=latest.data?.[0]?.record_date?String(latest.data[0].record_date):null;
+    return {summaryDate,result:await db.rpc("get_outlet_daily_completed_summary",{p_record_date:summaryDate??end})};
+  })();
+  const [historical,completion]=await Promise.all([summaryPromise,getOutletDailyCompletionMatrix({history_date:end,period:"30"})]);
+  const summaryResult=historical.result;
+  if(summaryResult.error)throw new Error(summaryResult.error.message);
+  const summary=(Array.isArray(summaryResult.data)?summaryResult.data[0]:summaryResult.data) as {today_records:number;today_sent:number|null;today_received:number|null;today_received_zero_with_sent:number;posted_today:number;ready_to_post:number;missing_evening:number}|null;
+  if(!summary)throw new Error("Historical daily summary unavailable.");
+  return {end,summary_date:historical.summaryDate,start:completion.dates[0],summary,gaps:completion.rows.map(row=>({...row,gaps:row.cells.filter(cell=>cell.status!=="reviewed")})).filter(row=>row.gaps.length>0)};
 }

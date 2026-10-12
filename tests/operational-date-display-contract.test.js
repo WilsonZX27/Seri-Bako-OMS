@@ -26,7 +26,7 @@ const targetSources = [
   read("src", "app", "(app)", "stock-wastage", "page.tsx"),
   read("src", "app", "(app)", "stock-wastage", "[id]", "page.tsx"),
   read("src", "app", "(app)", "purchase-returns", "[id]", "page.tsx"),
-  read("src", "app", "(app)", "production", "planning", "page.tsx"),
+  read("src", "components", "production-planning-workspace.tsx"),
   read("src", "components", "imports", "import-workflow.tsx"),
 ];
 
@@ -52,7 +52,7 @@ test("operational pages format visible dates through the shared formatter", () =
   assert.match(combined, /formatDateOnly\(row\.wastage_date\)/);
   assert.match(combined, /formatDateOnly\(wastage\.wastage_date\)/);
   assert.match(combined, /formatDateOnly\(purchaseReturn\.return_date\)/);
-  assert.match(combined, /formatDateOnly\(report\.planning\.planning_date\)/);
+  assert.match(combined, /formatDateOnly\(date\)/);
   assert.match(combined, /formatDateTime\(value, value\)/);
   assert.doesNotMatch(combined, />\{(?:row\.count_date|count\.count_date|row\.transaction_date|transaction\.transaction_date|receiving\.received_date)\}</);
 });

@@ -42,7 +42,7 @@ export function CompanyLogoForm({
       </CardHeader>
       <CardContent className="space-y-3 p-4 pt-2">
         <div className="flex items-center gap-4">
-          <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-[2px] border bg-secondary">
+          <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-[var(--sb-panel-radius)] border bg-secondary">
             {visibleLogo ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={visibleLogo} alt={previewLabel} className="h-full w-full object-contain" />
@@ -56,7 +56,7 @@ export function CompanyLogoForm({
           </div>
         </div>
 
-        {logoError ? <p className="rounded-[2px] border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{logoError}</p> : null}
+        {logoError ? <p className="rounded-[var(--sb-panel-radius)] border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{logoError}</p> : null}
 
         <form id={uploadFormId} action={uploadAction} className="space-y-3">
           <input type="hidden" name="company_id" value={companyId} />

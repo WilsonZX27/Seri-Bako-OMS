@@ -39,8 +39,10 @@ test("Actual Attendance uses responsive grouped views and hides payroll diagnost
     /Calculation audit|One staff day per row|Times preserve NGTeco seconds/,
   );
   assert.doesNotMatch(review, />Payable</);
-  assert.match(filters, /Apply filters/);
-  assert.match(filters, /Reset/);
+  assert.match(filters, /FilterBar/);
+  const sharedFilters = fs.readFileSync("src/components/common/UnifiedListHeader.tsx", "utf8");
+  assert.match(sharedFilters, /Apply filters/);
+  assert.match(sharedFilters, /Reset/);
 });
 
 test("schedule submit and Manager correction are atomic, audited and reason-bound", () => {
@@ -53,7 +55,8 @@ test("schedule submit and Manager correction are atomic, audited and reason-boun
   ])
     assert.match(`${api}\n${migration}`, new RegExp(contract));
   assert.match(migration, /before_state,after_state/);
-  assert.match(planner, /Unsaved changes will be saved when you submit/);
+  assert.match(planner, /Auto saving…/);
+  assert.match(planner, /Draft saved/);
 });
 
 test("annotated Attendance controls use the shared select authority", () => {
@@ -113,6 +116,8 @@ test("schedule workbook UI previews live identities and imports only verified ed
   assert.match(read("src/app/api/attendance/schedule/import-catalog/route.ts"), /default_branch_id/);
   assert.match(read("src/app/api/attendance/schedule/import-catalog/route.ts"), /outlet_supervisor/);
   assert.match(read("src/components/attendance/schedule-workbook-import.tsx"), /Partial draft/);
+  assert.match(workbookImportUi, /sb-schedule-import-dialog/);
+  assert.match(read("src/app/globals.css"), /dialog\.sb-schedule-import-dialog\[open\][\s\S]*inset: 50% auto auto 50%;[\s\S]*transform: translate\(-50%, -50%\);/);
 });
 
 test("staff detail leads with the profile and removes the redundant helper paragraph", () => {

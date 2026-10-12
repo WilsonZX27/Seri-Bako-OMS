@@ -50,6 +50,7 @@ const assignment = z.object({
     .optional(),
   custom_reason: z.string().trim().max(500).nullable().optional(),
   work_site_label: z.string().trim().min(1).max(120).nullable().optional(),
+  destination_branch_id: uuid.nullable().optional(),
   ro_minutes: z
     .number()
     .int()
@@ -287,7 +288,9 @@ export async function POST(request: Request) {
         { ok: false, message: "Invalid schedule request." },
         { status: 400 },
       );
-    await requireActiveTenantActor();
+    const actor = await requireActiveTenantActor();
+    if (["submit", "validate"].includes(input.data.action) && !["outlet_supervisor", "manager", "super_admin"].includes(actor.roleCode))
+      return NextResponse.json({ ok: false, message: "Only Supervisors and Managers may submit outlet schedules." }, { status: 403 });
     if (
       input.data.action === "decide" &&
       input.data.decision !== "approve" &&
@@ -344,7 +347,7 @@ export async function POST(request: Request) {
         p_reason: input.data.reason ?? null,
       });
     else if (input.data.action === "save")
-      result = await db.rpc("save_schedule_week", {
+      result = await db.rpc("save_schedule_week_with_destinations", {
         p_branch_id: input.data.branchId,
         p_week_start: input.data.weekStart,
         p_assignments: input.data.assignments,
@@ -358,7 +361,7 @@ export async function POST(request: Request) {
       result = await db.rpc("validate_schedule_week", {
         p_week_id: input.data.weekId,
       });
-    else if (input.data.action === "submit")
+    else if (input.data.action === "submit") {
       result = await db.rpc("submit_schedule_week_atomic", {
         p_branch_id: input.data.branchId,
         p_week_start: input.data.weekStart,
@@ -366,6 +369,7 @@ export async function POST(request: Request) {
         p_expected_updated_at: input.data.expectedUpdatedAt ?? null,
         p_comment: input.data.comment ?? null,
       });
+    }
     else if (input.data.action === "edit_and_publish")
       result = await db.rpc("edit_and_publish_schedule_week", {
         p_week_id: input.data.weekId,

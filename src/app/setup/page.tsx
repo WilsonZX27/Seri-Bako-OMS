@@ -6,12 +6,14 @@ import { getSetupStatus } from "@/server/queries/setup";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { isMockMode } from "@/lib/mock-mode";
 
 export default async function SetupPage({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string; completed?: string }>;
 }) {
+  if (isMockMode()) redirect("/login");
   const [params, status] = await Promise.all([searchParams, getSetupStatus()]);
 
   if (!status.user) {

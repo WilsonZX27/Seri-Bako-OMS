@@ -1,6 +1,8 @@
 "use client";
+import { NativeDialog } from "@/components/ui/native-dialog";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import { Check, Clock3, LockKeyhole, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +22,13 @@ type Reservation = {
   recommended_used_minutes: number | null;
   work_date: string;
   staffs?: { full_name?: string } | null;
+};
+type AttendanceBlocker = {
+  id: string;
+  employee: string;
+  date: string;
+  reason: string;
+  href?: string;
 };
 
 async function post(url: string, body: Record<string, unknown>) {
@@ -47,12 +56,14 @@ export function OtClaimAction({
   claim,
   canSubmit,
   canApprove,
+  disabled = false,
 }: {
   resultId: string;
   candidateSeconds: number;
   claim?: Claim;
   canSubmit: boolean;
   canApprove: boolean;
+  disabled?: boolean;
 }) {
   const dialog = useRef<HTMLDialogElement>(null),
     [busy, setBusy] = useState(false),
@@ -95,7 +106,7 @@ export function OtClaimAction({
     }
   }
   const actionable =
-    (!claim && canSubmit) || (claim?.status === "submitted" && canApprove);
+    !disabled && ((!claim && canSubmit) || (claim?.status === "submitted" && canApprove));
   return (
     <>
       <Button
@@ -106,15 +117,17 @@ export function OtClaimAction({
         onClick={() => dialog.current?.showModal()}
       >
         <Clock3 className="h-3.5 w-3.5" />
-        {claim
+        {disabled
+          ? "Locked"
+          : claim
           ? claim.status === "submitted"
             ? "Review OT"
             : claim.status
           : "Claim OT"}
       </Button>
-      <dialog
+      <NativeDialog
         ref={dialog}
-        className="m-auto w-[min(30rem,calc(100vw-2rem))] rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50"
+        className="sb-dialog-workspace-centered m-auto w-[min(30rem,calc(100vw-2rem))] rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50"
       >
         <form
           className="space-y-4 p-4"
@@ -157,7 +170,7 @@ export function OtClaimAction({
                   placeholder="Required when rejecting"
                 />
               </label>
-              <div className="flex justify-end gap-2">
+              <div className="sticky bottom-0 z-10 -mx-4 flex justify-end gap-2 border-t border-border bg-white px-4 py-3 sm:-mx-5 sm:px-5">
                 <Button
                   name="decision"
                   value="reject"
@@ -210,7 +223,7 @@ export function OtClaimAction({
                   className="rounded-[var(--sb-radius-control)] border px-3 py-2"
                 />
               </label>
-              <div className="flex justify-end gap-2">
+              <div className="sticky bottom-0 z-10 -mx-4 flex justify-end gap-2 border-t border-border bg-white px-4 py-3 sm:-mx-5 sm:px-5">
                 <Button
                   type="button"
                   variant="outline"
@@ -231,18 +244,30 @@ export function OtClaimAction({
             </p>
           ) : null}
         </form>
-      </dialog>
+      </NativeDialog>
     </>
   );
 }
 
 export function WeeklyCloseButton({
   weekStart,
+  branchId,
   reservations,
+  exceptionCount = 0,
+  pendingReportCount = 0,
+  submittedClaimCount = 0,
+  reviewHref,
+  blockers = [],
   disabled,
 }: {
   weekStart: string;
+  branchId: string | null;
   reservations: Reservation[];
+  exceptionCount?: number;
+  pendingReportCount?: number;
+  submittedClaimCount?: number;
+  reviewHref?: string;
+  blockers?: AttendanceBlocker[];
   disabled?: boolean;
 }) {
   const dialog = useRef<HTMLDialogElement>(null),
@@ -260,7 +285,7 @@ export function WeeklyCloseButton({
     try {
       await post("/api/attendance/weekly-close", {
         weekStart,
-        branchId: null,
+        branchId,
         roDecisions,
       });
       window.location.reload();
@@ -281,9 +306,9 @@ export function WeeklyCloseButton({
         <LockKeyhole className="h-4 w-4" />
         Review & close week
       </Button>
-      <dialog
+      <NativeDialog
         ref={dialog}
-        className="m-auto max-h-[calc(100dvh-2rem)] w-[min(44rem,calc(100vw-2rem))] overflow-auto rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50"
+        className="sb-dialog-workspace-centered m-auto max-h-[calc(100dvh-2rem)] w-[min(44rem,calc(100vw-2rem))] overflow-auto rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50"
       >
         <form
           className="space-y-4 p-4"
@@ -344,6 +369,33 @@ export function WeeklyCloseButton({
               No RO reservations require a decision this week.
             </p>
           )}
+          {exceptionCount || pendingReportCount || submittedClaimCount ? (
+            <div role="status" className="rounded-[var(--sb-radius-control)] border border-rose-200 bg-rose-50 p-3 text-xs text-rose-950">
+              <p className="font-semibold">This week is not ready to close.</p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-4">
+                {exceptionCount ? <li>{exceptionCount} attendance exception{exceptionCount === 1 ? "" : "s"} shown below require review.</li> : null}
+                {pendingReportCount ? <li>{pendingReportCount} attendance report{pendingReportCount === 1 ? "" : "s"} are still pending.</li> : null}
+                {submittedClaimCount ? <li>{submittedClaimCount} OT claim{submittedClaimCount === 1 ? "" : "s"} still need a decision.</li> : null}
+              </ul>
+              {blockers.length ? (
+                <div className="mt-3 overflow-hidden rounded-[var(--sb-radius-control)] border border-rose-200 bg-white">
+                  <p className="border-b border-rose-100 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-rose-900">Rows to review</p>
+                  <ul className="divide-y divide-rose-100">
+                    {blockers.map((blocker) => (
+                      <li key={blocker.id} className="flex items-start justify-between gap-3 px-3 py-2 text-xs">
+                        <span className="min-w-0">
+                          <strong className="block truncate text-rose-950">{blocker.employee}</strong>
+                          <span className="block text-rose-900/80">{blocker.date} · {blocker.reason}</span>
+                        </span>
+                        {blocker.href ? <Link className="shrink-0 font-semibold text-rose-900 underline underline-offset-2" href={blocker.href}>Open row</Link> : null}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              {reviewHref ? <Link className="mt-2 inline-flex font-semibold underline underline-offset-2" href={reviewHref}>Review attendance rows</Link> : null}
+            </div>
+          ) : null}
           {message ? (
             <p
               role="alert"
@@ -352,7 +404,7 @@ export function WeeklyCloseButton({
               {message}
             </p>
           ) : null}
-          <div className="flex justify-end gap-2">
+          <div className="sticky bottom-0 z-10 -mx-4 flex justify-end gap-2 border-t border-border bg-white px-4 py-3 sm:-mx-5 sm:px-5">
             <Button
               type="button"
               variant="outline"
@@ -360,12 +412,12 @@ export function WeeklyCloseButton({
             >
               Cancel
             </Button>
-            <Button disabled={busy}>
+            <Button disabled={busy || Boolean(exceptionCount || pendingReportCount || submittedClaimCount)}>
               {busy ? "Closing…" : "Confirm decisions & close"}
             </Button>
           </div>
         </form>
-      </dialog>
+      </NativeDialog>
     </>
   );
 }

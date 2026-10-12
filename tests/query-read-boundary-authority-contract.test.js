@@ -67,8 +67,9 @@ test("report read boundaries reject incomplete payloads instead of rendering emp
     assert.doesNotMatch(sourceByPath[path], /data \?\? \[\]/, `${path} must not silently convert null data to []`);
   }
   const transactions = readFileSync("src/app/(app)/stock-transactions/page.tsx", "utf8");
-  assert.match(transactions, /const value = balanceUnavailable \? null/);
-  assert.match(transactions, /value === null \? "Unavailable"/);
+  assert.match(transactions, /const balanceSummary = balanceSummaryResult\.status === "fulfilled" \? balanceSummaryResult\.value : null/);
+  assert.match(transactions, /balanceSummary \? balanceSummary\.total : "Unavailable"/);
+  assert.match(transactions, /balanceSummary \? formatCurrency\(balanceSummary\.inventoryValue\) : "Unavailable"/);
 });
 
 test("list filters have a single final responsive authority", () => {

@@ -19,7 +19,8 @@ import { shiftBusinessDate, todayInKualaLumpur } from "@/lib/business-date";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getBranchesForSelect, getItemsForSelect } from "@/server/queries/common";
 import { hasPermission } from "@/server/auth/permissions";
-import { getStockBalanceDetails, getStockLedger } from "@/server/queries/inventory";
+import { getStockBalanceSummary, getStockLedger } from "@/server/queries/inventory";
+import { logServerError } from "@/server/observability/logger";
 import type { StockTransactionType } from "@/types/database";
 
 const transactionTypes: { value: StockTransactionType; label: string }[] = [
@@ -72,16 +73,17 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
     from: requestedFilters.from || thirtyDaysAgo,
     to: requestedFilters.to || today,
   };
-  const [ledger, balances, branches, items, canExport, canCreate] = await Promise.all([
+  const [ledger, [balanceSummaryResult], branches, items, canExport, canCreate] = await Promise.all([
     getStockLedger(filters),
-    getStockBalanceDetails({ ...filters, page: "all" }),
+    Promise.allSettled([getStockBalanceSummary(filters)]),
     getBranchesForSelect(),
     getItemsForSelect(),
     hasPermission("stock_ledger.export"),
     hasPermission("stock_transactions.create"),
   ]);
-  const balanceUnavailable = Boolean(balances.unavailable || balances.error);
-  const value = balanceUnavailable ? null : balances.rows.reduce((sum, item) => sum + Number(item.inventory_value), 0);
+  const balanceSummary = balanceSummaryResult.status === "fulfilled" ? balanceSummaryResult.value : null;
+  const balanceUnavailable = balanceSummary === null;
+  if (balanceSummaryResult.status === "rejected") logServerError(balanceSummaryResult.reason, { source: "page.stockTransactions.balanceSummary" });
   const inbound = ledger.rows.reduce((sum, row) => sum + Number(row.quantity_in), 0);
   const outbound = ledger.rows.reduce((sum, row) => sum + Number(row.quantity_out), 0);
   const ledgerUnavailable = "unavailable" in ledger && Boolean(ledger.unavailable);
@@ -116,8 +118,8 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
                 <div className="flex justify-between"><span className="text-muted-foreground">Ledger rows</span><strong>{ledgerUnavailable ? "Unavailable" : ledger.totalRows}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Quantity in</span><strong>{ledgerUnavailable ? "Unavailable" : formatNumber(inbound)}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Quantity out</span><strong>{ledgerUnavailable ? "Unavailable" : formatNumber(outbound)}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Stock rows</span><strong>{balanceUnavailable ? "Unavailable" : balances.totalRows}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Stock value</span><strong>{value === null ? "Unavailable" : formatCurrency(value)}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Stock rows</span><strong>{balanceSummary ? balanceSummary.total : "Unavailable"}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Stock value</span><strong>{balanceSummary ? formatCurrency(balanceSummary.inventoryValue) : "Unavailable"}</strong></div>
               </div>
             </ConsoleSection>
           </>
@@ -134,7 +136,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
             <Input name="from" type="date" defaultValue={filters.from ?? ""} />
             <Input name="to" type="date" defaultValue={filters.to ?? ""} />
             </FilterBarMore>
-            <Button type="submit" variant="secondary">Search</Button>
+
           </FilterBar>
           {ledgerUnavailable ? <Notice tone="error" title="Movement Ledger data is temporarily unavailable">The inventory read service did not return a complete result. No row count, empty state, or zero totals are shown. Retry this page shortly.</Notice> : null}
           {balanceUnavailable ? <Notice tone="error" title="Stock Balance data is temporarily unavailable">The balance read service did not return a complete result. No stock rows or value are shown as zero. Retry this page shortly.</Notice> : null}

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { CSSProperties, MouseEvent, ReactNode } from "react";
+import type { CSSProperties, MouseEvent, ReactNode, FormEventHandler } from "react";
 import { useEffect, useRef, useState } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,10 @@ import { UnifiedListHeader } from "@/components/common/UnifiedListHeader";
 
 export function FilterBar({
   children,
+  actions,
+  onSubmit,
   resultCount,
+  resultLabel,
   resetHref,
   filtered = false,
   activeCount = 0,
@@ -19,7 +22,10 @@ export function FilterBar({
   phonePrimary = "inline",
 }: {
   children: ReactNode;
+  actions?: ReactNode;
+  onSubmit?: FormEventHandler<HTMLFormElement>;
   resultCount?: number;
+  resultLabel?: string;
   resetHref: string;
   filtered?: boolean;
   activeCount?: number;
@@ -28,7 +34,7 @@ export function FilterBar({
   phoneMode?: "drawer" | "inline";
   phonePrimary?: "inline" | "drawer";
 }) {
-  return <UnifiedListHeader {...{ children, resultCount, resetHref, filtered, activeCount, className, phoneOnly, phoneMode, phonePrimary }} />;
+  return <UnifiedListHeader {...{ children, actions, onSubmit, resultCount, resultLabel, resetHref, filtered, activeCount, className, phoneOnly, phoneMode, phonePrimary }} />;
 }
 
 FilterBarMore.displayName = "FilterBarMore";

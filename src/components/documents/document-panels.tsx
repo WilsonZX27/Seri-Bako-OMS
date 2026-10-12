@@ -144,7 +144,7 @@ export async function AttachmentPanel({
       </div>
   );
   if (presentation === "inline") {
-    return <section aria-label={title} className="rounded-[2px] border bg-card p-4"><h2 className="mb-2 text-sm font-semibold">{title}{required ? <span className="text-[var(--sb-danger)]"> *</span> : null}</h2>{content}</section>;
+    return <section aria-label={title} className="rounded-[var(--sb-panel-radius)] border bg-card p-4"><h2 className="mb-2 text-sm font-semibold">{title}{required ? <span className="text-[var(--sb-danger)]"> *</span> : null}</h2>{content}</section>;
   }
   return <ConsoleSection title={required ? <>{title} <span className="text-[var(--sb-danger)]">*</span></> : title}>{content}</ConsoleSection>;
 }
@@ -159,7 +159,7 @@ export function CommentsPanel({ documentId, comments, canRemove = false }: { doc
         </form>
         <div className="space-y-3">
           {comments.map((comment) => (
-            <div key={comment.id} className="flex items-start gap-2 rounded-[2px] border bg-secondary/30 p-3">
+            <div key={comment.id} className="flex items-start gap-2 rounded-[var(--sb-panel-radius)] border bg-secondary/30 p-3">
               <div className="min-w-0 flex-1"><p className="break-words text-xs">{comment.comment_text}</p><p className="mt-1 text-xs text-muted-foreground">{actorLabel(comment.created_by_name)} - {formatDateTime(comment.created_at)}</p></div>
               {canRemove ? <AttachmentRemoveAction action={archiveDocumentComment.bind(null, documentId, comment.id)} fileName="This comment" itemType="comment" /> : null}
             </div>
@@ -191,7 +191,7 @@ export function ApprovalPanel({ document, approval, approvalSteps }: { document:
           <SubmitButton type="submit" pendingLabel="Approving..." className="w-full justify-center">Approve</SubmitButton>
         </form>
         <DestructiveActionDialog action={rejectDocument.bind(null, document.id)} label="Reject" title="Reject this document?" description="The document will return for correction and cannot progress until resubmitted." pendingLabel="Rejecting..."><Input name="remarks" placeholder="Rejection remarks required" required /></DestructiveActionDialog>
-        <div className="rounded-[2px] border">
+        <div className="rounded-[var(--sb-panel-radius)] border">
           {approvalSteps.map((step) => (
             <div key={step.id} className="flex flex-col gap-1 border-b p-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -212,7 +212,7 @@ export function ApprovalPanel({ document, approval, approvalSteps }: { document:
 export function RevisionPanel({ revisions }: { revisions: Revision[] }) {
   return (
     <ConsoleSection title="Revision History">
-        <div className="divide-y rounded-[2px] border">
+        <div className="divide-y rounded-[var(--sb-panel-radius)] border">
           {revisions.map((revision) => (
             <div key={revision.id} className="p-3">
               <p className="text-xs font-medium">Revision {revision.revision_no}</p>

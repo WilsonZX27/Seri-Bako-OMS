@@ -3,6 +3,7 @@ import { todayInKualaLumpur } from "@/lib/business-date";
 import { isMockMode, mockBranches, mockCompany, mockItems, mockProfile, mockSuppliers } from "@/lib/mock-mode";
 import { getCurrentUserScope } from "@/server/queries/notifications";
 import { cache } from "react";
+import { getCurrentAuthUser } from "@/server/queries/auth-user";
 
 /**
  * Read boundaries must distinguish a real empty result from a failed or
@@ -27,12 +28,16 @@ export const getCurrentProfile = cache(async function getCurrentProfile() {
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getCurrentAuthUser();
 
   if (!user) return null;
 
-  const { data: staff } = await supabase.from("staffs").select("*").eq("auth_user_id", user.id).maybeSingle();
-  if (staff && staff.status === "active" && !staff.deleted_at) {
+  const { data: staff } = await supabase
+    .from("staffs")
+    .select("id,company_id,auth_user_id,staff_code,full_name,email,phone,avatar_url,default_branch_id,employment_type,employment_end_date,status,must_change_password,invitation_status,deleted_at")
+    .eq("auth_user_id", user.id)
+    .maybeSingle();
+  if (staff && staff.status === "active" && !staff.deleted_at && (!staff.employment_end_date || staff.employment_end_date >= todayInKualaLumpur())) {
     const { data: staffRoles } = await supabase
       .from("staff_roles")
       .select("role_id, is_primary, effective_from, effective_to")
@@ -73,7 +78,7 @@ export const getCompanyBranding = cache(async function getCompanyBranding() {
   }
 
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await getCurrentAuthUser();
   // The companies table remains tenant-protected before authentication. The
   // company-assets bucket is deliberately public, so the auth shell can still
   // show the uploaded brand mark without exposing company records.
@@ -117,7 +122,7 @@ export const getSuppliersForSelect = cache(async function getSuppliersForSelect(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("suppliers")
-    .select("*")
+    .select("id,supplier_code,supplier_group,name,status")
     .eq("status", "active")
     .order("name", { ascending: true })
     .limit(200);
@@ -161,7 +166,7 @@ export const getBranchSupplierMappingsForSelect = cache(async function getBranch
   const masterSupplierIds = items.map((item) => item.supplier_id).filter((id): id is string => Boolean(id));
   const allSupplierIds = [...new Set([...supplierIds, ...masterSupplierIds])];
   const { data: suppliers, error: suppliersError } = allSupplierIds.length
-    ? await supabase.from("suppliers").select("*").in("id", allSupplierIds).eq("status", "active").is("deleted_at", null)
+    ? await supabase.from("suppliers").select("id,supplier_code,supplier_group,name,status").in("id", allSupplierIds).eq("status", "active").is("deleted_at", null)
     : { data: [], error: null };
   if (suppliersError) throw new Error(suppliersError.message);
   if (!suppliers) throw new Error("Supplier mapping options returned no data.");

@@ -38,10 +38,11 @@ test("returned requests can be corrected without silently advancing workflow", (
 test("PR read-only items show short actionable states in one presentation", () => {
   const detail = read("src/app/(app)/purchase-requests/[id]/page.tsx");
   const query = read("src/server/queries/procurement.ts");
-  assert.match(detail, /No branch stock history yet/);
+  assert.match(detail, /PurchaseRequestStock stock=\{stock\} units=\{units\}/);
+  assert.match(read("src/components/procurement/purchase-request-stock.tsx"), /No branch stock history yet/);
   assert.doesNotMatch(detail, /Next: Create or update/);
   assert.doesNotMatch(query, /OMS stock ledger/);
-  assert.match(detail, /New or not previously counted/);
+  assert.match(read("src/components/procurement/purchase-request-stock.tsx"), /New or not previously counted/);
 });
 
 test("register and basket presentations enforce the new operational contract", () => {
@@ -52,8 +53,9 @@ test("register and basket presentations enforce the new operational contract", (
   assert.match(basket, /branchConflict/);
   assert.match(basket, /accessibleBranchIds/);
   assert.match(basket, /One branch per PR basket/);
-  assert.match(daily, /Qty Sent[\s\S]*label="Outlet"[\s\S]*Received[\s\S]*Wastage[\s\S]*Updated<br \/>By[\s\S]*label="Last Updated"/);
+  assert.match(daily, /Qty Sent[\s\S]*label="Record status"[\s\S]*Received[\s\S]*Wastage[\s\S]*Updated<br \/>By[\s\S]*label="Last Updated"/);
   assert.match(daily, /Wastage qty/);
-  assert.match(daily, /% rate/);
+  assert.match(read("src/lib/operational-value-display.ts"), /% rate/);
+  assert.match(daily, /wastageDisplay\(row\)/);
   assert.match(daily, /row\.updated_by_name \?\? "—"/);
 });

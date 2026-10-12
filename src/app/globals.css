@@ -32,129 +32,7 @@
   display: none;
 }
 
-:root {
-  /* Shared palette: the single source of truth for legacy and v2 surfaces. */
-  --sb-green-950: #053c2c;
-  --sb-green-900: #074b37;
-  --sb-green-800: #096247;
-  --sb-green-700: #0f7757;
-  --sb-green-300: #8fc5ad;
-  --sb-green-200: #c4dfd2;
-  --sb-green-100: #e7f1eb;
-  --sb-primary: var(--sb-green-900);
-  --sb-primary-dark: var(--sb-green-950);
-  --sb-accent: var(--sb-green-700);
-  --sb-bg: #eef1ee;
-  --sb-surface: #FFFFFF;
-  --sb-surface-muted: #f5f6f3;
-  --sb-surface-subtle: #fafafa;
-  --sb-muted: var(--sb-surface-muted);
-  --sb-border: #d8ded9;
-  /* Canonical control geometry: 8px controls, 12px panels across every viewport. */
-  --sb-radius-control: 0.5rem;
-  --sb-shadow-card: 0 1px 2px rgb(6 44 31 / 0.04), 0 8px 24px rgb(6 44 31 / 0.06);
-  --sb-border-soft: #e7ebe7;
-  --sb-text: #13261f;
-  --sb-text-muted: #66766f;
-  --sb-text-soft: #8A948E;
-  --sb-text-inverse: #FFFFFF;
-  --sb-success: #0F6B3F;
-  --sb-success-bg: #E6F4EC;
-  --sb-danger: #B42318;
-  --sb-danger-bg: #FDE8E8;
-  --sb-warning: #9A6700;
-  --sb-warning-bg: #FFF4CC;
-  --sb-info: #245A9C;
-  --sb-info-bg: #E8F1FF;
-  --sb-neutral-bg: #EEECE6;
-  --sb-neutral-text: #5E665F;
-  --sb-font-sans: "Segoe UI Variable", Aptos, "SF Pro Text", ui-sans-serif, system-ui, sans-serif;
-  /* v9 type scale uses fixed, intentional steps. Responsive composition owns
-     wrapping and space; typography does not continuously resize itself. */
-  --sb-text-display: 1.5rem;
-  --sb-text-identity: 1.25rem;
-  --sb-text-title: 1.125rem;
-  --sb-text-label: 0.6875rem;
-  --sb-text-page: 1.125rem;
-  --sb-text-section: 0.875rem;
-  --sb-text-body: 0.8125rem;
-  --sb-text-meta: 0.75rem;
-  --sb-leading-tight: 1.35;
-  --sb-leading-body: 1.45;
-  --sb-space-1: 0.25rem;
-  --sb-space-2: 0.5rem;
-  --sb-space-3: 0.75rem;
-  --sb-space-4: 1rem;
-  --sb-space-5: 1.25rem;
-  --sb-space-6: 1.5rem;
-  --sb-space-7: 2rem;
-  --sb-space-8: 2.5rem;
-  --sb-control-height: 2.75rem;
-  --sb-topbar-height: 3rem;
-  --sb-mobile-nav-height: 4rem;
-  --sb-sidebar-width: 14.75rem;
-  --sb-console-width: 20rem;
-  --sb-console-width-compact: 18rem;
-  --sb-canvas-contained: 64rem;
-  --sb-canvas-wide: 76rem;
-  --sb-shell-gutter: 0.75rem;
-  /* Canonical geometry tokens. Every route consumes these values; the app
-     design layer must not redefine them at a later cascade position. */
-  --sb-panel-radius: 0.75rem;
-  --sb-z-dropdown: 30;
-  --sb-z-sticky: 40;
-  --sb-z-action-rail: 45;
-  /* Narrow-screen drawers must fully cover the mobile navigation and any
-     fixed action rail. Desktop/tablet rails keep their normal stacking order;
-     these values are consumed by the narrow-screen drawer rules below. */
-  --sb-z-backdrop: 100;
-  --sb-z-dialog: 101;
-  --sb-z-toast: 70;
-  --sb-motion-fast: 160ms;
-  --sb-motion-standard: 220ms;
-  --sb-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-  --app-bg: var(--sb-bg);
-  --workspace-bg: #f4f5f2;
-  --rail-bg: #fbfcfa;
-  --border-soft: var(--sb-border);
-  --border-muted: var(--sb-border-soft);
-  --text-main: var(--sb-text);
-  --text-muted: var(--sb-text-muted);
-
-  --background: 150 12% 94%;
-  --foreground: 147 33% 9%;
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  --primary: 147 48% 13%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 150 10% 94%;
-  --secondary-foreground: 147 33% 9%;
-  --muted: 150 10% 94%;
-  --muted-foreground: 148 7% 43%;
-  --accent: 147 48% 13%;
-  --accent-foreground: 147 48% 13%;
-  --destructive: 0 74% 42%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 150 10% 82%;
-  --input: 150 10% 82%;
-  --ring: 155 63% 20%;
-  --radius: 0.5rem;
-}
-
-@media (min-width: 640px) {
-  :root { --sb-shell-gutter: 1rem; }
-}
-
-@media (min-width: 1280px) {
-  :root {
-    --sb-shell-gutter: 1.25rem;
-    --sb-console-width: var(--sb-console-width-compact);
-  }
-}
-
-@media (min-width: 1440px) {
-  :root { --sb-console-width: 20rem; }
-}
+/* Palette, typography, geometry and responsive tokens are owned by design-system-v2.css. */
 
 * {
   @apply border-border;
@@ -260,11 +138,6 @@ summary {
   color: var(--sb-green-950);
 }
 
-.sb-section-label {
-  font-size: var(--sb-text-meta);
-  @apply font-medium text-muted-foreground;
-}
-
 .sb-icon-tile {
   @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary;
 }
@@ -305,8 +178,6 @@ input[type="date"]::-webkit-date-and-time-value {
   gap: 0.5rem;
   overflow: visible;
   padding: 0.375rem;
-  border-bottom: 1px solid var(--sb-border-soft);
-  background: var(--sb-surface);
 }
 
 /* Status is a compact select in the same filter line as search. The old tab strip
@@ -343,7 +214,6 @@ input[type="date"]::-webkit-date-and-time-value {
 
 .sb-filter-more > summary {
   display: inline-flex;
-  min-height: 2.125rem;
   cursor: pointer;
   list-style: none;
   align-items: center;
@@ -379,9 +249,6 @@ input[type="date"]::-webkit-date-and-time-value {
   top: calc(100% + 0.25rem);
   right: 0;
   width: min(20rem, calc(100vw - 2rem));
-  border: 1px solid var(--sb-border-soft);
-  background: var(--sb-surface);
-  box-shadow: 0 8px 24px rgb(6 44 31 / 0.12);
 }
 
 .sb-popover-surface {
@@ -487,20 +354,13 @@ input[type="date"]::-webkit-date-and-time-value {
 .sb-list-filters:not(.sb-list-query-card) select,
 .sb-list-filters:not(.sb-list-query-card) button,
 .sb-list-filters:not(.sb-list-query-card) a {
-  height: 2.125rem;
-  min-height: 2.125rem;
+  height: var(--sb-control-height);
+  min-height: var(--sb-control-height);
   padding-block: 0.25rem;
   font-size: 0.75rem;
 }
 
 @media (max-width: 767px) {
-  :root {
-    /* Mobile keeps the same geometry; only target size changes at this breakpoint. */
-    --sb-radius-control: 0.5rem;
-    /* Phone controls meet the 48px minimum target for gloved or wet hands. */
-    --sb-control-height: 3rem;
-  }
-
   [data-app-topbar] {
     height: calc(var(--sb-topbar-height) + env(safe-area-inset-top));
     padding-top: env(safe-area-inset-top);
@@ -522,8 +382,8 @@ input[type="date"]::-webkit-date-and-time-value {
   .sb-list-filters:not(.sb-list-query-card) select,
   .sb-list-filters:not(.sb-list-query-card) button,
   .sb-list-filters:not(.sb-list-query-card) a {
-    height: 2.125rem;
-    min-height: 2.125rem;
+    height: var(--sb-control-height);
+    min-height: var(--sb-control-height);
   }
 
   .sb-list-filters:not(.sb-list-query-card) > :first-child {
@@ -628,8 +488,8 @@ input[type="date"]::-webkit-date-and-time-value {
   }
 
   input[type="date"] {
-    height: 2.25rem;
-    min-height: 2.25rem;
+    height: var(--sb-control-height);
+    min-height: var(--sb-control-height);
     padding-right: 0.5rem;
     color: var(--sb-text);
     font-variant-numeric: tabular-nums;
@@ -727,16 +587,6 @@ input[type="date"]::-webkit-date-and-time-value {
   table[aria-label="Product cost and margin estimates"] td:nth-child(5)::before { content: "Product cost"; }
   table[aria-label="Product cost and margin estimates"] td:nth-child(6)::before { content: "Margin"; }
   table[aria-label="Product cost and margin estimates"] td:nth-child(7)::before { content: "Margin %"; }
-}
-
-@media (min-width: 1024px) {
-  .sb-stock-count-settings:not([open]) > .sb-stock-count-settings-content {
-    display: grid !important;
-  }
-
-  .sb-stock-count-settings:not([open]) > div.sb-stock-count-settings-content {
-    display: block !important;
-  }
 }
 
 @media (min-width: 768px) and (max-width: 1279px) {
@@ -865,9 +715,6 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 @media (min-width: 640px) {
-  :root {
-    --sb-control-height: 2.25rem;
-  }
 
   body {
     font-size: var(--sb-text-body);
@@ -879,10 +726,6 @@ input[type="date"]::-webkit-date-and-time-value {
 }
 
 @media (min-width: 768px) {
-  :root {
-    /* Compact visible controls; shared eight-pixel gaps keep touch targets separated. */
-    --sb-control-height: 2.25rem;
-  }
 
   .sb-list-filters:not(.sb-list-query-card) > :first-child {
     flex: 1 1 14rem;
@@ -951,18 +794,8 @@ input[type="date"]::-webkit-date-and-time-value {
   }
 }
 
-@media (min-width: 1280px) {
-  :root {
-    /* Desktop regains compact enterprise density once pointer precision is primary. */
-    --sb-control-height: 2.25rem;
-  }
-}
 
 @media (max-width: 767px) {
-  :root {
-    /* This comes after the compact 640px rule so 640â€“767px phones remain touch-safe. */
-    --sb-control-height: 3rem;
-  }
 
   [data-center-workspace] main {
     scroll-padding-bottom: 6.5rem;
@@ -1048,4 +881,116 @@ dialog.m-auto[open] {
   position: fixed;
   inset: 0;
   margin: auto;
+}
+
+/* Native dialog positioning varies between browser engines. Keep the schedule
+   import anchored to the visual center with one explicit owning selector. */
+dialog.sb-schedule-import-dialog[open] {
+  position: fixed;
+  inset: 50% auto auto 50%;
+  margin: 0;
+  transform: translate(-50%, -50%);
+}
+
+dialog.sb-dialog-workspace-centered[open] {
+  position: fixed;
+  inset: 50% auto auto 50%;
+  margin: 0 !important;
+  transform: translate(-50%, -50%);
+  max-height: calc(100dvh - 2rem);
+}
+/* Native disclosures keep their keyboard behavior and put the affordance at the trailing edge. */
+details > summary { list-style: none; display: flex; align-items: center; gap: .75rem; min-height: 44px; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::after { content: ""; width: .5rem; height: .5rem; flex-shrink: 0; margin-left: auto; margin-right: .25rem; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); }
+details[open] > summary::after { transform: rotate(225deg); }
+.sb-asset-check-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(8rem, 9rem); gap: .75rem; padding: 1rem; }
+.sb-asset-check-row > div:last-child { grid-column: 1 / -1; }
+@media (min-width: 1024px) {
+  .sb-asset-check-row { grid-template-columns: minmax(12rem, 2fr) 5rem minmax(10rem, 1fr) minmax(12rem, 1.5fr); align-items: start; }
+  .sb-asset-check-row > div:last-child { grid-column: auto; }
+}
+
+/* Keep native select controls aligned with text inputs at every density. */
+.sb-native-select {
+  appearance: none;
+  padding-right: 2.25rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23556660' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right .75rem center;
+  background-size: 1rem;
+}
+
+.do-print-table { min-width: 720px; }
+
+@media print {
+  @page { size: A4 portrait; margin: 12mm; }
+  body:has(.production-sheet-print) [data-app-sidebar],
+  body:has(.production-sheet-print) aside,
+  body:has(.production-sheet-print) nav,
+  body:has(.production-sheet-print) form,
+  body:has(.production-sheet-print) [data-page-header],
+  body:has(.production-sheet-print) [data-app-topbar],
+  body:has(.production-sheet-print) [data-mobile-console-bar],
+  body:has(.production-sheet-print) main > :not(:has(.production-sheet-print)),
+  body:has(.production-sheet-print) .production-print > :not(.production-sheet-print) { display: none !important; }
+  body:has(.production-sheet-print) main,
+  body:has(.production-sheet-print) [data-workspace-canvas],
+  body:has(.production-sheet-print) [data-tablet-document-split],
+  body:has(.production-sheet-print) .production-print { display: block !important; width: 100% !important; max-width: none !important; height: auto !important; overflow: visible !important; padding: 0 !important; margin: 0 !important; border: 0 !important; box-shadow: none !important; }
+  .production-sheet-print { display: block !important; color: #172a24; font: 9px/1.35 Arial, sans-serif; }
+  body:has(.production-sheet-print) .sb-planning-workspace :is(section,[role="tablist"],[role="status"]):not(.production-print):not(.production-sheet-print *) { display: none !important; }
+  .production-document-page { break-after: page; }
+  .production-document-page:last-child { break-after: auto; }
+  .production-document-header { display: flex; justify-content: space-between; align-items: start; gap: 16px; padding-bottom: 12px; border-bottom: 2px solid #164e3d; }
+  .production-document-brand { font-size: 9px; letter-spacing: 2px; font-weight: bold; }
+  .production-sheet-print h1 { font-size: 22px; font-weight: 700; margin: 4px 0; }
+  .production-document-status { border: 1px solid #557469; padding: 4px 8px; font-size: 9px; }
+  .production-document-note { color: #52645c; margin: 10px 0; font-size: 8px; }
+  .production-document-caption { margin: 8px 0; font-weight: bold; }
+  .production-sheet-print table { width: 100% !important; min-width: 0 !important; table-layout: fixed; border-collapse: collapse; margin: 0; }
+  .production-sheet-print th, .production-sheet-print td { border: 0; border-bottom: 1px solid #d8e1dc; padding: 5px 4px; vertical-align: middle; white-space: normal; overflow-wrap: anywhere; font-size: 9px; text-align: right; }
+  .production-sheet-print th { background: #eaf0ed !important; color: #164e3d; font-size: 8px; font-weight: bold; position: static !important; }
+  .production-sheet-print :is(th,td):nth-child(-n+2) { text-align: left; }
+  .production-sheet-print tbody tr:nth-child(even) { background: #f6f8f7 !important; }
+  .production-sheet-print thead { display: table-header-group; }
+  .production-sheet-print tr { break-inside: avoid; }
+  .production-document-total { font-weight: bold; }
+  .production-document-page footer { margin-top: 12px; padding-top: 6px; border-top: 1px solid #a9bdb3; font-size: 8px; color: #52645c; }
+  body:has(.do-print-document) [data-app-sidebar],
+  body:has(.do-print-document) aside,
+  body:has(.do-print-document) nav,
+  body:has(.do-print-document) [data-page-header],
+  body:has(.do-print-document) [data-app-topbar],
+  body:has(.do-print-document) [data-mobile-console-bar] { display: none !important; }
+  body:has(.do-print-document) main,
+  body:has(.do-print-document) [data-workspace-canvas],
+  body:has(.do-print-document) [data-tablet-document-split] { display: block !important; width: 100% !important; max-width: none !important; height: auto !important; overflow: visible !important; padding: 0 !important; margin: 0 !important; }
+  .do-print-document { width: 100%; color: #111; }
+  .do-print-page .text-xs { font-size: 10px; line-height: 1.3; }
+  .do-print-page { break-after: page; border: 0 !important; padding: 0 !important; margin: 0 !important; }
+  .do-print-page:last-child { break-after: auto; }
+  .do-print-table { table-layout: fixed; min-width: 0; font-size: 9px; line-height: 1.25; }
+  .do-print-table th, .do-print-table td { overflow-wrap: anywhere; }
+  .do-print-table th:nth-child(4) { width: 29%; }
+  .do-print-table tr { break-inside: avoid; }
+}
+
+/* Sort commands share the header's typography instead of the global input font. */
+.sb-table-region thead th > button {
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+
+/* Existing explicit chevrons keep one trailing affordance. */
+details > summary:has(> svg[class*="lucide-chevron"])::after { display: none; }
+details > summary > svg[class*="lucide-chevron"] { order: 100; margin-left: auto; flex-shrink: 0; }
+
+/* Touch sizing must not override the desktop's 36px control rhythm. */
+@media (max-width: 1023px) {
+html[data-design-layer="v2"] :is(button, select, [role="combobox"], input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), a.inline-flex, details > summary, label:has(input[type="file"])) {
+  min-height: 44px !important;
+}
+html[data-design-layer="v2"] :is(button, [role="combobox"]) { min-width: 44px; }
 }

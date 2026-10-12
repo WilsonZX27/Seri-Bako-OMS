@@ -72,10 +72,7 @@ test("phone surfaces use one green action system and one radius vocabulary", asy
     }
 
     expect(visualLanguage.brownActions, `${route} must not use legacy brown for ordinary actions`).toEqual([]);
-    expect(
-      visualLanguage.legacyRadius.every(({ radius }) => radius === "10px" || radius === "12px"),
-      `${route} legacy phone surfaces must normalize to the 10px control or 12px panel radius; found ${JSON.stringify(visualLanguage.legacyRadius.filter(({ radius }) => radius !== "10px" && radius !== "12px").slice(0, 3))}`,
-    ).toBe(true);
+    expect(visualLanguage.legacyRadius, `${route} must not render the retired 2px radius utility`).toEqual([]);
     expect(visualLanguage.titleOffset, `${route} phone title must exist`).not.toBeNull();
     expect(visualLanguage.titleOffset, `${route} phone title must remain centered`).toBeLessThanOrEqual(1);
 

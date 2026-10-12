@@ -30,7 +30,7 @@ test("permission switches derive inherit allow and deny from role defaults", () 
 test("dashboard and low-stock page consume one branch-item result authority", () => {
   const dashboard = read("src/server/queries/dashboard.ts");
   const page = read("src/app/(app)/low-stock/page.tsx");
-  assert.match(dashboard, /getLowStockResult\(\)/);
+  assert.match(dashboard, /getLowStockCount\(\)/);
   assert.match(page, /getLowStockResult\(filters\)/);
   assert.doesNotMatch(dashboard, /new Set\([\s\S]*lowStockViewRows/);
   assert.match(read("src/server/queries/inventory.ts"), /from\("stock_count_eligible_items" as "stock_balances_summary"\)/);

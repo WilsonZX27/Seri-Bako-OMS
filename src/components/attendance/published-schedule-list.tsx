@@ -59,7 +59,7 @@ export function PublishedScheduleList({
                     key={shift.id}
                     className="flex items-center justify-between gap-3 px-3 py-2 text-xs"
                   >
-                    <div>
+                    <div className="shrink-0">
                       <strong className="block tabular-nums">
                         {shift.work_date}
                       </strong>

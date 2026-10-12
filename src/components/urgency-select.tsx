@@ -17,10 +17,10 @@ export function UrgencySelect({ value, onValueChange, name = "priority" }: { val
         <Select.Icon><ChevronDown className="h-4 w-4 text-muted-foreground" /></Select.Icon>
       </Select.Trigger>
       <Select.Portal>
-        <Select.Content position="popper" sideOffset={4} collisionPadding={8} className="sb-popover-surface z-[var(--sb-z-dropdown)] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[2px] p-1 text-foreground">
+        <Select.Content position="popper" sideOffset={4} collisionPadding={8} className="sb-popover-surface z-[var(--sb-z-dropdown)] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[var(--sb-panel-radius)] p-1 text-foreground">
           <Select.Viewport>
             {priorityOptions.map((option) => (
-              <Select.Item key={option.value} value={option.value} className="relative flex min-h-8 cursor-default select-none items-center rounded-[2px] px-8 py-1.5 text-sm outline-none focus:bg-[var(--sb-green-100)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
+              <Select.Item key={option.value} value={option.value} className="relative flex min-h-8 cursor-default select-none items-center rounded-[var(--sb-control-radius)] px-8 py-1.5 text-sm outline-none focus:bg-[var(--sb-green-100)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
                 <Select.ItemIndicator className="absolute left-2"><Check className="h-4 w-4" /></Select.ItemIndicator>
                 <Select.ItemText>
                   <span className={cn("inline-flex rounded-full border px-2 py-0.5 text-xs font-semibold", priorityClassName(option.value))}>{option.label}</span>

@@ -68,7 +68,7 @@ test("outlet history distinguishes missing sent data and unavailable percentages
   const page = read("src", "app", "(app)", "outlet-daily-records", "page.tsx");
   const query = read("src", "server", "queries", "outlet-daily-records.ts");
   const matrix = read("src", "components", "outlet-daily-completion-matrix.tsx");
-  assert.match(page, /history_date/);
+  assert.match(read("src", "app", "(app)", "outlet-daily-records", "insights", "page.tsx"), /history_date/);
   assert.match(page, /Qty sent state/);
   assert.match(page, /canViewSentGaps/);
   assert.match(query, /qty_sent_state/);

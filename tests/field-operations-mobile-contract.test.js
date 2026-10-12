@@ -10,9 +10,9 @@ test("outlet daily rows retain the next operational step and wastage signal on p
   const source = read("src/app/(app)/outlet-daily-records/page.tsx");
 
   assert.match(source, /outletProgress\(row\)/);
-  assert.match(source, /row\.total_wastage > 0/);
+  assert.match(source, /wastageDisplay\(row\)/);
   assert.match(source, /Received<\/dt>/);
-  assert.match(source, /formatNumber\(row\.total_received\)/);
+  assert.match(source, /receivedDisplay\(row\)/);
 });
 
 test("production jobs use the shared workspace status rail and reserve shared FAB clearance", () => {
@@ -56,9 +56,9 @@ test("stock count list header never relies on a guessed shell offset", () => {
   assert.match(source, /hidden border-y[^\n]+lg:grid/);
 });
 
-test("stock count phone cards reserve vertical space for counting", () => {
+test("stock count phone and tablet cards reserve vertical space for counting", () => {
   const source = read("src/components/stock-count-form.tsx");
-  assert.match(source, /mt-1 hidden text-\[10px\][^\n]+sm:block[^\n]+Starting balance/);
+  assert.match(source, /mt-1 hidden text-\[10px\][^\n]+lg:block[^\n]+Starting balance/);
 });
 
 test("goods receiving prioritizes physical receipt before reference quantities on phones", () => {
@@ -138,7 +138,8 @@ test("goods receiving detail replaces the ten-column phone table with a complete
   assert.match(source, />Received<\/p>/);
   assert.match(source, />Ordered<\/dt>/);
   assert.match(source, />Previously<\/dt>/);
-  assert.match(source, />Pending<\/dt>/);
+  assert.match(source, /"Remaining" : "Pending"/);
+  assert.match(source, /remainingAfterReceipt\(line, receiving.status\)/);
   assert.match(source, /excluded from stock/);
   assert.match(source, /Batch \{line\.batch_no/);
   assert.match(source, /Stock value \{formatCurrency/);
@@ -180,7 +181,7 @@ test("stock count responsive audit keeps one status and medium-width stacking", 
 test("production ingredient snapshots replace the phone table with a scannable list", () => {
   const source = read("src/components/production-job-form.tsx");
 
-  assert.match(source, /sb-table-region hidden rounded-\[2px\] border md:block/);
+  assert.match(source, /sb-table-region hidden rounded-\[var\(--sb-panel-radius\)\] border md:block/);
   assert.match(source, /data-production-ingredient-list/);
   assert.match(source, /grid grid-cols-2 gap-x-4 gap-y-2 text-xs/);
   assert.match(source, /CardContent className="grid grid-cols-2 gap-4 p-4 md:grid-cols-4/);
@@ -214,7 +215,7 @@ test("outlet daily entry keeps three compact quantities in one phone row and rev
   assert.match(source, /touch-pan-y/);
   assert.match(source, /grid grid-cols-3 items-end gap-2 p-3/);
   assert.match(source, /showWastageDetails = Number\(wastage \|\| 0\) > 0/);
-  assert.match(source, /className="h-10 min-w-0 px-2 text-center tabular-nums"/);
+  assert.match(source, /className="min-w-0 px-2 text-center tabular-nums"/);
   assert.match(source, /required=\{Number\(wastage \|\| 0\) > 0\}/);
   assert.match(source, /setReason\("unsold"\)/);
   assert.match(source, /aria-label=\{`Add remarks for \$\{product\.product_name\}`\}/);
@@ -228,7 +229,7 @@ test("recipe BOM editing replaces the phone table with input-first continuous in
   const source = read("src/components/recipe-form.tsx");
 
   assert.match(source, /data-recipe-setup/);
-  assert.match(source, /sb-table-region hidden overflow-x-auto rounded-\[2px\] border md:block/);
+  assert.match(source, /sb-table-region hidden overflow-x-auto rounded-\[var\(--sb-panel-radius\)\] border md:block/);
   assert.match(source, /data-recipe-ingredient-list/);
   assert.match(source, /placeholder="Ingredient code or name"/);
   assert.match(source, /label="Qty required"/);

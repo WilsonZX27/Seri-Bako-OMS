@@ -14,7 +14,7 @@ test("People and Staff keep section actions beside their titles", () => {
   assert.match(section, /CardHeader className="flex-row items-start justify-between/);
   assert.match(permissions, /action=\{[\s\S]*canManage[\s\S]*form="staff-permissions-form"/);
   assert.match(people, /lg:grid-cols-2/);
-  assert.match(people, /form="protected-payroll-form"/);
+  assert.doesNotMatch(people, /protected-payroll-form|Sensitive payroll details/);
   assert.match(people, /form="staff-compliance-record-form"/);
   assert.ok(staff.indexOf("Save Staff") < staff.indexOf("Open profile"));
 });
@@ -37,10 +37,11 @@ test("mobile scheduling retains bounded, aligned and state-specific actions", ()
   assert.match(css, /\[data-schedule-mobile-actions\][\s\S]*inset: auto 1rem/);
 });
 
-test("schedule working-time tools expose quick states and a paid-hours summary", () => {
+test("schedule working-time tools expose quick states and an unambiguous span summary", () => {
   const planner = read("src/components/attendance/schedule-planner.tsx");
 
-  assert.match(planner, /Scheduled span · compared with 8\.5h/);
+  assert.match(planner, />Scheduled span</);
+  assert.doesNotMatch(planner, /compared with 8\.5h|−\d{2}:\d{2}:\d{2}/);
   assert.match(planner, /Quick non-working assignment/);
   assert.match(planner, /aria-labelledby="schedule-working-time-title"/);
   for (const state of ['label: "OFF"', 'label: "AL"', 'label: "PH"', 'label: "UPL"']) {
@@ -54,7 +55,7 @@ test("warning and empty-state feedback follows the annotated hierarchy", () => {
 
   assert.match(dashboard, /pendingApprovals\.length \? "danger" : "default"/);
   assert.doesNotMatch(review, /Attendance records stay unloaded until you choose an outlet above/);
-  assert.match(review, /block whitespace-nowrap text-\[10px\] text-amber-800/);
-  assert.match(review, /<dd className="whitespace-nowrap text-\[10px\] text-amber-800">/);
-  assert.match(review, /grid min-w-32 grid-cols-1 gap-1/);
+  assert.match(review, /block max-w-full cursor-help text-\[10px\] leading-tight text-amber-800/);
+  assert.match(review, /<dd title=\{`Advisory only; payroll is unchanged[^>]*className="max-w-full cursor-help text-\[10px\] leading-tight text-amber-800">/);
+  assert.match(review, /inline-flex min-w-0 max-w-64 flex-wrap items-center gap-1/);
 });

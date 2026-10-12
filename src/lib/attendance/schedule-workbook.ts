@@ -24,6 +24,7 @@ export type ScheduleWorkbookIssue = {
   date?: string;
   value?: string;
   reason: string;
+  suggestedWeekStart?: string;
   message: string;
 };
 
@@ -36,6 +37,7 @@ export type ScheduleWorkbookPreview = {
   issues: ScheduleWorkbookIssue[];
   assignmentCount: number;
   sheets: string[];
+  missingEndTimes: string[];
 };
 
 const SHEET_BRANCHES: Record<string, string> = {
@@ -143,7 +145,8 @@ function workbookSheets(files: Map<string, string>) {
 
 export function scheduleTime(value: unknown) {
   if (typeof value === "string") {
-    const match = clean(value).match(/^(\d{1,2})[.:](\d{2})\s*(AM|PM)?$/i);
+    const normalized = clean(value).replace(/^(\d{1,2})(\d{2})(AM|PM)$/i, "$1:$2$3").replace(/^(\d{1,2})(AM|PM)$/i, "$1:00$2");
+    const match = normalized.match(/^(\d{1,2})[.:](\d{2})\s*(AM|PM)?$/i);
     if (!match) return null;
     let hour = Number(match[1]); const minute = Number(match[2]);
     if (minute > 59 || (match[3] ? hour < 1 || hour > 12 : hour > 23)) return null;
@@ -156,7 +159,7 @@ export function scheduleTime(value: unknown) {
 }
 
 const time = scheduleTime;
-export type ScheduleWorkbookOptions = { sheet?: string; branchId?: string; confirmDateContext?: boolean };
+export type ScheduleWorkbookOptions = { sheet?: string; branchId?: string; confirmDateContext?: boolean; endTimes?: Record<string, string> };
 export async function parseScheduleWorkbook(file: File, weekStart: string, catalog: ScheduleImportCatalog, options: ScheduleWorkbookOptions = {}): Promise<ScheduleWorkbookPreview> {
   if (!file.name.toLowerCase().endsWith(".xlsx")) throw new Error("Select the Seri Bako .xlsx schedule workbook.");
   if (file.size > MAX_WORKBOOK_BYTES) throw new Error("The schedule workbook must be 10 MB or smaller.");
@@ -182,23 +185,27 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
       const month = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"].indexOf(named[2].toLowerCase()) + 1;
       return `${named[3] ?? weekStart.slice(0,4)}-${String(month).padStart(2,"0")}-${named[1].padStart(2,"0")}`;
     };
-    let dateRow = 0, window: Array<readonly [number, number]> = [];
+    let dateRow = 0, columnStep = 2, window: Array<readonly [number, number]> = [];
+    const detectedDates: string[] = [];
     for (const rowNumber of [...sheet.rows.keys()].filter(n => n <= 12)) {
       const pairs = [...sheet.rows.get(rowNumber)!].filter(([column, value]) => column >= 1 && dateValue(value) !== null);
+      if (pairs.length >= 7) detectedDates.push(...pairs.map(([, value]) => String(dateValue(value))));
       for (let index = 0; index <= pairs.length - 7; index++) {
         const candidate = pairs.slice(index,index+7);
-        if (candidate.every(([column,value],offset) => (offset === 0 || column === candidate[offset-1][0]+2) && (typeof dateValue(value) === "number" ? dateValue(value) === expectedDays[offset] : dateValue(value) === addDays(weekStart,offset)))) {
-          dateRow = rowNumber; window = candidate.map(([column,value]) => [column, typeof dateValue(value) === "number" ? Number(dateValue(value)) : Number(String(dateValue(value)).slice(-2))] as const); break;
+        const step = candidate[1][0] - candidate[0][0];
+        if ([1, 2].includes(step) && candidate.every(([column,value],offset) => (offset === 0 || column === candidate[offset-1][0]+step) && (typeof dateValue(value) === "number" ? dateValue(value) === expectedDays[offset] : dateValue(value) === addDays(weekStart,offset)))) {
+          dateRow = rowNumber; columnStep = step; window = candidate.map(([column,value]) => [column, typeof dateValue(value) === "number" ? Number(dateValue(value)) : Number(String(dateValue(value)).slice(-2))] as const); break;
         }
       }
       if (window.length) break;
     }
-    const pairs = [...(sheet.rows.get(dateRow) ?? new Map())];
-    if (!window.length) { issues.push({ sheet: sheet.name, reason: "date_window_mismatch", message: `${sheet.name}: ${weekStart} date columns were not found (${pairs.slice(0, 8).map((pair) => `${pair[0]}:${pair[1]}`).join(", ") || "no date values"}).` }); continue; }
+    const fullDates = [...new Set(detectedDates)].filter(date => /^\d{4}-\d{2}-\d{2}$/.test(date));
+    const suggestedWeekStart = fullDates.length === 7 && fullDates.every((date, index) => date === addDays(fullDates[0], index)) && new Date(`${fullDates[0]}T00:00:00Z`).getUTCDay() === 1 ? fullDates[0] : undefined;
+    if (!window.length) { issues.push({ suggestedWeekStart, sheet: sheet.name, reason: "date_window_mismatch", message: `${sheet.name}: selected week ${weekStart} through ${addDays(weekStart, 6)} does not match the readable date headers. ${detectedDates.length ? `Workbook dates: ${[...new Set(detectedDates)].slice(0, 14).join(", ")}. Open the matching schedule week and upload again; confirming dates does not move shifts to another week.` : "No supported seven-day date header was found. Check the sheet layout."}` }); continue; }
     if (!knownName && !options.confirmDateContext) { issues.push({sheet: sheet.name, reason:"date_context_required",message:`${sheet.name}: confirm the displayed dates belong to ${weekStart} through ${addDays(weekStart,6)}. Sheet numbers never establish dates.`}); continue; }
-    for (let rowNumber = dateRow + 2; rowNumber <= Math.max(...sheet.rows.keys()); rowNumber += 1) {
+    for (let rowNumber = dateRow + (columnStep === 1 ? 1 : 2); rowNumber <= Math.max(...sheet.rows.keys()); rowNumber += 1) {
       const values = sheet.rows.get(rowNumber) ?? new Map(), fills = sheet.fills.get(rowNumber) ?? new Map(), employee = clean(values.get(0));
-      if (key(employee) === "remark") break;
+      if (key(employee) === "remark" || /^job scope\b/i.test(employee)) break;
       if (!employee) {
         const notes = window.map(([column], offset) => {
           const anchor = sheet.mergedCells.get(`${rowNumber}:${column}`), anchorValues = anchor ? sheet.rows.get(anchor[0]) : null, anchorFills = anchor ? sheet.fills.get(anchor[0]) : null;
@@ -211,7 +218,16 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
         }
         continue;
       }
-      for (let offset = 0; offset < 7; offset += 1) staged.push({ sheet: sheet.name, branchId: branch.id, branchName, status: branch.status, employee, date: addDays(weekStart, offset), first: values.get(window[offset][0]), second: values.get(window[offset][0] + 1), firstFill: fills.get(window[offset][0]) ?? "", secondFill: fills.get(window[offset][0] + 1) ?? "" });
+      for (let offset = 0; offset < 7; offset += 1) staged.push({ sheet: sheet.name, branchId: branch.id, branchName, status: branch.status, employee, date: addDays(weekStart, offset), first: values.get(window[offset][0]), second: columnStep === 2 ? values.get(window[offset][0] + 1) : undefined, firstFill: fills.get(window[offset][0]) ?? "", secondFill: fills.get(window[offset][0] + 1) ?? "" });
+    }
+  }
+  const missingEndTimes = new Set<string>();
+  for (const item of staged) {
+    const start = time(item.first);
+    if (start && !cellText(item.second) && !time(item.second)) {
+      missingEndTimes.add(start);
+      const end = options.endTimes?.[start];
+      if (end && time(end)) item.second = end;
     }
   }
   const timedByPersonDay = new Map<string, typeof staged>();
@@ -245,7 +261,7 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
     outlets.set(item.branchId, outlet);
     const outletStaff = catalog.staff.find((person) => person.branch_id === item.branchId && key(person.name) === key(item.employee));
     const staff = outletStaff && (outletStaff.eligibility ?? []).some((range) => range.from <= item.date && (!range.to || range.to >= item.date)) ? outletStaff : null;
-    if (!staff) { if (cellText(item.first) || cellText(item.second)) issues.push({ sheet: item.sheet, employee: item.employee, date: item.date, reason: outletStaff ? "employee_not_eligible" : "employee_not_found", message: outletStaff ? `${item.sheet} · ${item.employee} · ${item.date}: employee has no active schedulable role for this date.` : `${item.sheet} · ${item.employee}: employee is not available at this outlet.` }); continue; }
+    if (!staff) { if (time(item.first) || time(item.second) || cellText(item.first) || cellText(item.second)) issues.push({ sheet: item.sheet, employee: item.employee, date: item.date, reason: outletStaff ? "employee_not_eligible" : "employee_not_found", message: outletStaff ? `${item.sheet} · ${item.employee} · ${item.date}: employee has no active schedulable role for this date.` : `${item.sheet} · ${item.employee}: employee is not available at this outlet.` }); continue; }
     const immutableBranchId = immutableBranchByStaffDay.get(`${staff.id}:${item.date}`);
     if (immutableBranchId && immutableBranchId !== item.branchId) continue;
     const start = time(item.first), end = time(item.second), label = cellText(item.first).toUpperCase(), secondText = cellText(item.second);
@@ -283,5 +299,5 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
     if (seen.has(id)) { issues.push({sheet: options.sheet ?? "Workbook", date:assignment.work_date, reason:"duplicate_assignment",message:`More than one source assignment exists for the same employee and date. Select one sheet before importing.`}); return false; }
     seen.add(id); return true;
   });
-  return { fileName: file.name, fileHash, weekStart, weekEnd: addDays(weekStart, 6), outlets: result, issues, sheets: sheets.map(sheet => sheet.name), assignmentCount: result.reduce((sum, outlet) => sum + outlet.assignments.length, 0) };
+  return { fileName: file.name, fileHash, weekStart, weekEnd: addDays(weekStart, 6), outlets: result, issues, sheets: sheets.map(sheet => sheet.name), missingEndTimes: [...missingEndTimes].sort(), assignmentCount: result.reduce((sum, outlet) => sum + outlet.assignments.length, 0) };
 }

@@ -35,6 +35,7 @@ export type ScheduleWorkbookPreview = {
   outlets: Array<{ branchId: string; branchName: string; status: string; assignments: ScheduleWorkbookAssignment[] }>;
   issues: ScheduleWorkbookIssue[];
   assignmentCount: number;
+  sheets: string[];
 };
 
 const SHEET_BRANCHES: Record<string, string> = {
@@ -74,7 +75,6 @@ const addDays = (day: string, amount: number) => {
   date.setUTCDate(date.getUTCDate() + amount);
   return date.toISOString().slice(0, 10);
 };
-const displayedDay = (value: number) => value > 30000 ? new Date((value - 25569) * 86400000).getUTCDate() : value;
 const columnIndex = (reference: string) => [...reference.replace(/\d+/g, "")].reduce((sum, letter) => sum * 26 + letter.charCodeAt(0) - 64, 0) - 1;
 const decodeXml = (value: string) => value.replace(/<[^>]+>/g, "").replaceAll("&amp;", "&").replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&quot;", '"').replaceAll("&apos;", "'");
 
@@ -141,13 +141,23 @@ function workbookSheets(files: Map<string, string>) {
   });
 }
 
-function time(value: unknown) {
-  if (typeof value !== "number" || value <= 0 || value >= 1) return null;
+export function scheduleTime(value: unknown) {
+  if (typeof value === "string") {
+    const match = clean(value).match(/^(\d{1,2})[.:](\d{2})\s*(AM|PM)?$/i);
+    if (!match) return null;
+    let hour = Number(match[1]); const minute = Number(match[2]);
+    if (minute > 59 || (match[3] ? hour < 1 || hour > 12 : hour > 23)) return null;
+    if (match[3]) hour = hour % 12 + (match[3].toUpperCase() === "PM" ? 12 : 0);
+    return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+  }
+  if (typeof value !== "number" || value < 0 || value >= 1) return null;
   const minutes = Math.round(value * 1440) % 1440;
   return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
 }
 
-export async function parseScheduleWorkbook(file: File, weekStart: string, catalog: ScheduleImportCatalog): Promise<ScheduleWorkbookPreview> {
+const time = scheduleTime;
+export type ScheduleWorkbookOptions = { sheet?: string; branchId?: string; confirmDateContext?: boolean };
+export async function parseScheduleWorkbook(file: File, weekStart: string, catalog: ScheduleImportCatalog, options: ScheduleWorkbookOptions = {}): Promise<ScheduleWorkbookPreview> {
   if (!file.name.toLowerCase().endsWith(".xlsx")) throw new Error("Select the Seri Bako .xlsx schedule workbook.");
   if (file.size > MAX_WORKBOOK_BYTES) throw new Error("The schedule workbook must be 10 MB or smaller.");
   const bytes = new Uint8Array(await file.arrayBuffer()), digest = await crypto.subtle.digest("SHA-256", bytes);
@@ -155,18 +165,37 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
   const sheets = await workbookSheets(await unzip(bytes)), issues: ScheduleWorkbookIssue[] = [], staged: Array<{ sheet: string; branchId: string; branchName: string; status: string; employee: string; date: string; first: unknown; second: unknown; firstFill: string; secondFill: string }> = [], locationMarkers: Array<{ sheet: string; date: string; label: string; fill: string }> = [];
   const expectedDays = Array.from({ length: 7 }, (_, index) => Number(addDays(weekStart, index).slice(-2)));
   for (const sheet of sheets) {
-    const branchName = SHEET_BRANCHES[sheet.name];
-    if (!branchName) continue;
-    const branch = catalog.branches.find((item) => key(item.name) === key(branchName));
+    if (options.sheet && options.sheet !== sheet.name) continue;
+    const knownName = SHEET_BRANCHES[sheet.name.toUpperCase()];
+    const branch = options.sheet === sheet.name && options.branchId
+      ? catalog.branches.find(item => item.id === options.branchId)
+      : catalog.branches.find(item => key(item.name) === key(knownName));
+    if (!knownName && !options.sheet) { issues.push({ sheet: sheet.name, reason: "sheet_mapping_required", message: `${sheet.name}: select this sheet and confirm its OMS outlet and date context before importing.` }); continue; }
+    const branchName = branch?.name ?? knownName;
     if (!branch) { issues.push({ sheet: sheet.name, reason: "outlet_not_found", message: `${sheet.name}: matching OMS outlet was not found.` }); continue; }
-    const dateRow = [1, 2, 3].sort((a, b) => {
-      const score = (rowNumber: number) => [...(sheet.rows.get(rowNumber) ?? new Map())].filter(([column, value]) => column >= 2 && column % 2 === 0 && typeof value === "number").length;
-      return score(b) - score(a);
-    })[0];
-    const row = sheet.rows.get(dateRow) ?? new Map(), pairs = [...row].filter(([column, value]) => column >= 2 && column % 2 === 0 && typeof value === "number").map(([column, value]) => [column, displayedDay(Number(value))] as const);
-    let window: Array<readonly [number, number]> = [];
-    for (let index = 0; index <= pairs.length - 7; index += 1) if (pairs.slice(index, index + 7).every((pair, offset) => pair[1] === expectedDays[offset])) { window = pairs.slice(index, index + 7); break; }
+    const dateValue = (value: unknown) => {
+      if (typeof value === "number") return value > 30000 ? new Date((value - 25569) * 86400000).toISOString().slice(0, 10) : Number.isInteger(value) && value >= 1 && value <= 31 ? value : null;
+      const text = clean(value);
+      if (/^\d{1,2}$/.test(text)) return Number(text);
+      const named = text.match(/^(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)(?:[a-z]*)(?:\s+(\d{4}))?$/i);
+      if (!named) return null;
+      const month = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"].indexOf(named[2].toLowerCase()) + 1;
+      return `${named[3] ?? weekStart.slice(0,4)}-${String(month).padStart(2,"0")}-${named[1].padStart(2,"0")}`;
+    };
+    let dateRow = 0, window: Array<readonly [number, number]> = [];
+    for (const rowNumber of [...sheet.rows.keys()].filter(n => n <= 12)) {
+      const pairs = [...sheet.rows.get(rowNumber)!].filter(([column, value]) => column >= 1 && dateValue(value) !== null);
+      for (let index = 0; index <= pairs.length - 7; index++) {
+        const candidate = pairs.slice(index,index+7);
+        if (candidate.every(([column,value],offset) => (offset === 0 || column === candidate[offset-1][0]+2) && (typeof dateValue(value) === "number" ? dateValue(value) === expectedDays[offset] : dateValue(value) === addDays(weekStart,offset)))) {
+          dateRow = rowNumber; window = candidate.map(([column,value]) => [column, typeof dateValue(value) === "number" ? Number(dateValue(value)) : Number(String(dateValue(value)).slice(-2))] as const); break;
+        }
+      }
+      if (window.length) break;
+    }
+    const pairs = [...(sheet.rows.get(dateRow) ?? new Map())];
     if (!window.length) { issues.push({ sheet: sheet.name, reason: "date_window_mismatch", message: `${sheet.name}: ${weekStart} date columns were not found (${pairs.slice(0, 8).map((pair) => `${pair[0]}:${pair[1]}`).join(", ") || "no date values"}).` }); continue; }
+    if (!knownName && !options.confirmDateContext) { issues.push({sheet: sheet.name, reason:"date_context_required",message:`${sheet.name}: confirm the displayed dates belong to ${weekStart} through ${addDays(weekStart,6)}. Sheet numbers never establish dates.`}); continue; }
     for (let rowNumber = dateRow + 2; rowNumber <= Math.max(...sheet.rows.keys()); rowNumber += 1) {
       const values = sheet.rows.get(rowNumber) ?? new Map(), fills = sheet.fills.get(rowNumber) ?? new Map(), employee = clean(values.get(0));
       if (key(employee) === "remark") break;
@@ -194,7 +223,7 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
   const locationByPersonDay = new Map<string, string>();
   for (const item of staged) {
     const label = cellText(item.first).toUpperCase();
-    if (label && !time(item.first) && !KINDS[label] && !BLOCKED.has(label) && !cellText(item.second)) {
+    if (LOCATION_MARKERS.has(label) && !time(item.first) && !cellText(item.second)) {
       locationByPersonDay.set(`${key(item.employee)}:${item.date}`, label);
     }
   }
@@ -248,5 +277,11 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
     else if (label && !locationByPersonDay.has(`${key(item.employee)}:${item.date}`) && !destinationKeys.has(`${key(item.employee)}:${item.date}`)) issues.push({ sheet: item.sheet, employee: item.employee, date: item.date, value: label, reason: "external_time_missing", message: `${item.sheet} · ${item.employee} · ${item.date}: “${label}” needs a destination shift time.` });
   }
   const result = [...outlets.values()];
-  return { fileName: file.name, fileHash, weekStart, weekEnd: addDays(weekStart, 6), outlets: result, issues, assignmentCount: result.reduce((sum, outlet) => sum + outlet.assignments.length, 0) };
+  const seen = new Set<string>();
+  for (const outlet of result) outlet.assignments = outlet.assignments.filter(assignment => {
+    const id = `${assignment.staff_id}:${assignment.work_date}`;
+    if (seen.has(id)) { issues.push({sheet: options.sheet ?? "Workbook", date:assignment.work_date, reason:"duplicate_assignment",message:`More than one source assignment exists for the same employee and date. Select one sheet before importing.`}); return false; }
+    seen.add(id); return true;
+  });
+  return { fileName: file.name, fileHash, weekStart, weekEnd: addDays(weekStart, 6), outlets: result, issues, sheets: sheets.map(sheet => sheet.name), assignmentCount: result.reduce((sum, outlet) => sum + outlet.assignments.length, 0) };
 }

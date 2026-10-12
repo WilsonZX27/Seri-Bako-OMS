@@ -1,0 +1,19 @@
+const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript'),vm=require('node:vm');
+function load(path){const c={exports:{},Buffer,Intl,Date,Set,Map,Uint8Array,DataView,TextDecoder,Blob,Response,DecompressionStream,crypto:require('node:crypto').webcrypto};vm.runInNewContext(ts.transpileModule(fs.readFileSync(path,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,c);return c.exports;}
+const {parseScheduleWorkbook:parse,scheduleTime}=load('src/lib/attendance/schedule-workbook.ts');
+const {buildZipArchive}=load('src/lib/attendance/people-workbook.ts');
+function file(days=[5,6,7,8,9,10,11],first='8.30PM',second='5.30AM',name='WEEK 28'){
+ const cell=(col,row,value)=>`<c r="${col}${row}" t="inlineStr"><is><t>${value}</t></is></c>`;
+ const cols=['B','D','F','H','J','L','N'];
+ const xml=`<worksheet><sheetData><row r="1">${cell('A',1,'PJS10-CK')}</row><row r="2">${days.map((d,i)=>cell(cols[i],2,d)).join('')}</row><row r="4">${cell('A',4,'Person')}${cell('B',4,first)}${second?cell('C',4,second):''}</row></sheetData></worksheet>`;
+ const zip=buildZipArchive([{name:'xl/workbook.xml',content:Buffer.from(`<workbook><sheets><sheet name="${name}" r:id="r1"/></sheets></workbook>`)},{name:'xl/_rels/workbook.xml.rels',content:Buffer.from('<Relationships><Relationship Id="r1" Target="worksheets/sheet1.xml"/></Relationships>')},{name:'xl/worksheets/sheet1.xml',content:Buffer.from(xml)}]);
+ return {name:'schedule.xlsx',size:zip.length,arrayBuffer:async()=>Uint8Array.from(zip).buffer};
+}
+const catalog={branches:[{id:'b',name:'CK @ PJS10',status:'not_started'}],staff:[{id:'s',name:'Person',branch_id:'b',eligibility:[{from:'2026-01-01',to:null}]}],current_assignments:[]};
+const options={sheet:'WEEK 28',branchId:'b',confirmDateContext:true};
+test('text clock formats and midnight parse without guessing named shifts',()=>{for(const [a,b] of [['8.30PM','20:30'],['5.30AM','05:30'],['12:00AM','00:00'],['00:00','00:00'],['25:00',null],['8.80PM',null],['MORNING',null]])assert.equal(scheduleTime(a),b);});
+test('unknown sheet has actionable mapping issue instead of silent zero',async()=>{const r=await parse(file(),'2026-10-05',catalog);assert.equal(r.assignmentCount,0);assert.equal(r.issues[0].reason,'sheet_mapping_required');});
+test('odd date columns and textual overnight times require explicit date context',async()=>{let r=await parse(file(),'2026-10-05',catalog,{...options,confirmDateContext:false});assert.equal(r.issues[0].reason,'date_context_required');r=await parse(file(),'2026-10-05',catalog,options);assert.equal(r.assignmentCount,1);assert.equal(r.outlets[0].assignments[0].custom_start,'20:30');assert.equal(r.outlets[0].assignments[0].custom_crosses_midnight,true);});
+test('WEEK 28 never implies a later week than actual headers',async()=>{const r=await parse(file(),'2026-10-12',catalog,options);assert.equal(r.assignmentCount,0);assert.equal(r.issues[0].reason,'date_window_mismatch');});
+test('named shifts and unknown leave codes are unresolved rather than silently dropped',async()=>{for(const label of ['MORNING','RPL','urgent leave','PUBLIKA']){const r=await parse(file(undefined,label,''),'2026-10-05',catalog,options);assert.equal(r.assignmentCount,0);assert.ok(r.issues.length,label);}});
+test('explicit month header cannot be reassigned to another month',async()=>{const r=await parse(file(['05 Sep','06 Sep','07 Sep','08 Sep','09 Sep','10 Sep','11 Sep']),'2026-10-05',catalog,options);assert.equal(r.assignmentCount,0);});

@@ -40,11 +40,12 @@ export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query =
   const company = actor.companyId;
   const activation = await db.rpc("asset_company_live", { p_company: company });
   if (activation.error || activation.data === null) throw new Error(activation.error?.message ?? "Asset activation could not be verified.");
-  if (activation.data !== true) return { active: false, view, page, query, locations: [] as AssetLocation[], overview: null as AssetOverview | null, assets: [] as AssetSummary[], holdings: [] as AssetHolding[], records: [] as AssetRecord[], total: 0, filterOptions: {categories:[] as string[],statuses:[] as string[]} };
+  if (activation.data !== true) return { active: false, view, page, query, locations: [] as AssetLocation[], overview: null as AssetOverview | null, assets: [] as AssetSummary[], holdings: [] as AssetHolding[], records: [] as AssetRecord[], total: 0, maintenanceSummary: null as Record<string,number> | null, filterOptions: {categories:[] as string[],statuses:[] as string[]} };
   const locationsResult = await db.from("asset_locations").select("id,source_name,branch_id,kind").eq("company_id", company).order("source_name");
   if (locationsResult.error || locationsResult.data === null) throw new Error(locationsResult.error?.message ?? "Asset locations unavailable.");
   const locations = locationsResult.data as AssetLocation[];
   if (locationId && !locations.some(location => location.id === locationId)) throw new Error("Asset location unavailable.");
+  let maintenanceSummary: Record<string,number> | null = null;
   let filterOptions = {categories:[] as string[],statuses:[] as string[]};
   let overview: AssetOverview | null = null;
   let assets: AssetSummary[] = [], holdings: AssetHolding[] = [], records: AssetRecord[] = [], total = 0;
@@ -97,7 +98,19 @@ export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query =
       assets = result.data as AssetSummary[];
     }
   }
-  return { active: true, view, page, query, locations, overview, assets, holdings, records, total, filterOptions };
+  if(view === "maintenance") {
+    maintenanceSummary={"Total tickets":0,"Outstanding":0,"Processed":0,"Cancelled":0};
+    for(let offset=0;;offset+=500) {
+      let summary=db.from("asset_maintenance").select("status").eq("company_id",company);
+      if(locationId)summary=summary.eq("location_id",locationId);
+      if(date && /^\d{4}-\d{2}-\d{2}$/.test(date))summary=summary.gte("source_data->>Created Date",date).lt("source_data->>Created Date",addDays(date,1));
+      const result=await summary.order("id").range(offset,offset+499);
+      if(result.error || result.data===null)throw new Error("Maintenance summary unavailable.");
+      for(const row of result.data){const state=String(row.status??"").toLowerCase();maintenanceSummary["Total tickets"]++;maintenanceSummary[state==="cancelled"?"Cancelled":["closed","resolved"].includes(state)?"Processed":"Outstanding"]++;}
+      if(result.data.length<500)break;
+    }
+  }
+  return { active: true, view, page, query, locations, overview, assets, holdings, records, total, filterOptions, maintenanceSummary };
 });
 
 export async function getAssetDetail(id: string) {

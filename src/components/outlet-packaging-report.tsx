@@ -3,7 +3,6 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ChevronDown } from "lucide-react";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -26,7 +25,6 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
   const [outlet, setOutlet] = useState("all");
   const [product, setProduct] = useState(report.products[0]?.code ?? "");
   const [measure,setMeasure]=useState<"usage"|"closing">("closing");
-  const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const changePeriod = (nextDays: 7 | 30) => {
     setRequestedDays(nextDays);
@@ -41,6 +39,8 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
   const selectedProduct = report.products.find((item) => item.code === product);
   const points = useMemo(()=>packagingTrendPoints(report,outlet,product,days,measure),[report,outlet,product,days,measure]);
   const balances=latest.filter(row=>row.code===product&&row.closing!==null);
+  const countDates = latest.filter(row=>row.closing!==null).map(row=>row.date).sort();
+  const countPeriod = countDates.length ? `${formatDateOnly(countDates[0])}${countDates[0]!==countDates.at(-1) ? ` – ${formatDateOnly(countDates.at(-1)!)}` : ""}` : "Not counted";
   const balanceTotal=balances.reduce((sum,row)=>sum+(row.closing??0),0);
   const maximum = Math.max(1, ...points.map((point) => point.value ?? 0));
   const selected = points.find((point) => point.date === selectedDate);
@@ -64,7 +64,7 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
       </>}
     </ConsoleSection>
   </>;
-  return <WorkspaceGrid tabletCanvas="wide" rightRail={rail} tabletRailBreakpoint="lg">
+  return <WorkspaceGrid tabletCanvas="wide" rightRail={rail} tabletRailMode="context">
   <div className="space-y-4" data-packaging-report>
     {/* Outlet/product are local state; only changePeriod owns server navigation. */}
     <FilterBar resetHref="/outlet-packaging" phoneMode="inline" className="gap-3" onSubmit={(event) => event.preventDefault()}>
@@ -82,26 +82,18 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
     <section className="erp-surface overflow-hidden" aria-labelledby="packaging-stock-title">
       <div className="flex flex-wrap items-baseline justify-between gap-2 border-b px-4 py-3">
         <h2 id="packaging-stock-title" className="text-sm font-semibold">Last counted balances</h2>
-        <span className="text-xs text-muted-foreground">Last physical count · select an item for trend</span>
+        <span className="text-xs text-muted-foreground">Counts: {countPeriod} · select an item</span>
       </div>
       <div className="divide-y">
         {report.products.map((item) => {
           const balances = latest.filter((row) => row.code === item.code && row.closing !== null);
           const total = balances.reduce((sum, row) => sum + (row.closing ?? 0), 0);
-          const dates = balances.map((row) => row.date).sort();
           return <div key={item.id} className={product===item.code ? "bg-muted/30" : ""}>
             <div className="flex items-stretch">
               <button type="button" aria-pressed={product===item.code} aria-controls="packaging-trend-panel" onClick={() => { setProduct(item.code); setSelectedDate(null); }} className="flex min-h-16 min-w-0 flex-1 items-center justify-between gap-3 px-3 py-2 text-left hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary">
-                <span className="min-w-0"><span className="block text-sm font-medium">{item.name}</span><span className="mt-0.5 block text-xs text-muted-foreground">{balances.length}/{count} outlets{dates.length ? ` · ${formatDateOnly(dates[0])}${dates[0] !== dates.at(-1) ? ` – ${formatDateOnly(dates.at(-1)!)}` : ""}` : " · Not counted"}</span>{product===item.code ? <span className="mt-1 block text-xs font-medium text-primary">Viewing trend</span> : null}</span>
+                <span className="min-w-0"><span className="block text-sm font-medium">{item.name}</span><span className="mt-0.5 block text-xs text-muted-foreground">{balances.length}/{count} outlets{!balances.length ? " · Not counted" : ""}</span>{product===item.code ? <span className="mt-1 block text-xs font-medium text-primary">Viewing trend</span> : null}</span>
                 <span className="shrink-0 text-sm font-semibold tabular-nums">{balances.length ? formatNumber(total) : "—"}<span className="ml-1 text-xs font-normal text-muted-foreground">{item.unit}</span></span>
               </button>
-              <button type="button" aria-label={`Outlet counts for ${item.name}`} aria-expanded={expandedProduct===item.code} aria-controls={`packaging-counts-${item.id}`} onClick={()=>setExpandedProduct(expandedProduct===item.code ? null : item.code)} className="flex min-h-11 w-11 shrink-0 items-center justify-center border-l hover:bg-muted focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"><ChevronDown aria-hidden="true" className={`size-4 ${expandedProduct===item.code ? "rotate-180" : ""}`}/></button>
-            </div>
-            <div id={`packaging-counts-${item.id}`} hidden={expandedProduct!==item.code} className="divide-y border-t bg-muted/20 px-4 py-1">
-              {report.outlets.filter((item) => outlet === "all" || item.id === outlet).map((branch) => {
-                const balance = balances.find((row) => row.branchId === branch.id);
-                return <div key={branch.id} className="flex items-center justify-between gap-4 py-2 text-xs"><div className="min-w-0"><p className="font-medium">{branch.name}</p><p className="text-muted-foreground">{balance ? `${formatDateOnly(balance.date)} · ${Math.max(0, Math.round((Date.parse(`${report.today}T00:00:00Z`) - Date.parse(`${balance.date}T00:00:00Z`)) / 86400000))} days ago` : "Not counted"}</p></div><span className="shrink-0 tabular-nums">{balance ? `${formatNumber(balance.closing ?? 0)} ${item.unit}` : "—"}</span></div>;
-              })}
             </div>
           </div>;
         })}
@@ -114,16 +106,23 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
       </div>
       <div className="p-4">
         <p className="text-sm font-medium">{selectedProduct?.name??"Packaging"} · {measure==="usage"?"Usage":"Recorded balance"}</p>
-        <div className="mt-4 h-64" key={`${outlet}:${product}:${days}:${measure}`}>
-          {periodPending ? <SectionLoadingState label="Loading packaging trend" /> : <InteractiveLineChart compact width={600} height={256} inset={{ top: 20, right: 12, bottom: 28, left: 42 }} maximum={maximum} maximumFractionDigits={0}
+        <div className={points.some(point=>point.value!==null) || periodPending ? "mt-4 h-64" : "mt-4 flex min-h-32 items-center"} key={`${outlet}:${product}:${days}:${measure}`}>
+          {periodPending ? <SectionLoadingState label="Loading packaging trend" /> : !points.some(point=>point.value!==null) ? <div role="status" className="text-sm"><p className="font-medium">No complete {measure=== "closing" ? "balance" : "usage"} history for this period</p><p className="mt-1 text-xs text-muted-foreground">{outlet=== "all" ? "Choose an outlet to inspect its recorded history. Missing counts are not zero." : "Completed records will appear here. Missing counts are not zero."}</p></div> : <InteractiveLineChart compact width={600} height={256} inset={{ top: 20, right: 12, bottom: 28, left: 42 }} maximum={maximum} maximumFractionDigits={0}
             ariaLabel={`${selectedProduct?.name ?? "Packaging"} daily ${measure==="usage"?"usage":"closing balance"}`} onSelectPoint={setSelectedDate}
             points={points.map((point) => ({ id: point.date, label: formatDateOnly(point.date), value: point.value,
               previewValue: point.value === null ? (measure==="closing"?"Incomplete balance coverage":point.rows.length ? "Incomplete usage coverage" : "No completed records") : `${formatNumber(point.value)} ${selectedProduct?.unit}`,
               previewDetails: [`${new Set(point.rows.map(row=>row.branchId)).size}/${count} outlets ${measure==="closing"?"with known balance":"recorded"}`, ...(measure==="closing"?[`${point.updated} updated that day`]:[])],
             }))} />}
         </div>
-        {!periodPending ? <p className="mt-3 text-xs text-muted-foreground">{points.filter((point) => point.value !== null).length}/{days} days {measure==="closing"?"with full balance coverage":"recorded"} · select a day for details</p> : null}
+        {!periodPending ? <p className="mt-3 text-xs text-muted-foreground">{points.filter((point) => point.value !== null).length}/{days} days {measure==="closing"?"with full balance coverage":"recorded"}{points.some(point=>point.value!==null)?" · select a day for details":""}</p> : null}
 
+        <section className="mt-4 border-t pt-3" aria-label="Selected packaging outlet counts">
+          <h3 className="text-sm font-semibold">Last count by outlet</h3>
+          <div className="divide-y">{report.outlets.filter(branch=>outlet==="all"||branch.id===outlet).map(branch=>{
+            const balance=balances.find(row=>row.branchId===branch.id);
+            return <div key={branch.id} className="flex items-center justify-between gap-3 py-2 text-xs"><div className="min-w-0"><p className="font-medium">{branch.name}</p><p className="text-muted-foreground">{balance?formatDateOnly(balance.date):"Not counted"}</p></div><span className="shrink-0 tabular-nums">{balance?`${formatNumber(balance.closing)} ${selectedProduct?.unit}`:"—"}</span></div>;
+          })}</div>
+        </section>
       </div>
     </section>
     </div>

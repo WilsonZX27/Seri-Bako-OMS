@@ -70,7 +70,7 @@ export async function buildPlanPayload(db: LooseSupabase, companyId: string, kit
     const specialEvent = context.events.some((e) => e.confirmed && e.event_date === dateValue && e.branch_id === record.branch_id && e.lines.some((l) => l.product_id === line.product_id));
     const key = `${record.branch_id}:${line.product_id}`;
     const points = series.get(key) ?? [];
-    points.push({ recordId: String(record.id), date: dateValue, received: Number(line.morning_received_qty), leftover: Number(line.evening_leftover_qty), wastage: Number(line.wastage_qty), receivedProvided: line.morning_received_provided === true, completed: line.wastage_provided === true && !incompleteRecords.has(String(record.id)), specialEvent, stockout: line.stockout === true });
+    points.push({ recordId: String(record.id), date: dateValue, received: Number(line.morning_received_qty), leftover: Number(line.evening_leftover_qty), wastage: Number(line.wastage_qty), receivedProvided: line.morning_received_provided === true, completed: line.wastage_provided === true && !incompleteRecords.has(String(record.id)), specialEvent, stockout: line.stockout === true, stockoutObserved: typeof line.stockout === "boolean" });
     series.set(key, points);
   }
   const events = context.events.filter((e) => e.confirmed && e.event_date === date);
@@ -80,6 +80,8 @@ export async function buildPlanPayload(db: LooseSupabase, companyId: string, kit
   const product_lines: ProductionLine[] = [];
   for (const product of context.products) {
     const batch = context.batches.find((b) => b.product_id === product.id);
+    const onOrder=batch?.forecast_basis === "on_order";
+    if(onOrder&&!events.some(event=>event.lines.some(line=>line.product_id===product.id)))continue;
     let demand = 0, manual = false;
     for (const branch of context.outlets) {
       const rule = context.minimums.find((m) => m.branch_id === branch.id && m.product_id === product.id);
@@ -87,6 +89,7 @@ export async function buildPlanPayload(db: LooseSupabase, companyId: string, kit
       const evidence = recommendQuantity(series.get(`${branch.id}:${product.id}`) ?? [], date, minimum, Number(context.config.buffer_percent), Number(context.config.max_decrease_percent));
       if (batch?.forecast_basis !== "same_day") { evidence.stockoutRisk = false; evidence.method = "manual"; evidence.suggested = null; evidence.weightedMovement = null; evidence.reductionFloor = null; evidence.manualReason = "Multi-day or unconfirmed shelf-life: daily receipts cannot establish demand. Manager quantity required."; }
       const event_qty = events.filter((e) => e.branch_id === branch.id).reduce((sum,e) => sum+e.lines.filter((l) => l.product_id===product.id).reduce((s,l) => s+Number(l.qty),0),0);
+      if(onOrder){evidence.suggested=0;evidence.minimum=0;evidence.manualReason="By order only: confirmed orders determine the quantity.";}
       const suggested_qty = evidence.suggested === null ? null : evidence.suggested + event_qty;
       allocations.push({ product_id: product.id, branch_id: branch.id, suggested_qty, approved_qty: suggested_qty, minimum_qty: minimum, reason: "", evidence, event_qty });
       if (suggested_qty === null) manual = true; else demand += suggested_qty;

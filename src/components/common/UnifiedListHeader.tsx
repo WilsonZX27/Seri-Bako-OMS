@@ -298,7 +298,7 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
         className: cn("unified-list-action", hasTextSearch && isSearchSubmit(child) && "unified-list-search-submit", props.className as string),
         "data-list-primary-action": !showSearchAction && index === 0 ? true : undefined,
         "data-list-secondary-action": showSearchAction || index > 0 ? true : undefined,
-        ...(hasTextSearch && isSearchSubmit(child) ? { children: <><Search aria-hidden="true"/><span>Search</span></> } : {}),
+        ...(hasTextSearch && isSearchSubmit(child) ? { children: <><Search className="size-4 shrink-0" aria-hidden="true"/><span>Search</span></> } : {}),
       });
     });
     return <form
@@ -323,7 +323,7 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
         className="unified-list-desktop-actions"
         style={{ gridColumn: `-${commandTrackCount + 1} / -1` }}
       >
-        {showSearchAction ? <Button type="submit" className="unified-list-action unified-list-search-submit" data-list-primary-action="true" onClick={() => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); }}><Search aria-hidden="true"/><span>Search</span></Button> : null}
+        {showSearchAction ? <Button type="submit" className="unified-list-action unified-list-search-submit" data-list-primary-action="true" onClick={() => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); }}><Search className="size-4 shrink-0" aria-hidden="true"/><span>Search</span></Button> : null}
         {actionNodes}
         {typeof resultCount === "number" ? <div className="sb-filter-summary" aria-live="polite"><span className="sb-filter-summary-count">{resultCount}</span><span className="sb-filter-summary-label">{resultLabel ?? (resultCount === 1 ? "record" : "records")}</span></div> : null}
       </div>
@@ -365,7 +365,7 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
     <form ref={formRef} className={cn("unified-list-header sb-list-query-card", className)} data-filtered={filtered || undefined} data-reset-href={resetHref} onSubmit={submit} onKeyDown={cancelDebounceOnEnter}>
       {(!primaryInDrawer && primary || resolvedPhoneMode === "drawer" || contextualFilterCount === 1 || typeof resultCount === "number") ? <div className={cn("unified-list-row", primaryInDrawer && "unified-list-row--filter-only")}>
         {!primaryInDrawer && primary && isValidElement(primary) ? <SearchControl child={primary} value={searchValue} onChange={updateSearch} /> : null}
-        {showMobileSearchAction ? <Button type="submit" size="icon" variant="outline" className="unified-list-search-submit" aria-label="Search" title="Search" onClick={() => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); }}><Search aria-hidden="true"/></Button> : null}
+        {showMobileSearchAction ? <Button type="submit" size="icon" variant="outline" className="unified-list-search-submit" aria-label="Search" title="Search" onClick={() => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); }}><Search className="size-4 shrink-0" aria-hidden="true"/></Button> : null}
         {resolvedPhoneMode === "drawer" ? <button ref={filterTriggerRef} type="button" className="unified-list-filter-trigger" onClick={() => setOpen(true)} aria-label={active ? `Filter, ${active} active` : "Filter"} aria-haspopup="dialog" aria-expanded={open}><SlidersHorizontal /><span className="unified-list-filter-label">Filter{active ? ` (${active})` : ""}</span></button> : null}
         {resolvedPhoneMode === "inline" && contextualFilterCount === 1 ? <div className="unified-list-inline-control">{filterControls}</div> : null}
         {typeof resultCount === "number" ? <span className="unified-list-result" aria-live="polite"><strong>{resultCount}</strong><span>{resultLabel ?? (resultCount === 1 ? "record" : "records")}</span></span> : null}

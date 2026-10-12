@@ -2521,9 +2521,10 @@ html[data-design-layer="v2"] .sb-planning-matrix thead .sb-planning-product { le
 html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-summary .sb-planning-adjust { width: auto; height: 23px !important; min-height: 23px !important; max-height: 23px !important; padding: 0 8px; margin-top: 3px; color: #fff; background: #7c9b8d; font-size: 11px; font-weight: 500; gap: 4px; }
 html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-adjust > svg { width: 12px; height: 12px; }
 html[data-design-layer="v2"] .sb-planning-product button { min-height: 0; line-height: 18px; }
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
  html[data-design-layer="v2"] :is(.sb-planning-workspace, .sb-planning-actions, form.sb-query-explicit) { --sb-control-height: 2.75rem; }
  html[data-design-layer="v2"] .sb-planning-product button { min-height: 44px; }
+ html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-summary .sb-planning-adjust { height: 44px !important; min-height: 44px !important; max-height: 44px !important; }
  .sb-query-result { font-size: 11px; }
 }
 
@@ -2583,14 +2584,21 @@ html[data-design-layer="v2"] .unified-list-date-control {
   max-height: var(--sb-control-height) !important;
 }
 
-/* Scoped review corrections: preserve shared control heights and query ownership. */
-@media (min-width: 768px) {
-  html[data-design-layer="v2"] form.sb-attendance-review-query > .unified-list-date-control {
-    flex: 0 0 128px !important; width: 128px !important; min-width: 128px !important; max-width: 128px !important;
+/* Four equal attendance fields. At compact canvas sizes actions wrap independently. */
+@media (min-width: 640px) {
+  html[data-design-layer="v2"] form.sb-list-filters.sb-list-query-card.sb-attendance-review-query {
+    display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  html[data-design-layer="v2"] form.sb-list-filters.sb-list-query-card.sb-attendance-review-query > :is(.unified-list-date-control, .unified-list-primary-control, button[role="combobox"]) {
+    width: 100% !important; min-width: 0 !important; max-width: none !important; grid-column: auto !important; grid-row: auto !important;
+  }
+  html[data-design-layer="v2"] form.sb-list-filters.sb-list-query-card.sb-attendance-review-query > .unified-list-desktop-actions {
+    grid-column: 1 / -1 !important; grid-row: auto !important; display: flex !important; justify-content: flex-end;
   }
 }
-@media (min-width: 768px) and (max-width: 1279px) {
-  html[data-design-layer="v2"] form.sb-attendance-review-query > .unified-list-date-control {
-    grid-column: span 2;
-  }
+@media (min-width: 1280px) {
+  html[data-design-layer="v2"] form.sb-list-filters.sb-list-query-card.sb-attendance-review-query { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+}
+html[data-design-layer="v2"] form.sb-asset-query .unified-list-desktop-actions button > svg {
+  width: 1rem; height: 1rem; flex: none;
 }

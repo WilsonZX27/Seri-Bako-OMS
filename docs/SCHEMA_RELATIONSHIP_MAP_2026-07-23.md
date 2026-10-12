@@ -1,3 +1,5 @@
+> 2026-10-12 candidate: migrations reviewed through `344`; forward-only migration 历史已到 `344`. Migration 344 adds an explicit by-order demand basis. Prepared for isolated validation; not applied to Production.
+
 > 2026-10-10 isolated schedule repair: repository migrations reviewed through `343`; forward-only migration 历史已到 `343`. Migration 343 makes version validation, destination save and submit atomic; Wilson approved application only to the isolated local test DB (341 migration rows, maximum 343). No grants changed. This is not evidence of Production schema or deployment changes.
 
 ## v9.2.103 approved release verification — 2026-10-09

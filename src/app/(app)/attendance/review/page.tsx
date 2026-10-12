@@ -25,6 +25,7 @@ import { EmployeeAttendanceSummary } from "@/components/attendance/employee-atte
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Button } from "@/components/ui/button";
+import { TableScrollRegion } from "@/components/ui/table-scroll-region";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { durationLabel } from "@/lib/attendance/calculation";
@@ -233,6 +234,7 @@ export default async function AttendanceReviewPage({
         contentWidth="wide"
       />
       <WorkspaceGrid
+        tabletRailMode="context"
         tabletCanvas="wide"
         className="sb-portrait-tablet-rail"
         hideMobileConsole
@@ -386,17 +388,10 @@ export default async function AttendanceReviewPage({
               {review.total} results
             </span>
           </header>
-          <div className="hidden overflow-auto md:block">
-            <table id="attendance-review-results" className="w-full min-w-[58rem] table-fixed text-left text-xs">
+          <TableScrollRegion label="Attendance results" className="hidden md:block">
+            <table id="attendance-review-results" className="w-full min-w-[48rem] table-fixed text-left text-xs">
               <colgroup>
-                <col className="w-[16%]" />
-                <col className="w-[10%]" />
-                <col className="w-[14%]" />
-                <col className="w-[10%]" />
-                <col className="w-[14%]" />
-                <col className="w-[10%]" />
-                <col className="w-[10%]" />
-                <col className="w-[16%]" />
+                {[16, 9, 12, 10, 12, 9, 10, 22].map((width, index) => <col key={index} style={{ width: `${width}%` }} />)}
               </colgroup>
               <thead className="sticky top-0 z-10 bg-[var(--sb-surface-muted)]">
                 <tr>
@@ -410,7 +405,7 @@ export default async function AttendanceReviewPage({
                     "RO\nOT",
                     "Actions",
                   ].map((label) => (
-                    <th key={label} className="whitespace-pre-line px-3 py-2.5">
+                    <th key={label} className="whitespace-pre-line px-3 py-2.5 first:sticky first:left-0 first:bg-[var(--sb-surface-muted)]">
                       {label}
                     </th>
                   ))}
@@ -431,12 +426,12 @@ export default async function AttendanceReviewPage({
                       {newDay ? (
                         <tr className="border-t border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)]">
                           <th colSpan={8} className="px-3 py-2 font-semibold">
-                            {dateHeading(row.work_date)}
+                            <span className="sticky left-3 inline-block">{dateHeading(row.work_date)}</span>
                           </th>
                         </tr>
                       ) : null}
                       <tr className="border-t border-[var(--sb-border-soft)] hover:bg-[var(--sb-surface-muted)]">
-                        <td className="px-3 py-3">
+                        <td className="sticky left-0 z-[1] bg-white px-3 py-3">
                           {employeeSummary(row, staff)}
                           <span className="text-[11px] text-muted-foreground">
                             {staff?.employment_type === "part_time"
@@ -495,7 +490,7 @@ export default async function AttendanceReviewPage({
                 })}
               </tbody>
             </table>
-          </div>
+          </TableScrollRegion>
           <div className="divide-y divide-[var(--sb-border-soft)] md:hidden">
             {rows.map((row, index) => {
               const { staff, candidate, actualOvertime, claim, reservation, status } = rowContext(row);
@@ -513,7 +508,7 @@ export default async function AttendanceReviewPage({
                     </h3>
                   ) : null}
                   <article className="p-3">
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="flex flex-wrap items-start justify-between gap-2">
                       <div>
                         {employeeSummary(row, staff)}
                         <p className="text-[11px] text-muted-foreground">
@@ -547,6 +542,14 @@ export default async function AttendanceReviewPage({
                       <div>
                         <dt className="text-muted-foreground">Clock out</dt>
                         <dd>{time(row.actual_last_out)}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground">Break</dt>
+                        <dd>{duration(row.break_seconds)}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground">Worked</dt>
+                        <dd>{duration(row.worked_seconds)}</dd>
                       </div>
                       {Number(row.late_seconds ?? 0) > 0 ? (
                         <div>
@@ -663,12 +666,11 @@ function RowActions({
   weekLocked: boolean;
 }) {
   return (
-    <div className="inline-grid min-w-0 grid-cols-1 justify-items-start gap-1 [&_button]:font-normal">
+    <div className="inline-flex min-w-0 max-w-64 flex-wrap items-center gap-1 [&_button]:font-normal">
       <Button asChild size="sm" variant="ghost" className="w-auto justify-start gap-2 bg-transparent px-2 font-normal hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-surface-muted)]">
-        <Link href={href}><Eye className="h-4 w-4"/>View details</Link>
+        <Link href={href} title="View details"><Eye className="h-4 w-4"/><span className="md:sr-only">View details</span></Link>
       </Button>
       {permissions["attendance.report.submit"] && reportable && !weekLocked ? <Button asChild size="sm" variant="ghost" className="min-h-11 px-2"><Link href={`${href}&report=${encodeURIComponent(String(row.assignment_id))}`}>Report actual attendance</Link></Button> : null}
-      {permissions["attendance.report.submit"] && !reportable && !weekLocked ? <Link className="min-h-11 py-2 text-xs text-warning underline" href={`/attendance/schedule?${href.split("?")[1] ?? ""}`}>Check and publish this staff day before reporting leave.</Link> : null}
       {permissions["attendance.adjust"] ? (
         <AttendanceAdjustmentButton
           resultId={String(row.id)}
@@ -682,6 +684,7 @@ function RowActions({
       ) : (
         <StatusBadge status={String(row.review_status)} label={String(row.review_status) === "reviewed" ? "Calculated" : undefined} />
       )}
+      {permissions["attendance.report.submit"] && !reportable && !weekLocked ? <Link title="Publish this staff day in the schedule before reporting leave" className="inline-flex min-h-[var(--sb-control-height)] items-center gap-2 px-2 text-xs font-medium text-warning" href={`/attendance/schedule?${href.split("?")[1] ?? ""}`}>Review schedule</Link> : null}
       <OtClaimAction
         resultId={String(row.id)}
         candidateSeconds={candidate}

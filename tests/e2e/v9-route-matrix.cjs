@@ -46,6 +46,8 @@ const ATTENDANCE_IMPORT = ["superAdmin", "peopleOperations"];
 // Parent navigation describes read visibility. Create and edit workspaces are
 // narrower and follow the canonical permission grants through migration 218.
 const actionRouteAuthorities = new Map([
+  ["/asset-management/assets/new", ["superAdmin", "manager"]],
+  ["/asset-management/transfers/new", ["superAdmin", "manager", "kitchen", "outletSupervisor", "outlet"]],
   ["/attendance/settings", ATTENDANCE_IMPORT],
   ["/administration", ["superAdmin", "finance", "manager", "purchasing"]],
   [`/branches/${MISSING_ID}`, OWNER_FINANCE_MANAGER],
@@ -84,6 +86,8 @@ const actionRouteAuthorities = new Map([
 // whichever RLS policy happens to answer today. A new route must deliberately
 // join one of these authorities before the v9 matrix will accept it.
 const accessAuthorities = [
+  ["/asset-management/maintenance", ["superAdmin", "manager", "outletSupervisor"]],
+  ["/asset-management", ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]],
   ["/attendance/imports", ATTENDANCE_IMPORT],
   ["/attendance", ATTENDANCE],
   ["/outlet-compliance", ["superAdmin", "peopleOperations", "manager", "purchasing", "outletSupervisor"]],

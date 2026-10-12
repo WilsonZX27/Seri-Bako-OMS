@@ -24,7 +24,7 @@ function fixture({role = 'manager', rpcError = null, mail = {unavailable: true},
  }
  const errors = compile('src/server/actions/error-handling.ts', shared);
  const actions = compile('src/server/actions/production-planning.ts', {
-  ...shared, 'zod': require('zod'), 'next/cache': {revalidatePath: path => invalidations.push(path)},
+  ...shared, '@/lib/production-planning/minimum-estimate':compile('src/lib/production-planning/minimum-estimate.ts',{}), 'zod': require('zod'), 'next/cache': {revalidatePath: path => invalidations.push(path)},
   '@/lib/supabase/server': {createClient: async () => readDb??db}, '@/lib/supabase/loose': {looseSupabase: value => value},
   '@/server/queries/common': {getCurrentProfile: async () => ({company_id: kitchen, role_code: role})},
   '@/server/production-planning/data': {buildPlanPayload() {throw Error('Unexpected forecast');},async complete(factory){const result=await factory();if(result.error)throw Error(result.error.message);return result.data;}},
@@ -101,3 +101,5 @@ test('history preview scopes the parent company, outlets, product and dates with
  assert.ok(reads.find(r=>r.table==='outlet_daily_records').calls.some(c=>c.method==='in'&&c.args[0]==='branch_id'&&c.args[1][0]===outlet));
  assert.ok(reads.find(r=>r.table==='outlet_daily_record_lines').calls.some(c=>c.method==='eq'&&c.args[0]==='product_id'&&c.args[1]===product));
 });
+
+test('outlet staff cannot request minimum estimates or read planning history through setup',async()=>{const f=fixture({role:'outlet_staff'});const result=await f.actions.estimatePlanningMinimums(kitchen,'2026-10-13');assert.equal(result.ok,false);assert.ok(result.message.length>0);assert.equal(f.calls.length,0);});

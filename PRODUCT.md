@@ -1,3 +1,5 @@
+> 2026-10-12 candidate: migrations reviewed through `344`; forward-only migration 历史已到 `344`. Migration 344 adds an explicit by-order demand basis. Prepared for isolated validation; not applied to Production.
+
 # v9.2.106 (unreleased)
 
 Reviewed operations UI and reliable draft submission candidate. Production remains v9.2.105. Migration 343 is validated only in the isolated test database; production application requires separate authorization. No post-release permission expansion is included.

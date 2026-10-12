@@ -149,7 +149,7 @@ export function InteractiveLineChart({
           if (event.pointerType === "mouse" && !event.currentTarget.matches(":focus")) setActiveIndex(null);
         }}
       >
-        {[0, 0.5, 1].map((ratio) => {
+        {(maximumFractionDigits === 0 && safeMaximum < 2 ? [0, 1] : [0, 0.5, 1]).map((ratio) => {
           const value = safeMaximum * (1 - ratio);
           const lineY = inset.top + innerHeight * ratio;
           return (

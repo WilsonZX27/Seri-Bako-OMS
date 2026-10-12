@@ -29,7 +29,7 @@ export function EmployeeAttendanceSummary({
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   return <>
-    <button type="button" className="block text-left font-semibold hover:underline focus-visible:underline" onClick={() => dialog.current?.showModal()}>{name}</button>
+    <button type="button" className="block max-w-full break-words text-left font-semibold hover:underline focus-visible:underline" onClick={() => dialog.current?.showModal()}>{name}</button>
     <dialog ref={dialog} onCancel={() => dialog.current?.close()} aria-labelledby="employee-attendance-title" className="m-auto max-h-[calc(100dvh-2rem)] w-[min(34rem,calc(100vw-2rem))] overflow-y-auto rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50">
       <div className="space-y-4 p-4">
         <header>

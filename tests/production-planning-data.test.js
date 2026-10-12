@@ -17,12 +17,12 @@ function fixture(){
  return {db,tables,readTables,reads:()=>reads,company,kitchen};
 }
 test('plan loader reads 3,200 historical lines through capped pages and keeps 400 outlet/product series distinct',async()=>{
- const f=fixture();const p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');assert.equal(p.allocations.length,400);assert.equal(p.product_lines.length,40);assert.equal(p.allocations[0].evidence.evidence.length,8);assert.equal(p.allocations[0].suggested_qty,100);assert.equal(p.product_lines[0].trays,63);assert.ok(f.reads()>20);
+ const f=fixture();const p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');assert.equal(p.allocations.length,400);assert.equal(p.product_lines.length,40);assert.equal(p.allocations[0].evidence.evidence.length,8);assert.equal(p.allocations[0].suggested_qty,90);assert.equal(p.product_lines[0].trays,57);assert.ok(f.reads()>20);
 });
 test('a missing receipt excludes its whole food record, packaging does not contribute and events stay separate',async()=>{
  const f=fixture();const line=f.tables.outlet_daily_record_lines.find(l=>l.record_id==='outlet-0-r-7'&&l.product_id==='p-0');line.morning_received_provided=false;
  f.tables.production_planning_events.push({id:'event-1',company_id:f.company,kitchen_id:f.kitchen,branch_id:null,event_date:'2026-10-03',confirmed:true,name:'Corporate',lines:[{product_id:'p-0',qty:32}]});
- const p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');assert.equal(p.allocations.find(a=>a.branch_id==='outlet-0'&&a.product_id==='p-1').evidence.evidence.length,7);assert.equal(p.product_lines[0].event_qty,32);assert.equal(p.allocations[0].event_qty,0);assert.equal(p.product_lines[0].trays,65);
+ const p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');assert.equal(p.allocations.find(a=>a.branch_id==='outlet-0'&&a.product_id==='p-1').evidence.evidence.length,7);assert.equal(p.product_lines[0].event_qty,32);assert.equal(p.allocations[0].event_qty,0);assert.equal(p.product_lines[0].trays,59);
 });
 
 test('planning reads use the real Supabase query builder including empty plans and DOs',async()=>{
@@ -99,4 +99,15 @@ test('manual-only plans skip historical reads without inventing demand or tray c
  assert.ok(!f.readTables.includes('outlet_daily_records'));assert.ok(!f.readTables.includes('outlet_daily_record_lines'));
  assert.equal(p.allocations.length,400);assert.ok(p.allocations.every(a=>a.approved_qty===null&&a.suggested_qty===null&&a.evidence.method==='manual'&&a.evidence.evidence.length===0));
  assert.ok(p.product_lines.every(p=>p.trays===null));
+});
+
+test('explicit no-stockout evidence allows capped waste reduction; unknown stockout retains protection',async()=>{
+ const f=fixture();f.tables.outlet_daily_record_lines.forEach(line=>{delete line.stockout;});
+ const plan=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');assert.equal(plan.allocations[0].suggested_qty,100);
+});
+test('on-order products stay absent without orders and produce only confirmed demand when ordered',async()=>{
+ const f=fixture();f.tables.production_batch_rules[0].forecast_basis='on_order';f.tables.production_batch_rules[0].yield_per_tray=1;
+ let plan=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');assert.equal(plan.product_lines.some(line=>line.product_id==='p-0'),false);
+ f.tables.production_planning_events.push({id:'event-order',company_id:f.company,kitchen_id:f.kitchen,branch_id:null,event_date:'2026-10-03',confirmed:true,name:'Order',lines:[{product_id:'p-0',qty:17}]});
+ plan=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');assert.equal(plan.product_lines.find(line=>line.product_id==='p-0').trays,17);assert.ok(plan.allocations.filter(line=>line.product_id==='p-0').every(line=>line.suggested_qty===0));
 });

@@ -4,7 +4,8 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { looseSupabase } from "@/lib/supabase/loose";
 import { getCurrentProfile } from "@/server/queries/common";
-import { complete, buildPlanPayload } from "@/server/production-planning/data";
+import { complete, buildPlanPayload, loadPlanningContext } from "@/server/production-planning/data";
+import { estimateNonzeroMinimum } from "@/lib/production-planning/minimum-estimate";
 import { addDays } from "@/lib/production-planning/forecast";
 import { formatActionError } from "@/server/actions/error-handling";
 
@@ -57,7 +58,7 @@ export async function confirmDispatch(planId: string, revision: number, payload:
 }
 export async function configurePlanning(payload: unknown) {
   return run(async () => { const {db}=await manager();
-    const parsed=z.object({availability:z.array(z.object({product_id:uuid,available_from:date.nullable(),available_until:date.nullable(),expected_from:date.nullable(),expected_until:date.nullable()})).max(500).optional(),kitchen_id:uuid,enabled:z.boolean(),draft_time:z.literal("20:00"),buffer_percent:quantity.max(100),max_decrease_percent:quantity.max(100),recipients:z.array(z.email()).max(50),batches:z.array(z.object({product_id:uuid,yield_per_tray:quantity.positive(),forecast_basis:z.enum(["same_day","manual"]).default("manual")})).max(500),minimums:z.array(z.object({branch_id:uuid,product_id:uuid,minimum_qty:quantity})).max(10000)}).parse(payload);
+    const parsed=z.object({minimum_estimation:z.object({method:z.literal("lower_quartile_56_days"),floor:z.literal(1),as_of:date}).optional(),availability:z.array(z.object({product_id:uuid,available_from:date.nullable(),available_until:date.nullable(),expected_from:date.nullable(),expected_until:date.nullable()})).max(500).optional(),kitchen_id:uuid,enabled:z.boolean(),draft_time:z.literal("20:00"),buffer_percent:quantity.max(100),max_decrease_percent:quantity.max(100),recipients:z.array(z.email()).max(50),batches:z.array(z.object({product_id:uuid,yield_per_tray:quantity.positive(),forecast_basis:z.enum(["same_day","manual","on_order"]).default("manual")})).max(500),minimums:z.array(z.object({branch_id:uuid,product_id:uuid,minimum_qty:quantity})).max(10000)}).parse(payload);
     await rpc(db,"configure_production_planning",{p_payload:parsed}); return {}; });
 }
 export async function savePlanningEvent(payload: unknown) {
@@ -96,4 +97,21 @@ export async function readPlanningHistory(planId:string,productId:string):Promis
   }
   return {ok:true,message:"",rows:result.sort((a,b)=>b.date.localeCompare(a.date))};
  }catch(error){return {ok:false,message:formatActionError(error,"Could not read history. Retry."),rows:[]};}
+}
+
+/** Read-only estimate; the operator saves the reviewed settings using the existing audited RPC. */
+export async function estimatePlanningMinimums(kitchenId:string,deliveryDate:string):Promise<{ok:boolean;message:string;minimums:Record<string,string>}> {
+ try {
+  const {db,companyId}=await manager();uuid.parse(kitchenId);date.parse(deliveryDate);
+  const context=await loadPlanningContext(db,companyId,kitchenId,deliveryDate,{view:"generation"});
+  if(!context.kitchens.some(k=>k.id===kitchenId))throw new Error("Kitchen access required.");
+  if(!context.outlets.length)return {ok:true,message:"No supplied outlets.",minimums:{}};
+  const records=await complete(()=>db.from("outlet_daily_records").select("id,branch_id,record_date",{count:"exact"}).eq("company_id",companyId).in("branch_id",context.outlets.map(o=>o.id)).gte("record_date",addDays(deliveryDate,-56)).lt("record_date",deliveryDate).in("status",["evening_completed","reviewed"]));
+  const series=new Map<string,number[]>();
+  for(let offset=0;offset<records.length;offset+=100){const chunk=records.slice(offset,offset+100),byId=new Map(chunk.map(r=>[String(r.id),r]));
+   const lines=await complete(()=>db.from("outlet_daily_record_lines").select("id,record_id,product_id,morning_received_qty,morning_received_provided,evening_leftover_qty,wastage_qty,wastage_provided",{count:"exact"}).in("record_id",chunk.map(r=>r.id)));
+   for(const line of lines){if(line.morning_received_provided!==true||line.wastage_provided!==true||line.morning_received_qty==null||line.wastage_qty==null||line.evening_leftover_qty==null)continue;const received=Number(line.morning_received_qty),left=Number(line.evening_leftover_qty),waste=Number(line.wastage_qty);if(![received,left,waste].every(n=>Number.isFinite(n)&&n>=0)||left+waste>received)continue;const record=byId.get(String(line.record_id));if(!record||context.events.some(event=>event.confirmed&&event.branch_id===record.branch_id&&event.event_date===record.record_date&&event.lines.some(item=>item.product_id===line.product_id)))continue;const key=`${record.branch_id}:${line.product_id}`;series.set(key,[...(series.get(key)??[]),received-left-waste]);}
+  }
+  return {ok:true,message:"Estimated lower-quartile movement from 8 weeks of completed records. Minimum 1 piece; no-history floors are provisional. Review and save before recalculating.",minimums:Object.fromEntries(context.outlets.flatMap(o=>context.products.map(p=>{const key=`${o.id}:${p.id}`;return [key,String(estimateNonzeroMinimum(series.get(key)??[]))]}))) };
+ }catch(error){return {ok:false,message:formatActionError(error,"Minimum estimates unavailable."),minimums:{}};}
 }

@@ -101,7 +101,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                 {receivings?.rows.map((receiving) => (
                   <DataGridRow key={receiving.id} href={`/goods-receivings/${receiving.id}`} className="[&>td]:h-16 [&>td]:align-top">
                     <TableCell className="w-10 p-0 text-center"><TableActionLink href={`/goods-receivings/${receiving.id}`} label={`Open ${receiving.grn_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
-                    <TableCell><DocumentNumber value={receiving.grn_no} size="sm" /><span className="mt-1 block text-[10px] italic text-muted-foreground">{receiving.purchase_order_id && receiving.po_no ? <Link href={`/purchase-orders/${receiving.purchase_order_id}`} className="text-[var(--sb-link)] underline-offset-4 hover:underline">From {receiving.po_no}</Link> : "No linked PO"}</span></TableCell>
+                    <TableCell><DocumentNumber value={receiving.grn_no} size="sm" className="max-w-full break-all" /><span className="mt-1 block text-[10px] italic text-muted-foreground">{receiving.purchase_order_id && receiving.po_no ? <Link href={`/purchase-orders/${receiving.purchase_order_id}`} className="text-[var(--sb-link)] underline-offset-4 hover:underline">From {receiving.po_no}</Link> : "No linked PO"}</span></TableCell>
                     <TableCell className="w-52 max-w-52"><span className="line-clamp-2 leading-4">{receiving.supplier_name ?? "-"}</span></TableCell>
                     <TableCell>{formatDateOnly(receiving.received_date)}</TableCell>
                     <TableCell>{receiving.branch_name ?? "-"}</TableCell>

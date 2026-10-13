@@ -1,7 +1,7 @@
 "use client";
 
 import * as Select from "@radix-ui/react-select";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -46,6 +46,7 @@ export function SelectControl({
   emptyValue?: string;
   portalContainer?: HTMLElement | null;
 }) {
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   // Keep the trigger value controlled after hydration. Radix can otherwise
@@ -85,7 +86,7 @@ export function SelectControl({
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen);
     if (!nextOpen) setQuery("");
-    if (nextOpen)
+    if (nextOpen && !triggerRef.current?.closest(".sb-filter-more-panel"))
       document.dispatchEvent(new CustomEvent("sb:close-filter-more"));
   };
 
@@ -114,6 +115,7 @@ export function SelectControl({
         disabled={disabled}
       >
         <Select.Trigger
+          ref={triggerRef}
           id={id}
           data-select-control
           data-field-name={name}

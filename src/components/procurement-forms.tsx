@@ -122,7 +122,6 @@ export function PurchaseRequestForm({
 
   const hasRequestItem = lines.some((line) => Boolean(line.itemSearch.trim()));
   const selectedBranchName = branches.find((branch) => branch.id === branchId)?.branch_name ?? "Select branch";
-  const detailsComplete = Boolean(branchId && requestSupplierId);
   const supplierOptions = [...new Map([
     ...suppliers.map((supplier) => [supplier.id, { supplier_id: supplier.id, supplier_name: supplier.name }] as const),
     ...supplierMappings.filter((mapping) => mapping.branch_id === branchId).map((mapping) => [mapping.supplier_id, { supplier_id: mapping.supplier_id, supplier_name: mapping.supplier_name }] as const),
@@ -396,7 +395,7 @@ export function PurchaseRequestForm({
           ) : null}
           {contextResetNotice ? <div role="status" className="flex items-start justify-between gap-3 border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-3 py-2 text-xs text-[var(--sb-text)]"><p>{contextResetNotice}</p><button type="button" className="shrink-0 font-semibold text-primary hover:underline" onClick={() => setContextResetNotice("")} aria-label="Dismiss catalogue change notice">Dismiss</button></div> : null}
 
-          <section data-purchase-request-workspace className="sb-work-surface overflow-hidden" onFocusCapture={() => { if (detailsComplete && !validationError) setDetailsOpen(false); }}>
+          <section data-purchase-request-workspace className="sb-work-surface overflow-hidden">
             <div data-document-section-header className="flex items-center justify-between border-b bg-white px-3 py-2">
               <div>
                 <p className="text-xs font-semibold">Requested Items</p>

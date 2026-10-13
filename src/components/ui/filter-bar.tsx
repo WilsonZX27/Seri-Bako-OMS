@@ -5,6 +5,7 @@ import type { CSSProperties, MouseEvent, ReactNode, FormEventHandler } from "rea
 import { useEffect, useRef, useState } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { containDialogTab, focusDialog } from "@/lib/dialog-focus";
 import { UnifiedListHeader } from "@/components/common/UnifiedListHeader";
 
 export function FilterBar({
@@ -50,6 +51,7 @@ export function FilterBarMore({
 }) {
   const detailsRef = useRef<HTMLDetailsElement>(null);
   const summaryRef = useRef<HTMLElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [panelStyle, setPanelStyle] = useState<CSSProperties>();
   const positionPanel = () => {
@@ -82,6 +84,8 @@ export function FilterBarMore({
   useEffect(() => {
     if (!open) return;
     positionPanel();
+    const panel = panelRef.current;
+    if (panel) focusDialog(panel);
     const onViewportChange = () => positionPanel();
     window.addEventListener("resize", onViewportChange);
     window.addEventListener("scroll", onViewportChange, true);
@@ -89,10 +93,13 @@ export function FilterBarMore({
     document.body.style.overflow = "hidden";
     document.documentElement.dataset.filterDialogOpen = "true";
     function onKeyDown(event: KeyboardEvent) {
+      if (event.defaultPrevented) return;
       if (event.key === "Escape" && detailsRef.current?.open) close();
+      if (panel && !document.querySelector('[role="listbox"]')) containDialogTab(event, panel);
     }
     function onPointerDown(event: PointerEvent) {
       const target = event.target;
+      if (target instanceof Element && target.closest('[role="listbox"], [data-radix-popper-content-wrapper]')) return;
       if (target instanceof Node && detailsRef.current && !detailsRef.current.contains(target)) close(false);
     }
     document.addEventListener("keydown", onKeyDown);
@@ -122,13 +129,12 @@ export function FilterBarMore({
     <details ref={detailsRef} open={open} data-filter-more-wrapper className="sb-filter-more">
       <summary ref={summaryRef} onClick={handleSummaryClick}><SlidersHorizontal className="h-3.5 w-3.5" />More filters{activeCount ? <span className="sb-filter-more-count" aria-label={`${activeCount} active filters`}>{activeCount}</span> : null}</summary>
       <button type="button" className="sb-filter-more-backdrop" onClick={() => close()} aria-label="Dismiss filters" />
-      <div className="sb-filter-more-panel sb-filter-more-panel--anchored" style={panelStyle} role="dialog" aria-modal="true" aria-label="Filters">
+      <div ref={panelRef} tabIndex={-1} className="sb-filter-more-panel sb-filter-more-panel--anchored" style={panelStyle} role="dialog" aria-modal="true" aria-label="Filters">
         <div className="sb-filter-more-header">
           <div><h2>Filters</h2>{activeCount ? <p>{activeCount} active</p> : null}</div>
           <Button type="button" variant="ghost" size="icon" onClick={() => close()} aria-label="Close filters"><X className="h-4 w-4" /></Button>
         </div>
         <div className="sb-filter-more-fields">{children}</div>
-        <p className="sb-filter-more-help">Changes take effect after you select Apply.</p>
         <div className="sb-filter-more-actions">
           <Button asChild type="button" variant="ghost"><Link href={resetHref}>Reset</Link></Button>
           <Button type="submit">Apply</Button>

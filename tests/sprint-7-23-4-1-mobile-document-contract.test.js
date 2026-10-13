@@ -74,7 +74,7 @@ test("More filters escapes list clipping on mobile and tablet", () => {
   assert.match(css, /z-index: var\(--sb-z-dialog\)/);
   assert.match(filter, />Filters</);
   assert.match(filter, /active filters/);
-  assert.match(filter, /Changes take effect after you select Apply/);
+  assert.match(filter, /type="submit">Apply/);
   assert.match(filter, />Reset</);
   assert.match(filter, />Apply</);
   assert.match(filter, /aria-label="Close filters"/);

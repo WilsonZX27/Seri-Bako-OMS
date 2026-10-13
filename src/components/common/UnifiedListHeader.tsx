@@ -192,6 +192,7 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
     if (dialog) focusDialog(dialog);
 
     function onKeyDown(event: KeyboardEvent) {
+      if (event.defaultPrevented) return;
       if (event.key === "Escape") {
         event.preventDefault();
         setOpen(false);

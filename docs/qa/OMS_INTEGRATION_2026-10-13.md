@@ -52,7 +52,7 @@ Dedicated synthetic stack `oms-integration-20261014` uses API58321/DB58322, app3
 
 Artifacts: `outputs/qa/integration-routes/results.json` and per-route screenshots; mobile contact sheets00–15 inspected, with focused full-size importer, stock and confirmation/payslip views. Contact sheets show only the upper portion of long pages and are not proof of complete interaction acceptance. The static component map is updated with exact runtime evidence; untested states remain pending.
 
-Full default/populated/expanded/error/long/narrow/200% coverage of every unique layout is **not complete**. Many catalog/production states are empty in the synthetic tenant; custom dialogs, loading transitions, other role combinations and200% browser zoom remain pending. Focused error coverage exists for importer partial failure, maintenance photo/network failure, stock storage/save failure and stale confirmation/payroll state, not every form.
+Full default/populated/expanded/error/long/narrow/200% coverage of every unique layout is **not complete**. Many catalog/production states are empty in the synthetic tenant; remaining custom dialogs, route-specific error boundaries and other role combinations remain pending. Native200% zoom and representative loading transitions were subsequently verified below. Focused error coverage exists for importer partial failure, maintenance photo/network failure, stock storage/save failure and stale confirmation/payroll state, not every form.
 
 ## Remaining handoff items
 
@@ -60,3 +60,24 @@ Full default/populated/expanded/error/long/narrow/200% coverage of every unique 
 - Native workbook layout user acceptance remains pending. No payroll details were added to employee-facing attendance export. PPH blank is not zero; daily OT/short-hours/holiday payroll policy awaits user rules, not inferred here.
 - Real workbook/catalog verification remains owned by `01a1364f-6744-7364-830d-77a59db370a8`; no production session accessed here.
 - No push, deployment, production migration or production data writes. Original worktrees preserved. Unsaved input previously lost on a real device has not been recovered or claimed recovered.
+
+## Component and native zoom follow-up — 2026-10-14
+
+Local-only changes against `7e98d285`; no production browser, production writes, push or deployment. React checklist review retained server-rendered tabs with a small client scroll helper; observers/listeners clean up on close/unmount.
+
+Verified evidence in `outputs/qa/component-states/`:
+
+- `zoom-tablet.json`: 123 route owners × two modes = 246 records, no recorded bounds/focus issues. Native Chromium tab zoom is 2× (1440 physical pixels, 720 CSS pixels, DPR2), not CSS scaling. Tablet width820. Native disclosures expanded where present.
+- `filter-dialogs.json`:24 cases over six owners at390/820/1440/native200%; three correctly have all filters inline. Tab containment, nested select, Apply reachability and focus return checked. Nested Escape rechecked in all four modes.
+- `client-states.json`:16 confirmation/payslip loading, empty, HTTP503/retry and long-display cases at390/820 using read-only response injection.
+- `shared-list-states.json`:12 actual unmatched searches, retained queries, empty messages and navigation reset.
+- `form-required-states.json`:23 create pages (15 exposed native-invalid inputs, eight custom-validation paths not forced), plus four real missing-record views.
+- `loading-real.json`:actual list/detail/form suspense visible and recovered under short rolled-back locks in the dedicated synthetic local database.
+
+Fixed long labels clipping amounts/details; selected mobile tabs scrolling out of view; narrow filter positioning and select stacking; focus containment and nested Escape; purchase-request details collapsing when an item receives focus; and duplicate overlapping purchase-order create buttons. The final form loading check passed after removing the duplicate button.
+
+Responsive decision: below the existing1280px filter breakpoint, the panel is centered and its scrollable body leaves space for fixed navigation. Nested select options are raised only while a filter dialog is open. Native zoom naturally follows these CSS-width breakpoints.
+
+The route-to-component matrix and `OMS_COMPONENT_STATE_COVERAGE_2026-10-14.json` distinguish actual per-route evidence from shared-component reuse. Remaining: independently forced route-specific server errors, untested custom dialogs, populated forecast/chart scenarios, more role combinations, and physical keyboard/device behavior. These are coverage gaps, not claims of tool impossibility; next steps are scoped synthetic fixtures, read-only failure injection and targeted dialog interactions. No finite sample is presented as whole-system acceptance.
+
+Final follow-up gates: Node22.23.2,1599 tests passed, zero lint warnings/errors, typecheck and production build passed. Logs `/tmp/oms-integration-components-{tests,lint,types,build}.log`. Build used the dedicated local test environment; generated Next type configuration is excluded from the change.

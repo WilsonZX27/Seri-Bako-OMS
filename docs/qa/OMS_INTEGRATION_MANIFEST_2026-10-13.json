@@ -53,5 +53,17 @@
     "typecheck": "passed",
     "build": "passed",
     "confirmation_db_suite": "passed"
+  },
+  "component_followup": {
+    "base_commit": "7e98d285",
+    "route_owners": 123,
+    "zoom_tablet_records": 246,
+    "filter_cases": 24,
+    "client_states": 16,
+    "empty_lists": 12,
+    "form_and_missing_record_cases": 27,
+    "real_loading_variants": 3,
+    "full_state_acceptance": "pending; see coverage limits",
+    "deployed": false
   }
 }

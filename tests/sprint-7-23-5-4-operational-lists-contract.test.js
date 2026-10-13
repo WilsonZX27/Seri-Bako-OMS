@@ -34,7 +34,7 @@ test("shared list controls own overflow, elevation, More Filters, and zero-resul
   assert.match(styles, /\.sb-table-region \{[\s\S]*overflow-x: auto/);
   assert.match(styles, /html,[\s\S]*body \{[\s\S]*overflow-x: hidden/);
   assert.match(filters, /More filters/);
-  assert.match(filters, /Changes take effect after you select Apply/);
+  assert.match(filters, /type="submit">Apply/);
   assert.match(select, /Select\.Portal/);
   assert.match(select, /var\(--sb-z-dropdown\)/);
   assert.match(pagination, /if \(totalRows === 0\) return null/);

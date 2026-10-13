@@ -1550,13 +1550,26 @@ html[data-design-layer="v2"] [data-mobile-document-action] :where(button, a) {
   min-height: 2.75rem;
 }
 
-@media (max-width: 639px) {
+/* Below the desktop rail breakpoint, this is a modal sheet, not an
+   anchored dropdown. Keep its actions above fixed navigation at browser zoom. */
+@media (max-width: 1279px) {
   html[data-design-layer="v2"] .sb-filter-more-panel--anchored {
     position: fixed !important;
-    inset: auto 12px 12px !important;
-    width: auto !important;
-    max-height: min(70dvh, 30rem);
+    inset: 50% auto auto 50% !important;
+    transform: translate(-50%, -50%);
+    z-index: var(--sb-z-dialog) !important;
+    display: flex !important;
+    flex-direction: column;
+    width: min(28rem, calc(100vw - 2rem)) !important;
+    max-height: calc(100dvh - 9rem);
+    overflow: hidden;
   }
+}
+
+/* Radix options opened from the legacy filter sheet share its modal layer.
+   A body portal must not fall behind the fixed mobile navigation. */
+html[data-design-layer="v2"][data-filter-dialog-open="true"] body > [data-radix-popper-content-wrapper] {
+  z-index: calc(var(--sb-z-dialog) + 2) !important;
 }
 
 /* Final mobile filter contract: ordinary controls share a compact two-column

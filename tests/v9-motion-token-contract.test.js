@@ -36,7 +36,9 @@ test("v9 elevation uses defined semantic shadows for panels, rails, and dialogs"
   const stockCountExport = fs.readFileSync("src/components/stock-count-export-dialog.tsx", "utf8");
   assert.match(designSystem, /--sb-shadow-panel:\s*var\(--sb-shadow-sm\)/);
   assert.match(designSystem, /--sb-shadow-lg:\s*0 -8px 24px/);
-  assert.match(purchaseOrders, /shadow-\[var\(--sb-shadow-sm\)\]/);
+  // The shared PageHeader owns the create FAB; a route-local FAB overlaps it.
+  assert.match(purchaseOrders, /<PageHeader/);
+  assert.doesNotMatch(purchaseOrders, /className="fixed bottom-/);
   assert.match(stockCountExport, /shadow-\[var\(--sb-shadow-md\)\]/);
   assert.doesNotMatch(purchaseOrders, /shadow-\[0_8px_24px/);
   assert.doesNotMatch(stockCountExport, /shadow-\[0_8px_24px/);

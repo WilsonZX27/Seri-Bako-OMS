@@ -34,6 +34,12 @@ All ten visible sheets read successfully for 12–18 October: GURNEY PLAZA, QUEE
 
 ## Confirmation/export integration contract
 
+Confirmed process: **People prepares → Staff checks → Supervisor verifies → Manager approves → People calculates payroll, validates and publishes.** The self-service worker owns those transitions and permissions; this patch does not implement or change them.
+
+Shared pure helper: `src/lib/attendance/review-version.ts::attendanceReviewContentVersion`. Given the already-authorised canonical result row and its employee-day schedule source row, it returns a SHA-256 `version` and `calculationReady`. Persist that version with each confirmation stage and atomically compare it against fresh data before any later transition. Changed time, pay, punch evidence, result revision or schedule source invalidate the old binding; advancing only `review_status` does not invalidate itself. A missing queue/source match is not automatically ready. Existing legacy-day admission remains the workflow owner's explicit policy.
+
+When content changes before payroll publication, the workflow must retain the prior signature as history, mark the chain stale, and return it to People preparation; Staff, Supervisor and Manager must confirm the new version. Do not copy signatures onto revised content. A payroll-locked or published period must keep its released snapshot immutable and use the established correction/reopening process. `calculationReady` is only a freshness check, **not** authority to approve or publish payroll. The workflow worker must connect its new payroll-lock/confirmation guard before release; the existing guard in this patch does not claim knowledge of schema that worker has not supplied.
+
 Read the existing-authority projection of `attendance_schedule_refresh` keyed by `(company_id, staff_id, work_date)`. Never grant broad direct table access to staff merely for integration.
 
 Fields: `source_revision` (monotonic bigint), `source_hash` (opaque digest), `calculated_revision`, `status`, `updated_at`. A new result's `calculation.schedule_source_revision` and `calculation.schedule_source_hash` record the exact input version used.
@@ -49,3 +55,5 @@ The queue upsert holds its row while calculating. A concurrent later schedule ch
 - Rollback SQL: stable request replay; collision rejection; second-day append preserves the exact first row; punches before roster; union/deduped Sunday-to-Monday evidence split between upload weeks; unchanged unrelated result; idempotent refresh; reviewed result preserved and flagged after schedule changes.
 - Synthetic browser: matching/manual corrections, explicit outlet selection, stale preview invalidation, dropdown bounds and no dialog overflow at 320/390/1440; source remarks/balances stay separate. All schedule import POSTs blocked in that UI test.
 - Actual catalog acceptance, production rollout, independent-session concurrency stress and payroll confirmation integration remain outstanding.
+
+Follow-up validation: three focused content-version tests passed (workflow-only stability; pay/evidence/source invalidation; stale/protected calculations denied). No additional migration or role grant is required by this helper.

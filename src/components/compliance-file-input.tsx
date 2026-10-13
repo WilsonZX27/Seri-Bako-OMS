@@ -13,7 +13,7 @@ export function ComplianceFileInput({ compact = false, action }: { compact?: boo
   const inputId = useId();
   const [selected, setSelected] = useState<{ name: string; size: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  return <div className={cn("grid min-w-0 gap-x-2 gap-y-1.5", action && "grid-cols-[minmax(0,1fr)_auto]")}>
+  return <div className={cn("sb-file-picker grid min-w-0 gap-x-2 gap-y-1.5", action && "grid-cols-[minmax(0,1fr)_auto]")}>
     <input
       id={inputId}
       name="file"

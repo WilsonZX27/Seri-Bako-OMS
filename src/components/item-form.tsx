@@ -40,7 +40,7 @@ export function ItemForm({ item, suppliers, action, formId, showSubmit = true, c
             <Field label="AutoCount Code"><Input name="autocount_code" defaultValue={item?.autocount_code ?? ""} /></Field>
             <Field label="Item Name" required><Input name="item_name" defaultValue={item?.item_name ?? ""} required /></Field>
             <Field label="Brand"><Input name="brand_name" defaultValue={item?.brand_name ?? ""} placeholder="Brand" /></Field>
-            <Field label="Category" required><Input list="item-category-options" name="category" defaultValue={item?.category ?? ""} placeholder="Choose or enter a category" required /><datalist id="item-category-options">{categories.map(category => <option key={category} value={category} />)}</datalist></Field>
+            <Field label="Category" required><Input list="item-category-options" name="category" aria-label="Category" defaultValue={item?.category ?? ""} placeholder="Choose or enter a category" required /><datalist id="item-category-options">{categories.map(category => <option key={category} value={category} />)}</datalist></Field>
           </div>
         </div>
       </RecordSection>

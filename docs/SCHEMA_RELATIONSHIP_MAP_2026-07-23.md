@@ -1,3 +1,5 @@
+> 2026-10-13 isolated release package: migrations reviewed through `346`; forward-only migration 历史已到 `346`. The only new migration in this package is 346 (general maintenance, scoped reporter permissions and private attachments), verified locally only. Migrations 343/344 are unchanged baseline files; 345 and all new schedule/import changes are excluded. Production migration requires separate approval.
+
 > 2026-10-12 candidate: migrations reviewed through `344`; forward-only migration 历史已到 `344`. Migration 344 adds an explicit by-order demand basis. Prepared for isolated validation; not applied to Production.
 
 > 2026-10-10 isolated schedule repair: repository migrations reviewed through `343`; forward-only migration 历史已到 `343`. Migration 343 makes version validation, destination save and submit atomic; Wilson approved application only to the isolated local test DB (341 migration rows, maximum 343). No grants changed. This is not evidence of Production schema or deployment changes.

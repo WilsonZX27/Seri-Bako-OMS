@@ -42,7 +42,7 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
           </Field>
           <input type="hidden" name="status" value={product?.status ?? "active"} />
           <Field label="Product Image" className="col-span-2">
-            <Input name="product_image" type="file" accept="image/png,image/jpeg,image/webp" />
+            <Input name="product_image" aria-label="Product image" type="file" accept="image/png,image/jpeg,image/webp" />
             <p className="mt-1 text-xs text-muted-foreground">PNG, JPG, or WEBP, up to 2MB.</p>
           </Field>
           <div className="col-span-2 grid grid-cols-2 gap-3 border-y py-4 sm:gap-4 md:rounded-[var(--sb-control-radius)] md:border md:bg-secondary/30 md:p-4 md:grid-cols-4">

@@ -77,3 +77,11 @@ Kitchen Submit → Manager Review → Purchasing Review → Finance Review → R
 The stored `admin_review` state and `pr.admin_review` permission remain database compatibility identifiers so the verified transition function is unchanged. User-facing vocabulary calls this Purchasing Review.
 
 Migration 337 asset permission grants were applied alone on 8 October 2026 with owner authorization. Independent readback confirmed all preexisting permission rows and role grants remain unchanged. Asset RLS still requires a live import batch; the reconciled production staging batch remains rehearsal. Actual live role/location acceptance and formal cutover are pending.
+
+### Local candidate: general maintenance (migration 346, not deployed)
+
+`assets.report` grants super admin, manager, outlet supervisor, outlet staff and kitchen the ability to report a problem at an accessible asset location. An asset is optional. Non-management readers can see only their own `reported_by` requests, history and verified photos, and only while retaining access to that location. They cannot update status, assign or close tickets. Management roles retain the existing location restriction and `assets.maintenance`/`assets.manage` mutation split. Finance and purchasing receive no new reporting grant. Storage remains private; service verification and company-bound paths remain mandatory.
+
+## Compliance authority correction — 2026-10-13
+
+Migration 269 lines 16–18 historically granted outlet_supervisor read. Migration 314_restrict_outlet_compliance.sql supersedes it and revokes outlet_staff/outlet_supervisor compliance grants. Current information architecture and attendance-operations-269 contract deny those roles. The older canonical-route table above is historical for this capability: /outlet-compliance, /outlet-calendar and the /compliance redirect follow management-only access. No runtime grant is changed by this documentation/test correction.

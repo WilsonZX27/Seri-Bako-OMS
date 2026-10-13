@@ -86,14 +86,14 @@ const actionRouteAuthorities = new Map([
 // whichever RLS policy happens to answer today. A new route must deliberately
 // join one of these authorities before the v9 matrix will accept it.
 const accessAuthorities = [
-  ["/asset-management/maintenance", ["superAdmin", "manager", "outletSupervisor"]],
+  ["/asset-management/maintenance", ["superAdmin", "manager", "outletSupervisor", "kitchen", "outlet"]],
   ["/asset-management", ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]],
   ["/attendance/imports", ATTENDANCE_IMPORT],
   ["/attendance", ATTENDANCE],
-  ["/outlet-compliance", ["superAdmin", "peopleOperations", "manager", "purchasing", "outletSupervisor"]],
-  ["/outlet-calendar", ["superAdmin", "peopleOperations", "manager", "purchasing", "outletSupervisor"]],
+  ["/outlet-compliance", ["superAdmin", "peopleOperations", "manager", "purchasing"]],
+  ["/outlet-calendar", ["superAdmin", "peopleOperations", "manager", "purchasing"]],
   ["/people", ["superAdmin", "peopleOperations", "manager"]],
-  ["/compliance", ["superAdmin", "peopleOperations", "manager", "purchasing", "outletSupervisor"]],
+  ["/compliance", ["superAdmin", "peopleOperations", "manager", "purchasing"]],
   ["/reports/costing-readiness", ["superAdmin", "finance"]],
   ["/reports/product-margin", ["superAdmin", "finance"]],
   ["/reports/recipe-costing", ["superAdmin", "finance"]],
@@ -119,6 +119,7 @@ const accessAuthorities = [
   ["/stock-balances", INVENTORY],
   ["/stock-card", INVENTORY],
   ["/low-stock", INVENTORY],
+  ["/production/delivery-orders", ["superAdmin", "manager", "kitchen", "outletSupervisor", "outlet"]],
   ["/production", PRODUCTION],
   ["/products", PRODUCTION],
   ["/supplier-items", MASTER_DATA],

@@ -154,7 +154,7 @@ export function CommentsPanel({ documentId, comments, canRemove = false }: { doc
     <ConsoleSection title="Comments">
       <div className="space-y-3">
         <form action={addDocumentComment.bind(null, documentId)} className="space-y-2">
-          <Textarea name="comment_text" placeholder="Add a comment" required className="min-h-20 w-full resize-none text-[13px] leading-5" />
+          <Textarea name="comment_text" aria-label="Add a comment" placeholder="Add a comment" required className="min-h-20 w-full resize-none text-[13px] leading-5" />
           <SubmitButton type="submit" pendingLabel="Saving..." className="w-full justify-center">Add comment</SubmitButton>
         </form>
         <div className="space-y-3">
@@ -187,10 +187,10 @@ export function ApprovalPanel({ document, approval, approvalSteps }: { document:
           <DestructiveActionDialog action={cancelDocument.bind(null, document.id)} label="Cancel" title="Cancel this document?" description="The document will stop progressing through its current workflow." pendingLabel="Cancelling..." />
         </div>
         <form action={approveDocument.bind(null, document.id)} className="grid gap-2">
-          <Input name="remarks" placeholder="Approval remarks" />
+          <Input name="remarks" aria-label="Approval remarks" placeholder="Approval remarks" />
           <SubmitButton type="submit" pendingLabel="Approving..." className="w-full justify-center">Approve</SubmitButton>
         </form>
-        <DestructiveActionDialog action={rejectDocument.bind(null, document.id)} label="Reject" title="Reject this document?" description="The document will return for correction and cannot progress until resubmitted." pendingLabel="Rejecting..."><Input name="remarks" placeholder="Rejection remarks required" required /></DestructiveActionDialog>
+        <DestructiveActionDialog action={rejectDocument.bind(null, document.id)} label="Reject" title="Reject this document?" description="The document will return for correction and cannot progress until resubmitted." pendingLabel="Rejecting..."><Input name="remarks" aria-label="Rejection remarks" placeholder="Rejection remarks required" required /></DestructiveActionDialog>
         <div className="rounded-[var(--sb-panel-radius)] border">
           {approvalSteps.map((step) => (
             <div key={step.id} className="flex flex-col gap-1 border-b p-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">

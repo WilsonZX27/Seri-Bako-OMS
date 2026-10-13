@@ -81,6 +81,7 @@ export function SupplierInvoiceForm({
           <section data-supplier-invoice-setup className="grid grid-cols-2 gap-3 border-b border-[var(--sb-border-soft)] pb-4 md:grid-cols-3">
             <Field label="Supplier" required className="col-span-2 md:col-span-1">
               <SelectNative
+                aria-label="Supplier"
                 name={initial ? undefined : "supplier_id"}
                 value={selectedSupplierId ?? ""}
                 disabled={!!initial}

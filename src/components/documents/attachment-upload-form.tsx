@@ -40,7 +40,7 @@ export function AttachmentUploadForm({
       <Field label="Attachment label" required error={labelError ?? undefined}>
         <Input ref={labelRef} name="file_name" defaultValue={defaultLabel} placeholder="Name this attachment" minLength={3} maxLength={180} required aria-invalid={Boolean(labelError)} onChange={() => labelError && setLabelError(null)} className={cn("w-full", labelError && "border-destructive ring-2 ring-destructive/20")} />
       </Field>
-      <Field label="Attachment file" labelClassName="sr-only">
+      <Field label="Attachment file" labelClassName="sr-only" className="sb-file-picker">
         <Input
           id={inputId}
           name="file"

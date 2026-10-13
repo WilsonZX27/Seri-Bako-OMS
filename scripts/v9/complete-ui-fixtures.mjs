@@ -1,0 +1,46 @@
+import fs from 'node:fs';import {randomUUID} from 'node:crypto';import {createClient} from '@supabase/supabase-js';
+process.loadEnvFile('.env.test.local');if(process.env.NEXT_PUBLIC_SUPABASE_URL!=='http://127.0.0.1:56321')throw Error('Local only');
+const out='outputs/qa/general-maintenance-2026-10-13',f=JSON.parse(fs.readFileSync(out+'/fixture-private.json')),dest=out+'/detail-fixtures.json',ids=fs.existsSync(dest)?JSON.parse(fs.readFileSync(dest)):{};
+const db=createClient(process.env.NEXT_PUBLIC_SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSession:false}}),company=f.company,actor=f.accounts.find(a=>a.slug==='owner').staff;
+async function must(p){let r=await p;if(r.error)throw Error(r.error.message);return r.data;}
+const tenant=await must(db.from('companies').select('company_code').eq('id',company).single());if(tenant.company_code!=='UAT-RELEASE-1013')throw Error('Synthetic tenant required');
+async function add(key,table,data,tenant=true){if(ids[key])return ids[key];let id=randomUUID();await must(db.from(table).insert({id,...(tenant?{company_id:company}:{}),...data}));ids[key]=id;fs.writeFileSync(dest,JSON.stringify(ids,null,2));console.log(key,'created');return id;}
+async function doc(key,type){return add(key+'Doc','documents',{document_no:'REL-'+key,document_type:type,title:'Synthetic '+key,status:'draft',created_by:actor});}
+await add('supplier','suppliers',{supplier_code:'REL-SUP',name:'Synthetic ingredient supplier'});
+await add('item','items',{item_code:'REL-RICE',item_name:'Synthetic rice flour',category:'Raw Material',purchase_unit:'KG',base_unit:'KG',cost:4});
+await add('product','products',{product_code:'REL-KUIH',product_name:'Synthetic steamed kuih',category:'Steamed Cake',selling_unit:'PCS'});
+await add('supplierItem','supplier_items',{supplier_id:ids.supplier,item_id:ids.item,supplier_item_code:'REL-RICE',supplier_item_name:'Synthetic rice flour',purchase_uom:'KG',unit_cost:4});
+await add('conversion','uom_conversions',{item_id:ids.item,from_uom:'KG',to_uom:'G',factor:1000});
+await add('sequence','document_sequences',{document_type:'synthetic_review',prefix:'UAT'});
+await add('document','documents',{document_no:'REL-NOTE',document_type:'synthetic_review',title:'Synthetic standalone review note',created_by:actor});
+await add('pr','purchase_requests',{document_id:await doc('pr','purchase_request'),request_no:'REL-PR',branch_id:f.branch,requested_by:actor,created_by:actor,remarks:'Synthetic draft, not a real purchase'});
+await add('po','purchase_orders',{document_id:await doc('po','purchase_order'),po_no:'REL-PO',supplier_id:ids.supplier,purchase_request_id:ids.pr,branch_id:f.branch,created_by:actor});
+await add('grn','goods_receivings',{document_id:await doc('grn','goods_receiving'),grn_no:'REL-GRN',purchase_order_id:ids.po,supplier_id:ids.supplier,branch_id:f.branch,created_by:actor});
+await add('return','purchase_returns',{document_id:await doc('return','purchase_return'),purchase_return_no:'REL-RETURN',goods_receiving_id:ids.grn,purchase_order_id:ids.po,supplier_id:ids.supplier,branch_id:f.branch,created_by:actor});
+await add('invoice','supplier_invoices',{document_id:await doc('invoice','supplier_invoice'),invoice_no:'REL-INV',supplier_invoice_no:'SYNTHETIC-INV',supplier_id:ids.supplier,purchase_order_id:ids.po,goods_receiving_id:ids.grn,total_amount:40,status:'draft',created_by:actor});
+await add('count','stock_counts',{document_id:await doc('count','stock_count'),count_no:'REL-COUNT',branch_id:f.branch,counted_by:actor,created_by:actor});
+await add('transaction','stock_transactions',{document_id:await doc('transaction','stock_transaction'),transaction_no:'REL-OPEN-1013',item_id:ids.item,branch_id:f.branch,transaction_type:'opening_balance',quantity_in:10,unit_cost:4,created_by:actor},false);
+await add('transfer','stock_transfers',{document_id:await doc('transfer','stock_transfer'),transfer_no:'REL-TRANSFER',from_branch_id:f.branch,to_branch_id:f.otherBranch,created_by:actor});
+await add('wastage','stock_wastage',{document_id:await doc('wastage','stock_wastage'),wastage_no:'REL-WASTE',branch_id:f.branch,reason:'damaged',created_by:actor});
+await add('recipe','recipes',{document_id:await doc('recipe','recipe'),recipe_no:'REL-RECIPE',product_id:ids.product,yield_qty:16,yield_unit:'PCS',created_by:actor});
+await add('recipeLine','recipe_lines',{recipe_id:ids.recipe,ingredient_item_id:ids.item,qty_required:1,unit:'KG',recipe_uom:'KG',base_uom:'KG',base_qty_required:1},false);
+await add('job','production_jobs',{document_id:await doc('job','production_job'),production_job_no:'REL-JOB',branch_id:f.branch,production_date:'2026-10-13',recipe_id:ids.recipe,product_id:ids.product,planned_output_qty:16,output_uom:'PCS',created_by:actor});
+await add('daily','outlet_daily_records',{branch_id:f.branch,record_date:'2026-10-13',created_by:actor,notes:'Synthetic daily record'});
+await add('assetTransfer','asset_transfers',{asset_id:f.asset,from_location_id:f.location,to_location_id:f.otherLocation,quantity:1,reason:'Synthetic review transfer',author_name:'Synthetic owner',requested_by:actor});
+await add('kitchen','branches',{branch_code:'REL-KITCHEN',branch_name:'Synthetic central kitchen',branch_type:'central_kitchen',status:'active'});
+await add('plan','production_plans',{kitchen_id:ids.kitchen,delivery_date:'2026-10-13',version:1,status:'approved',buffer_percent:5,max_decrease_percent:10,forecast_version:'synthetic',created_by:actor});
+await add('delivery','production_delivery_orders',{plan_id:ids.plan,kitchen_id:ids.kitchen,branch_id:f.branch,delivery_date:'2026-10-13',plan_version:1,do_no:'REL-DO',prepared_by:'Synthetic owner',created_by:actor});
+await add('prLine','purchase_request_lines',{purchase_request_id:ids.pr,item_id:ids.item,qty:10,uom:'KG',estimated_unit_cost:4,suggested_supplier_id:ids.supplier},false);
+await add('poLine','purchase_order_lines',{purchase_order_id:ids.po,item_id:ids.item,qty_ordered:10,uom:'KG',unit_price:4},false);
+await add('grnLine','goods_receiving_lines',{goods_receiving_id:ids.grn,purchase_order_line_id:ids.poLine,item_id:ids.item,ordered_qty:10,received_qty:10,uom:'KG',unit_cost:4},false);
+await add('returnLine','purchase_return_lines',{purchase_return_id:ids.return,goods_receiving_line_id:ids.grnLine,purchase_order_line_id:ids.poLine,item_id:ids.item,received_qty:10,return_qty:1,uom:'KG',unit_cost:4},false);
+await add('invoiceLine','supplier_invoice_lines',{supplier_invoice_id:ids.invoice,goods_receiving_id:ids.grn,goods_receiving_line_id:ids.grnLine,purchase_order_id:ids.po,purchase_order_line_id:ids.poLine,item_id:ids.item,uom:'KG',ordered_qty:10,received_qty:10,invoice_qty:10,po_unit_price:4,invoice_unit_price:4},false);
+await add('countLine','stock_count_lines',{stock_count_id:ids.count,item_id:ids.item,theoretical_qty:10,physical_qty:9,uom:'KG'},false);
+await add('transferLine','stock_transfer_lines',{stock_transfer_id:ids.transfer,item_id:ids.item,quantity:1,uom:'KG'},false);
+await add('wastageLine','stock_wastage_lines',{stock_wastage_id:ids.wastage,item_id:ids.item,quantity:1,uom:'KG',reason:'damaged'},false);
+await add('dailyLine','outlet_daily_record_lines',{record_id:ids.daily,product_id:ids.product,morning_received_qty:16,evening_leftover_qty:2,wastage_qty:1,wastage_reason:'damaged',morning_received_provided:true,wastage_provided:true},false);
+await add('deliveryLine','production_delivery_order_lines',{do_id:ids.delivery,product_id:ids.product,qty:16,product_code:'REL-KUIH',product_name:'Synthetic steamed kuih',category:'Steamed Cake',unit:'PCS',display_order:1},false);
+await add('jobIngredient','production_job_ingredient_lines',{production_job_id:ids.job,item_id:ids.item,item_code:'REL-RICE',item_name:'Synthetic rice flour',required_qty:1,uom:'KG',unit_cost:4,stock_available_qty:10},false);
+await add('jobOutput','production_job_output_lines',{production_job_id:ids.job,product_id:ids.product,output_code:'REL-KUIH',output_name:'Synthetic steamed kuih',planned_qty:16,uom:'PCS'},false);
+await add('incident','system_incidents',{fingerprint:'synthetic-ui-review',module:'Synthetic verification',safe_code:'UAT_ONLY',safe_message:'Synthetic incident for owner acknowledgement testing.',recommended_action:'Acknowledge this isolated test signal.',status:'action_required'});
+console.log('Fixture checkpoint complete');

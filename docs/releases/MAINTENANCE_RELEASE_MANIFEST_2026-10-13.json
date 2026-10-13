@@ -1,0 +1,249 @@
+{
+  "base_sha": "2dc8c0f441fe43ee02c285d8397e6dd0cc3d6b3c",
+  "remote_main_checked": "cbf531c612b686a574527ba9346aa72880bab4f0",
+  "production_deployment": "dpl_9rTTUyGc4ET2VYHFcrguFcrhDb71",
+  "only_new_migration": "346",
+  "excluded": [
+    "new attendance/schedule/import changes",
+    "migration 343 execution/change",
+    "migration 344 execution/change",
+    "migration 345",
+    "private credentials and test profiles",
+    "node_modules and build outputs"
+  ],
+  "files": [
+    {
+      "path": "PRODUCT.md",
+      "sha256": "4ba2ef64991d766ff5c7cec72ecfb197e3a745c1070eb204cd99421ff4ba78ed"
+    },
+    {
+      "path": "docs/ROLE_PERMISSION_MATRIX.md",
+      "sha256": "c6feebb09153ce769aea2e51e6f8fc20c49b915b0aa4f195ce786035fe0106bd"
+    },
+    {
+      "path": "docs/SCHEMA_RELATIONSHIP_MAP_2026-07-23.md",
+      "sha256": "cdc660e49353e01a3710c1bb3d044e7cfdff3774ba82b808cb56d8c47e59f0d4"
+    },
+    {
+      "path": "docs/releases/MAINTENANCE_RELEASE_2026-10-13.md",
+      "sha256": "8f7c6e895cb7adc302b85e8a838f75c83314c1e28af615660b657f7b1eb56286"
+    },
+    {
+      "path": "scripts/v9/complete-ui-fixtures.mjs",
+      "sha256": "215a296e9a8c62a5aa9a8075d00c2ca11a7a8077556597d814c5afc2f74975fb"
+    },
+    {
+      "path": "scripts/v9/general-maintenance-final-ui.cjs",
+      "sha256": "8397bca78a18b988b90b552ff193f4cb75ba8746721419f542ea3ed66c243d48"
+    },
+    {
+      "path": "scripts/v9/general-maintenance-journeys.cjs",
+      "sha256": "80c608832f188e74fb3f4887eb385549984e76b22d5d6d10b27dc373a24d9d9a"
+    },
+    {
+      "path": "scripts/v9/general-maintenance-lifecycle.cjs",
+      "sha256": "0dc8c542dde4dc6d06571856679a35f5a3ddd5dc9ca408901f090ec604f37c08"
+    },
+    {
+      "path": "scripts/v9/general-maintenance-network.cjs",
+      "sha256": "473575ae75e8d7e1842679bca13ed96d12438d296b4ecaa9afc587302b645518"
+    },
+    {
+      "path": "scripts/v9/maintenance-user-acceptance.cjs",
+      "sha256": "6f38a5bdc70bf5148bdedd37053a2ecc9f5b7ee0d555768159ada3af33a232da"
+    },
+    {
+      "path": "scripts/v9/setup-general-maintenance-e2e.mjs",
+      "sha256": "04144d15d24de70708cfa69e986018a46a3d98e27bbc7853955716c435556928"
+    },
+    {
+      "path": "scripts/v9/test-general-maintenance-db.mjs",
+      "sha256": "87e795d5dc9057b7828bcb46341b9c8d16c922c0f1c51b42a4e2fa8f2c51ff4c"
+    },
+    {
+      "path": "scripts/v9/ui-detail-accessibility.cjs",
+      "sha256": "74b02dc7f3da5a78fc01b0b9967bd4b7e792e139ea966f8455a3ca2872e468ec"
+    },
+    {
+      "path": "scripts/v9/ui-detail-role-review.cjs",
+      "sha256": "57607902f42bb34ead38c443ed909b867e5693ac4ab04ae869881e1fffe7456d"
+    },
+    {
+      "path": "scripts/v9/ui-key-state-journeys.cjs",
+      "sha256": "2b405f53ca659f1c6f0328cede6e16a2d8dd0de1800caa942ee73af34c608998"
+    },
+    {
+      "path": "scripts/v9/ui-remaining-review.cjs",
+      "sha256": "c2a029f8e0f630c519f4ba34cc06490e6c53e0f5329f986878958ffa980a256d"
+    },
+    {
+      "path": "scripts/v9/ui-semantic-check.cjs",
+      "sha256": "61fd034362471a0b9104d8ee3e364f16292d32c825612e97a14378391e0c6a07"
+    },
+    {
+      "path": "scripts/v9/ui-shared-list-states.cjs",
+      "sha256": "8c74e0b6c3bf17993004c2ed783f67aa9c6305278422ab27b53525cfe465a371"
+    },
+    {
+      "path": "src/app/(app)/administration/system-health/page.tsx",
+      "sha256": "e424cad53ec88fd2481b3363f62159e4ca4d3fcc8ed144184327e4d20dfd8505"
+    },
+    {
+      "path": "src/app/(app)/asset-management/assets/[id]/page.tsx",
+      "sha256": "0a86585372cb98cebf77b6ee1dc3d5744c244e42b32f8098dcd309a27832fe42"
+    },
+    {
+      "path": "src/app/(app)/asset-management/attachments/[id]/route.ts",
+      "sha256": "7f3d755102b4652ea495d9db50323c0e88672a7a2bcdd6fab90963f7bfd07568"
+    },
+    {
+      "path": "src/app/(app)/asset-management/locations/[id]/page.tsx",
+      "sha256": "749ee99f1f46ded31c19a69d5a75b8879f901afb37fb82bc295a4344fdcb0110"
+    },
+    {
+      "path": "src/app/(app)/asset-management/maintenance/[id]/page.tsx",
+      "sha256": "3763df03399bbe5f75735b88f65af9d4d8c07e23a074c4270bc4ec63eea03c98"
+    },
+    {
+      "path": "src/app/(app)/asset-management/maintenance/new/page.tsx",
+      "sha256": "e6949acf9e43fd7dc8bb73fa3af854567419dabd77552d8ca4f3f39211961b40"
+    },
+    {
+      "path": "src/app/(app)/asset-management/page.tsx",
+      "sha256": "19e553aa4de40f57bc7e4a7e8e039ada8ec9019c9190aabd589c86bfeb459cac"
+    },
+    {
+      "path": "src/app/(app)/asset-management/transfers/new/page.tsx",
+      "sha256": "2079380af9b71d03ae9085074fd8302f1df75890c2ff8e464c17d3d2e2dd1f6c"
+    },
+    {
+      "path": "src/app/(app)/production/planning/page.tsx",
+      "sha256": "4c2dfbe6e455b8cfa6ae6ab00764a8fc722cf35a3612591bf98fe613bc3b3239"
+    },
+    {
+      "path": "src/app/(app)/purchase-orders/page.tsx",
+      "sha256": "d337c419f42b767031429e88e15f400665bdb23939b345ea1b8697743b6dd6be"
+    },
+    {
+      "path": "src/app/(app)/stock-counts/page.tsx",
+      "sha256": "0773718be2184c2b46b2315551de2fc9fd583fe61706f136585afee812eaa972"
+    },
+    {
+      "path": "src/app/design-system-v2.css",
+      "sha256": "f7976adca5ebc4f55db3251b6cfdf0b6b702f79115af8cd13aaa86cabcd56b6c"
+    },
+    {
+      "path": "src/components/asset-attachment-form.tsx",
+      "sha256": "54ee336719b488c5aba81d79f38d1eee0eb57b7c7e1bd362b933b2c445727d7f"
+    },
+    {
+      "path": "src/components/asset-maintenance-detail-panel.tsx",
+      "sha256": "a115eb1dbdf71ea959c54ddcc94d599440411ccb81792b8b146cd48e11552bdc"
+    },
+    {
+      "path": "src/components/asset-workspace-lists.tsx",
+      "sha256": "5001df1485852d36697323999cbe4f973f45265d0877f067aa9e04feceecc094"
+    },
+    {
+      "path": "src/components/asset-workspace-navigation.tsx",
+      "sha256": "c69db11ed08d1f32cfec3fe4445a999b19c05128298573c6f045a36b477207b7"
+    },
+    {
+      "path": "src/components/compliance-file-input.tsx",
+      "sha256": "df4ee38dd4bc117ad8d4a816607337706478831317e2ef1f314fb82a7ac82e1d"
+    },
+    {
+      "path": "src/components/documents/attachment-upload-form.tsx",
+      "sha256": "f5bac278e1e8d07e7d4ececb24c2b082b60a61d0c55fee099ffb47c9dac4ce53"
+    },
+    {
+      "path": "src/components/documents/document-panels.tsx",
+      "sha256": "ac610353e571deebe1a396704084a7acfe7158942be3a8f683f176f83fdc22ce"
+    },
+    {
+      "path": "src/components/general-maintenance-form.tsx",
+      "sha256": "4e64db4927f5213a4f77f04b680f4ebb545f3d6cefaf25218ce6b426e91dba4c"
+    },
+    {
+      "path": "src/components/item-form.tsx",
+      "sha256": "4f6317cd18523095b4f82554165761478a14f34968f9650dab8633d2a8969ad8"
+    },
+    {
+      "path": "src/components/item-image-input.tsx",
+      "sha256": "07eead0e2076455a60b0a515974d63e3695bf1639a4a824bee4df0b46a43b60f"
+    },
+    {
+      "path": "src/components/layout/mobile-context-header.tsx",
+      "sha256": "35fb34492186cb2a72e009a40193123f590cf53d9facb33c02282c975ea2f3b4"
+    },
+    {
+      "path": "src/components/master-data-filters.tsx",
+      "sha256": "82c151ac404b849334f22deeb784134f0ffc8980fe0d48a8b8235e46883e32be"
+    },
+    {
+      "path": "src/components/product-form.tsx",
+      "sha256": "ba17a4789da88dfcf5fb9dd01b68bfc8922bddbd9b1562413479efa753c4b15b"
+    },
+    {
+      "path": "src/components/recipe-form.tsx",
+      "sha256": "0cefe5c52127de7702e18756c3d18cc9a94d9ad621e99579364613a23c860675"
+    },
+    {
+      "path": "src/components/supplier-combobox.tsx",
+      "sha256": "e7d85c46f29d086f467dd612e723e9df183f0dcc922c7321f154fda73e743d40"
+    },
+    {
+      "path": "src/components/supplier-invoice-form.tsx",
+      "sha256": "dbfe219f3b55d226b152b79c635597645292440e8b0c43d230ba9ab57e1aa786"
+    },
+    {
+      "path": "src/lib/stock-enum-search.ts",
+      "sha256": "9b15120bf58b1f8e7e89838c0c87990ef9d8fb71e0e8aa5243bf2b3539193908"
+    },
+    {
+      "path": "src/server/actions/assets.ts",
+      "sha256": "af01575ba38ce8188f5389f374d0415f9b1a19dd846cca792cd4f721caf148f1"
+    },
+    {
+      "path": "src/server/queries/assets.ts",
+      "sha256": "52ab8a4e6f40de32ee72302feefcc9d77dee036661155f01ed4dfff6b2ffc938"
+    },
+    {
+      "path": "src/server/queries/stock-counts.ts",
+      "sha256": "63709c9b977d6e0a6070db14a316bbf170c05f470eeaaecf8596a126b18a6d44"
+    },
+    {
+      "path": "src/server/queries/stock-operations.ts",
+      "sha256": "a48dcb2b2080ff97432a940027d548031dee9864e14f79b0121748d96cfe37e8"
+    },
+    {
+      "path": "src/types/database.ts",
+      "sha256": "025009adcaf2c933a68a829fb8bf3db11bb914e307798e1b0d0dc029506b6689"
+    },
+    {
+      "path": "supabase/migrations/346_general_maintenance_requests.sql",
+      "sha256": "9e0458aa9e674f1601712599186d9676fd602e99b6b06db2dac755bb2e2f833e"
+    },
+    {
+      "path": "tests/asset-attachment-actions.test.js",
+      "sha256": "443a4f5f35786e24b61e52ac65767c8d1f933ed2099c8cedb846a4d41935c42c"
+    },
+    {
+      "path": "tests/asset-inspection-access.test.js",
+      "sha256": "a80fee86809c34ce175ce4659b25f5a55fb15bdbeed41361280255159ed0cd78"
+    },
+    {
+      "path": "tests/e2e/v9-route-matrix.cjs",
+      "sha256": "84496b802d95831bad3c5cd3a7ccb8fd6012f7a8d933f0706893bcb376323794"
+    },
+    {
+      "path": "tests/stock-enum-search.test.js",
+      "sha256": "892d8d04e32aeaa0168a87fcf07d59ada0ed642e922b37609c42894bca9e7756"
+    },
+    {
+      "path": "tests/v9-route-matrix-contract.test.js",
+      "sha256": "d72a920a353632b17c547aed59562d3fa788bf81b5ee4dfa5cf859bdf69d7097"
+    }
+  ],
+  "note": "Manifest excludes its own hash; commit identifies the complete immutable package."
+}

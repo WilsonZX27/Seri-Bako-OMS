@@ -12,9 +12,9 @@ const tabs = [
   { id: "transfers", label: "Transfers", icon: ArrowLeftRight },
 ];
 
-export function AssetWorkspaceNavigation({current, managementRole}: {current:string; managementRole:boolean}) {
+export function AssetWorkspaceNavigation({current, managementRole, canReport=false}: {current:string; managementRole:boolean; canReport?:boolean}) {
   const strip = useRef<HTMLElement>(null);
-  const items = tabs.filter(tab => managementRole || !["overview","maintenance"].includes(tab.id));
+  const items = tabs.filter(tab => managementRole || (tab.id === "maintenance" && canReport) || !["overview","maintenance"].includes(tab.id));
   useEffect(() => {
     const nav=strip.current;
     if(!nav) return;

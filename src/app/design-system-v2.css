@@ -1164,6 +1164,14 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
     align-items: stretch;
   }
 
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-row:not(:has(.unified-list-search-submit)):not(.unified-list-row--filter-only) {
+    grid-template-columns: minmax(0, 1fr) max-content auto;
+  }
+
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-row:not(:has(.unified-list-search-submit)):not(.unified-list-row--filter-only) .unified-list-result {
+    grid-column: 3;
+  }
+
   html[data-design-layer="v2"] form.unified-list-header .unified-list-row--filter-only {
     grid-template-columns: 104px minmax(0, auto);
     justify-content: start;
@@ -1248,7 +1256,7 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
     line-height: 1rem;
   }
 
-  html[data-design-layer="v2"] form.unified-list-header button[type="submit"] {
+  html[data-design-layer="v2"] form.unified-list-header button[type="submit"]:not(.unified-list-search-submit) {
     display: none !important;
   }
 
@@ -2601,4 +2609,22 @@ html[data-design-layer="v2"] .unified-list-date-control {
 }
 html[data-design-layer="v2"] form.sb-asset-query .unified-list-desktop-actions button > svg {
   width: 1rem; height: 1rem; flex: none;
+}
+
+/* At narrow phone widths, keep the query readable instead of reducing it to
+   its search icon. The commands occupy the following row. */
+@media (max-width: 380px) {
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-row:has(.unified-list-search-submit) {
+    grid-template-columns: minmax(0, 1fr) max-content auto;
+  }
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-row:has(.unified-list-search-submit) > .unified-list-primary-control { grid-column: 1 / -1; }
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-search-submit { grid-column: 1; }
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-row:has(.unified-list-search-submit) > .unified-list-result { grid-column: 3; }
+}
+
+/* The accessible file input is visually hidden; reflect its keyboard focus on
+   the visible label that opens the native chooser. */
+.sb-file-picker:has(input[type="file"]:focus-visible) label[for]:not(.sr-only) {
+  outline: 2px solid var(--sb-green-700);
+  outline-offset: 2px;
 }

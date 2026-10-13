@@ -64,7 +64,7 @@ export function MasterDataFilters({
 
   const controls = (
     <>
-      <Input name="search" defaultValue={search ?? ""} placeholder={placeholder} />
+      <Input name="search" defaultValue={search ?? ""} placeholder={placeholder} aria-label={placeholder} />
       {leadingFilter}
       {showStatus ? <SelectControl name="status" defaultValue={status} options={[{ value: "all", label: "All statuses" }, ...statuses]} ariaLabel="Status" className="min-w-32 md:w-40" /> : null}
       {suppliers.length ? (

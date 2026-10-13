@@ -9,7 +9,7 @@ import { addDays } from "@/lib/production-planning/forecast";
 import { createHash } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { assetAttachmentLimit, assetAttachmentTypes, assetAttachmentKinds, assetAttachmentSignature } from "@/lib/asset-attachments";
-export type AssetActionState = { ok: boolean; message: string; assetId?: string };
+export type AssetActionState = { ok: boolean; message: string; assetId?: string; requestId?: string; photoError?: string };
 const uuid = (value: FormDataEntryValue | null) => {
   if (typeof value !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)) throw new Error("Choose a valid asset and location.");
   return value;
@@ -17,10 +17,10 @@ const uuid = (value: FormDataEntryValue | null) => {
 export async function uploadAssetAttachment(_previous: AssetActionState, form: FormData): Promise<AssetActionState> {
   try {
     const actor = await requireActiveTenantActor();
-    const assetId = uuid(form.get("asset_id")), key = uuid(form.get("client_key"));
+    const assetId = form.get("asset_id") ? uuid(form.get("asset_id")) : null, key = uuid(form.get("client_key"));
     const file = form.get("file"), label = String(form.get("label") ?? "").trim(), kind = String(form.get("kind") ?? "");
     const rawMaintenance = String(form.get("maintenance_id") ?? ""), maintenanceId = rawMaintenance ? uuid(rawMaintenance) : null;
-    const uploadPermission = await hasPermission("assets.manage") ? "assets.manage" : "assets.maintenance";
+    const uploadPermission = await hasPermission("assets.manage") ? "assets.manage" : await hasPermission("assets.report") ? "assets.report" : "assets.maintenance";
     await requirePermission(uploadPermission);
     if (uploadPermission !== "assets.manage" && (!maintenanceId || kind !== "Photo")) throw new Error("You may add photos to accessible maintenance records.");
     if (!(file instanceof File) || file.size === 0 || file.size > assetAttachmentLimit || !assetAttachmentTypes.some(type => type === file.type)) throw new Error("Choose a JPG, PNG, WebP or PDF file, up to 10 MB.");
@@ -32,7 +32,7 @@ export async function uploadAssetAttachment(_previous: AssetActionState, form: F
     const result = await reserve();
     if (result.error || !result.data) throw new Error(result.error?.message ?? "Attachment could not be reserved.");
     const attachment = result.data as { id: string; storage_path: string; verified: boolean };
-    if (!attachment.storage_path.startsWith(`${actor.companyId}/${assetId}/`) || !/^[0-9a-f-]{36}$/i.test(attachment.id)) throw new Error("Attachment location could not be verified.");
+    if (!attachment.storage_path.startsWith(`${actor.companyId}/${assetId ?? `maintenance/${maintenanceId}`}/`) || !/^[0-9a-f-]{36}$/i.test(attachment.id)) throw new Error("Attachment location could not be verified.");
     if (!attachment.verified) {
       const admin = createAdminClient(), bucket = admin.storage.from("asset-documents");
       // Write-once paths make a retry safe. A failed upload may have reached
@@ -51,9 +51,9 @@ export async function uploadAssetAttachment(_previous: AssetActionState, form: F
       const verified = await looseSupabase(admin).rpc("verify_native_asset_attachment", { p_company: actor.companyId, p_attachment: attachment.id, p_path: attachment.storage_path, p_sha256: sha256 });
       if (verified.error || verified.data !== true) throw new Error("Attachment verification did not finish. Retry with the same file.");
     }
-    revalidatePath(`/asset-management/assets/${assetId}`);
+    if (assetId) revalidatePath(`/asset-management/assets/${assetId}`);
     if (maintenanceId) revalidatePath(`/asset-management/maintenance/${maintenanceId}`);
-    return { ok: true, message: "Attachment uploaded and verified.", assetId };
+    return { ok: true, message: "Attachment uploaded and verified.", assetId: assetId ?? undefined };
   } catch (error) { return { ok: false, message: error instanceof Error ? error.message : "Could not upload attachment." }; }
 }
 export async function saveAssetMaster(_previous: AssetActionState, form: FormData): Promise<AssetActionState> {
@@ -154,14 +154,31 @@ export async function requestAssetTransfer(_previous: AssetActionState, form: Fo
 
 export async function reportAssetMaintenance(_previous: AssetActionState, form: FormData): Promise<AssetActionState> {
   try {
-    await requireActiveTenantActor(); await requirePermission("assets.maintenance");
+    await requireActiveTenantActor(); await requirePermission(await hasPermission("assets.report") ? "assets.report" : "assets.maintenance");
     const description = String(form.get("description") ?? "").trim(), priority = String(form.get("priority") ?? "");
     if (description.length === 0 || description.length > 4000 || !["Low", "Normal", "High", "Urgent"].includes(priority)) throw new Error("Enter the issue and priority.");
+    const selectedPhoto = form.get("photo");
+    if (selectedPhoto instanceof File && selectedPhoto.size > 0) {
+      uuid(form.get("photo_key"));
+      if (selectedPhoto.size > assetAttachmentLimit || !["image/jpeg","image/png","image/webp"].includes(selectedPhoto.type) || !assetAttachmentSignature(selectedPhoto.type, Buffer.from(await selectedPhoto.arrayBuffer()))) throw new Error("Choose a valid JPG, PNG or WebP photo up to 10 MB.");
+    }
     const db = looseSupabase(await createClient());
-    const result = await db.rpc("report_asset_maintenance", { p_asset: uuid(form.get("asset_id")), p_location: uuid(form.get("location_id")), p_description: description, p_priority: priority, p_client_key: uuid(form.get("client_key")) });
+    const result = await db.rpc("report_asset_maintenance", { p_asset: form.get("asset_id") ? uuid(form.get("asset_id")) : null, p_location: uuid(form.get("location_id")), p_description: description, p_priority: priority, p_client_key: uuid(form.get("client_key")) });
     if (result.error || !result.data) throw new Error(result.error?.message ?? "Maintenance request was not confirmed.");
     revalidatePath("/asset-management", "layout");
-    return { ok: true, message: "Maintenance request recorded." };
+    const requestId = uuid(result.data as string);
+    const photo = form.get("photo");
+    if (photo instanceof File && photo.size > 0) {
+      const attachment = new FormData();
+      attachment.set("asset_id", String(form.get("asset_id") ?? ""));
+      attachment.set("maintenance_id", requestId);
+      attachment.set("client_key", uuid(form.get("photo_key")));
+      attachment.set("file", photo); attachment.set("kind", "Photo");
+      attachment.set("label", photo.name.slice(0,180) || "Problem photo");
+      const uploaded = await uploadAssetAttachment({ok:false,message:""}, attachment);
+      return {ok:true,requestId,message:"Request received · Open",photoError:uploaded.ok ? undefined : uploaded.message};
+    }
+    return { ok: true, requestId, message: "Request received · Open" };
   } catch (error) { return { ok: false, message: error instanceof Error ? error.message : "Could not report maintenance." }; }
 }
 export async function updateAssetMaintenance(_previous: AssetActionState, form: FormData): Promise<AssetActionState> {

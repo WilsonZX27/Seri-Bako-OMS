@@ -45,8 +45,8 @@ test("Attendance routes follow the eighth-role permission boundary", () => {
   assert.match(permissions, /"\/attendance\/settings": \["shift_template\.manage"\]/);
 });
 
-test("Outlet Supervisor retains the approved outlet compliance workspace", () => {
-  const complianceRoles = ["superAdmin", "peopleOperations", "manager", "purchasing", "outletSupervisor"];
+test("Compliance follows migration 314 management-only access", () => {
+  const complianceRoles = ["superAdmin", "peopleOperations", "manager", "purchasing"];
   assert.deepEqual(permittedRolesFor("/compliance"), complianceRoles);
   assert.deepEqual(permittedRolesFor("/outlet-compliance"), complianceRoles);
   assert.deepEqual(permittedRolesFor("/outlet-calendar"), complianceRoles);
@@ -123,8 +123,8 @@ test("People Operations is audited only across its approved OMS modules", () => 
   assert.deepEqual(permittedRolesFor("/staffs"), ["superAdmin", "peopleOperations", "manager"]);
   assert.deepEqual(permittedRolesFor("/staffs/new"), ["superAdmin", "peopleOperations", "manager"]);
   assert.deepEqual(permittedRolesFor("/staffs/00000000-0000-4000-8000-000000000000"), ["superAdmin", "peopleOperations", "manager"]);
-  assert.deepEqual(permittedRolesFor("/outlet-compliance"), ["superAdmin", "peopleOperations", "manager", "purchasing", "outletSupervisor"]);
-  assert.deepEqual(permittedRolesFor("/outlet-calendar"), ["superAdmin", "peopleOperations", "manager", "purchasing", "outletSupervisor"]);
+  assert.deepEqual(permittedRolesFor("/outlet-compliance"), ["superAdmin", "peopleOperations", "manager", "purchasing"]);
+  assert.deepEqual(permittedRolesFor("/outlet-calendar"), ["superAdmin", "peopleOperations", "manager", "purchasing"]);
   assert.deepEqual(permittedRolesFor("/document-sequences"), ["superAdmin", "finance"]);
   assert.deepEqual(permittedRolesFor("/outlet-daily-records"), ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]);
   assert.deepEqual(permittedRolesFor("/purchase-requests"), ["superAdmin", "finance", "manager", "purchasing", "kitchen"]);
@@ -183,4 +183,9 @@ test("opening stock mobile context returns to a real inventory route", () => {
   const header = fs.readFileSync("src/components/layout/mobile-context-header.tsx", "utf8");
   assert.match(header, /"\/opening-stock\/import": \{ title: "Import Opening Stock", backHref: "\/inventory" \}/);
   assert.doesNotMatch(header, /backHref: "\/opening-stock"/);
+});
+
+
+test("delivery order detail follows its planning permission rather than generic production roles", () => {
+  assert.deepEqual(permittedRolesFor("/production/delivery-orders/00000000-0000-4000-8000-000000000000"), ["superAdmin", "manager", "kitchen", "outletSupervisor", "outlet"]);
 });

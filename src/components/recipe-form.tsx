@@ -251,7 +251,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
                           <Image src={line.item_image_url} alt="" width={40} height={40} className="h-10 w-10 rounded-[var(--sb-control-radius)] object-cover" />
                         ) : itemFallback(line.item_code || "IT")}
                         <div className="min-w-64 space-y-1">
-                          <Input list="recipe-ingredient-items" value={line.itemSearch} placeholder="Type item code or name" onChange={(event) => selectItem(index, event.target.value)} />
+                          <Input list="recipe-ingredient-items" value={line.itemSearch} aria-label={`Ingredient ${index + 1}`} placeholder="Type item code or name" onChange={(event) => selectItem(index, event.target.value)} />
                           {line.item_code ? <p className="text-xs text-muted-foreground">{line.item_code} - {line.item_name}</p> : null}
                           {line.ingredient_item_id && duplicateIds.includes(line.ingredient_item_id) ? <p className="text-xs text-destructive">Duplicate ingredient</p> : null}
                         </div>
@@ -297,7 +297,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
                     <Image src={line.item_image_url} alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-[var(--sb-control-radius)] object-cover" />
                   ) : itemFallback(line.item_code || "IT")}
                   <div className="min-w-0 flex-1 space-y-1">
-                    <Input list="recipe-ingredient-items" value={line.itemSearch} placeholder="Ingredient code or name" onChange={(event) => selectItem(index, event.target.value)} />
+                    <Input list="recipe-ingredient-items" value={line.itemSearch} aria-label={`Ingredient ${index + 1}`} placeholder="Ingredient code or name" onChange={(event) => selectItem(index, event.target.value)} />
                     {line.item_code ? <p className="break-words text-xs text-muted-foreground">{line.item_code} - {line.item_name}</p> : null}
                     {line.ingredient_item_id && duplicateIds.includes(line.ingredient_item_id) ? <p className="text-xs text-destructive">Duplicate ingredient</p> : null}
                   </div>

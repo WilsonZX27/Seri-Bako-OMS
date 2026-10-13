@@ -1,21 +1,21 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript'),vm=require('node:vm');
-function load(file,bindings={}){const module={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module,exports:module.exports,require:name=>bindings[name]??require(name),File,Buffer});return module.exports;}
+function load(file,bindings={}){const module={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module,exports:module.exports,require:name=>bindings[name]??require(name),File,FormData,Buffer});return module.exports;}
 const content=load('src/lib/asset-attachments.ts');
 const id=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 function harness(options={}){
- const calls=[],actor={companyId:id(1),staffId:id(2)},asset=id(3),attachment={id:id(4),storage_path:`${id(1)}/${asset}/${id(4)}.jpg`,verified:!!options.verified};let actors=0,reserves=0;
- const db={rpc:async(name,args)=>{calls.push({name,args});reserves++;return options.denied || (options.accessChanged && reserves===2)?{data:null,error:{message:'Access denied'}}:{data:attachment,error:null};}};
+ const calls=[],actor={companyId:id(1),staffId:id(2)},asset=id(3),attachment={id:id(4),storage_path:`${id(1)}/${options.general ? `maintenance/${id(6)}` : asset}/${id(4)}.jpg`,verified:!!options.verified};let actors=0,reserves=0;
+ const db={rpc:async(name,args)=>{calls.push({name,args});if(name==="report_asset_maintenance") return {data:id(6),error:null};reserves++;return options.denied || (options.accessChanged && reserves===2)?{data:null,error:{message:'Access denied'}}:{data:attachment,error:null};}};
  const bucket={upload:async(path,bytes,config)=>{calls.push({name:'upload',path,config});return {error:options.uploadError?{message:'Upload response lost'}:null};},download:async path=>{calls.push({name:'download',path});return options.downloadError?{data:null,error:{message:'Unavailable'}}:{data:new Blob([options.corrupt?Buffer.from([255,216,255,9]):Buffer.from([255,216,255,1])]),error:null};}};
  const admin={storage:{from:name=>{assert.equal(name,'asset-documents');return bucket;}},rpc:async(name,args)=>{calls.push({name,args});return {data:true,error:null};}};
  const actions=load('src/server/actions/assets.ts',{
   'next/cache':{revalidatePath:path=>calls.push({name:'revalidate',path})},
   '@/server/auth/tenant-actor':{requireActiveTenantActor:async()=>{actors++;return options.sessionChanged&&actors>1?{...actor,companyId:id(9)}:actor;}},
-  '@/server/auth/permissions':{hasPermission:async()=>!options.operator,requirePermission:async permission=>{calls.push({name:'permission',permission});if(options.permissionRevoked&&actors>1)throw new Error('Permission revoked');}},
+  '@/server/auth/permissions':{hasPermission:async permission=>options.general ? permission==="assets.report" : !options.operator,requirePermission:async permission=>{calls.push({name:'permission',permission});if(options.permissionRevoked&&actors>1)throw new Error('Permission revoked');}},
   '@/lib/supabase/server':{createClient:async()=>db},'@/lib/supabase/loose':{looseSupabase:value=>value},
   '@/lib/supabase/admin':{createAdminClient:()=>admin},'@/lib/asset-attachments':content,
   '@/lib/asset-master':{assetMasterFields:[]},'@/lib/production-planning/forecast':{addDays:()=>{}},
  });
- const form=new FormData();for(const [key,value] of Object.entries({asset_id:asset,client_key:id(5),label:'Synthetic photo',kind:'Photo',...(options.parent?{maintenance_id:id(6)}:{})}))form.set(key,value);
+ const form=new FormData();for(const [key,value] of Object.entries({asset_id:options.general?"":asset,client_key:id(5),label:'Synthetic photo',kind:'Photo',...(options.parent?{maintenance_id:id(6)}:{})}))form.set(key,value);
  form.set('file',new File([Buffer.from([255,216,255,1])],'synthetic.jpg',{type:'image/jpeg'}));
  return {actions,form,calls};
 }
@@ -53,4 +53,23 @@ test('pending, absent, malformed or foreign-path attachments cannot reach URL si
  for(const change of [{verified_at:null},{verified_at:'invalid'},{content_sha256:null},{content_sha256:'invalid'},{storage_path:`${id(9)}/${id(3)}/photo.jpg`},{missing:true},{queryError:true}]){
   const h=readHarness(change),result=await h.route.GET(new Request('https://example.test/asset'),{params:Promise.resolve({id:id(4)})});assert.ok([404,503].includes(result.status));assert.equal(h.calls.some(c=>c.name==='sign'),false);
  }
+});
+
+test('general problem without asset uses request-owned private path and verified reads',async()=>{
+ const h=harness({general:true,parent:true});assert.equal((await h.actions.uploadAssetAttachment({ok:false,message:''},h.form)).ok,true);
+ assert.equal(h.calls.find(c=>c.name==='reserve_asset_attachment').args.p_asset,null);
+ const r=readHarness({asset_id:null,maintenance_id:id(6),storage_path:`${id(1)}/maintenance/${id(6)}/${id(4)}.jpg`});
+ assert.equal((await r.route.GET(new Request('https://example.test/asset'),{params:Promise.resolve({id:id(4)})})).status,307);
+});
+test('report action returns saved ticket even if its optional photo upload fails',async()=>{
+ const h=harness({general:true,parent:true,downloadError:true});
+ h.form.set('location_id',id(8));h.form.set('description','Light not working');h.form.set('priority','Normal');h.form.set('photo_key',id(9));h.form.set('photo',h.form.get('file'));
+ const result=await h.actions.reportAssetMaintenance({ok:false,message:''},h.form);
+ assert.equal(result.ok,true);assert.equal(result.requestId,id(6));assert.match(result.photoError,/Retry/);
+ assert.equal(h.calls.find(c=>c.name==='report_asset_maintenance').args.p_asset,null);
+});
+test('invalid optional photo prevents ticket creation; a report needs no photo',async()=>{
+ const h=harness({general:true});h.form.set('location_id',id(8));h.form.set('description','Light not working');h.form.set('priority','Normal');h.form.set('photo_key',id(9));h.form.set('photo',new File(['bad'],'x.jpg',{type:'image/jpeg'}));
+ assert.equal((await h.actions.reportAssetMaintenance({ok:false,message:''},h.form)).ok,false);assert.equal(h.calls.some(c=>c.name==='report_asset_maintenance'),false);
+ h.form.delete('photo');assert.equal((await h.actions.reportAssetMaintenance({ok:false,message:''},h.form)).ok,true);
 });

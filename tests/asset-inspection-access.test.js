@@ -18,7 +18,7 @@ function load(role = 'outlet_staff', count = 73, duplicate = false) {
     query.then = (resolve, reject) => Promise.resolve({ data: table === 'asset_locations' ? [{ id: 'location', source_name: 'Assigned store' }] : table === 'asset_holdings' ? Array.from({ length: Math.max(0, Math.min(count, end + 1) - start) }, (_, offset) => ({ asset_id: `asset-${duplicate ? offset : start + offset}`, location_id: 'location', quantity: offset === 0 ? null : 0 })) : ids.map(id => ({ id, asset_code: id, item_name: id })), count, error: null }).then(resolve, reject);
     return query;
   }};
-  const bindings = { react: { cache: fn => fn }, '@/lib/asset-access': policyModule.exports, '@/lib/business-date': {}, '@/lib/production-planning/forecast': {}, '@/server/auth/tenant-actor': { requireActiveTenantActor: async () => ({ companyId: 'company', roleCode: role }) }, '@/server/auth/permissions': { requirePermission: async () => {} }, '@/lib/supabase/server': { createClient: async () => db }, '@/lib/supabase/loose': { looseSupabase: value => value } };
+  const bindings = { react: { cache: fn => fn }, '@/lib/asset-access': policyModule.exports, '@/lib/business-date': {}, '@/lib/production-planning/forecast': {}, '@/server/auth/tenant-actor': { requireActiveTenantActor: async () => ({ companyId: 'company', roleCode: role }) }, '@/server/auth/permissions': { requirePermission: async permission => { if(permission === "assets.report") throw new Error("Reporting permission required"); } }, '@/lib/supabase/server': { createClient: async () => db }, '@/lib/supabase/loose': { looseSupabase: value => value } };
   vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/server/queries/assets.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, { module, exports: module.exports, require: name => bindings[name] ?? require(name) });
   return { queries: module.exports, calls, queryCalls, policy: policyModule.exports };
 }
@@ -39,12 +39,13 @@ test('inspection refuses an incomplete or duplicate cross-page asset set', async
   await assert.rejects(() => load('outlet_staff', 73, true).queries.getAssetInspection('location'), /changed/);
   await assert.rejects(() => load('outlet_staff', 5001).queries.getAssetInspection('location'), /limit/);
 });
-test('non-management roles cannot query overview, maintenance detail, or maintenance attachment registers', async () => {
+test('overview requires management; maintenance queries require an explicit reporting grant for other roles', async () => {
   for (const role of ['outlet_staff', 'kitchen', 'finance', 'purchasing', 'people_operations', 'unknown']) {
     const h = load(role);
-    for (const view of ['overview', 'maintenance']) await assert.rejects(() => h.queries.getAssetWorkspace(view), /management role/);
-    await assert.rejects(() => h.queries.getAssetMaintenanceDetail('request', 1), /management role/);
-    await assert.rejects(() => h.queries.getAssetAttachmentRegister('maintenance', 'request', 1), /management role/);
+    await assert.rejects(() => h.queries.getAssetWorkspace('overview'), /management role/);
+    await assert.rejects(() => h.queries.getAssetWorkspace('maintenance'), /Reporting permission/);
+    await assert.rejects(() => h.queries.getAssetMaintenanceDetail('request', 1), /Reporting permission/);
+    await assert.rejects(() => h.queries.getAssetAttachmentRegister('maintenance', 'request', 1), /Reporting permission/);
     assert.equal(h.calls.length, 0);
   }
   for (const role of ['super_admin', 'manager', 'outlet_supervisor']) assert.equal(load(role).policy.canAccessAssetManagement(role), true);

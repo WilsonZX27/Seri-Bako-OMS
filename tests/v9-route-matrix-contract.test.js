@@ -12,8 +12,8 @@ const {
 
 test("v9 UAT classifies every application page", () => {
   const routes = discoverRouteMatrix();
-  assert.equal(routes.length, 126, "Route count changed. Classify the new or removed page deliberately.");
-  for (const route of ["/outlet-daily-records/insights", "/outlet-daily-records/delivery-orders"]) assert.ok(routes.some(entry=>entry.route===route), `${route} must be classified`);
+  assert.equal(routes.length, 127, "Route count changed. Classify the new or removed page deliberately.");
+  for (const route of ["/asset-management/maintenance/new", "/outlet-daily-records/insights", "/outlet-daily-records/delivery-orders"]) assert.ok(routes.some(entry=>entry.route===route), `${route} must be classified`);
   assert.equal(new Set(routes.map((entry) => entry.file)).size, routes.length);
   assert.equal(new Set(routes.map((entry) => entry.route)).size, routes.length);
   for (const entry of routes) {

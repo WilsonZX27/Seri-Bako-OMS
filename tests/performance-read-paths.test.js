@@ -246,6 +246,7 @@ function pendingActions(db, grants, permissionCalls) {
     react: { cache: (fn) => fn },
     "@/lib/supabase/server": { createClient: async () => db },
     "@/server/auth/permissions": { getPermissionMap: async (codes) => { permissionCalls.push(codes); return grants; } },
+    "@/lib/supabase/loose": { looseSupabase: value => value },
     "@/server/queries/notifications": { getCurrentUserScope: async () => ({ branchIds: ["allowed"], companyWideAccess: false, roleCode: "outlet_supervisor" }) },
     "@/server/observability/logger": { logServerWarning() {} },
   });
@@ -260,7 +261,7 @@ test("topbar batches permissions and skips full counts and unused details while 
   const api = pendingActions(db, { "pr.manager_approve": true, "schedule.approve": true, "outlet_daily_record.post": true }, permissionCalls);
   const items = await api.getCurrentUserPendingActions(5);
   assert.equal(permissionCalls.length, 1);
-  assert.equal(permissionCalls[0].length, 8);
+  assert.equal(permissionCalls[0].length, 9);
   assert.equal(items.length, 3);
   assert.deepEqual(db.calls.map((call) => call.table).sort(), ["outlet_daily_records", "purchase_requests", "schedule_weeks"]);
   for (const call of db.calls) {
@@ -293,3 +294,14 @@ test("failed topbar workflow queries propagate unavailable instead of a false em
   const db = database(() => ({ data: null, count: null, error: { message: "timeout" } }));
   await assert.rejects(pendingActions(db, { "schedule.approve": true }, []).getCurrentUserPendingActions(5), /temporarily unavailable/);
 });
+
+ test("maintenance actions use scoped RPC and propagate unavailable", async () => {
+  for (const error of [null, {message:"missing migration"}]) {
+   const db=database(()=>({data:error?null:{total:1,items:[{id:"repair",created_at:"2026-10-13",location:"Assigned outlet"}]},error}));
+   const result=await pendingActions(db,{"assets.maintenance":true},[]).getCurrentUserPendingActionSnapshot(5);
+   assert.equal(result.unavailable,Boolean(error));
+   assert.equal(result.total,error?null:1);
+   assert.equal(db.calls[0].table,"get_my_maintenance_actions");
+   if(!error) assert.equal(result.items[0].href,"/asset-management/maintenance/repair");
+  }
+ });

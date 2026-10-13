@@ -906,6 +906,9 @@ details > summary::after { content: ""; width: .5rem; height: .5rem; flex-shrink
 details[open] > summary::after { transform: rotate(225deg); }
 .sb-asset-check-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(8rem, 9rem); gap: .75rem; padding: 1rem; }
 .sb-asset-check-row > div:last-child { grid-column: 1 / -1; }
+@media (max-width: 359px) {
+  .sb-asset-check-row { grid-template-columns: minmax(0, 1fr); padding-inline: 0; }
+}
 @media (min-width: 1024px) {
   .sb-asset-check-row { grid-template-columns: minmax(12rem, 2fr) 5rem minmax(10rem, 1fr) minmax(12rem, 1.5fr); align-items: start; }
   .sb-asset-check-row > div:last-child { grid-column: auto; }

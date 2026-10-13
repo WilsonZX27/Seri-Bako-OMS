@@ -41,7 +41,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
 
   const permissions = await getPermissionMap([
     "pr.admin_review", "pr.purchasing_review", "pr.manager_approve", "pr.finance_review",
-    "pr.convert_to_po", "pr.view_all", "schedule.approve", "outlet_daily_record.post",
+    "pr.convert_to_po", "pr.view_all", "schedule.approve", "outlet_daily_record.post", "assets.maintenance",
   ]);
   const canAdminReview = permissions["pr.admin_review"];
   const canPurchasingReview = permissions["pr.purchasing_review"];
@@ -213,7 +213,8 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
     };
   })();
 
-  const maintenanceResult = await (async () => {
+  const maintenanceResultPromise = (async () => {
+    if (!permissions["assets.maintenance"]) return { items: [] as PendingAction[], count: 0, unavailable: false };
     const { data, error } = await looseSupabase(supabase).rpc("get_my_maintenance_actions", { p_limit: limit });
     if (error || !data) {
       if (error) logServerWarning(error, { source: "pending-actions.maintenance" });
@@ -228,7 +229,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
     } satisfies PendingAction)) };
   })();
 
-  const [prResults, scheduleResult, outletDailyResult] = await Promise.all([prResultsPromise, scheduleResultPromise, outletDailyResultPromise]);
+  const [prResults, scheduleResult, outletDailyResult, maintenanceResult] = await Promise.all([prResultsPromise, scheduleResultPromise, outletDailyResultPromise, maintenanceResultPromise]);
   const results = [...prResults, maintenanceResult, scheduleResult, ...(includeOutletDaily ? [outletDailyResult] : [])];
   const unavailable = results.some((result) => result.unavailable);
   const items = results

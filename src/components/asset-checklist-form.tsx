@@ -25,7 +25,7 @@ export function AssetChecklistForm({ locationId, locationName, assets, holdings,
   const markEdited=(id:string)=>setBulkUndo(previous=>previous ? {...previous,touched:[...new Set([...previous.touched,id])]} : null);
   const update = (key: string, value: string) => { markEdited(key.slice(key.indexOf("_")+1)); setFields(current => ({ ...current, [key]: value })); };
   const names = new Map(assets.map(asset => [asset.id, asset]));
-  return <form id={formId} action={action} onInvalidCapture={event => { const details = (event.target as HTMLElement).closest("details"); if (details) details.open = true; }} className="max-lg:[&_input]:min-h-11 max-lg:[&_select]:min-h-11 max-lg:[&_button]:min-h-11 sb-work-surface p-3 md:pb-24 xl:pb-3">
+  return <form id={formId} action={action} onInvalidCapture={event => { const details = (event.target as HTMLElement).closest("details"); if (details) details.open = true; }} className="max-lg:[&_input]:min-h-11 max-lg:[&_select]:min-h-11 max-lg:[&_button]:min-h-11 sb-work-surface p-3">
     {locationName ? <h2 className="mb-3 text-base font-semibold lg:hidden">{locationName}</h2> : null}
     {restored ? <p role="status" className="mb-3 text-xs">Unsaved inspection inputs restored. Review counts and selections before saving.</p> : null}
     <input type="hidden" name="location_id" value={locationId}/><input type="hidden" name="submission_id" value={draft.submissionId}/>

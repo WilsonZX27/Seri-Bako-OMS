@@ -190,6 +190,7 @@ export async function updateAssetMaintenance(_previous: AssetActionState, form: 
     const result = await db.rpc("update_asset_maintenance", { p_request: uuid(form.get("request_id")), p_status: status, p_comment: comment, p_client_key: uuid(form.get("client_key")), p_expected_status: String(form.get("expected_status") ?? "") });
     if (result.error || !result.data) throw new Error(result.error?.message ?? "Maintenance update was not confirmed.");
     revalidatePath("/asset-management", "layout");
+    revalidatePath("/", "layout");
     return { ok: true, message: "Maintenance update recorded." };
   } catch (error) { return { ok: false, message: error instanceof Error ? error.message : "Could not update maintenance." }; }
 }

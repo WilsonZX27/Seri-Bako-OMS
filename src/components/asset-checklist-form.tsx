@@ -13,7 +13,7 @@ import type { AssetSummary, AssetHolding } from "@/server/queries/assets";
 export function AssetChecklistForm({ locationId, locationName, assets, holdings, date, today, submissionId }: { locationId: string; locationName?: string; assets: AssetSummary[]; holdings: AssetHolding[]; date: string; today: string; submissionId: string }) {
   const [state, action, pending] = useActionState(useAssetDraftAction(`checklist:${locationId}:${date}`, submitAssetChecklist), { ok: false, message: "" });
   const revision=JSON.stringify([today,holdings.map(row=>[row.asset_id,row.quantity]).sort()]);
-  const [draft,setDraft,restored]=useAssetDraftState(`checklist:${locationId}:${date}`,revision,{fields:{} as Record<string,string>,checkDate:date,selected:[] as string[]},(value): value is {fields:Record<string,string>;checkDate:string;selected:string[]}=>isAssetChecklistDraft(value,holdings.map(row=>row.asset_id),today),state.ok);
+  const [draft,setDraft,restored]=useAssetDraftState(`checklist:${locationId}:${date}`,revision,{fields:{} as Record<string,string>,checkDate:date,selected:[] as string[],submissionId},(value): value is {fields:Record<string,string>;checkDate:string;selected:string[];submissionId:string}=>isAssetChecklistDraft(value,holdings.map(row=>row.asset_id),today) && "submissionId" in value && typeof value.submissionId === "string" && /^[0-9a-f-]{36}$/i.test(value.submissionId),state.ok);
   const {fields,checkDate,selected}=draft;
   const [bulkUndo, setBulkUndo] = useState<{ selected: string[]; fields: Record<string,string>; touched: string[] } | null>(null);
   const formId = `asset-checklist-${locationId}`;
@@ -28,14 +28,14 @@ export function AssetChecklistForm({ locationId, locationName, assets, holdings,
   return <form id={formId} action={action} onInvalidCapture={event => { const details = (event.target as HTMLElement).closest("details"); if (details) details.open = true; }} className="max-lg:[&_input]:min-h-11 max-lg:[&_select]:min-h-11 max-lg:[&_button]:min-h-11 sb-work-surface p-3 md:pb-24 xl:pb-3">
     {locationName ? <h2 className="mb-3 text-base font-semibold lg:hidden">{locationName}</h2> : null}
     {restored ? <p role="status" className="mb-3 text-xs">Unsaved inspection inputs restored. Review counts and selections before saving.</p> : null}
-    <input type="hidden" name="location_id" value={locationId}/><input type="hidden" name="submission_id" value={submissionId}/>
+    <input type="hidden" name="location_id" value={locationId}/><input type="hidden" name="submission_id" value={draft.submissionId}/>
     <label className="mb-3 grid max-w-48 gap-1 text-xs">Check date<Input type="date" name="date" value={checkDate} onChange={event => setCheckDate(event.target.value)} max={today} required/></label>
     <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
       <Button type="button" disabled={pending || state.ok} onClick={() => { setBulkUndo({ selected: [...selected], fields: {...fields}, touched: [] }); setSelected(() => holdings.map(row => row.asset_id)); }}>Set all assets as checked</Button>
       {bulkUndo !== null ? <Button type="button" variant="ghost" disabled={pending || state.ok} onClick={() => { setSelected(current => current.filter(id => bulkUndo.selected.includes(id) || bulkUndo.touched.includes(id) || Object.keys(fields).some(key => key.endsWith(id) && fields[key] !== bulkUndo.fields[key]))); setBulkUndo(null); }}>Undo</Button> : null}
       <p role="status" className="text-xs text-muted-foreground">{selected.length}/{holdings.length} checked · {exceptions} exceptions</p>
     </div>
-    <p className="mb-3 text-xs text-muted-foreground">Mark the assets you inspected. Existing exceptions are kept when selecting all. Physical counts are optional.</p>
+    <p className="mb-3 text-xs text-muted-foreground">Mark the assets you inspected. Exceptions create a repair request for the responsible team. All-clear checks send no notification. Physical counts are optional.</p>
     <div className="fixed inset-x-4 bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] hidden items-center justify-between gap-3 rounded-lg border bg-white p-3 shadow-sm md:flex xl:hidden" data-asset-tablet-submit>
       <p className="text-xs text-muted-foreground">{selected.length}/{holdings.length} checked · {exceptions} exceptions</p>
       <Button className="min-h-11" type="submit" disabled={pending || state.ok || !selected.length}>{pending ? "Saving…" : "Submit checklist"}</Button>

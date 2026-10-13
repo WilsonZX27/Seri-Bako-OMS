@@ -25,7 +25,7 @@ Documentation header conflicts preserved both module records; shared database ty
 
 Confirmation/export worker commits `4c39164a`, `69901574` are integrated as `d6a04ba7`, `63185a60`. New migrations are **346–351**; 343/344 remain unchanged and 345 remains absent. Version stays 9.2.106; no deployment or production writes.
 
-Dedicated synthetic stack `oms-integration-20261014` uses API58321/DB58322, app3190. Fresh bootstrap through349 and then350/351 succeeded. Ignored bootstrap copies296/333 use the existing synthetic no-ops for historical production-catalog corrections. Final350/351 function corrections were applied individually and exercised; an exact fresh replay of the final files remains outstanding. No existing shared stack was migrated.
+Dedicated synthetic stack `oms-integration-20261014` uses API58321/DB58322, app3190. Fresh bootstrap through349 and then350/351 succeeded. Ignored bootstrap copies296/333 use the existing synthetic no-ops for historical production-catalog corrections. Final350/351 function corrections were applied individually and exercised. Then a second independent empty stack `oms-integration-replay-20261014` replayed the final346–351 files successfully from bootstrap; all six file hashes match byte-for-byte and its migration ledger contains346–351 (`/tmp/oms-integration-final-replay.log`, `outputs/qa/integration-ui/final-migration-replay.json`). No existing shared stack was migrated.
 
 ### Behavioral evidence
 
@@ -35,7 +35,7 @@ Dedicated synthetic stack `oms-integration-20261014` uses API58321/DB58322, app3
 - Real authenticated People prepare → Staff check → Supervisor verify → Manager approve → People calculate/approve/release passed. Owner/Finance cannot prepare or administer payroll; unrelated manager cannot read/approve this confirmation; employee sees only own released slip. Wrong hash/version, duplicate action, skipped step and early release rejected. Published payroll rejects source mutation atomically; automatic refresh marks needs_review without changing results. `scripts/integration/verify-confirmation-workflow-local.cjs`, `/tmp/oms-integration-confirmation-workflow.log`, JSON/screenshots in `outputs/qa/integration-ui/`.
 - Independent PostgreSQL sessions: six prepares produce one version; six checks one event; changed attendance supersedes signatures; pay-only change preserves attendance confirmation but invalidates payroll; release/source-update race serializes. Review/refresh lock ordering no longer deadlocks. `scripts/integration/verify-confirmation-concurrency-local.mjs`, `/tmp/oms-integration-confirmation-concurrency-final.log`.
 - Final integrated SQL append/idempotency/non-overwrite and scoped refresh tests passed with ROLLBACK: `/tmp/oms-integration-{append,refresh}-final.log`.
-- Contract suite **1599 passed, 0 failed**. Final ESLint, typecheck and production build passed (`/tmp/oms-integration-{lint,types,build}-final.log`). Default runtime is Node24; repository-required Node22 verification remains pending.
+- Contract suite **1599 passed, 0 failed**. Final ESLint, typecheck and production build passed (`/tmp/oms-integration-{lint,types,build}-final.log`). Repository-required **Node22.23.2** also passed1599 tests, ESLint, typecheck and production build (`/tmp/oms-integration-node22-{tests,lint,types,build}.log`). The standalone PGlite confirmation DB suite passed on Node22 with final350/351, including the broad generic company-access fixture (`/tmp/oms-integration-pglite-final.log`).
 
 ### Fixes found by integrated testing
 
@@ -56,7 +56,6 @@ Full default/populated/expanded/error/long/narrow/200% coverage of every unique 
 
 ## Remaining handoff items
 
-- Finish exact final fresh migration replay and Node22 gates before release.
 - Complete remaining unique-layout/component-state acceptance.
 - Native workbook layout user acceptance remains pending. No payroll details were added to employee-facing attendance export. PPH blank is not zero; daily OT/short-hours/holiday payroll policy awaits user rules, not inferred here.
 - Real workbook/catalog verification remains owned by `01a1364f-6744-7364-830d-77a59db370a8`; no production session accessed here.

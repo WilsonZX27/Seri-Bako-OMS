@@ -31,11 +31,27 @@
     "production catalog data",
     "private fixtures, credentials, dependency symlinks, build outputs"
   ],
-  "release_status": "local integration candidate; integrated workflow E2E passed; full UI state acceptance and exact final fresh replay pending; not deployed",
+  "release_status": "local integration candidate; final migration replay, Node22 gates and integrated workflow E2E passed; full UI state acceptance pending; not deployed",
   "integration_fixes": [
     "350: non-retryable business validation P0001; explicit manager/supervisor branch membership for reads and reviews",
     "351: employee advisory lock before queue row lock",
     "Disambiguated payslip staff relationship; explicit control accessible names; mobile stock autosave status; WORKING TIME workbook heading",
     "Native export download links prevent automatic CSV prefetch; correct payslip active navigation"
-  ]
+  ],
+  "fresh_replay": {
+    "project": "oms-integration-replay-20261014",
+    "final_migration_files_match": true,
+    "historical_synthetic_noops": [
+      296,
+      333
+    ]
+  },
+  "node22_gates": {
+    "version": "22.23.2",
+    "tests_passed": 1599,
+    "lint": "passed",
+    "typecheck": "passed",
+    "build": "passed",
+    "confirmation_db_suite": "passed"
+  }
 }

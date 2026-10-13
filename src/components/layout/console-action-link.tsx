@@ -31,10 +31,13 @@ export function ConsoleActionLink({
       className="w-full"
       data-mobile-primary-action={primary || undefined}
     >
-      <Link href={href}>
+      {kind === "export" ? <a href={href}>
         <Icon className="h-4 w-4" aria-hidden="true" />
         {children}
-      </Link>
+      </a> : <Link href={href}>
+        <Icon className="h-4 w-4" aria-hidden="true" />
+        {children}
+      </Link>}
     </Button>
   );
 }

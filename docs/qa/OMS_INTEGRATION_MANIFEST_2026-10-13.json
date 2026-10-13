@@ -11,22 +11,31 @@
     "4646273a",
     "af9af55f",
     "cbe1eafd",
-    "f4b08aae"
+    "f4b08aae",
+    "4c39164a",
+    "69901574"
   ],
   "stock_patch_sha256": "c4c70eca94801582a7755a73038af93025ae71e92003ba80dc51ad9b52b39a94",
   "new_migrations": {
     "346_general_maintenance_requests.sql": "9e0458aa9e674f1601712599186d9676fd602e99b6b06db2dac755bb2e2f833e",
     "347_checklist_maintenance_actions.sql": "d3490830e48447f5dd0b379a24cca7d0c4895bbeaec3af1465aee72ccaee4afa",
     "348_schedule_partial_import.sql": "a9ee898dea334af2098c4df2e85f84e26529b2a2177407f2e1a71b1e771ed14a",
-    "349_schedule_attendance_refresh.sql": "661043279f6cab4a4a056855468e3a45cb4f14de591feb5b507a129d4a14d1d0"
+    "349_schedule_attendance_refresh.sql": "661043279f6cab4a4a056855468e3a45cb4f14de591feb5b507a129d4a14d1d0",
+    "350_attendance_confirmation_and_payslips.sql": "fb8eb5aa32fd7358e678e0993fe329511997374fdd2e96df37d43e4505ef67bf",
+    "351_attendance_refresh_payroll_lock.sql": "fe3addb73cb912da789284c614d3e3cfc9162cf70da604e3f42f69044f1263e9"
   },
   "public_reference_static_unresolved": [],
   "excluded": [
     "new changes to baseline migrations 343/344",
     "migration 345",
-    "unfinished employee review and payroll workflow (350+)",
     "production catalog data",
     "private fixtures, credentials, dependency symlinks, build outputs"
   ],
-  "release_status": "local integration candidate; payroll workflow and full UI state acceptance pending; not deployed"
+  "release_status": "local integration candidate; integrated workflow E2E passed; full UI state acceptance and exact final fresh replay pending; not deployed",
+  "integration_fixes": [
+    "350: non-retryable business validation P0001; explicit manager/supervisor branch membership for reads and reviews",
+    "351: employee advisory lock before queue row lock",
+    "Disambiguated payslip staff relationship; explicit control accessible names; mobile stock autosave status; WORKING TIME workbook heading",
+    "Native export download links prevent automatic CSV prefetch; correct payslip active navigation"
+  ]
 }

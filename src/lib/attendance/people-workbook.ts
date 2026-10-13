@@ -99,7 +99,7 @@ function sheetXml(sheet: PeopleWorkbookSheet) {
   // Attendance exports must not disclose passport/identity numbers.
   body.push(row(3, ["I/C | Passport:", null, null, null, "Staff code:", sheet.staffCode ?? "", null, null, "Employment:", (sheet.employmentType ?? "").replaceAll("_", " ").toUpperCase(), null, null, null, null, null, null], 1, 18, {12:10}));
   body.push(row(4, [], 10, 28));
-  body.push(row(5, ["Date", "Day", "WORKINGTIME", null, "INFO AS PER FINGERPRINT PUNCH", null, null, null, "Total Working", "OVERTIME", "Short Hours", "PPH\n(Triple Pay)", "Outstanding\nExceptions", "Normal /\nEvents", "Meal\nAllowance", "Remarks"], 12, 27, {12:13}));
+  body.push(row(5, ["Date", "Day", "WORKING TIME", null, "INFO AS PER FINGERPRINT PUNCH", null, null, null, "Total Working", "OVERTIME", "Short Hours", "PPH\n(Triple Pay)", "Outstanding\nExceptions", "Normal /\nEvents", "Meal\nAllowance", "Remarks"], 12, 27, {12:13}));
   body.push(row(6, [null, null, "AM In", "PM Out", "Time In", "Time Out", "Time In", "Time Out", null, null, null, null, null, null, null, null], 3, 27, {12:13}));
   body.push(row(7, empty, 16, 17, {12:4}));
   const numericRows: Array<Array<number | null>> = [];

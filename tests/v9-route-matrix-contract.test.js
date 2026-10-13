@@ -12,7 +12,7 @@ const {
 
 test("v9 UAT classifies every application page", () => {
   const routes = discoverRouteMatrix();
-  assert.equal(routes.length, 127, "Route count changed. Classify the new or removed page deliberately.");
+  assert.equal(routes.length, 129, "Route count changed. Classify the new or removed page deliberately.");
   for (const route of ["/asset-management/maintenance/new", "/outlet-daily-records/insights", "/outlet-daily-records/delivery-orders"]) assert.ok(routes.some(entry=>entry.route===route), `${route} must be classified`);
   assert.equal(new Set(routes.map((entry) => entry.file)).size, routes.length);
   assert.equal(new Set(routes.map((entry) => entry.route)).size, routes.length);
@@ -188,4 +188,9 @@ test("opening stock mobile context returns to a real inventory route", () => {
 
 test("delivery order detail follows its planning permission rather than generic production roles", () => {
   assert.deepEqual(permittedRolesFor("/production/delivery-orders/00000000-0000-4000-8000-000000000000"), ["superAdmin", "manager", "kitchen", "outletSupervisor", "outlet"]);
+});
+
+test("self-service attendance pages are reachable by every active employee role without payroll grants", () => {
+  assert.deepEqual(permittedRolesFor("/attendance/confirmations"), roles);
+  assert.deepEqual(permittedRolesFor("/attendance/payslips"), roles);
 });

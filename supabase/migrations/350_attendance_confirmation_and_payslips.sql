@@ -63,6 +63,15 @@ create function public.attestation_people(p_permission text) returns boolean
 language sql stable security definer set search_path=pg_catalog,public as $$
  select public.attestation_role('people_operations') and public.has_permission(p_permission)
 $$;
+-- Attendance review requires an explicit branch assignment; generic company
+-- access may include managers with company-wide navigation permission.
+create function public.attestation_branch(p_company uuid,p_branch uuid) returns boolean
+language sql stable security definer set search_path=pg_catalog,public as $$
+ select p_company=public.current_staff_company_id() and exists(
+  select 1 from public.staff_branches sb join public.branches b on b.id=sb.branch_id
+  where sb.staff_id=public.current_staff_id() and sb.branch_id=p_branch
+   and b.company_id=p_company and sb.access_level in ('manage','full'))
+$$;
 create function public.attestation_lock(p_staff uuid) returns void
 language sql volatile security definer set search_path=pg_catalog,public as $$
  select pg_advisory_xact_lock(hashtextextended('attendance-confirmation:'||p_staff::text,0))
@@ -107,13 +116,15 @@ language sql volatile security definer set search_path=pg_catalog,public as $$
  select encode(sha256(convert_to(coalesce(jsonb_agg(to_jsonb(r)-'review_status' order by r.work_date,r.id),'[]'::jsonb)::text,'UTF8')),'hex')
  from public.daily_attendance_results r where r.staff_id=p_staff and r.is_current and r.work_date between p_start and p_end
 $$;
+-- Business-state rejection must not use serialization_failure (40001): PostgREST
+-- retries that SQLSTATE, so a stale hash would otherwise retry indefinitely.
 -- Fail closed until the separately owned schedule-refresh migration is present.
 -- Lock queue rows before comparing its revision and the result's source stamps.
 create function public.attestation_require_ready(p_staff uuid,p_start date,p_end date) returns void
 language plpgsql volatile security definer set search_path=pg_catalog,public as $$
 declare ready boolean;
 begin
- if exists(select 1 from public.daily_attendance_results r where r.staff_id=p_staff and r.is_current and r.work_date between p_start and p_end and r.calculation ? 'punches' and r.calculation->'punches'<>'null'::jsonb and (jsonb_typeof(r.calculation->'punches')<>'array' or exists(select 1 from jsonb_array_elements(case when jsonb_typeof(r.calculation->'punches')='array' then r.calculation->'punches' else '[]'::jsonb end) p where jsonb_typeof(p)<>'string'))) then raise exception 'Invalid attendance punch shape' using errcode='40001'; end if;
+ if exists(select 1 from public.daily_attendance_results r where r.staff_id=p_staff and r.is_current and r.work_date between p_start and p_end and r.calculation ? 'punches' and r.calculation->'punches'<>'null'::jsonb and (jsonb_typeof(r.calculation->'punches')<>'array' or exists(select 1 from jsonb_array_elements(case when jsonb_typeof(r.calculation->'punches')='array' then r.calculation->'punches' else '[]'::jsonb end) p where jsonb_typeof(p)<>'string'))) then raise exception 'Invalid attendance punch shape' using errcode='P0001'; end if;
  if to_regclass('public.attendance_schedule_refresh') is null then raise exception 'Attendance refresh integration is not installed'; end if;
  execute 'select 1 from public.attendance_schedule_refresh where staff_id=$1 and work_date between $2 and $3 for share' using p_staff,p_start,p_end;
  execute $query$select not exists(
@@ -125,7 +136,7 @@ begin
   and not exists(select 1 from public.attendance_schedule_refresh where staff_id=$1 and work_date between $2 and $3 and status<>'ready')$query$
  into ready using p_staff,p_start,p_end;
  if exists(select 1 from public.shift_assignment_revisions a join public.schedule_weeks w on w.id=a.schedule_week_id where a.staff_id=p_staff and a.work_date between p_start and p_end and a.is_current and a.assignment_kind='shift' and w.status in ('published','locked') and not exists(select 1 from public.daily_attendance_results r where r.staff_id=a.staff_id and r.work_date=a.work_date and r.branch_id=a.branch_id and r.is_current)) then ready:=false; end if;
- if not ready then raise exception 'Attendance calculation is not current' using errcode='40001'; end if;
+ if not ready then raise exception 'Attendance calculation is not current' using errcode='P0001'; end if;
 end $$;
 
 create policy confirmation_employee_people_read on public.attendance_confirmations for select to authenticated using(
@@ -175,14 +186,14 @@ begin
  perform public.attestation_lock(c.staff_id);
  select * into c from public.attendance_confirmations where id=p_id for update;
  perform public.attestation_require_ready(c.staff_id,c.period_start,c.period_end);
- if c.state in ('superseded','disputed') or p_hash is distinct from c.source_hash or public.attestation_content_hash(public.attestation_source(c.staff_id,c.period_start,c.period_end))<>c.source_hash then raise exception 'Attendance changed; prepare a new version' using errcode='40001'; end if;
+ if c.state in ('superseded','disputed') or p_hash is distinct from c.source_hash or public.attestation_content_hash(public.attestation_source(c.staff_id,c.period_start,c.period_end))<>c.source_hash then raise exception 'Attendance changed; prepare a new version' using errcode='P0001'; end if;
  if p_action in ('check','dispute') then
   if actor<>c.staff_id or c.state<>'prepared' or p_branch is not null then raise exception 'Employee confirmation required first' using errcode='42501'; end if;
   if p_action='dispute' and nullif(trim(p_reason),'') is null then raise exception 'Enter a dispute reason'; end if;
   next_state:=case when p_action='check' then 'checked' else 'disputed' end;
  elsif p_action in ('verify','approve') then
   role_name:=case when p_action='verify' then 'outlet_supervisor' else 'manager' end;
-  if not public.attestation_role(role_name) or not public.can_access_company_branch(c.company_id,p_branch)
+  if not public.attestation_role(role_name) or not public.attestation_branch(c.company_id,p_branch)
    or p_branch is null or not exists(select 1 from jsonb_array_elements(c.attendance) d where d->>'branch_id'=p_branch::text)
    or c.state<>(case when p_action='verify' then 'checked' else 'verified' end) then raise exception 'Review scope or sequence denied' using errcode='42501'; end if;
   next_state:=c.state;
@@ -208,15 +219,15 @@ language sql stable security definer set search_path=pg_catalog,public as $$
    'own',c.staff_id=public.current_staff_id(),
    'days',(select jsonb_agg(d||jsonb_build_object('outlet',(select b.branch_name from public.branches b where b.id=(d->>'branch_id')::uuid))) from jsonb_array_elements(c.attendance) d where
      c.staff_id=public.current_staff_id() or public.attestation_people('attendance.confirmation.prepare')
-     or public.can_access_company_branch(c.company_id,(d->>'branch_id')::uuid)),
+     or public.attestation_branch(c.company_id,(d->>'branch_id')::uuid)),
    'events',(select coalesce(jsonb_agg(jsonb_build_object('action',e.action,'actor_id',e.actor_id,'actor',(select actor.full_name from public.staffs actor where actor.id=e.actor_id),'branch_id',e.branch_id,'recorded_at',e.recorded_at,'reason',e.reason) order by e.recorded_at),'[]'::jsonb)
     from public.attendance_confirmation_events e where e.confirmation_id=c.id and (e.branch_id is null or c.staff_id=public.current_staff_id()
-     or public.attestation_people('attendance.confirmation.prepare') or public.can_access_company_branch(c.company_id,e.branch_id)))) as item
+     or public.attestation_people('attendance.confirmation.prepare') or public.attestation_branch(c.company_id,e.branch_id)))) as item
   from public.attendance_confirmations c join public.staffs s on s.id=c.staff_id
   where public.current_staff_id() is not null and c.company_id=public.current_staff_company_id() and (
    c.staff_id=public.current_staff_id() or public.attestation_people('attendance.confirmation.prepare') or
    ((public.attestation_role('outlet_supervisor') or public.attestation_role('manager')) and exists(
-     select 1 from jsonb_array_elements(c.attendance) d where public.can_access_company_branch(c.company_id,(d->>'branch_id')::uuid))))
+     select 1 from jsonb_array_elements(c.attendance) d where public.attestation_branch(c.company_id,(d->>'branch_id')::uuid))))
   order by c.prepared_at desc,c.id desc limit 200 offset greatest(0,least(coalesce(p_offset,0),100000))
  ) scoped
 $$;
@@ -232,7 +243,7 @@ begin
  perform public.attestation_lock(c.staff_id);
  select * into c from public.attendance_confirmations where id=p_confirmation for update;
  perform public.attestation_require_ready(c.staff_id,c.period_start,c.period_end);
- if c.state<>'approved' or public.attestation_content_hash(public.attestation_source(c.staff_id,c.period_start,c.period_end))<>c.source_hash then raise exception 'Current completed attendance approval required' using errcode='40001'; end if;
+ if c.state<>'approved' or public.attestation_content_hash(public.attestation_source(c.staff_id,c.period_start,c.period_end))<>c.source_hash then raise exception 'Current completed attendance approval required' using errcode='P0001'; end if;
  if p_lines is null or jsonb_typeof(p_lines)<>'array' or jsonb_array_length(p_lines) not between 1 and 50 then raise exception 'Enter 1–50 payroll lines'; end if;
  for item in select * from jsonb_array_elements(p_lines) loop
   if item->>'kind' is null or item->>'kind' not in ('earning','deduction') or nullif(trim(item->>'label'),'') is null or length(item->>'label')>120 or item->'amount' is null or jsonb_typeof(item->'amount')<>'number' then raise exception 'Invalid payroll line'; end if;
@@ -261,7 +272,7 @@ begin
  select * into p from public.employee_payslips where id=p_id for update;
  select * into c from public.attendance_confirmations where id=p.confirmation_id;
  perform public.attestation_require_ready(c.staff_id,c.period_start,c.period_end);
- if p.calculation_hash<>public.attestation_calculation_hash(c.staff_id,c.period_start,c.period_end) or p.version is distinct from p_version or c.state<>'approved' or public.attestation_content_hash(public.attestation_source(c.staff_id,c.period_start,c.period_end))<>c.source_hash then raise exception 'Version changed; review again' using errcode='40001'; end if;
+ if p.calculation_hash<>public.attestation_calculation_hash(c.staff_id,c.period_start,c.period_end) or p.version is distinct from p_version or c.state<>'approved' or public.attestation_content_hash(public.attestation_source(c.staff_id,c.period_start,c.period_end))<>c.source_hash then raise exception 'Version changed; review again' using errcode='P0001'; end if;
  if p_action='approve' and p.state='draft' then
   update public.employee_payslips set state='approved',approved_by=public.current_staff_id(),approved_at=now() where id=p.id;
  elsif p_action='release' and p.state='approved' then
@@ -343,3 +354,6 @@ revoke all on function public.attestation_source(uuid,date,date),public.attestat
 revoke all on function public.attestation_role(text),public.attestation_people(text),public.prepare_attendance_confirmation(uuid,date,date),public.review_attendance_confirmation(uuid,text,text,uuid,text),public.get_attendance_confirmations(integer),public.save_employee_payslip(uuid,jsonb),public.advance_employee_payslip(uuid,integer,text) from public,anon;
 grant execute on function public.attestation_role(text),public.attestation_people(text),public.prepare_attendance_confirmation(uuid,date,date),public.review_attendance_confirmation(uuid,text,text,uuid,text),public.get_attendance_confirmations(integer),public.save_employee_payslip(uuid,jsonb),public.advance_employee_payslip(uuid,integer,text) to authenticated;
 notify pgrst,'reload schema';
+
+revoke all on function public.attestation_branch(uuid,uuid) from public,anon;
+grant execute on function public.attestation_branch(uuid,uuid) to authenticated;

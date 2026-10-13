@@ -3,15 +3,25 @@
 -- Released payroll enters needs_review before any attendance calculation write.
 create or replace function public.refresh_schedule_attendance(p_week_start date,p_branch_id uuid default null)
 returns jsonb language plpgsql security definer set search_path=public as $$
-declare job public.attendance_schedule_refresh; batch_id uuid; protected_result boolean; count_days integer:=0; changed integer; outcomes jsonb:='[]';
+declare candidate public.attendance_schedule_refresh; job public.attendance_schedule_refresh; batch_id uuid; protected_result boolean; count_days integer:=0; changed integer; outcomes jsonb:='[]';
 begin
  if not public.has_any_permission(array['attendance.import','attendance.adjust']) then raise exception 'Attendance calculation is not authorised.'; end if;
  if p_week_start is null or extract(isodow from p_week_start)<>1 then raise exception 'A Monday week is required.'; end if;
- for job in select * from public.attendance_schedule_refresh q
+ for candidate in select * from public.attendance_schedule_refresh q
   where q.company_id=public.current_staff_company_id() and q.work_date between p_week_start and p_week_start+6
    and (p_branch_id is null or q.branch_id=p_branch_id) and public.can_access_company_branch(q.company_id,q.branch_id)
-   and q.status in ('pending','failed','waiting_punches') order by q.work_date,q.staff_id limit 100 for update skip locked
+   and q.status in ('pending','failed','waiting_punches') order by q.staff_id,q.work_date limit 100
  loop
+  -- Review/source writers acquire the employee lock before queue/result locks.
+  -- Use the same order here, then reread the job: another worker may have
+  -- completed it while this transaction waited for the employee lock.
+  perform public.attestation_lock(candidate.staff_id);
+  select * into job from public.attendance_schedule_refresh q
+   where q.company_id=candidate.company_id and q.staff_id=candidate.staff_id and q.work_date=candidate.work_date
+    and q.status in ('pending','failed','waiting_punches')
+    and (p_branch_id is null or q.branch_id=p_branch_id) and public.can_access_company_branch(q.company_id,q.branch_id)
+   for update skip locked;
+  if not found then continue; end if;
   begin
    perform pg_advisory_xact_lock(hashtextextended(job.company_id::text||':'||job.staff_id::text||':'||job.work_date::text,0));
    perform 1 from public.daily_attendance_results r where r.company_id=job.company_id and r.staff_id=job.staff_id and r.work_date=job.work_date and r.is_current for update;

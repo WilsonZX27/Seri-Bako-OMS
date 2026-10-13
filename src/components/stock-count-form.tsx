@@ -478,6 +478,7 @@ export function StockCountForm({
               <div className="lg:col-span-2"><Textarea name="remarks" value={countRemarks} onChange={(event) => { setCountRemarks(event.target.value); markDirty(); }} className="min-h-16" placeholder="Count note (optional)" /></div>
             </div>
           </section>
+          {!showSubmit && autosaveAction ? <p role="status" className={`text-xs md:hidden ${autosaveState === "error" ? "text-destructive" : "text-muted-foreground"}`}>{autosaveLabel}</p> : null}
 
           <section data-stock-count-workspace className="erp-surface overflow-hidden rounded-[var(--sb-panel-radius)] border bg-[var(--sb-surface)]">
 

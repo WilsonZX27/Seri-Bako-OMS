@@ -15,7 +15,7 @@ export async function GET() {
     const db = looseSupabase(await createClient());
     const [access, slips] = await Promise.all([
       db.rpc("attestation_people", { p_permission: "payroll.payslip.manage" }),
-      db.from("employee_payslips").select("id,confirmation_id,version,currency,earnings,deductions,detail,state,released_at,attendance_confirmations(period_start,period_end,staffs(full_name))").order("calculated_at", { ascending: false }).limit(200),
+      db.from("employee_payslips").select("id,confirmation_id,version,currency,earnings,deductions,detail,state,released_at,attendance_confirmations(period_start,period_end,staffs:staffs!attendance_confirmations_staff_id_fkey(full_name))").order("calculated_at", { ascending: false }).limit(200),
     ]);
     if (access.error || slips.error) return NextResponse.json({ message: "Payslips are unavailable. Please retry later." }, { status: 503, headers });
     // RLS gives non-People actors only their own released payslips. No service key.

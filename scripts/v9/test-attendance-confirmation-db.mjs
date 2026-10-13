@@ -10,13 +10,13 @@ create table branches(id uuid primary key,company_id uuid,branch_name text);
 create table staffs(id uuid primary key,company_id uuid,full_name text,active boolean default true);
 create table roles(id uuid primary key,company_id uuid,role_code text,status text default 'active',deleted_at timestamptz);
 create table staff_roles(staff_id uuid,role_id uuid,effective_from date,effective_to date);
-create table staff_branches(staff_id uuid,branch_id uuid);
+create table staff_branches(staff_id uuid,branch_id uuid,access_level text default 'manage');
 create table permissions(id uuid primary key default gen_random_uuid(),permission_code text unique,module text,action text,description text);
 create table role_permissions(role_id uuid,permission_id uuid,unique(role_id,permission_id));
 create function current_staff_id() returns uuid language sql stable security definer as $$select id from staffs where id=nullif(current_setting('test.actor',true),'')::uuid and active$$;
 create function current_staff_company_id() returns uuid language sql stable security definer as $$select company_id from staffs where id=current_staff_id()$$;
 create function has_permission(p text) returns boolean language sql stable security definer as $$select exists(select 1 from staff_roles sr join role_permissions rp on rp.role_id=sr.role_id join permissions p1 on p1.id=rp.permission_id where sr.staff_id=current_staff_id() and p1.permission_code=p)$$;
-create function can_access_company_branch(c uuid,b uuid) returns boolean language sql stable security definer as $$select c=current_staff_company_id() and exists(select 1 from staff_branches where staff_id=current_staff_id() and branch_id=b)$$;
+create function can_access_company_branch(c uuid,b uuid) returns boolean language sql stable security definer as $$select c=current_staff_company_id()$$;
 create table schedule_weeks(id uuid primary key,revision integer,status text);
 create table shift_assignment_revisions(id uuid primary key,staff_id uuid,branch_id uuid,work_date date,is_current boolean,schedule_week_id uuid,custom_start time,custom_end time,template_snapshot jsonb,assignment_kind text);
 create table daily_attendance_results(id uuid primary key,company_id uuid,staff_id uuid,branch_id uuid,work_date date,is_current boolean,calculation_revision integer,scheduled_start timestamptz,scheduled_end timestamptz,actual_first_in timestamptz,actual_last_out timestamptz,actual_break_out timestamptz,actual_break_in timestamptz,worked_seconds integer,late_seconds integer,early_leave_seconds integer,statuses text[],calculation jsonb,overtime_seconds integer,review_status text);
@@ -29,7 +29,7 @@ for(const [n,role] of [[20,'people_operations'],[21,'outlet_staff'],[22,'outlet_
  await db.query('insert into roles(id,company_id,role_code) values($1,$2,$3)',[id(n+100),id(1),role]);
  await db.query('insert into staffs(id,company_id,full_name) values($1,$2,$3)',[id(n),id(1),`Synthetic ${role} ${n}`]);
  await db.query('insert into staff_roles(staff_id,role_id) values($1,$2)',[id(n),id(n+100)]);
- await db.query('insert into staff_branches values($1,$2)',[id(n),id([27,31].includes(n)?11:10)]);
+ await db.query('insert into staff_branches(staff_id,branch_id) values($1,$2)',[id(n),id([27,31].includes(n)?11:10)]);
 }
 await db.query('insert into staffs(id,company_id,full_name) values($1,$2,$3)',[id(28),id(2),'Other tenant']);
 await db.exec(await fs.readFile('supabase/migrations/350_attendance_confirmation_and_payslips.sql','utf8'));

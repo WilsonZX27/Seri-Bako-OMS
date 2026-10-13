@@ -1,0 +1,12 @@
+const load=require('../helpers/load-source.cjs')({Buffer});
+const {buildZipArchive}=load('src/lib/attendance/people-workbook.ts');
+const person=(id,name,staff_code,branch_id='b')=>({id,name,staff_code,branch_id,home_branch_id:'b',eligibility:[{from:'2026-01-01',to:null}]});
+function supportFile({duplicate=false,missing=false,unnamed=false,hidden=false,typo=false,hiddenColumns=false,duplicateHeader=false}={}){
+ const col=n=>{let s='';for(n++;n;n=Math.floor((n-1)/26))s=String.fromCharCode(65+(n-1)%26)+s;return s};
+ const cell=(c,r,v)=>typeof v==='number'?`<c r="${c}${r}"><v>${v}</v></c>`:`<c r="${c}${r}" t="inlineStr"><is><t>${v}</t></is></c>`;
+ const xml=(dateRow,destination)=>`<worksheet>${hiddenColumns?'<cols><col min="3" max="12" hidden="1"/></cols>':''}<sheetData><row r="${dateRow}">${Array.from({length:31},(_,i)=>cell(col(2+i*2),dateRow,i+1)).join('')}</row><row r="${dateRow+1}">${cell('A',dateRow+1,'NAME')}${cell('B',dateRow+1,'POSITION')}</row>${duplicateHeader?`<row r="6">${Array.from({length:31},(_,i)=>cell(col(2+i*2),6,i+1)).join('')}</row>`:''}<row r="8">${cell('A',8,unnamed?'':destination?'TAN MEI LING':'TAN MEI LING ')}${cell('B',8,'STAFF')}${[24,26].map(c=>destination?(missing?'':cell(col(c),8,0.75)+cell(col(c+1),8,22/24)):cell(col(c),8,typo?'GERNEY':'GURNEY')).join('')}</row>${duplicate&&destination?`<row r="9" ${hidden?'hidden="1"':''}>${cell('A',9,'TAN MEI LING')}${cell('Y',9,0.5)}${cell('Z',9,0.9)}</row>`:''}</sheetData></worksheet>`;
+ const entries=[{name:'xl/workbook.xml',content:Buffer.from('<workbook><sheets><sheet name="GURNEY PLAZA" r:id="r1"/><sheet name="QUEENSBAY" r:id="r2"/></sheets></workbook>')},{name:'xl/_rels/workbook.xml.rels',content:Buffer.from('<Relationships><Relationship Id="r1" Target="worksheets/sheet1.xml"/><Relationship Id="r2" Target="worksheets/sheet2.xml"/></Relationships>')},{name:'xl/worksheets/sheet1.xml',content:Buffer.from(xml(2,true))},{name:'xl/worksheets/sheet2.xml',content:Buffer.from(xml(1,false))}];const bytes=buildZipArchive(entries);return {name:'synthetic-october-2026.xlsx',size:bytes.length,arrayBuffer:async()=>Uint8Array.from(bytes).buffer};
+}
+const supportCatalog={branches:[{id:'g',name:'Gurney Plaza',status:'not_started'},{id:'q',name:'Queensbay Mall',status:'not_started'}],staff:['g','q'].map(branch_id=>({...person('s2','Tan Mei Ling','42',branch_id),home_branch_id:'q'})),current_assignments:[]};
+
+module.exports={supportFile,supportCatalog};

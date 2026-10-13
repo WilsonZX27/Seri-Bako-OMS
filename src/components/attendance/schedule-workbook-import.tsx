@@ -146,7 +146,7 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
             }, {})).map((issue,index) => <li key={index} className="rounded-[var(--sb-radius-control)] bg-amber-50 p-2 text-xs text-amber-950">{issue.message}{issue.count > 1 ? ` (${issue.count} affected days)` : ""}</li>)}</ul></section> : null}
           </> : null}
         </div>
-        <footer className="flex flex-wrap items-center gap-3 border-t border-[var(--sb-border-soft)] p-4"><p className="min-w-0 basis-full text-xs text-muted-foreground sm:flex-1 sm:basis-auto">Flagged cells stay empty; existing schedules stay unchanged.</p><Button className="w-full sm:w-auto" disabled={busy || !selected.some(outlet => outcomes[outlet.branchId]?.status !== "imported")} onClick={() => void confirm()}><Upload className="h-4 w-4"/>{busy ? "Working…" : `Import ${selected.length} draft outlet${selected.length === 1 ? "" : "s"}`}</Button></footer>
+        <footer className="flex flex-wrap items-center gap-3 border-t border-[var(--sb-border-soft)] p-4"><p className="min-w-0 basis-full text-xs text-muted-foreground sm:flex-1 sm:basis-auto">Flagged cells stay empty; existing schedules stay unchanged.</p><Button className="w-full sm:w-auto" disabled={busy || !selected.some(outlet => outcomes[outlet.branchId]?.status !== "imported")} onClick={() => void confirm()}><Upload className="h-4 w-4"/>{busy ? "Working…" : `Import ${selected.filter(outlet => outcomes[outlet.branchId]?.status !== "imported").length} draft outlet${selected.filter(outlet => outcomes[outlet.branchId]?.status !== "imported").length === 1 ? "" : "s"}`}</Button></footer>
       </div>
     </dialog>
   </>;

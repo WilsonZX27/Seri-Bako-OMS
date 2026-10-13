@@ -2421,6 +2421,25 @@ export type Database = {
       comp_time_allocations: TableDefinition<{ id:string; company_id:string; used_transaction_id:string; earned_transaction_id:string; allocated_minutes:number; created_at:string }>;
       staff_sensitive_employment: TableDefinition<{ staff_id:string; company_id:string; passport_number:string|null; basic_salary:number|null; updated_by:string; created_at:string; updated_at:string }>;
       attendance_period_locks: TableDefinition<{ id:string; company_id:string; branch_id:string|null; week_start:string; locked_by:string; locked_at:string; unlocked_by:string|null; unlocked_at:string|null; unlock_reason:string|null }>;
+      attendance_confirmations: TableDefinition<{
+        id: string; company_id: string; staff_id: string; period_start: string; period_end: string;
+        version: number; source_hash: string; attendance: Json;
+        state: "prepared" | "checked" | "verified" | "approved" | "disputed" | "superseded";
+        prepared_by: string; prepared_at: string;
+      }>;
+      attendance_confirmation_events: TableDefinition<{
+        id: string; confirmation_id: string; actor_id: string | null; action: string;
+        branch_id: string | null; source_hash: string; reason: string | null; recorded_at: string;
+      }>;
+      employee_payslips: TableDefinition<{
+        id: string; confirmation_id: string; company_id: string; staff_id: string; version: number;
+        calculation_hash: string; currency: "MYR"; earnings: number; deductions: number; detail: Json;
+        state: "draft" | "approved" | "released" | "superseded"; calculated_by: string; calculated_at: string;
+        approved_by: string | null; approved_at: string | null; released_by: string | null; released_at: string | null;
+      }>;
+      employee_payslip_events: TableDefinition<{
+        id: string; payslip_id: string; actor_id: string | null; action: string; version: number; recorded_at: string; detail: Json;
+      }>;
     };
     Views: {
       purchase_returns_list_view: {
@@ -3108,5 +3127,9 @@ type RequiredOperationalTable =
   | "production_delivery_orders"
   | "schedule_weeks"
   | "attendance_import_batches"
-  | "attendance_period_locks";
+  | "attendance_period_locks"
+  | "attendance_confirmations"
+  | "attendance_confirmation_events"
+  | "employee_payslips"
+  | "employee_payslip_events";
 export type DatabaseOperationalTableCoverage = Assert<RequiredOperationalTable extends keyof Database["public"]["Tables"] ? true : false>;

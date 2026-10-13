@@ -1,3 +1,5 @@
+> Local candidate: migrations reviewed through `351`; forward-only migration 历史已到 `351`. Migration 350 adds versioned attendance confirmation and People-only payslips; 351 binds released-payroll protection into schedule refresh. Not applied to Production. Migration numbering 346–349 remains owned by other tasks.
+
 > Local schedule-import candidate: migrations reviewed through `349`; forward-only migration 历史已到 `349`. Migration numbers 348/349 are allocated by the integration coordinator; 347 belongs to checklist and approval-flow migrations start at 350. Partial import receipts and append-only draft rows were validated only in the isolated synthetic database; no Production application.
 
 > 2026-10-14 Wilson local candidate: migrations reviewed through `347`; forward-only migration 历史已到 `347`. Migration 347 connects checklist exceptions to scoped maintenance notifications and My Actions; 346/347 remain unapproved for Production.

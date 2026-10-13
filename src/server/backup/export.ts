@@ -25,6 +25,10 @@ type BackupDataset = {
 };
 
 export const BACKUP_DATASETS: readonly BackupDataset[] = [
+  { table: "attendance_confirmations", classification: "excluded", reason: "Excluded from generic application exports; activate only with separately authorized protected database backup and restore for immutable attendance/payroll audit." },
+  { table: "attendance_confirmation_events", classification: "excluded", reason: "Excluded from generic application exports; activate only with separately authorized protected database backup and restore for immutable attendance/payroll audit." },
+  { table: "employee_payslips", classification: "excluded", reason: "Excluded from generic application exports; activate only with separately authorized protected database backup and restore for immutable attendance/payroll audit." },
+  { table: "employee_payslip_events", classification: "excluded", reason: "Excluded from generic application exports; activate only with separately authorized protected database backup and restore for immutable attendance/payroll audit." },
   { table: "companies", classification: "company_id filtered", column: "id" },
   { table: "branches", classification: "company_id filtered", column: "company_id" },
   { table: "locations", classification: "excluded", reason: "Retired legacy location table removed by migration 099 after inventory ownership moved to branches." },

@@ -37,6 +37,7 @@ export type ScheduleWorkbookPreview = {
   issues: ScheduleWorkbookIssue[];
   destinationReviews: Array<{key:string;sheet:string;row:number;date:string;value:string;selected:string;candidates:Array<{id:string;name:string}>}>;
   shiftConflicts: Array<{key: string; employee: string; date: string; selected: string; choices: Array<{key: string; label: string}>}>;
+  notes: Array<{sheet:string;range:string;text:string;fill:string;font:string;columnHeaders:string[];relatedCells:string[]}>;
   notices: string[];
   employeeMatches: ScheduleEmployeeMatch[];
   assignmentSources: Array<{ staffId: string; date: string; branchId: string; sources: Array<{ sheet: string; row: number; kind: "shift" | "destination_marker" }> }>;
@@ -179,9 +180,18 @@ async function unzip(bytes: Uint8Array) {
 function workbookSheets(files: Map<string, string>) {
   const shared = [...(files.get("xl/sharedStrings.xml") ?? "").matchAll(/<si[\s\S]*?<\/si>/g)].map((match) => decodeXml(match[0]));
   const stylesXml = files.get("xl/styles.xml") ?? "";
+  const colourKey = (attributes: string) => {
+    const kind = ["rgb", "indexed", "theme", "auto"].find(kind => attributes.includes(`${kind}="`));
+    if (!kind) return "";
+    const value=attributes.match(new RegExp(`${kind}="([^\"]+)"`))?.[1] ?? "";
+    const tint=attributes.match(/tint="([^\"]+)"/)?.[1];
+    return `${kind}:${value}${tint ? `;tint:${tint}` : ""}`;
+  };
+  const fontKeys = [...(stylesXml.match(/<fonts[^>]*>([\s\S]*?)<\/fonts>/)?.[1] ?? "").matchAll(/<font>([\s\S]*?)<\/font>/g)].map(match => colourKey(match[1].match(/<color\s+([^>]+)\/?/i)?.[1] ?? ""));
+  const styleFontKeys = [...(stylesXml.match(/<cellXfs[^>]*>([\s\S]*?)<\/cellXfs>/)?.[1] ?? "").matchAll(/<xf\s+([^>]+)\/?/g)].map(match => fontKeys[Number(match[1].match(/fontId="(\d+)"/)?.[1] ?? 0)] ?? "");
   const fillKeys = [...(stylesXml.match(/<fills[^>]*>([\s\S]*?)<\/fills>/)?.[1] ?? "").matchAll(/<fill>([\s\S]*?)<\/fill>/g)].map((match) => {
     const colour = match[1].match(/<fgColor\s+([^>]+)\/?/i)?.[1] ?? "";
-    return colour.match(/rgb="([^"]+)"/i)?.[1] ?? colour.match(/indexed="([^"]+)"/i)?.[1] ?? colour.match(/theme="([^"]+)"/i)?.[1] ?? "";
+    return colourKey(colour);
   });
   const numberFormats = new Map([...stylesXml.matchAll(/<numFmt\s+([^>]+)\/?/g)].map(m => [Number(m[1].match(/numFmtId="(\d+)"/)?.[1]), decodeXml(m[1].match(/formatCode="([^"]+)"/)?.[1] ?? "")]));
   const styleNumberFormats = [...(stylesXml.match(/<cellXfs[^>]*>([\s\S]*?)<\/cellXfs>/)?.[1] ?? "").matchAll(/<xf\s+([^>]+)\/?/g)].map(m => numberFormats.get(Number(m[1].match(/numFmtId="(\d+)"/)?.[1])) ?? "");
@@ -189,7 +199,7 @@ function workbookSheets(files: Map<string, string>) {
   const relationships = new Map([...((files.get("xl/_rels/workbook.xml.rels") ?? "").matchAll(/<Relationship[^>]*Id="([^"]+)"[^>]*Target="([^"]+)"[^>]*\/>/g))].map((match) => [match[1], `xl/${match[2].replace(/^\//, "").replace(/^xl\//, "")}`]));
   const workbook = files.get("xl/workbook.xml") ?? "";
   return [...workbook.matchAll(/<sheet[^>]*name="([^"]+)"[^>]*(?:r:id|id)="([^"]+)"[^>]*\/>/g)].map((match) => {
-    const xml = files.get(relationships.get(match[2]) ?? "") ?? "", rows = new Map<number, Map<number, string | number>>(), identifiers = new Map<number, Map<number, string>>(), fills = new Map<number, Map<number, string>>(), mergedCells = new Map<string, readonly [number, number]>();
+    const xml = files.get(relationships.get(match[2]) ?? "") ?? "", rows = new Map<number, Map<number, string | number>>(), identifiers = new Map<number, Map<number, string>>(), fills = new Map<number, Map<number, string>>(), fontColours = new Map<number, Map<number,string>>(), mergedRanges = new Map<string,string>(), mergedCells = new Map<string, readonly [number, number]>();
     const hiddenRows = new Set<number>(), hiddenColumns = new Set<number>();
     for (const tag of xml.matchAll(/<row\b([^>]*)>/g)) if (/\bhidden="(?:1|true)"/.test(tag[1])) hiddenRows.add(Number(tag[1].match(/\br="(\d+)"/)?.[1]));
     for (const tag of xml.matchAll(/<col\b([^>]*)>/g)) if (/\bhidden="(?:1|true)"/.test(tag[1])) {
@@ -197,7 +207,7 @@ function workbookSheets(files: Map<string, string>) {
       for (let column = Math.max(1, min); column <= Math.min(16384, max); column++) hiddenColumns.add(column - 1);
     }
     for (const rowMatch of xml.matchAll(/<row[^>]*r="(\d+)"[^>]*?(?:\/>|>([\s\S]*?)<\/row>)/g)) {
-      const row = new Map<number, string | number>(), rowIdentifiers = new Map<number, string>(), rowFills = new Map<number, string>();
+      const row = new Map<number, string | number>(), rowIdentifiers = new Map<number, string>(), rowFills = new Map<number, string>(), rowFonts = new Map<number,string>();
       for (const cell of (rowMatch[2] ?? "").matchAll(/<c([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g)) {
         const reference = cell[1].match(/\br="([A-Z]+\d+)"/)?.[1];
         if (!reference) continue;
@@ -206,17 +216,20 @@ function workbookSheets(files: Map<string, string>) {
         row.set(column, type === "s" ? shared[Number(raw)] ?? "" : type === "inlineStr" || type === "str" ? decodeXml(raw) : raw === "" ? "" : Number.isFinite(Number(raw)) ? Number(raw) : decodeXml(raw));
         const format = styleNumberFormats[styleIndex];
         if ((!type || type === "n") && /^\d+$/.test(raw)) rowIdentifiers.set(column, /^0+$/.test(format) ? raw.padStart(format.length, "0") : raw);
+        if (styleFontKeys[styleIndex]) rowFonts.set(column,styleFontKeys[styleIndex]);
         if (styleFillKeys[styleIndex]) rowFills.set(column, styleFillKeys[styleIndex]);
       }
       rows.set(Number(rowMatch[1]), row);
       fills.set(Number(rowMatch[1]), rowFills);
+      fontColours.set(Number(rowMatch[1]),rowFonts);
       identifiers.set(Number(rowMatch[1]), rowIdentifiers);
     }
     for (const merged of xml.matchAll(/<mergeCell\s+ref="([A-Z]+)(\d+):([A-Z]+)(\d+)"\s*\/>/g)) {
       const startColumn = columnIndex(`${merged[1]}${merged[2]}`), startRow = Number(merged[2]), endColumn = columnIndex(`${merged[3]}${merged[4]}`), endRow = Number(merged[4]);
+      mergedRanges.set(`${startRow}:${startColumn}`,`${merged[1]}${merged[2]}:${merged[3]}${merged[4]}`);
       for (let row = startRow; row <= endRow; row += 1) for (let column = startColumn; column <= endColumn; column += 1) mergedCells.set(`${row}:${column}`, [startRow, startColumn]);
     }
-    return { name: decodeXml(match[1]), hidden: /\bstate="(?:hidden|veryHidden)"/.test(match[0]), rows, fills, mergedCells, identifiers, hiddenRows, hiddenColumns };
+    return { name: decodeXml(match[1]), hidden: /\bstate="(?:hidden|veryHidden)"/.test(match[0]), rows, fills, fontColours, mergedRanges, mergedCells, identifiers, hiddenRows, hiddenColumns };
   });
 }
 
@@ -244,6 +257,7 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
   const fileHash = [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, "0")).join("");
   const sheets = await workbookSheets(await unzip(bytes)), issues: ScheduleWorkbookIssue[] = [], staged: Array<{ sheet: string; branchId: string; branchName: string; status: string; employee: string; sourceKey: string; date: string; first: unknown; second: unknown; firstFill: string; secondFill: string }> = [], locationMarkers: Array<{ sheet: string; date: string; label: string; fill: string }> = [];
   const notices: string[] = [];
+  const notes: ScheduleWorkbookPreview["notes"] = [];
   const employeeMatches = new Map<string, ScheduleEmployeeMatch>();
   const expectedDays = Array.from({ length: 7 }, (_, index) => Number(addDays(weekStart, index).slice(-2)));
   for (const sheet of sheets) {
@@ -300,14 +314,34 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
         if (/^(staff id|staff code|employee id|employee code|person id|员工编号|工号)$/.test(label)) idColumn = column;
       }
     }
-    for (let rowNumber = dateRow + (columnStep === 1 ? 1 : 2); rowNumber <= Math.max(...sheet.rows.keys()); rowNumber += 1) {
+    const cellRef = (column:number,row:number) => {let letters="";for(let n=column+1;n;n=Math.floor((n-1)/26))letters=String.fromCharCode(65+(n-1)%26)+letters;return `${letters}${row}`;};
+    const remarkRow=[...sheet.rows].find(([,values])=>/^remarks?\b/i.test(clean(values.get(nameColumn))))?.[0] ?? Infinity;
+    const headerPairs=[...sheet.rows.get(dateRow)!].filter(([column,value])=>column>=1 && !sheet.hiddenColumns.has(column) && dateValue(value)!==null);
+    const scheduleLastColumn=Math.max(...headerPairs.map(([column])=>column))+columnStep-1;
+    for (const [row,values] of sheet.rows) {
+      if(row<=dateRow+1 || sheet.hiddenRows.has(row) || (row<remarkRow && clean(values.get(nameColumn)))) continue;
+      for(const [column,value] of values) {
+        if(column>scheduleLastColumn || sheet.hiddenColumns.has(column) || typeof value!=="string" || !clean(value) || time(value) || /^remarks?$/i.test(clean(value))) continue;
+        const fill=sheet.fills.get(row)?.get(column) ?? "",font=sheet.fontColours.get(row)?.get(column) ?? "";
+        const range=sheet.mergedRanges.get(`${row}:${column}`) ?? cellRef(column,row);
+        const endColumn=columnIndex(range.split(":").at(-1)!);
+        const columnHeaders=headerPairs.filter(([c])=>c<=endColumn && c+columnStep-1>=column).map(([,v])=>String(dateValue(v)));
+        const relatedCells:string[]=[];
+        if(fill) for(const [r,source] of sheet.rows) {
+          if(r<=dateRow+1 || r>=remarkRow || sheet.hiddenRows.has(r) || !clean(source.get(nameColumn))) continue;
+          for(let c=column;c<=endColumn;c++) if(!sheet.hiddenColumns.has(c) && sheet.fills.get(r)?.get(c)===fill && time(source.get(c))) relatedCells.push(cellRef(c,r));
+        }
+        notes.push({sheet:sheet.name,range,text:clean(value),fill,font,columnHeaders,relatedCells});
+      }
+    }
+        for (let rowNumber = dateRow + (columnStep === 1 ? 1 : 2); rowNumber <= Math.max(...sheet.rows.keys()); rowNumber += 1) {
       if (sheet.hiddenRows.has(rowNumber)) continue;
       const values = sheet.rows.get(rowNumber) ?? new Map(), fills = sheet.fills.get(rowNumber) ?? new Map(), employee = clean(sheet.hiddenColumns.has(nameColumn) ? undefined : values.get(nameColumn)), staffCode = idColumn === null ? "" : clean(sheet.identifiers.get(rowNumber)?.get(idColumn) ?? values.get(idColumn));
       if (key(employee) === "remark" || /^job scope\b/i.test(employee)) break;
       if (!employee && !staffCode) {
         const notes = window.map(([column], offset) => {
           const anchor = sheet.mergedCells.get(`${rowNumber}:${column}`), anchorValues = anchor ? sheet.rows.get(anchor[0]) : null, anchorFills = anchor ? sheet.fills.get(anchor[0]) : null;
-          return { date: addDays(weekStart, offset), value: cellText(values.get(column) ?? anchorValues?.get(anchor?.[1] ?? -1)), fill: fills.get(column) ?? anchorFills?.get(anchor?.[1] ?? -1) ?? "" };
+          return { date: addDays(weekStart, offset), value: cellText(values.get(column) === undefined || values.get(column) === "" ? anchorValues?.get(anchor?.[1] ?? -1) : values.get(column)), fill: fills.get(column) ?? anchorFills?.get(anchor?.[1] ?? -1) ?? "" };
         }).filter((note) => note.value);
         for (const note of notes) {
           const label = note.value.toUpperCase();
@@ -458,5 +492,5 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
       ((item.branchId === outlet.branchId && time(item.first) && time(item.second)) || LOCATION_ALIASES[cellText(item.first).toUpperCase()] === outlet.branchName))
       .map(item => ({sheet:item.sheet,row:employeeMatches.get(item.sourceKey)!.row,kind: (LOCATION_MARKERS.has(cellText(item.first).toUpperCase()) ? "destination_marker" : "shift") as "destination_marker" | "shift"})),
   })));
-  return { fileName: file.name, fileHash, weekStart, weekEnd: addDays(weekStart, 6), outlets: result, issues, employeeMatches: [...employeeMatches.values()], assignmentSources, notices, shiftConflicts, destinationReviews, sheets: sheets.filter(sheet => !sheet.hidden).map(sheet => sheet.name), missingEndTimes: [...missingEndTimes].sort(), assignmentCount: result.reduce((sum, outlet) => sum + outlet.assignments.length, 0) };
+  return { fileName: file.name, fileHash, weekStart, weekEnd: addDays(weekStart, 6), outlets: result, issues, employeeMatches: [...employeeMatches.values()], assignmentSources, notices, shiftConflicts, destinationReviews, notes, sheets: sheets.filter(sheet => !sheet.hidden).map(sheet => sheet.name), missingEndTimes: [...missingEndTimes].sort(), assignmentCount: result.reduce((sum, outlet) => sum + outlet.assignments.length, 0) };
 }

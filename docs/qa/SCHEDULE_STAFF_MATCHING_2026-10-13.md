@@ -33,3 +33,23 @@ No production staff catalog was queried in this task, so exact real employee-to-
 - 320, 390 and 1440 px: dropdown bounds and dialog horizontal overflow checks passed. The 320 px screenshot was visually inspected. These are targeted checks, not a claim of exhaustive device or screen-reader certification.
 
 Local-only evidence: `outputs/qa/schedule-matching/ui-check.cjs`, `matching-320.png`, `matching-390.png`, and `matching-1440.png`. All screenshot contents are synthetic. No schedule was submitted.
+
+## Follow-up: colour remarks and full verification
+
+The disconnected colour patch had not reached the filesystem. The follow-up now retains written remarks after the REMARK row and independent merged outlet-note rows. Each note keeps its sheet, exact merged range, original text, raw fill identity (RGB/indexed/theme including tint), font colour, original date-header values and same-colour time-cell references within those columns. The compact expandable preview shows source ranges and RGB swatches. Same-colour cells are labelled as a relationship to confirm, not proof of an employee or payroll event.
+
+Replacement-leave text referring to another date, the current shift's source column, and a separate balance remain distinct notes. No hours are extracted, added, subtracted or posted from colour. There is no global yellow/cyan business mapping. Existing explicit outlet labels and same-sheet colour evidence remain locally scoped. Styled empty cells inside a merged note no longer prevent its text from covering subsequent date columns.
+
+The supplied workbook's independent inspection found no Excel comments/notes parts and no conditional formatting: its remarks are ordinary text and manual fills. This patch does not claim to parse future threaded comments or evaluate conditional formatting. Unknown business meaning still requires a human decision; notes never overwrite explicit times or become payroll instructions.
+
+### Exact-file limitation
+
+`/Users/seribako/Downloads/10 SERI BAKO OCT SCHEDULE 2026 uploaded.xlsx` is absent. The existing similarly named Downloads file is a different seven-sheet version: 78,013 bytes, SHA-256 `de40b32335d70e42fc89a7b117e0fe241dd979d1e1b285fa8f14b1cba2073617`; it lacks the three relevant Gurney, Queensbay and Velocity sheets. A read-only structural check with a source-derived dummy catalog produced 126 assignments and one duplicate issue, but this is explicitly **not** verification of the 114,911-byte uploaded ten-sheet workbook or the real OMS staff catalog.
+
+The remaining exact-file gate can be completed when the original uploaded version is available at the path above. No production catalog or schedules were changed.
+
+### Final checks after this follow-up
+
+- Full `npm test`: **1,557 passed, 0 failed**. The old parser-version assertion was updated to version 9 and now also checks employee/source audit metadata.
+- Full lint, TypeScript and production build were rerun; logs are kept in `/tmp/schedule-matching-full-lint.log`, `/tmp/schedule-matching-typecheck.log` and `/tmp/schedule-matching-build.log`.
+- Browser regression passed all existing mapping checks plus separate merged colour remarks/balance display and no 320 px dialog overflow. `outputs/qa/schedule-matching/colour-notes-320.png` was visually reviewed. No import POST was sent.

@@ -4,10 +4,10 @@ This is local implementation evidence, not a production release. No production i
 
 ## Integration coordination
 
-Temporary migration identifiers, awaiting coordinator numbering after 346/347:
+Formal identifiers assigned by the coordinator (346 maintenance, 347 checklist; approval workflow starts at 350):
 
-- `202610140001_schedule_partial_import.sql`: `schedule_workbook_receipts`; private append validator; append import and scoped history RPCs.
-- `202610140002_schedule_attendance_refresh.sql`: `attendance_schedule_refresh`; assignment-change trigger; private employee-day calculation layers; permission-checked refresh RPC.
+- `348_schedule_partial_import.sql`: `schedule_workbook_receipts`; private append validator; append import and scoped history RPCs.
+- `349_schedule_attendance_refresh.sql`: `attendance_schedule_refresh`; assignment-change trigger; private employee-day calculation layers; permission-checked refresh RPC.
 
 Neither migration replaces the existing save/submit/publication or weekly calculation functions. Maintenance, export and payroll access policy are outside this change. The import append transaction briefly takes a table write lock to serialize its existence check with roster writes; validate operational contention before production rollout. The scoped calculator copies existing pay-rule layers, which must be kept in sync with future pay-policy changes.
 
@@ -75,8 +75,21 @@ The v2 content-version checks cover workflow-only stability, displayed attendanc
 - Mocked browser partial-failure test passes: select both outlets, retain the first success, retry only the failed outlet with the same payload, and disable import after both succeed. No browser import reached the database. Reproducible script: `scripts/attendance/verify-schedule-batch-ui-local.cjs` (requires the existing local release fixture and port 3188 server).
 - Local scripts use only the named disposable Docker database and synthetic fixture users; this run's records are cleaned up. Scripts: `scripts/attendance/verify-schedule-concurrency-local.mjs` and `verify-schedule-refresh-concurrency-local.mjs`.
 
-## Live catalog blocker and minimum user step
+## Live catalog capability blocker after confirmed login
 
-The required session is the user's existing **OMS browser tab at `https://system.seribako.com.my`**, last observed at `/access-status?reason=idle-timeout`. The minimum user action is to sign in there again with their normal authorized account. The workbook need not be downloaded again. The coordinating browser-capable task can then read only `/api/attendance/schedule/import-catalog?week=2026-10-12` in that same session and provide its private local catalog result for this verifier. No passwords, cookies, service-role credentials, expanded grants or real imports are needed or requested. This execution environment itself has no callable production-browser/session reader; signing in alone does not give these local tools that session.
+The user has now explicitly confirmed login in the original OMS tab. **Do not ask them to log in again or download the workbook again.** No production catalog read has yet occurred from this executor.
+
+Current capability inspection: active tool metadata exposes no IAB/Chrome/browser interaction tool and no `node_repl` RPC tool. The complete executor skill catalog contains no browser/Chrome/computer-use skill. `/Applications/Google Chrome.app` exists and Chrome plugin cache `openai-bundled/chrome/26.1002.52244` exists, but its `skills/` directory is empty. Its `setupBrowserRuntime` entry point requires a trusted Node REPL browser service (`globalThis.nodeRepl.rpc`); that supported service is not exposed in this task. Merely opening a browser panel via `open_in_codex` does not provide DOM or session reading. Local Playwright runs use isolated synthetic login state, not the user's IAB session.
+
+Continuation requires a **browser-enabled task executing on this same Mac**, with its supported IAB/Chrome runtime available. That task should read the already-authorized session's `/api/attendance/schedule/import-catalog?week=2026-10-12`, preserve the result only in a private local file, and verify it against the already-verified 10-sheet workbook. The cloud parent is not assumed to control the Mac directly. No automatic production login, cookie/token extraction, credential transfer, grant changes or real schedule submission is authorized or needed.
+
+## Numbering and replay verification
+
+The coordinator assigned **348** to partial import and **349** to attendance refresh; approval workflow starts at 350. Only this isolated worktree was renamed and its documentation references updated. Both SQL files are byte-for-byte unchanged from the previously verified commit:
+
+- `348_schedule_partial_import.sql`: SHA256 `a9ee898dea334af2098c4df2e85f84e26529b2a2177407f2e1a71b1e771ed14a`.
+- `349_schedule_attendance_refresh.sql`: SHA256 `661043279f6cab4a4a056855468e3a45cb4f14de591feb5b507a129d4a14d1d0`.
+
+Fresh 348→349 DDL replay passed inside a rollback-only transaction in the disposable synthetic database, including RPC existence and private-calculator execute denial. The transaction rolled back every DDL change. Migration-history entries before and after are identical; none were renumbered or repaired. No older migration, other worktree, production schema or Git history was rewritten. Documentation-authority checks passed after renumbering. Previous full application gates remain applicable because SQL/application contents did not change. Replay log: `/tmp/schedule-numbering-replay.log`.
 
 Final log evidence: `/tmp/schedule-final-full-tests.log`, `/tmp/schedule-final-full-lint.log`, `/tmp/schedule-final-types.log`, `/tmp/schedule-final-build.log`, `/tmp/schedule-final-import-concurrency.log`, `/tmp/schedule-final-refresh-concurrency.log`, `/tmp/schedule-final-append-sql.log`, `/tmp/schedule-final-refresh-sql.log`, `/tmp/schedule-batch-resume-ui.log`. All use the local candidate and synthetic fixture; no production mutation or expanded credential grant occurred.

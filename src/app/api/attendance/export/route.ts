@@ -3,7 +3,6 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { looseSupabase } from "@/lib/supabase/loose";
 import { hasPermission } from "@/server/auth/permissions";
-import { formatAttendanceTime } from "@/lib/attendance/time";
 import { logServerError } from "@/server/observability/logger";
 import { exportPunches, exportWorkedSeconds, exportExceptionLabels } from "@/lib/attendance/export-policy";
 import { buildPeopleWorkbook, buildZipArchive, type PeopleWorkbookDay, type PeopleWorkbookSheet } from "@/lib/attendance/people-workbook";
@@ -39,7 +38,7 @@ function scheduleRangeStart(month: string) {
 function clock(value: unknown) {
   if (!value) return null;
   const text = String(value);
-  return text.includes("T") ? formatAttendanceTime(text) : text.slice(0, 5);
+  return text.includes("T") ? new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kuala_Lumpur", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).format(new Date(text)) : text.slice(0, 8);
 }
 
 function object(value: Nested): Row {

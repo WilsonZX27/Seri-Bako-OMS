@@ -12,3 +12,18 @@ const url=(mode='draft',branches=[one])=>`https://example.invalid/api/attendance
 test('open week draft downloads only its selected seven dates and never calls close',async()=>{const h=load(),response=await h.get(new Request(url()));assert.equal(response.status,200);assert.match(response.headers.get('content-disposition'),/Jakel.*2026-09-28 to 2026-10-04 - Draft/);const data=Buffer.from(await response.arrayBuffer()).toString();assert.ok(data.includes('28/09/2026'));assert.ok(data.includes('04/10/2026'));assert.ok(!data.includes('01/09/2026'));assert.ok(data.includes('No calculated result'));assert.ok(h.calls.some(row=>row.table==='daily_attendance_results'&&row.method==='gte'&&row.value==='2026-09-28'));assert.ok(h.calls.some(row=>row.table==='daily_attendance_results'&&row.method==='lte'&&row.value==='2026-10-04'));assert.equal(response.headers.get('cache-control'),'private, no-store');});
 test('final requires closed periods; protected and unavailable outlet requests are rejected',async()=>{assert.equal((await load().get(new Request(url('final')))).status,409);assert.equal((await load({closed:true}).get(new Request(url('final')))).status,200);assert.equal((await load({allowed:false}).get(new Request(url()))).status,403);assert.equal((await load({visible:false}).get(new Request(url()))).status,403);});
 test('multiple selected outlets download a ZIP with distinct outlet workbooks',async()=>{const response=await load().get(new Request(url('draft',[one,two])));assert.equal(response.status,200);assert.equal(response.headers.get('content-type'),'application/zip');const binary=Buffer.from(await response.arrayBuffer()).toString();assert.ok(binary.includes('People Workbook - Jakel'));assert.ok(binary.includes('People Workbook - Publika'));});
+test('actual download response is saved and validated as an OOXML file',async()=>{
+ const os=require('node:os'),path=require('node:path'),{execFileSync}=require('node:child_process');const dir=fs.mkdtempSync(path.join(os.tmpdir(),'oms-http-export-'));
+ try {const response=await load().get(new Request(url()));assert.equal(response.status,200);const file=path.join(dir,'response.xlsx');fs.writeFileSync(file,Buffer.from(await response.arrayBuffer()));
+ const result=execFileSync('python3',['-c',`import sys,zipfile,xml.etree.ElementTree as E
+with zipfile.ZipFile(sys.argv[1]) as z:
+ assert z.testzip() is None
+ for name in z.namelist():
+  if name.endswith(('.xml','.rels')): E.fromstring(z.read(name))
+ sheet=E.fromstring(z.read('xl/worksheets/sheet1.xml'))
+ ns={'s':'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
+ assert len(sheet.findall('.//s:f',ns)) >= 6
+ assert not any('fileRecoveryPr' in z.read(n).decode() for n in z.namelist() if n.endswith('.xml'))
+print('valid response file')`,file],{encoding:'utf8'});assert.match(result,/valid response file/);
+ }finally{fs.rmSync(dir,{recursive:true,force:true});}
+});

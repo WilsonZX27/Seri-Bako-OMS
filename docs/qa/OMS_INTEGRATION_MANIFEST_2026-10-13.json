@@ -1,0 +1,32 @@
+{
+  "baseline": "2dc8c0f441fe43ee02c285d8397e6dd0cc3d6b3c",
+  "branch": "codex/oms-integration-20261013",
+  "included_source_commits": [
+    "a79e9870",
+    "b28554e0",
+    "7a22336e",
+    "1384545d",
+    "097eb7db",
+    "5f1a2ee1",
+    "4646273a",
+    "af9af55f",
+    "cbe1eafd",
+    "f4b08aae"
+  ],
+  "stock_patch_sha256": "c4c70eca94801582a7755a73038af93025ae71e92003ba80dc51ad9b52b39a94",
+  "new_migrations": {
+    "346_general_maintenance_requests.sql": "9e0458aa9e674f1601712599186d9676fd602e99b6b06db2dac755bb2e2f833e",
+    "347_checklist_maintenance_actions.sql": "d3490830e48447f5dd0b379a24cca7d0c4895bbeaec3af1465aee72ccaee4afa",
+    "348_schedule_partial_import.sql": "a9ee898dea334af2098c4df2e85f84e26529b2a2177407f2e1a71b1e771ed14a",
+    "349_schedule_attendance_refresh.sql": "661043279f6cab4a4a056855468e3a45cb4f14de591feb5b507a129d4a14d1d0"
+  },
+  "public_reference_static_unresolved": [],
+  "excluded": [
+    "new changes to baseline migrations 343/344",
+    "migration 345",
+    "unfinished employee review and payroll workflow (350+)",
+    "production catalog data",
+    "private fixtures, credentials, dependency symlinks, build outputs"
+  ],
+  "release_status": "local integration candidate; payroll workflow and full UI state acceptance pending; not deployed"
+}

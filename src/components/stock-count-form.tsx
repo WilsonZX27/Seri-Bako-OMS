@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { TableActionMenuPortal } from "@/components/ui/table-action-menu-portal";
 import { StockCountLineRecovery } from "@/components/stock-count-line-recovery";
 import { formatDateOnly, formatQuantity, formatQuantityInput, getToday } from "@/lib/utils";
+import { tryStockCountStorage } from "@/lib/stock-count-storage";
 import type { StockCountAutosaveResult } from "@/server/actions/stock-counts";
 
 type BranchOption = { id: string; branch_code: string; branch_name: string; status: string };
@@ -129,6 +130,7 @@ export function StockCountForm({
   const [dirtyRevision, setDirtyRevision] = useState(0);
   const [autosaveState, setAutosaveState] = useState<AutosaveState>("idle");
   const [autosaveError, setAutosaveError] = useState("");
+  const [localBackupAvailable, setLocalBackupAvailable] = useState(true);
   const [autosaveRetryable, setAutosaveRetryable] = useState(true);
   const [search, setSearch] = useState("");
   const [showAdjustedOnly, setShowAdjustedOnly] = useState(false);
@@ -173,14 +175,14 @@ export function StockCountForm({
   }, [selectedBranchId, seedLines, initialCountDate, initialRemarks]);
 
   useEffect(() => {
-    const storedSort = window.localStorage.getItem(STOCK_COUNT_SORT_KEY);
+    const storedSort = tryStockCountStorage(() => window.localStorage.getItem(STOCK_COUNT_SORT_KEY)).value;
     if (storedSort === "name" || storedSort === "code") setSortBy(storedSort);
     sortPreferenceReady.current = true;
   }, []);
 
   useEffect(() => {
     if (!sortPreferenceReady.current) return;
-    window.localStorage.setItem(STOCK_COUNT_SORT_KEY, sortBy);
+    tryStockCountStorage(() => window.localStorage.setItem(STOCK_COUNT_SORT_KEY, sortBy));
   }, [sortBy]);
 
   useEffect(() => {
@@ -192,12 +194,15 @@ export function StockCountForm({
   }, []);
 
   useEffect(() => {
+    const stored = tryStockCountStorage(() => window.localStorage.getItem(localStorageKey));
+    setLocalBackupAvailable(stored.ok);
+    if (!stored.ok) return;
     try {
-      const raw = window.localStorage.getItem(localStorageKey);
+      const raw = stored.value;
       if (!raw) return;
       const snapshot = JSON.parse(raw) as LocalDraftSnapshot;
       if (snapshot.branchId !== resolvedBranchId) {
-        window.localStorage.removeItem(localStorageKey);
+        tryStockCountStorage(() => window.localStorage.removeItem(localStorageKey));
         return;
       }
       const isLegacySnapshot = snapshot.version !== 2;
@@ -228,7 +233,7 @@ export function StockCountForm({
       setAutosaveState("recovered");
       setDirtyRevision((current) => current + 1);
     } catch {
-      window.localStorage.removeItem(localStorageKey);
+      tryStockCountStorage(() => window.localStorage.removeItem(localStorageKey));
     }
   }, [localStorageKey, resolvedBranchId, seedLines]);
 
@@ -255,7 +260,7 @@ export function StockCountForm({
       if (sequence !== saveSequence.current) return result.ok;
       if (!result.ok || !result.id) {
         setAutosaveState("error");
-        setAutosaveError(result.error ?? "Autosave failed. Your changes remain on this device.");
+        setAutosaveError(result.error ?? "Save failed. Keep this page open and try Save draft.");
         const canRetry = result.retryable === false ? false : retryAttempts.current < MAX_AUTOSAVE_RETRIES;
         retryAttempts.current += 1;
         setAutosaveRetryable(canRetry);
@@ -267,7 +272,7 @@ export function StockCountForm({
       }
       lastSavedRevision.current = revision;
       retryAttempts.current = 0;
-      window.localStorage.removeItem(localStorageKey);
+      tryStockCountStorage(() => window.localStorage.removeItem(localStorageKey));
       setAutosaveState("saved");
       setAutosaveRetryable(true);
       if (!draftId) router.replace(`/stock-counts/${result.id}?autosaved=1`);
@@ -277,7 +282,7 @@ export function StockCountForm({
         setAutosaveState("error");
         const canRetry = retryAttempts.current < MAX_AUTOSAVE_RETRIES;
         retryAttempts.current += 1;
-        setAutosaveError(canRetry ? "Autosave failed. Your changes remain on this device and will retry." : "Autosave failed. Your changes remain on this device. Save draft manually when the connection is ready.");
+        setAutosaveError(canRetry ? "Save failed. Keep this page open; retrying." : "Save failed. Keep this page open and try Save draft.");
         setAutosaveRetryable(canRetry);
         if (retryTimer.current !== null) window.clearTimeout(retryTimer.current);
         retryTimer.current = canRetry ? window.setTimeout(() => void saveDraft(revision), 15_000) : null;
@@ -300,10 +305,11 @@ export function StockCountForm({
       lines: lines.map((line) => ({ itemId: line.item_id, physicalQty: line.physicalQty, initialPhysicalQty: line.initialPhysicalQty, remarks: line.remarks })),
       savedLocallyAt: new Date().toISOString(),
     };
-    window.localStorage.setItem(localStorageKey, JSON.stringify(snapshot));
+    const backup = tryStockCountStorage(() => window.localStorage.setItem(localStorageKey, JSON.stringify(snapshot)));
+    setLocalBackupAvailable(backup.ok);
     // Give a physical-count entry session time to finish a short burst of
-    // edits before sending a draft write. The local snapshot is still written
-    // immediately, so this delay never risks losing the user's work.
+    // edits before sending a draft write. Local storage is best-effort; a
+    // blocked or full device must never prevent the server save from running.
     const timer = window.setTimeout(() => void saveDraft(dirtyRevision), AUTOSAVE_DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
   }, [countDate, countRemarks, dirtyRevision, lines, localStorageKey, resolvedBranchId, saveDraft]);
@@ -416,6 +422,10 @@ export function StockCountForm({
     ? "Saving…"
     : autosaveState === "saved"
       ? "Saved"
+      : !localBackupAvailable
+        ? autosaveState === "error"
+          ? "Save failed — keep this page open"
+          : "Device backup unavailable — keep this page open until Saved"
       : autosaveState === "recovered"
         ? "Recovered unsaved changes"
         : autosaveState === "local"

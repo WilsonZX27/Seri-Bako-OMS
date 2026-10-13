@@ -1,0 +1,4296 @@
+{
+  "scope": "Static route-to-component inventory; pending means no integration runtime evidence, not passed.",
+  "viewports": [
+    1440,
+    1024,
+    768,
+    390,
+    320
+  ],
+  "routes": [
+    {
+      "route": "/account",
+      "source": "src/app/(app)/account/page.tsx",
+      "components": [
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/button",
+        "@/components/ui/destructive-action-dialog",
+        "@/components/ui/input",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/submit-button"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/activity",
+      "source": "src/app/(app)/activity/page.tsx",
+      "components": [
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/button",
+        "@/components/ui/page-header",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/administration/backups",
+      "source": "src/app/(app)/administration/backups/page.tsx",
+      "components": [],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/administration/master-data-cleanup",
+      "source": "src/app/(app)/administration/master-data-cleanup/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/metric-strip",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/administration",
+      "source": "src/app/(app)/administration/page.tsx",
+      "components": [
+        "@/components/layout/nav-items",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/operational-tool-list",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/page-header"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/administration/system-health",
+      "source": "src/app/(app)/administration/system-health/page.tsx",
+      "components": [
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/page-header"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/asset-management/assets/[id]/attachments",
+      "source": "src/app/(app)/asset-management/assets/[id]/attachments/page.tsx",
+      "components": [
+        "@/components/asset-attachment-list",
+        "@/components/asset-attachment-register",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/button",
+        "@/components/ui/page-header"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/asset-management/assets/[id]/history",
+      "source": "src/app/(app)/asset-management/assets/[id]/history/page.tsx",
+      "components": [
+        "@/components/asset-master-history-list",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/button",
+        "@/components/ui/page-header"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/asset-management/assets/[id]",
+      "source": "src/app/(app)/asset-management/assets/[id]/page.tsx",
+      "components": [
+        "@/components/asset-attachment-form",
+        "@/components/asset-attachment-list",
+        "@/components/asset-draft-state",
+        "@/components/asset-master-form",
+        "@/components/asset-quantity-confirmation",
+        "@/components/asset-transfer-form",
+        "@/components/asset-unsaved-guard",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/asset-management/assets/new",
+      "source": "src/app/(app)/asset-management/assets/new/page.tsx",
+      "components": [
+        "@/components/asset-draft-state",
+        "@/components/asset-master-form",
+        "@/components/asset-unsaved-guard",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/button",
+        "@/components/ui/empty-state",
+        "@/components/ui/input",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/asset-management/locations/[id]",
+      "source": "src/app/(app)/asset-management/locations/[id]/page.tsx",
+      "components": [
+        "@/components/asset-attachment-form",
+        "@/components/asset-checklist-form",
+        "@/components/asset-draft-state",
+        "@/components/asset-unsaved-guard",
+        "@/components/general-maintenance-form",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/textarea"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/asset-management/maintenance/[id]/attachments",
+      "source": "src/app/(app)/asset-management/maintenance/[id]/attachments/page.tsx",
+      "components": [
+        "@/components/asset-attachment-list",
+        "@/components/asset-attachment-register",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/button",
+        "@/components/ui/page-header"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/asset-management/maintenance/[id]",
+      "source": "src/app/(app)/asset-management/maintenance/[id]/page.tsx",
+      "components": [
+        "@/components/asset-attachment-form",
+        "@/components/asset-attachment-list",
+        "@/components/asset-draft-state",
+        "@/components/asset-maintenance-detail-panel",
+        "@/components/asset-maintenance-form",
+        "@/components/asset-unsaved-guard",
+        "@/components/asset-workspace-lists",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/table",
+        "@/components/ui/textarea"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/asset-management/maintenance/new",
+      "source": "src/app/(app)/asset-management/maintenance/new/page.tsx",
+      "components": [
+        "@/components/asset-attachment-form",
+        "@/components/asset-draft-state",
+        "@/components/asset-unsaved-guard",
+        "@/components/general-maintenance-form",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/textarea"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/asset-management",
+      "source": "src/app/(app)/asset-management/page.tsx",
+      "components": [
+        "@/components/asset-attachment-form",
+        "@/components/asset-attachment-list",
+        "@/components/asset-draft-state",
+        "@/components/asset-history-trend",
+        "@/components/asset-maintenance-detail-panel",
+        "@/components/asset-maintenance-form",
+        "@/components/asset-operating-day-form",
+        "@/components/asset-unsaved-guard",
+        "@/components/asset-workspace-lists",
+        "@/components/asset-workspace-navigation",
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/console-action-link",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/pagination-scroll-reset",
+        "@/components/sortable-table",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/intent-prefetch-link",
+        "@/components/ui/interactive-line-chart",
+        "@/components/ui/interactive-ranking-chart",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/table",
+        "@/components/ui/textarea",
+        "@/components/ui/use-preview-selection",
+        "@/components/ui/workspace-tabs"
+      ],
+      "states": {
+        "default": "automated layout/no-boundary check; not exhaustive component acceptance",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "automated 320/390/768/1024/1440 layout check",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": [
+        {
+          "state": "default",
+          "width": 1440,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 1024,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 768,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 390,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 320,
+          "overflow": false
+        }
+      ],
+      "runtime_issues": []
+    },
+    {
+      "route": "/asset-management/transfers/[id]",
+      "source": "src/app/(app)/asset-management/transfers/[id]/page.tsx",
+      "components": [
+        "@/components/asset-draft-state",
+        "@/components/asset-transfer-form",
+        "@/components/asset-unsaved-guard",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/asset-management/transfers/new",
+      "source": "src/app/(app)/asset-management/transfers/new/page.tsx",
+      "components": [
+        "@/components/asset-draft-state",
+        "@/components/asset-transfer-form",
+        "@/components/asset-unsaved-guard",
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/pagination-scroll-reset",
+        "@/components/sortable-table",
+        "@/components/ui/button",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/attendance/imports",
+      "source": "src/app/(app)/attendance/imports/page.tsx",
+      "components": [],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/attendance",
+      "source": "src/app/(app)/attendance/page.tsx",
+      "components": [
+        "@/components/attendance/attendance-workspace-nav",
+        "@/components/attendance/published-schedule-list",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/intent-prefetch-link",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/status-badge",
+        "@/components/ui/workspace-tabs"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/attendance/review",
+      "source": "src/app/(app)/attendance/review/page.tsx",
+      "components": [
+        "@/components/attendance/actual-attendance-panel",
+        "@/components/attendance/attendance-import-workflow",
+        "@/components/attendance/attendance-review-filters",
+        "@/components/attendance/attendance-workspace-nav",
+        "@/components/attendance/employee-attendance-summary",
+        "@/components/attendance/ot-ro-actions",
+        "@/components/attendance/people-workbook-export",
+        "@/components/attendance/review-actions",
+        "@/components/attendance/schedule-refresh-status",
+        "@/components/common/UnifiedListHeader",
+        "@/components/imports/import-workflow",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/intent-prefetch-link",
+        "@/components/ui/native-dialog",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/table",
+        "@/components/ui/table-scroll-region",
+        "@/components/ui/workspace-tabs"
+      ],
+      "states": {
+        "default": "automated layout/no-boundary check; not exhaustive component acceptance",
+        "expanded": "visible details expanded at 1440; individual interaction review pending",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "automated 320/390/768/1024/1440 layout check",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": [
+        {
+          "state": "default",
+          "width": 1440,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 1024,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 768,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 390,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 320,
+          "overflow": false
+        },
+        {
+          "state": "expanded",
+          "width": 1440,
+          "count": 1
+        }
+      ],
+      "runtime_issues": []
+    },
+    {
+      "route": "/attendance/schedule",
+      "source": "src/app/(app)/attendance/schedule/page.tsx",
+      "components": [
+        "@/components/attendance/attendance-workspace-nav",
+        "@/components/attendance/request-review",
+        "@/components/attendance/schedule-planner",
+        "@/components/attendance/schedule-validation-summary",
+        "@/components/attendance/schedule-workbook-import",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/intent-prefetch-link",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/status-badge",
+        "@/components/ui/workspace-tabs"
+      ],
+      "states": {
+        "default": "automated layout/no-boundary check; not exhaustive component acceptance",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "automated 320/390/768/1024/1440 layout check",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": [
+        {
+          "state": "default",
+          "width": 1440,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 1024,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 768,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 390,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 320,
+          "overflow": false
+        }
+      ],
+      "runtime_issues": [],
+      "import_dialog": {
+        "checked": [
+          "synthetic employee correction",
+          "cross-sheet destination and overlap decisions",
+          "merged colour notes",
+          "two-outlet failure and retry",
+          "320/390/768/1024/1440 dropdown bounds and overflow"
+        ],
+        "not_checked": [
+          "actual production catalog (separate task)",
+          "200% browser zoom",
+          "all permission-role combinations"
+        ]
+      }
+    },
+    {
+      "route": "/attendance/settings",
+      "source": "src/app/(app)/attendance/settings/page.tsx",
+      "components": [
+        "@/components/attendance/attendance-workspace-nav",
+        "@/components/attendance/holiday-admin",
+        "@/components/attendance/mapping-admin",
+        "@/components/attendance/template-admin",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/input",
+        "@/components/ui/intent-prefetch-link",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/status-badge",
+        "@/components/ui/workspace-tabs"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/branches/[id]",
+      "source": "src/app/(app)/branches/[id]/page.tsx",
+      "components": [
+        "@/components/branch-supply-route-form",
+        "@/components/foundation-forms",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/record-workspace",
+        "@/components/staff-access-fields",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/danger-confirm-form",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/textarea"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/branches/new",
+      "source": "src/app/(app)/branches/new/page.tsx",
+      "components": [
+        "@/components/foundation-forms",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/record-workspace",
+        "@/components/staff-access-fields",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/select-native",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/textarea"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/branches",
+      "source": "src/app/(app)/branches/page.tsx",
+      "components": [
+        "@/components/bulk-selection",
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/master-data-filters",
+        "@/components/status-tabs",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/data-grid-hint",
+        "@/components/ui/data-grid-row",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/submit-button",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/company",
+      "source": "src/app/(app)/company/page.tsx",
+      "components": [
+        "@/components/company-logo-form",
+        "@/components/foundation-forms",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/record-workspace",
+        "@/components/staff-access-fields",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/destructive-action-dialog",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/select-native",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/textarea"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/compliance",
+      "source": "src/app/(app)/compliance/page.tsx",
+      "components": [],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/dashboard",
+      "source": "src/app/(app)/dashboard/page.tsx",
+      "components": [
+        "@/components/dashboard-workspace",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/status-badge"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/document-sequences/[id]",
+      "source": "src/app/(app)/document-sequences/[id]/page.tsx",
+      "components": [
+        "@/components/document-sequence-form",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/record-workspace",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/document-sequences/new",
+      "source": "src/app/(app)/document-sequences/new/page.tsx",
+      "components": [
+        "@/components/document-sequence-form",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/record-workspace",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/document-sequences",
+      "source": "src/app/(app)/document-sequences/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/master-data-filters",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/documents/[id]",
+      "source": "src/app/(app)/documents/[id]/page.tsx",
+      "components": [
+        "@/components/document-number",
+        "@/components/documents/attachment-remove-action",
+        "@/components/documents/attachment-upload-form",
+        "@/components/documents/document-context-summary",
+        "@/components/documents/document-panels",
+        "@/components/documents/document-workspace",
+        "@/components/documents/mobile-document-surfaces",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/priority-badge",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/destructive-action-dialog",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/modal-shell",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/textarea",
+        "@/components/workflow-status-pipeline"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/documents",
+      "source": "src/app/(app)/documents/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/document-number",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/pagination-scroll-reset",
+        "@/components/sortable-table",
+        "@/components/status-tabs",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/data-grid-hint",
+        "@/components/ui/data-grid-row",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/status-badge",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/goods-receivings/[id]",
+      "source": "src/app/(app)/goods-receivings/[id]/page.tsx",
+      "components": [
+        "@/components/action-error-notice",
+        "@/components/document-action-bar",
+        "@/components/document-number",
+        "@/components/documents/attachment-remove-action",
+        "@/components/documents/attachment-upload-form",
+        "@/components/documents/document-context-summary",
+        "@/components/documents/document-panels",
+        "@/components/documents/document-workspace",
+        "@/components/documents/mobile-document-surfaces",
+        "@/components/documents/receiving-post-guard",
+        "@/components/goods-receiving-draft-editor",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/priority-badge",
+        "@/components/procurement/procurement-chain",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/danger-confirm-form",
+        "@/components/ui/destructive-action-dialog",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/modal-shell",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/table",
+        "@/components/ui/textarea",
+        "@/components/workflow-status-pipeline"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/goods-receivings/new",
+      "source": "src/app/(app)/goods-receivings/new/page.tsx",
+      "components": [
+        "@/components/action-error-notice",
+        "@/components/document-number",
+        "@/components/documents/document-context-summary",
+        "@/components/documents/document-workspace",
+        "@/components/documents/mobile-document-surfaces",
+        "@/components/goods-receiving-form",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/priority-badge",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/textarea",
+        "@/components/workflow-status-pipeline"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/goods-receivings",
+      "source": "src/app/(app)/goods-receivings/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/document-number",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/pagination-scroll-reset",
+        "@/components/sortable-table",
+        "@/components/status-tabs",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/data-grid-hint",
+        "@/components/ui/data-grid-row",
+        "@/components/ui/empty-state",
+        "@/components/ui/input",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/status-badge",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/imports/[entity]",
+      "source": "src/app/(app)/imports/[entity]/page.tsx",
+      "components": [
+        "@/components/imports/import-workflow",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/input",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/system-states",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/imports/autocount",
+      "source": "src/app/(app)/imports/autocount/page.tsx",
+      "components": [
+        "@/components/imports/autocount-import-workflow",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/page-header",
+        "@/components/ui/system-states"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/imports",
+      "source": "src/app/(app)/imports/page.tsx",
+      "components": [
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/operational-tool-list",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/page-header",
+        "@/components/ui/status-badge"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/inventory",
+      "source": "src/app/(app)/inventory/page.tsx",
+      "components": [
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/operational-hub",
+        "@/components/reports/inventory-daily-movement-chart",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/use-preview-selection"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/items/[id]",
+      "source": "src/app/(app)/items/[id]/page.tsx",
+      "components": [
+        "@/components/item-form",
+        "@/components/item-image-input",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/phase-one-delete-action",
+        "@/components/record-workspace",
+        "@/components/supplier-combobox",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/danger-confirm-form",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/item-thumbnail",
+        "@/components/ui/label",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/items/new",
+      "source": "src/app/(app)/items/new/page.tsx",
+      "components": [
+        "@/components/item-form",
+        "@/components/item-image-input",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/record-workspace",
+        "@/components/supplier-combobox",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/item-thumbnail",
+        "@/components/ui/label",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/items",
+      "source": "src/app/(app)/items/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/console-action-link",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/master-data-filters",
+        "@/components/pagination-scroll-reset",
+        "@/components/sortable-table",
+        "@/components/status-tabs",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/data-grid-hint",
+        "@/components/ui/data-grid-row",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/submit-button",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "automated layout/no-boundary check; not exhaustive component acceptance",
+        "expanded": "visible details expanded at 1440; individual interaction review pending",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "automated 320/390/768/1024/1440 layout check",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": [
+        {
+          "state": "default",
+          "width": 1440,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 1024,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 768,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 390,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 320,
+          "overflow": false
+        },
+        {
+          "state": "expanded",
+          "width": 1440,
+          "count": 1
+        }
+      ],
+      "runtime_issues": []
+    },
+    {
+      "route": "/low-stock",
+      "source": "src/app/(app)/low-stock/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/low-stock-pr-form",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/empty-state",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/page-header",
+        "@/components/ui/quantity-stepper",
+        "@/components/ui/select-control",
+        "@/components/ui/select-native",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/opening-stock/import",
+      "source": "src/app/(app)/opening-stock/import/page.tsx",
+      "components": [
+        "@/components/imports/import-workflow",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/input",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/system-states",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/outlet-calendar",
+      "source": "src/app/(app)/outlet-calendar/page.tsx",
+      "components": [],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/outlet-compliance/[branchId]",
+      "source": "src/app/(app)/outlet-compliance/[branchId]/page.tsx",
+      "components": [
+        "@/components/compliance-attachment-upload",
+        "@/components/compliance-file-input",
+        "@/components/documents/attachment-remove-action",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/empty-state",
+        "@/components/ui/input",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/outlet-compliance",
+      "source": "src/app/(app)/outlet-compliance/page.tsx",
+      "components": [
+        "@/components/compliance-month-calendar",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/empty-state",
+        "@/components/ui/intent-prefetch-link",
+        "@/components/ui/page-header",
+        "@/components/ui/table",
+        "@/components/ui/workspace-tabs"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/outlet-daily-records/[id]",
+      "source": "src/app/(app)/outlet-daily-records/[id]/page.tsx",
+      "components": [
+        "@/components/action-error-notice",
+        "@/components/document-number",
+        "@/components/documents/attachment-remove-action",
+        "@/components/documents/attachment-upload-form",
+        "@/components/documents/document-context-summary",
+        "@/components/documents/document-panels",
+        "@/components/documents/document-workspace",
+        "@/components/documents/mobile-document-surfaces",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/outlet-daily-do-sources",
+        "@/components/outlet-daily-record-form",
+        "@/components/priority-badge",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/destructive-action-dialog",
+        "@/components/ui/empty-state",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/textarea",
+        "@/components/workflow-status-pipeline"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/outlet-daily-records/delivery-orders",
+      "source": "src/app/(app)/outlet-daily-records/delivery-orders/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/outlet-daily-workspace-nav",
+        "@/components/ui/button",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/intent-prefetch-link",
+        "@/components/ui/page-header",
+        "@/components/ui/workspace-tabs"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/outlet-daily-records/insights",
+      "source": "src/app/(app)/outlet-daily-records/insights/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/outlet-daily-completion-matrix",
+        "@/components/outlet-daily-wastage-chart",
+        "@/components/outlet-daily-wastage-overview",
+        "@/components/outlet-daily-workspace-nav",
+        "@/components/outstanding-daily-records",
+        "@/components/ui/button",
+        "@/components/ui/date-range-picker",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/intent-prefetch-link",
+        "@/components/ui/interactive-line-chart",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/system-states",
+        "@/components/ui/table",
+        "@/components/ui/workspace-tabs"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/outlet-daily-records/new",
+      "source": "src/app/(app)/outlet-daily-records/new/page.tsx",
+      "components": [
+        "@/components/action-error-notice",
+        "@/components/document-number",
+        "@/components/documents/document-context-summary",
+        "@/components/documents/document-workspace",
+        "@/components/documents/mobile-document-surfaces",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/outlet-daily-record-form",
+        "@/components/priority-badge",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/empty-state",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/textarea",
+        "@/components/workflow-status-pipeline"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/outlet-daily-records",
+      "source": "src/app/(app)/outlet-daily-records/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/operational-value",
+        "@/components/outlet-daily-export-dialog",
+        "@/components/outlet-daily-workspace-nav",
+        "@/components/outstanding-daily-records",
+        "@/components/pagination-scroll-reset",
+        "@/components/sortable-table",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/data-grid-row",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/intent-prefetch-link",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/status-badge",
+        "@/components/ui/system-states",
+        "@/components/ui/table",
+        "@/components/ui/workspace-tabs"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/outlet-packaging",
+      "source": "src/app/(app)/outlet-packaging/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/outlet-packaging-report",
+        "@/components/ui/button",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/interactive-line-chart",
+        "@/components/ui/page-header",
+        "@/components/ui/retry-button",
+        "@/components/ui/select-native",
+        "@/components/ui/system-states"
+      ],
+      "states": {
+        "default": "automated layout/no-boundary check; not exhaustive component acceptance",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "automated 320/390/768/1024/1440 layout check",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": [
+        {
+          "state": "default",
+          "width": 1440,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 1024,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 768,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 390,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 320,
+          "overflow": false
+        }
+      ],
+      "runtime_issues": []
+    },
+    {
+      "route": "/people/[id]",
+      "source": "src/app/(app)/people/[id]/page.tsx",
+      "components": [
+        "@/components/attendance/comp-time-correction-form",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/empty-state",
+        "@/components/ui/input",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/status-badge"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/people/calendar",
+      "source": "src/app/(app)/people/calendar/page.tsx",
+      "components": [],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/people",
+      "source": "src/app/(app)/people/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/master-data-filters",
+        "@/components/status-tabs",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/data-grid-hint",
+        "@/components/ui/data-grid-row",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/status-badge",
+        "@/components/ui/system-states",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "automated layout/no-boundary check; not exhaustive component acceptance",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "automated 320/390/768/1024/1440 layout check",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": [
+        {
+          "state": "default",
+          "width": 1440,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 1024,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 768,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 390,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 320,
+          "overflow": false
+        }
+      ],
+      "runtime_issues": []
+    },
+    {
+      "route": "/procurement",
+      "source": "src/app/(app)/procurement/page.tsx",
+      "components": [
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/operational-hub",
+        "@/components/ui/button",
+        "@/components/ui/page-header"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/production/delivery-orders/[id]",
+      "source": "src/app/(app)/production/delivery-orders/[id]/page.tsx",
+      "components": [
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/production-delivery-order",
+        "@/components/ui/button",
+        "@/components/ui/destructive-action-dialog",
+        "@/components/ui/input",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/submit-button"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/production/delivery-orders",
+      "source": "src/app/(app)/production/delivery-orders/page.tsx",
+      "components": [],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/production/jobs/[id]",
+      "source": "src/app/(app)/production/jobs/[id]/page.tsx",
+      "components": [
+        "@/components/action-error-notice",
+        "@/components/document-action-bar",
+        "@/components/document-number",
+        "@/components/documents/attachment-remove-action",
+        "@/components/documents/attachment-upload-form",
+        "@/components/documents/document-context-summary",
+        "@/components/documents/document-panels",
+        "@/components/documents/document-workspace",
+        "@/components/documents/mobile-document-surfaces",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/priority-badge",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/confirm-action-form",
+        "@/components/ui/danger-confirm-form",
+        "@/components/ui/destructive-action-dialog",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/modal-shell",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/table",
+        "@/components/ui/textarea",
+        "@/components/workflow-status-pipeline"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/production/jobs/new",
+      "source": "src/app/(app)/production/jobs/new/page.tsx",
+      "components": [
+        "@/components/action-error-notice",
+        "@/components/document-number",
+        "@/components/documents/document-context-summary",
+        "@/components/documents/document-workspace",
+        "@/components/documents/mobile-document-surfaces",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/priority-badge",
+        "@/components/production-job-form",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/table",
+        "@/components/ui/textarea",
+        "@/components/urgency-select",
+        "@/components/workflow-status-pipeline"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/production/jobs",
+      "source": "src/app/(app)/production/jobs/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/document-number",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/pagination-scroll-reset",
+        "@/components/sortable-table",
+        "@/components/status-tabs",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/data-grid-hint",
+        "@/components/ui/data-grid-row",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/status-badge",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/production",
+      "source": "src/app/(app)/production/page.tsx",
+      "components": [
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/operational-hub",
+        "@/components/ui/button",
+        "@/components/ui/page-header"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/production/planning",
+      "source": "src/app/(app)/production/planning/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/production-planning-allocation-table",
+        "@/components/production-planning-event-form",
+        "@/components/production-planning-events",
+        "@/components/production-planning-evidence",
+        "@/components/production-planning-print-sheet",
+        "@/components/production-planning-product-rules",
+        "@/components/production-planning-review-checks",
+        "@/components/production-planning-setup",
+        "@/components/production-planning-workspace",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/intent-prefetch-link",
+        "@/components/ui/interactive-line-chart",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/responsive-form-fields",
+        "@/components/ui/select-control",
+        "@/components/ui/select-native",
+        "@/components/ui/system-states",
+        "@/components/ui/table",
+        "@/components/ui/workspace-tabs"
+      ],
+      "states": {
+        "default": "automated layout/no-boundary check; not exhaustive component acceptance",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "automated 320/390/768/1024/1440 layout check",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": [
+        {
+          "state": "default",
+          "width": 1440,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 1024,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 768,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 390,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 320,
+          "overflow": false
+        }
+      ],
+      "runtime_issues": []
+    },
+    {
+      "route": "/production/variance",
+      "source": "src/app/(app)/production/variance/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/reports/production-variance-signal-chart",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/table",
+        "@/components/ui/use-preview-selection"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/products/[id]",
+      "source": "src/app/(app)/products/[id]/page.tsx",
+      "components": [
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/phase-one-delete-action",
+        "@/components/product-form",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/danger-confirm-form",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/products/new",
+      "source": "src/app/(app)/products/new/page.tsx",
+      "components": [
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/product-form",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/products",
+      "source": "src/app/(app)/products/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/console-action-link",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/master-data-filters",
+        "@/components/pagination-scroll-reset",
+        "@/components/sortable-table",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/data-grid-row",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "automated layout/no-boundary check; not exhaustive component acceptance",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "automated 320/390/768/1024/1440 layout check",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": [
+        {
+          "state": "default",
+          "width": 1440,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 1024,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 768,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 390,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 320,
+          "overflow": false
+        }
+      ],
+      "runtime_issues": []
+    },
+    {
+      "route": "/purchase-orders/[id]",
+      "source": "src/app/(app)/purchase-orders/[id]/page.tsx",
+      "components": [
+        "@/components/document-action-bar",
+        "@/components/document-number",
+        "@/components/documents/attachment-remove-action",
+        "@/components/documents/attachment-required-action",
+        "@/components/documents/attachment-upload-form",
+        "@/components/documents/document-context-summary",
+        "@/components/documents/document-panels",
+        "@/components/documents/document-workspace",
+        "@/components/documents/mobile-document-surfaces",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/phase-one-delete-action",
+        "@/components/priority-badge",
+        "@/components/procurement/procurement-chain",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/confirm-action-form",
+        "@/components/ui/danger-confirm-form",
+        "@/components/ui/destructive-action-dialog",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/modal-shell",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/table",
+        "@/components/ui/textarea",
+        "@/components/workflow-status-pipeline"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/purchase-orders/new",
+      "source": "src/app/(app)/purchase-orders/new/page.tsx",
+      "components": [
+        "@/components/document-number",
+        "@/components/documents/document-context-summary",
+        "@/components/documents/document-workspace",
+        "@/components/documents/mobile-document-surfaces",
+        "@/components/item-combobox",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/priority-badge",
+        "@/components/procurement-forms",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/textarea",
+        "@/components/urgency-select",
+        "@/components/workflow-status-pipeline"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/purchase-orders",
+      "source": "src/app/(app)/purchase-orders/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/document-number",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/pagination-scroll-reset",
+        "@/components/purchase-order-export-dialog",
+        "@/components/sortable-table",
+        "@/components/status-tabs",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/data-grid-hint",
+        "@/components/ui/data-grid-row",
+        "@/components/ui/empty-state",
+        "@/components/ui/input",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/status-badge",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "automated layout/no-boundary check; not exhaustive component acceptance",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "automated 320/390/768/1024/1440 layout check",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": [
+        {
+          "state": "default",
+          "width": 1440,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 1024,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 768,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 390,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 320,
+          "overflow": false
+        }
+      ],
+      "runtime_issues": []
+    },
+    {
+      "route": "/purchase-requests/[id]",
+      "source": "src/app/(app)/purchase-requests/[id]/page.tsx",
+      "components": [
+        "@/components/action-error-notice",
+        "@/components/add-purchase-request-line-dialog",
+        "@/components/document-action-bar",
+        "@/components/document-number",
+        "@/components/documents/attachment-remove-action",
+        "@/components/documents/attachment-upload-form",
+        "@/components/documents/document-context-summary",
+        "@/components/documents/document-panels",
+        "@/components/documents/document-workspace",
+        "@/components/documents/mobile-document-surfaces",
+        "@/components/item-combobox",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/priority-badge",
+        "@/components/procurement-forms",
+        "@/components/procurement/procurement-chain",
+        "@/components/procurement/purchase-request-stock",
+        "@/components/purchase-request-line-recovery",
+        "@/components/purchase-request-line-resolution-form",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/confirm-action-form",
+        "@/components/ui/danger-confirm-form",
+        "@/components/ui/destructive-action-dialog",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/modal-shell",
+        "@/components/ui/reject-action-form",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/table",
+        "@/components/ui/textarea",
+        "@/components/urgency-select",
+        "@/components/workflow-status-pipeline"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/purchase-requests/new",
+      "source": "src/app/(app)/purchase-requests/new/page.tsx",
+      "components": [
+        "@/components/action-error-notice",
+        "@/components/document-number",
+        "@/components/documents/document-context-summary",
+        "@/components/documents/document-workspace",
+        "@/components/documents/mobile-document-surfaces",
+        "@/components/item-combobox",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/priority-badge",
+        "@/components/procurement-forms",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/textarea",
+        "@/components/urgency-select",
+        "@/components/workflow-status-pipeline"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/purchase-requests",
+      "source": "src/app/(app)/purchase-requests/page.tsx",
+      "components": [
+        "@/components/bulk-phase-one-delete",
+        "@/components/bulk-selection",
+        "@/components/common/UnifiedListHeader",
+        "@/components/document-number",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/pagination-scroll-reset",
+        "@/components/priority-badge",
+        "@/components/purchase-request-export-dialog",
+        "@/components/sortable-table",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/data-grid-hint",
+        "@/components/ui/data-grid-row",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/purchase-returns/[id]",
+      "source": "src/app/(app)/purchase-returns/[id]/page.tsx",
+      "components": [
+        "@/components/action-error-notice",
+        "@/components/document-action-bar",
+        "@/components/document-number",
+        "@/components/documents/attachment-remove-action",
+        "@/components/documents/attachment-upload-form",
+        "@/components/documents/document-context-summary",
+        "@/components/documents/document-panels",
+        "@/components/documents/document-workspace",
+        "@/components/documents/mobile-document-surfaces",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/priority-badge",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/danger-confirm-form",
+        "@/components/ui/destructive-action-dialog",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/modal-shell",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/table",
+        "@/components/ui/textarea",
+        "@/components/workflow-status-pipeline"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/purchase-returns/new",
+      "source": "src/app/(app)/purchase-returns/new/page.tsx",
+      "components": [
+        "@/components/action-error-notice",
+        "@/components/document-number",
+        "@/components/documents/document-context-summary",
+        "@/components/documents/document-workspace",
+        "@/components/documents/mobile-document-surfaces",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/priority-badge",
+        "@/components/purchase-return-form",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/textarea",
+        "@/components/workflow-status-pipeline"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/purchase-returns",
+      "source": "src/app/(app)/purchase-returns/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/document-number",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/pagination-scroll-reset",
+        "@/components/sortable-table",
+        "@/components/status-tabs",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/data-grid-row",
+        "@/components/ui/empty-state",
+        "@/components/ui/input",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/status-badge",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/recipes/[id]/edit",
+      "source": "src/app/(app)/recipes/[id]/edit/page.tsx",
+      "components": [
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/recipe-form",
+        "@/components/record-workspace",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/table",
+        "@/components/ui/textarea"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/recipes/[id]",
+      "source": "src/app/(app)/recipes/[id]/page.tsx",
+      "components": [
+        "@/components/documents/attachment-remove-action",
+        "@/components/documents/attachment-upload-form",
+        "@/components/documents/document-panels",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/phase-one-delete-action",
+        "@/components/record-workspace",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/danger-confirm-form",
+        "@/components/ui/destructive-action-dialog",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/table",
+        "@/components/ui/textarea"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/recipes/new",
+      "source": "src/app/(app)/recipes/new/page.tsx",
+      "components": [
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/recipe-form",
+        "@/components/record-workspace",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/table",
+        "@/components/ui/textarea"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/recipes",
+      "source": "src/app/(app)/recipes/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/master-data-filters",
+        "@/components/pagination-scroll-reset",
+        "@/components/sortable-table",
+        "@/components/status-tabs",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/page-header",
+        "@/components/ui/pending-link",
+        "@/components/ui/select-control",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/reports/costing-readiness",
+      "source": "src/app/(app)/reports/costing-readiness/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/reports/costing-readiness-insights",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/interactive-ranking-chart",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/table",
+        "@/components/ui/use-preview-selection"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/reports/demand-trends",
+      "source": "src/app/(app)/reports/demand-trends/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/reports/demand-ranking-chart",
+        "@/components/reports/demand-trend-chart",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/interactive-line-chart",
+        "@/components/ui/interactive-ranking-chart",
+        "@/components/ui/metric-strip",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/table",
+        "@/components/ui/use-preview-selection"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/reports",
+      "source": "src/app/(app)/reports/page.tsx",
+      "components": [
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/button",
+        "@/components/ui/page-header"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/reports/procurement-variance",
+      "source": "src/app/(app)/reports/procurement-variance/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/reports/procurement-variance-charts",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/interactive-ranking-chart",
+        "@/components/ui/metric-strip",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/table",
+        "@/components/ui/use-preview-selection"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/reports/product-margin",
+      "source": "src/app/(app)/reports/product-margin/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/reports/costing-report-insights",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/interactive-ranking-chart",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/table",
+        "@/components/ui/use-preview-selection"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/reports/recipe-costing",
+      "source": "src/app/(app)/reports/recipe-costing/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/reports/costing-report-insights",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/interactive-ranking-chart",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/table",
+        "@/components/ui/use-preview-selection"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/roles",
+      "source": "src/app/(app)/roles/page.tsx",
+      "components": [
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/page-header",
+        "@/components/ui/system-states",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/staffs/[id]",
+      "source": "src/app/(app)/staffs/[id]/page.tsx",
+      "components": [
+        "@/components/foundation-forms",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/record-workspace",
+        "@/components/staff-access-fields",
+        "@/components/staff-permission-overrides",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/copy-text-button",
+        "@/components/ui/danger-confirm-form",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/textarea"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/staffs/new",
+      "source": "src/app/(app)/staffs/new/page.tsx",
+      "components": [
+        "@/components/action-error-notice",
+        "@/components/foundation-forms",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/record-workspace",
+        "@/components/staff-access-fields",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/select-native",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/textarea"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/staffs",
+      "source": "src/app/(app)/staffs/page.tsx",
+      "components": [],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/stock-balance",
+      "source": "src/app/(app)/stock-balance/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/pagination-scroll-reset",
+        "@/components/sortable-table",
+        "@/components/stock-balance-table",
+        "@/components/stock-balance-workspace",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/item-thumbnail",
+        "@/components/ui/page-header",
+        "@/components/ui/quantity-stepper",
+        "@/components/ui/select-control",
+        "@/components/ui/select-native",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/stock-balances",
+      "source": "src/app/(app)/stock-balances/page.tsx",
+      "components": [],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/stock-card",
+      "source": "src/app/(app)/stock-card/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/button",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/system-states",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/stock-counts/[id]",
+      "source": "src/app/(app)/stock-counts/[id]/page.tsx",
+      "components": [
+        "@/components/document-action-bar",
+        "@/components/document-number",
+        "@/components/documents/attachment-remove-action",
+        "@/components/documents/attachment-upload-form",
+        "@/components/documents/document-context-summary",
+        "@/components/documents/document-panels",
+        "@/components/documents/document-workspace",
+        "@/components/documents/mobile-document-surfaces",
+        "@/components/item-combobox",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/priority-badge",
+        "@/components/stock-count-form",
+        "@/components/stock-count-line-recovery",
+        "@/components/stock-count-scope-actions",
+        "@/components/stock-count-void-dialog",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/confirm-action-form",
+        "@/components/ui/danger-confirm-form",
+        "@/components/ui/destructive-action-dialog",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/modal-shell",
+        "@/components/ui/select-control",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/table",
+        "@/components/ui/table-action-menu-portal",
+        "@/components/ui/textarea",
+        "@/components/workflow-status-pipeline"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/stock-counts/new",
+      "source": "src/app/(app)/stock-counts/new/page.tsx",
+      "components": [
+        "@/components/action-error-notice",
+        "@/components/document-number",
+        "@/components/documents/document-context-summary",
+        "@/components/documents/document-workspace",
+        "@/components/documents/mobile-document-surfaces",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/priority-badge",
+        "@/components/stock-count-form",
+        "@/components/stock-count-line-recovery",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/empty-state",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/modal-shell",
+        "@/components/ui/select-control",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/table-action-menu-portal",
+        "@/components/ui/textarea",
+        "@/components/workflow-status-pipeline"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/stock-counts",
+      "source": "src/app/(app)/stock-counts/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/pagination-scroll-reset",
+        "@/components/reports/stock-count-variance-insights",
+        "@/components/sortable-table",
+        "@/components/stock-count-export-dialog",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/data-grid-hint",
+        "@/components/ui/data-grid-row",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/interactive-line-chart",
+        "@/components/ui/interactive-ranking-chart",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/table",
+        "@/components/ui/use-preview-selection"
+      ],
+      "states": {
+        "default": "automated layout/no-boundary check; not exhaustive component acceptance",
+        "expanded": "visible details expanded at 1440; individual interaction review pending",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "automated 320/390/768/1024/1440 layout check",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": [
+        {
+          "state": "default",
+          "width": 1440,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 1024,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 768,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 390,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 320,
+          "overflow": false
+        },
+        {
+          "state": "expanded",
+          "width": 1440,
+          "count": 1
+        }
+      ],
+      "runtime_issues": []
+    },
+    {
+      "route": "/stock-transactions/[id]",
+      "source": "src/app/(app)/stock-transactions/[id]/page.tsx",
+      "components": [
+        "@/components/documents/attachment-remove-action",
+        "@/components/documents/attachment-upload-form",
+        "@/components/documents/document-panels",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/destructive-action-dialog",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/textarea"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/stock-transactions/new",
+      "source": "src/app/(app)/stock-transactions/new/page.tsx",
+      "components": [
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/stock-transaction-form",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/textarea"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/stock-transactions",
+      "source": "src/app/(app)/stock-transactions/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/pagination-scroll-reset",
+        "@/components/sortable-table",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/data-grid-row",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/system-states",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/stock-transfers/[id]",
+      "source": "src/app/(app)/stock-transfers/[id]/page.tsx",
+      "components": [
+        "@/components/document-action-bar",
+        "@/components/document-number",
+        "@/components/documents/attachment-remove-action",
+        "@/components/documents/attachment-upload-form",
+        "@/components/documents/document-context-summary",
+        "@/components/documents/document-panels",
+        "@/components/documents/document-workspace",
+        "@/components/documents/mobile-document-surfaces",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/priority-badge",
+        "@/components/stock-operation-forms",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/danger-confirm-form",
+        "@/components/ui/destructive-action-dialog",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/modal-shell",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/table",
+        "@/components/ui/textarea",
+        "@/components/workflow-status-pipeline"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/stock-transfers/new",
+      "source": "src/app/(app)/stock-transfers/new/page.tsx",
+      "components": [
+        "@/components/action-error-notice",
+        "@/components/document-number",
+        "@/components/documents/document-context-summary",
+        "@/components/documents/document-workspace",
+        "@/components/documents/mobile-document-surfaces",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/priority-badge",
+        "@/components/stock-operation-forms",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/textarea",
+        "@/components/workflow-status-pipeline"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/stock-transfers",
+      "source": "src/app/(app)/stock-transfers/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/pagination-scroll-reset",
+        "@/components/sortable-table",
+        "@/components/status-tabs",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/data-grid-hint",
+        "@/components/ui/data-grid-row",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/status-badge",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/stock-wastage/[id]",
+      "source": "src/app/(app)/stock-wastage/[id]/page.tsx",
+      "components": [
+        "@/components/document-action-bar",
+        "@/components/document-number",
+        "@/components/documents/attachment-remove-action",
+        "@/components/documents/attachment-upload-form",
+        "@/components/documents/document-context-summary",
+        "@/components/documents/document-panels",
+        "@/components/documents/document-workspace",
+        "@/components/documents/mobile-document-surfaces",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/priority-badge",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/danger-confirm-form",
+        "@/components/ui/destructive-action-dialog",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/modal-shell",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/table",
+        "@/components/ui/textarea",
+        "@/components/workflow-status-pipeline"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/stock-wastage/new",
+      "source": "src/app/(app)/stock-wastage/new/page.tsx",
+      "components": [
+        "@/components/action-error-notice",
+        "@/components/document-number",
+        "@/components/documents/document-context-summary",
+        "@/components/documents/document-workspace",
+        "@/components/documents/mobile-document-surfaces",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/priority-badge",
+        "@/components/stock-operation-forms",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/textarea",
+        "@/components/workflow-status-pipeline"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/stock-wastage",
+      "source": "src/app/(app)/stock-wastage/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/pagination-scroll-reset",
+        "@/components/sortable-table",
+        "@/components/status-tabs",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/data-grid-hint",
+        "@/components/ui/data-grid-row",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/status-badge",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/supplier-invoices/[id]",
+      "source": "src/app/(app)/supplier-invoices/[id]/page.tsx",
+      "components": [
+        "@/components/document-action-bar",
+        "@/components/document-number",
+        "@/components/documents/attachment-remove-action",
+        "@/components/documents/attachment-upload-form",
+        "@/components/documents/document-context-summary",
+        "@/components/documents/document-panels",
+        "@/components/documents/document-workspace",
+        "@/components/documents/mobile-document-surfaces",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/priority-badge",
+        "@/components/supplier-invoice-form",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/confirm-action-form",
+        "@/components/ui/destructive-action-dialog",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/modal-shell",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/table",
+        "@/components/ui/textarea",
+        "@/components/workflow-status-pipeline"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/supplier-invoices/aging",
+      "source": "src/app/(app)/supplier-invoices/aging/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/document-number",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/pagination-scroll-reset",
+        "@/components/reports/aging-distribution-bars",
+        "@/components/sortable-table",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/table",
+        "@/components/ui/use-preview-selection"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/supplier-invoices/cash-flow",
+      "source": "src/app/(app)/supplier-invoices/cash-flow/page.tsx",
+      "components": [
+        "@/components/document-number",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/pagination-scroll-reset",
+        "@/components/reports/aging-distribution-bars",
+        "@/components/sortable-table",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/empty-state",
+        "@/components/ui/page-header",
+        "@/components/ui/status-badge",
+        "@/components/ui/table",
+        "@/components/ui/use-preview-selection"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/supplier-invoices/new",
+      "source": "src/app/(app)/supplier-invoices/new/page.tsx",
+      "components": [
+        "@/components/action-error-notice",
+        "@/components/document-number",
+        "@/components/documents/document-context-summary",
+        "@/components/documents/document-workspace",
+        "@/components/documents/mobile-document-surfaces",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/priority-badge",
+        "@/components/supplier-invoice-form",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/table",
+        "@/components/ui/textarea",
+        "@/components/workflow-status-pipeline"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/supplier-invoices",
+      "source": "src/app/(app)/supplier-invoices/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/document-number",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/pagination-scroll-reset",
+        "@/components/sortable-table",
+        "@/components/status-tabs",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/data-grid-row",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/status-badge",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "automated layout/no-boundary check; not exhaustive component acceptance",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "automated 320/390/768/1024/1440 layout check",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": [
+        {
+          "state": "default",
+          "width": 1440,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 1024,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 768,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 390,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 320,
+          "overflow": false
+        }
+      ],
+      "runtime_issues": []
+    },
+    {
+      "route": "/supplier-items/[id]",
+      "source": "src/app/(app)/supplier-items/[id]/page.tsx",
+      "components": [
+        "@/components/action-error-notice",
+        "@/components/item-combobox",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/master-data-forms",
+        "@/components/record-workspace",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/danger-confirm-form",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/supplier-items/new",
+      "source": "src/app/(app)/supplier-items/new/page.tsx",
+      "components": [
+        "@/components/item-combobox",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/master-data-forms",
+        "@/components/record-workspace",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/supplier-items",
+      "source": "src/app/(app)/supplier-items/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/master-data-filters",
+        "@/components/pagination-scroll-reset",
+        "@/components/sortable-table",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/destructive-action-dialog",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/submit-button",
+        "@/components/ui/table",
+        "@/components/ui/table-action-menu-portal"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/suppliers/[id]",
+      "source": "src/app/(app)/suppliers/[id]/page.tsx",
+      "components": [
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/phase-one-delete-action",
+        "@/components/record-workspace",
+        "@/components/supplier-form",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/danger-confirm-form",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/textarea"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/suppliers/new",
+      "source": "src/app/(app)/suppliers/new/page.tsx",
+      "components": [
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/record-workspace",
+        "@/components/supplier-form",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/page-header",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states",
+        "@/components/ui/textarea"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/suppliers",
+      "source": "src/app/(app)/suppliers/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/console-action-link",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/master-data-filters",
+        "@/components/pagination-scroll-reset",
+        "@/components/sortable-table",
+        "@/components/status-tabs",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/data-grid-hint",
+        "@/components/ui/data-grid-row",
+        "@/components/ui/empty-state",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/table"
+      ],
+      "states": {
+        "default": "automated layout/no-boundary check; not exhaustive component acceptance",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "automated 320/390/768/1024/1440 layout check",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": [
+        {
+          "state": "default",
+          "width": 1440,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 1024,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 768,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 390,
+          "overflow": false
+        },
+        {
+          "state": "default",
+          "width": 320,
+          "overflow": false
+        }
+      ],
+      "runtime_issues": []
+    },
+    {
+      "route": "/uom-conversions/[id]",
+      "source": "src/app/(app)/uom-conversions/[id]/page.tsx",
+      "components": [
+        "@/components/item-combobox",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/master-data-forms",
+        "@/components/record-workspace",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/danger-confirm-form",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/status-badge",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/uom-conversions/new",
+      "source": "src/app/(app)/uom-conversions/new/page.tsx",
+      "components": [
+        "@/components/item-combobox",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/master-data-forms",
+        "@/components/record-workspace",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/field",
+        "@/components/ui/input",
+        "@/components/ui/label",
+        "@/components/ui/page-header",
+        "@/components/ui/select-native",
+        "@/components/ui/submit-button",
+        "@/components/ui/system-states"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    },
+    {
+      "route": "/uom-conversions",
+      "source": "src/app/(app)/uom-conversions/page.tsx",
+      "components": [
+        "@/components/common/UnifiedListHeader",
+        "@/components/layout/right-console",
+        "@/components/layout/workspace-layout",
+        "@/components/master-data-filters",
+        "@/components/pagination-scroll-reset",
+        "@/components/sortable-table",
+        "@/components/ui/badge",
+        "@/components/ui/button",
+        "@/components/ui/card",
+        "@/components/ui/destructive-action-dialog",
+        "@/components/ui/filter-bar",
+        "@/components/ui/input",
+        "@/components/ui/modal-shell",
+        "@/components/ui/page-header",
+        "@/components/ui/select-control",
+        "@/components/ui/submit-button",
+        "@/components/ui/table",
+        "@/components/ui/table-action-menu-portal"
+      ],
+      "states": {
+        "default": "not_yet_verified",
+        "expanded": "not_yet_verified",
+        "loading": "not_yet_verified",
+        "empty": "not_yet_verified",
+        "error": "not_yet_verified",
+        "long_content": "not_yet_verified",
+        "narrow": "not_yet_verified",
+        "zoom_200": "not_yet_verified"
+      },
+      "runtime_evidence": []
+    }
+  ]
+}

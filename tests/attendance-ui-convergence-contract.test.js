@@ -106,7 +106,7 @@ test("workbook importer accepts an explicit Monday window and fails closed", () 
 });
 
 test("schedule workbook UI previews live identities and imports only verified editable outlets", () => {
-  for (const contract of ["import-catalog", "parseScheduleWorkbook", "sourceIssues", "Published rosters were unchanged", "flagged cells stay empty"])
+  for (const contract of ["import-catalog", "parseScheduleWorkbook", "sourceIssues", "existing schedules stay unchanged", "flagged cells stay empty"])
     assert.match(workbookImportUi, new RegExp(contract, "i"));
   for (const contract of ["home_branch_id", "multiple_destination_shifts", "unattached_schedule_note", "suspicious_time_span", "needs a destination shift time"])
     assert.match(workbookParser, new RegExp(contract));

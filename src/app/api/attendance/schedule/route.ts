@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -123,6 +124,7 @@ const schema = z.discriminatedUnion("action", [
       .max(50),
     unresolvedCount: z.literal(0),
     sourceMetadata: z.record(z.string(), z.unknown()).optional(),
+    appendOnly: z.boolean().optional(),
   }),
   z.object({
     action: z.literal("template"),
@@ -378,13 +380,14 @@ export async function POST(request: Request) {
         p_reason: input.data.reason,
       });
     else if (input.data.action === "import_drafts")
-      result = await db.rpc("import_schedule_workbook_drafts", {
+      result = await db.rpc(input.data.appendOnly ? "append_schedule_workbook_drafts" : "import_schedule_workbook_drafts", {
         p_week_start: input.data.weekStart,
         p_file_name: input.data.fileName,
         p_file_hash: input.data.fileHash,
         p_outlets: input.data.outlets,
         p_unresolved_count: input.data.unresolvedCount,
         p_source_metadata: input.data.sourceMetadata ?? {},
+        ...(input.data.appendOnly ? { p_request_key: createHash("sha256").update(JSON.stringify({week:input.data.weekStart,fileHash:input.data.fileHash,outlets:input.data.outlets})).digest("hex") } : {}),
       });
     else if (input.data.action === "decide")
       result = await db.rpc("decide_schedule_week", {
@@ -402,7 +405,21 @@ export async function POST(request: Request) {
         p_reason: input.data.reason,
       });
     if (result.error) throw result.error;
-    return NextResponse.json({ ok: true, data: result.data });
+    let attendanceRefresh: unknown = null;
+    if (["save","copy","import_drafts","edit_and_publish","decide","submit"].includes(input.data.action)) {
+      const changedWeek = "weekStart" in input.data ? input.data.weekStart : (result.data as {week_start?:string}|null)?.week_start;
+      if (changedWeek && ((await hasPermission("attendance.import")) || (await hasPermission("attendance.adjust")))) {
+        try {
+          const refresh = await db.rpc("refresh_schedule_attendance", {p_week_start:changedWeek,p_branch_id:null});
+          if (refresh.error) throw refresh.error;
+          attendanceRefresh=refresh.data;
+        } catch (error) {
+          logServerError(error,{source:"api.attendance.schedule.refresh"});
+          attendanceRefresh={status:"pending",message:"Schedule saved. Attendance calculation is pending; retry from Attendance."};
+        }
+      }
+    }
+    return NextResponse.json({ ok: true, data: result.data, attendanceRefresh });
   } catch (error) {
     const reference = crypto.randomUUID().slice(0, 8).toUpperCase();
     logServerError(error, { source: "api.attendance.schedule", requestId: reference });

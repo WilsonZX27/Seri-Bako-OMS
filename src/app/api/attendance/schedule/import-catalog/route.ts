@@ -62,7 +62,10 @@ export async function GET(request: Request) {
       eligibilityByStaff.set(staffId, eligibleDays.map((day) => ({ from: day, to: day })));
     }
     const branchForWeek = new Map([...latest].map(([branchId, row]) => [row.id, branchId]));
+    const history = await db.rpc("get_schedule_workbook_import_history", {p_week_start:week.data});
+    if (history.error) throw history.error;
     return NextResponse.json({
+      import_history:history.data ?? [],
       branches: branches.map((branch) => ({ id: branch.id, name: branch.branch_name, status: latest.get(branch.id)?.status ?? "not_started" })),
       staff: staff.map((person) => ({ ...person, home_branch_id: homeByStaff.get(person.id) ?? null, eligibility: eligibilityByStaff.get(person.id) ?? [] })),
       current_assignments: (assignmentResult.data ?? []).map((row: Record<string, unknown>) => ({ ...row, branch_id: branchForWeek.get(String(row.schedule_week_id)) })),

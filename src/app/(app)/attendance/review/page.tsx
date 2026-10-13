@@ -1,3 +1,4 @@
+import { ScheduleRefreshStatus } from "@/components/attendance/schedule-refresh-status";
 import { Fragment } from "react";
 import Link from "next/link";
 import {
@@ -266,6 +267,7 @@ export default async function AttendanceReviewPage({
                 <PeopleWorkbookExport branches={review.branches as {id:string;branch_name:string}[]} week={week} branchId={branch}/>
               ) : null}
             </ConsoleSection>
+            <ScheduleRefreshStatus week={week} branch={branch} canRefresh={Boolean(permissions["attendance.import"] || permissions["attendance.adjust"])} />
             <ConsoleSection title="Week status" kind="status">
               <p className="font-semibold">{week}</p>
               <p>

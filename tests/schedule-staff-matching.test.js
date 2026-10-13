@@ -45,3 +45,18 @@ test('merged colour remarks preserve text, font, fill and source column context 
 test('merged destination note spans all source day headers and yellow does not imply one global instruction',async()=>{const r=await parse(notesFile(),'2026-10-05',catalog);const destination=r.notes.find(n=>n.range==='E10:J10');assert.equal(destination.columnHeaders.join(','),'2,3,4');assert.equal(destination.text,'TRX');assert.equal(destination.fill,r.notes.find(n=>n.range==='E18').fill);assert.notEqual(destination.text,r.notes.find(n=>n.range==='E18').text);});
 
 test('merged notes cover later dates even when styled blank cells exist inside the merged range',async()=>{const r=await parse(notesFile({mergedSupport:true}),'2026-10-05',catalog);const pending=r.issues.filter(i=>i.reason==='unattached_schedule_note').map(i=>i.date);assert.ok(pending.includes('2026-10-05'));assert.ok(pending.includes('2026-10-06'));assert.ok(!pending.includes('2026-10-07'));assert.equal(r.assignmentCount,1);});
+
+test('batch mapping accepts unfamiliar sheet names only inside the authorised outlet catalogue',async()=>{
+ const f=file([{name:'Amina',code:68}],'MY TEAM');
+ const r=await parse(f,'2026-10-12',catalog,{sheetMappings:{'MY TEAM':'b'}});
+ assert.equal(r.assignmentCount,1); assert.equal(r.outlets[0].branchId,'b');
+ const denied=await parse(f,'2026-10-12',catalog,{sheetMappings:{'MY TEAM':'outside'}});
+ assert.equal(denied.assignmentCount,0);assert.ok(denied.issues.some(i=>i.reason==='outlet_not_found'));
+ const skipped=await parse(f,'2026-10-12',catalog,{sheetMappings:{'MY TEAM':'skip'}});
+ assert.equal(skipped.assignmentCount,0);assert.ok(skipped.notices.some(n=>n.includes('explicitly excluded')));
+});
+
+test('all duplicate nonworking employee days are excluded while unrelated valid rows remain',async()=>{
+ const r=await parse(file([{name:'Amina',code:68,start:'OFF',end:''},{name:'Amina',code:68,start:'AL',end:''},{name:'Tan Mei Ling',code:42}]),'2026-10-12',catalog);
+ assert.equal(r.assignmentCount,1);assert.equal(r.outlets[0].assignments[0].staff_id,'s2');assert.ok(r.issues.some(i=>i.reason==='duplicate_assignment'));
+});

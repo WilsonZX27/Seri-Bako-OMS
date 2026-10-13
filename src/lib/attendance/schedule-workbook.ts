@@ -1,4 +1,5 @@
 export type ScheduleImportCatalog = {
+  import_history?: Array<{id:string;fileName:string;createdAt:string;outcomes:Array<{branch_id:string;assignments:number}>}>;
   branches: Array<{ id: string; name: string; status: string }>;
   staff: Array<{ id: string; name: string; staff_code?: string | null; aliases?: string[]; branch_id: string; home_branch_id?: string | null; eligibility?: Array<{ from: string; to: string | null }> }>;
   current_assignments: Array<Record<string, unknown>>;
@@ -44,6 +45,7 @@ export type ScheduleWorkbookPreview = {
   assignmentCount: number;
   sheets: string[];
   missingEndTimes: string[];
+  missingEndTimeSources: Array<{key:string;sheet:string;start:string}>;
 };
 
 export type ScheduleEmployeeMatch = {
@@ -104,7 +106,7 @@ export function matchScheduleEmployee(
   return unresolved("No matching employee at this outlet. Choose an employee.");
 }
 
-const SHEET_BRANCHES: Record<string, string> = {
+export const SCHEDULE_SHEET_BRANCHES: Record<string, string> = {
   "GURNEY PLAZA": "Gurney Plaza",
   QUEENSBAY: "Queensbay Mall",
   PUBLIKA: "Kwan Kee @ Publika",
@@ -121,7 +123,7 @@ const KINDS: Record<string, ScheduleWorkbookAssignment["assignment_kind"]> = {
 };
 const BLOCKED = new Set(["CLEAR OT", "LATE"]);
 const LOCATION_ALIASES: Record<string, string> = {
-  ...SHEET_BRANCHES,
+  ...SCHEDULE_SHEET_BRANCHES,
   GURNEY: "Gurney Plaza",
   PUBLIKA: "Kwan Kee @ Publika",
   PYRAMID: "Kwan Kee Store @ Sunway Pyramid",
@@ -249,7 +251,7 @@ export function scheduleTime(value: unknown) {
 }
 
 const time = scheduleTime;
-export type ScheduleWorkbookOptions = { sheet?: string; branchId?: string; confirmDateContext?: boolean; endTimes?: Record<string, string>; employeeMappings?: Record<string, string>; shiftSelections?: Record<string, string>; destinationMappings?: Record<string, string> };
+export type ScheduleWorkbookOptions = { sheet?: string; branchId?: string; sheetMappings?: Record<string, string>; confirmDateContext?: boolean; endTimes?: Record<string, string>; sheetEndTimes?: Record<string,string>; employeeMappings?: Record<string, string>; shiftSelections?: Record<string, string>; destinationMappings?: Record<string, string> };
 export async function parseScheduleWorkbook(file: File, weekStart: string, catalog: ScheduleImportCatalog, options: ScheduleWorkbookOptions = {}): Promise<ScheduleWorkbookPreview> {
   if (!file.name.toLowerCase().endsWith(".xlsx")) throw new Error("Select the Seri Bako .xlsx schedule workbook.");
   if (file.size > MAX_WORKBOOK_BYTES) throw new Error("The schedule workbook must be 10 MB or smaller.");
@@ -264,11 +266,13 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
     if (options.sheet && options.sheet !== sheet.name) continue;
     if (sheet.hidden) {notices.push(`${sheet.name}: hidden sheet skipped. Unhide it in Excel to review and import it.`);continue;}
     if (sheet.hiddenRows.size || sheet.hiddenColumns.size) notices.push(`${sheet.name}: skipped ${sheet.hiddenRows.size} hidden rows and ${sheet.hiddenColumns.size} hidden columns. Review them in Excel if they should be included.`);
-    const knownName = SHEET_BRANCHES[sheet.name.toUpperCase()];
-    const branch = options.sheet === sheet.name && options.branchId
-      ? catalog.branches.find(item => item.id === options.branchId)
+    const knownName = SCHEDULE_SHEET_BRANCHES[sheet.name.toUpperCase()];
+    const mappedBranch = options.sheetMappings?.[sheet.name] ?? (options.sheet === sheet.name ? options.branchId : undefined);
+    if (mappedBranch === "skip") { notices.push(`${sheet.name}: explicitly excluded from this preview.`); continue; }
+    const branch = mappedBranch
+      ? catalog.branches.find(item => item.id === mappedBranch)
       : catalog.branches.find(item => key(item.name) === key(knownName));
-    if (!knownName && !options.sheet) { issues.push({ sheet: sheet.name, reason: "sheet_mapping_required", message: `${sheet.name}: select this sheet and confirm its OMS outlet and date context before importing.` }); continue; }
+    if (!knownName && !options.sheet && !mappedBranch) { issues.push({ sheet: sheet.name, reason: "sheet_mapping_required", message: `${sheet.name}: select this sheet and confirm its OMS outlet and date context before importing.` }); continue; }
     const branchName = branch?.name ?? knownName;
     if (!branch) { issues.push({ sheet: sheet.name, reason: "outlet_not_found", message: `${sheet.name}: matching OMS outlet was not found.` }); continue; }
     const dateValue = (value: unknown) => {
@@ -358,11 +362,14 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
     }
   }
   const missingEndTimes = new Set<string>();
+  const missingEndTimeSources = new Map<string,{key:string;sheet:string;start:string}>();
   for (const item of staged) {
     const start = time(item.first);
     if (start && !cellText(item.second) && !time(item.second)) {
       missingEndTimes.add(start);
-      const end = options.endTimes?.[start];
+      const key = JSON.stringify([item.sheet,start]);
+      missingEndTimeSources.set(key,{key,sheet:item.sheet,start});
+      const end = options.sheetEndTimes?.[key] ?? (options.sheet || sheets.filter(sheet => !sheet.hidden).length === 1 ? options.endTimes?.[start] : undefined);
       if (end && time(end)) item.second = end;
     }
   }
@@ -480,11 +487,20 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
     else if (label) issues.push({ sheet: item.sheet, employee: item.employee, date: item.date, value: label, reason: "external_time_missing", message: `${item.sheet} · ${item.employee} · ${item.date}: “${label}” needs a destination shift time.` });
   }
   const result = [...outlets.values()];
-  const seen = new Set<string>();
+  const counts = new Map<string, number>();
+  for (const outlet of result) for (const assignment of outlet.assignments) {
+    const id = `${assignment.staff_id}:${assignment.work_date}`;
+    counts.set(id, (counts.get(id) ?? 0) + 1);
+  }
+  const reported = new Set<string>();
   for (const outlet of result) outlet.assignments = outlet.assignments.filter(assignment => {
     const id = `${assignment.staff_id}:${assignment.work_date}`;
-    if (seen.has(id)) { issues.push({sheet: options.sheet ?? "Workbook", date:assignment.work_date, reason:"duplicate_assignment",employee: catalog.staff.find(person => person.id === assignment.staff_id)?.name, message:`${catalog.staff.find(person => person.id === assignment.staff_id)?.name ?? "Employee"} · ${assignment.work_date}: more than one source assignment exists. Check the recognised assignments and select the intended sheet.`}); return false; }
-    seen.add(id); return true;
+    if ((counts.get(id) ?? 0) < 2) return true;
+    if (!reported.has(id)) {
+      reported.add(id);
+      issues.push({sheet: options.sheet ?? "Workbook", date:assignment.work_date, reason:"duplicate_assignment",employee: catalog.staff.find(person => person.id === assignment.staff_id)?.name, message:`${catalog.staff.find(person => person.id === assignment.staff_id)?.name ?? "Employee"} · ${assignment.work_date}: conflicting source assignments are excluded. Resolve this employee day before importing it.`});
+    }
+    return false;
   });
   const assignmentSources: ScheduleWorkbookPreview["assignmentSources"] = result.flatMap(outlet => outlet.assignments.map(assignment => ({
     staffId: assignment.staff_id, date: assignment.work_date, branchId: outlet.branchId,
@@ -492,5 +508,5 @@ export async function parseScheduleWorkbook(file: File, weekStart: string, catal
       ((item.branchId === outlet.branchId && time(item.first) && time(item.second)) || LOCATION_ALIASES[cellText(item.first).toUpperCase()] === outlet.branchName))
       .map(item => ({sheet:item.sheet,row:employeeMatches.get(item.sourceKey)!.row,kind: (LOCATION_MARKERS.has(cellText(item.first).toUpperCase()) ? "destination_marker" : "shift") as "destination_marker" | "shift"})),
   })));
-  return { fileName: file.name, fileHash, weekStart, weekEnd: addDays(weekStart, 6), outlets: result, issues, employeeMatches: [...employeeMatches.values()], assignmentSources, notices, shiftConflicts, destinationReviews, notes, sheets: sheets.filter(sheet => !sheet.hidden).map(sheet => sheet.name), missingEndTimes: [...missingEndTimes].sort(), assignmentCount: result.reduce((sum, outlet) => sum + outlet.assignments.length, 0) };
+  return { fileName: file.name, fileHash, weekStart, weekEnd: addDays(weekStart, 6), outlets: result, issues, employeeMatches: [...employeeMatches.values()], assignmentSources, notices, shiftConflicts, destinationReviews, notes, sheets: sheets.filter(sheet => !sheet.hidden).map(sheet => sheet.name), missingEndTimes: [...missingEndTimes].sort(), missingEndTimeSources:[...missingEndTimeSources.values()], assignmentCount: result.reduce((sum, outlet) => sum + outlet.assignments.length, 0) };
 }

@@ -20,7 +20,8 @@ function route({role='manager',permission=true,error=null}={}) {
   return {calls,post:()=>exports.POST({json:async()=>({action:'submit',branchId,weekStart:'2026-10-05',assignments,expectedUpdatedAt:'2026-10-10T08:46:55.902419+00:00'})})};
 }
 test('schedule submit sends destinations and original version in one atomic RPC',async()=>{
- const r=route();assert.equal((await r.post()).status,200);assert.equal(r.calls.length,1);
+ const r=route();assert.equal((await r.post()).status,200);assert.equal(r.calls.length,2);
+ assert.equal(r.calls[1].name,"refresh_schedule_attendance");
  assert.equal(r.calls[0].name,'submit_schedule_week_atomic');
  assert.equal(r.calls[0].args.p_assignments[0].destination_branch_id,assignments[0].destination_branch_id);
  assert.equal(r.calls[0].args.p_expected_updated_at,'2026-10-10T08:46:55.902419+00:00');

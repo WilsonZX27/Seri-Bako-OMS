@@ -122,8 +122,13 @@ export function ActualAttendancePanel(props: Props) {
       note: data.get("note") || null,
     });
   }
+  const [creditToReverse, setCreditToReverse] = useState("");
   async function submitComp(form: HTMLFormElement) {
     const data = new FormData(form);
+    if (creditToReverse) {
+      await post("/api/attendance/comp-time", {action:"reconcileOt",claimId:creditToReverse,reason:data.get("reason"),note:data.get("note")||null});
+      return;
+    }
     await post("/api/attendance/comp-time", {
       action: "submit",
       staffId: data.get("staffId"),
@@ -535,9 +540,15 @@ export function ActualAttendancePanel(props: Props) {
             </h2>
             <p className="text-xs text-muted-foreground">
               People may correct a verified historical or administrative
-              discrepancy. OT credits must use the claim workflow.
+              discrepancy, or request reversal of an unused OT credit. A different People approver must confirm the reversal before punch times can change.
             </p>
           </div>
+          <label className="grid gap-1 text-xs font-medium">
+            Correction source
+            <SelectControl ariaLabel="Correction source" value={creditToReverse || "balance"} onValueChange={(value)=>setCreditToReverse(value === "balance" ? "" : value)} portalContainer={compDialog} options={[{value:"balance",label:"General balance correction"}, ...props.ledger.filter((row)=>row.source_ot_claim_id && row.transaction_kind==="earned" && row.status==="approved" && !props.ledger.some((correction)=>correction.reverses_ot_claim_id===row.source_ot_claim_id && ["pending","approved"].includes(String(correction.status)))).map((row)=>({value:String(row.source_ot_claim_id),label:`${relation(row,"staffs")?.full_name ?? "Employee"} · ${row.work_date} · ${row.minutes} min OT`}))]} />
+          </label>
+          {creditToReverse ? <p className="text-xs text-muted-foreground">The selected credit will be fully reversed after approval. Used RO must be resolved first; no balance changes on submission.</p> : null}
+          <fieldset disabled={Boolean(creditToReverse)} hidden={Boolean(creditToReverse)} className="space-y-3">
           <label className="grid gap-1 text-xs font-medium">
             Employee
             <SelectControl
@@ -601,6 +612,7 @@ export function ActualAttendancePanel(props: Props) {
             Work date
             <Input name="workDate" type="date" required />
           </label>
+          </fieldset>
           <label className="grid gap-1 text-xs font-medium">
             Reason
             <textarea

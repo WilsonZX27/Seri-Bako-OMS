@@ -30,7 +30,7 @@ test("attendance review separates actual OT display from 30-minute claims", () =
 
 test("attendance dialogs keep searchable menus in the modal top layer", () => {
   assert.match(actuals, /portalContainer=\{reportDialog\}/);
-  assert.equal((actuals.match(/portalContainer=\{compDialog\}/g) || []).length, 2);
+  assert.equal((actuals.match(/portalContainer=\{compDialog\}/g) || []).length, 3);
   assert.equal((actuals.match(/sb-dialog-workspace-centered/g) || []).length, 2);
 });
 

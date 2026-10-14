@@ -1,3 +1,5 @@
+> Local candidate: forward-only migration 历史已到 `353`. Linked OT/RO reconciliation was validated against isolated synthetic records only; Production has not been migrated.
+
 > Local candidate: migrations reviewed through `352`; forward-only migration 历史已到 `352`. Migration 352 implements four-punch evidence and separated pending/approved OT; validated only on the isolated synthetic database, not Production.
 
 > Local candidate: migrations reviewed through `351`; forward-only migration 历史已到 `351`. Migration 350 adds versioned attendance confirmation and People-only payslips; 351 binds released-payroll protection into schedule refresh. Not applied to Production. Migration numbering 346–349 remains owned by other tasks.

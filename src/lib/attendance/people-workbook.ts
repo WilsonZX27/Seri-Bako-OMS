@@ -15,6 +15,17 @@ export type PeopleWorkbookDay = {
   pphSeconds?: number | null;
 };
 
+export function reviewedFourPunchSeconds(day: PeopleWorkbookDay | undefined): number | null {
+  if (day?.workedSeconds == null || day.punches?.length !== 4) return null;
+  const points = day.punches.map(clock);
+  if (points.some(point => point == null)) return null;
+  const span = (a: number, b: number) => (b-a+1)%1;
+  const intervals = [span(points[0]!,points[1]!),span(points[1]!,points[2]!),span(points[2]!,points[3]!)];
+  const net=(intervals[0]+intervals[2])*86400;
+  if (intervals.some(value=>value<=0) || intervals.reduce((sum,value)=>sum+value,0)>span(points[0]!,points[3]!)+1e-9 || Math.abs(net-day.workedSeconds)>0.001) return null;
+  return day.workedSeconds;
+}
+
 export type PeopleWorkbookSheet = {
   name: string;
   employee: string;
@@ -111,12 +122,9 @@ function sheetXml(sheet: PeopleWorkbookSheet) {
     // These are the reviewed OMS results, not a guessed pay/rounding policy.
     // Formula summaries below reference these editable, typed duration inputs.
     const worked = duration(day?.workedSeconds), ot = duration(day?.overtimeSeconds), short = duration(day?.shortHoursSeconds);
-    const complete = punches.length === 4;
-    const span = (a: number, b: number) => (b - a + 1) % 1;
-    const interval = complete && punches.every(value => value != null) ? span(punches[0]!, punches[1]!) + span(punches[2]!, punches[3]!) : null;
     // Use the punch formula only when its cached result matches the existing
     // reviewed four-punch evidence. Incomplete evidence stays blank.
-    const matchesSource = worked != null && interval != null && Math.abs(worked - interval) < 1e-9 && interval <= span(punches[0]!, punches.at(-1)!) + 1e-9;
+    const matchesSource = reviewedFourPunchSeconds(day) != null;
     const punchFormula = `IF(COUNT(E${r}:H${r})=4,IF(AND(MOD(F${r}-E${r},1)>0,MOD(G${r}-F${r},1)>0,MOD(H${r}-G${r},1)>0,MOD(F${r}-E${r},1)+MOD(G${r}-F${r},1)+MOD(H${r}-G${r},1)<=MOD(H${r}-E${r},1)+0.000000001),MOD(F${r}-E${r},1)+MOD(H${r}-G${r},1),""),"")`;
     const totalWorking: Value = matchesSource ? {formula:punchFormula,value:worked} : null;
     const values: Value[] = [serial(iso), new Intl.DateTimeFormat("en-MY", { weekday: "short", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`)), day?.off ? "OFF" : clock(day?.scheduleStart), day?.off ? null : clock(day?.scheduleEnd), ...Array.from({ length: 4 }, (_, i) => punches[i] ?? null), totalWorking, ot, short, null, issues, day?.event ?? (day?.off ? "OFF" : ""), null, punches.length > 4 ? `All punches: ${(day?.punches ?? []).join(", ")}` : ""];

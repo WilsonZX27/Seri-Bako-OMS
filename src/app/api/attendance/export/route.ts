@@ -1,3 +1,4 @@
+import { buildPeoplePdf } from "@/lib/attendance/people-pdf";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -10,7 +11,7 @@ import { buildPeopleWorkbook, buildZipArchive, type PeopleWorkbookDay, type Peop
 // Role and outlet scope apply equally to draft and final reports. Export never closes a week.
 const schema = z.object({
   week: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  format: z.literal("xlsx"),
+  format: z.enum(["xlsx","pdf"]),
   branches: z.array(z.string().uuid()).min(1).max(50),
   period: z.enum(["week","month"]).default("week"),
   mode: z.enum(["draft","final"]).default("draft"),
@@ -144,10 +145,10 @@ export async function GET(request: Request) {
         return day;
       })}));
       if(!sheets.length) sheets.push({name:"Report status",employee:"No published staff days or calculated results",outlet,month,period:{start,end,draft,generatedAt},days:dates.map(value=>({date:value,day:dayLabel(value),outlet,event:"No records"}))});
-      files.push({name:`People Workbook - ${filePart(outlet)} - ${start} to ${end}${draft ? " - Draft" : ""}.xlsx`,content:buildPeopleWorkbook(sheets)});
+      files.push({name:`People Workbook - ${filePart(outlet)} - ${start} to ${end}${draft ? " - Draft" : ""}.${input.format}`,content:input.format==="pdf"?await buildPeoplePdf(sheets):buildPeopleWorkbook(sheets)});
     }
     const multiple=files.length>1,output=multiple ? buildZipArchive(files) : files[0].content,name=multiple ? `People Workbooks - ${start} to ${end}.zip` : files[0].name;
-    return new NextResponse(new Uint8Array(output),{headers:{"content-type":multiple ? "application/zip" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","content-disposition":`attachment; filename="${name.replace(/[^\x20-\x7e]/g,"_")}"; filename*=UTF-8''${encodeURIComponent(name)}`,"cache-control":"private, no-store"}});
+    return new NextResponse(new Uint8Array(output),{headers:{"content-type":multiple ? "application/zip" : input.format==="pdf" ? "application/pdf" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","content-disposition":`attachment; filename="${name.replace(/[^\x20-\x7e]/g,"_")}"; filename*=UTF-8''${encodeURIComponent(name)}`,"cache-control":"private, no-store"}});
   } catch(error) {
     logServerError(error,{source:"api.attendance.export"});
     return NextResponse.json({ok:false,message:"Attendance workbook could not be generated."},{status:500});

@@ -1,0 +1,140 @@
+{
+  "today": "2026-10-14",
+  "products": [
+    {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "code": "PKG1",
+      "name": "Synthetic box",
+      "unit": "PCS"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000002",
+      "code": "PKG2",
+      "name": "Synthetic empty bag",
+      "unit": "PCS"
+    }
+  ],
+  "outlets": [
+    {
+      "id": "67e346da-0f78-4256-a973-f91f11b56812",
+      "name": "Synthetic outlet A"
+    },
+    {
+      "id": "775bf43c-7807-499d-bc8b-a37d62f43706",
+      "name": "Synthetic outlet B"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000099",
+      "name": "Synthetic outlet without records"
+    }
+  ],
+  "rows": [
+    {
+      "id": "00000000-0000-4000-8000-00000000008:0",
+      "date": "2026-10-08",
+      "branchId": "67e346da-0f78-4256-a973-f91f11b56812",
+      "branch": "Synthetic outlet A",
+      "product": "Synthetic box",
+      "code": "PKG1",
+      "unit": "PCS",
+      "received": 120,
+      "usage": 8,
+      "closing": 92,
+      "status": "evening_completed"
+    },
+    {
+      "id": "00000000-0000-4000-8000-00000000008:1",
+      "date": "2026-10-08",
+      "branchId": "775bf43c-7807-499d-bc8b-a37d62f43706",
+      "branch": "Synthetic outlet B",
+      "product": "Synthetic box",
+      "code": "PKG1",
+      "unit": "PCS",
+      "received": 120,
+      "usage": 9,
+      "closing": 91,
+      "status": "evening_completed"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000010:0",
+      "date": "2026-10-10",
+      "branchId": "67e346da-0f78-4256-a973-f91f11b56812",
+      "branch": "Synthetic outlet A",
+      "product": "Synthetic box",
+      "code": "PKG1",
+      "unit": "PCS",
+      "received": 120,
+      "usage": 10,
+      "closing": 90,
+      "status": "evening_completed"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000010:1",
+      "date": "2026-10-10",
+      "branchId": "775bf43c-7807-499d-bc8b-a37d62f43706",
+      "branch": "Synthetic outlet B",
+      "product": "Synthetic box",
+      "code": "PKG1",
+      "unit": "PCS",
+      "received": 120,
+      "usage": null,
+      "closing": 89,
+      "status": "evening_completed"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000013:0",
+      "date": "2026-10-13",
+      "branchId": "67e346da-0f78-4256-a973-f91f11b56812",
+      "branch": "Synthetic outlet A",
+      "product": "Synthetic box",
+      "code": "PKG1",
+      "unit": "PCS",
+      "received": 120,
+      "usage": 13,
+      "closing": 87,
+      "status": "evening_completed"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000013:1",
+      "date": "2026-10-13",
+      "branchId": "775bf43c-7807-499d-bc8b-a37d62f43706",
+      "branch": "Synthetic outlet B",
+      "product": "Synthetic box",
+      "code": "PKG1",
+      "unit": "PCS",
+      "received": 120,
+      "usage": 14,
+      "closing": 86,
+      "status": "evening_completed"
+    }
+  ],
+  "latest": [
+    {
+      "id": "00000000-0000-4000-8000-000000000013:0",
+      "date": "2026-10-13",
+      "branchId": "67e346da-0f78-4256-a973-f91f11b56812",
+      "branch": "Synthetic outlet A",
+      "product": "Synthetic box",
+      "code": "PKG1",
+      "unit": "PCS",
+      "received": 120,
+      "usage": 13,
+      "closing": 87,
+      "status": "evening_completed"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000013:1",
+      "date": "2026-10-13",
+      "branchId": "775bf43c-7807-499d-bc8b-a37d62f43706",
+      "branch": "Synthetic outlet B",
+      "product": "Synthetic box",
+      "code": "PKG1",
+      "unit": "PCS",
+      "received": 120,
+      "usage": 14,
+      "closing": 86,
+      "status": "evening_completed"
+    }
+  ],
+  "opening": []
+}

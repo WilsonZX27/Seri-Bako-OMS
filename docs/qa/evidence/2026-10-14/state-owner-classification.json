@@ -1,0 +1,744 @@
+{
+  "scope": "Supplement, not mutation of historical route matrix. N/A is not passed. Shared source never grants unexercised branch acceptance.",
+  "non_applicable": [
+    {
+      "route": "/attendance/imports",
+      "source": "src/app/(app)/attendance/imports/page.tsx",
+      "states": [
+        "expanded",
+        "loading",
+        "empty",
+        "error",
+        "long_content"
+      ],
+      "classification": "not_applicable_as_independent_content_owner",
+      "reason": "Pure redirect wrapper; destination has separate ownership and acceptance. Redirect itself remains a routing check."
+    },
+    {
+      "route": "/compliance",
+      "source": "src/app/(app)/compliance/page.tsx",
+      "states": [
+        "expanded",
+        "loading",
+        "empty",
+        "error",
+        "long_content"
+      ],
+      "classification": "not_applicable_as_independent_content_owner",
+      "reason": "Pure redirect wrapper; destination has separate ownership and acceptance. Redirect itself remains a routing check."
+    },
+    {
+      "route": "/outlet-calendar",
+      "source": "src/app/(app)/outlet-calendar/page.tsx",
+      "states": [
+        "expanded",
+        "loading",
+        "empty",
+        "error",
+        "long_content"
+      ],
+      "classification": "not_applicable_as_independent_content_owner",
+      "reason": "Pure redirect wrapper; destination has separate ownership and acceptance. Redirect itself remains a routing check."
+    },
+    {
+      "route": "/people/calendar",
+      "source": "src/app/(app)/people/calendar/page.tsx",
+      "states": [
+        "expanded",
+        "loading",
+        "empty",
+        "error",
+        "long_content"
+      ],
+      "classification": "not_applicable_as_independent_content_owner",
+      "reason": "Pure redirect wrapper; destination has separate ownership and acceptance. Redirect itself remains a routing check."
+    },
+    {
+      "route": "/production/delivery-orders",
+      "source": "src/app/(app)/production/delivery-orders/page.tsx",
+      "states": [
+        "expanded",
+        "loading",
+        "empty",
+        "error",
+        "long_content"
+      ],
+      "classification": "not_applicable_as_independent_content_owner",
+      "reason": "Pure redirect wrapper; destination has separate ownership and acceptance. Redirect itself remains a routing check."
+    },
+    {
+      "route": "/staffs",
+      "source": "src/app/(app)/staffs/page.tsx",
+      "states": [
+        "expanded",
+        "loading",
+        "empty",
+        "error",
+        "long_content"
+      ],
+      "classification": "not_applicable_as_independent_content_owner",
+      "reason": "Pure redirect wrapper; destination has separate ownership and acceptance. Redirect itself remains a routing check."
+    },
+    {
+      "route": "/stock-balances",
+      "source": "src/app/(app)/stock-balances/page.tsx",
+      "states": [
+        "expanded",
+        "loading",
+        "empty",
+        "error",
+        "long_content"
+      ],
+      "classification": "not_applicable_as_independent_content_owner",
+      "reason": "Pure redirect wrapper; destination has separate ownership and acceptance. Redirect itself remains a routing check."
+    },
+    {
+      "route": "/activity",
+      "source": "src/app/(app)/activity/page.tsx",
+      "states": [
+        "expanded"
+      ],
+      "classification": "not_applicable_to_page_content",
+      "reason": "Page source and transitive owners have no local expandable content; shared global search/console remain separate owners."
+    },
+    {
+      "route": "/reports",
+      "source": "src/app/(app)/reports/page.tsx",
+      "states": [
+        "expanded"
+      ],
+      "classification": "not_applicable_to_page_content",
+      "reason": "Page source and transitive owners have no local expandable content; shared global search/console remain separate owners."
+    }
+  ],
+  "non_applicable_cell_count": 37,
+  "redirect_owner_count": 7,
+  "independent_page_owner_count": 116,
+  "historical_pending_cells": 563,
+  "note": "Pending cells are bookkeeping dimensions, not independent required cases. Group remaining work by owners below.",
+  "dialog_sources": [
+    {
+      "source": "src/components/purchase-request-line-resolution-form.tsx",
+      "routes": [
+        "/purchase-requests/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/stock-count-line-recovery.tsx",
+      "routes": [
+        "/stock-counts/[id]",
+        "/stock-counts/new"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/production-planning-workspace.tsx",
+      "routes": [
+        "/production/planning"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "runtime_dialog_contract_verified_on_named_owner",
+      "evidence": "additional-dialog-states.json (desktop1440, phone320, native200% zoom); only named exercised dialog"
+    },
+    {
+      "source": "src/components/bulk-phase-one-delete.tsx",
+      "routes": [
+        "/purchase-requests"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/outlet-daily-export-dialog.tsx",
+      "routes": [
+        "/outlet-daily-records"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "runtime_dialog_contract_verified_on_named_owner",
+      "evidence": "additional-dialog-states.json (desktop1440, phone320, native200% zoom); only named exercised dialog"
+    },
+    {
+      "source": "src/components/purchase-order-export-dialog.tsx",
+      "routes": [
+        "/purchase-orders"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/purchase-request-line-recovery.tsx",
+      "routes": [
+        "/purchase-requests/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/bulk-selection.tsx",
+      "routes": [
+        "/branches",
+        "/purchase-requests"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/add-purchase-request-line-dialog.tsx",
+      "routes": [
+        "/purchase-requests/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/production-planning-allocation-table.tsx",
+      "routes": [
+        "/production/planning"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "runtime_dialog_contract_verified_on_named_owner",
+      "evidence": "additional-dialog-states.json (desktop1440, phone320, native200% zoom); only named exercised dialog"
+    },
+    {
+      "source": "src/components/stock-count-form.tsx",
+      "routes": [
+        "/stock-counts/[id]",
+        "/stock-counts/new"
+      ],
+      "existingEvidence": [
+        "verify-stock-storage-local.cjs: actual Storage exceptions, save/retry/reload; stock screenshots in integration-ui"
+      ],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/session-timeout-provider.tsx",
+      "routes": [],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/stock-count-void-dialog.tsx",
+      "routes": [
+        "/stock-counts/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/stock-count-scope-actions.tsx",
+      "routes": [
+        "/stock-counts/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/asset-unsaved-guard.tsx",
+      "routes": [
+        "/asset-management/assets/[id]",
+        "/asset-management/assets/new",
+        "/asset-management/locations/[id]",
+        "/asset-management/maintenance/[id]",
+        "/asset-management/maintenance/new",
+        "/asset-management",
+        "/asset-management/transfers/[id]",
+        "/asset-management/transfers/new"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/purchase-request-export-dialog.tsx",
+      "routes": [
+        "/purchase-requests"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "runtime_dialog_contract_verified_on_named_owner",
+      "evidence": "additional-dialog-states.json (desktop1440, phone320, native200% zoom); only named exercised dialog"
+    },
+    {
+      "source": "src/components/document-action-bar.tsx",
+      "routes": [
+        "/goods-receivings/[id]",
+        "/production/jobs/[id]",
+        "/purchase-orders/[id]",
+        "/purchase-requests/[id]",
+        "/purchase-returns/[id]",
+        "/stock-counts/[id]",
+        "/stock-transfers/[id]",
+        "/stock-wastage/[id]",
+        "/supplier-invoices/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/production-planning-product-rules.tsx",
+      "routes": [
+        "/production/planning"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/stock-count-export-dialog.tsx",
+      "routes": [
+        "/stock-counts"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "runtime_dialog_contract_verified_on_named_owner",
+      "evidence": "additional-dialog-states.json (desktop1440, phone320, native200% zoom); only named exercised dialog"
+    },
+    {
+      "source": "src/components/attendance/actual-attendance-panel.tsx",
+      "routes": [
+        "/attendance/review"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/attendance/comp-time-correction-form.tsx",
+      "routes": [
+        "/people/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/attendance/people-workbook-export.tsx",
+      "routes": [
+        "/attendance/review"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/attendance/review-actions.tsx",
+      "routes": [
+        "/attendance/review"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/attendance/employee-attendance-summary.tsx",
+      "routes": [
+        "/attendance/review"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/attendance/ot-ro-actions.tsx",
+      "routes": [
+        "/attendance/review"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/attendance/schedule-planner.tsx",
+      "routes": [
+        "/attendance/schedule"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/attendance/schedule-workbook-import.tsx",
+      "routes": [
+        "/attendance/schedule"
+      ],
+      "existingEvidence": [
+        "verify-import-layout-local.cjs and live-chain: 10 outlets, expanded warnings, five widths, partial failure/retry"
+      ],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/ui/date-range-picker.tsx",
+      "routes": [
+        "/outlet-daily-records/insights"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/ui/danger-confirm-form.tsx",
+      "routes": [
+        "/branches/[id]",
+        "/goods-receivings/[id]",
+        "/items/[id]",
+        "/production/jobs/[id]",
+        "/products/[id]",
+        "/purchase-orders/[id]",
+        "/purchase-requests/[id]",
+        "/purchase-returns/[id]",
+        "/recipes/[id]",
+        "/staffs/[id]",
+        "/stock-counts/[id]",
+        "/stock-transfers/[id]",
+        "/stock-wastage/[id]",
+        "/supplier-items/[id]",
+        "/suppliers/[id]",
+        "/uom-conversions/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/ui/destructive-action-dialog.tsx",
+      "routes": [
+        "/account",
+        "/company",
+        "/documents/[id]",
+        "/goods-receivings/[id]",
+        "/outlet-daily-records/[id]",
+        "/production/delivery-orders/[id]",
+        "/production/jobs/[id]",
+        "/purchase-orders/[id]",
+        "/purchase-requests/[id]",
+        "/purchase-returns/[id]",
+        "/recipes/[id]",
+        "/stock-counts/[id]",
+        "/stock-transactions/[id]",
+        "/stock-transfers/[id]",
+        "/stock-wastage/[id]",
+        "/supplier-invoices/[id]",
+        "/supplier-items",
+        "/uom-conversions"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/ui/confirm-action-form.tsx",
+      "routes": [
+        "/production/jobs/[id]",
+        "/purchase-orders/[id]",
+        "/purchase-requests/[id]",
+        "/stock-counts/[id]",
+        "/supplier-invoices/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/ui/reject-action-form.tsx",
+      "routes": [
+        "/purchase-requests/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/ui/native-dialog.tsx",
+      "routes": [
+        "/attendance/review"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "shared_primitive_not_separate_business_dialog",
+      "evidence": "Native dialog contract exercised through planning supply period; other business contents remain conditional."
+    },
+    {
+      "source": "src/components/search/global-search.tsx",
+      "routes": [],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "runtime_dialog_contract_verified_on_named_owner",
+      "evidence": "additional-dialog-states.json (desktop1440, phone320, native200% zoom); only named exercised dialog"
+    },
+    {
+      "source": "src/components/documents/receiving-post-guard.tsx",
+      "routes": [
+        "/goods-receivings/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/documents/attachment-required-action.tsx",
+      "routes": [
+        "/purchase-orders/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    },
+    {
+      "source": "src/components/documents/attachment-remove-action.tsx",
+      "routes": [
+        "/documents/[id]",
+        "/goods-receivings/[id]",
+        "/outlet-compliance/[branchId]",
+        "/outlet-daily-records/[id]",
+        "/production/jobs/[id]",
+        "/purchase-orders/[id]",
+        "/purchase-requests/[id]",
+        "/purchase-returns/[id]",
+        "/recipes/[id]",
+        "/stock-counts/[id]",
+        "/stock-transactions/[id]",
+        "/stock-transfers/[id]",
+        "/stock-wastage/[id]",
+        "/supplier-invoices/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence",
+      "classification": "owner_specific_state_not_closed_by_this_worker"
+    }
+  ],
+  "fallback_owner_count": 28,
+  "fallback_owners": [
+    {
+      "file": "src/app/(app)/error.tsx",
+      "kind": "error",
+      "owner": "/",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/loading.tsx",
+      "kind": "loading",
+      "owner": "/",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/not-found.tsx",
+      "kind": "not-found",
+      "owner": "/",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/attendance/loading.tsx",
+      "kind": "loading",
+      "owner": "/attendance",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/attendance/schedule/loading.tsx",
+      "kind": "loading",
+      "owner": "/attendance/schedule",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/outlet-compliance/loading.tsx",
+      "kind": "loading",
+      "owner": "/outlet-compliance",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/purchase-orders/new/loading.tsx",
+      "kind": "loading",
+      "owner": "/purchase-orders/new",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/purchase-orders/[id]/error.tsx",
+      "kind": "error",
+      "owner": "/purchase-orders/[id]",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/purchase-requests/[id]/error.tsx",
+      "kind": "error",
+      "owner": "/purchase-requests/[id]",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/purchase-requests/[id]/loading.tsx",
+      "kind": "loading",
+      "owner": "/purchase-requests/[id]",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/outlet-packaging/loading.tsx",
+      "kind": "loading",
+      "owner": "/outlet-packaging",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/supplier-invoices/cash-flow/error.tsx",
+      "kind": "error",
+      "owner": "/supplier-invoices/cash-flow",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/supplier-invoices/cash-flow/loading.tsx",
+      "kind": "loading",
+      "owner": "/supplier-invoices/cash-flow",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/supplier-invoices/aging/error.tsx",
+      "kind": "error",
+      "owner": "/supplier-invoices/aging",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/supplier-invoices/aging/loading.tsx",
+      "kind": "loading",
+      "owner": "/supplier-invoices/aging",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/outlet-daily-records/loading.tsx",
+      "kind": "loading",
+      "owner": "/outlet-daily-records",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/dashboard/loading.tsx",
+      "kind": "loading",
+      "owner": "/dashboard",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/stock-card/loading.tsx",
+      "kind": "loading",
+      "owner": "/stock-card",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/inventory/loading.tsx",
+      "kind": "loading",
+      "owner": "/inventory",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/people/loading.tsx",
+      "kind": "loading",
+      "owner": "/people",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/production/jobs/error.tsx",
+      "kind": "error",
+      "owner": "/production/jobs",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/production/jobs/loading.tsx",
+      "kind": "loading",
+      "owner": "/production/jobs",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/production/jobs/[id]/not-found.tsx",
+      "kind": "not-found",
+      "owner": "/production/jobs/[id]",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/documents/[id]/error.tsx",
+      "kind": "error",
+      "owner": "/documents/[id]",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/outlet-calendar/loading.tsx",
+      "kind": "loading",
+      "owner": "/outlet-calendar",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/purchase-returns/[id]/error.tsx",
+      "kind": "error",
+      "owner": "/purchase-returns/[id]",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/stock-counts/loading.tsx",
+      "kind": "loading",
+      "owner": "/stock-counts",
+      "runtime": "not_forced_individually"
+    },
+    {
+      "file": "src/app/(app)/stock-counts/new/loading.tsx",
+      "kind": "loading",
+      "owner": "/stock-counts/new",
+      "runtime": "not_forced_individually"
+    }
+  ],
+  "chart_runtime_coverage": [
+    {
+      "owner": "asset-history-trend",
+      "evidence": "additional-dialog-states.json",
+      "verified": "two populated chart variants \u00d7 3 viewport/zoom modes; keyboard and pointer"
+    },
+    {
+      "owner": "production-planning-evidence",
+      "evidence": "planning-history-states.json",
+      "verified": "7 populated/gap/long/loading/error/empty cases"
+    },
+    {
+      "owner": "outlet-packaging-report",
+      "evidence": "packaging-chart-states.json",
+      "verified": "12/12 final rebuilt runtime cases: 9 across1440/320/720, 3 loading/error/wholeempty at390; UI/read transport fixture, not SQL aggregation"
+    }
+  ],
+  "remaining_chart_owner_families": [
+    "outlet-daily-wastage-chart",
+    "reports/demand-ranking-chart + reports/demand-trend-chart",
+    "reports/inventory-daily-movement-chart",
+    "reports/procurement-variance-charts",
+    "reports/production-variance-signal-chart",
+    "reports/costing-readiness-insights",
+    "reports/costing-report-insights",
+    "reports/stock-count-variance-insights"
+  ],
+  "remaining_chart_scope": "Only populated bespoke owner branches, their empty transitions, and data-derived labels not already in parent evidence. Shared InteractiveLineChart keyboard mechanics are verified on named owners above; do not rerun same mechanics per route. This worker has no evidence closing remaining families; reconcile parent report-specific proofs before scheduling.",
+  "additional_dialog_batch": {
+    "cases": 10,
+    "passed": 10,
+    "evidence": "remaining-dialog-owners.json",
+    "owners": [
+      "AddStockCountItemDialog",
+      "StockCountLineRecovery draft replace/remove",
+      "StockCountForm retirement",
+      "PurchaseOrderExportDialog"
+    ],
+    "unreachable_exports": [
+      "ItemCorrectionSuggestionDialog",
+      "BranchStockCountSettingDialog"
+    ],
+    "unreachable_evidence": "rg across src finds definitions only; current draft menu instead wires StockCountLineRecovery and retirement dialog",
+    "limitations": "No business submissions or backend failure claims; exact residual eligibility documented in acceptance supplement."
+  }
+}

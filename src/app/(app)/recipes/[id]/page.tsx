@@ -1,3 +1,4 @@
+import { RecipeVersionForm } from "@/components/recipe-form";
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
@@ -56,7 +57,7 @@ export default async function RecipeDetailPage({
                 </>
               ) : null}
               {permissions["recipes.approve"] && recipe.status === "approved" ? <form action={activateRecipe.bind(null, recipe.id)}><SubmitButton type="submit" className="w-full" pendingLabel="Activating..." data-mobile-primary-action>Activate</SubmitButton></form> : null}
-              {permissions["recipes.create"] && recipe.status === "active" ? <form action={createNewRecipeVersion.bind(null, recipe.id)}><SubmitButton type="submit" variant="outline" className="w-full" pendingLabel="Creating...">New Version</SubmitButton></form> : null}
+              {permissions["recipes.create"] && recipe.status === "active" ? <RecipeVersionForm requestKey={crypto.randomUUID()} action={createNewRecipeVersion.bind(null, recipe.id)} /> : null}
               {permissions["recipes.archive"] && ["active", "approved"].includes(recipe.status) ? <DestructiveActionDialog action={archiveRecipe.bind(null, recipe.id)} label="Archive Recipe" title="Archive this recipe?" description="The recipe will leave active operational use. Its history remains available." pendingLabel="Archiving..." /> : null}
               {permissions["recipes.archive"] ? <PhaseOneDeleteAction recordType="recipe" recordId={recipe.id} label="recipe" /> : null}
             </RecordActionPanel>

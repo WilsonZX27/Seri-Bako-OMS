@@ -36,7 +36,7 @@ Four additional regression tests exercise primary removal/export preservation an
 ## Remaining scope that this supplement does not close
 
 - Per-instance states for the37 dialog source files listed below, beyond explicitly listed runtime evidence. Submission failure retention is owned by main/form workers; no blanket success is claimed here.
-- Populated packaging chart, long outlet labels, all-empty chart after prior populated selection, and application-route error/load states outside the read-only history action.
+- Packaging-specific cases are now closed by the 12-case supplement below. Other report owners and unexercised business dialog contents remain separate.
 - Route matrix563 pending/partial cells need applicability classification and targeted per-owner fixtures; this supplement does not silently promote them through shared-component reuse.
 - Physical iOS/Android keyboard/viewport and printer behavior require devices. All other items above remain locally possible; no additional human approval is technically required.
 
@@ -83,3 +83,36 @@ Four additional regression tests exercise primary removal/export preservation an
 ## Archived deliverables
 
 Evidence JSON plus representative synthetic screenshots are copied into `docs/qa/evidence/2026-10-14/`. Reproducible probes: `scripts/integration/verify-additional-dialog-states-local.cjs`, `verify-planning-chart-local.cjs`; synthetic-only seed: `seed-chart-browser-local.cjs`. Targeted existing/new mobile regression tests and scoped ESLint passed. Full-suite/build gates are owned by the main integration task. No commit, push or deployment was performed by this worker.
+
+
+## Packaging follow-up: 12/12 verified after rebuild
+
+`packaging-chart-states.json` records nine cases at1440/320/720 CSS pixels (populated keyboard/pointer, populated→empty→populated, long unbroken outlet names) plus three cases at390 (held period-loading then recovery preserving outlet, RPC error then Retry, whole empty report). All12 passed on the rebuilt app. The720 case is responsive width, not native zoom. Phone320 screenshot was visually inspected. Long labels previously clipped at all3 widths; wrapping and minimum-width constraints were added only to the three affected outlet-label locations in `outlet-packaging-report.tsx`. Existing Packaging regression suite passed5/5.
+
+These are real app render/navigation tests with a test-only read transport fixture on localhost3191. The preload intercepts only the local58321 `get_outlet_packaging_report` RPC and supplies synthetic rows; it performs no database seed/write and does not prove SQL aggregation accuracy. Other traffic retains its normal owner. Server3190 was untouched. Reproduction: `packaging-ui-server.cjs`, `packaging-read-fixture-preload.cjs`, `verify-packaging-chart-local.cjs`; fixture and screenshots archived beside the resultJSON. The earlier31-case acceptance is preserved; this adds12 (43 total explicitly exercised cases in this supplement), not a fresh rerun of all31.
+
+## Bounded owner classification
+
+`state-owner-classification.json` supplements, without rewriting, the historical matrix. Seven pure compatibility redirects have no independent expanded/loading/empty/error/long-content view (35 content cells N/A); `/activity` and `/reports` have no local expandable content (2 more N/A). Routing and shared shell remain separately applicable. This leaves116 independent page owners;563 historical pending cells must not be interpreted as563 distinct tests.
+
+The37 dialog-source records are retained for traceability: six named dialog owners have runtime contract evidence above; `native-dialog` is a shared primitive, not another business content scenario. Other conditional contents are not granted success by sharing ModalShell. The28 fallback source owners are listed once each; generic layout loading/error reuse does not establish route-specific fetch/retry behavior.
+
+Concrete remaining chart owner families without populated runtime evidence from this worker: (1) Outlet Daily wastage, (2) Demand trend/ranking, (3) Inventory movement, (4) Procurement variance, (5) Production variance signal, (6) Costing readiness, (7) Recipe costing/product margin, (8) Stock Count variance. Reconcile main-thread report-specific evidence before scheduling additional work. For these, focus on bespoke data transforms, selected detail/links, empty transitions and data-derived labels; do not repeat shared keyboard mechanics per route. No new universal pass claim is made.
+
+
+## Remaining document dialog batch: 10/10 verified
+
+`remaining-dialog-owners.json` records five real dialog branches at1440 and320: Stock Count Add Item, Replace Item, Remove Line, Retire Item, and Purchase Order Export. Checks include unmatched item search and disabled Add, required reason validity, long editable reason retention, unchecked/checked destructive confirmation gate, eight keyboard Tab steps contained in each dialog, Escape, horizontal bounds, and simulated export503 retaining the dates/dialog. No business submission occurred; blocked mutation count is0. The phone320 remove confirmation screenshot was visually inspected. This is10 new cases (53 explicit cases across this supplement), not submission/backend coverage or native200% coverage for these new owners.
+
+Two probe failures were corrected without application changes: the first Add probe pressed Escape before measuring; a dynamic last-dialog locator selected the parent action sheet after the export modal closed. Final assertions use stable aria-labelledby identity. Two originally proposed menu actions are genuinely unreachable: `ItemCorrectionSuggestionDialog` and `BranchStockCountSettingDialog` have definitions but no imports/usages anywhere in src. Their expanded UI cases are N/A for current routes, not runtime-passed.
+
+### Concrete residual conditional prerequisites
+
+- Stock Count Void: requires posted count, stock_count.cancel permission and preview_stock_count_void RPC fingerprint/ledger reversal preview. Existing inspected count is draft. The actual confirm/reverse transaction is not covered by these read-only dialog cases. A guarded local posted-count fixture can close this; no external business approval is intrinsically required.
+- Legacy Stock Count review mode: requires submitted/reviewed/approved status plus revisionsAvailable and stock_count.post. Draft Replace/Remove is covered above; legacy proposal mode is not.
+- PR line repair/Add Line: requires manager_review/admin_review, manager/purchasing permission and role, recoveryAvailable, canonical supplier, item/supplier mapping catalogs and branch. Inspected PR is draft. Requires a guarded local review-status fixture, not an arbitrary change to this shared draft.
+- PR unresolved-line resolution additionally requires a matching unresolved line and purchasing preparation status.
+- GRN missing-DO post guard requires draft+grn.post and absent delivery-order attachment. Inspected route did not expose the posting action. A controlled eligible receiving fixture is needed; backend post/attachment failure retention must remain separate from generic modal mechanics.
+- Account Remove Picture requires an existing avatar; inspected synthetic account has none. Global session timeout modal requires controlled idle/session clock. Neither is an external blocker; both are still local fixture work if in acceptance scope.
+
+These are precise fixture gaps, not verified failures, not requests for user approval, and not a claim that every local owner has been exhausted. Other parent-owned form/attendance evidence should be joined before scheduling duplicate coverage.

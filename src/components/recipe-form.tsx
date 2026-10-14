@@ -41,6 +41,7 @@ type RecipeFormLine = {
 
 type RecipeFormProps = {
   recipe?: RecipeDetail;
+  requestKey: string;
   products: ProductOption[];
   items: RecipeIngredientOption[];
   action: (formData: FormData) => Promise<void | { error: string }>;
@@ -77,8 +78,10 @@ function itemFallback(label: string) {
   );
 }
 
-export function RecipeForm({ recipe, products, items, action, formId, showSubmit = true }: RecipeFormProps) {
+export function RecipeForm({ recipe, products, items, action, formId, showSubmit = true, requestKey }: RecipeFormProps) {
+  const [stableRequestKey] = useState(requestKey);
   const [result, submitAction] = useActionState<{ error?: string }, FormData>(async (_previous: { error?: string }, data: FormData) => (await action(data)) ?? {}, {});
+  const [expectedUpdatedAt] = useState(recipe?.updated_at ?? "");
   const [effectiveDate, setEffectiveDate] = useState(recipe?.effective_date ?? getToday());
   const [remarks, setRemarks] = useState(recipe?.remarks ?? "");
   const itemById = useMemo(() => new Map(items.map((item) => [item.id, item])), [items]);
@@ -150,6 +153,8 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
 
   return (
     <form id={formId} action={submitAction} className="space-y-3 md:space-y-5">
+      <input type="hidden" name="request_key" value={stableRequestKey} />
+      <input type="hidden" name="expected_updated_at" value={expectedUpdatedAt} />
       {result.error ? <p role="alert" className="rounded-lg border border-warning/30 bg-warning/10 p-3 text-sm">{result.error}</p> : null}
       <input
         type="hidden"
@@ -380,4 +385,14 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
       </Card>
     </form>
   );
+}
+
+export function RecipeVersionForm({ action, requestKey }: { requestKey: string; action: (data: FormData) => Promise<void | { error: string }> }) {
+  const [stableRequestKey] = useState(requestKey);
+  const [result, submit] = useActionState<{ error?: string }, FormData>(async (_previous: { error?: string }, data: FormData) => (await action(data)) ?? {}, {});
+  return <form action={submit}>
+    <input type="hidden" name="request_key" value={stableRequestKey} />
+    <SubmitButton type="submit" variant="outline" className="w-full" pendingLabel="Creating...">New Version</SubmitButton>
+    {result.error ? <p role="alert" className="mt-2 text-sm text-destructive">{result.error}</p> : null}
+  </form>;
 }

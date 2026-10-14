@@ -53,13 +53,13 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
     <ConsoleSection title={selected ? "Selected day" : "Report coverage"} kind="status">
       {periodPending ? <SectionLoadingState label="Loading packaging report coverage" /> : <>
       <p className="text-sm font-semibold">{selectedProduct?.name ?? "Packaging"}</p>
-      <p>{outlet === "all" ? "All outlets" : report.outlets.find((item) => item.id === outlet)?.name}</p>
+      <p className="break-words">{outlet === "all" ? "All outlets" : report.outlets.find((item) => item.id === outlet)?.name}</p>
       <div className="flex justify-between gap-3"><span>Period</span><span>{days} days</span></div>
       <div className="flex justify-between gap-3"><span>Days recorded</span><span className="tabular-nums">{points.filter((point) => point.value !== null).length}/{days}</span></div>
       {selected ? <div className="border-t pt-3" aria-live="polite">
         <p className="font-semibold">{formatDateOnly(selected.date)}</p>
         <p className="mt-1 text-muted-foreground">{selected.value === null ? measure==="usage"?"Incomplete usage coverage":"Incomplete balance coverage" : `${formatNumber(selected.value)} ${selectedProduct?.unit} ${measure==="usage"?"used":"recorded balance"} · ${new Set(selected.rows.map(row=>row.branchId)).size}/${count} outlets`}</p>
-        <div className="mt-2 divide-y">{selected.rows.map((row) => <div key={row.id} className="flex justify-between gap-3 py-2"><span><Link className="underline underline-offset-4" href={`/outlet-daily-records/${row.id.split(":")[0]}`}>{row.branch}</Link>{measure==="closing"?<time className="block text-muted-foreground">{formatDateOnly(row.date)}</time>:null}</span><span className="shrink-0 tabular-nums">{(measure==="usage" && row.usage===null ? "Unknown" : formatNumber(measure==="usage"?row.usage:row.closing))} {row.unit}</span></div>)}</div><div className="mt-3 flex justify-between border-t pt-3 font-semibold"><span>Total</span><span>{selected.value === null ? "Unknown" : formatNumber(selected.value)} {selectedProduct?.unit}</span></div>
+        <div className="mt-2 divide-y">{selected.rows.map((row) => <div key={row.id} className="flex justify-between gap-3 py-2"><span className="min-w-0 flex-1 break-words"><Link className="underline underline-offset-4" href={`/outlet-daily-records/${row.id.split(":")[0]}`}>{row.branch}</Link>{measure==="closing"?<time className="block text-muted-foreground">{formatDateOnly(row.date)}</time>:null}</span><span className="shrink-0 tabular-nums">{(measure==="usage" && row.usage===null ? "Unknown" : formatNumber(measure==="usage"?row.usage:row.closing))} {row.unit}</span></div>)}</div><div className="mt-3 flex justify-between border-t pt-3 font-semibold"><span>Total</span><span>{selected.value === null ? "Unknown" : formatNumber(selected.value)} {selectedProduct?.unit}</span></div>
       </div> : <p className="text-muted-foreground">{measure==="closing"?"Last confirmed closing per outlet; select a day for record dates.":"Select a day for outlet usage."}</p>}
       </>}
     </ConsoleSection>
@@ -120,7 +120,7 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
           <h3 className="text-sm font-semibold">Last count by outlet</h3>
           <div className="divide-y">{report.outlets.filter(branch=>outlet==="all"||branch.id===outlet).map(branch=>{
             const balance=balances.find(row=>row.branchId===branch.id);
-            return <div key={branch.id} className="flex items-center justify-between gap-3 py-2 text-xs"><div className="min-w-0"><p className="font-medium">{branch.name}</p><p className="text-muted-foreground">{balance?formatDateOnly(balance.date):"Not counted"}</p></div><span className="shrink-0 tabular-nums">{balance?`${formatNumber(balance.closing)} ${selectedProduct?.unit}`:"—"}</span></div>;
+            return <div key={branch.id} className="flex items-center justify-between gap-3 py-2 text-xs"><div className="min-w-0"><p className="break-words font-medium">{branch.name}</p><p className="text-muted-foreground">{balance?formatDateOnly(balance.date):"Not counted"}</p></div><span className="shrink-0 tabular-nums">{balance?`${formatNumber(balance.closing)} ${selectedProduct?.unit}`:"—"}</span></div>;
           })}</div>
         </section>
       </div>

@@ -9,23 +9,29 @@ This inventory supersedes overlapping “remaining” sections in the integratio
 - Reconciliation SQL regression now covers missing OT permission, a foreign-company claim, already-used credit, self-approval, locked attendance period and released payroll, in addition to the full reversal/correction/new-claim path. Migration 353 now explicitly rejects released payroll before ledger changes instead of waiting for the existing deferred payroll guard. Updated function applied only to the independent replay database. Main browser database remains 352.
 - 1,608 tests passed; source lint/typecheck and Node 22 production build passed. Recipe browser evidence came from that rebuilt server.
 
-## Current local acceptance (after refresh-parity repair)
+## Current local acceptance (Recipe 355 and dialog follow-up)
 
-Five of the nine original groups have the scoped acceptance below. Four still contain additional engineering or verification work; these are not approval blockers.
+The implementation and bounded verification below are complete locally. Broader route-state and conditional-fixture verification remains explicitly outstanding; these are not approval blockers or known defects.
 
 | Area | Current result / remainder |
 | --- | --- |
 | People browser workflow | Passed two independently authenticated People users through reversal, self-approval refusal, separate approval, time correction and corrected OT credit. Final ledger30minutes and approved OT1800seconds. |
 | Roles / tenant scope | Passed foreign-company staff/manager/other-manager/owner browser/API denials, and same-company missing sensitive-export/OT-approval grant denial; no ledger mutation. SQL permission/tenant denials remain complementary evidence. |
-| Migration replay | Revised353 fully applied mainlocal;354 applied bothlocaldatabases. Full four-punch SQL passed independent replay. No production migration. |
+| Migration replay | Revised353 fully applied mainlocal;354 and355 applied both local databases. Full four-punch SQL passed independent replay. No production migration. |
 | Form backend retention | Seven forms passed14actual rejected submissions/retries. Supplier Item/UOM/Stock Wastage repaired. Recipe update/reference-outage separately passed2checks. |
-| Data-populated production charts | Seven history scenarios passed: three widths, missing points, pointer/keyboard, loading, failure+retry, empty and long label. Two assetcharts×3modes also passed. Packaging-specific follow-up remains under broader workspace acceptance. |
-| Recipe additional paths | Preflight retention passed. Atomic create/update/copy and version/snapshot concurrency still being implemented; current multi-request writes can leave partial state. See recipe write-boundary report. |
-| Custom dialogs | 6owners×3modes passed, including nested Escape and focus return. 37sourceowners’ complete conditional/long/error branches are not all verified. |
-| PDF export | Populated seven-day PDF/XLSX/database comparison, Final refusal+retained selections, scoped denials, monthly multilingual pagination, oversize rejection passed. Empty multi-outletZIP had passed earlier; populated multiple-outletZIP and exhaustive long multilingual combinations remain. |
-| Broader route states | Historical123routes/1107cells:544substantive,563partial/unverified. This is an applicability/evidence backlog, not563known defects; targeted new evidence must be joined by owner. Packaging populated/long/empty transition follow-up underway. |
+| Data-populated production charts | Seven history scenarios passed: three widths, missing points, pointer/keyboard, loading, failure+retry, empty and long label. Two assetcharts×3modes also passed. Packaging adds12 passing populated/long/empty/loading/error cases using a read-only synthetic RPC fixture; this does not verify SQL aggregation. |
+| Recipe additional paths | Atomic create/update/copy completed:15 injected rollback cases, same-key replay, concurrent create/update/copy, permission/tenant and active/archived refusals, numerical costing parity. Final-build browser proves retained input and frozen key/timestamp across failure and a masked committed acknowledgement, without duplicate snapshots. See recipe write-boundary report. |
+| Custom dialogs | 6owners×3modes passed, including nested Escape and focus return. Five additional dialog branches×2widths passed10cases with zero writes. The dialog/chart supplement now contains53 explicit cases; full conditional branches remain unverified. |
+| PDF export | Populated seven-day PDF/XLSX/database comparison, Final refusal+retained selections, scoped denials, monthly multilingual pagination, oversize rejection passed. Two populated outlets also passed the actual browser ZIP download; both PDFs were read back, including Chinese employee/outlet text and four punch times. Oversized names/notes are rejected explicitly. |
+| Broader route states | Historical123routes/1107cells:544substantive,563partial/unverified. This is an applicability/evidence backlog, not563known defects; targeted new evidence must be joined by owner. Packaging follow-up complete.37 historical content cells classified N/A with source evidence; remaining cells require owner-specific reconciliation. |
 
-Current source gates:1,615 tests, strict TypeScript, source ESLint and Node22production build passed before ongoing Recipe/Packaging follow-ups. See `OMS_REFRESH_PARITY_2026-10-14.md`, `OMS_SEVEN_FORM_RETENTION_2026-10-14.md`, `OMS_DIALOG_CHART_ACCEPTANCE_2026-10-14.md` for exact evidence boundaries.
+Final source gates:1,617/1,617 tests, strict TypeScript, source ESLint and Node22 production build passed with Recipe/Packaging changes. Final browser probes used that build. Both local databases match migration355’s exact function body SHA256 `f46bb3166798db04488af69d0e595aca99e84161164ca69fc5c9da1d8ab133d0`. See `OMS_REFRESH_PARITY_2026-10-14.md`, `OMS_SEVEN_FORM_RETENTION_2026-10-14.md`, `OMS_DIALOG_CHART_ACCEPTANCE_2026-10-14.md` for exact evidence boundaries.
+
+## Remaining local verification
+
+- Conditional fixtures: posted Stock Count Void; legacy count review; PR review/repair/unresolved lines; eligible GRN missing-DO guard; account with avatar; controlled session timeout. These are local fixture work, not external blockers.
+- Populated chart owner families still needing evidence reconciliation: Outlet Daily wastage, Demand, Inventory, Procurement variance, Production variance, Costing readiness, Recipe/product margin and Stock Count variance. Shared chart behavior does not establish their data transformations.
+- See the dialog/chart report for exact prerequisites and the unchanged historical route matrix for broader acceptance scope. No claim of complete application-wide acceptance is made.
 
 ## Requires real material, user acceptance or physical equipment
 

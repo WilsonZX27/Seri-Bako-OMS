@@ -1,3 +1,5 @@
+> Local candidate: migrations reviewed through `355`; forward-only migration 历史已到 `355`. Migration 355 makes recipe header, ingredients, document revisions, costing and audit atomic with request-key replay and optimistic update protection. Local verification only; Production has not been migrated.
+
 > Local candidate: migrations reviewed through `354`; forward-only migration 历史已到 `354`. Migration 354 brings automatic per-day schedule refresh into parity with four-punch import calculations, preserves active OT claims and released payroll, and changes no historical rows. Applied and rollback-tested on both isolated local databases only; Production remains unchanged.
 
 > Local candidate: migrations reviewed through `353`; forward-only migration 历史已到 `353`. Migration 353 links People-approved OT reversals to their original RO credits and prevents duplicate allocation. Synthetic reconciliation and concurrent approvals passed locally; not applied to Production. Attendance PDF uses the existing scoped export data; local synthetic browser PDF/ZIP download verified.

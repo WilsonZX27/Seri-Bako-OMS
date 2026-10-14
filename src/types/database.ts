@@ -1849,6 +1849,16 @@ export type Database = {
           },
         ];
       };
+      recipe_write_requests: {
+        Row: { company_id: string; request_key: string; actor_id: string; request: Json; recipe_id: string; created_at: string };
+        Insert: { company_id: string; request_key: string; actor_id: string; request: Json; recipe_id: string; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["recipe_write_requests"]["Insert"]>;
+        Relationships: [
+          { foreignKeyName: "recipe_write_requests_recipe_id_fkey"; columns: ["recipe_id"]; isOneToOne: false; referencedRelation: "recipes"; referencedColumns: ["id"] },
+          { foreignKeyName: "recipe_write_requests_company_id_fkey"; columns: ["company_id"]; isOneToOne: false; referencedRelation: "companies"; referencedColumns: ["id"] },
+          { foreignKeyName: "recipe_write_requests_actor_id_fkey"; columns: ["actor_id"]; isOneToOne: false; referencedRelation: "staffs"; referencedColumns: ["id"] }
+        ];
+      };
       recipe_cost_snapshots: {
         Row: {
           id: string;
@@ -2592,6 +2602,10 @@ export type Database = {
       };
     };
     Functions: {
+      save_recipe_atomic: {
+        Args: { p_action: string; p_request_key: string; p_recipe_id?: string | null; p_payload?: Json; p_expected_updated_at?: string | null };
+        Returns: Json;
+      };
       get_stock_transfer_summary: {
         Args: Record<string, never>;
         Returns: Array<{ total: number; draft: number; in_transit: number; completed: number }>;

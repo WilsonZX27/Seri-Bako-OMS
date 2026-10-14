@@ -1,0 +1,12 @@
+{
+  "before": {
+    "remarks": "Synthetic atomic baseline",
+    "lines": 1
+  },
+  "after": {
+    "remarks": "Synthetic intermediate write failure",
+    "lines": 0
+  },
+  "status": 500,
+  "injectedFailure": "recipe_lines BEFORE INSERT after committed header UPDATE and DELETE"
+}

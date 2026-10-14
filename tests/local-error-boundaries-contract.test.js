@@ -9,7 +9,7 @@ test("record detail errors distinguish missing records from failed verification"
   assert.match(shared, /Cannot coerce the result to a single JSON object/);
   assert.match(shared, /Do not assume it was removed or changed/);
   assert.match(shared, /Reference: \$\{error\.digest\}/);
-  assert.match(shared, /!missingRecord \? <Button[^>]*onClick=\{reset\}>Retry/);
+  assert.match(shared, /!missingRecord \? <Button[^>]*onClick=\{\(\) => window\.location\.reload\(\)\}>Retry/);
   assert.match(shared, /Back to \{collectionLabel\}/);
   assert.equal((shared.match(/min-h-11 xl:min-h-9/g) ?? []).length, 2);
 });

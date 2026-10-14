@@ -10,6 +10,7 @@ export type PeopleWorkbookDay = {
   punches?: string[];
   workedSeconds?: number | null;
   overtimeSeconds?: number | null;
+  pendingOvertimeSeconds?: number | null;
   shortHoursSeconds?: number | null;
   pphSeconds?: number | null;
 };
@@ -99,25 +100,25 @@ function sheetXml(sheet: PeopleWorkbookSheet) {
   // Attendance exports must not disclose passport/identity numbers.
   body.push(row(3, ["I/C | Passport:", null, null, null, "Staff code:", sheet.staffCode ?? "", null, null, "Employment:", (sheet.employmentType ?? "").replaceAll("_", " ").toUpperCase(), null, null, null, null, null, null], 1, 18, {12:10}));
   body.push(row(4, [], 10, 28));
-  body.push(row(5, ["Date", "Day", "WORKING TIME", null, "INFO AS PER FINGERPRINT PUNCH", null, null, null, "Total Working", "OVERTIME", "Short Hours", "PPH\n(Triple Pay)", "Outstanding\nExceptions", "Normal /\nEvents", "Meal\nAllowance", "Remarks"], 12, 27, {12:13}));
+  body.push(row(5, ["Date", "Day", "WORKING TIME", null, "INFO AS PER FINGERPRINT PUNCH", null, null, null, "Total Working", "Approved OT", "Short Hours", "PPH\n(Triple Pay)", "Outstanding\nExceptions", "Normal /\nEvents", "Meal\nAllowance", "Remarks"], 12, 27, {12:13}));
   body.push(row(6, [null, null, "AM In", "PM Out", "Time In", "Time Out", "Time In", "Time Out", null, null, null, null, null, null, null, null], 3, 27, {12:13}));
   body.push(row(7, empty, 16, 17, {12:4}));
   const numericRows: Array<Array<number | null>> = [];
   dates.forEach((iso, index) => {
     const day = byDate.get(iso), r = index + 8;
     const punches = (day?.punches ?? []).map(clock);
-    const issues = [day?.exceptions, !day && "No source record", punches.length > 4 && "See remarks"].filter(Boolean).join("; ");
+    const issues = [day?.pendingOvertimeSeconds ? `OT pending People approval: ${Math.floor(day.pendingOvertimeSeconds / 60)} min (not approved)` : null, day?.exceptions, !day && "No source record", punches.length > 4 && "See remarks"].filter(Boolean).join("; ");
     // These are the reviewed OMS results, not a guessed pay/rounding policy.
     // Formula summaries below reference these editable, typed duration inputs.
     const worked = duration(day?.workedSeconds), ot = duration(day?.overtimeSeconds), short = duration(day?.shortHoursSeconds);
-    const complete = punches.length === 2 || punches.length === 4;
+    const complete = punches.length === 4;
     const span = (a: number, b: number) => (b - a + 1) % 1;
-    const interval = complete && punches.every(value => value != null) ? span(punches[0]!, punches[1]!) + (punches.length === 4 ? span(punches[2]!, punches[3]!) : 0) : null;
+    const interval = complete && punches.every(value => value != null) ? span(punches[0]!, punches[1]!) + span(punches[2]!, punches[3]!) : null;
     // Use the punch formula only when its cached result matches the existing
-    // reviewed export policy. Adjusted/inferred durations remain source inputs.
+    // reviewed four-punch evidence. Incomplete evidence stays blank.
     const matchesSource = worked != null && interval != null && Math.abs(worked - interval) < 1e-9 && interval <= span(punches[0]!, punches.at(-1)!) + 1e-9;
-    const punchFormula = `IF(COUNT(E${r}:H${r})=4,IF(MOD(F${r}-E${r},1)+MOD(H${r}-G${r},1)<=MOD(H${r}-E${r},1)+0.000000001,MOD(F${r}-E${r},1)+MOD(H${r}-G${r},1),""),IF(AND(COUNT(E${r}:F${r})=2,COUNT(G${r}:H${r})=0),MOD(F${r}-E${r},1),""))`;
-    const totalWorking: Value = matchesSource ? {formula:punchFormula,value:worked} : worked;
+    const punchFormula = `IF(COUNT(E${r}:H${r})=4,IF(AND(MOD(F${r}-E${r},1)>0,MOD(G${r}-F${r},1)>0,MOD(H${r}-G${r},1)>0,MOD(F${r}-E${r},1)+MOD(G${r}-F${r},1)+MOD(H${r}-G${r},1)<=MOD(H${r}-E${r},1)+0.000000001),MOD(F${r}-E${r},1)+MOD(H${r}-G${r},1),""),"")`;
+    const totalWorking: Value = matchesSource ? {formula:punchFormula,value:worked} : null;
     const values: Value[] = [serial(iso), new Intl.DateTimeFormat("en-MY", { weekday: "short", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`)), day?.off ? "OFF" : clock(day?.scheduleStart), day?.off ? null : clock(day?.scheduleEnd), ...Array.from({ length: 4 }, (_, i) => punches[i] ?? null), totalWorking, ot, short, null, issues, day?.event ?? (day?.off ? "OFF" : ""), null, punches.length > 4 ? `All punches: ${(day?.punches ?? []).join(", ")}` : ""];
     numericRows.push([ot, short, null]);
     body.push(row(r, values, 16, Math.max(17, Math.ceil(issues.length / 14) * 14, punches.length > 4 ? 48 : 0), {0:5,2:day?.off?16:6,3:6,4:6,5:6,6:6,7:6,8:7,9:7,10:7,11:7,12:4}));

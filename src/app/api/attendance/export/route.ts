@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { looseSupabase } from "@/lib/supabase/loose";
 import { hasPermission } from "@/server/auth/permissions";
 import { logServerError } from "@/server/observability/logger";
-import { exportPunches, exportWorkedSeconds, exportExceptionLabels } from "@/lib/attendance/export-policy";
+import { exportPunches, exportWorkedSeconds, exportShortHoursSeconds, exportExceptionLabels } from "@/lib/attendance/export-policy";
 import { buildPeopleWorkbook, buildZipArchive, type PeopleWorkbookDay, type PeopleWorkbookSheet } from "@/lib/attendance/people-workbook";
 
 // Role and outlet scope apply equally to draft and final reports. Export never closes a week.
@@ -86,9 +86,10 @@ function sheetDay(date: string, result: Nested, assignment: Nested, outlet: stri
     off: isOffAssignment(assignment),
     punches,
     workedSeconds: result ? exportWorkedSeconds(row) : null,
-    overtimeSeconds: result ? Number(row.overtime_seconds ?? 0) : null,
-    shortHoursSeconds: result ? Number(row.early_leave_seconds ?? 0) : null,
-    pphSeconds: result ? Number(row.holiday_ot_equivalent_seconds ?? row.holiday_normal_equivalent_seconds ?? 0) : null,
+    overtimeSeconds: result && exportWorkedSeconds(row) != null ? Number(row.overtime_seconds ?? 0) : null,
+    shortHoursSeconds: result ? exportShortHoursSeconds(row) : null,
+    pendingOvertimeSeconds: result && exportWorkedSeconds(row) != null ? Math.max(0, Number(row.overtime_candidate_seconds ?? 0) - Number(row.overtime_seconds ?? 0)) : null,
+    pphSeconds: null, // Deferred: total triple pay, never an extra three times.
   };
 }
 

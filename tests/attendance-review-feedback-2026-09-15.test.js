@@ -22,7 +22,7 @@ test("attendance review separates actual OT display from 30-minute claims", () =
   assert.match(review, /RO\\nOT/);
   assert.match(review, /RO \{reservation \?/);
   assert.match(review, /signedDuration\(actualOvertime, "ot"\)/);
-  assert.match(review, /text-\[var\(--sb-success\)\][^>]*>\{candidate >= 1800 \? `\$\{Math\.floor\(candidate \/ 1800\)\} × 00:30`/);
+  assert.match(review, /Pending People approval/);
   assert.doesNotMatch(review, /\{prefix\}\{durationLabel\(seconds\)\} OT/);
   assert.match(review, /seconds > 0 && seconds < 60\) return "<00:01"/);
   assert.doesNotMatch(review, /signedMinuteDuration/);

@@ -28,4 +28,4 @@ test('salary/rates/PPH/allowance/passport and unknown object properties never en
  assert.ok(!xml.includes('xl/theme/'));assert.match(cell(xml,'L8'),/\/>$/);assert.match(cell(xml,'O8'),/\/>$/);
 });
 
-test('reviewed adjustments remain explicit inputs rather than fake or invented formulas',()=>{ const xml=sheet([{...day,workedSeconds:25000}]);assert.doesNotMatch(cell(xml,'I8'),/<f>/);assert.ok(Math.abs(cached(xml,'I8')-25000/86400)<1e-10); });
+test('work totals that conflict with four-punch evidence stay blank pending review',()=>{ const xml=sheet([{...day,workedSeconds:25000}]);assert.match(cell(xml,'I8'),/\/>$/); });

@@ -13,7 +13,7 @@ export type AttendanceShift = {
 };
 export type AttendanceException =
   | "Odd Punch Count" | "Missing Break Punch" | "Short Break" | "Wrong Branch/Device"
-  | "Missing Check In" | "Missing Check Out" | "Unapproved Pre-shift Time" | "Unapproved Post-shift Time";
+  | "Duplicate Punch" | "Unexpected Punch Count" | "Missing Check In" | "Missing Check Out" | "Unapproved Pre-shift Time" | "Unapproved Post-shift Time";
 
 const secondsBetween = (start: Date, end: Date) => Math.max(0, Math.floor((end.getTime() - start.getTime()) / 1000));
 
@@ -21,11 +21,12 @@ export function pairPunches(events: PunchEvent[]) {
   const ordered = [...events].sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime());
   const intervals: Array<{ start: PunchEvent; end: PunchEvent }> = [];
   const exceptions: AttendanceException[] = [];
+  if (ordered.some((event, index) => index > 0 && event.occurredAt.getTime() === ordered[index - 1].occurredAt.getTime())) exceptions.push("Duplicate Punch");
   if (ordered.length % 2) exceptions.push("Odd Punch Count");
   for (let index = 0; index + 1 < ordered.length; index += 2) {
     const start = ordered[index];
     const end = ordered[index + 1];
-    if ((start.type && start.type !== "in") || (end.type && end.type !== "out")) {
+    if (end.occurredAt <= start.occurredAt || (start.type && start.type !== "in") || (end.type && end.type !== "out")) {
       if (!exceptions.includes("Odd Punch Count")) exceptions.push("Odd Punch Count");
       continue;
     }
@@ -52,10 +53,10 @@ export function calculateAttendance(shift: AttendanceShift, events: PunchEvent[]
   const employmentType = shift.employmentType ?? "full_time";
   const scheduleSpanSeconds = secondsBetween(shift.scheduledStart, shift.scheduledEnd);
   const shiftClass = employmentType === "full_time" && scheduleSpanSeconds > 9.5 * 3600 ? "full_day" : "morning_afternoon";
-  // Part-time staff record one work interval (IN → OUT). Break punches are
-  // not required by the payroll policy, regardless of scheduled span.
-  const requiredBreakCount = employmentType === "full_time" ? (shiftClass === "full_day" ? 2 : 1) : 0;
-  const expectedPunchCount = 2 + requiredBreakCount * 2;
+  // Confirmed four-punch contract: in, break out, break in, out.
+  const requiredBreakCount = 1;
+  const expectedPunchCount = 4;
+  if (ordered.length > expectedPunchCount) exceptions.push("Unexpected Punch Count");
   const breakDurations = intervals.slice(1).map((interval, index) => secondsBetween(intervals[index].end.occurredAt, interval.start.occurredAt));
   if (breakDurations.length < requiredBreakCount) exceptions.push("Missing Break Punch");
   const minimumBreakSeconds = employmentType === "full_time" ? 3600 : 1800;
@@ -68,7 +69,7 @@ export function calculateAttendance(shift: AttendanceShift, events: PunchEvent[]
   const earlyLeaveSeconds = last ? secondsBetween(last, shift.scheduledEnd) : 0;
   const preShiftSeconds = first ? secondsBetween(first, shift.scheduledStart) : 0;
   const postShiftSeconds = last ? secondsBetween(shift.scheduledEnd, last) : 0;
-  const completePunches = ordered.length >= 2 && ordered.length % 2 === 0 && intervals.length * 2 === ordered.length;
+  const completePunches = ordered.length === expectedPunchCount && intervals.length === 2 && !exceptions.includes("Duplicate Punch");
   const normalCapSeconds = employmentType === "full_time" ? (shiftClass === "full_day" ? 34200 : 30600) : Math.min(shift.maximumRecognisedSeconds, scheduleSpanSeconds);
   const payableSeconds = !completePunches ? null : employmentType === "full_time" ? normalCapSeconds : Math.floor(rawWorkSeconds / 1800) * 1800;
   const postScheduleWorkedSeconds = completePunches ? intervals.reduce((total, interval) => {
@@ -76,7 +77,7 @@ export function calculateAttendance(shift: AttendanceShift, events: PunchEvent[]
     return total + secondsBetween(start, interval.end.occurredAt);
   }, 0) : 0;
   const overtimeCandidateSeconds = employmentType === "full_time" ? Math.floor(postScheduleWorkedSeconds / 1800) * 1800 : 0;
-  const overtimeSeconds = Math.min(overtimeCandidateSeconds, Math.max(0, shift.approvedOvertimeSeconds ?? 0));
+  const overtimeSeconds = Math.min(overtimeCandidateSeconds, Math.floor(Math.max(0, shift.approvedOvertimeSeconds ?? 0) / 1800) * 1800);
   const normalPayableSeconds = payableSeconds == null
     ? null
     : employmentType === "part_time"
@@ -90,8 +91,8 @@ export function calculateAttendance(shift: AttendanceShift, events: PunchEvent[]
     scheduledWorkedSeconds,
     presenceSeconds: completePunches && first && last ? secondsBetween(first, last) : null,
     workedSeconds: completePunches ? rawWorkSeconds : null,
-    unpaidBreakSeconds: employmentType === "part_time" ? breakSeconds : 0,
-    paidBreakSeconds: employmentType === "full_time" ? (completePunches ? requiredBreakCount * 3600 : null) : 0,
+    unpaidBreakSeconds: completePunches ? breakSeconds : null,
+    paidBreakSeconds: completePunches ? 0 : null,
     payableSeconds: normalPayableSeconds,
     overtimeSeconds,
     overtimeCandidateSeconds,
@@ -99,6 +100,8 @@ export function calculateAttendance(shift: AttendanceShift, events: PunchEvent[]
     breakSeconds,
     lateSeconds,
     earlyLeaveSeconds,
+    shortHoursSeconds: completePunches ? Math.min(scheduleSpanSeconds, lateSeconds + earlyLeaveSeconds) : null,
+    pendingOvertimeSeconds: Math.max(0, overtimeCandidateSeconds - overtimeSeconds),
     preShiftSeconds,
     postShiftSeconds,
     employmentType,
@@ -108,8 +111,8 @@ export function calculateAttendance(shift: AttendanceShift, events: PunchEvent[]
     actualPunchCount: ordered.length,
     missingPunchCount: Math.max(0, expectedPunchCount - ordered.length),
     breakDurations,
-    holidayNormalEquivalentSeconds: normalPayableSeconds == null || shift.holidayNormalMultiplier == null ? null : normalPayableSeconds * shift.holidayNormalMultiplier,
-    holidayOtEquivalentSeconds: shift.holidayOtMultiplier == null ? null : overtimeSeconds * shift.holidayOtMultiplier,
+    holidayNormalEquivalentSeconds: null,
+    holidayOtEquivalentSeconds: null,
     exceptions: [...new Set(exceptions)],
   };
 }

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-export default function WorkspaceError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function WorkspaceError({ error }: { error: Error & { digest?: string }; reset: () => void }) {
   const missingRecord = /Cannot coerce the result to a single JSON object/i.test(error.message);
   return (
     <div className="p-3 sm:p-5">
@@ -16,7 +16,7 @@ export default function WorkspaceError({ error, reset }: { error: Error & { dige
             {error.digest ? <p className="mt-2 text-xs text-muted-foreground">Reference: {error.digest}</p> : null}
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button type="button" size="sm" className="min-h-11 xl:min-h-9" onClick={reset}>Retry</Button>
+            <Button type="button" size="sm" className="min-h-11 xl:min-h-9" onClick={() => window.location.reload()}>Retry</Button>
             <Button type="button" size="sm" className="min-h-11 xl:min-h-9" variant="outline" onClick={() => window.history.back()}>Return to previous page</Button>
             <Button asChild size="sm" className="min-h-11 xl:min-h-9" variant="outline"><Link href="/dashboard">Dashboard</Link></Button>
           </div>

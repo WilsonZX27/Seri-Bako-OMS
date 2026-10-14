@@ -29,6 +29,7 @@ import { Button } from "@/components/ui/button";
 import { TableScrollRegion } from "@/components/ui/table-scroll-region";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { exportShortHoursSeconds } from "@/lib/attendance/export-policy";
 import { durationLabel } from "@/lib/attendance/calculation";
 import { formatAttendanceTime } from "@/lib/attendance/time";
 import { getPermissionMap } from "@/server/auth/permissions";
@@ -80,15 +81,14 @@ function signedDuration(value: unknown, tone: "late" | "earlyLeave" | "ot") {
   return <span className={`mt-0.5 block text-[11px] font-medium tabular-nums ${className}`}>{prefix}{durationLabel(seconds)}{label ? ` ${label}` : ""}</span>;
 }
 function primaryStatus(row: Row) {
-  const staff = row.staffs as { employment_type?: string } | null;
   const values = Array.isArray(row.statuses)
-    ? row.statuses.map(String).filter((value) => value !== "public_holiday" && !(staff?.employment_type === "part_time" && ["missing_break_punch", "short_break"].includes(value)))
+    ? row.statuses.map(String).filter((value) => value !== "public_holiday")
     : [];
   return values.find(value=>value!=="unpaid_leave") ?? (values.includes("unpaid_leave") ? "unpaid_leave" : undefined) ?? (row.holiday_id ? "public_holiday" : "normal");
 }
-function expectedPunchesFor(row: Row, staff: { employment_type?: string } | null) {
+function expectedPunchesFor(row: Row) {
   if (Array.isArray(row.statuses) && row.statuses.includes("unpaid_leave")) return 0;
-  return staff?.employment_type === "part_time" ? 2 : Number(row.expected_punch_count ?? 0);
+  return 4;
 }
 const BLOCKING_ATTENDANCE_STATUSES = new Set([
   "missing_punches",
@@ -96,6 +96,9 @@ const BLOCKING_ATTENDANCE_STATUSES = new Set([
   "missing_check_out",
   "odd_punch_count",
   "impossible_ordering",
+  "duplicate_punch",
+  "unexpected_punch_count",
+  "missing_break_punch",
   "unpaid_leave_punch_conflict",
 ]);
 function pageHref(params: Record<string, string | undefined>, page: number) {
@@ -417,7 +420,7 @@ export default async function AttendanceReviewPage({
                 {rows.map((row, index) => {
                   const { staff, candidate, actualOvertime, claim, reservation } = rowContext(row);
                   const actualPunches = Number(row.actual_punch_count ?? 0);
-                  const expectedPunches = expectedPunchesFor(row, staff);
+                  const expectedPunches = expectedPunchesFor(row);
                   const missingPunches = Math.max(0, expectedPunches - actualPunches);
                   const newDay =
                     index === 0 ||
@@ -473,7 +476,8 @@ export default async function AttendanceReviewPage({
                         </td>
                         <td className="px-3 py-3 tabular-nums">
                           <span className="block text-[11px] text-muted-foreground">RO {reservation ? `${Math.floor(Number(reservation.final_used_minutes??reservation.reserved_minutes) / 30)} × 30m` : "—"}</span>
-                          <strong className="block text-[var(--sb-success)]">{candidate >= 1800 ? `${Math.floor(candidate / 1800)} × 00:30` : "—"}</strong>
+                          <span className="block text-[11px]">Approved OT / RO credit: {duration(row.overtime_seconds)}</span>
+                          {candidate > Number(row.overtime_seconds ?? 0) ? <strong className="mt-1 block rounded bg-[var(--sb-warning-bg)] px-1 text-[11px] text-[var(--sb-warning)]">Pending People approval: {duration(candidate - Number(row.overtime_seconds ?? 0))}</strong> : null}
                         </td>
                         <td className="px-3 py-3">
                           <RowActions
@@ -497,7 +501,7 @@ export default async function AttendanceReviewPage({
             {rows.map((row, index) => {
               const { staff, candidate, actualOvertime, claim, reservation, status } = rowContext(row);
               const actualPunches = Number(row.actual_punch_count ?? 0);
-              const expectedPunches = expectedPunchesFor(row, staff);
+              const expectedPunches = expectedPunchesFor(row);
               const missingPunches = Math.max(0, expectedPunches - actualPunches);
               const newDay =
                 index === 0 ||
@@ -567,10 +571,13 @@ export default async function AttendanceReviewPage({
                       ) : null}
                       {actualOvertime > 0 ? (
                         <div>
-                          <dt className="text-muted-foreground">Actual OT</dt>
+                          <dt className="text-muted-foreground">After shift (unapproved)</dt>
                           <dd>{minuteDuration(actualOvertime)}</dd>
                         </div>
                       ) : null}
+                      <div><dt className="text-muted-foreground">Approved OT / RO credit</dt><dd>{duration(row.overtime_seconds)}</dd></div>
+                      {candidate > Number(row.overtime_seconds ?? 0) ? <div className="rounded bg-[var(--sb-warning-bg)] p-2"><dt>Pending People approval</dt><dd>{duration(candidate - Number(row.overtime_seconds ?? 0))}</dd></div> : null}
+                      <div><dt className="text-muted-foreground">Short hours · late + early leave</dt><dd>{exportShortHoursSeconds(row) == null ? "Needs punch review" : duration(exportShortHoursSeconds(row))}</dd></div>
                       {reservation ? <div><dt className="text-muted-foreground">RO</dt><dd>{reservation.final_used_minutes??reservation.reserved_minutes} min · <span className="capitalize">{reservation.status??"reserved"}</span></dd></div>:null}
                     </dl>
                     <div className="mt-3">

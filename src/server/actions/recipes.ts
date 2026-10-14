@@ -152,8 +152,15 @@ export async function createRecipe(formData: FormData) {
   await requirePermission("recipes.create");
   formData.set("recipe_no", `RCP-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}-${crypto.randomUUID().slice(0, 6).toUpperCase()}`);
   formData.set("version", "1");
-  const parsed = parseRecipeForm(formData);
-  const supabase = await assertRecipeReferencesExist(parsed);
+  let parsed: RecipeInput;
+  let supabase: Awaited<ReturnType<typeof assertRecipeReferencesExist>>;
+  try {
+    parsed = parseRecipeForm(formData);
+    supabase = await assertRecipeReferencesExist(parsed);
+  } catch (error) {
+    rethrowRedirect(error);
+    return { error: error instanceof z.ZodError ? error.issues[0]?.message ?? "Check the recipe fields." : "Could not validate the product and ingredients. Check your selections and retry." };
+  }
 
   if (isMockMode()) redirect("/recipes/recipe-butter-croissant-v2-draft");
   if (!supabase) throw new Error("Supabase client is not available");
@@ -198,8 +205,15 @@ export async function createRecipe(formData: FormData) {
 
 export async function updateRecipe(id: string, formData: FormData) {
   await requirePermission("recipes.update");
-  const parsed = parseRecipeForm(formData);
-  const supabase = await assertRecipeReferencesExist(parsed);
+  let parsed: RecipeInput;
+  let supabase: Awaited<ReturnType<typeof assertRecipeReferencesExist>>;
+  try {
+    parsed = parseRecipeForm(formData);
+    supabase = await assertRecipeReferencesExist(parsed);
+  } catch (error) {
+    rethrowRedirect(error);
+    return { error: error instanceof z.ZodError ? error.issues[0]?.message ?? "Check the recipe fields." : "Could not validate the product and ingredients. Check your selections and retry." };
+  }
 
   if (isMockMode()) redirect(`/recipes/${id}`);
   const recipeId = parseRecipeId(id);

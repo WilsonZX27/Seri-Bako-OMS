@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Calculator, Plus, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -43,7 +43,7 @@ type RecipeFormProps = {
   recipe?: RecipeDetail;
   products: ProductOption[];
   items: RecipeIngredientOption[];
-  action: (formData: FormData) => Promise<void>;
+  action: (formData: FormData) => Promise<void | { error: string }>;
   formId?: string;
   showSubmit?: boolean;
 };
@@ -78,6 +78,9 @@ function itemFallback(label: string) {
 }
 
 export function RecipeForm({ recipe, products, items, action, formId, showSubmit = true }: RecipeFormProps) {
+  const [result, submitAction] = useActionState<{ error?: string }, FormData>(async (_previous: { error?: string }, data: FormData) => (await action(data)) ?? {}, {});
+  const [effectiveDate, setEffectiveDate] = useState(recipe?.effective_date ?? getToday());
+  const [remarks, setRemarks] = useState(recipe?.remarks ?? "");
   const itemById = useMemo(() => new Map(items.map((item) => [item.id, item])), [items]);
   const itemBySearch = useMemo(() => new Map(items.map((item) => [buildItemSearch(item), item])), [items]);
   const productById = useMemo(() => new Map(products.map((product) => [product.id, product])), [products]);
@@ -146,7 +149,8 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
   }
 
   return (
-    <form id={formId} action={action} className="space-y-3 md:space-y-5">
+    <form id={formId} action={submitAction} className="space-y-3 md:space-y-5">
+      {result.error ? <p role="alert" className="rounded-lg border border-warning/30 bg-warning/10 p-3 text-sm">{result.error}</p> : null}
       <input
         type="hidden"
         name="lines_json"
@@ -199,11 +203,11 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
             </SelectNative>
           </Field>
           <Field label="Effective Date">
-            <Input name="effective_date" type="date" defaultValue={recipe?.effective_date ?? getToday()} required />
+            <Input name="effective_date" type="date" value={effectiveDate} onChange={event => setEffectiveDate(event.target.value)} required />
           </Field>
           <div className="col-span-2 md:col-span-3">
             <Field label="Remarks">
-              <Textarea name="remarks" defaultValue={recipe?.remarks ?? ""} />
+              <Textarea name="remarks" value={remarks} onChange={event => setRemarks(event.target.value)} />
             </Field>
           </div>
         </CardContent>

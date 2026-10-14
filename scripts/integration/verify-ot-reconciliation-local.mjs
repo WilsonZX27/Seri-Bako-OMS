@@ -3,6 +3,20 @@ const f=JSON.parse(fs.readFileSync('/tmp/oms-ot-concurrency-fixture.json')),id=k
 const auth=x=>`set local role authenticated;set local request.jwt.claims='{"sub":"${x}","role":"authenticated"}';`;
 const sql=`begin;
 insert into role_permissions(role_id,permission_id) select '${role}',id from permissions where permission_code in ('comp_time.submit','comp_time.approve','comp_time.read') on conflict do nothing;
+savepoint no_ot_permission;
+delete from role_permissions where role_id='${role}' and permission_id in (select id from permissions where permission_code='attendance.ot.approve');
+${auth(b)}
+do $$ begin
+ begin perform public.submit_attendance_ot_reconciliation('${f.claim}','Unauthorized reversal',null);raise exception 'UNEXPECTED_APPROVAL';exception when others then if sqlerrm not like '%People OT approval access%' then raise;end if;end;
+end $$;
+reset role;rollback to savepoint no_ot_permission;
+select set_config('test.foreign_claim',(select id::text from attendance_ot_claims where company_id<>'${f.company}' limit 1),true);
+${auth(b)}
+do $$ begin
+ if nullif(current_setting('test.foreign_claim'),'') is null then raise exception 'Cross-company fixture missing';end if;
+ begin perform public.submit_attendance_ot_reconciliation(current_setting('test.foreign_claim')::uuid,'Cross company attempt',null);raise exception 'UNEXPECTED_APPROVAL';exception when others then if sqlerrm not like '%credited OT claim is required%' then raise;end if;end;
+end $$;
+reset role;
 savepoint used_credit;
 with used as (insert into comp_time_transactions(company_id,staff_id,branch_id,work_date,transaction_kind,minutes,reason,status,submitted_by,decided_by) select company_id,staff_id,branch_id,work_date,'used',-30,'Synthetic prior redemption','approved',submitted_by,decided_by from comp_time_transactions where source_ot_claim_id='${f.claim}' returning id,company_id)
 insert into comp_time_allocations(company_id,used_transaction_id,earned_transaction_id,allocated_minutes) select used.company_id,used.id,t.id,30 from used join comp_time_transactions t on t.source_ot_claim_id='${f.claim}';
@@ -10,13 +24,42 @@ ${auth(b)}
 do $$ begin
  begin perform public.submit_attendance_ot_reconciliation('${f.claim}','Used credit reversal',null);raise exception 'Used credit reversal accepted';exception when others then if sqlerrm not like '%already been used%' then raise;end if;end;
 end $$;
-reset role;rollback to savepoint used_credit;
+reset role;rollback to savepoint no_ot_permission;
+delete from role_permissions where role_id='${role}' and permission_id in (select id from permissions where permission_code='attendance.ot.approve');
+${auth(b)}
+do $$ begin
+ begin perform public.submit_attendance_ot_reconciliation('${f.claim}','Unauthorized reversal',null);raise exception 'UNEXPECTED_APPROVAL';exception when others then if sqlerrm not like '%People OT approval access%' then raise;end if;end;
+end $$;
+reset role;rollback to savepoint no_ot_permission;
+select set_config('test.foreign_claim',(select id::text from attendance_ot_claims where company_id<>'${f.company}' limit 1),true);
+${auth(b)}
+do $$ begin
+ if nullif(current_setting('test.foreign_claim'),'') is null then raise exception 'Cross-company fixture missing';end if;
+ begin perform public.submit_attendance_ot_reconciliation(current_setting('test.foreign_claim')::uuid,'Cross company attempt',null);raise exception 'UNEXPECTED_APPROVAL';exception when others then if sqlerrm not like '%credited OT claim is required%' then raise;end if;end;
+end $$;
+reset role;
+savepoint used_credit;
 ${auth(b)}
 select set_config('test.reversal',(public.submit_attendance_ot_reconciliation('${f.claim}','Synthetic audited reversal',null)).id::text,true);
 do $$ begin
  if (select overtime_seconds from daily_attendance_results where company_id='${f.company}' and work_date='2026-09-13' and is_current)<>3600 then raise exception 'Submitting reversal changed approved hours';end if;
  begin perform public.decide_comp_time_transaction(current_setting('test.reversal')::uuid,'approve',null);raise exception 'Self approval accepted';exception when others then if sqlerrm not like '%submitter cannot approve%' then raise;end if;end;
 end $$;
+reset role;
+savepoint locked_period;
+insert into attendance_period_locks(company_id,branch_id,week_start,locked_by) select company_id,branch_id,date_trunc('week',work_date)::date,submitted_by from comp_time_transactions where id=current_setting('test.reversal')::uuid;
+${auth(a)}
+do $$ begin
+ begin perform public.decide_comp_time_transaction(current_setting('test.reversal')::uuid,'approve',null);raise exception 'Locked period accepted';exception when others then if sqlerrm not like '%period is locked%' then raise;end if;end;
+end $$;
+reset role;rollback to savepoint locked_period;
+savepoint released_payroll;
+update employee_payslips set state='released' where company_id='${f.company}';
+${auth(a)}
+do $$ begin
+ begin perform public.decide_comp_time_transaction(current_setting('test.reversal')::uuid,'approve',null);raise exception 'UNEXPECTED_APPROVAL';exception when others then if lower(sqlerrm) not like '%released%' then raise;end if;end;
+end $$;
+reset role;rollback to savepoint released_payroll;
 ${auth(a)}
 select (public.decide_comp_time_transaction(current_setting('test.reversal')::uuid,'approve','Verified original credit')).status;
 reset role;set constraints all immediate;
@@ -43,4 +86,4 @@ end $$;
 rollback;`;
 const r=spawnSync('docker',['exec','-i','supabase_db_oms-integration-replay-20261014','psql','-U','postgres','-d','postgres','-v','ON_ERROR_STOP=1'],{input:sql,encoding:'utf8'});
 fs.writeFileSync('/tmp/oms-ot-reconciliation-db.log',r.stdout+r.stderr);if(r.status)throw Error(r.stderr);console.log(r.stderr.trim());
-fs.writeFileSync('outputs/qa/component-states/ot-reconciliation.json',JSON.stringify({scope:'local synthetic rollback',checks:['Already-used OT credit reversal is rejected','People fixture permissions match migration 265 (read, submit, approve)','Pending reversal leaves credit unchanged','Self approval rejected','Other People approval reverses exactly 60 minutes','Original earning allocated to reversal and unavailable for RO','Money-only reversal preserves attendance signature','Time correction after reconciliation invalidates signature','Corrected 30-minute OT claim produces net RO 30 minutes','Repeated original reversal rejected'],rollback:true},null,2));
+fs.writeFileSync('outputs/qa/component-states/ot-reconciliation.json',JSON.stringify({scope:'local synthetic rollback',checks:['Missing OT permission rejected','Cross-company claim rejected','Locked period reversal rejected','Released payroll reversal rejected','Already-used OT credit reversal is rejected','People fixture permissions match migration 265 (read, submit, approve)','Pending reversal leaves credit unchanged','Self approval rejected','Other People approval reverses exactly 60 minutes','Original earning allocated to reversal and unavailable for RO','Money-only reversal preserves attendance signature','Time correction after reconciliation invalidates signature','Corrected 30-minute OT claim produces net RO 30 minutes','Repeated original reversal rejected'],rollback:true},null,2));

@@ -27,6 +27,7 @@ begin
   if not public.has_permission('attendance.ot.approve') then raise exception 'People OT approval access is required.'; end if;
   select * into claim from public.attendance_ot_claims where id=entry.reverses_ot_claim_id and company_id=entry.company_id for update;
   if p_decision='approve' then
+   if public.attendance_payroll_locked(claim.company_id,claim.staff_id,claim.work_date) then raise exception 'Released payroll is locked; use an explicitly approved correction process.'; end if;
    if claim.status<>'credited' or entry.minutes<>-claim.decided_minutes or entry.staff_id<>claim.staff_id then raise exception 'OT reconciliation no longer matches its credit.'; end if;
    if not public.can_access_company_branch(claim.company_id,claim.branch_id) then raise exception 'Outlet is not available.'; end if;
    if exists(select 1 from public.attendance_period_locks where company_id=claim.company_id and week_start=date_trunc('week',claim.work_date)::date and unlocked_at is null and (branch_id is null or branch_id=claim.branch_id)) then raise exception 'Attendance period is locked.'; end if;

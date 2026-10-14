@@ -1,0 +1,436 @@
+{
+  "results": [
+    {
+      "width": 320,
+      "family": "recipe-costing",
+      "passed": true,
+      "drillThrough": "/reports/recipe-costing?search=QA-COST-bd5377&status=active&confidence=low"
+    },
+    {
+      "width": 320,
+      "family": "product-margin",
+      "passed": true,
+      "drillThrough": "/reports/product-margin?search=QA-COST-bd5377&status=missing_recipe"
+    },
+    {
+      "width": 320,
+      "family": "costing-readiness",
+      "passed": true,
+      "drillThrough": "/reports/costing-readiness?module=product&severity=critical"
+    },
+    {
+      "width": 720,
+      "family": "recipe-costing",
+      "passed": true,
+      "drillThrough": "/reports/recipe-costing?search=QA-COST-bd5377&status=active&confidence=low"
+    },
+    {
+      "width": 720,
+      "family": "product-margin",
+      "passed": true,
+      "drillThrough": "/reports/product-margin?search=QA-COST-bd5377&status=missing_recipe"
+    },
+    {
+      "width": 720,
+      "family": "costing-readiness",
+      "passed": true,
+      "drillThrough": "/reports/costing-readiness?module=product&severity=critical"
+    },
+    {
+      "width": 1440,
+      "family": "recipe-costing",
+      "passed": true,
+      "drillThrough": "/reports/recipe-costing?search=QA-COST-bd5377&status=active&confidence=low"
+    },
+    {
+      "width": 1440,
+      "family": "product-margin",
+      "passed": true,
+      "drillThrough": "/reports/product-margin?search=QA-COST-bd5377&status=missing_recipe"
+    },
+    {
+      "width": 1440,
+      "family": "costing-readiness",
+      "passed": true,
+      "drillThrough": "/reports/costing-readiness?module=product&severity=critical"
+    },
+    {
+      "family": "recipe-costing",
+      "state": "empty",
+      "width": 320,
+      "passed": true
+    },
+    {
+      "family": "product-margin",
+      "state": "empty",
+      "width": 320,
+      "passed": true
+    },
+    {
+      "family": "costing-readiness",
+      "state": "empty",
+      "width": 320,
+      "passed": true
+    }
+  ],
+  "transforms": {
+    "recipe": [
+      {
+        "id": "68d58064-e34f-4f75-87b8-014ddac7c313",
+        "product_id": "18898e0c-bc35-4cd3-9173-9fca590736bf",
+        "recipe_no": "QA-COST-bd5377-R1",
+        "recipe_name": "QA-COST-bd5377 Product 1",
+        "status": "active",
+        "ingredient_line_count": 1,
+        "missing_cost_count": 0,
+        "uom_mismatch_count": 0,
+        "total_ingredient_cost": 8,
+        "output_qty": 4,
+        "output_uom": "PCS",
+        "cost_per_output_unit": 2,
+        "confidence": "High",
+        "warning": null,
+        "action": null
+      },
+      {
+        "id": "e7ee9f23-5ca0-47bf-a2cc-84981dbdd817",
+        "product_id": "77559b47-857a-40f9-a103-d85e1c2e94c2",
+        "recipe_no": "QA-COST-bd5377-R2",
+        "recipe_name": "QA-COST-bd5377 Product 2",
+        "status": "active",
+        "ingredient_line_count": 1,
+        "missing_cost_count": 0,
+        "uom_mismatch_count": 0,
+        "total_ingredient_cost": 12,
+        "output_qty": 4,
+        "output_uom": "PCS",
+        "cost_per_output_unit": 3,
+        "confidence": "High",
+        "warning": null,
+        "action": null
+      },
+      {
+        "id": "a6d589a6-5382-49da-8082-916a10e482a2",
+        "product_id": "c46da697-913e-4c33-afaf-9bb53e303001",
+        "recipe_no": "QA-COST-bd5377-R3",
+        "recipe_name": "QA-COST-bd5377 Product 3",
+        "status": "active",
+        "ingredient_line_count": 1,
+        "missing_cost_count": 0,
+        "uom_mismatch_count": 0,
+        "total_ingredient_cost": 16,
+        "output_qty": 4,
+        "output_uom": "PCS",
+        "cost_per_output_unit": 4,
+        "confidence": "High",
+        "warning": null,
+        "action": null
+      },
+      {
+        "id": "642e55c8-514d-490f-adcc-28416b7658ff",
+        "product_id": "23b962ad-164b-421e-b23b-f4df1e0cf8a3",
+        "recipe_no": "QA-COST-bd5377-R4",
+        "recipe_name": "QA-COST-bd5377 Product 4",
+        "status": "active",
+        "ingredient_line_count": 1,
+        "missing_cost_count": 0,
+        "uom_mismatch_count": 0,
+        "total_ingredient_cost": 20,
+        "output_qty": 4,
+        "output_uom": "PCS",
+        "cost_per_output_unit": 5,
+        "confidence": "High",
+        "warning": null,
+        "action": null
+      },
+      {
+        "id": "a7ad04a3-218c-4381-a3fa-55a5905cdcbe",
+        "product_id": "a6923060-8cde-454e-a864-eeace5fd8f7d",
+        "recipe_no": "QA-COST-bd5377-R5",
+        "recipe_name": "QA-COST-bd5377 Product 5",
+        "status": "active",
+        "ingredient_line_count": 1,
+        "missing_cost_count": 0,
+        "uom_mismatch_count": 0,
+        "total_ingredient_cost": 24,
+        "output_qty": 4,
+        "output_uom": "PCS",
+        "cost_per_output_unit": 6,
+        "confidence": "High",
+        "warning": null,
+        "action": null
+      },
+      {
+        "id": "29059fe0-60d4-4b65-875e-2efd03b328bb",
+        "product_id": "ad7421a9-df5e-4e02-907b-ef89ff52be53",
+        "recipe_no": "QA-COST-bd5377-R6",
+        "recipe_name": "QA-COST-bd5377 Product 6",
+        "status": "active",
+        "ingredient_line_count": 1,
+        "missing_cost_count": 0,
+        "uom_mismatch_count": 0,
+        "total_ingredient_cost": 28,
+        "output_qty": 4,
+        "output_uom": "PCS",
+        "cost_per_output_unit": 7,
+        "confidence": "High",
+        "warning": null,
+        "action": null
+      },
+      {
+        "id": "b0b81f4f-b45a-4cc4-ac0c-d12d51efa8f1",
+        "product_id": "7956286c-2fc1-4725-9cca-abf4d2a35eba",
+        "recipe_no": "QA-COST-bd5377-R7",
+        "recipe_name": "QA-COST-bd5377 Product 7",
+        "status": "active",
+        "ingredient_line_count": 1,
+        "missing_cost_count": 0,
+        "uom_mismatch_count": 0,
+        "total_ingredient_cost": 32,
+        "output_qty": 4,
+        "output_uom": "PCS",
+        "cost_per_output_unit": 8,
+        "confidence": "Medium",
+        "warning": "Recipe is not approved.",
+        "action": null
+      },
+      {
+        "id": "8e5b0996-5499-4931-95c1-7f8ad17662ad",
+        "product_id": "5b5f3420-ee5c-41fb-b3f2-888b3acc05a2",
+        "recipe_no": "QA-COST-bd5377-R8",
+        "recipe_name": "QA-COST-bd5377 Product 8",
+        "status": "active",
+        "ingredient_line_count": 1,
+        "missing_cost_count": 1,
+        "uom_mismatch_count": 0,
+        "total_ingredient_cost": null,
+        "output_qty": 4,
+        "output_uom": "PCS",
+        "cost_per_output_unit": null,
+        "confidence": "Low",
+        "warning": "Missing usable item cost.",
+        "action": "Add item cost"
+      },
+      {
+        "id": "cacc6fb8-a1c5-4e37-9d74-a189cd46e188",
+        "product_id": "9cfdbab0-107e-4cee-8337-0847fb14890f",
+        "recipe_no": "QA-COST-bd5377-R9",
+        "recipe_name": "QA-COST-bd5377 Product 9",
+        "status": "active",
+        "ingredient_line_count": 1,
+        "missing_cost_count": 0,
+        "uom_mismatch_count": 0,
+        "total_ingredient_cost": 40,
+        "output_qty": 4,
+        "output_uom": "PCS",
+        "cost_per_output_unit": 10,
+        "confidence": "High",
+        "warning": null,
+        "action": null
+      },
+      {
+        "id": "0214bb62-e940-42ca-b166-13d83427fb1b",
+        "product_id": "94976fc6-b8a0-4247-b006-c9868c4e4cff",
+        "recipe_no": "QA-COST-bd5377-R0",
+        "recipe_name": "QA-COST-bd5377 Long product name demonstrating complete keyboard preview and mobile wrapping Long product name demonstrating complete keyboard preview and mobile wrapping Long product name demonstrating complete keyboard preview and mobile wrapping ",
+        "status": "active",
+        "ingredient_line_count": 1,
+        "missing_cost_count": 0,
+        "uom_mismatch_count": 0,
+        "total_ingredient_cost": 124,
+        "output_qty": 4,
+        "output_uom": "PCS",
+        "cost_per_output_unit": 31,
+        "confidence": "High",
+        "warning": null,
+        "action": null
+      }
+    ],
+    "margin": [
+      {
+        "id": "94976fc6-b8a0-4247-b006-c9868c4e4cff",
+        "product_code": "QA-COST-bd5377-0",
+        "product_name": "QA-COST-bd5377 Long product name demonstrating complete keyboard preview and mobile wrapping Long product name demonstrating complete keyboard preview and mobile wrapping Long product name demonstrating complete keyboard preview and mobile wrapping ",
+        "selling_price": 1,
+        "recipe_id": "0214bb62-e940-42ca-b166-13d83427fb1b",
+        "recipe_no": "QA-COST-bd5377-R0",
+        "recipe_confidence": "High",
+        "estimated_product_cost": 31,
+        "gross_margin_amount": -30,
+        "gross_margin_percent": -30,
+        "status": "Ready",
+        "margin_band": "review"
+      },
+      {
+        "id": "18898e0c-bc35-4cd3-9173-9fca590736bf",
+        "product_code": "QA-COST-bd5377-1",
+        "product_name": "QA-COST-bd5377 Product 1",
+        "selling_price": 12,
+        "recipe_id": "68d58064-e34f-4f75-87b8-014ddac7c313",
+        "recipe_no": "QA-COST-bd5377-R1",
+        "recipe_confidence": "High",
+        "estimated_product_cost": 2,
+        "gross_margin_amount": 10,
+        "gross_margin_percent": 0.8333333333333334,
+        "status": "Ready",
+        "margin_band": "healthy"
+      },
+      {
+        "id": "77559b47-857a-40f9-a103-d85e1c2e94c2",
+        "product_code": "QA-COST-bd5377-2",
+        "product_name": "QA-COST-bd5377 Product 2",
+        "selling_price": 13,
+        "recipe_id": "e7ee9f23-5ca0-47bf-a2cc-84981dbdd817",
+        "recipe_no": "QA-COST-bd5377-R2",
+        "recipe_confidence": "High",
+        "estimated_product_cost": 3,
+        "gross_margin_amount": 10,
+        "gross_margin_percent": 0.7692307692307693,
+        "status": "Ready",
+        "margin_band": "healthy"
+      },
+      {
+        "id": "c46da697-913e-4c33-afaf-9bb53e303001",
+        "product_code": "QA-COST-bd5377-3",
+        "product_name": "QA-COST-bd5377 Product 3",
+        "selling_price": 14,
+        "recipe_id": "a6d589a6-5382-49da-8082-916a10e482a2",
+        "recipe_no": "QA-COST-bd5377-R3",
+        "recipe_confidence": "High",
+        "estimated_product_cost": 4,
+        "gross_margin_amount": 10,
+        "gross_margin_percent": 0.7142857142857143,
+        "status": "Ready",
+        "margin_band": "healthy"
+      },
+      {
+        "id": "23b962ad-164b-421e-b23b-f4df1e0cf8a3",
+        "product_code": "QA-COST-bd5377-4",
+        "product_name": "QA-COST-bd5377 Product 4",
+        "selling_price": 15,
+        "recipe_id": "642e55c8-514d-490f-adcc-28416b7658ff",
+        "recipe_no": "QA-COST-bd5377-R4",
+        "recipe_confidence": "High",
+        "estimated_product_cost": 5,
+        "gross_margin_amount": 10,
+        "gross_margin_percent": 0.6666666666666666,
+        "status": "Ready",
+        "margin_band": "healthy"
+      },
+      {
+        "id": "a6923060-8cde-454e-a864-eeace5fd8f7d",
+        "product_code": "QA-COST-bd5377-5",
+        "product_name": "QA-COST-bd5377 Product 5",
+        "selling_price": 16,
+        "recipe_id": "a7ad04a3-218c-4381-a3fa-55a5905cdcbe",
+        "recipe_no": "QA-COST-bd5377-R5",
+        "recipe_confidence": "High",
+        "estimated_product_cost": 6,
+        "gross_margin_amount": 10,
+        "gross_margin_percent": 0.625,
+        "status": "Ready",
+        "margin_band": "healthy"
+      },
+      {
+        "id": "ad7421a9-df5e-4e02-907b-ef89ff52be53",
+        "product_code": "QA-COST-bd5377-6",
+        "product_name": "QA-COST-bd5377 Product 6",
+        "selling_price": 17,
+        "recipe_id": "29059fe0-60d4-4b65-875e-2efd03b328bb",
+        "recipe_no": "QA-COST-bd5377-R6",
+        "recipe_confidence": "High",
+        "estimated_product_cost": 7,
+        "gross_margin_amount": 10,
+        "gross_margin_percent": 0.5882352941176471,
+        "status": "Ready",
+        "margin_band": "healthy"
+      },
+      {
+        "id": "7956286c-2fc1-4725-9cca-abf4d2a35eba",
+        "product_code": "QA-COST-bd5377-7",
+        "product_name": "QA-COST-bd5377 Product 7",
+        "selling_price": 18,
+        "recipe_id": "b0b81f4f-b45a-4cc4-ac0c-d12d51efa8f1",
+        "recipe_no": "QA-COST-bd5377-R7",
+        "recipe_confidence": "Medium",
+        "estimated_product_cost": null,
+        "gross_margin_amount": null,
+        "gross_margin_percent": null,
+        "status": "Cost incomplete",
+        "margin_band": "unavailable"
+      },
+      {
+        "id": "5b5f3420-ee5c-41fb-b3f2-888b3acc05a2",
+        "product_code": "QA-COST-bd5377-8",
+        "product_name": "QA-COST-bd5377 Product 8",
+        "selling_price": 19,
+        "recipe_id": "8e5b0996-5499-4931-95c1-7f8ad17662ad",
+        "recipe_no": "QA-COST-bd5377-R8",
+        "recipe_confidence": "Low",
+        "estimated_product_cost": null,
+        "gross_margin_amount": null,
+        "gross_margin_percent": null,
+        "status": "Cost incomplete",
+        "margin_band": "unavailable"
+      },
+      {
+        "id": "9cfdbab0-107e-4cee-8337-0847fb14890f",
+        "product_code": "QA-COST-bd5377-9",
+        "product_name": "QA-COST-bd5377 Product 9",
+        "selling_price": null,
+        "recipe_id": "cacc6fb8-a1c5-4e37-9d74-a189cd46e188",
+        "recipe_no": "QA-COST-bd5377-R9",
+        "recipe_confidence": "High",
+        "estimated_product_cost": null,
+        "gross_margin_amount": null,
+        "gross_margin_percent": null,
+        "status": "Missing price",
+        "margin_band": "unavailable"
+      },
+      {
+        "id": "732e96d8-6b47-4b34-b3d3-1b282b3e0ad5",
+        "product_code": "QA-COST-bd5377-10",
+        "product_name": "QA-COST-bd5377 Product 10",
+        "selling_price": 21,
+        "recipe_id": null,
+        "recipe_no": null,
+        "recipe_confidence": null,
+        "estimated_product_cost": null,
+        "gross_margin_amount": null,
+        "gross_margin_percent": null,
+        "status": "Missing recipe",
+        "margin_band": "unavailable"
+      }
+    ],
+    "readiness": [
+      {
+        "module": "item",
+        "total": 2,
+        "critical": 2,
+        "warning": 0,
+        "info": 0
+      },
+      {
+        "module": "supplier_item",
+        "total": 0,
+        "critical": 0,
+        "warning": 0,
+        "info": 0
+      },
+      {
+        "module": "recipe",
+        "total": 2,
+        "critical": 2,
+        "warning": 0,
+        "info": 0
+      },
+      {
+        "module": "product",
+        "total": 5,
+        "critical": 5,
+        "warning": 0,
+        "info": 0
+      }
+    ]
+  }
+}

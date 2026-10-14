@@ -713,17 +713,6 @@
       "verified": "12/12 final rebuilt runtime cases: 9 across1440/320/720, 3 loading/error/wholeempty at390; UI/read transport fixture, not SQL aggregation"
     }
   ],
-  "remaining_chart_owner_families": [
-    "outlet-daily-wastage-chart",
-    "reports/demand-ranking-chart + reports/demand-trend-chart",
-    "reports/inventory-daily-movement-chart",
-    "reports/procurement-variance-charts",
-    "reports/production-variance-signal-chart",
-    "reports/costing-readiness-insights",
-    "reports/costing-report-insights",
-    "reports/stock-count-variance-insights"
-  ],
-  "remaining_chart_scope": "Only populated bespoke owner branches, their empty transitions, and data-derived labels not already in parent evidence. Shared InteractiveLineChart keyboard mechanics are verified on named owners above; do not rerun same mechanics per route. This worker has no evidence closing remaining families; reconcile parent report-specific proofs before scheduling.",
   "additional_dialog_batch": {
     "cases": 10,
     "passed": 10,
@@ -740,5 +729,34 @@
     ],
     "unreachable_evidence": "rg across src finds definitions only; current draft menu instead wires StockCountLineRecovery and retirement dialog",
     "limitations": "No business submissions or backend failure claims; exact residual eligibility documented in acceptance supplement."
+  },
+  "conditional_dialog_batch": {
+    "cases": 16,
+    "passed": 16,
+    "evidence": "conditional-dialog-merged.json",
+    "final_grn_evidence": "conditional-grn-final.json",
+    "total_explicit_supplement_cases": 69,
+    "fix": "Native sr-only attachment chooser prevents32px hidden overflow; label/file selection verified",
+    "remaining_scope": "No business-submit server error/reversal/financial effects claimed by read-only dialogs; previously listed seven fixture prerequisite groups now exercised at dialog UI level."
+  },
+  "completed_chart_owner_followup": {
+    "families": [
+      "outlet-daily-wastage-chart",
+      "reports/demand-ranking-chart + reports/demand-trend-chart",
+      "reports/inventory-daily-movement-chart",
+      "reports/procurement-variance-charts",
+      "reports/production-variance-signal-chart",
+      "reports/costing-readiness-insights",
+      "reports/costing-report-insights",
+      "reports/stock-count-variance-insights"
+    ],
+    "cases": 38,
+    "passed": 38,
+    "evidence": [
+      "business-charts/business-chart-states.json",
+      "business-charts/inventory-chart-recovery.json",
+      "costing-charts/costing-chart-browser.json"
+    ],
+    "scope": "26 non-cost and12 cost-family cases close named populated/empty/data-transform followup; not all historical route states."
   }
 }

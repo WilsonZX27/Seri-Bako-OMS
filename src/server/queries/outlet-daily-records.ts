@@ -720,6 +720,7 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
   const productsById = new Map<string, TrendTotals>();
   const outletsById = new Map<string, TrendTotals>();
   const daysByDate = new Map<string, TrendTotals>();
+  const dayRecordIds = new Map<string, Set<string>>();
   const productOutletsByKey = new Map<string, { product_id: string; branch_id: string; totals: TrendTotals; record_ids: Set<string> }>();
   const productRecordIds = new Map<string, Set<string>>();
   const outletRecordIds = new Map<string, Set<string>>();
@@ -742,6 +743,8 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
     addTrendLine(productOutlet.totals, line); productOutlet.record_ids.add(line.record_id); productOutletsByKey.set(productOutletKey, productOutlet);
     const dayTotals = daysByDate.get(record.record_date) ?? emptyTrendTotals();
     addTrendLine(dayTotals, line); daysByDate.set(record.record_date, dayTotals);
+    const dayIds = dayRecordIds.get(record.record_date) ?? new Set<string>();
+    dayIds.add(record.id); dayRecordIds.set(record.record_date, dayIds);
   }
   const expectedDays = Math.round((Date.parse(`${end}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86_400_000 + 1) * (branchId ? 1 : branches.length);
   const completedOutletDays = new Set(reliable.map((record) => `${record.branch_id}:${record.record_date}`)).size;
@@ -770,7 +773,7 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
   }));
   // A zero denominator is not a 0% rate. Keep the record visible in the
   // operational list as "Unavailable", but exclude it from rate trends.
-  const dailyRows = toRows(daysByDate, (id) => id).filter((row) => row.received > 0).sort((left, right) => left.name.localeCompare(right.name));
+  const dailyRows = toRows(daysByDate, (id) => id).map((row) => ({ ...row, completed_records: dayRecordIds.get(row.id)?.size ?? 0 })).filter((row) => row.received > 0).sort((left, right) => left.name.localeCompare(right.name));
   return {
     filters: { period, status, branch: branchId ?? "all", product: productId ?? "all", start, end },
     branches,

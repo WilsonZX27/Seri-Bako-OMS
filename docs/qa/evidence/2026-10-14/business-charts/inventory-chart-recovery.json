@@ -1,0 +1,17 @@
+[
+  {
+    "mode": "empty",
+    "passed": true,
+    "meaning": "Empty RPC distinct from unavailable; reload restores populated data"
+  },
+  {
+    "mode": "error",
+    "passed": true,
+    "meaning": "RPC error recovers via real base-table fallback"
+  },
+  {
+    "mode": "unavailable",
+    "passed": true,
+    "meaning": "RPC and base-table unavailable is explicit; reload restores populated data"
+  }
+]

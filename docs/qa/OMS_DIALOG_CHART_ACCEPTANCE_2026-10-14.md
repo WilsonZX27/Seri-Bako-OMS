@@ -97,7 +97,7 @@ These are real app render/navigation tests with a test-only read transport fixtu
 
 The37 dialog-source records are retained for traceability: six named dialog owners have runtime contract evidence above; `native-dialog` is a shared primitive, not another business content scenario. Other conditional contents are not granted success by sharing ModalShell. The28 fallback source owners are listed once each; generic layout loading/error reuse does not establish route-specific fetch/retry behavior.
 
-Concrete remaining chart owner families without populated runtime evidence from this worker: (1) Outlet Daily wastage, (2) Demand trend/ranking, (3) Inventory movement, (4) Procurement variance, (5) Production variance signal, (6) Costing readiness, (7) Recipe costing/product margin, (8) Stock Count variance. Reconcile main-thread report-specific evidence before scheduling additional work. For these, focus on bespoke data transforms, selected detail/links, empty transitions and data-derived labels; do not repeat shared keyboard mechanics per route. No new universal pass claim is made.
+Historical chart owner families initially lacking populated runtime evidence (now closed by OMS_BUSINESS_CHARTS_2026-10-14.md and OMS_COSTING_CHARTS_2026-10-14.md): (1) Outlet Daily wastage, (2) Demand trend/ranking, (3) Inventory movement, (4) Procurement variance, (5) Production variance signal, (6) Costing readiness, (7) Recipe costing/product margin, (8) Stock Count variance. Reconcile main-thread report-specific evidence before scheduling additional work. For these, focus on bespoke data transforms, selected detail/links, empty transitions and data-derived labels; do not repeat shared keyboard mechanics per route. No new universal pass claim is made.
 
 
 ## Remaining document dialog batch: 10/10 verified
@@ -106,7 +106,7 @@ Concrete remaining chart owner families without populated runtime evidence from 
 
 Two probe failures were corrected without application changes: the first Add probe pressed Escape before measuring; a dynamic last-dialog locator selected the parent action sheet after the export modal closed. Final assertions use stable aria-labelledby identity. Two originally proposed menu actions are genuinely unreachable: `ItemCorrectionSuggestionDialog` and `BranchStockCountSettingDialog` have definitions but no imports/usages anywhere in src. Their expanded UI cases are N/A for current routes, not runtime-passed.
 
-### Concrete residual conditional prerequisites
+### Historical conditional prerequisites — closed by the follow-up below
 
 - Stock Count Void: requires posted count, stock_count.cancel permission and preview_stock_count_void RPC fingerprint/ledger reversal preview. Existing inspected count is draft. The actual confirm/reverse transaction is not covered by these read-only dialog cases. A guarded local posted-count fixture can close this; no external business approval is intrinsically required.
 - Legacy Stock Count review mode: requires submitted/reviewed/approved status plus revisionsAvailable and stock_count.post. Draft Replace/Remove is covered above; legacy proposal mode is not.
@@ -116,3 +116,17 @@ Two probe failures were corrected without application changes: the first Add pro
 - Account Remove Picture requires an existing avatar; inspected synthetic account has none. Global session timeout modal requires controlled idle/session clock. Neither is an external blocker; both are still local fixture work if in acceptance scope.
 
 These are precise fixture gaps, not verified failures, not requests for user approval, and not a claim that every local owner has been exhausted. Other parent-owned form/attendance evidence should be joined before scheduling duplicate coverage.
+
+
+## Conditional document fixture follow-up
+
+The earlier fixture gaps were progressed locally, without changing original fixtures. `seed-conditional-dialogs-local.cjs` asserts the Synthetic Release Review company and clones four documents: a posted Stock Count, legacy submitted Stock Count, admin_review PR plus one unresolved line, and draft GRN without DO attachment. IDs are in `conditional-dialog-fixture.json`. Posted count intentionally has zero adjustment ledger entries; the actual preview RPC returns its fingerprint and zero totals. This verifies the Void dialog/gates, not reversal transaction correctness.
+
+`verify-conditional-dialogs-local.cjs` exercises eight dialog owners at1440/320: Void, legacy proposal, PR repair/remove, PR Add Line, unresolved match, missing-DO guard, avatar removal, and idle warning. Avatar uses a separate3191 server's guarded read-only staff response hook (synthetic company only), without changing stored avatar/account data. Idle uses Playwright clock to reach25-minute warning and verifies initial Stay focus and successful dismissal. PR match selects a mapped item and remains disabled until the confirmation checkbox. All business requests are blocked; no attempted business writes occurred.
+
+Fourteen cases passed before the final GRN repair. The remaining two exposed real hidden-file-input overflow: shared visible Input dimensions combined with sr-only grew the modal scroll area32px. The owner now uses native input with existing label association, required/accept/onChange validation intact. AST regression+related tests5/5, scoped ESLint and strict TypeScript pass. Final two GRN rebuilt browser checks are recorded in the final evidence merge below when complete. This follow-up does not claim runtime server-error submissions or actual Void/post/match effects.
+
+
+Final rebuilt GRN verification: **2/2 passed**, including file selection updating the associated visible label, required exception reason, long text, width bounds and Escape. Neither file upload nor posting was submitted. `conditional-grn-final.json` preserves this rerun; `conditional-dialog-merged.json` joins the14 previous passing conditional cases with these2, yielding **16/16**. Phone320 final GRN screenshot was visually inspected. Total explicit cases in this supplement are now **69** (31 +12 Packaging +10 document dialogs +16 conditional fixtures), not69 universal workflow or backend transaction approvals. No pending failures remain in these named batches. Broader unforced backend submission branches are outside these read-only dialog mechanics claims.
+
+The subsequent business/costing reports add38 explicit cases, bringing the combined cumulative UI evidence to107. See the consolidated remaining-acceptance report for current scope and external acceptance boundaries.

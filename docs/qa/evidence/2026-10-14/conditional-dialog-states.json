@@ -1,0 +1,14 @@
+[
+  {
+    "width": 1440,
+    "owner": "pr-unresolved",
+    "passed": true,
+    "blockedMutations": 0
+  },
+  {
+    "width": 320,
+    "owner": "pr-unresolved",
+    "passed": true,
+    "blockedMutations": 0
+  }
+]

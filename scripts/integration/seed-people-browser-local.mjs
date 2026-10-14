@@ -1,0 +1,12 @@
+import fs from 'node:fs';import {spawnSync} from 'node:child_process';import {randomUUID,randomBytes} from 'node:crypto';
+const ids=new Map(),container='supabase_db_oms-integration-20261014';
+const remap=s=>s.replace(/[1-9][0-9a-f]{7}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g,id=>{if(!ids.has(id))ids.set(id,randomUUID());return ids.get(id);});
+function sql(input){const r=spawnSync('docker',['exec','-i',container,'psql','-X','-qAt','-U','postgres','-d','postgres','-v','ON_ERROR_STOP=1'],{input,encoding:'utf8'});if(r.status)throw Error(r.stderr);return r.stdout.trim();}
+const emails=[`people-a-${randomUUID()}@test.local`,`people-b-${randomUUID()}@test.local`],password=randomBytes(24).toString('hex');
+let seed=remap(fs.readFileSync('tests/sql/attendance-four-punch-local.sql','utf8').split('select public.decide_attendance_ot_claim')[0]).replaceAll("'CALC'",`'B${Date.now()}'`).replaceAll('people-calc@test.local',emails[0]).replaceAll('second-people-synthetic@test.local',emails[1]);
+const id=k=>ids.get(k),role=id('51000000-0000-0000-0000-000000000001'),company=id('11000000-0000-0000-0000-000000000001');
+seed+=`\nreset role;insert into role_permissions(role_id,permission_id) select '${role}',id from permissions where permission_code in ('comp_time.read','comp_time.submit','comp_time.approve','staffs.read','branches.read','attendance.sensitive.export') on conflict do nothing;\n`;
+for(const key of ['31000000-0000-0000-0000-000000000001','31000000-0000-0000-0000-000000000003'])seed+=`update auth.users set encrypted_password=crypt('${password}',gen_salt('bf')),confirmation_token='',recovery_token='',email_change_token_new='',email_change='',raw_app_meta_data='{"provider":"email","providers":["email"]}' where id='${id(key)}';\n`;
+seed+=`set local role authenticated;set local request.jwt.claims='{"sub":"${id('31000000-0000-0000-0000-000000000003')}","role":"authenticated"}';select (public.decide_attendance_ot_claim(current_setting('test.claim')::uuid,'approve',60,null)).status;reset role;commit;`;
+sql(seed);const claim=sql(`select id from attendance_ot_claims where company_id='${company}' and status='credited';`);
+fs.writeFileSync('/tmp/oms-people-browser-private.json',JSON.stringify({company,branch:id('21000000-0000-0000-0000-000000000001'),staff:id('41000000-0000-0000-0000-000000000002'),claim,accounts:emails.map(email=>({email,password})),ids:Object.fromEntries(ids)}),{mode:0o600});console.log('Created isolated two-People browser fixture');

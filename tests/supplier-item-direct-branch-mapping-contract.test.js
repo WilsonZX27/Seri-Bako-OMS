@@ -10,7 +10,7 @@ test("supplier item form exposes direct branch mapping instead of import-only se
   const newPage = read("src/app/(app)/supplier-items/new/page.tsx");
 
   assert.match(form, /name="branch_ids"/);
-  assert.match(form, /defaultChecked=\{branch\.id === initialBranchId\}/);
+  assert.match(form, /defaultChecked=\{result \? saved\.getAll\("branch_ids"\)\.includes\(branch\.id\) : branch\.id === initialBranchId\}/);
   assert.match(form, /name="is_preferred"/);
   assert.match(action, /save_branch_supplier_item_mappings/);
   assert.match(newPage, /getBranchesForSelect/);

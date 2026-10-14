@@ -926,7 +926,7 @@ nav[aria-label="Pagination"] > span {
 /* The on-screen keyboard owns the lower viewport while it is actually open.
    Hardware-keyboard focus must not make the fixed action surface vanish. */
 @media (max-width: 1279px) {
-  html[data-mobile-keyboard-open="true"] :where([data-mobile-document-action], [data-mobile-action-bar], [data-mobile-create-fab], .sb-mobile-action-bar) {
+  html[data-mobile-keyboard-open="true"] :where([data-mobile-document-action], [data-mobile-action-bar], [data-mobile-create-fab], [data-mobile-secondary-actions], .sb-mobile-action-bar) {
     visibility: hidden !important;
     pointer-events: none !important;
     transform: translateY(100%);
@@ -2324,7 +2324,7 @@ html[data-touch-tablet="true"] [data-app-topbar] > .hidden.min-w-0.items-center 
    rail replace the persistent app navigation. */
 @media (max-width: 1023px) {
   html[data-design-layer="v2"]:has([data-page-loading-state])
-    :is([data-mobile-action-bar], [data-mobile-document-action], [data-mobile-create-fab], .sb-mobile-action-bar) {
+    :is([data-mobile-action-bar], [data-mobile-document-action], [data-mobile-create-fab], [data-mobile-secondary-actions], .sb-mobile-action-bar) {
     display: none !important;
     visibility: hidden !important;
     pointer-events: none !important;

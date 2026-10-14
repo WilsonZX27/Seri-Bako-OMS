@@ -1,0 +1,6 @@
+{
+  "scope": "same synthetic tenant; existing People login with export and OT approval permissions temporarily removed and restored",
+  "pdf_status": 403,
+  "ot_refused": true,
+  "ledger_unchanged": true
+}

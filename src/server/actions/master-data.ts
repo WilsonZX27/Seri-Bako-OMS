@@ -46,7 +46,11 @@ function supplierItemInput(formData: FormData) {
 
 export async function createSupplierItem(formData: FormData) {
   await requirePermission("supplier_items.create");
-  const input = supplierItemInput(formData);
+  // Return only pre-write validation errors; mutation failures may be ambiguous.
+  let input: ReturnType<typeof supplierItemInput>;
+  try { input = supplierItemInput(formData); } catch (error) {
+    return { error: formatActionError(error, "Check the supplier item fields.") };
+  }
   if (!isMockMode()) {
     const [supabase, actor] = [await createClient(), await requireActiveTenantActor()];
     const { data: item, error: itemError } = await supabase.from("items").select("item_code,item_name").eq("id", input.item_id).eq("company_id", actor.companyId).eq("status", "active").is("deleted_at", null).maybeSingle();
@@ -84,7 +88,11 @@ export async function createSupplierItem(formData: FormData) {
 export async function updateSupplierItem(id: string, formData: FormData) {
   await requirePermissionOrRedirect("supplier_items.update", `/supplier-items/${id}`);
   const supplierItemId = parseRecordId(id);
-  const input = supplierItemInput(formData);
+  // Return only pre-write validation errors; mutation failures may be ambiguous.
+  let input: ReturnType<typeof supplierItemInput>;
+  try { input = supplierItemInput(formData); } catch (error) {
+    return { error: formatActionError(error, "Check the supplier item fields.") };
+  }
   try {
     if (!isMockMode()) {
       const [supabase, actor] = [await createClient(), await requireActiveTenantActor()];
@@ -168,7 +176,11 @@ function uomPayload(formData: FormData) {
 
 export async function createUomConversion(formData: FormData) {
   await requirePermission("uom_conversions.create");
-  const payload = uomPayload(formData);
+  // Keep permission denial and mutation-stage errors outside the retryable preflight.
+  let payload: ReturnType<typeof uomPayload>;
+  try { payload = uomPayload(formData); } catch (error) {
+    return { error: formatActionError(error, "Check the conversion fields.") };
+  }
   if (!isMockMode()) {
     const [supabase, actor] = [await createClient(), await requireActiveTenantActor()];
     const { data, error } = await supabase.from("uom_conversions").insert({ ...payload, company_id: actor.companyId }).select("id").single();
@@ -182,7 +194,11 @@ export async function createUomConversion(formData: FormData) {
 export async function updateUomConversion(id: string, formData: FormData) {
   await requirePermission("uom_conversions.update");
   const conversionId = parseRecordId(id);
-  const payload = uomPayload(formData);
+  // Keep permission denial and mutation-stage errors outside the retryable preflight.
+  let payload: ReturnType<typeof uomPayload>;
+  try { payload = uomPayload(formData); } catch (error) {
+    return { error: formatActionError(error, "Check the conversion fields.") };
+  }
   if (!isMockMode()) {
     const [supabase, actor] = [await createClient(), await requireActiveTenantActor()];
     const { data, error } = await supabase.from("uom_conversions").update(payload).eq("id", conversionId).eq("company_id", actor.companyId).select("id").maybeSingle();

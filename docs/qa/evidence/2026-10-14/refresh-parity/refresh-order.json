@@ -1,0 +1,22 @@
+[
+  {
+    "order": "schedule-first",
+    "passed": true,
+    "checks": [
+      "four-punch and midnight retained",
+      "anomalies not inferred",
+      "repeated refresh unchanged hash"
+    ],
+    "rollback": true
+  },
+  {
+    "order": "punch-first",
+    "passed": true,
+    "checks": [
+      "four-punch and midnight retained",
+      "anomalies not inferred",
+      "repeated refresh unchanged hash"
+    ],
+    "rollback": true
+  }
+]

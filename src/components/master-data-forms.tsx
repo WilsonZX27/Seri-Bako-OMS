@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { ItemCombobox, type ItemComboboxOption } from "@/components/item-combobox";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,6 +16,16 @@ type UomConversion = Database["public"]["Tables"]["uom_conversions"]["Row"];
 type Supplier = Pick<Database["public"]["Tables"]["suppliers"]["Row"], "id" | "name" | "supplier_code">;
 type Item = ItemComboboxOption & { brand_name?: string | null };
 type Branch = Pick<Database["public"]["Tables"]["branches"]["Row"], "id" | "branch_code" | "branch_name">;
+
+type FormAction = (formData: FormData) => Promise<void | { error: string }>;
+function useRetainedMasterAction(action: FormAction, formId?: string) {
+  const [result, submit] = useActionState(async (previous: { error: string; values: Array<[string, string]>; attempt: number } | null, data: FormData) => {
+    const response = await action(data);
+    return response?.error ? { error: response.error, values: Array.from(data.entries()).map(([key, value]) => [key, String(value)] as [string, string]), attempt: (previous?.attempt ?? 0) + 1 } : null;
+  }, null);
+  useEffect(() => { if (result) document.dispatchEvent(new CustomEvent("sb:form-settled", { detail: { formId } })); }, [result, formId]);
+  return { result, submit, saved: new URLSearchParams(result?.values ?? []) };
+}
 
 export function SupplierItemForm({
   supplierItem,
@@ -36,10 +46,11 @@ export function SupplierItemForm({
   initialSupplierId?: string;
   initialItemId?: string;
   initialBranchId?: string;
-  action: (formData: FormData) => Promise<void>;
+  action: FormAction;
   formId?: string;
   showSubmit?: boolean;
 }) {
+  const { result, submit, saved } = useRetainedMasterAction(action, formId);
   const initialItem = items.find((item) => item.id === (supplierItem?.item_id ?? initialItemId)) ?? items[0];
   const [selectedItemId, setSelectedItemId] = useState(initialItem?.id ?? "");
   const [itemSearch, setItemSearch] = useState(initialItem ? `${initialItem.item_code} - ${initialItem.item_name}` : "");
@@ -47,10 +58,11 @@ export function SupplierItemForm({
   return (
     <Card>
       <CardContent className="p-5">
-        <form id={formId} action={action} className="grid gap-4 pb-20 md:grid-cols-3 md:pb-0">
+        <form key={result?.attempt ?? 0} id={formId} action={submit} className="grid gap-4 pb-20 md:grid-cols-3 md:pb-0">
+          {result?.error ? <p role="alert" className="col-span-full rounded border border-destructive p-3 text-sm text-destructive">{result.error}</p> : null}
           <input type="hidden" name="status" value={supplierItem?.status ?? "active"} />
           <Field label="Supplier">
-            <SelectNative name="supplier_id" defaultValue={supplierItem?.supplier_id ?? initialSupplierId ?? suppliers[0]?.id ?? ""} required>
+            <SelectNative name="supplier_id" defaultValue={saved.get("supplier_id") ?? (supplierItem?.supplier_id ?? initialSupplierId ?? suppliers[0]?.id ?? "")} required>
               {suppliers.map((supplier) => (
                 <option key={supplier.id} value={supplier.id}>
                   {supplier.name}
@@ -78,40 +90,40 @@ export function SupplierItemForm({
             {selectedItem ? <Link href={`/items/${selectedItem.id}`} className="mt-1 inline-flex text-xs font-semibold text-primary underline-offset-4 hover:underline">Open Item Master</Link> : null}
           </div>
           <Field label="Purchase UOM">
-            <SelectNative name="purchase_uom" defaultValue={normalizeUom(supplierItem?.purchase_uom) || "KG"} required>
+            <SelectNative name="purchase_uom" defaultValue={saved.get("purchase_uom") ?? (normalizeUom(supplierItem?.purchase_uom) || "KG")} required>
               {uomOptionsWithCurrent(supplierItem?.purchase_uom).map((uom) => (
                 <option key={uom} value={uom}>{uom}</option>
               ))}
             </SelectNative>
           </Field>
           <Field label="Conversion to Base UOM">
-            <Input name="conversion_to_base_uom" type="number" step="0.000001" min="0.000001" defaultValue={supplierItem?.conversion_to_base_uom ?? 1} required />
+            <Input name="conversion_to_base_uom" type="number" step="0.000001" min="0.000001" defaultValue={saved.get("conversion_to_base_uom") ?? (supplierItem?.conversion_to_base_uom ?? 1)} required />
           </Field>
           <Field label="Unit Cost">
-            <Input name="unit_cost" type="number" step="0.0001" min="0" defaultValue={supplierItem?.unit_cost ?? 0} required />
+            <Input name="unit_cost" type="number" step="0.0001" min="0" defaultValue={saved.get("unit_cost") ?? (supplierItem?.unit_cost ?? 0)} required />
           </Field>
           <Field label="MOQ">
-            <Input name="moq" type="number" step="0.0001" min="0" defaultValue={supplierItem?.moq ?? 0} required />
+            <Input name="moq" type="number" step="0.0001" min="0" defaultValue={saved.get("moq") ?? (supplierItem?.moq ?? 0)} required />
           </Field>
           <Field label="Lead Time Days">
-            <Input name="lead_time_days" type="number" min="0" defaultValue={supplierItem?.lead_time_days ?? 0} required />
+            <Input name="lead_time_days" type="number" min="0" defaultValue={saved.get("lead_time_days") ?? (supplierItem?.lead_time_days ?? 0)} required />
           </Field>
           <Field label="Valid From">
-            <Input name="valid_from" type="date" defaultValue={supplierItem?.valid_from ?? ""} />
+            <Input name="valid_from" type="date" defaultValue={saved.get("valid_from") ?? (supplierItem?.valid_from ?? "")} />
           </Field>
           <Field label="Valid To">
-            <Input name="valid_to" type="date" defaultValue={supplierItem?.valid_to ?? ""} />
+            <Input name="valid_to" type="date" defaultValue={saved.get("valid_to") ?? (supplierItem?.valid_to ?? "")} />
           </Field>
           {!supplierItem && branches.length ? <fieldset className="grid gap-3 rounded-[var(--sb-radius-card)] border bg-card p-4 md:col-span-3">
             <legend className="px-1 text-sm font-semibold">Available at branches</legend>
             <p className="text-xs text-muted-foreground">Choose every branch that may purchase this item from this supplier. This creates the operational branch mapping together with the supplier item.</p>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {branches.map((branch) => <label key={branch.id} className="flex min-h-11 items-center gap-2 rounded-[var(--sb-radius-control)] border px-3 py-2 text-sm">
-                <input type="checkbox" name="branch_ids" value={branch.id} defaultChecked={branch.id === initialBranchId} className="h-4 w-4 accent-[var(--sb-brand)]" />
+                <input type="checkbox" name="branch_ids" value={branch.id} defaultChecked={result ? saved.getAll("branch_ids").includes(branch.id) : branch.id === initialBranchId} className="h-4 w-4 accent-[var(--sb-brand)]" />
                 <span className="min-w-0 truncate">{branch.branch_name}</span>
               </label>)}
             </div>
-            <label className="flex items-center gap-2 text-xs text-muted-foreground"><input type="checkbox" name="is_preferred" value="true" className="h-4 w-4 accent-[var(--sb-brand)]" />Use as the preferred supplier for this item at the selected branches</label>
+            <label className="flex items-center gap-2 text-xs text-muted-foreground"><input type="checkbox" name="is_preferred" value="true" defaultChecked={saved.has("is_preferred")} className="h-4 w-4 accent-[var(--sb-brand)]" />Use as the preferred supplier for this item at the selected branches</label>
           </fieldset> : null}
           {showSubmit ? <div className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] p-2 md:static md:flex md:justify-end md:bg-transparent md:p-0 md:shadow-none md:col-span-3">
             <SubmitButton type="submit" className="w-full md:w-auto" pendingLabel={supplierItem ? "Saving..." : "Creating..."}>{supplierItem ? "Save supplier item" : "Create supplier item"}</SubmitButton>
@@ -122,28 +134,30 @@ export function SupplierItemForm({
   );
 }
 
-export function UomConversionForm({ conversion, action, formId, showSubmit = true }: { conversion?: UomConversion; action: (formData: FormData) => Promise<void>; formId?: string; showSubmit?: boolean }) {
+export function UomConversionForm({ conversion, action, formId, showSubmit = true }: { conversion?: UomConversion; action: FormAction; formId?: string; showSubmit?: boolean }) {
+  const { result, submit, saved } = useRetainedMasterAction(action, formId);
   return (
     <Card>
       <CardContent className="p-5">
-        <form id={formId} action={action} className="grid gap-4 pb-20 md:grid-cols-2 md:pb-0">
+        <form key={result?.attempt ?? 0} id={formId} action={submit} className="grid gap-4 pb-20 md:grid-cols-2 md:pb-0">
+          {result?.error ? <p role="alert" className="col-span-full rounded border border-destructive p-3 text-sm text-destructive">{result.error}</p> : null}
           <input type="hidden" name="status" value={conversion?.status ?? "active"} />
           <Field label="From UOM">
-            <SelectNative name="from_uom" defaultValue={normalizeUom(conversion?.from_uom) || "KG"} required>
+            <SelectNative name="from_uom" defaultValue={saved.get("from_uom") ?? (normalizeUom(conversion?.from_uom) || "KG")} required>
               {uomOptionsWithCurrent(conversion?.from_uom).map((uom) => (
                 <option key={uom} value={uom}>{uom}</option>
               ))}
             </SelectNative>
           </Field>
           <Field label="To UOM">
-            <SelectNative name="to_uom" defaultValue={normalizeUom(conversion?.to_uom) || "G"} required>
+            <SelectNative name="to_uom" defaultValue={saved.get("to_uom") ?? (normalizeUom(conversion?.to_uom) || "G")} required>
               {uomOptionsWithCurrent(conversion?.to_uom).map((uom) => (
                 <option key={uom} value={uom}>{uom}</option>
               ))}
             </SelectNative>
           </Field>
           <Field label="Factor">
-            <Input name="factor" type="number" min="0.00000001" step="0.00000001" defaultValue={conversion?.factor ?? 1} required />
+            <Input name="factor" type="number" min="0.00000001" step="0.00000001" defaultValue={saved.get("factor") ?? (conversion?.factor ?? 1)} required />
           </Field>
           <div className="rounded-[var(--sb-radius-control)] border bg-secondary/50 p-3 md:col-span-2">
             <p className="text-sm font-medium">Preview</p>

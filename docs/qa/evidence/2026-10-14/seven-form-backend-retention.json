@@ -1,0 +1,219 @@
+[
+  {
+    "name": "supplier-items",
+    "attempts": [
+      {
+        "attempt": 1,
+        "responses": [
+          200
+        ],
+        "retained": true,
+        "alerts": [
+          "Invalid input",
+          ""
+        ],
+        "url": "http://localhost:3190/supplier-items/new"
+      },
+      {
+        "attempt": 2,
+        "responses": [
+          200
+        ],
+        "retained": true,
+        "alerts": [
+          "Invalid input",
+          ""
+        ],
+        "url": "http://localhost:3190/supplier-items/new"
+      }
+    ],
+    "passed": true,
+    "screenshot": "backend-retained-supplier-items.png"
+  },
+  {
+    "name": "uom-conversions",
+    "attempts": [
+      {
+        "attempt": 1,
+        "responses": [
+          200
+        ],
+        "retained": true,
+        "alerts": [
+          "Invalid input",
+          ""
+        ],
+        "url": "http://localhost:3190/uom-conversions/new"
+      },
+      {
+        "attempt": 2,
+        "responses": [
+          200
+        ],
+        "retained": true,
+        "alerts": [
+          "Invalid input",
+          ""
+        ],
+        "url": "http://localhost:3190/uom-conversions/new"
+      }
+    ],
+    "passed": true,
+    "screenshot": "backend-retained-uom-conversions.png"
+  },
+  {
+    "name": "stock-wastage",
+    "attempts": [
+      {
+        "attempt": 1,
+        "responses": [
+          200
+        ],
+        "retained": true,
+        "alerts": [
+          "Use YYYY-MM-DD for dates.",
+          ""
+        ],
+        "url": "http://localhost:3190/stock-wastage/new"
+      },
+      {
+        "attempt": 2,
+        "responses": [
+          200
+        ],
+        "retained": true,
+        "alerts": [
+          "Use YYYY-MM-DD for dates.",
+          ""
+        ],
+        "url": "http://localhost:3190/stock-wastage/new"
+      }
+    ],
+    "passed": true,
+    "screenshot": "backend-retained-stock-wastage.png"
+  },
+  {
+    "name": "stock-transfers",
+    "attempts": [
+      {
+        "attempt": 1,
+        "responses": [
+          200
+        ],
+        "retained": true,
+        "alerts": [
+          "Use YYYY-MM-DD for dates.",
+          ""
+        ],
+        "url": "http://localhost:3190/stock-transfers/new"
+      },
+      {
+        "attempt": 2,
+        "responses": [
+          200
+        ],
+        "retained": true,
+        "alerts": [
+          "Use YYYY-MM-DD for dates.",
+          ""
+        ],
+        "url": "http://localhost:3190/stock-transfers/new"
+      }
+    ],
+    "passed": true,
+    "screenshot": "backend-retained-stock-transfers.png"
+  },
+  {
+    "name": "stock-counts",
+    "attempts": [
+      {
+        "attempt": 1,
+        "responses": [
+          303
+        ],
+        "retained": true,
+        "alerts": [
+          "Stock Count lines are still loading. Wait for all quantities to appear, then try again.",
+          ""
+        ],
+        "url": "http://localhost:3190/stock-counts/new?error=Stock%20Count%20lines%20are%20still%20loading.%20Wait%20for%20all%20quantities%20to%20appear%2C%20then%20try%20again."
+      },
+      {
+        "attempt": 2,
+        "responses": [
+          303
+        ],
+        "retained": true,
+        "alerts": [
+          "Stock Count lines are still loading. Wait for all quantities to appear, then try again.",
+          ""
+        ],
+        "url": "http://localhost:3190/stock-counts/new?error=Stock%20Count%20lines%20are%20still%20loading.%20Wait%20for%20all%20quantities%20to%20appear%2C%20then%20try%20again."
+      }
+    ],
+    "passed": true,
+    "screenshot": "backend-retained-stock-counts.png"
+  },
+  {
+    "name": "outlet-daily-records",
+    "attempts": [
+      {
+        "attempt": 1,
+        "responses": [
+          200
+        ],
+        "retained": true,
+        "alerts": [
+          "Record Date — Use a YYYY-MM-DD record date.",
+          ""
+        ],
+        "url": "http://localhost:3190/outlet-daily-records/new"
+      },
+      {
+        "attempt": 2,
+        "responses": [
+          200
+        ],
+        "retained": true,
+        "alerts": [
+          "Record Date — Use a YYYY-MM-DD record date.",
+          ""
+        ],
+        "url": "http://localhost:3190/outlet-daily-records/new"
+      }
+    ],
+    "passed": true,
+    "screenshot": "backend-retained-outlet-daily-records.png"
+  },
+  {
+    "name": "asset-transfer",
+    "attempts": [
+      {
+        "attempt": 1,
+        "responses": [
+          200
+        ],
+        "retained": true,
+        "alerts": [
+          "Choose a valid asset and location.",
+          ""
+        ],
+        "url": "http://localhost:3190/asset-management/assets/b52fad27-d3f5-4ab9-9729-542be4a61853"
+      },
+      {
+        "attempt": 2,
+        "responses": [
+          200
+        ],
+        "retained": true,
+        "alerts": [
+          "Choose a valid asset and location.",
+          ""
+        ],
+        "url": "http://localhost:3190/asset-management/assets/b52fad27-d3f5-4ab9-9729-542be4a61853"
+      }
+    ],
+    "passed": true,
+    "screenshot": "backend-retained-asset-transfer.png"
+  }
+]

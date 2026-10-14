@@ -34,8 +34,11 @@ export async function buildPeoplePdf(sheets: PeopleWorkbookSheet[]) {
       if(continued)page=doc.addPage([841.89,595.28]);
       page.drawRectangle({x:0,y:0,width:841.89,height:595.28,color:rgb(1,1,1)});
       let top=570;
-      for(const line of wrap(`${sheet.employee} · ${sheet.staffCode??""}`,790,12)){page.drawText(line,{x:24,y:top,size:12,font,color:ink});top-=16;}
-      for(const line of wrap(sheet.outlet,790,9)){page.drawText(line,{x:24,y:top,size:9,font,color:ink});top-=13;}
+      const employeeLines=wrap(`${sheet.employee} · ${sheet.staffCode??""}`,790,12);
+      const outletLines=wrap(sheet.outlet,790,9);
+      if(employeeLines.length*16+outletLines.length*13>95)throw Error("Attendance name or outlet is too long for PDF; use XLSX.");
+      for(const line of employeeLines){page.drawText(line,{x:24,y:top,size:12,font,color:ink});top-=16;}
+      for(const line of outletLines){page.drawText(line,{x:24,y:top,size:9,font,color:ink});top-=13;}
       page.drawText(`${sheet.period?.start??sheet.days[0]?.date??""} to ${sheet.period?.end??sheet.days.at(-1)?.date??""} · ${sheet.period?.draft===false?"FINAL":"DRAFT"}${continued?" · continued":""}`,{x:24,y:top,size:9,font,color:ink});top-=14;
       page.drawText(`Generated: ${sheet.period?.generatedAt??""}`,{x:24,y:top,size:7,font,color:muted});top-=23;
       let x=24;headings.forEach((label,i)=>{page.drawRectangle({x,y:top-7,width:widths[i],height:25,color:green});for(const [n,line] of wrap(label,widths[i]-6,7).entries())page.drawText(line,{x:x+3,y:top+7-n*9,size:7,font,color:ink});x+=widths[i];});y=top-7;
@@ -46,7 +49,7 @@ export async function buildPeoplePdf(sheets: PeopleWorkbookSheet[]) {
       if(seen.has(day.date))throw Error("Duplicate attendance date in PDF");seen.add(day.date);
       const worked=reviewedFourPunchSeconds(day), valid=worked!=null;
       const pending=valid?day.pendingOvertimeSeconds:null;
-      const remarks=[day.exceptions,day.event,pending?"OT awaits People approval":null].filter(Boolean).join("; ");
+      const remarks=[day.exceptions,day.event,(day.punches?.length??0)>4?`All punches: ${day.punches!.join(", ")}`:null,pending?"OT awaits People approval":null].filter(Boolean).join("; ");
       const values=[day.date,day.day,day.off?"OFF":`${day.scheduleStart??""}–${day.scheduleEnd??""}`,...Array.from({length:4},(_,i)=>day.punches?.[i]??""),attendancePdfDuration(worked),attendancePdfDuration(valid?day.overtimeSeconds:null),attendancePdfDuration(pending),attendancePdfDuration(valid?day.shortHoursSeconds:null),"",remarks];
       const lines=values.map((value,i)=>wrap(value,widths[i]-6,7)),height=Math.max(29,...lines.map(ls=>ls.length*10+10));
       if(height>340)throw Error("Attendance note is too long for PDF; shorten the note or use XLSX.");

@@ -1,3 +1,5 @@
+> Local candidate: migrations reviewed through `354`; forward-only migration 历史已到 `354`. Migration 354 brings automatic per-day schedule refresh into parity with four-punch import calculations, preserves active OT claims and released payroll, and changes no historical rows. Applied and rollback-tested on both isolated local databases only; Production remains unchanged.
+
 > Local candidate: forward-only migration 历史已到 `353`. Linked OT/RO reconciliation was validated against isolated synthetic records only; Production has not been migrated.
 
 > Local candidate: migrations reviewed through `352`; forward-only migration 历史已到 `352`. Migration 352 implements four-punch evidence and separated pending/approved OT; validated only on the isolated synthetic database, not Production.

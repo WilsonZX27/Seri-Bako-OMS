@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Eye,
   FileCheck2,
+  CalendarDays,
   TriangleAlert,
 } from "lucide-react";
 import { AttendanceWorkspaceNav } from "@/components/attendance/attendance-workspace-nav";
@@ -476,8 +477,8 @@ export default async function AttendanceReviewPage({
                         </td>
                         <td className="px-3 py-3 tabular-nums">
                           <span className="block text-[11px] text-muted-foreground">RO {reservation ? `${Math.floor(Number(reservation.final_used_minutes??reservation.reserved_minutes) / 30)} × 30m` : "—"}</span>
-                          <span className="block text-[11px]">Approved OT / RO credit: {duration(row.overtime_seconds)}</span>
-                          {candidate > Number(row.overtime_seconds ?? 0) ? <strong className="mt-1 block rounded bg-[var(--sb-warning-bg)] px-1 text-[11px] text-[var(--sb-warning)]">Pending People approval: {duration(candidate - Number(row.overtime_seconds ?? 0))}</strong> : null}
+                          <span className="block text-[11px]">Approved {duration(row.overtime_seconds)}</span>
+                          {candidate > Number(row.overtime_seconds ?? 0) ? <strong className="mt-1 block rounded bg-[var(--sb-warning-bg)] px-1 text-[11px] text-[var(--sb-warning)]">Pending {duration(candidate - Number(row.overtime_seconds ?? 0))}</strong> : null}
                         </td>
                         <td className="px-3 py-3">
                           <RowActions
@@ -675,11 +676,11 @@ function RowActions({
   weekLocked: boolean;
 }) {
   return (
-    <div className="inline-flex min-w-0 max-w-64 flex-wrap items-center gap-1 [&_button]:font-normal">
+    <div className="inline-flex min-w-0 flex-nowrap items-center gap-1 [&_button]:font-normal">
       <Button asChild size="sm" variant="ghost" className="w-auto justify-start gap-2 bg-transparent px-2 font-normal hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-surface-muted)]">
         <Link href={href} title="View details"><Eye className="h-4 w-4"/><span className="md:sr-only">View details</span></Link>
       </Button>
-      {permissions["attendance.report.submit"] && reportable && !weekLocked ? <Button asChild size="sm" variant="ghost" className="min-h-11 px-2"><Link href={`${href}&report=${encodeURIComponent(String(row.assignment_id))}`}>Report actual attendance</Link></Button> : null}
+      {permissions["attendance.report.submit"] && reportable && !weekLocked ? <Button asChild size="sm" variant="ghost" className="min-h-11 px-2"><Link href={`${href}&report=${encodeURIComponent(String(row.assignment_id))}`} aria-label="Report actual attendance"><FileCheck2 className="size-4" aria-hidden="true"/></Link></Button> : null}
       {permissions["attendance.adjust"] ? (
         <AttendanceAdjustmentButton
           resultId={String(row.id)}
@@ -693,7 +694,7 @@ function RowActions({
       ) : (
         <StatusBadge status={String(row.review_status)} label={String(row.review_status) === "reviewed" ? "Calculated" : undefined} />
       )}
-      {permissions["attendance.report.submit"] && !reportable && !weekLocked ? <Link title="Publish this staff day in the schedule before reporting leave" className="inline-flex min-h-[var(--sb-control-height)] items-center gap-2 px-2 text-xs font-medium text-warning" href={`/attendance/schedule?${href.split("?")[1] ?? ""}`}>Review schedule</Link> : null}
+      {permissions["attendance.report.submit"] && !reportable && !weekLocked ? <Link title="Publish this staff day in the schedule before reporting leave" className="inline-flex min-h-[var(--sb-control-height)] items-center gap-2 px-2 text-xs font-medium text-warning" href={`/attendance/schedule?${href.split("?")[1] ?? ""}`} aria-label="Review schedule"><CalendarDays className="size-4" aria-hidden="true"/></Link> : null}
       <OtClaimAction
         resultId={String(row.id)}
         candidateSeconds={candidate}

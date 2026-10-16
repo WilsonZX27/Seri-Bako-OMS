@@ -12,6 +12,8 @@ import { OperationalList, OperationalListRow, Table, TableBody, TableCell, Table
 import type { PlanningProduct } from "@/lib/production-planning/types";
 
 type Props = {
+  showHidden: boolean;
+  onShowHidden: (value: boolean) => void;
   products: PlanningProduct[];
   availability: Record<string,{available_from:string|null;available_until:string|null}>;
   onAvailability:(id:string,value:{available_from:string|null;available_until:string|null})=>void;
@@ -24,7 +26,7 @@ type Props = {
   onMinimum: (id: string, value: string) => void;
 };
 
-export function PlanningProductRules({ products, availability, onAvailability, outletId, yields, basis, minimums, onYield, onBasis, onMinimum }: Props) {
+export function PlanningProductRules({ showHidden, onShowHidden, products, availability, onAvailability, outletId, yields, basis, minimums, onYield, onBasis, onMinimum }: Props) {
   const [editing,setEditing]=useState<{id:string;available_from:string;available_until:string}|null>(null);
   const period=(product:PlanningProduct)=>{const value=availability[product.id];return <Button type="button" variant="outline" onClick={()=>setEditing({id:product.id,available_from:value.available_from??"",available_until:value.available_until??""})}>{value.available_until?`Through ${formatDateOnly(value.available_until)}`:value.available_from?`From ${formatDateOnly(value.available_from)}`:"All year"}</Button>;};
   const [search, setSearch] = useState("");
@@ -42,7 +44,7 @@ export function PlanningProductRules({ products, availability, onAvailability, o
     </div>
     {!visible.length ? <p className="p-3 text-sm text-muted-foreground">No matching products.</p> : <>
       <ResponsiveFormFields mode="desktop" aria-label="Production rules"><Table aria-label="Production yields and outlet minimums">
-        <TableHeader><TableRow><TableHead>Product</TableHead><TableHead>Demand basis</TableHead><TableHead>Yield / tray</TableHead><TableHead>Outlet minimum</TableHead><TableHead>Supply period</TableHead></TableRow></TableHeader>
+        <TableHeader><TableRow><TableHead>Product</TableHead><TableHead>Demand basis</TableHead><TableHead>Yield / tray</TableHead><TableHead>Outlet minimum</TableHead><TableHead><div className="grid gap-1"><span>Supply period</span><label className="flex min-h-9 items-center gap-2 font-normal normal-case"><input type="checkbox" checked={showHidden} onChange={e=>onShowHidden(e.target.checked)}/>Show hidden</label></div></TableHead></TableRow></TableHeader>
         <TableBody>{visible.map(product => <TableRow key={product.id}>
           <TableCell>{product.product_code} · {product.product_name}</TableCell><TableCell>{demand(product)}</TableCell><TableCell>{tray(product)}</TableCell><TableCell>{minimum(product)}</TableCell><TableCell>{period(product)}</TableCell>
         </TableRow>)}</TableBody>

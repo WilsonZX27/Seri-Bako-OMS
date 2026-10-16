@@ -16,3 +16,5 @@ test('four-punch workbook blanks incomplete evidence and separates pending OT fr
  assert.ok(xml.includes('Approved OT'));assert.ok(xml.includes('OT pending People approval: 30 min (not approved)'));
  assert.doesNotMatch(xml,/<c r="L8"[^>]*><(?:f|v)>/);
 });
+
+test('attendance workbook uses Arial regular body and never the condensed face',()=>{const files=entries(buildPeopleWorkbook([sheet]));const styles=files.get('xl/styles.xml').toString();assert.doesNotMatch(styles,/Arial Narrow/);assert.match(styles,/<font><sz val="11"\/><name val="Arial"\/><\/font>/);});

@@ -210,3 +210,17 @@ export async function advanceAssetTransfer(_previous: AssetActionState, form: Fo
     return { ok: true, message: `Transfer ${action === "receive" ? "received" : action === "approve" ? "approved" : action === "reject" ? "rejected" : "dispatched"}.` };
   } catch (error) { return { ok: false, message: error instanceof Error ? error.message : "Could not update transfer." }; }
 }
+
+export async function registerAssetOtherLocation(_previous: AssetActionState, form: FormData): Promise<AssetActionState> {
+  try {
+    const actor=await requireActiveTenantActor(); await requirePermission("assets.manage");
+    if(actor.roleCode!=="super_admin")throw new Error("Only an asset owner may add a destination.");
+    const name=String(form.get("name")??"").trim();
+    if(name.length<2||name.length>120)throw new Error("Enter a location name between 2 and 120 characters.");
+    const db=looseSupabase(await createClient());
+    const result=await db.rpc("register_asset_other_location",{p_name:name});
+    if(result.error||!result.data)throw new Error(result.error?.message??"Location could not be added.");
+    revalidatePath("/asset-management/transfers/new");
+    return {ok:true,message:`${name} is available in the destination list.`};
+  }catch(error){return {ok:false,message:error instanceof Error?error.message:"Location could not be added."};}
+}

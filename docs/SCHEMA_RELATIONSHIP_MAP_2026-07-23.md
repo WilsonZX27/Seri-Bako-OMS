@@ -1,3 +1,5 @@
+> Local feedback patch — 2026-10-16: migrations reviewed through `357`; forward-only migration 历史已到 `357`. Migration 357 adds owner-managed non-operating asset destinations, with existing tenant/location access unchanged. Verified with ten synthetic transfer lifecycles only; not applied to Production. UI repair and portrait production export are not yet deployed.
+
 > Local candidate: migrations reviewed through `355`; forward-only migration 历史已到 `355`. Migration 355 makes recipe header, ingredients, document revisions, costing and audit atomic with request-key replay and optimistic update protection. Local verification only; Production has not been migrated.
 
 > Local candidate: migrations reviewed through `354`; forward-only migration 历史已到 `354`. Migration 354 brings automatic per-day schedule refresh into parity with four-punch import calculations, preserves active OT claims and released payroll, and changes no historical rows. Applied and rollback-tested on both isolated local databases only; Production remains unchanged.

@@ -11,7 +11,7 @@ import { hasPermission } from "@/server/auth/permissions";
 import { todayInKualaLumpur } from "@/lib/business-date";
 import { AssetHistoryTrend } from "@/components/asset-history-trend";
 import Link from "next/link";
-import { Box, ChartNoAxesColumn, ClipboardCheck, Wrench, ArrowLeftRight } from "lucide-react";
+import { TriangleAlert, Box, ChartNoAxesColumn, ClipboardCheck, Wrench, ArrowLeftRight } from "lucide-react";
 import { InteractiveRankingChart } from "@/components/ui/interactive-ranking-chart";
 import { PageHeader } from "@/components/ui/page-header";
 import { AssetWorkspaceNavigation } from "@/components/asset-workspace-navigation";
@@ -46,7 +46,6 @@ export default async function AssetManagementPage({ searchParams }: { searchPara
   const sort = params.sort === "name" ? "name" : "code";
   const data = await getAssetWorkspace(view, page, query, params.date, status, locationId, sort, (params.category ?? "").slice(0,80));
   const [canManage,canMaintain,canTransfer] = await Promise.all([hasPermission("assets.manage"),hasPermission("assets.maintenance"),hasPermission("assets.transfer")]);
-  const hasConsoleAction = view === "overview" || (view === "assets" && canManage) || (view === "transfers" && canTransfer);
   const selectedTicket=view==="maintenance" ? data.records.find(row=>row.id===params.ticket) ?? data.records[0] : null;
   const detail=selectedTicket ? await getAssetMaintenanceDetail(selectedTicket.id,1) : null;
   const detailAsset=detail?.request.asset_id ? await getAssetDetail(detail.request.asset_id) : null;
@@ -61,16 +60,16 @@ export default async function AssetManagementPage({ searchParams }: { searchPara
         {view === "maintenance" || data.total > 50 ? <PaginationControls page={page} totalPages={Math.max(1,Math.ceil(data.total / 50))} totalRows={data.total} searchParams={{...params,view,sort}} resetScrollOnPageChange /> : null}
       </section>
   </>;
-  return <><PageHeader title="Asset Management" description="Assets, checks, maintenance and transfers." /><WorkspaceGrid hideDesktopConsole={!hasConsoleAction} hideMobileConsole={!hasConsoleAction} rightRail={view === "maintenance" ? undefined : <>
+  return <><PageHeader title="Asset Management" description="Assets, checks, maintenance and transfers." /><WorkspaceGrid rightRail={<>
     <ConsoleSection title={availableTabs.find(tab=>tab.id===view)?.label ?? "Assets"} kind="action">
       {view === "overview" ? <><p>Check today’s outstanding locations and open requests in the main workspace.</p><Button asChild><Link href="/asset-management?view=checklist">Inspect a location</Link></Button></> : null}
       {view === "assets" && canManage ? <ConsoleActionLink href="/asset-management/assets/new" kind="create" primary>New asset</ConsoleActionLink> : null}
       {view === "transfers" && canTransfer ? <><p>Choose an asset and its source holding to request a transfer.</p><ConsoleActionLink href="/asset-management/transfers/new" kind="create" primary>Create transfer</ConsoleActionLink></> : null}
+      {view === "maintenance" ? <p>{selectedTicket ? `${String(selectedTicket.status??"Open")} · ${assets.get(selectedTicket.asset_id??"")?.item_name??"Site problem"}` : "Select a request to review and update."}</p> : null}
       {view === "checklist" ? <p>Choose a location to inspect. Existing exceptions are preserved when selecting all assets.</p> : null}
-    </ConsoleSection><ConsoleSection title="Current scope"><p>{data.locations.length} accessible locations</p><p>Unknown quantities are shown separately from recorded zero.</p></ConsoleSection>
-  </>} tabletRailMode="context">
+    </ConsoleSection>{data.active && (canReport || canMaintain) ? <ConsoleSection title="Report an issue" kind="danger"><Button asChild variant="destructive"><Link href={`/asset-management/maintenance/new${locationId ? `?location=${locationId}` : ""}`}><TriangleAlert className="size-4" aria-hidden="true"/>Report a problem</Link></Button></ConsoleSection> : null}<ConsoleSection title="Current scope"><p>{data.locations.length} accessible locations</p><p>Unknown quantities are shown separately from recorded zero.</p></ConsoleSection>
+  </>} tabletRailMode="split" tabletRailBreakpoint="lg">
     <AssetWorkspaceNavigation current={view} managementRole={managementRole} canReport={canReport}/>
-    {data.active && (canReport || canMaintain) ? <div className="flex justify-end"><Button asChild><Link href={`/asset-management/maintenance/new${locationId ? `?location=${locationId}` : ""}`}>Report a problem</Link></Button></div> : null}
     {!data.active ? <EmptyState title="Asset migration pending" description="Reconcile the source and attachments before enabling the asset workspace."/> : view === "overview" && data.overview ? <><FilterBar className="sb-asset-query" phoneMode="inline" resetHref="/asset-management?view=overview"><input type="hidden" name="view" value="overview"/><Input name="date" type="date" defaultValue={data.overview.checkDate} max={todayInKualaLumpur()} className="max-w-48" aria-label="Overview date"/></FilterBar>
       <dl className="grid grid-cols-2 gap-x-4 gap-y-2 border-y px-1 py-3 sm:grid-cols-3 lg:grid-cols-6">{[["Asset IDs", data.overview.assetCount], ["Known quantity", data.overview.knownQuantity], ["Unknown quantities", data.overview.unknownHoldings], ["Needs attention", data.overview.attentionAssets], ["Open maintenance", data.overview.openMaintenance], ["Quantity in transit", data.overview.inTransitQuantity]].map(([label, count]) => <div key={label}><dt className="text-xs text-muted-foreground">{label}</dt><dd className="mt-1 text-xl font-semibold tabular-nums">{formatNumber(Number(count))}</dd></div>)}</dl>
       <section className="sb-work-surface"><div className="flex flex-wrap items-center justify-between gap-2 border-b p-3"><h2 className="text-sm font-semibold">Location checks</h2><span className="text-xs text-muted-foreground">{formatDateOnly(data.overview.checkDate)} · {data.overview.checklist.filter(location => location.open && location.checked < location.expected).length} outstanding</span></div><AssetDailyCheckLocations locations={data.overview.checklist} date={data.overview.checkDate}/></section>

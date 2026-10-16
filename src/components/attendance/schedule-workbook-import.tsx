@@ -11,6 +11,7 @@ import { parseScheduleWorkbook, SCHEDULE_SHEET_BRANCHES, type ScheduleImportCata
 
 export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: string; canDraft: boolean }) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const [step,setStep]=useState<1|2|3>(1);
   const [preview, setPreview] = useState<ScheduleWorkbookPreview | null>(null), [busy, setBusy] = useState(false), [message, setMessage] = useState<string | null>(null);
   const [source, setSource] = useState<File | null>(null), [catalog, setCatalog] = useState<ScheduleImportCatalog | null>(null);
   const [sheet, setSheet] = useState(""), [branchId, setBranchId] = useState(""), [datesConfirmed, setDatesConfirmed] = useState(false);
@@ -39,16 +40,16 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
   async function load(file?: File) {
     if (!file) return;
     setShiftSelections({});setShiftConflicts([]);setDestinationMappings({});setDestinationReviews([]);setEmployeeMappings({}); setEmployeeMatches([]);
-    setImportWeek(weekStart); setEndTimes({}); setMissingEndTimes([]); setCatalog(null); setSheetNames([]);
+    setEndTimes({}); setMissingEndTimes([]); setCatalog(null); setSheetNames([]);
     setSheetMappings({}); setSelectedOutlets([]); setExcludedRows([]); setOutcomes({});
-    setSource(file); setSheet(""); setBranchId(""); setDatesConfirmed(false);
+    setStep(1); setSource(file); setSheet(""); setBranchId(""); setDatesConfirmed(false);
     setBusy(true); setMessage("Checking the workbook against current OMS staff and outlets…"); setPreview(null);
     try {
-      const response = await fetch(`/api/attendance/schedule/import-catalog?week=${encodeURIComponent(weekStart)}`);
+      const response = await fetch(`/api/attendance/schedule/import-catalog?week=${encodeURIComponent(importWeek)}`);
       const catalog = await readJsonResponse<ScheduleImportCatalog & { ok?: boolean; message?: string }>(response, { unexpectedResponse: "The schedule catalog returned an unexpected response." });
       if (!response.ok) throw new Error(catalog.message ?? "The schedule catalog could not be loaded.");
       setCatalog(catalog);
-      const result = await parseScheduleWorkbook(file, weekStart, catalog);
+      const result = await parseScheduleWorkbook(file, importWeek, catalog);
       setSheetMappings(Object.fromEntries(result.sheets.map(name => [name, catalog.branches.find(branch => branch.name === SCHEDULE_SHEET_BRANCHES[name.toUpperCase()])?.id ?? ""])));
       setPreview(result); setEmployeeMatches(result.employeeMatches);setShiftConflicts(result.shiftConflicts);setDestinationReviews(result.destinationReviews); setSheetNames(result.sheets); setMissingEndTimes(result.missingEndTimeSources);
       setMessage(result.issues.length ? `${result.assignmentCount} safe assignments are readable. ${result.issues.length} source item${result.issues.length === 1 ? " will" : "s will"} remain empty for correction in the partial drafts.` : result.assignmentCount ? `${result.assignmentCount} assignments recognised. Select available outlets below.` : "No assignments were recognised. Select a sheet, check its dates and map its outlet.");
@@ -99,13 +100,18 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
       <div className="min-w-0 flex-1"><h2 className="text-sm font-semibold">Schedule workbook</h2><p className="mt-0.5 text-xs text-muted-foreground">Import Excel shifts into a draft.</p></div>
       <Button size="sm" variant="outline" onClick={() => dialog.current?.showModal()}><FileSpreadsheet className="h-4 w-4"/>Import workbook</Button>
     </section>
-    <dialog ref={dialog} className="sb-schedule-import-dialog max-h-[calc(100dvh-2rem)] w-[min(48rem,calc(100vw-2rem))] max-w-none overflow-visible rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-2xl backdrop:bg-black/55">
-      <div className="flex max-h-[calc(100dvh-2rem)] flex-col">
+    <dialog ref={dialog} className="sb-schedule-import-dialog m-auto max-h-[calc(100dvh-4rem)] w-[min(48rem,calc(100vw-2rem))] max-w-none overflow-visible rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-2xl backdrop:bg-black/55">
+      <div className="flex max-h-[calc(100dvh-4rem)] flex-col">
         <header className="flex items-start gap-3 border-b border-[var(--sb-border-soft)] p-4"><div className="min-w-0 flex-1"><h2 className="text-base font-semibold">Import schedule workbook</h2><p className="mt-1 text-xs text-muted-foreground">Preview all locations together, then select the drafts to import.</p></div><Button size="icon" variant="ghost" aria-label="Close schedule import" onClick={() => dialog.current?.close()}><X className="h-4 w-4"/></Button></header>
+        <nav aria-label="Import steps" className="grid grid-cols-3 gap-1 px-4 pt-3">{(["Import","Fix import","Review"] as const).map((label,index)=><Button key={label} type="button" variant={step===index+1?"default":"ghost"} aria-current={step===index+1?"step":undefined} disabled={busy || (index>0 && !catalog) || (index===2 && (!preview || step===1))} onClick={()=>setStep((index+1) as 1|2|3)}>{index+1}. {label}</Button>)}</nav>
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
+          {message ? <p role="status" className="rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] p-3 text-xs">{message}</p> : null}
+          <div className={step===1 ? "grid items-end gap-3 sm:grid-cols-2" : "hidden"}>
           <label className="grid gap-1 text-xs font-medium"><span>Workbook (.xlsx)</span><Input type="file" accept=".xlsx" disabled={busy} onChange={(event) => void load(event.currentTarget.files?.[0])}/></label>
+          <label className="grid gap-1 text-xs">Week starting (Monday)<Input type="date" value={importWeek} disabled={busy} onChange={event=>{setImportWeek(event.target.value);setDatesConfirmed(false);setSelectedOutlets([]);setPreview(null);}}/></label></div>
+          <div hidden={step!==2} className="space-y-4">
           {source && catalog ? <section className="space-y-3">
-            <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-[minmax(0,1fr)_auto]" aria-label="Import preview controls"><label className="grid gap-1 text-xs">Week starting (Monday)<Input type="date" value={importWeek} disabled={busy} onChange={event => {setImportWeek(event.target.value);setDatesConfirmed(false);setSelectedOutlets([]);setPreview(null);}}/></label><Button variant="outline" disabled={busy || Boolean(sheet && !branchId) || !/^\d{4}-\d{2}-\d{2}$/.test(importWeek)} onClick={()=>void recheck()}>Preview import</Button></div>
+            <p className="text-xs text-muted-foreground">Match locations and employees, then check the corrected workbook.</p>
             <details className="space-y-2" open={Object.values(sheetMappings).some(value => !value)}>
               <summary className="cursor-pointer text-sm font-semibold">Sheet locations · {sheetNames.length}</summary>
               <p className="text-xs text-muted-foreground">Check the suggested locations. Every included sheet is checked together.</p>
@@ -115,7 +121,6 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
             {missingEndTimes.length ? <fieldset className="space-y-2"><legend className="text-sm font-semibold">Confirm missing end times</legend><p className="text-xs text-muted-foreground">These cells contain only a start time. Set the end time for each start below, then check the sheet again. Each rule applies only to the named sheet. An earlier end time means the next day.</p><div className="grid gap-3 sm:grid-cols-3">{missingEndTimes.map(({key,sheet,start}) => <label key={key} className="grid gap-1 text-xs"><span>{sheet} · {start} · ends</span><Input type="time" disabled={busy} value={endTimes[key] ?? ""} onChange={event => {setEndTimes({...endTimes,[key]:event.target.value});setPreview(null);}}/></label>)}</div></fieldset> : null}
           </section> : null}
           {catalog?.import_history?.length ? <details className="space-y-2 text-xs"><summary className="cursor-pointer font-semibold">Recent imports · {catalog.import_history.length}</summary>{catalog.import_history.map(item => <p key={item.id}>{item.fileName} · {new Date(item.createdAt).toLocaleString()} · {item.outcomes.reduce((sum,outlet) => sum + outlet.assignments,0)} assignments</p>)}</details> : null}
-          {message ? <p role="status" className="rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] p-3 text-xs">{message}</p> : null}
           {preview ? <>
             {preview.issues.length ? <section className="space-y-2"><h3 className="text-sm font-semibold">Needs attention</h3><ul className="space-y-2">{Object.values(preview.issues.reduce<Record<string, {message: string; count: number}>>((groups, issue) => {
               const key = `${issue.sheet}:${issue.employee ?? ""}:${issue.reason}`;
@@ -141,6 +146,8 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
           {employeeMatches.length && !showMatched && !employeeMatches.some(match => !match.staffId || employeeMappings[match.key]) ? <button type="button" className="min-h-11 text-xs underline" onClick={() => setShowMatched(true)}>Review {employeeMatches.length} matched rows</button> : null}
           {destinationReviews.length ? <section className="space-y-2"><h3 className="text-sm font-semibold">Confirm destination names</h3>{destinationReviews.map(review => <label key={review.key} className="grid min-w-0 gap-1 text-xs"><span>{review.sheet} · row {review.row} · {review.date}: “{review.value}”</span><SelectControl ariaLabel={`Destination for ${review.sheet} row ${review.row} ${review.date}`} portalContainer={dialog.current} disabled={busy} placeholder="Confirm destination" value={destinationMappings[review.key] ?? review.selected} options={review.candidates.map(branch => ({value:branch.id,label:branch.name}))} onValueChange={value => {setDestinationMappings(current => ({...current,[review.key]:value}));setPreview(null);setMessage("Destination changed. Preview import again before saving.");}}/></label>)}</section> : null}
           {shiftConflicts.length ? <section className="space-y-2"><h3 className="text-sm font-semibold">Confirm overlapping shifts</h3>{shiftConflicts.map(conflict => <label key={conflict.key} className="grid min-w-0 gap-1 text-xs"><span>{conflict.employee} · {conflict.date}</span><SelectControl ariaLabel={`Shift for ${conflict.employee} ${conflict.date}`} portalContainer={dialog.current} disabled={busy} placeholder="Choose source shift" value={shiftSelections[conflict.key] ?? conflict.selected} options={conflict.choices.map(choice => ({value:choice.key,label:choice.label}))} onValueChange={value => {setShiftSelections(current => ({...current,[conflict.key]:value}));setPreview(null);setMessage("Shift selection changed. Preview import again before saving.");}}/></label>)}</section> : null}
+          </div>
+          <div hidden={step!==3} className="space-y-4">
           {Object.keys(outcomes).length ? <section aria-label="Import results" className="space-y-2 text-xs"><h3 className="font-semibold">Import results</h3>{Object.entries(outcomes).map(([id,outcome]) => <p key={id} role="status"><strong>{catalog?.branches.find(branch => branch.id === id)?.name}</strong> · {outcome.message}</p>)}</section> : null}
           {preview ? <>
             <div className="flex flex-wrap items-center justify-between gap-2"><p className="text-xs tabular-nums" aria-label="Assignment counts">{preview.assignmentCount} recognised · {eligibleCount} available · {pendingSelected.reduce((sum, outlet) => sum + outlet.assignments.length, 0)} selected</p>{importable.length ? <Button size="sm" variant="outline" disabled={busy} onClick={() => setSelectedOutlets(importable.filter(outlet => outcomes[outlet.branchId]?.status !== "imported").map(outlet => outlet.branchId))}>Select all available outlets</Button> : null}</div>
@@ -150,8 +157,9 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
             <details className="space-y-2"><summary className="cursor-pointer text-sm font-semibold">View {preview.assignmentCount} recognised assignments</summary><div className="max-h-72 overflow-auto"><table className="w-full text-left text-xs"><thead><tr><th className="p-2">Employee / date</th><th className="p-2">Current</th><th className="p-2">Workbook</th></tr></thead><tbody>{preview.outlets.flatMap(outlet=>outlet.assignments.map((assignment,index)=>{const current=catalog?.current_assignments.find(a=>String(a.staff_id)===assignment.staff_id&&String(a.work_date)===assignment.work_date);return <tr className="border-t" key={`${outlet.branchId}:${index}`}><td className="p-2"><label className="flex items-start gap-2"><input type="checkbox" aria-label={`Include ${catalog?.staff.find(p=>p.id===assignment.staff_id)?.name} ${assignment.work_date}`} disabled={busy || Boolean(current) || ["published","locked","submitted"].includes(outlet.status) || outcomes[outlet.branchId]?.status === "imported"} checked={!current && !excludedRows.includes(rowKey(outlet.branchId,assignment.staff_id,assignment.work_date))} onChange={event => {const key=rowKey(outlet.branchId,assignment.staff_id,assignment.work_date);setExcludedRows(rows => event.target.checked ? rows.filter(row => row !== key) : [...rows,key]);}}/><span>{catalog?.staff.find(p=>p.id===assignment.staff_id)?.name}</span></label><br/>{assignment.work_date}</td><td className="p-2">{current ? `${String(current.assignment_kind)} ${String(current.custom_start??"")}–${String(current.custom_end??"")}` : "No assignment"}</td><td className="p-2">{assignment.assignment_kind} {assignment.custom_start} {assignment.custom_end ? `– ${assignment.custom_end}` : ""}<br/>{outlet.branchName}</td></tr>}))}</tbody></table></div></details>
 
           </> : null}
+          </div>
         </div>
-        <footer className="flex flex-wrap items-center gap-3 border-t border-[var(--sb-border-soft)] p-4"><p className="min-w-0 basis-full text-xs text-muted-foreground sm:flex-1 sm:basis-auto">Flagged cells stay empty; existing schedules stay unchanged.</p><Button className="w-full sm:w-auto" disabled={busy || !pendingSelected.length} onClick={() => void confirm()}><Upload className="h-4 w-4"/>{busy ? "Working…" : `Import ${pendingSelected.length} draft outlet${pendingSelected.length === 1 ? "" : "s"}`}</Button></footer>
+        <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--sb-border-soft)] p-4"><p className="basis-full text-xs text-muted-foreground">Flagged cells stay empty; existing schedules stay unchanged.</p>{step>1?<Button variant="outline" disabled={busy} onClick={()=>setStep(step===3?2:1)}>Back</Button>:<span/>}{step===1?<Button disabled={busy || !source || !catalog} onClick={async()=>{if(!preview)await recheck();setStep(2);}}>Continue to fix import</Button>:step===2?<div className="flex gap-2"><Button variant="outline" disabled={busy || !source} onClick={()=>void recheck()}>Check changes</Button><Button disabled={busy || !preview} onClick={()=>setStep(3)}>Review import</Button></div>:<Button disabled={busy || !pendingSelected.length} onClick={()=>void confirm()}><Upload className="h-4 w-4"/>{busy?"Importing…":`Import ${pendingSelected.length} draft outlets`}</Button>}</footer>
       </div>
     </dialog>
   </>;

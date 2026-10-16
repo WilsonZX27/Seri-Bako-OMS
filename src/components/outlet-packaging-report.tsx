@@ -88,10 +88,10 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
         {report.products.map((item) => {
           const balances = latest.filter((row) => row.code === item.code && row.closing !== null);
           const total = balances.reduce((sum, row) => sum + (row.closing ?? 0), 0);
-          return <div key={item.id} className={product===item.code ? "bg-muted/30" : ""}>
+          return <div key={item.id} className={product===item.code ? "bg-[var(--sb-green-100)]" : ""}>
             <div className="flex items-stretch">
               <button type="button" aria-pressed={product===item.code} aria-controls="packaging-trend-panel" onClick={() => { setProduct(item.code); setSelectedDate(null); }} className="flex min-h-16 min-w-0 flex-1 items-center justify-between gap-3 px-3 py-2 text-left hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary">
-                <span className="min-w-0"><span className="block text-sm font-medium">{item.name}</span><span className="mt-0.5 block text-xs text-muted-foreground">{balances.length}/{count} outlets{!balances.length ? " · Not counted" : ""}</span>{product===item.code ? <span className="mt-1 block text-xs font-medium text-primary">Viewing trend</span> : null}</span>
+                <span className="min-w-0"><span className="block text-sm font-medium">{item.name}</span><span className="mt-0.5 block text-xs text-muted-foreground">{balances.length}/{count} outlets{!balances.length ? " · Not counted" : ""}</span></span>
                 <span className="shrink-0 text-sm font-semibold tabular-nums">{balances.length ? formatNumber(total) : "—"}<span className="ml-1 text-xs font-normal text-muted-foreground">{item.unit}</span></span>
               </button>
             </div>

@@ -112,18 +112,14 @@ export function OtClaimAction({
       <Button
         size="sm"
         variant="ghost"
-        className="w-full justify-start gap-2 px-2 font-normal"
+        className="shrink-0 px-2 font-normal"
+        aria-label={disabled ? "Attendance locked" : claim ? claim.status === "submitted" ? "Review OT" : `OT ${claim.status}` : "Claim OT"}
+        title={disabled ? "Attendance locked" : claim ? `OT ${claim.status}` : "Claim OT"}
         disabled={!actionable}
         onClick={() => dialog.current?.showModal()}
       >
         <Clock3 className="h-3.5 w-3.5" />
-        {disabled
-          ? "Locked"
-          : claim
-          ? claim.status === "submitted"
-            ? "Review OT"
-            : claim.status
-          : "Claim OT"}
+
       </Button>
       <NativeDialog
         ref={dialog}

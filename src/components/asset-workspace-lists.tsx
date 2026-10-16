@@ -45,7 +45,7 @@ export function AssetMaintenanceQueue({ records, assets, locations, selection }:
 }
 
 export function AssetDailyCheckLocations({ locations, date }: { locations: AssetOverview["checklist"]; date: string }) {
-  const status = (location: AssetOverview["checklist"][number]) => !location.open ? location.kind === "event" ? "No activity" : "Closed" : !location.expected ? "No assets due" : location.checked >= location.expected ? "Complete" : location.checked ? "In progress" : "Not started";
+  const status = (location: AssetOverview["checklist"][number]) => !location.open ? location.kind === "event" ? "No activity" : location.kind === "other" ? "Not scheduled" : "Closed" : !location.expected ? "No assets due" : location.checked >= location.expected ? "Complete" : location.checked ? "In progress" : "Not started";
   const href = (location: AssetOverview["checklist"][number]) => `/asset-management/locations/${location.id}${location.open && location.expected ? `?check=1&date=${date}` : ""}`;
   return <>
     <div className="grid grid-cols-1 md:grid-cols-2">{locations.map(location => <Link className="block border-b p-3 transition-colors md:odd:border-r hover:bg-muted focus-visible:ring-2 focus-visible:ring-primary" href={href(location)} key={location.id}>

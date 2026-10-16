@@ -32,9 +32,19 @@ export async function GET(request: Request) {
     if (assignmentResult.error) throw assignmentResult.error;
     const staffIds = new Set<string>(), staff: Array<{ id: string; name: string; staff_code: string | null; branch_id: string; home_branch_id?: string | null; eligibility?: Array<{ from: string; to: string | null }> }> = [];
     const staffResults = await Promise.all(branches.map(async (branch) => {
-      const staffResult = await db.rpc("get_schedule_staff", { p_branch_id: branch.id, p_week_id: latest.get(branch.id)?.id ?? null });
+      // Match the roster editor: eligible company staff can work at an authorised
+      // destination without granting permanent branch membership or app access.
+      // Retain the existing week catalogue for historical staff as well.
+      const [staffResult, candidates] = await Promise.all([
+        db.rpc("get_schedule_staff", { p_branch_id: branch.id, p_week_id: latest.get(branch.id)?.id ?? null }),
+        db.rpc("get_schedule_staff_candidates", { p_branch_id: branch.id }),
+      ]);
       if (staffResult.error) throw staffResult.error;
-      return { branchId: branch.id, people: (staffResult.data ?? []) as Array<{ id: string; full_name: string; staff_code: string | null }> };
+      if (candidates.error) throw candidates.error;
+      type Person = { id: string; full_name: string; staff_code: string | null };
+      const combined = [...((staffResult.data ?? []) as Person[]), ...((candidates.data ?? []) as Person[])];
+      const people = [...new Map(combined.map(person => [person.id, person])).values()];
+      return { branchId: branch.id, people };
     }));
     for (const result of staffResults) for (const person of result.people) { staffIds.add(person.id); staff.push({ id: person.id, name: person.full_name, staff_code: person.staff_code, branch_id: result.branchId }); }
     const homeResult = staffIds.size ? await db.from("staffs").select("id,default_branch_id,employment_end_date").in("id", [...staffIds]) : { data: [], error: null };

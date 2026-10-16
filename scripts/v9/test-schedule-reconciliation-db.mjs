@@ -26,10 +26,15 @@ insert into staffs values('${id(2)}','${id(1)}'),('${id(3)}','${id(1)}'),('${id(
 insert into branches values('${id(10)}','${id(1)}'),('${id(11)}','${id(1)}'),('${id(12)}','${id(99)}');
 insert into staff_branches values('${id(3)}','${id(10)}'),('${id(3)}','${id(11)}'),('${id(4)}','${id(11)}');
 `);
-for(const file of ['348_schedule_partial_import.sql','358_schedule_workbook_reconciliation.sql','359_staff_fingerprint_exemptions.sql'])await db.exec(await fs.readFile(`supabase/migrations/${file}`,'utf8'));
+for(const file of ['348_schedule_partial_import.sql','358_schedule_workbook_reconciliation.sql','359_staff_fingerprint_exemptions.sql','360_schedule_import_support_destinations.sql'])await db.exec(await fs.readFile(`supabase/migrations/${file}`,'utf8'));
 const row=(staff,day,kind='off')=>({staff_id:id(staff),work_date:`2026-10-${day}`,assignment_kind:kind,shift_template_id:null});
 const outlet=(branch,rows)=>({branch_id:id(branch),assignments:rows});
 const call=async(outlets,key,meta={})=>(await q("select reconcile_schedule_workbook_drafts('2026-10-12','synthetic.xlsx',$1,$2,0,$3,$4) result",['a'.repeat(64),JSON.stringify(outlets),JSON.stringify(meta),key.repeat(64)]))[0].result;
+await db.exec('set role authenticated');
+// A borrowed employee may be scheduled without permanent destination access.
+await call([outlet(10,[row(4,18)])],'9');
+await db.exec('reset role');
+assert.equal((await q('select count(*)::integer n from staff_branches where staff_id=$1 and branch_id=$2',[id(4),id(10)]))[0].n,0);
 await db.exec('set role authenticated');
 const original=[outlet(10,[row(3,12)]),outlet(11,[row(4,12)])];
 const saved=await call(original,'b');assert.equal(saved.outcomes.length,2);assert.equal((await call(original,'b')).idempotent,true);
@@ -42,7 +47,7 @@ await db.exec('reset role');assert.equal((await q('select is_current from shift_
 assert.equal((await q('select count(*)::integer n from shift_assignment_revisions where staff_id=$1 and is_current',[id(3)]))[0].n,1);
 const current=(await q('select id from shift_assignment_revisions where staff_id=$1 and is_current',[id(3)]))[0].id;
 await db.exec('set role authenticated');
-await assert.rejects(call([outlet(10,[row(3,12)]),outlet(11,[row(98,13)])],'e',{expectedAssignments:[current]}),/outside this outlet/);
+await assert.rejects(call([outlet(10,[row(3,12)]),outlet(11,[row(98,13)])],'e',{expectedAssignments:[current]}),/outside this company/);
 await db.exec('reset role');assert.equal((await q('select is_current from shift_assignment_revisions where id=$1',[current]))[0].is_current,true);
 assert.equal((await q("select count(*)::integer n from schedule_workbook_receipts where request_key=$1",['e'.repeat(64)]))[0].n,0);
 await q("update schedule_weeks set status='published' where branch_id=$1",[id(11)]);await db.exec('set role authenticated');

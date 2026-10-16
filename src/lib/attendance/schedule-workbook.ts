@@ -589,6 +589,14 @@ export async function parseScheduleWorkbooks(inputFiles: File[], weekStart: stri
     const linked=staged.filter(item=>item.sheet===note.sheet&&dates.includes(item.date)&&relatedRows.has(employeeMatches.get(item.sourceKey)!.row)&&!suppressedShifts.has(`${item.sourceKey}:${item.date}`)&&!suppressedShifts.has(`${item.sourceKey}:${item.date}:${item.branchId}`)&&time(item.first)&&time(item.second));
     const people=new Set(linked.map(item=>employeeMatches.get(item.sourceKey)?.staffId).filter(Boolean));
     if(people.size!==1||!linked.length)continue;
+    // A colour is only layout context: different employees can share it.
+    // Bind an OT remark only when its full catalogue name corroborates the row.
+    const person=catalog.staff.find(person=>person.id===[...people][0]);
+    const noteName=` ${normaliseScheduleName(note.text)} `;
+    if(!person||![person.name,...(person.aliases??[])].some(name=>{
+      const fullName=normaliseScheduleName(name);
+      return fullName.length>=4&&noteName.includes(` ${fullName} `);
+    }))continue;
     for(const item of linked)item.otNotes=[...(item.otNotes??[]),`${note.range}: ${note.text}`];
     linkedOtNotes.add(`${note.sheet}:${note.range}`);
   }

@@ -1,4 +1,4 @@
-# Schedule workbook reconciliation — local candidate, 16 October 2026
+# Schedule workbook reconciliation — verification, 16 October 2026
 
 The requested flow combines Outlets, CK ALMA and CK PJS10 before resolving employee days. Explicit destinations take priority; equivalent working rows and rest days merge. Different destination times still require a decision. No file-order priority is introduced.
 
@@ -29,3 +29,13 @@ Private workbook extracts, real staff names, simulated identity catalogues and l
 ## Deployment
 
 Apply migrations 358 and 359 together before deploying their API/UI consumers, after separately checking the target's existing migration history. Migration 357 remains a separate earlier candidate; do not infer its Production status from repository numbering. This patch does not apply any Production migrations or publish a deployment.
+
+## Production activation and follow-up, 16 October 2026
+
+Production deployment b195c871 is Ready and promoted. Migrations 358/359 were applied atomically after a live rollback rehearsal. The Owner-requested head-chef exemption is active from 12 October. Current schedule rows (1,438) and attendance result rows (1,023) were unchanged; no roster was imported or OT conditions confirmed.
+
+The live three-file preview exposed two additional defects. Shared remark colours could bind another employee's named OT note; full catalogue name/confirmed alias corroboration is now required, otherwise the note stays a separate manual review. Explicit support destinations were still constrained by permanent branch membership in migration 348; migration 360 aligns this with the existing roster editor's company-wide eligibility, while retaining tenant, authorised destination, dated role, concurrency and published/locked schedule protections. No staff_branches memberships are inserted. The catalogue includes the editor's existing eligible candidates and retains historical week staff.
+
+Synthetic regressions cover shared-colour misassociation, explicit-name linking, and destination import without permanent branch membership; the foreign-company rollback guard still rejects. Production schema changes are rehearsed under rollback before apply. Final browser preview and deployment evidence are recorded after release.
+
+Migration 360 passed the live rollback rehearsal and was applied with function ACL and business-count guards. All 1,637 Node regressions, TypeScript, ESLint, the optimized build (synthetic local Supabase environment), and the PGlite migration/RPC suite passed. The Owner-confirmed employee spelling alias was saved with source/location scope; no OT conditions were persisted.

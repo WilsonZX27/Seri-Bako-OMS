@@ -46,7 +46,7 @@ function Metric({
         <span className={variant === "tile" ? "col-span-2 row-start-2 min-w-0 text-xs font-medium leading-4 text-[var(--sb-text-muted)]" : "truncate"}>{label}</span>
       </span>
       <strong
-        className={unavailable ? "col-start-2 row-start-1 justify-self-end text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-warning)]" : variant === "tile" ? density === "compact" ? "col-start-2 row-start-1 min-w-0 justify-self-end whitespace-nowrap text-lg font-semibold tabular-nums sm:text-xl" : "col-start-2 row-start-1 justify-self-end text-xl font-semibold tabular-nums sm:text-2xl" : "tabular-nums"}
+        className={unavailable ? "col-start-2 row-start-1 justify-self-end text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-warning)]" : variant === "tile" ? cn("col-start-2 row-start-1 min-w-0 justify-self-end whitespace-nowrap sb-kpi-value", alert ? alertTone === "critical" ? "text-[var(--sb-danger)]" : "text-[var(--sb-warning)]" : "text-[var(--sb-green-900)]") : "tabular-nums"}
         aria-label={unavailable ? `${label} is temporarily unavailable` : undefined}
         title={unavailable ? `${label} is temporarily unavailable` : undefined}
       >
@@ -306,7 +306,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               return <Link key={signal.key} prefetch={false} href={signal.href} className={`group flex min-h-12 min-w-0 items-center gap-2 px-3 py-2 transition-colors hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${isLastOddPhoneSignal ? "col-span-2 sm:col-span-1" : ""}`}>
                 <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
                 <span className="min-w-0 flex-1 truncate text-[11px] font-medium leading-4 text-muted-foreground">{signal.label}</span>
-                <strong className={unavailable ? "shrink-0 text-[10px] font-semibold text-muted-foreground" : "shrink-0 text-lg font-semibold tabular-nums"}>{unavailable ? "Unavailable" : signal.value}</strong>
+                <strong className={unavailable ? "shrink-0 text-[10px] font-semibold text-muted-foreground" : "shrink-0 sb-kpi-value text-[var(--sb-green-900)]"}>{unavailable ? "Unavailable" : signal.value}</strong>
               </Link>;
             })}
           </div>

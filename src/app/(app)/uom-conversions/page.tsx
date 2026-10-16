@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DestructiveActionDialog } from "@/components/ui/destructive-action-dialog";
@@ -19,6 +20,8 @@ export default async function UomConversionsPage({ searchParams }: { searchParam
   const filters = await searchParams;
   const rows = await getUomConversions(filters);
   const page = paginateRows(rows, filters.page);
+  const filtered = Boolean(filters.search || (filters.status && filters.status !== "all"));
+  const emptyState = <EmptyState title={filtered ? "No conversions match these filters" : "No UOM conversions yet"} description={filtered ? "Reset the filters or widen the search." : "Conversions appear here after a unit conversion is created."} action={filtered ? { href: "/uom-conversions", label: "Reset filters" } : undefined} />;
 
   return (
     <>
@@ -56,7 +59,7 @@ export default async function UomConversionsPage({ searchParams }: { searchParam
                   </TableRow>
                 ))}
                 {!page.rows.length ? (
-                  <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground">No UOM conversions found.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={5} >{emptyState}</TableCell></TableRow>
                 ) : null}
               </TableBody>
             </Table>
@@ -73,7 +76,7 @@ export default async function UomConversionsPage({ searchParams }: { searchParam
                   meta={formatNumber(row.factor)}
                 />
               ))}
-              {!page.rows.length ? <div className="px-3 py-8 text-center text-sm text-muted-foreground">No UOM conversions found.</div> : null}
+              {!page.rows.length ? emptyState : null}
             </OperationalList>
             <PaginationControls page={page.page} totalPages={page.totalPages} totalRows={page.totalRows} searchParams={filters} />
           </div>

@@ -98,7 +98,7 @@ export function OperationalHub({
                 )}
               >
                 <dt className="break-words text-[13px] font-medium leading-4 text-[var(--sb-text)]">{metric.label}</dt>
-                <dd className={cn("mt-1.5 font-mono text-[1.375rem] font-bold leading-none tabular-nums", tone.value)}>
+                <dd className={cn("mt-1.5 sb-kpi-value", tone.value)}>
                   {metric.value}
                 </dd>
               </div>

@@ -65,6 +65,7 @@ export function DocumentWorkspace({
   const isNewDocument = documentNo.toLowerCase().startsWith("new ");
   const resolvedWorkflowSteps = workflowSteps ?? [];
   const resolvedCurrentStatus = currentStatus ?? status;
+  const statusLabel = resolvedWorkflowSteps.find((step) => step.key === status)?.label;
   const hasLegacyDocumentContext = (!isNewDocument || priority || branch);
   const showDocumentContext = hasLegacyDocumentContext || (isNewDocument && title);
 
@@ -77,7 +78,7 @@ export function DocumentWorkspace({
         {showDocumentContext ? <div data-tablet-document-header className={cn("flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between", isNewDocument && "hidden md:flex")}>
           <div className="min-w-0">
             <div className={cn("min-w-0", isNewDocument ? "min-h-7" : "flex min-h-8 flex-wrap items-center gap-2")}>
-              {isNewDocument ? <DocumentContextSummary title={title} status={status} branch={branch} date={mobileContextDate} mobileStatusOnly={mobileStatusOnly} /> : <>
+              {isNewDocument ? <DocumentContextSummary title={title} status={status} statusLabel={statusLabel} branch={branch} date={mobileContextDate} mobileStatusOnly={mobileStatusOnly} /> : <>
               {!isNewDocument ? documentIdentity ?? <DocumentNumber value={documentNo} size="lg" className="max-w-[min(100%,18rem)] break-all text-[16px] sm:text-lg" /> : null}
               {priority ? <PriorityBadge priority={priority} /> : null}
               {branch ? <span className="ml-auto hidden min-w-0 items-center justify-end gap-1.5 whitespace-nowrap text-right text-xs text-muted-foreground md:flex"><MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="truncate">{branch}</span></span> : null}
@@ -88,10 +89,10 @@ export function DocumentWorkspace({
             </div>
           </div>
         </div> : null}
-        {isNewDocument && hideWorkflow ? <div data-document-status-only className="flex min-h-9 items-center justify-center md:hidden"><StatusBadge status={status} /></div> : null}
-        {isNewDocument && !hideWorkflow ? <div className="flex min-h-9 items-center justify-center gap-2 md:hidden"><StatusBadge status={status} /><MobileWorkflowStatus steps={resolvedWorkflowSteps} currentStatus={resolvedCurrentStatus} trailing={mobileWorkflowTrailing} /></div> : null}
+        {isNewDocument && hideWorkflow ? <div data-document-status-only className="flex min-h-9 items-center justify-center md:hidden"><StatusBadge status={status} label={statusLabel} /></div> : null}
+        {isNewDocument && !hideWorkflow ? <div className="flex min-h-9 items-center justify-center gap-2 md:hidden"><StatusBadge status={status} label={statusLabel} /><MobileWorkflowStatus steps={resolvedWorkflowSteps} currentStatus={resolvedCurrentStatus} trailing={mobileWorkflowTrailing} /></div> : null}
         {!hideWorkflow && !hideMobileWorkflow ? <div data-tablet-document-header className={cn("min-w-0", isNewDocument ? "mt-0 md:mt-1" : "mt-1 md:mt-2", isNewDocument && "hidden md:block")}>{!isNewDocument ? <MobileWorkflowStatus steps={resolvedWorkflowSteps} currentStatus={resolvedCurrentStatus} trailing={mobileWorkflowTrailing} /> : null}<div className="hidden md:block"><WorkflowStatusPipeline steps={resolvedWorkflowSteps} currentStatus={resolvedCurrentStatus} compact /></div></div> : null}
-        {hideWorkflow && isNewDocument ? <div data-tablet-document-header className="hidden items-center md:flex"><StatusBadge status={status} /></div> : null}
+        {hideWorkflow && isNewDocument ? <div data-tablet-document-header className="hidden items-center md:flex"><StatusBadge status={status} label={statusLabel} /></div> : null}
       </header>
 
       <WorkspaceGrid documentMode tabletRailMode={tabletRailMode} className={cn("min-w-0 p-3", compactMobileSpacing && "pt-0 md:pt-3", mobilePrimaryAction && "pb-20 md:pb-3")} rightRail={sidePanel} hideMobileConsole>

@@ -16,9 +16,9 @@ test("ready-to-post always has an explicit approved-job counter", () => {
 });
 
 test("phone production summary uses high-visibility figures", () => {
-  assert.match(hub, /text-\[1\.375rem\]/);
-  assert.match(hub, /font-bold/);
-  assert.match(hub, /tabular-nums/);
+  const design = fs.readFileSync(path.join(root, "src/app/design-system-v2.css"), "utf8");
+  assert.match(hub, /sb-kpi-value/);
+  assert.match(design, /\.sb-kpi-value\s*\{[^}]*font-size:\s*1\.375rem;[^}]*font-weight:\s*700;[^}]*font-variant-numeric:\s*tabular-nums;/);
 });
 
 test("phone production page reserves space above sticky navigation", () => {

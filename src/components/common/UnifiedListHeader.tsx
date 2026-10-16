@@ -146,6 +146,9 @@ function SearchControl({ child, value, onChange }: { child: ReactElement; value:
     value,
     type: "search",
     enterKeyHint: "search",
+    // Keep the complete search scope accessible without clipping long hints.
+    placeholder: "Search",
+    title: String(props["aria-label"] ?? props.placeholder ?? "Search"),
     onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
       if (typeof props.onChange === "function") props.onChange(event);
       onChange(event.target.value);

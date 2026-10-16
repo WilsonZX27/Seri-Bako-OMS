@@ -61,7 +61,7 @@ export function SupplierItemForm({
         <form key={result?.attempt ?? 0} id={formId} action={submit} className="grid gap-4 pb-20 md:grid-cols-3 md:pb-0">
           {result?.error ? <p role="alert" className="col-span-full rounded border border-destructive p-3 text-sm text-destructive">{result.error}</p> : null}
           <input type="hidden" name="status" value={supplierItem?.status ?? "active"} />
-          <Field label="Supplier">
+          <Field label="Supplier" required>
             <SelectNative name="supplier_id" defaultValue={saved.get("supplier_id") ?? (supplierItem?.supplier_id ?? initialSupplierId ?? suppliers[0]?.id ?? "")} required>
               {suppliers.map((supplier) => (
                 <option key={supplier.id} value={supplier.id}>
@@ -70,7 +70,7 @@ export function SupplierItemForm({
               ))}
             </SelectNative>
           </Field>
-          <Field label="Item">
+          <Field label="Item" required>
             <ItemCombobox
               items={items}
               name="item_id"
@@ -89,23 +89,23 @@ export function SupplierItemForm({
             <p className="mt-1 text-xs">Owned by Item Master. Set Purchase UOM and the conversion below.</p>
             {selectedItem ? <Link href={`/items/${selectedItem.id}`} className="mt-1 inline-flex text-xs font-semibold text-primary underline-offset-4 hover:underline">Open Item Master</Link> : null}
           </div>
-          <Field label="Purchase UOM">
+          <Field label="Purchase UOM" required>
             <SelectNative name="purchase_uom" defaultValue={saved.get("purchase_uom") ?? (normalizeUom(supplierItem?.purchase_uom) || "KG")} required>
               {uomOptionsWithCurrent(supplierItem?.purchase_uom).map((uom) => (
                 <option key={uom} value={uom}>{uom}</option>
               ))}
             </SelectNative>
           </Field>
-          <Field label="Conversion to Base UOM">
+          <Field label="Conversion to Base UOM" required>
             <Input name="conversion_to_base_uom" type="number" step="0.000001" min="0.000001" defaultValue={saved.get("conversion_to_base_uom") ?? (supplierItem?.conversion_to_base_uom ?? 1)} required />
           </Field>
-          <Field label="Unit Cost">
+          <Field label="Unit Cost" required>
             <Input name="unit_cost" type="number" step="0.0001" min="0" defaultValue={saved.get("unit_cost") ?? (supplierItem?.unit_cost ?? 0)} required />
           </Field>
-          <Field label="MOQ">
+          <Field label="MOQ" required>
             <Input name="moq" type="number" step="0.0001" min="0" defaultValue={saved.get("moq") ?? (supplierItem?.moq ?? 0)} required />
           </Field>
-          <Field label="Lead Time Days">
+          <Field label="Lead Time Days" required>
             <Input name="lead_time_days" type="number" min="0" defaultValue={saved.get("lead_time_days") ?? (supplierItem?.lead_time_days ?? 0)} required />
           </Field>
           <Field label="Valid From">

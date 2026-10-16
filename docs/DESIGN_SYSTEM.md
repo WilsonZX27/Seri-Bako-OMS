@@ -238,3 +238,9 @@ Plan checks now identify the product/outlet and required correction instead of a
 All outlet columns are shown by default, with optional grouping and an internal scroll region. Product identity remains frozen left; kitchen retention is pinned right, with surplus canvas width assigned to an empty spacer. Settings outlet selector is bounded at 18rem; schedule and automation text share centre alignment. Product supply period uses the shared focus-managed modal and settings Save action.
 
 PDF export has its own A4 landscape layout, repeated table headers, page numbers, understated green typography, alternating rows and explicit Pending values. Browser chrome is excluded. Reports label inclusive current/previous ranges, distinguish percentage points from percentage change, and visibly identify partial coverage. Historical rail labels the completed historical date and the 30-day outstanding-record window.
+
+## Asset workflow density, 16 October 2026
+
+WorkspaceTabs owns the shared 44px outer navigation row. Shared `details.sb-work-surface` owns closed disclosure geometry: no vertical outer padding plus a 42px summary inside its 1px border, for 44px total. Open sections grow with their content. This corrects the system-wide padding/min-height accumulation without shrinking form content or changing the 1024px desktop control breakpoint. Desktop inputs remain 36px, touch controls remain 44px. Two-action confirmation footers use equal columns.
+
+Asset maintenance uses a 4:6 master/detail split from 1024px and stacks below it. The desktop queue fills the same height as the detail/history/attachment stack and scrolls internally. Inspection rows show identity, quantity and current state; explicit result choices and optional physical counts expand on demand. A separate general repair form is above the inspection form. No submission implicitly submits the other form.

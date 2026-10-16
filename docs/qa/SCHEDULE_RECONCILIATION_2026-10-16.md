@@ -1,5 +1,10 @@
 # Schedule workbook reconciliation — verification, 16 October 2026
 
+## Current production status
+
+The integrated v9.2.106 application is deployed on system.seribako.com.my. Migrations 357–360 are applied. Migration 357 passed the asset database lifecycle suite and a guarded live rollback rehearsal before commit. Existing business row counts were preserved. Missing history entries 339–344 were reconciled only after their effective contracts were verified; their older DDL was not replayed. Earlier local-only and pending-deployment statements below describe prior stages, not current release status.
+
+
 The requested flow combines Outlets, CK ALMA and CK PJS10 before resolving employee days. Explicit destinations take priority; equivalent working rows and rest days merge. Different destination times still require a decision. No file-order priority is introduced.
 
 ## Final behavior

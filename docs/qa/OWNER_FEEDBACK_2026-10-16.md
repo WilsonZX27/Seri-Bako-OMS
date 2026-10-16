@@ -1,5 +1,10 @@
 # Owner feedback repair — 16 October 2026
 
+## Current production status
+
+The integrated v9.2.106 application is deployed on system.seribako.com.my. Migrations 357–360 are applied. Migration 357 passed the asset database lifecycle suite and a guarded live rollback rehearsal before commit. Existing business row counts were preserved. Missing history entries 339–344 were reconciled only after their effective contracts were verified; their older DDL was not replayed. Earlier local-only and pending-deployment statements below describe prior stages, not current release status.
+
+
 Status: local patch; not deployed. No Production business records or configuration were changed. Migration 357 is prepared and tested in an ephemeral PGlite database only.
 
 ## Source authority

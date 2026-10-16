@@ -1,18 +1,20 @@
-> Schedule import verification — 2026-10-16: migrations reviewed through `360`; forward-only migration 历史已到 `360`. Production migrations 358/359/360 are applied; the existing head-chef fingerprint exception is dated and audited. Migration 360 aligns explicit support destinations with the roster editor’s company eligibility, without changing permanent branch access. Colour alone cannot link an OT remark to an employee. Migration 357 remains unapplied.
+> Production release — 2026-10-16: v9.2.106 is deployed. Migrations reviewed through `360`; forward-only migration 历史已到 `360`. Migrations 325 and 357–360 are applied. Effective migrations 339–344 were verified against 15 exact latest function bodies, current constraints and access policies, then their missing history records were reconciled without replaying old DDL. Asset/attendance/roster data did not change during this release. Earlier local-candidate notes below are historical snapshots, superseded by this release status.
+
+> Schedule import verification — 2026-10-16: migrations reviewed through `360`; forward-only migration 历史已到 `360`. Production migrations 358/359/360 are applied; the existing head-chef fingerprint exception is dated and audited. Migration 360 aligns explicit support destinations with the roster editor’s company eligibility, without changing permanent branch access. Colour alone cannot link an OT remark to an employee. Migration 357 is now applied; see the current production release status above.
 
 > Local schedule reconciliation candidate — 2026-10-16: migrations reviewed through `359`; forward-only migration 历史已到 `359`. Migration 358 adds atomic, version-checked draft reconciliation and reusable source rules; 359 adds dated Owner-confirmed staff fingerprint exceptions without inferred hours. Synthetic verification only; not applied to Production.
 
 > Local feedback patch — 2026-10-16: migrations reviewed through `357`; forward-only migration 历史已到 `357`. Migration 357 adds owner-managed non-operating asset destinations, with existing tenant/location access unchanged. Verified with ten synthetic transfer lifecycles only; not applied to Production. UI repair and portrait production export are not yet deployed.
 
-# v9.2.106 (unreleased)
+# v9.2.106 (deployed)
 
-Reviewed operations UI and reliable draft submission candidate. Production remains v9.2.105. Migration 343 is validated only in the isolated test database; production application requires separate authorization. No post-release permission expansion is included.
+Operations UI and reliable draft submission are deployed as v9.2.106. Current production migration history is reconciled through 360. Existing tenant, location and workflow permissions remain enforced.
 
 ## v9.2.105 (deployed) — systemic hardening
 
 Current design authority: desktop controls are 36px at widths >=1024px; phone and portrait-tablet controls below1024px retain at least44px touch targets. Preserve OMS semantic colours, radii and elevation. The shared query owner supplies embedded search with300ms debounce and Enter; mutation forms never auto-submit. Sheet backdrop100/sheet101 cover navigation50; native dialogs retain the browser top layer. The right console remains >=1280px, so it never appears on1024–1194px tablets. Mobile creation stays80px above the bottom edge.
 
-All versioned notes below are historical evidence unless explicitly identified as current. Earlier40/44px desktop geometry must not override this contract. Audit receipt: outputs/systemic-audit-104/AUDIT-RECEIPT.md. The currently released application is `v9.2.105`; the current released application baseline is `v9.2.105`. A versioned section above that number is an unreleased implementation note, pending verification and publication.
+All versioned notes below are historical evidence unless explicitly identified as current. Earlier40/44px desktop geometry must not override this contract. Audit receipt: outputs/systemic-audit-104/AUDIT-RECEIPT.md. The currently released application is `v9.2.106`; the current released application baseline is `v9.2.106`. A versioned section above that number is an unreleased implementation note, pending verification and publication.
 
 ## Annotation correction — 2026-10-10, unreleased
 

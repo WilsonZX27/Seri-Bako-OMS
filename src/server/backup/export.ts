@@ -51,6 +51,8 @@ export const BACKUP_DATASETS: readonly BackupDataset[] = [
   { table: "shift_assignment_revisions", classification: "company_id filtered", column: "company_id" },
   { table: "schedule_approval_events", classification: "company_id filtered", column: "company_id", optional: "logs" },
   { table: "attendance_schedule_refresh", classification: "company_id filtered", column: "company_id", optional: "logs" },
+  { table: "schedule_workbook_rules", classification: "company_id filtered", column: "company_id", cursorColumn:"confirmed_at" },
+  { table: "staff_fingerprint_policies", classification: "company_id filtered", column: "company_id", cursorColumn:"confirmed_at" },
   { table: "schedule_workbook_receipts", classification: "company_id filtered", column: "company_id", optional: "logs" },
   { table: "schedule_import_batches", classification: "company_id filtered", column: "company_id", optional: "logs" },
   { table: "shift_change_requests", classification: "company_id filtered", column: "company_id" },

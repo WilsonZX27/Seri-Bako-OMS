@@ -81,13 +81,15 @@ function signedDuration(value: unknown, tone: "late" | "earlyLeave" | "ot") {
   const className = tone === "ot" ? "text-[var(--sb-success)]" : "text-[var(--sb-danger)]";
   return <span className={`mt-0.5 block text-[11px] font-medium tabular-nums ${className}`}>{prefix}{durationLabel(seconds)}{label ? ` ${label}` : ""}</span>;
 }
+function fingerprintExempt(row:Row){return (row.calculation as {fingerprint_exempt?:boolean}|null)?.fingerprint_exempt===true;}
 function primaryStatus(row: Row) {
   const values = Array.isArray(row.statuses)
     ? row.statuses.map(String).filter((value) => value !== "public_holiday")
     : [];
-  return values.find(value=>value!=="unpaid_leave") ?? (values.includes("unpaid_leave") ? "unpaid_leave" : undefined) ?? (row.holiday_id ? "public_holiday" : "normal");
+  return values.find(value=>value!=="unpaid_leave") ?? (values.includes("unpaid_leave") ? "unpaid_leave" : undefined) ?? (fingerprintExempt(row)?"fingerprint_exempt":row.holiday_id ? "public_holiday" : "normal");
 }
 function expectedPunchesFor(row: Row) {
+  if(fingerprintExempt(row))return 0;
   if (Array.isArray(row.statuses) && row.statuses.includes("unpaid_leave")) return 0;
   return 4;
 }
@@ -172,7 +174,7 @@ export default async function AttendanceReviewPage({
     staffs?: { full_name?: string } | null;
   }>;
   const attentionCount = rows.filter(
-    (row) => !["normal","unpaid_leave"].includes(primaryStatus(row)),
+    (row) => !["normal","unpaid_leave","fingerprint_exempt"].includes(primaryStatus(row)),
   ).length;
   const blockerCount = closeRows.length;
   const exceptionCount = blockerCount;
@@ -228,7 +230,7 @@ export default async function AttendanceReviewPage({
       return { date, label: `${count} missing` };
     });
     const reportHistory = (actuals.reports as Row[]).filter((report) => String(report.staff_id) === String(row.staff_id)).map((report) => ({ date: String(report.work_date), label: String(report.report_type ?? report.status ?? "Attendance report").replaceAll("_", " ").toUpperCase() }));
-    return <EmployeeAttendanceSummary name={staff?.full_name ?? "Unmatched employee"} staffCode={staff?.staff_code} employmentType={staff?.employment_type ?? "full_time"} workDate={String(row.work_date)} punches={`${Number(row.actual_punch_count ?? 0)} of ${Number(row.expected_punch_count ?? 0)} punches`} missingHistory={missingHistory} reportHistory={reportHistory} detailHref={detailHref} peopleHref={staff && row.staff_id ? `/people/${encodeURIComponent(String(row.staff_id))}` : undefined} />;
+    return <EmployeeAttendanceSummary name={staff?.full_name ?? "Unmatched employee"} staffCode={staff?.staff_code} employmentType={staff?.employment_type ?? "full_time"} workDate={String(row.work_date)} punches={fingerprintExempt(row)?"Fingerprint exempt":`${Number(row.actual_punch_count ?? 0)} of ${Number(row.expected_punch_count ?? 0)} punches`} missingHistory={missingHistory} reportHistory={reportHistory} detailHref={detailHref} peopleHref={staff && row.staff_id ? `/people/${encodeURIComponent(String(row.staff_id))}` : undefined} />;
   };
 
   return (
@@ -451,7 +453,7 @@ export default async function AttendanceReviewPage({
                           </strong>
                           {missingPunches > 0 ? (
                             <span title={`Advisory only; payroll is unchanged. Tracking starts ${ATTENDANCE_TRACKING_START_DATE}.${Array.isArray(row.monthly_missing_punch_dates) && row.monthly_missing_punch_dates.length ? ` Missing records: ${row.monthly_missing_punch_dates.join(", ")}.` : ""}`} className="block max-w-full cursor-help text-[10px] leading-tight text-amber-800">
-                              {String(row.work_date) >= ATTENDANCE_TRACKING_START_DATE && Number(row.monthly_missing_punch_count ?? 0) >= 4
+                              {!fingerprintExempt(row) && String(row.work_date) >= ATTENDANCE_TRACKING_START_DATE && Number(row.monthly_missing_punch_count ?? 0) >= 4
                                 ? `${Number(row.monthly_missing_punch_count)} missing this month`
                                 : "Missing punch"}
                             </span>
@@ -536,7 +538,7 @@ export default async function AttendanceReviewPage({
                         </dd>
                         {missingPunches > 0 ? (
                           <dd title={`Advisory only; payroll is unchanged. Tracking starts ${ATTENDANCE_TRACKING_START_DATE}.${Array.isArray(row.monthly_missing_punch_dates) && row.monthly_missing_punch_dates.length ? ` Missing records: ${row.monthly_missing_punch_dates.join(", ")}.` : ""}`} className="max-w-full cursor-help text-[10px] leading-tight text-amber-800">
-                            {String(row.work_date) >= ATTENDANCE_TRACKING_START_DATE && Number(row.monthly_missing_punch_count ?? 0) >= 4
+                            {!fingerprintExempt(row) && String(row.work_date) >= ATTENDANCE_TRACKING_START_DATE && Number(row.monthly_missing_punch_count ?? 0) >= 4
                               ? `${Number(row.monthly_missing_punch_count)} missing this month`
                               : "Missing punch"}
                           </dd>

@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     const latest = new Map<string, { id: string; status: string }>();
     for (const row of (weekResult.data ?? []) as Array<{ id: string; branch_id: string; status: string }>) if (!latest.has(row.branch_id)) latest.set(row.branch_id, row);
     const weekIds = [...latest.values()].map((row) => row.id);
-    const assignmentResult = weekIds.length ? await db.from("shift_assignment_revisions").select("schedule_week_id,staff_id,work_date,assignment_kind,shift_template_id,custom_start,custom_end,custom_crosses_midnight,custom_break_seconds,custom_maximum_recognised_seconds,work_site_label").in("schedule_week_id", weekIds).eq("is_current", true) : { data: [], error: null };
+    const assignmentResult = weekIds.length ? await db.from("shift_assignment_revisions").select("id,schedule_week_id,staff_id,work_date,assignment_kind,shift_template_id,custom_start,custom_end,custom_crosses_midnight,custom_break_seconds,custom_maximum_recognised_seconds,work_site_label,ro_minutes").in("schedule_week_id", weekIds).eq("is_current", true) : { data: [], error: null };
     if (assignmentResult.error) throw assignmentResult.error;
     const staffIds = new Set<string>(), staff: Array<{ id: string; name: string; staff_code: string | null; branch_id: string; home_branch_id?: string | null; eligibility?: Array<{ from: string; to: string | null }> }> = [];
     const staffResults = await Promise.all(branches.map(async (branch) => {
@@ -64,7 +64,11 @@ export async function GET(request: Request) {
     const branchForWeek = new Map([...latest].map(([branchId, row]) => [row.id, branchId]));
     const history = await db.rpc("get_schedule_workbook_import_history", {p_week_start:week.data});
     if (history.error) throw history.error;
+    const [rules,exemptions,owner]=await Promise.all([db.rpc("get_schedule_workbook_rules"),db.rpc("get_staff_fingerprint_exemptions",{p_week_start:week.data}),db.rpc("current_staff_has_company_role",{role_codes:["super_admin"]})]);
+    if(rules.error)throw rules.error;
+    if(exemptions.error)throw exemptions.error;
     return NextResponse.json({
+      import_rules:rules.data??{},fingerprint_exempt_staff:exemptions.data??[],can_manage_exemptions:owner.data===true,
       import_history:history.data ?? [],
       branches: branches.map((branch) => ({ id: branch.id, name: branch.branch_name, status: latest.get(branch.id)?.status ?? "not_started" })),
       staff: staff.map((person) => ({ ...person, home_branch_id: homeByStaff.get(person.id) ?? null, eligibility: eligibilityByStaff.get(person.id) ?? [] })),

@@ -1,3 +1,5 @@
+> Local schedule reconciliation candidate — 2026-10-16: migrations reviewed through `359`; forward-only migration 历史已到 `359`. Migration 358 adds atomic, version-checked draft reconciliation and reusable source rules; 359 adds dated Owner-confirmed staff fingerprint exceptions without inferred hours. Synthetic verification only; not applied to Production.
+
 > Local feedback patch — 2026-10-16: migrations reviewed through `357`; forward-only migration 历史已到 `357`. Migration 357 adds owner-managed non-operating asset destinations, with existing tenant/location access unchanged. Verified with ten synthetic transfer lifecycles only; not applied to Production. UI repair and portrait production export are not yet deployed.
 
 > Local candidate: migrations reviewed through `355`; forward-only migration 历史已到 `355`. Migration 355 makes recipe header, ingredients, document revisions, costing and audit atomic with request-key replay and optimistic update protection. Local verification only; Production has not been migrated.

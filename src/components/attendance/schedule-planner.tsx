@@ -19,13 +19,13 @@ import {
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Button } from "@/components/ui/button";
+import {TimeSelect} from "@/components/attendance/time-select";
 import { Input } from "@/components/ui/input";
 import { SelectControl } from "@/components/ui/select-control";
 import { ScheduleValidationSummary } from "@/components/attendance/schedule-validation-summary";
 import { cn } from "@/lib/utils";
 import { readJsonResponse } from "@/lib/http/read-json-response";
 import {
-  attendanceTimeOptions,
   formatAttendanceTime,
 } from "@/lib/attendance/time";
 
@@ -143,32 +143,6 @@ function durationSeconds(start: string, end: string, crosses = false) {
   let value = (eh * 60 + em - sh * 60 - sm) * 60;
   if (crosses || value < 0) value += 86400;
   return Math.max(value, 0);
-}
-const timeOptions = attendanceTimeOptions();
-function TimeSelect({
-  label,
-  value,
-  onChange,
-  portalContainer,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  portalContainer?: HTMLElement | null;
-}) {
-  return (
-    <label className="grid gap-1 text-xs">
-      <span>{label}</span>
-      <SelectControl
-        ariaLabel={label}
-        value={value}
-        onValueChange={onChange}
-        options={timeOptions}
-        className="tabular-nums"
-        portalContainer={portalContainer}
-      />
-    </label>
-  );
 }
 function shiftTime(value: string, minutes: number) {
   const [hours, mins] = value.split(":").map(Number),

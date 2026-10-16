@@ -81,7 +81,7 @@ test("planner keeps authorised branch, week, staff and RO data while reducing de
     current.forEach((finish) => finish());
   }
   const result = await resultPromise;
-  assert.deepEqual(waves, [1, 6, 3, 2]);
+  assert.deepEqual(waves, [1, 7, 3, 2]);
   assert.equal(result.branchId, "allowed");
   assert.equal(result.week.id, "week");
   assert.equal(result.previousWeekId, "previous");

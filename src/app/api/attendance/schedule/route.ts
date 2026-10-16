@@ -125,6 +125,7 @@ const schema = z.discriminatedUnion("action", [
     unresolvedCount: z.literal(0),
     sourceMetadata: z.record(z.string(), z.unknown()).optional(),
     appendOnly: z.boolean().optional(),
+    reconcileDrafts: z.boolean().optional(),
   }),
   z.object({
     action: z.literal("template"),
@@ -272,6 +273,8 @@ function scheduleErrorResponse(error: unknown, reference: string) {
       { status: 409 },
     );
   }
+  const reconciliationMessage=["The draft changed since preview. Check changes again before importing.","A selected schedule is protected. Preview again.","An existing employee day is protected.","Choose one assignment per employee day."].find(message=>raw.includes(message));
+  if(reconciliationMessage)return NextResponse.json({ok:false,message:reconciliationMessage},{status:409});
   const match = scheduleBusinessErrors.find(([source]) => raw.includes(source));
   return match
     ? NextResponse.json({ ok: false, message: match[1] }, { status: 409 })
@@ -380,14 +383,14 @@ export async function POST(request: Request) {
         p_reason: input.data.reason,
       });
     else if (input.data.action === "import_drafts")
-      result = await db.rpc(input.data.appendOnly ? "append_schedule_workbook_drafts" : "import_schedule_workbook_drafts", {
+      result = await db.rpc(input.data.reconcileDrafts ? "reconcile_schedule_workbook_drafts" : input.data.appendOnly ? "append_schedule_workbook_drafts" : "import_schedule_workbook_drafts", {
         p_week_start: input.data.weekStart,
         p_file_name: input.data.fileName,
         p_file_hash: input.data.fileHash,
         p_outlets: input.data.outlets,
         p_unresolved_count: input.data.unresolvedCount,
         p_source_metadata: input.data.sourceMetadata ?? {},
-        ...(input.data.appendOnly ? { p_request_key: createHash("sha256").update(JSON.stringify({week:input.data.weekStart,fileHash:input.data.fileHash,outlets:input.data.outlets})).digest("hex") } : {}),
+        ...((input.data.appendOnly || input.data.reconcileDrafts) ? { p_request_key: createHash("sha256").update(JSON.stringify({week:input.data.weekStart,fileHash:input.data.fileHash,outlets:input.data.outlets,...(input.data.reconcileDrafts?{metadata:input.data.sourceMetadata}:{} )})).digest("hex") } : {}),
       });
     else if (input.data.action === "decide")
       result = await db.rpc("decide_schedule_week", {

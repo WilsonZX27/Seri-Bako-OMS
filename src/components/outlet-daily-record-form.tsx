@@ -178,7 +178,7 @@ type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: st
           </div>;
         })}
         {products.length > 0 && matchingProductIds.size === 0 ? <p className="py-6 text-center text-sm text-muted-foreground">No products match “{productSearch}”.</p> : null}
-        {!products.length ? <EmptyState title="No active products available" description="Create or activate sellable products before recording outlet quantities." /> : null}
+        {!products.length ? <EmptyState title="No active products available" description="Ask an administrator or an authorised product manager to configure sellable products, then reload this page." /> : null}
       </div>
       </section>
   </form>;
@@ -196,7 +196,7 @@ function SalesReconciliation({ sales, disabled }: { sales?: SalesValues; disable
     <div className="flex items-center gap-2 border-b px-3 py-3"><WalletCards className="h-4 w-4 text-[var(--sb-green-700)]" aria-hidden="true" /><h2 id="sales-reconciliation-title" className="text-sm font-semibold">Sales reconciliation</h2></div>
     <div className="grid grid-cols-2 gap-2 p-3 sm:gap-3 lg:grid-cols-3"><Field label="POS Total Sales (RM)"><Input name="pos_total_sales" type="number" inputMode="decimal" min="0" step="0.01" value={posTotal} onChange={(event)=>setPosTotal(event.target.value)} disabled={disabled} /></Field>{(Object.keys(salesChannelLabels) as Array<keyof typeof salesChannelLabels>).map((channel)=><Field key={channel} label={`${salesChannelLabels[channel]} (RM)`}><Input name={`sales_${channel}`} type="number" inputMode="decimal" min="0" step="0.01" value={amounts[channel]} onChange={(event)=>setAmounts((current)=>({...current,[channel]:event.target.value}))} disabled={disabled} /></Field>)}</div>
     <div className="border-t p-3">
-      <dl className="grid grid-cols-2 gap-3 rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] p-3 text-xs" aria-live="polite"><div><dt className="text-muted-foreground">Channel total</dt><dd className="font-semibold tabular-nums">RM {channelTotal.toFixed(2)}</dd></div><div><dt className="text-muted-foreground">Difference</dt><dd className={`font-semibold tabular-nums ${difference ? "text-warning" : "text-success"}`}>{hasPosTotal ? `RM ${difference.toFixed(2)}` : "Sales pending"}</dd></div></dl>
+      <dl className="grid grid-cols-2 gap-3 rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] p-3 text-xs" aria-live="polite"><div><dt className="text-muted-foreground">Channel total</dt><dd className="font-semibold tabular-nums">RM {channelTotal.toFixed(2)}</dd></div><div><dt className="text-muted-foreground">Difference</dt><dd className={`font-semibold tabular-nums ${!hasPosTotal ? "text-muted-foreground" : difference ? "text-[var(--sb-warning)]" : "text-[var(--sb-success)]"}`}>{hasPosTotal ? `RM ${difference.toFixed(2)}` : "Sales pending"}</dd></div></dl>
       <div hidden={!hasPosTotal || difference === 0} className="mt-3"><Field label="Difference reason (optional)"><Input name="sales_variance_reason" value={varianceReason} onChange={(event) => setVarianceReason(event.target.value)} disabled={disabled} placeholder="Explain settlement or entry difference" /></Field></div>
     </div>
   </section>;

@@ -30,14 +30,23 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
   const canEnterOutlet = permissions["outlet_daily_record.update"];
   const canEditQtySent = permissions["outlet_daily_record.qty_sent"];
   const needsKitchenQtySent = canEnterOutlet && !canEditQtySent;
+  const saveGuidance = disabled
+    ? !options.branches.length
+      ? "Saving is unavailable because no outlet is available for this account. Contact an administrator to check your outlet assignment, then reload this page."
+      : "Saving is unavailable because no active products are available. Contact an administrator or an authorised product manager to configure sellable products, then reload this page."
+    : needsKitchenQtySent
+      ? "You can save Received and Wastage now while Kitchen confirms Qty Sent. Kitchen confirmation is required to complete the record, not to save your outlet entry."
+      : canEnterOutlet
+        ? "Finish the outlet values and mark the record Ready to post."
+        : "Confirm the quantities sent to the outlet.";
   const primaryAction = canEnterOutlet
     ? needsKitchenQtySent
-      ? <SubmitButton form={formId} name="target_status" value="draft" className="w-full gap-2" pendingLabel="Saving entry…" disabled={disabled}><Save className="h-4 w-4" aria-hidden="true" />Save Outlet Entry</SubmitButton>
-      : <SubmitButton form={formId} name="target_status" value="evening_completed" className="w-full gap-2" disabled={disabled}><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Mark Ready to Post</SubmitButton>
-    : <SubmitButton form={formId} name="target_status" value="morning_recorded" className="w-full gap-2" disabled={disabled}><Send className="h-4 w-4" aria-hidden="true" />Confirm Qty Sent</SubmitButton>;
-  const secondaryActions = <SubmitButton form={formId} name="target_status" value="draft" variant="outline" className="w-full gap-2" disabled={disabled}><Save className="h-4 w-4" aria-hidden="true" />Save Draft</SubmitButton>;
+      ? <SubmitButton form={formId} name="target_status" value="draft" className="w-full gap-2" pendingLabel="Saving entry…" disabled={disabled} aria-describedby="outlet-save-guidance"><Save className="h-4 w-4" aria-hidden="true" />Save Outlet Entry</SubmitButton>
+      : <SubmitButton form={formId} name="target_status" value="evening_completed" className="w-full gap-2" disabled={disabled} aria-describedby="outlet-save-guidance"><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Mark Ready to Post</SubmitButton>
+    : <SubmitButton form={formId} name="target_status" value="morning_recorded" className="w-full gap-2" disabled={disabled} aria-describedby="outlet-save-guidance"><Send className="h-4 w-4" aria-hidden="true" />Confirm Qty Sent</SubmitButton>;
+  const secondaryActions = <SubmitButton form={formId} name="target_status" value="draft" variant="outline" className="w-full gap-2" disabled={disabled} aria-describedby="outlet-save-guidance"><Save className="h-4 w-4" aria-hidden="true" />Save Draft</SubmitButton>;
   const sidePanel = <>
-    <DocumentActionSection description={needsKitchenQtySent ? "Enter Received and Wastage now. Save this entry while Kitchen confirms Qty Sent." : canEnterOutlet ? "Finish the outlet values and mark the record Ready to post." : "Confirm the quantities sent to the outlet."} moreOptions={<div className="grid gap-3">{secondaryActions}</div>}>{primaryAction}</DocumentActionSection>
+    <DocumentActionSection description={saveGuidance} moreOptions={<div className="grid gap-3">{secondaryActions}</div>}>{primaryAction}</DocumentActionSection>
     <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{needsKitchenQtySent ? "Received and Wastage remain editable. Kitchen or an authorised company-wide user must confirm Qty Sent before the record can be completed." : "Any invalid line will be highlighted before completion. Qty Sent must be confirmed by Kitchen or an authorised company-wide user first."}</p></DocumentSideSection>
   </>;
 
@@ -59,6 +68,7 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
     tabletRailMode="split"
   >
     <ActionErrorNotice message={filters.error} />
+    <p id="outlet-save-guidance" role="status" className="rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] p-3 text-sm text-[var(--sb-text)]">{saveGuidance}</p>
     <OutletDailyRecordForm formId={formId} action={saveOutletDailyRecord} branches={options.branches} products={options.products} branchId={selectedBranchId} recordDate={recordDate} defaultsByBranch={options.defaultsByBranch} validationError={filters.error} canEditQtySent={canEditQtySent} canEditOutletValues={canEnterOutlet} />
   </DocumentWorkspace>;
 }

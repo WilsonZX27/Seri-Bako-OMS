@@ -9,7 +9,7 @@ import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { AssetTransferForm, AssetTransferAction } from "@/components/asset-transfer-form";
-import { getAssetDetail } from "@/server/queries/assets";
+import { getAssetDetail, getAssetMasterOptions } from "@/server/queries/assets";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { formatNumber } from "@/lib/utils";
 export default async function AssetDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -17,13 +17,14 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) notFound();
   const [data, permissions] = await Promise.all([getAssetDetail(id), getPermissionMap(["assets.transfer", "assets.approve", "assets.maintenance", "assets.manage", "assets.report"])]);
   if (!data) notFound();
+  const masterOptions = permissions["assets.manage"] ? await getAssetMasterOptions() : undefined;
   const locations = new Map(data.locations.map(l => [l.id, l.source_name]));
   const recordedDetails = Object.entries(assetMasterValues(data.asset.source_data,data.asset.current_details)).filter(([,value]) => value !== "");
   const reportingLocations = data.holdings.filter(row => row.quantity === null || row.quantity > 0);
   return <><PageHeader title={data.asset.item_name} description={data.asset.asset_code} /><WorkspaceGrid>
     <div className="xl:hidden"><h1 className="break-words text-lg font-semibold">{data.asset.item_name}</h1><p className="text-sm text-muted-foreground">{data.asset.asset_code}</p></div>
     <section className="sb-work-surface p-4"><h2 className="mb-3 text-sm font-semibold">Registered quantities by location</h2><dl className="divide-y">{data.holdings.map(h => <div className="flex min-h-11 items-center justify-between gap-4" key={h.location_id}><dt className="min-w-0 break-words text-sm">{locations.get(h.location_id)}</dt><dd className={h.quantity === null ? "text-warning" : "tabular-nums"}>{formatRegisteredAssetQuantity(h.quantity)}</dd></div>)}</dl>{permissions["assets.manage"] ? data.holdings.filter(holding => holding.quantity === null).map(holding => <div key={holding.location_id}><p className="mt-2 text-xs font-medium">{locations.get(holding.location_id)}</p><AssetQuantityConfirmation assetId={id} locationId={holding.location_id} requestKey={crypto.randomUUID()}/></div>) : null}</section>
-    {permissions["assets.manage"] ? <details className="sb-work-surface p-4"><summary className="min-h-11 cursor-pointer text-sm font-semibold">Edit asset master</summary><AssetMasterForm embedded key={data.asset.updated_at} assetId={id} code={data.asset.asset_code} name={data.asset.item_name} values={assetMasterValues(data.asset.source_data,data.asset.current_details)} updatedAt={data.asset.updated_at} requestKey={crypto.randomUUID()}/></details> : null}
+    {permissions["assets.manage"] ? <details className="sb-work-surface p-4"><summary className="min-h-11 cursor-pointer text-sm font-semibold">Edit asset master</summary><AssetMasterForm options={masterOptions} embedded key={data.asset.updated_at} assetId={id} code={data.asset.asset_code} name={data.asset.item_name} values={assetMasterValues(data.asset.source_data,data.asset.current_details)} updatedAt={data.asset.updated_at} requestKey={crypto.randomUUID()}/></details> : null}
     <section className="sb-work-surface p-4"><h2 className="mb-3 text-sm font-semibold">Master details</h2>{recordedDetails.length ? <dl className="grid gap-3 text-xs sm:grid-cols-2">{recordedDetails.map(([key,value])=><div className="min-w-0" key={key}><dt className="text-muted-foreground">{key}</dt><dd className="break-words">{value}</dd></div>)}</dl> : <p className="text-sm text-muted-foreground">No additional details recorded.</p>}</section>
     {data.masterUpdates.length ? <section className="sb-work-surface p-4"><h2 className="mb-3 text-sm font-semibold">Recent master changes</h2><ol className="divide-y">{data.masterUpdates.map(update=><li className="py-2 text-xs" key={update.id}><p>{String(update.source_data.Operation)} · {update.author_name} · {update.created_at}</p><p className="mt-1 break-words">{String(update.source_data.Reason ?? "")}</p></li>)}</ol><Link className="block min-h-11 py-3 text-sm underline" href={`/asset-management/assets/${id}/history`}>View full master history</Link></section> : null}
     {permissions["assets.transfer"] ? <details className="sb-work-surface p-4"><summary className="min-h-11 cursor-pointer text-sm font-semibold">Request a partial transfer</summary><AssetTransferForm key={data.transfers[0]?.id??"empty"} requestKey={crypto.randomUUID()} assetId={id} locations={data.locations} holdings={data.holdings} /></details> : null}

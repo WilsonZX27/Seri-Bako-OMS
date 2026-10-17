@@ -81,17 +81,17 @@ export default async function RecipeDetailPage({
         ) : null}
         <section aria-labelledby="recipe-summary" className="overflow-hidden rounded-[var(--sb-panel-radius)] border bg-card">
           <div className="border-b px-4 py-3"><h2 id="recipe-summary" className="text-sm font-semibold">Recipe Summary</h2></div>
-          <dl className="grid divide-y sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-5">
-            <div className="min-w-0 px-4 py-3"><dt className="text-xs text-muted-foreground">Version</dt><dd className="mt-1 font-mono text-sm font-semibold">v{recipe.version}</dd></div>
-            <div className="min-w-0 px-4 py-3"><dt className="text-xs text-muted-foreground">Yield</dt><dd className="mt-1 truncate font-mono text-sm font-semibold">{formatNumber(recipe.yield_qty)} {recipe.yield_unit}</dd></div>
-            <div className="min-w-0 px-4 py-3"><dt className="text-xs text-muted-foreground">Ingredient Cost</dt><dd className="mt-1 truncate font-mono text-sm font-semibold">{formatCurrency(recipe.total_ingredient_cost)}</dd></div>
-            <div className="min-w-0 px-4 py-3"><dt className="text-xs text-muted-foreground">Adjusted Cost</dt><dd className="mt-1 truncate font-mono text-sm font-semibold">{formatCurrency(recipe.wastage_adjusted_cost)}</dd></div>
-            <div className="min-w-0 px-4 py-3"><dt className="text-xs text-muted-foreground">Cost / Unit</dt><dd className="mt-1 truncate font-mono text-sm font-semibold">{formatCurrency(recipe.cost_per_finished_unit)}</dd></div>
+          <dl className="grid grid-cols-6 xl:grid-cols-5">
+            <div className="col-span-2 min-w-0 border-t px-3 py-3 xl:col-span-1 [&:nth-child(-n+2)]:col-span-3 xl:[&:nth-child(-n+2)]:col-span-1"><dt className="text-xs text-muted-foreground">Version</dt><dd className="mt-1 font-mono text-sm font-semibold">v{recipe.version}</dd></div>
+            <div className="col-span-2 min-w-0 border-t px-3 py-3 xl:col-span-1 [&:nth-child(-n+2)]:col-span-3 xl:[&:nth-child(-n+2)]:col-span-1"><dt className="text-xs text-muted-foreground">Yield</dt><dd className="mt-1 break-words font-mono text-sm font-semibold">{formatNumber(recipe.yield_qty)} {recipe.yield_unit}</dd></div>
+            <div className="col-span-2 min-w-0 border-t px-3 py-3 xl:col-span-1 [&:nth-child(-n+2)]:col-span-3 xl:[&:nth-child(-n+2)]:col-span-1"><dt className="text-xs text-muted-foreground">Ingredient Cost</dt><dd className="mt-1 break-words font-mono text-sm font-semibold">{formatCurrency(recipe.total_ingredient_cost)}</dd></div>
+            <div className="col-span-2 min-w-0 border-t px-3 py-3 xl:col-span-1 [&:nth-child(-n+2)]:col-span-3 xl:[&:nth-child(-n+2)]:col-span-1"><dt className="text-xs text-muted-foreground">Adjusted Cost</dt><dd className="mt-1 break-words font-mono text-sm font-semibold">{formatCurrency(recipe.wastage_adjusted_cost)}</dd></div>
+            <div className="col-span-2 min-w-0 border-t px-3 py-3 xl:col-span-1 [&:nth-child(-n+2)]:col-span-3 xl:[&:nth-child(-n+2)]:col-span-1"><dt className="text-xs text-muted-foreground">Cost / Unit</dt><dd className="mt-1 break-words font-mono text-sm font-semibold">{formatCurrency(recipe.cost_per_finished_unit)}</dd></div>
           </dl>
         </section>
 
         <Card>
-          <CardHeader><CardTitle>Header</CardTitle></CardHeader>
+          <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2"><CardTitle>Recipe Details</CardTitle><div className="flex flex-wrap gap-2" aria-label="Recipe status and approval"><Badge variant={recipe.status === "active" ? "success" : recipe.status === "rejected" ? "danger" : "secondary"}>{recipe.status}</Badge><Badge variant={recipe.approval_status === "approved" ? "success" : recipe.approval_status === "rejected" ? "danger" : "secondary"}>{recipe.approval_status}</Badge></div></CardHeader>
           <CardContent className="grid gap-4 text-sm md:grid-cols-4">
             <div>
               <p className="text-muted-foreground">Product</p>
@@ -100,14 +100,6 @@ export default async function RecipeDetailPage({
             <div>
               <p className="text-muted-foreground">Effective Date</p>
               <p className="font-medium">{formatDateOnly(recipe.effective_date)}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Status</p>
-              <Badge variant={recipe.status === "active" ? "success" : recipe.status === "rejected" ? "danger" : "secondary"}>{recipe.status}</Badge>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Approval</p>
-              <Badge variant={recipe.approval_status === "approved" ? "success" : recipe.approval_status === "rejected" ? "danger" : "secondary"}>{recipe.approval_status}</Badge>
             </div>
             <div>
               <p className="text-muted-foreground">Cost / Pack</p>

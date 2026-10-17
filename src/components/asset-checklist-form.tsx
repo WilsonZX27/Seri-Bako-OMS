@@ -5,14 +5,14 @@ import { formatRegisteredAssetQuantity } from "@/lib/asset-quantity-display";
 import { useAssetDraftAction, useAssetDraftState } from "@/components/asset-draft-state";
 import { isAssetChecklistDraft } from "@/lib/asset-draft";
 import { useAssetFormGuard } from "@/components/asset-unsaved-guard";
-import { useActionState, useState } from "react";
+import { useActionState, useState, type ReactNode } from "react";
 import { Input } from "@/components/ui/input";
 import { CheckCheck, ChevronDown, Check, Wrench, TriangleAlert, CircleHelp, SearchX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { submitAssetChecklist } from "@/server/actions/assets";
 import type { AssetSummary, AssetHolding } from "@/server/queries/assets";
 
-export function AssetChecklistForm({ locationId, assets, holdings, date, today, submissionId }: { locationId: string; locationName?: string; assets: AssetSummary[]; holdings: AssetHolding[]; date: string; today: string; submissionId: string }) {
+export function AssetChecklistForm({ intro, locationId, assets, holdings, date, today, submissionId }: { intro?: ReactNode; locationId: string; locationName?: string; assets: AssetSummary[]; holdings: AssetHolding[]; date: string; today: string; submissionId: string }) {
   const [state, action, pending] = useActionState(useAssetDraftAction(`checklist:${locationId}:${date}`, submitAssetChecklist), { ok: false, message: "" });
   const revision=JSON.stringify([today,holdings.map(row=>[row.asset_id,row.quantity]).sort()]);
   const [draft,setDraft,restored]=useAssetDraftState(`checklist:${locationId}:${date}`,revision,{fields:{} as Record<string,string>,checkDate:date,selected:[] as string[],submissionId},(value): value is {fields:Record<string,string>;checkDate:string;selected:string[];submissionId:string}=>isAssetChecklistDraft(value,holdings.map(row=>row.asset_id),today) && "submissionId" in value && typeof value.submissionId === "string" && /^[0-9a-f-]{36}$/i.test(value.submissionId),state.ok);
@@ -31,7 +31,7 @@ export function AssetChecklistForm({ locationId, assets, holdings, date, today, 
   const missingNotes = selected.some(id => (fields[`result_${id}`] ?? "Checked") !== "Checked" && !fields[`remark_${id}`]?.trim());
   const hint = !selected.length ? "Select at least one asset and review its condition." : missingNotes ? "Add a note for each exception before submitting." : "Review selected assets. Only one checklist can be submitted per day.";
   const submit = <Button className="w-full min-h-11" form={formId} type="submit" disabled={pending || state.ok || !selected.length}>{pending ? "Saving…" : "Submit checklist"}</Button>;
-  return <AssetFormWorkspace actions={submit} hint={hint}><form id={formId} action={action} onInvalidCapture={event => { const details = (event.target as HTMLElement).closest("details"); if (details) details.open = true; }} className="max-lg:[&_input]:min-h-11 max-lg:[&_select]:min-h-11 max-lg:[&_button]:min-h-11 sb-work-surface p-3">
+  return <AssetFormWorkspace actions={submit} hint={hint}>{intro}<form id={formId} action={action} onInvalidCapture={event => { const details = (event.target as HTMLElement).closest("details"); if (details) details.open = true; }} className="max-lg:[&_input]:min-h-11 max-lg:[&_select]:min-h-11 max-lg:[&_button]:min-h-11 sb-work-surface p-3">
     <p className="mb-3 text-sm">One checklist per outlet per day. Review all selected assets before submitting.</p>
     {restored ? <p role="status" className="mb-3 text-xs">Unsaved inspection inputs restored. Review counts and selections before saving.</p> : null}
     <input type="hidden" name="location_id" value={locationId}/><input type="hidden" name="submission_id" value={draft.submissionId}/>
@@ -52,7 +52,7 @@ export function AssetChecklistForm({ locationId, assets, holdings, date, today, 
           <button type="button" aria-label={`Result for ${names.get(id)?.asset_code}`} aria-expanded={open} aria-controls={`choices-${id}`} onClick={()=>setExpanded(open?null:id)} className={`inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md px-2 text-xs font-medium ${checked ? result==="Checked" ? "text-[var(--sb-success)]" : result==="Damaged" || result==="Missing" ? "text-[var(--sb-danger)]" : "text-[var(--sb-warning)]" : "text-muted-foreground"}`}>{checked?result:"Not checked"}<ChevronDown className={`size-3.5 ${open?"rotate-180":""}`} aria-hidden="true"/></button>
         </div>
         <input type="hidden" name={`result_${id}`} value={result}/>
-        {open ? <div id={`choices-${id}`} className="grid grid-cols-2 gap-2 pt-2" role="group" aria-label={`Inspection result for ${names.get(id)?.asset_code}`}>{["Checked","Needs Maintenance","Damaged","Missing","Other"].map(value=>{const Icon=value==="Checked"?Check:value==="Needs Maintenance"?Wrench:value==="Missing"?SearchX:value==="Damaged"?TriangleAlert:CircleHelp;return <Button key={value} type="button" variant="outline" data-inspection-result={value} className="sb-inspection-choice" aria-pressed={checked&&result===value} onClick={()=>choose(value)}><Icon className="size-4 shrink-0" aria-hidden="true"/>{value}</Button>;})}</div>:null}
+        {open ? <div id={`choices-${id}`} className="grid grid-cols-2 xl:grid-cols-5 gap-2 pt-2" role="group" aria-label={`Inspection result for ${names.get(id)?.asset_code}`}>{["Checked","Needs Maintenance","Damaged","Missing","Other"].map(value=>{const Icon=value==="Checked"?Check:value==="Needs Maintenance"?Wrench:value==="Missing"?SearchX:value==="Damaged"?TriangleAlert:CircleHelp;return <Button key={value} type="button" variant="outline" data-inspection-result={value} className="sb-inspection-choice" aria-pressed={checked&&result===value} onClick={()=>choose(value)}><Icon className="size-4 shrink-0" aria-hidden="true"/>{value}</Button>;})}</div>:null}
         {checked&&result!=="Checked" ? <label className="mt-2 grid gap-1 text-xs">Exception note<Input name={`remark_${id}`} required maxLength={4000} value={fields[`remark_${id}`] ?? ""} onChange={event=>update(`remark_${id}`,event.target.value)} placeholder="Describe the issue"/></label> : <input type="hidden" name={`remark_${id}`} value={fields[`remark_${id}`] ?? ""}/>}
         {open ? <label className="mt-2 grid gap-1 text-xs">This inspection’s physical count · optional<Input aria-label={`Physical count for ${names.get(id)?.asset_code}`} type="number" name={`quantity_${id}`} min="0" step="1" value={fields[`quantity_${id}`] ?? ""} onChange={event=>update(`quantity_${id}`,event.target.value)} placeholder="Not counted"/></label> : <input type="hidden" name={`quantity_${id}`} value={fields[`quantity_${id}`]??""}/>}
       </fieldset>;

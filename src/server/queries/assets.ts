@@ -271,3 +271,41 @@ export async function hasAssetChecklistSubmission(locationId: string, date: stri
   if (result.error) throw new Error("Checklist submission status unavailable.");
   return Boolean(result.data?.length);
 }
+
+/** Reuse only values visible to the authenticated tenant actor; no elevated client. */
+export const getAssetMasterOptions = cache(async () => {
+  const actor = await requireActiveTenantActor();
+  await requirePermission("assets.manage");
+  const db = looseSupabase(await createClient());
+  const choices: Record<string, Set<string>> = { "Department / Area": new Set(), Category: new Set() };
+  const collect = (raw: unknown) => {
+    const details = raw && typeof raw === "object" ? raw as Record<string, unknown> : {};
+    for (const key of Object.keys(choices)) {
+      const value = details?.[key];
+      if (typeof value === "string" && value.trim()) choices[key].add(value.trim());
+    }
+  };
+  for (let offset = 0;; offset += 500) {
+    const rows = await db.from("assets").select("id,current_details").eq("company_id", actor.companyId).order("id").range(offset, offset + 499);
+    if (rows.error || !rows.data) throw new Error(rows.error?.message ?? "Asset choices unavailable.");
+    const source = rows.data.length ? await db.rpc("get_asset_register_source_fields", { p_assets: rows.data.map(row => String(row.id)) }) : { data: [], error: null };
+    if (source.error || !source.data) throw new Error(source.error?.message ?? "Asset source choices unavailable.");
+    for (const row of source.data as {details: unknown}[]) collect(row.details);
+    for (const row of rows.data) collect(row.current_details);
+    if (rows.data.length < 500) break;
+  }
+  for (let offset = 0;; offset += 500) {
+    const history = await db.from("asset_master_updates").select("id,source_data").eq("company_id", actor.companyId).order("id").range(offset, offset + 499);
+    if (history.error || !history.data) throw new Error(history.error?.message ?? "Asset history choices unavailable.");
+    for (const row of history.data) for (const key of ["Details", "Details Before", "Details After"]) collect((row.source_data as Record<string, unknown> | null)?.[key]);
+    if (history.data.length < 500) break;
+  }
+  const people: {id: string; full_name: string; staff_code: string | null}[] = [];
+  for (let offset = 0;; offset += 500) {
+    const result = await db.from("staffs").select("id,full_name,staff_code").eq("company_id", actor.companyId).eq("status", "active").is("deleted_at", null).not("auth_user_id", "is", null).order("id").range(offset, offset + 499);
+    if (result.error || !result.data) throw new Error(result.error?.message ?? "OMS users unavailable.");
+    people.push(...result.data as typeof people);
+    if (result.data.length < 500) break;
+  }
+  return { fields: Object.fromEntries(Object.entries(choices).map(([key, values]) => [key, [...values].sort()])), people };
+});

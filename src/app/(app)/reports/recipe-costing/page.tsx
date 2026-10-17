@@ -44,15 +44,15 @@ export default async function RecipeCostingPage({ searchParams }: { searchParams
   const rightRail = <>
     <ConsoleSection title="Cost source">
       <div className="space-y-2 text-xs text-muted-foreground">
-        <p>Estimate only; no recipe, item, or product cost is written.</p>
-        <p>Uses <strong className="text-foreground">items.cost</strong> only when the recipe line UOM matches the item base UOM. A UOM mismatch is not estimated.</p>
-        <p>Missing cost is not counted as zero. <strong className="text-foreground">High</strong> has usable ingredient costs and output; <strong className="text-foreground">Medium</strong> has minor warnings; <strong className="text-foreground">Low</strong> has a cost, UOM, output, or line gap.</p>
-        <p>Margin is future scope.</p>
+        <p>Read-only estimate. Missing cost is not counted as zero.</p>
+        <details><summary className="min-h-11 cursor-pointer py-3 font-medium text-foreground">Cost rules & confidence</summary><div className="space-y-2 pb-2">
+          <p>Item cost applies only when the recipe UOM matches the item base UOM. A UOM mismatch is not estimated.</p>
+          <p><strong>High:</strong> usable costs and output. <strong>Medium:</strong> minor warnings. <strong>Low:</strong> missing cost, UOM, output or lines.</p>
+          <p>Open the recipe to resolve gaps. Stock, production and finance records stay unchanged. Margin is outside this report.</p>
+        </div></details>
       </div>
     </ConsoleSection>
-    <ConsoleSection title="Scope">
-      <p className="text-xs text-muted-foreground">Use the linked recipe to add item cost, align UOM, add recipe output, or add recipe lines. This report does not change stock, production, or finance records.</p>
-    </ConsoleSection>
+
   </>;
 
   return <>

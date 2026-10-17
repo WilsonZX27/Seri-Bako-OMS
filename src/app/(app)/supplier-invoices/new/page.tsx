@@ -9,7 +9,7 @@ export default async function NewSupplierInvoicePage({ searchParams }: { searchP
   const filters = await searchParams;
   const { grns, suppliers } = await getPostedGrnsForInvoice(filters.supplier_id);
   const nextStep = !filters.supplier_id ? "Choose a supplier to load eligible posted receivings." : !grns.length ? "This supplier has no eligible posted receivings. Choose another supplier or complete receiving first." : "Select at least one posted receiving and complete the invoice details.";
-  const validationHint = `${nextStep} Choose a supplier and at least one posted receiving. Attach the supplier invoice on the saved draft before Finance approval.`;
+  const validationHint = !filters.supplier_id || !grns.length ? nextStep : "Complete selected lines. Attach the invoice after saving, before approval.";
   const primaryAction = <SubmitButton type="submit" form="supplier-invoice-form" disabled={!filters.supplier_id || !grns.length} className="w-full" pendingLabel="Saving...">Save Invoice Details</SubmitButton>;
   const steps = [
     { key: "draft", label: "Draft", description: "Invoice matching details can be edited." },

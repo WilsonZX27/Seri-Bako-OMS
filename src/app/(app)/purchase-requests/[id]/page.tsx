@@ -347,9 +347,9 @@ export default async function PurchaseRequestDetailPage({
             </CardContent>
           </Card>
 
-          <Card className="document-surface shadow-none">
-            <CardContent className="p-4">
-              <div className="mb-2 flex items-center justify-between">
+          <Card className={canEditRequest && items && suppliers && supplierMappings && branches ? "border-0 bg-transparent shadow-none" : "document-surface shadow-none"}>
+            <CardContent className={canEditRequest && items && suppliers && supplierMappings && branches ? "p-0" : "p-4"}>
+              <div className={canEditRequest && items && suppliers && supplierMappings && branches ? "hidden" : "mb-2 flex items-center justify-between"}>
                 <div className="flex min-w-0 items-baseline gap-2"><h2 className="text-[14px] font-semibold">Requested Items</h2><span className="text-xs text-muted-foreground">{requestedItemCount} {requestedItemCount === 1 ? "item" : "items"}</span></div>
                 {canViewCommercial ? <p className="text-xs font-semibold">{formatCurrency(total)}</p> : null}
               </div>

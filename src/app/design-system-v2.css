@@ -2715,3 +2715,21 @@ html[data-design-layer="v2"] .sb-table-region::-webkit-scrollbar-thumb { backgro
   html[data-design-layer="v2"] form.unified-list-header .unified-list-row:has(.unified-list-date-submit) { grid-template-columns: minmax(0, 200px) 64px minmax(3rem, 1fr); gap: 8px; }
   html[data-design-layer="v2"] form.unified-list-header button.unified-list-date-submit[type="submit"] { display: inline-flex !important; width: 64px; min-width: 64px; height: 44px; grid-column: 2; }
 }
+
+/* Procurement line controls: compact width, unchanged touch height. */
+@media (max-width: 1023px) {
+  html[data-design-layer="v2"] [data-purchase-request-line] .pr-line-quantity {
+    grid-column: 1 / 3;
+    grid-row: 2;
+  }
+  html[data-design-layer="v2"] [data-purchase-request-line] .pr-line-uom {
+    grid-column: 3;
+    grid-row: 2;
+  }
+}
+/* Equal data tracks; utility selection column is the only narrow exception. */
+[data-invoice-equal-columns] { table-layout: fixed; width: 100%; min-width: 880px; }
+[data-invoice-equal-columns] th { white-space: normal; overflow-wrap: anywhere; min-width: 0; padding: 8px; }
+[data-invoice-equal-columns] td { min-width: 0; padding: 8px; overflow-wrap: anywhere; }
+[data-invoice-equal-columns] th:first-child { width: 40px; }
+[data-invoice-equal-columns] input:not([type="checkbox"]) { width: 100%; min-width: 0; padding-inline: 6px; }

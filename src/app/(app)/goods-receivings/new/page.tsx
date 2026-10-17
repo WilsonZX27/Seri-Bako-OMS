@@ -13,7 +13,7 @@ export default async function NewGoodsReceivingPage({ searchParams }: { searchPa
   const receivingPo = selectedOrder ? await getPurchaseOrderForReceiving(selectedOrder.id) : null;
   const lines = receivingPo?.lines.filter((line) => line.pending_qty > 0) ?? [];
   const nextStep = !selectedOrder ? "Select an approved purchase order to continue." : !lines.length ? "This order has no pending quantities. Choose another order." : "Check received and rejected quantities before saving.";
-  const validationHint = `${nextStep} Received plus rejected quantity cannot exceed the pending PO quantity. Attach the Delivery Order on the saved GRN before posting.`;
+  const validationHint = !selectedOrder || !lines.length ? nextStep : "Received + rejected must not exceed pending quantity.";
   const primaryAction = <SubmitButton type="submit" form="goods-receiving-form" disabled={!selectedOrder || !lines.length} className="w-full" pendingLabel="Saving...">Save receiving draft</SubmitButton>;
   const steps = [
     { key: "draft", label: "Draft", description: "Receiving quantities can be checked." },

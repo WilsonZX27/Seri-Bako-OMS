@@ -1,3 +1,14 @@
+## Owner annotations — 2026-10-17 procurement consistency
+
+- Mobile document status sits at the left edge; workflow progress sits at the right edge. Do not center the pair on new forms.
+- Peer card headings use the same 14px semibold treatment, title case and consistent padding. Editable request details and items are sibling surfaces; avoid an extra Requested Items card around both.
+- Keep action guidance concise, with an information icon and a bordered white container. Preserve blocking requirements; do not repeat the same instructions in multiple paragraphs.
+- Quantity and UOM share a compact mobile row while retaining the standard touch height. Width should follow the short value, not occupy an entire row by default.
+- Prefer equal-width desktop data columns and wrapped (normally two-line) headings. Selection/action utility columns may remain narrower. Keep overflow inside the table region, never the page.
+- Invoice selection is per line. Offer a textual Select all lines command only for groups with multiple lines, rather than repeating group and row checkboxes for a single item.
+- Search remains primary. Reset appears only with active filters and is visually secondary; empty-state Reset filters remains available.
+- Long source-document references belong in a separate white bordered context block rather than a squeezed title fragment.
+
 ## Current authority — v9.2.105 and bounded local remediation
 
 PRODUCT.md owns density: controls are 36px at >=1024px and at least44px below1024px. The shell right Console remains >=1280px. WorkspaceGrid with a landscape split keeps actions/context stacked at768–1023px, then inline beside the canvas at1024–1279px. Context-mode documents expose tablet actions independently of Files/Activity. These local action/focus/semantics fixes are not a deployment claim.

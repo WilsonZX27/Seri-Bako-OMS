@@ -299,7 +299,8 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
       if (!isValidElement(child)) return child;
       const props = propsOf(child);
       return cloneElement(child as ReactElement<Record<string, unknown>>, {
-        className: cn("unified-list-action", hasTextSearch && isSearchSubmit(child) && "unified-list-search-submit", props.className as string),
+        ...(props["data-list-action"] === "secondary" ? { variant: "ghost" } : {}),
+        className: cn("unified-list-action", props["data-list-action"] === "secondary" && "!w-auto !min-w-0 !border-transparent !bg-transparent !px-2", hasTextSearch && isSearchSubmit(child) && "unified-list-search-submit", props.className as string),
         "data-list-primary-action": !showSearchAction && index === 0 ? true : undefined,
         "data-list-secondary-action": showSearchAction || index > 0 ? true : undefined,
         ...(hasTextSearch && isSearchSubmit(child) ? { children: <><Search className="size-4 shrink-0" aria-hidden="true"/><span>Search</span></> } : {}),

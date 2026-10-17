@@ -6,12 +6,12 @@ function read(file) {
   return fs.readFileSync(file, "utf8");
 }
 
-test("new document headers center one status and workflow summary without repeating the document title", () => {
+test("new document headers align status left and workflow right without repeating the document title", () => {
   const workspace = read("src/components/documents/document-workspace.tsx");
 
   assert.match(workspace, /isNewDocument && !hideWorkflow/);
   assert.match(workspace, /!hideWorkflow && !hideMobileWorkflow/);
-  assert.match(workspace, /justify-center gap-2 md:hidden/);
+  assert.match(workspace, /justify-between gap-2 md:hidden/);
   assert.match(workspace, /<StatusBadge status=\{status\}/);
   assert.match(workspace, /isNewDocument && "hidden md:flex"/);
 });

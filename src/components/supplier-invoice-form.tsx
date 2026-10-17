@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
@@ -104,13 +105,13 @@ export function SupplierInvoiceForm({
           {selectedSupplierId ? grns.map((grn) => {
             const allSelected = grn.lines.every((line) => !!lines[line.id]);
             return (
-              <section key={grn.id} data-supplier-invoice-grn className="overflow-hidden border-y border-[var(--sb-border-soft)]">
-                <label className="flex cursor-pointer items-center gap-2 bg-secondary/40 px-3 py-2 text-sm font-medium">
-                  <input type="checkbox" checked={allSelected} onChange={(event) => setGrn(grn, event.target.checked)} />
-                  {grn.grn_no} / {grn.po_no ?? "PO"} / Available {formatCurrency(grn.received_value)}
-                </label>
+              <section key={grn.id} data-supplier-invoice-grn className="overflow-hidden rounded-lg border border-[var(--sb-border-soft)]">
+                <div className="flex flex-wrap items-center justify-between gap-2 bg-white px-3 py-3">
+                  <div className="min-w-0"><h2 className="text-sm font-semibold">{grn.grn_no}</h2><p className="text-xs text-muted-foreground">{grn.po_no ?? "PO"} · Available {formatCurrency(grn.received_value)}</p></div>
+                  {grn.lines.length > 1 ? <Button type="button" size="sm" variant="ghost" onClick={() => setGrn(grn, !allSelected)}>{allSelected ? "Clear selection" : "Select all lines"}</Button> : null}
+                </div>
                 <div className="sb-table-region hidden md:block">
-                  <Table>
+                  <Table data-invoice-equal-columns>
                     <TableHeader><TableRow><TableHead className="w-10" /><TableHead>Item</TableHead><TableHead className="text-right">PO Ordered</TableHead><TableHead className="text-right">Received</TableHead><TableHead className="text-right">Previously Invoiced</TableHead><TableHead className="text-right">Invoice Qty</TableHead><TableHead className="text-right">PO Price</TableHead><TableHead className="text-right">Invoice Price</TableHead><TableHead className="text-right">Qty / Price Variance</TableHead></TableRow></TableHeader>
                     <TableBody>{grn.lines.map((source) => {
                       const line = lines[source.id];
@@ -122,9 +123,9 @@ export function SupplierInvoiceForm({
                         <TableCell className="text-right">{formatNumber(source.po_ordered_qty)}</TableCell>
                         <TableCell className="text-right">{formatNumber(source.received_qty)}</TableCell>
                         <TableCell className="text-right">{formatNumber(source.previously_invoiced_qty)}</TableCell>
-                        <TableCell className="min-w-28"><Input aria-label={`${source.item_name} invoice quantity`} type="number" min="0.0001" max={source.available_qty} step="0.0001" disabled={!line} value={line?.invoice_qty ?? source.available_qty} onChange={(event) => updateLine(source.id, "invoice_qty", Number(event.target.value))} /></TableCell>
+                        <TableCell className="min-w-0"><Input aria-label={`${source.item_name} invoice quantity`} type="number" min="0.0001" max={source.available_qty} step="0.0001" disabled={!line} value={line?.invoice_qty ?? source.available_qty} onChange={(event) => updateLine(source.id, "invoice_qty", Number(event.target.value))} /></TableCell>
                         <TableCell className="text-right">{formatCurrency(source.po_unit_price)}</TableCell>
-                        <TableCell className="min-w-28"><Input aria-label={`${source.item_name} invoice price`} type="number" min="0" step="0.0001" disabled={!line} value={line?.invoice_unit_price ?? source.unit_cost} onChange={(event) => updateLine(source.id, "invoice_unit_price", Number(event.target.value))} /></TableCell>
+                        <TableCell className="min-w-0"><Input aria-label={`${source.item_name} invoice price`} type="number" min="0" step="0.0001" disabled={!line} value={line?.invoice_unit_price ?? source.unit_cost} onChange={(event) => updateLine(source.id, "invoice_unit_price", Number(event.target.value))} /></TableCell>
                         <TableCell className="text-right text-xs">{formatNumber(qtyVariance)} / {formatCurrency(priceVariance)}</TableCell>
                       </TableRow>;
                     })}</TableBody>

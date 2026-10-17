@@ -199,7 +199,7 @@ test("supplier invoice matching uses editable phone lines instead of a nine-colu
   assert.match(source, /aria-live="polite"/);
   assert.match(source, /\{line \? <div data-supplier-invoice-line-editor>/);
   assert.doesNotMatch(source, /data-supplier-invoice-grn className="erp-surface/);
-  assert.match(source, /data-supplier-invoice-grn className="overflow-hidden border-y/);
+  assert.match(source, /data-supplier-invoice-grn className="overflow-hidden rounded-lg border/);
   assert.match(source, /Field label="Invoice Qty"/);
   assert.match(source, /grid grid-cols-2 gap-3 bg-secondary\/30 p-3 text-sm/);
 });

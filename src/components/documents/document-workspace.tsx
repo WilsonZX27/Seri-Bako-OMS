@@ -1,6 +1,6 @@
 import { MobileActionReserve } from "./mobile-action-reserve";
 import type { ReactNode } from "react";
-import { MapPin } from "lucide-react";
+import { Info, MapPin } from "lucide-react";
 import { DocumentNumber } from "@/components/document-number";
 import { PriorityBadge } from "@/components/priority-badge";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -92,8 +92,8 @@ export function DocumentWorkspace({
             </div>
           </div>
         </div> : null}
-        {isNewDocument && hideWorkflow ? <div data-document-status-only className="flex min-h-9 items-center justify-center md:hidden"><StatusBadge status={status} label={statusLabel} /></div> : null}
-        {isNewDocument && !hideWorkflow ? <div className="flex min-h-9 items-center justify-center gap-2 md:hidden"><StatusBadge status={status} label={statusLabel} /><MobileWorkflowStatus steps={resolvedWorkflowSteps} currentStatus={resolvedCurrentStatus} trailing={mobileWorkflowTrailing} /></div> : null}
+        {isNewDocument && hideWorkflow ? <div data-document-status-only className="flex min-h-9 items-center justify-start md:hidden"><StatusBadge status={status} label={statusLabel} /></div> : null}
+        {isNewDocument && !hideWorkflow ? <div className="flex min-h-9 items-center justify-between gap-2 md:hidden"><StatusBadge status={status} label={statusLabel} /><MobileWorkflowStatus steps={resolvedWorkflowSteps} currentStatus={resolvedCurrentStatus} trailing={mobileWorkflowTrailing} /></div> : null}
         {!hideWorkflow && !hideMobileWorkflow ? <div data-tablet-document-header className={cn("min-w-0", isNewDocument ? "mt-0 md:mt-1" : "mt-1 md:mt-2", isNewDocument && "hidden md:block")}>{!isNewDocument ? <MobileWorkflowStatus steps={resolvedWorkflowSteps} currentStatus={resolvedCurrentStatus} trailing={mobileWorkflowTrailing} /> : null}<div className="hidden md:block"><WorkflowStatusPipeline steps={resolvedWorkflowSteps} currentStatus={resolvedCurrentStatus} compact /></div></div> : null}
         {hideWorkflow && isNewDocument ? <div data-tablet-document-header className="hidden items-center md:flex"><StatusBadge status={status} label={statusLabel} /></div> : null}
       </header>
@@ -115,7 +115,7 @@ export function DocumentWorkspace({
             ? "grid-cols-2"
             : "grid-cols-1",
       )}>
-        {mobileActionHint ? <div role="status" className="col-span-full text-xs text-muted-foreground">{mobileActionHint}</div> : null}
+        {mobileActionHint ? <div role="status" className="col-span-full flex items-start gap-2 rounded-lg border border-[var(--sb-border-soft)] bg-white px-3 py-2 text-[11px] leading-4 text-muted-foreground"><Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" /><div className="min-w-0 [&_p]:text-[11px] [&_p]:leading-4">{mobileActionHint}</div></div> : null}
         {mobilePrimaryAction ? <div className="min-w-0">{mobilePrimaryAction}</div> : null}
         {mobileActivity ? <div className="min-w-0"><MobileActivityAndFiles>{mobileActivity}</MobileActivityAndFiles></div> : null}
         {mobileMoreOptions ? <div className="min-w-0">{mobileMoreOptions}</div> : null}

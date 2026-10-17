@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { AlertTriangle, ChevronDown, PackageCheck } from "lucide-react";
+import { AlertTriangle, ChevronDown, Info, PackageCheck } from "lucide-react";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
@@ -72,8 +72,8 @@ export function GoodsReceivingForm({
           <section data-goods-receiving-setup className="erp-surface overflow-hidden p-3 lg:p-4">
             <div className="flex items-start justify-between gap-3 border-b border-[var(--sb-border-soft)] pb-2">
               <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-muted)]">Receiving setup</p>
-                {setupOpen ? <p className="mt-0.5 text-xs text-muted-foreground">Choose the posted order and receiving context.</p> : (
+                <h2 className="text-sm font-semibold text-[var(--sb-text)]">Receiving Setup</h2>
+                {setupOpen ? <p className="mt-0.5 text-xs text-muted-foreground">Choose a purchase order and receiving details.</p> : (
                   <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                     <span className="font-semibold text-[var(--sb-text)]">{selectedOrder?.po_no ?? "Select purchase order"}</span>
                     <span>{receivedDate}</span>
@@ -127,13 +127,13 @@ export function GoodsReceivingForm({
               <input type="hidden" name="purchase_order_id" value={selectedOrder.id} />
               <input type="hidden" name="supplier_id" value={selectedOrder.supplier_id} />
               <section data-goods-receiving-workspace className="sb-work-surface overflow-hidden">
-                <div className="flex flex-col gap-2 border-b bg-secondary/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-2 border-b bg-white px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-xs font-semibold">Receiving Lines</p>
-                    <p className="text-xs text-muted-foreground">Enter delivered and rejected quantities. Conversion and order context stay visible without repeating editable fields.</p>
+                    <h2 className="text-sm font-semibold text-[var(--sb-text)]">Receiving Lines</h2>
+                    <p className="text-xs text-muted-foreground">Enter received and rejected quantities.</p>
                   </div>
-                  <div className="text-sm">
-                    <span className="text-muted-foreground">PO:</span> <span className="font-semibold">{selectedOrder.po_no}</span>
+                  <div className="shrink-0 rounded-lg border border-[var(--sb-border-soft)] bg-white px-3 py-2 text-xs">
+                    <span className="text-muted-foreground">PO:</span> <span className="font-semibold whitespace-nowrap">{selectedOrder.po_no}</span>
                   </div>
                 </div>
                 <div className="divide-y">
@@ -215,9 +215,7 @@ export function GoodsReceivingForm({
                 </div>
               </section>
 
-              <p className="rounded-[var(--sb-radius-control)] border bg-secondary/30 p-3 text-sm text-muted-foreground">
-                Save the receiving, then attach the supplier Delivery Order before posting to stock. Mobile upload supports camera, photo library, and files.
-              </p>
+              <p className="flex items-start gap-2 rounded-lg border border-[var(--sb-border-soft)] bg-white p-3 text-xs text-muted-foreground"><Info className="size-4 shrink-0" aria-hidden="true" />Attach the Delivery Order after saving, before posting stock.</p>
             </>
           ) : (
             <section data-goods-receiving-empty className="sb-work-surface p-8 text-center">

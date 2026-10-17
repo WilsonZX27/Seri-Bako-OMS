@@ -10,7 +10,7 @@ export function ProcurementChain({ nodes }: { nodes: ProcurementChainNode[] }) {
   return (
     <section aria-labelledby="purchase-chain-title" className="document-surface rounded-[var(--sb-panel-radius)] border bg-card p-4">
       <div className="mb-3 flex items-center justify-between gap-3">
-        <div><p className="text-[11px] uppercase tracking-[0.1em] text-muted-foreground">Linked documents</p><h2 id="purchase-chain-title" className="text-[14px] font-semibold">Purchase chain</h2></div>
+        <div><h2 id="purchase-chain-title" className="text-sm font-semibold">Linked Documents</h2></div>
         <span className="text-[11px] text-muted-foreground">{nodes.length} document{nodes.length === 1 ? "" : "s"}</span>
       </div>
       <ol className="grid min-w-0 grid-cols-2 gap-2 2xl:grid-cols-4">

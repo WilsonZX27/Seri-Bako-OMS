@@ -360,7 +360,7 @@ export function PurchaseRequestForm({
           <section data-purchase-request-setup className="sb-work-surface overflow-hidden">
             <div data-document-section-header className="flex items-center justify-between gap-3 border-b bg-white px-3 py-2">
               <div className="min-w-0">
-                <h2 className="text-sm font-semibold text-[var(--sb-text)]">Request details</h2>
+                <h2 className="text-sm font-semibold text-[var(--sb-text)]">Request Details</h2>
                 {!detailsOpen ? (
                   <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                     <span className="inline-flex min-w-0 items-center gap-1"><MapPin className="h-3.5 w-3.5 shrink-0" /><span className="break-words">{selectedBranchName}</span></span>
@@ -406,9 +406,9 @@ export function PurchaseRequestForm({
           {contextResetNotice ? <div role="status" className="flex items-start justify-between gap-3 border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-3 py-2 text-xs text-[var(--sb-text)]"><p>{contextResetNotice}</p><button type="button" className="shrink-0 font-semibold text-primary hover:underline" onClick={() => setContextResetNotice("")} aria-label="Dismiss catalogue change notice">Dismiss</button></div> : null}
 
           <section data-purchase-request-workspace className="sb-work-surface overflow-hidden">
-            <div data-document-section-header className="flex items-center justify-between border-b bg-white px-3 py-2">
+            <div data-document-section-header className="flex min-h-14 items-center justify-between border-b bg-white px-3 py-2">
               <div>
-                <p className="text-xs font-semibold">Requested Items</p>
+                <h2 className="text-sm font-semibold text-[var(--sb-text)]">Requested Items</h2>
               </div>
               <span />
             </div>
@@ -443,9 +443,9 @@ export function PurchaseRequestForm({
                   </div>
                     <Field label="Quantity" required labelClassName="sr-only" className="pr-line-quantity row-start-2 lg:col-start-2 lg:row-start-1">
                       <div className="flex h-[var(--sb-control-height)] overflow-hidden rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white">
-                        <button type="button" className="flex h-full w-12 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)] lg:w-10" onClick={() => adjustLineQuantity(line, -1)} aria-label={`Decrease quantity for ${line.itemSearch || "request line"}`}><Minus className="h-3.5 w-3.5" /></button>
+                        <button type="button" className="flex h-full w-10 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)] lg:w-10" onClick={() => adjustLineQuantity(line, -1)} aria-label={`Decrease quantity for ${line.itemSearch || "request line"}`}><Minus className="h-3.5 w-3.5" /></button>
                         <Input data-pr-field="quantity" name="line_qty" aria-label={`Quantity for ${line.itemSearch || `request line ${index + 1}`}`} aria-invalid={validationTarget?.field === "quantity" && validationTarget.lineKey === line.key || undefined} type="number" min="0" step={requestQuantityStep(line.uom)} value={line.qty} onChange={(event) => { setValidationError(""); setValidationTarget(null); updateLine(line.key, { qty: event.target.value }); }} placeholder="Qty" className={`h-full min-w-0 rounded-none border-0 px-1 text-center text-xs font-semibold tabular-nums shadow-none focus-visible:ring-inset ${validationTarget?.field === "quantity" && validationTarget.lineKey === line.key ? "ring-2 ring-inset ring-rose-300" : ""}`} />
-                        <button type="button" className="flex h-full w-12 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)] lg:w-10" onClick={() => adjustLineQuantity(line, 1)} aria-label={`Increase quantity for ${line.itemSearch || "request line"}`}><Plus className="h-3.5 w-3.5" /></button>
+                        <button type="button" className="flex h-full w-10 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)] lg:w-10" onClick={() => adjustLineQuantity(line, 1)} aria-label={`Increase quantity for ${line.itemSearch || "request line"}`}><Plus className="h-3.5 w-3.5" /></button>
                       </div>
                     </Field>
                     <Field label="UOM" labelClassName="sr-only" className="pr-line-uom row-start-3 lg:col-start-3 lg:row-start-1">

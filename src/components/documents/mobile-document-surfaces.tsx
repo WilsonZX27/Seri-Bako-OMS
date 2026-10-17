@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 
 function MobileSheet({ label, title, children, danger = false, triggerClassName, triggerAriaLabel, trailingChevron = true, hideAt = "md" }: { label: ReactNode; title: string; children: ReactNode; danger?: boolean; triggerClassName?: string; triggerAriaLabel?: string; trailingChevron?: boolean; hideAt?: "md" | "xl" }) {
   const [open, setOpen] = useState(false);
+  const [nested, setNested] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -28,6 +29,8 @@ function MobileSheet({ label, title, children, danger = false, triggerClassName,
     focusable()[0]?.focus();
 
     function onKeyDown(event: KeyboardEvent) {
+      const visibleDialogs = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"][aria-modal="true"]')).filter((element) => element.getClientRects().length > 0);
+      if (visibleDialogs.at(-1) !== dialog) return;
       if (event.key === "Escape") {
         setOpen(false);
         return;
@@ -49,7 +52,7 @@ function MobileSheet({ label, title, children, danger = false, triggerClassName,
     document.addEventListener("keydown", onKeyDown);
     return () => {
       document.body.style.overflow = previousOverflow;
-      delete document.documentElement.dataset.mobileSheetOpen;
+      if (!Array.from(document.querySelectorAll<HTMLElement>('[data-bottom-sheet][role="dialog"]')).some((element) => element !== dialog && element.getClientRects().length > 0)) delete document.documentElement.dataset.mobileSheetOpen;
       document.removeEventListener("keydown", onKeyDown);
       requestAnimationFrame(() => trigger?.focus());
     };
@@ -57,12 +60,12 @@ function MobileSheet({ label, title, children, danger = false, triggerClassName,
 
   return (
     <>
-      <Button ref={triggerRef} type="button" variant="outline" className={cn("w-full justify-between text-[13px]", danger && "text-[var(--sb-danger)]", triggerClassName)} disabled={!hydrated} onClick={() => setOpen(true)} aria-label={triggerAriaLabel} aria-haspopup="dialog" aria-expanded={open}>
+      <Button ref={triggerRef} type="button" variant="outline" className={cn("w-full justify-between text-[13px]", danger && "text-[var(--sb-danger)]", triggerClassName)} disabled={!hydrated} onClick={() => { setNested(Boolean(triggerRef.current?.closest('[role="dialog"]'))); setOpen(true); }} aria-label={triggerAriaLabel} aria-haspopup="dialog" aria-expanded={open}>
         {label}{trailingChevron ? <ChevronRight className="h-4 w-4" aria-hidden="true" /> : null}
       </Button>
       {open && hydrated ? createPortal(
         <div className={cn("fixed inset-0 z-[var(--sb-z-dialog)]", hideAt === "xl" ? "xl:hidden" : "md:hidden")}>
-          <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={() => setOpen(false)} aria-label={`Close ${title}`} />
+          <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" style={nested ? { background: "transparent", backdropFilter: "none" } : undefined} onClick={() => setOpen(false)} aria-label={`Close ${title}`} />
           <div data-bottom-sheet ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">
             <header className="flex min-h-12 items-center justify-between border-b px-3">
               <h2 id={titleId} className="text-[14px] font-semibold">{title}</h2>

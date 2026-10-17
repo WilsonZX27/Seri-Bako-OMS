@@ -47,9 +47,9 @@ function focusHarness(){
  const document={activeElement:null};
  const el=(name,{tabIndex=0,hidden=false,disabled=false,rect=true,visibility='visible'}={})=>({name,tabIndex,visibility,matches:()=>hidden||disabled,closest:()=>null,getClientRects:()=>rect?[{}]:[],focus(){document.activeElement=this;}});
  const hidden=el('hidden',{hidden:true}),disabled=el('disabled',{disabled:true}),negative=el('negative',{tabIndex:-1}),invisible=el('invisible',{rect:false}),first=el('first'),last=el('last');
- const dialog={querySelectorAll:()=>[hidden,disabled,negative,invisible,first,last],focus(){document.activeElement=this;}};
+ const dialog={contains:e=>[hidden,disabled,negative,invisible,first,last].includes(e),querySelectorAll:()=>[hidden,disabled,negative,invisible,first,last],focus(){document.activeElement=this;}};
  const api=loader({document,getComputedStyle:e=>({visibility:e.visibility})})('src/lib/dialog-focus.ts');
- return {document,dialog,first,last,...api};
+ return {document,dialog,first,last,negative,hidden,...api};
 }
 test('dialog skips hidden/disabled/non-tab stops and traps both directions including outside focus',()=>{
  const h=focusHarness();h.focusDialog(h.dialog);assert.equal(h.document.activeElement,h.first);
@@ -63,4 +63,11 @@ test('empty dialog has a safe focus fallback and nested prevented Tab is respect
  const h=focusHarness();h.dialog.querySelectorAll=()=>[];h.focusDialog(h.dialog);assert.equal(h.document.activeElement,h.dialog);
  h.containDialogTab({key:'Tab',defaultPrevented:false,preventDefault(){}},h.dialog);assert.equal(h.document.activeElement,h.dialog);
  h.document.activeElement=h.last;h.containDialogTab({key:'Tab',defaultPrevented:true,preventDefault(){throw Error('nested handler already owns this');}},h.dialog);assert.equal(h.document.activeElement,h.last);
+});
+
+test('dialog accepts visible programmatic title focus but rejects hidden or external targets',()=>{
+ const h=focusHarness();
+ h.focusDialog(h.dialog,h.negative);assert.equal(h.document.activeElement,h.negative);
+ h.focusDialog(h.dialog,h.hidden);assert.equal(h.document.activeElement,h.first);
+ h.focusDialog(h.dialog,{});assert.equal(h.document.activeElement,h.first);
 });

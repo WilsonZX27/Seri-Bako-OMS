@@ -2710,3 +2710,8 @@ html[data-design-layer="v2"] .sb-table-region::-webkit-scrollbar-thumb { backgro
 @media (max-width: 1023px) {
   html[data-design-layer="v2"] form.unified-list-header .unified-list-filter-trigger { width: 44px; min-width: 44px; }
 }
+
+@media (max-width: 1023px) {
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-row:has(.unified-list-date-submit) { grid-template-columns: minmax(0, 200px) 64px minmax(3rem, 1fr); gap: 8px; }
+  html[data-design-layer="v2"] form.unified-list-header button.unified-list-date-submit[type="submit"] { display: inline-flex !important; width: 64px; min-width: 64px; height: 44px; grid-column: 2; }
+}

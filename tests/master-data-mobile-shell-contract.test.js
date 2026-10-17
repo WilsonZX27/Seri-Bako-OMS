@@ -19,6 +19,6 @@ test("master-data lists reserve phone action space for creation, not desktop-onl
 test("low stock keeps its inline PR workspace clear of a redundant phone action bar", () => {
   const lowStock = read("src/app/(app)/low-stock/page.tsx");
 
-  assert.match(lowStock, /<WorkspaceGrid\s+tabletRailMode="split"\s+tabletRailBreakpoint="lg"\s+hideMobileConsole\s+rightRail=/);
+  assert.match(lowStock, /<WorkspaceGrid\s+className=[^\n]+\s+tabletRailMode="split"\s+tabletRailBreakpoint="lg"\s+hideMobileConsole\s+rightRail=/);
   assert.match(lowStock, /<LowStockPrForm/);
 });

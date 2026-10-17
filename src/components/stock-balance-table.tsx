@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ShoppingCart, Trash2 } from "lucide-react";
+import { ShoppingCart, Plus, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { OperationalListRow, TableBody, TableCell, TableRow } from "@/components/ui/table";
@@ -101,7 +101,7 @@ export function StockBalanceTableRows({
                 aria-pressed={selected}
                 className={cn("h-9 w-9 rounded-[var(--sb-radius-control)]", selected && "bg-[var(--sb-green-100)] text-[var(--sb-green-950)]")}
               >
-                {selected ? <Trash2 className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
+                {selected ? <Trash2 className="h-4 w-4" /> : <span className="relative"><ShoppingCart className="h-4 w-4" /><Plus className="absolute -right-1 -top-1 h-2.5 w-2.5 bg-white" aria-hidden="true" /></span>}
               </Button>
             </TableCell>
             <TableCell>{item.item_code}</TableCell>
@@ -157,7 +157,7 @@ export function StockBalanceOperationalRows({
                 title={!itemActive ? "Inactive item: refresh the master record before preparing a PR." : undefined}
                 aria-pressed={selected}
               >
-                {selected ? <Trash2 className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
+                {selected ? <Trash2 className="h-4 w-4" /> : <span className="relative"><ShoppingCart className="h-4 w-4" /><Plus className="absolute -right-1 -top-1 h-2.5 w-2.5 bg-white" aria-hidden="true" /></span>}
               </button>
             }
           />

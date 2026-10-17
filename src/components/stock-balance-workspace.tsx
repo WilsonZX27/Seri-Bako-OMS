@@ -1,4 +1,5 @@
 "use client";
+import { hasActiveFilters } from "@/lib/table-state";
 import { createPortal } from "react-dom";
 
 import { useEffect, useMemo, useState } from "react";
@@ -192,6 +193,7 @@ export function StockBalanceWorkspace({
     <>
       <PageHeader title="Stock Balance" description="Calculated from posted Movement Ledger transactions. No direct balance edits." />
       <WorkspaceGrid
+        className={hasCreatePr ? "pb-24 xl:pb-0" : undefined}
         hideMobileConsole
         rightRail={
           <>
@@ -356,7 +358,7 @@ export function StockBalanceWorkspace({
               <TableBody>
                 <TableRow>
                   <TableCell colSpan={9}>
-                    <EmptyState title="No stock balances yet" description="Balances appear after posted stock movements." />
+                    <EmptyState title={hasActiveFilters(filters) ? "No balances match these filters" : "No stock balances yet"} description={hasActiveFilters(filters) ? "Reset the filters or search for another item." : "Balances appear after posted stock movements."} action={hasActiveFilters(filters) ? { href: "/stock-balance", label: "Reset filters" } : undefined} />
                   </TableCell>
                 </TableRow>
               </TableBody>
@@ -366,7 +368,7 @@ export function StockBalanceWorkspace({
             <OperationalList ariaLabel="Stock balances">
               {rows.length ? <StockBalanceOperationalRows rows={rows} inBasket={inBasket} onToggleBasket={toggleBasket} /> : null}
               {!rows.length ? (
-                <EmptyState title="No stock balances yet" description="Balances appear after posted stock movements." />
+                <EmptyState title={hasActiveFilters(filters) ? "No balances match these filters" : "No stock balances yet"} description={hasActiveFilters(filters) ? "Reset the filters or search for another item." : "Balances appear after posted stock movements."} action={hasActiveFilters(filters) ? { href: "/stock-balance", label: "Reset filters" } : undefined} />
               ) : null}
             </OperationalList>
           )}

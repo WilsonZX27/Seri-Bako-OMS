@@ -45,6 +45,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
         description="Branch-level low-stock and out-of-stock items ready for procurement review."
       />
       <WorkspaceGrid
+        className="pb-24 xl:pb-0"
         tabletRailMode="split"
         tabletRailBreakpoint="lg"
         hideMobileConsole
@@ -156,16 +157,15 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
                 supplierName: item.supplier_name,
                 baseUnit: item.base_unit,
               });
-              const trailing = <span key={`${rowKey}-action`} className="text-[11px] font-medium text-[var(--sb-green-700)]">{decision.label}</span>;
+              const trailing = <Badge key={`${rowKey}-action`} variant={decision.decision === "buy_now" ? "warning" : decision.blocked ? "danger" : "secondary"} title={decision.reason}>{decision.label}</Badge>;
               return (
                 <OperationalListRow
                   key={rowKey}
                   label={item.item_name}
                   primary={item.item_name}
-                  status={<Badge variant={item.stock_status === "out_of_stock" ? "danger" : "warning"}>{item.stock_status.replaceAll("_", " ")}</Badge>}
+                  status={<><Badge variant={item.stock_status === "out_of_stock" ? "danger" : "warning"}>{item.stock_status.replaceAll("_", " ")}</Badge>{trailing}</>}
                   secondary={`${item.item_code} ${item.branch_name ?? "-"} ${item.supplier_name ?? ""}`}
-                  meta={`${decision.label} · ${formatNumber(item.current_stock)} ${item.base_unit} | ${formatNumber(item.suggested_reorder_qty)} ${item.purchase_unit || item.base_unit}`}
-                  trailing={trailing}
+                  detail={`Current: ${formatNumber(item.current_stock)} ${item.base_unit} · Suggested: ${formatNumber(item.suggested_reorder_qty)} ${item.purchase_unit || item.base_unit}`}
                 />
               );
             })}

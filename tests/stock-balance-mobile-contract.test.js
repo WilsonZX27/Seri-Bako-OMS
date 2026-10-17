@@ -12,7 +12,7 @@ const inventoryQuery = fs.readFileSync(path.join(root, "src", "server", "queries
 const recipesQuery = fs.readFileSync(path.join(root, "src", "server", "queries", "recipes.ts"), "utf8");
 
 test("stock balance does not duplicate mobile navigation with a generic action bar", () => {
-  assert.match(source, /<WorkspaceGrid\s+hideMobileConsole\s+rightRail=/);
+  assert.match(source, /<WorkspaceGrid\s+className=[^\n]+\s+hideMobileConsole\s+rightRail=/);
   assert.match(source, /Open Movement Ledger/);
 });
 
@@ -90,7 +90,9 @@ test("stock balance propagates stock balance query error state to UI props", () 
 
 test("stock balance displays empty state when query succeeds with zero rows", () => {
   assert.match(source, /queryError \?\s*\(\s*<TableBody>[\s\S]*?<ErrorState[\s\S]*?<\/TableBody>/);
-  assert.match(source, /title="No stock balances yet" description="Balances appear after posted stock movements\."/);
+  assert.match(source, /No balances match these filters/);
+  assert.match(source, /No stock balances yet/);
+  assert.match(source, /href: "\/stock-balance", label: "Reset filters"/);
 });
 
 test("stock balance error mode uses an explicit error component", () => {

@@ -1,9 +1,10 @@
+import { formatRegisteredAssetQuantity } from "@/lib/asset-quantity-display";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
-import { formatNumber, formatDateOnly } from "@/lib/utils";
+import { formatDateOnly } from "@/lib/utils";
 import type { AssetSummary, AssetHolding, AssetRecord, AssetOverview } from "@/server/queries/assets";
 
 export function AssetRegisterRows({ assets, holdings, locations }: { assets: AssetSummary[]; holdings: AssetHolding[]; locations: Map<string, string> }) {
@@ -11,16 +12,15 @@ export function AssetRegisterRows({ assets, holdings, locations }: { assets: Ass
     const visible = holdings.filter(holding => holding.asset_id === asset.id);
     return (visible.length ? visible : [{ asset_id: asset.id, location_id: "", quantity: null, condition:null, status:null, latest_check_result:null }]).map(holding => ({ asset, holding }));
   });
-  const quantity = (value: number | null) => value === null ? "Unknown" : formatNumber(value);
   return <>
     <Table mobileHidden compactUntil="md" aria-label="Asset register">
-      <TableHeader><TableRow>{["Asset","Location","Classification","Qty","State / latest check"].map(label=><TableHead key={label}>{label}</TableHead>)}</TableRow></TableHeader>
+      <TableHeader><TableRow>{["Asset","Location","Classification","Registered qty","State / latest check"].map(label=><TableHead key={label}>{label}</TableHead>)}</TableRow></TableHeader>
       <TableBody>{rows.map(({ asset, holding }) => { const details=asset.current_details ?? {}; const text=(key:string)=>details[key] == null || details[key] === "" ? "Unknown" : String(details[key]); return <TableRow key={`${asset.id}:${holding.location_id}`}>
         <TableCell className="min-w-48 whitespace-normal"><Link href={`/asset-management/assets/${asset.id}`} className="block py-1"><strong className="block font-semibold text-primary">{asset.asset_code}</strong><span className="block max-w-64">{asset.item_name}</span></Link></TableCell><TableCell className="whitespace-normal min-w-32">{holding.location_id ? locations.get(holding.location_id) ?? "Unavailable location" : "No accessible holding"}</TableCell>
-        <TableCell className="min-w-40 whitespace-normal"><span className="block">{text("Category")}</span><span className="block text-muted-foreground">{text("Subcategory")}</span>{text("Department / Area") !== "Unknown" ? <span className="block text-muted-foreground">{text("Department / Area")}</span> : null}</TableCell><TableCell className={`tabular-nums ${holding.quantity === null ? "text-warning" : ""}`}>{holding.location_id ? quantity(holding.quantity) : "—"}</TableCell><TableCell className="min-w-36 whitespace-normal"><span className="block">{holding.status || "Unknown"}</span><span className="block text-muted-foreground">Condition: {holding.condition || "Unknown"}</span><span className="block text-muted-foreground">Check: {holding.latest_check_result || "Not recorded"}</span></TableCell>
+        <TableCell className="min-w-40 whitespace-normal"><span className="block">{text("Category")}</span><span className="block text-muted-foreground">{text("Subcategory")}</span>{text("Department / Area") !== "Unknown" ? <span className="block text-muted-foreground">{text("Department / Area")}</span> : null}</TableCell><TableCell className={`tabular-nums ${holding.quantity === null ? "text-warning" : ""}`}>{holding.location_id ? formatRegisteredAssetQuantity(holding.quantity) : "—"}</TableCell><TableCell className="min-w-36 whitespace-normal"><span className="block">{holding.status || "Unknown"}</span><span className="block text-muted-foreground">Condition: {holding.condition || "Unknown"}</span><span className="block text-muted-foreground">Check: {holding.latest_check_result || "Not recorded"}</span></TableCell>
       </TableRow>; })}</TableBody>
     </Table>
-    <div className="divide-y md:hidden">{rows.map(({ asset, holding }) => <Link key={`${asset.id}:${holding.location_id}`} href={`/asset-management/assets/${asset.id}`} className="flex min-h-16 items-center justify-between gap-3 px-3 py-2"><span className="min-w-0"><small className="block text-xs text-muted-foreground">{asset.asset_code}</small><strong className="block break-words text-sm font-medium">{asset.item_name}</strong><small className="block text-xs text-muted-foreground">{holding.location_id ? locations.get(holding.location_id) ?? "Unavailable location" : "No accessible holding"}</small></span><span className={`shrink-0 text-sm tabular-nums ${holding.quantity === null ? "text-warning" : ""}`}>{holding.location_id ? quantity(holding.quantity) : "—"}</span></Link>)}</div>
+    <div className="divide-y md:hidden">{rows.map(({ asset, holding }) => <Link key={`${asset.id}:${holding.location_id}`} href={`/asset-management/assets/${asset.id}`} className="flex min-h-16 items-center justify-between gap-3 px-3 py-2"><span className="min-w-0"><small className="block text-xs text-muted-foreground">{asset.asset_code}</small><strong className="block break-words text-sm font-medium">{asset.item_name}</strong><small className="block text-xs text-muted-foreground">{holding.location_id ? locations.get(holding.location_id) ?? "Unavailable location" : "No accessible holding"}</small></span><span className={`shrink-0 text-sm tabular-nums ${holding.quantity === null ? "text-warning" : ""}`}><small className="block text-xs text-muted-foreground">Registered qty</small>{holding.location_id ? formatRegisteredAssetQuantity(holding.quantity) : "—"}</span></Link>)}</div>
   </>;
 }
 

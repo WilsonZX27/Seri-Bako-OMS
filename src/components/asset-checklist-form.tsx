@@ -1,4 +1,6 @@
 "use client";
+import { formatRegisteredAssetQuantity } from "@/lib/asset-quantity-display";
+
 import { useAssetDraftAction, useAssetDraftState } from "@/components/asset-draft-state";
 import { isAssetChecklistDraft } from "@/lib/asset-draft";
 import { useAssetFormGuard } from "@/components/asset-unsaved-guard";
@@ -38,6 +40,7 @@ export function AssetChecklistForm({ locationId, assets, holdings, date, today, 
       <p className="text-xs text-muted-foreground">{selected.length}/{holdings.length} checked · {exceptions} exceptions</p>
       <Button className="min-h-11" type="submit" disabled={pending || state.ok || !selected.length}>{pending ? "Saving…" : "Submit checklist"}</Button>
     </div>
+    <p className="mb-3 text-xs text-muted-foreground">Inspection counts are saved separately and do not change registered quantities.</p>
     <div className="divide-y">{[...holdings].sort((a,b)=>(names.get(a.asset_id)?.asset_code ?? "").localeCompare(names.get(b.asset_id)?.asset_code ?? "")).map(holding => {
       const id = holding.asset_id, result = fields[`result_${id}`] ?? "Checked", checked = selected.includes(id), open=expanded===id;
       const choose=(value:string)=>{markEdited(id);update(`result_${id}`,value);setSelected(current=>current.includes(id)?current:[...current,id]);};
@@ -45,14 +48,14 @@ export function AssetChecklistForm({ locationId, assets, holdings, date, today, 
         <div className="flex min-w-0 items-center gap-3">
           <label className="flex min-h-11 min-w-0 flex-1 items-center gap-3 text-sm">
             <input type="checkbox" name="asset_id" value={id} checked={checked} onChange={event => { markEdited(id);setSelected(current => event.target.checked ? [...new Set([...current,id])] : current.filter(value => value !== id)); }} className="size-5 shrink-0 accent-[var(--sb-primary)]"/>
-            <span className="min-w-0"><small className="text-xs font-semibold text-primary">{names.get(id)?.asset_code}</small><strong className="block break-words text-sm font-medium">{names.get(id)?.item_name}</strong><small className="block text-xs text-muted-foreground">{String(names.get(id)?.current_details?.Category ?? "Asset")} · Qty {holding.quantity ?? "Unknown"}</small></span>
+            <span className="min-w-0"><small className="text-xs font-semibold text-primary">{names.get(id)?.asset_code}</small><strong className="block break-words text-sm font-medium">{names.get(id)?.item_name}</strong><small className="block text-xs text-muted-foreground">{String(names.get(id)?.current_details?.Category ?? "Asset")} · Registered qty: {formatRegisteredAssetQuantity(holding.quantity)}</small></span>
           </label>
           <button type="button" aria-label={`Result for ${names.get(id)?.asset_code}`} aria-expanded={open} aria-controls={`choices-${id}`} onClick={()=>setExpanded(open?null:id)} className={`inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md px-2 text-xs font-medium ${checked ? result==="Checked" ? "text-[var(--sb-success)]" : result==="Damaged" || result==="Missing" ? "text-[var(--sb-danger)]" : "text-[var(--sb-warning)]" : "text-muted-foreground"}`}>{checked?result:"Not checked"}<ChevronDown className={`size-3.5 ${open?"rotate-180":""}`} aria-hidden="true"/></button>
         </div>
         <input type="hidden" name={`result_${id}`} value={result}/>
         {open ? <div id={`choices-${id}`} className="grid grid-cols-2 gap-2 pt-2" role="group" aria-label={`Inspection result for ${names.get(id)?.asset_code}`}>{["Checked","Needs Maintenance","Damaged","Missing","Other"].map(value=>{const Icon=value==="Checked"?Check:value==="Needs Maintenance"?Wrench:value==="Missing"?SearchX:value==="Damaged"?TriangleAlert:CircleHelp;return <Button key={value} type="button" variant="outline" data-inspection-result={value} className="sb-inspection-choice" aria-pressed={checked&&result===value} onClick={()=>choose(value)}><Icon className="size-4 shrink-0" aria-hidden="true"/>{value}</Button>;})}</div>:null}
         {checked&&result!=="Checked" ? <label className="mt-2 grid gap-1 text-xs">Exception note<Input name={`remark_${id}`} required maxLength={4000} value={fields[`remark_${id}`] ?? ""} onChange={event=>update(`remark_${id}`,event.target.value)} placeholder="Describe the issue"/></label> : <input type="hidden" name={`remark_${id}`} value={fields[`remark_${id}`] ?? ""}/>}
-        {open ? <label className="mt-2 grid gap-1 text-xs">Physical count · optional<Input aria-label={`Physical count for ${names.get(id)?.asset_code}`} type="number" name={`quantity_${id}`} min="0" step="1" value={fields[`quantity_${id}`] ?? ""} onChange={event=>update(`quantity_${id}`,event.target.value)} placeholder="Not counted"/></label> : <input type="hidden" name={`quantity_${id}`} value={fields[`quantity_${id}`]??""}/>}
+        {open ? <label className="mt-2 grid gap-1 text-xs">This inspection’s physical count · optional<Input aria-label={`Physical count for ${names.get(id)?.asset_code}`} type="number" name={`quantity_${id}`} min="0" step="1" value={fields[`quantity_${id}`] ?? ""} onChange={event=>update(`quantity_${id}`,event.target.value)} placeholder="Not counted"/></label> : <input type="hidden" name={`quantity_${id}`} value={fields[`quantity_${id}`]??""}/>}
       </fieldset>;
     })}</div>
     <RightConsoleMount><ConsoleSection title="Submit checklist" kind="action">

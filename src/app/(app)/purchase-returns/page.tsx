@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Pencil } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DocumentNumber } from "@/components/document-number";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -38,7 +38,7 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
             <>
               <ConsoleSection title="Actions">
                 {canCreate ? <Button asChild className="w-full" data-mobile-primary-action>
-                  <Link href="/purchase-returns/new">New Return</Link>
+                  <Link href="/purchase-returns/new"><Plus className="h-4 w-4" aria-hidden="true" />New Return</Link>
                 </Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}
               </ConsoleSection>
               <ConsoleSection title="Return Summary">

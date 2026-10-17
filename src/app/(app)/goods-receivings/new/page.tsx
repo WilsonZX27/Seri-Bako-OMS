@@ -12,6 +12,8 @@ export default async function NewGoodsReceivingPage({ searchParams }: { searchPa
   const selectedOrder = filters.po_id ? purchaseOrders.find((order) => order.id === filters.po_id) ?? null : null;
   const receivingPo = selectedOrder ? await getPurchaseOrderForReceiving(selectedOrder.id) : null;
   const lines = receivingPo?.lines.filter((line) => line.pending_qty > 0) ?? [];
+  const nextStep = !selectedOrder ? "Select an approved purchase order to continue." : !lines.length ? "This order has no pending quantities. Choose another order." : "Check received and rejected quantities before saving.";
+  const validationHint = `${nextStep} Received plus rejected quantity cannot exceed the pending PO quantity. Attach the Delivery Order on the saved GRN before posting.`;
   const primaryAction = <SubmitButton type="submit" form="goods-receiving-form" disabled={!selectedOrder || !lines.length} className="w-full" pendingLabel="Saving...">Save receiving draft</SubmitButton>;
   const steps = [
     { key: "draft", label: "Draft", description: "Receiving quantities can be checked." },
@@ -29,9 +31,10 @@ export default async function NewGoodsReceivingPage({ searchParams }: { searchPa
         currentStatus="draft"
         tabletRailMode="context"
         mobilePrimaryAction={primaryAction}
+        mobileActionHint={validationHint}
         sidePanel={<>
             <DocumentSideSection title="Primary Action">{primaryAction}</DocumentSideSection>
-            <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">Received plus rejected quantity cannot exceed the pending PO quantity. Attach the Delivery Order on the saved GRN before posting.</p></DocumentSideSection>
+            <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{validationHint}</p></DocumentSideSection>
           </>}
       >
         <ActionErrorNotice message={filters.error} />

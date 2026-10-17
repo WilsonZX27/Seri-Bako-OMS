@@ -469,7 +469,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
 
           <div className="grid items-stretch gap-2 md:grid-cols-5">
             {steps.map((step, index) => (
-              <div key={step.title} aria-current={index === activeStep ? "step" : undefined} className={`h-full rounded-[var(--sb-panel-radius)] border p-3 ${index === activeStep ? "border-[var(--sb-green-700)] bg-[var(--sb-green-100)]" : index < activeStep ? "bg-[var(--sb-success-bg)]" : "bg-[var(--sb-muted)]"}`}>
+              <div data-inset-surface key={step.title} aria-current={index === activeStep ? "step" : undefined} className={`h-full rounded-[var(--sb-panel-radius)] border p-3 ${index === activeStep ? "border-[var(--sb-green-700)] bg-[var(--sb-green-100)]" : index < activeStep ? "bg-[var(--sb-success-bg)]" : "bg-[var(--sb-muted)]"}`}>
                 <p className="text-sm font-medium">{step.title}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{step.detail}</p>
               </div>
@@ -478,7 +478,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
 
           <div className="grid min-w-0 gap-4">
             <div className="min-w-0 space-y-4">
-              <div className="min-w-0 rounded-[var(--sb-panel-radius)] border bg-[var(--sb-muted)] p-3">
+              <div data-inset-surface className="min-w-0 rounded-[var(--sb-panel-radius)] border bg-[var(--sb-muted)] p-3">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
                   <FileSpreadsheet className="h-4 w-4" />
                   Sample row
@@ -507,7 +507,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
               </div>
 
               {spec.needsPostingConfirmation ? (
-                <label className="flex items-start gap-3 rounded-[var(--sb-panel-radius)] border border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] p-3 text-sm text-[var(--sb-warning)]">
+                <label data-inset-surface className="flex items-start gap-3 rounded-[var(--sb-panel-radius)] border border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] p-3 text-sm text-[var(--sb-warning)]">
                   <input type="checkbox" className="mt-1" checked={confirmPosting} onChange={(event) => setConfirmPosting(event.target.checked)} />
                   <span>I understand this will post opening stock into the Movement Ledger.</span>
                 </label>
@@ -516,20 +516,20 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
 
           </div>
 
-          {result ? <div className="grid gap-3 rounded-[var(--sb-panel-radius)] border bg-[var(--sb-muted)] p-3 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-[var(--sb-panel-radius)] border bg-card p-3">
+          {result ? <div data-inset-surface className="grid gap-3 rounded-[var(--sb-panel-radius)] border bg-[var(--sb-muted)] p-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div data-inset-surface className="rounded-[var(--sb-panel-radius)] border bg-card p-3">
               <div className="flex items-center gap-2 text-sm font-medium text-success"><CheckCircle2 className="h-4 w-4" />Imported</div>
               <p className="mt-1 text-2xl font-semibold">{summary.imported}</p>
             </div>
-            <div className="rounded-[var(--sb-panel-radius)] border bg-card p-3">
+            <div data-inset-surface className="rounded-[var(--sb-panel-radius)] border bg-card p-3">
               <div className="flex items-center gap-2 text-sm font-medium text-primary"><Upload className="h-4 w-4" />Updated</div>
               <p className="mt-1 text-2xl font-semibold">{summary.updated}</p>
             </div>
-            <div className="rounded-[var(--sb-panel-radius)] border bg-card p-3">
+            <div data-inset-surface className="rounded-[var(--sb-panel-radius)] border bg-card p-3">
               <div className="flex items-center gap-2 text-sm font-medium text-[var(--sb-warning)]"><AlertTriangle className="h-4 w-4" />Skipped</div>
               <p className="mt-1 text-2xl font-semibold">{summary.skipped}</p>
             </div>
-            <div className="rounded-[var(--sb-panel-radius)] border bg-card p-3">
+            <div data-inset-surface className="rounded-[var(--sb-panel-radius)] border bg-card p-3">
               <div className="flex items-center gap-2 text-sm font-medium text-destructive"><XCircle className="h-4 w-4" />Errors</div>
               <p className="mt-1 text-2xl font-semibold">{summary.errors}</p>
             </div>

@@ -1,3 +1,12 @@
+## Concentric surfaces and alignment — 2026-10-17
+
+- Remove redundant nested cards structurally. A transparent Card still participates in the canonical surface contract; use a plain layout container instead.
+- For a genuinely inset bordered surface use `data-inset-surface`: inner radius = max(0, outer panel radius − actual inset). Set `--sb-surface-inset` when the inset differs from the default 12px. A 12px panel with 12px or greater inset therefore has square inner corners; do not enlarge all outer cards to manufacture curves.
+- Independent cards, form controls (8px), pills, circular icons and edge-attached sheets are separate shapes, not concentric panels. Preserve their semantics and 36px desktop / 44px touch targets.
+- Hidden form fields must not create spacing. Use grid/flex gaps for visible children and conditionally render entire optional grid cells.
+- Mobile PR item, supplier and quantity share one content left edge after the row-number gutter; compact quantity/UOM and remark controls remain one row.
+- PO reference context uses the neutral muted surface token, with no accent/status meaning.
+
 ## Owner annotations — 2026-10-17 procurement consistency
 
 - Mobile document status sits at the left edge; workflow progress sits at the right edge. Do not center the pair on new forms.

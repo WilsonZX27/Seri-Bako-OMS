@@ -105,7 +105,7 @@ export function SupplierInvoiceForm({
           {selectedSupplierId ? grns.map((grn) => {
             const allSelected = grn.lines.every((line) => !!lines[line.id]);
             return (
-              <section key={grn.id} data-supplier-invoice-grn className="overflow-hidden rounded-lg border border-[var(--sb-border-soft)]">
+              <section key={grn.id} data-inset-surface data-supplier-invoice-grn className="overflow-hidden rounded-lg border border-[var(--sb-border-soft)]">
                 <div className="flex flex-wrap items-center justify-between gap-2 bg-white px-3 py-3">
                   <div className="min-w-0"><h2 className="text-sm font-semibold">{grn.grn_no}</h2><p className="text-xs text-muted-foreground">{grn.po_no ?? "PO"} · Available {formatCurrency(grn.received_value)}</p></div>
                   {grn.lines.length > 1 ? <Button type="button" size="sm" variant="ghost" onClick={() => setGrn(grn, !allSelected)}>{allSelected ? "Clear selection" : "Select all lines"}</Button> : null}

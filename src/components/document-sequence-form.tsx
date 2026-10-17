@@ -62,7 +62,7 @@ export function DocumentSequenceForm({ sequence, companies, action, formId, show
               <option value="never">Never reset</option>
             </SelectNative>
           </Field>
-          <div className="md:col-span-2 rounded-[var(--sb-panel-radius)] border bg-secondary p-4">
+          <div data-inset-surface className="md:col-span-2 rounded-[var(--sb-panel-radius)] border bg-secondary p-4">
             <p className="text-xs font-medium uppercase text-muted-foreground">Format Preview</p>
             <p className="mt-1 font-mono text-lg font-semibold">{sequencePreview(prefix, nextNumber, resetFrequency)}</p>
             <p className="mt-1 text-xs text-muted-foreground">The counter restarts when the selected cycle changes. Existing issued numbers remain unchanged.</p>

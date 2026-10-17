@@ -201,6 +201,9 @@ export default async function PurchaseRequestDetailPage({
     (request.status === "finance_review" && (roleCode === "finance" || isOwner) && (permissions["pr.finance_review"] || permissions["pr.reject"]));
   const hasPrimaryAction = canSubmit || canManagerReview || canAdminReview || canFinanceReview || canConvert;
   const deleteControl = canManageDeletion && !canCancel ? (deletePreview?.eligible ? <DangerConfirmForm action={hardDeletePhaseOne.bind(null, "purchase_request", request.id)} title={`Permanently delete ${request.request_no}?`} description="This cannot be undone. Purchase request lines will be removed; the document number will remain consumed." checkboxLabel="I understand this permanently deletes the eligible request." confirmWord={deletePreview.confirmation} buttonLabel="Delete purchase request" pendingLabel="Deleting..." /> : <BlockedDestructiveAction buttonLabel="Delete purchase request" title={`Cannot delete ${request.request_no}`} description="Permanent deletion is blocked by the current status or linked records." recommendation={deletePreview ? Object.entries(deletePreview.dependencies).filter(([, count]) => count > 0).map(([key, count]) => `${key}: ${count}`).join("; ") : "Dependency preview unavailable."} />) : null;
+  const editableItems = Boolean(canEditRequest && items && suppliers && supplierMappings && branches);
+  const ItemsContainer = editableItems ? "div" : Card;
+  const ItemsContent = editableItems ? "div" : CardContent;
   const saveDraftAction = canEditRequest ? <SubmitButton form="purchase-request-form" type="submit" pendingLabel="Saving..." className="w-full justify-center">Save request changes</SubmitButton> : null;
   const withdrawControl = canRequesterWithdraw || canOwnerRecoverWithdraw ? <MobileTaskSheet label={canRequesterWithdraw ? "Revoke submission" : "Owner recovery: revoke submission"}><form action={withdrawPurchaseRequest.bind(null, request.id)} className="space-y-3"><p className="text-xs text-muted-foreground">Available only before Manager makes a decision. The request returns to Draft so it can be corrected or cancelled.</p><Field label="Revoke reason" required><Input name="reason" placeholder="Example: Submitted twice" required minLength={3} maxLength={500} /></Field><SubmitButton className="w-full justify-center" pendingLabel="Revoking..."><RotateCcw className="h-4 w-4" aria-hidden="true" />Revoke to Draft</SubmitButton></form></MobileTaskSheet> : null;
   const requestControls = saveDraftAction || canRequesterWithdraw || canCancel ? <div className="space-y-2">
@@ -347,8 +350,8 @@ export default async function PurchaseRequestDetailPage({
             </CardContent>
           </Card>
 
-          <Card className={canEditRequest && items && suppliers && supplierMappings && branches ? "border-0 bg-transparent shadow-none" : "document-surface shadow-none"}>
-            <CardContent className={canEditRequest && items && suppliers && supplierMappings && branches ? "p-0" : "p-4"}>
+          <ItemsContainer className={editableItems ? "min-w-0" : "document-surface shadow-none"}>
+            <ItemsContent className={editableItems ? "min-w-0" : "p-4"}>
               <div className={canEditRequest && items && suppliers && supplierMappings && branches ? "hidden" : "mb-2 flex items-center justify-between"}>
                 <div className="flex min-w-0 items-baseline gap-2"><h2 className="text-[14px] font-semibold">Requested Items</h2><span className="text-xs text-muted-foreground">{requestedItemCount} {requestedItemCount === 1 ? "item" : "items"}</span></div>
                 {canViewCommercial ? <p className="text-xs font-semibold">{formatCurrency(total)}</p> : null}
@@ -459,8 +462,8 @@ export default async function PurchaseRequestDetailPage({
                   {canRepairReviewLines && canonicalSupplierId && items && suppliers && supplierMappings ? <div className="mt-3"><AddPurchaseRequestLineDialog action={addPurchaseRequestLineDuringReview.bind(null, request.id)} items={addLineItems} suppliers={addLineSuppliers} canViewCommercial={canViewCommercial} /></div> : null}
                 </>
               )}
-            </CardContent>
-          </Card>
+            </ItemsContent>
+          </ItemsContainer>
 
           {procurementChain ? <ProcurementChain nodes={procurementChain.nodes} /> : <Card className="document-surface shadow-none"><CardContent className="p-3 text-[12px] text-muted-foreground">Purchase chain unavailable. Retry this page to load linked PO, GRN, and invoice documents.</CardContent></Card>}
 

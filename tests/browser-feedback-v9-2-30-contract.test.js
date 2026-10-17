@@ -11,7 +11,7 @@ test("People rows keep identity compact and omit redundant open copy", () => {
   const staff = read("src", "app", "(app)", "people", "page.tsx");
   const table = read("src", "components", "ui", "table.tsx");
   assert.doesNotMatch(people, /meta="Open profile"/);
-  assert.match(staff, /className="erp-surface overflow-hidden"/);
+  assert.match(staff, /className="sb-list-content-card erp-surface overflow-hidden"/);
   assert.match(table, /secondary \? <div className="mt-0\.5/);
 });
 

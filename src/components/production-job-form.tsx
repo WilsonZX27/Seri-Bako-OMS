@@ -148,7 +148,7 @@ export function ProductionJobForm({
                   Some ingredients are below required stock. Draft can be created, but posting will be blocked unless an authorized user overrides negative stock.
                 </div>
               ) : null}
-              <div className="sb-table-region hidden rounded-[var(--sb-panel-radius)] border md:block">
+              <div data-inset-surface className="sb-table-region hidden rounded-[var(--sb-panel-radius)] border md:block">
                 <Table>
                   <TableHeader>
                     <TableRow>

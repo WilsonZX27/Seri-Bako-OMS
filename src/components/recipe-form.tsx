@@ -238,7 +238,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
             ))}
           </datalist>
 
-          <div className="sb-table-region hidden overflow-x-auto rounded-[var(--sb-panel-radius)] border md:block">
+          <div data-inset-surface className="sb-table-region hidden overflow-x-auto rounded-[var(--sb-panel-radius)] border md:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -351,7 +351,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
 
           {hasDuplicate ? <p className="text-sm text-destructive">Duplicate ingredients are not allowed.</p> : null}
 
-          <div className="grid grid-cols-2 gap-3 rounded-[var(--sb-panel-radius)] border bg-secondary/50 p-3 md:grid-cols-4">
+          <div data-inset-surface className="grid grid-cols-2 gap-3 rounded-[var(--sb-panel-radius)] border bg-secondary/50 p-3 md:grid-cols-4">
             <div>
               <p className="text-xs text-muted-foreground">Ingredient Cost</p>
               <p className="text-base font-semibold">{formatCurrency(totalIngredientCost)}</p>

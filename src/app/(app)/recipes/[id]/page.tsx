@@ -123,7 +123,7 @@ export default async function RecipeDetailPage({
         <Card>
           <CardHeader><CardTitle>Ingredient Lines</CardTitle></CardHeader>
           <CardContent>
-            <div className="rounded-[var(--sb-panel-radius)] border">
+            <div data-inset-surface className="rounded-[var(--sb-panel-radius)] border">
               <Table mobileHidden aria-label="Recipe ingredient availability">
                 <TableHeader>
                     <TableRow>

@@ -132,7 +132,7 @@ export function GoodsReceivingForm({
                     <h2 className="text-sm font-semibold text-[var(--sb-text)]">Receiving Lines</h2>
                     <p className="text-xs text-muted-foreground">Enter received and rejected quantities.</p>
                   </div>
-                  <div className="shrink-0 rounded-lg border border-[var(--sb-border-soft)] bg-white px-3 py-2 text-xs">
+                  <div data-po-reference className="shrink-0 rounded-lg border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-3 py-2 text-xs">
                     <span className="text-muted-foreground">PO:</span> <span className="font-semibold whitespace-nowrap">{selectedOrder.po_no}</span>
                   </div>
                 </div>

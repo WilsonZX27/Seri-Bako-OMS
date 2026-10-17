@@ -26,7 +26,7 @@ export function PurchaseReturnForm({
   const [reason, setReason] = useState("");
   return (
     <div className="min-w-0">
-        <form id="purchase-return-form" action={action} className="erp-surface space-y-3 p-3 md:p-4">
+        <form id="purchase-return-form" action={action} className="erp-surface grid gap-3 p-3 md:p-4">
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="purchase_return_no" value="PRT-AUTO" />
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
@@ -54,15 +54,13 @@ export function PurchaseReturnForm({
                 <option value="Other">Other</option>
               </SelectNative>
             </Field>
-            <div className="col-span-2 lg:col-span-3">
-              {reason === "Other" ? <Field label="Notes"><Textarea name="remarks" placeholder="Describe the return reason" required /></Field> : <input type="hidden" name="remarks" value="" />}
-            </div>
+            {reason === "Other" ? <Field label="Notes" className="col-span-2 lg:col-span-3"><Textarea name="remarks" placeholder="Describe the return reason" required /></Field> : <input type="hidden" name="remarks" value="" />}
           </div>
 
           {selectedReceiving ? (
             <>
               <input type="hidden" name="goods_receiving_id" value={selectedReceiving.id} />
-              <div className="overflow-hidden rounded-[var(--sb-panel-radius)] border" data-purchase-return-lines>
+              <div className="overflow-hidden rounded-[var(--sb-panel-radius)] border" data-purchase-return-lines data-inset-surface>
                 <div className="flex flex-col gap-1 border-b bg-secondary/40 px-4 py-3">
                   <p className="text-xs font-semibold">Return Lines</p>
                   <p className="text-xs text-muted-foreground">
@@ -71,7 +69,7 @@ export function PurchaseReturnForm({
                 </div>
                 <div className="divide-y">
                   {lines.map((line) => (
-                    <div key={line.id} className="grid grid-cols-2 gap-3 p-3 xl:grid-cols-[2fr_repeat(5,112px)_1.4fr]">
+                    <div key={line.id} className="grid grid-cols-2 gap-3 p-3 xl:grid-cols-[1.5fr_repeat(5,minmax(0,1fr))_1.25fr]">
                       <div className="col-span-2 xl:col-span-1">
                         <p className="font-medium">{line.item?.item_name ?? line.item_id}</p>
                         <p className="text-xs text-muted-foreground">{line.item?.item_code ?? "-"} · Unit cost {formatCurrency(line.unit_cost)}</p>
@@ -92,7 +90,7 @@ export function PurchaseReturnForm({
               </div>
             </>
           ) : (
-            <div className="rounded-[var(--sb-panel-radius)] border bg-secondary/30 p-8 text-center">
+            <div data-inset-surface className="rounded-[var(--sb-panel-radius)] border bg-secondary/30 p-8 text-center">
               <PackageX className="mx-auto h-10 w-10 text-muted-foreground" />
               <p className="mt-3 font-semibold">Select a posted GRN to return stock</p>
               <p className="mt-1 text-sm text-muted-foreground">Only GRN lines with remaining returnable quantity appear here.</p>

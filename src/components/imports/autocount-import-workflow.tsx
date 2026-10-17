@@ -173,7 +173,7 @@ export function AutoCountImportWorkflow() {
           <CardDescription>Choose one Supplier List, one Item List, and any number of Location Snapshot workbooks in the same selection. No OMS template is required.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          <label
+          <label data-inset-surface
             className={`flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-[var(--sb-panel-radius)] border border-dashed px-4 py-6 text-center transition-colors focus-within:ring-2 focus-within:ring-[var(--sb-green-700)] ${dragActive ? "border-[var(--sb-green-700)] bg-[var(--sb-success-bg)]" : "border-[var(--sb-border)] bg-[var(--sb-surface-muted)]"}`}
             onDragEnter={(event) => { event.preventDefault(); if (!busy) setDragActive(true); }}
             onDragOver={(event) => { event.preventDefault(); if (!busy) event.dataTransfer.dropEffect = "copy"; }}
@@ -185,7 +185,7 @@ export function AutoCountImportWorkflow() {
             <span className="text-xs text-[var(--sb-text-muted)]">Multiple files accepted · identified by column headers</span>
             <input type="file" accept=".xlsx" multiple className="sr-only" onChange={(event) => { const selected = Array.from(event.currentTarget.files ?? []); event.currentTarget.value = ""; void selectFiles(selected); }} disabled={Boolean(busy)} />
           </label>
-          {files.length ? <div className="divide-y rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)]">
+          {files.length ? <div data-inset-surface className="divide-y rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)]">
             {files.map((file) => <div key={file.hash} className="flex items-center gap-3 px-3 py-2.5">
               <FileSpreadsheet className="h-4 w-4 shrink-0 text-[var(--sb-green-800)]" />
               <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{file.name}</p><p className="text-xs text-[var(--sb-text-muted)]">{typeLabels[file.type]} · {file.rows.length.toLocaleString()} rows</p></div>

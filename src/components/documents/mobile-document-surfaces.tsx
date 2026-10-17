@@ -83,7 +83,7 @@ export function MobileWorkflowStatus({ steps, currentStatus, trailing }: { steps
 
   return (
     <div data-mobile-workflow-summary className={cn("flex min-w-0 items-center gap-1 md:hidden", trailing && "justify-between")}>
-      <MobileSheet label={<span className="inline-flex items-center gap-1.5 text-left"><span className="font-semibold">{activeIndex + 1} / {steps.length}</span><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" /></span>} triggerAriaLabel={`View workflow, step ${activeIndex + 1} of ${steps.length}`} title="Workflow progress" trailingChevron={false} triggerClassName="h-[var(--sb-control-height)] min-h-[var(--sb-control-height)] w-auto shrink-0 justify-start border-0 bg-transparent px-1.5 text-[12px] shadow-none">
+      <MobileSheet label={<span className="inline-flex items-center gap-1.5 text-left"><span className="font-semibold">Step {activeIndex + 1} / {steps.length}</span><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" /></span>} triggerAriaLabel={`View workflow, step ${activeIndex + 1} of ${steps.length}`} title="Workflow progress" trailingChevron={false} triggerClassName="h-[var(--sb-control-height)] min-h-[var(--sb-control-height)] w-auto shrink-0 justify-start border-0 bg-transparent px-1.5 text-[12px] shadow-none">
         <ol className="space-y-1" aria-label="Document workflow">
           {steps.map((step, index) => {
             const done = index < activeIndex;

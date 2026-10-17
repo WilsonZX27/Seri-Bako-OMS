@@ -979,7 +979,7 @@ export function SchedulePlanner({
           ) : null}
         </section>
         <section
-          className="overflow-hidden border-y border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)] md:hidden"
+          className="sb-work-surface overflow-hidden bg-white md:hidden"
           data-schedule-mobile-day
         >
           <div className="grid grid-cols-7 gap-1 border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-2 py-1.5">

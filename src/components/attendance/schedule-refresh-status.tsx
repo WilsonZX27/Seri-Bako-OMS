@@ -46,6 +46,6 @@ export function ScheduleRefreshStatus({week,branch,canRefresh}:{week:string;bran
     {reviewed?<p className="text-amber-800">{reviewed} staff days need review. Protected results stay unchanged.</p>:null}
     {reviewed?<details><summary className="cursor-pointer">Review dates</summary><p className="mt-1">{[...new Set(days.filter(day=>day.status==="needs_review").map(day=>day.work_date))].join(", ")}</p></details>:null}
     {error?<p role="alert">{error}</p>:null}
-    {canRefresh&&(failed||pending||error)?<Button size="sm" variant="outline" disabled={busy} onClick={()=>void refresh().catch(cause=>setError(cause instanceof Error?cause.message:"Calculation could not finish."))}>Retry calculation</Button>:null}
+    {canRefresh&&(failed||pending||error)?<Button size="sm" variant="outline" className="w-full" disabled={busy} onClick={()=>void refresh().catch(cause=>setError(cause instanceof Error?cause.message:"Calculation could not finish."))}>Retry calculation</Button>:null}
   </div>;
 }

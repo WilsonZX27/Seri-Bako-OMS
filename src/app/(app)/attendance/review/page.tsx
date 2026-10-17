@@ -388,7 +388,7 @@ export default async function AttendanceReviewPage({
           </section>
         ) : <section className="sb-work-surface overflow-hidden">
           <header className="flex flex-wrap items-center gap-3 border-b border-[var(--sb-border-soft)] px-4 py-3">
-            <h2 className="text-sm font-semibold">
+            <h2 className="w-full text-sm font-semibold md:w-auto">
               Schedule vs fingerprint punches
             </h2>
             <StatusBadge status={attentionCount ? "attention" : "reviewed"} />
@@ -546,11 +546,13 @@ export default async function AttendanceReviewPage({
                       </div>
                       <div>
                         <dt className="text-muted-foreground">Clock in</dt>
-                        <dd>{time(row.actual_first_in)}</dd>
+                        <dd>Actual: {time(row.actual_first_in)}</dd>
+                        <dd className="text-muted-foreground">Scheduled: {time(row.scheduled_start)}</dd>
                       </div>
                       <div>
                         <dt className="text-muted-foreground">Clock out</dt>
-                        <dd>{time(row.actual_last_out)}</dd>
+                        <dd>Actual: {time(row.actual_last_out)}</dd>
+                        <dd className="text-muted-foreground">Scheduled: {time(row.scheduled_end)}</dd>
                       </div>
                       <div>
                         <dt className="text-muted-foreground">Break</dt>
@@ -606,6 +608,7 @@ export default async function AttendanceReviewPage({
                 No matching attendance records
               </p>
               <p className="mt-1 text-xs text-muted-foreground">No records match these filters.</p>
+              <Button asChild variant="outline" className="mt-3"><Link href={`/attendance/review?week=${encodeURIComponent(week)}&branch=${encodeURIComponent(branch ?? "select")}`}>Reset filters</Link></Button>
             </div>
           ) : null}
           {totalPages > 1 ? (

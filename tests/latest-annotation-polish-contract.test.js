@@ -11,7 +11,7 @@ test("purchase request lines use one responsive control geometry and no duplicat
   const detail = read("src", "app", "(app)", "purchase-requests", "[id]", "page.tsx");
   assert.match(form, /reserveMobileActionSpace = true/);
   assert.match(form, /space-y-2 lg:col-span-1/);
-  assert.match(form, /grid-cols-\[1\.25rem_minmax\(8\.25rem,1fr\)_minmax\(3\.5rem,\.65fr\)_2\.75rem\]/);
+  assert.match(form, /grid-cols-\[1\.75rem_minmax\(0,1fr\)_minmax\(4\.5rem,\.65fr\)_2\.75rem\]/);
   assert.match(form, /grid-cols-\[1\.5rem_minmax\(10rem,1fr\)_10rem_8\.5rem_2\.75rem_2\.75rem\]/);
   assert.match(form, /data-pr-line-supplier/);
   assert.match(form, /className="flex justify-end border-t/);

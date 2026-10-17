@@ -2,7 +2,8 @@
 import { useAssetDraftAction, useAssetDraftFields } from "@/components/asset-draft-state";
 import { assetTransferActions } from "@/lib/asset-transfer";
 import { useAssetFormGuard } from "@/components/asset-unsaved-guard";
-import { useActionState } from "react";
+import { createPortal } from "react-dom";
+import { useEffect, useState, useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
@@ -16,8 +17,20 @@ export function AssetTransferForm({ assetId, locations, holdings, requestKey }: 
   const {from, to, quantity, reason} = draft;
   const setFrom=(value:string)=>setDraft("from",value),setTo=(value:string)=>setDraft("to",value),setQuantity=(value:string)=>setDraft("quantity",value),setReason=(value:string)=>setDraft("reason",value);
   useAssetFormGuard(!state.ok && Boolean(from || to || quantity || reason));
+  const [actionSlots, setActionSlots] = useState<HTMLElement[]>([]);
+  useEffect(() => {
+    const syncSlots = () => {
+      const next = Array.from(document.querySelectorAll<HTMLElement>("[data-transfer-request-slot]"));
+      setActionSlots(previous => previous.length === next.length && previous.every((slot, index) => slot === next[index]) ? previous : next);
+    };
+    syncSlots();
+    const observer = new MutationObserver(syncSlots);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
   const sources = holdings.filter(h => h.quantity !== null && h.quantity > 0);
-  return <form action={action} className="max-lg:[&_input]:min-h-11 max-lg:[&_select]:min-h-11 max-lg:[&_button]:min-h-11 grid gap-3 sm:grid-cols-2">{restored ? <p role="status" className="text-xs sm:col-span-2">Unsaved transfer inputs restored. Review before requesting.</p> : null}<input type="hidden" name="asset_id" value={assetId} /><input type="hidden" name="client_key" value={requestKey}/><label className="grid gap-1 text-xs">From<SelectNative name="from" required value={from} onChange={e=>setFrom(e.target.value)}><option value="" disabled>Choose source</option>{sources.map(h => <option key={h.location_id} value={h.location_id}>{locations.find(l => l.id === h.location_id)?.source_name} · {h.quantity} held</option>)}</SelectNative></label><label className="grid gap-1 text-xs">To<SelectNative name="to" required value={to} onChange={e=>setTo(e.target.value)}><option value="" disabled>Choose destination</option>{locations.filter(l=>l.id!==from).map(l => <option key={l.id} value={l.id}>{l.source_name}</option>)}</SelectNative></label><label className="grid gap-1 text-xs">Quantity<Input name="quantity" type="number" min="1" step="1" required value={quantity} onChange={e=>setQuantity(e.target.value)}/></label><label className="grid gap-1 text-xs">Reason<Input name="reason" required maxLength={2000} value={reason} onChange={e=>setReason(e.target.value)}/></label><div className="sm:col-span-2"><Button type="submit" disabled={pending || !sources.length || state.ok}>{pending ? "Requesting…" : "Request transfer"}</Button>{state.message ? <p role={state.ok ? "status" : "alert"} className={`mt-2 text-sm ${state.ok ? "text-foreground" : "text-warning"}`}>{state.message}</p> : null}</div></form>;
+  const submit = <Button form="asset-transfer-request" type="submit" className="w-full" disabled={pending || !sources.length || state.ok}>{pending ? "Requesting…" : "Request transfer"}</Button>;
+  return <form id="asset-transfer-request" action={action} className="max-lg:[&_input]:min-h-11 max-lg:[&_select]:min-h-11 max-lg:[&_button]:min-h-11 grid gap-3 sm:grid-cols-2">{restored ? <p role="status" className="text-xs sm:col-span-2">Unsaved transfer inputs restored. Review before requesting.</p> : null}<input type="hidden" name="asset_id" value={assetId} /><input type="hidden" name="client_key" value={requestKey}/><label className="grid gap-1 text-xs">From<SelectNative name="from" required value={from} onChange={e=>setFrom(e.target.value)}><option value="" disabled>Choose source</option>{sources.map(h => <option key={h.location_id} value={h.location_id}>{locations.find(l => l.id === h.location_id)?.source_name} · {h.quantity} held</option>)}</SelectNative></label><label className="grid gap-1 text-xs">To<SelectNative name="to" required value={to} onChange={e=>setTo(e.target.value)}><option value="" disabled>Choose destination</option>{locations.filter(l=>l.id!==from).map(l => <option key={l.id} value={l.id}>{l.source_name}</option>)}</SelectNative></label><label className="grid gap-1 text-xs">Quantity<Input name="quantity" type="number" min="1" step="1" required value={quantity} onChange={e=>setQuantity(e.target.value)}/></label><label className="grid gap-1 text-xs">Reason<Input name="reason" required maxLength={2000} value={reason} onChange={e=>setReason(e.target.value)}/></label><div className="sm:col-span-2">{actionSlots.map((slot, index) => createPortal(submit, slot, String(index)))}{state.message ? <p role={state.ok ? "status" : "alert"} className={`mt-2 text-sm ${state.ok ? "text-foreground" : "text-warning"}`}>{state.message}</p> : null}</div></form>;
 }
 
 export function AssetTransferAction({ transferId, status, canApprove, canTransfer, canAccessSource, canAccessDestination, showNote = false, mobileDock = false }: { transferId: string; status: string; canApprove: boolean; canTransfer: boolean; canAccessSource: boolean; canAccessDestination: boolean; showNote?: boolean; mobileDock?: boolean }) {

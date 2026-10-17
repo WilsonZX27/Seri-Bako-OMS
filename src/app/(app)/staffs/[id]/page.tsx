@@ -62,7 +62,7 @@ export default async function EditStaffPage({
     <>
       <PageHeader title={staff.full_name} />
       <RecordWorkspace
-        tabletRailBreakpoint="lg"
+        tabletRailBreakpoint="md"
         actionPanel={
           <>
             <RecordActionPanel title="Staff Actions">
@@ -74,7 +74,7 @@ export default async function EditStaffPage({
               </Button>
 
               <div className="rounded-[var(--sb-panel-radius)] border bg-white p-3">
-                <p className="text-[11px] font-medium uppercase text-muted-foreground">Current Status</p>
+                <p className="text-xs font-medium">Current Status</p>
                 <div className="mt-2 flex items-center justify-between gap-3">
                   <StatusBadge status={staff.status} />
                 </div>

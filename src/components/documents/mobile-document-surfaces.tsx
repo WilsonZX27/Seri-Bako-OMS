@@ -24,7 +24,7 @@ function MobileSheet({ label, title, children, danger = false, triggerClassName,
     document.body.style.overflow = "hidden";
     document.documentElement.dataset.mobileSheetOpen = "true";
     const dialog = dialogRef.current;
-    const focusable = () => Array.from(dialog?.querySelectorAll<HTMLElement>("button, a, input, select, textarea, [tabindex]:not([tabindex='-1'])") ?? []).filter((element) => !element.hasAttribute("disabled"));
+    const focusable = () => Array.from(dialog?.querySelectorAll<HTMLElement>("button, a, input, select, textarea, summary, [tabindex]:not([tabindex='-1'])") ?? []).filter((element) => !element.hasAttribute("disabled") && element.getClientRects().length > 0);
     focusable()[0]?.focus();
 
     function onKeyDown(event: KeyboardEvent) {

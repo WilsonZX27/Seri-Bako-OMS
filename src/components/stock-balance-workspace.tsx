@@ -1,8 +1,9 @@
 "use client";
+import { containDialogTab, focusDialog } from "@/lib/dialog-focus";
 import { hasActiveFilters } from "@/lib/table-state";
 import { createPortal } from "react-dom";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, ShoppingCart, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -87,6 +88,7 @@ export function StockBalanceWorkspace({
 }) {
   const [basket, setBasket] = useState<Record<string, BasketLine>>({});
   const [basketStorageReady, setBasketStorageReady] = useState(false);
+  const basketDialogRef = useRef<HTMLElement>(null);
   const [basketOpen, setBasketOpen] = useState(Boolean(filters.error));
   const [branchConflict, setBranchConflict] = useState<{ current: string; attempted: string } | null>(null);
   const [idempotencyKey] = useState(() => crypto.randomUUID());
@@ -148,9 +150,20 @@ export function StockBalanceWorkspace({
     if (!basketOpen) return;
     const root = document.documentElement;
     const previousOverflow = document.body.style.overflow;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const dialog = basketDialogRef.current;
+    if (dialog) focusDialog(dialog);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || document.querySelector('[role="listbox"]')) return;
+      if (event.key === "Escape") { event.preventDefault(); setBasketOpen(false); }
+      if (dialog) containDialogTab(event, dialog);
+    };
+    document.addEventListener("keydown", onKeyDown);
     root.dataset.mobileSheetOpen = "true";
     document.body.style.overflow = "hidden";
     return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      requestAnimationFrame(() => previousFocus?.focus());
       delete root.dataset.mobileSheetOpen;
       document.body.style.overflow = previousOverflow;
     };
@@ -293,7 +306,7 @@ export function StockBalanceWorkspace({
                           </div>
                         );
                       })}
-                      {!basketRows.length ? <p className="text-xs text-muted-foreground">Add items from the table to the basket to create a PR.</p> : null}
+                      {!basketRows.length ? <p className="py-3 text-xs text-muted-foreground">Add items from the table to the basket to create a PR.</p> : null}
                     </div>
                   </>
                 ) : (
@@ -389,7 +402,7 @@ export function StockBalanceWorkspace({
       </button> : null}
       {basketOpen ? createPortal(<div className="fixed inset-0 z-[var(--sb-z-dialog)] xl:hidden">
         <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={() => setBasketOpen(false)} aria-label="Close PR basket" />
-        <section className="sb-pr-basket-sheet sb-popover-surface absolute inset-x-0 bottom-0 flex max-h-[82dvh] flex-col overflow-hidden" role="dialog" aria-modal="true" aria-label="PR basket">
+        <section ref={basketDialogRef} tabIndex={-1} className="sb-pr-basket-sheet sb-popover-surface absolute inset-x-0 bottom-0 flex max-h-[82dvh] flex-col overflow-hidden" role="dialog" aria-modal="true" aria-label="PR basket">
           <header className="flex min-h-14 items-center justify-between border-b border-[var(--sb-border-soft)] px-4">
             <div className="min-w-0"><h2 className="text-base font-semibold text-[var(--sb-green-950)]">PR basket</h2><p className="text-xs text-[var(--sb-text-muted)]">{createBranchId ? branchNameById.get(createBranchId) ?? "Unknown location" : "Select location"} · {supplierGroups.length || 0} PR group{supplierGroups.length === 1 ? "" : "s"} · {basketRows.length} item{basketRows.length === 1 ? "" : "s"}</p></div>
             <Button type="button" variant="ghost" size="icon" onClick={() => setBasketOpen(false)} aria-label="Close PR basket"><X className="h-5 w-5" /></Button>

@@ -23,7 +23,8 @@ export function OperationalList({ children, ariaLabel, className, showUntil = "x
   return <div className={cn("divide-y divide-[var(--sb-border-soft)]", showUntil === "2xl" ? "2xl:hidden" : showUntil === "xl" ? "xl:hidden" : "md:hidden", className)} role="list" aria-label={ariaLabel}>{children}</div>;
 }
 
-export function OperationalListRow({ href, label, primary, status, statusMeta, secondary, detail, meta, leading, trailing }: {
+export function OperationalListRow({ href, label, primary, status, statusMeta, secondary, detail, meta, leading, trailing, stackedStatus = false }: {
+  stackedStatus?: boolean;
   href?: string;
   label?: string;
   primary: React.ReactNode;
@@ -50,14 +51,15 @@ export function OperationalListRow({ href, label, primary, status, statusMeta, s
     }, 350);
   };
   const className = "grid min-h-16 grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 px-3 py-2.5 hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)]";
+  const rowClassName = cn(className, stackedStatus && "!grid-cols-1 gap-y-3 !pr-16");
   const renderContent = (withTrailing: boolean) => <>
       <div className="min-w-0 self-center">
         <div className="text-[13px] font-medium leading-5">{primary}</div>
         {secondary ? <div className="mt-0.5 whitespace-normal break-words text-xs leading-4 text-[var(--sb-text-muted)]">{secondary}</div> : null}
         {detail ? <div className="mt-0.5 text-[11px] leading-4 text-[var(--sb-text-muted)]">{detail}</div> : null}
       </div>
-      <div className="flex items-start justify-self-end gap-2 whitespace-nowrap">
-        <div className="flex min-w-0 flex-col items-end gap-1">
+      <div className={cn("flex items-start justify-self-end gap-2 whitespace-nowrap", stackedStatus && "justify-self-start")}>
+        <div className={cn("flex min-w-0 flex-col items-end gap-1", stackedStatus && "flex-row flex-wrap items-center gap-2")}>
           {status}
           {statusMeta ? <div className="text-right text-[11px] font-medium text-[var(--sb-text)]">{statusMeta}</div> : null}
           {meta ? <div className="text-right text-[11px] text-[var(--sb-text-muted)]">{meta}</div> : null}
@@ -65,14 +67,14 @@ export function OperationalListRow({ href, label, primary, status, statusMeta, s
         {withTrailing ? (trailing ?? (href ? <ChevronRight className="mt-1 h-4 w-4 text-[var(--sb-text-soft)]" /> : null)) : null}
       </div>
     </>;
-  if (!href) return <div aria-label={label} role="listitem" className={cn(className, leading && "relative pl-14")}>
+  if (!href) return <div aria-label={label} role="listitem" className={cn(rowClassName, leading && "relative pl-14")}>
     {leading ? <div className="absolute left-3 top-2.5">{leading}</div> : null}
     {renderContent(true)}
   </div>;
   // Do not nest a button/select inside an anchor. Besides being invalid HTML,
   // that makes a basket/action control navigate to the row destination on tap.
   if (trailing || leading) {
-    return <div aria-label={label} role="listitem" className={cn(className, "relative", trailing && "pr-14", leading && "pl-14")}>
+    return <div aria-label={label} role="listitem" className={cn(rowClassName, "relative", trailing && "pr-14", leading && "pl-14")}>
       <Link href={href} prefetch={false} aria-label={label} className="contents" data-open-gesture="double-tap" onClick={handlePointerOpen}>{renderContent(false)}</Link>
       {leading ? <div className="absolute left-3 top-2.5">{leading}</div> : null}
       {trailing ? <div className="absolute right-3 top-2.5">{trailing}</div> : null}

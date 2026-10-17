@@ -177,7 +177,7 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
   const filterDialogRef = useRef<HTMLFormElement>(null);
   useEffect(() => {
     if (phoneOnly) return;
-    const query = window.matchMedia("(max-width: 639px)");
+    const query = window.matchMedia("(max-width: 1279px)");
     const sync = () => setMobile(query.matches);
     sync();
     query.addEventListener("change", sync);

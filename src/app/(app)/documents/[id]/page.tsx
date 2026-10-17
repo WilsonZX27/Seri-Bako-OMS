@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { ApprovalPanel, AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
+import { MobileTaskSheet } from "@/components/documents/mobile-document-surfaces";
 import { DocumentWorkspace } from "@/components/documents/document-workspace";
 import { getCanonicalDocumentHref } from "@/lib/document-routing";
 import { formatStatusLabel } from "@/lib/status-label";
@@ -42,7 +43,7 @@ export default async function DocumentDetailPage({
       status={document.status}
       workflowSteps={documentSteps}
       currentStatus={["submitted", "pending_approval"].includes(document.status) ? "pending_approval" : document.status}
-      mobilePrimaryAction={<details className="group"><summary className="flex min-h-11 cursor-pointer items-center justify-center rounded-lg bg-[var(--sb-green-900)] px-3 text-white">Document actions</summary><div className="max-h-[65dvh] overflow-y-auto bg-white p-3"><ApprovalPanel document={document} approval={bundle.approval} approvalSteps={bundle.approvalSteps} /></div></details>}
+      mobilePrimaryAction={<MobileTaskSheet label="Document actions" primary><ApprovalPanel compact document={document} approval={bundle.approval} approvalSteps={bundle.approvalSteps} /></MobileTaskSheet>}
       mobileActivity={<><CommentsPanel documentId={document.id} comments={bundle.comments}/><AttachmentPanel documentId={document.id} attachments={bundle.attachments}/><DocumentTimeline document={document} activities={bundle.activityLogs} comments={bundle.comments} attachments={bundle.attachments}/><RevisionPanel revisions={bundle.revisions}/></>}
       sidePanel={
         <>
@@ -63,7 +64,7 @@ export default async function DocumentDetailPage({
           ) : null}
           <Card>
             <CardContent className="p-5">
-              <div className="sb-label-value-summary grid gap-4">
+              <div className="sb-label-value-summary grid gap-4 xl:grid-cols-3">
                 <div>
                   <p className="text-xs uppercase text-muted-foreground">Document Type</p>
                   <p className="mt-1 font-medium">{formatStatusLabel(document.document_type)}</p>

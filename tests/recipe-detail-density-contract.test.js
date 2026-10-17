@@ -7,7 +7,7 @@ test("recipe detail presents its five operational metrics as one compact summary
   const page = fs.readFileSync(path.join(process.cwd(), "src/app/(app)/recipes/[id]/page.tsx"), "utf8");
 
   assert.match(page, /aria-labelledby="recipe-summary"/);
-  assert.match(page, /<dl className="sb-label-value-summary px-4 pb-4">/);
+  assert.match(page, /<dl className="sb-label-value-summary grid gap-4 px-4 pb-4 xl:grid-cols-5">/);
   assert.match(page, /font-mono text-sm font-semibold/);
   assert.doesNotMatch(page, /CardContent className="text-2xl font-semibold">v\{recipe\.version\}/);
 });

@@ -1,6 +1,6 @@
 /** Ignore hidden form state and non-tabbable controls when managing modal focus. */
 export function dialogTabStops(dialog: HTMLElement) {
-  return Array.from(dialog.querySelectorAll<HTMLElement>("button, a[href], input, select, textarea, [tabindex]"))
+  return Array.from(dialog.querySelectorAll<HTMLElement>("button, a[href], input, select, textarea, summary, [tabindex]"))
     .filter((element) => element.tabIndex >= 0
       && !element.matches(":disabled, [type='hidden']")
       && !element.closest("[inert], [hidden], [aria-hidden='true']")

@@ -347,7 +347,7 @@ export function PurchaseRequestForm({
   }
 
   return (
-    <div className="md:-mt-3 xl:mt-0">
+    <div className="min-w-0">
         <form id="purchase-request-form" action={action} onSubmit={validateSubmission} noValidate className={`space-y-3 ${reserveMobileActionSpace ? "pb-36" : ""} md:pb-0`}>
           <input type="hidden" name="request_no" value="" />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
@@ -425,7 +425,7 @@ export function PurchaseRequestForm({
             <div className="divide-y">
               {/* Legacy contract token: grid-cols-[minmax(0,1fr)_7.5rem_2.25rem]. The current four-column line keeps UOM, quantity, comments, and removal aligned. */}
               {lines.map((line, index) => (
-                <div data-purchase-request-line data-purchase-request-line-key={line.key} key={line.key} className="grid grid-cols-[1.25rem_minmax(8.25rem,1fr)_minmax(3.5rem,.65fr)_2.75rem] gap-2 p-3 lg:grid-cols-[1.5rem_minmax(10rem,1fr)_10rem_8.5rem_2.75rem_2.75rem] lg:gap-3">
+                <div data-purchase-request-line data-purchase-request-line-key={line.key} key={line.key} className="grid grid-cols-[1.75rem_minmax(0,1fr)_minmax(4.5rem,.65fr)_2.75rem] gap-2 p-3 lg:grid-cols-[1.5rem_minmax(10rem,1fr)_10rem_8.5rem_2.75rem_2.75rem] lg:gap-3">
                   <span data-pr-line-number className="grid h-10 place-items-center self-start"><span className="grid h-6 w-6 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] text-[11px] font-semibold tabular-nums text-[var(--sb-text-muted)]">{index + 1}</span></span>
                   <div data-pr-line-item className="col-span-2 col-start-2 min-w-0 space-y-2 lg:col-span-1 lg:col-start-2">
                     <Field label="Item" required labelClassName="sr-only">
@@ -459,8 +459,8 @@ export function PurchaseRequestForm({
                   <input type="hidden" name="line_suggested_supplier_id" value={line.supplierId} />
                   <input type="hidden" name="line_estimated_unit_cost" value={line.cost} />
                   <details className="hidden" aria-hidden="true"><summary>Sourcing details <span>(automatic)</span></summary><div className="grid grid-cols-[minmax(0,1.35fr)_minmax(0,0.8fr)_minmax(4.75rem,0.7fr)_2.75rem]" /><span>Line note <span className="font-normal">(optional)</span></span></details>
-                  <div data-pr-line-actions className="col-start-4 row-span-2 row-start-1 grid content-start gap-1.5 lg:contents">
-                    {lines.length > 1 ? <Button type="button" variant="outline" size="icon" className="order-1 h-[var(--sb-control-height)] w-[var(--sb-control-height)] text-muted-foreground lg:col-start-6 lg:row-start-1" aria-label="Remove line" onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}><X className="h-4 w-4" /></Button> : <span className="h-[var(--sb-control-height)] w-[var(--sb-control-height)] lg:col-start-6 lg:row-start-1" aria-hidden="true" />}
+                  <div data-pr-line-actions className="col-start-4 row-start-2 grid content-start gap-1.5 lg:contents">
+                    {lines.length > 1 ? <Button type="button" variant="outline" size="icon" className="order-1 h-[var(--sb-control-height)] w-[var(--sb-control-height)] text-muted-foreground lg:col-start-6 lg:row-start-1" aria-label="Remove line" onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}><X className="h-4 w-4" /></Button> : <span className="hidden h-[var(--sb-control-height)] w-[var(--sb-control-height)] lg:block lg:col-start-6 lg:row-start-1" aria-hidden="true" />}
                     <Button type="button" variant="outline" size="icon" className="order-2 h-[var(--sb-control-height)] w-[var(--sb-control-height)] text-muted-foreground lg:col-start-5 lg:row-start-1" aria-label={`Add comment for ${line.itemSearch || "request line"}`} onClick={() => setCommentLineKey((current) => current === line.key ? null : line.key)}><MessageSquare className="h-4 w-4" /></Button>
                   </div>
                   {commentLineKey === line.key ? <Field label="Item comment" className="col-span-full"><Textarea name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} rows={2} placeholder="Add context for purchasing" /></Field> : <input type="hidden" name="line_remarks" value={line.remarks} />}

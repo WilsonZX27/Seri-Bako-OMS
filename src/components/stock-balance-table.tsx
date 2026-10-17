@@ -136,6 +136,7 @@ export function StockBalanceOperationalRows({
         const itemActive = item.item_status === "active";
         return (
           <OperationalListRow
+            stackedStatus
             key={key}
             href={`/stock-transactions?item_id=${item.item_id}&branch_id=${item.branch_id ?? ""}`}
             label={`Open ledger for ${item.item_name}`}

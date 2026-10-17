@@ -14,6 +14,7 @@ export function WorkspaceGrid({
   className,
   rightRailClassName,
   hideMobileConsole = false,
+  mobileRailSummary,
   hideDesktopConsole = false,
   documentMode = false,
   tabletCanvas,
@@ -26,6 +27,7 @@ export function WorkspaceGrid({
   className?: string;
   rightRailClassName?: string;
   hideMobileConsole?: boolean;
+  mobileRailSummary?: string;
   hideDesktopConsole?: boolean;
   documentMode?: boolean;
   /** Keeps touch-focused work contained while technical registers retain horizontal working room. */
@@ -50,6 +52,7 @@ export function WorkspaceGrid({
       data-tablet-content={rightRail && effectiveTabletCanvas !== "full" ? "contained" : undefined}
       className={cn("sb-workspace-canvas min-h-0", rightRail && !hideMobileConsole && "xl:pb-3", className)}
     >
+      {rightRail && mobileRailSummary ? <details className="sb-work-surface mb-3 md:hidden"><summary className="flex min-h-11 cursor-pointer items-center justify-between gap-2 px-3 text-sm font-semibold">{mobileRailSummary}<ChevronDown className="size-4" aria-hidden="true" /></summary><div className="space-y-3 border-t p-3">{contextualRail}</div></details> : null}
       {rightRail && !usesTabletSplit ? <details className="group mb-3 hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-white md:block xl:hidden">
         <summary className="flex min-h-[var(--sb-control-height)] cursor-pointer list-none items-center justify-between gap-2 px-3 text-xs font-medium [&::-webkit-details-marker]:hidden">More actions<ChevronDown aria-hidden="true" className="h-4 w-4 group-open:rotate-180" /></summary>
         <div className="grid gap-3 border-t border-[var(--sb-border-soft)] p-3">{contextualRail}</div>

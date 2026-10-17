@@ -57,7 +57,7 @@ export default async function RecipeCostingPage({ searchParams }: { searchParams
 
   return <>
     <PageHeader title="Recipe Costing" description="Read-only ingredient-cost estimates from existing recipe and item master data." />
-    <WorkspaceGrid hideMobileConsole tabletRailMode="split" rightRail={rightRail}>
+    <WorkspaceGrid mobileRailSummary="How to read this report" hideMobileConsole tabletRailMode="split" rightRail={rightRail}>
       {!rows ? (
         <Card>
           <CardContent className="p-5">
@@ -134,7 +134,7 @@ export default async function RecipeCostingPage({ searchParams }: { searchParams
                   </TableRow>
                 ))}
                 {!rows.length ? (
-                  <TableRow><TableCell colSpan={10}><EmptyState title={emptyTitle} description={emptyDescription} /></TableCell></TableRow>
+                  <TableRow><TableCell colSpan={10}><EmptyState title={emptyTitle} description={emptyDescription} action={filtered ? { href: "/reports/recipe-costing", label: "Reset filters" } : undefined} /></TableCell></TableRow>
                 ) : null}
               </TableBody>
             </Table>
@@ -158,7 +158,7 @@ export default async function RecipeCostingPage({ searchParams }: { searchParams
                   </>}
                 />
               ))}
-              {!rows.length ? <EmptyState title={emptyTitle} description={emptyDescription} /> : null}
+              {!rows.length ? <EmptyState title={emptyTitle} description={emptyDescription} action={filtered ? { href: "/reports/recipe-costing", label: "Reset filters" } : undefined} /> : null}
             </OperationalList>
           </section>
         </div>

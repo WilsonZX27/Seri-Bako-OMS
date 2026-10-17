@@ -12,6 +12,7 @@ import { getProductionJobFormOptions } from "@/server/queries/production-jobs";
 export default async function NewProductionJobPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const [params, allowed] = await Promise.all([searchParams, hasPermission("production.create")]);
   const options = allowed ? await getProductionJobFormOptions() : { branches: [], recipes: [], balances: [] };
+  const nextStep = "Select an active recipe and branch, then check planned output and ingredient availability.";
   const formId = "production-job-create-form";
   const primaryAction = allowed ? <SubmitButton type="submit" form={formId} disabled={!options.recipes.length || !options.branches.length} pendingLabel="Creating..." className="w-full"><Calculator className="h-4 w-4" />Create Draft Production Job</SubmitButton> : null;
   const steps = [
@@ -31,7 +32,8 @@ export default async function NewProductionJobPage({ searchParams }: { searchPar
         currentStatus="draft"
         tabletRailMode="split"
         mobilePrimaryAction={primaryAction}
-        sidePanel={<>{primaryAction ? <DocumentSideSection title="Primary Action">{primaryAction}</DocumentSideSection> : null}<DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">Select an active recipe and branch, then check planned output and ingredient availability.</p></DocumentSideSection></>}
+        mobileActionHint={nextStep}
+        sidePanel={<>{primaryAction ? <DocumentSideSection title="Primary Action">{primaryAction}</DocumentSideSection> : null}<DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{nextStep}</p></DocumentSideSection></>}
       >
         <ActionErrorNotice message={params.error} />
         {!allowed ? (

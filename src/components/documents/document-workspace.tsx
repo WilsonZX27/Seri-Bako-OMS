@@ -1,3 +1,4 @@
+import { MobileActionReserve } from "./mobile-action-reserve";
 import type { ReactNode } from "react";
 import { MapPin } from "lucide-react";
 import { DocumentNumber } from "@/components/document-number";
@@ -28,6 +29,7 @@ export function DocumentWorkspace({
   children,
   sidePanel,
   mobilePrimaryAction,
+  mobileActionHint,
   mobileActivity,
   mobileMoreOptions,
   mobileWorkflowTrailing,
@@ -51,6 +53,7 @@ export function DocumentWorkspace({
   children: ReactNode;
   sidePanel: ReactNode;
   mobilePrimaryAction?: ReactNode;
+  mobileActionHint?: ReactNode;
   mobileActivity?: ReactNode;
   mobileMoreOptions?: ReactNode;
   mobileWorkflowTrailing?: ReactNode;
@@ -95,7 +98,7 @@ export function DocumentWorkspace({
         {hideWorkflow && isNewDocument ? <div data-tablet-document-header className="hidden items-center md:flex"><StatusBadge status={status} label={statusLabel} /></div> : null}
       </header>
 
-      <WorkspaceGrid documentMode tabletRailMode={tabletRailMode} className={cn("min-w-0 p-3", compactMobileSpacing && "pt-0 md:pt-3", mobilePrimaryAction && "pb-20 md:pb-3")} rightRail={sidePanel} hideMobileConsole>
+      <WorkspaceGrid documentMode tabletRailMode={tabletRailMode} className={cn("min-w-0 p-3", compactMobileSpacing && "pt-0 md:pt-3")} rightRail={sidePanel} hideMobileConsole>
         <div className="min-w-0">
           <div className="min-w-0 space-y-3">
             {tabletRailMode === "context" && (mobilePrimaryAction || mobileMoreOptions) ? <div data-tablet-document-actions className="hidden md:block xl:hidden"><ConsoleSection title="Actions">{mobilePrimaryAction}{mobileMoreOptions}</ConsoleSection></div> : null}
@@ -104,7 +107,7 @@ export function DocumentWorkspace({
           </div>
         </div>
       </WorkspaceGrid>
-      {mobilePrimaryAction || mobileActivity || mobileMoreOptions ? <div data-mobile-document-action data-action-count={[mobilePrimaryAction, mobileActivity, mobileMoreOptions].filter(Boolean).length} data-has-more={mobileMoreOptions ? "true" : undefined} className={cn(
+      {mobilePrimaryAction || mobileActivity || mobileMoreOptions ? <MobileActionReserve><div data-mobile-document-action data-action-count={[mobilePrimaryAction, mobileActivity, mobileMoreOptions].filter(Boolean).length} data-has-more={mobileMoreOptions ? "true" : undefined} className={cn(
         "sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] grid min-w-0 items-center gap-2 border-x-0 border-b-0 bg-white/95 p-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(17,30,22,0.16)] md:hidden [&_button]:h-11 [&_button]:w-full",
         [mobilePrimaryAction, mobileActivity, mobileMoreOptions].filter(Boolean).length === 3
           ? "grid-cols-3"
@@ -112,10 +115,11 @@ export function DocumentWorkspace({
             ? "grid-cols-2"
             : "grid-cols-1",
       )}>
+        {mobileActionHint ? <div role="status" className="col-span-full text-xs text-muted-foreground">{mobileActionHint}</div> : null}
         {mobilePrimaryAction ? <div className="min-w-0">{mobilePrimaryAction}</div> : null}
         {mobileActivity ? <div className="min-w-0"><MobileActivityAndFiles>{mobileActivity}</MobileActivityAndFiles></div> : null}
         {mobileMoreOptions ? <div className="min-w-0">{mobileMoreOptions}</div> : null}
-      </div> : null}
+      </div></MobileActionReserve> : null}
     </>
   );
 }

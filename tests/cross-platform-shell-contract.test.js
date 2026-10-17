@@ -21,7 +21,7 @@ test("tablet keeps role navigation sticky while primary actions stay visible", (
   assert.doesNotMatch(rightConsole, /mobileOnlyBar/);
   assert.match(appLayout, /pb-\[calc\(var\(--sb-mobile-nav-height\)\+env\(safe-area-inset-bottom\)\+1rem\)\] xl:pb-0/);
   assert.doesNotMatch(appLayout, /lg:pb-4/);
-  assert.match(documentWorkspace, /mobilePrimaryAction && "pb-20 md:pb-3"/);
+  assert.match(documentWorkspace, /<MobileActionReserve>/);
   assert.match(documentWorkspace, /sb-mobile-action-bar fixed[\s\S]*md:hidden/);
   assert.match(stockCountForm, /pb-28 xl:pb-0/);
   // The fixed task rail is phone-only; tablet and desktop action ownership stays

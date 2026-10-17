@@ -31,7 +31,7 @@ export function StockTransferForm({ branches, selectedFromBranchId, seedLines, a
   return (
       <form key={result?.attempt ?? 0} id={formId} action={submitTransfer} className="space-y-3">
         {result?.error ? <p role="alert" className="rounded-sm border border-destructive p-3 text-sm text-destructive">{result.error}</p> : null}
-        {branches.length < 2 ? <p role="status" className="p-3 text-sm text-muted-foreground">A transfer needs access to two different branches. Contact an administrator to review your branch access.</p> : null}
+        {branches.length < 2 ? <p role="status" className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />A transfer needs access to two different branches. Contact an administrator to review your branch access.</p> : null}
         <input type="hidden" name="idempotency_key" value={saved.get("idempotency_key") ?? idempotencyKey} />
         <details open data-stock-transfer-setup className="erp-surface group overflow-hidden">
           <summary className="flex min-h-[var(--sb-control-height)] cursor-pointer list-none items-center justify-between border-b px-3 py-2.5 text-sm font-semibold [&::-webkit-details-marker]:hidden">

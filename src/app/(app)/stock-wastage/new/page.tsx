@@ -11,6 +11,7 @@ export default async function NewStockWastagePage({ searchParams }: { searchPara
   const branches = await getBranchesForSelect();
   const selectedBranchId = filters.branch_id ?? branches[0]?.id;
   const seedLines = await getOperationSeedLines(selectedBranchId);
+  const actionHint = !seedLines.length ? "No available branch stock. Choose a branch with stock before creating wastage." : "Select at least one item and enter a positive quantity.";
   const formId = "stock-wastage-create-form";
   const primaryAction = <SubmitButton form={formId} type="submit" disabled={!seedLines.length} className="w-full" data-mobile-primary-action pendingLabel="Saving...">Create wastage</SubmitButton>;
   const steps = [
@@ -29,9 +30,10 @@ export default async function NewStockWastagePage({ searchParams }: { searchPara
         currentStatus="draft"
         tabletRailMode="split"
         mobilePrimaryAction={primaryAction}
+        mobileActionHint={actionHint}
         sidePanel={<>
           <DocumentSideSection title="Primary Action">{primaryAction}</DocumentSideSection>
-          <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">Select at least one item and enter a positive quantity. Create the draft first, then upload photos or documents from its Attachments panel.</p></DocumentSideSection>
+          <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{actionHint} Create the draft first, then upload photos or documents from its Attachments panel.</p></DocumentSideSection>
         </>}
       >
         <ActionErrorNotice message={filters.error} />

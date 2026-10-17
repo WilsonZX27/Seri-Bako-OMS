@@ -107,7 +107,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
           <Card>
             <CardContent className="space-y-4 p-5">
               <h2 className="text-sm font-semibold">Order Summary</h2>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-4">
+              <div className="sb-label-value-summary grid grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-4">
                 <div><p className="text-xs uppercase text-muted-foreground">AutoCount PO Number</p><p className="font-medium">{order.po_no}</p></div>
                 <div className="col-span-2 md:col-span-1"><p className="text-xs uppercase text-muted-foreground">Supplier</p><p className="font-medium">{supplier?.name ?? order.supplier_id}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{branch?.branch_name ?? "-"}</p></div>

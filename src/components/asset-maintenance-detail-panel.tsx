@@ -1,6 +1,6 @@
 import { AssetPriorityBadge } from "@/components/asset-workspace-lists";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, CalendarDays, UserRound } from "lucide-react";
 import { formatDateOnly } from "@/lib/utils";
 import { randomUUID } from "node:crypto";
 import { AssetAttachmentList } from "@/components/asset-attachment-list";
@@ -17,9 +17,12 @@ export function AssetMaintenanceDetailPanel({data,asset,permissions,compact=fals
   <p className="mt-3 whitespace-pre-wrap break-words text-sm">{request.description ?? "No description recorded."}</p>
   <dl className="mt-3 grid gap-2 rounded-lg bg-[var(--sb-surface-muted)] p-3 text-sm"><div><dt className="text-xs text-muted-foreground">Submitted by</dt><dd className="font-medium">{request.author_name ?? "Unknown author"}</dd></div><div><dt className="text-xs text-muted-foreground">Reference</dt><dd className="break-all text-xs">{request.source_id}</dd></div></dl>
   {!hideUpdate && permissions["assets.maintenance"] ? <AssetMaintenanceUpdate key={id} requestKey={randomUUID()} requestId={id} status={request.status ?? "Open"} canManage={permissions["assets.manage"]}/>:null}</section>
-    <section className="sb-work-surface p-3"><h2 className="mb-3 text-sm font-semibold">Update history · {data.total}</h2>{!data.total ? <p className="mt-3 text-sm text-muted-foreground">No updates yet.</p> : null}<ol className="divide-y">{data.history.map(update => <li className="relative min-w-0 border-l-2 border-[var(--sb-border-soft)] py-3 pl-3" key={update.id}>
-      <p className="break-words text-xs text-muted-foreground">{formatDateOnly(String(update.source_data["Update Date"] ?? update.created_at).replace(" ", "T"), "Date not recorded")} · {update.author_name}</p>
-      <p className="mt-1 break-words text-sm font-medium">{String(update.source_data["Update Type"] ?? "Maintenance update")}</p>
+    <section className="sb-work-surface p-3"><h2 className="mb-3 text-sm font-semibold">Update history · {data.total}</h2>{!data.total ? <p className="mt-3 text-sm text-muted-foreground">No updates yet.</p> : null}<ol className="divide-y">{data.history.map(update => <li className="relative min-w-0 py-3" key={update.id}>
+      <p className="break-words text-sm font-semibold">{String(update.source_data["Update Type"] ?? "Maintenance update")}</p>
+      <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
+        <div className="flex items-start gap-2"><CalendarDays className="size-4 shrink-0 text-muted-foreground" aria-hidden="true"/><div><dt className="text-muted-foreground">Date</dt><dd className="mt-1 font-medium">{formatDateOnly(String(update.source_data["Update Date"] ?? update.created_at).replace(" ", "T"), "Date not recorded")}</dd></div></div>
+        <div className="flex items-start gap-2"><UserRound className="size-4 shrink-0 text-muted-foreground" aria-hidden="true"/><div><dt className="text-muted-foreground">Updated by</dt><dd className="mt-1 break-words font-medium">{update.author_name ?? "Unknown author"}</dd></div></div>
+      </dl>
       {update.source_data.Comment ? <p className="mt-2 whitespace-pre-wrap break-words text-sm">{String(update.source_data.Comment)}</p> : null}
       {update.source_data["Status Before"] !== update.source_data["Status After"] ? <p className="mt-1 break-words text-xs text-muted-foreground">{String(update.source_data["Status Before"] ?? "Unknown status")} → {String(update.source_data["Status After"] ?? "Unknown status")}</p> : null}
       <details><summary className="min-h-11 cursor-pointer py-3 text-xs">View audit details</summary><dl className="grid gap-2 text-xs sm:grid-cols-2">{Object.entries(update.source_data).filter(([key,value]) => !key.startsWith("_") && value !== null && value !== "").map(([key,value]) => <div className="min-w-0" key={key}><dt className="text-muted-foreground">{key}</dt><dd className="whitespace-pre-wrap break-words">{String(value)}</dd></div>)}</dl><p className="mt-2 break-words text-xs text-muted-foreground">{update.source_id}</p></details>

@@ -21,7 +21,7 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
   const primaryPackaging = packaging[0];
   return (
     <Card className="border-0 bg-transparent shadow-none md:border md:bg-card md:shadow-sm" data-product-setup>
-      <CardContent className="p-0 md:p-5">
+      <CardContent className="p-3 md:p-5">
         <form id={formId} action={action} className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2">
           <Field label="Product Code">
             <Input name="product_code" defaultValue={product?.product_code ?? ""} required />

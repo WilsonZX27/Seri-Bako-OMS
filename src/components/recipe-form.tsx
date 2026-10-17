@@ -153,6 +153,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
 
   return (
     <form id={formId} action={submitAction} className="space-y-3 md:space-y-5">
+      {!items.length ? <p role="status" className="rounded-lg border border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] p-3 text-sm">No active ingredients. Ask an authorised item manager to configure ingredients, then reload.</p> : null}
       <input type="hidden" name="request_key" value={stableRequestKey} />
       <input type="hidden" name="expected_updated_at" value={expectedUpdatedAt} />
       {result.error ? <p role="alert" className="rounded-lg border border-warning/30 bg-warning/10 p-3 text-sm">{result.error}</p> : null}
@@ -181,9 +182,10 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
           <CardTitle>Recipe details</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-3 px-3 pb-3 sm:gap-4 md:grid-cols-4 md:px-5 md:pb-5">
-          <Field label="Product" className="col-span-2 md:col-span-1">
+          <Field label="Product" className="col-span-2 md:col-span-1" description={!products.length ? "No active products. Ask an authorised product manager to create or activate a product, then reload." : undefined}>
             <SelectNative
               name="product_id"
+              disabled={!products.length}
               value={productId}
               required
               onChange={(event) => {
@@ -192,6 +194,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
                 setYieldUnit(normalizeUom(nextProduct?.selling_unit) || yieldUnit);
               }}
             >
+              {!products.length ? <option value="">No active products</option> : null}
               {products.map((product) => (
                 <option key={product.id} value={product.id}>
                   {product.product_code} - {product.product_name}
@@ -301,11 +304,11 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
           <div className="overflow-hidden rounded-[var(--sb-radius-control)] border md:hidden" data-recipe-ingredient-list>
             {enrichedLines.map((line, index) => (
               <div key={index} className="space-y-3 border-b p-3 last:border-b-0">
-                <div className="flex items-start gap-3">
+                <div className="grid grid-cols-[1fr_auto] items-start gap-2">
                   {line.item_image_url ? (
                     <Image src={line.item_image_url} alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-[var(--sb-control-radius)] object-cover" />
                   ) : itemFallback(line.item_code || "IT")}
-                  <div className="min-w-0 flex-1 space-y-1">
+                  <div className="order-last col-span-2 min-w-0 space-y-1">
                     <Input list="recipe-ingredient-items" value={line.itemSearch} aria-label={`Ingredient ${index + 1}`} placeholder="Ingredient code or name" onChange={(event) => selectItem(index, event.target.value)} />
                     {line.item_code ? <p className="break-words text-xs text-muted-foreground">{line.item_code} - {line.item_name}</p> : null}
                     {line.ingredient_item_id && duplicateIds.includes(line.ingredient_item_id) ? <p className="text-xs text-destructive">Duplicate ingredient</p> : null}
@@ -391,7 +394,8 @@ export function RecipeVersionForm({ action, requestKey }: { requestKey: string; 
   const [stableRequestKey] = useState(requestKey);
   const [result, submit] = useActionState<{ error?: string }, FormData>(async (_previous: { error?: string }, data: FormData) => (await action(data)) ?? {}, {});
   return <form action={submit}>
-    <input type="hidden" name="request_key" value={stableRequestKey} />
+
+      <input type="hidden" name="request_key" value={stableRequestKey} />
     <SubmitButton type="submit" variant="outline" className="w-full" pendingLabel="Creating...">New Version</SubmitButton>
     {result.error ? <p role="alert" className="mt-2 text-sm text-destructive">{result.error}</p> : null}
   </form>;

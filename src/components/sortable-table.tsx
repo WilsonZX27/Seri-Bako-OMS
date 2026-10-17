@@ -77,10 +77,10 @@ export function PaginationControls({
   return (
     <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 border-t px-3 py-1.5 text-[11px] text-muted-foreground">
       {resetScrollOnPageChange ? <PaginationScrollReset page={page} /> : null}
-      <span className="min-w-0 basis-full leading-6 sm:flex-1 sm:basis-auto">
+      <span className="hidden min-w-0 leading-6 sm:block sm:flex-1">
         Page {page} of {totalPages} - {totalRows} rows
       </span>
-      <nav aria-label="Pagination" className="flex w-full shrink-0 items-center justify-between gap-1 sm:hidden">
+      <nav aria-label="Pagination" aria-description={`${totalRows} rows`} className="flex w-full shrink-0 items-center justify-between gap-1 sm:hidden">
         {page <= 1 ? (
           <Button type="button" variant="outline" size="sm" className="h-[var(--sb-control-height)] px-2 text-xs" disabled>
             Previous

@@ -1,4 +1,5 @@
 "use client";
+import { createPortal } from "react-dom";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -384,7 +385,7 @@ export function StockBalanceWorkspace({
         <ShoppingCart className="h-5 w-5" aria-hidden="true" />
         {basketRows.length ? <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[var(--sb-surface-raised)] px-1 text-[10px] font-bold text-[var(--sb-green-900)] shadow-[0_1px_4px_rgb(6_44_31_/_0.18)]">{basketRows.length}</span> : null}
       </button> : null}
-      {basketOpen ? <div className="fixed inset-0 z-[var(--sb-z-dialog)] xl:hidden">
+      {basketOpen ? createPortal(<div className="fixed inset-0 z-[var(--sb-z-dialog)] xl:hidden">
         <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={() => setBasketOpen(false)} aria-label="Close PR basket" />
         <section className="sb-pr-basket-sheet sb-popover-surface absolute inset-x-0 bottom-0 flex max-h-[82dvh] flex-col overflow-hidden" role="dialog" aria-modal="true" aria-label="PR basket">
           <header className="flex min-h-14 items-center justify-between border-b border-[var(--sb-border-soft)] px-4">
@@ -425,8 +426,8 @@ export function StockBalanceWorkspace({
             </footer>
           </form>
         </section>
-      </div> : null}
-      {branchConflict ? <div className="fixed inset-0 z-[var(--sb-z-dialog)] grid place-items-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-label="One branch per PR basket"><div className="w-full max-w-sm rounded-[var(--sb-panel-radius)] bg-white p-4 shadow-xl"><div className="flex items-start gap-3"><AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[var(--sb-warning)]" /><div><h2 className="font-semibold">One branch per PR basket</h2><p className="mt-1 text-sm text-muted-foreground">This basket already contains items from {branchConflict.current}. Remove them before adding an item from {branchConflict.attempted}.</p></div></div><Button type="button" className="mt-4 w-full" onClick={() => setBranchConflict(null)}>Keep current basket</Button></div></div> : null}
+      </div>, document.body) : null}
+      {branchConflict ? createPortal(<div className="fixed inset-0 z-[var(--sb-z-dialog)] grid place-items-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-label="One branch per PR basket"><div className="w-full max-w-sm rounded-[var(--sb-panel-radius)] bg-white p-4 shadow-xl"><div className="flex items-start gap-3"><AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[var(--sb-warning)]" /><div><h2 className="font-semibold">One branch per PR basket</h2><p className="mt-1 text-sm text-muted-foreground">This basket already contains items from {branchConflict.current}. Remove them before adding an item from {branchConflict.attempted}.</p></div></div><Button type="button" className="mt-4 w-full" onClick={() => setBranchConflict(null)}>Keep current basket</Button></div></div>, document.body) : null}
     </>
   );
 }

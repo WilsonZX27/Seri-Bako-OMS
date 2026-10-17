@@ -30,7 +30,7 @@ test("tablet keeps role navigation sticky while primary actions stay visible", (
   assert.doesNotMatch(stockCountForm, /hidden xl:inline-flex/);
   assert.match(topBar, /<MobileSidebar/);
   assert.match(tabletSidebar, /hidden md:inline-flex xl:hidden/);
-  assert.match(tabletSidebar, /fixed inset-0 z-50 hidden md:block xl:hidden/);
+  assert.match(tabletSidebar, /fixed inset-0 z-\[var\(--sb-z-dialog\)\] hidden md:block xl:hidden/);
 });
 
 test("desktop and tablet shared geometry remains token based", () => {

@@ -14,7 +14,7 @@ export function AssetAttachmentForm({ assetId, requestKey, maintenanceId, canMan
   const {label,kind}=draft,setLabel=(value:string)=>setDraft("label",value),setKind=(value:string)=>setDraft("kind",value);
   const [selected, setSelected] = useState(false), [key, setKey] = useState(requestKey);
   useAssetFormGuard(!state.ok && Boolean(selected || label || kind !== "Photo" || draft.hadFile === "true"));
-  return <details open={restored || undefined} className="mt-3 border-t border-border pt-2"><summary className="min-h-11 cursor-pointer py-3 text-sm font-medium">Add attachment</summary><form action={action} className="max-lg:[&_input]:min-h-11 max-lg:[&_select]:min-h-11 max-lg:[&_button]:min-h-11 space-y-3">
+  return <section className="mt-3 rounded-lg border bg-[var(--sb-surface-muted)] p-3"><h3 className="mb-3 text-sm font-semibold">Add attachment</h3><form action={action} className="max-lg:[&_input]:min-h-11 max-lg:[&_select]:min-h-11 max-lg:[&_button]:min-h-11 space-y-3">
     {retryExisting ? <p className="text-xs text-muted-foreground">Select the original photo again to finish the same upload.</p> : null}
     {restored ? <p role="status" className="text-xs">Attachment details restored. Select the file again before uploading.</p> : null}
     <input type="hidden" name="asset_id" value={assetId ?? ""}/><input type="hidden" name="client_key" value={key}/><input type="hidden" name="maintenance_id" value={maintenanceId ?? ""}/>
@@ -25,5 +25,5 @@ export function AssetAttachmentForm({ assetId, requestKey, maintenanceId, canMan
       <Button className="sm:justify-self-start" type="submit" disabled={!selected}>{pending ? "Uploading…" : "Upload attachment"}</Button>
     </fieldset>
     {state.message ? <p className="break-words text-sm" role={state.ok ? "status" : "alert"}>{state.message}</p> : null}
-  </form></details>;
+  </form></section>;
 }

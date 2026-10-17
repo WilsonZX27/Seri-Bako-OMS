@@ -1,3 +1,5 @@
+> Local candidate — 2026-10-17: migrations reviewed through `361`; forward-only migration 历史已到 `361`. Migration 361 adds one checklist per outlet/date and has not been deployed. Production statements below remain historical release evidence.
+
 # v9.2.107 (unreleased)
 
 Asset inspection uses compact identity rows with explicit result choices on expansion. General repair is a separate form above the checklist. Maintenance queues share one rendering; the desktop workspace uses a 4:6 split with the queue aligned to the detail stack. Shared workspace navigation and closed surface disclosures are 44px overall. Desktop inputs retain the existing 36px control rhythm; phone inputs retain 44px touch sizing. Two-action confirmation footers use equal columns. Saved maintenance state survives history refresh and prevents repeated submissions. No database, permissions or workflow transitions change.

@@ -762,9 +762,7 @@ nav[aria-label="Pagination"] > span {
 }
 
 [data-right-console-scroll] > [data-console-section] + [data-console-section],
-[data-mobile-console-content] > [data-console-section] + [data-console-section],
 [data-right-console] [data-console-section] + [data-console-section],
-[data-mobile-console-content] [data-console-section] + [data-console-section],
 [data-right-console-scroll] > [class~="xl:contents"] > [data-console-section]:first-child {
   margin-top: 0.75rem !important;
 }
@@ -1004,9 +1002,9 @@ nav[aria-label="Pagination"] > span {
   .unified-list-row { display: flex; align-items: center; gap: .5rem; min-height: 2.75rem; }
   .unified-list-primary-control { flex: 1 1 auto; }
   .unified-list-primary-input { width: 100% !important; min-width: 0 !important; height: 2.75rem !important; padding-left: 2.25rem !important; padding-right: 2.25rem !important; border-radius: var(--sb-radius-control) !important; }
-  .unified-list-filter-trigger { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: .4rem; flex: 0 0 auto; min-width: 2.75rem; height: 2.75rem; padding: 0 .75rem; border: 1px solid var(--sb-green-900); border-radius: var(--sb-radius-control); background: var(--sb-green-900); color: white; }
+  .unified-list-filter-trigger { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: .4rem; flex: 0 0 auto; min-width: 2.75rem; height: 2.75rem; padding: 0; border: 0; border-radius: var(--sb-radius-control); background: transparent; color: var(--sb-green-900); }
   .unified-list-filter-trigger svg { width: 1.125rem; height: 1.125rem; }
-  .unified-list-filter-label { display: inline; font-size: .8125rem; font-weight: 500; white-space: nowrap; }
+  .unified-list-filter-label { display: none; font-size: .8125rem; font-weight: 500; white-space: nowrap; }
   .unified-list-filter-badge { position: absolute; top: -.35rem; right: -.35rem; min-width: 1.15rem; height: 1.15rem; padding: 0 .25rem; border-radius: 999px; background: var(--sb-green-900); color: white; font-size: .6875rem; font-weight: 600; line-height: 1.15rem; }
   .unified-list-result { display: grid; flex: 0 0 auto; margin: 0; color: var(--sb-text-muted); font-size: .625rem; font-weight: 500; line-height: 1.05; text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .unified-list-result strong { color: var(--sb-text); font-size: .8125rem; }
@@ -1173,7 +1171,7 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
   html[data-design-layer="v2"] form.unified-list-header .unified-list-row {
     position: relative;
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) 44px 104px auto;
+    grid-template-columns: minmax(0, 1fr) 44px 44px auto;
     gap: 8px;
     align-items: stretch;
   }
@@ -1187,7 +1185,7 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
   }
 
   html[data-design-layer="v2"] form.unified-list-header .unified-list-row--filter-only {
-    grid-template-columns: 104px minmax(0, auto);
+    grid-template-columns: 44px minmax(0, auto);
     justify-content: start;
   }
 
@@ -1251,9 +1249,9 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
     align-items: center;
     justify-content: center;
     gap: 6px;
-    border-color: #075942 !important;
-    background: #075942 !important;
-    color: #ffffff !important;
+    border: 0 !important;
+    background: transparent !important;
+    color: var(--sb-green-900) !important;
     font-weight: 500;
   }
 
@@ -2679,3 +2677,21 @@ html[data-design-layer="v2"] .sb-workspace-tabs > a { height: 36px; min-height: 
 dialog > div > div:last-child:has(> button + button) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 [data-modal-shell] > div:last-child:has(> button + button) > button,
 dialog > div > div:last-child:has(> button + button) > button { width: 100%; }
+
+/* Inspection results share the same semantics in every checklist. */
+.sb-inspection-choice[data-inspection-result="Checked"] { background: var(--sb-success-bg); color: var(--sb-success); border-color: var(--sb-success); }
+.sb-inspection-choice[data-inspection-result="Needs Maintenance"] { background: var(--sb-warning-bg); color: var(--sb-warning); border-color: var(--sb-warning); }
+.sb-inspection-choice:is([data-inspection-result="Damaged"], [data-inspection-result="Missing"]) { background: var(--sb-danger-bg); color: var(--sb-danger); border-color: var(--sb-danger); }
+.sb-inspection-choice[aria-pressed="true"] { outline: 2px solid currentColor; outline-offset: 1px; font-weight: 600; }
+
+html[data-design-layer="v2"] .sb-work-surface.sb-guidance-surface { background: var(--sb-warning-bg); border-color: var(--sb-warning); }
+@media (max-width: 1279px) {
+  html[data-filter-dialog-open="true"] [data-mobile-bottom-nav],
+  html[data-filter-dialog-open="true"] [data-mobile-action-bar] { visibility: hidden; pointer-events: none; }
+}
+
+/* Dense desktop tables retain a visible scrolling affordance. */
+html[data-design-layer="v2"] .sb-table-region { scrollbar-width: thin; scrollbar-color: var(--sb-border) transparent; }
+html[data-design-layer="v2"] .sb-table-region::-webkit-scrollbar { display: block; height: 8px; }
+html[data-design-layer="v2"] .sb-table-region::-webkit-scrollbar-thumb { background: var(--sb-border); border-radius: var(--sb-control-radius); }
+@media (prefers-reduced-motion: reduce) { .sb-pr-basket-sheet { animation: none; } }

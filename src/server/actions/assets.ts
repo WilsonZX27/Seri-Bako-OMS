@@ -109,7 +109,7 @@ export async function submitAssetChecklist(_previous: AssetActionState, form: Fo
     const response = await db.rpc("submit_asset_check", { p_location: uuid(form.get("location_id")), p_date: date, p_submission: uuid(form.get("submission_id")), p_lines: lines });
     if (response.error || !response.data) throw new Error(response.error?.message ?? "Checklist was not confirmed.");
     revalidatePath("/asset-management", "layout");
-    return { ok: true, message: `${ids.length} asset checks saved. Unchecked assets remain outstanding.` };
+    return { ok: true, message: `${ids.length} asset checks saved. This outlet cannot submit again for this date.` };
   } catch (error) { return { ok: false, message: error instanceof Error ? error.message : "Could not save checklist." }; }
 }
 export async function confirmUnknownAssetQuantity(_previous: AssetActionState, form: FormData): Promise<AssetActionState> {

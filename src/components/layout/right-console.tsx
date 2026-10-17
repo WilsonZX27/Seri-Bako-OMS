@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { PanelRight, Plus, X } from "lucide-react";
 import { Children, cloneElement, createContext, isValidElement, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { MouseEvent, ReactNode } from "react";
@@ -206,7 +207,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
           {primaryAction ? "More" : "More actions"}
         </Button>
       </div> : null}
-      {open && content && (!mobileBarHidden || hasCreateFab) ? (
+      {open && content && (!mobileBarHidden || hasCreateFab) ? createPortal(
         <div className="fixed inset-0 z-[var(--sb-z-dialog)] md:hidden">
           <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={close} aria-label="Close more actions" />
             <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[82dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">
@@ -214,9 +215,9 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
               <h2 id={titleId} className="text-sm font-semibold">More actions</h2>
               <Button type="button" variant="ghost" size="icon" onClick={close} aria-label="Close more actions"><X className="h-5 w-5" /></Button>
             </header>
-            <div data-mobile-console-content onClick={handleMobileFormAction} className="sb-scrollbar-none grid max-h-[calc(82dvh-3rem-env(safe-area-inset-bottom))] gap-3 overflow-y-auto overscroll-contain p-3 [&>[data-console-section]]:mb-3 [&>[data-console-section]:last-child]:mb-0">{secondaryConsoleContent}</div>
+            <div data-mobile-console-content onClick={handleMobileFormAction} className="sb-scrollbar-none grid max-h-[calc(82dvh-3rem-env(safe-area-inset-bottom))] gap-3 overflow-y-auto overscroll-contain p-3">{secondaryConsoleContent}</div>
           </div>
-        </div>
+        </div>, document.body
       ) : null}
     </RightConsoleContext.Provider>
   );

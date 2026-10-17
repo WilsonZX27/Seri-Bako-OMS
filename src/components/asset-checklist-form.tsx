@@ -5,7 +5,7 @@ import { useAssetFormGuard } from "@/components/asset-unsaved-guard";
 import { ConsoleSection, RightConsoleMount } from "@/components/layout/right-console";
 import { useActionState, useState } from "react";
 import { Input } from "@/components/ui/input";
-import { CheckCheck, ChevronDown } from "lucide-react";
+import { CheckCheck, ChevronDown, Check, Wrench, TriangleAlert, CircleHelp, SearchX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { submitAssetChecklist } from "@/server/actions/assets";
 import type { AssetSummary, AssetHolding } from "@/server/queries/assets";
@@ -27,10 +27,11 @@ export function AssetChecklistForm({ locationId, assets, holdings, date, today, 
   const update = (key: string, value: string) => { markEdited(key.slice(key.indexOf("_")+1)); setFields(current => ({ ...current, [key]: value })); };
   const names = new Map(assets.map(asset => [asset.id, asset]));
   return <form id={formId} action={action} onInvalidCapture={event => { const details = (event.target as HTMLElement).closest("details"); if (details) details.open = true; }} className="max-lg:[&_input]:min-h-11 max-lg:[&_select]:min-h-11 max-lg:[&_button]:min-h-11 sb-work-surface p-3">
+    <p className="mb-3 text-sm">One checklist per outlet per day. Review all selected assets before submitting.</p>
     {restored ? <p role="status" className="mb-3 text-xs">Unsaved inspection inputs restored. Review counts and selections before saving.</p> : null}
     <input type="hidden" name="location_id" value={locationId}/><input type="hidden" name="submission_id" value={draft.submissionId}/>
     <div className="flex items-end justify-between gap-3 border-b pb-3"><label className="grid max-w-44 gap-1 text-xs">Check date<Input type="date" name="date" value={checkDate} onChange={event => setCheckDate(event.target.value)} max={today} required/></label>
-      <Button type="button" variant="outline" className="shrink-0" disabled={pending || state.ok} onClick={() => { setBulkUndo({ selected: [...selected], fields: {...fields}, touched: [] }); setSelected(() => holdings.map(row => row.asset_id)); }}><CheckCheck className="size-4" aria-hidden="true"/>Set all as checked</Button>
+      <Button type="button" variant="default" className="shrink-0" disabled={pending || state.ok} onClick={() => { setBulkUndo({ selected: [...selected], fields: {...fields}, touched: [] }); setSelected(() => holdings.map(row => row.asset_id)); }}><CheckCheck className="size-4" aria-hidden="true"/>Set all as checked</Button>
     </div>
     <div className="flex min-h-11 items-center justify-between gap-2 text-xs text-muted-foreground"><p role="status">{selected.length}/{holdings.length} checked · {exceptions} exceptions</p>{bulkUndo !== null ? <Button type="button" size="sm" variant="ghost" disabled={pending || state.ok} onClick={() => { setSelected(current => current.filter(id => bulkUndo.selected.includes(id) || bulkUndo.touched.includes(id) || Object.keys(fields).some(key => key.endsWith(id) && fields[key] !== bulkUndo.fields[key]))); setBulkUndo(null); }}>Undo</Button> : null}</div>
     <div className="fixed inset-x-4 bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] hidden items-center justify-between gap-3 rounded-lg border bg-white p-3 shadow-sm md:flex xl:hidden" data-asset-tablet-submit>
@@ -46,10 +47,10 @@ export function AssetChecklistForm({ locationId, assets, holdings, date, today, 
             <input type="checkbox" name="asset_id" value={id} checked={checked} onChange={event => { markEdited(id);setSelected(current => event.target.checked ? [...new Set([...current,id])] : current.filter(value => value !== id)); }} className="size-5 shrink-0 accent-[var(--sb-primary)]"/>
             <span className="min-w-0"><small className="text-xs font-semibold text-primary">{names.get(id)?.asset_code}</small><strong className="block break-words text-sm font-medium">{names.get(id)?.item_name}</strong><small className="block text-xs text-muted-foreground">{String(names.get(id)?.current_details?.Category ?? "Asset")} · Qty {holding.quantity ?? "Unknown"}</small></span>
           </label>
-          <button type="button" aria-label={`Result for ${names.get(id)?.asset_code}`} aria-expanded={open} aria-controls={`choices-${id}`} onClick={()=>setExpanded(open?null:id)} className={`inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md px-2 text-xs font-medium ${checked ? result==="Checked" ? "text-primary" : "text-warning" : "text-muted-foreground"}`}>{checked?result:"Not checked"}<ChevronDown className={`size-3.5 ${open?"rotate-180":""}`} aria-hidden="true"/></button>
+          <button type="button" aria-label={`Result for ${names.get(id)?.asset_code}`} aria-expanded={open} aria-controls={`choices-${id}`} onClick={()=>setExpanded(open?null:id)} className={`inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md px-2 text-xs font-medium ${checked ? result==="Checked" ? "text-[var(--sb-success)]" : result==="Damaged" || result==="Missing" ? "text-[var(--sb-danger)]" : "text-[var(--sb-warning)]" : "text-muted-foreground"}`}>{checked?result:"Not checked"}<ChevronDown className={`size-3.5 ${open?"rotate-180":""}`} aria-hidden="true"/></button>
         </div>
         <input type="hidden" name={`result_${id}`} value={result}/>
-        {open ? <div id={`choices-${id}`} className="grid grid-cols-2 gap-2 pt-2" role="group" aria-label={`Inspection result for ${names.get(id)?.asset_code}`}>{["Checked","Needs Maintenance","Damaged","Missing","Other"].map(value=><Button key={value} type="button" variant={checked&&result===value?"default":"outline"} aria-pressed={checked&&result===value} onClick={()=>choose(value)}>{value}</Button>)}</div>:null}
+        {open ? <div id={`choices-${id}`} className="grid grid-cols-2 gap-2 pt-2" role="group" aria-label={`Inspection result for ${names.get(id)?.asset_code}`}>{["Checked","Needs Maintenance","Damaged","Missing","Other"].map(value=>{const Icon=value==="Checked"?Check:value==="Needs Maintenance"?Wrench:value==="Missing"?SearchX:value==="Damaged"?TriangleAlert:CircleHelp;return <Button key={value} type="button" variant="outline" data-inspection-result={value} className="sb-inspection-choice" aria-pressed={checked&&result===value} onClick={()=>choose(value)}><Icon className="size-4 shrink-0" aria-hidden="true"/>{value}</Button>;})}</div>:null}
         {checked&&result!=="Checked" ? <label className="mt-2 grid gap-1 text-xs">Exception note<Input name={`remark_${id}`} required maxLength={4000} value={fields[`remark_${id}`] ?? ""} onChange={event=>update(`remark_${id}`,event.target.value)} placeholder="Describe the issue"/></label> : <input type="hidden" name={`remark_${id}`} value={fields[`remark_${id}`] ?? ""}/>}
         {open ? <label className="mt-2 grid gap-1 text-xs">Physical count · optional<Input aria-label={`Physical count for ${names.get(id)?.asset_code}`} type="number" name={`quantity_${id}`} min="0" step="1" value={fields[`quantity_${id}`] ?? ""} onChange={event=>update(`quantity_${id}`,event.target.value)} placeholder="Not counted"/></label> : <input type="hidden" name={`quantity_${id}`} value={fields[`quantity_${id}`]??""}/>}
       </fieldset>;
@@ -57,7 +58,7 @@ export function AssetChecklistForm({ locationId, assets, holdings, date, today, 
     <RightConsoleMount><ConsoleSection title="Submit checklist" kind="action">
       <p>{selected.length}/{holdings.length} checked · {exceptions} exceptions</p>
       <Button data-mobile-primary-action form={formId} type="submit" disabled={pending || state.ok || !selected.length}>{pending ? "Saving…" : "Submit checklist"}</Button>
-      <p>Submitting records the selected inspections. Registered quantities stay unchanged.</p>
+      <p>One submission per outlet per day. Review all selections before submitting; unselected assets cannot be added later that day. Registered quantities stay unchanged.</p>
       {state.message ? <p role={state.ok ? "status" : "alert"}>{state.message}</p> : null}
     </ConsoleSection></RightConsoleMount>
     {state.message ? <p role={state.ok ? "status" : "alert"} className="mt-2 text-sm">{state.message}</p> : null}

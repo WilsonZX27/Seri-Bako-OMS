@@ -3098,3 +3098,14 @@ Use a single date-range entry for interval-based Insights, keeping single operat
 Asset attachments use a short latest-five preview in operational details and a separate full-record view when needed. The full register reuses the shared attachment disclosure list, PageHeader and workspace layout; exact result count and Previous/Next navigation sit beside the actual records rather than repeated instructions. Long filenames wrap within the list, and pagination links retain 44px touch height.
 
 Transfer details use one operational summary followed by concise action history. Show source, destination and quantity together; restricted location names stay restricted. In-transit quantity explains the next receipt task once, adjacent to the action. Notes are optional and inline; complete raw updates remain collapsed. Match visible actions to source/destination access, retain touch-sized controls, and reset successful forms against the current status/history identity. Transfer list identity opens that transfer directly.
+
+## Shared mobile refinement — 2026-10-17 (local candidate)
+
+- Shared filters use an icon-only 44px touch target with no visible frame on phone, an accessible Filter name and an active-count badge. Short visible search prompts retain full accessible labels.
+- Mobile modal sheets render outside page stacking contexts. Their content and final action must pass hit-testing above bottom navigation after animations finish. Legacy anchored filters suppress underlying fixed navigation while open, preserving form ownership.
+- Mobile console sections use one 12px gap, without additive margins. Pagination avoids duplicating page totals in a second row.
+- Shared Field infers the required marker from a single required child, while explicit required remains supported. New/edit mobile titles retain task context.
+- My Profile and Logout share a row; Logout uses the danger colour. Installation promotion is absent from navigation.
+- Inspection results retain both labels/icons and semantic colours: Checked green, Damaged/Missing pale red, Needs Maintenance pale yellow. Selection has an additional outline; colour alone is not the state indicator.
+- Maintenance author, history and attachments stay visible as distinct sections. Upload is a visible muted card; essential context is not hidden in nested disclosures.
+- Dense tables retain an internal horizontal scrolling affordance. These are shared component rules, not route-specific stylesheet patches.

@@ -18,7 +18,7 @@ export function Field({ label, children, error, description, controlId, required
   const generatedId = useId();
   const visuallyHiddenLabel = labelClassName?.split(/\s+/).includes("sr-only") ?? false;
   const singleChild = Children.count(children) === 1 ? Children.only(children) : null;
-  const child = isValidElement<{ id?: string; "aria-describedby"?: string; "aria-invalid"?: boolean }>(singleChild)
+  const child = isValidElement<{ id?: string; "aria-describedby"?: string; "aria-invalid"?: boolean; required?: boolean }>(singleChild)
     ? cloneElement(singleChild, {
         id: controlId ?? singleChild.props.id ?? generatedId,
         "aria-describedby": [singleChild.props["aria-describedby"], description ? `${generatedId}-help` : null, error ? `${generatedId}-error` : null].filter(Boolean).join(" ") || undefined,
@@ -31,7 +31,7 @@ export function Field({ label, children, error, description, controlId, required
     <div className={cn("min-w-0", visuallyHiddenLabel ? "space-y-0" : "space-y-1.5", className)}>
       <Label className={labelClassName} htmlFor={childId}>
         {label}
-        {required ? <span className="ml-1 text-destructive">*</span> : null}
+        {(required || (isValidElement<{ required?: boolean }>(singleChild) && singleChild.props.required)) ? <span className="ml-1 text-destructive">*</span> : null}
       </Label>
       {child}
       {description ? <p id={`${generatedId}-help`} className="text-xs text-muted-foreground">{description}</p> : null}

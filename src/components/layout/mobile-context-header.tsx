@@ -44,7 +44,12 @@ const routeTitles: Record<string, RouteTitle> = {
   "/uom-conversions": { title: "UOM Conversions" },
 };
 
-function pageContext(pathname: string) {
+function pageContext(pathname: string): RouteTitle {
+  if (/\/(new|edit)$/.test(pathname) && !pathname.startsWith("/asset-management/maintenance/")) {
+    const base = pathname.replace(/\/(new|edit)$/, "");
+    const context = pageContext(base);
+    return { title: `${pathname.endsWith("/new") ? "New" : "Edit"} · ${context.title}`, backHref: base };
+  }
   if (pathname.startsWith("/asset-management/maintenance/")) {
     return { title: pathname.endsWith("/new") ? "Report a problem" : "Maintenance request", backHref: "/asset-management?view=maintenance" };
   }

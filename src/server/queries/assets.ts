@@ -262,3 +262,12 @@ export async function getMaintenanceReportOptions() {
   }
   return {locations:locations.data as AssetLocation[],choices};
 }
+
+/** Existing daily checks are immutable; quantity confirmations are a separate workflow. */
+export async function hasAssetChecklistSubmission(locationId: string, date: string) {
+  const actor = await requireActiveTenantActor();
+  const db = looseSupabase(await createClient());
+  const result = await db.from("asset_daily_checks").select("id").eq("company_id", actor.companyId).eq("location_id", locationId).eq("check_date", date).not("source_data", "cs", '{"Count Confirmation":true}').limit(1);
+  if (result.error) throw new Error("Checklist submission status unavailable.");
+  return Boolean(result.data?.length);
+}

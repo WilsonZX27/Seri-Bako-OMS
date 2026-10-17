@@ -79,7 +79,7 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
                   {!branches.length ? <TableRow><TableCell colSpan={canUpdate ? 9 : 7}><EmptyState title={filtered ? "No records match these filters" : "No branches yet"} description={filtered ? "Clear filters or widen the search to see more branches." : "Branches will appear here after operating units are created."} action={filtered ? { href: "/branches", label: "Clear filters" } : canCreate ? { href: "/branches/new", label: "New branch" } : undefined} /></TableCell></TableRow> : null}
                 </TableBody>
               </Table>
-              <OperationalList ariaLabel="Branches" showUntil="xl">
+              <OperationalList className="sb-inventory-list-surface" ariaLabel="Branches" showUntil="xl">
                 {branches.map((branch) => <OperationalListRow
                   key={branch.id}
                   href={canUpdate ? `/branches/${branch.id}` : undefined}

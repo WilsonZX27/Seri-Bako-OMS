@@ -84,7 +84,7 @@ export function OperationalHub({
           </Button>
         </div>
 
-        <dl className="grid grid-cols-2 border-t border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] md:grid-cols-4">
+        <dl className="grid grid-cols-2 border-t border-[var(--sb-border-soft)] bg-[var(--sb-green-100)] md:grid-cols-4">
           {metrics.map((metric, index) => {
             const tone = toneStyles[metric.tone ?? "default"];
             return (

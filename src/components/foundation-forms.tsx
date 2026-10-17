@@ -167,9 +167,10 @@ export function BranchForm({ branch, companies, action, formId, showSubmit = tru
               <option value="office">Office</option>
               <option value="other">Other</option>
             </SelectNative>
-            <p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p>
-            <p className="mt-1 text-xs text-muted-foreground">Stock movements for this branch are recorded to an internal default stock area automatically.</p>
           </Field>
+          <div className="md:col-span-2">            <p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Stock movements for this branch are recorded to an internal default stock area automatically.</p>
+</div>
         </div>
       </RecordSection>
       <RecordSection title="Contact & Address" description="Operational contact and branch / outlet address.">

@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
-import { normalizeUom, uomOptionsWithCurrent } from "@/lib/uom";
+import { normalizeUom, uomOptionsWithCurrent, uomOptionsForValues } from "@/lib/uom";
 import type { Database } from "@/types/database";
 
 type SupplierItem = Database["public"]["Tables"]["supplier_items"]["Row"];
@@ -58,10 +58,10 @@ export function SupplierItemForm({
   return (
     <Card>
       <CardContent className="p-5">
-        <form key={result?.attempt ?? 0} id={formId} action={submit} className="grid gap-4 pb-20 md:grid-cols-3 md:pb-0">
+        <form key={result?.attempt ?? 0} id={formId} action={submit} className="grid grid-cols-2 gap-4 pb-20 md:grid-cols-3 md:pb-0">
           {result?.error ? <p role="alert" className="col-span-full rounded border border-destructive p-3 text-sm text-destructive">{result.error}</p> : null}
           <input type="hidden" name="status" value={supplierItem?.status ?? "active"} />
-          <Field label="Supplier" required>
+          <Field label="Supplier" required className="col-span-2 md:col-span-1">
             <SelectNative name="supplier_id" defaultValue={saved.get("supplier_id") ?? (supplierItem?.supplier_id ?? initialSupplierId ?? suppliers[0]?.id ?? "")} required>
               {suppliers.map((supplier) => (
                 <option key={supplier.id} value={supplier.id}>
@@ -70,7 +70,7 @@ export function SupplierItemForm({
               ))}
             </SelectNative>
           </Field>
-          <Field label="Item" required>
+          <Field label="Item" required className="col-span-2 md:col-span-1">
             <ItemCombobox
               items={items}
               name="item_id"
@@ -83,7 +83,7 @@ export function SupplierItemForm({
               onSelect={(item) => { setSelectedItemId(item.id); setItemSearch(`${item.item_code} - ${item.item_name}`); }}
             />
           </Field>
-          <div className="rounded-[var(--sb-radius-control)] border bg-[var(--sb-surface-muted)] px-3 py-2 text-sm text-muted-foreground md:col-span-1" aria-live="polite">
+          <div className="rounded-[var(--sb-radius-control)] border bg-[var(--sb-surface-muted)] px-3 py-2 text-sm text-muted-foreground col-span-2 md:col-span-1" aria-live="polite">
             <p className="font-medium text-foreground">Base UOM</p>
             <p className="mt-1 text-base font-semibold text-foreground">{selectedItem?.base_unit ?? "Select an item"}</p>
             <p className="mt-1 text-xs">Owned by Item Master. Set Purchase UOM and the conversion below.</p>
@@ -105,7 +105,7 @@ export function SupplierItemForm({
           <Field label="MOQ" required>
             <Input name="moq" type="number" step="0.0001" min="0" defaultValue={saved.get("moq") ?? (supplierItem?.moq ?? 0)} required />
           </Field>
-          <Field label="Lead Time Days" required>
+          <Field label="Lead Time Days" required className="col-span-2 md:col-span-1">
             <Input name="lead_time_days" type="number" min="0" defaultValue={saved.get("lead_time_days") ?? (supplierItem?.lead_time_days ?? 0)} required />
           </Field>
           <Field label="Valid From">
@@ -134,34 +134,38 @@ export function SupplierItemForm({
   );
 }
 
-export function UomConversionForm({ conversion, action, formId, showSubmit = true }: { conversion?: UomConversion; action: FormAction; formId?: string; showSubmit?: boolean }) {
-  const { result, submit, saved } = useRetainedMasterAction(action, formId);
+export function UomConversionForm({ conversion, action, formId, showSubmit = true, uoms = [] }: { uoms?: string[]; conversion?: UomConversion; action: FormAction; formId?: string; showSubmit?: boolean }) {
+  const { result, submit } = useRetainedMasterAction(action, formId);
+  const [from, setFrom] = useState<string>(normalizeUom(conversion?.from_uom) || "KG");
+  const [to, setTo] = useState<string>(normalizeUom(conversion?.to_uom) || "G");
+  const [factor, setFactor] = useState(String(conversion?.factor ?? 1));
+  const options = uomOptionsForValues([...uoms, from, to]);
   return (
     <Card>
       <CardContent className="p-5">
-        <form key={result?.attempt ?? 0} id={formId} action={submit} className="grid gap-4 pb-20 md:grid-cols-2 md:pb-0">
+        <form key={result?.attempt ?? 0} id={formId} action={submit} className="grid grid-cols-2 gap-4 pb-20 md:pb-0">
           {result?.error ? <p role="alert" className="col-span-full rounded border border-destructive p-3 text-sm text-destructive">{result.error}</p> : null}
           <input type="hidden" name="status" value={conversion?.status ?? "active"} />
           <Field label="From UOM">
-            <SelectNative name="from_uom" defaultValue={saved.get("from_uom") ?? (normalizeUom(conversion?.from_uom) || "KG")} required>
-              {uomOptionsWithCurrent(conversion?.from_uom).map((uom) => (
+            <SelectNative name="from_uom" value={from} onChange={event => setFrom(event.target.value)} required>
+              {options.map((uom) => (
                 <option key={uom} value={uom}>{uom}</option>
               ))}
             </SelectNative>
           </Field>
           <Field label="To UOM">
-            <SelectNative name="to_uom" defaultValue={saved.get("to_uom") ?? (normalizeUom(conversion?.to_uom) || "G")} required>
-              {uomOptionsWithCurrent(conversion?.to_uom).map((uom) => (
+            <SelectNative name="to_uom" value={to} onChange={event => setTo(event.target.value)} required>
+              {options.map((uom) => (
                 <option key={uom} value={uom}>{uom}</option>
               ))}
             </SelectNative>
           </Field>
           <Field label="Factor">
-            <Input name="factor" type="number" min="0.00000001" step="0.00000001" defaultValue={saved.get("factor") ?? (conversion?.factor ?? 1)} required />
+            <Input name="factor" type="number" min="0.00000001" step="0.00000001" value={factor} onChange={event => setFactor(event.target.value)} required />
           </Field>
-          <div className="rounded-[var(--sb-radius-control)] border bg-secondary/50 p-3 md:col-span-2">
+          <div className="rounded-[var(--sb-radius-control)] border bg-secondary/50 p-3 col-span-2">
             <p className="text-sm font-medium">Preview</p>
-            <p className="mt-1 text-sm text-muted-foreground">1 {conversion?.from_uom ?? "from UOM"} = {conversion?.factor ?? 1} {conversion?.to_uom ?? "to UOM"}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{factor && Number(factor) > 0 ? `1 ${from} = ${factor} ${to}` : "Enter a positive conversion factor."}</p>
           </div>
           {showSubmit ? <div className="sb-mobile-action-bar fixed inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] p-2 md:static md:flex md:justify-end md:bg-transparent md:p-0 md:shadow-none md:col-span-2">
             <SubmitButton type="submit" className="w-full md:w-auto" pendingLabel={conversion ? "Saving..." : "Creating..."}>{conversion ? "Save conversion" : "Create conversion"}</SubmitButton>

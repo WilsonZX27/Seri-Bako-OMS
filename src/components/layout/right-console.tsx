@@ -217,7 +217,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
             <div data-bottom-sheet ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[82dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">
             <header className="flex h-12 items-center justify-between border-b px-3">
               <h2 id={titleId} className="text-sm font-semibold">More actions</h2>
-              <Button type="button" variant="ghost" size="icon" onClick={close} aria-label="Close more actions"><X className="h-5 w-5" /></Button>
+              <Button type="button" variant="ghost" size="icon" className="focus-visible:ring-inset focus-visible:ring-offset-0" onClick={close} aria-label="Close more actions"><X className="h-5 w-5" /></Button>
             </header>
             <div data-mobile-console-content onClick={handleMobileFormAction} className="sb-scrollbar-none grid max-h-[calc(82dvh-3rem-env(safe-area-inset-bottom))] gap-3 overflow-y-auto overscroll-contain p-3">{secondaryConsoleContent}</div>
           </div>

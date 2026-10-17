@@ -66,7 +66,7 @@ function MobileSheet({ label, title, children, danger = false, triggerClassName,
           <div data-bottom-sheet ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">
             <header className="flex min-h-12 items-center justify-between border-b px-3">
               <h2 id={titleId} className="text-[14px] font-semibold">{title}</h2>
-              <Button type="button" variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label={`Close ${title}`}><X className="h-5 w-5" /></Button>
+              <Button type="button" variant="ghost" size="icon" className="focus-visible:ring-inset focus-visible:ring-offset-0" onClick={() => setOpen(false)} aria-label={`Close ${title}`}><X className="h-5 w-5" /></Button>
             </header>
             <div className="max-h-[calc(88dvh-3rem-env(safe-area-inset-bottom))] min-w-0 overflow-y-auto overscroll-contain px-3 py-3 text-[13px]">{children}</div>
           </div>

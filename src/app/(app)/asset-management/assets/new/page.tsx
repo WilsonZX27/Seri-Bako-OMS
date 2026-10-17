@@ -10,5 +10,5 @@ import { getAssetRegistration } from "@/server/queries/assets";
 export default async function NewAssetPage() {
   await requirePermission("assets.manage");
   const data = await getAssetRegistration();
-  return <><PageHeader title="Register asset" description="Record the original ID and initial physical holding."/><WorkspaceGrid>{data.active ? <AssetMasterForm values={assetMasterValues({},{})} locations={data.locations} requestKey={randomUUID()}/> : <EmptyState title="Asset migration pending" description="Complete migration reconciliation before registering new assets."/>}</WorkspaceGrid></>;
+  return <><PageHeader title="Register asset" description="Record the original ID and initial physical holding."/>{data.active ? <AssetMasterForm values={assetMasterValues({},{})} locations={data.locations} requestKey={randomUUID()}/> : <WorkspaceGrid><EmptyState title="Asset migration pending" description="Complete migration reconciliation before registering new assets."/></WorkspaceGrid>}</>;
 }

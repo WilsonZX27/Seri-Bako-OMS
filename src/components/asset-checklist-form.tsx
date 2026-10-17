@@ -1,10 +1,10 @@
 "use client";
+import { AssetFormWorkspace } from "@/components/asset-form-workspace";
 import { formatRegisteredAssetQuantity } from "@/lib/asset-quantity-display";
 
 import { useAssetDraftAction, useAssetDraftState } from "@/components/asset-draft-state";
 import { isAssetChecklistDraft } from "@/lib/asset-draft";
 import { useAssetFormGuard } from "@/components/asset-unsaved-guard";
-import { ConsoleSection, RightConsoleMount } from "@/components/layout/right-console";
 import { useActionState, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { CheckCheck, ChevronDown, Check, Wrench, TriangleAlert, CircleHelp, SearchX } from "lucide-react";
@@ -28,7 +28,10 @@ export function AssetChecklistForm({ locationId, assets, holdings, date, today, 
   const markEdited=(id:string)=>setBulkUndo(previous=>previous ? {...previous,touched:[...new Set([...previous.touched,id])]} : null);
   const update = (key: string, value: string) => { markEdited(key.slice(key.indexOf("_")+1)); setFields(current => ({ ...current, [key]: value })); };
   const names = new Map(assets.map(asset => [asset.id, asset]));
-  return <form id={formId} action={action} onInvalidCapture={event => { const details = (event.target as HTMLElement).closest("details"); if (details) details.open = true; }} className="max-lg:[&_input]:min-h-11 max-lg:[&_select]:min-h-11 max-lg:[&_button]:min-h-11 sb-work-surface p-3">
+  const missingNotes = selected.some(id => (fields[`result_${id}`] ?? "Checked") !== "Checked" && !fields[`remark_${id}`]?.trim());
+  const hint = !selected.length ? "Select at least one asset and review its condition." : missingNotes ? "Add a note for each exception before submitting." : "Review selected assets. Only one checklist can be submitted per day.";
+  const submit = <Button className="w-full min-h-11" form={formId} type="submit" disabled={pending || state.ok || !selected.length}>{pending ? "Saving…" : "Submit checklist"}</Button>;
+  return <AssetFormWorkspace actions={submit} hint={hint}><form id={formId} action={action} onInvalidCapture={event => { const details = (event.target as HTMLElement).closest("details"); if (details) details.open = true; }} className="max-lg:[&_input]:min-h-11 max-lg:[&_select]:min-h-11 max-lg:[&_button]:min-h-11 sb-work-surface p-3">
     <p className="mb-3 text-sm">One checklist per outlet per day. Review all selected assets before submitting.</p>
     {restored ? <p role="status" className="mb-3 text-xs">Unsaved inspection inputs restored. Review counts and selections before saving.</p> : null}
     <input type="hidden" name="location_id" value={locationId}/><input type="hidden" name="submission_id" value={draft.submissionId}/>
@@ -36,10 +39,6 @@ export function AssetChecklistForm({ locationId, assets, holdings, date, today, 
       <Button type="button" variant="default" className="shrink-0" disabled={pending || state.ok} onClick={() => { setBulkUndo({ selected: [...selected], fields: {...fields}, touched: [] }); setSelected(() => holdings.map(row => row.asset_id)); }}><CheckCheck className="size-4" aria-hidden="true"/>Set all as checked</Button>
     </div>
     <div className="flex min-h-11 items-center justify-between gap-2 text-xs text-muted-foreground"><p role="status">{selected.length}/{holdings.length} checked · {exceptions} exceptions</p>{bulkUndo !== null ? <Button type="button" size="sm" variant="ghost" disabled={pending || state.ok} onClick={() => { setSelected(current => current.filter(id => bulkUndo.selected.includes(id) || bulkUndo.touched.includes(id) || Object.keys(fields).some(key => key.endsWith(id) && fields[key] !== bulkUndo.fields[key]))); setBulkUndo(null); }}>Undo</Button> : null}</div>
-    <div className="fixed inset-x-4 bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+0.5rem)] z-[var(--sb-z-sticky)] hidden items-center justify-between gap-3 rounded-lg border bg-white p-3 shadow-sm md:flex xl:hidden" data-asset-tablet-submit>
-      <p className="text-xs text-muted-foreground">{selected.length}/{holdings.length} checked · {exceptions} exceptions</p>
-      <Button className="min-h-11" type="submit" disabled={pending || state.ok || !selected.length}>{pending ? "Saving…" : "Submit checklist"}</Button>
-    </div>
     <p className="mb-3 text-xs text-muted-foreground">Inspection counts are saved separately and do not change registered quantities.</p>
     <div className="divide-y">{[...holdings].sort((a,b)=>(names.get(a.asset_id)?.asset_code ?? "").localeCompare(names.get(b.asset_id)?.asset_code ?? "")).map(holding => {
       const id = holding.asset_id, result = fields[`result_${id}`] ?? "Checked", checked = selected.includes(id), open=expanded===id;
@@ -58,12 +57,6 @@ export function AssetChecklistForm({ locationId, assets, holdings, date, today, 
         {open ? <label className="mt-2 grid gap-1 text-xs">This inspection’s physical count · optional<Input aria-label={`Physical count for ${names.get(id)?.asset_code}`} type="number" name={`quantity_${id}`} min="0" step="1" value={fields[`quantity_${id}`] ?? ""} onChange={event=>update(`quantity_${id}`,event.target.value)} placeholder="Not counted"/></label> : <input type="hidden" name={`quantity_${id}`} value={fields[`quantity_${id}`]??""}/>}
       </fieldset>;
     })}</div>
-    <RightConsoleMount><ConsoleSection title="Submit checklist" kind="action">
-      <p>{selected.length}/{holdings.length} checked · {exceptions} exceptions</p>
-      <Button data-mobile-primary-action form={formId} type="submit" disabled={pending || state.ok || !selected.length}>{pending ? "Saving…" : "Submit checklist"}</Button>
-      <p>One submission per outlet per day. Review all selections before submitting; unselected assets cannot be added later that day. Registered quantities stay unchanged.</p>
-      {state.message ? <p role={state.ok ? "status" : "alert"}>{state.message}</p> : null}
-    </ConsoleSection></RightConsoleMount>
     {state.message ? <p role={state.ok ? "status" : "alert"} className="mt-2 text-sm">{state.message}</p> : null}
-  </form>;
+  </form></AssetFormWorkspace>;
 }

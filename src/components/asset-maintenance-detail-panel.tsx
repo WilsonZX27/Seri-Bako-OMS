@@ -9,14 +9,14 @@ import Link from "next/link";
 import { AssetMaintenanceUpdate } from "@/components/asset-maintenance-form";
 import { getAssetDetail, getAssetMaintenanceDetail } from "@/server/queries/assets";
 
-export function AssetMaintenanceDetailPanel({data,asset,permissions,compact=false}:{compact?:boolean;data:NonNullable<Awaited<ReturnType<typeof getAssetMaintenanceDetail>>>;asset:Awaited<ReturnType<typeof getAssetDetail>>;permissions:Record<string,boolean>}) {
+export function AssetMaintenanceDetailPanel({data,asset,permissions,compact=false, hideUpdate=false}:{compact?:boolean;hideUpdate?:boolean;data:NonNullable<Awaited<ReturnType<typeof getAssetMaintenanceDetail>>>;asset:Awaited<ReturnType<typeof getAssetDetail>>;permissions:Record<string,boolean>}) {
  const request=data.request,id=request.id,location=data.location;
  return <div className="min-w-0 space-y-3">
   <section className="sb-work-surface p-3"><header className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="text-base font-semibold">{asset?.asset.item_name ?? "Maintenance request"}</h2><p className="mt-0.5 text-xs text-muted-foreground">{asset?.asset.asset_code} · {location?.source_name ?? "Location not recorded"}</p></div>{request.asset_id ? <Link href={`/asset-management/assets/${request.asset_id}`} aria-label="Open asset" title="Open asset" className="inline-flex size-9 shrink-0 items-center justify-center rounded hover:bg-muted"><ArrowUpRight className="size-4" aria-hidden="true"/></Link>:null}</header>
   {!compact ? <div className="mt-2 flex gap-2"><StatusBadge status={(request.status??"unknown").toLowerCase()}/><AssetPriorityBadge priority={request.priority}/></div>:null}
   <p className="mt-3 whitespace-pre-wrap break-words text-sm">{request.description ?? "No description recorded."}</p>
   <dl className="mt-3 grid gap-2 rounded-lg bg-[var(--sb-surface-muted)] p-3 text-sm"><div><dt className="text-xs text-muted-foreground">Submitted by</dt><dd className="font-medium">{request.author_name ?? "Unknown author"}</dd></div><div><dt className="text-xs text-muted-foreground">Reference</dt><dd className="break-all text-xs">{request.source_id}</dd></div></dl>
-  {permissions["assets.maintenance"] ? <AssetMaintenanceUpdate key={id} requestKey={randomUUID()} requestId={id} status={request.status ?? "Open"} canManage={permissions["assets.manage"]}/>:null}</section>
+  {!hideUpdate && permissions["assets.maintenance"] ? <AssetMaintenanceUpdate key={id} requestKey={randomUUID()} requestId={id} status={request.status ?? "Open"} canManage={permissions["assets.manage"]}/>:null}</section>
     <section className="sb-work-surface p-3"><h2 className="mb-3 text-sm font-semibold">Update history · {data.total}</h2>{!data.total ? <p className="mt-3 text-sm text-muted-foreground">No updates yet.</p> : null}<ol className="divide-y">{data.history.map(update => <li className="min-w-0 py-3" key={update.id}>
       <p className="break-words text-xs text-muted-foreground">{formatDateOnly(String(update.source_data["Update Date"] ?? update.created_at).replace(" ", "T"), "Date not recorded")} · {update.author_name}</p>
       <p className="mt-1 break-words text-sm font-medium">{String(update.source_data["Update Type"] ?? "Maintenance update")}</p>

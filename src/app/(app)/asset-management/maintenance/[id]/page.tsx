@@ -1,3 +1,6 @@
+import { randomUUID } from "node:crypto";
+import { ConsoleSection } from "@/components/layout/right-console";
+import { AssetMaintenanceUpdate } from "@/components/asset-maintenance-form";
 import { AssetMaintenanceDetailPanel } from "@/components/asset-maintenance-detail-panel";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -14,8 +17,11 @@ export default async function MaintenanceDetail({ params, searchParams }: { para
   if (!data) notFound();
   const request = data.request;
   const asset = request.asset_id ? await getAssetDetail(request.asset_id) : null;
-  return <><PageHeader title={asset?.asset.item_name ?? "Maintenance request"} /><WorkspaceGrid hideDesktopConsole hideMobileConsole>
-    <AssetMaintenanceDetailPanel data={data} asset={asset} permissions={permissions}/>
+  return <><PageHeader title={asset?.asset.item_name ?? "Maintenance request"} /><WorkspaceGrid tabletRailMode="split" rightRail={<>
+    <ConsoleSection title="Actions">{permissions["assets.maintenance"] ? <AssetMaintenanceUpdate requestKey={randomUUID()} requestId={id} status={request.status ?? "Open"} canManage={permissions["assets.manage"]}/> : <p className="text-xs text-muted-foreground">You have read-only access to this request.</p>}</ConsoleSection>
+    <ConsoleSection title="Next Step"><p className="text-xs text-muted-foreground">Add a work note before saving an update. Attach repair photos in the attachments section.</p></ConsoleSection>
+  </>}>
+    <AssetMaintenanceDetailPanel hideUpdate data={data} asset={asset} permissions={permissions}/>
     {data.total > 50 ? <nav className="flex justify-between text-sm" aria-label="Maintenance history pages">{page > 1 ? <Link className="min-h-11 py-3 underline" href={`?page=${page - 1}`}>Previous</Link> : <span/>}{page * 50 < data.total ? <Link className="min-h-11 py-3 underline" href={`?page=${page + 1}`}>Next</Link> : null}</nav> : null}
   </WorkspaceGrid></>;
 }

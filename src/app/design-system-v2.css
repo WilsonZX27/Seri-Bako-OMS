@@ -2668,7 +2668,7 @@ html[data-design-layer="v2"] details.sb-work-surface:not([open]) > summary { hei
 .sb-dialog-actions > * { width: 100%; min-width: 0; }
 [data-modal-shell] .sb-dialog-actions, dialog .sb-dialog-actions { margin-top: 16px; }
 
-html[data-design-layer="v2"] .sb-workspace-tabs > a { height: 36px; min-height: 36px !important; }
+html[data-design-layer="v2"] .sb-workspace-tabs > a { height: 44px; min-height: 44px !important; }
 @media (min-width: 1024px) {
   .sb-maintenance-split:has(> div:nth-child(2)) > div:first-child { position: relative; min-height: 0; }
   .sb-maintenance-split:has(> div:nth-child(2)) > div:first-child > section { position: absolute; inset: 0; display: flex; flex-direction: column; }
@@ -2696,3 +2696,17 @@ html[data-design-layer="v2"] .sb-table-region { scrollbar-width: thin; scrollbar
 html[data-design-layer="v2"] .sb-table-region::-webkit-scrollbar { display: block; height: 8px; }
 html[data-design-layer="v2"] .sb-table-region::-webkit-scrollbar-thumb { background: var(--sb-border); border-radius: var(--sb-control-radius); }
 @media (prefers-reduced-motion: reduce) { .sb-pr-basket-sheet { animation: none; } }
+
+/* Date-only query rows reserve a full touch target and fixed inter-control gaps. */
+@media (max-width: 1023px) {
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-row:has(> .unified-list-date-control):not(:has(.unified-list-search-submit)) {
+    grid-template-columns: minmax(0, 200px) 44px minmax(3rem, 1fr);
+    gap: 8px;
+  }
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-row:has(> .unified-list-date-control) .unified-list-filter-trigger { width: 44px; min-width: 44px; }
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-row:has(> .unified-list-date-control) .unified-list-result { justify-self: end; }
+}
+
+@media (max-width: 1023px) {
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-filter-trigger { width: 44px; min-width: 44px; }
+}

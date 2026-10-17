@@ -468,7 +468,7 @@ export function StockCountForm({
               <div className="hidden min-w-0 items-center justify-between gap-3 rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-3 md:flex" aria-live="polite">
                 <div className="min-w-0">
                   <p className={`text-xs font-medium ${autosaveState === "error" ? "text-destructive" : autosaveState === "saved" ? "text-[var(--sb-green-900)]" : "text-muted-foreground"}`} title={autosaveError || autosaveLabel}>{autosaveLabel}</p>
-                  <p className="text-xs text-muted-foreground">{completedCount} of {lines.length} counted · {adjustedCount} adjusted</p>
+                  <p className="text-xs text-muted-foreground">{completedCount} of {lines.length} counted · {adjustedCount} edited this session</p>
                 </div>
                 <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{countComplete ? "Ready to save" : `${needsPhysicalCount} need${needsPhysicalCount === 1 ? "s" : ""} a physical count`}</span>
               </div>
@@ -515,14 +515,14 @@ export function StockCountForm({
               }}
             >
               <ListFilter className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline">{showMissingOnly || showAdjustedOnly ? "Show all items" : `Show adjusted (${adjustedCount})`}</span>
+              <span className="hidden sm:inline">{showMissingOnly || showAdjustedOnly ? "Show all items" : `Show edited (${adjustedCount})`}</span>
               <span className="text-xs tabular-nums sm:hidden">{showMissingOnly ? `Missing ${needsPhysicalCount}` : showAdjustedOnly ? "All" : adjustedCount}</span>
             </button>
           </div>
 
           <div className="flex min-w-0 items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface)] px-4 py-2 text-xs" role="status" aria-live="polite">
             <p className="min-w-0 text-muted-foreground"><strong className="font-semibold text-foreground">{visibleLines.length}</strong> items shown</p>
-            <p className="shrink-0 tabular-nums text-muted-foreground"><strong className="font-semibold text-foreground">{adjustedCount}</strong> adjusted</p>
+            <p className="shrink-0 tabular-nums text-muted-foreground"><strong className="font-semibold text-foreground">{adjustedCount}</strong> edited</p>
           </div>
 
           <div className="hidden" aria-hidden="true">
@@ -548,7 +548,7 @@ export function StockCountForm({
               <p className="text-xs text-right font-semibold">Variance</p>
               <p className="text-xs font-semibold">Count</p>
             </div>
-            <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-2 p-2 lg:block lg:divide-y lg:gap-0 lg:p-0">
+            <div className="grid grid-cols-2 gap-2 p-2 lg:block lg:divide-y lg:gap-0 lg:p-0">
               {visibleLines.map((line, visibleIndex) => {
                 const displayIndex = visibleIndex + 1;
                 const hasPhysical = line.physicalQty.trim() !== "";
@@ -650,7 +650,7 @@ export function StockCountForm({
 
           {showSubmit ? (
             <div
-              data-mobile-document-action
+              data-mobile-document-action data-stock-count-save-bar
               className="sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t border-[var(--sb-border)] bg-[var(--sb-surface)] p-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgb(6_44_31_/_0.16)] md:hidden"
             >
               <div className="flex min-w-0 flex-1 flex-col items-start gap-0">
@@ -663,7 +663,7 @@ export function StockCountForm({
                   {autosaveLabel}
                 </span>
                 <span className="text-sm font-semibold tabular-nums">{completedCount} of {lines.length} counted</span>
-                <span className="text-xs tabular-nums text-muted-foreground">{needsPhysicalCount ? `${needsPhysicalCount} remaining` : `${adjustedCount} adjusted`}{autosaveError ? ` · ${autosaveError}` : ""}</span>
+                <span className="text-xs tabular-nums text-muted-foreground">{needsPhysicalCount ? `${needsPhysicalCount} remaining` : `${adjustedCount} edited this session`}{autosaveError ? ` · ${autosaveError}` : ""}</span>
               </div>
               <SubmitButton type="submit" className="h-12 w-auto min-w-32 shrink-0 px-5" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Save draft</SubmitButton>
             </div>

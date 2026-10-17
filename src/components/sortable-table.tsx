@@ -60,7 +60,7 @@ export function PaginationControls({
         : [1, -1, page - 1, page, page + 1, -1, totalPages];
   const preservedParams = Object.entries(searchParams).filter(([key, value]) => key !== "page" && value && value !== "all");
   const pageJump = (
-    <form method="get" className="inline-flex h-[var(--sb-control-height)] items-center rounded-[var(--sb-radius-control)] border bg-card px-1.5" aria-label="Go to page">
+    <form method="get" data-page-jump className="inline-flex h-[var(--sb-control-height)] items-center px-1.5" aria-label="Go to page">
       {preservedParams.map(([key, value]) => <input key={key} type="hidden" name={key} value={value} />)}
       <input
         type="number"
@@ -69,7 +69,7 @@ export function PaginationControls({
         max={totalPages}
         defaultValue={page}
         aria-label={`Page number, 1 to ${totalPages}`}
-        className="h-9 w-10 border-0 bg-transparent p-0 text-center text-xs font-semibold tabular-nums outline-none"
+        className="h-9 w-10 border-0 bg-transparent p-0 text-center text-xs font-normal tabular-nums outline-none"
       />
       <span className="px-0.5 text-xs text-muted-foreground">/ {totalPages}</span>
     </form>

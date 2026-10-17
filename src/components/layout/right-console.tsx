@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { createPortal } from "react-dom";
-import { PanelRight, Plus, X } from "lucide-react";
+import { Ellipsis, Plus, X } from "lucide-react";
 import { Children, cloneElement, createContext, isValidElement, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { MouseEvent, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
@@ -199,12 +199,11 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
           <Plus className="h-6 w-6" aria-hidden="true" />
         </Link>
       ) : null}
-      {content && hasCreateFab ? <Button ref={triggerRef} type="button" variant="outline" data-mobile-secondary-actions className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-20 z-[var(--sb-z-sticky)] h-14 gap-2 rounded-full bg-white px-4 shadow-sm md:hidden" onClick={() => setOpen(true)} aria-label="Open more actions" aria-haspopup="dialog" aria-expanded={open}><PanelRight className="h-4 w-4" aria-hidden="true"/>More actions</Button> : null}
-      {content && !mobileBarHidden && !hasCreateFab ? <div data-mobile-action-bar className={cn("sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] items-center gap-2 rounded-none border-x-0 border-b-0 bg-white/95 p-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_20px_rgba(17,30,22,0.2)]", "grid", primaryAction ? "grid-cols-2" : "grid-cols-1", "md:hidden xl:hidden")}>
+      {content && hasCreateFab ? <Button ref={triggerRef} type="button" variant="outline" data-mobile-secondary-actions className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-20 z-[var(--sb-z-sticky)] h-11 w-11 gap-2 rounded-[var(--sb-control-radius)] bg-white p-0 shadow-sm md:hidden" onClick={() => setOpen(true)} aria-label="Open more actions" aria-haspopup="dialog" aria-expanded={open}><Ellipsis className="h-5 w-5" aria-hidden="true"/></Button> : null}
+      {content && !mobileBarHidden && !hasCreateFab ? <div data-mobile-action-bar data-compact-more={primaryAction ? "true" : undefined} className={cn("sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] items-center gap-2 rounded-none border-x-0 border-b-0 bg-white/95 p-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_20px_rgba(17,30,22,0.2)]", "grid", primaryAction ? "grid-cols-2" : "grid-cols-1", "md:hidden xl:hidden")}>
         {primaryAction ? <div data-mobile-primary-slot className="min-w-0 [&>*]:h-11 [&>*]:w-full">{primaryAction}</div> : null}
         <Button ref={triggerRef} type="button" variant={primaryAction ? "outline" : "default"} className="h-11 min-w-0 w-full justify-center gap-2" onClick={() => setOpen(true)} aria-label="Open more actions" aria-haspopup="dialog" aria-expanded={open}>
-          <PanelRight className="h-4 w-4" aria-hidden="true" />
-          {primaryAction ? "More" : "More actions"}
+          <Ellipsis className="h-5 w-5" aria-hidden="true" />
         </Button>
       </div> : null}
       {open && content && (!mobileBarHidden || hasCreateFab) ? createPortal(

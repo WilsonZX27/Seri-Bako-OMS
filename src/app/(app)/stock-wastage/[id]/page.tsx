@@ -1,3 +1,4 @@
+import { Check, X, Trash2 } from "lucide-react";
 import { AlertTriangle } from "lucide-react";
 import { DocumentActionBar, DocumentActionForm } from "@/components/document-action-bar";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
@@ -40,9 +41,9 @@ export default async function StockWastageDetailPage({ params }: { params: Promi
           <DocumentSideSection title="Primary Action" description="Post only after the wastage lines and evidence are checked.">
             {canAct ? (
               <DocumentActionBar>
-                <DocumentActionForm action={postStockWastage.bind(null, wastage.id)} pendingLabel="Posting...">Post wastage</DocumentActionForm>
-                <DocumentActionForm action={rejectStockWastage.bind(null, wastage.id)} pendingLabel="Rejecting..." variant="destructive">Reject</DocumentActionForm>
-                <DocumentActionForm action={cancelStockWastage.bind(null, wastage.id)} pendingLabel="Deleting draft..." variant="destructive">Delete draft</DocumentActionForm>
+                <DocumentActionForm action={postStockWastage.bind(null, wastage.id)} pendingLabel="Posting..."><Check className="size-4 shrink-0" aria-hidden="true" />Post wastage</DocumentActionForm>
+                <DocumentActionForm action={rejectStockWastage.bind(null, wastage.id)} pendingLabel="Rejecting..." variant="destructive"><X className="size-4 shrink-0" aria-hidden="true" />Reject</DocumentActionForm>
+                <DocumentActionForm action={cancelStockWastage.bind(null, wastage.id)} pendingLabel="Deleting draft..." variant="destructive"><Trash2 className="size-4 shrink-0" aria-hidden="true" />Delete draft</DocumentActionForm>
               </DocumentActionBar>
             ) : (
               <BlockedDestructiveAction buttonLabel="Delete wastage" title={`Cannot delete ${wastage.wastage_no}`} description="Posted wastage has stock-impacting ledger rows." recommendation="Use a controlled stock correction; physical deletion is prohibited." />
@@ -50,7 +51,7 @@ export default async function StockWastageDetailPage({ params }: { params: Promi
           </DocumentSideSection>
           {evidenceMissing ? (
             <DocumentSideSection title="Attachment Recommended">
-              <div className="flex gap-2 rounded-md bg-warning/10 p-3 text-sm text-warning">
+              <div className="flex items-start gap-2 text-xs font-normal leading-5 text-muted-foreground">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                 Add a photo when available for audit support.
               </div>
@@ -70,12 +71,12 @@ export default async function StockWastageDetailPage({ params }: { params: Promi
       <Card>
         <CardContent className="space-y-4 p-5">
           <h2 className="text-sm font-semibold">Wastage Summary</h2>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="sb-inventory-summary grid gap-4 md:grid-cols-3">
             <div><p className="text-xs uppercase text-muted-foreground">Date</p><p className="font-medium">{formatDateOnly(wastage.wastage_date)}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{wastage.branch_name ?? "-"}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Reason</p><p className="font-medium capitalize">{wastage.reason.replaceAll("_", " ")}</p></div>
           </div>
-          {wastage.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{wastage.remarks}</p> : null}
+          {wastage.remarks ? <p className="rounded-md bg-secondary/35 p-3 text-sm">{wastage.remarks}</p> : null}
         </CardContent>
       </Card>
 

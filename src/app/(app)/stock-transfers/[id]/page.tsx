@@ -1,3 +1,4 @@
+import { Send, Check, X, Trash2 } from "lucide-react";
 import { DocumentActionBar, DocumentActionForm } from "@/components/document-action-bar";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
@@ -36,7 +37,7 @@ export default async function StockTransferDetailPage({ params }: { params: Prom
   const canAct = canStart || canPost;
   const receiveLines = lines.map((line) => ({ id: line.id, item_id: line.item_id, item_name: line.item?.item_name ?? line.item_id, item_code: line.item?.item_code, quantity: line.quantity, received_quantity: line.received_quantity ?? 0, uom: line.uom }));
   const deleteControl = <BlockedDestructiveAction buttonLabel="Delete transfer" title={`Cannot delete ${transfer.transfer_no}`} description="Completed transfers preserve stock integrity." recommendation="Use a controlled compensating transfer or correction; physical deletion is prohibited." />;
-  const secondaryActions = canReject || canCancel ? <div className="space-y-2">{canReject ? <DocumentActionForm action={rejectStockTransfer.bind(null, transfer.id)} pendingLabel="Rejecting..." variant="destructive">Reject transfer</DocumentActionForm> : null}{canCancel ? <DocumentActionForm action={cancelStockTransfer.bind(null, transfer.id)} pendingLabel="Deleting unposted transfer..." variant="destructive">Delete unposted transfer</DocumentActionForm> : null}{transfer.status !== "draft" && !canCancel ? deleteControl : null}</div> : deleteControl;
+  const secondaryActions = canReject || canCancel ? <div className="space-y-2">{canReject ? <DocumentActionForm action={rejectStockTransfer.bind(null, transfer.id)} pendingLabel="Rejecting..." variant="destructive"><X className="size-4 shrink-0" aria-hidden="true" />Reject transfer</DocumentActionForm> : null}{canCancel ? <DocumentActionForm action={cancelStockTransfer.bind(null, transfer.id)} pendingLabel="Deleting unposted transfer..." variant="destructive"><Trash2 className="size-4 shrink-0" aria-hidden="true" />Delete unposted transfer</DocumentActionForm> : null}{transfer.status !== "draft" && !canCancel ? deleteControl : null}</div> : deleteControl;
 
   return (
     <DocumentWorkspace
@@ -46,7 +47,7 @@ export default async function StockTransferDetailPage({ params }: { params: Prom
       status={transfer.status}
       workflowSteps={transferSteps}
       currentStatus={transfer.status}
-      mobilePrimaryAction={canStart ? <DocumentActionForm action={startStockTransfer.bind(null, transfer.id)} pendingLabel="Reserving...">Send to destination</DocumentActionForm> : canPost ? <SubmitButton form="stock-transfer-receive-form" pendingLabel="Receiving...">Confirm receipt</SubmitButton> : null}
+      mobilePrimaryAction={canStart ? <DocumentActionForm action={startStockTransfer.bind(null, transfer.id)} pendingLabel="Reserving..."><Send className="size-4 shrink-0" aria-hidden="true" />Send to destination</DocumentActionForm> : canPost ? <SubmitButton form="stock-transfer-receive-form" pendingLabel="Receiving..."><Check className="size-4 shrink-0" aria-hidden="true" />Confirm receipt</SubmitButton> : null}
       mobileActivity={bundle ? <><AttachmentPanel documentId={bundle.document.id} attachments={bundle.attachments} /><CommentsPanel documentId={bundle.document.id} comments={bundle.comments} /><DocumentTimeline document={bundle.document} activities={bundle.activityLogs} comments={bundle.comments} attachments={bundle.attachments} /></> : null}
       mobileMoreOptions={<DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions>}
       sidePanel={
@@ -54,8 +55,8 @@ export default async function StockTransferDetailPage({ params }: { params: Prom
           <DocumentActionSection description="Send reserves source stock; destination confirmation posts only the quantity actually received." moreOptions={secondaryActions}>
             {canAct ? (
               <DocumentActionBar>
-                {canStart ? <DocumentActionForm action={startStockTransfer.bind(null, transfer.id)} pendingLabel="Moving...">Move to In Transit</DocumentActionForm> : null}
-                {canPost ? <SubmitButton form="stock-transfer-receive-form" pendingLabel="Receiving...">Confirm receipt</SubmitButton> : null}
+                {canStart ? <DocumentActionForm action={startStockTransfer.bind(null, transfer.id)} pendingLabel="Moving..."><Send className="size-4 shrink-0" aria-hidden="true" />Move to In Transit</DocumentActionForm> : null}
+                {canPost ? <SubmitButton form="stock-transfer-receive-form" pendingLabel="Receiving..."><Check className="size-4 shrink-0" aria-hidden="true" />Confirm receipt</SubmitButton> : null}
               </DocumentActionBar>
             ) : (
               <p className="text-xs text-muted-foreground">This transfer is read-only in its current state.</p>
@@ -87,12 +88,12 @@ export default async function StockTransferDetailPage({ params }: { params: Prom
       <Card>
         <CardContent className="space-y-4 p-5">
           <h2 className="text-sm font-semibold">Transfer Summary</h2>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="sb-inventory-summary grid gap-4 md:grid-cols-3">
             <div><p className="text-xs uppercase text-muted-foreground">Date</p><p className="font-medium">{formatDateOnly(transfer.transfer_date)}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">From</p><p className="font-medium">{transfer.from_branch_name}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">To</p><p className="font-medium">{transfer.to_branch_name}</p></div>
           </div>
-          {transfer.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{transfer.remarks}</p> : null}
+          {transfer.remarks ? <p className="rounded-md bg-secondary/35 p-3 text-sm">{transfer.remarks}</p> : null}
         </CardContent>
       </Card>
 

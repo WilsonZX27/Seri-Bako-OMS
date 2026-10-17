@@ -19,7 +19,7 @@ test("purchase request lines use one responsive control geometry and no duplicat
   assert.match(form, /h-\[var\(--sb-control-height\)\][\s\S]*w-10/);
   const design = read("src", "app", "design-system-v2.css");
   assert.match(design, /#purchase-request-form \[data-purchase-request-line\] :where\(input, select, button\)[\s\S]*height: var\(--sb-control-height\) !important/);
-  assert.doesNotMatch(design, /data-purchase-request-line\] \{[\s\S]*grid-template-columns/);
+  assert.doesNotMatch(design, /data-purchase-request-line\] \{[^}]*grid-template-columns/);
   assert.match(design, /sb-list-filters--equal-controls > \.sb-filter-more > summary[\s\S]*width: 100% !important/);
   assert.match(detail, /saveDraftAction/);
   assert.match(detail, /saveDraftAction \|\| canRequesterWithdraw \|\| canCancel/);

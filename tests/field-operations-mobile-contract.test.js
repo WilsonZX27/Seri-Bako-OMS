@@ -333,9 +333,9 @@ test("stock adjustments use a flat phone setup and keep quantity before cost and
   const source = read("src/components/stock-transaction-form.tsx");
 
   assert.match(source, /data-stock-transaction-setup/);
-  assert.match(source, /label="Quantity in Base Unit" className="order-2"/);
-  assert.match(source, /label="Unit Cost" className="order-3"/);
-  assert.match(source, /className="order-4 md:col-span-3"/);
+  assert.match(source, /Quantity · \$\{unit\}[\s\S]*className="order-2"/);
+  assert.match(source, /label="Unit cost · RM" className="order-3"/);
+  assert.match(source, /className="order-4 col-span-2 md:col-span-3"/);
 });
 
 test("costing readiness reports use severity-first phone issue rows", () => {

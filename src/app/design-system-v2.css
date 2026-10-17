@@ -2743,3 +2743,16 @@ html[data-design-layer="v2"] [data-inset-surface] {
 @media (max-width: 359px) {
   html[data-design-layer="v2"] [data-purchase-request-line] { padding-inline: .5rem; }
 }
+
+/* Inventory review: readable label/value summaries and compact overflow actions. */
+@media (max-width: 767px) {
+ html[data-design-layer="v2"] .sb-inventory-summary > div { display:grid; grid-template-columns:minmax(0, 2fr) minmax(0, 3fr); align-items:start; gap:.75rem; }
+ html[data-design-layer="v2"] .sb-inventory-summary > div > :first-child { text-transform:none; font-size:.75rem; }
+ html[data-design-layer="v2"] .sb-inventory-summary > div > :last-child { min-width:0; text-align:right; overflow-wrap:anywhere; font-size:.8125rem; font-weight:500; }
+ html[data-design-layer="v2"] [data-mobile-action-bar][data-compact-more="true"] { grid-template-columns:minmax(0,1fr) 2.75rem !important; }
+ html[data-design-layer="v2"] .sb-inventory-list-surface { background:var(--sb-surface); border:1px solid var(--sb-border-soft); border-radius:var(--sb-panel-radius); }
+ html[data-design-layer="v2"] [data-stock-count-save-bar].sb-mobile-action-bar { grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important; }
+}
+
+html[data-design-layer="v2"] [data-page-jump], html[data-design-layer="v2"] [data-page-jump] input { box-shadow:none; background:transparent; border:0; font-weight:400; }
+@media(max-width:359px) { [data-stock-count-line] { padding-inline:.5rem; } [data-stock-count-line] input[name="line_physical_qty"] { min-width:0; } }

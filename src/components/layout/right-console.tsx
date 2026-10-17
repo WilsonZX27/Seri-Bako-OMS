@@ -42,7 +42,12 @@ function withoutMobilePrimaryAction(node: ReactNode): ReactNode {
   const mapped = Children.map(node, (child) => {
     if (!isValidElement<MobileActionProps>(child)) return child;
     if (isMobilePrimaryAction(child)) return null;
-    return cloneElement(child, {}, withoutMobilePrimaryAction(child.props.children));
+    const remaining = withoutMobilePrimaryAction(child.props.children);
+    if (child.type === "section" && "data-console-section" in child.props) {
+      const body = Children.toArray(remaining).at(-1);
+      if (isValidElement<MobileActionProps>(body) && Children.toArray(body.props.children).length === 0) return null;
+    }
+    return cloneElement(child, {}, remaining);
   });
   // Slot/asChild requires its original single-element shape, not a mapped array.
   return isValidElement(node) ? mapped?.[0] ?? null : mapped;
@@ -209,7 +214,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
       {open && content && (!mobileBarHidden || hasCreateFab) ? createPortal(
         <div className="fixed inset-0 z-[var(--sb-z-dialog)] md:hidden">
           <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={close} aria-label="Close more actions" />
-            <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[82dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">
+            <div data-bottom-sheet ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[82dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">
             <header className="flex h-12 items-center justify-between border-b px-3">
               <h2 id={titleId} className="text-sm font-semibold">More actions</h2>
               <Button type="button" variant="ghost" size="icon" onClick={close} aria-label="Close more actions"><X className="h-5 w-5" /></Button>

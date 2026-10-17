@@ -63,7 +63,7 @@ function MobileSheet({ label, title, children, danger = false, triggerClassName,
       {open && hydrated ? createPortal(
         <div className={cn("fixed inset-0 z-[var(--sb-z-dialog)]", hideAt === "xl" ? "xl:hidden" : "md:hidden")}>
           <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={() => setOpen(false)} aria-label={`Close ${title}`} />
-          <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">
+          <div data-bottom-sheet ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">
             <header className="flex min-h-12 items-center justify-between border-b px-3">
               <h2 id={titleId} className="text-[14px] font-semibold">{title}</h2>
               <Button type="button" variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label={`Close ${title}`}><X className="h-5 w-5" /></Button>

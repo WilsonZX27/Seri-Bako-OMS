@@ -2870,3 +2870,9 @@ html[data-design-layer="v2"] form.unified-list-header :where(.unified-list-prima
  html[data-design-layer="v2"] [data-purchase-request-line] .pr-line-uom { grid-column:3; }
  html[data-design-layer="v2"] [data-purchase-request-line] .pr-line-uom select { padding-inline:8px 24px; }
 }
+
+/* Shared bottom sheets clip their contents to the same top corner geometry. */
+html[data-design-layer="v2"] [data-bottom-sheet] { border-radius:var(--sb-panel-radius) var(--sb-panel-radius) 0 0; overflow:hidden; }
+html[data-design-layer="v2"] .unified-list-sheet-fields > :nth-last-child(1 of :not([aria-hidden="true"]):not([type="hidden"])):nth-child(odd of :not([aria-hidden="true"]):not([type="hidden"])) { grid-column:1 / -1; }
+/* Server-rendered console sections can arrive after primary-action extraction. */
+[data-mobile-console-content] [data-console-section]:has(> div:last-child:empty) { display:none; }

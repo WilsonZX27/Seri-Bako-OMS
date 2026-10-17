@@ -47,3 +47,9 @@ test('a page-header create FAB does not suppress secondary actions when the full
  assert.match(source,/open && content && \(!mobileBarHidden \|\| hasCreateFab\)/);
  assert.match(source,/content && !mobileBarHidden && hasCreateFab && primaryHref/);
 });
+test('extracted primary actions do not leave an empty rendered console section',()=>{
+ const section=React.createElement('section',{'data-console-section':true},React.createElement('div',null,React.createElement('h2',null,'Actions')),React.createElement('div',null,React.createElement('button',{'data-mobile-primary-action':true},'New branch')));
+ assert.equal(strip(section),null);
+ const summary=React.createElement('section',{'data-console-section':true},React.createElement('div',null,'Branch Summary'),React.createElement('div',null,React.createElement('p',null,'Total: 0')));
+ assert.match(renderToStaticMarkup(strip(summary)),/Total: 0/);
+});

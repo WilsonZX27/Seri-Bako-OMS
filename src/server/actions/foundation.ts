@@ -1125,9 +1125,12 @@ export async function updateDocumentSequence(id: string, formData: FormData) {
   await requirePermission("document_sequences.update");
   const actor = await requireActiveTenantActor();
   const payload = documentSequencePayload(formData, actor.companyId);
+  // Padding is not editable here; preserve the stored numbering width.
+  const updates: Partial<typeof payload> = { ...payload };
+  delete updates.padding;
   if (!isMockMode()) {
     const supabase = createAdminClient();
-    const { error } = await supabase.from("document_sequences").update(payload).eq("id", id).eq("company_id", actor.companyId);
+    const { error } = await supabase.from("document_sequences").update(updates).eq("id", id).eq("company_id", actor.companyId);
     if (error) throw new Error(error.message);
     await writeActivityLog({ entityType: "document_sequence", entityId: id, activityType: "updated", message: `Document sequence ${payload.document_type} updated` });
   }

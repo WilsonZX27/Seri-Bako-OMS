@@ -151,7 +151,7 @@ test("stock count sessions preserve workflow orientation throughout long entry l
 
 test("administration and import directories use the shared flat operational tool list", () => {
   assert.equal(fs.existsSync("src/components/category-card-grid.tsx"), false);
-  assert.match(administration, /<WorkspaceGrid tabletCanvas="contained">/);
+  assert.match(administration, /<WorkspaceGrid tabletCanvas="contained" hideMobileConsole rightRail=/);
   assert.match(importsIndex, /<WorkspaceGrid tabletCanvas="contained">/);
   assert.match(administration, /<OperationalToolList items=\{links\}/);
   assert.match(importsIndex, /<OperationalToolList items=\{items\}/);

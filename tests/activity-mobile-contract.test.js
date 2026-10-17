@@ -12,7 +12,8 @@ test("activity uses the shared compact operational list on phones", () => {
   assert.match(source, /data-activity-desktop-list className="hidden divide-y md:block"/);
 });
 
-test("activity only exposes the contextual mobile console after a row is selected", () => {
-  assert.match(source, /hideMobileConsole=\{!selected\}/);
+test("activity retains navigation and exposes selected context in the page", () => {
+  assert.match(source, /hideMobileConsole\s/);
+  assert.match(source, /aria-label="Selected activity details"/);
   assert.match(source, /href=\{`\/activity\?selected=\$\{activity\.id\}`\}/);
 });

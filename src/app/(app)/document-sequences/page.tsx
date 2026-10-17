@@ -1,3 +1,4 @@
+import { EmptyState } from "@/components/ui/empty-state";
 import { Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -59,10 +60,10 @@ export default async function DocumentSequencesPage({ searchParams }: { searchPa
                     <TableCell><Badge variant={sequence.status === "active" ? "success" : "secondary"}>{sequence.status}</Badge></TableCell>
                   </TableRow>
                 ))}
-                {!sequences.length ? <TableRow><TableCell colSpan={canUpdate ? 8 : 7} className="text-center text-muted-foreground">No document sequences found.</TableCell></TableRow> : null}
+                {!sequences.length ? <TableRow><TableCell colSpan={canUpdate ? 8 : 7} className="text-center text-muted-foreground"><EmptyState title={filtered ? "No sequences match these filters" : "No document sequences found"} description={filtered ? "Reset the filters or widen the search." : "Numbering sequences appear here after they are configured."} action={filtered ? { href: "/document-sequences", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
-            <OperationalList ariaLabel="Document sequences">{sequences.map((sequence) => <OperationalListRow key={sequence.id} href={canUpdate ? `/document-sequences/${sequence.id}` : undefined} label={`Open ${documentTypeLabel(sequence.document_type)}`} primary={documentTypeLabel(sequence.document_type)} status={<Badge variant={sequence.status === "active" ? "success" : "secondary"}>{sequence.status}</Badge>} secondary={`${sequence.prefix} · ${sequence.preview_number}`} detail={`Reset ${sequence.reset_frequency === "never" ? "never" : sequence.reset_frequency} · Current period ${sequence.preview_number.split("/")[1] ?? "Not applicable"}`} meta={`Next ${sequence.next_number}`} />)}{!sequences.length ? <div className="px-3 py-8 text-center text-sm text-muted-foreground">No document sequences found.</div> : null}</OperationalList>
+            <OperationalList ariaLabel="Document sequences">{sequences.map((sequence) => <OperationalListRow key={sequence.id} href={canUpdate ? `/document-sequences/${sequence.id}` : undefined} label={`Open ${documentTypeLabel(sequence.document_type)}`} primary={documentTypeLabel(sequence.document_type)} status={<Badge variant={sequence.status === "active" ? "success" : "secondary"}>{sequence.status}</Badge>} secondary={`${sequence.prefix} · ${sequence.preview_number}`} detail={`Reset ${sequence.reset_frequency === "never" ? "never" : sequence.reset_frequency} · Current period ${sequence.preview_number.split("/")[1] ?? "Not applicable"}`} meta={`Next ${sequence.next_number}`} />)}{!sequences.length ? <EmptyState title={filtered ? "No sequences match these filters" : "No document sequences found"} description={filtered ? "Reset the filters or widen the search." : "Numbering sequences appear here after they are configured."} action={filtered ? { href: "/document-sequences", label: "Reset filters" } : undefined} /> : null}</OperationalList>
           </div>
         </div>
       </WorkspaceGrid>

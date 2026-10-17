@@ -144,7 +144,7 @@ test("administration collection pages reuse the contained operational tool-list 
   const toolList = read("src", "components", "operational-tool-list.tsx");
 
   assert.match(imports, /<WorkspaceGrid tabletCanvas="contained">/);
-  assert.match(administration, /<WorkspaceGrid tabletCanvas="contained">/);
+  assert.match(administration, /<WorkspaceGrid tabletCanvas="contained" hideMobileConsole rightRail=/);
   assert.match(imports, /OperationalToolList/);
   assert.match(administration, /OperationalToolList/);
   assert.match(toolList, /divide-y divide-\[var\(--sb-border-soft\)\]/);

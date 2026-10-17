@@ -1,3 +1,4 @@
+import { MaintenanceReportDialog } from "@/components/maintenance-report-dialog";
 import { AssetMaintenanceDetailPanel } from "@/components/asset-maintenance-detail-panel";
 import { getAssetDetail, getAssetMaintenanceDetail } from "@/server/queries/assets";
 import { PaginationControls } from "@/components/sortable-table";
@@ -31,7 +32,7 @@ function SourceDetails({ data }: { data: Record<string, unknown> }) {
   return <details className="min-w-0"><summary className="min-h-11 cursor-pointer py-3 text-xs font-medium">Original details</summary><dl className="grid gap-x-6 gap-y-2 text-xs sm:grid-cols-2">{Object.entries(data).filter(([key, value]) => !key.startsWith("_") && value !== null && value !== "").map(([key, value]) => <div className="min-w-0" key={key}><dt className="text-muted-foreground">{key}</dt><dd className="break-words">{String(value)}</dd></div>)}</dl></details>;
 }
 
-export default async function AssetManagementPage({ searchParams }: { searchParams: Promise<{ view?: string; page?: string; q?: string; date?: string; status?: string; location?: string; sort?: string; category?: string; ticket?: string }> }) {
+export default async function AssetManagementPage({ searchParams }: { searchParams: Promise<{ report?: string; asset?: string; view?: string; page?: string; q?: string; date?: string; status?: string; location?: string; sort?: string; category?: string; ticket?: string }> }) {
   const params = await searchParams;
   const actor = await requireActiveTenantActor();
   const managementRole = canAccessAssetManagement(actor.roleCode);
@@ -60,7 +61,7 @@ export default async function AssetManagementPage({ searchParams }: { searchPara
         {view === "maintenance" || data.total > 50 ? <PaginationControls page={page} totalPages={Math.max(1,Math.ceil(data.total / 50))} totalRows={data.total} searchParams={{...params,view,sort}} resetScrollOnPageChange /> : null}
       </section>
   </>;
-  return <><PageHeader title="Asset Management" description="Assets, checks, maintenance and transfers." /><WorkspaceGrid rightRail={<>
+  return <>{params.report === "1" ? <MaintenanceReportDialog searchParams={Promise.resolve(params)}/> : null}<PageHeader title="Asset Management" description="Assets, checks, maintenance and transfers." /><WorkspaceGrid rightRail={<>
     <ConsoleSection title={availableTabs.find(tab=>tab.id===view)?.label ?? "Assets"} kind="action">
       {view === "overview" ? <><p>Check today’s outstanding locations and open requests in the main workspace.</p><Button asChild><Link href="/asset-management?view=checklist">Inspect a location</Link></Button></> : null}
       {view === "assets" && canManage ? <ConsoleActionLink href="/asset-management/assets/new" kind="create" primary>New asset</ConsoleActionLink> : null}

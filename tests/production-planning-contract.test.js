@@ -12,7 +12,7 @@ test("approval and operational dispatch have separate protected database entry p
   assert.match(migration, /create function public\.update_production_plan/);
   assert.match(migration, /create function public\.confirm_production_dispatch/);
   assert.match(read("src/server/auth/route-permissions.ts"), /"\/production\/planning": \["production_planning\.view"\]/);
-  assert.match(read("src/app/(app)/production/page.tsx"), /\/production\/planning/);
+  assert.match(read("src/app/(app)/production/jobs/page.tsx"), /\/production\/planning/);
 });
 test("draft scheduler cannot auto-approve or send retired kitchen emails", () => {
   const cron = read("src/app/api/cron/production-planning/route.ts");

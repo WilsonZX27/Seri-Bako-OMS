@@ -1185,7 +1185,7 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
   }
 
   html[data-design-layer="v2"] form.unified-list-header .unified-list-row--filter-only {
-    grid-template-columns: 44px minmax(0, auto);
+    grid-template-columns: 44px minmax(0, 1fr);
     justify-content: start;
   }
 
@@ -1199,6 +1199,7 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
 
   html[data-design-layer="v2"] form.unified-list-header .unified-list-row--filter-only .unified-list-result {
     grid-column: 2;
+    justify-self: end;
   }
 
   /* Outlet Daily Records combines a date primary control with a wide,
@@ -1281,9 +1282,9 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
     min-height: 44px;
     padding: 0;
     justify-content: center;
-    border-color: var(--sb-border);
-    background: var(--sb-surface-raised);
-    color: var(--sb-green-900);
+    border-color: var(--sb-green-900);
+    background: var(--sb-green-900);
+    color: white;
   }
 
   html[data-design-layer="v2"] form.unified-list-header .unified-list-inline-fields {

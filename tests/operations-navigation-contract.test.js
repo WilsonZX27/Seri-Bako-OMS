@@ -4,15 +4,15 @@ const fs = require("node:fs");
 
 const read = (file) => fs.readFileSync(file, "utf8");
 const nav = read("src/lib/information-architecture.ts");
-const production = read("src/app/(app)/production/page.tsx");
+const production = read("src/app/(app)/production/jobs/page.tsx");
 const reports = read("src/app/(app)/reports/page.tsx");
 const dashboard = read("src/components/dashboard-workspace.tsx");
 
 test("operations navigation keeps one clear path for each new operational page", () => {
   assert.match(nav, /href: "\/dashboard"/);
   assert.match(nav, /href: "\/outlet-daily-records"/);
-  assert.match(production, /href: "\/production\/planning"/);
-  assert.match(production, /href: "\/production\/variance"/);
+  assert.match(production, /href="\/production\/planning"/);
+  assert.match(production, /href="\/production\/variance"/);
   assert.match(reports, /href: "\/reports\/demand-trends"/);
   assert.doesNotMatch(reports, /\/production\/(planning|variance)/);
 });

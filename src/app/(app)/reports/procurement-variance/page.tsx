@@ -72,6 +72,7 @@ function ProcurementStageComparison({ row }: { row: VarianceRow }) {
 
 export default async function ProcurementVariancePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
+  const filtered = hasActiveFilters(filters);
   const rows = await measureServerOperation("route.procurement-variance.data", () => getProcurementVariance(filters)).catch((error) => {
     logServerError(error, { source: "page.procurementVariance.report" });
     return null;
@@ -160,7 +161,7 @@ export default async function ProcurementVariancePage({ searchParams }: { search
                   </TableRow>
                 ))}
                 {!rows.length ? (
-                  <TableRow><TableCell colSpan={10}><EmptyState title="No comparable procurement lines" description="Only existing PO, GRN, invoice, and supplier-item links are compared. No matches are inferred." /></TableCell></TableRow>
+                  <TableRow><TableCell colSpan={10}><EmptyState title="No comparable procurement lines" description={filtered ? "Reset the filters or widen the search." : "Only existing PO, GRN, invoice, and supplier-item links are compared. No matches are inferred."} action={filtered ? { href: "/reports/procurement-variance", label: "Reset filters" } : undefined} /></TableCell></TableRow>
                 ) : null}
               </TableBody>
             </Table>
@@ -178,7 +179,7 @@ export default async function ProcurementVariancePage({ searchParams }: { search
                   detail={<ProcurementStageComparison row={row} />}
                 />
               ))}
-              {!rows.length ? <EmptyState title="No comparable procurement lines" description="Only existing PO, GRN, invoice, and supplier-item links are compared. No matches are inferred." /> : null}
+              {!rows.length ? <EmptyState title="No comparable procurement lines" description={filtered ? "Reset the filters or widen the search." : "Only existing PO, GRN, invoice, and supplier-item links are compared. No matches are inferred."} action={filtered ? { href: "/reports/procurement-variance", label: "Reset filters" } : undefined} /> : null}
             </OperationalList>
           </section>
         </div>

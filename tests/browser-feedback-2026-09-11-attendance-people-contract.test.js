@@ -34,7 +34,7 @@ test("mobile scheduling retains bounded, aligned and state-specific actions", ()
   assert.match(css, /details\[open\] \[data-template-mobile-actions\][\s\S]*\[data-mobile-bottom-nav\]/);
   assert.doesNotMatch(css, /html:has\(\[data-template-mobile-actions\]\) \[data-mobile-bottom-nav\]/);
   assert.doesNotMatch(css, /\[data-schedule-planner\][^{]*\{\s*margin-inline:\s*-1rem/);
-  assert.match(css, /\[data-schedule-mobile-actions\][\s\S]*inset: auto 1rem/);
+  assert.match(css, /\[data-schedule-mobile-actions\],[\s\S]*\[data-template-mobile-actions\][\s\S]*inset: auto 0 0/);
 });
 
 test("schedule working-time tools expose quick states and an unambiguous span summary", () => {

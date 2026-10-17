@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePurchaseRequestGuidance } from "@/components/purchase-request-guidance";
 import { type FormEvent, useActionState, useEffect, useRef, useState } from "react";
 import { Building2, CalendarDays, ChevronDown, MapPin, MessageSquare, Minus, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -139,6 +140,15 @@ export function PurchaseRequestForm({
     return touched && (!line.itemSearch.trim() || !line.qty.trim() || !line.uom.trim());
   });
   const invalidQuantityLine = lines.find((line) => line.itemSearch.trim() && line.qty.trim() && (!Number.isFinite(Number(line.qty)) || Number(line.qty) <= 0));
+
+  usePurchaseRequestGuidance(
+    !branchId ? "Choose the request branch."
+      : !requestSupplierId ? "Choose one supplier for this purchase request."
+      : !hasRequestItem ? "Add at least one item before submitting this purchase request."
+      : incompleteEnteredLines.length ? "Complete the item, quantity and unit for each entered line."
+      : invalidQuantityLine ? "Enter a positive quantity for each request item."
+      : "Review the request details, then submit to Manager Review."
+  );
 
   function mappingsForLine(line: RequestLine) {
     return supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId && mapping.supplier_id === requestSupplierId);

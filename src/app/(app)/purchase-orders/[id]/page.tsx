@@ -69,7 +69,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
   const mobilePrimaryAction = order.status === "approved" && permissions["po.send"]
         ? <MobileTaskSheet label="Send to Supplier"><div className="space-y-3">{documentBundle ? <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supporting Attachments" uploadLabel="Upload" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /> : null}<DocumentActionForm action={sendPurchaseOrder.bind(null, order.id)} pendingLabel="Sending...">Send to Supplier</DocumentActionForm></div></MobileTaskSheet>
         : ["sent", "partial_received"].includes(order.status) && permissions["po.receive"]
-          ? receivingAction("Record Receiving & Attach DO")
+          ? receivingAction("Receive goods")
           : null;
 
   return (

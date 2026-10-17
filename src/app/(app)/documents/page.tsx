@@ -94,7 +94,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                     <TableCell className="text-center"><TableActionLink href={href} label={`Open ${document.document_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                     <TableCell><DocumentNumber value={document.document_no} size="sm" /></TableCell>
                     <TableCell>{formatStatusLabel(document.document_type)}</TableCell>
-                    <TableCell><StatusBadge status={getDocumentStageLabel(document)} /></TableCell>
+                    <TableCell><StatusBadge status={getDocumentStageLabel(document)} className="whitespace-normal" /></TableCell>
                     <TableCell>{document.created_by_name ?? "Unknown user"}</TableCell>
                     <TableCell>{formatDateTime(document.created_at).slice(0, 10)}</TableCell>
                     <TableCell>{formatDateTime(document.updated_at).slice(0, 10)}</TableCell>

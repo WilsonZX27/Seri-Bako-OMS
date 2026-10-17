@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -30,13 +31,13 @@ const invoiceSteps = [
 ];
 
 function PaymentForm({ invoiceId, balance, idempotencyKey }: { invoiceId: string; balance: number; idempotencyKey: string }) {
-  return <form action={recordSupplierInvoicePayment.bind(null, invoiceId)} className="grid gap-2">
+  return <form action={recordSupplierInvoicePayment.bind(null, invoiceId)} className="grid gap-3">
     <input type="hidden" name="idempotency_key" value={idempotencyKey} />
-    <Input name="payment_date" type="date" defaultValue={getToday()} required />
-    <Input name="amount" type="number" min="0.01" max={balance} step="0.01" placeholder={`Outstanding ${formatCurrency(balance)}`} required />
-    <Input name="payment_method" placeholder="Payment method" required />
-    <Input name="reference_no" placeholder="Reference" />
-    <Textarea name="notes" placeholder="Payment notes" />
+    <Field label="Payment date" required><Input name="payment_date" type="date" defaultValue={getToday()} required /></Field>
+    <Field label="Amount (RM)" required><Input name="amount" type="number" min="0.01" max={balance} step="0.01" placeholder={`Outstanding ${formatCurrency(balance)}`} required /></Field>
+    <Field label="Payment method" required><Input name="payment_method" placeholder="Payment method" required /></Field>
+    <Field label="Reference"><Input name="reference_no" placeholder="Reference" /></Field>
+    <Field label="Payment notes"><Textarea name="notes" placeholder="Payment notes" /></Field>
     <SubmitButton pendingLabel="Recording..." className="w-full justify-center">Record Payment</SubmitButton>
   </form>;
 }

@@ -24,7 +24,7 @@ test("procurement documents use focused mobile workflow and exact primary action
   assert.match(mobile, /mobileSheetOpen/);
   assert.match(mobile, /sb-dialog-backdrop/);
   assert.match(css, /\.sb-dialog-backdrop[\s\S]*backdrop-filter: blur/);
-  assert.match(mobile, /Step \{activeIndex \+ 1\} of \{steps\.length\}/);
+  assert.match(mobile, /\{activeIndex \+ 1\} \/ \{steps\.length\}/);
   assert.match(mobile, /title="Workflow progress"/);
   assert.doesNotMatch(mobile, />WORKFLOW</);
   assert.doesNotMatch(mobile, /grid w-full max-w-56/);

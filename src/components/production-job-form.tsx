@@ -139,7 +139,7 @@ export function ProductionJobForm({
           <Card>
             <CardHeader>
               <CardTitle>Ingredient Snapshot</CardTitle>
-              <CardDescription>Requirements are copied into the job so future recipe changes do not rewrite history.</CardDescription>
+              <CardDescription className="text-xs leading-5">Requirements are copied into the job so future recipe changes do not rewrite history.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {hasShortage ? (

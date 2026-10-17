@@ -1,4 +1,4 @@
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Send, PackageCheck } from "lucide-react";
 import { notFound } from "next/navigation";
 import { DocumentActionBar, DocumentActionForm, DocumentActionLink } from "@/components/document-action-bar";
 import { ActionErrorNotice } from "@/components/action-error-notice";
@@ -53,7 +53,7 @@ export default async function ProductionJobDetailPage({
   const hasPrimaryAction = canSubmit || canApprove || canPost;
   const deleteControl = <BlockedDestructiveAction buttonLabel="Delete production job" title={`Cannot delete ${job.production_job_no}`} description="Posted production has material consumption and output movements." recommendation="Posted jobs require a controlled stock correction; physical deletion is prohibited." />;
   const secondaryActions = canReject || canCancel ? <div className="space-y-2">{canReject ? <DestructiveActionDialog action={rejectProductionJob.bind(null, job.id)} label="Reject Production Job" title="Reject this production job?" description="The job will return for correction and cannot progress until resubmitted." pendingLabel="Rejecting..."><Input name="remarks" placeholder="Rejection remarks required" required /></DestructiveActionDialog> : null}{canCancel ? <DocumentActionForm action={cancelProductionJob.bind(null, job.id)} pendingLabel="Deleting unposted job..." variant="destructive">Delete unposted job</DocumentActionForm> : null}{job.status === "posted" ? deleteControl : null}</div> : deleteControl;
-  const mobilePrimaryAction = canSubmit ? <DocumentActionForm action={submitProductionJob.bind(null, job.id)} pendingLabel="Submitting...">Submit Production Job</DocumentActionForm> : canApprove ? <ConfirmActionForm action={approveProductionJob.bind(null, job.id)} label="Approve as Manager" title="Approve this production job as Manager?" description="This makes the production job ready to post to stock." pendingLabel="Approving..." mobilePrimary /> : canPost ? <DocumentActionForm action={postProductionJob.bind(null, job.id)} pendingLabel="Posting...">Post Production to Stock</DocumentActionForm> : null;
+  const mobilePrimaryAction = canSubmit ? <DocumentActionForm action={submitProductionJob.bind(null, job.id)} pendingLabel="Submitting..."><Send className="h-4 w-4" aria-hidden="true" />Submit Production Job</DocumentActionForm> : canApprove ? <ConfirmActionForm action={approveProductionJob.bind(null, job.id)} label="Approve as Manager" title="Approve this production job as Manager?" description="This makes the production job ready to post to stock." pendingLabel="Approving..." mobilePrimary /> : canPost ? <DocumentActionForm action={postProductionJob.bind(null, job.id)} pendingLabel="Posting..."><PackageCheck className="h-4 w-4" aria-hidden="true" />Post Production to Stock</DocumentActionForm> : null;
 
   return (
     <DocumentWorkspace
@@ -72,9 +72,9 @@ export default async function ProductionJobDetailPage({
         <>
           <DocumentActionSection description="Only valid next workflow actions are shown." moreOptions={secondaryActions}>
             <DocumentActionBar>
-              {canSubmit ? <DocumentActionForm action={submitProductionJob.bind(null, job.id)} pendingLabel="Submitting...">Submit Production Job</DocumentActionForm> : null}
+              {canSubmit ? <DocumentActionForm action={submitProductionJob.bind(null, job.id)} pendingLabel="Submitting..."><Send className="h-4 w-4" aria-hidden="true" />Submit Production Job</DocumentActionForm> : null}
               {canApprove ? <ConfirmActionForm action={approveProductionJob.bind(null, job.id)} label="Approve as Manager" title="Approve this production job as Manager?" description="This makes the production job ready to post to stock." pendingLabel="Approving..." mobilePrimary /> : null}
-              {canPost ? <DocumentActionForm action={postProductionJob.bind(null, job.id)} pendingLabel="Posting...">Post Production to Stock</DocumentActionForm> : null}
+              {canPost ? <DocumentActionForm action={postProductionJob.bind(null, job.id)} pendingLabel="Posting..."><PackageCheck className="h-4 w-4" aria-hidden="true" />Post Production to Stock</DocumentActionForm> : null}
             </DocumentActionBar>
             {!hasPrimaryAction ? <p className="text-sm text-muted-foreground">You can view this production job, but there is no workflow action available for your role or this status.</p> : null}
           </DocumentActionSection>
@@ -118,7 +118,7 @@ export default async function ProductionJobDetailPage({
       <Card>
         <CardContent className="space-y-4 p-5">
           <h2 className="text-sm font-semibold">Production Summary</h2>
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm md:grid-cols-4 [&>div]:min-w-0 [&_p]:break-words">
             <div><p className="text-xs uppercase text-muted-foreground">Production Date</p><p className="font-medium">{formatDateOnly(job.production_date)}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{job.branch_name ?? "-"}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Recipe</p><p className="font-medium">{job.recipe_no ?? "-"}</p></div>

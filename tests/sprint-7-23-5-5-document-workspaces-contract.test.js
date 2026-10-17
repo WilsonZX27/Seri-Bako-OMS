@@ -57,7 +57,7 @@ test("the shared shell gives iPad a contained canvas and an explicit operational
   assert.match(workspace, /data-mobile-document-action/);
   assert.match(workspace, /mobilePrimaryAction \?/);
   assert.match(workspace, /md:hidden/);
-  assert.match(sheets, /Step \{activeIndex \+ 1\} of \{steps\.length\}/);
+  assert.match(sheets, /\{activeIndex \+ 1\} \/ \{steps\.length\}/);
   assert.match(sheets, /title="Workflow progress"/);
   assert.doesNotMatch(sheets, />WORKFLOW</);
   assert.doesNotMatch(sheets, /grid w-full max-w-56/);

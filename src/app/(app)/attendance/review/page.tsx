@@ -393,7 +393,7 @@ export default async function AttendanceReviewPage({
             </h2>
             <StatusBadge status={attentionCount ? "attention" : "reviewed"} />
             <span className="ml-auto text-xs text-muted-foreground">
-              {review.total} results
+              {review.total} {review.total === 1 ? "result" : "results"}
             </span>
           </header>
           <TableScrollRegion label="Attendance results" className="hidden md:block">
@@ -460,16 +460,16 @@ export default async function AttendanceReviewPage({
                           ) : null}
                         </td>
                         <td className="px-3 py-3 tabular-nums">
-                          <span className="block text-[11px] text-muted-foreground">{time(row.scheduled_start)}</span>
-                          <strong className="block">{time(row.actual_first_in)}</strong>
+                          <strong className="block">Actual: {time(row.actual_first_in)}</strong>
+                          <span className="block text-[11px] text-muted-foreground">Scheduled: {time(row.scheduled_start)}</span>
                           {signedDuration(row.late_seconds, "late")}
                         </td>
                         <td className="px-3 py-3 tabular-nums">
                           {row.actual_break_out && row.actual_break_in ? <><strong className="block">{time(row.actual_break_out)}–{time(row.actual_break_in)}</strong><span className="block text-[11px] text-muted-foreground">{duration(row.break_seconds)}</span></> : duration(row.break_seconds)}
                         </td>
                         <td className="px-3 py-3 tabular-nums">
-                          <span className="block text-[11px] text-muted-foreground">{time(row.scheduled_end)}</span>
-                          <strong className="block">{time(row.actual_last_out)}</strong>
+                          <strong className="block">Actual: {time(row.actual_last_out)}</strong>
+                          <span className="block text-[11px] text-muted-foreground">Scheduled: {time(row.scheduled_end)}</span>
                           {Number(row.early_leave_seconds ?? 0) > 0
                             ? signedDuration(row.early_leave_seconds, "earlyLeave")
                             : signedDuration(actualOvertime, "ot")}

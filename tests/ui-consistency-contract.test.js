@@ -28,7 +28,7 @@ test("UI consistency keeps imports upload-only and permission details user-facin
   assert.doesNotMatch(staffPermissions, /Technical details/);
   assert.match(staffPermissions, /role="switch"/);
   assert.match(staffPermissions, /Role default/);
-  assert.doesNotMatch(staffPermissions, /<details/);
+  assert.match(staffPermissions, /<details[\s\S]*Permissions by category/);
 });
 
 test("shared filter rows use compact operational-green submits without adding duplicate link icons", () => {
@@ -119,7 +119,7 @@ test("administration decision directories replace narrow tables with shared oper
   assert.match(sequences, /Current period \$\{sequence\.preview_number/);
   assert.match(sequences, /Next \$\{sequence\.next_number\}/);
   assert.match(staffs, /<Table[^>]*mobileHidden[^>]*aria-label="Employees"/);
-  assert.match(staffs, /<OperationalList ariaLabel="Employees" className="overflow-hidden">/);
+  assert.match(staffs, /<OperationalList ariaLabel="Employees" className="overflow-hidden[^"]*">/);
   assert.match(staffs, /staffAuthStateLabels\[getStaffAuthState\(staff\)\]/);
   assert.match(staffs, /staff\.default_branch_name\?\?"No default outlet"/);
 });

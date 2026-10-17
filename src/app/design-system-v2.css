@@ -675,6 +675,7 @@ aside section > h2 {
 }
 
 [data-console-section] {
+  min-width: 0;
   position: relative;
 }
 
@@ -2749,11 +2750,33 @@ html[data-design-layer="v2"] [data-inset-surface] {
 html[data-design-layer="v2"] [data-page-jump], html[data-design-layer="v2"] [data-page-jump] input { box-shadow:none; background:transparent; border:0; font-weight:400; }
 @media(max-width:359px) { [data-stock-count-line] { padding-inline:.5rem; } [data-stock-count-line] input[name="line_physical_qty"] { min-width:0; } }
 
-/* One label/value row owns its height, including wrapped values. */
-@media (max-width: 767px) {
-  .sb-label-value-summary { grid-template-columns: minmax(0, 1fr); grid-auto-rows: 1fr; gap: 0; }
-  .sb-label-value-summary > div { grid-column: 1; display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); align-items: start; gap: .75rem; min-height: 2.75rem; padding-block: .25rem; }
-  .sb-label-value-summary > div > :first-child { text-transform: none; }
-  .sb-label-value-summary > div > :last-child { justify-self: end; text-align: right; min-width: 0; overflow-wrap: anywhere; }
-  .sb-asset-field-grid > label > span:first-child { min-height: 2rem; display: block; }
+/* Read-only summaries use natural-height label/value rows. */
+.sb-label-value-summary { display:grid; grid-template-columns:minmax(0,1fr); grid-auto-rows:auto; gap:.5rem; }
+.sb-label-value-summary > div:not(.hidden) { grid-column:1 / -1; display:grid; grid-template-columns:minmax(0,2fr) minmax(0,3fr); align-items:start; gap:.75rem; min-height:0; padding-block:0; }
+.sb-label-value-summary > div > :first-child { text-transform:none; }
+.sb-label-value-summary > div > :last-child { justify-self:end; text-align:right; min-width:0; overflow-wrap:anywhere; margin-top:0; }
+.sb-asset-field-grid > label { align-content:start; gap:.25rem; }
+.sb-asset-field-grid > label > span:first-child { min-height:0; display:block; }
+[data-console-section] button, [data-console-section] a { max-width:100%; min-width:0; white-space:normal; overflow-wrap:anywhere; height:auto; min-height:2.25rem; }
+[data-console-section] + [data-console-section] { margin-top:.75rem; }
+/* Semantic read-only description lists share the same label/value grammar. */
+#main-content dl:has(> div > dt) { display:grid; grid-template-columns:minmax(0,1fr); grid-auto-rows:auto; gap:.5rem; }
+#main-content dl > div:has(> dt + dd) { display:grid; grid-column:1 / -1; grid-template-columns:minmax(0,1fr) fit-content(60%); align-items:start; gap:.75rem; min-height:0; }
+#main-content dl > div > dd { min-width:0; margin-top:0; text-align:right; overflow-wrap:anywhere; }
+@media(min-width:640px) and (max-width:1279px) {
+ html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout] { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+ html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout="query"] > [data-query-control] { grid-column:1 !important; }
+ html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout] > :where(select,[data-select-control],.sb-status-filter,.sb-filter-more) { grid-row:auto !important; }
+ html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout] > .unified-list-desktop-actions > .unified-list-action { grid-column:2 !important; }
+ html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout] > .unified-list-desktop-actions > .unified-list-action[data-list-secondary-action="true"] { grid-row:3 !important; }
+ html[data-design-layer="v2"] form.sb-list-query-card[data-tablet-query-layout] > .unified-list-desktop-actions > .sb-filter-summary { grid-column:1 !important; grid-row:3 !important; justify-self:start; }
+ html[data-design-layer="v2"] form.sb-list-query-card [data-select-control], html[data-design-layer="v2"] form.sb-list-query-card .sb-status-filter { width:100% !important; min-width:0 !important; max-width:none !important; }
 }
+
+@media(max-width:767px) {
+ html[data-design-layer="v2"]:has([data-mobile-action-bar]) #main-content { padding-bottom:calc(7rem + env(safe-area-inset-bottom)) !important; scroll-padding-bottom:7rem; }
+ html[data-design-layer="v2"]:has([data-mobile-create-fab]) #main-content { padding-bottom:calc(10rem + env(safe-area-inset-bottom)) !important; }
+}
+
+html[data-design-layer="v2"] .sb-table-region > table.sb-stock-balance-table { min-width:48rem; }
+html[data-design-layer="v2"] table.sb-stock-balance-table > thead > tr > th { white-space:normal; overflow:visible; overflow-wrap:normal; }

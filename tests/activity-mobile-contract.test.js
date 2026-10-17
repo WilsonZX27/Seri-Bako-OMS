@@ -9,7 +9,7 @@ test("activity uses the shared compact operational list on phones", () => {
   assert.match(source, /<OperationalListRow/);
   assert.match(source, /primary=\{activity\.message\}/);
   assert.match(source, /secondary=\{messageIncludesActor \? activity\.entity_type : `\$\{actor\} · \$\{activity\.entity_type\}`\}/);
-  assert.match(source, /data-activity-desktop-list className="hidden divide-y md:block"/);
+  assert.match(source, /data-activity-desktop-list className="hidden divide-y xl:block"/);
 });
 
 test("activity retains navigation and exposes selected context in the page", () => {

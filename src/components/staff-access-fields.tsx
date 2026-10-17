@@ -64,11 +64,11 @@ export function StaffAccessFields({ branches, roles, access }: { branches: Branc
                   <button type="button" className="inline-flex min-h-9 items-center px-2 text-xs font-semibold text-[var(--sb-green-800)] hover:underline" onClick={() => setBranchIds(defaultBranchId ? [defaultBranchId] : [])}>Default only</button>
                 </div>
               </div>
-              <div className="grid gap-x-4 gap-y-1 md:grid-cols-2">
+              <div className="grid gap-x-4 gap-y-2 md:grid-cols-2">
               {availableBranches.map((branch) => {
                 const isDefault = branch.id === defaultBranchId;
                 return (
-                  <label key={branch.id} className="flex min-h-10 items-center gap-2 text-sm">
+                  <label key={branch.id} className="flex min-h-11 items-center gap-3 rounded-md bg-secondary/30 px-2 text-sm">
                     {isDefault ? <input type="hidden" name="accessible_branch_ids" value={branch.id} /> : null}
                     <input
                       type="checkbox"

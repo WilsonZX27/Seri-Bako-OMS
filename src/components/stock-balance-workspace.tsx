@@ -330,17 +330,17 @@ export function StockBalanceWorkspace({
             {Boolean(filters.search || filters.branch_id || filters.status || filters.supplier_id) ? <Button asChild variant="secondary"><Link href="/stock-balance">Reset</Link></Button> : null}
           </FilterBar>
           <div className="sb-list-content-card overflow-hidden">
-          <Table mobileHidden aria-label="Stock balances" stickyColumn="second">
+          <Table mobileHidden className="sb-stock-balance-table" aria-label="Stock balances" stickyColumn="second">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12 text-center">Action</TableHead>
                 <SortableHead label="Item Code" column="item_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Item Name" column="item_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <TableHead>Branch</TableHead>
-                <TableHead className="text-right">Available / Reserved</TableHead>
+                <TableHead className="text-right" title="Available / Reserved">Available / Reserved</TableHead>
                 <TableHead className="text-right">Current</TableHead>
-                <TableHead className="text-right">Avg Cost / Value</TableHead>
-                <TableHead>Last Movement</TableHead>
+                <TableHead className="text-right" title="Avg Cost / Value">Avg Cost / Value</TableHead>
+                <TableHead title="Last Movement">Last Movement</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>

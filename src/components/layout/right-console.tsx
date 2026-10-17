@@ -203,7 +203,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
       {content && !mobileBarHidden && !hasCreateFab ? <div data-mobile-action-bar data-compact-more={primaryAction ? "true" : undefined} className={cn("sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] items-center gap-2 rounded-none border-x-0 border-b-0 bg-white/95 p-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_20px_rgba(17,30,22,0.2)]", "grid", primaryAction ? "grid-cols-2" : "grid-cols-1", "md:hidden xl:hidden")}>
         {primaryAction ? <div data-mobile-primary-slot className="min-w-0 [&>*]:h-11 [&>*]:w-full">{primaryAction}</div> : null}
         <Button ref={triggerRef} type="button" variant={primaryAction ? "outline" : "default"} className="h-11 min-w-0 w-full justify-center gap-2" onClick={() => setOpen(true)} aria-label="Open more actions" aria-haspopup="dialog" aria-expanded={open}>
-          <Ellipsis className="h-5 w-5" aria-hidden="true" />
+          <Ellipsis className="h-5 w-5" aria-hidden="true" />{!primaryAction ? <span>More actions</span> : null}
         </Button>
       </div> : null}
       {open && content && (!mobileBarHidden || hasCreateFab) ? createPortal(

@@ -81,7 +81,7 @@ export default async function RecipeDetailPage({
         ) : null}
         <section aria-labelledby="recipe-summary" className="overflow-hidden rounded-[var(--sb-panel-radius)] border bg-card">
           <div className="px-4 py-3"><h2 id="recipe-summary" className="text-sm font-semibold">Recipe Summary</h2></div>
-          <dl className="grid grid-cols-6 xl:grid-cols-5">
+          <dl className="sb-label-value-summary px-4 pb-4">
             <div className="col-span-2 min-w-0 px-3 py-3 xl:col-span-1 [&:nth-child(-n+2)]:col-span-3 xl:[&:nth-child(-n+2)]:col-span-1"><dt className="text-xs text-muted-foreground">Version</dt><dd className="mt-1 font-mono text-sm font-semibold">v{recipe.version}</dd></div>
             <div className="col-span-2 min-w-0 px-3 py-3 xl:col-span-1 [&:nth-child(-n+2)]:col-span-3 xl:[&:nth-child(-n+2)]:col-span-1"><dt className="text-xs text-muted-foreground">Yield</dt><dd className="mt-1 break-words font-mono text-sm font-semibold">{formatNumber(recipe.yield_qty)} {recipe.yield_unit}</dd></div>
             <div className="col-span-2 min-w-0 px-3 py-3 xl:col-span-1 [&:nth-child(-n+2)]:col-span-3 xl:[&:nth-child(-n+2)]:col-span-1"><dt className="text-xs text-muted-foreground">Ingredient Cost</dt><dd className="mt-1 break-words font-mono text-sm font-semibold">{formatCurrency(recipe.total_ingredient_cost)}</dd></div>
@@ -92,7 +92,7 @@ export default async function RecipeDetailPage({
 
         <Card>
           <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2"><CardTitle>Recipe Details</CardTitle><div className="flex flex-wrap gap-2" aria-label="Recipe status and approval"><Badge variant={recipe.status === "active" ? "success" : recipe.status === "rejected" ? "danger" : "secondary"}>{recipe.status}</Badge><Badge variant={recipe.approval_status === "approved" ? "success" : recipe.approval_status === "rejected" ? "danger" : "secondary"}>{recipe.approval_status}</Badge></div></CardHeader>
-          <CardContent className="grid gap-4 text-sm md:grid-cols-4">
+          <CardContent className="sb-label-value-summary text-sm">
             <div>
               <p className="text-muted-foreground">Product</p>
               <p className="font-medium">{recipe.product_name}</p>

@@ -26,7 +26,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
             <>
               <ConsoleSection title="Selected Activity">
                 <div className="space-y-2 text-xs">
-                  <p className="text-xs font-medium">{selected.message}</p>
+
                   <div className="flex justify-between gap-3"><span className="text-muted-foreground">Actor</span><strong>{selected.created_by_name ?? "System"}</strong></div>
                   <div className="flex justify-between gap-3"><span className="text-muted-foreground">Type</span><strong>{selected.activity_type}</strong></div>
                   <div className="flex justify-between gap-3"><span className="text-muted-foreground">When</span><strong>{formatDateTime(selected.created_at)}</strong></div>
@@ -49,7 +49,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
           )
         }
       >
-        {selected ? <section className="sb-work-surface p-4 md:hidden" aria-label="Selected activity details"><h2 className="text-sm font-semibold">Selected activity</h2><p className="mt-2 text-sm">{selected.message}</p><dl className="mt-3 grid gap-2 text-xs"><div className="flex justify-between gap-3"><dt className="text-muted-foreground">Actor</dt><dd>{selected.created_by_name ?? "System"}</dd></div><div className="flex justify-between gap-3"><dt className="text-muted-foreground">Type</dt><dd>{selected.activity_type}</dd></div><div className="flex justify-between gap-3"><dt className="text-muted-foreground">When</dt><dd>{formatDateTime(selected.created_at)}</dd></div><div className="flex justify-between gap-3"><dt className="text-muted-foreground">Related</dt><dd>{selected.entity_type}</dd></div></dl>{selectedHref ? <Button asChild variant="outline" className="mt-3 w-full"><Link href={selectedHref}>Open record <ArrowRight className="size-4"/></Link></Button> : null}</section> : null}
+
         <div className="overflow-hidden rounded-[var(--sb-panel-radius)] border bg-card">
           <OperationalList ariaLabel="Recent activity" className="bg-card" >
             {activities.map((activity) => {
@@ -66,7 +66,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
             })}
             {!activities.length ? <div className="p-4 text-sm text-muted-foreground">No recent activity is available for your role.</div> : null}
           </OperationalList>
-          <div data-activity-desktop-list className="hidden divide-y md:block">
+          <div data-activity-desktop-list className="hidden divide-y xl:block">
               {activities.map((activity) => {
                 const href = activity.href || null;
                 const active = selected?.id === activity.id;
@@ -92,6 +92,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
               ) : null}
             </div>
         </div>
+        {selected ? <section className="sb-work-surface p-4 md:hidden" aria-label="Selected activity details"><h2 className="text-sm font-semibold">Selected activity</h2><dl className="mt-3 grid gap-2 text-xs"><div className="flex justify-between gap-3"><dt className="text-muted-foreground">Actor</dt><dd>{selected.created_by_name ?? "System"}</dd></div><div className="flex justify-between gap-3"><dt className="text-muted-foreground">Type</dt><dd>{selected.activity_type}</dd></div><div className="flex justify-between gap-3"><dt className="text-muted-foreground">When</dt><dd>{formatDateTime(selected.created_at)}</dd></div><div className="flex justify-between gap-3"><dt className="text-muted-foreground">Related</dt><dd>{selected.entity_type}</dd></div></dl>{selectedHref ? <Button asChild variant="outline" className="mt-3 w-full"><Link href={selectedHref}>Open record <ArrowRight className="size-4"/></Link></Button> : null}</section> : null}
       </WorkspaceGrid>
     </>
   );

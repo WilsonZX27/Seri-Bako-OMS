@@ -1,3 +1,4 @@
+import { salesChannels } from "@/lib/outlet-sales-channels";
 import { readCompletePages } from "@/server/queries/read-complete-pages";
 import { NextResponse } from "next/server";
 import { rowsToCsv } from "@/server/backup/export";
@@ -46,7 +47,7 @@ export async function GET(request: Request) {
     const staffNames = new Map((staffResult.data ?? []).map((row) => [row.id, row.full_name]));
     const recordIds = rows.map((row) => row.id);
     const [lines, salesBreakdowns] = await Promise.all([
-      recordIds.length ? readCompletePages((from, to) => db.from("outlet_daily_record_lines").select("record_id, product_id, qty_sent, qty_sent_estimated, qty_sent_confirmed, qty_sent_source, morning_received_qty, morning_received_provided, evening_leftover_qty, wastage_qty, wastage_reason, notes", { count: "exact" }).in("record_id", recordIds).order("id").range(from, to)) : [],
+      recordIds.length ? readCompletePages((from, to) => db.from("outlet_daily_record_lines").select("record_id, product_id, qty_sent, qty_sent_estimated, qty_sent_confirmed, qty_sent_source, morning_received_qty, morning_received_provided, evening_leftover_qty, wastage_qty, wastage_reason, daily_tracking, usage_qty, sold_qty, notes", { count: "exact" }).in("record_id", recordIds).order("id").range(from, to)) : [],
       recordIds.length ? readCompletePages((from, to) => db.from("outlet_daily_sales_breakdowns").select("record_id,channel,amount", { count: "exact" }).in("record_id", recordIds).order("record_id").order("channel").range(from, to)) : [],
     ]);
     const salesByRecord = new Map<string,Record<string,number>>();
@@ -73,7 +74,7 @@ export async function GET(request: Request) {
       const product = productById.get(line.product_id);
       const recipeId = recipeByProduct.get(line.product_id);
       const unitCost = canViewWastageCost && recipeId ? latestCostByRecipe.get(recipeId) ?? null : null;
-      const wastage = Number(line.wastage_qty ?? 0);
+      const wastage = line.daily_tracking === "packaging" ? 0 : Number(line.wastage_qty ?? 0);
       const sales = record ? salesByRecord.get(record.id) ?? {} : {};
       const channelTotal = Object.values(sales).reduce((sum,amount)=>sum+amount,0);
       return {
@@ -82,11 +83,7 @@ export async function GET(request: Request) {
         outlet: record ? branchNames.get(record.branch_id) ?? "Unknown outlet" : "Unknown outlet",
         status: record?.status ?? "Unavailable",
         pos_total_sales: record?.pos_total_sales ?? null,
-        duitnow: sales.duitnow ?? 0,
-        credit_card: sales.credit_card ?? 0,
-        voucher: sales.voucher ?? 0,
-        grabfood: sales.grabfood ?? 0,
-        foodpanda: sales.foodpanda ?? 0,
+        ...Object.fromEntries(salesChannels.map(channel => [channel, sales[channel] ?? 0])),
         channel_total: channelTotal,
         sales_difference: record?.pos_total_sales == null ? null : Number(record.pos_total_sales)-channelTotal,
         sales_variance_reason: record?.sales_variance_reason ?? null,
@@ -99,6 +96,9 @@ export async function GET(request: Request) {
         qty_sent_confirmed: line.qty_sent_confirmed,
         received: line.morning_received_provided ? Number(line.morning_received_qty ?? 0) : null,
         leftover: Number(line.evening_leftover_qty ?? 0),
+        daily_tracking: line.daily_tracking,
+        usage: line.usage_qty,
+        sold: line.sold_qty,
         wastage,
         wastage_reason: line.wastage_reason,
         wastage_unit_cost: unitCost,

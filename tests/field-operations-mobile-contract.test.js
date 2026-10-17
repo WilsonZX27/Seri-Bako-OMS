@@ -204,7 +204,7 @@ test("supplier invoice matching uses editable phone lines instead of a nine-colu
   assert.match(source, /grid grid-cols-2 gap-3 bg-secondary\/30 p-3 text-sm/);
 });
 
-test("outlet daily entry keeps three compact quantities in one phone row and reveals wastage details conditionally", () => {
+test("outlet daily entry uses labelled quantity rows on phones and reveals wastage details conditionally", () => {
   const source = read("src/components/outlet-daily-record-form.tsx");
   const page = read("src/app/(app)/outlet-daily-records/new/page.tsx");
   const design = read("src/app/design-system-v2.css");
@@ -213,7 +213,7 @@ test("outlet daily entry keeps three compact quantities in one phone row and rev
   assert.match(source, /data-outlet-daily-lines/);
   assert.match(source, /data-long-mobile-form/);
   assert.match(source, /touch-pan-y/);
-  assert.match(source, /grid grid-cols-3 items-end gap-2 p-3/);
+  assert.match(source, /grid grid-cols-1 items-end gap-2 p-3/);
   assert.match(source, /showWastageDetails = Number\(wastage \|\| 0\) > 0/);
   assert.match(source, /className="min-w-0 px-2 text-center tabular-nums"/);
   assert.match(source, /required=\{Number\(wastage \|\| 0\) > 0\}/);

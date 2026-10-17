@@ -2780,3 +2780,9 @@ html[data-design-layer="v2"] [data-page-jump], html[data-design-layer="v2"] [dat
 
 html[data-design-layer="v2"] .sb-table-region > table.sb-stock-balance-table { min-width:48rem; }
 html[data-design-layer="v2"] table.sb-stock-balance-table > thead > tr > th { white-space:normal; overflow:visible; overflow-wrap:normal; }
+
+/* Transfer controls reserve space through the page, not inside the note card. */
+html[data-design-layer="v2"] form[data-transfer-action-form] { padding-bottom:0 !important; }
+@media(min-width:768px) {
+ html[data-design-layer="v2"] [data-transfer-action-form] .sb-mobile-action-bar { position:static; padding:0; border:0; box-shadow:none; background:transparent; backdrop-filter:none; }
+}

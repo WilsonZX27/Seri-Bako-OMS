@@ -41,14 +41,16 @@ export default async function DocumentDetailPage({
       title={document.title}
       status={document.status}
       workflowSteps={documentSteps}
-      currentStatus={document.status}
+      currentStatus={["submitted", "pending_approval"].includes(document.status) ? "pending_approval" : document.status}
+      mobilePrimaryAction={<details className="group"><summary className="flex min-h-11 cursor-pointer items-center justify-center rounded-lg bg-[var(--sb-green-900)] px-3 text-white">Document actions</summary><div className="max-h-[65dvh] overflow-y-auto bg-white p-3"><ApprovalPanel document={document} approval={bundle.approval} approvalSteps={bundle.approvalSteps} /></div></details>}
+      mobileActivity={<><CommentsPanel documentId={document.id} comments={bundle.comments}/><AttachmentPanel documentId={document.id} attachments={bundle.attachments}/><DocumentTimeline document={document} activities={bundle.activityLogs} comments={bundle.comments} attachments={bundle.attachments}/><RevisionPanel revisions={bundle.revisions}/></>}
       sidePanel={
         <>
           <ApprovalPanel document={document} approval={bundle.approval} approvalSteps={bundle.approvalSteps} />
-          <CommentsPanel documentId={document.id} comments={bundle.comments} />
-          <AttachmentPanel documentId={document.id} attachments={bundle.attachments} />
+          <details><summary className="cursor-pointer py-3 text-sm font-medium">Comments and files</summary><CommentsPanel documentId={document.id} comments={bundle.comments} />
+          <AttachmentPanel documentId={document.id} attachments={bundle.attachments} /></details><details><summary className="cursor-pointer py-3 text-sm font-medium">Activity and revisions</summary>
           <DocumentTimeline document={document} activities={bundle.activityLogs} comments={bundle.comments} attachments={bundle.attachments} />
-          <RevisionPanel revisions={bundle.revisions} />
+          <RevisionPanel revisions={bundle.revisions} /></details>
         </>
       }
     >
@@ -61,7 +63,7 @@ export default async function DocumentDetailPage({
           ) : null}
           <Card>
             <CardContent className="p-5">
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="sb-label-value-summary grid gap-4">
                 <div>
                   <p className="text-xs uppercase text-muted-foreground">Document Type</p>
                   <p className="mt-1 font-medium">{formatStatusLabel(document.document_type)}</p>

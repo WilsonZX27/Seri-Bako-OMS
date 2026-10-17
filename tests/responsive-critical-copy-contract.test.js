@@ -13,10 +13,10 @@ test("mobile operational hub preserves complete business labels", () => {
 
 test("outlet daily quantities use one stable shared heading row", () => {
   const source = read("src/components/outlet-daily-record-form.tsx");
-  for (const label of ["Qty Sent", "Received", "Wastage"]) {
-    assert.match(source, new RegExp(`<span>${label}</span>`));
-  }
-  assert.match(source, /grid-cols-3/);
+  assert.match(source, /Qty Sent/);
+  assert.match(source, /Qty Receive/);
+  assert.match(source, /consumptionLabel/);
+  assert.match(source, /grid-cols-1 items-end/);
   assert.ok(source.includes("md:grid-cols-[minmax(0,1fr)_repeat(3,minmax(3.5rem,4.5rem))_minmax(0,1fr)]"));
   assert.doesNotMatch(source, /Review the prefilled values/);
 });

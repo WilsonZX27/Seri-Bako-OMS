@@ -88,7 +88,7 @@ export default async function StockTransferDetailPage({ params }: { params: Prom
       <Card>
         <CardContent className="space-y-4 p-5">
           <h2 className="text-sm font-semibold">Transfer Summary</h2>
-          <div className="sb-inventory-summary grid gap-4 md:grid-cols-3">
+          <div className="sb-label-value-summary sb-inventory-summary grid gap-4 md:grid-cols-3">
             <div><p className="text-xs uppercase text-muted-foreground">Date</p><p className="font-medium">{formatDateOnly(transfer.transfer_date)}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">From</p><p className="font-medium">{transfer.from_branch_name}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">To</p><p className="font-medium">{transfer.to_branch_name}</p></div>

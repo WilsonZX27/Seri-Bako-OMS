@@ -1,4 +1,4 @@
-> Local candidate — 2026-10-17: migrations reviewed through `361`; forward-only migration 历史已到 `361`. Migration 361 adds one checklist per outlet/date and has not been deployed. Production statements below remain historical release evidence.
+> Local candidate — 2026-10-17: migrations reviewed through `363`; forward-only migration 历史已到 `363`. Migrations 362/363 add payment channels and independent daily product tracking; applied only to the isolated visual-audit database. Migration 361 adds one checklist per outlet/date and has not been deployed. Production statements below remain historical release evidence.
 
 # v9.2.107 (unreleased)
 

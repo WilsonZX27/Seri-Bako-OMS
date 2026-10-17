@@ -71,7 +71,7 @@ export default async function StockWastageDetailPage({ params }: { params: Promi
       <Card>
         <CardContent className="space-y-4 p-5">
           <h2 className="text-sm font-semibold">Wastage Summary</h2>
-          <div className="sb-inventory-summary grid gap-4 md:grid-cols-3">
+          <div className="sb-label-value-summary sb-inventory-summary grid gap-4 md:grid-cols-3">
             <div><p className="text-xs uppercase text-muted-foreground">Date</p><p className="font-medium">{formatDateOnly(wastage.wastage_date)}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{wastage.branch_name ?? "-"}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Reason</p><p className="font-medium capitalize">{wastage.reason.replaceAll("_", " ")}</p></div>

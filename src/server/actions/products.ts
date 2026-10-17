@@ -35,6 +35,7 @@ function payload(formData: FormData) {
     product_code: formData.get("product_code"),
     product_name: formData.get("product_name"),
     category: formData.get("category"),
+    daily_tracking: formData.get("daily_tracking") || null,
     display_order: formData.get("display_order") || 9999,
     selling_unit: normalizeUom(String(formData.get("selling_unit") ?? "")),
     status: formData.get("status") ?? "active",

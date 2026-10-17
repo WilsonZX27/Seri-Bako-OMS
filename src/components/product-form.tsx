@@ -1,3 +1,4 @@
+import { dailyTrackingLabels, dailyTracking } from "@/lib/daily-product-tracking";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
@@ -31,6 +32,10 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
           </Field>
           <Field label="Category" className="col-span-2 sm:col-span-1">
             <Input name="category" defaultValue={product?.category ?? ""} placeholder="Frozen Pastry" required />
+          </Field>
+          <Field label="Daily record category" className="col-span-2">
+            <SelectNative name="daily_tracking" defaultValue={product ? dailyTracking(product) : "food_daily"}>{Object.entries(dailyTrackingLabels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</SelectNative>
+            <p className="mt-1 text-xs text-muted-foreground">Next day includes food kept for several days. Usage is recorded separately from wastage; this does not set a fixed expiry date.</p>
           </Field>
           <Field label="Display Order">
             <Input name="display_order" type="number" min="1" step="1" defaultValue={product?.display_order ?? 9999} required />

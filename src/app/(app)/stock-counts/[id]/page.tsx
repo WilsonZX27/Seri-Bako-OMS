@@ -146,7 +146,7 @@ export default async function StockCountDetailPage({ params, searchParams }: { p
       {!canEdit ? <Card>
         <CardContent className="space-y-4 p-5">
           <h2 className="text-sm font-semibold">Count Summary</h2>
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="sb-label-value-summary grid gap-4 md:grid-cols-4">
             <div><p className="text-xs uppercase text-muted-foreground">Date</p><p className="font-medium">{formatDateOnly(count.count_date)}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{count.branch_name ?? "-"}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Adjusted lines</p><p className="font-medium">{adjustedLines.length}</p></div>

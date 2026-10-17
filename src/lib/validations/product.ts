@@ -3,6 +3,7 @@ import { z } from "zod";
 export const productSchema = z.object({
   product_code: z.string().trim().min(1, "Product code is required"),
   product_name: z.string().trim().min(1, "Product name is required"),
+  daily_tracking: z.enum(["food_daily", "food_carryover", "beverage", "packaging"]).nullable().optional(),
   category: z.string().trim().min(1, "Category is required"),
   display_order: z.coerce.number().int().min(1, "Display order must be at least 1"),
   selling_unit: z.string().trim().min(1, "Selling unit is required"),

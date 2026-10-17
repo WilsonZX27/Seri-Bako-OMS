@@ -77,7 +77,7 @@ export default async function PurchaseReturnDetailPage({ params, searchParams }:
       <Card>
         <CardContent className="space-y-4 p-5">
           <h2 className="text-sm font-semibold">Return Summary</h2>
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="sb-label-value-summary grid gap-4 md:grid-cols-4">
             <div><p className="text-xs uppercase text-muted-foreground">Supplier</p><p className="font-medium">{purchaseReturn.supplier_name ?? purchaseReturn.supplier_id}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">GRN / PO</p><p className="font-medium">{purchaseReturn.grn_no ?? "-"} / {purchaseReturn.po_no ?? "-"}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Return Date</p><p className="font-medium">{formatDateOnly(purchaseReturn.return_date)}</p></div>

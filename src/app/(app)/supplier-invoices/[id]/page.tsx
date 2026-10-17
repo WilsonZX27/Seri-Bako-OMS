@@ -140,7 +140,7 @@ export default async function SupplierInvoiceDetailPage({ params, searchParams }
       ) : <>
         <Card><CardContent className="space-y-4 p-5">
           <h2 className="text-sm font-semibold">Invoice Summary</h2>
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="sb-label-value-summary grid gap-4 md:grid-cols-4">
             <div><p className="text-xs uppercase text-muted-foreground">Supplier Reference</p><p className="font-medium">{invoice.supplier_invoice_no}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Supplier</p><p className="font-medium">{invoice.supplier_name ?? "-"}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Invoice Date</p><p className="font-medium">{formatDateOnly(invoice.invoice_date)}</p></div>

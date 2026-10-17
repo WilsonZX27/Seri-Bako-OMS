@@ -120,7 +120,7 @@ export default async function ProductionJobDetailPage({
       <Card>
         <CardContent className="space-y-4 p-5">
           <h2 className="text-sm font-semibold">Production Summary</h2>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm md:grid-cols-4 [&>div]:min-w-0 [&_p]:break-words">
+          <div className="sb-label-value-summary grid grid-cols-2 gap-x-4 gap-y-3 text-sm md:grid-cols-4 [&>div]:min-w-0 [&_p]:break-words">
             <div><p className="text-xs uppercase text-muted-foreground">Production Date</p><p className="font-medium">{formatDateOnly(job.production_date)}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{job.branch_name ?? "-"}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Recipe</p><p className="font-medium">{job.recipe_no ?? "-"}</p></div>

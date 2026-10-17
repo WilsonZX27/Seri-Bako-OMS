@@ -88,7 +88,7 @@ export default async function StockTransactionDetailPage({ params }: { params: P
                   <Badge className="mt-1" variant={statusVariant(transaction.status)}>{transaction.status}</Badge>
                 </div>
               </div>
-              <div className="sb-inventory-summary grid gap-4 md:grid-cols-4">
+              <div className="sb-label-value-summary sb-inventory-summary grid gap-4 md:grid-cols-4">
                 <div><p className="text-xs uppercase text-muted-foreground">Date</p><p className="font-medium">{formatDateOnly(transaction.transaction_date)}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Type</p><p className="font-medium">{transaction.transaction_type.replaceAll("_", " ")}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Posted At</p><p className="font-medium">{formatDateTime(transaction.posted_at)}</p></div>

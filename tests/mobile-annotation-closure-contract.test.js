@@ -10,9 +10,9 @@ test("mobile document actions share one row without a double-width primary actio
   assert.doesNotMatch(workspace, /col-span-2[^\n]*primary/);
 });
 
-test("outlet sales entry is a compact numeric two-column form", () => {
+test("outlet sales entry groups tenders with labels beside numeric inputs", () => {
   const form = read("src/components/outlet-daily-record-form.tsx");
-  assert.match(form, /grid grid-cols-2 gap-2 p-3/);
+  assert.match(form, /grid-cols-\[minmax\(0,1fr\)_minmax\(0,1fr\)\]/);
   assert.match(form, /type="number" inputMode="decimal"/);
 });
 

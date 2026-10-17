@@ -15,14 +15,18 @@ const optionalMoneySchema = z.preprocess(
   (value) => typeof value === "string" && value.trim() === "" ? null : value,
   moneySchema.nullable(),
 );
-const salesChannels = ["duitnow", "credit_card", "voucher", "grabfood", "foodpanda"] as const;
+import { salesChannels } from "@/lib/outlet-sales-channels";
 const outletDailyLineSchema = z.object({
   product_id: z.uuid(),
   qty_sent: quantitySchema.nullable(),
   morning_received_qty: quantitySchema,
   morning_received_provided: z.boolean(),
   evening_leftover_qty: quantitySchema,
+  closing_balance_provided: z.boolean(),
   wastage_qty: quantitySchema,
+  usage_qty: quantitySchema.nullable(),
+  sold_qty: quantitySchema.nullable(),
+  daily_tracking: z.enum(["food_daily", "food_carryover", "beverage", "packaging"]),
   wastage_provided: z.boolean(),
   stockout: z.boolean(),
   stockout_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/).nullable(),
@@ -39,7 +43,7 @@ const outletDailyPayloadSchema = z.object({
   sales_unavailable: z.boolean(),
   pos_total_sales: optionalMoneySchema,
   sales_variance_reason: z.string().trim().max(1000).nullable(),
-  sales_breakdown: z.array(z.object({ channel: z.enum(salesChannels), amount: moneySchema })).length(5),
+  sales_breakdown: z.array(z.object({ channel: z.enum(salesChannels), amount: moneySchema })).length(salesChannels.length),
 });
 
 function nullableText(value: string | undefined) {
@@ -71,6 +75,8 @@ type DailyValueSnapshot = {
   received: number | null;
   leftover: number;
   wastage: number;
+  usage: number | null;
+  sold: number | null;
   reason: string | null;
   comment: string | null;
 };
@@ -82,7 +88,7 @@ const sameDailyValue = (left: unknown, right: unknown) => {
 };
 
 function changedDailyFields(before: DailyValueSnapshot | null, after: DailyValueSnapshot) {
-  if (!before) return ["qty_sent", "received", "leftover", "wastage", "reason", "comment"];
+  if (!before) return ["qty_sent", "received", "leftover", "wastage", "usage", "sold", "reason", "comment"];
   return (Object.keys(after) as (keyof DailyValueSnapshot)[]).filter((field) => !sameDailyValue(before[field], after[field]));
 }
 
@@ -93,6 +99,9 @@ function extractOutletDailyPayload(formData: FormData) {
   const received = values(formData, "morning_received_qty");
   const leftover = values(formData, "evening_leftover_qty");
   const wastage = values(formData, "wastage_qty");
+  const usage = values(formData, "usage_qty");
+  const sold = values(formData, "sold_qty");
+  const tracking = values(formData, "daily_tracking");
   const reasons = values(formData, "wastage_reason");
   const stockouts = values(formData, "stockout");
   const stockoutTimes = values(formData, "stockout_time");
@@ -121,7 +130,11 @@ function extractOutletDailyPayload(formData: FormData) {
       morning_received_qty: received[index] ?? "0",
       morning_received_provided: received[index] != null && received[index].trim() !== "",
       evening_leftover_qty: leftover[index] ?? "0",
+      closing_balance_provided: leftover[index] != null && leftover[index].trim() !== "",
       wastage_qty: wastage[index] ?? "0",
+      usage_qty: nullableText(usage[index]),
+      sold_qty: nullableText(sold[index]),
+      daily_tracking: tracking[index] ?? "food_daily",
       wastage_provided: wastage[index] != null && wastage[index].trim() !== "",
       stockout: stockouts[index] === "true",
       stockout_time: nullableText(stockoutTimes[index]),
@@ -148,7 +161,7 @@ export async function saveOutletDailyRecord(formData: FormData) {
   try {
     const db = await createClient();
     const [beforeLines, beforeRecord] = recordId ? await Promise.all([
-      db.from("outlet_daily_record_lines").select("product_id,qty_sent,morning_received_qty,morning_received_provided,evening_leftover_qty,wastage_qty,wastage_reason,notes").eq("record_id", recordId),
+      db.from("outlet_daily_record_lines").select("product_id,qty_sent,morning_received_qty,morning_received_provided,evening_leftover_qty,wastage_qty,usage_qty,sold_qty,wastage_reason,notes").eq("record_id", recordId),
       db.from("outlet_daily_records").select("status,notes").eq("id", recordId).maybeSingle(),
     ]) : [{ data: [], error: null }, { data: null, error: null }];
     if (beforeLines.error) throw new Error(beforeLines.error.message);
@@ -210,6 +223,8 @@ export async function saveOutletDailyRecord(formData: FormData) {
         received: stored.morning_received_provided ? stored.morning_received_qty : null,
         leftover: stored.evening_leftover_qty,
         wastage: stored.wastage_qty,
+        usage: stored.usage_qty ?? null,
+        sold: stored.sold_qty ?? null,
         reason: stored.wastage_reason,
         comment: stored.notes,
       } : null;
@@ -218,6 +233,8 @@ export async function saveOutletDailyRecord(formData: FormData) {
         received: line.morning_received_provided ? line.morning_received_qty : null,
         leftover: line.evening_leftover_qty,
         wastage: line.wastage_qty,
+        usage: canUpdateOutletValues || !recordId ? line.usage_qty : stored?.usage_qty ?? null,
+        sold: canUpdateOutletValues || !recordId ? line.sold_qty : stored?.sold_qty ?? null,
         reason: line.wastage_reason,
         comment: line.notes,
       };
@@ -231,7 +248,9 @@ export async function saveOutletDailyRecord(formData: FormData) {
       const labels = [
         fieldNames.has("qty_sent") ? "Qty Sent" : null,
         fieldNames.has("received") ? "Received" : null,
-        fieldNames.has("leftover") ? "Leftover" : null,
+        fieldNames.has("leftover") ? "Balance" : null,
+        fieldNames.has("usage") ? "Usage" : null,
+        fieldNames.has("sold") ? "Qty Sold" : null,
         fieldNames.has("wastage") || fieldNames.has("reason") ? "Wastage" : null,
         fieldNames.has("comment") || notesChanged ? "Notes" : null,
         statusChanged ? "Status" : null,

@@ -39,7 +39,9 @@ function activityDisplayMessage(message: string, metadata: unknown) {
   const labels = [
     fields.has("qty_sent") ? "Qty Sent" : null,
     fields.has("received") ? "Received" : null,
-    fields.has("leftover") ? "Leftover" : null,
+    fields.has("leftover") ? "Balance" : null,
+    fields.has("usage") ? "Usage" : null,
+    fields.has("sold") ? "Qty Sold" : null,
     fields.has("wastage") || fields.has("reason") ? "Wastage" : null,
     fields.has("comment") || detail.notes_changed ? "Notes" : null,
     detail.previous_status !== detail.target_status ? "Status" : null,
@@ -113,7 +115,7 @@ export type OutletDailyWastageCostSummary = {
 const isPackagingCategory = (category: string | null | undefined) => category?.trim().toLowerCase() === "packaging";
 
 const totals = (lines: LineRow[], operationalProductIds?: Set<string>) => {
-  const operationalLines = operationalProductIds ? lines.filter((line) => operationalProductIds.has(line.product_id)) : lines;
+  const operationalLines = (operationalProductIds ? lines.filter((line) => operationalProductIds.has(line.product_id)) : lines).filter(line => line.daily_tracking !== "packaging");
   const qtySentState = lines.length > 0 && lines.every((line) => line.qty_sent_source === "authorized_confirmed" || line.qty_sent_confirmed)
     ? "confirmed" as const
     : lines.some((line) => line.qty_sent_source === "authorized_draft")
@@ -191,11 +193,11 @@ const emptyTrendTotals = (): TrendTotals => ({ received: 0, leftover: 0, wastage
 const addTrendLine = (target: TrendTotals, line: LineRow) => {
   const received = Number(line.morning_received_qty);
   const leftover = Number(line.evening_leftover_qty);
-  const wastage = Number(line.wastage_qty);
+  const wastage = line.daily_tracking === "packaging" ? 0 : Number(line.wastage_qty);
   target.received += received;
   target.leftover += leftover;
   target.wastage += wastage;
-  target.movement += Math.max(received - leftover - wastage, 0);
+  target.movement += line.daily_tracking === "food_carryover" || line.daily_tracking === "packaging" ? Number(line.usage_qty ?? 0) : line.daily_tracking === "beverage" ? Number(line.sold_qty ?? 0) : Math.max(received - leftover - wastage, 0);
 };
 const wastagePercent = (totals: TrendTotals) => totals.received > 0 ? (totals.wastage / totals.received) * 100 : 0;
 const planningNumber = (value: string | undefined, fallback: number, minimum: number, maximum: number) => {
@@ -268,7 +270,7 @@ export const getOutletDailyFormOptions = cache(async function getOutletDailyForm
   ]);
   const [{ data: branches, error: branchError }, { data: products, error: productError }] = await Promise.all([
     db.from("branches").select("id,branch_code,branch_name,branch_type,status").eq("branch_type", "outlet").eq("status", "active").is("deleted_at", null).order("branch_name"),
-    db.from("products").select("id,product_code,product_name,category,selling_unit,status,display_order").eq("status", "active"),
+    db.from("products").select("id,product_code,product_name,category,daily_tracking,selling_unit,status,display_order").eq("status", "active"),
   ]);
   if (branchError) throw new Error(branchError.message);
   if (productError) throw new Error(productError.message);
@@ -431,9 +433,9 @@ export async function getOutletDailyWastageCostSummary(recordDate = todayInKuala
   if (recordError) throw new Error(recordError.message);
   const recordIds = (records ?? []).map((record) => record.id);
   if (!recordIds.length) return { ...unavailable, state: "verified" };
-  const { data: lines, error: lineError } = await db.from("outlet_daily_record_lines").select("product_id,wastage_qty").in("record_id", recordIds);
+  const { data: lines, error: lineError } = await db.from("outlet_daily_record_lines").select("product_id,wastage_qty,daily_tracking").in("record_id", recordIds);
   if (lineError) throw new Error(lineError.message);
-  const wastageLines = (lines ?? []).filter((line) => Number(line.wastage_qty) > 0);
+  const wastageLines = (lines ?? []).filter((line) => line.daily_tracking !== "packaging" && Number(line.wastage_qty) > 0);
   if (!wastageLines.length) return { ...unavailable, state: "verified" };
   const productIds = [...new Set(wastageLines.map((line) => line.product_id))];
   const [{ data: recipes, error: recipeError }] = await Promise.all([
@@ -477,7 +479,7 @@ export async function getOutletDailyRecord(id: string) {
     db.from("outlet_daily_record_lines").select("*").eq("record_id", id),
     db.from("outlet_daily_sales_breakdowns").select("channel,amount").eq("record_id", id),
     db.from("branches").select("id,branch_name"),
-    db.from("products").select("id,product_code,product_name,category,selling_unit,status,display_order"),
+    db.from("products").select("id,product_code,product_name,category,daily_tracking,selling_unit,status,display_order"),
     db.from("staffs").select("id,full_name"),
   ]);
   if (error) throw new Error(error.message);

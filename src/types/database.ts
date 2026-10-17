@@ -420,6 +420,9 @@ export type Database = {
           id: string;
           record_id: string;
           product_id: string;
+          daily_tracking?: "food_daily" | "food_carryover" | "beverage" | "packaging" | null;
+          usage_qty?: number | null;
+          sold_qty?: number | null;
           do_managed: boolean;
           wastage_provided: boolean;
           stockout: boolean;
@@ -441,6 +444,9 @@ export type Database = {
           id?: string;
           record_id: string;
           product_id: string;
+          daily_tracking?: "food_daily" | "food_carryover" | "beverage" | "packaging" | null;
+          usage_qty?: number | null;
+          sold_qty?: number | null;
           do_managed?: boolean;
           wastage_provided?: boolean;
           stockout?: boolean;
@@ -694,8 +700,8 @@ export type Database = {
         Relationships: [];
       };
       outlet_daily_sales_breakdowns: {
-        Row: { id: string; record_id: string; channel: "duitnow" | "credit_card" | "voucher" | "grabfood" | "foodpanda"; amount: number; created_at: string; updated_at: string };
-        Insert: { id?: string; record_id: string; channel: "duitnow" | "credit_card" | "voucher" | "grabfood" | "foodpanda"; amount?: number; created_at?: string; updated_at?: string };
+        Row: { id: string; record_id: string; channel: "visa" | "master" | "debit" | "union_pay" | "alipay" | "jcb" | "feedme_card" | "duitnow" | "bank_transfer" | "feedme_wallet" | "grabfood" | "foodpanda" | "shopee_food" | "voucher" | "credit_card"; amount: number; created_at: string; updated_at: string };
+        Insert: { id?: string; record_id: string; channel: "visa" | "master" | "debit" | "union_pay" | "alipay" | "jcb" | "feedme_card" | "duitnow" | "bank_transfer" | "feedme_wallet" | "grabfood" | "foodpanda" | "shopee_food" | "voucher" | "credit_card"; amount?: number; created_at?: string; updated_at?: string };
         Update: Partial<Database["public"]["Tables"]["outlet_daily_sales_breakdowns"]["Insert"]>;
         Relationships: [];
       };
@@ -1052,6 +1058,7 @@ export type Database = {
           product_code: string;
           product_name: string;
           category: string;
+          daily_tracking?: "food_daily" | "food_carryover" | "beverage" | "packaging" | null;
           display_order: number;
           selling_unit: string;
           status: ItemStatus;
@@ -1066,6 +1073,7 @@ export type Database = {
           product_code: string;
           product_name: string;
           category: string;
+          daily_tracking?: "food_daily" | "food_carryover" | "beverage" | "packaging" | null;
           display_order?: number;
           selling_unit: string;
           status?: ItemStatus;

@@ -18,8 +18,8 @@ test("Outlet Daily supports an afternoon save and later wastage completion", () 
   const detail = read("src", "app", "(app)", "outlet-daily-records", "[id]", "page.tsx");
   assert.match(detail, />Save progress<\/SubmitButton>/);
   assert.match(detail, /name="target_status" value="draft" variant="outline"/);
-  assert.match(detail, /Received can be saved during the day/);
-  assert.match(detail, /return later to complete Wastage/);
+  assert.match(detail, /Save receiving progress during the day/);
+  assert.match(detail, /complete Wastage, Usage or Qty Sold/);
 });
 
 test("unverified receiving explains the exact remaining work", () => {

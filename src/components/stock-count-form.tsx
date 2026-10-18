@@ -13,7 +13,8 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { TableActionMenuPortal } from "@/components/ui/table-action-menu-portal";
 import { StockCountLineRecovery } from "@/components/stock-count-line-recovery";
-import { formatDateOnly, formatQuantity, formatQuantityInput, getToday } from "@/lib/utils";
+import { formatDateOnly, getToday } from "@/lib/utils";
+import { formatStockCountQuantity as formatQuantity, stockCountQuantityInput as formatQuantityInput, stockCountInputStep } from "@/lib/stock-count-quantity";
 import { tryStockCountStorage } from "@/lib/stock-count-storage";
 import type { StockCountAutosaveResult } from "@/server/actions/stock-counts";
 
@@ -61,7 +62,7 @@ function allowsFraction(uom: string) {
 }
 
 function quantityStep(uom: string) {
-  return allowsFraction(uom) ? 0.01 : 1;
+  return allowsFraction(uom) ? 0.001 : 1;
 }
 
 function quantityInputValue(value: number, uom: string) {
@@ -396,7 +397,7 @@ export function StockCountForm({
     setLines((current) => current.map((line) => {
       if (line.item_id !== itemId) return line;
       const next = Math.max(0, toNumber(line.physicalQty) + (quantityStep(line.uom) * direction));
-      const physicalQty = quantityInputValue(next, line.uom);
+      const physicalQty = quantityInputValue(Math.round(next * 10_000) / 10_000, line.uom);
       return { ...line, physicalQty, adjusted: physicalQty !== line.initialPhysicalQty };
     }));
   }
@@ -593,7 +594,7 @@ export function StockCountForm({
                           name="line_physical_qty"
                           type="number"
                           min="0"
-                          step={quantityStep(line.uom)}
+                          step={stockCountInputStep(line.uom, line.physicalQty)}
                           value={line.physicalQty}
                           onChange={(event) => updatePhysicalQty(line.item_id, event.target.value)}
                           onBlur={() => normalizePhysicalQty(line.item_id)}
@@ -601,7 +602,7 @@ export function StockCountForm({
                           aria-invalid={validationAttempted && !hasPhysical}
                           aria-describedby={validationAttempted && !hasPhysical ? `physical-error-${line.item_id}` : undefined}
                            aria-label={`Counted quantity for ${line.item_name}`}
-                          placeholder={line.prefill_source === "unavailable" ? "Enter count" : "0.00"}
+                          placeholder={line.prefill_source === "unavailable" ? "Enter count" : "0.000"}
                            className="h-10 w-full min-w-10 flex-1 rounded-none border-0 px-1 text-center text-[13px] font-semibold tabular-nums shadow-none focus-visible:ring-inset [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         />
                           <button type="button" className="flex h-10 w-10 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, 1)} aria-label={`Increase physical quantity for ${line.item_name}`}><Plus className="h-4 w-4" /></button>

@@ -1,3 +1,4 @@
+import { formatStockCountQuantity as formatQuantity } from "@/lib/stock-count-quantity";
 import { DocumentActionBar } from "@/components/document-action-bar";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
@@ -12,7 +13,7 @@ import { StockCountVoidDialog } from "@/components/stock-count-void-dialog";
 import { Button } from "@/components/ui/button";
 import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatDateOnly, formatQuantity } from "@/lib/utils";
+import { formatDateOnly } from "@/lib/utils";
 import { addItemToStockCount, autosaveStockCountDraft, cancelStockCount, postStockCount, resolveStockCountLineRevision, reviseStockCountLine, saveAndPostStockCount, updateStockCountDraft, voidStockCount } from "@/server/actions/stock-counts";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getBranchesForSelect, getItemsForSelect } from "@/server/queries/common";

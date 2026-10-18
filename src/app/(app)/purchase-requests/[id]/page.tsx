@@ -334,7 +334,7 @@ export default async function PurchaseRequestDetailPage({
       <Card className="document-surface shadow-none mb-3">
             <CardContent className="space-y-3 p-4">
               <h2 className="text-[14px] font-semibold">Request Summary</h2>
-              <div className="sb-label-value-summary">
+              <div className="sb-label-value-summary grid gap-x-6 gap-y-4 xl:grid-cols-3">
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Request Date</p><p className="text-sm font-medium text-[var(--sb-text)]">{formatDateTime(request.created_at)}</p></div>
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Location</p><p className="text-sm font-medium text-[var(--sb-text)]">{branch?.branch_name ?? (branches ? "Unassigned" : "Unavailable")}</p></div>
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Submitted By</p><p className="text-sm font-medium text-[var(--sb-text)]">{request.requested_by_name ?? "—"}</p></div>

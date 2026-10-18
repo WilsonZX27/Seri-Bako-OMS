@@ -58,7 +58,7 @@ export function OperationalListRow({ href, label, primary, status, statusMeta, s
         {secondary ? <div className="mt-0.5 whitespace-normal break-words text-xs leading-4 text-[var(--sb-text-muted)]">{secondary}</div> : null}
         {detail ? <div className="mt-0.5 text-[11px] leading-4 text-[var(--sb-text-muted)]">{detail}</div> : null}
       </div>
-      <div className={cn("flex items-start justify-self-end gap-2 whitespace-nowrap", stackedStatus && "justify-self-start")}>
+      <div className={cn("flex items-start justify-self-end gap-2 whitespace-nowrap", stackedStatus && "justify-self-start pl-12")}>
         <div className={cn("flex min-w-0 flex-col items-end gap-1", stackedStatus && "flex-row flex-wrap items-center gap-2")}>
           {status}
           {statusMeta ? <div className="text-right text-[11px] font-medium text-[var(--sb-text)]">{statusMeta}</div> : null}

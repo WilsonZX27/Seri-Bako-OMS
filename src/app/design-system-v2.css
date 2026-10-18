@@ -1010,7 +1010,7 @@ nav[aria-label="Pagination"] > span {
   .unified-list-result { display: grid; flex: 0 0 auto; margin: 0; color: var(--sb-text-muted); font-size: .625rem; font-weight: 500; line-height: 1.05; text-align: center; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .unified-list-result strong { color: var(--sb-text); font-size: .8125rem; }
   .unified-list-layer { position: fixed; inset: 0; z-index: var(--sb-z-sheet-backdrop); }
-  .unified-list-backdrop { position: fixed; inset: 0; z-index: var(--sb-z-sheet-backdrop); background: rgb(10 31 25 / .5); }
+  .unified-list-backdrop { position: fixed; inset: 0; z-index: var(--sb-z-sheet-backdrop); background: rgb(0 0 0 / .60); backdrop-filter:blur(3px); }
   .unified-list-sheet { position: fixed; inset-inline: 0; bottom: 0; z-index: var(--sb-z-sheet); display: grid; grid-template-rows: auto minmax(0,1fr) auto; max-height: min(85dvh, 40rem); overflow: hidden; padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom)); border-radius: var(--sb-panel-radius) var(--sb-panel-radius) 0 0; border: 1px solid var(--sb-border); background: var(--sb-surface-raised); box-shadow: 0 -1rem 3rem rgb(10 31 25 / .16); }
   .unified-list-sheet-header { display: flex; align-items: center; justify-content: space-between; padding-bottom: .75rem; border-bottom: 1px solid var(--sb-border); }
   .unified-list-sheet-header h2 { margin: 0; font-size: 1rem; font-weight: 500; }
@@ -2779,7 +2779,7 @@ html[data-design-layer="v2"] table.sb-stock-balance-table > thead > tr > th { wh
 /* Transfer controls reserve space through the page, not inside the note card. */
 html[data-design-layer="v2"] form[data-transfer-action-form] { padding-bottom:0 !important; }
 @media(min-width:768px) {
- html[data-design-layer="v2"] [data-transfer-action-form] .sb-mobile-action-bar { position:static; padding:0; border:0; box-shadow:none; background:transparent; backdrop-filter:none; }
+ html[data-design-layer="v2"] [data-transfer-action-form] .sb-mobile-action-bar { position:static; grid-template-columns:minmax(0,1fr) !important; grid-auto-flow:row !important; padding:0; border:0; box-shadow:none; background:transparent; backdrop-filter:none; }
 }
 
 /* The request action is rendered once and remains associated with its form. */
@@ -2803,7 +2803,7 @@ html[data-design-layer="v2"] button[data-mobile-secondary-actions] { height:3.5r
 .unified-list-result { display:grid; flex:0 0 auto; margin:0; color:var(--sb-text-muted); font-size:.625rem; font-weight:500; line-height:1.05; text-align:center; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .unified-list-result strong { color:var(--sb-text); font-size:.8125rem; }
 .unified-list-layer { position:fixed; inset:0; z-index:var(--sb-z-sheet-backdrop); }
-.unified-list-backdrop { position:fixed; inset:0; z-index:var(--sb-z-sheet-backdrop); background:rgb(10 31 25 / .5); }
+.unified-list-backdrop { position:fixed; inset:0; z-index:var(--sb-z-sheet-backdrop); background:rgb(0 0 0 / .60); backdrop-filter:blur(3px); }
 .unified-list-sheet { position:fixed; inset-inline:0; bottom:0; z-index:var(--sb-z-sheet); display:grid; grid-template-rows:auto minmax(0,1fr) auto; max-height:min(85dvh, 40rem); overflow:hidden; padding:1rem 1rem calc(1rem + env(safe-area-inset-bottom)); border-radius:var(--sb-panel-radius) var(--sb-panel-radius) 0 0; border:1px solid var(--sb-border); background:var(--sb-surface-raised); box-shadow:0 -1rem 3rem rgb(10 31 25 / .16); }
 .unified-list-sheet-header { display:flex; align-items:center; justify-content:space-between; padding-bottom:.75rem; border-bottom:1px solid var(--sb-border); }
 .unified-list-sheet-header h2 { margin:0; font-size:1rem; font-weight:500; }
@@ -2818,7 +2818,7 @@ html[data-design-layer="v2"] button[data-mobile-secondary-actions] { height:3.5r
 body:has(.unified-list-layer) [data-mobile-bottom-nav] { visibility:hidden; pointer-events:none; }
 .unified-list-inline-control { flex:0 0 min(38%, 10rem); min-width:0; }
 .unified-list-inline-control :where(select, input, button) { width:100%; height:2.75rem; min-height:2.75rem; }
-html[data-design-layer="v2"] form.unified-list-header { overflow:visible !important; border:0 !important; background:transparent !important; box-shadow:none !important; }
+html[data-design-layer="v2"] form.unified-list-header { overflow:visible !important; border:1px solid var(--sb-border-soft) !important; border-radius:var(--sb-panel-radius); background:var(--sb-surface-raised) !important; box-shadow:var(--sb-shadow-sm) !important; }
 html[data-design-layer="v2"] form.unified-list-header .unified-list-row { position:relative; display:grid !important; grid-template-columns:minmax(0, 1fr) 44px 44px auto; gap:8px; align-items:stretch; }
 html[data-design-layer="v2"] form.unified-list-header .unified-list-row:not(:has(.unified-list-search-submit)):not(.unified-list-row--filter-only) { grid-template-columns:minmax(0, 1fr) max-content auto; }
 html[data-design-layer="v2"] form.unified-list-header .unified-list-row:not(:has(.unified-list-search-submit)):not(.unified-list-row--filter-only) .unified-list-result { grid-column:3; }
@@ -2876,3 +2876,7 @@ html[data-design-layer="v2"] [data-bottom-sheet] { border-radius:var(--sb-panel-
 html[data-design-layer="v2"] .unified-list-sheet-fields > :nth-last-child(1 of :not([aria-hidden="true"]):not([type="hidden"])):nth-child(odd of :not([aria-hidden="true"]):not([type="hidden"])) { grid-column:1 / -1; }
 /* Server-rendered console sections can arrive after primary-action extraction. */
 [data-mobile-console-content] [data-console-section]:has(> div:last-child:empty) { display:none; }
+
+@media(max-width:359px) { .sb-asset-field-grid > label > span:first-child { min-height:2rem; } }
+
+.unified-list-primary-control:has(.unified-list-clear) input[type="search"]::-webkit-search-cancel-button { display:none; }

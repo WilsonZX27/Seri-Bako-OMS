@@ -177,11 +177,11 @@ export async function ApprovalPanel({ document, approval, approvalSteps, compact
   return (
     <ConsoleSection title={compact ? "Approval" : "Next action"}>
       <div className="space-y-3">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
             <p className="text-xs text-muted-foreground">Current approver: {approvalSteps.find((step) => step.status === "pending")?.approver_role ?? "Not assigned"}</p>
           </div>
-          {!compact ? <Badge variant={document.approval_status === "approved" ? "success" : document.approval_status === "rejected" ? "danger" : "secondary"}>{document.approval_status}</Badge> : null}
+          {!compact ? <Badge className="shrink-0" variant={document.approval_status === "approved" ? "success" : document.approval_status === "rejected" ? "danger" : "secondary"}>{document.approval_status}</Badge> : null}
         </div>
         <div className="grid gap-2">
           {canSubmit && ["draft", "rejected"].includes(document.status) ? <form action={submitDocument.bind(null, document.id)}><SubmitButton type="submit" pendingLabel="Sending..." className="w-full justify-center">Submit for approval</SubmitButton></form> : null}

@@ -989,3 +989,6 @@ html[data-design-layer="v2"] :is(button, select, [role="combobox"], input:not([t
 }
 html[data-design-layer="v2"] :is(button, [role="combobox"]) { min-width: 44px; }
 }
+
+/* All native modal dialogs share the same neutral blurred scrim. */
+dialog::backdrop { background:rgb(0 0 0 / .60) !important; backdrop-filter:blur(3px) !important; }

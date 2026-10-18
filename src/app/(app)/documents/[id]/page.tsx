@@ -48,8 +48,8 @@ export default async function DocumentDetailPage({
       sidePanel={
         <>
           <ApprovalPanel document={document} approval={bundle.approval} approvalSteps={bundle.approvalSteps} />
-          <details><summary className="cursor-pointer py-3 text-sm font-medium">Comments and files</summary><CommentsPanel documentId={document.id} comments={bundle.comments} />
-          <AttachmentPanel documentId={document.id} attachments={bundle.attachments} /></details><details><summary className="cursor-pointer py-3 text-sm font-medium">Activity and revisions</summary>
+          <details className="sb-work-surface px-3"><summary className="min-h-11 cursor-pointer py-3 text-sm font-medium">Comments and files</summary><CommentsPanel documentId={document.id} comments={bundle.comments} />
+          <AttachmentPanel documentId={document.id} attachments={bundle.attachments} /></details><details className="sb-work-surface px-3"><summary className="min-h-11 cursor-pointer py-3 text-sm font-medium">Activity and revisions</summary>
           <DocumentTimeline document={document} activities={bundle.activityLogs} comments={bundle.comments} attachments={bundle.attachments} />
           <RevisionPanel revisions={bundle.revisions} /></details>
         </>

@@ -140,7 +140,7 @@ export function StockBalanceOperationalRows({
             key={key}
             href={`/stock-transactions?item_id=${item.item_id}&branch_id=${item.branch_id ?? ""}`}
             label={`Open ledger for ${item.item_name}`}
-            primary={<span className="flex min-w-0 items-start gap-2.5"><ItemThumbnail src={item.image_url} alt={item.item_name} /><span className="min-w-0 break-words pt-0.5">{item.item_name}</span></span>}
+            primary={<span className="flex min-w-0 items-start gap-2"><ItemThumbnail src={item.image_url} alt={item.item_name} /><span className="min-w-0 break-words pt-0.5">{item.item_name}</span></span>}
             status={<Badge className="whitespace-normal" variant={statusVariant(item.status)}>{getStockBalanceStatusLabel(item.status)}</Badge>}
             statusMeta={`${formatQuantity(item.current_qty)} ${item.base_unit}`}
             secondary={<span className="block pl-12"><span className="block">{item.item_code} · {item.branch_name ?? "All permitted branches"}</span><span className="block">{formatQuantity(item.available_qty)} available · {formatQuantity(item.reserved_qty)} reserved · {formatCurrency(item.average_cost)} avg</span></span>}

@@ -136,6 +136,12 @@ type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: st
     const target = event.target;
     if (target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement) target.removeAttribute("aria-invalid");
   }} onSubmit={(event) => {
+    // A new attempt supersedes the previous save receipt without remounting inputs.
+    const currentUrl = new URL(window.location.href);
+    if (currentUrl.searchParams.has("success")) {
+      currentUrl.searchParams.delete("success");
+      window.history.replaceState(null, "", `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`);
+    }
     const invalid = Array.from(event.currentTarget.elements).find((element) =>
       (element instanceof HTMLInputElement || element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement)
       && !element.name.startsWith("sales_") && element.name !== "pos_total_sales" && !element.validity.valid,

@@ -49,6 +49,7 @@ test('successful server action clears its draft before remount; failed actions r
  assert.equal(api.readAssetDraft(s,scope,key,'Open',valid),undefined);
  assert.equal(notices.at(-1).tone,'success');assert.equal(notices.at(-1).message,'confirmed');
  api.writeAssetDraft(s,scope,key,'Open','note');
+ const upload=module.exports.useAssetDraftAction('attachment:one:master',async()=>{throw Error('Network');});const uploadUnknown=await upload({},{});assert.equal(uploadUnknown.ok,false);assert.match(uploadUnknown.message,/Select the same file again/);assert.doesNotMatch(uploadUnknown.message,/Your inputs are kept/);
  api.writeAssetDraft(s,scope,'/assets/other:maintenance-update:one','Open','other');
  const success=module.exports.useAssetDraftAction(form,async()=>({ok:true,message:'saved'}));assert.equal((await success({},{})).ok,true);
  assert.equal(api.readAssetDraft(s,scope,key,'Open',valid),undefined);assert.equal(api.readAssetDraft(s,scope,'/assets/other:maintenance-update:one','Open',valid),'other');

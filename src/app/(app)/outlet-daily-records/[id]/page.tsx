@@ -131,7 +131,6 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
     mobilePrimaryAction={primaryAction}
     mobileMoreOptions={hasSecondaryActions ? <DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions> : undefined}
   >
-    {messages.success ? <Card><CardContent className="p-3 text-sm text-success">{messages.success}</CardContent></Card> : null}
     <ActionErrorNotice message={messages.error} />
     {canEditOutletValues && !canEditQtySent && !qtySentConfirmed && record.status === "draft" ? <Card className="border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)]"><CardContent className="p-3 text-sm"><p className="font-medium">Waiting for Kitchen Qty Sent.</p><p className="mt-1 text-muted-foreground">After Qty Sent is confirmed, Outlet can finish the entry and mark it Ready to post.</p></CardContent></Card> : null}
     {record.received_state === "unavailable" ? <Card className="border-warning/40 bg-warning/10"><CardContent className="p-3 text-sm"><p className="font-medium text-warning">Received entry still in progress</p><p className="mt-1 text-muted-foreground">Enter received quantities or an explicit 0 for the listed products. Save progress, then complete Wastage, Usage or Qty Sold for each category.</p></CardContent></Card> : null}

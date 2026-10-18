@@ -21,7 +21,7 @@ export function useAssetDraftAction<T extends { ok: boolean; message: string; ph
       uncertain.current = null;
     } catch {
       uncertain.current = data;
-      result = { ...previous, ok: false, message: "Could not confirm the result. Your inputs are kept. Retry checks or finishes the original submitted values." };
+      result = { ...previous, ok: false, message: form.startsWith("attachment:") ? "Could not confirm the upload. Your label is kept. Select the same file again, then retry to check or finish the original upload." : "Could not confirm the result. Your inputs are kept. Retry checks or finishes the original submitted values." };
     }
     // Clear before the refreshed history can remount the keyed form.
     if (result.ok && scope) { try { clearAssetDraft(window.sessionStorage, scope, `${pathname}:${form}`); } catch { /* Storage disabled. */ } }

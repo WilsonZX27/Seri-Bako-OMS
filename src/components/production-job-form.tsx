@@ -76,18 +76,18 @@ export function ProductionJobForm({
           <CardTitle>Production Details</CardTitle>
           <CardDescription>Branch-first production setup. Stock posts to the selected branch after approval.</CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-3 gap-3 md:gap-4">
+        <CardContent className="sb-production-fields grid grid-cols-2 gap-3 xl:grid-cols-3 md:gap-4">
           <Field label="Production Date" required className="col-span-1">
             <Input name="production_date" type="date" defaultValue={getToday()} required />
           </Field>
-          <Field label="Branch" required className="col-span-2 md:col-span-1">
+          <Field label="Branch" required className="col-span-1">
             <SelectNative name="branch_id" value={branchId} required onChange={(event) => setBranchId(event.target.value)}>
               {branches.map((branch) => (
                 <option key={branch.id} value={branch.id}>{branch.branch_name}</option>
               ))}
             </SelectNative>
           </Field>
-          <Field label="Recipe" required className="col-span-2 md:col-span-1">
+          <Field label="Recipe" required className="col-span-1">
             <SelectNative
               name="recipe_id"
               value={recipeId}
@@ -114,10 +114,10 @@ export function ProductionJobForm({
               {uomOptionsWithCurrent(outputUom).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
             </SelectNative>
           </Field>
-          <Field label="Priority" className="col-span-2 md:col-span-1">
+          <Field label="Priority" className="col-span-1">
             <UrgencySelect name="priority" value={priority} onValueChange={setPriority} />
           </Field>
-          <div className="col-span-3">
+          <div className="col-span-2 xl:col-span-3">
             <Field label="Remarks">
               <Textarea name="remarks" placeholder="Optional production notes" />
             </Field>
@@ -199,11 +199,11 @@ export function ProductionJobForm({
           </Card>
 
           <Card>
-            <CardContent className="grid grid-cols-2 gap-4 p-4 md:grid-cols-4 md:p-5">
+            <CardContent className="sb-label-value-summary grid grid-cols-2 gap-4 p-4 xl:grid-cols-4 md:p-5">
               <div>
                 <p className="text-xs uppercase text-muted-foreground">Output</p>
-                <p className="font-medium">{selectedRecipe.product_name}</p>
-                <p className="text-xs text-muted-foreground">{selectedRecipe.product_code}</p>
+                <div><p className="font-medium">{selectedRecipe.product_name}</p>
+                <p className="text-xs text-muted-foreground">{selectedRecipe.product_code}</p></div>
               </div>
               <div>
                 <p className="text-xs uppercase text-muted-foreground">Planned Qty</p>

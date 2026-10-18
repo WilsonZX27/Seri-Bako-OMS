@@ -2880,3 +2880,9 @@ html[data-design-layer="v2"] .unified-list-sheet-fields > :nth-last-child(1 of :
 @media(max-width:359px) { .sb-asset-field-grid > label > span:first-child { min-height:2rem; } }
 
 .unified-list-primary-control:has(.unified-list-clear) input[type="search"]::-webkit-search-cancel-button { display:none; }
+
+/* Keep paired production controls aligned when a mobile label wraps. */
+@media (max-width: 359px) {
+  .sb-production-fields > div > label { display: block; min-height: 2rem; }
+  .sb-production-fields > div.col-span-2 > div > label { min-height: 0; }
+}

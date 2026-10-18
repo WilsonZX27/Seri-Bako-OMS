@@ -212,6 +212,9 @@ export function SchedulePlanner({
     [initialAssignments],
   );
   const importFile = importSource?.fileName ?? initialAssignments.map((item) => item.custom_reason).find((reason) => reason?.startsWith("Imported from "))?.replace(/^Imported from /, "") ?? null;
+  const savedVersion = useRef(week?.updated_at ?? null);
+  const saveVersionUnknown = useRef(false);
+  const failedAutosaveAssignments = useRef<Assignment[] | null>(null);
   const [cells, setCells] = useState<Map<string, Assignment>>(initial);
   const externalCells = useMemo(() => new Map(externalAssignments.map((item) => [`${item.staff_id}:${item.work_date}`, item])), [externalAssignments]);
   const [visiblePersonIds, setVisiblePersonIds] = useState(() => new Set(people.map((person) => person.id)));
@@ -494,10 +497,10 @@ export function SchedulePlanner({
     const result = await readJsonResponse<{
       ok: boolean;
       message?: string;
-      data?: unknown;
+      data?: { updated_at?: string };
     }>(response, {
       unexpectedResponse:
-        "Schedule service returned an unexpected response. Retry; no changes were applied.",
+        "The schedule response could not be read. Reload to check whether your changes were saved before retrying.",
     });
     if (!response.ok || !result.ok)
       throw new Error(
@@ -526,11 +529,19 @@ export function SchedulePlanner({
     setBusyAction(automatic ? "autosave" : "save");
     setSaveStatus("saving");
     try {
-      await requestAction({ action: "save", branchId, weekStart, assignments });
+      const result = await requestAction({ action: "save", branchId, weekStart, assignments });
+      if (!result.data?.updated_at) {
+        saveVersionUnknown.current = true;
+        throw new Error("The draft may be saved, but its version could not be confirmed. Reload this schedule before submitting.");
+      }
+      savedVersion.current = result.data.updated_at;
+      saveVersionUnknown.current = false;
+      failedAutosaveAssignments.current = null;
       setDirty(false);
       setSaveStatus("saved");
       setActionFeedback(null);
     } catch (error) {
+      failedAutosaveAssignments.current = assignments;
       const feedback = error instanceof Error ? error.message : "Draft could not be saved.";
       setSaveStatus("error");
       setActionFeedback(feedback);
@@ -540,6 +551,10 @@ export function SchedulePlanner({
   }
   saveDraftRef.current = saveDraft;
   async function submitCurrentSchedule() {
+    if (saveVersionUnknown.current) {
+      setActionFeedback("Reload this schedule to confirm the saved version before submitting.");
+      return;
+    }
     setBusyAction("submit");
     setActionFeedback(null);
     try {
@@ -548,7 +563,7 @@ export function SchedulePlanner({
         branchId,
         weekStart,
         assignments,
-        expectedUpdatedAt: week?.updated_at ?? null,
+        expectedUpdatedAt: savedVersion.current,
       })) as { data?: { warnings?: Array<{ message: string }> } };
       const warnings = result.data?.warnings ?? [];
       setDirty(false);
@@ -603,7 +618,7 @@ export function SchedulePlanner({
     ) ||
     managerEditing;
   useEffect(() => {
-    if (!dirty || !editableStatus || !canDraft || busyAction) return;
+    if (!dirty || !editableStatus || !canDraft || busyAction || failedAutosaveAssignments.current === assignments) return;
     const timer = window.setTimeout(() => void saveDraftRef.current(true), 900);
     return () => window.clearTimeout(timer);
   }, [assignments, busyAction, canDraft, dirty, editableStatus]);
@@ -821,11 +836,11 @@ export function SchedulePlanner({
       hideMobileConsole
       className="sb-schedule-workspace px-4 pb-24 md:px-0 md:pb-0"
     >
-      <div className="space-y-3" data-schedule-planner>
+      <div className="space-y-3" data-schedule-planner data-schedule-unsaved={dirty || busyAction !== null ? "true" : "false"}>
         {headerContent}
         <section className="overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-white shadow-[var(--sb-shadow-card)]">
           <div
-            className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-[var(--sb-border-soft)] px-3 py-2 sm:grid-cols-[minmax(12rem,1fr)_auto_auto]"
+            className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-[var(--sb-border-soft)] px-3 py-2 xl:grid-cols-[minmax(12rem,1fr)_auto_auto]"
             data-schedule-period-controls
           >
             <label className="sr-only" htmlFor="schedule-outlet">
@@ -833,7 +848,7 @@ export function SchedulePlanner({
             </label>
             <SelectControl
               id="schedule-outlet"
-              className="col-span-2 text-xs font-semibold sm:col-span-1"
+              className="col-span-2 text-xs font-semibold xl:col-span-1"
               ariaLabel="Schedule outlet"
               value={branchId}
               onValueChange={(value) =>

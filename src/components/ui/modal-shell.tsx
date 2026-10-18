@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode, RefObject } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
@@ -23,13 +23,15 @@ export function ModalShell({
   children: ReactNode;
   className?: string;
 }) {
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
   const dialogRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || !hydrated) return;
     const previousOverflow = document.body.style.overflow;
     const trigger = triggerRef?.current ?? (dialogRef.current?.contains(document.activeElement)
       ? returnFocusRef.current
@@ -56,9 +58,9 @@ export function ModalShell({
       // let that cleanup steal focus back after the next setup focused it.
       requestAnimationFrame(() => { if (!dialog?.isConnected) trigger?.focus(); });
     };
-  }, [initialFocusRef, open, triggerRef]);
+  }, [hydrated, initialFocusRef, open, triggerRef]);
 
-  if (!open || typeof document === "undefined") return null;
+  if (!open || !hydrated) return null;
   return createPortal(
     <div className="fixed inset-0 z-[var(--sb-z-dialog)] flex items-center justify-center p-4">
       <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={onClose} aria-label="Close dialog" />

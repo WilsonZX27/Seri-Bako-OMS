@@ -52,8 +52,8 @@ begin
   end loop;
  end if;
  -- Snapshot newly-created lines even for Kitchen-only entry.
- update public.outlet_daily_record_lines l set daily_tracking=coalesce(p.daily_tracking,case when lower(trim(p.category))='packaging' then 'packaging' else 'food_daily' end)
- from public.products p where l.record_id=rid and l.product_id=p.id and l.daily_tracking is null;
+ update public.outlet_daily_record_lines snapshot_line set daily_tracking=coalesce(p.daily_tracking,case when lower(trim(p.category))='packaging' then 'packaging' else 'food_daily' end)
+ from public.products p where snapshot_line.record_id=rid and snapshot_line.product_id=p.id and snapshot_line.daily_tracking is null;
  return rid;
 end $$;
 revoke all on function public.save_outlet_daily_record(uuid,uuid,date,text,jsonb,text) from public,anon;

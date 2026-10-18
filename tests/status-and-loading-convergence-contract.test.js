@@ -87,9 +87,9 @@ test("reference-only mobile surfaces retain app navigation instead of inventing 
 
 test("calendar phone navigation uses one stable month axis", () => {
   const calendar = read("src/components/compliance-month-calendar.tsx");
-  assert.match(calendar, /grid min-h-14 grid-cols-\[auto_minmax\(0,1fr\)_auto\] items-center gap-2/);
+  assert.match(calendar, /grid min-h-14 grid-cols-\[auto_minmax\(0,1fr\)\] sm:grid-cols-\[auto_minmax\(0,1fr\)_auto\] items-center gap-2/);
   assert.match(calendar, /grid min-w-0 grid-cols-\[2\.75rem_minmax\(0,1fr\)_2\.75rem\] items-center/);
-  assert.match(calendar, /<span className="w-\[4\.5rem\]" aria-hidden="true"/);
+  assert.match(calendar, /<span className="hidden w-\[4\.5rem\] sm:block" aria-hidden="true"/);
   assert.doesNotMatch(calendar, /Go to month/);
   assert.doesNotMatch(calendar, /<header[^>]*flex-wrap/);
   assert.match(calendar, /min-h-16[\s\S]*sm:min-h-28/);

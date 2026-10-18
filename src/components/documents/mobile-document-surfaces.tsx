@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/button";
 import type { WorkflowStep } from "@/components/workflow-status-pipeline";
 import { cn } from "@/lib/utils";
 
+// Nested sheets share one scroll lock, including simultaneous breakpoint closure.
+let sheetScrollLocks = 0;
+let overflowBeforeSheets = "";
+
 function MobileSheet({ label, title, children, danger = false, triggerClassName, triggerAriaLabel, trailingChevron = true, hideAt = "md" }: { label: ReactNode; title: string; children: ReactNode; danger?: boolean; triggerClassName?: string; triggerAriaLabel?: string; trailingChevron?: boolean; hideAt?: "md" | "xl" }) {
   const [open, setOpen] = useState(false);
   const [nested, setNested] = useState(false);
@@ -20,7 +24,8 @@ function MobileSheet({ label, title, children, danger = false, triggerClassName,
 
   useEffect(() => {
     if (!open) return;
-    const previousOverflow = document.body.style.overflow;
+    if (sheetScrollLocks === 0) overflowBeforeSheets = document.body.style.overflow;
+    sheetScrollLocks += 1;
     const trigger = triggerRef.current;
     document.body.style.overflow = "hidden";
     document.documentElement.dataset.mobileSheetOpen = "true";
@@ -49,14 +54,35 @@ function MobileSheet({ label, title, children, danger = false, triggerClassName,
       }
     }
 
+    const desktop = window.matchMedia(`(min-width: ${hideAt === "xl" ? 1280 : 768}px)`);
+    const closeBeyondBreakpoint = () => { if (desktop.matches) setOpen(false); };
+    desktop.addEventListener("change", closeBeyondBreakpoint);
+    closeBeyondBreakpoint();
     document.addEventListener("keydown", onKeyDown);
     return () => {
-      document.body.style.overflow = previousOverflow;
+      desktop.removeEventListener("change", closeBeyondBreakpoint);
+      sheetScrollLocks -= 1;
+      if (sheetScrollLocks === 0) document.body.style.overflow = overflowBeforeSheets;
       if (!Array.from(document.querySelectorAll<HTMLElement>('[data-bottom-sheet][role="dialog"]')).some((element) => element !== dialog && element.getClientRects().length > 0)) delete document.documentElement.dataset.mobileSheetOpen;
       document.removeEventListener("keydown", onKeyDown);
-      requestAnimationFrame(() => trigger?.focus());
+      requestAnimationFrame(() => {
+        if (trigger?.getClientRects().length) { trigger.focus(); return; }
+        // At the wider layout the original trigger is hidden; return to content.
+        if (sheetScrollLocks === 0) {
+          const content = Array.from(document.querySelectorAll<HTMLElement>("[data-document-workspace-header], main, h1")).find((element) => element.getClientRects().length > 0);
+          if (content) {
+            const previousTabIndex = content.getAttribute("tabindex");
+            content.setAttribute("tabindex", "-1");
+            content.focus({ preventScroll: true });
+            content.addEventListener("blur", () => {
+              if (previousTabIndex === null) content.removeAttribute("tabindex");
+              else content.setAttribute("tabindex", previousTabIndex);
+            }, { once: true });
+          }
+        }
+      });
     };
-  }, [open]);
+  }, [hideAt, open]);
 
   return (
     <>

@@ -50,8 +50,8 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
             <Input name="product_image" aria-label="Product image" type="file" accept="image/png,image/jpeg,image/webp" />
             <p className="mt-1 text-xs text-muted-foreground">PNG, JPG, or WEBP, up to 2MB.</p>
           </Field>
-          <div className="col-span-2 grid grid-cols-2 gap-3 border-y py-4 sm:gap-4 md:rounded-[var(--sb-control-radius)] md:border md:bg-secondary/30 md:p-4 md:grid-cols-4">
-            <div className="col-span-2 md:col-span-4">
+          <div className="col-span-2 grid grid-cols-2 gap-3 border-y py-4 sm:gap-4 md:rounded-[var(--sb-control-radius)] md:border md:bg-secondary/30 md:p-4 xl:grid-cols-4">
+            <div className="col-span-2 xl:col-span-4">
               <p className="text-sm font-semibold">Packaging & Pricing</p>
               <p className="mt-1 text-xs text-muted-foreground">Default selling pack used for catalogue and future order pricing.</p>
             </div>

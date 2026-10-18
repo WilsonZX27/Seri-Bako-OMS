@@ -33,7 +33,7 @@ test("dense creation forms avoid nested card shells and use responsive field gri
   assert.match(purchaseOrder, /data-purchase-order-setup[^>]+grid grid-cols-2/);
   assert.match(invoice, /data-supplier-invoice-setup[^>]+grid grid-cols-2/);
   assert.match(purchaseReturn, /grid grid-cols-2 gap-3 lg:grid-cols-3/);
-  assert.match(production, /CardContent className="grid grid-cols-3 gap-3/);
+  assert.match(production, /CardContent className="sb-production-fields grid grid-cols-2 gap-3 xl:grid-cols-3/);
 });
 
 test("goods receiving uses one collapsible setup instead of a nested details disclosure", () => {

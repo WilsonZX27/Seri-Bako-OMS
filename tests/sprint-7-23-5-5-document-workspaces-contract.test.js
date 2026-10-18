@@ -51,7 +51,7 @@ test("the shared shell gives iPad a contained canvas and an explicit operational
   assert.doesNotMatch(workspaceGrid, /grid-cols-\[/);
   assert.match(styles, /data-tablet-rail-breakpoint="md"[\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(14rem, 24%\)/);
   assert.match(styles, /data-tablet-rail-breakpoint="md"\]\[data-tablet-rail-width="compact"\][\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(14rem, 18rem\)/);
-  assert.match(grn, /tabletRailMode="context"/);
+  assert.match(grn, /tabletRailMode="split"/);
   assert.match(pr, /tabletRailMode="split"/);
   assert.match(recordWorkspace, /tabletRailMode="split"/);
   assert.match(workspace, /data-mobile-document-action/);
@@ -63,7 +63,8 @@ test("the shared shell gives iPad a contained canvas and an explicit operational
   assert.doesNotMatch(sheets, /grid w-full max-w-56/);
   assert.match(sheets, /document\.body\.style\.overflow = "hidden"/);
   assert.match(sheets, /event\.key === "Escape"/);
-  assert.match(sheets, /requestAnimationFrame\(\(\) => trigger\?\.focus\(\)\)/);
+  assert.match(sheets, /requestAnimationFrame\([\s\S]*trigger\?\.getClientRects\(\)\.length[\s\S]*trigger\.focus\(\)/);
+  assert.match(sheets, /content\.focus\(\{ preventScroll: true \}\)/);
   assert.match(confirm, /ModalShell/);
   assert.match(modal, /role="dialog"/);
   assert.match(modal, /containDialogTab\(event, dialog\)/);

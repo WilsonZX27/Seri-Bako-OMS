@@ -7,6 +7,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, ShoppingCart, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ModalShell } from "@/components/ui/modal-shell";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
@@ -442,7 +443,13 @@ export function StockBalanceWorkspace({
           </form>
         </section>
       </div>, document.body) : null}
-      {branchConflict ? createPortal(<div className="fixed inset-0 z-[var(--sb-z-dialog)] grid place-items-center bg-black/60 backdrop-blur-[3px] p-4" role="dialog" aria-modal="true" aria-label="One branch per PR basket"><div className="w-full max-w-sm rounded-[var(--sb-panel-radius)] bg-white p-4 shadow-xl"><div className="flex items-start gap-3"><AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[var(--sb-warning)]" /><div><h2 className="font-semibold">One branch per PR basket</h2><p className="mt-1 text-sm text-muted-foreground">This basket already contains items from {branchConflict.current}. Remove them before adding an item from {branchConflict.attempted}.</p></div></div><Button type="button" className="mt-4 w-full" onClick={() => setBranchConflict(null)}>Keep current basket</Button></div></div>, document.body) : null}
+      <ModalShell open={Boolean(branchConflict)} onClose={() => setBranchConflict(null)} titleId="stock-branch-conflict-title" className="max-w-sm">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[var(--sb-warning)]" />
+          <div><h2 id="stock-branch-conflict-title" className="font-semibold">One branch per PR basket</h2><p className="mt-1 text-sm text-muted-foreground">This basket already contains items from {branchConflict?.current}. Remove them before adding an item from {branchConflict?.attempted}.</p></div>
+        </div>
+        <Button type="button" className="mt-4 w-full" onClick={() => setBranchConflict(null)}>Keep current basket</Button>
+      </ModalShell>
     </>
   );
 }

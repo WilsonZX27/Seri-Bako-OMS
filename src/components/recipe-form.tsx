@@ -181,8 +181,8 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
         <CardHeader className="px-3 py-3 md:px-5">
           <CardTitle>Recipe details</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-3 px-3 pb-3 sm:gap-4 md:grid-cols-4 md:px-5 md:pb-5">
-          <Field label="Product" className="col-span-2 md:col-span-1" description={!products.length ? "No active products. Ask an authorised product manager to create or activate a product, then reload." : undefined}>
+        <CardContent className="grid grid-cols-2 gap-3 px-3 pb-3 sm:gap-4 xl:grid-cols-4 md:px-5 md:pb-5">
+          <Field label="Product" className="col-span-2 xl:col-span-1" description={!products.length ? "No active products. Ask an authorised product manager to create or activate a product, then reload." : undefined}>
             <SelectNative
               name="product_id"
               disabled={!products.length}
@@ -213,7 +213,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
           <Field label="Effective Date">
             <Input name="effective_date" type="date" value={effectiveDate} onChange={event => setEffectiveDate(event.target.value)} required />
           </Field>
-          <div className="col-span-2 md:col-span-3">
+          <div className="col-span-2 xl:col-span-3">
             <Field label="Remarks">
               <Textarea name="remarks" value={remarks} onChange={event => setRemarks(event.target.value)} />
             </Field>

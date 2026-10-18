@@ -105,16 +105,16 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
             </UnifiedListHeader>
           <div className="sb-list-content-card overflow-hidden" data-mobile-list-content-card>
           <DataGridHint text="Pro-tip: Double-click any row to open the purchase order." />
-          <Table mobileHidden compactUntil="md" aria-label="Purchase orders" stickyColumn="second">
+          <Table className="!min-w-[64rem]" mobileHidden compactUntil="md" aria-label="Purchase orders" stickyColumn="second">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-10 text-center">Action</TableHead>
-                  <SortableHead className="min-w-36" label="PO No / PR No" column="po_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <SortableHead className="w-36 min-w-36" label="PO No / PR No" column="po_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead className="w-40 max-w-40">Request context</TableHead>
                   <TableHead className="w-52">Supplier</TableHead>
                   <SortableHead className="hidden md:table-cell" label="Date" column="order_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead className="hidden lg:table-cell" label="Delivery" column="expected_delivery_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <SortableHead className="w-44" label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead className="hidden text-right md:table-cell">Order value</TableHead>
                 </TableRow>
               </TableHeader>
@@ -122,12 +122,12 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                 {orders?.rows.map((order) => (
                   <DataGridRow key={order.id} href={`/purchase-orders/${order.id}`} className="[&>td]:h-16 [&>td]:align-top">
                     <TableCell className="w-10 p-0 text-center"><TableActionLink href={`/purchase-orders/${order.id}`} label={`Open ${order.po_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
-                    <TableCell className="min-w-36"><DocumentNumber value={order.po_no} size="sm" />{order.purchase_request_id && order.request_no ? <span className="mt-1 block text-[10px] italic text-muted-foreground"><Link href={`/purchase-requests/${order.purchase_request_id}`} className="text-[var(--sb-link)] underline-offset-4 hover:underline">{order.request_no}</Link></span> : null}</TableCell>
+                    <TableCell className="w-36 min-w-36"><DocumentNumber value={order.po_no} size="sm" />{order.purchase_request_id && order.request_no ? <span className="mt-1 block text-[10px] italic text-muted-foreground"><Link href={`/purchase-requests/${order.purchase_request_id}`} className="text-[var(--sb-link)] underline-offset-4 hover:underline">{order.request_no}</Link></span> : null}</TableCell>
                     <TableCell className="w-40 max-w-40"><p className="truncate">{order.branch_name ?? "No outlet assigned"}</p><p className="mt-1 truncate text-[11px] text-muted-foreground">{order.requested_by_name ? `${order.purchase_request_id ? "Submitted" : "Created"} by ${order.requested_by_name}` : "Creator unavailable"}</p></TableCell>
                     <TableCell className="w-52 max-w-52"><span className="line-clamp-2 leading-4">{order.supplier_name ?? "-"}</span></TableCell>
                     <TableCell className="hidden md:table-cell">{formatDateOnly(order.order_date)}</TableCell>
                     <TableCell className="hidden lg:table-cell">{formatDateOnly(order.expected_delivery_date, "-")}</TableCell>
-                    <TableCell><StatusBadge status={order.status} /></TableCell>
+                    <TableCell className="w-44"><StatusBadge status={order.status} /></TableCell>
                     <TableCell className="hidden text-right md:table-cell"><p>{order.line_count} lines</p><p className="mt-1 text-[11px] text-muted-foreground">{formatCurrency(order.order_total)}</p></TableCell>
                   </DataGridRow>
                 ))}

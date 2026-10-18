@@ -58,7 +58,7 @@ test("Attendance, calendar and PO headers retain stable alignment", () => {
   assert.match(nav, /WorkspaceTabs/);
   assert.match(read("src", "components", "ui", "workspace-tabs.tsx"), /repeat\(\$\{items\.length\}, minmax\(max-content, 1fr\)\)/);
   assert.match(calendar, /grid-cols-\[auto_minmax\(0,1fr\)_auto\]/);
-  assert.match(po, /className="min-w-36" label="PO No \/ PR No"/);
+  assert.match(po, /className="w-36 min-w-36" label="PO No \/ PR No"/);
   assert.match(po, /className="w-40 max-w-40">Request context/);
 });
 

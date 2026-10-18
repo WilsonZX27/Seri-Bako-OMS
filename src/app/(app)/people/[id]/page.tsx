@@ -75,9 +75,9 @@ export default async function PeopleProfilePage({
           <span className="text-muted-foreground">Employment</span>
           <StatusBadge status={staff.status} />
         </div>
-        <div className="flex items-center justify-between border-t pt-2">
+        <div className="flex items-start justify-between gap-3 border-t pt-2">
           <span className="text-muted-foreground">Compliance</span>
-          <strong>
+          <strong className="min-w-0 text-right">
             {attention
               ? `${attention} need attention`
               : "All requirements valid"}
@@ -103,7 +103,7 @@ export default async function PeopleProfilePage({
         tabletCanvas="contained"
         rightRail={rail}
         documentMode
-        tabletRailBreakpoint="lg"
+        tabletRailBreakpoint="md"
       >
         {message.error || message.success ? (
           <div

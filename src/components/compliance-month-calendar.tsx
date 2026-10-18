@@ -64,7 +64,7 @@ export function ComplianceMonthCalendar({ baseHref, month, events }: { baseHref:
   while (cells.length % 7) cells.push(null);
 
   return <section className="overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)]" aria-label="Monthly compliance calendar">
-    <header className="grid min-h-14 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-b px-2 py-2 sm:px-3">
+    <header className="grid min-h-14 grid-cols-[auto_minmax(0,1fr)] sm:grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-b px-2 py-2 sm:px-3">
       <Button variant="outline" size="sm" className="shrink-0 border-amber-300 bg-amber-50 text-amber-950 hover:bg-amber-100" onClick={() => go(new Date())}>Today</Button>
       <div className="grid min-w-0 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center justify-self-center">
         <Button variant="ghost" size="icon" onClick={() => go(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))} aria-label="Previous month"><ChevronLeft className="h-4 w-4" /></Button>
@@ -75,7 +75,7 @@ export function ComplianceMonthCalendar({ baseHref, month, events }: { baseHref:
         </label>
         <Button variant="ghost" size="icon" onClick={() => go(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))} aria-label="Next month"><ChevronRight className="h-4 w-4" /></Button>
       </div>
-      <span className="w-[4.5rem]" aria-hidden="true" />
+      <span className="hidden w-[4.5rem] sm:block" aria-hidden="true" />
     </header>
     <div className="overflow-x-auto">
     <div className="min-w-[23.25rem]">

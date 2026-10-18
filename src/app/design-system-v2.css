@@ -2764,8 +2764,8 @@ html[data-design-layer="v2"] [data-page-jump], html[data-design-layer="v2"] [dat
 /* Semantic read-only description lists share the same label/value grammar. */
 @media(max-width:1279px) {
 #main-content dl:has(> div > dt) { display:grid; grid-template-columns:minmax(0,1fr); grid-auto-rows:auto; gap:.5rem; }
-#main-content dl > div:has(> dt + dd) { display:grid; grid-column:1 / -1; grid-template-columns:minmax(0,1fr) fit-content(60%); align-items:start; gap:.75rem; min-height:0; }
-#main-content dl > div > dd { min-width:0; margin-top:0; text-align:right; overflow-wrap:anywhere; }
+#main-content dl > div:has(> dt + dd:last-child) { display:grid; grid-column:1 / -1; grid-template-columns:minmax(0,1fr) fit-content(60%); align-items:start; gap:.75rem; min-height:0; }
+#main-content dl > div:has(> dt + dd:last-child) > dd { min-width:0; margin-top:0; text-align:right; overflow-wrap:anywhere; }
 }
 
 @media(max-width:767px) {
@@ -2781,12 +2781,6 @@ html[data-design-layer="v2"] form[data-transfer-action-form] { padding-bottom:0 
 @media(min-width:768px) {
  html[data-design-layer="v2"] [data-transfer-action-form] .sb-mobile-action-bar { position:static; grid-template-columns:minmax(0,1fr) !important; grid-auto-flow:row !important; padding:0; border:0; box-shadow:none; background:transparent; backdrop-filter:none; }
 }
-
-/* The request action is rendered once and remains associated with its form. */
-@media(max-width:767px) {
- .sb-transfer-request-actions { position:fixed; inset-inline:0; bottom:0; z-index:var(--sb-z-sticky); padding:12px; padding-bottom:calc(12px + env(safe-area-inset-bottom)); background:white; border-top:1px solid var(--sb-border); }
-}
-
 
 html[data-design-layer="v2"] button[data-mobile-secondary-actions] { height:3.5rem !important; min-height:3.5rem !important; max-height:none !important; }
 

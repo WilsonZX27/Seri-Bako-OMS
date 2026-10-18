@@ -25,11 +25,12 @@ test('draft malformed data and unavailable or full storage do not prevent normal
  assert.equal(api.writeAssetDraft(unavailable,'a','form','v1','input'),false);assert.equal(api.readAssetDraft(unavailable,'a','form','v1',valid),undefined);
 });
 test('successful server action clears its draft before remount; failed actions retain inputs',async()=>{
- const s=storage(),scope='company:staff:auth',pathname='/assets/one';
+ const s=storage(),scope='company:staff:auth',pathname='/assets/one',notices=[];
  const module={exports:{},window:{sessionStorage:s},require:name=>{
-  if(name==='react')return {createContext:()=>({}),useContext:()=>scope,useCallback:callback=>callback};
+  if(name==='react')return {createContext:()=>({}),useContext:()=>scope,useCallback:callback=>callback,useRef:value=>({current:value})};
   if(name==='next/navigation')return {usePathname:()=>pathname};
   if(name==='@/lib/asset-draft')return api;
+  if(name==='@/components/asset-action-feedback')return {useAssetFeedback:()=>notice=>notices.push(notice)};
   throw Error(name);
  }};
  vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/components/asset-draft-state.tsx','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,module);
@@ -37,7 +38,17 @@ test('successful server action clears its draft before remount; failed actions r
  api.writeAssetDraft(s,scope,key,'Open','note');
  const failed=module.exports.useAssetDraftAction(form,async()=>({ok:false,message:'retry'}));
  assert.equal((await failed({},{})).ok,false);assert.equal(api.readAssetDraft(s,scope,key,'Open',valid),'note');
- const throws=module.exports.useAssetDraftAction(form,async()=>{throw Error('Network');});await assert.rejects(()=>throws({},{}),/Network/);assert.equal(api.readAssetDraft(s,scope,key,'Open',valid),'note');
+ let attempts=0;const received=[],original={requestKey:'same-request',note:'original note'};
+ const retry=module.exports.useAssetDraftAction(form,async(_,data)=>{received.push(data);if(attempts++===0)throw Error('Network');return {ok:true,message:'confirmed'};});
+ const unknown=await retry({},original);
+ assert.equal(unknown.ok,false);assert.match(unknown.message,/Could not confirm the result/);
+ assert.equal(api.readAssetDraft(s,scope,key,'Open',valid),'note');
+ assert.equal(notices.at(-1).tone,'error');assert.equal(notices.at(-1).message,unknown.message);
+ assert.equal((await retry(unknown,{requestKey:'new-request',note:'edited'})).ok,true);
+ assert.equal(received[0],original);assert.equal(received[1],original);
+ assert.equal(api.readAssetDraft(s,scope,key,'Open',valid),undefined);
+ assert.equal(notices.at(-1).tone,'success');assert.equal(notices.at(-1).message,'confirmed');
+ api.writeAssetDraft(s,scope,key,'Open','note');
  api.writeAssetDraft(s,scope,'/assets/other:maintenance-update:one','Open','other');
  const success=module.exports.useAssetDraftAction(form,async()=>({ok:true,message:'saved'}));assert.equal((await success({},{})).ok,true);
  assert.equal(api.readAssetDraft(s,scope,key,'Open',valid),undefined);assert.equal(api.readAssetDraft(s,scope,'/assets/other:maintenance-update:one','Open',valid),'other');
@@ -63,6 +74,7 @@ test('disabled draft storage reports failure while the actual input hook keeps e
   if(name==='react')return {createContext:()=>contextId++===0?scopeContext:{},useContext:ctx=>ctx===scopeContext?'company:actor':(form,unavailable)=>reports.push([form,unavailable]),useRef:value=>({current:value}),useState:initial=>[initial,value=>{savedInput=value}],useEffect:effect=>effect(),useCallback:callback=>callback};
   if(name==='next/navigation')return {usePathname:()=>'/asset-management/assets/new'};
   if(name==='@/lib/asset-draft')return api;
+  if(name==='@/components/asset-action-feedback')return {useAssetFeedback:()=>null};
   throw Error(name);
  }};
  vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/components/asset-draft-state.tsx','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,module);

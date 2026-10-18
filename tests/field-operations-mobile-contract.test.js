@@ -184,7 +184,7 @@ test("production ingredient snapshots replace the phone table with a scannable l
   assert.match(source, /sb-table-region hidden rounded-\[var\(--sb-panel-radius\)\] border md:block/);
   assert.match(source, /data-production-ingredient-list/);
   assert.match(source, /grid grid-cols-2 gap-x-4 gap-y-2 text-xs/);
-  assert.match(source, /CardContent className="grid grid-cols-2 gap-4 p-4 md:grid-cols-4/);
+  assert.match(source, /CardContent className="sb-label-value-summary grid grid-cols-2 gap-4 p-4 xl:grid-cols-4/);
 });
 
 test("supplier invoice matching uses editable phone lines instead of a nine-column table", () => {

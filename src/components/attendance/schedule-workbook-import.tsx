@@ -12,6 +12,8 @@ import { parseScheduleWorkbooks, scheduleImportDisposition, scheduleOtResolution
 
 export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: string; canDraft: boolean }) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const refreshOnClose = useRef(false);
+  const [openError, setOpenError] = useState<string | null>(null);
   const [step,setStep]=useState<1|2|3>(1);
   const [preview, setPreview] = useState<ScheduleWorkbookPreview | null>(null), [busy, setBusy] = useState(false), [message, setMessage] = useState<string | null>(null);
   const [source, setSource] = useState<File[]>([]), [catalog, setCatalog] = useState<ScheduleImportCatalog | null>(null);
@@ -98,6 +100,7 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
       const result=await readJsonResponse<{ok:boolean;message?:string;data?:{idempotent?:boolean}}>(response,{unexpectedResponse:"The batch response could not be read. Retry the same selection to check its receipt."});
       if(!response.ok||!result.ok)throw new Error(result.message??"The batch was not imported. Check changes and try again.");
       for(const outlet of pending)setOutcomes(current=>({...current,[outlet.branchId]:{status:"imported",message:`${outlet.assignments.length} assignments saved${result.data?.idempotent?" · already saved":""}`}}));
+      refreshOnClose.current = true;
       setMessage("All selected locations were saved together. Confirmed matching and label rules will be reused next time.");
     }catch(error){const message=error instanceof Error?error.message:"Import failed.";for(const outlet of pending)setOutcomes(current=>({...current,[outlet.branchId]:{status:"failed",message}}));setMessage(message);}
     finally{setBusy(false);}
@@ -116,11 +119,19 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
   return <>
     <section className="sb-work-surface flex flex-wrap items-center gap-3 p-3">
       <div className="min-w-0 flex-1"><h2 className="text-sm font-semibold">Schedule workbook</h2><p className="mt-0.5 text-xs text-muted-foreground">Import Excel shifts into a draft.</p></div>
-      <Button size="sm" variant="outline" onClick={() => dialog.current?.showModal()}><FileSpreadsheet className="h-4 w-4"/>Import workbook</Button>
+      <Button size="sm" variant="outline" onClick={() => {
+        if (document.querySelector('[data-schedule-planner][data-schedule-unsaved="true"]')) {
+          setOpenError("Save your current schedule changes before importing a workbook.");
+          return;
+        }
+        setOpenError(null);
+        dialog.current?.showModal();
+      }}><FileSpreadsheet className="h-4 w-4"/>Import workbook</Button>
     </section>
-    <dialog ref={dialog} className="sb-schedule-import-dialog m-auto max-h-[calc(100dvh-4rem)] w-[min(48rem,calc(100vw-2rem))] max-w-none overflow-visible rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-2xl backdrop:bg-black/55">
+    {openError ? <p role="status" className="text-xs text-destructive">{openError}</p> : null}
+    <dialog ref={dialog} onCancel={event => { if (busy) event.preventDefault(); }} onClose={() => { if (refreshOnClose.current) window.location.reload(); }} className="sb-schedule-import-dialog m-auto max-h-[calc(100dvh-4rem)] w-[min(48rem,calc(100vw-2rem))] max-w-none overflow-visible rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-2xl backdrop:bg-black/55">
       <div className="flex max-h-[calc(100dvh-4rem)] flex-col">
-        <header className="flex items-start gap-3 border-b border-[var(--sb-border-soft)] p-4"><div className="min-w-0 flex-1"><h2 className="text-base font-semibold">Import schedule workbook</h2><p className="mt-1 text-xs text-muted-foreground">Preview all locations together, then select the drafts to import.</p></div><Button size="icon" variant="ghost" aria-label="Close schedule import" onClick={() => dialog.current?.close()}><X className="h-4 w-4"/></Button></header>
+        <header className="flex items-start gap-3 border-b border-[var(--sb-border-soft)] p-4"><div className="min-w-0 flex-1"><h2 className="text-base font-semibold">Import schedule workbook</h2><p className="mt-1 text-xs text-muted-foreground">Preview all locations together, then select the drafts to import.</p></div><Button size="icon" variant="ghost" aria-label="Close schedule import" disabled={busy} onClick={() => dialog.current?.close()}><X className="h-4 w-4"/></Button></header>
         <nav aria-label="Import steps" className="grid grid-cols-3 gap-1 px-4 pt-3">{(["Import","Fix import","Review"] as const).map((label,index)=><Button key={label} type="button" variant={step===index+1?"default":"ghost"} aria-current={step===index+1?"step":undefined} disabled={busy || (index>0 && !catalog) || (index===2 && (!preview || step===1))} onClick={()=>setStep((index+1) as 1|2|3)}>{index+1}. {label}</Button>)}</nav>
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4">
           {message ? <p role="status" className="rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] p-3 text-xs">{message}</p> : null}

@@ -89,17 +89,17 @@ export function SupplierItemForm({
             <p className="mt-1 text-xs">Owned by Item Master. Set Purchase UOM and the conversion below.</p>
             {selectedItem ? <Link href={`/items/${selectedItem.id}`} className="mt-1 inline-flex text-xs font-semibold text-primary underline-offset-4 hover:underline">Open Item Master</Link> : null}
           </div>
-          <Field label="Purchase UOM" required>
+          <Field label="Purchase UOM" required className="md:self-end">
             <SelectNative name="purchase_uom" defaultValue={saved.get("purchase_uom") ?? (normalizeUom(supplierItem?.purchase_uom) || "KG")} required>
               {uomOptionsWithCurrent(supplierItem?.purchase_uom).map((uom) => (
                 <option key={uom} value={uom}>{uom}</option>
               ))}
             </SelectNative>
           </Field>
-          <Field label="Conversion to Base UOM" required>
+          <Field label="Conversion to Base UOM" required className="md:self-end">
             <Input name="conversion_to_base_uom" type="number" step="0.000001" min="0.000001" defaultValue={saved.get("conversion_to_base_uom") ?? (supplierItem?.conversion_to_base_uom ?? 1)} required />
           </Field>
-          <Field label="Unit Cost" required>
+          <Field label="Unit Cost" required className="md:self-end">
             <Input name="unit_cost" type="number" step="0.0001" min="0" defaultValue={saved.get("unit_cost") ?? (supplierItem?.unit_cost ?? 0)} required />
           </Field>
           <Field label="MOQ" required>

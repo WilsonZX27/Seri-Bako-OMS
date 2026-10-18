@@ -47,7 +47,7 @@ export default async function RecipesPage({ searchParams }: { searchParams: Prom
                   <TableHead className="hidden w-28 md:table-cell">Approval</TableHead>
                   <TableHead className="hidden text-right lg:table-cell">Total Cost</TableHead>
                   <TableHead className="hidden text-right lg:table-cell">Cost / Unit</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="w-24">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -111,7 +111,7 @@ test("administration decision directories replace narrow tables with shared oper
   const sequences = read("src/app/(app)/document-sequences/page.tsx");
   const staffs = read("src/app/(app)/people/page.tsx");
 
-  assert.match(cleanup, /<Table mobileHidden stickyColumn="second" aria-label="Master data cleanup issues">/);
+  assert.match(cleanup, /<Table mobileHidden stickyColumn="none" aria-label="Master data cleanup issues">/);
   assert.match(cleanup, /<OperationalList ariaLabel="Master data cleanup issues">/);
   assert.match(cleanup, /Next: \{issue\.action\}/);
   assert.match(sequences, /<Table mobileHidden aria-label="Document sequences"/);

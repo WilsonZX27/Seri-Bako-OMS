@@ -84,7 +84,7 @@ export async function saveAssetMaster(_previous: AssetActionState, form: FormDat
       if (!/^[A-Za-z0-9][A-Za-z0-9._/-]{0,79}$/.test(code) || (quantity !== null && (!Number.isSafeInteger(quantity) || quantity < 0 || quantity > 2147483647))) throw new Error("Enter a valid asset ID and a whole physical quantity, or leave quantity unknown.");
       response = await db.rpc("create_asset_master", { p_code: code, p_name: name, p_location: uuid(form.get("location_id")), p_quantity: quantity, p_details: details, p_reason: reason, p_client_key: clientKey });
     }
-    if (!rawId && response.error?.code === "23505" && /unique constraint "(?:assets_company_id_asset_code_key|asset_code_case_unique)"/.test(response.error.message ?? "")) {
+    if (!rawId && response.error && "code" in response.error && response.error.code === "23505" && /unique constraint "(?:assets_company_id_asset_code_key|asset_code_case_unique)"/.test(response.error.message ?? "")) {
       throw new Error("An asset with this ID already exists. Open the existing asset to check whether your earlier registration succeeded.");
     }
     if (response.error || typeof response.data !== "string") throw new Error(response.error?.message ?? "Asset master was not confirmed.");

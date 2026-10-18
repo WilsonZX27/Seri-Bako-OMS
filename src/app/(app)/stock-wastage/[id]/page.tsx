@@ -96,7 +96,7 @@ export default async function StockWastageDetailPage({ params }: { params: Promi
               <TableBody>
                 {lines.map((line) => (
                   <TableRow key={line.id}>
-                    <TableCell><p className="font-medium">{line.item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground">{line.item?.item_code}</p></TableCell>
+                    <TableCell><p className="font-medium">{line.item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground sb-item-code" title={line.item?.item_code ?? undefined}>{line.item?.item_code}</p></TableCell>
                     <TableCell className="text-right">{formatNumber(line.quantity)} {line.uom}</TableCell>
                     <TableCell className="capitalize">{line.reason.replaceAll("_", " ")}</TableCell>
                     <TableCell>{line.batch_no ?? "-"}<p className="text-xs text-muted-foreground">{line.expiry_date ?? ""}</p></TableCell>

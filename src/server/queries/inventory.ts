@@ -1,3 +1,4 @@
+import { matchesStockThreshold } from "@/lib/low-stock-threshold";
 import { createClient } from "@/lib/supabase/server";
 import { shiftBusinessDate, todayInKualaLumpur } from "@/lib/business-date";
 import { logServerWarning } from "@/server/observability/logger";
@@ -1232,7 +1233,7 @@ async function loadLowStockItems(filters: Filters = {}) {
   return rows;
 }
 
-export type LowStockResult = { rows: Awaited<ReturnType<typeof loadLowStockItems>>; count: number | null; unavailable: boolean };
+export type LowStockResult = { rows: Array<Awaited<ReturnType<typeof loadLowStockItems>>[number]>; count: number | null; unavailable: boolean };
 
 /** Dashboard needs only a count, including mapped items before their first movement. */
 export async function getLowStockCount(): Promise<{ count: number | null; unavailable: boolean }> {
@@ -1256,7 +1257,7 @@ export async function getLowStockCount(): Promise<{ count: number | null; unavai
 
 export async function getLowStockResult(filters: Filters = {}): Promise<LowStockResult> {
   try {
-    const rows = await loadLowStockItems(filters);
+    const rows = (await loadLowStockItems(filters)).filter(row => matchesStockThreshold(Number(row.current_qty ?? row.current_stock ?? 0), row.base_unit, filters.below_qty, filters.quantity_uom ?? "KG"));
     return { rows, count: rows.length, unavailable: false };
   } catch (error) {
     warnOptionalInventoryQuery("low stock result", error instanceof Error ? error : new Error(String(error)));

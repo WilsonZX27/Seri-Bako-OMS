@@ -127,7 +127,7 @@ export function FilterBarMore({
 
   return (
     <details ref={detailsRef} open={open} data-filter-more-wrapper className="sb-filter-more">
-      <summary ref={summaryRef} onClick={handleSummaryClick}><SlidersHorizontal className="h-3.5 w-3.5" />More filters{activeCount ? <span className="sb-filter-more-count" aria-label={`${activeCount} active filters`}>{activeCount}</span> : null}</summary>
+      <summary ref={summaryRef} onClick={handleSummaryClick}><SlidersHorizontal className="h-3.5 w-3.5" />Filter{activeCount ? <span className="sb-filter-more-count" aria-label={`${activeCount} active filters`}>{activeCount}</span> : null}</summary>
       <button type="button" className="sb-filter-more-backdrop" onClick={() => close()} aria-label="Dismiss filters" />
       <div ref={panelRef} tabIndex={-1} className="sb-filter-more-panel sb-filter-more-panel--anchored" style={panelStyle} role="dialog" aria-modal="true" aria-label="Filters">
         <div className="sb-filter-more-header">

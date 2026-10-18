@@ -104,7 +104,7 @@ export function StockBalanceTableRows({
                 {selected ? <Trash2 className="h-4 w-4" /> : <span className="relative"><ShoppingCart className="h-4 w-4" /><Plus className="absolute -right-1 -top-1 h-2.5 w-2.5 bg-white" aria-hidden="true" /></span>}
               </Button>
             </TableCell>
-            <TableCell>{item.item_code}</TableCell>
+            <TableCell><span className="sb-item-code" title={item.item_code ?? undefined}>{item.item_code}</span></TableCell>
             <TableCell className="font-medium">{item.item_name}</TableCell>
             <TableCell>{item.branch_name ?? "-"}</TableCell>
             <TableCell className="text-right"><span className="block font-medium">{formatQuantity(item.available_qty)} {item.base_unit}</span><span className="block text-[10px] text-muted-foreground">{formatQuantity(item.reserved_qty)} reserved</span></TableCell>
@@ -136,14 +136,14 @@ export function StockBalanceOperationalRows({
         const itemActive = item.item_status === "active";
         return (
           <OperationalListRow
-            stackedStatus
+            fullWidthDetails
             key={key}
             href={`/stock-transactions?item_id=${item.item_id}&branch_id=${item.branch_id ?? ""}`}
             label={`Open ledger for ${item.item_name}`}
             primary={<span className="flex min-w-0 items-start gap-2"><ItemThumbnail src={item.image_url} alt={item.item_name} /><span className="min-w-0 break-words pt-0.5">{item.item_name}</span></span>}
             status={<Badge className="whitespace-normal" variant={statusVariant(item.status)}>{getStockBalanceStatusLabel(item.status)}</Badge>}
             statusMeta={`${formatQuantity(item.current_qty)} ${item.base_unit}`}
-            secondary={<span className="block pl-12"><span className="block">{item.item_code} · {item.branch_name ?? "All permitted branches"}</span><span className="block">{formatQuantity(item.available_qty)} available · {formatQuantity(item.reserved_qty)} reserved · {formatCurrency(item.average_cost)} avg</span></span>}
+            secondary={<span className="block pl-12"><span className="flex min-w-0 gap-1"><span className="sb-item-code" title={item.item_code ?? undefined}>{item.item_code}</span><span className="shrink-0">· {item.branch_name ?? "All permitted branches"}</span></span><span className="block">{formatQuantity(item.available_qty)} available · {formatQuantity(item.reserved_qty)} reserved · {formatCurrency(item.average_cost)} avg</span></span>}
             trailing={
               <button
                 type="button"

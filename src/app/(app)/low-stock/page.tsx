@@ -1,3 +1,4 @@
+import { uomOptionsWithCurrent } from "@/lib/uom";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
@@ -89,6 +90,8 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
                 className="md:max-w-44"
                 options={[{ value: "all", label: "All statuses" }, { value: "low_stock", label: "Low Stock" }, { value: "out_of_stock", label: "Out of Stock" }]}
               />
+              <Input name="below_qty" type="number" min="0" step="any" defaultValue={filters.below_qty ?? ""} placeholder="Quantity below" aria-label="Current quantity below" className="md:max-w-40" />
+              <SelectControl name="quantity_uom" defaultValue={filters.quantity_uom ?? "KG"} ariaLabel="Threshold base UOM" className="md:max-w-28" options={uomOptionsWithCurrent(filters.quantity_uom ?? "KG").map(unit => ({ value: unit, label: unit }))} />
             </UnifiedListHeader>
           </div>
 
@@ -122,7 +125,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
                 });
                 return (
                   <TableRow key={`${item.branch_id ?? "no-branch"}-${item.item_id}`}>
-                    <TableCell>{item.item_code}</TableCell>
+                    <TableCell><span className="sb-item-code" title={item.item_code ?? undefined}>{item.item_code}</span></TableCell>
                     <TableCell className="font-medium">{item.item_name}</TableCell>
                     <TableCell>{item.branch_name ?? "-"}</TableCell>
                     <TableCell>{item.supplier_name ?? "-"}</TableCell>

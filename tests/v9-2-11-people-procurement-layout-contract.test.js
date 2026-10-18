@@ -21,8 +21,8 @@ test("PO and GRN tables nest clickable source documents under their primary numb
   const grn = read("src/app/(app)/goods-receivings/page.tsx");
   assert.doesNotMatch(po, /<TableHead>Source PR<\/TableHead>/);
   assert.match(po, />\{order\.request_no\}<\/Link>/);
-  assert.match(po, /label="PO No \/ PR No"/);
-  assert.match(po, /w-52 max-w-52/);
+  assert.match(po, /label="PO No"/);
+  assert.match(po, /w-36 max-w-36/);
   assert.doesNotMatch(grn, /<TableHead>PO<\/TableHead>/);
   assert.match(grn, /From \{receiving\.po_no\}/);
   assert.match(grn, /purchase-orders\/\$\{receiving\.purchase_order_id\}/);

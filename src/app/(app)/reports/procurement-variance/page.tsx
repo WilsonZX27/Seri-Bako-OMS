@@ -148,7 +148,7 @@ export default async function ProcurementVariancePage({ searchParams }: { search
               <TableBody>
                 {rows.map((row) => (
                   <TableRow key={row.id}>
-                    <TableCell><p className="font-medium">{row.item_code}</p><p className="text-xs text-muted-foreground">{row.item_name} · {row.supplier}</p></TableCell>
+                    <TableCell><p className="font-medium sb-item-code" title={row.item_code ?? undefined}>{row.item_code}</p><p className="text-xs text-muted-foreground">{row.item_name} · {row.supplier}</p></TableCell>
                     <TableCell>{row.po_no}</TableCell>
                     <TableCell>{row.grn_no ?? "—"}</TableCell>
                     <TableCell>{row.invoice_no ?? "—"}</TableCell>

@@ -577,7 +577,7 @@ export function StockCountForm({
                       </div>
                       <div className="min-w-0">
                         <p className="break-words text-[13px] font-medium leading-tight text-slate-800">{line.item_name}</p>
-                        <p className="min-w-0 break-all text-[10px] leading-3 tracking-[0.01em] text-muted-foreground">{line.item_code}</p>
+                        <p className="min-w-0 break-all text-[10px] leading-3 tracking-[0.01em] text-muted-foreground sb-item-code" title={line.item_code ?? undefined}>{line.item_code}</p>
                         <p className="mt-1 hidden text-[10px] leading-3 text-muted-foreground lg:block">{line.prefill_source === "unavailable" ? "No prior ledger balance · enter count" : `Starting balance · ${formatQuantity(line.theoretical_qty)} ${line.uom}`}</p>
                       </div>
                     </div>

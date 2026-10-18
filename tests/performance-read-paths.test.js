@@ -131,6 +131,7 @@ test("schedule overview does not fetch or validate a hidden outlet planner", asy
 
 function inventory(db) {
   return load("src/server/queries/inventory.ts", {
+    "@/lib/low-stock-threshold": require("./helpers/load-source.cjs")()("src/lib/low-stock-threshold.ts"),
     "@/lib/supabase/server": { createClient: async () => db },
     "@/lib/business-date": {},
     "@/server/observability/logger": { logServerWarning() {} },

@@ -23,7 +23,7 @@ test("every operational list uses the canonical desktop, tablet, and mobile surf
   }
 });
 
-test("shared list controls own overflow, elevation, More Filters, and zero-result pagination", () => {
+test("shared list controls own overflow, elevation, Filter, and zero-result pagination", () => {
   const table = read("src/components/ui/table.tsx");
   const filters = read("src/components/ui/filter-bar.tsx");
   const pagination = read("src/components/sortable-table.tsx");
@@ -33,7 +33,7 @@ test("shared list controls own overflow, elevation, More Filters, and zero-resul
   assert.match(table, /sb-table-region/);
   assert.match(styles, /\.sb-table-region \{[\s\S]*overflow-x: auto/);
   assert.match(styles, /html,[\s\S]*body \{[\s\S]*overflow-x: hidden/);
-  assert.match(filters, /More filters/);
+  assert.match(filters, />Filter/);
   assert.match(filters, /type="submit">Apply/);
   assert.match(select, /Select\.Portal/);
   assert.match(select, /var\(--sb-z-dropdown\)/);

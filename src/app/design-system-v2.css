@@ -2764,8 +2764,8 @@ html[data-design-layer="v2"] [data-page-jump], html[data-design-layer="v2"] [dat
 /* Semantic read-only description lists share the same label/value grammar. */
 @media(max-width:1279px) {
 #main-content dl:has(> div > dt) { display:grid; grid-template-columns:minmax(0,1fr); grid-auto-rows:auto; gap:.5rem; }
-#main-content dl > div:has(> dt + dd:last-child) { display:grid; grid-column:1 / -1; grid-template-columns:minmax(0,1fr) fit-content(60%); align-items:start; gap:.75rem; min-height:0; }
-#main-content dl > div:has(> dt + dd:last-child) > dd { min-width:0; margin-top:0; text-align:right; overflow-wrap:anywhere; }
+#main-content dl > div:not(:has(> svg)):has(> dt + dd:last-child) { display:grid; grid-column:1 / -1; grid-template-columns:minmax(0,1fr) fit-content(60%); align-items:start; gap:.75rem; min-height:0; }
+#main-content dl > div:not(:has(> svg)):has(> dt + dd:last-child) > dd { min-width:0; margin-top:0; text-align:right; overflow-wrap:anywhere; }
 }
 
 @media(max-width:767px) {
@@ -2773,7 +2773,7 @@ html[data-design-layer="v2"] [data-page-jump], html[data-design-layer="v2"] [dat
  html[data-design-layer="v2"]:has([data-mobile-create-fab]) #main-content { padding-bottom:calc(10rem + env(safe-area-inset-bottom)) !important; }
 }
 
-html[data-design-layer="v2"] .sb-table-region > table.sb-stock-balance-table { min-width:48rem; }
+html[data-design-layer="v2"] .sb-table-region > table.sb-stock-balance-table { min-width:70rem; }
 html[data-design-layer="v2"] table.sb-stock-balance-table > thead > tr > th { white-space:normal; overflow:visible; overflow-wrap:normal; }
 
 /* Transfer controls reserve space through the page, not inside the note card. */
@@ -2880,3 +2880,16 @@ html[data-design-layer="v2"] .unified-list-sheet-fields > :nth-last-child(1 of :
   .sb-production-fields > div > label { display: block; min-height: 2rem; }
   .sb-production-fields > div.col-span-2 > div > label { min-height: 0; }
 }
+
+/* Identity cells must never paint into adjacent columns. */
+.sb-item-code { display:block; min-width:0; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sb-procurement-table { table-layout:fixed; }
+.sb-procurement-table td { overflow:hidden; overflow-wrap:break-word; }
+.sb-procurement-table [data-document-number] { white-space:nowrap; }
+.sb-basket-quantity { height:44px; }
+.sb-basket-quantity > * { height:44px !important; min-height:44px !important; }
+.sb-basket-quantity > div > :is(button,input) { height:42px !important; min-height:42px !important; }
+
+html[data-design-layer="v2"] table.sb-stock-balance-table { table-layout:fixed; }
+html[data-design-layer="v2"] table.sb-stock-balance-table :is(th,td):nth-child(2) { width:9rem; max-width:9rem; }
+html[data-design-layer="v2"] table.sb-stock-balance-table :is(th,td):nth-child(3) { width:12rem; overflow-wrap:anywhere; }

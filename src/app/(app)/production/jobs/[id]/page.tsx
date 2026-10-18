@@ -157,7 +157,7 @@ export default async function ProductionJobDetailPage({
               <TableBody>
                 {ingredientLines.map((line) => (
                   <TableRow key={line.id}>
-                    <TableCell><p className="font-medium">{line.item_name}</p><p className="text-xs text-muted-foreground">{line.item_code}</p></TableCell>
+                    <TableCell><p className="font-medium">{line.item_name}</p><p className="text-xs text-muted-foreground sb-item-code" title={line.item_code ?? undefined}>{line.item_code}</p></TableCell>
                     <TableCell className="text-right">{formatNumber(line.required_qty)}</TableCell>
                     <TableCell className="text-right">{line.actual_qty != null ? formatNumber(line.actual_qty) : "-"}</TableCell>
                     <TableCell>{line.uom}</TableCell>
@@ -172,7 +172,7 @@ export default async function ProductionJobDetailPage({
           <div className="divide-y xl:hidden" role="list" aria-label="Ingredient consumption" data-production-job-ingredient-list>
             {ingredientLines.map((line) => (
               <article key={line.id} className="space-y-3 py-4 first:pt-1 last:pb-1" role="listitem">
-                <div className="flex items-start justify-between gap-4"><div className="min-w-0"><h3 className="font-medium leading-snug">{line.item_name}</h3><p className="mt-0.5 text-xs text-muted-foreground">{line.item_code}</p></div><div className="shrink-0 text-right"><strong>{line.actual_qty != null ? formatNumber(line.actual_qty) : "—"} {line.uom}</strong><p className="text-xs text-muted-foreground">{formatCurrency(line.line_cost)}</p></div></div>
+                <div className="flex items-start justify-between gap-4"><div className="min-w-0"><h3 className="font-medium leading-snug">{line.item_name}</h3><p className="mt-0.5 text-xs text-muted-foreground sb-item-code" title={line.item_code ?? undefined}>{line.item_code}</p></div><div className="shrink-0 text-right"><strong>{line.actual_qty != null ? formatNumber(line.actual_qty) : "—"} {line.uom}</strong><p className="text-xs text-muted-foreground">{formatCurrency(line.line_cost)}</p></div></div>
                 <dl className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-md bg-secondary/35 p-3 text-xs sm:grid-cols-4"><div><dt className="text-muted-foreground">Required</dt><dd className="mt-1 font-medium">{formatNumber(line.required_qty)}</dd></div><div><dt className="text-muted-foreground">Available</dt><dd className="mt-1 font-medium">{line.stock_available_qty == null ? "Unknown" : formatNumber(line.stock_available_qty)}</dd></div><div><dt className="text-muted-foreground">Variance</dt><dd className="mt-1 font-medium">{line.variance_qty == null ? "Pending actual" : formatNumber(line.variance_qty)}</dd></div><div><dt className="text-muted-foreground">Unit cost</dt><dd className="mt-1 font-medium">{formatCurrency(line.unit_cost)}</dd></div></dl>
               </article>
             ))}

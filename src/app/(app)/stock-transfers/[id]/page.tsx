@@ -112,7 +112,7 @@ export default async function StockTransferDetailPage({ params }: { params: Prom
               <TableBody>
                 {lines.map((line) => (
                   <TableRow key={line.id}>
-                    <TableCell><p className="font-medium">{line.item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground">{line.item?.item_code}</p></TableCell>
+                    <TableCell><p className="font-medium">{line.item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground sb-item-code" title={line.item?.item_code ?? undefined}>{line.item?.item_code}</p></TableCell>
                     <TableCell className="text-right">{formatNumber(line.quantity)}<span className="block text-xs text-muted-foreground">received {formatNumber(line.received_quantity ?? 0)}</span></TableCell>
                     <TableCell>{line.uom}</TableCell>
                     <TableCell>{line.remarks ?? "-"}</TableCell>

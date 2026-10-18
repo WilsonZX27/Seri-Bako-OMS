@@ -12,7 +12,7 @@ test("People rows keep identity compact and omit redundant open copy", () => {
   const table = read("src", "components", "ui", "table.tsx");
   assert.doesNotMatch(people, /meta="Open profile"/);
   assert.match(staff, /className="sb-list-content-card erp-surface overflow-hidden"/);
-  assert.match(table, /secondary \? <div className="mt-0\.5/);
+  assert.match(table, /secondary \? <div className=\{cn\("mt-0\.5/);
 });
 
 test("new Staff hides generated auth fields and states the temporary-password flow", () => {
@@ -58,8 +58,8 @@ test("Attendance, calendar and PO headers retain stable alignment", () => {
   assert.match(nav, /WorkspaceTabs/);
   assert.match(read("src", "components", "ui", "workspace-tabs.tsx"), /repeat\(\$\{items\.length\}, minmax\(max-content, 1fr\)\)/);
   assert.match(calendar, /grid-cols-\[auto_minmax\(0,1fr\)_auto\]/);
-  assert.match(po, /className="w-36 min-w-36" label="PO No \/ PR No"/);
-  assert.match(po, /className="w-40 max-w-40">Request context/);
+  assert.match(po, /className="w-32 min-w-32" label="PO No"/);
+  assert.match(po, /className="w-36 max-w-36">Request context/);
 });
 
 test("portrait tablet filters and compliance rail keep deliberate geometry", () => {

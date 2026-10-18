@@ -53,7 +53,7 @@ test("Purchasing review explicitly requires the AutoCount PO number", () => {
 test("PR and Dashboard mobile rows share a compact three-line operational composition", () => {
   const list = read("src/app/(app)/purchase-requests/page.tsx");
   const dashboard = read("src/components/dashboard-workspace.tsx");
-  assert.match(list, /secondary=\{<span className="flex min-w-0 items-center gap-2/);
+  assert.match(list, /secondary=\{<span className="flex min-w-0 flex-wrap items-center gap-x-2/);
   assert.match(list, /detail=\{<span className="flex min-w-0 items-center justify-between/);
   assert.match(dashboard, /row\.branch_name \?\? "Unassigned"/);
   assert.match(dashboard, /row\.line_count\} items/);

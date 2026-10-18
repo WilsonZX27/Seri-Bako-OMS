@@ -165,7 +165,7 @@ export function ProductionJobForm({
                       <TableRow key={line.item_id}>
                         <TableCell>
                           <p className="font-medium">{line.item_name}</p>
-                          <p className="text-xs text-muted-foreground">{line.item_code}</p>
+                          <p className="text-xs text-muted-foreground sb-item-code" title={line.item_code ?? undefined}>{line.item_code}</p>
                         </TableCell>
                         <TableCell className="text-right">{formatNumber(line.requiredQty)}</TableCell>
                         <TableCell>{line.uom}</TableCell>
@@ -183,7 +183,7 @@ export function ProductionJobForm({
                     <div className="flex min-w-0 items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="break-words text-sm font-semibold">{line.item_name}</p>
-                        <p className="text-xs text-muted-foreground">{line.item_code}</p>
+                        <p className="text-xs text-muted-foreground sb-item-code" title={line.item_code ?? undefined}>{line.item_code}</p>
                       </div>
                       {line.shortage ? <Badge variant="warning">Short</Badge> : <Badge variant="success">OK</Badge>}
                     </div>

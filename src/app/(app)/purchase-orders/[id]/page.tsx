@@ -149,7 +149,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
                       const pending = line.qty_ordered - line.qty_received - line.qty_cancelled;
                       return (
                         <TableRow key={line.id}>
-                          <TableCell><p className="font-medium">{item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground">{item?.item_code}</p></TableCell>
+                          <TableCell><p className="font-medium">{item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground sb-item-code" title={item?.item_code ?? undefined}>{item?.item_code}</p></TableCell>
                           <TableCell className="text-right">{formatNumber(line.qty_ordered)}</TableCell>
                           <TableCell className="text-right">{formatNumber(line.qty_received)}</TableCell>
                           <TableCell className="text-right">{formatNumber(line.qty_cancelled)}</TableCell>

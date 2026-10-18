@@ -75,9 +75,11 @@ const assignment = z.object({
 const schema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("save"),
+    expectedUpdatedAt: z.string().datetime({ offset: true }).nullable().optional(),
     branchId: uuid,
     weekStart: date,
     assignments: z.array(assignment).max(1000),
+    excludedStaffIds: z.array(uuid).max(1000).optional(),
   }),
   z.object({
     action: z.literal("copy"),
@@ -89,6 +91,7 @@ const schema = z.discriminatedUnion("action", [
     branchId: uuid,
     weekStart: date,
     assignments: z.array(assignment).max(1000),
+    excludedStaffIds: z.array(uuid).max(1000).optional(),
     expectedUpdatedAt: z.string().datetime({ offset: true }).nullable().optional(),
     comment: z.string().max(1000).optional(),
   }),
@@ -101,6 +104,7 @@ const schema = z.discriminatedUnion("action", [
   }),
   z.object({
     action: z.literal("edit_and_publish"),
+    excludedStaffIds: z.array(uuid).max(1000).optional(),
     weekId: uuid,
     branchId: uuid,
     weekStart: date,
@@ -167,6 +171,8 @@ const schema = z.discriminatedUnion("action", [
   }),
 ]);
 const scheduleBusinessErrors: Array<[string, string]> = [
+  ["Removed employees must belong to this company.", "The roster contains an unavailable employee. Reload the schedule."],
+  ["A removed employee still has assignments in this outlet week.", "Remove this employee’s assignments or add them back to the roster."],
   [
     "Add at least one shift, OFF, leave, public holiday, or off-in-lieu day before submitting.",
     "Add at least one shift, OFF, leave, public holiday, or off-in-lieu day before submitting.",
@@ -352,10 +358,11 @@ export async function POST(request: Request) {
         p_reason: input.data.reason ?? null,
       });
     else if (input.data.action === "save")
-      result = await db.rpc("save_schedule_week_with_destinations", {
+      result = await db.rpc(input.data.excludedStaffIds ? "save_schedule_week_roster" : "save_schedule_week_with_destinations", {
         p_branch_id: input.data.branchId,
         p_week_start: input.data.weekStart,
         p_assignments: input.data.assignments,
+        ...(input.data.excludedStaffIds ? { p_excluded_staff_ids: input.data.excludedStaffIds, p_expected_updated_at: input.data.expectedUpdatedAt ?? null } : {}),
       });
     else if (input.data.action === "copy")
       result = await db.rpc("copy_schedule_week", {
@@ -367,20 +374,22 @@ export async function POST(request: Request) {
         p_week_id: input.data.weekId,
       });
     else if (input.data.action === "submit") {
-      result = await db.rpc("submit_schedule_week_atomic", {
+      result = await db.rpc(input.data.excludedStaffIds ? "submit_schedule_week_roster" : "submit_schedule_week_atomic", {
         p_branch_id: input.data.branchId,
         p_week_start: input.data.weekStart,
         p_assignments: input.data.assignments,
         p_expected_updated_at: input.data.expectedUpdatedAt ?? null,
         p_comment: input.data.comment ?? null,
+        ...(input.data.excludedStaffIds ? { p_excluded_staff_ids: input.data.excludedStaffIds } : {}),
       });
     }
     else if (input.data.action === "edit_and_publish")
-      result = await db.rpc("edit_and_publish_schedule_week", {
+      result = await db.rpc(input.data.excludedStaffIds ? "edit_and_publish_schedule_week_roster" : "edit_and_publish_schedule_week", {
         p_week_id: input.data.weekId,
         p_assignments: input.data.assignments,
         p_expected_updated_at: input.data.expectedUpdatedAt,
         p_reason: input.data.reason,
+        ...(input.data.excludedStaffIds ? { p_excluded_staff_ids: input.data.excludedStaffIds } : {}),
       });
     else if (input.data.action === "import_drafts")
       result = await db.rpc(input.data.reconcileDrafts ? "reconcile_schedule_workbook_drafts" : input.data.appendOnly ? "append_schedule_workbook_drafts" : "import_schedule_workbook_drafts", {

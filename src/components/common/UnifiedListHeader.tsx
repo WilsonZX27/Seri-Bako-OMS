@@ -303,7 +303,7 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
         className: cn("unified-list-action", props["data-list-action"] === "secondary" && "!w-auto !min-w-0 !border-transparent !bg-transparent !px-2", hasTextSearch && isSearchSubmit(child) && "unified-list-search-submit", props.className as string),
         "data-list-primary-action": !showSearchAction && index === 0 ? true : undefined,
         "data-list-secondary-action": showSearchAction || index > 0 ? true : undefined,
-        ...(hasTextSearch && isSearchSubmit(child) ? { children: <><Search className="size-4 shrink-0" aria-hidden="true"/><span>Search</span></> } : {}),
+        ...(hasTextSearch && isSearchSubmit(child) ? { title: "Search", "aria-label": "Search", children: <><Search className="size-4 shrink-0" aria-hidden="true"/><span className="sr-only">Search</span></> } : {}),
       });
     });
     return <form
@@ -328,7 +328,7 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
         className="unified-list-desktop-actions"
         style={{ gridColumn: `-${commandTrackCount + 1} / -1` }}
       >
-        {showSearchAction ? <Button type="submit" className="unified-list-action unified-list-search-submit" data-list-primary-action="true" onClick={() => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); }}><Search className="size-4 shrink-0" aria-hidden="true"/><span>Search</span></Button> : null}
+        {showSearchAction ? <Button type="submit" title="Search" aria-label="Search" className="unified-list-action unified-list-search-submit" data-list-primary-action="true" onClick={() => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); }}><Search className="size-4 shrink-0" aria-hidden="true"/><span className="sr-only">Search</span></Button> : null}
         {actionNodes}
         {typeof resultCount === "number" ? <div className="sb-filter-summary" aria-live="polite"><span className="sb-filter-summary-count">{resultCount}</span><span className="sb-filter-summary-label">{resultLabel ?? (resultCount === 1 ? "record" : "records")}</span></div> : null}
       </div>

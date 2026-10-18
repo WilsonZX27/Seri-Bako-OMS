@@ -2893,3 +2893,25 @@ html[data-design-layer="v2"] .unified-list-sheet-fields > :nth-last-child(1 of :
 html[data-design-layer="v2"] table.sb-stock-balance-table { table-layout:fixed; }
 html[data-design-layer="v2"] table.sb-stock-balance-table :is(th,td):nth-child(2) { width:9rem; max-width:9rem; }
 html[data-design-layer="v2"] table.sb-stock-balance-table :is(th,td):nth-child(3) { width:12rem; overflow-wrap:anywhere; }
+
+/* Shared desktop query geometry: preserve query space before secondary controls. */
+@media (min-width: 1280px) {
+  html[data-design-layer="v2"] form.sb-list-query-card > :is(select, [data-select-control], .sb-status-filter, .sb-filter-more) {
+    flex: 0 0 120px !important; width: 120px !important; min-width: 120px !important; max-width: 120px !important;
+  }
+  html[data-design-layer="v2"] form.sb-list-query-card > :is([data-search-control], input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"]) {
+    flex: 1 1 12rem !important; width: auto !important; min-width: 8rem !important; max-width: none !important;
+  }
+  html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-desktop-actions > .unified-list-search-submit {
+    flex: 0 0 var(--sb-control-height) !important; width: var(--sb-control-height) !important; min-width: var(--sb-control-height) !important; max-width: var(--sb-control-height) !important; padding-inline: 0 !important;
+  }
+}
+@media (min-width: 1024px) {
+  details > summary.sb-compact-disclosure { min-height: 36px; }
+}
+
+@media (min-width: 640px) and (max-width: 1279px) {
+  html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-desktop-actions > .unified-list-search-submit {
+    flex: 0 0 var(--sb-control-height) !important; width: var(--sb-control-height) !important; min-width: var(--sb-control-height) !important; max-width: var(--sb-control-height) !important; padding-inline: 0 !important;
+  }
+}

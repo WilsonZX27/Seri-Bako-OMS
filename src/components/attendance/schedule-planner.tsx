@@ -75,7 +75,7 @@ type ExternalAssignment = {
   planned_start: string;
   planned_end: string;
 };
-type Week = { id: string; status: string; updated_at?: string } | null;
+type Week = { id: string; status: string; updated_at?: string; excluded_staff_ids?: string[] } | null;
 type Palette = {
   key: string;
   label: string;
@@ -215,9 +215,11 @@ export function SchedulePlanner({
   const savedVersion = useRef(week?.updated_at ?? null);
   const submitting = useRef(false);
   const saveVersionUnknown = useRef(false);
-  const failedAutosaveAssignments = useRef<Assignment[] | null>(null);
+  const failedAutosaveSnapshot = useRef<string | null>(null);
+  const latestDraftSnapshot = useRef("");
   const [cells, setCells] = useState<Map<string, Assignment>>(initial);
   const externalCells = useMemo(() => new Map(externalAssignments.map((item) => [`${item.staff_id}:${item.work_date}`, item])), [externalAssignments]);
+  const [excludedStaffIds, setExcludedStaffIds] = useState<string[]>(week?.excluded_staff_ids ?? []);
   const [visiblePersonIds, setVisiblePersonIds] = useState(() => new Set(people.map((person) => person.id)));
   const rosterPeople = candidates.filter((person) => visiblePersonIds.has(person.id));
   const availablePeople = candidates.filter((person) => !visiblePersonIds.has(person.id));
@@ -450,6 +452,8 @@ export function SchedulePlanner({
     setMessage("Selected days cleared.");
   }
   function removePersonFromWeek(person: Person) {
+    setExcludedStaffIds(current => [...new Set([...current, person.id])]);
+    setActionFeedback(null);
     setCells((current) => {
       const next = new Map(current);
       for (const date of dates) next.delete(`${person.id}:${date}`);
@@ -527,22 +531,23 @@ export function SchedulePlanner({
     }
   }
   async function saveDraft(automatic = false) {
+    const savingSnapshot = latestDraftSnapshot.current;
     setBusyAction(automatic ? "autosave" : "save");
     setSaveStatus("saving");
     try {
-      const result = await requestAction({ action: "save", branchId, weekStart, assignments });
+      const result = await requestAction({ action: "save", branchId, weekStart, assignments, excludedStaffIds, expectedUpdatedAt: savedVersion.current });
       if (!result.data?.updated_at) {
         saveVersionUnknown.current = true;
         throw new Error("The draft may be saved, but its version could not be confirmed. Reload this schedule before submitting.");
       }
       savedVersion.current = result.data.updated_at;
       saveVersionUnknown.current = false;
-      failedAutosaveAssignments.current = null;
-      setDirty(false);
+      failedAutosaveSnapshot.current = null;
+      setDirty(latestDraftSnapshot.current !== savingSnapshot);
       setSaveStatus("saved");
       setActionFeedback(null);
     } catch (error) {
-      failedAutosaveAssignments.current = assignments;
+      failedAutosaveSnapshot.current = savingSnapshot;
       const feedback = error instanceof Error ? error.message : "Draft could not be saved.";
       setSaveStatus("error");
       setActionFeedback(feedback);
@@ -563,6 +568,7 @@ export function SchedulePlanner({
     try {
       const result = (await requestAction({
         action: "submit",
+        excludedStaffIds,
         branchId,
         weekStart,
         assignments,
@@ -593,6 +599,7 @@ export function SchedulePlanner({
     localAwayLabel = (value?: Assignment) => value?.work_site_label && value.work_site_label.trim().toLocaleLowerCase() !== currentBranchName.trim().toLocaleLowerCase() ? value.work_site_label : null,
     href = (value: string) =>
       `/attendance/schedule?branch=${encodeURIComponent(branchId)}&week=${value}`;
+  latestDraftSnapshot.current = JSON.stringify([assignments, excludedStaffIds]);
   const cellLabel = (value?: Assignment) => {
     if (!value) return "";
     if (value.assignment_kind === "oil") return "EL";
@@ -622,10 +629,10 @@ export function SchedulePlanner({
     ) ||
     managerEditing;
   useEffect(() => {
-    if (!dirty || !editableStatus || !canDraft || busyAction || failedAutosaveAssignments.current === assignments) return;
+    if (!dirty || !editableStatus || managerEditing || !canDraft || busyAction || failedAutosaveSnapshot.current === latestDraftSnapshot.current) return;
     const timer = window.setTimeout(() => void saveDraftRef.current(true), 900);
     return () => window.clearTimeout(timer);
-  }, [assignments, busyAction, canDraft, dirty, editableStatus]);
+  }, [assignments, excludedStaffIds, busyAction, canDraft, dirty, editableStatus, managerEditing]);
   useEffect(() => {
     const dialog = removeDialog.current;
     if (!dialog) return;
@@ -652,6 +659,7 @@ export function SchedulePlanner({
     else if (week.updated_at)
       await action({
         action: "edit_and_publish",
+        excludedStaffIds,
         weekId: week.id,
         branchId,
         weekStart,
@@ -668,7 +676,7 @@ export function SchedulePlanner({
         <div className="grid gap-2">
           {editableStatus && canSubmit ? (
             <Button
-              className="w-full justify-start"
+              className="w-full justify-center"
               size="sm"
               disabled={busyAction !== null || !assignments.length}
               data-mobile-primary-action
@@ -684,7 +692,7 @@ export function SchedulePlanner({
           ) : null}
           {editableStatus && canDraft ? (
             <><Button
-              className="w-full justify-start"
+              className="w-full justify-center"
               size="sm"
               variant="outline"
               disabled={busyAction !== null || !dirty}
@@ -700,7 +708,7 @@ export function SchedulePlanner({
           ) : null}
           {editableStatus && canDraft && previousWeekId ? (
             <Button
-              className="w-full justify-start"
+              className="w-full justify-center"
               size="sm"
               variant="ghost"
               disabled={busyAction !== null}
@@ -719,7 +727,7 @@ export function SchedulePlanner({
           {canApprove && week?.status === "submitted" && !managerEditing ? (
             <>
               <Button
-                className="w-full justify-start"
+                className="w-full justify-center"
                 size="sm"
                 disabled={busyAction !== null}
                 data-mobile-primary-action
@@ -728,7 +736,7 @@ export function SchedulePlanner({
                 {busyAction === "decide" ? "Publishing…" : "Approve & publish"}
               </Button>
               <Button
-                className="w-full justify-start"
+                className="w-full justify-center"
                 size="sm"
                 variant="outline"
                 disabled={busyAction !== null}
@@ -742,7 +750,7 @@ export function SchedulePlanner({
                 Edit schedule
               </Button>
               <Button
-                className="w-full justify-start"
+                className="w-full justify-center"
                 size="sm"
                 variant="outline"
                 disabled={busyAction !== null}
@@ -756,7 +764,7 @@ export function SchedulePlanner({
           {managerEditing ? (
             <>
               <Button
-                className="w-full justify-start"
+                className="w-full justify-center"
                 size="sm"
                 disabled={busyAction !== null || !dirty}
                 data-mobile-primary-action
@@ -765,7 +773,7 @@ export function SchedulePlanner({
                 {busyAction === "edit_and_publish" ? "Publishing…" : "Publish corrected schedule"}
               </Button>
               <Button
-                className="w-full justify-start"
+                className="w-full justify-center"
                 size="sm"
                 variant="ghost"
                 onClick={() => {
@@ -780,7 +788,7 @@ export function SchedulePlanner({
             </>
           ) : null}
           {canApprove && week?.status === "published" && !managerEditing ? (
-            <Button className="w-full justify-start" size="sm" variant="outline" disabled={busyAction !== null} onClick={() => { setManagerEditing(true); setMessage("Published correction mode is active. Changes require a reason and create an audit revision."); }}>
+            <Button className="w-full justify-center" size="sm" variant="outline" disabled={busyAction !== null} onClick={() => { setManagerEditing(true); setMessage("Published correction mode is active. Changes require a reason and create an audit revision."); }}>
               <Pencil className="h-4 w-4" /> Correct published schedule
             </Button>
           ) : null}
@@ -790,8 +798,8 @@ export function SchedulePlanner({
               schedule.
             </p>
           ) : null}
-          <ScheduleValidationSummary issues={initialBlockers} dirty={dirty} />
-          {initialWarnings.map((item) => (
+          <ScheduleValidationSummary issues={initialBlockers.filter(item => !item.staffId || !excludedStaffIds.includes(item.staffId))} dirty={dirty} />
+          {initialWarnings.filter(item => !item.staffId || !excludedStaffIds.includes(item.staffId)).map((item) => (
             <p
               key={`${item.code}:${item.staffId ?? ""}:${item.workDate ?? ""}`}
               className="rounded-[var(--sb-radius-control)] bg-[var(--sb-warning-bg)] p-2 text-xs text-amber-950"
@@ -1120,7 +1128,7 @@ export function SchedulePlanner({
                 </div>
               );
             })}
-            {editableStatus && canDraft && availablePeople.length ? <div className="px-3 py-2"><SelectControl ariaLabel="Add employee to this outlet week" value="none" onValueChange={(id) => { if (id !== "none") { setVisiblePersonIds((current) => new Set(current).add(id)); setMessage("Employee added. Assign only the days worked at this outlet; other days remain with their home roster."); } }} options={[{value:"none",label:"+ Add employee for this week"},...availablePeople.map((person)=>({value:person.id,label:person.full_name}))]} searchable searchPlaceholder="Search company employees" /></div> : null}
+            {editableStatus && canDraft && availablePeople.length ? <div className="px-3 py-2"><SelectControl ariaLabel="Add employee to this outlet week" value="none" onValueChange={(id) => { if (id !== "none") { setVisiblePersonIds((current) => new Set(current).add(id)); setExcludedStaffIds(current => current.filter(staffId => staffId !== id)); setDirty(true); setMessage("Employee added. Assign only the days worked at this outlet; other days remain with their home roster."); } }} options={[{value:"none",label:"+ Add employee for this week"},...availablePeople.map((person)=>({value:person.id,label:person.full_name}))]} searchable searchPlaceholder="Search company employees" /></div> : null}
           </div>
           <div className="flex items-center justify-between bg-[var(--sb-surface-muted)] px-3 py-2 text-xs">
             <strong>Daily coverage</strong>
@@ -1365,7 +1373,7 @@ export function SchedulePlanner({
                     </tr>
                   );
                 })}
-                {editableStatus && canDraft && availablePeople.length ? <tr><th className="sticky left-0 z-20 border-b border-r bg-white px-3 py-2 text-left"><SelectControl ariaLabel="Add employee to this outlet week" value="none" onValueChange={(id) => { if (id !== "none") { setVisiblePersonIds((current) => new Set(current).add(id)); setMessage("Employee added. Assign only the days worked at this outlet; other days remain with their home roster."); } }} options={[{value:"none",label:"+ Add employee for this week"},...availablePeople.map((person)=>({value:person.id,label:person.full_name}))]} searchable searchPlaceholder="Search company employees" /></th><td colSpan={7} className="border-b bg-[var(--sb-surface-muted)] px-3 py-2 text-[11px] text-muted-foreground">Borrowed staff belong to this outlet only on assigned shift days.</td></tr> : null}
+                {editableStatus && canDraft && availablePeople.length ? <tr><th className="sticky left-0 z-20 border-b border-r bg-white px-3 py-2 text-left"><SelectControl ariaLabel="Add employee to this outlet week" value="none" onValueChange={(id) => { if (id !== "none") { setVisiblePersonIds((current) => new Set(current).add(id)); setExcludedStaffIds(current => current.filter(staffId => staffId !== id)); setDirty(true); setMessage("Employee added. Assign only the days worked at this outlet; other days remain with their home roster."); } }} options={[{value:"none",label:"+ Add employee for this week"},...availablePeople.map((person)=>({value:person.id,label:person.full_name}))]} searchable searchPlaceholder="Search company employees" /></th><td colSpan={7} className="border-b bg-[var(--sb-surface-muted)] px-3 py-2 text-[11px] text-muted-foreground">Borrowed staff belong to this outlet only on assigned shift days.</td></tr> : null}
               </tbody>
               <tfoot>
                 <tr>
@@ -1684,7 +1692,7 @@ export function SchedulePlanner({
             </div>
           </form>
         </dialog>
-        <dialog ref={removeDialog} onCancel={() => setRemoveCandidate(null)} aria-labelledby="remove-staff-week-title" className="m-auto w-[min(28rem,calc(100vw-2rem))] rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50">
+        <dialog ref={removeDialog} onCancel={() => setRemoveCandidate(null)} aria-labelledby="remove-staff-week-title" className="sb-dialog-workspace-centered m-auto w-[min(28rem,calc(100vw-2rem))] rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50">
           <div className="space-y-4 p-4">
             <div><h2 id="remove-staff-week-title" className="text-base font-semibold">Remove from this outlet week?</h2><p className="mt-1 text-xs text-muted-foreground">This removes {removeCandidate?.full_name ?? "this employee"} and all of their assignments from this outlet for {weekStart}–{dates[6]}.</p></div>
             <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setRemoveCandidate(null)}>Cancel</Button><Button type="button" variant="destructive" onClick={() => { if (removeCandidate) removePersonFromWeek(removeCandidate); setRemoveCandidate(null); }}>Remove employee</Button></div>
@@ -1693,7 +1701,7 @@ export function SchedulePlanner({
         <dialog
           ref={decisionDialog}
           aria-labelledby="schedule-decision-title"
-          className="m-auto w-[min(30rem,calc(100vw-2rem))] rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50"
+          className="sb-dialog-workspace-centered m-auto w-[min(30rem,calc(100vw-2rem))] rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-xl backdrop:bg-black/50"
         >
           <form
             className="space-y-4 p-4"

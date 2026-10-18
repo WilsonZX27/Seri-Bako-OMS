@@ -80,7 +80,7 @@ export function PaginationControls({
       <span className="hidden min-w-0 leading-6 sm:block sm:flex-1">
         Page {page} of {totalPages} - {totalRows} rows
       </span>
-      <nav aria-label="Pagination" aria-description={`${totalRows} rows`} className="flex w-full shrink-0 items-center justify-between gap-1 sm:hidden">
+      <nav aria-label={`Pagination, ${totalRows} rows`} className="flex w-full shrink-0 items-center justify-between gap-1 sm:hidden">
         {page <= 1 ? (
           <Button type="button" variant="outline" size="sm" className="h-[var(--sb-control-height)] px-2 text-xs" disabled>
             Previous

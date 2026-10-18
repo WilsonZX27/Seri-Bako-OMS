@@ -786,6 +786,7 @@ export async function createStaff(formData: FormData) {
 
 export async function updateStaff(id: string, formData: FormData) {
   id = parseRecordId(id);
+  const returnTo = formData.get("return_to") === `/people/${id}?section=employment` ? `/people/${id}?section=employment` : `/staffs/${id}`;
   await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
   try {
     const actor = await requireActiveTenantActor();
@@ -803,12 +804,12 @@ export async function updateStaff(id: string, formData: FormData) {
     }
   } catch (error) {
     rethrowRedirect(error);
-    safeRedirectWithMessage(`/staffs/${id}`, "error", formatActionError(error, "Could not update this staff member."));
+    safeRedirectWithMessage(returnTo, "error", formatActionError(error, "Could not update this staff member."));
   }
   revalidatePath("/staffs");
   revalidatePath(`/staffs/${id}`);
   revalidatePath("/", "layout");
-  safeRedirectWithMessage(`/staffs/${id}`, "success", "Staff updated.");
+  safeRedirectWithMessage(returnTo, "success", "Staff updated.");
 }
 
 async function saveStaffPermissionOverrides(id: string, overrides: { permission_id: string; effect: "allow" | "deny" }[]) {
@@ -835,13 +836,13 @@ export async function updateStaffPermissionOverrides(id: string, formData: FormD
     return [{ permission_id: key.slice("permission:".length), effect: value }];
   }));
   await saveStaffPermissionOverrides(id, overrides);
-  safeRedirectWithMessage(`/staffs/${id}`, "success", "Permission overrides updated.");
+  safeRedirectWithMessage(formData.get("return_to") === `/people/${id}?section=employment` ? `/people/${id}?section=employment` : `/staffs/${id}`, "success", "Permission overrides updated.");
 }
 
-export async function resetStaffPermissionOverrides(id: string) {
+export async function resetStaffPermissionOverrides(id: string, returnTo?: string) {
   id = parseRecordId(id);
   await saveStaffPermissionOverrides(id, []);
-  safeRedirectWithMessage(`/staffs/${id}`, "success", "Permission overrides reset to role defaults.");
+  safeRedirectWithMessage(returnTo === `/people/${id}?section=employment` ? returnTo : `/staffs/${id}`, "success", "Permission overrides reset to role defaults.");
 }
 
 export async function resendStaffInvite(id: string) {

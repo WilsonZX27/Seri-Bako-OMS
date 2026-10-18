@@ -1,3 +1,5 @@
+import { StaffEmploymentEditor } from "@/components/staff-employment-editor";
+import { SubmitButton } from "@/components/ui/submit-button";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
@@ -35,6 +37,7 @@ export default async function PeopleProfilePage({
     "people.compliance.manage",
     "people.compliance.document.read",
     "comp_time.submit",
+    "staffs.update",
   ]);
   const [
     message,
@@ -66,9 +69,10 @@ export default async function PeopleProfilePage({
   const rail = (
     <>
       <ConsoleSection title="Actions">
-        <Button asChild size="sm" className="w-full" data-mobile-primary-action>
-          <Link href={`/staffs/${staff.id}`}>Manage account & access</Link>
-        </Button>
+        {activeSection === "employment" && permissions["staffs.update"] ? <SubmitButton form="people-employment-form" className="w-full" data-mobile-primary-action>Save staff</SubmitButton> : <Button asChild size="sm" className="w-full" data-mobile-primary-action>
+          <Link href={`/staffs/${staff.id}`}>Account security</Link>
+        </Button>}
+      <Button asChild size="sm" variant="outline" className="w-full"><Link href={`/attendance/review?branch=${staffSummary?.default_branch_id ?? "select"}&employee=${encodeURIComponent(staff.full_name)}`}>Open attendance</Link></Button>
       </ConsoleSection>
       <ConsoleSection title="Profile status">
         <div className="flex items-center justify-between">
@@ -148,7 +152,7 @@ export default async function PeopleProfilePage({
               </ProfileSection>
               <div className="grid items-stretch gap-3 lg:grid-cols-2 [&>section]:h-full">
               {compTime.allowed ? (
-                <ProfileSection id="time-off" title="Time-off balance" action={<div className="flex flex-wrap justify-end gap-2"><Button asChild size="sm" variant="outline"><Link href={`/attendance/review?branch=${staffSummary?.default_branch_id ?? "select"}&employee=${encodeURIComponent(staff.full_name)}`}>Open attendance</Link></Button>{permissions["comp_time.submit"] ? <CompTimeCorrectionForm staffId={staff.id} branchId={staffSummary?.default_branch_id??null}/> : null}</div>}>
+                <ProfileSection id="time-off" title="Time-off balance" action={<div className="flex flex-wrap justify-end gap-2">{permissions["comp_time.submit"] ? <CompTimeCorrectionForm staffId={staff.id} branchId={staffSummary?.default_branch_id??null}/> : null}</div>}>
                   <div className="sb-label-value-summary">
                     <div>
                       <p className="text-xs text-muted-foreground">
@@ -220,11 +224,11 @@ export default async function PeopleProfilePage({
             </>
           ) : null}
           {activeSection === "employment" ? (
-            <>
+            permissions["staffs.update"] ? <StaffEmploymentEditor id={id} /> : <>
               <ProfileSection
                 id="employment"
                 title="Employment & outlet assignments"
-                action={<Button asChild size="sm"><Link href={`/staffs/${staff.id}`}>Edit employment &amp; access</Link></Button>}
+
               >
                 <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
                   <Fact
@@ -317,7 +321,7 @@ export default async function PeopleProfilePage({
                       size="sm"
                       disabled={!complianceTypes.length}
                     >
-                      {"Save record & file"}
+                      {"Save"}
                     </Button>
                   }
                 >
@@ -352,8 +356,8 @@ function ProfileSection({
       id={id}
       className="min-w-0 scroll-mt-16 rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)] p-4"
     >
-      <div className="mb-3 flex min-h-9 flex-wrap items-start justify-between gap-3">
-        <h2 className="pt-2 text-sm font-semibold">{title}</h2>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] pb-3">
+        <h2 className="text-sm font-semibold">{title}</h2>
         {action ? <div className="min-w-0 max-w-full">{action}</div> : null}
       </div>
       {children}
@@ -454,7 +458,7 @@ function ComplianceRecordForm({
           type="file"
           accept="application/pdf,image/png,image/jpeg,image/webp"
           required
-          className="mt-2 block w-full text-xs file:mr-2 file:min-h-9 file:rounded-[var(--sb-radius-control)] file:border-0 file:bg-[var(--sb-green-100)] file:px-3 file:text-[var(--sb-green-900)]"
+          className="mt-2 block w-full rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white p-1 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] file:mr-2 file:min-h-9 file:rounded-[var(--sb-radius-control)] file:border-0 file:bg-[var(--sb-green-100)] file:px-3 file:text-[var(--sb-green-900)]"
         />
       </label>
     </form>

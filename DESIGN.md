@@ -1,3 +1,5 @@
+> Local candidate — 2026-10-18: desktop query filters use 120px at the existing 1280px desktop breakpoint; search is a named icon action and the query field absorbs remaining space. Phone/tablet touch sizes remain unchanged. Shared card/profile/form headers separate titles from fields with a soft rule. Employment and access editing stays in the People profile. Pending release; see final-audit/FEEDBACK-16-AUDIT.txt in the task workspace.
+
 # v9.2.107 (unreleased)
 
 Asset inspection uses compact identity rows with explicit result choices on expansion. General repair is a separate form above the checklist. Maintenance queues share one rendering; the desktop workspace uses a 4:6 split with the queue aligned to the detail stack. Shared workspace navigation and closed surface disclosures are 44px overall. Desktop inputs retain the existing 36px control rhythm; phone inputs retain 44px touch sizing. Two-action confirmation footers use equal columns. Saved maintenance state survives history refresh and prevents repeated submissions. No database, permissions or workflow transitions change.

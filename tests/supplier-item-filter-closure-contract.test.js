@@ -58,7 +58,7 @@ test("shared list routes retain query fields and Reset with the shared Search ac
     assert.doesNotMatch(source, /filtered \? <Button asChild variant="secondary"[\s\S]*: <Button type="submit"/, route);
   }
   const header = read("src/components/common/UnifiedListHeader.tsx");
-  assert.match(header, /<span>Search<\/span>/);
+  assert.match(header, /<span class(?:Name)?="sr-only">Search<\/span>/);
   assert.match(header, /data-search-control/);
   assert.match(header, /closest\?\.\("\[data-search-control\]"\)/);
 });

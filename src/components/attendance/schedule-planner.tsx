@@ -213,6 +213,7 @@ export function SchedulePlanner({
   );
   const importFile = importSource?.fileName ?? initialAssignments.map((item) => item.custom_reason).find((reason) => reason?.startsWith("Imported from "))?.replace(/^Imported from /, "") ?? null;
   const savedVersion = useRef(week?.updated_at ?? null);
+  const submitting = useRef(false);
   const saveVersionUnknown = useRef(false);
   const failedAutosaveAssignments = useRef<Assignment[] | null>(null);
   const [cells, setCells] = useState<Map<string, Assignment>>(initial);
@@ -551,10 +552,12 @@ export function SchedulePlanner({
   }
   saveDraftRef.current = saveDraft;
   async function submitCurrentSchedule() {
+    if (submitting.current) return;
     if (saveVersionUnknown.current) {
       setActionFeedback("Reload this schedule to confirm the saved version before submitting.");
       return;
     }
+    submitting.current = true;
     setBusyAction("submit");
     setActionFeedback(null);
     try {
@@ -581,6 +584,7 @@ export function SchedulePlanner({
       setActionFeedback(feedback);
       setMessage(`${feedback} Review the highlighted days, then retry.`);
     } finally {
+      submitting.current = false;
       setBusyAction(null);
     }
   }

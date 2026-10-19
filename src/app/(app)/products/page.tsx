@@ -54,6 +54,7 @@ export default async function ProductsPage({
                   <SortableHead label="Product Name" column="product_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Category" column="category" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead label="Selling Unit" column="selling_unit" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <TableHead>Availability</TableHead>
                   <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 </TableRow>
               </TableHeader>
@@ -65,6 +66,7 @@ export default async function ProductsPage({
                     <TableCell className="font-medium">{product.product_name}</TableCell>
                     <TableCell>{product.category}</TableCell>
                     <TableCell>{normalizeUom(product.selling_unit)}</TableCell>
+                    <TableCell>{product.is_seasonal ? <span className="text-amber-700">Seasonal{product.available_until ? ` · until ${product.available_until}` : ""}</span> : <span className="text-muted-foreground">Year-round</span>}</TableCell>
                     <TableCell>
                       <Badge variant={product.status === "active" ? "success" : "secondary"}>{product.status}</Badge>
                     </TableCell>
@@ -72,7 +74,7 @@ export default async function ProductsPage({
                 ))}
                 {!productsPage.rows.length ? (
                   <TableRow>
-                    <TableCell colSpan={6}><EmptyState title={filtered ? "No products match these filters" : "No products yet"} description={filtered ? "Reset the filters or widen the search." : "Products appear after finished goods are created or imported."} action={emptyAction} /></TableCell>
+                    <TableCell colSpan={7}><EmptyState title={filtered ? "No products match these filters" : "No products yet"} description={filtered ? "Reset the filters or widen the search." : "Products appear after finished goods are created or imported."} action={emptyAction} /></TableCell>
                   </TableRow>
                 ) : null}
               </TableBody>

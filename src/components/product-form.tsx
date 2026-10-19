@@ -40,6 +40,15 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
             <SelectNative name="daily_tracking" defaultValue={product ? dailyTracking(product) : "food_daily"}>{Object.entries(dailyTrackingLabels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</SelectNative>
             <p className="mt-1 text-xs text-muted-foreground">Next day includes food kept for several days. Usage is recorded separately from wastage; this does not set a fixed expiry date.</p>
           </Field>
+          <Field label="Product status">
+            <SelectNative name="status" defaultValue={product?.status ?? "active"} required><option value="active">Active</option><option value="inactive">Inactive</option></SelectNative>
+          </Field>
+          <Field label="Availability type">
+            <SelectNative name="is_seasonal" defaultValue={product?.is_seasonal ? "true" : "false"}><option value="false">Year-round</option><option value="true">Seasonal</option></SelectNative>
+          </Field>
+          <Field label="Available from"><Input name="available_from" type="date" defaultValue={product?.available_from ?? ""} /></Field>
+          <Field label="Available until"><Input name="available_until" type="date" defaultValue={product?.available_until ?? ""} /></Field>
+          <p className="col-span-2 -mt-2 text-xs text-muted-foreground">Seasonal items with an end date stop appearing on new Outlet Daily Records after that date. Leave dates blank to keep the item available until you update its season.</p>
           <Field label="Display Order">
             <Input name="display_order" type="number" min="1" step="1" defaultValue={product?.display_order ?? 9999} required />
           </Field>
@@ -48,7 +57,6 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
               {uomOptionsWithCurrent(product?.selling_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
             </SelectNative>
           </Field>
-          <input type="hidden" name="status" value={product?.status ?? "active"} />
           <div className="col-span-2 grid grid-cols-2 gap-3 border-y py-4 sm:gap-4 md:rounded-[var(--sb-control-radius)] md:border md:bg-secondary/30 md:p-4 xl:grid-cols-4">
             <div className="col-span-2 xl:col-span-4">
               <p className="text-sm font-semibold">Packaging & Pricing</p>

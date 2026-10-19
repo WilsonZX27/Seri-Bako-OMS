@@ -258,7 +258,10 @@ export const getOutletDailyFormOptions = cache(async function getOutletDailyForm
     const branches = mockBranches.filter((row) => row.status === "active");
     return {
       branches,
-      products: sortProductsForDisplay(mockProducts.filter((row) => row.status === "active")),
+      products: sortProductsForDisplay(mockProducts.filter((row) => {
+        const seasonal = row as typeof row & { is_seasonal?: boolean; available_from?: string | null; available_until?: string | null };
+        return row.status === "active" && (!recordDate || !seasonal.is_seasonal || ((!seasonal.available_from || seasonal.available_from <= recordDate) && (!seasonal.available_until || seasonal.available_until >= recordDate)));
+      })),
       defaultBranchId: branches.length === 1 ? branches[0].id : undefined,
       defaultsByBranch: {},
     };
@@ -270,12 +273,12 @@ export const getOutletDailyFormOptions = cache(async function getOutletDailyForm
   ]);
   const [{ data: branches, error: branchError }, { data: products, error: productError }] = await Promise.all([
     db.from("branches").select("id,branch_code,branch_name,branch_type,status").eq("branch_type", "outlet").eq("status", "active").is("deleted_at", null).order("branch_name"),
-    db.from("products").select("id,product_code,product_name,category,daily_tracking,selling_unit,status,display_order").eq("status", "active"),
+    db.from("products").select("id,product_code,product_name,category,daily_tracking,selling_unit,status,display_order,is_seasonal,available_from,available_until").eq("status", "active"),
   ]);
   if (branchError) throw new Error(branchError.message);
   if (productError) throw new Error(productError.message);
   const activeBranches = requireReadRows(branches, "Outlet daily branch options");
-  const activeProducts = requireReadRows(products, "Outlet daily product options");
+  const activeProducts = requireReadRows(products, "Outlet daily product options").filter(product => !recordDate || !product.is_seasonal || ((!product.available_from || product.available_from <= recordDate) && (!product.available_until || product.available_until >= recordDate)));
   const profileDefaultBranchId = profile && "default_branch_id" in profile ? profile.default_branch_id : null;
   if (canViewAll) {
     const branchesForForm = activeBranches;

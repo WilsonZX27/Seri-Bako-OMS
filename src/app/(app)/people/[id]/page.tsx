@@ -1,4 +1,4 @@
-import { StaffSecurityPanel, StaffSignInStatus } from "@/components/staff-security-panel";
+import { StaffSecurityPanel, StaffSecurityRail } from "@/components/staff-security-panel";
 import { StaffEmploymentEditor } from "@/components/staff-employment-editor";
 import { SubmitButton } from "@/components/ui/submit-button";
 import type { ReactNode } from "react";
@@ -67,7 +67,7 @@ export default async function PeopleProfilePage({
   const attention = compliance.filter(
     (record) => record.state !== "valid",
   ).length;
-  const rail = (
+  const rail = activeSection === "security" ? <StaffSecurityRail id={id} /> : (
     <>
       <ConsoleSection title="Actions">
         {activeSection === "employment" && permissions["staffs.update"] ? <SubmitButton form="people-employment-form" className="w-full" data-mobile-primary-action>Save staff</SubmitButton> : null}
@@ -87,7 +87,6 @@ export default async function PeopleProfilePage({
           </strong>
         </div>
       </ConsoleSection>
-      {permissions["staffs.update"] ? <StaffSignInStatus id={id} /> : null}
       <ConsoleSection title="Privacy">
         <p className="text-muted-foreground">
           Managers see compliance status only. Sensitive originals remain
@@ -164,6 +163,7 @@ export default async function PeopleProfilePage({
                       <strong className="text-2xl tabular-nums">
                         {compTime.balance} min
                       </strong>
+                      {(compTime.ledger as Array<Record<string, unknown>>).some(row => row.status === "pending" && row.transaction_kind === "correction") ? <p role="status" className="mt-2 rounded border border-amber-200 bg-amber-50 px-2 py-1.5 text-xs text-amber-900">Correction submitted and waiting for approval. It will be added to the balance after approval.</p> : null}
                     </div>
                   </div>
                   <div className="mt-3 divide-y border-t border-[var(--sb-border-soft)]">
@@ -175,7 +175,7 @@ export default async function PeopleProfilePage({
                         >
                           <span>{String(row.work_date)}</span>
                           <span className="capitalize">
-                            {String(row.transaction_kind)}
+                            {String(row.transaction_kind)}{row.status === "pending" ? <span className="mt-0.5 block text-[10px] font-medium text-amber-800">Pending approval</span> : null}
                           </span>
                           <span className="truncate text-muted-foreground">
                             {String(row.reason)}

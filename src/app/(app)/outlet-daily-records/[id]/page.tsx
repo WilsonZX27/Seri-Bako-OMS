@@ -12,7 +12,6 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { DestructiveActionDialog } from "@/components/ui/destructive-action-dialog";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import { sortProductsForDisplay } from "@/lib/product-order";
 import { formatDateOnly, formatNumber } from "@/lib/utils";
 import { postOutletDailyRecord, saveOutletDailyRecord, voidOutletDailyRecord } from "@/server/actions/outlet-daily-records";
 import { getPermissionMap } from "@/server/auth/permissions";
@@ -49,8 +48,8 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
   </>;
   const [{ record, lines, sales }, options, permissions, activities] = source;
   const productMap = new Map(options.products.map((product) => [product.id, product]));
-  for (const line of lines) if (line.product) productMap.set(line.product.id, line.product);
-  const products = sortProductsForDisplay([...productMap.values()]);
+  for (const line of lines) if (line.product) productMap.set(line.product.id, { ...line.product, is_seasonal: false, available_from: null, available_until: null });
+  const products = [...productMap.values()].sort((a, b) => a.product_code.localeCompare(b.product_code));
   const activityItems = activities.some((activity) => activity.activity_type === "created") ? activities : [
     ...activities,
     {

@@ -5,7 +5,7 @@ const COOKIE_NAME = "sb_temporary_password_handoff";
 export async function setTemporaryPasswordHandoff(staffId: string, password: string) {
   const store = await cookies();
   store.set(COOKIE_NAME, Buffer.from(JSON.stringify({ staffId, password })).toString("base64url"), {
-    httpOnly: true, sameSite: "strict", secure: process.env.NODE_ENV === "production", path: `/staffs/${staffId}`, maxAge: 300,
+    httpOnly: true, sameSite: "strict", secure: process.env.NODE_ENV === "production", path: `/people/${staffId}`, maxAge: 300,
   });
 }
 

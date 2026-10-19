@@ -23,11 +23,11 @@ test("new Staff hides generated auth fields and states the temporary-password fl
   assert.match(form, /type="hidden" name="temporary_password" value=""/);
   assert.doesNotMatch(form, /Leave blank to auto-generate/);
   assert.match(page, /issue an auto-generated temporary password/);
-  assert.match(detail, /Temporary password shown once/);
-  assert.match(detail, /Share it securely\. The staff member must change it after first login\./);
+  assert.match(detail, /<CardTitle>Temporary password<\/CardTitle>/);
+  assert.match(detail, /Copy it now and share it securely\./);
   assert.doesNotMatch(detail, /Copy this temporary password now/);
   assert.doesNotMatch(actions, /Staff account created\. Copy the temporary password now\./);
-  assert.match(actions, /redirect\(`\/staffs\/\$\{createdStaffId\}`\)/);
+  assert.match(actions, /redirect\(`\/people\/\$\{createdStaffId\}\?section=security`\)/);
 });
 
 test("schedule asks for time per Add and avoids the native time picker", () => {

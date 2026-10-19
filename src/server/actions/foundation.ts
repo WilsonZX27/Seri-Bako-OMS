@@ -785,7 +785,7 @@ export async function createStaff(formData: FormData) {
   revalidatePath("/staffs");
   if (createdStaffId && temporaryPassword) {
     await setTemporaryPasswordHandoff(createdStaffId, temporaryPassword);
-    redirect(`/staffs/${createdStaffId}`);
+    redirect(`/people/${createdStaffId}?section=security`);
   }
   safeRedirectWithMessage("/staffs", "success", "Staff created.");
 }
@@ -933,7 +933,7 @@ export async function resetStaffTemporaryPassword(id: string) {
   revalidatePath(`/staffs/${id}`);
   if (temporaryPassword) {
     await setTemporaryPasswordHandoff(id, temporaryPassword);
-    redirect(`/staffs/${id}?success=${encodeURIComponent("Temporary password generated. Copy it now.")}`);
+    redirect(`/people/${id}?section=security&success=${encodeURIComponent("Temporary password generated. Copy it now.")}`);
   }
   safeRedirectWithMessage(`/staffs/${id}`, "success", "Temporary password generated.");
 }

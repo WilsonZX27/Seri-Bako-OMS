@@ -28,3 +28,10 @@ test('Chef copies Kitchen permissions without being added to schedule eligibilit
  assert.equal(roles.hasCompanyWideOperationalScope('chef'),false);
  assert.equal(roles.getRoleDisplayLabel('chef'),'Chef');
 });
+test('temporary password handoff follows the People security route',()=>{
+ const handoff=fs.readFileSync('src/server/auth/temporary-password-handoff.ts','utf8');
+ const actions=fs.readFileSync('src/server/actions/foundation.ts','utf8');
+ assert.match(handoff,/path: `\/people\/\$\{staffId\}`/);
+ assert.match(actions,/redirect\(`\/people\/\$\{id\}\?section=security&success=/);
+ assert.match(actions,/redirect\(`\/people\/\$\{createdStaffId\}\?section=security`\)/);
+});

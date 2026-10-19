@@ -2900,7 +2900,7 @@ html[data-design-layer="v2"] table.sb-stock-balance-table :is(th,td):nth-child(3
     flex: 0 0 120px !important; width: 120px !important; min-width: 120px !important; max-width: 120px !important;
   }
   html[data-design-layer="v2"] form.sb-list-query-card > :is([data-search-control], input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"]) {
-    flex: 1 1 12rem !important; width: auto !important; min-width: 8rem !important; max-width: none !important;
+    flex: 0 1 240px !important; width: 240px !important; min-width: 8rem !important; max-width: 240px !important;
   }
   html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-desktop-actions > .unified-list-search-submit {
     flex: 0 0 var(--sb-control-height) !important; width: var(--sb-control-height) !important; min-width: var(--sb-control-height) !important; max-width: var(--sb-control-height) !important; padding-inline: 0 !important;
@@ -2914,4 +2914,14 @@ html[data-design-layer="v2"] table.sb-stock-balance-table :is(th,td):nth-child(3
   html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-desktop-actions > .unified-list-search-submit {
     flex: 0 0 var(--sb-control-height) !important; width: var(--sb-control-height) !important; min-width: var(--sb-control-height) !important; max-width: var(--sb-control-height) !important; padding-inline: 0 !important;
   }
+}
+
+/* Query controls share geometry; action icons never consume filter tracks. */
+@media (min-width: 1280px) {
+  html[data-design-layer="v2"] form.sb-list-query-card > input[type="number"] { flex:0 0 120px!important; width:120px!important; min-width:120px!important; max-width:120px!important; }
+  html[data-design-layer="v2"] .unified-list-desktop-actions > [data-list-action="secondary"] { flex:0 0 auto!important; width:auto!important; min-width:0!important; max-width:fit-content!important; padding-inline:12px!important; }
+}
+
+@media (min-width:1280px) {
+ html[data-design-layer="v2"] form.sb-list-query-card > [data-date-range-control] { flex:0 0 240px!important; width:240px!important; min-width:0!important; max-width:240px!important; }
 }

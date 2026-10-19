@@ -30,7 +30,7 @@ test("mobile web uses a permission-aware app shell without replacing desktop nav
 
 test("kitchen mobile navigation follows Home, Count, Request, Stock, More task order", () => {
   const navigation = read("src/components/layout/mobile-app-navigation.tsx");
-  const kitchenStart = navigation.indexOf('if (role === "kitchen")');
+  const kitchenStart = navigation.indexOf('if ((role === "kitchen" || role === "chef"))');
   const kitchenEnd = navigation.indexOf('if (role === "purchasing")');
   const kitchenTabs = navigation.slice(kitchenStart, kitchenEnd);
 

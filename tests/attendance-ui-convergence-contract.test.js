@@ -122,7 +122,8 @@ test("schedule workbook UI previews live identities and imports only verified ed
 
 test("staff detail leads with the profile and removes the redundant helper paragraph", () => {
   const staff = read("src/app/(app)/staffs/[id]/page.tsx");
-  assert.match(staff, /Open profile[\s\S]*Current Status/);
+  assert.match(staff, /redirect\(`/);
+  assert.match(staff, /section:"security"/);
   assert.doesNotMatch(
     staff,
     /Update staff identity, access, and account actions/,

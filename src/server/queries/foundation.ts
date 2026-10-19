@@ -128,7 +128,7 @@ export async function getStaffs(filters: Filters = {}) {
           branch_access_level: defaultBranch?.access_level ?? null,
         };
       })
-      .filter((staff) => matchesFilter([staff.staff_code, staff.full_name, staff.email, staff.role_name, staff.default_branch_name], filters, staff.status));
+      .filter((staff) => matchesFilter([staff.staff_code, staff.full_name, staff.username, staff.email, staff.role_name, staff.default_branch_name], filters, staff.status));
   }
 
   const [supabase, profile] = await Promise.all([createClient(), getCurrentProfile()]);
@@ -140,7 +140,7 @@ export async function getStaffs(filters: Filters = {}) {
     .is("deleted_at", null)
     .order("full_name", { ascending: true });
   const search = filters.search?.trim().replace(/[,%()]/g, " ");
-  if (search) staffQuery = staffQuery.or(`staff_code.ilike.%${search}%,full_name.ilike.%${search}%,email.ilike.%${search}%`);
+  if (search) staffQuery = staffQuery.or(`staff_code.ilike.%${search}%,full_name.ilike.%${search}%,username.ilike.%${search}%,email.ilike.%${search}%`);
   if (filters.status && filters.status !== "all") staffQuery = staffQuery.eq("status", filters.status as StaffStatus);
   const { data: staffs, error: staffsError } = await staffQuery;
   if (staffsError) throw new Error(staffsError.message);

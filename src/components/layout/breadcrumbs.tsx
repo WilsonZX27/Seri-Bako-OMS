@@ -17,7 +17,7 @@ const sectionMap: Record<string, { label: string; href?: string; parent?: Crumb 
   compliance: { label: "Compliance & People Operations" },
   company: { label: "Company", parent: { label: "Administration", href: "/administration" } },
   branches: { label: "Branches", parent: { label: "Administration", href: "/administration" } },
-  staffs: { label: "Users & Staff", parent: { label: "Administration", href: "/administration" } },
+  staffs: { label: "Employees", href: "/people" },
   roles: { label: "Roles & Permissions", parent: { label: "Administration", href: "/administration" } },
   settings: { label: "Administration", href: "/administration" },
   "purchase-requests": { label: "Purchase Requests", parent: { label: "Procurement", href: "/procurement" } },

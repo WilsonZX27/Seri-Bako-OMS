@@ -114,8 +114,8 @@ test("Outlet roles remain on daily operations without generic documents or produ
   assert.deepEqual(permittedRolesFor("/production/variance"), ["superAdmin", "finance", "manager", "purchasing", "kitchen"]);
 
   const permissions = fs.readFileSync("src/server/auth/route-permissions.ts", "utf8");
-  assert.match(permissions, /"\/production\/planning": \["super_admin", "finance", "manager", "purchasing", "kitchen"\]/);
-  assert.match(permissions, /"\/production\/variance": \["super_admin", "finance", "manager", "purchasing", "kitchen"\]/);
+  assert.match(permissions, /"\/production\/planning": \["super_admin", "finance", "manager", "purchasing", "chef", "kitchen"\]/);
+  assert.match(permissions, /"\/production\/variance": \["super_admin", "finance", "manager", "purchasing", "chef", "kitchen"\]/);
 });
 
 test("People Operations is audited only across its approved OMS modules", () => {
@@ -129,8 +129,8 @@ test("People Operations is audited only across its approved OMS modules", () => 
   assert.deepEqual(permittedRolesFor("/outlet-daily-records"), ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]);
   assert.deepEqual(permittedRolesFor("/purchase-requests"), ["superAdmin", "finance", "manager", "purchasing", "kitchen"]);
   const permissions = fs.readFileSync("src/server/auth/route-permissions.ts", "utf8");
-  assert.match(permissions, /"\/documents": \["super_admin", "finance", "manager", "purchasing", "kitchen"\]/);
-  assert.match(permissions, /"\/procurement": \["super_admin", "finance", "manager", "purchasing", "kitchen"\]/);
+  assert.match(permissions, /"\/documents": \["super_admin", "finance", "manager", "purchasing", "chef", "kitchen"\]/);
+  assert.match(permissions, /"\/procurement": \["super_admin", "finance", "manager", "purchasing", "chef", "kitchen"\]/);
   assert.match(permissions, /find\(\(\[route\]\) => matchesPrefix\(pathname, route\)\)/);
 });
 

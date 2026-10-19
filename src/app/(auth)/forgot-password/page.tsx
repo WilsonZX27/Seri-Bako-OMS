@@ -19,7 +19,7 @@ export default async function ForgotPasswordPage({
         <Field label="Email">
           <Input name="email" type="email" autoComplete="email" required />
         </Field>
-        <p className="text-sm text-muted-foreground">After changing your password, return to login and sign in again.</p>
+        <p className="text-sm text-muted-foreground">No email on your account? Ask your administrator for a temporary password.</p>
         {params.success ? <Notice tone="success">{params.success}</Notice> : null}
         {params.error ? <Notice tone="error">{params.error}</Notice> : null}
         <SubmitButton className="w-full" pendingLabel="Sending reset link..." showOverlay overlayLabel="Sending reset link...">Send reset link</SubmitButton>

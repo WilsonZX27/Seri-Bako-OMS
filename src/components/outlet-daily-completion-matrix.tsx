@@ -30,7 +30,7 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
   return <section className="erp-surface isolate min-w-0 max-w-full overflow-hidden" aria-labelledby="outlet-completion-title" data-outlet-completion-matrix>
     <div className="flex flex-wrap items-end justify-between gap-2 border-b border-[var(--sb-border-soft)] px-3 py-2.5">
       <div>
-        <h2 id="outlet-completion-title" className="text-sm font-semibold">7-day outlet completion</h2>
+        <h2 id="outlet-completion-title" className="text-sm font-semibold">{dates.length}-day outlet completion</h2>
         <p className="text-xs text-muted-foreground">Check which outlets have finished each day. Select a status to open its record.</p>
       </div>
       <p className="text-xs text-muted-foreground"><strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable || completionPercent === null ? "Not available" : `${new Intl.NumberFormat("en-MY", { maximumFractionDigits: 1 }).format(completionPercent)}%`}</strong>{unavailable || completionPercent === null ? "" : " posted"}</p>
@@ -43,7 +43,7 @@ export function OutletDailyCompletionMatrix({ dates, rows, summary, unavailable 
       </div>
       <div id="outlet-completion-detail">
       <div className="relative isolate block w-full max-w-full overflow-x-auto overscroll-x-contain bg-[var(--sb-surface)] px-3 py-2" tabIndex={0} aria-label="Outlet completion matrix" data-outlet-completion-scrollport>
-        <table className="w-full min-w-[40rem] table-fixed border-separate border-spacing-x-1 border-spacing-y-0 text-xs">
+        <table style={{ minWidth: `${192 + dates.length * 60}px` }} className="w-full min-w-[40rem] table-fixed border-separate border-spacing-x-1 border-spacing-y-0 text-xs">
           <colgroup><col className="w-[9rem] sm:w-48" />{dates.map((date) => <col key={date} />)}</colgroup>
           <thead><tr><th scope="col" className="sticky left-0 z-30 min-w-[9rem] w-[9rem] max-w-[9rem] border-r border-[var(--sb-border-soft)] bg-[var(--sb-surface)] pb-1 pr-2 text-left font-medium text-muted-foreground sm:min-w-48 sm:w-48 sm:max-w-48 sm:pr-3">Outlet</th>{dates.map((date) => <th key={date} aria-current={date === today ? "date" : undefined} scope="col" className="min-w-[3.5rem] pb-1 text-center text-[9px] font-medium text-muted-foreground sm:min-w-14 sm:text-xs"><span className="block">{new Intl.DateTimeFormat("en-MY", { weekday: "short", timeZone: "UTC" }).format(new Date(`${date}T00:00:00Z`))}</span><span className="text-[9px] font-normal sm:text-[10px]">{date.slice(8)}</span></th>)}</tr></thead>
           <tbody>{rows.map((row) => <tr key={row.branch_id} className="border-b border-[var(--sb-border-soft)]"><th scope="row" className="sticky left-0 z-20 min-w-[9rem] w-[9rem] max-w-[9rem] border-r border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface)] py-1 pr-2 text-left text-[10px] font-medium sm:min-w-48 sm:w-48 sm:max-w-48 sm:pr-3 sm:text-xs" title={row.branch_name}><span className="block truncate">{row.branch_name}</span></th>{row.cells.map((cell) => {

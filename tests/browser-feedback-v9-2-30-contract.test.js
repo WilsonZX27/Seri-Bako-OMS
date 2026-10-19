@@ -18,7 +18,7 @@ test("People rows keep identity compact and omit redundant open copy", () => {
 test("new Staff hides generated auth fields and states the temporary-password flow", () => {
   const form = read("src", "components", "foundation-forms.tsx");
   const page = read("src", "app", "(app)", "staffs", "new", "page.tsx");
-  const detail = read("src", "app", "(app)", "staffs", "[id]", "page.tsx");
+  const detail = read("src", "components", "staff-security-panel.tsx");
   const actions = read("src", "server", "actions", "foundation.ts");
   assert.match(form, /type="hidden" name="temporary_password" value=""/);
   assert.doesNotMatch(form, /Leave blank to auto-generate/);

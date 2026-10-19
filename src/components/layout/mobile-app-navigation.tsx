@@ -60,7 +60,7 @@ function roleTabs(role: UserRole, permissionMap: Record<string, boolean>): Mobil
     return tabs;
   }
 
-  if (role === "kitchen") {
+  if ((role === "kitchen" || role === "chef")) {
     tabs.push(
       { href: "/stock-counts", label: "Count", icon: CheckCircle2, permission: "stock_count.read" },
       { href: "/purchase-requests", label: "Request", icon: FileText, permission: "purchase_request.read" },

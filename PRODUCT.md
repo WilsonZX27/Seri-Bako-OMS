@@ -1,3 +1,5 @@
+> Local candidate — 2026-10-19: migrations reviewed through `366`; forward-only migration 历史已到 `366`. Chef and unique username login are local changes pending database verification and release.
+
 > Local candidate — 2026-10-18: migrations reviewed through `364`. Week-only roster exclusions and the 16-comment interface corrections are under local verification. Migration 364 is not applied to Production.
 
 > Local candidate — 2026-10-17: migrations reviewed through `363`; forward-only migration 历史已到 `363`. Migrations 362/363 add payment channels and independent daily product tracking; applied only to the isolated visual-audit database. Migration 361 adds one checklist per outlet/date and has not been deployed. Production statements below remain historical release evidence.

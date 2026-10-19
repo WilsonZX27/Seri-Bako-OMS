@@ -1,6 +1,6 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
-export type UserRole = "super_admin" | "people_operations" | "finance" | "manager" | "purchasing" | "kitchen" | "outlet_supervisor" | "outlet_staff";
+export type UserRole = "super_admin" | "people_operations" | "finance" | "manager" | "purchasing" | "chef" | "kitchen" | "outlet_supervisor" | "outlet_staff";
 export type ItemStatus = "active" | "inactive";
 export type SupplierStatus = "active" | "inactive";
 export type RecordStatus = "active" | "inactive" | "archived" | "invited" | "disabled";
@@ -147,6 +147,7 @@ export type Database = {
           company_id: string;
           auth_user_id: string | null;
           staff_code: string | null;
+          username: string | null;
           full_name: string;
           email: string | null;
             phone: string | null;
@@ -177,6 +178,7 @@ export type Database = {
           company_id: string;
           auth_user_id?: string | null;
           staff_code?: string | null;
+          username?: string | null;
           full_name: string;
           email?: string | null;
             phone?: string | null;
@@ -2756,6 +2758,10 @@ export type Database = {
       };
       replace_staff_access_atomic: {
         Args: { p_staff_id: string; p_role_id: string; p_default_branch_id: string; p_accessible_branch_ids?: string[]; p_status?: Database["public"]["Enums"]["record_status"] | null; p_staff_code?: string | null; p_full_name?: string | null; p_email?: string | null; p_phone?: string | null };
+        Returns: Json;
+      };
+      replace_staff_access_with_username: {
+        Args: { p_username?: string | null; p_staff_id: string; p_role_id: string; p_default_branch_id: string; p_accessible_branch_ids?: string[]; p_status?: Database["public"]["Enums"]["record_status"] | null; p_staff_code?: string | null; p_full_name?: string | null; p_email?: string | null; p_phone?: string | null };
         Returns: Json;
       };
       set_staff_status_atomic: { Args: { p_staff_id: string; p_status: Database["public"]["Enums"]["record_status"] }; Returns: void; };

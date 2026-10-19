@@ -36,6 +36,7 @@ type Branch = {
 };
 
 type Staff = {
+  username?: string | null;
   id: string;
   company_id: string;
   staff_code: string | null;
@@ -235,8 +236,11 @@ export function StaffForm({
           <Field label="Full Name" required>
             <Input name="full_name" defaultValue={staff?.full_name ?? ""} required className="form-control-compact" />
           </Field>
-          <Field label="Email" required>
-            <Input name="email" type="email" defaultValue={staff?.email ?? staff?.invite_email ?? ""} required className="form-control-compact" />
+          <Field label="Username">
+            <Input name="username" defaultValue={staff?.username ?? ""} autoCapitalize="none" autoComplete="off" minLength={3} maxLength={32} pattern="[a-zA-Z0-9][a-zA-Z0-9._-]{2,31}" className="form-control-compact" />
+          </Field>
+          <Field label="Email (optional with username)">
+            <Input name="email" type="email" defaultValue={staff?.email?.endsWith("@accounts.seribako.invalid") ? "" : staff?.email ?? staff?.invite_email ?? ""} className="form-control-compact" />
           </Field>
           <Field label="Phone">
             <Input name="phone" defaultValue={staff?.phone ?? ""} className="form-control-compact" />

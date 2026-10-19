@@ -22,7 +22,7 @@ type StockCardResult = {
   unavailable: boolean;
 };
 type LowStockRow = Database["public"]["Views"]["stock_balances_view"]["Row"] & {
-  stock_status: "out_of_stock" | "low_stock";
+  stock_status: "out_of_stock" | "low_stock" | "sufficient";
   suggested_reorder_qty: number;
 };
 type StockBalanceRow = {
@@ -1126,6 +1126,7 @@ async function readLowStockPages<T>(query: { range: (from: number, to: number) =
 }
 
 async function loadLowStockItems(filters: Filters = {}) {
+  const customThreshold = Boolean(filters.below_qty?.trim()) && Number.isFinite(Number(filters.below_qty)) && Number(filters.below_qty) >= 0;
   if (isMockMode()) {
     return getMockLowStockItems().map((row) => ({
       ...row,
@@ -1155,9 +1156,9 @@ async function loadLowStockItems(filters: Filters = {}) {
     .from("stock_count_eligible_items" as "stock_balances_summary")
     .select("*")
     .eq("status", "active")
-    .eq("is_low_stock", true)
     .order("shortage_quantity", { ascending: false })
     .order("item_name", { ascending: true }).order("item_id").order("branch_id");
+  if (!customThreshold) query = query.eq("is_low_stock", true);
   const branchId = filters.branch_id && filters.branch_id !== "all" ? filters.branch_id : null;
   if (branchId) query = query.eq("branch_id", branchId);
   const summaryResult = await readLowStockPages(query);
@@ -1185,7 +1186,7 @@ async function loadLowStockItems(filters: Filters = {}) {
       // Older linked deployments may still expose the original read-only
       // low_stock_items view while the pre-aggregated summary/view is being
       // repaired. Keep this as a final read-only compatibility path.
-      if (!branchId) {
+      if (!branchId && !customThreshold) {
         const legacyResult = await readLowStockPages(supabase
           .from("low_stock_items")
           .select("*")
@@ -1220,14 +1221,14 @@ async function loadLowStockItems(filters: Filters = {}) {
       const current = Number(row.current_qty ?? row.current_stock ?? 0);
       const safety = Number(row.safety_stock ?? 0);
       const shortage = safety - current;
-      const suggested = Math.max(shortage, Number(row.moq ?? 0), 1);
+      const suggested = current > safety ? 0 : Math.max(shortage, Number(row.moq ?? 0), 1);
       return {
         ...row,
-        stock_status: current <= 0 ? "out_of_stock" : "low_stock",
+        stock_status: current <= 0 ? "out_of_stock" : current <= safety ? "low_stock" : "sufficient",
         suggested_reorder_qty: suggested,
       } satisfies LowStockRow;
     })
-    .filter((row) => Number(row.current_qty ?? row.current_stock ?? 0) <= Number(row.safety_stock ?? 0) || Number(row.current_qty ?? row.current_stock ?? 0) <= 0)
+    .filter((row) => customThreshold || Number(row.current_qty ?? row.current_stock ?? 0) <= Number(row.safety_stock ?? 0) || Number(row.current_qty ?? row.current_stock ?? 0) <= 0)
     .filter((row) => status ? row.stock_status === status : true)
     .sort((a, b) => (a.stock_status === b.stock_status ? b.suggested_reorder_qty - a.suggested_reorder_qty : a.stock_status === "out_of_stock" ? -1 : 1));
   return rows;

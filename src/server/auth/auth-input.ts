@@ -13,7 +13,7 @@ const password = z
   .max(1024, "Password is too long.");
 
 export const signInSchema = z.object({
-  email: normalizedEmail,
+  email: z.union([normalizedEmail, z.string().trim().toLowerCase().regex(/^[a-z0-9][a-z0-9._-]{2,31}$/, "Enter your email or username.")]),
   password: z.string().min(1, "Enter your password.").max(1024, "Password is too long."),
 });
 

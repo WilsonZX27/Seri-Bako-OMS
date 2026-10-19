@@ -16,7 +16,8 @@ test("People and Staff keep section actions beside their titles", () => {
   assert.match(people, /lg:grid-cols-2/);
   assert.doesNotMatch(people, /protected-payroll-form|Sensitive payroll details/);
   assert.match(people, /form="staff-compliance-record-form"/);
-  assert.ok(staff.indexOf("Save Staff") < staff.indexOf("Open profile"));
+  assert.match(staff, /section:"security"/);
+  assert.match(people, /form="people-employment-form"/);
 });
 
 test("mobile scheduling retains bounded, aligned and state-specific actions", () => {

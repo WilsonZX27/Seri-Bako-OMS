@@ -19,7 +19,7 @@ type Access = {
 };
 
 function eligibleBranches(branches: Branch[], roleCode: string | undefined) {
-  if (roleCode === "kitchen") return branches.filter((branch) => branch.branch_type === "central_kitchen");
+  if ((roleCode === "kitchen" || roleCode === "chef")) return branches.filter((branch) => branch.branch_type === "central_kitchen");
   if (roleCode === "outlet_staff" || roleCode === "outlet_supervisor") return branches.filter((branch) => branch.branch_type === "outlet");
   return branches;
 }

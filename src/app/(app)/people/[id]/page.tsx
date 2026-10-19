@@ -1,3 +1,4 @@
+import { StaffSecurityPanel } from "@/components/staff-security-panel";
 import { StaffEmploymentEditor } from "@/components/staff-employment-editor";
 import { SubmitButton } from "@/components/ui/submit-button";
 import type { ReactNode } from "react";
@@ -24,7 +25,7 @@ import { detailOrNotFound } from "@/server/queries/detail";
 import { getStaffAttendanceTracking, getStaffCompTime } from "@/server/queries/attendance";
 import { CompTimeCorrectionForm } from "@/components/attendance/comp-time-correction-form";
 
-type ProfileSectionId = "overview" | "employment" | "compliance";
+type ProfileSectionId = "overview" | "employment" | "compliance" | "security";
 export default async function PeopleProfilePage({
   params,
   searchParams,
@@ -60,7 +61,7 @@ export default async function PeopleProfilePage({
   const activeSection: ProfileSectionId =
     section === "documents"
       ? "compliance"
-      : ["overview", "employment", "compliance"].includes(section ?? "")
+      : ["overview", "employment", "compliance", "security"].includes(section ?? "")
         ? (section as ProfileSectionId)
         : "overview";
   const attention = compliance.filter(
@@ -69,9 +70,7 @@ export default async function PeopleProfilePage({
   const rail = (
     <>
       <ConsoleSection title="Actions">
-        {activeSection === "employment" && permissions["staffs.update"] ? <SubmitButton form="people-employment-form" className="w-full" data-mobile-primary-action>Save staff</SubmitButton> : <Button asChild size="sm" className="w-full" data-mobile-primary-action>
-          <Link href={`/staffs/${staff.id}`}>Account security</Link>
-        </Button>}
+        {activeSection === "employment" && permissions["staffs.update"] ? <SubmitButton form="people-employment-form" className="w-full" data-mobile-primary-action>Save staff</SubmitButton> : null}
       <Button asChild size="sm" variant="outline" className="w-full"><Link href={`/attendance/review?branch=${staffSummary?.default_branch_id ?? "select"}&employee=${encodeURIComponent(staff.full_name)}`}>Open attendance</Link></Button>
       </ConsoleSection>
       <ConsoleSection title="Profile status">
@@ -125,6 +124,7 @@ export default async function PeopleProfilePage({
             ["overview", "Overview"],
             ["employment", "Employment & access"],
             ["compliance", "Documents"],
+            ...(permissions["staffs.update"] ? [["security", "Sign-in & password"]] : []),
           ].map(([sectionId, label]) => (
             <Link
               key={sectionId}
@@ -145,7 +145,7 @@ export default async function PeopleProfilePage({
                     label="Staff code"
                     value={staff.staff_code?.toUpperCase()}
                   />
-                  <Fact label="Email" value={staff.email?.toLowerCase()} />
+                  <Fact label="Email" value={staff.email?.endsWith("@accounts.seribako.invalid") ? undefined : staff.email?.toLowerCase()} />
                   <Fact label="Phone" value={staff.phone} />
                   <Fact label="Status" value={staff.status} capitalize />
                 </dl>
@@ -223,6 +223,7 @@ export default async function PeopleProfilePage({
               </div>
             </>
           ) : null}
+          {activeSection === "security" ? <StaffSecurityPanel id={id} /> : null}
           {activeSection === "employment" ? (
             permissions["staffs.update"] ? <StaffEmploymentEditor id={id} /> : <>
               <ProfileSection

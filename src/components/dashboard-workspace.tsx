@@ -130,7 +130,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   const isFinance = role === "finance";
   const isManager = role === "manager";
   const isPurchasing = role === "purchasing";
-  const isKitchen = role === "kitchen";
+  const isKitchen = (role === "kitchen" || role === "chef");
   const isOutlet = role === "outlet_staff" || role === "outlet_supervisor";
   const showFinance = isOwner || isFinance;
   const showOperations = isOwner || isFinance || isManager;

@@ -6,8 +6,10 @@ const read = (file) => fs.readFileSync(file, "utf8");
 
 test("staff onboarding scopes selectable identities to the active company", () => {
   const createPage = read("src/app/(app)/staffs/new/page.tsx");
-  const editPage = read("src/app/(app)/staffs/[id]/page.tsx");
-  for (const source of [createPage, editPage]) {
+  const editPage = read("src/components/staff-employment-editor.tsx");
+  assert.match(editPage, /staff.company_id !== profile.company_id/);
+  for (const token of ["companies.filter(company => company.id === profile.company_id)", "branches.filter(branch => branch.company_id === profile.company_id)", "role.company_id === profile.company_id"]) assert.ok(editPage.includes(token));
+  for (const source of [createPage]) {
     assert.match(source, /companies\.filter\(\(company\) => company\.id === companyId\)/);
     assert.match(source, /branches\.filter\(\(branch\) => branch\.company_id === companyId\)/);
     assert.match(source, /allRoles\.filter\(\(role\) => role\.company_id === companyId\)/);

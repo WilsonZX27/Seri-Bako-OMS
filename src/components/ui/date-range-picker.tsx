@@ -60,7 +60,7 @@ export function DateRangePicker({ start, end, today, maxDays = 31 }: { start: st
     <input type="hidden" name="history_start" value={committed.start} />
     <input type="hidden" name="history_date" value={committed.end} />
     <input type="hidden" name="period" value="7" />
-    <Button ref={trigger} type="button" variant="secondary" aria-haspopup="dialog" aria-expanded={open} onClick={() => { setDraft(committed); setMonth(monthOf(committed.start)); setAnchor(null); setOpen(true); }} className="max-lg:min-h-11"><CalendarDays className="size-4 shrink-0" aria-hidden="true" /><span className="truncate">{dateLabel(committed.start)}{committed.start !== committed.end ? ` – ${dateLabel(committed.end)}` : ""}</span></Button>
+    <Button data-date-range-control ref={trigger} type="button" variant="secondary" aria-haspopup="dialog" aria-expanded={open} onClick={() => { setDraft(committed); setMonth(monthOf(committed.start)); setAnchor(null); setOpen(true); }} className="max-lg:min-h-11"><CalendarDays className="size-4 shrink-0" aria-hidden="true" /><span className="truncate">{dateLabel(committed.start)}{committed.start !== committed.end ? ` – ${dateLabel(committed.end)}` : ""}</span></Button>
     <ModalShell open={open} onClose={() => setOpen(false)} titleId={id} triggerRef={trigger} className="max-w-[760px]">
       <header className="mb-3 flex items-center justify-between gap-3"><h2 id={id} className="text-sm font-semibold">Date range</h2><Button type="button" variant="ghost" size="icon" aria-label="Cancel date selection" onClick={() => setOpen(false)} className="min-h-11 min-w-11"><X aria-hidden="true" /></Button></header>
       <div className="grid gap-4 md:grid-cols-[140px_minmax(0,1fr)]">

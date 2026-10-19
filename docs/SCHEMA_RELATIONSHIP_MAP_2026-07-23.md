@@ -1,3 +1,7 @@
+> Local candidate — 2026-10-19: migrations reviewed through `366`; forward-only migration 历史已到 `366`. Chef and unique username login are local changes pending database verification and release.
+
+> Local candidate (2026-10-19): migrations reviewed through `365`; forward-only migration 历史已到 `365`. Migration 365 introduces Chef with Kitchen grants and existing scheduling exclusions. Not applied to Production. Migration 364 was applied to Production after approval.
+
 > Local candidate (2026-10-18): repository migrations reviewed through `364`; forward-only migration 历史已到 `364`; migration 364 adds explicit week-only schedule exclusions. Applied only to the isolated audit database, not Production.
 
 > Local candidate — 2026-10-17: migrations reviewed through `363`; forward-only migration 历史已到 `363`. Migrations 362/363 add payment channels and independent daily product tracking; applied only to the isolated visual-audit database. Migration 361 adds one checklist per outlet/date and has not been deployed. Production statements below remain historical release evidence.

@@ -9,9 +9,9 @@ import { getPermissionMap } from "@/server/auth/permissions";
 import { getProcurementWorkspaceInsights } from "@/server/queries/procurement";
 
 const modules = [
-  { href: "/purchase-requests", label: "Purchase Requests", description: "Create, review, and convert branch requests.", permission: "purchase_request.read", roles: ["super_admin", "finance", "manager", "purchasing", "kitchen"], icon: ClipboardList },
-  { href: "/purchase-orders", label: "Purchase Orders", description: "Prepare and follow supplier orders.", permission: "purchase_order.read", roles: ["super_admin", "finance", "manager", "purchasing", "kitchen"], icon: ShoppingCart },
-  { href: "/goods-receivings", label: "Receiving", description: "Receive and post goods against orders.", permission: "goods_receiving.read", roles: ["super_admin", "finance", "manager", "purchasing", "kitchen"], icon: PackageCheck },
+  { href: "/purchase-requests", label: "Purchase Requests", description: "Create, review, and convert branch requests.", permission: "purchase_request.read", roles: ["super_admin", "finance", "manager", "purchasing", "chef", "kitchen"], icon: ClipboardList },
+  { href: "/purchase-orders", label: "Purchase Orders", description: "Prepare and follow supplier orders.", permission: "purchase_order.read", roles: ["super_admin", "finance", "manager", "purchasing", "chef", "kitchen"], icon: ShoppingCart },
+  { href: "/goods-receivings", label: "Receiving", description: "Receive and post goods against orders.", permission: "goods_receiving.read", roles: ["super_admin", "finance", "manager", "purchasing", "chef", "kitchen"], icon: PackageCheck },
   { href: "/supplier-invoices", label: "Invoice Follow-up", description: "Review invoice and payment status.", permission: "supplier_invoice.view", roles: ["super_admin", "finance"], icon: ReceiptText },
   { href: "/suppliers", label: "Suppliers", description: "Maintain approved supplier records.", permission: "suppliers.view", roles: ["super_admin", "finance", "purchasing"], icon: Truck },
 ] as const;

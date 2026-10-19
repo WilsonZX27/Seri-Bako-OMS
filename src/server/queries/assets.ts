@@ -17,7 +17,7 @@ function exactAssetCount(value: unknown): number {
 }
 const attachmentColumns = "id,asset_id,maintenance_id,location_id,created_at,url,storage_path,verified_at,source_data";
 export type AssetHolding = { asset_id: string; location_id: string; quantity: number | null; condition?:string|null; status?:string|null; latest_check_result?:string|null };
-export type AssetOverview = { assetCount: number; knownQuantity: number; unknownHoldings: number; attentionAssets: number; openMaintenance: number; inTransitQuantity: number; locations: { id: string; name: string; assetCount: number; quantity: number | null }[]; checkDate: string; checklist: { id: string; name: string; kind: "branch" | "event" | "other"; open: boolean; reason: string | null; expected: number; checked: number }[]; maintenanceTrend: { date: string; count: number }[]; issueTrend: { date: string; count: number | null; checked: number }[]; maintenanceByStatus: { status: string; count: number }[] };
+export type AssetOverview = { assetCount: number; knownQuantity: number; unknownHoldings: number; attentionAssets: number; openMaintenance: number; inTransitQuantity: number; locations: { id: string; name: string; assetCount: number; quantity: number | null }[]; checkDate: string; checklist: { id: string; name: string; kind: "branch" | "event" | "other"; open: boolean; reason: string | null; expected: number; checked: number; submitted?: boolean }[]; maintenanceTrend: { date: string; count: number }[]; issueTrend: { date: string; count: number | null; checked: number }[]; maintenanceByStatus: { status: string; count: number }[] };
 export type AssetRecord = { id: string; asset_id: string | null; reported_by?: string; location_id?: string; from_location_id?: string; to_location_id?: string; source_id?: string; status?: string; priority?: string; description?: string; reason?: string; quantity?: number | null; author_name?: string; created_at?: string; check_date?: string; result?: string; source_data: Record<string, unknown> };
 export type AssetView = "overview" | "assets" | "checklist" | "maintenance" | "transfers";
 
@@ -55,6 +55,14 @@ export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query =
     const result = await db.rpc(view === "checklist" ? "get_asset_checklist_summary" : "get_asset_overview", { p_date: checkDate });
     if (result.error || !result.data) throw new Error(result.error?.message ?? "Asset summary unavailable.");
     overview = result.data as AssetOverview;
+    const submitted = new Set<string>();
+    for (let offset = 0; ; offset += 500) {
+      const checks = await db.from("asset_daily_checks").select("id,location_id").eq("company_id", company).eq("check_date", checkDate).not("source_data", "cs", '{"Count Confirmation":true}').order("id").range(offset, offset + 499);
+      if (checks.error || !checks.data) throw new Error("Checklist submission status unavailable.");
+      for (const check of checks.data) submitted.add(String(check.location_id));
+      if (checks.data.length < 500) break;
+    }
+    overview.checklist = overview.checklist.map(location => ({ ...location, submitted: submitted.has(location.id) }));
   }
   if (view === "assets") {
     const result=await db.rpc("get_asset_register",{p_page:page,p_query:query,p_location:locationId || null,p_sort:sort,p_status:status,p_category:category});
@@ -309,3 +317,18 @@ export const getAssetMasterOptions = cache(async () => {
   }
   return { fields: Object.fromEntries(Object.entries(choices).map(([key, values]) => [key, [...values].sort()])), people };
 });
+
+/** Read the immutable submitted checklist under the same tenant and RLS scope. */
+export async function getAssetChecklistRecords(locationId: string, date: string) {
+  const actor = await requireActiveTenantActor();
+  await requirePermission("assets.view");
+  const db = looseSupabase(await createClient());
+  const records: { id: string; asset_id: string; result: string; quantity: number | null; author_name: string; created_at: string }[] = [];
+  for (let offset = 0; ; offset += 500) {
+    const result = await db.from("asset_daily_checks").select("id,asset_id,result,quantity,author_name,created_at").eq("company_id", actor.companyId).eq("location_id", locationId).eq("check_date", date).not("source_data", "cs", '{"Count Confirmation":true}').order("created_at").order("id").range(offset, offset + 499);
+    if (result.error || !result.data) throw new Error("Checklist records unavailable.");
+    records.push(...result.data as typeof records);
+    if (result.data.length < 500) break;
+  }
+  return records;
+}

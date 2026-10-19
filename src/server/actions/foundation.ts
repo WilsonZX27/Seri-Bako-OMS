@@ -1,6 +1,6 @@
 "use server";
 
-import { randomInt } from "crypto";
+import { randomInt, randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -378,12 +378,16 @@ export async function restoreBranch(id: string) {
   safeRedirectWithMessage(`/branches/${id}`, "success", "Branch restored.");
 }
 
-function staffPayload(formData: FormData, companyId: string) {
+function staffPayload(formData: FormData, companyId: string, existingEmail?: string | null) {
+  const username = cleanText(formData.get("username"))?.toLowerCase() || null;
+  const email = formValue(formData, "email") || (username ? existingEmail || `${randomUUID()}@accounts.seribako.invalid` : null);
+  if (!email) throw new Error("Enter an email or username for this employee.");
   return staffSchema.parse({
     company_id: companyId,
     staff_code: formValue(formData, "staff_code"),
     full_name: formValue(formData, "full_name"),
-    email: formValue(formData, "email"),
+    email,
+    username,
     phone: formValue(formData, "phone"),
     employment_type: formValue(formData, "employment_type") ?? "full_time",
     employment_end_date: formValue(formData, "employment_end_date"),
@@ -414,18 +418,19 @@ async function assertStaffAccessIsEligible(
   if (branchError) throw new Error(branchError.message);
   if (!role) throw new Error("Selected role was not found in your company.");
   if ((branches ?? []).length !== requestedBranchIds.length) throw new Error("Select only active branches in your company.");
-  const typeMismatch = role.role_code === "kitchen"
+  const typeMismatch = (role.role_code === "kitchen" || role.role_code === "chef")
     ? (branches ?? []).some((branch) => branch.branch_type !== "central_kitchen")
     : role.role_code === "outlet_staff" || role.role_code === "outlet_supervisor"
       ? (branches ?? []).some((branch) => branch.branch_type !== "outlet")
       : false;
-  if (typeMismatch) throw new Error(role.role_code === "kitchen" ? "Kitchen staff require a Central Kitchen branch." : "Outlet staff require an Outlet branch.");
+  if (typeMismatch) throw new Error((role.role_code === "kitchen" || role.role_code === "chef") ? "Kitchen staff require a Central Kitchen branch." : "Outlet staff require an Outlet branch.");
 }
 
 async function replaceStaffAccess(staffId: string, formData: FormData, payload?: ReturnType<typeof staffPayload>) {
   const access = staffAccessPayload(formData);
   const supabase = await createClient();
-  const { error } = await supabase.rpc("replace_staff_access_atomic", {
+  const { error } = await supabase.rpc("replace_staff_access_with_username", {
+    p_username: payload ? payload.username ?? "" : undefined,
     p_staff_id: staffId,
     p_role_id: access.role_id,
     p_default_branch_id: access.default_branch_id,
@@ -574,6 +579,7 @@ async function inviteStaffByEmail(staffId: string, email: string) {
   const admin = createAdminClient();
   const actor = await requireActiveTenantActor();
   const normalized = email.trim().toLowerCase();
+  if (normalized.endsWith("@accounts.seribako.invalid")) throw new Error("Add a real email before sending an invitation, or use a temporary password.");
   const { data: staff, error: staffError } = await admin.from("staffs").select("auth_user_id").eq("id", staffId).eq("company_id", actor.companyId).single();
   if (staffError) throw new Error(staffError.message);
   const redirectTo = `${await getAppUrl()}/auth/callback?next=/set-password`;
@@ -790,7 +796,9 @@ export async function updateStaff(id: string, formData: FormData) {
   await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
   try {
     const actor = await requireActiveTenantActor();
-    const payload = staffPayload(formData, actor.companyId);
+    const existing = isMockMode() ? null : await createAdminClient().from("staffs").select("email,auth_user_id").eq("id",id).eq("company_id",actor.companyId).maybeSingle();
+    if (existing?.error) throw new Error(existing.error.message);
+    const payload = staffPayload(formData, actor.companyId, existing?.data?.email);
     const access = staffAccessPayload(formData);
     if (!isMockMode()) {
       const supabase = createAdminClient();
@@ -799,7 +807,29 @@ export async function updateStaff(id: string, formData: FormData) {
       }
       await assertCanManageStaffAccount(supabase, id);
       await assertCanAssignStaffRole(supabase, access.role_id, id);
-      await replaceStaffAccess(id, formData, payload);
+      let previousAuthEmail: string | null = null;
+      const authId = existing?.data?.auth_user_id;
+      if (authId) {
+        const { data: authData, error: authError } = await supabase.auth.admin.getUserById(authId);
+        if (authError || !authData.user?.email) throw new Error("Could not verify the current sign-in account.");
+        if (authData.user.email !== payload.email) {
+          previousAuthEmail = authData.user.email;
+          const { error } = await supabase.auth.admin.updateUserById(authId, { email: payload.email, email_confirm: true });
+          if (error) throw new Error("This email cannot be used for sign-in. Check whether another account already uses it.");
+        }
+      }
+      try {
+        await replaceStaffAccess(id, formData, payload);
+      } catch (error) {
+        if (authId && previousAuthEmail) {
+          const { error: rollbackError } = await supabase.auth.admin.updateUserById(authId, { email: previousAuthEmail, email_confirm: true });
+          if (rollbackError) {
+            logServerError(rollbackError, { source: "foundation.update-staff.restore-auth-email", actorId: actor.staffId, companyId: actor.companyId });
+            throw new Error("Profile save failed and the sign-in email could not be restored. Contact the Owner before retrying.");
+          }
+        }
+        throw error;
+      }
       await writeActivityLog({ entityType: "staff", entityId: id, activityType: "updated", message: `Staff ${payload.full_name} updated` });
     }
   } catch (error) {

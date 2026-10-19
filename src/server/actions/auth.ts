@@ -33,7 +33,18 @@ export async function signIn(formData: FormData) {
   if (!parsed.success) {
     redirect(`/login?error=${encodeURIComponent(parsed.error.issues[0]?.message ?? "Enter a valid email and password.")}`);
   }
-  const { email, password } = parsed.data;
+  const { email: identifier, password } = parsed.data;
+  let email = identifier;
+  if (!identifier.includes("@")) {
+    // Resolve only on the server. Unknown usernames receive the same Auth error.
+    email = "unknown-login@accounts.seribako.invalid";
+    const admin = createAdminClient();
+    const { data: staff } = await admin.from("staffs").select("auth_user_id").eq("username", identifier).is("deleted_at", null).maybeSingle();
+    if (staff?.auth_user_id) {
+      const { data } = await admin.auth.admin.getUserById(staff.auth_user_id);
+      if (data.user?.email) email = data.user.email;
+    }
+  }
   const supabase = await createClient();
 
   let { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -47,7 +58,7 @@ export async function signIn(formData: FormData) {
     if (isRetryableAuthNetworkError(error)) {
       redirect(`/login?error=${encodeURIComponent("Unable to contact the sign-in service. Check your connection and try again.")}`);
     }
-    redirect(`/login?error=${encodeURIComponent("Invalid email or password.")}`);
+    redirect(`/login?error=${encodeURIComponent("Invalid email, username or password.")}`);
   }
 
   const {

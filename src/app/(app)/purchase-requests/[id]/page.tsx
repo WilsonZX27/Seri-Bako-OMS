@@ -152,7 +152,7 @@ export default async function PurchaseRequestDetailPage({
   const supplierIds = suppliers ? new Set(suppliers.map((supplier) => supplier.id)) : null;
   const branch = branches?.find((row) => row.id === request.branch_id);
   const total = lines.reduce((sum, line) => sum + line.qty * line.estimated_unit_cost, 0);
-  const canViewCommercial = permissions["pr.view_all"] && !["kitchen", "kitchen_staff"].includes(roleCode);
+  const canViewCommercial = permissions["pr.view_all"] && !["chef", "kitchen", "kitchen_staff"].includes(roleCode);
   const canSubmit = isStatus(request.status, "draft", "rejected", "returned") && permissions["pr.submit"];
   const isOwner = roleCode === "super_admin";
   const canCancel = request.status === "draft" && permissions["pr.cancel"];

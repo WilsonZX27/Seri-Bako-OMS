@@ -21,7 +21,7 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
     hasPermission("pr.view_all"),
     getCurrentProfile(),
   ]);
-  const canViewCommercial = hasCommercialAccess && !["kitchen", "kitchen_staff"].includes(String(profile?.role_code ?? "").toLowerCase());
+  const canViewCommercial = hasCommercialAccess && !["chef", "kitchen", "kitchen_staff"].includes(String(profile?.role_code ?? "").toLowerCase());
   const selectedBranchId = params.branch_id && branches.some((branch) => branch.id === params.branch_id) ? params.branch_id : branches[0]?.id;
   const initialItem = params.item_id ? items.find((item) => item.id === params.item_id) : null;
   const initialMappings = initialItem && selectedBranchId ? supplierMappings.filter((mapping) => mapping.item_id === initialItem.id && mapping.branch_id === selectedBranchId) : [];

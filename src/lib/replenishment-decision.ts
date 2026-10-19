@@ -4,7 +4,7 @@ export type ReplenishmentDecisionInput = {
   currentStock: number;
   safetyStock: number;
   suggestedReorderQty: number;
-  stockStatus: "out_of_stock" | "low_stock";
+  stockStatus: "out_of_stock" | "low_stock" | "sufficient";
   supplierId?: string | null;
   supplierName?: string | null;
   baseUnit?: string | null;

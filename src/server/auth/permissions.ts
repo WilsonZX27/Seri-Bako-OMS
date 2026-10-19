@@ -10,6 +10,7 @@ export const roleDescriptions = {
   finance: "Finance reviewer who manages numbering, imports, and branches without Owner or People controls.",
   manager: "Company-wide operational approver; branch assignment supplies default context only.",
   purchasing: "Company-wide purchasing and master-data operator.",
+  chef: "Kitchen head for assigned branches; not included in shift rosters.",
   kitchen: "Central Kitchen operator for assigned branches.",
   outlet_supervisor: "Outlet operator who prepares rosters and reviews pure swaps for assigned outlets.",
   outlet_staff: "Outlet worker who confirms received quantities and records wastage for assigned outlets.",
@@ -240,7 +241,7 @@ function permissionCandidates(permission: string) {
 }
 
 function roleAllowsPermission(roleCode: string, permission: string) {
-  const grants = rolePermissionMatrix[roleCode as keyof typeof rolePermissionMatrix] as readonly string[] | undefined;
+  const grants = rolePermissionMatrix[(roleCode === "chef" ? "kitchen" : roleCode) as keyof typeof rolePermissionMatrix] as readonly string[] | undefined;
   if (!grants) return false;
   if (grants.includes("*")) return true;
   return permissionCandidates(permission).some((candidate) => grants.includes(candidate));

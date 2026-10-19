@@ -30,8 +30,8 @@ export default async function LoginPage({
   return (
     <AuthShell title="Welcome back" description="Sign in with your staff account to continue.">
       <form action={signIn} className="space-y-4" aria-describedby="login-status">
-        <Field label="Email" required>
-          <Input name="email" type="email" inputMode="email" autoCapitalize="none" spellCheck={false} autoComplete="username" required autoFocus />
+        <Field label="Email / Username" required>
+          <Input name="email" type="text" autoCapitalize="none" spellCheck={false} autoComplete="username" required autoFocus />
         </Field>
         <Field label="Password" required>
           <PasswordInput name="password" autoComplete="current-password" required />

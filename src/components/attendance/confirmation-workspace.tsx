@@ -48,7 +48,7 @@ export function ConfirmationWorkspace() {
     setBusy(false);
   }
   return <div className="space-y-4">
-    <div className="flex flex-wrap justify-between gap-3"><p className="text-sm text-muted-foreground">Review attendance, confirm hours and track approval progress.</p><Button asChild variant="outline" size="sm"><Link href="/attendance/payslips">Payslips</Link></Button></div>
+    <div className="flex justify-end"><Button asChild variant="outline" size="sm"><Link href="/attendance/payslips">Payslips</Link></Button></div>
     {error ? <p role="alert" className="text-sm text-warning">{error}</p> : null}
     {!data && !error ? <p role="status">Loading attendance…</p> : null}
     {data?.people ? <form className="sb-work-surface grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4" onSubmit={event => { event.preventDefault(); void prepare(); }}>

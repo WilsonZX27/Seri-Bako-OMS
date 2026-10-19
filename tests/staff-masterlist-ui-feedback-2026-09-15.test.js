@@ -7,7 +7,7 @@ const read = (file) => fs.readFileSync(file, "utf8");
 test("staff activity uses the authentication provider's latest successful sign-in", () => {
   const auth = read("src/server/auth/admin-users.ts");
   const query = read("src/server/queries/foundation.ts");
-  const page = read("src/app/(app)/staffs/[id]/page.tsx");
+  const page = read("src/components/staff-security-panel.tsx");
 
   assert.match(auth, /lastSignInAt: user\.last_sign_in_at \?\? null/);
   assert.match(auth, /admin\.auth\.admin\.getUserById\(id\)/);
@@ -19,7 +19,7 @@ test("staff activity uses the authentication provider's latest successful sign-i
 });
 
 test("staff permission and account panels use the shared Apple-style panel radius", () => {
-  const page = read("src/app/(app)/staffs/[id]/page.tsx");
+  const page = read("src/components/staff-security-panel.tsx");
   const permissions = read("src/components/staff-permission-overrides.tsx");
 
   assert.doesNotMatch(page, /rounded-\[2px\]/);

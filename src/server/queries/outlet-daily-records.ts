@@ -2,6 +2,7 @@ import { insightRange, insightPeriod } from "@/lib/outlet-insight-period";
 import { readCompletePages } from "@/server/queries/read-complete-pages";
 import { isMockMode, mockBranches, mockProducts } from "@/lib/mock-mode";
 import { todayInKualaLumpur } from "@/lib/business-date";
+import { productAvailableOn } from "@/lib/production-planning/availability";
 import { createClient } from "@/lib/supabase/server";
 import { actorDisplayName, resolveActorDisplayMap } from "@/server/actors/display";
 import { hasPermission } from "@/server/auth/permissions";
@@ -256,7 +257,7 @@ export const getOutletDailyFormOptions = cache(async function getOutletDailyForm
     const branches = mockBranches.filter((row) => row.status === "active");
     return {
       branches,
-      products: sortProductsForDisplay(mockProducts.filter((row) => row.status === "active")),
+      products: sortProductsForDisplay(mockProducts.filter((row) => row.status === "active" && productAvailableOn(row, recordDate ?? todayInKualaLumpur()))),
       defaultBranchId: branches.length === 1 ? branches[0].id : undefined,
       defaultsByBranch: {},
     };
@@ -268,12 +269,12 @@ export const getOutletDailyFormOptions = cache(async function getOutletDailyForm
   ]);
   const [{ data: branches, error: branchError }, { data: products, error: productError }] = await Promise.all([
     db.from("branches").select("id,branch_code,branch_name,branch_type,status").eq("branch_type", "outlet").eq("status", "active").is("deleted_at", null).order("branch_name"),
-    db.from("products").select("id,product_code,product_name,category,selling_unit,status,display_order").eq("status", "active"),
+    db.from("products").select("id,product_code,product_name,category,selling_unit,status,display_order,available_from,available_until").eq("status", "active"),
   ]);
   if (branchError) throw new Error(branchError.message);
   if (productError) throw new Error(productError.message);
   const activeBranches = requireReadRows(branches, "Outlet daily branch options");
-  const activeProducts = requireReadRows(products, "Outlet daily product options");
+  const activeProducts = requireReadRows(products, "Outlet daily product options").filter((product) => productAvailableOn(product, recordDate ?? todayInKualaLumpur()));
   const profileDefaultBranchId = profile && "default_branch_id" in profile ? profile.default_branch_id : null;
   if (canViewAll) {
     const branchesForForm = activeBranches;
@@ -477,7 +478,7 @@ export async function getOutletDailyRecord(id: string) {
     db.from("outlet_daily_record_lines").select("*").eq("record_id", id),
     db.from("outlet_daily_sales_breakdowns").select("channel,amount").eq("record_id", id),
     db.from("branches").select("id,branch_name"),
-    db.from("products").select("id,product_code,product_name,category,selling_unit,status,display_order"),
+    db.from("products").select("id,product_code,product_name,category,selling_unit,status,display_order,available_from,available_until"),
     db.from("staffs").select("id,full_name"),
   ]);
   if (error) throw new Error(error.message);

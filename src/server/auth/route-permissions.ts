@@ -2,6 +2,7 @@ import { informationArchitecture } from "@/lib/information-architecture";
 
 const exactRoutePermissions: Record<string, string[]> = {
   "/compliance": ["outlet_compliance.read"],
+  "/outlet-calendar": ["outlet_compliance.read"],
   "/attendance/imports": ["attendance.import"],
   "/attendance/settings": ["shift_template.manage"],
   "/attendance/templates": ["shift_template.manage"],
@@ -43,9 +44,10 @@ const exactRoutePermissions: Record<string, string[]> = {
 };
 
 const exactRouteRoles: Record<string, readonly string[]> = {
+  "/compliance": ["super_admin", "people_operations", "manager", "purchasing", "kitchen"],
+  "/outlet-calendar": ["super_admin", "people_operations", "manager", "purchasing", "kitchen"],
   "/documents": ["super_admin", "finance", "manager", "purchasing", "kitchen"],
   "/procurement": ["super_admin", "finance", "manager", "purchasing", "kitchen"],
-  "/production/planning": ["super_admin", "finance", "manager", "purchasing", "kitchen"],
   "/production/variance": ["super_admin", "finance", "manager", "purchasing", "kitchen"],
 };
 

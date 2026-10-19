@@ -130,7 +130,7 @@ export function FilterBarMore({
         <div className="sb-filter-more-fields">{children}</div>
         <p className="sb-filter-more-help">Changes take effect after you select Apply.</p>
         <div className="sb-filter-more-actions">
-          <Button asChild type="button" variant="ghost"><Link href={resetHref}>Reset</Link></Button>
+          <Button asChild type="button" variant="ghost" className="h-8 min-h-8 px-2 text-xs"><Link href={resetHref}>Reset</Link></Button>
           <Button type="submit">Apply</Button>
         </div>
       </div>

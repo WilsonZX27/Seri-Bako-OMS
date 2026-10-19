@@ -72,9 +72,6 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
         <option value="all">All outlets</option>
         {report.outlets.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
       </SelectNative>
-      <SelectNative aria-label="Packaging" className="w-full sm:w-56 lg:hidden" value={product} onChange={(event) => { setProduct(event.target.value); setSelectedDate(null); }}>
-        {report.products.map((item) => <option key={item.id} value={item.code}>{item.name}</option>)}
-      </SelectNative>
       <SelectNative aria-label="Report period" className="w-full sm:w-32" value={periodPending ? requestedDays : days} disabled={periodPending} aria-busy={periodPending || undefined} onChange={(event) => changePeriod(event.target.value === "30" ? 30 : 7)}><option value="7">7 days</option><option value="30">30 days</option></SelectNative>
     </FilterBar>
     <section className="grid grid-cols-2 divide-x border-y py-3" aria-label="Selected packaging summary"><div className="px-3"><span className="text-xs text-muted-foreground">Last counted balance</span><strong className="block text-2xl tabular-nums">{balances.length?formatNumber(balanceTotal):"—"} <span className="text-sm font-normal">{selectedProduct?.unit}</span></strong><p className="text-xs text-muted-foreground">{balances.length}/{count} outlets · dates may differ</p></div><div className="px-3"><span className="text-xs text-muted-foreground">{days}-day usage</span><strong className="block text-2xl tabular-nums">{periodPending?"Loading…":rows.length?rows.every(row=>row.usage!==null)?formatNumber(rows.reduce((n,r)=>n+(r.usage ?? 0),0)):"Unknown":"—"} <span className="text-sm font-normal">{selectedProduct?.unit}</span></strong><p className="text-xs text-muted-foreground">Completed records only</p></div></section>

@@ -58,3 +58,12 @@ Product can afford things brand surfaces can't.
 - Standard navigation patterns: top bar + side nav, breadcrumbs, tabs, command palettes.
 - Density. Tables with many rows, panels with many labels, dense information when users need it.
 - Consistency over surprise. The same visual vocabulary screen to screen is a virtue; delight is saved for moments, not pages.
+
+## OMS application examples
+
+These examples apply the general standard to this repository; they do not change the standard.
+
+- Daily entry keeps product identity, three quantities and optional details in one desktop row. Phone details expand only when requested, while quantity controls retain comfortable touch targets.
+- Unknown quantities use warning text; recorded zero is ordinary data. Packaging shows the last physical count and its date, rather than claiming live stock.
+- Planning presents one actionable next step. Missing chef inputs stay blank; order templates do not become minimum display quantities.
+- Asset overviews use linked location comparisons and trends. Records remain the source of truth, with company and location access enforced on the server. Temporary closures are dated exceptions to daily operation; Event needs a registered activity.

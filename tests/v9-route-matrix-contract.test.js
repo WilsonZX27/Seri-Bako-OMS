@@ -24,7 +24,7 @@ test("v9 UAT classifies every application page", () => {
 
 test("v9 UAT locks the approved role and viewport matrix", () => {
   assert.deepEqual(roles, ["superAdmin", "peopleOperations", "finance", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]);
-  assert.deepEqual(viewports.map(({ width, height }) => `${width}x${height}`), ["390x844", "820x1180", "1180x820", "1440x900"]);
+  assert.deepEqual(viewports.map(({ width, height }) => `${width}x${height}`), ["390x844", "430x932", "820x1180", "1024x768", "1440x900", "2560x1440"]);
   assert.equal(publicRoutes.size, 6);
 });
 
@@ -45,11 +45,29 @@ test("Attendance routes follow the eighth-role permission boundary", () => {
   assert.match(permissions, /"\/attendance\/settings": \["shift_template\.manage"\]/);
 });
 
-test("Outlet Supervisor retains the approved outlet compliance workspace", () => {
-  const complianceRoles = ["superAdmin", "peopleOperations", "manager", "purchasing", "outletSupervisor"];
+test("Outlet Compliance follows the seeded read scope while outlet staff stay on operational routes", () => {
+  const complianceRoles = ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen"];
   assert.deepEqual(permittedRolesFor("/compliance"), complianceRoles);
   assert.deepEqual(permittedRolesFor("/outlet-compliance"), complianceRoles);
   assert.deepEqual(permittedRolesFor("/outlet-calendar"), complianceRoles);
+  for (const route of ["/compliance", "/outlet-calendar", "/outlet-compliance", "/outlet-compliance/00000000-0000-4000-8000-000000000000"]) {
+    assert.ok(!permittedRolesFor(route).includes("outletSupervisor"), `${route} must follow the revocation in migration 314`);
+    assert.ok(!permittedRolesFor(route).includes("outlet"), `${route} must not expose the register to outlet staff`);
+  }
+  const complianceRevocation = fs.readFileSync("supabase/migrations/314_restrict_outlet_compliance.sql", "utf8");
+  assert.match(complianceRevocation, /role_code in \('outlet_staff', 'outlet_supervisor'\)/);
+  assert.match(complianceRevocation, /outlet_compliance\.read/);
+  const permissionSource = fs.readFileSync("src/server/auth/permissions.ts", "utf8");
+  const roleMatrix = permissionSource.split("export const rolePermissionMatrix = {")[1];
+  const kitchenGrants = roleMatrix.split("  kitchen:")[1].split("\n  ],")[0];
+  assert.match(kitchenGrants, /outlet_compliance\.read/);
+  for (const grant of ["outlet_compliance.upload", "outlet_compliance.manage", "outlet_compliance.document.read"]) {
+    assert.doesNotMatch(kitchenGrants, new RegExp(grant.replaceAll(".", "\\.")), `Kitchen stays status-only: ${grant}`);
+  }
+  for (const role of ["outlet_staff", "outlet_supervisor"]) {
+    const roleGrants = roleMatrix.split(`  ${role}:`)[1].split("\n  ")[0];
+    assert.doesNotMatch(roleGrants, /outlet_compliance\.(?:read|upload|manage|review|document\.read)/);
+  }
   assert.deepEqual(permittedRolesFor("/outlet-daily-records"), ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]);
   assert.deepEqual(permittedRolesFor("/outlet-daily-records/new"), ["superAdmin", "kitchen", "outletSupervisor", "outlet"]);
 });
@@ -110,11 +128,12 @@ test("Manager keeps operational reads while PR authoring and Finance costing sta
 test("Outlet roles remain on daily operations without generic documents or production analytics", () => {
   assert.deepEqual(permittedRolesFor("/outlet-daily-records"), ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]);
   assert.deepEqual(permittedRolesFor("/documents"), ["superAdmin", "finance", "manager", "purchasing", "kitchen"]);
-  assert.deepEqual(permittedRolesFor("/production/planning"), ["superAdmin", "finance", "manager", "purchasing", "kitchen"]);
+  assert.deepEqual(permittedRolesFor("/production/planning"), ["superAdmin", "manager", "kitchen"]);
   assert.deepEqual(permittedRolesFor("/production/variance"), ["superAdmin", "finance", "manager", "purchasing", "kitchen"]);
 
   const permissions = fs.readFileSync("src/server/auth/route-permissions.ts", "utf8");
-  assert.match(permissions, /"\/production\/planning": \["super_admin", "finance", "manager", "purchasing", "kitchen"\]/);
+  const roleOverrides = permissions.split("const exactRouteRoles")[1].split("const routePermissions")[0];
+  assert.doesNotMatch(roleOverrides, /"\/production\/planning": \[/, "Production Planning must inherit the narrower information-architecture role list.");
   assert.match(permissions, /"\/production\/variance": \["super_admin", "finance", "manager", "purchasing", "kitchen"\]/);
 });
 
@@ -123,8 +142,8 @@ test("People Operations is audited only across its approved OMS modules", () => 
   assert.deepEqual(permittedRolesFor("/staffs"), ["superAdmin", "peopleOperations", "manager"]);
   assert.deepEqual(permittedRolesFor("/staffs/new"), ["superAdmin", "peopleOperations", "manager"]);
   assert.deepEqual(permittedRolesFor("/staffs/00000000-0000-4000-8000-000000000000"), ["superAdmin", "peopleOperations", "manager"]);
-  assert.deepEqual(permittedRolesFor("/outlet-compliance"), ["superAdmin", "peopleOperations", "manager", "purchasing", "outletSupervisor"]);
-  assert.deepEqual(permittedRolesFor("/outlet-calendar"), ["superAdmin", "peopleOperations", "manager", "purchasing", "outletSupervisor"]);
+  assert.deepEqual(permittedRolesFor("/outlet-compliance"), ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen"]);
+  assert.deepEqual(permittedRolesFor("/outlet-calendar"), ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen"]);
   assert.deepEqual(permittedRolesFor("/document-sequences"), ["superAdmin", "finance"]);
   assert.deepEqual(permittedRolesFor("/outlet-daily-records"), ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]);
   assert.deepEqual(permittedRolesFor("/purchase-requests"), ["superAdmin", "finance", "manager", "purchasing", "kitchen"]);

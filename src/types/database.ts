@@ -1055,6 +1055,8 @@ export type Database = {
           display_order: number;
           selling_unit: string;
           status: ItemStatus;
+          available_from: string | null;
+          available_until: string | null;
           product_image_url: string | null;
           created_at: string;
           updated_at: string;
@@ -1069,6 +1071,8 @@ export type Database = {
           display_order?: number;
           selling_unit: string;
           status?: ItemStatus;
+          available_from?: string | null;
+          available_until?: string | null;
           product_image_url?: string | null;
           created_at?: string;
           updated_at?: string;

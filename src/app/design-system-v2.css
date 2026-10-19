@@ -2604,3 +2604,59 @@ html[data-design-layer="v2"] .unified-list-date-control {
 html[data-design-layer="v2"] form.sb-asset-query .unified-list-desktop-actions button > svg {
   width: 1rem; height: 1rem; flex: none;
 }
+
+/* Compact phone refinements for the reviewed workspaces. */
+@media (min-width: 1024px) {
+  html[data-design-layer="v2"] .sb-staff-table :is(th, td):nth-child(2) { width: 27%; }
+  html[data-design-layer="v2"] .sb-staff-table :is(th, td):nth-child(3) { width: 15%; }
+  html[data-design-layer="v2"] .sb-staff-table :is(th, td):nth-child(4) { width: 34%; }
+  html[data-design-layer="v2"] .sb-staff-table :is(th, td):nth-child(5) { width: 24%; }
+  html[data-design-layer="v2"] .sb-staff-table th { overflow: visible; }
+}
+html[data-design-layer="v2"] .sb-asset-overview-metrics > div { min-width: 0; }
+html[data-design-layer="v2"] .sb-asset-overview-metrics dt { overflow-wrap: anywhere; }
+html[data-design-layer="v2"] .sb-workspace-updates {
+  box-shadow: 0 18px 48px rgb(8 34 25 / 22%), 0 4px 12px rgb(8 34 25 / 12%);
+  border: 1px solid var(--sb-border);
+}
+html[data-design-layer="v2"] form.sb-asset-query input[type="search"],
+html[data-design-layer="v2"] form.unified-list-header input[type="search"] {
+  box-sizing: border-box;
+  min-width: 0 !important;
+  max-width: 100%;
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+}
+@media (max-width: 639px) {
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-row--filter-only {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    justify-content: stretch !important;
+    align-items: center;
+  }
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-row--filter-only .unified-list-filter-trigger {
+    grid-column: 1;
+    width: 100%;
+    justify-content: flex-start;
+    padding-inline: .75rem;
+    border: 1px solid var(--sb-border-soft);
+    background: var(--sb-surface-muted);
+  }
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-row--filter-only .unified-list-result {
+    grid-column: 2;
+    min-width: 4.5rem;
+    padding-inline: .5rem;
+    text-align: right;
+  }
+  html[data-design-layer="v2"] [data-outlet-daily-record-list] [role="listitem"] {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    row-gap: .25rem;
+  }
+  html[data-design-layer="v2"] [data-outlet-daily-record-list] [role="listitem"] > :last-child {
+    grid-column: 1 / -1;
+    width: 100%;
+    padding-top: .375rem;
+    border-top: 1px solid var(--sb-border-soft);
+  }
+}

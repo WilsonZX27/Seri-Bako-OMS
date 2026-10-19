@@ -18,9 +18,11 @@ const roleCodes = {
 
 const viewports = [
   { label: "mobile-390", width: 390, height: 844 },
+  { label: "mobile-430", width: 430, height: 932 },
   { label: "tablet-820", width: 820, height: 1180 },
-  { label: "landscape-1180", width: 1180, height: 820 },
+  { label: "tablet-1024", width: 1024, height: 768 },
   { label: "desktop-1440", width: 1440, height: 900 },
+  { label: "wide-2560", width: 2560, height: 1440 },
 ];
 
 const ALL = roles;
@@ -90,10 +92,10 @@ const accessAuthorities = [
   ["/asset-management", ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]],
   ["/attendance/imports", ATTENDANCE_IMPORT],
   ["/attendance", ATTENDANCE],
-  ["/outlet-compliance", ["superAdmin", "peopleOperations", "manager", "purchasing", "outletSupervisor"]],
-  ["/outlet-calendar", ["superAdmin", "peopleOperations", "manager", "purchasing", "outletSupervisor"]],
+  ["/outlet-compliance", ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen"]],
+  ["/outlet-calendar", ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen"]],
   ["/people", ["superAdmin", "peopleOperations", "manager"]],
-  ["/compliance", ["superAdmin", "peopleOperations", "manager", "purchasing", "outletSupervisor"]],
+  ["/compliance", ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen"]],
   ["/reports/costing-readiness", ["superAdmin", "finance"]],
   ["/reports/product-margin", ["superAdmin", "finance"]],
   ["/reports/recipe-costing", ["superAdmin", "finance"]],
@@ -120,6 +122,7 @@ const accessAuthorities = [
   ["/stock-card", INVENTORY],
   ["/low-stock", INVENTORY],
   ["/production", PRODUCTION],
+  ["/production/planning", ["superAdmin", "manager", "kitchen"]],
   ["/products", PRODUCTION],
   ["/supplier-items", MASTER_DATA],
   ["/suppliers", MASTER_DATA],

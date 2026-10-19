@@ -49,13 +49,13 @@ export function OperationalListRow({ href, label, primary, status, statusMeta, s
       if (Date.now() - lastTapAt.current >= 350) lastTapAt.current = 0;
     }, 350);
   };
-  const className = "grid min-h-16 grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 px-3 py-2.5 hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)]";
+  const className = "grid min-h-16 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 px-3 py-2.5 hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)]";
   const renderContent = (withTrailing: boolean) => <>
       <div className="min-w-0 self-center">
         <div className="text-[13px] font-medium leading-5">{primary}</div>
         {secondary ? <div className="mt-0.5 whitespace-normal break-words text-xs leading-4 text-[var(--sb-text-muted)]">{secondary}</div> : null}
-        {detail ? <div className="mt-0.5 text-[11px] leading-4 text-[var(--sb-text-muted)]">{detail}</div> : null}
       </div>
+      {detail ? <div className="col-span-full min-w-0 text-[11px] leading-4 text-[var(--sb-text-muted)]">{detail}</div> : null}
       <div className="flex items-start justify-self-end gap-2 whitespace-nowrap">
         <div className="flex min-w-0 flex-col items-end gap-1">
           {status}

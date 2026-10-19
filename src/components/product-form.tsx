@@ -40,6 +40,13 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
               {uomOptionsWithCurrent(product?.selling_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
             </SelectNative>
           </Field>
+          <Field label="Available from">
+            <Input name="available_from" type="date" defaultValue={product && "available_from" in product ? String(product.available_from ?? "") : ""} />
+          </Field>
+          <Field label="Available until (inclusive)">
+            <Input name="available_until" type="date" min={product && "available_from" in product && product.available_from ? String(product.available_from) : undefined} defaultValue={product && "available_until" in product ? String(product.available_until ?? "") : ""} />
+          </Field>
+          <p className="col-span-2 -mt-1 text-xs text-muted-foreground">Leave both dates empty for year-round products. After the inclusive end date, the product is hidden from new operational selection.</p>
           <input type="hidden" name="status" value={product?.status ?? "active"} />
           <Field label="Product Image" className="col-span-2">
             <Input name="product_image" type="file" accept="image/png,image/jpeg,image/webp" />
@@ -66,8 +73,8 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
             </Field>
             <input type="hidden" name="packaging_id" value={primaryPackaging?.id ?? ""} />
           </div>
-          {product ? <div className="grid gap-4 border-y py-4 md:col-span-2 md:border-0 md:py-0 md:grid-cols-2">
-            <div className="md:col-span-2 md:rounded-[var(--sb-control-radius)] md:border md:bg-secondary/30 md:p-4">
+          {product ? <div className="col-span-2 min-w-0">
+            <div className="max-w-lg rounded-[var(--sb-control-radius)] border bg-secondary/30 p-3">
               <p className="text-sm font-semibold">Product Image</p>
               {product.product_image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, ListTodo, Megaphone, ShieldAlert, TriangleAlert } from "lucide-react";
+import { Bell, ClipboardCheck, ListTodo, Megaphone, Package, ShieldAlert, ShoppingCart, TriangleAlert, Wrench } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,26 @@ import { formatDateTime } from "@/lib/utils";
 
 type TopBarActivity = Awaited<ReturnType<typeof import("@/server/queries/topbar").getTopBarActivity>>;
 const seenKey = "seri-bako-workspace-updates-seen-v1";
+
+function pendingGroup(href: string) {
+  if (href.includes("maintenance")) return "Maintenance";
+  if (href.includes("purchase-requests")) return "Purchase requests";
+  if (href.includes("purchase-orders") || href.includes("supplier-invoices")) return "Purchase orders";
+  if (href.includes("compliance")) return "Outlet compliance";
+  if (href.includes("production")) return "Production";
+  if (href.includes("stock-") || href.includes("goods-receivings")) return "Inventory";
+  return "Other actions";
+}
+
+const pendingGroupIcons = {
+  Maintenance: Wrench,
+  "Purchase requests": ClipboardCheck,
+  "Purchase orders": ShoppingCart,
+  "Outlet compliance": ClipboardCheck,
+  Production: Package,
+  Inventory: Package,
+  "Other actions": ListTodo,
+} as const;
 
 export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
   const pathname = usePathname();
@@ -31,6 +51,11 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
   const count = pendingCount + unreadCount;
   const badgeLabel = count > 99 ? "99+" : String(count);
   const formatTime = (value: string) => formatDateTime(value);
+  const groupedPendingActions = Object.entries(pendingApprovals.reduce<Record<string, typeof pendingApprovals>>((groups, item) => {
+    const group = pendingGroup(item.href);
+    (groups[group] ??= []).push(item);
+    return groups;
+  }, {}));
 
   useEffect(() => {
     setSeen(window.sessionStorage.getItem(seenKey) === "true");
@@ -81,7 +106,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
         ) : null}
       </Button>
       {open ? (
-        <div ref={menuRef} data-topbar-activity-menu role="dialog" aria-label="Workspace Updates" className="sb-popover-surface fixed right-4 top-12 z-40 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-[var(--sb-panel-radius)]">
+        <div ref={menuRef} data-topbar-activity-menu role="dialog" aria-label="Workspace Updates" className="sb-popover-surface sb-workspace-updates fixed right-4 top-12 z-40 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-[var(--sb-panel-radius)]">
           <div className="border-b p-3">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -93,18 +118,23 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
               ) : null}
             </div>
           </div>
-          <div className="max-h-[calc(100dvh-3.5rem)] divide-y overflow-y-auto">
+          <div className="max-h-[calc(100dvh-5rem)] divide-y overflow-y-auto">
             {showPendingActions ? <section className="space-y-1 p-3">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-semibold uppercase text-muted-foreground">My Pending Actions</p>
                 {pendingCount ? <span className="rounded-full bg-[var(--sb-warning-bg)] px-2 py-0.5 text-xs font-medium text-[var(--sb-warning)]">{pendingCount}</span> : null}
               </div>
-              {pendingApprovals.map((item) => (
-                <Link key={item.id} href={item.href} onClick={() => setOpen(false)} className="flex gap-2 rounded-md p-2 text-xs hover:bg-secondary">
-                  <ListTodo className="mt-0.5 h-4 w-4 text-primary" />
-                  <span>{item.document_no} - {item.title}</span>
-                </Link>
-              ))}
+              {groupedPendingActions.map(([group, items]) => {
+                const GroupIcon = pendingGroupIcons[group as keyof typeof pendingGroupIcons] ?? ListTodo;
+                return <div key={group} className="pt-1 first:pt-0">
+                  {groupedPendingActions.length > 1 ? <p className="px-2 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{group}</p> : null}
+                  {items.map((item) => <Link key={item.id} href={item.href} onClick={() => setOpen(false)} className="flex min-h-10 items-start gap-2 rounded-md px-2 py-2 text-xs leading-4 hover:bg-secondary">
+                    <span aria-hidden="true" className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--sb-warning)]" />
+                    <GroupIcon aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <span className="min-w-0 break-words">{item.document_no} · {item.title}</span>
+                  </Link>)}
+                </div>;
+              })}
               {!pendingActionsAvailable ? <p className="flex gap-2 rounded-md bg-[var(--sb-warning-bg)] p-2 text-sm text-[var(--sb-warning-text)]"><TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" /><span>Pending actions are temporarily unavailable. Open the relevant workspace before assuming the queue is clear.</span></p> : null}
               {pendingActionsAvailable && !pendingApprovals.length ? <p className="rounded-md p-2 text-sm text-muted-foreground">No pending actions.</p> : null}
             </section> : null}
@@ -114,9 +144,9 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
                 {notificationCount ? <span className="rounded-full bg-[var(--sb-warning-bg)] px-2 py-0.5 text-xs font-medium text-[var(--sb-warning)]">{notificationCount}</span> : null}
               </div>
               {notifications.map((notification) => (
-                <Link key={notification.id} href={notification.action_url ?? "/activity"} onClick={() => setOpen(false)} className="flex gap-2 rounded-[var(--sb-control-radius)] p-2 text-xs hover:bg-secondary">
-                  <ShieldAlert className="mt-0.5 h-4 w-4 text-primary" />
-                  <span><span className="block">{notification.title}</span>{notification.message ? <span className="block text-xs text-muted-foreground">{notification.message}</span> : null}</span>
+                <Link key={notification.id} href={notification.action_url ?? "/activity"} onClick={() => setOpen(false)} className="flex min-h-10 gap-2 rounded-[var(--sb-control-radius)] px-2 py-2 text-xs leading-4 hover:bg-secondary">
+                  <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <span className="min-w-0"><span className="block">{notification.title}</span>{notification.message ? <span className="mt-0.5 block text-xs leading-4 text-muted-foreground">{notification.message}</span> : null}</span>
                 </Link>
               ))}
               {announcements.map((notification) => (

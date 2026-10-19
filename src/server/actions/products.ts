@@ -38,6 +38,8 @@ function payload(formData: FormData) {
     display_order: formData.get("display_order") || 9999,
     selling_unit: normalizeUom(String(formData.get("selling_unit") ?? "")),
     status: formData.get("status") ?? "active",
+    available_from: String(formData.get("available_from") ?? "").trim() || null,
+    available_until: String(formData.get("available_until") ?? "").trim() || null,
   });
 }
 

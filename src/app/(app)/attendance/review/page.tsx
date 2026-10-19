@@ -684,7 +684,7 @@ function RowActions({
       ) : (
         <StatusBadge status={String(row.review_status)} label={String(row.review_status) === "reviewed" ? "Calculated" : undefined} />
       )}
-      {permissions["attendance.report.submit"] && !reportable && !weekLocked ? <Link title="Publish this staff day in the schedule before reporting leave" className="inline-flex min-h-[var(--sb-control-height)] items-center gap-2 px-2 text-xs font-medium text-warning" href={`/attendance/schedule?${href.split("?")[1] ?? ""}`}>Review schedule</Link> : null}
+      {permissions["attendance.report.submit"] && !reportable && !weekLocked ? <Link title="Publish this staff day in the schedule before reporting leave" className="inline-flex min-h-[var(--sb-control-height)] items-center gap-2 px-2 text-xs font-medium text-warning" href={`/attendance/schedule?${href.split("?")[1] ?? ""}`}>Check and publish this staff day before reporting leave</Link> : null}
       <OtClaimAction
         resultId={String(row.id)}
         candidateSeconds={candidate}

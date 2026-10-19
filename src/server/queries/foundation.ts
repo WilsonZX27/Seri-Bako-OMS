@@ -20,6 +20,8 @@ type Filters = {
   branch_id?: string;
   search?: string;
   status?: string;
+  sort?: string;
+  dir?: string;
 };
 
 type StaffStatus = NonNullable<Database["public"]["Tables"]["staffs"]["Row"]["status"]>;
@@ -128,7 +130,8 @@ export async function getStaffs(filters: Filters = {}) {
           branch_access_level: defaultBranch?.access_level ?? null,
         };
       })
-      .filter((staff) => matchesFilter([staff.staff_code, staff.full_name, staff.email, staff.role_name, staff.default_branch_name], filters, staff.status));
+      .filter((staff) => matchesFilter([staff.staff_code, staff.full_name, staff.email, staff.role_name, staff.default_branch_name], filters, staff.status))
+      .sort((a, b) => String(filters.sort === "staff_code" ? a.staff_code ?? "" : a.full_name).localeCompare(String(filters.sort === "staff_code" ? b.staff_code ?? "" : b.full_name), undefined, { sensitivity: "base" }) * (filters.dir === "desc" ? -1 : 1));
   }
 
   const [supabase, profile] = await Promise.all([createClient(), getCurrentProfile()]);
@@ -138,7 +141,7 @@ export async function getStaffs(filters: Filters = {}) {
     .select("*")
     .eq("company_id", profile.company_id)
     .is("deleted_at", null)
-    .order("full_name", { ascending: true });
+    .order(filters.sort === "staff_code" ? "staff_code" : "full_name", { ascending: filters.dir === "desc" ? false : true, nullsFirst: false });
   const search = filters.search?.trim().replace(/[,%()]/g, " ");
   if (search) staffQuery = staffQuery.or(`staff_code.ilike.%${search}%,full_name.ilike.%${search}%,email.ilike.%${search}%`);
   if (filters.status && filters.status !== "all") staffQuery = staffQuery.eq("status", filters.status as StaffStatus);

@@ -1,7 +1,7 @@
 import { formatRegisteredAssetQuantity } from "@/lib/asset-quantity-display";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, MapPin, CalendarDays } from "lucide-react";
 import Link from "next/link";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { formatDateOnly } from "@/lib/utils";
@@ -32,7 +32,7 @@ export function AssetPriorityBadge({ priority }: { priority?: string | null }) {
 export function AssetMaintenanceQueue({ records, assets, locations, selection }: { records: AssetRecord[]; assets: Map<string, AssetSummary>; locations: Map<string, string>; selection?: Record<string,string> }) {
   const href=(id:string)=>selection ? `/asset-management?${new URLSearchParams({...selection,view:"maintenance",ticket:id})}` : `/asset-management/maintenance/${id}`;
   const date = (record: AssetRecord) => formatDateOnly(String(record.source_data["Created Date"] ?? record.created_at ?? "").replace(" ", "T"), "Not recorded");
-  return <div className="sb-maintenance-queue divide-y" aria-label="Maintenance queue">{records.map(record=><Link key={record.id} href={href(record.id)} aria-current={selection?.ticket===record.id?"true":undefined} className="block px-3 py-3 hover:bg-muted focus-visible:ring-2 focus-visible:ring-primary aria-[current=true]:bg-[var(--sb-green-100)]"><span className="flex items-start justify-between gap-2"><strong className="min-w-0 text-sm font-semibold">{assets.get(record.asset_id??"")?.item_name??"Site problem"}</strong><AssetPriorityBadge priority={record.priority}/></span><span className="mt-1 block truncate text-xs">{record.description??"No description"}</span><span className="mt-1 block truncate text-xs text-muted-foreground">{locations.get(record.location_id??"")??"Unavailable location"}</span><span className="mt-2 flex items-center justify-between gap-2"><StatusBadge status={(record.status??"unknown").toLowerCase()}/><span className="text-xs text-muted-foreground">{date(record)}</span><ChevronRight className="size-3.5" aria-hidden="true"/></span></Link>)}</div>;
+  return <div className="sb-maintenance-queue divide-y" aria-label="Maintenance queue">{records.map(record=><Link key={record.id} href={href(record.id)} aria-current={selection?.ticket===record.id?"true":undefined} title={record.description??undefined} className="block px-3 py-2.5 hover:bg-muted focus-visible:ring-2 focus-visible:ring-primary aria-[current=true]:bg-[var(--sb-green-100)]"><span className="flex min-w-0 items-center gap-2"><strong className="min-w-0 flex-1 truncate text-sm font-semibold">{assets.get(record.asset_id??"")?.item_name??"Site problem"}</strong><StatusBadge status={(record.status??"unknown").toLowerCase()}/><AssetPriorityBadge priority={record.priority}/></span><span className="mt-1 flex min-w-0 items-center gap-3 text-xs text-muted-foreground"><span className="inline-flex min-w-0 flex-1 items-center gap-1"><MapPin className="size-3 shrink-0" aria-hidden="true"/><span className="truncate">{locations.get(record.location_id??"")??"Unavailable location"}</span></span><span className="inline-flex shrink-0 items-center gap-1"><CalendarDays className="size-3" aria-hidden="true"/>{date(record)}</span><ChevronRight className="size-3.5 shrink-0" aria-hidden="true"/></span></Link>)}</div>;
 }
 
 export function AssetDailyCheckLocations({ locations, date }: { locations: AssetOverview["checklist"]; date: string }) {

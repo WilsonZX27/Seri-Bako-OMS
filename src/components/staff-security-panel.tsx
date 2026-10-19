@@ -10,6 +10,20 @@ import { hasPermission } from "@/server/auth/permissions";
 import { getCurrentProfile } from "@/server/queries/common";
 import { getStaff, getStaffAccess, getRoles } from "@/server/queries/foundation";
 import { forceStaffPasswordChange, permanentlyDeleteStaff, repairStaffSignInLink, resetStaffTemporaryPassword } from "@/server/actions/foundation";
+import { ConsoleSection } from "@/components/layout/right-console";
+
+export async function StaffSignInStatus({ id }: { id: string }) {
+  if (!(await hasPermission("staffs.update"))) return null;
+  const staff = await getStaff(id);
+  if (!staff) return null;
+  const authState = getStaffAuthState(staff);
+  return <ConsoleSection title="Sign-in status"><dl className="divide-y divide-[var(--sb-border-soft)] text-xs">
+    <div className="flex justify-between gap-2 py-2"><dt className="text-muted-foreground">Account state</dt><dd className="text-right font-medium">{staffAuthStateLabels[authState]}</dd></div>
+    <div className="flex justify-between gap-2 py-2"><dt className="text-muted-foreground">Last sign-in</dt><dd className="text-right font-medium">{staff.auth_last_sign_in_at ? formatDateTime(staff.auth_last_sign_in_at) : "Never"}</dd></div>
+    <div className="flex justify-between gap-2 py-2"><dt className="text-muted-foreground">Change password</dt><dd className="text-right font-medium">{staff.must_change_password ? "Required" : "Not required"}</dd></div>
+    <div className="flex justify-between gap-2 py-2"><dt className="text-muted-foreground">Invitation</dt><dd className="text-right font-medium">{formatStatusLabel(staff.invitation_status ?? staff.status)}</dd></div>
+  </dl></ConsoleSection>;
+}
 export async function StaffSecurityPanel({ id }: { id: string }) {
   if (!(await hasPermission("staffs.update"))) return null;
   const [staff, access, roles, profile] = await Promise.all([getStaff(id), getStaffAccess(id), getRoles(), getCurrentProfile()]);
@@ -19,6 +33,7 @@ export async function StaffSecurityPanel({ id }: { id: string }) {
   const authState = getStaffAuthState(staff);
   const temporaryPassword = await readTemporaryPasswordHandoff(id);
   return <div className="mx-auto w-full max-w-[760px] space-y-3">
+    <div className="rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)] p-3 text-xs"><span className="font-semibold">{staff.full_name}</span><span className="mx-2 text-muted-foreground">·</span><span className="text-muted-foreground">Username:</span> <strong>{staff.username ?? "—"}</strong></div>
     {temporaryPassword ? (
       <Card className="border-[var(--sb-warning)] bg-[var(--sb-warning-bg)]">
         <CardHeader><CardTitle>Temporary password</CardTitle></CardHeader>
@@ -31,16 +46,7 @@ export async function StaffSecurityPanel({ id }: { id: string }) {
         </CardContent>
       </Card>
     ) : null}
-    <div className="grid gap-3 md:grid-cols-2">
-      <section className="rounded-[var(--sb-panel-radius)] border bg-[var(--sb-surface-raised)] p-3 text-xs">
-        <h2 className="text-sm font-semibold">Sign-in status</h2>
-        <dl className="mt-3 divide-y divide-[var(--sb-border-soft)]">
-          <div className="flex justify-between gap-3 py-2"><dt className="text-muted-foreground">Account state</dt><dd className="text-right font-medium">{staffAuthStateLabels[authState]}</dd></div>
-          <div className="flex justify-between gap-3 py-2"><dt className="text-muted-foreground">Last sign-in</dt><dd className="text-right font-medium">{staff.auth_last_sign_in_at ? formatDateTime(staff.auth_last_sign_in_at) : "Never"}</dd></div>
-          <div className="flex justify-between gap-3 py-2"><dt className="text-muted-foreground">Change password</dt><dd className="text-right font-medium">{staff.must_change_password ? "Required" : "Not required"}</dd></div>
-          <div className="flex justify-between gap-3 py-2"><dt className="text-muted-foreground">Invitation</dt><dd className="text-right font-medium">{formatStatusLabel(staff.invitation_status ?? staff.status)}</dd></div>
-        </dl>
-      </section>
+    <div>
       <section className="rounded-[var(--sb-panel-radius)] border bg-[var(--sb-surface-raised)] p-3">
         <h2 className="text-sm font-semibold">Password actions</h2>
         <div className="mt-3 space-y-2">

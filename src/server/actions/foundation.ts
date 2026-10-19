@@ -713,6 +713,7 @@ export async function createStaff(formData: FormData) {
   let temporaryPassword: string | null = null;
   try {
     const actor = await requireActiveTenantActor();
+    if (!cleanText(formData.get("staff_code"))) throw new Error("Staff Code is required.");
     const payload = staffPayload(formData, actor.companyId);
     const access = staffAccessPayload(formData);
     const authSetupMethod = String(formData.get("auth_setup_method") ?? "temporary_password");

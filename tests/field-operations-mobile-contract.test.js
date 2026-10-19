@@ -362,7 +362,7 @@ test("product master editing avoids nested card boundaries on phones", () => {
   assert.match(source, /data-product-setup/);
   assert.match(source, /border-0 bg-transparent shadow-none md:border/);
   assert.match(source, /col-span-2 grid grid-cols-2 gap-3 border-y py-4/);
-  assert.match(source, /border-y py-4 md:col-span-2/);
+  assert.match(source, /col-span-2 rounded-\[var\(--sb-control-radius\)\] border bg-secondary\/30 p-3 md:col-span-1 md:col-start-2 md:p-4/);
 });
 
 test("supplier master uses a flat phone submit boundary", () => {

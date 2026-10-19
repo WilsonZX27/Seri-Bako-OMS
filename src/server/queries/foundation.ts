@@ -202,7 +202,8 @@ export async function getStaff(id: string) {
 
 export async function getStaffProfileSummary(staffId: string) {
   if (isMockMode()) {
-    return (await getStaffs()).find((staff) => staff.id === staffId) ?? null;
+    const staff = (await getStaffs()).find((row) => row.id === staffId);
+    return staff ? { ...staff, accessible_branch_names: staff.default_branch_name ? [staff.default_branch_name] : [] } : null;
   }
 
   const [supabase, profile] = await Promise.all([createClient(), getCurrentProfile()]);
@@ -219,16 +220,17 @@ export async function getStaffProfileSummary(staffId: string) {
     roleIds.length
       ? supabase.from("roles").select("role_code,role_name").eq("company_id", profile.company_id).in("id", roleIds)
       : Promise.resolve({ data: [], error: null }),
-    defaultBranchId
-      ? supabase.from("branches").select("branch_name").eq("company_id", profile.company_id).eq("id", defaultBranchId).maybeSingle()
-      : Promise.resolve({ data: null, error: null }),
+    (staffBranches ?? []).length
+      ? supabase.from("branches").select("id,branch_name").eq("company_id", profile.company_id).in("id", (staffBranches ?? []).map((row) => row.branch_id))
+      : Promise.resolve({ data: [], error: null }),
   ]);
   if (rolesError) throw new Error(rolesError.message);
   if (branchError) throw new Error(branchError.message);
   return {
     role_name: (roles ?? []).map((role) => getRoleDisplayLabel(role.role_code, role.role_name)).join(", ") || null,
-    default_branch_name: branch?.branch_name ?? null,
+    default_branch_name: (branch ?? []).find((item) => item.id === defaultBranchId)?.branch_name ?? null,
     default_branch_id: defaultBranchId ?? null,
+    accessible_branch_names: (branch ?? []).map((item) => item.branch_name).sort(),
   };
 }
 

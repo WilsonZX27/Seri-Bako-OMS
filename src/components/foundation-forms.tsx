@@ -230,8 +230,8 @@ export function StaffForm({
           <CompanyHidden companies={companies} companyId={staff?.company_id} />
           <input type="hidden" name="status" value={staff?.status ?? "invited"} />
         <div className="grid gap-4 md:grid-cols-2">
-          <Field label="Staff Code">
-            <Input name="staff_code" defaultValue={staff?.staff_code?.toUpperCase() ?? ""} className="form-control-compact uppercase" />
+          <Field label="Staff Code" required>
+            <Input name="staff_code" defaultValue={staff?.staff_code?.toUpperCase() ?? ""} required className="form-control-compact uppercase" />
           </Field>
           <Field label="Full Name" required>
             <Input name="full_name" defaultValue={staff?.full_name ?? ""} required className="form-control-compact" />

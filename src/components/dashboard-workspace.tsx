@@ -166,7 +166,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
     ? [
         { href: summary.outletToday?.id ? `/outlet-daily-records/${summary.outletToday.id}` : "/outlet-daily-records/new", label: outletAction, icon: ClipboardCheck },
         { href: "/outlet-daily-records", label: "Daily records", icon: ClipboardList },
-        { href: "/activity", label: "Recent activity", icon: Clock3 },
+        { href: "/asset-management?view=checklist", label: "Daily Asset Inspection", icon: ClipboardCheck },
       ]
     : isKitchen
       ? [

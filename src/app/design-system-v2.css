@@ -2227,12 +2227,19 @@ html[data-design-layer="v2"] table[data-ui-table] > thead > tr > th {
   }
 
   html[data-design-layer="v2"] .sb-staff-table :is(th, td):nth-child(1) { width: 2.5rem; }
-  html[data-design-layer="v2"] .sb-staff-table :is(th, td):nth-child(2) { width: 45%; }
-  html[data-design-layer="v2"] .sb-staff-table :is(th, td):nth-child(3) { width: 32%; }
-  html[data-design-layer="v2"] .sb-staff-table :is(th, td):nth-child(4) { width: 23%; }
+  html[data-design-layer="v2"] .sb-staff-table :is(th, td):nth-child(2) { width: 7rem; }
+  html[data-design-layer="v2"] .sb-staff-table :is(th, td):nth-child(3) { width: 33%; }
+  html[data-design-layer="v2"] .sb-staff-table :is(th, td):nth-child(4) { width: 33%; }
+  html[data-design-layer="v2"] .sb-staff-table :is(th, td):nth-child(5) { width: 20%; }
   html[data-design-layer="v2"] .sb-staff-table td {
     overflow-wrap: anywhere;
     vertical-align: top;
+  }
+  html[data-design-layer="v2"] section[aria-label="Employee directory"] .unified-list-desktop-actions > [data-list-secondary-action="true"] {
+    border: 1px solid var(--sb-border) !important;
+    background: white !important;
+    border-radius: var(--sb-radius-control) !important;
+    min-width: 5rem !important;
   }
 }
 

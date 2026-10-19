@@ -89,7 +89,7 @@ export function MasterDataFilters({
     >
       {controls}
 
-      {filtered ? <Button asChild variant="secondary" className="w-full" data-list-action="secondary"><Link href={resetHref}>Reset</Link></Button> : null}
+      {filtered ? <Button asChild variant="outline" className="w-auto px-3" data-list-action="secondary"><Link href={resetHref}>Reset</Link></Button> : null}
     </UnifiedListHeader>
   );
 }

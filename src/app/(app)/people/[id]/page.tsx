@@ -1,4 +1,4 @@
-import { StaffSecurityPanel } from "@/components/staff-security-panel";
+import { StaffSecurityPanel, StaffSignInStatus } from "@/components/staff-security-panel";
 import { StaffEmploymentEditor } from "@/components/staff-employment-editor";
 import { SubmitButton } from "@/components/ui/submit-button";
 import type { ReactNode } from "react";
@@ -87,6 +87,7 @@ export default async function PeopleProfilePage({
           </strong>
         </div>
       </ConsoleSection>
+      {permissions["staffs.update"] ? <StaffSignInStatus id={id} /> : null}
       <ConsoleSection title="Privacy">
         <p className="text-muted-foreground">
           Managers see compliance status only. Sensitive originals remain
@@ -117,7 +118,7 @@ export default async function PeopleProfilePage({
           </div>
         ) : null}
         <nav
-          className="flex min-h-11 gap-1 overflow-x-auto rounded-[var(--sb-panel-radius)] border bg-[var(--sb-surface-raised)] p-1 text-sm"
+          className="flex min-h-11 gap-1 overflow-x-auto rounded-[var(--sb-panel-radius)] border bg-[var(--sb-surface-raised)] p-1 text-xs"
           aria-label="Employee profile sections"
         >
           {[
@@ -145,6 +146,8 @@ export default async function PeopleProfilePage({
                     label="Staff code"
                     value={staff.staff_code?.toUpperCase()}
                   />
+                  <Fact label="Username" value={staff.username} />
+                  <Fact label="Accessible locations" value={staffSummary?.accessible_branch_names?.join(", ")} />
                   <Fact label="Email" value={staff.email?.endsWith("@accounts.seribako.invalid") ? undefined : staff.email?.toLowerCase()} />
                   <Fact label="Phone" value={staff.phone} />
                   <Fact label="Status" value={staff.status} capitalize />

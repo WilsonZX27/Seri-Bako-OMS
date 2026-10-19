@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
+import { ProductCategoryCombobox } from "@/components/product-category-combobox";
 import { normalizeUom, uomOptionsWithCurrent } from "@/lib/uom";
 import type { Database } from "@/types/database";
 
@@ -16,9 +17,10 @@ type ProductFormProps = {
   action: (formData: FormData) => Promise<void>;
   formId?: string;
   showSubmit?: boolean;
+  categories?: string[];
 };
 
-export function ProductForm({ product, packaging = [], action, formId, showSubmit = true }: ProductFormProps) {
+export function ProductForm({ product, packaging = [], action, formId, showSubmit = true, categories = [] }: ProductFormProps) {
   const primaryPackaging = packaging[0];
   return (
     <Card className="border-0 bg-transparent shadow-none md:border md:bg-card md:shadow-sm" data-product-setup>
@@ -31,9 +33,10 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
             <Input name="product_name" defaultValue={product?.product_name ?? ""} required />
           </Field>
           <Field label="Category" className="col-span-2 sm:col-span-1">
-            <Input name="category" defaultValue={product?.category ?? ""} placeholder="Frozen Pastry" required />
+            <ProductCategoryCombobox categories={categories} initialValue={product?.category ?? ""} />
+            <p className="mt-1 text-xs text-muted-foreground">Choose a saved category or type a new one.</p>
           </Field>
-          <Field label="Daily record category" className="col-span-2">
+          <Field label="Daily record category" className="col-span-2 sm:col-span-1">
             <SelectNative name="daily_tracking" defaultValue={product ? dailyTracking(product) : "food_daily"}>{Object.entries(dailyTrackingLabels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</SelectNative>
             <p className="mt-1 text-xs text-muted-foreground">Next day includes food kept for several days. Usage is recorded separately from wastage; this does not set a fixed expiry date.</p>
           </Field>
@@ -46,10 +49,6 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
             </SelectNative>
           </Field>
           <input type="hidden" name="status" value={product?.status ?? "active"} />
-          <Field label="Product Image" className="col-span-2">
-            <Input name="product_image" aria-label="Product image" type="file" accept="image/png,image/jpeg,image/webp" />
-            <p className="mt-1 text-xs text-muted-foreground">PNG, JPG, or WEBP, up to 2MB.</p>
-          </Field>
           <div className="col-span-2 grid grid-cols-2 gap-3 border-y py-4 sm:gap-4 md:rounded-[var(--sb-control-radius)] md:border md:bg-secondary/30 md:p-4 xl:grid-cols-4">
             <div className="col-span-2 xl:col-span-4">
               <p className="text-sm font-semibold">Packaging & Pricing</p>
@@ -71,19 +70,19 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
             </Field>
             <input type="hidden" name="packaging_id" value={primaryPackaging?.id ?? ""} />
           </div>
-          {product ? <div className="grid gap-4 border-y py-4 md:col-span-2 md:border-0 md:py-0 md:grid-cols-2">
-            <div className="md:col-span-2 md:rounded-[var(--sb-control-radius)] md:border md:bg-secondary/30 md:p-4">
+          <div className="col-span-2 rounded-[var(--sb-control-radius)] border bg-secondary/30 p-3 md:col-span-1 md:col-start-2 md:p-4">
               <p className="text-sm font-semibold">Product Image</p>
-              {product.product_image_url ? (
+              {product?.product_image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={product.product_image_url} alt={product.product_name} className="mt-3 aspect-video w-full rounded-[var(--sb-radius-control)] border object-cover" />
+                <img src={product.product_image_url} alt={product.product_name} className="mt-3 h-24 w-full rounded-[var(--sb-radius-control)] border object-contain" />
               ) : (
                 <div className="mt-3 flex h-24 items-center justify-center rounded-[var(--sb-radius-control)] border bg-background text-xs text-muted-foreground">
                   No image uploaded yet
                 </div>
               )}
-            </div>
-          </div> : null}
+              <Input name="product_image" aria-label="Product image" type="file" accept="image/png,image/jpeg,image/webp" className="mt-3" />
+              <p className="mt-1 text-xs text-muted-foreground">PNG, JPG, or WEBP, up to 2MB.</p>
+          </div>
           {showSubmit ? <div className="flex justify-end md:col-span-2">
             <SubmitButton type="submit" pendingLabel={product ? "Saving..." : "Creating..."}>{product ? "Save product" : "Create product"}</SubmitButton>
           </div> : null}

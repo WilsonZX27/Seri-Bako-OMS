@@ -94,7 +94,7 @@ test("outlet completion creates the controlled ready-to-post queue", () => {
   assert.match(query, /const \[pageResult, summaryResult\] = await Promise\.all\(\[loadRows\(filters\), summaryPromise\]\)/);
   assert.match(query, /missing_evening: Number\(summary\.missing_evening\)/);
   assert.match(query, /ready_to_post: Number\(summary\.ready_to_post\)/);
-  assert.match(page, /<dt className="text-\[10px\] text-muted-foreground">Posted<\/dt>/);
+  assert.match(page, /<dt className="flex min-h-8 items-end text-\[10px\] text-muted-foreground">Posted<\/dt>/);
   assert.match(read("src/lib/outlet-daily-progress.ts"), /Ready to post/);
   assert.doesNotMatch(page, /<StatusBadge status=\{progress\.status\} \/><p/);
 });

@@ -84,7 +84,7 @@ test("August 19 annotation closure groups PR data, simplifies loading, and stand
   assert.match(production, /className="sb-portrait-tablet-rail"/);
   assert.match(design, /\[data-tablet-document-split\]\[data-tablet-rail-breakpoint="md"\][\s\S]*> aside[\s\S]*display: block/);
   assert.match(design, /\.sb-purchase-request-table \{[\s\S]*?min-width: 48rem/);
-  assert.match(design, /\.sb-purchase-request-table :is\(th, td\):nth-child\(7\) \{ width: 7\.75rem; \}/);
+  assert.match(design, /\.sb-purchase-request-table :is\(th, td\):nth-child\(7\) \{ width: 7rem; \}/);
 });
 
 test("production follow-up keeps PR review compact and low stock semantically critical", () => {

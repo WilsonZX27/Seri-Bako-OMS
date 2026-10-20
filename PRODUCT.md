@@ -1,3 +1,7 @@
+## v9.2.119 (unreleased) — operational UI review candidate
+
+Scoped list, notification, and asset inspection refinements are available for Preview review. Local verification scope and remaining gaps are recorded in `docs/releases/preview-v9.2.119-ui-review.md`.
+
 ## v9.2.118 (unreleased) — historical annotation closure candidate
 
 - Keep only one permission-scoped phone create button on Daily Records, Employees, Purchase Orders, Stock Counts, Goods Receiving, Branches and Stock Wastage. The existing right-rail action owns it; creation routes and business actions are unchanged.

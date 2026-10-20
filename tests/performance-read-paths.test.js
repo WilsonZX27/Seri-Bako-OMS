@@ -46,6 +46,7 @@ function database(resolve, queue) {
 
 function attendance(db, allowed = true) {
   return load("src/server/queries/attendance.ts", {
+    "@/lib/mock-mode": { isMockMode: () => false },
     "@/lib/supabase/server": { createClient: async () => db },
     "@/lib/supabase/loose": { looseSupabase: (value) => value },
     "@/server/auth/permissions": { hasPermission: async () => allowed },

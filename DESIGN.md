@@ -1,3 +1,7 @@
+## v9.2.119 (unreleased) — operational UI review candidate
+
+The current Preview candidate retains the green theme and scopes compact list, status, icon, and asset inspection styles to their owning components. See `docs/releases/preview-v9.2.119-ui-review.md` for the checked viewports and limits.
+
 ## v9.2.118 (unreleased) — historical annotation closure candidate
 
 - Remove overlaid duplicate phone create buttons from the seven verified operational lists while preserving their 36px desktop right-rail actions and 56px phone FAB.

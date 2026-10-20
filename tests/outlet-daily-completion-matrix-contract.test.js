@@ -90,14 +90,14 @@ test("phone completion insight keeps the summary and seven-day matrix directly s
   assert.doesNotMatch(component, /Morning only|short: "AM"|short: "D"/);
 });
 
-test("outlet daily phone filters keep date, branch, and status inside one drawer", () => {
+test("outlet daily phone filters keep date, branch, and status in the aligned inline query", () => {
   const page = read("src/app/(app)/outlet-daily-records/page.tsx");
   const filter = read("src/components/common/UnifiedListHeader.tsx");
-  assert.match(page, /phonePrimary="drawer"/);
-  assert.match(filter, /primaryInDrawer \? primary : null/);
-  assert.match(filter, /unified-list-row--filter-only/);
-  assert.match(filter, /!primaryInDrawer[\s\S]*\? <SearchControl[\s\S]*: null/);
-  assert.doesNotMatch(filter, /: <div className="unified-list-primary-control" \/>/);
+  assert.match(page, /phonePrimary="inline"/);
+  assert.match(page, /name="date" type="date"/);
+  assert.match(page, /name="branch"/);
+  assert.match(page, /name="status"/);
+  assert.match(filter, /resolvedPhoneMode === "inline" && contextualFilterCount > 1 \? <div className="unified-list-inline-fields">/);
 });
 
 test("outlet completion states use semantic surfaces instead of a hard-coded theme", () => {

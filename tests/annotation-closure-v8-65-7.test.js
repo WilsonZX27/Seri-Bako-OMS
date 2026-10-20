@@ -21,7 +21,8 @@ test("list and production annotations use the shared responsive authorities", ()
   const design = read("src", "app", "design-system-v2.css");
   const pagination = read("src", "components", "sortable-table.tsx");
   assert.match(production, /tabletCanvas="wide"/);
-  assert.match(requests, /size="sm" className="text-sm"/);
+  assert.match(requests, /sb-purchase-request-filters/);
+  assert.match(design, /sb-purchase-request-filters[\s\S]{0,700}height: 2\.75rem !important/);
   assert.match(design, /form\.unified-list-header \.unified-list-result \{[\s\S]*?display: grid !important;[\s\S]*?justify-items: center;/);
   assert.equal((pagination.match(/\{pageJump\}/g) ?? []).length, 1);
 });

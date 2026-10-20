@@ -30,10 +30,11 @@ test("canonical design layer has one rule owner per selector and media scope", (
   const owners = new Map();
 
   stylesheet.walkRules((rule) => {
-    const media = rule.parent?.type === "atrule" && rule.parent.name === "media"
-      ? rule.parent.params
-      : "base";
-    const key = `${media} :: ${rule.selector}`;
+    const scopes = [];
+    for (let parent = rule.parent; parent && parent.type !== "root"; parent = parent.parent) {
+      if (parent.type === "atrule") scopes.unshift(`@${parent.name} ${parent.params}`);
+    }
+    const key = `${scopes.join(" > ") || "base"} :: ${rule.selector}`;
     const lines = owners.get(key) ?? [];
     lines.push(rule.source?.start?.line ?? 0);
     owners.set(key, lines);

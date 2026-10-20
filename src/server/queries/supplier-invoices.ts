@@ -4,6 +4,7 @@ import { compareTableValues } from "@/lib/table-state";
 import type { Database } from "@/types/database";
 import { getCurrentProfile } from "@/server/queries/common";
 import { requireDetailRow } from "@/server/queries/detail";
+import { isMockMode } from "@/lib/mock-mode";
 
 type Filters = Record<string, string | undefined>;
 type SupplierInvoice = Database["public"]["Tables"]["supplier_invoices"]["Row"];
@@ -65,9 +66,10 @@ function filterRows(rows: SupplierInvoiceRow[], filters: Filters) {
 }
 
 export async function getSupplierInvoices(filters: Filters = {}) {
-  const supabase = await createClient();
   const pageSize = 12;
   const requestedPage = Math.max(1, Number.isFinite(Number(filters.page)) ? Math.trunc(Number(filters.page)) : 1);
+  if (isMockMode()) return { rows: [] as SupplierInvoiceRow[], totalRows: 0, page: requestedPage, pageSize, totalPages: 1 };
+  const supabase = await createClient();
   const status = filters.status && filters.status !== "all" ? filters.status : null;
   const supplierId = filters.supplier && filters.supplier !== "all" ? filters.supplier : null;
   const due = filters.due && filters.due !== "all" ? filters.due : null;
@@ -134,6 +136,7 @@ export async function getSupplierInvoices(filters: Filters = {}) {
 }
 
 export async function getSupplierInvoiceSummary() {
+  if (isMockMode()) return { open: 0, paid: 0, balance: 0 };
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("get_supplier_invoice_queue_summary").single();
   if (error) throw new Error(error.message);
@@ -145,6 +148,7 @@ export async function getSupplierInvoiceSummary() {
 }
 
 export async function getSupplierInvoiceFilterSuppliers() {
+  if (isMockMode()) return [];
   const supabase = await createClient();
   const { data: invoices, error: invoicesError } = await supabase.from("supplier_invoices").select("supplier_id").is("deleted_at", null);
   if (invoicesError) throw new Error(invoicesError.message);

@@ -40,8 +40,13 @@ export async function getTopBarActivity() {
         })),
       attentionHrefs: mockDocuments.filter((document) => document.approval_status === "pending").map(getCanonicalDocumentHref),
       assignedActivities: [] as AssignedActivity[],
-      notifications: [],
-      announcements: [],
+      notifications: [
+        { id: "mock-maintenance-update", title: "Repair needs attention", message: "Review the maintenance queue.", action_url: "/asset-management?view=maintenance" },
+        { id: "mock-purchase-update", title: "PR Finance Review required", message: "Review purchase requests.", action_url: "/purchase-requests" },
+        { id: "mock-compliance-update", title: "Outlet requirement due", message: "Review outlet compliance.", action_url: "/outlet-compliance" },
+        { id: "mock-invoice-update", title: "Supplier invoice due", message: "Review supplier invoices.", action_url: "/supplier-invoices" },
+      ],
+      announcements: [{ id: "mock-announcement", title: "Operations announcement" }],
     };
   }
 

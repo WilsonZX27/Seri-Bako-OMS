@@ -24,7 +24,7 @@ function actionIcon(href: string) {
 export function TopBarActivityMenu({ data, canOpenActivity = true }: { data: TopBarActivity; canOpenActivity?: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [seenIds, setSeenIds] = useState<string[]>([]);
+  const [seenIds, setSeenIds] = useState<string[] | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -39,18 +39,20 @@ export function TopBarActivityMenu({ data, canOpenActivity = true }: { data: Top
   const notificationCount = notifications.length + announcements.length;
   const recentCount = assignedActivities.length;
   const visibleUpdateIds = [...notifications, ...announcements, ...assignedActivities].map((item) => item.id);
-  const unreadCount = visibleUpdateIds.filter((id) => !seenIds.includes(id)).length;
+  const unreadNotificationCount = seenIds === null ? 0 : [...notifications, ...announcements].filter((item) => !seenIds.includes(item.id)).length;
+  const unreadCount = seenIds === null ? 0 : visibleUpdateIds.filter((id) => !seenIds.includes(id)).length;
   const count = pendingCount + unreadCount;
   const badgeLabel = count > 99 ? "99+" : String(count);
   const formatTime = (value: string) => formatDateTime(value);
 
   useEffect(() => {
+    let stored: unknown = [];
     try {
-      const stored = JSON.parse(window.sessionStorage.getItem(seenKey) ?? "[]");
-      if (Array.isArray(stored)) setSeenIds(stored.filter((id): id is string => typeof id === "string"));
+      stored = JSON.parse(window.sessionStorage.getItem(seenKey) ?? "[]");
     } catch {
       // An invalid browser value should leave current updates visible.
     }
+    setSeenIds(Array.isArray(stored) ? stored.filter((id): id is string => typeof id === "string") : []);
   }, []);
 
   useEffect(() => {
@@ -75,13 +77,13 @@ export function TopBarActivityMenu({ data, canOpenActivity = true }: { data: Top
   }, [open]);
 
   function markVisibleUpdatesSeen() {
-    const next = [...new Set([...seenIds, ...visibleUpdateIds])];
+    const next = [...new Set([...(seenIds ?? []), ...visibleUpdateIds])];
     setSeenIds(next);
     window.sessionStorage.setItem(seenKey, JSON.stringify(next));
   }
 
   function markUpdateSeen(id: string) {
-    const next = [...new Set([...seenIds, id])];
+    const next = [...new Set([...(seenIds ?? []), id])];
     setSeenIds(next);
     window.sessionStorage.setItem(seenKey, JSON.stringify(next));
   }
@@ -131,7 +133,7 @@ export function TopBarActivityMenu({ data, canOpenActivity = true }: { data: Top
             <section className="space-y-1 p-3">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-semibold uppercase text-muted-foreground">My Notifications</p>
-                {notificationCount ? <span className="rounded-full bg-[var(--sb-warning-bg)] px-2 py-0.5 text-xs font-medium text-[var(--sb-warning)]">{notificationCount}</span> : null}
+                {unreadNotificationCount ? <span className="rounded-full bg-[var(--sb-warning-bg)] px-2 py-0.5 text-xs font-medium text-[var(--sb-warning)]">{unreadNotificationCount}</span> : null}
               </div>
               {notifications.map((notification) => { const Icon = actionIcon(notification.action_url ?? ""); return (
                 <Link key={notification.id} href={notification.action_url ?? "/activity"} onClick={() => { markUpdateSeen(notification.id); setOpen(false); }} className="flex gap-2 rounded-[var(--sb-control-radius)] p-2 text-xs hover:bg-secondary">

@@ -72,7 +72,7 @@ test("August 19 annotation closure groups PR data, simplifies loading, and stand
 
   assert.match(requests, /label="Schedule" column="request_date"/);
   assert.match(requests, />Location \/ Requested by</);
-  assert.match(requests, />Request value</);
+  assert.match(requests, />Lines \/ RM</);
   assert.match(requests, /BulkSelectRowCheckbox[\s\S]*TableActionLink[\s\S]*DocumentNumber/);
   assert.match(pagination, /aria-label="Go to page"/);
   assert.match(pagination, /type="number"[\s\S]*max=\{totalPages\}/);

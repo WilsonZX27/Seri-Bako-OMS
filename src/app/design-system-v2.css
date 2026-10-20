@@ -3034,6 +3034,8 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
 }
 @media (min-width: 768px) and (max-width: 1279px) {
   html[data-design-layer="v2"] .sb-pr-phone-location { flex: 0 1 auto; }
+}
+@media (min-width: 768px) and (max-width: 1399px) {
   html[data-design-layer="v2"] .sb-pr-continuous-rows :is(.sb-pr-phone-supplier-row,.sb-pr-phone-location-row,.sb-pr-phone-supplier,.sb-pr-phone-items,.sb-pr-phone-location,.sb-pr-phone-byline-person,.sb-pr-phone-byline-date,.sb-pr-phone-amount) { font-size: 12px; }
 }
 @media (pointer: coarse), (max-width: 767px) {

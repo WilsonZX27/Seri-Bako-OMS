@@ -20,7 +20,7 @@ function validRange(start: string, end: string, maxDays: number) {
 }
 
 /** Draft selection is committed only by Apply; the enclosing GET form owns report navigation. */
-export function DateRangePicker({ start, end, today, maxDays = 31 }: { start: string; end: string; today: string; maxDays?: number }) {
+export function DateRangePicker({ start, end, today, maxDays = 31, compact = false }: { start: string; end: string; today: string; maxDays?: number; compact?: boolean }) {
   const id = useId();
   const trigger = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
@@ -37,6 +37,20 @@ export function DateRangePicker({ start, end, today, maxDays = 31 }: { start: st
   ];
   const active = presets.find(p => p.start === draft.start && p.end === draft.end)?.label ?? "Custom Range";
   const valid = validRange(draft.start, draft.end, maxDays);
+  const rangeLabel = compact && committed.start !== committed.end
+    ? (() => {
+        const from = new Date(`${committed.start}T00:00:00Z`);
+        const to = new Date(`${committed.end}T00:00:00Z`);
+        const month = new Intl.DateTimeFormat("en-GB", { month: "short", timeZone: "UTC" });
+        const startMonth = month.format(from);
+        const endMonth = month.format(to);
+        const startYear = from.getUTCFullYear();
+        const endYear = to.getUTCFullYear();
+        if (startYear !== endYear) return `${dateLabel(committed.start)} – ${dateLabel(committed.end)}`;
+        if (startMonth !== endMonth) return `${from.getUTCDate()} ${startMonth} – ${to.getUTCDate()} ${endMonth} ${endYear}`;
+        return `${from.getUTCDate()}–${to.getUTCDate()} ${endMonth} ${endYear}`;
+      })()
+    : `${dateLabel(committed.start)}${committed.start !== committed.end ? ` – ${dateLabel(committed.end)}` : ""}`;
   function selectDay(day: string) {
     if (!anchor) { setAnchor(day); setDraft({ start: day, end: day }); }
     else { setDraft({ start: day < anchor ? day : anchor, end: day < anchor ? anchor : day }); setAnchor(null); }
@@ -60,7 +74,7 @@ export function DateRangePicker({ start, end, today, maxDays = 31 }: { start: st
     <input type="hidden" name="history_start" value={committed.start} />
     <input type="hidden" name="history_date" value={committed.end} />
     <input type="hidden" name="period" value="7" />
-    <Button data-date-range-control ref={trigger} type="button" variant="secondary" aria-haspopup="dialog" aria-expanded={open} onClick={() => { setDraft(committed); setMonth(monthOf(committed.start)); setAnchor(null); setOpen(true); }} className="max-lg:min-h-11"><CalendarDays className="size-4 shrink-0" aria-hidden="true" /><span className="truncate">{dateLabel(committed.start)}{committed.start !== committed.end ? ` – ${dateLabel(committed.end)}` : ""}</span></Button>
+    <Button data-date-range-control ref={trigger} type="button" variant="secondary" aria-haspopup="dialog" aria-expanded={open} onClick={() => { setDraft(committed); setMonth(monthOf(committed.start)); setAnchor(null); setOpen(true); }} className="max-lg:min-h-11"><CalendarDays className="size-4 shrink-0" aria-hidden="true" /><span className="truncate">{rangeLabel}</span></Button>
     <ModalShell open={open} onClose={() => setOpen(false)} titleId={id} triggerRef={trigger} className="max-w-[760px]">
       <header className="mb-3 flex items-center justify-between gap-3"><h2 id={id} className="text-sm font-semibold">Date range</h2><Button type="button" variant="ghost" size="icon" aria-label="Cancel date selection" onClick={() => setOpen(false)} className="min-h-11 min-w-11"><X aria-hidden="true" /></Button></header>
       <div className="grid gap-4 md:grid-cols-[140px_minmax(0,1fr)]">

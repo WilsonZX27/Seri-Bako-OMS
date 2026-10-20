@@ -1,5 +1,9 @@
 > Local candidate — 2026-10-18: desktop query filters use 120px at the existing 1280px desktop breakpoint; search is a named icon action and the query field absorbs remaining space. Phone/tablet touch sizes remain unchanged. Shared card/profile/form headers separate titles from fields with a soft rule. Employment and access editing stays in the People profile. Pending release; see final-audit/FEEDBACK-16-AUDIT.txt in the task workspace.
 
+# v9.2.112 (unreleased)
+
+Outlet Daily Insights uses a compact date-range label sized for the crowded filter row. Single-day ranges remain full dates; cross-month and cross-year ranges retain enough month/year context to identify both endpoints. The date picker and other uses preserve their existing labels.
+
 # v9.2.111 (unreleased)
 
 > Preview candidate — 2026-10-20: shared controls suppress press scaling under reduced-motion preferences, mobile floating actions use a restrained shared elevation token, and Stock Count records precede secondary variance analysis. Responsive workspace refinements keep tablet action rails visible beside their content; Purchase Request rows align across phone, tablet and desktop; Low Stock removes the “Buy now” marker and per-item PR quantity editor while retaining suggested quantities. Production remains v9.2.106 until separately verified and released.

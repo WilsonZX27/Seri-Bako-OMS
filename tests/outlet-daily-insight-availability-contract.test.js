@@ -27,3 +27,11 @@ test("outlet insights distinguish unavailable from a successful empty result", (
   assert.match(completion, /Completion insight unavailable/);
   assert.match(completion, /No outlets in your current scope/);
 });
+
+test("outlet insights use a compact, complete date range label", () => {
+  const picker = read("src", "components", "ui", "date-range-picker.tsx");
+  const page = read("src", "app", "(app)", "outlet-daily-records", "insights", "page.tsx");
+  assert.match(picker, /compact = false/);
+  assert.match(picker, /\$\{from\.getUTCDate\(\)\}–\$\{to\.getUTCDate\(\)\} \$\{endMonth\} \$\{endYear\}/);
+  assert.match(page, /DateRangePicker[^\n]*compact/);
+});

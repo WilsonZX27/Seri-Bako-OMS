@@ -31,6 +31,7 @@ const mockInspectionAssets: AssetSummary[] = [
 
 export const getAssetRegistration = cache(async () => {
   const actor = await requireActiveTenantActor(); await requirePermission("assets.manage");
+  if (isMockMode()) return { active: true, locations: [{ id: mockInspectionLocationId, source_name: "KL - Publika", branch_id: null, kind: "branch" }] as AssetLocation[] };
   const db = looseSupabase(await createClient());
   const activation = await db.rpc("asset_company_live", { p_company: actor.companyId });
   if (activation.error || activation.data === null) throw new Error(activation.error?.message ?? "Asset activation unavailable.");
@@ -333,6 +334,7 @@ export async function hasAssetChecklistSubmission(locationId: string, date: stri
 export const getAssetMasterOptions = cache(async () => {
   const actor = await requireActiveTenantActor();
   await requirePermission("assets.manage");
+  if (isMockMode()) return { fields: { "Department / Area": [], Category: ["Device", "Equipment"] }, people: [] as { id: string; full_name: string; staff_code: string | null }[] };
   const db = looseSupabase(await createClient());
   const choices: Record<string, Set<string>> = { "Department / Area": new Set(), Category: new Set() };
   const collect = (raw: unknown) => {

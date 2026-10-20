@@ -2156,7 +2156,7 @@ html[data-design-layer="v2"] table[data-ui-table] > thead > tr > th {
   html[data-design-layer="v2"] .sb-purchase-request-table td:nth-child(6) {
     white-space: normal;
     overflow-wrap: anywhere;
-    vertical-align: top;
+    vertical-align: middle;
   }
 
   html[data-design-layer="v2"] .sb-stock-movement-ledger {
@@ -2233,7 +2233,7 @@ html[data-design-layer="v2"] table[data-ui-table] > thead > tr > th {
   html[data-design-layer="v2"] .sb-staff-table :is(th, td):nth-child(5) { width: 20%; }
   html[data-design-layer="v2"] .sb-staff-table td {
     overflow-wrap: anywhere;
-    vertical-align: top;
+    vertical-align: middle;
   }
   html[data-design-layer="v2"] section[aria-label="Employee directory"] .unified-list-desktop-actions > [data-list-secondary-action="true"] {
     border: 1px solid var(--sb-border) !important;
@@ -2948,8 +2948,28 @@ html[data-design-layer="v2"] form.unified-list-header input[type="search"] {
   width: 100%;
   -webkit-appearance: none;
   appearance: none;
+  height: 44px;
+  line-height: 1.25;
+  padding-block: 0;
 }
 @media (max-width: 639px) {
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-filter-label { display: inline; }
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-row:has(.unified-list-date-submit) {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: center;
+  }
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-row:has(.unified-list-date-submit) > .unified-list-primary-control {
+    width: min(100%, 15rem);
+    max-width: 100%;
+    justify-self: start;
+  }
+  html[data-design-layer="v2"] form.unified-list-header button.unified-list-date-submit[type="submit"] {
+    grid-column: 2;
+    justify-self: end;
+    width: auto;
+    min-width: 4rem;
+    padding-inline: 1rem;
+  }
   html[data-design-layer="v2"] form.unified-list-header .unified-list-row--filter-only {
     grid-template-columns: minmax(0, 1fr) auto !important;
     justify-content: stretch !important;
@@ -2969,15 +2989,23 @@ html[data-design-layer="v2"] form.unified-list-header input[type="search"] {
     padding-inline: .5rem;
     text-align: right;
   }
-  html[data-design-layer="v2"] [data-outlet-daily-record-list] [role="listitem"] {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    row-gap: .25rem;
-  }
-  html[data-design-layer="v2"] [data-outlet-daily-record-list] [role="listitem"] > :last-child {
-    grid-column: 1 / -1;
-    width: 100%;
-    padding-top: .375rem;
-    border-top: 1px solid var(--sb-border-soft);
-  }
 }
+
+html[data-design-layer="v2"] .sb-workspace-updates [data-activity-description] {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+html[data-design-layer="v2"] .sb-workspace-updates [data-activity-icon] {
+  display: inline-flex;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: 0 0 1.25rem;
+  align-items: center;
+  justify-content: center;
+}
+html[data-design-layer="v2"] .sb-workspace-updates [data-activity-icon] svg { width: 1rem; height: 1rem; }
+html[data-design-layer="v2"] .sb-asset-overview-metrics [data-metric-primary] dd { font-size: 1.25rem; }
+html[data-design-layer="v2"] .sb-asset-overview-metrics [data-metric-primary]:nth-child(4) dd { color: var(--sb-danger); }
+html[data-design-layer="v2"] .sb-planning-summary-toggle { font-weight: 400; }

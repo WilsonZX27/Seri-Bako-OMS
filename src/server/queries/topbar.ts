@@ -186,3 +186,28 @@ export async function getTopBarActivity() {
   };
   return result;
 }
+
+export function getNavAttentionHrefs(activity: Awaited<ReturnType<typeof getTopBarActivity>>) {
+  const hrefs = [
+    ...(activity.pendingApprovals ?? []).map((item) => item.href),
+    ...(activity.notifications ?? []).map((item) => item.action_url ?? ""),
+  ];
+  const navHrefFor = (href: string): string | null => {
+    const path = href.split("?")[0];
+    if (path.startsWith("/asset-management")) return "/asset-management";
+    if (path.startsWith("/outlet-compliance")) return "/outlet-compliance";
+    if (path.startsWith("/purchase-requests")) return "/purchase-requests";
+    if (path.startsWith("/purchase-orders")) return "/purchase-orders";
+    if (path.startsWith("/supplier-invoices")) return "/supplier-invoices";
+    if (path.startsWith("/production/planning")) return "/production/planning";
+    if (path.startsWith("/production")) return "/production/jobs";
+    if (path.startsWith("/outlet-daily-records")) return "/outlet-daily-records";
+    if (path.startsWith("/stock-counts")) return "/stock-counts";
+    if (path.startsWith("/stock-balance")) return "/stock-balance";
+    if (path.startsWith("/stock-transfers")) return "/stock-transfers";
+    if (path.startsWith("/stock-wastage")) return "/stock-wastage";
+    if (path.startsWith("/goods-receivings")) return "/goods-receivings";
+    return null;
+  };
+  return [...new Set(hrefs.map(navHrefFor).filter((href): href is string => href !== null))];
+}

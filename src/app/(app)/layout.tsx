@@ -12,6 +12,9 @@ import { getPermissionMap } from "@/server/auth/permissions";
 import { navPermissionCodes } from "@/components/layout/nav-items";
 import { MobileAppNavigation } from "@/components/layout/mobile-app-navigation";
 import { getCompanyBranding } from "@/server/queries/common";
+import { getTopBarActivity, getNavAttentionHrefs } from "@/server/queries/topbar";
+import type { getTopBarActivity as GetTopBarActivity } from "@/server/queries/topbar";
+import { Suspense } from "react";
 import type { UserRole } from "@/types/database";
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const mobileNavigationPermissionCodes = ["outlet_daily_record.create", "goods_receiving.create", "stock_count.create"];
@@ -37,6 +40,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   const [permissionMap, branding] = await Promise.all([getPermissionMap(permissionCodes), getCompanyBranding()]);
+  const activityPromise = getTopBarActivity();
 
   const hasStaffRole = (profile as { has_staff_role?: boolean } | null)?.has_staff_role ?? false;
   const roleProfile = profile as { role_code?: UserRole; role?: UserRole } | null;
@@ -47,9 +51,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div data-app-shell data-design-layer="v2" className="min-h-dvh bg-[var(--app-bg)] xl:h-dvh xl:overflow-hidden">
       <div className="flex min-h-dvh min-w-0 xl:h-dvh">
-        <Sidebar permissionMap={permissionMap} role={role} companyName={branding.company_name} companyLogoUrl={branding.logo_url} displayName={displayName} />
+        <Suspense fallback={<aside data-app-sidebar aria-hidden="true" className="hidden h-dvh w-[var(--sb-sidebar-width)] shrink-0 bg-[var(--sb-green-950)] xl:block"/>}><Sidebar permissionMap={permissionMap} role={role} companyName={branding.company_name} companyLogoUrl={branding.logo_url} displayName={displayName} activityPromise={activityPromise} /></Suspense>
         <div className="flex min-w-0 flex-1 flex-col xl:overflow-hidden">
-          <TopBar permissionMap={permissionMap} role={role} companyName={branding.company_name} companyLogoUrl={branding.logo_url} displayName={displayName} />
+          <TopBar permissionMap={permissionMap} role={role} companyName={branding.company_name} companyLogoUrl={branding.logo_url} displayName={displayName} activityPromise={activityPromise} />
           {!hasStaffRole ? (
             <div className="border-b border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] px-5 py-3 text-sm font-medium text-[var(--sb-warning)]" role="alert">
               Your account has no staff role assigned. Please contact the Super Admin / Owner.
@@ -67,7 +71,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </div>
         </div>
       </div>
-      <MobileAppNavigation role={role} permissionMap={permissionMap} companyName={branding.company_name} />
+      <Suspense fallback={null}><MobileNavigationWithAttention role={role} permissionMap={permissionMap} companyName={branding.company_name} activityPromise={activityPromise}/></Suspense>
     </div>
   );
+}
+
+async function MobileNavigationWithAttention({ role, permissionMap, companyName, activityPromise }: { role: UserRole; permissionMap: Record<string, boolean>; companyName: string; activityPromise: ReturnType<typeof GetTopBarActivity> }) {
+  const activity = await activityPromise;
+  return <MobileAppNavigation role={role} permissionMap={permissionMap} companyName={companyName} attentionHrefs={getNavAttentionHrefs(activity)} />;
 }

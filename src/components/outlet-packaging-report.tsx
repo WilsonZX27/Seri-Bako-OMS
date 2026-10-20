@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ChartNoAxesCombined } from "lucide-react";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -103,8 +104,8 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
       </div>
       <div className="p-4">
         <p className="text-sm font-medium">{selectedProduct?.name??"Packaging"} · {measure==="usage"?"Usage":"Recorded balance"}</p>
-        <div className={points.some(point=>point.value!==null) || periodPending ? "mt-4 h-64" : "mt-4 flex min-h-32 items-center"} key={`${outlet}:${product}:${days}:${measure}`}>
-          {periodPending ? <SectionLoadingState label="Loading packaging trend" /> : !points.some(point=>point.value!==null) ? <div role="status" className="text-sm"><p className="font-medium">No complete {measure=== "closing" ? "balance" : "usage"} history for this period</p><p className="mt-1 text-xs text-muted-foreground">{outlet=== "all" ? "Choose an outlet to inspect its recorded history. Missing counts are not zero." : "Completed records will appear here. Missing counts are not zero."}</p></div> : <InteractiveLineChart compact width={600} height={256} inset={{ top: 20, right: 12, bottom: 28, left: 42 }} maximum={maximum} maximumFractionDigits={0}
+        <div className={points.some(point=>point.value!==null) || periodPending ? "mt-3 h-64" : "mt-3 min-h-24 rounded-md bg-[var(--sb-surface-muted)] p-3"} key={`${outlet}:${product}:${days}:${measure}`}>
+          {periodPending ? <SectionLoadingState label="Loading packaging trend" /> : !points.some(point=>point.value!==null) ? <div role="status" className="flex items-start gap-2 text-sm"><ChartNoAxesCombined aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-muted-foreground"/><div><p className="font-medium">No complete {measure=== "closing" ? "balance" : "usage"} history for this period</p><p className="mt-1 text-xs text-muted-foreground">{outlet=== "all" ? "Choose an outlet to inspect its recorded history. Missing counts are not zero." : "Completed records will appear here. Missing counts are not zero."}</p></div></div> : <InteractiveLineChart compact width={600} height={256} inset={{ top: 20, right: 12, bottom: 28, left: 42 }} maximum={maximum} maximumFractionDigits={0}
             ariaLabel={`${selectedProduct?.name ?? "Packaging"} daily ${measure==="usage"?"usage":"closing balance"}`} onSelectPoint={setSelectedDate}
             points={points.map((point) => ({ id: point.date, label: formatDateOnly(point.date), value: point.value,
               previewValue: point.value === null ? (measure==="closing"?"Incomplete balance coverage":point.rows.length ? "Incomplete usage coverage" : "No completed records") : `${formatNumber(point.value)} ${selectedProduct?.unit}`,

@@ -12,11 +12,12 @@ type MobileSidebarProps = {
   permissionMap: Record<string, boolean>;
   companyName?: string;
   companyLogoUrl?: string | null;
+  attentionHrefs?: string[];
 };
 
 // Tablet navigation is intentionally contextual: desktop keeps its persistent
 // sidebar at xl, while phone uses the role-aware bottom navigation below md.
-export function MobileSidebar({ role, permissionMap, companyName, companyLogoUrl }: MobileSidebarProps) {
+export function MobileSidebar({ role, permissionMap, companyName, companyLogoUrl, attentionHrefs = [] }: MobileSidebarProps) {
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -75,7 +76,7 @@ export function MobileSidebar({ role, permissionMap, companyName, companyLogoUrl
                 <X className="h-5 w-5" />
               </Button>
             </div>
-            <WorkspaceSidebar role={role} permissionMap={permissionMap} mobile companyName={companyName} companyLogoUrl={companyLogoUrl} onNavigate={close} />
+            <WorkspaceSidebar role={role} permissionMap={permissionMap} attentionHrefs={attentionHrefs} mobile companyName={companyName} companyLogoUrl={companyLogoUrl} onNavigate={close} />
           </aside>
         </div>, document.body
       ) : null}

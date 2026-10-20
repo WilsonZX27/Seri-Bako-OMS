@@ -5,17 +5,23 @@ import { TopBarActivityMenu } from "@/components/layout/top-bar-activity-menu";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
 import { MobileContextBack, MobileContextTitle } from "@/components/layout/mobile-context-header";
 import { getRoleDisplayLabel } from "@/lib/roles";
-import { getTopBarActivity } from "@/server/queries/topbar";
+import { getTopBarActivity, getNavAttentionHrefs } from "@/server/queries/topbar";
+import type { getTopBarActivity as GetTopBarActivity } from "@/server/queries/topbar";
 import type { UserRole } from "@/types/database";
 import { Suspense } from "react";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-async function WorkspaceUpdates() {
-  return <TopBarActivityMenu data={await getTopBarActivity()} />;
+async function WorkspaceUpdates({ activityPromise }: { activityPromise: ReturnType<typeof GetTopBarActivity> }) {
+  return <TopBarActivityMenu data={await activityPromise} />;
 }
 
-export function TopBar({ permissionMap, role, companyName, companyLogoUrl, displayName }: { permissionMap: Record<string, boolean>; role: UserRole; companyName: string; companyLogoUrl: string | null; displayName: string }) {
+async function MobileSidebarWithAttention({ role, permissionMap, companyName, companyLogoUrl, activityPromise }: { role: UserRole; permissionMap: Record<string, boolean>; companyName: string; companyLogoUrl: string | null; activityPromise: ReturnType<typeof GetTopBarActivity> }) {
+  const activity = await activityPromise;
+  return <MobileSidebar role={role} permissionMap={permissionMap} companyName={companyName} companyLogoUrl={companyLogoUrl} attentionHrefs={getNavAttentionHrefs(activity)} />;
+}
+
+export function TopBar({ permissionMap, role, companyName, companyLogoUrl, displayName, activityPromise }: { permissionMap: Record<string, boolean>; role: UserRole; companyName: string; companyLogoUrl: string | null; displayName: string; activityPromise: ReturnType<typeof GetTopBarActivity> }) {
   const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
@@ -23,7 +29,7 @@ export function TopBar({ permissionMap, role, companyName, companyLogoUrl, displ
       <div className="md:hidden"><MobileContextBack /></div>
       <div className="min-w-0 md:hidden"><MobileContextTitle /></div>
       <div className="hidden min-w-0 items-center md:flex">
-          <MobileSidebar role={role} permissionMap={permissionMap} companyName={companyName} companyLogoUrl={companyLogoUrl} />
+          <Suspense fallback={<Button type="button" variant="ghost" size="icon" disabled aria-label="Loading navigation" aria-busy="true"><span className="sr-only">Loading navigation</span></Button>}><MobileSidebarWithAttention role={role} permissionMap={permissionMap} companyName={companyName} companyLogoUrl={companyLogoUrl} activityPromise={activityPromise} /></Suspense>
           <div className="min-w-0"><Breadcrumbs /></div>
       </div>
       <div data-testid="topbar-account-region" className="flex min-w-0 items-center justify-end gap-2">
@@ -31,7 +37,7 @@ export function TopBar({ permissionMap, role, companyName, companyLogoUrl, displ
           <GlobalSearch permissionMap={permissionMap} />
         </div>
         <Suspense fallback={<Button type="button" variant="ghost" size="icon" disabled aria-label="Loading workspace updates" aria-busy="true"><Bell className="h-5 w-5" /></Button>}>
-          <WorkspaceUpdates />
+          <WorkspaceUpdates activityPromise={activityPromise} />
         </Suspense>
         <div className="hidden md:block"><AccountMenu displayName={displayName} roleLabel={getRoleDisplayLabel(role)} initials={initials} /></div>
       </div>

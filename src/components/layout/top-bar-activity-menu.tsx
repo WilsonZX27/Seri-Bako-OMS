@@ -129,8 +129,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
                 return <div key={group} className="pt-1 first:pt-0">
                   {groupedPendingActions.length > 1 ? <p className="px-2 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{group}</p> : null}
                   {items.map((item) => <Link key={item.id} href={item.href} onClick={() => setOpen(false)} className="flex min-h-10 items-start gap-2 rounded-md px-2 py-2 text-xs leading-4 hover:bg-secondary">
-                    <span aria-hidden="true" className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--sb-warning)]" />
-                    <GroupIcon aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    <span data-activity-icon aria-hidden="true" className="mt-0.5 rounded-md bg-[var(--sb-surface-muted)] text-primary"><GroupIcon /></span>
                     <span className="min-w-0 break-words">{item.document_no} · {item.title}</span>
                   </Link>)}
                 </div>;
@@ -145,8 +144,8 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
               </div>
               {notifications.map((notification) => (
                 <Link key={notification.id} href={notification.action_url ?? "/activity"} onClick={() => setOpen(false)} className="flex min-h-10 gap-2 rounded-[var(--sb-control-radius)] px-2 py-2 text-xs leading-4 hover:bg-secondary">
-                  <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                  <span className="min-w-0"><span className="block">{notification.title}</span>{notification.message ? <span className="mt-0.5 block text-xs leading-4 text-muted-foreground">{notification.message}</span> : null}</span>
+                  <span data-activity-icon aria-hidden="true" className="mt-0.5 rounded-md bg-[var(--sb-surface-muted)] text-primary"><ShieldAlert /></span>
+                  <span className="min-w-0"><span className="block">{notification.title}</span>{notification.message ? <span data-activity-description className="mt-0.5 block text-xs leading-4 text-muted-foreground">{notification.message}</span> : null}</span>
                 </Link>
               ))}
               {announcements.map((notification) => (

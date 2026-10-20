@@ -4,7 +4,7 @@ import { receivedDisplay, wastageDisplay } from "@/lib/operational-value-display
 import { OutstandingDailyRecords } from "@/components/outstanding-daily-records";
 import { OutletDailyWorkspaceNav } from "@/components/outlet-daily-workspace-nav";
 import Link from "next/link";
-import { Pencil } from "lucide-react";
+import { CalendarDays, Pencil } from "lucide-react";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
@@ -97,9 +97,10 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
             key={row.id}
             href={`/outlet-daily-records/${row.id}`}
             label={`Open ${row.branch_name} daily record`}
-            primary={<div className="flex flex-wrap items-baseline gap-x-3"><span>{row.branch_name}</span><span className="text-xs font-normal text-muted-foreground">{formatDateOnly(row.record_date)}{row.record_date === data.summary.today ? " · Today" : ""}</span></div>}
+            fullWidthDetails
+            primary={<div className="flex min-w-0 flex-wrap items-baseline gap-x-2"><span className="truncate">{row.branch_name}</span><span className="inline-flex shrink-0 items-center gap-1 text-xs font-normal text-muted-foreground"><CalendarDays aria-hidden="true" className="size-3.5"/>{formatDateOnly(row.record_date)}{row.record_date === data.summary.today ? " · Today" : ""}</span></div>}
             status={<StatusBadge status={outletProgress(row).status} />}
-            detail={<dl className="mt-1 flex flex-wrap gap-x-4 gap-y-1"><div className="flex min-w-0 items-baseline gap-1"><dt className="text-xs">Qty sent</dt><dd className={canViewSentGaps && row.qty_sent_state !== "confirmed" ? "truncate font-medium text-warning" : "truncate font-medium"}>{canViewSentGaps ? row.qty_sent_state === "confirmed" ? row.total_sent === null ? "Unavailable" : formatNumber(row.total_sent) : row.qty_sent_state === "draft" ? "Confirm" : "Missing" : "Restricted"}</dd></div><div className="flex min-w-0 items-baseline gap-1"><dt className="text-xs">Received</dt><dd className="font-medium"><OperationalValue display={receivedDisplay(row)} /></dd></div><div className="flex min-w-0 items-baseline gap-1"><dt className="text-xs">Wastage</dt><dd className="font-medium"><OperationalValue display={wastageDisplay(row)} /></dd></div></dl>}
+            detail={<dl className="mt-1 grid w-full grid-cols-2 gap-x-4 gap-y-1.5 sm:grid-cols-3">{[["Qty sent", canViewSentGaps ? row.qty_sent_state === "confirmed" ? row.total_sent === null ? "Unavailable" : formatNumber(row.total_sent) : row.qty_sent_state === "draft" ? "Confirm" : "Missing" : "Restricted"], ["Received", <OperationalValue display={receivedDisplay(row)} />], ["Wastage", <OperationalValue display={wastageDisplay(row)} />]].map(([label,value])=><div key={String(label)} className="flex min-w-0 items-center justify-between gap-2 border-t border-[var(--sb-border-soft)] pt-1.5"><dt className="shrink-0 text-xs text-muted-foreground">{label}</dt><dd className={`min-w-0 truncate text-right font-medium ${label === "Qty sent" && canViewSentGaps && row.qty_sent_state !== "confirmed" ? "text-warning" : ""}`}>{value}</dd></div>)}</dl>}
           />)}
           {!data.rows.length ? <EmptyState title={filtered ? "No daily records match these filters" : "No outlet daily records yet"} description={filtered ? "Reset the filters or widen the search." : "Daily receiving and wastage records will appear here."} action={filtered ? { href: "/outlet-daily-records", label: "Reset filters" } : undefined} /> : null}
         </OperationalList>

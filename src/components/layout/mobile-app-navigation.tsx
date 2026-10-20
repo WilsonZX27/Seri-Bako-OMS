@@ -35,6 +35,7 @@ type MobileTab = {
   label: string;
   icon: LucideIcon;
   permission?: string;
+  hasAttention?: boolean;
 };
 
 
@@ -104,10 +105,12 @@ export function MobileAppNavigation({
   role,
   permissionMap,
   companyName,
+  attentionHrefs = [],
 }: {
   role: UserRole;
   permissionMap: Record<string, boolean>;
   companyName: string;
+  attentionHrefs?: string[];
 }) {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
@@ -115,18 +118,18 @@ export function MobileAppNavigation({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
-  const groups = useMemo(() => getVisibleNavGroups(role, permissionMap), [permissionMap, role]);
+  const groups = useMemo(() => getVisibleNavGroups(role, permissionMap, attentionHrefs), [attentionHrefs, permissionMap, role]);
   const tabs = useMemo(() => {
-    const preferred = roleTabs(role, permissionMap).filter((tab) => !tab.permission || has(permissionMap, tab.permission));
+    const preferred = roleTabs(role, permissionMap).filter((tab) => !tab.permission || has(permissionMap, tab.permission)).map((tab) => ({...tab,hasAttention:attentionHrefs.includes(tab.href)}));
     const seen = new Set(preferred.map((tab) => tab.href));
     for (const item of groups.flatMap((group) => group.items)) {
       if (preferred.length >= 4) break;
       if (seen.has(item.href)) continue;
-      preferred.push({ href: item.href, label: item.label, icon: item.icon });
+      preferred.push({ href: item.href, label: item.label, icon: item.icon, hasAttention: item.hasAttention });
       seen.add(item.href);
     }
     return preferred.slice(0, 4);
-  }, [groups, permissionMap, role]);
+  }, [attentionHrefs, groups, permissionMap, role]);
 
   useEffect(() => setMoreOpen(false), [pathname]);
 
@@ -300,6 +303,7 @@ export function MobileAppNavigation({
                 )}
               >
                 <Icon className="h-5 w-5" strokeWidth={active ? 2.25 : 1.8} aria-hidden="true" />
+                {tab.hasAttention ? <span className="absolute left-1/2 top-1.5 ml-2 size-1.5 rounded-full bg-amber-500" role="img" aria-label="Pending update"/> : null}
                 <span className="max-w-full truncate">{tab.label}</span>
               </Link>
             );

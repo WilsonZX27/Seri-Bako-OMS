@@ -14,15 +14,15 @@ const icons: Record<IaIcon, LucideIcon> = {
   upload: Upload, userCog: UserCog, users: Users, calendar: CalendarDays,
 };
 
-export type NavItem = Omit<(typeof informationArchitecture)[number], "icon" | "roles"> & { icon: LucideIcon };
+export type NavItem = Omit<(typeof informationArchitecture)[number], "icon" | "roles"> & { icon: LucideIcon; hasAttention: boolean };
 export type NavGroup = { id: string; label: string; href?: string; items: NavItem[] };
 
-export function getVisibleNavGroups(role: UserRole, permissionMap?: Record<string, boolean>): NavGroup[] {
+export function getVisibleNavGroups(role: UserRole, permissionMap?: Record<string, boolean>, attentionHrefs: readonly string[] = []): NavGroup[] {
   const visible = getVisibleIaItems(role, permissionMap);
   return Object.entries(iaGroupLabels)
     .map(([id, label]) => ({ id, label, href: id === "procurement" || id === "inventory" ? `/${id}` : undefined, items: visible.filter((item) => item.group === id).map(({ icon, roles, ...item }) => {
       void roles;
-      return { ...item, icon: item.href === "/branches" ? MapPin : icons[icon] };
+      return { ...item, icon: item.href === "/branches" ? MapPin : icons[icon], hasAttention: attentionHrefs.includes(item.href) };
     }) }))
     .filter((group) => group.items.length > 0);
 }

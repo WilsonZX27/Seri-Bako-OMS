@@ -3005,7 +3005,8 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
 .sb-workspace-updates { display: flex; flex-direction: column; max-height: calc(100dvh - 5rem); }
 .sb-workspace-updates > :first-child { flex: none; }
 .sb-workspace-updates > :last-child { min-height: 0; }
-.sb-workspace-updates section > a { min-height: 36px; align-items: flex-start; }
+.sb-workspace-updates section > a:not([data-activity-log-action]) { min-height: 36px; align-items: flex-start; }
+.sb-workspace-updates section > a[data-activity-log-action] { align-items: center; }
 .sb-workspace-updates section > a > span { min-width: 0; overflow-wrap: anywhere; }
 .sb-workspace-updates section svg { width: 16px; height: 16px; flex: 0 0 16px; }
 @media (max-width: 1279px) {

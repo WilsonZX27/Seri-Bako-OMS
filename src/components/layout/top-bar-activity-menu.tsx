@@ -161,7 +161,7 @@ export function TopBarActivityMenu({ data, canOpenActivity = true }: { data: Top
                   <p className="mt-1 text-xs text-muted-foreground">{formatTime(activity.created_at)}</p>
                 </div>
               ))}
-              {canOpenActivity ? <Button asChild variant="outline" className="w-full"><Link href="/activity" onClick={() => setOpen(false)}>Open full activity log<ArrowRight aria-hidden="true" className="size-4 shrink-0" /></Link></Button> : null}
+              {canOpenActivity ? <Button asChild variant="outline" className="w-full"><Link href="/activity" data-activity-log-action onClick={() => setOpen(false)}>Open full activity log<ArrowRight aria-hidden="true" className="size-4 shrink-0" /></Link></Button> : null}
             </section>
           </div>
         </div>

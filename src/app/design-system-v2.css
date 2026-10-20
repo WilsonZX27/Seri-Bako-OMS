@@ -3154,4 +3154,26 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
   html[data-design-layer="v2"]:has(form.sb-daily-insights-filters) .unified-list-sheet-fields {
     grid-template-columns: minmax(0, 1fr) !important;
   }
+  html[data-design-layer="v2"] .sb-outlet-daily-workspace-tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    overflow-x: visible;
+  }
+  html[data-design-layer="v2"] .sb-outlet-daily-workspace-tabs > a {
+    flex-direction: column;
+    gap: 2px;
+    padding-inline: 4px;
+    font-size: 12px;
+    line-height: 12px;
+  }
+  html[data-design-layer="v2"] .sb-outlet-daily-workspace-tabs > a > span {
+    white-space: normal;
+    text-align: center;
+  }
+  html[data-design-layer="v2"] form.sb-delivery-order-filters .unified-list-row:has(.unified-list-date-submit) {
+    grid-template-columns: minmax(0, 1fr) 64px 64px !important;
+  }
+  html[data-design-layer="v2"] form.sb-delivery-order-filters .unified-list-row .unified-list-result {
+    grid-column: 3 !important;
+    justify-self: end;
+  }
 }

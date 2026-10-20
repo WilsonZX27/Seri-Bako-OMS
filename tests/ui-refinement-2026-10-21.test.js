@@ -2,13 +2,22 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const read = p => fs.readFileSync(p,'utf8');
-test('reviewed lists have one create owner and scoped metadata styling', () => {
- for (const route of ['purchase-requests','outlet-daily-records']) {
-  const source=read(`src/app/(app)/${route}/page.tsx`);
-  assert.ok(!source.slice(source.indexOf('<PageHeader'),source.indexOf('<WorkspaceGrid',source.indexOf('<PageHeader'))).includes('action='));
-  assert.match(source,/data-mobile-primary-action/);
-  assert.match(source,/<FilterBar\s+key=\{JSON.stringify\(\[filters\./);
- }
+test('reviewed lists have one visible phone create owner and scoped metadata styling', () => {
+ const requests=read('src/app/(app)/purchase-requests/page.tsx');
+ const requestHeader=requests.slice(requests.indexOf('<PageHeader'),requests.indexOf('<WorkspaceGrid',requests.indexOf('<PageHeader')));
+ assert.doesNotMatch(requestHeader,/action=/);
+ assert.match(requests,/permissions\["pr\.create"\] \? <Button[^>]*data-mobile-primary-action><Link href="\/purchase-requests\/new"/);
+ assert.match(requests,/<FilterBar\s+key=\{JSON.stringify\(\[filters\./);
+
+ const daily=read('src/app/(app)/outlet-daily-records/page.tsx');
+ assert.match(daily,/<PageHeader[^>]*action=\{canCreate \? \{ href: "\/outlet-daily-records\/new", label: "New Daily Record" \} : undefined\} hideTabletCreateFab/);
+ assert.match(daily,/canCreate \? <Button[^>]*data-mobile-primary-action><Link href="\/outlet-daily-records\/new"/);
+ assert.match(daily,/<FilterBar\s+key=\{JSON.stringify\(\[filters\./);
+ const pageHeader=read('src/components/ui/page-header.tsx');
+ const rightConsole=read('src/components/layout/right-console.tsx');
+ assert.match(pageHeader,/props\.hideTabletCreateFab \? "md:hidden xl:hidden"/);
+ assert.match(rightConsole,/className="fixed[^\"]*md:hidden"/);
+
  const css=read('src/app/design-system-v2.css');
  assert.match(css,/#main-content \.sb-daily-record-metrics/);
  assert.match(css,/\.sb-pr-phone-supplier > span \{ white-space: normal; overflow-wrap: anywhere;/);

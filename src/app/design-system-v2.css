@@ -3177,3 +3177,19 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
     justify-self: end;
   }
 }
+@media (min-width: 640px) and (max-width: 1279px) {
+  html[data-design-layer="v2"] form.sb-delivery-order-filters .unified-list-row:has(.unified-list-date-submit) {
+    grid-template-columns: minmax(0, 1fr) 64px 64px !important;
+  }
+  html[data-design-layer="v2"] form.unified-list-header.sb-delivery-order-filters button.unified-list-date-submit[type="submit"] {
+    display: inline-flex !important;
+    grid-column: 2;
+    width: 64px;
+    min-width: 64px;
+    height: 44px;
+    min-height: 44px;
+  }
+  html[data-design-layer="v2"] form.sb-delivery-order-filters .unified-list-row .unified-list-result {
+    grid-column: 3 !important;
+  }
+}

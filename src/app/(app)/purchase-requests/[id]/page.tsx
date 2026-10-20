@@ -402,7 +402,7 @@ export default async function PurchaseRequestDetailPage({
               ) : (
                 <>
                   {canEditRequest ? <div role="status" className="mb-3 rounded-[var(--sb-control-radius)] bg-[var(--sb-warning-soft)] p-3"><p className="text-sm font-semibold">Request editing unavailable</p><p className="mt-1 text-xs text-muted-foreground">Item, supplier-route, or branch options could not be loaded. Existing request lines remain read-only until you retry.</p></div> : null}
-                  <Table mobileHidden aria-label="Requested items">
+                  <Table mobileHidden compactUntil="2xl" aria-label="Requested items">
                       <TableHeader>
                         <TableRow>
                           <TableHead className="w-12 text-center">#</TableHead>
@@ -443,7 +443,7 @@ export default async function PurchaseRequestDetailPage({
                         </TableRow>)}
                       </TableBody>
                   </Table>
-                  <div className="divide-y divide-[var(--sb-border-soft)] xl:hidden" role="list" aria-label="Requested items">
+                  <div className="divide-y divide-[var(--sb-border-soft)] 2xl:hidden" role="list" aria-label="Requested items">
                     {lines.map((line, index) => {
                       const item = itemById.get(line.item_id);
                       const readiness = readinessByLine.get(line.id)!;

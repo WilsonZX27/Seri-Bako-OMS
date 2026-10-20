@@ -2909,6 +2909,8 @@ html[data-design-layer="v2"] .sb-work-surface.sb-guidance-surface { background: 
 html[data-design-layer="v2"] .sb-table-region { scrollbar-width: thin; scrollbar-color: var(--sb-border) transparent; }
 html[data-design-layer="v2"] .sb-table-region::-webkit-scrollbar { display: block; height: 8px; }
 html[data-design-layer="v2"] .sb-table-region::-webkit-scrollbar-thumb { background: var(--sb-border); border-radius: var(--sb-control-radius); }
+html[data-design-layer="v2"] [data-low-stock-workspace] { min-width:0; max-width:100%; overflow-x:clip; }
+html[data-design-layer="v2"] [data-low-stock-workspace] .sb-table-region { min-width:0; max-width:100%; overflow-x:auto; }
 @media (prefers-reduced-motion: reduce) { .sb-pr-basket-sheet { animation: none; } }
 
 /* Date-only query rows reserve a full touch target and fixed inter-control gaps. */
@@ -2973,10 +2975,9 @@ html[data-design-layer="v2"] [data-page-jump], html[data-design-layer="v2"] [dat
 
 /* Read-only summaries use natural-height label/value rows. */
 @media(max-width:1279px) {
-.sb-label-value-summary { display:grid; grid-template-columns:minmax(0,1fr); grid-auto-rows:auto; gap:.5rem; }
-.sb-label-value-summary > div:not(.hidden) { grid-column:1 / -1; display:grid; grid-template-columns:minmax(0,2fr) minmax(0,3fr); align-items:start; gap:.75rem; min-height:0; padding-block:0; }
-.sb-label-value-summary > div > :first-child { text-transform:none; }
-.sb-label-value-summary > div > :last-child { justify-self:end; text-align:right; min-width:0; overflow-wrap:anywhere; margin-top:0; }
+.sb-label-value-summary > div:not(.hidden) { min-width:0; }
+.sb-label-value-summary > div:not(.hidden) > :first-child { text-transform:none; }
+.sb-label-value-summary > div:not(.hidden) > :last-child { min-width:0; overflow-wrap:anywhere; }
 }
 .sb-asset-field-grid > label { align-content:start; gap:.25rem; }
 .sb-asset-field-grid > label > span:first-child { min-height:0; display:block; }
@@ -2984,9 +2985,9 @@ html[data-design-layer="v2"] [data-page-jump], html[data-design-layer="v2"] [dat
 [data-console-section] + [data-console-section] { margin-top:.75rem; }
 /* Semantic read-only description lists share the same label/value grammar. */
 @media(max-width:1279px) {
-#main-content dl:has(> div > dt) { display:grid; grid-template-columns:minmax(0,1fr); grid-auto-rows:auto; gap:.5rem; }
-#main-content dl > div:not(:has(> svg)):has(> dt + dd:last-child) { display:grid; grid-column:1 / -1; grid-template-columns:minmax(0,1fr) fit-content(60%); align-items:start; gap:.75rem; min-height:0; }
-#main-content dl > div:not(:has(> svg)):has(> dt + dd:last-child) > dd { min-width:0; margin-top:0; text-align:right; overflow-wrap:anywhere; }
+#main-content dl:not([class*="grid-cols"]):has(> div > dt) { display:grid; grid-template-columns:minmax(0,1fr); grid-auto-rows:auto; gap:.5rem; }
+#main-content dl:not([class*="grid-cols"]) > div:not(:has(> svg)):has(> dt + dd:last-child) { display:grid; grid-column:1 / -1; grid-template-columns:minmax(0,1fr) fit-content(60%); align-items:start; gap:.75rem; min-height:0; }
+#main-content dl:not([class*="grid-cols"]) > div:not(:has(> svg)):has(> dt + dd:last-child) > dd { min-width:0; margin-top:0; text-align:right; overflow-wrap:anywhere; }
 }
 
 @media(max-width:767px) {

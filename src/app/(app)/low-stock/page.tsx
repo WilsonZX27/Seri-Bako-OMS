@@ -64,7 +64,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
           </ConsoleSection>
         }
       >
-        <div className="space-y-3">
+        <div className="min-w-0 max-w-full space-y-3 overflow-x-clip" data-low-stock-workspace>
           <div>
             {unavailable ? <p role="status" className="erp-surface p-3 text-sm">Replenishment is unavailable until stock data can be confirmed.</p> : <LowStockPrForm
               items={items}

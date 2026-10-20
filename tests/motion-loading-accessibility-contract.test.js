@@ -13,6 +13,7 @@ test("continuous loading motion respects the operating-system reduced-motion pre
   assert.match(globals, /animation-iteration-count: 1 !important/);
   assert.match(globals, /transition-duration: 0\.01ms !important/);
   assert.match(globals, /scroll-behavior: auto !important/);
+  assert.match(globals, /:is\(a, button, summary, \[role="button"\]\):active\s*\{\s*transform: none !important;/);
 });
 
 test("finance reports use the shared loading status", () => {

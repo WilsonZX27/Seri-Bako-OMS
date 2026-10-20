@@ -857,6 +857,10 @@ input[type="date"]::-webkit-date-and-time-value {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+
+  :is(a, button, summary, [role="button"]):active {
+    transform: none !important;
+  }
 }
 
 /* Schedule is an editing surface: keep the roster visually distinct from the canvas. */

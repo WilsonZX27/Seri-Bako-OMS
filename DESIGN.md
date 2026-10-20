@@ -1,8 +1,8 @@
 > Local candidate — 2026-10-18: desktop query filters use 120px at the existing 1280px desktop breakpoint; search is a named icon action and the query field absorbs remaining space. Phone/tablet touch sizes remain unchanged. Shared card/profile/form headers separate titles from fields with a soft rule. Employment and access editing stays in the People profile. Pending release; see final-audit/FEEDBACK-16-AUDIT.txt in the task workspace.
 
-# v9.2.109 (unreleased)
+# v9.2.110 (unreleased)
 
-> Preview candidate — 2026-10-20: responsive workspace refinements keep tablet action rails visible beside their content; Purchase Request rows align across phone, tablet and desktop; Low Stock removes the “Buy now” marker and per-item PR quantity editor while retaining suggested quantities. Production remains v9.2.106 until separately verified and released.
+> Preview candidate — 2026-10-20: shared controls suppress press scaling under reduced-motion preferences and mobile floating actions use a restrained shared elevation token. Responsive workspace refinements keep tablet action rails visible beside their content; Purchase Request rows align across phone, tablet and desktop; Low Stock removes the “Buy now” marker and per-item PR quantity editor while retaining suggested quantities. Production remains v9.2.106 until separately verified and released.
 
 ## v9.2.107 (unreleased)
 

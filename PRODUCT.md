@@ -1,8 +1,8 @@
-> Preview candidate — 2026-10-20: application v9.2.109 includes responsive workspace refinements and a simplified Low Stock purchase basket using suggested quantities. migrations reviewed through `368`; forward-only migration 历史已到 `368`. Migration 368 restricts Kitchen to assigned asset checks and self-service access while assigning Staff Codes 5 and 57 to Chef; source-reviewed, not applied to Production. Production remains v9.2.106; latest Preview verification is in progress.
+> Preview candidate — 2026-10-20: application v9.2.110 includes reduced-motion press feedback, lighter mobile floating-action elevation, responsive workspace refinements, and a simplified Low Stock purchase basket using suggested quantities. migrations reviewed through `368`; forward-only migration 历史已到 `368`. Migration 368 restricts Kitchen to assigned asset checks and self-service access while assigning Staff Codes 5 and 57 to Chef; source-reviewed, not applied to Production. Production remains v9.2.106; latest Preview verification is in progress.
 
-# v9.2.109 (unreleased)
+# v9.2.110 (unreleased)
 
-Responsive workspace refinements keep tablet action rails visible beside their content and align Purchase Request rows across phone, tablet and desktop. Low Stock removes the “Buy now” marker and per-item PR quantity editor; checked items create draft requests using suggested quantities and mapped purchase units. Preview verification is in progress; Production remains v9.2.106.
+Shared controls suppress press scaling for reduced-motion users and mobile floating actions use a restrained shared shadow token. Responsive workspace refinements keep tablet action rails visible beside their content and align Purchase Request rows across phone, tablet and desktop. Low Stock removes the “Buy now” marker and per-item PR quantity editor; checked items create draft requests using suggested quantities and mapped purchase units. Preview verification is in progress; Production remains v9.2.106.
 
 > Local candidate — 2026-10-19: migrations reviewed through `366`; forward-only migration 历史已到 `366`. Chef and unique username login are local changes pending database verification and release.
 

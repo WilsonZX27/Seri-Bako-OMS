@@ -1,3 +1,7 @@
+## v9.2.110 — responsive list completion
+
+Purchase Requests keeps the complete compact row at 1280–1399px until the desktop table fits with its summary rail. Outlet Daily Records keeps its complete compact row below 1536px for the same reason. Singular line and item labels are corrected. The active Preview candidate retains the v9.2.109 workflow and permission repairs; Production is unchanged. See `docs/qa/2026-10-21-closure.md` for verification scope and open items.
+
 ## v9.2.109 — reviewed operational UI
 
 Daily Records and PR use scoped compact layouts, persistent daily filters, semantic notification icons and permission-scoped attention dots. Phone PR metadata stays 11px; desktop controls 36px and touch targets 44px. Functional restorations are tracked independently in docs/ui-refinement-review.md.

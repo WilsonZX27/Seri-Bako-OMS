@@ -3044,6 +3044,12 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
   html[data-design-layer="v2"] form:is(.sb-outlet-daily-filters,.sb-purchase-request-filters) :is(.unified-list-primary-control,.unified-list-primary-input,.unified-list-search-submit,.unified-list-filter-trigger,.unified-list-pinned-control button) { height: 36px !important; min-height: 36px !important; }
 }
 
+/* The PR table needs roughly 800px after its summary rail. Keep its complete
+   compact row visible until the main pane actually has that width. */
+@media (min-width: 1280px) and (max-width: 1399px) {
+  html[data-design-layer="v2"] .sb-table-region:has(> table.sb-purchase-request-table) { display: none; }
+  html[data-design-layer="v2"] .sb-pr-continuous-rows { display: block; }
+}
 /* Preserve the already-approved asset metric grid against legacy description-list rules. */
 #main-content dl.sb-asset-overview-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
 #main-content dl.sb-asset-overview-metrics > div:has(> dt + dd:last-child) { display: block; grid-column: auto; }

@@ -1,3 +1,7 @@
+## v9.2.110 — responsive list completion
+
+At widths where a summary rail leaves less space than a data table needs, use the already established compact row until the full table fits. The PR threshold is 1400px; Daily Records uses the existing 2xl threshold at 1536px. No global typography or table rule changes.
+
 ## v9.2.109 — reviewed operational UI
 
 Daily Records and PR use scoped compact layouts, persistent daily filters, semantic notification icons and permission-scoped attention dots. Phone PR metadata stays 11px; desktop controls 36px and touch targets 44px. Functional restorations are tracked independently in docs/ui-refinement-review.md.

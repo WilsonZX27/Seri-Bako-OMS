@@ -167,7 +167,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
                   label={item.item_name}
                   primary={item.item_name}
                   status={<><Badge variant={item.stock_status === "out_of_stock" ? "danger" : "warning"}>{item.stock_status.replaceAll("_", " ")}</Badge>{trailing}</>}
-                  secondary={`${item.item_code} ${item.branch_name ?? "-"} ${item.supplier_name ?? ""}`}
+                  secondary={[item.item_code, item.branch_name, item.supplier_name].filter(Boolean).join(" · ")}
                   detail={`Current: ${formatNumber(item.current_stock)} ${item.base_unit} · Suggested: ${formatNumber(item.suggested_reorder_qty)} ${item.purchase_unit || item.base_unit}`}
                 />
               );

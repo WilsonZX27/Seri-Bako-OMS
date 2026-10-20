@@ -18,7 +18,7 @@ const allViewports = [
 ];
 const requestedViewports = process.env.AUDIT_VIEWPORTS?.split(",").map((viewport) => viewport.trim()).filter(Boolean);
 const viewports = allViewports.filter((viewport) => !requestedViewports || requestedViewports.includes(viewport.label));
-const output = path.join(process.cwd(), "test-results", "control-geometry-audit.json");
+const output = path.resolve(process.env.AUDIT_OUTPUT || path.join(process.cwd(), "test-results", "control-geometry-audit.json"));
 
 (async () => {
   const browser = await chromium.launch({ headless: true });

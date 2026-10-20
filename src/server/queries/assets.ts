@@ -46,6 +46,32 @@ export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query =
   if ((view === "overview") && !canAccessAssetManagement(actor.roleCode)) throw new Error("Asset management role required.");
   if (view === "maintenance" && !canAccessAssetManagement(actor.roleCode)) await requirePermission("assets.report");
   await requirePermission("assets.view");
+  if (isMockMode()) {
+    if (locationId && locationId !== mockInspectionLocationId) throw new Error("Asset location unavailable.");
+    const checkDate = date || todayInKualaLumpur();
+    addDays(checkDate, 0);
+    const location: AssetLocation = { id: mockInspectionLocationId, source_name: "KL - Publika", branch_id: null, kind: "branch" };
+    const filteredAssets = mockInspectionAssets.filter((asset) =>
+      (!query || `${asset.asset_code} ${asset.item_name}`.toLowerCase().includes(query.toLowerCase()))
+      && (!category || category === "all" || asset.current_details?.Category === category),
+    ).sort((a, b) => sort === "name" ? a.item_name.localeCompare(b.item_name) : a.asset_code.localeCompare(b.asset_code));
+    const overview: AssetOverview = {
+      assetCount: mockInspectionAssets.length, knownQuantity: mockInspectionAssets.length,
+      unknownHoldings: 0, attentionAssets: 0, openMaintenance: 0, inTransitQuantity: 0,
+      locations: [{ id: location.id, name: location.source_name, assetCount: mockInspectionAssets.length, quantity: mockInspectionAssets.length }],
+      checkDate, checklist: [{ id: location.id, name: location.source_name, kind: location.kind, open: true, reason: null, expected: mockInspectionAssets.length, checked: 0, submitted: false }],
+      maintenanceTrend: [], issueTrend: [], maintenanceByStatus: [],
+    };
+    const assets = view === "assets" && page === 1 ? filteredAssets : [];
+    return {
+      active: true, view, page, query, locations: [location],
+      overview: view === "overview" || view === "checklist" ? overview : null,
+      assets, holdings: assets.map((asset): AssetHolding => ({ asset_id: asset.id, location_id: location.id, quantity: 1 })),
+      records: [] as AssetRecord[], total: view === "assets" ? filteredAssets.length : 0,
+      filterOptions: { categories: ["Device", "Equipment"], statuses: [] as string[] },
+      maintenanceSummary: view === "maintenance" ? { "Total tickets": 0, Outstanding: 0, Processed: 0, Cancelled: 0 } : null,
+    };
+  }
   const db = looseSupabase(await createClient());
   const company = actor.companyId;
   const activation = await db.rpc("asset_company_live", { p_company: company });

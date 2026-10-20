@@ -3055,7 +3055,7 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
 /* Preserve the already-approved asset metric grid against legacy description-list rules. */
 #main-content dl.sb-asset-overview-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
 #main-content dl.sb-asset-overview-metrics > div:has(> dt + dd:last-child) { display: block; grid-column: auto; }
-#main-content dl.sb-asset-overview-metrics > div > dd { text-align: left; margin-top: .25rem; }
+#main-content dl.sb-asset-overview-metrics > div:has(> dt + dd:last-child) > dd { text-align: left; margin-top: .25rem; }
 @media (min-width:640px) { #main-content dl.sb-asset-overview-metrics { grid-template-columns: repeat(3,minmax(0,1fr)); } }
 @media (min-width:1024px) { #main-content dl.sb-asset-overview-metrics { grid-template-columns: repeat(6,minmax(0,1fr)); } }
 @media (min-width:640px) and (max-width:1023px) {

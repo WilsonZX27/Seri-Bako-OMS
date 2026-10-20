@@ -45,6 +45,7 @@ export async function getAttendanceWorkspace(weekStart = malaysiaWeekStart()) {
 
 export async function getSchedulePlanner(weekStart = malaysiaWeekStart(), requestedBranchId?: string) {
   if (!(await hasPermission("schedule.read"))) throw new Error("Missing permission: schedule.read");
+  if (isMockMode()) return { branches: [], branchId: null, week: null, previousWeekId: null, untimedDuties: [] as Array<{staff_id:string;work_date:string;label:string}>, templates: [], people: [], candidates: [], assignments: [], externalAssignments: [], roBalances: {} as Record<string,number>, submittedByName: null, importSource: null };
   const canPlan = await hasPermission("schedule.draft") || await hasPermission("schedule.approve");
   const db = looseSupabase(await createClient());
   const { data: branches, error: branchError } = await db.rpc("get_schedule_branches");
@@ -95,6 +96,7 @@ export async function getSchedulePlanner(weekStart = malaysiaWeekStart(), reques
 
 export async function getScheduleOverview(weekStart = malaysiaWeekStart()) {
   if (!(await hasPermission("schedule.read"))) throw new Error("Missing permission: schedule.read");
+  if (isMockMode()) return [];
   const canPlan = await hasPermission("schedule.draft") || await hasPermission("schedule.approve");
   const db = looseSupabase(await createClient());
   const { data: branchData, error: branchError } = await db.rpc("get_schedule_branches");
@@ -323,6 +325,7 @@ export async function getOwnPublishedShifts(weekStart = malaysiaWeekStart()) {
 
 export async function getPendingShiftRequests() {
   if (!(await hasPermission("schedule.swap_review")) && !(await hasPermission("schedule.approve"))) return [];
+  if (isMockMode()) return [];
   const db=looseSupabase(await createClient());const {data,error}=await db.from("shift_change_requests").select("id,status,reason,material_change,created_at,shift_assignment_revisions!shift_change_requests_assignment_id_fkey(work_date,staffs!shift_assignment_revisions_staff_id_fkey(full_name),branches!shift_assignment_revisions_branch_id_fkey(branch_name))").in("status",["pending_supervisor","pending_manager"]).order("created_at");if(error)throw error;return data??[];
 }
 

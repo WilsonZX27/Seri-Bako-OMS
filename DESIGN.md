@@ -1,5 +1,9 @@
 > Local candidate — 2026-10-18: desktop query filters use 120px at the existing 1280px desktop breakpoint; search is a named icon action and the query field absorbs remaining space. Phone/tablet touch sizes remain unchanged. Shared card/profile/form headers separate titles from fields with a soft rule. Employment and access editing stays in the People profile. Pending release; see final-audit/FEEDBACK-16-AUDIT.txt in the task workspace.
 
+# v9.2.114 (unreleased)
+
+Stock Count missing-balance quantity fields use the concise visual placeholder “Count” in narrow cards; the accessible name still identifies the item and counted quantity.
+
 # v9.2.113 (unreleased)
 
 AP Aging uses modality-neutral chart help text. The chart remains previewable by pointer, touch and keyboard; the hint describes the preview content and the follow-up filter action without privileging one input mode.

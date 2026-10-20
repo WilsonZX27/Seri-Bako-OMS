@@ -733,7 +733,7 @@ export function StockCountForm({
                           aria-invalid={validationAttempted && !hasPhysical}
                           aria-describedby={validationAttempted && !hasPhysical ? `physical-error-${line.item_id}` : undefined}
                            aria-label={`Counted quantity for ${line.item_name}`}
-                          placeholder={line.prefill_source === "unavailable" ? "Enter count" : "0.000"}
+                          placeholder={line.prefill_source === "unavailable" ? "Count" : "0.000"}
                            className="h-10 w-full min-w-10 flex-1 rounded-none border-0 px-1 text-center text-[13px] font-semibold tabular-nums shadow-none focus-visible:ring-inset [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         />
                           <button type="button" className="flex h-10 w-10 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, 1)} aria-label={`Increase physical quantity for ${line.item_name}`}><Plus className="h-4 w-4" /></button>

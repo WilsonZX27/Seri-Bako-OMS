@@ -1,4 +1,8 @@
-> Preview candidate — 2026-10-20: application v9.2.113 uses modality-neutral AP Aging chart guidance and a compact complete date-range label for Outlet Daily Insights, alongside reduced-motion press feedback, lighter mobile floating-action elevation, a task-first Stock Count list, responsive workspace refinements, and a simplified Low Stock purchase basket using suggested quantities. migrations reviewed through `368`; forward-only migration 历史已到 `368`. Migration 368 restricts Kitchen to assigned asset checks and self-service access while assigning Staff Codes 5 and 57 to Chef; source-reviewed, not applied to Production. Production remains v9.2.106; latest Preview verification is in progress.
+> Preview candidate — 2026-10-20: application v9.2.114 shortens the missing-balance Stock Count input placeholder for compact phone cards and uses modality-neutral AP Aging chart guidance plus a compact complete date-range label for Outlet Daily Insights. It also includes reduced-motion press feedback, lighter mobile floating-action elevation, a task-first Stock Count list, responsive workspace refinements, and a simplified Low Stock purchase basket. migrations reviewed through `368`; forward-only migration 历史已到 `368`. Migration 368 restricts Kitchen to assigned asset checks and self-service access while assigning Staff Codes 5 and 57 to Chef; source-reviewed, not applied to Production. Production remains v9.2.106; latest Preview verification is in progress.
+
+# v9.2.114 (unreleased)
+
+The missing-balance Stock Count placeholder now fits narrow two-column phone cards while its full accessible label remains unchanged. Preview verification is in progress; Production remains v9.2.106.
 
 # v9.2.113 (unreleased)
 

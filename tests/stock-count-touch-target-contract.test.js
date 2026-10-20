@@ -11,6 +11,7 @@ test("stock count steppers use phone-safe touch targets and stable labels", () =
   assert.match(source, /className="h-10 w-full min-w-10 flex-1/);
   assert.match(source, /aria-label=\{`Decrease physical quantity for \$\{line\.item_name\}`\}/);
   assert.match(source, /aria-label=\{`Increase physical quantity for \$\{line\.item_name\}`\}/);
+  assert.match(source, /placeholder=\{line\.prefill_source === "unavailable" \? "Count" : "0\.000"\}/);
 });
 
 // Responsive geometry is verified in the browser; literal Tailwind strings

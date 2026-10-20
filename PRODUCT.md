@@ -1,3 +1,7 @@
+## v9.2.122 (local candidate) — historical annotation follow-up
+
+The local branch includes scoped purchase, Daily Records, Low Stock, asset and upload-guidance refinements made after v9.2.121. The shell version advances so the next consolidated Preview can be identified accurately; this batch has not been pushed or signed off. See `docs/releases/preview-v9.2.122-local-candidate.md` and `docs/qa/2026-10-21-closure.md` for the changes and remaining role/data checks.
+
 ## v9.2.121 (Preview) — local review follow-up
 
 This Preview includes a scoped page-header contrast correction, complete narrow-screen Attendance descriptions and import filename wrapping, a direct Attendance import entry, and navigation attention for every fetched actionable notification. Production is unchanged. See `docs/releases/preview-v9.2.121-review-follow-up.md` for verification and open items.

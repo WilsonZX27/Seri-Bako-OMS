@@ -1,3 +1,7 @@
+## v9.2.122 (local candidate) — scoped interface follow-up
+
+Keep the 11px annotated PR phone metadata, 12px asset checklist copy, 36px desktop controls and 44px touch controls. Local changes refine the PR and Daily compact rows, Low Stock basket and filters, asset forms, and upload guidance without changing the shared type scale. The remaining shared-list first-frame shift and live role/data checks are tracked in `docs/qa/2026-10-21-closure.md`.
+
 ## v9.2.121 (Preview) — local review follow-up
 
 The page-header description uses a darker scoped muted color on its pale workspace surface without changing body text or type sizes. Attendance task descriptions and long import filenames wrap at phone widths. Navigation dots include actionable notification destinations beyond the popover's five-row preview; live clearing remains to verify.

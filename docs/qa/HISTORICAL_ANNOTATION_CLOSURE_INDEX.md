@@ -9,7 +9,7 @@ This is an inventory for the active full-system closure, not a sign-off. A histo
 | `docs/qa/OWNER_FEEDBACK_2026-10-16.md` | Comments 1–33: asset actions, attendance, import/review, holiday scheduling, production planning, recipe/setup, PDF export | Prior local/Production evidence is mixed; each route and action needs current-build classification |
 | `docs/qa/MOBILE_SYSTEM_REFINEMENT_2026-10-17.md` | Comments 1–18: shared mobile filters, sheets, pagination, asset checklist, maintenance, product/recipe, account menu | Prior local checks; current authenticated viewport recheck pending |
 | `docs/qa/ASSET_RECIPE_FEEDBACK_2026-10-17.md` | Nine asset/recipe comments: inspection layout, maintenance history, costing caveat, selectors, mobile fields/actions | Prior local checks; current authenticated viewport recheck pending |
-| `docs/ui-refinement-review.md` | Recent PR 11px metadata and FAB, asset 12px copy/metric cards, Attendance restoration, Daily filters, navigation dots, notifications, 36px desktop/44px touch controls | Source and v9.2.109 checks; current v9.2.117 candidate recheck pending |
+| `docs/ui-refinement-review.md` | Recent PR 11px metadata and FAB, asset 12px copy/metric cards, Attendance restoration, Daily filters, navigation dots, notifications, 36px desktop/44px touch controls | Source and v9.2.109 checks; current v9.2.118 candidate recheck pending |
 | `docs/qa/2026-10-21-closure.md` | Current PR and Daily breakpoint fixes, phone Daily create entry, screenshot reliability, role-matrix gap | Partial current Preview measurements; open items listed there |
 
 ## Recent browser comment batches still requiring current sign-off

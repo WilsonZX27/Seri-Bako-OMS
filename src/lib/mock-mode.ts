@@ -1,4 +1,5 @@
 import { hasSupabaseEnv } from "@/lib/supabase/env";
+import { SYSTEM_ROLE_CODES, roleDisplayLabels } from "@/lib/roles";
 import type { Database, UserRole } from "@/types/database";
 
 type TableName = keyof Database["public"]["Tables"];
@@ -54,7 +55,19 @@ export const mockCompany: Row<"companies"> = {
 export const mockBranches: Row<"branches">[] = [];
 export const mockSuppliers: Row<"suppliers">[] = [];
 export const mockItems: Row<"items">[] = [];
-export const mockRoles: Row<"roles">[] = [];
+export const mockRoles: Row<"roles">[] = SYSTEM_ROLE_CODES.map((roleCode) => ({
+  id: `mock-role-${roleCode}`,
+  company_id: mockCompany.id,
+  role_code: roleCode,
+  role_name: roleDisplayLabels[roleCode],
+  description: null,
+  status: "active",
+  created_at: mockCompany.created_at,
+  updated_at: mockCompany.updated_at,
+  created_by: null,
+  updated_by: null,
+  deleted_at: null,
+}));
 export const mockPermissions: Row<"permissions">[] = [];
 export const mockStaffs: Row<"staffs">[] = [];
 export const mockStaffRoles: Row<"staff_roles">[] = [];

@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 const statusVariant = (status: string) => status === "recovered" ? "success" : status === "action_required" ? "danger" : status === "recovering" ? "warning" : "secondary";
 
 export default async function SystemHealthPage({ searchParams }: { searchParams: Promise<{ incident?: string }> }) {
-  const [{ incidents, summary }, params] = await Promise.all([getSystemHealthWorkspace(), searchParams]);
+  const [{ incidents, summary, available }, params] = await Promise.all([getSystemHealthWorkspace(), searchParams]);
   const selected = incidents.find((row) => row.id === params.incident) ?? null;
 
   return (
@@ -50,10 +50,10 @@ export default async function SystemHealthPage({ searchParams }: { searchParams:
       >
         <section aria-label="24-hour reliability summary" className="grid grid-cols-2 gap-px overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-border-soft)] lg:grid-cols-4">
           {[
-            { label: "Incidents · 24h", value: summary.incidents24h, icon: Activity },
-            { label: "Unresolved", value: summary.unresolved, icon: CircleAlert },
-            { label: "Action required", value: summary.actionRequired, icon: HeartPulse },
-            { label: "Recovery rate", value: `${summary.recoveryRate}%`, icon: CheckCircle2 },
+            { label: "Incidents · 24h", value: summary.incidents24h ?? "—", icon: Activity },
+            { label: "Unresolved", value: summary.unresolved ?? "—", icon: CircleAlert },
+            { label: "Action required", value: summary.actionRequired ?? "—", icon: HeartPulse },
+            { label: "Recovery rate", value: summary.recoveryRate === null ? "—" : `${summary.recoveryRate}%`, icon: CheckCircle2 },
           ].map(({ label, value, icon: Icon }) => (
             <div key={label} className="bg-white p-3">
               <div className="flex items-center gap-2 text-xs text-[var(--sb-text-muted)]"><Icon className="h-4 w-4" aria-hidden="true" />{label}</div>
@@ -78,7 +78,7 @@ export default async function SystemHealthPage({ searchParams }: { searchParams:
                 <time className="text-xs text-[var(--sb-text-muted)]">{formatDateTime(incident.last_seen_at)}</time>
               </Link>
             ))}
-            {!incidents.length ? <div className="p-6 text-center"><CheckCircle2 className="mx-auto h-6 w-6 text-[var(--sb-success)]" /><p className="mt-2 text-sm font-medium">No reliability incidents in the last 24 hours</p><p className="mt-1 text-xs text-[var(--sb-text-muted)]">New signals will be grouped here automatically.</p></div> : null}
+            {!incidents.length ? <div className="p-6 text-center">{available ? <><CheckCircle2 className="mx-auto h-6 w-6 text-[var(--sb-success)]" /><p className="mt-2 text-sm font-medium">No reliability incidents in the last 24 hours</p><p className="mt-1 text-xs text-[var(--sb-text-muted)]">New signals will be grouped here automatically.</p></> : <><CircleAlert className="mx-auto h-6 w-6 text-[var(--sb-text-muted)]" /><p className="mt-2 text-sm font-medium">Live system health is unavailable in local preview</p><p className="mt-1 text-xs text-[var(--sb-text-muted)]">Review incidents and recovery metrics in an authenticated Preview.</p></>}</div> : null}
           </div>
         </section>
       </WorkspaceGrid>

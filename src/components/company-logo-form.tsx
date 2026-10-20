@@ -56,7 +56,7 @@ export function CompanyLogoForm({
           </div>
         </div>
 
-        {logoError ? <p className="rounded-[var(--sb-panel-radius)] border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{logoError}</p> : null}
+        {logoError ? <p data-inset-surface className="rounded-[var(--sb-panel-radius)] border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{logoError}</p> : null}
 
         <form id={uploadFormId} action={uploadAction} className="space-y-3">
           <input type="hidden" name="company_id" value={companyId} />

@@ -1,0 +1,15 @@
+{
+  "baseline": "351",
+  "migration": "352_attendance_four_punch_evidence.sql",
+  "sha256": "b26768c50040ab14b3faa3e7555f355b1b639499a717af99a6fce9f4cd2d8e8b",
+  "scope": "local synthetic independent replay database",
+  "migration_exit": 0,
+  "regression_exit": 0,
+  "rollback": true,
+  "passed_notices": [
+    "NOTICE:  PASS four points, net work, late+early, midnight, duplicate, missing, typed order, extra punch, pending OT and blank PPH",
+    "NOTICE:  PASS OT approval retains attendance signature, invalidates payroll, credits RO once, rejects repeat, audited missing-break correction",
+    "NOTICE:  PASS pay-only adjustment retains signature/approved OT, credited time changes require RO reconciliation",
+    "NOTICE:  PASS time correction invalidates attendance confirmation and updates net work/late status"
+  ]
+}

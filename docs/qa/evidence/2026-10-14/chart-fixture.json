@@ -1,0 +1,15 @@
+{
+  "company": "ecf98462-bd2f-48cf-b79d-fb4965cea567",
+  "plan": "e1558421-c184-4c3e-980f-fe7fdaa8d087",
+  "date": "2026-11-01",
+  "historyDates": [
+    20,
+    22,
+    24,
+    27,
+    30
+  ],
+  "rows": 5,
+  "missingWastageDate": "2026-10-24",
+  "syntheticOnly": true
+}

@@ -10,6 +10,7 @@ test("Branches replaces the narrow technical table without losing bulk selection
   const branches = read("src/app/(app)/branches/page.tsx");
 
   assert.match(branches, /<Table mobileHidden compactUntil="xl" aria-label="Branches"/);
+  assert.match(branches, /sb-list-content-card overflow-hidden/);
   assert.match(branches, /<OperationalList ariaLabel="Branches" showUntil="xl">/);
   assert.match(branches, /<BulkSelectAllCheckbox touchTarget \/>/);
   assert.match(branches, /<BulkSelectRowCheckbox id=\{branch\.id\} label=\{`Select \$\{branch\.branch_name\}`\} touchTarget \/>/);

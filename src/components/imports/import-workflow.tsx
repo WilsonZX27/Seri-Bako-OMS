@@ -210,6 +210,7 @@ type SupplierPreview = { id: string; supplier_code: string | null; name: string 
 export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntity; suppliers?: SupplierPreview[] }) {
   const spec = importTemplates[entity];
   const [rows, setRows] = useState<RowState[]>(() => validateRows(entity, [emptyRow(entity)]));
+  const [validationRequested, setValidationRequested] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [fileName, setFileName] = useState("");
@@ -221,6 +222,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
   const validRows = useMemo(() => rows.filter((row) => !row.errors.length), [rows]);
   const errorRows = useMemo(() => rows.filter((row) => row.errors.length), [rows]);
   const rowValidationMessage = (row: RowState) => {
+    if (!validationRequested) return "Not checked";
     if (row.errors.length) return row.errors.join("; ");
     const supplierCode = row.values.supplier_code?.trim().toLowerCase();
     const supplier = entity === "items" && supplierCode
@@ -380,6 +382,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
   }
 
   function checkErrors() {
+    setValidationRequested(true);
     const nextRows = validateRows(entity, rows.map((row) => row.values));
     setRows(nextRows);
     setResult(null);
@@ -440,13 +443,13 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
     </ConsoleSection>
     <ConsoleSection title="Review actions">
       <p className="text-xs text-muted-foreground">Validate the current rows before confirming. Confirmation stays disabled until valid rows are ready.</p>
-      <Button type="button" variant="outline" className="w-full" onClick={checkErrors}>Check errors</Button>
+      <Button type="button" variant="outline" data-mobile-primary-action className="w-full" onClick={checkErrors}>Check errors</Button>
       <Button type="button" className="w-full" onClick={confirmImport} disabled={!validRows.length || isSaving || Boolean(spec.needsPostingConfirmation && !confirmPosting)}><Upload className="mr-2 h-4 w-4" />{isSaving ? "Importing..." : "Confirm import"}</Button>
       <Button type="button" variant="outline" className="w-full" onClick={downloadErrorCsv} disabled={!errorRows.length}>Download errors</Button>
       {message ? <p className="text-xs text-muted-foreground">{message}</p> : null}
     </ConsoleSection>
     <ConsoleSection title="Current file">
-      <div className="space-y-2 text-xs"><div className="flex justify-between"><span className="text-muted-foreground">Total rows</span><strong>{rows.length}</strong></div><div className="flex justify-between"><span className="text-muted-foreground">Valid rows</span><strong>{validRows.length}</strong></div><div className="flex justify-between"><span className="text-muted-foreground">Needs fixes</span><strong>{errorRows.length}</strong></div></div>
+      <div className="space-y-2 text-xs"><div className="flex justify-between"><span className="text-muted-foreground">Total rows</span><strong>{rows.length}</strong></div><div className="flex justify-between"><span className="text-muted-foreground">Valid rows</span><strong>{validationRequested ? validRows.length : "—"}</strong></div><div className="flex justify-between"><span className="text-muted-foreground">Needs fixes</span><strong>{validationRequested ? errorRows.length : "—"}</strong></div></div>
     </ConsoleSection>
   </>;
 
@@ -459,17 +462,18 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
             <div>
               <p className="text-sm font-semibold">Import workflow</p>
               <p className="mt-1 text-sm text-muted-foreground">{spec.description}</p>
-              <ul className="mt-3 space-y-1 text-xs text-muted-foreground">
+              <details className="mt-3 text-xs"><summary className="cursor-pointer font-medium">Import guide</summary><ul className="mt-2 space-y-1 text-muted-foreground">
                 {spec.notes.map((note) => (
                   <li key={note}>{note}</li>
                 ))}
-              </ul>
+              </ul></details>
             </div>
           </div>
 
-          <div className="grid items-stretch gap-2 md:grid-cols-5">
+          <p className="text-sm font-medium md:hidden">{steps[activeStep].title}</p>
+          <div className="hidden items-stretch gap-2 md:grid md:grid-cols-5">
             {steps.map((step, index) => (
-              <div key={step.title} aria-current={index === activeStep ? "step" : undefined} className={`h-full rounded-[var(--sb-panel-radius)] border p-3 ${index === activeStep ? "border-[var(--sb-green-700)] bg-[var(--sb-green-100)]" : index < activeStep ? "bg-[var(--sb-success-bg)]" : "bg-[var(--sb-muted)]"}`}>
+              <div data-inset-surface key={step.title} aria-current={index === activeStep ? "step" : undefined} className={`h-full rounded-[var(--sb-panel-radius)] border p-3 ${index === activeStep ? "border-[var(--sb-green-700)] bg-[var(--sb-green-100)]" : index < activeStep ? "bg-[var(--sb-success-bg)]" : "bg-[var(--sb-muted)]"}`}>
                 <p className="text-sm font-medium">{step.title}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{step.detail}</p>
               </div>
@@ -478,7 +482,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
 
           <div className="grid min-w-0 gap-4">
             <div className="min-w-0 space-y-4">
-              <div className="min-w-0 rounded-[var(--sb-panel-radius)] border bg-[var(--sb-muted)] p-3">
+              <div data-inset-surface className="min-w-0 rounded-[var(--sb-panel-radius)] border bg-[var(--sb-muted)] p-3">
                 <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
                   <FileSpreadsheet className="h-4 w-4" />
                   Sample row
@@ -494,7 +498,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
                   {fileName ? <p className="text-xs text-muted-foreground">Loaded source: {fileName}</p> : null}
                   {draftSavedAt ? <p className="text-xs text-muted-foreground">Saved draft on this browser: {formatSavedAt(draftSavedAt)}</p> : null}
                 </div>
-                <div className="min-w-0 space-y-2">
+                <div className="grid min-w-0 content-start gap-1">
                   <p className="text-xs font-medium">Import mode</p>
                   <SelectNative value={mode} onChange={(event) => setMode(event.target.value as ImportMode)} disabled={spec.modes.length === 1}>
                     {spec.modes.map((value) => (
@@ -507,7 +511,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
               </div>
 
               {spec.needsPostingConfirmation ? (
-                <label className="flex items-start gap-3 rounded-[var(--sb-panel-radius)] border border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] p-3 text-sm text-[var(--sb-warning)]">
+                <label data-inset-surface className="flex items-start gap-3 rounded-[var(--sb-panel-radius)] border border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] p-3 text-sm text-[var(--sb-warning)]">
                   <input type="checkbox" className="mt-1" checked={confirmPosting} onChange={(event) => setConfirmPosting(event.target.checked)} />
                   <span>I understand this will post opening stock into the Movement Ledger.</span>
                 </label>
@@ -516,20 +520,20 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
 
           </div>
 
-          {result ? <div className="grid gap-3 rounded-[var(--sb-panel-radius)] border bg-[var(--sb-muted)] p-3 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-[var(--sb-panel-radius)] border bg-card p-3">
+          {result ? <div data-inset-surface className="grid gap-3 rounded-[var(--sb-panel-radius)] border bg-[var(--sb-muted)] p-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div data-inset-surface className="rounded-[var(--sb-panel-radius)] border bg-card p-3">
               <div className="flex items-center gap-2 text-sm font-medium text-success"><CheckCircle2 className="h-4 w-4" />Imported</div>
               <p className="mt-1 text-2xl font-semibold">{summary.imported}</p>
             </div>
-            <div className="rounded-[var(--sb-panel-radius)] border bg-card p-3">
+            <div data-inset-surface className="rounded-[var(--sb-panel-radius)] border bg-card p-3">
               <div className="flex items-center gap-2 text-sm font-medium text-primary"><Upload className="h-4 w-4" />Updated</div>
               <p className="mt-1 text-2xl font-semibold">{summary.updated}</p>
             </div>
-            <div className="rounded-[var(--sb-panel-radius)] border bg-card p-3">
+            <div data-inset-surface className="rounded-[var(--sb-panel-radius)] border bg-card p-3">
               <div className="flex items-center gap-2 text-sm font-medium text-[var(--sb-warning)]"><AlertTriangle className="h-4 w-4" />Skipped</div>
               <p className="mt-1 text-2xl font-semibold">{summary.skipped}</p>
             </div>
-            <div className="rounded-[var(--sb-panel-radius)] border bg-card p-3">
+            <div data-inset-surface className="rounded-[var(--sb-panel-radius)] border bg-card p-3">
               <div className="flex items-center gap-2 text-sm font-medium text-destructive"><XCircle className="h-4 w-4" />Errors</div>
               <p className="mt-1 text-2xl font-semibold">{summary.errors}</p>
             </div>
@@ -563,7 +567,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
                       <Input value={row.values[header] ?? ""} onChange={(event) => updateCell(rowIndex, header, event.target.value)} />
                     </TableCell>
                   ))}
-                  <TableCell className={row.errors.length ? "text-destructive" : "text-success"}>{rowValidationMessage(row)}</TableCell>
+                  <TableCell className={!validationRequested ? "text-muted-foreground" : row.errors.length ? "text-destructive" : "text-success"}>{rowValidationMessage(row)}</TableCell>
                   <TableCell className="text-right">
                     <Button type="button" variant="ghost" size="sm" onClick={() => removeRow(rowIndex)}>Remove</Button>
                   </TableCell>
@@ -585,7 +589,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold">Row {row.index}</p>
-                  <p className={`mt-0.5 text-xs ${row.errors.length ? "text-destructive" : "text-success"}`}>{rowValidationMessage(row)}</p>
+                  <p className={`mt-0.5 text-xs ${!validationRequested ? "text-muted-foreground" : row.errors.length ? "text-destructive" : "text-success"}`}>{rowValidationMessage(row)}</p>
                 </div>
                 <Button type="button" variant="ghost" size="sm" onClick={() => removeRow(rowIndex)}>Remove</Button>
               </div>

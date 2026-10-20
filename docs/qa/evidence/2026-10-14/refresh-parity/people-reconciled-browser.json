@@ -1,0 +1,15 @@
+{
+  "scope": "two isolated People browser sessions",
+  "checks": [
+    "People A submitted original credit reversal",
+    "People A self-approval rejected and comment retained",
+    "Separate People B approved reversal",
+    "People A corrected clock out after approved reversal",
+    "People B approved corrected thirty-minute OT claim",
+    "Database confirms net RO 30 minutes and approved OT 1800 seconds"
+  ],
+  "ledger": {
+    "balance": 30,
+    "approved_ot": 1800
+  }
+}

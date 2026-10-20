@@ -106,7 +106,7 @@ test("workbook importer accepts an explicit Monday window and fails closed", () 
 });
 
 test("schedule workbook UI previews live identities and imports only verified editable outlets", () => {
-  for (const contract of ["import-catalog", "parseScheduleWorkbook", "sourceIssues", "Published rosters were unchanged", "flagged cells stay empty"])
+  for (const contract of ["import-catalog", "parseScheduleWorkbook", "sourceIssues", "published and locked schedules are protected", "Only reviewed employee days are saved"])
     assert.match(workbookImportUi, new RegExp(contract, "i"));
   for (const contract of ["home_branch_id", "multiple_destination_shifts", "unattached_schedule_note", "suspicious_time_span", "needs a destination shift time"])
     assert.match(workbookParser, new RegExp(contract));
@@ -122,7 +122,8 @@ test("schedule workbook UI previews live identities and imports only verified ed
 
 test("staff detail leads with the profile and removes the redundant helper paragraph", () => {
   const staff = read("src/app/(app)/staffs/[id]/page.tsx");
-  assert.match(staff, /Open profile[\s\S]*Current Status/);
+  assert.match(staff, /redirect\(`/);
+  assert.match(staff, /section:"security"/);
   assert.doesNotMatch(
     staff,
     /Update staff identity, access, and account actions/,

@@ -154,7 +154,7 @@ export function CommentsPanel({ documentId, comments, canRemove = false }: { doc
     <ConsoleSection title="Comments">
       <div className="space-y-3">
         <form action={addDocumentComment.bind(null, documentId)} className="space-y-2">
-          <Textarea name="comment_text" placeholder="Add a comment" required className="min-h-20 w-full resize-none text-[13px] leading-5" />
+          <Textarea name="comment_text" aria-label="Add a comment" placeholder="Add a comment" required className="min-h-20 w-full resize-none text-[13px] leading-5" />
           <SubmitButton type="submit" pendingLabel="Saving..." className="w-full justify-center">Add comment</SubmitButton>
         </form>
         <div className="space-y-3">
@@ -171,27 +171,29 @@ export function CommentsPanel({ documentId, comments, canRemove = false }: { doc
   );
 }
 
-export function ApprovalPanel({ document, approval, approvalSteps }: { document: Document; approval: Approval; approvalSteps: ApprovalStep[] }) {
+export async function ApprovalPanel({ document, approval, approvalSteps, compact = false }: { document: Document; approval: Approval; approvalSteps: ApprovalStep[]; compact?: boolean }) {
+  const [canSubmit, canApprove, canUpdate] = await Promise.all([hasPermission("documents.submit"), hasPermission("documents.approve"), hasPermission("documents.update")]);
+  const canReview = canApprove && document.status === "pending_approval";
   return (
-    <ConsoleSection title="Approval Panel">
+    <ConsoleSection title={compact ? "Approval" : "Next action"}>
       <div className="space-y-3">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-start justify-between gap-2">
           <div>
             <p className="text-xs text-muted-foreground">Current approver: {approvalSteps.find((step) => step.status === "pending")?.approver_role ?? "Not assigned"}</p>
           </div>
-          <Badge variant={document.approval_status === "approved" ? "success" : document.approval_status === "rejected" ? "danger" : "secondary"}>{document.approval_status}</Badge>
+          {!compact ? <Badge className="shrink-0" variant={document.approval_status === "approved" ? "success" : document.approval_status === "rejected" ? "danger" : "secondary"}>{document.approval_status}</Badge> : null}
         </div>
         <div className="grid gap-2">
-          <form action={submitDocument.bind(null, document.id)}><SubmitButton type="submit" pendingLabel="Sending..." className="w-full justify-center">Submit for approval</SubmitButton></form>
-          <form action={postDocument.bind(null, document.id)}><SubmitButton type="submit" variant="outline" pendingLabel="Posting..." className="w-full justify-center">Post</SubmitButton></form>
-          <DestructiveActionDialog action={cancelDocument.bind(null, document.id)} label="Cancel" title="Cancel this document?" description="The document will stop progressing through its current workflow." pendingLabel="Cancelling..." />
+          {canSubmit && ["draft", "rejected"].includes(document.status) ? <form action={submitDocument.bind(null, document.id)}><SubmitButton type="submit" pendingLabel="Sending..." className="w-full justify-center">Submit for approval</SubmitButton></form> : null}
+          {canUpdate && document.status === "approved" ? <form action={postDocument.bind(null, document.id)}><SubmitButton type="submit" variant="outline" pendingLabel="Posting..." className="w-full justify-center">Post</SubmitButton></form> : null}
+          {canUpdate && !["posted", "closed", "cancelled"].includes(document.status) ? <details><summary className="min-h-11 cursor-pointer py-3 text-xs">Other actions</summary><DestructiveActionDialog action={cancelDocument.bind(null, document.id)} label="Cancel document" title="Cancel this document?" description="The document will stop progressing through its current workflow." pendingLabel="Cancelling..." /></details> : null}
         </div>
-        <form action={approveDocument.bind(null, document.id)} className="grid gap-2">
-          <Input name="remarks" placeholder="Approval remarks" />
+        {canReview ? <><form action={approveDocument.bind(null, document.id)} className="grid gap-2">
+          <Input name="remarks" aria-label="Approval remarks" placeholder="Approval remarks" />
           <SubmitButton type="submit" pendingLabel="Approving..." className="w-full justify-center">Approve</SubmitButton>
         </form>
-        <DestructiveActionDialog action={rejectDocument.bind(null, document.id)} label="Reject" title="Reject this document?" description="The document will return for correction and cannot progress until resubmitted." pendingLabel="Rejecting..."><Input name="remarks" placeholder="Rejection remarks required" required /></DestructiveActionDialog>
-        <div className="rounded-[var(--sb-panel-radius)] border">
+        <DestructiveActionDialog action={rejectDocument.bind(null, document.id)} label="Reject" title="Reject this document?" description="The document will return for correction and cannot progress until resubmitted." pendingLabel="Rejecting..."><Input name="remarks" aria-label="Rejection remarks" placeholder="Rejection remarks required" required /></DestructiveActionDialog></> : <p className="text-xs text-muted-foreground">{document.status === "submitted" ? "Submitted · awaiting workflow assignment." : "Only actions available at this stage are shown."}</p>}
+        <details><summary className="min-h-11 cursor-pointer py-3 text-xs">Approval history</summary><div className="rounded-[var(--sb-panel-radius)] border">
           {approvalSteps.map((step) => (
             <div key={step.id} className="flex flex-col gap-1 border-b p-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -203,7 +205,7 @@ export function ApprovalPanel({ document, approval, approvalSteps }: { document:
             </div>
           ))}
           {!approval && !approvalSteps.length ? <p className="p-3 text-center text-xs text-muted-foreground">No approval history yet.</p> : null}
-        </div>
+        </div></details>
       </div>
     </ConsoleSection>
   );

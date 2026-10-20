@@ -28,7 +28,7 @@ test("UI consistency keeps imports upload-only and permission details user-facin
   assert.doesNotMatch(staffPermissions, /Technical details/);
   assert.match(staffPermissions, /role="switch"/);
   assert.match(staffPermissions, /Role default/);
-  assert.doesNotMatch(staffPermissions, /<details/);
+  assert.match(staffPermissions, /<details[\s\S]*Permissions by category/);
 });
 
 test("shared filter rows use compact operational-green submits without adding duplicate link icons", () => {
@@ -111,7 +111,7 @@ test("administration decision directories replace narrow tables with shared oper
   const sequences = read("src/app/(app)/document-sequences/page.tsx");
   const staffs = read("src/app/(app)/people/page.tsx");
 
-  assert.match(cleanup, /<Table mobileHidden stickyColumn="second" aria-label="Master data cleanup issues">/);
+  assert.match(cleanup, /<Table mobileHidden stickyColumn="none" aria-label="Master data cleanup issues">/);
   assert.match(cleanup, /<OperationalList ariaLabel="Master data cleanup issues">/);
   assert.match(cleanup, /Next: \{issue\.action\}/);
   assert.match(sequences, /<Table mobileHidden aria-label="Document sequences"/);
@@ -119,7 +119,7 @@ test("administration decision directories replace narrow tables with shared oper
   assert.match(sequences, /Current period \$\{sequence\.preview_number/);
   assert.match(sequences, /Next \$\{sequence\.next_number\}/);
   assert.match(staffs, /<Table[^>]*mobileHidden[^>]*aria-label="Employees"/);
-  assert.match(staffs, /<OperationalList ariaLabel="Employees" className="erp-surface overflow-hidden">/);
+  assert.match(staffs, /<OperationalList ariaLabel="Employees" className="overflow-hidden[^"]*">/);
   assert.match(staffs, /staffAuthStateLabels\[getStaffAuthState\(staff\)\]/);
   assert.match(staffs, /staff\.default_branch_name\?\?"No default outlet"/);
 });
@@ -151,7 +151,7 @@ test("stock count sessions preserve workflow orientation throughout long entry l
 
 test("administration and import directories use the shared flat operational tool list", () => {
   assert.equal(fs.existsSync("src/components/category-card-grid.tsx"), false);
-  assert.match(administration, /<WorkspaceGrid tabletCanvas="contained">/);
+  assert.match(administration, /<WorkspaceGrid tabletCanvas="contained" hideMobileConsole rightRail=/);
   assert.match(importsIndex, /<WorkspaceGrid tabletCanvas="contained">/);
   assert.match(administration, /<OperationalToolList items=\{links\}/);
   assert.match(importsIndex, /<OperationalToolList items=\{items\}/);

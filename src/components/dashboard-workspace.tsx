@@ -46,7 +46,7 @@ function Metric({
         <span className={variant === "tile" ? "col-span-2 row-start-2 min-w-0 text-xs font-medium leading-4 text-[var(--sb-text-muted)]" : "truncate"}>{label}</span>
       </span>
       <strong
-        className={unavailable ? "col-start-2 row-start-1 justify-self-end text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-warning)]" : variant === "tile" ? density === "compact" ? "col-start-2 row-start-1 min-w-0 justify-self-end whitespace-nowrap text-lg font-semibold tabular-nums sm:text-xl" : "col-start-2 row-start-1 justify-self-end text-xl font-semibold tabular-nums sm:text-2xl" : "tabular-nums"}
+        className={unavailable ? "col-start-2 row-start-1 justify-self-end text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-warning)]" : variant === "tile" ? cn("col-start-2 row-start-1 min-w-0 justify-self-end whitespace-nowrap sb-kpi-value", alert ? alertTone === "critical" ? "text-[var(--sb-danger)]" : "text-[var(--sb-warning)]" : "text-[var(--sb-green-900)]") : "tabular-nums"}
         aria-label={unavailable ? `${label} is temporarily unavailable` : undefined}
         title={unavailable ? `${label} is temporarily unavailable` : undefined}
       >
@@ -130,7 +130,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   const isFinance = role === "finance";
   const isManager = role === "manager";
   const isPurchasing = role === "purchasing";
-  const isKitchen = role === "kitchen";
+  const isKitchen = (role === "kitchen" || role === "chef");
   const isOutlet = role === "outlet_staff" || role === "outlet_supervisor";
   const showFinance = isOwner || isFinance;
   const showOperations = isOwner || isFinance || isManager;
@@ -166,7 +166,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
     ? [
         { href: summary.outletToday?.id ? `/outlet-daily-records/${summary.outletToday.id}` : "/outlet-daily-records/new", label: outletAction, icon: ClipboardCheck },
         { href: "/outlet-daily-records", label: "Daily records", icon: ClipboardList },
-        { href: "/activity", label: "Recent activity", icon: Clock3 },
+        { href: "/asset-management?view=checklist", label: "Daily Asset Inspection", icon: ClipboardCheck },
       ]
     : isKitchen
       ? [
@@ -212,10 +212,10 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   );
 
   const workspaceContext = (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4" data-dashboard-identity>
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2" data-dashboard-identity>
       <span className="sr-only">Welcome, {summary.userName} <span>|</span> {summary.roleLabel} <span>|</span> {summary.branchLabel}</span>
       <div className="min-w-0"><p className="text-[11px] font-medium text-[var(--sb-text-muted)]">Welcome</p><p data-dashboard-user-name className="mt-0.5 break-words text-xl font-semibold tracking-[-0.025em] text-[var(--sb-text)]">{summary.userName}</p></div>
-      <dl className="grid max-w-[11rem] gap-1.5 text-[11px] text-[var(--sb-text-muted)]"><div className="flex items-start gap-1.5"><UserRound className="mt-0.5 h-3.5 w-3.5 shrink-0" /><dt className="sr-only">Role</dt><dd data-dashboard-role-label className="font-medium text-[var(--sb-text)]">{summary.roleLabel}</dd></div><div className="flex items-start gap-1.5"><LockKeyhole className="mt-0.5 h-3.5 w-3.5 shrink-0" /><dt className="sr-only">Scope</dt><dd data-dashboard-scope-label className="break-words">{summary.branchLabel}</dd></div></dl>
+      <dl className="grid max-w-[11rem] gap-1.5 text-[11px] text-[var(--sb-text-muted)]"><div className="flex items-start gap-1.5"><UserRound className="mt-0.5 h-3.5 w-3.5 shrink-0" /><dt className="sr-only">Role</dt><dd data-dashboard-role-label className="whitespace-nowrap font-medium text-[var(--sb-text)]">{summary.roleLabel}</dd></div><div className="flex items-start gap-1.5"><LockKeyhole className="mt-0.5 h-3.5 w-3.5 shrink-0" /><dt className="sr-only">Scope</dt><dd data-dashboard-scope-label className="break-words">{summary.branchLabel}</dd></div></dl>
     </div>
   );
 
@@ -306,7 +306,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               return <Link key={signal.key} prefetch={false} href={signal.href} className={`group flex min-h-12 min-w-0 items-center gap-2 px-3 py-2 transition-colors hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${isLastOddPhoneSignal ? "col-span-2 sm:col-span-1" : ""}`}>
                 <Icon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
                 <span className="min-w-0 flex-1 truncate text-[11px] font-medium leading-4 text-muted-foreground">{signal.label}</span>
-                <strong className={unavailable ? "shrink-0 text-[10px] font-semibold text-muted-foreground" : "shrink-0 text-lg font-semibold tabular-nums"}>{unavailable ? "Unavailable" : signal.value}</strong>
+                <strong className={unavailable ? "shrink-0 text-[10px] font-semibold text-muted-foreground" : "shrink-0 sb-kpi-value text-[var(--sb-green-900)]"}>{unavailable ? "Unavailable" : signal.value}</strong>
               </Link>;
             })}
           </div>

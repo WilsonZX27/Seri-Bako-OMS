@@ -90,7 +90,7 @@ export default async function GoodsReceivingDetailPage({ params, searchParams }:
           <Card>
             <CardContent className="space-y-4 p-5">
               <h2 className="text-sm font-semibold">Receiving Summary</h2>
-              <div className="grid min-w-0 grid-cols-2 gap-4 break-words xl:grid-cols-4 [&>div]:min-w-0">
+              <div className="sb-label-value-summary grid min-w-0 grid-cols-2 gap-4 break-words xl:grid-cols-4 [&>div]:min-w-0">
                 <div><p className="text-xs uppercase text-muted-foreground">Supplier</p><p className="font-medium">{receivingDisplay.supplier_name ?? receiving.supplier_id}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Received Date</p><p className="font-medium">{formatDateOnly(receiving.received_date)}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{receivingDisplay.branch_name ?? "-"}</p></div>
@@ -159,7 +159,7 @@ export default async function GoodsReceivingDetailPage({ params, searchParams }:
                         <h3 className="break-words text-sm font-semibold leading-tight">{line.item?.item_name ?? line.item_id}</h3>
                         <p className="mt-0.5 text-[11px] text-muted-foreground">{line.item?.item_code ?? "No item code"}</p>
                       </div>
-                      <div className="shrink-0 text-right">
+                      <div className="flex shrink-0 items-center gap-2 text-right">
                         <p className="text-[11px] text-muted-foreground">Received</p>
                         <p className="font-semibold tabular-nums">{formatNumber(line.received_qty)} {line.uom}</p>
                       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePurchaseRequestGuidance } from "@/components/purchase-request-guidance";
 import { type FormEvent, useActionState, useEffect, useRef, useState } from "react";
 import { Building2, CalendarDays, ChevronDown, MapPin, MessageSquare, Minus, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -122,7 +123,6 @@ export function PurchaseRequestForm({
 
   const hasRequestItem = lines.some((line) => Boolean(line.itemSearch.trim()));
   const selectedBranchName = branches.find((branch) => branch.id === branchId)?.branch_name ?? "Select branch";
-  const detailsComplete = Boolean(branchId && requestSupplierId);
   const supplierOptions = [...new Map([
     ...suppliers.map((supplier) => [supplier.id, { supplier_id: supplier.id, supplier_name: supplier.name }] as const),
     ...supplierMappings.filter((mapping) => mapping.branch_id === branchId).map((mapping) => [mapping.supplier_id, { supplier_id: mapping.supplier_id, supplier_name: mapping.supplier_name }] as const),
@@ -140,6 +140,15 @@ export function PurchaseRequestForm({
     return touched && (!line.itemSearch.trim() || !line.qty.trim() || !line.uom.trim());
   });
   const invalidQuantityLine = lines.find((line) => line.itemSearch.trim() && line.qty.trim() && (!Number.isFinite(Number(line.qty)) || Number(line.qty) <= 0));
+
+  usePurchaseRequestGuidance(
+    !branchId ? "Choose the request branch."
+      : !requestSupplierId ? "Choose one supplier for this purchase request."
+      : !hasRequestItem ? "Add at least one item before submitting this purchase request."
+      : incompleteEnteredLines.length ? "Complete the item, quantity and unit for each entered line."
+      : invalidQuantityLine ? "Enter a positive quantity for each request item."
+      : "Review the request details, then submit to Manager Review."
+  );
 
   function mappingsForLine(line: RequestLine) {
     return supplierMappings.filter((mapping) => mapping.branch_id === branchId && mapping.item_id === line.itemId && mapping.supplier_id === requestSupplierId);
@@ -338,7 +347,7 @@ export function PurchaseRequestForm({
   }
 
   return (
-    <div className="md:-mt-3 xl:mt-0">
+    <div className="min-w-0">
         <form id="purchase-request-form" action={action} onSubmit={validateSubmission} noValidate className={`space-y-3 ${reserveMobileActionSpace ? "pb-36" : ""} md:pb-0`}>
           <input type="hidden" name="request_no" value="" />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
@@ -351,7 +360,7 @@ export function PurchaseRequestForm({
           <section data-purchase-request-setup className="sb-work-surface overflow-hidden">
             <div data-document-section-header className="flex items-center justify-between gap-3 border-b bg-white px-3 py-2">
               <div className="min-w-0">
-                <h2 className="text-sm font-semibold text-[var(--sb-text)]">Request details</h2>
+                <h2 className="text-sm font-semibold text-[var(--sb-text)]">Request Details</h2>
                 {!detailsOpen ? (
                   <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                     <span className="inline-flex min-w-0 items-center gap-1"><MapPin className="h-3.5 w-3.5 shrink-0" /><span className="break-words">{selectedBranchName}</span></span>
@@ -396,17 +405,18 @@ export function PurchaseRequestForm({
           ) : null}
           {contextResetNotice ? <div role="status" className="flex items-start justify-between gap-3 border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-3 py-2 text-xs text-[var(--sb-text)]"><p>{contextResetNotice}</p><button type="button" className="shrink-0 font-semibold text-primary hover:underline" onClick={() => setContextResetNotice("")} aria-label="Dismiss catalogue change notice">Dismiss</button></div> : null}
 
-          <section data-purchase-request-workspace className="sb-work-surface overflow-hidden" onFocusCapture={() => { if (detailsComplete && !validationError) setDetailsOpen(false); }}>
-            <div data-document-section-header className="flex items-center justify-between border-b bg-white px-3 py-2">
+          <section data-purchase-request-workspace className="sb-work-surface overflow-hidden">
+            <div data-document-section-header className="flex min-h-14 items-center justify-between border-b bg-white px-3 py-2">
               <div>
-                <p className="text-xs font-semibold">Requested Items</p>
+                <h2 className="text-sm font-semibold text-[var(--sb-text)]">Requested Items</h2>
               </div>
               <span />
             </div>
             <div
               data-purchase-request-line-header
-              className="hidden grid-cols-[minmax(14rem,1fr)_10rem_8.5rem_2.75rem_2.75rem] gap-3 border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface-subtle)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-muted)] lg:grid"
+              className="hidden grid-cols-[1.5rem_minmax(10rem,1fr)_10rem_8.5rem_2.75rem_2.75rem] gap-3 border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface-subtle)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-muted)] lg:grid"
             >
+              <span>#</span>
               <span>Item</span>
               <span>Quantity</span>
               <span>UOM</span>
@@ -415,9 +425,9 @@ export function PurchaseRequestForm({
             <div className="divide-y">
               {/* Legacy contract token: grid-cols-[minmax(0,1fr)_7.5rem_2.25rem]. The current four-column line keeps UOM, quantity, comments, and removal aligned. */}
               {lines.map((line, index) => (
-                <div data-purchase-request-line data-purchase-request-line-key={line.key} key={line.key} className="grid grid-cols-[1.75rem_minmax(0,1fr)_minmax(0,1fr)_var(--sb-control-height)] gap-2 p-3 lg:grid-cols-[minmax(14rem,1fr)_10rem_8.5rem_2.75rem_2.75rem] lg:gap-3">
-                  <span data-pr-line-number className="grid h-10 place-items-center self-start lg:hidden"><span className="grid h-6 w-6 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] text-[11px] font-semibold tabular-nums text-[var(--sb-text-muted)]">{index + 1}</span></span>
-                  <div data-pr-line-item className="col-span-2 col-start-2 min-w-0 space-y-2 lg:col-span-1 lg:col-start-1">
+                <div data-purchase-request-line data-purchase-request-line-key={line.key} key={line.key} className="grid grid-cols-[1.75rem_minmax(0,1fr)_minmax(4.5rem,.65fr)_2.75rem] gap-2 p-3 lg:grid-cols-[1.5rem_minmax(10rem,1fr)_10rem_8.5rem_2.75rem_2.75rem] lg:gap-3">
+                  <span data-pr-line-number className="grid h-10 place-items-center self-start"><span className="grid h-6 w-6 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] text-[11px] font-semibold tabular-nums text-[var(--sb-text-muted)]">{index + 1}</span></span>
+                  <div data-pr-line-item className="col-span-2 col-start-2 min-w-0 space-y-2 lg:col-span-1 lg:col-start-2">
                     <Field label="Item" required labelClassName="sr-only">
                       <div data-pr-field="item"><ItemCombobox items={selectableItems} value={line.itemSearch} selectedItemId={line.itemId} ariaLabel={`Item for request line ${index + 1}`} ariaInvalid={validationTarget?.field === "item" && validationTarget.lineKey === line.key} className={validationTarget?.field === "item" && validationTarget.lineKey === line.key ? "border-rose-500 ring-2 ring-rose-200" : ""} inputRef={line.key === lines[0]?.key ? firstItemInputRef : undefined} emptyMessage="No item is mapped to this supplier at this branch." onValueChange={(value) => { setValidationError(""); setValidationTarget(null); updateItemSearch(line.key, value); }} onSelect={(item) => { setValidationError(""); setValidationTarget(null); selectItem(line.key, item.id); }} /></div>
                     </Field>
@@ -432,14 +442,14 @@ export function PurchaseRequestForm({
                     <input type="hidden" name="line_description" value={line.itemSearch} />
                     <input type="hidden" name="line_branch_id" value={branchId} />
                   </div>
-                    <Field label="Quantity" required labelClassName="sr-only" className="pr-line-quantity row-start-2 lg:col-start-2 lg:row-start-1">
+                    <Field label="Quantity" required labelClassName="sr-only" className="pr-line-quantity row-start-2 lg:col-start-3 lg:row-start-1">
                       <div className="flex h-[var(--sb-control-height)] overflow-hidden rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white">
-                        <button type="button" className="flex h-full w-12 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)] lg:w-10" onClick={() => adjustLineQuantity(line, -1)} aria-label={`Decrease quantity for ${line.itemSearch || "request line"}`}><Minus className="h-3.5 w-3.5" /></button>
+                        <button type="button" className="flex h-full w-10 shrink-0 items-center justify-center border-r border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)] lg:w-10" onClick={() => adjustLineQuantity(line, -1)} aria-label={`Decrease quantity for ${line.itemSearch || "request line"}`}><Minus className="h-3.5 w-3.5" /></button>
                         <Input data-pr-field="quantity" name="line_qty" aria-label={`Quantity for ${line.itemSearch || `request line ${index + 1}`}`} aria-invalid={validationTarget?.field === "quantity" && validationTarget.lineKey === line.key || undefined} type="number" min="0" step={requestQuantityStep(line.uom)} value={line.qty} onChange={(event) => { setValidationError(""); setValidationTarget(null); updateLine(line.key, { qty: event.target.value }); }} placeholder="Qty" className={`h-full min-w-0 rounded-none border-0 px-1 text-center text-xs font-semibold tabular-nums shadow-none focus-visible:ring-inset ${validationTarget?.field === "quantity" && validationTarget.lineKey === line.key ? "ring-2 ring-inset ring-rose-300" : ""}`} />
-                        <button type="button" className="flex h-full w-12 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)] lg:w-10" onClick={() => adjustLineQuantity(line, 1)} aria-label={`Increase quantity for ${line.itemSearch || "request line"}`}><Plus className="h-3.5 w-3.5" /></button>
+                        <button type="button" className="flex h-full w-10 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)] lg:w-10" onClick={() => adjustLineQuantity(line, 1)} aria-label={`Increase quantity for ${line.itemSearch || "request line"}`}><Plus className="h-3.5 w-3.5" /></button>
                       </div>
                     </Field>
-                    <Field label="UOM" labelClassName="sr-only" className="pr-line-uom row-start-3 lg:col-start-3 lg:row-start-1">
+                    <Field label="UOM" labelClassName="sr-only" className="pr-line-uom row-start-3 lg:col-start-4 lg:row-start-1">
                       <SelectNative data-pr-field="uom" name="line_uom" value={line.uom} aria-invalid={validationTarget?.field === "uom" && validationTarget.lineKey === line.key || undefined} className={validationTarget?.field === "uom" && validationTarget.lineKey === line.key ? "border-rose-500 ring-2 ring-rose-200" : ""} onChange={(event) => { setValidationError(""); setValidationTarget(null); selectLineUom(line.key, event.target.value); }} aria-label={`Unit of measure for ${line.itemSearch || "request line"}`}>
                         <option value="">Choose unit</option>
                         {allowedUomsForLine(line).map((uom) => <option key={uom} value={uom}>{uom.toUpperCase()}</option>)}
@@ -449,9 +459,9 @@ export function PurchaseRequestForm({
                   <input type="hidden" name="line_suggested_supplier_id" value={line.supplierId} />
                   <input type="hidden" name="line_estimated_unit_cost" value={line.cost} />
                   <details className="hidden" aria-hidden="true"><summary>Sourcing details <span>(automatic)</span></summary><div className="grid grid-cols-[minmax(0,1.35fr)_minmax(0,0.8fr)_minmax(4.75rem,0.7fr)_2.75rem]" /><span>Line note <span className="font-normal">(optional)</span></span></details>
-                  <div data-pr-line-actions className="col-start-4 row-span-2 row-start-1 grid content-start gap-1.5 lg:contents">
-                    {lines.length > 1 ? <Button type="button" variant="outline" size="icon" className="order-1 h-[var(--sb-control-height)] w-[var(--sb-control-height)] text-muted-foreground lg:col-start-5 lg:row-start-1" aria-label="Remove line" onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}><X className="h-4 w-4" /></Button> : <span className="h-[var(--sb-control-height)] w-[var(--sb-control-height)] lg:col-start-5 lg:row-start-1" aria-hidden="true" />}
-                    <Button type="button" variant="outline" size="icon" className="order-2 h-[var(--sb-control-height)] w-[var(--sb-control-height)] text-muted-foreground lg:col-start-4 lg:row-start-1" aria-label={`Add comment for ${line.itemSearch || "request line"}`} onClick={() => setCommentLineKey((current) => current === line.key ? null : line.key)}><MessageSquare className="h-4 w-4" /></Button>
+                  <div data-pr-line-actions className="col-start-4 row-start-2 grid content-start gap-1.5 lg:contents">
+                    {lines.length > 1 ? <Button type="button" variant="outline" size="icon" className="order-1 h-[var(--sb-control-height)] w-[var(--sb-control-height)] text-muted-foreground lg:col-start-6 lg:row-start-1" aria-label="Remove line" onClick={() => setLines((current) => current.filter((row) => row.key !== line.key))}><X className="h-4 w-4" /></Button> : <span className="hidden h-[var(--sb-control-height)] w-[var(--sb-control-height)] lg:block lg:col-start-6 lg:row-start-1" aria-hidden="true" />}
+                    <Button type="button" variant="outline" size="icon" className="order-2 h-[var(--sb-control-height)] w-[var(--sb-control-height)] text-muted-foreground lg:col-start-5 lg:row-start-1" aria-label={`Add comment for ${line.itemSearch || "request line"}`} onClick={() => setCommentLineKey((current) => current === line.key ? null : line.key)}><MessageSquare className="h-4 w-4" /></Button>
                   </div>
                   {commentLineKey === line.key ? <Field label="Item comment" className="col-span-full"><Textarea name="line_remarks" value={line.remarks} onChange={(event) => updateLine(line.key, { remarks: event.target.value })} rows={2} placeholder="Add context for purchasing" /></Field> : <input type="hidden" name="line_remarks" value={line.remarks} />}
                   {line.itemId && mappingsForLine(line).length === 0 ? <div className="col-span-full grid min-w-0 gap-2 rounded-[var(--sb-radius-control)] border border-[var(--sb-warning)]/35 bg-[var(--sb-warning-bg)] px-3 py-2.5 text-xs text-[var(--sb-warning)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><div className="min-w-0"><p className="font-semibold">Purchasing to confirm</p><p className="mt-0.5 leading-relaxed">No supplier route is configured for this branch yet. You can submit the request; Purchasing will confirm the supplier term during review.</p></div><Button asChild type="button" variant="outline" size="sm" className="h-[var(--sb-control-height)] w-full border-[var(--sb-warning)]/50 text-xs text-[var(--sb-warning)] sm:w-auto"><Link href={`/supplier-items/new?itemId=${line.itemId}&branchId=${branchId}`}>Open supplier mapping</Link></Button></div> : null}

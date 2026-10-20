@@ -23,7 +23,7 @@ test("PR, PO, and GRN share a provenance-aware procurement chain", () => {
   assert.match(query, /source_document_id/);
   assert.match(query, /source_kind/);
   assert.match(query, /source_href/);
-  assert.match(chain, /Purchase chain/);
+  assert.match(chain, /Linked Documents/);
   for (const file of ["purchase-requests/[id]/page.tsx", "purchase-orders/[id]/page.tsx", "goods-receivings/[id]/page.tsx"]) {
     const page = read(`src/app/(app)/${file}`);
     assert.match(page, /getProcurementChainForRequest/);

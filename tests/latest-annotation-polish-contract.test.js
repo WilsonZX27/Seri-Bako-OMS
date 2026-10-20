@@ -11,15 +11,15 @@ test("purchase request lines use one responsive control geometry and no duplicat
   const detail = read("src", "app", "(app)", "purchase-requests", "[id]", "page.tsx");
   assert.match(form, /reserveMobileActionSpace = true/);
   assert.match(form, /space-y-2 lg:col-span-1/);
-  assert.match(form, /grid-cols-\[1\.75rem_minmax\(0,1fr\)_minmax\(0,1fr\)_var\(--sb-control-height\)\]/);
-  assert.match(form, /grid-cols-\[minmax\(14rem,1fr\)_10rem_8\.5rem_2\.75rem_2\.75rem\]/);
+  assert.match(form, /grid-cols-\[1\.75rem_minmax\(0,1fr\)_minmax\(4\.5rem,\.65fr\)_2\.75rem\]/);
+  assert.match(form, /grid-cols-\[1\.5rem_minmax\(10rem,1fr\)_10rem_8\.5rem_2\.75rem_2\.75rem\]/);
   assert.match(form, /data-pr-line-supplier/);
   assert.match(form, /className="flex justify-end border-t/);
   assert.doesNotMatch(form, /data-purchase-request-line[^\n]+md:grid-cols/);
   assert.match(form, /h-\[var\(--sb-control-height\)\][\s\S]*w-10/);
   const design = read("src", "app", "design-system-v2.css");
   assert.match(design, /#purchase-request-form \[data-purchase-request-line\] :where\(input, select, button\)[\s\S]*height: var\(--sb-control-height\) !important/);
-  assert.doesNotMatch(design, /data-purchase-request-line\] \{[\s\S]*grid-template-columns/);
+  assert.doesNotMatch(design, /data-purchase-request-line\] \{[^}]*grid-template-columns/);
   assert.match(design, /sb-list-filters--equal-controls > \.sb-filter-more > summary[\s\S]*width: 100% !important/);
   assert.match(detail, /saveDraftAction/);
   assert.match(detail, /saveDraftAction \|\| canRequesterWithdraw \|\| canCancel/);

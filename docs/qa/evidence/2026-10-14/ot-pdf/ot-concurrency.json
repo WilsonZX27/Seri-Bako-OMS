@@ -1,0 +1,22 @@
+{
+  "scope": "Independent local synthetic database only",
+  "company": "2ee7fb59-34fd-4e6e-9202-b996cfde1fc0",
+  "staff": "20be97b4-95c2-4b66-9729-afe664b0f476",
+  "claim": "72c3392c-f5b3-4ea3-b693-86828f0f021a",
+  "checks": [
+    "Concurrent approvals serialize; exactly one succeeds",
+    "Exactly one RO credit of 60 minutes remains",
+    "Concurrent reversal approvals serialize; exactly one succeeds",
+    "Reversal consumes original credit exactly once; final balance zero"
+  ],
+  "ledger": {
+    "count": 1,
+    "minutes": 60
+  },
+  "fixture": "Committed isolated synthetic company retained for subsequent reconciliation tests",
+  "reversal": {
+    "balance": 0,
+    "allocated": 60,
+    "claim": "cancelled"
+  }
+}

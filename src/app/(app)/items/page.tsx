@@ -75,7 +75,7 @@ export default async function ItemsPage({
                 return (
                   <DataGridRow key={item.id} href={`/items/${item.id}`}>
                     <TableCell className="text-center"><TableActionLink href={`/items/${item.id}`} label={`Open ${item.item_name}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
-                    <TableCell>{item.item_code}</TableCell>
+                    <TableCell><span className="sb-item-code" title={item.item_code ?? undefined}>{item.item_code}</span></TableCell>
                     <TableCell className="font-medium"><span className="block">{item.item_name}</span>{item.brand_name ? <span className="block text-xs font-normal text-muted-foreground">{item.brand_name}</span> : null}</TableCell>
                     <TableCell>{item.base_unit}</TableCell>
                     <TableCell className="hidden lg:table-cell">{item.supplier_name ?? "-"}</TableCell>

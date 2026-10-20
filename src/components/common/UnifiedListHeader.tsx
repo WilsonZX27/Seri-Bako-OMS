@@ -146,6 +146,9 @@ function SearchControl({ child, value, onChange }: { child: ReactElement; value:
     value,
     type: "search",
     enterKeyHint: "search",
+    // Keep the complete search scope accessible without clipping long hints.
+    placeholder: "Search",
+    title: String(props["aria-label"] ?? props.placeholder ?? "Search"),
     onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
       if (typeof props.onChange === "function") props.onChange(event);
       onChange(event.target.value);
@@ -174,7 +177,7 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
   const filterDialogRef = useRef<HTMLFormElement>(null);
   useEffect(() => {
     if (phoneOnly) return;
-    const query = window.matchMedia("(max-width: 639px)");
+    const query = window.matchMedia("(max-width: 1279px)");
     const sync = () => setMobile(query.matches);
     sync();
     query.addEventListener("change", sync);
@@ -192,6 +195,7 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
     if (dialog) focusDialog(dialog);
 
     function onKeyDown(event: KeyboardEvent) {
+      if (event.defaultPrevented) return;
       if (event.key === "Escape") {
         event.preventDefault();
         setOpen(false);
@@ -295,10 +299,11 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
       if (!isValidElement(child)) return child;
       const props = propsOf(child);
       return cloneElement(child as ReactElement<Record<string, unknown>>, {
-        className: cn("unified-list-action", hasTextSearch && isSearchSubmit(child) && "unified-list-search-submit", props.className as string),
+        ...(props["data-list-action"] === "secondary" ? { variant: "ghost" } : {}),
+        className: cn("unified-list-action", props["data-list-action"] === "secondary" && "!w-auto !min-w-0 !border-transparent !bg-transparent !px-2", hasTextSearch && isSearchSubmit(child) && "unified-list-search-submit", props.className as string),
         "data-list-primary-action": !showSearchAction && index === 0 ? true : undefined,
         "data-list-secondary-action": showSearchAction || index > 0 ? true : undefined,
-        ...(hasTextSearch && isSearchSubmit(child) ? { children: <><Search className="size-4 shrink-0" aria-hidden="true"/><span>Search</span></> } : {}),
+        ...(hasTextSearch && isSearchSubmit(child) ? { title: "Search", "aria-label": "Search", children: <><Search className="size-4 shrink-0" aria-hidden="true"/><span className="sr-only">Search</span></> } : {}),
       });
     });
     return <form
@@ -323,7 +328,7 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
         className="unified-list-desktop-actions"
         style={{ gridColumn: `-${commandTrackCount + 1} / -1` }}
       >
-        {showSearchAction ? <Button type="submit" className="unified-list-action unified-list-search-submit" data-list-primary-action="true" onClick={() => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); }}><Search className="size-4 shrink-0" aria-hidden="true"/><span>Search</span></Button> : null}
+        {showSearchAction ? <Button type="submit" title="Search" aria-label="Search" className="unified-list-action unified-list-search-submit" data-list-primary-action="true" onClick={() => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); }}><Search className="size-4 shrink-0" aria-hidden="true"/><span className="sr-only">Search</span></Button> : null}
         {actionNodes}
         {typeof resultCount === "number" ? <div className="sb-filter-summary" aria-live="polite"><span className="sb-filter-summary-count">{resultCount}</span><span className="sb-filter-summary-label">{resultLabel ?? (resultCount === 1 ? "record" : "records")}</span></div> : null}
       </div>
@@ -361,12 +366,14 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
     document.body,
   ) : null;
   const showMobileSearchAction = hasTextSearch && !primaryInDrawer;
+  const showMobileDateAction = primaryProps.type === "date" && !primaryInDrawer && contextualFilterCount === 0;
   return (
     <form ref={formRef} className={cn("unified-list-header sb-list-query-card", className)} data-filtered={filtered || undefined} data-reset-href={resetHref} onSubmit={submit} onKeyDown={cancelDebounceOnEnter}>
-      {(!primaryInDrawer && primary || resolvedPhoneMode === "drawer" || contextualFilterCount === 1 || typeof resultCount === "number") ? <div className={cn("unified-list-row", primaryInDrawer && "unified-list-row--filter-only")}>
+      {(!primaryInDrawer && primary || resolvedPhoneMode === "drawer" || contextualFilterCount === 1 || typeof resultCount === "number") ? <div className={cn("unified-list-row", (primaryInDrawer || !primary) && "unified-list-row--filter-only")}>
         {!primaryInDrawer && primary && isValidElement(primary) ? <SearchControl child={primary} value={searchValue} onChange={updateSearch} /> : null}
-        {showMobileSearchAction ? <Button type="submit" size="icon" variant="outline" className="unified-list-search-submit" aria-label="Search" title="Search" onClick={() => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); }}><Search className="size-4 shrink-0" aria-hidden="true"/></Button> : null}
-        {resolvedPhoneMode === "drawer" ? <button ref={filterTriggerRef} type="button" className="unified-list-filter-trigger" onClick={() => setOpen(true)} aria-label={active ? `Filter, ${active} active` : "Filter"} aria-haspopup="dialog" aria-expanded={open}><SlidersHorizontal /><span className="unified-list-filter-label">Filter{active ? ` (${active})` : ""}</span></button> : null}
+        {showMobileSearchAction ? <Button type="submit" size="icon" variant="default" className="unified-list-search-submit" aria-label="Search" title="Search" onClick={() => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); }}><Search className="size-4 shrink-0" aria-hidden="true"/></Button> : null}
+        {showMobileDateAction ? <Button type="submit" className="unified-list-date-submit">View</Button> : null}
+        {resolvedPhoneMode === "drawer" && !showMobileDateAction ? <button ref={filterTriggerRef} type="button" className="unified-list-filter-trigger" onClick={() => setOpen(true)} aria-label={active ? `Filter, ${active} active` : "Filter"} aria-haspopup="dialog" aria-expanded={open}><SlidersHorizontal /><span className="unified-list-filter-label">Filter</span>{active ? <span className="unified-list-filter-badge" aria-hidden="true">{active}</span> : null}</button> : null}
         {resolvedPhoneMode === "inline" && contextualFilterCount === 1 ? <div className="unified-list-inline-control">{filterControls}</div> : null}
         {typeof resultCount === "number" ? <span className="unified-list-result" aria-live="polite"><strong>{resultCount}</strong><span>{resultLabel ?? (resultCount === 1 ? "record" : "records")}</span></span> : null}
       </div> : null}

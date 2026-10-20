@@ -1,3 +1,23 @@
+## Concentric surfaces and alignment — 2026-10-17
+
+- Remove redundant nested cards structurally. A transparent Card still participates in the canonical surface contract; use a plain layout container instead.
+- For a genuinely inset bordered surface use `data-inset-surface`: inner radius = max(0, outer panel radius − actual inset). Set `--sb-surface-inset` when the inset differs from the default 12px. A 12px panel with 12px or greater inset therefore has square inner corners; do not enlarge all outer cards to manufacture curves.
+- Independent cards, form controls (8px), pills, circular icons and edge-attached sheets are separate shapes, not concentric panels. Preserve their semantics and 36px desktop / 44px touch targets.
+- Hidden form fields must not create spacing. Use grid/flex gaps for visible children and conditionally render entire optional grid cells.
+- Mobile PR item, supplier and quantity share one content left edge after the row-number gutter; compact quantity/UOM and remark controls remain one row.
+- PO reference context uses the neutral muted surface token, with no accent/status meaning.
+
+## Owner annotations — 2026-10-17 procurement consistency
+
+- Mobile document status sits at the left edge; workflow progress sits at the right edge. Do not center the pair on new forms.
+- Peer card headings use the same 14px semibold treatment, title case and consistent padding. Editable request details and items are sibling surfaces; avoid an extra Requested Items card around both.
+- Keep action guidance concise, with an information icon and a bordered white container. Preserve blocking requirements; do not repeat the same instructions in multiple paragraphs.
+- Quantity and UOM share a compact mobile row while retaining the standard touch height. Width should follow the short value, not occupy an entire row by default.
+- Prefer equal-width desktop data columns and wrapped (normally two-line) headings. Selection/action utility columns may remain narrower. Keep overflow inside the table region, never the page.
+- Invoice selection is per line. Offer a textual Select all lines command only for groups with multiple lines, rather than repeating group and row checkboxes for a single item.
+- Search remains primary. Reset appears only with active filters and is visually secondary; empty-state Reset filters remains available.
+- Long source-document references belong in a separate white bordered context block rather than a squeezed title fragment.
+
 ## Current authority — v9.2.105 and bounded local remediation
 
 PRODUCT.md owns density: controls are 36px at >=1024px and at least44px below1024px. The shell right Console remains >=1280px. WorkspaceGrid with a landscape split keeps actions/context stacked at768–1023px, then inline beside the canvas at1024–1279px. Context-mode documents expose tablet actions independently of Files/Activity. These local action/focus/semantics fixes are not a deployment claim.
@@ -238,3 +258,9 @@ Plan checks now identify the product/outlet and required correction instead of a
 All outlet columns are shown by default, with optional grouping and an internal scroll region. Product identity remains frozen left; kitchen retention is pinned right, with surplus canvas width assigned to an empty spacer. Settings outlet selector is bounded at 18rem; schedule and automation text share centre alignment. Product supply period uses the shared focus-managed modal and settings Save action.
 
 PDF export has its own A4 landscape layout, repeated table headers, page numbers, understated green typography, alternating rows and explicit Pending values. Browser chrome is excluded. Reports label inclusive current/previous ranges, distinguish percentage points from percentage change, and visibly identify partial coverage. Historical rail labels the completed historical date and the 30-day outstanding-record window.
+
+## Asset workflow density, 16 October 2026
+
+WorkspaceTabs owns the shared 44px outer navigation row. Shared `details.sb-work-surface` owns closed disclosure geometry: no vertical outer padding plus a 42px summary inside its 1px border, for 44px total. Open sections grow with their content. This corrects the system-wide padding/min-height accumulation without shrinking form content or changing the 1024px desktop control breakpoint. Desktop inputs remain 36px, touch controls remain 44px. Two-action confirmation footers use equal columns.
+
+Asset maintenance uses a 4:6 master/detail split from 1024px and stacks below it. The desktop queue fills the same height as the detail/history/attachment stack and scrolls internally. Inspection rows show identity, quantity and current state; explicit result choices and optional physical counts expand on demand. A separate general repair form is above the inspection form. No submission implicitly submits the other form.

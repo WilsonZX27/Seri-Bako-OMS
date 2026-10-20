@@ -1,0 +1,90 @@
+[
+  {
+    "route": "/asset-management/transfers/new?asset=b52fad27-d3f5-4ab9-9729-542be4a61853",
+    "name": "quantity",
+    "validation": {
+      "valid": false,
+      "message": "Value must be greater than or equal to 1.",
+      "form": true
+    },
+    "valueRetained": true,
+    "screenshot": "invalid-context-_asset_management_transfers_new.png"
+  },
+  {
+    "route": "/outlet-daily-records/new",
+    "name": "pos_total_sales",
+    "validation": {
+      "valid": false,
+      "message": "Value must be greater than or equal to 0.",
+      "form": true
+    },
+    "valueRetained": true,
+    "screenshot": "invalid-context-_outlet_daily_records_new.png"
+  },
+  {
+    "route": "/recipes/new",
+    "name": "yield_qty",
+    "validation": {
+      "valid": false,
+      "message": "Value must be greater than or equal to 0.0001.",
+      "form": true
+    },
+    "valueRetained": true,
+    "screenshot": "invalid-context-_recipes_new.png"
+  },
+  {
+    "route": "/stock-counts/new?branch_id=67e346da-0f78-4256-a973-f91f11b56812",
+    "name": "count_date",
+    "validation": {
+      "valid": false,
+      "message": "Please fill out this field.",
+      "form": true
+    },
+    "valueRetained": true,
+    "screenshot": "invalid-context-_stock_counts_new.png"
+  },
+  {
+    "route": "/stock-transfers/new?from_branch_id=67e346da-0f78-4256-a973-f91f11b56812",
+    "name": "transfer_date",
+    "validation": {
+      "valid": false,
+      "message": "Please fill out this field.",
+      "form": true
+    },
+    "valueRetained": true,
+    "screenshot": "invalid-context-_stock_transfers_new.png"
+  },
+  {
+    "route": "/stock-wastage/new?branch_id=67e346da-0f78-4256-a973-f91f11b56812",
+    "name": "wastage_date",
+    "validation": {
+      "valid": false,
+      "message": "Please fill out this field.",
+      "form": true
+    },
+    "valueRetained": true,
+    "screenshot": "invalid-context-_stock_wastage_new.png"
+  },
+  {
+    "route": "/supplier-items/new",
+    "name": "conversion_to_base_uom",
+    "validation": {
+      "valid": false,
+      "message": "Value must be greater than or equal to 0.000001.",
+      "form": true
+    },
+    "valueRetained": true,
+    "screenshot": "invalid-context-_supplier_items_new.png"
+  },
+  {
+    "route": "/uom-conversions/new",
+    "name": "factor",
+    "validation": {
+      "valid": false,
+      "message": "Value must be greater than or equal to 1e-8.",
+      "form": true
+    },
+    "valueRetained": true,
+    "screenshot": "invalid-context-_uom_conversions_new.png"
+  }
+]

@@ -1,0 +1,3225 @@
+{
+  "routeCount": 123,
+  "stateCount": 1107,
+  "stateSummary": {
+    "default": {
+      "captured_runtime": 123
+    },
+    "expanded": {
+      "custom_or_not_applicable_not_verified": 94,
+      "native_disclosures_captured": 29
+    },
+    "loading": {
+      "not_yet_verified": 118,
+      "controlled_read_only_API_response_captured_390_820": 2,
+      "real_server_suspense_captured_and_recovered": 3
+    },
+    "empty": {
+      "not_yet_verified": 109,
+      "controlled_read_only_API_response_captured_390_820": 2,
+      "actual_unmatched_query_captured": 12
+    },
+    "error": {
+      "not_yet_verified": 106,
+      "native_required_field_only_custom_server_errors_pending": 15,
+      "controlled_read_only_API_response_captured_390_820": 2
+    },
+    "long_content": {
+      "not_yet_verified": 97,
+      "editable_input_captured_only": 24,
+      "controlled_read_only_API_response_captured_390_820": 2
+    },
+    "narrow": {
+      "captured_390_320_no_document_overflow": 123
+    },
+    "zoom_200": {
+      "native_browser_zoom_verified_2x_720_css_px": 123
+    },
+    "tablet": {
+      "820_px_expanded_and_focus_probe_verified": 123
+    }
+  },
+  "customDialogSourceCount": 37,
+  "customDialogSources": [
+    {
+      "source": "src/components/purchase-request-line-resolution-form.tsx",
+      "routes": [
+        "/purchase-requests/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/stock-count-line-recovery.tsx",
+      "routes": [
+        "/stock-counts/[id]",
+        "/stock-counts/new"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/production-planning-workspace.tsx",
+      "routes": [
+        "/production/planning"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/bulk-phase-one-delete.tsx",
+      "routes": [
+        "/purchase-requests"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/outlet-daily-export-dialog.tsx",
+      "routes": [
+        "/outlet-daily-records"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/purchase-order-export-dialog.tsx",
+      "routes": [
+        "/purchase-orders"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/purchase-request-line-recovery.tsx",
+      "routes": [
+        "/purchase-requests/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/bulk-selection.tsx",
+      "routes": [
+        "/branches",
+        "/purchase-requests"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/add-purchase-request-line-dialog.tsx",
+      "routes": [
+        "/purchase-requests/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/production-planning-allocation-table.tsx",
+      "routes": [
+        "/production/planning"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/stock-count-form.tsx",
+      "routes": [
+        "/stock-counts/[id]",
+        "/stock-counts/new"
+      ],
+      "existingEvidence": [
+        "verify-stock-storage-local.cjs: actual Storage exceptions, save/retry/reload; stock screenshots in integration-ui"
+      ],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/session-timeout-provider.tsx",
+      "routes": [],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/stock-count-void-dialog.tsx",
+      "routes": [
+        "/stock-counts/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/stock-count-scope-actions.tsx",
+      "routes": [
+        "/stock-counts/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/asset-unsaved-guard.tsx",
+      "routes": [
+        "/asset-management/assets/[id]",
+        "/asset-management/assets/new",
+        "/asset-management/locations/[id]",
+        "/asset-management/maintenance/[id]",
+        "/asset-management/maintenance/new",
+        "/asset-management",
+        "/asset-management/transfers/[id]",
+        "/asset-management/transfers/new"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/purchase-request-export-dialog.tsx",
+      "routes": [
+        "/purchase-requests"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/document-action-bar.tsx",
+      "routes": [
+        "/goods-receivings/[id]",
+        "/production/jobs/[id]",
+        "/purchase-orders/[id]",
+        "/purchase-requests/[id]",
+        "/purchase-returns/[id]",
+        "/stock-counts/[id]",
+        "/stock-transfers/[id]",
+        "/stock-wastage/[id]",
+        "/supplier-invoices/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/production-planning-product-rules.tsx",
+      "routes": [
+        "/production/planning"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/stock-count-export-dialog.tsx",
+      "routes": [
+        "/stock-counts"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/attendance/actual-attendance-panel.tsx",
+      "routes": [
+        "/attendance/review"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/attendance/comp-time-correction-form.tsx",
+      "routes": [
+        "/people/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/attendance/people-workbook-export.tsx",
+      "routes": [
+        "/attendance/review"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/attendance/review-actions.tsx",
+      "routes": [
+        "/attendance/review"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/attendance/employee-attendance-summary.tsx",
+      "routes": [
+        "/attendance/review"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/attendance/ot-ro-actions.tsx",
+      "routes": [
+        "/attendance/review"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/attendance/schedule-planner.tsx",
+      "routes": [
+        "/attendance/schedule"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/attendance/schedule-workbook-import.tsx",
+      "routes": [
+        "/attendance/schedule"
+      ],
+      "existingEvidence": [
+        "verify-import-layout-local.cjs and live-chain: 10 outlets, expanded warnings, five widths, partial failure/retry"
+      ],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/ui/date-range-picker.tsx",
+      "routes": [
+        "/outlet-daily-records/insights"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/ui/danger-confirm-form.tsx",
+      "routes": [
+        "/branches/[id]",
+        "/goods-receivings/[id]",
+        "/items/[id]",
+        "/production/jobs/[id]",
+        "/products/[id]",
+        "/purchase-orders/[id]",
+        "/purchase-requests/[id]",
+        "/purchase-returns/[id]",
+        "/recipes/[id]",
+        "/staffs/[id]",
+        "/stock-counts/[id]",
+        "/stock-transfers/[id]",
+        "/stock-wastage/[id]",
+        "/supplier-items/[id]",
+        "/suppliers/[id]",
+        "/uom-conversions/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/ui/destructive-action-dialog.tsx",
+      "routes": [
+        "/account",
+        "/company",
+        "/documents/[id]",
+        "/goods-receivings/[id]",
+        "/outlet-daily-records/[id]",
+        "/production/delivery-orders/[id]",
+        "/production/jobs/[id]",
+        "/purchase-orders/[id]",
+        "/purchase-requests/[id]",
+        "/purchase-returns/[id]",
+        "/recipes/[id]",
+        "/stock-counts/[id]",
+        "/stock-transactions/[id]",
+        "/stock-transfers/[id]",
+        "/stock-wastage/[id]",
+        "/supplier-invoices/[id]",
+        "/supplier-items",
+        "/uom-conversions"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/ui/confirm-action-form.tsx",
+      "routes": [
+        "/production/jobs/[id]",
+        "/purchase-orders/[id]",
+        "/purchase-requests/[id]",
+        "/stock-counts/[id]",
+        "/supplier-invoices/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/ui/reject-action-form.tsx",
+      "routes": [
+        "/purchase-requests/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/ui/native-dialog.tsx",
+      "routes": [
+        "/attendance/review"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/search/global-search.tsx",
+      "routes": [],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/documents/receiving-post-guard.tsx",
+      "routes": [
+        "/goods-receivings/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/documents/attachment-required-action.tsx",
+      "routes": [
+        "/purchase-orders/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    },
+    {
+      "source": "src/components/documents/attachment-remove-action.tsx",
+      "routes": [
+        "/documents/[id]",
+        "/goods-receivings/[id]",
+        "/outlet-compliance/[branchId]",
+        "/outlet-daily-records/[id]",
+        "/production/jobs/[id]",
+        "/purchase-orders/[id]",
+        "/purchase-requests/[id]",
+        "/purchase-returns/[id]",
+        "/recipes/[id]",
+        "/stock-counts/[id]",
+        "/stock-transactions/[id]",
+        "/stock-transfers/[id]",
+        "/stock-wastage/[id]",
+        "/supplier-invoices/[id]"
+      ],
+      "existingEvidence": [],
+      "status": "per-component runtime scenarios require explicit evidence"
+    }
+  ],
+  "unverifiedCells": [
+    {
+      "route": "/account",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/account",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/account",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/account",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/account",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/activity",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/activity",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/activity",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/activity",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/activity",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/administration/backups",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/administration/backups",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/administration/backups",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/administration/backups",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/administration/backups",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/administration/master-data-cleanup",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/administration/master-data-cleanup",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/administration/master-data-cleanup",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/administration/master-data-cleanup",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/administration/master-data-cleanup",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/administration",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/administration",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/administration",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/administration",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/administration",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/administration/system-health",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/administration/system-health",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/administration/system-health",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/administration/system-health",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/administration/system-health",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/assets/[id]/attachments",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/asset-management/assets/[id]/attachments",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/assets/[id]/attachments",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/assets/[id]/attachments",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/assets/[id]/attachments",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/assets/[id]/history",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/asset-management/assets/[id]/history",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/assets/[id]/history",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/assets/[id]/history",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/assets/[id]/history",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/assets/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/assets/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/assets/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/assets/[id]",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/asset-management/assets/new",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/assets/new",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/assets/new",
+      "state": "error",
+      "status": "native_required_field_only_custom_server_errors_pending"
+    },
+    {
+      "route": "/asset-management/assets/new",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/asset-management/locations/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/asset-management/locations/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/locations/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/locations/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/locations/[id]",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/maintenance/[id]/attachments",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/asset-management/maintenance/[id]/attachments",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/maintenance/[id]/attachments",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/maintenance/[id]/attachments",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/maintenance/[id]/attachments",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/maintenance/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/maintenance/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/maintenance/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/maintenance/[id]",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/asset-management/maintenance/new",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/maintenance/new",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/maintenance/new",
+      "state": "error",
+      "status": "native_required_field_only_custom_server_errors_pending"
+    },
+    {
+      "route": "/asset-management/maintenance/new",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/asset-management",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/asset-management",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/transfers/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/asset-management/transfers/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/transfers/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/transfers/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/transfers/[id]",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/transfers/new",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/asset-management/transfers/new",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/transfers/new",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/transfers/new",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/asset-management/transfers/new",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/attendance/confirmations",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/attendance/imports",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/attendance/imports",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/attendance/imports",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/attendance/imports",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/attendance",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/attendance",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/attendance",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/attendance",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/attendance",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/attendance/payslips",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/attendance/review",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/attendance/review",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/attendance/review",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/attendance/review",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/attendance/schedule",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/attendance/schedule",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/attendance/schedule",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/attendance/schedule",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/attendance/schedule",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/attendance/settings",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/attendance/settings",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/attendance/settings",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/attendance/settings",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/branches/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/branches/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/branches/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/branches/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/branches/[id]",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/branches/new",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/branches/new",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/branches/new",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/branches/new",
+      "state": "error",
+      "status": "native_required_field_only_custom_server_errors_pending"
+    },
+    {
+      "route": "/branches/new",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/branches",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/branches",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/branches",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/branches",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/branches",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/company",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/company",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/company",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/company",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/company",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/compliance",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/compliance",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/compliance",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/compliance",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/dashboard",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/dashboard",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/dashboard",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/dashboard",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/dashboard",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/document-sequences/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/document-sequences/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/document-sequences/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/document-sequences/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/document-sequences/[id]",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/document-sequences/new",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/document-sequences/new",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/document-sequences/new",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/document-sequences/new",
+      "state": "error",
+      "status": "native_required_field_only_custom_server_errors_pending"
+    },
+    {
+      "route": "/document-sequences/new",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/document-sequences",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/document-sequences",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/document-sequences",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/document-sequences",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/document-sequences",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/documents/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/documents/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/documents/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/documents/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/documents/[id]",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/documents",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/documents",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/documents",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/documents",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/documents",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/goods-receivings/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/goods-receivings/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/goods-receivings/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/goods-receivings/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/goods-receivings/[id]",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/goods-receivings/new",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/goods-receivings/new",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/goods-receivings/new",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/goods-receivings/new",
+      "state": "error",
+      "status": "native_required_field_only_custom_server_errors_pending"
+    },
+    {
+      "route": "/goods-receivings/new",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/goods-receivings",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/goods-receivings",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/goods-receivings",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/goods-receivings",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/imports/[entity]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/imports/[entity]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/imports/[entity]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/imports/[entity]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/imports/[entity]",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/imports/autocount",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/imports/autocount",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/imports/autocount",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/imports/autocount",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/imports/autocount",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/imports",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/imports",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/imports",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/imports",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/imports",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/inventory",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/inventory",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/inventory",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/inventory",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/items/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/items/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/items/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/items/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/items/[id]",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/items/new",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/items/new",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/items/new",
+      "state": "error",
+      "status": "native_required_field_only_custom_server_errors_pending"
+    },
+    {
+      "route": "/items/new",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/items",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/items",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/low-stock",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/low-stock",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/low-stock",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/low-stock",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/low-stock",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/opening-stock/import",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/opening-stock/import",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/opening-stock/import",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/opening-stock/import",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/opening-stock/import",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-calendar",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-calendar",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-calendar",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-calendar",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-compliance/[branchId]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/outlet-compliance/[branchId]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-compliance/[branchId]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-compliance/[branchId]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-compliance/[branchId]",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-compliance",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-compliance",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-compliance",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-compliance",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-daily-records/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-daily-records/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-daily-records/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-daily-records/[id]",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/outlet-daily-records/delivery-orders",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/outlet-daily-records/delivery-orders",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-daily-records/delivery-orders",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-daily-records/delivery-orders",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-daily-records/delivery-orders",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-daily-records/insights",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/outlet-daily-records/insights",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-daily-records/insights",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-daily-records/insights",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-daily-records/insights",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-daily-records/new",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-daily-records/new",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-daily-records/new",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-daily-records/new",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/outlet-daily-records",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/outlet-daily-records",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-daily-records",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-daily-records",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-daily-records",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-packaging",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/outlet-packaging",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-packaging",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-packaging",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/outlet-packaging",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/people/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/people/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/people/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/people/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/people/[id]",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/people/calendar",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/people/calendar",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/people/calendar",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/people/calendar",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/people/calendar",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/people",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/people",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/people",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/people",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/procurement",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/procurement",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/procurement",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/procurement",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/procurement",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/delivery-orders/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/production/delivery-orders/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/delivery-orders/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/delivery-orders/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/delivery-orders/[id]",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/delivery-orders",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/production/delivery-orders",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/delivery-orders",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/delivery-orders",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/delivery-orders",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/jobs/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/production/jobs/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/jobs/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/jobs/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/jobs/[id]",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/jobs/new",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/production/jobs/new",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/jobs/new",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/jobs/new",
+      "state": "error",
+      "status": "native_required_field_only_custom_server_errors_pending"
+    },
+    {
+      "route": "/production/jobs/new",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/production/jobs",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/jobs",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/jobs",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/production",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/planning",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/production/planning",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/planning",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/planning",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/planning",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/variance",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/production/variance",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/variance",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/variance",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/production/variance",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/products/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/products/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/products/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/products/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/products/[id]",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/products/new",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/products/new",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/products/new",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/products/new",
+      "state": "error",
+      "status": "native_required_field_only_custom_server_errors_pending"
+    },
+    {
+      "route": "/products/new",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/products",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/products",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/products",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/products",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-orders/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/purchase-orders/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-orders/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-orders/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-orders/[id]",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-orders/new",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/purchase-orders/new",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-orders/new",
+      "state": "error",
+      "status": "native_required_field_only_custom_server_errors_pending"
+    },
+    {
+      "route": "/purchase-orders/new",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/purchase-orders",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/purchase-orders",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-orders",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-orders",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-requests/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/purchase-requests/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-requests/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-requests/[id]",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/purchase-requests/new",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/purchase-requests/new",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-requests/new",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-requests/new",
+      "state": "error",
+      "status": "native_required_field_only_custom_server_errors_pending"
+    },
+    {
+      "route": "/purchase-requests/new",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/purchase-requests",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/purchase-requests",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-requests",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-requests",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-returns/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/purchase-returns/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-returns/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-returns/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-returns/[id]",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-returns/new",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/purchase-returns/new",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-returns/new",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-returns/new",
+      "state": "error",
+      "status": "native_required_field_only_custom_server_errors_pending"
+    },
+    {
+      "route": "/purchase-returns/new",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-returns",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/purchase-returns",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-returns",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-returns",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/purchase-returns",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/recipes/[id]/edit",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/recipes/[id]/edit",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/recipes/[id]/edit",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/recipes/[id]/edit",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/recipes/[id]/edit",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/recipes/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/recipes/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/recipes/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/recipes/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/recipes/[id]",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/recipes/new",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/recipes/new",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/recipes/new",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/recipes/new",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/recipes/new",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/recipes",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/recipes",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/recipes",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/recipes",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/recipes",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports/costing-readiness",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports/costing-readiness",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports/costing-readiness",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports/costing-readiness",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports/demand-trends",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports/demand-trends",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports/demand-trends",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports/demand-trends",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/reports",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports/procurement-variance",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports/procurement-variance",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports/procurement-variance",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports/procurement-variance",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports/product-margin",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports/product-margin",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports/product-margin",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports/product-margin",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports/recipe-costing",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports/recipe-costing",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports/recipe-costing",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/reports/recipe-costing",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/roles",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/roles",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/roles",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/roles",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/roles",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/staffs/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/staffs/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/staffs/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/staffs/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/staffs/[id]",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/staffs/new",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/staffs/new",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/staffs/new",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/staffs/new",
+      "state": "error",
+      "status": "native_required_field_only_custom_server_errors_pending"
+    },
+    {
+      "route": "/staffs/new",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/staffs",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/staffs",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/staffs",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/staffs",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/staffs",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-balance",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/stock-balance",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-balance",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-balance",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-balance",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-balances",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/stock-balances",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-balances",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-balances",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-balances",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-card",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-card",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-card",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-card",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-counts/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/stock-counts/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-counts/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-counts/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-counts/[id]",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/stock-counts/new",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/stock-counts/new",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-counts/new",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-counts/new",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-counts/new",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/stock-counts",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-counts",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-counts",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-transactions/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/stock-transactions/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-transactions/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-transactions/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-transactions/[id]",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-transactions/new",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/stock-transactions/new",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-transactions/new",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-transactions/new",
+      "state": "error",
+      "status": "native_required_field_only_custom_server_errors_pending"
+    },
+    {
+      "route": "/stock-transactions/new",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/stock-transactions",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-transactions",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-transactions",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-transactions",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-transfers/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/stock-transfers/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-transfers/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-transfers/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-transfers/[id]",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-transfers/new",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-transfers/new",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-transfers/new",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-transfers/new",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-transfers",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/stock-transfers",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-transfers",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-transfers",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-wastage/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/stock-wastage/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-wastage/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-wastage/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-wastage/[id]",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-wastage/new",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-wastage/new",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-wastage/new",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-wastage/new",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-wastage",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-wastage",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/stock-wastage",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-invoices/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/supplier-invoices/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-invoices/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-invoices/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-invoices/[id]",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/supplier-invoices/aging",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-invoices/aging",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-invoices/aging",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-invoices/aging",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-invoices/cash-flow",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/supplier-invoices/cash-flow",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-invoices/cash-flow",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-invoices/cash-flow",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-invoices/cash-flow",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-invoices/new",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/supplier-invoices/new",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-invoices/new",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-invoices/new",
+      "state": "error",
+      "status": "native_required_field_only_custom_server_errors_pending"
+    },
+    {
+      "route": "/supplier-invoices/new",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/supplier-invoices",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-invoices",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-invoices",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-items/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/supplier-items/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-items/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-items/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-items/[id]",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-items/new",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/supplier-items/new",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-items/new",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-items/new",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-items/new",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-items",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/supplier-items",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-items",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-items",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/supplier-items",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/suppliers/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/suppliers/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/suppliers/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/suppliers/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/suppliers/[id]",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/suppliers/new",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/suppliers/new",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/suppliers/new",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/suppliers/new",
+      "state": "error",
+      "status": "native_required_field_only_custom_server_errors_pending"
+    },
+    {
+      "route": "/suppliers/new",
+      "state": "long_content",
+      "status": "editable_input_captured_only"
+    },
+    {
+      "route": "/suppliers",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/suppliers",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/suppliers",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/suppliers",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/uom-conversions/[id]",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/uom-conversions/[id]",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/uom-conversions/[id]",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/uom-conversions/[id]",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/uom-conversions/[id]",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/uom-conversions/new",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/uom-conversions/new",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/uom-conversions/new",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/uom-conversions/new",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/uom-conversions/new",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/uom-conversions",
+      "state": "expanded",
+      "status": "custom_or_not_applicable_not_verified"
+    },
+    {
+      "route": "/uom-conversions",
+      "state": "loading",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/uom-conversions",
+      "state": "empty",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/uom-conversions",
+      "state": "error",
+      "status": "not_yet_verified"
+    },
+    {
+      "route": "/uom-conversions",
+      "state": "long_content",
+      "status": "not_yet_verified"
+    }
+  ]
+}

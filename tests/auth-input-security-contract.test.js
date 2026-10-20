@@ -14,7 +14,7 @@ test("authentication inputs are server-validated and upstream sign-in errors are
   assert.match(auth, /readPasswordChangeInput\(formData\)/);
   assert.match(input, /\.email\(/);
   assert.match(input, /\.max\(1024/);
-  assert.match(auth, /Invalid email or password/);
+  assert.match(auth, /Invalid email, username or password/);
   assert.doesNotMatch(auth, /encodeURIComponent\(error\.message\)/);
   assert.doesNotMatch(login, /return error;/);
 });

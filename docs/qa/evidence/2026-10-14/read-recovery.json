@@ -1,0 +1,83 @@
+[
+  {
+    "route": "/items",
+    "table": "rpc/get_items_workspace",
+    "message": "This workspace could not finish the request\n\nThe result could not be confirmed. Changes may already be saved. Check the record before trying the action again.\n\nReference: 1724963752\n\nRetry\nReturn to previous page\nDashboard",
+    "visibleError": true,
+    "screenshot": "read-error-_items.png",
+    "recovery": "Retry button",
+    "recovered": true
+  },
+  {
+    "route": "/purchase-orders/[id]",
+    "table": "purchase_orders",
+    "message": "Purchase order could not be loaded\n\nThe request failed before this purchase order could be verified. Do not assume it was removed or changed. Reference: 4069839446.\n\nRetry\nBack to purchase orders",
+    "visibleError": true,
+    "screenshot": "read-error-_purchase_orders__id_.png",
+    "recovery": "Retry button",
+    "recovered": true
+  },
+  {
+    "route": "/purchase-requests/[id]",
+    "table": "purchase_requests",
+    "message": "Purchase request could not be loaded\n\nThe request failed before this purchase request could be verified. Do not assume it was removed or changed. Reference: 3578748188.\n\nRetry\nBack to purchase requests",
+    "visibleError": true,
+    "screenshot": "read-error-_purchase_requests__id_.png",
+    "recovery": "Retry button",
+    "recovered": true
+  },
+  {
+    "route": "/documents/[id]",
+    "table": "documents",
+    "message": "Document could not be loaded\n\nThe request failed before this document could be verified. Do not assume it was removed or changed. Reference: 1598905554.\n\nRetry\nBack to documents",
+    "visibleError": true,
+    "screenshot": "read-error-_documents__id_.png",
+    "recovery": "Retry button",
+    "recovered": true
+  },
+  {
+    "route": "/purchase-returns/[id]",
+    "table": "purchase_returns",
+    "message": "Purchase return could not be loaded\n\nThe request failed before this purchase return could be verified. Do not assume it was removed or changed. Reference: 252811055.\n\nRetry\nBack to returns",
+    "visibleError": true,
+    "screenshot": "read-error-_purchase_returns__id_.png",
+    "recovery": "Retry button",
+    "recovered": true
+  },
+  {
+    "route": "/production/jobs",
+    "table": "production_jobs",
+    "message": "Filter\n\nProduction jobs are unavailable\n\nThe production service did not respond. Retry this page; no job data was changed.",
+    "visibleError": true,
+    "screenshot": "read-error-_production_jobs.png",
+    "recovery": "Reload",
+    "recovered": true
+  },
+  {
+    "route": "/production/planning",
+    "table": "production_planning_settings",
+    "message": "Production planning could not load\n\nReload to retry. If this continues, check the kitchen configuration and system health.",
+    "visibleError": true,
+    "screenshot": "read-error-_production_planning.png",
+    "recovery": "Reload",
+    "recovered": true
+  },
+  {
+    "route": "/supplier-invoices/aging",
+    "table": "rpc/get_ap_aging_report",
+    "message": "AP Aging is unavailable\n\nThis report is temporarily unavailable. Please retry or contact the Super Admin / Owner.\n\nRetry\nBack to reports",
+    "visibleError": true,
+    "screenshot": "read-error-_supplier_invoices_aging.png",
+    "recovery": "Retry button",
+    "recovered": true
+  },
+  {
+    "route": "/supplier-invoices/cash-flow",
+    "table": "rpc/get_ap_aging_report",
+    "message": "Cash Flow Forecast is unavailable\n\nThis report is temporarily unavailable. Please retry or contact the Super Admin / Owner.\n\nRetry\nBack to reports",
+    "visibleError": true,
+    "screenshot": "read-error-_supplier_invoices_cash_flow.png",
+    "recovery": "Retry button",
+    "recovered": true
+  }
+]

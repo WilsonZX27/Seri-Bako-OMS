@@ -1,0 +1,105 @@
+{
+  "prefix": "QA-COST-bd5377",
+  "company": "ecf98462-bd2f-48cf-b79d-fb4965cea567",
+  "products": [
+    {
+      "id": "94976fc6-b8a0-4247-b006-c9868c4e4cff",
+      "recipe": "0214bb62-e940-42ca-b166-13d83427fb1b",
+      "name": "QA-COST-bd5377 Long product name demonstrating complete keyboard preview and mobile wrapping Long product name demonstrating complete keyboard preview and mobile wrapping Long product name demonstrating complete keyboard preview and mobile wrapping ",
+      "kind": "ready",
+      "cost": 31,
+      "price": 1,
+      "margin": -30
+    },
+    {
+      "id": "18898e0c-bc35-4cd3-9173-9fca590736bf",
+      "recipe": "68d58064-e34f-4f75-87b8-014ddac7c313",
+      "name": "QA-COST-bd5377 Product 1",
+      "kind": "ready",
+      "cost": 2,
+      "price": 12,
+      "margin": 10
+    },
+    {
+      "id": "77559b47-857a-40f9-a103-d85e1c2e94c2",
+      "recipe": "e7ee9f23-5ca0-47bf-a2cc-84981dbdd817",
+      "name": "QA-COST-bd5377 Product 2",
+      "kind": "ready",
+      "cost": 3,
+      "price": 13,
+      "margin": 10
+    },
+    {
+      "id": "c46da697-913e-4c33-afaf-9bb53e303001",
+      "recipe": "a6d589a6-5382-49da-8082-916a10e482a2",
+      "name": "QA-COST-bd5377 Product 3",
+      "kind": "ready",
+      "cost": 4,
+      "price": 14,
+      "margin": 10
+    },
+    {
+      "id": "23b962ad-164b-421e-b23b-f4df1e0cf8a3",
+      "recipe": "642e55c8-514d-490f-adcc-28416b7658ff",
+      "name": "QA-COST-bd5377 Product 4",
+      "kind": "ready",
+      "cost": 5,
+      "price": 15,
+      "margin": 10
+    },
+    {
+      "id": "a6923060-8cde-454e-a864-eeace5fd8f7d",
+      "recipe": "a7ad04a3-218c-4381-a3fa-55a5905cdcbe",
+      "name": "QA-COST-bd5377 Product 5",
+      "kind": "ready",
+      "cost": 6,
+      "price": 16,
+      "margin": 10
+    },
+    {
+      "id": "ad7421a9-df5e-4e02-907b-ef89ff52be53",
+      "recipe": "29059fe0-60d4-4b65-875e-2efd03b328bb",
+      "name": "QA-COST-bd5377 Product 6",
+      "kind": "ready",
+      "cost": 7,
+      "price": 17,
+      "margin": 10
+    },
+    {
+      "id": "7956286c-2fc1-4725-9cca-abf4d2a35eba",
+      "recipe": "b0b81f4f-b45a-4cc4-ac0c-d12d51efa8f1",
+      "name": "QA-COST-bd5377 Product 7",
+      "kind": "medium",
+      "cost": 8,
+      "price": 18,
+      "margin": null
+    },
+    {
+      "id": "5b5f3420-ee5c-41fb-b3f2-888b3acc05a2",
+      "recipe": "8e5b0996-5499-4931-95c1-7f8ad17662ad",
+      "name": "QA-COST-bd5377 Product 8",
+      "kind": "low",
+      "cost": 9,
+      "price": 19,
+      "margin": null
+    },
+    {
+      "id": "9cfdbab0-107e-4cee-8337-0847fb14890f",
+      "recipe": "cacc6fb8-a1c5-4e37-9d74-a189cd46e188",
+      "name": "QA-COST-bd5377 Product 9",
+      "kind": "missing_price",
+      "cost": 10,
+      "price": 20,
+      "margin": null
+    },
+    {
+      "id": "732e96d8-6b47-4b34-b3d3-1b282b3e0ad5",
+      "recipe": null,
+      "name": "QA-COST-bd5377 Product 10",
+      "kind": "missing_recipe",
+      "cost": 11,
+      "price": 21,
+      "margin": null
+    }
+  ]
+}

@@ -36,7 +36,7 @@ const pageCases = [
   ["src/app/(app)/purchase-returns/[id]/page.tsx", "getPurchaseReturn"],
   ["src/app/(app)/recipes/[id]/page.tsx", "getRecipe"],
   ["src/app/(app)/recipes/[id]/edit/page.tsx", "getRecipe"],
-  ["src/app/(app)/staffs/[id]/page.tsx", "getStaff"],
+
   ["src/app/(app)/stock-transactions/[id]/page.tsx", "getStockTransaction"],
   ["src/app/(app)/stock-transfers/[id]/page.tsx", "getStockTransfer"],
   ["src/app/(app)/stock-wastage/[id]/page.tsx", "getStockWastageDetail"],

@@ -13,8 +13,8 @@ const styles = fs.readFileSync(
   "utf8",
 );
 
-test("unified list header is phone-only and preserves desktop controls", () => {
-  assert.match(component, /matchMedia\("\(max-width: 639px\)"\)/);
+test("unified list header uses compact touch layout and preserves desktop controls", () => {
+  assert.match(component, /matchMedia\("\(max-width: 1279px\)"\)/);
   assert.match(component, /data-unified-list-desktop="true"/);
   assert.match(component, /if \(!mobile\)[\s\S]*data-unified-list-desktop/);
   assert.match(styles, /@media \(max-width: 639px\)[\s\S]*\.unified-list-header/);

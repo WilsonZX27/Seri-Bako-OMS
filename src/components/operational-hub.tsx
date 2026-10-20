@@ -84,7 +84,7 @@ export function OperationalHub({
           </Button>
         </div>
 
-        <dl className="grid grid-cols-2 border-t border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] md:grid-cols-4">
+        <dl className="grid grid-cols-2 border-t border-[var(--sb-border-soft)] bg-[var(--sb-green-100)] md:grid-cols-4">
           {metrics.map((metric, index) => {
             const tone = toneStyles[metric.tone ?? "default"];
             return (
@@ -98,7 +98,7 @@ export function OperationalHub({
                 )}
               >
                 <dt className="break-words text-[13px] font-medium leading-4 text-[var(--sb-text)]">{metric.label}</dt>
-                <dd className={cn("mt-1.5 font-mono text-[1.375rem] font-bold leading-none tabular-nums", tone.value)}>
+                <dd className={cn("mt-1.5 sb-kpi-value", tone.value)}>
                   {metric.value}
                 </dd>
               </div>

@@ -1,6 +1,6 @@
 "use server";
 
-import { randomInt } from "crypto";
+import { randomInt, randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -378,12 +378,16 @@ export async function restoreBranch(id: string) {
   safeRedirectWithMessage(`/branches/${id}`, "success", "Branch restored.");
 }
 
-function staffPayload(formData: FormData, companyId: string) {
+function staffPayload(formData: FormData, companyId: string, existingEmail?: string | null) {
+  const username = cleanText(formData.get("username"))?.toLowerCase() || null;
+  const email = formValue(formData, "email") || (username ? existingEmail || `${randomUUID()}@accounts.seribako.invalid` : null);
+  if (!email) throw new Error("Enter an email or username for this employee.");
   return staffSchema.parse({
     company_id: companyId,
     staff_code: formValue(formData, "staff_code"),
     full_name: formValue(formData, "full_name"),
-    email: formValue(formData, "email"),
+    email,
+    username,
     phone: formValue(formData, "phone"),
     employment_type: formValue(formData, "employment_type") ?? "full_time",
     employment_end_date: formValue(formData, "employment_end_date"),
@@ -414,18 +418,19 @@ async function assertStaffAccessIsEligible(
   if (branchError) throw new Error(branchError.message);
   if (!role) throw new Error("Selected role was not found in your company.");
   if ((branches ?? []).length !== requestedBranchIds.length) throw new Error("Select only active branches in your company.");
-  const typeMismatch = role.role_code === "kitchen"
+  const typeMismatch = (role.role_code === "kitchen" || role.role_code === "chef")
     ? (branches ?? []).some((branch) => branch.branch_type !== "central_kitchen")
     : role.role_code === "outlet_staff" || role.role_code === "outlet_supervisor"
       ? (branches ?? []).some((branch) => branch.branch_type !== "outlet")
       : false;
-  if (typeMismatch) throw new Error(role.role_code === "kitchen" ? "Kitchen staff require a Central Kitchen branch." : "Outlet staff require an Outlet branch.");
+  if (typeMismatch) throw new Error((role.role_code === "kitchen" || role.role_code === "chef") ? "Kitchen staff require a Central Kitchen branch." : "Outlet staff require an Outlet branch.");
 }
 
 async function replaceStaffAccess(staffId: string, formData: FormData, payload?: ReturnType<typeof staffPayload>) {
   const access = staffAccessPayload(formData);
   const supabase = await createClient();
-  const { error } = await supabase.rpc("replace_staff_access_atomic", {
+  const { error } = await supabase.rpc("replace_staff_access_with_username", {
+    p_username: payload ? payload.username ?? "" : undefined,
     p_staff_id: staffId,
     p_role_id: access.role_id,
     p_default_branch_id: access.default_branch_id,
@@ -574,6 +579,7 @@ async function inviteStaffByEmail(staffId: string, email: string) {
   const admin = createAdminClient();
   const actor = await requireActiveTenantActor();
   const normalized = email.trim().toLowerCase();
+  if (normalized.endsWith("@accounts.seribako.invalid")) throw new Error("Add a real email before sending an invitation, or use a temporary password.");
   const { data: staff, error: staffError } = await admin.from("staffs").select("auth_user_id").eq("id", staffId).eq("company_id", actor.companyId).single();
   if (staffError) throw new Error(staffError.message);
   const redirectTo = `${await getAppUrl()}/auth/callback?next=/set-password`;
@@ -707,6 +713,7 @@ export async function createStaff(formData: FormData) {
   let temporaryPassword: string | null = null;
   try {
     const actor = await requireActiveTenantActor();
+    if (!cleanText(formData.get("staff_code"))) throw new Error("Staff Code is required.");
     const payload = staffPayload(formData, actor.companyId);
     const access = staffAccessPayload(formData);
     const authSetupMethod = String(formData.get("auth_setup_method") ?? "temporary_password");
@@ -779,17 +786,20 @@ export async function createStaff(formData: FormData) {
   revalidatePath("/staffs");
   if (createdStaffId && temporaryPassword) {
     await setTemporaryPasswordHandoff(createdStaffId, temporaryPassword);
-    redirect(`/staffs/${createdStaffId}`);
+    redirect(`/people/${createdStaffId}?section=security`);
   }
   safeRedirectWithMessage("/staffs", "success", "Staff created.");
 }
 
 export async function updateStaff(id: string, formData: FormData) {
   id = parseRecordId(id);
+  const returnTo = formData.get("return_to") === `/people/${id}?section=employment` ? `/people/${id}?section=employment` : `/staffs/${id}`;
   await requirePermissionOrRedirect("staffs.update", `/staffs/${id}`);
   try {
     const actor = await requireActiveTenantActor();
-    const payload = staffPayload(formData, actor.companyId);
+    const existing = isMockMode() ? null : await createAdminClient().from("staffs").select("email,auth_user_id").eq("id",id).eq("company_id",actor.companyId).maybeSingle();
+    if (existing?.error) throw new Error(existing.error.message);
+    const payload = staffPayload(formData, actor.companyId, existing?.data?.email);
     const access = staffAccessPayload(formData);
     if (!isMockMode()) {
       const supabase = createAdminClient();
@@ -798,17 +808,39 @@ export async function updateStaff(id: string, formData: FormData) {
       }
       await assertCanManageStaffAccount(supabase, id);
       await assertCanAssignStaffRole(supabase, access.role_id, id);
-      await replaceStaffAccess(id, formData, payload);
+      let previousAuthEmail: string | null = null;
+      const authId = existing?.data?.auth_user_id;
+      if (authId) {
+        const { data: authData, error: authError } = await supabase.auth.admin.getUserById(authId);
+        if (authError || !authData.user?.email) throw new Error("Could not verify the current sign-in account.");
+        if (authData.user.email !== payload.email) {
+          previousAuthEmail = authData.user.email;
+          const { error } = await supabase.auth.admin.updateUserById(authId, { email: payload.email, email_confirm: true });
+          if (error) throw new Error("This email cannot be used for sign-in. Check whether another account already uses it.");
+        }
+      }
+      try {
+        await replaceStaffAccess(id, formData, payload);
+      } catch (error) {
+        if (authId && previousAuthEmail) {
+          const { error: rollbackError } = await supabase.auth.admin.updateUserById(authId, { email: previousAuthEmail, email_confirm: true });
+          if (rollbackError) {
+            logServerError(rollbackError, { source: "foundation.update-staff.restore-auth-email", actorId: actor.staffId, companyId: actor.companyId });
+            throw new Error("Profile save failed and the sign-in email could not be restored. Contact the Owner before retrying.");
+          }
+        }
+        throw error;
+      }
       await writeActivityLog({ entityType: "staff", entityId: id, activityType: "updated", message: `Staff ${payload.full_name} updated` });
     }
   } catch (error) {
     rethrowRedirect(error);
-    safeRedirectWithMessage(`/staffs/${id}`, "error", formatActionError(error, "Could not update this staff member."));
+    safeRedirectWithMessage(returnTo, "error", formatActionError(error, "Could not update this staff member."));
   }
   revalidatePath("/staffs");
   revalidatePath(`/staffs/${id}`);
   revalidatePath("/", "layout");
-  safeRedirectWithMessage(`/staffs/${id}`, "success", "Staff updated.");
+  safeRedirectWithMessage(returnTo, "success", "Staff updated.");
 }
 
 async function saveStaffPermissionOverrides(id: string, overrides: { permission_id: string; effect: "allow" | "deny" }[]) {
@@ -835,13 +867,13 @@ export async function updateStaffPermissionOverrides(id: string, formData: FormD
     return [{ permission_id: key.slice("permission:".length), effect: value }];
   }));
   await saveStaffPermissionOverrides(id, overrides);
-  safeRedirectWithMessage(`/staffs/${id}`, "success", "Permission overrides updated.");
+  safeRedirectWithMessage(formData.get("return_to") === `/people/${id}?section=employment` ? `/people/${id}?section=employment` : `/staffs/${id}`, "success", "Permission overrides updated.");
 }
 
-export async function resetStaffPermissionOverrides(id: string) {
+export async function resetStaffPermissionOverrides(id: string, returnTo?: string) {
   id = parseRecordId(id);
   await saveStaffPermissionOverrides(id, []);
-  safeRedirectWithMessage(`/staffs/${id}`, "success", "Permission overrides reset to role defaults.");
+  safeRedirectWithMessage(returnTo === `/people/${id}?section=employment` ? returnTo : `/staffs/${id}`, "success", "Permission overrides reset to role defaults.");
 }
 
 export async function resendStaffInvite(id: string) {
@@ -902,7 +934,7 @@ export async function resetStaffTemporaryPassword(id: string) {
   revalidatePath(`/staffs/${id}`);
   if (temporaryPassword) {
     await setTemporaryPasswordHandoff(id, temporaryPassword);
-    redirect(`/staffs/${id}?success=${encodeURIComponent("Temporary password generated. Copy it now.")}`);
+    redirect(`/people/${id}?section=security&success=${encodeURIComponent("Temporary password generated. Copy it now.")}`);
   }
   safeRedirectWithMessage(`/staffs/${id}`, "success", "Temporary password generated.");
 }
@@ -1125,9 +1157,12 @@ export async function updateDocumentSequence(id: string, formData: FormData) {
   await requirePermission("document_sequences.update");
   const actor = await requireActiveTenantActor();
   const payload = documentSequencePayload(formData, actor.companyId);
+  // Padding is not editable here; preserve the stored numbering width.
+  const updates: Partial<typeof payload> = { ...payload };
+  delete updates.padding;
   if (!isMockMode()) {
     const supabase = createAdminClient();
-    const { error } = await supabase.from("document_sequences").update(payload).eq("id", id).eq("company_id", actor.companyId);
+    const { error } = await supabase.from("document_sequences").update(updates).eq("id", id).eq("company_id", actor.companyId);
     if (error) throw new Error(error.message);
     await writeActivityLog({ entityType: "document_sequence", entityId: id, activityType: "updated", message: `Document sequence ${payload.document_type} updated` });
   }

@@ -62,10 +62,10 @@ export default async function NewStaffPage({
       <RecordWorkspace
         actionPanel={
           <RecordActionPanel title="Staff Actions" description="Create the profile and issue an auto-generated temporary password.">
-            <div className="rounded-[var(--sb-panel-radius)] border bg-secondary/30 p-4 text-sm text-muted-foreground">
+            <div className="rounded-[var(--sb-panel-radius)] border bg-secondary/30 p-3 text-xs leading-5 text-muted-foreground">
               The temporary password is shown once after creation and must be changed at first login.
             </div>
-            <div className="rounded-[var(--sb-panel-radius)] border bg-secondary/30 p-4 text-sm text-muted-foreground">
+            <div className="rounded-[var(--sb-panel-radius)] border bg-secondary/30 p-3 text-xs leading-5 text-muted-foreground">
               <p className="font-medium text-foreground">Role assignment</p>
               <p className="mt-1">Your current role can assign: {roles.map((role) => getRoleDisplayLabel(role.role_code, role.role_name)).join(", ")}.</p>
             </div>

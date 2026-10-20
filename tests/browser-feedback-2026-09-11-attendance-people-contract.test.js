@@ -16,7 +16,8 @@ test("People and Staff keep section actions beside their titles", () => {
   assert.match(people, /lg:grid-cols-2/);
   assert.doesNotMatch(people, /protected-payroll-form|Sensitive payroll details/);
   assert.match(people, /form="staff-compliance-record-form"/);
-  assert.ok(staff.indexOf("Save Staff") < staff.indexOf("Open profile"));
+  assert.match(staff, /section:"security"/);
+  assert.match(people, /form="people-employment-form"/);
 });
 
 test("mobile scheduling retains bounded, aligned and state-specific actions", () => {
@@ -34,7 +35,7 @@ test("mobile scheduling retains bounded, aligned and state-specific actions", ()
   assert.match(css, /details\[open\] \[data-template-mobile-actions\][\s\S]*\[data-mobile-bottom-nav\]/);
   assert.doesNotMatch(css, /html:has\(\[data-template-mobile-actions\]\) \[data-mobile-bottom-nav\]/);
   assert.doesNotMatch(css, /\[data-schedule-planner\][^{]*\{\s*margin-inline:\s*-1rem/);
-  assert.match(css, /\[data-schedule-mobile-actions\][\s\S]*inset: auto 1rem/);
+  assert.match(css, /\[data-schedule-mobile-actions\],[\s\S]*\[data-template-mobile-actions\][\s\S]*inset: auto 0 0/);
 });
 
 test("schedule working-time tools expose quick states and an unambiguous span summary", () => {
@@ -57,5 +58,5 @@ test("warning and empty-state feedback follows the annotated hierarchy", () => {
   assert.doesNotMatch(review, /Attendance records stay unloaded until you choose an outlet above/);
   assert.match(review, /block max-w-full cursor-help text-\[10px\] leading-tight text-amber-800/);
   assert.match(review, /<dd title=\{`Advisory only; payroll is unchanged[^>]*className="max-w-full cursor-help text-\[10px\] leading-tight text-amber-800">/);
-  assert.match(review, /inline-flex min-w-0 max-w-64 flex-wrap items-center gap-1/);
+  assert.match(review, /inline-flex min-w-0 flex-nowrap items-center gap-1/);
 });

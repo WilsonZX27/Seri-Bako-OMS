@@ -1,0 +1,10 @@
+{
+  "src/app/(app)/attendance/review/page.tsx": "20e34c491467b0e9cbdf8c23495db8f21a52d935fd069415915e1afc2a12e757",
+  "src/app/api/attendance/export/route.ts": "11d14aa0cdd5ae5e92fdbbe679d8b74baacb283acf8174046ec0528d8b2c5234",
+  "src/lib/attendance/calculation.ts": "cf1408416b0154356a81d04cf52ea13c7694a2f971e48bd61a4b7dda87f0eb7d",
+  "src/lib/attendance/export-policy.ts": "633a1a406e3af2c8289b0acbd92dbfeea8159615c6a7ec5617379fe07b713af3",
+  "src/lib/attendance/people-workbook.ts": "f0dc2c77316cf62f8e5d364d4e7710c41b073f1f9479b59f577aa2ac18a37dbe",
+  "supabase/migrations/352_attendance_four_punch_evidence.sql": "b26768c50040ab14b3faa3e7555f355b1b639499a717af99a6fce9f4cd2d8e8b",
+  "tests/sql/attendance-four-punch-local.sql": "2d48ea701900f1a74b60f5306afda9552dc79670bf8d66117d7b4675b8768555",
+  "src/components/ui/record-detail-error.tsx": "cb35253b6aed1692f8b0e80c7c04a064033db94cb1c83c0365ca8cb59b6d43f2"
+}

@@ -1,8 +1,10 @@
+import { dailyTrackingLabels, dailyTracking } from "@/lib/daily-product-tracking";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
+import { ProductCategoryCombobox } from "@/components/product-category-combobox";
 import { normalizeUom, uomOptionsWithCurrent } from "@/lib/uom";
 import type { Database } from "@/types/database";
 
@@ -15,13 +17,14 @@ type ProductFormProps = {
   action: (formData: FormData) => Promise<void>;
   formId?: string;
   showSubmit?: boolean;
+  categories?: string[];
 };
 
-export function ProductForm({ product, packaging = [], action, formId, showSubmit = true }: ProductFormProps) {
+export function ProductForm({ product, packaging = [], action, formId, showSubmit = true, categories = [] }: ProductFormProps) {
   const primaryPackaging = packaging[0];
   return (
     <Card className="border-0 bg-transparent shadow-none md:border md:bg-card md:shadow-sm" data-product-setup>
-      <CardContent className="p-0 md:p-5">
+      <CardContent className="p-3 md:p-5">
         <form id={formId} action={action} className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2">
           <Field label="Product Code">
             <Input name="product_code" defaultValue={product?.product_code ?? ""} required />
@@ -30,8 +33,22 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
             <Input name="product_name" defaultValue={product?.product_name ?? ""} required />
           </Field>
           <Field label="Category" className="col-span-2 sm:col-span-1">
-            <Input name="category" defaultValue={product?.category ?? ""} placeholder="Frozen Pastry" required />
+            <ProductCategoryCombobox categories={categories} initialValue={product?.category ?? ""} />
+            <p className="mt-1 text-xs text-muted-foreground">Choose a saved category or type a new one.</p>
           </Field>
+          <Field label="Daily record category" className="col-span-2 sm:col-span-1">
+            <SelectNative name="daily_tracking" defaultValue={product ? dailyTracking(product) : "food_daily"}>{Object.entries(dailyTrackingLabels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</SelectNative>
+            <p className="mt-1 text-xs text-muted-foreground">Next day includes food kept for several days. Usage is recorded separately from wastage; this does not set a fixed expiry date.</p>
+          </Field>
+          <Field label="Product status">
+            <SelectNative name="status" defaultValue={product?.status ?? "active"} required><option value="active">Active</option><option value="inactive">Inactive</option></SelectNative>
+          </Field>
+          <Field label="Availability type">
+            <SelectNative name="is_seasonal" defaultValue={product?.is_seasonal ? "true" : "false"}><option value="false">Year-round</option><option value="true">Seasonal</option></SelectNative>
+          </Field>
+          <Field label="Available from"><Input name="available_from" type="date" defaultValue={product?.available_from ?? ""} /></Field>
+          <Field label="Available until"><Input name="available_until" type="date" defaultValue={product?.available_until ?? ""} /></Field>
+          <p className="col-span-2 -mt-2 text-xs text-muted-foreground">Seasonal items with an end date stop appearing on new Outlet Daily Records after that date. Leave dates blank to keep the item available until you update its season.</p>
           <Field label="Display Order">
             <Input name="display_order" type="number" min="1" step="1" defaultValue={product?.display_order ?? 9999} required />
           </Field>
@@ -40,20 +57,8 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
               {uomOptionsWithCurrent(product?.selling_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
             </SelectNative>
           </Field>
-          <Field label="Available from">
-            <Input name="available_from" type="date" defaultValue={product && "available_from" in product ? String(product.available_from ?? "") : ""} />
-          </Field>
-          <Field label="Available until (inclusive)">
-            <Input name="available_until" type="date" min={product && "available_from" in product && product.available_from ? String(product.available_from) : undefined} defaultValue={product && "available_until" in product ? String(product.available_until ?? "") : ""} />
-          </Field>
-          <p className="col-span-2 -mt-1 text-xs text-muted-foreground">Leave both dates empty for year-round products. After the inclusive end date, the product is hidden from new operational selection.</p>
-          <input type="hidden" name="status" value={product?.status ?? "active"} />
-          <Field label="Product Image" className="col-span-2">
-            <Input name="product_image" type="file" accept="image/png,image/jpeg,image/webp" />
-            <p className="mt-1 text-xs text-muted-foreground">PNG, JPG, or WEBP, up to 2MB.</p>
-          </Field>
-          <div className="col-span-2 grid grid-cols-2 gap-3 border-y py-4 sm:gap-4 md:rounded-[var(--sb-control-radius)] md:border md:bg-secondary/30 md:p-4 md:grid-cols-4">
-            <div className="col-span-2 md:col-span-4">
+          <div className="col-span-2 grid grid-cols-2 gap-3 border-y py-4 sm:gap-4 md:rounded-[var(--sb-control-radius)] md:border md:bg-secondary/30 md:p-4 xl:grid-cols-4">
+            <div className="col-span-2 xl:col-span-4">
               <p className="text-sm font-semibold">Packaging & Pricing</p>
               <p className="mt-1 text-xs text-muted-foreground">Default selling pack used for catalogue and future order pricing.</p>
             </div>
@@ -73,19 +78,19 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
             </Field>
             <input type="hidden" name="packaging_id" value={primaryPackaging?.id ?? ""} />
           </div>
-          {product ? <div className="col-span-2 min-w-0">
-            <div className="max-w-lg rounded-[var(--sb-control-radius)] border bg-secondary/30 p-3">
+          <div className="col-span-2 rounded-[var(--sb-control-radius)] border bg-secondary/30 p-3 md:col-span-1 md:col-start-2 md:p-4">
               <p className="text-sm font-semibold">Product Image</p>
-              {product.product_image_url ? (
+              {product?.product_image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={product.product_image_url} alt={product.product_name} className="mt-3 aspect-video w-full rounded-[var(--sb-radius-control)] border object-cover" />
+                <img src={product.product_image_url} alt={product.product_name} className="mt-3 h-24 w-full rounded-[var(--sb-radius-control)] border object-contain" />
               ) : (
                 <div className="mt-3 flex h-24 items-center justify-center rounded-[var(--sb-radius-control)] border bg-background text-xs text-muted-foreground">
                   No image uploaded yet
                 </div>
               )}
-            </div>
-          </div> : null}
+              <Input name="product_image" aria-label="Product image" type="file" accept="image/png,image/jpeg,image/webp" className="mt-3" />
+              <p className="mt-1 text-xs text-muted-foreground">PNG, JPG, or WEBP, up to 2MB.</p>
+          </div>
           {showSubmit ? <div className="flex justify-end md:col-span-2">
             <SubmitButton type="submit" pendingLabel={product ? "Saving..." : "Creating..."}>{product ? "Save product" : "Create product"}</SubmitButton>
           </div> : null}

@@ -52,7 +52,7 @@ test("repair transaction is exact-match, Owner-only, atomic, and audited", () =>
 
 test("Staff UI exposes explicit states and only Owners receive the repair control", () => {
   const state = read("src/lib/staff-auth-state.ts");
-  const detail = read("src/app/(app)/staffs/[id]/page.tsx");
+  const detail = read("src/components/staff-security-panel.tsx");
   const list = read("src/app/(app)/people/page.tsx");
   const compatibility = read("src/app/(app)/staffs/page.tsx");
   assert.match(state, /"Auth linked"/);

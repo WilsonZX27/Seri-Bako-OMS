@@ -1,0 +1,12 @@
+{
+  "scope": "synthetic transaction rollback",
+  "checks": [
+    "Scoped refresh preserves all unrelated daily-result rows byte for byte",
+    "Cross-midnight four-punch work and zero candidate retained",
+    "Duplicate/missing/extra anomalies stay unpayable",
+    "Reviewed active claim returns needs_review and retains approved OT",
+    "Unchanged refresh preserves signed confirmation",
+    "Released payroll blocks refresh and preserves result hash",
+    "Adjacent-week batch still recalculates the explicit target day"
+  ]
+}

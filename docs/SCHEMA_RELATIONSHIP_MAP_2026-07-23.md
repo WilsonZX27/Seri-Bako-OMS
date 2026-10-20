@@ -1,3 +1,35 @@
+> Local candidate — 2026-10-19: migrations reviewed through `366`; forward-only migration 历史已到 `366`. Chef and unique username login are local changes pending database verification and release.
+
+> Local candidate (2026-10-19): migrations reviewed through `365`; forward-only migration 历史已到 `365`. Migration 365 introduces Chef with Kitchen grants and existing scheduling exclusions. Not applied to Production. Migration 364 was applied to Production after approval.
+
+> Local candidate (2026-10-18): repository migrations reviewed through `364`; forward-only migration 历史已到 `364`; migration 364 adds explicit week-only schedule exclusions. Applied only to the isolated audit database, not Production.
+
+> Local candidate — 2026-10-17: migrations reviewed through `363`; forward-only migration 历史已到 `363`. Migrations 362/363 add payment channels and independent daily product tracking; applied only to the isolated visual-audit database. Migration 361 adds one checklist per outlet/date and has not been deployed. Production statements below remain historical release evidence.
+
+> Production release — 2026-10-16: v9.2.106 is deployed. Migrations reviewed through `360`; forward-only migration 历史已到 `360`. Migrations 325 and 357–360 are applied. Effective migrations 339–344 were verified against 15 exact latest function bodies, current constraints and access policies, then their missing history records were reconciled without replaying old DDL. Asset/attendance/roster data did not change during this release. Earlier local-candidate notes below are historical snapshots, superseded by this release status.
+
+> Schedule import verification — 2026-10-16: migrations reviewed through `360`; forward-only migration 历史已到 `360`. Production migrations 358/359/360 are applied; the existing head-chef fingerprint exception is dated and audited. Migration 360 aligns explicit support destinations with the roster editor’s company eligibility, without changing permanent branch access. Colour alone cannot link an OT remark to an employee. Migration 357 is now applied; see the current production release status above.
+
+> Local schedule reconciliation candidate — 2026-10-16: migrations reviewed through `359`; forward-only migration 历史已到 `359`. Migration 358 adds atomic, version-checked draft reconciliation and reusable source rules; 359 adds dated Owner-confirmed staff fingerprint exceptions without inferred hours. Synthetic verification only; not applied to Production.
+
+> Local feedback patch — 2026-10-16: migrations reviewed through `357`; forward-only migration 历史已到 `357`. Migration 357 adds owner-managed non-operating asset destinations, with existing tenant/location access unchanged. Verified with ten synthetic transfer lifecycles only; not applied to Production. UI repair and portrait production export are not yet deployed.
+
+> Local candidate: migrations reviewed through `355`; forward-only migration 历史已到 `355`. Migration 355 makes recipe header, ingredients, document revisions, costing and audit atomic with request-key replay and optimistic update protection. Local verification only; Production has not been migrated.
+
+> Local candidate: migrations reviewed through `354`; forward-only migration 历史已到 `354`. Migration 354 brings automatic per-day schedule refresh into parity with four-punch import calculations, preserves active OT claims and released payroll, and changes no historical rows. Applied and rollback-tested on both isolated local databases only; Production remains unchanged.
+
+> Local candidate: forward-only migration 历史已到 `353`. Linked OT/RO reconciliation was validated against isolated synthetic records only; Production has not been migrated.
+
+> Local candidate: migrations reviewed through `352`; forward-only migration 历史已到 `352`. Migration 352 implements four-punch evidence and separated pending/approved OT; validated only on the isolated synthetic database, not Production.
+
+> Local candidate: migrations reviewed through `351`; forward-only migration 历史已到 `351`. Migration 350 adds versioned attendance confirmation and People-only payslips; 351 binds released-payroll protection into schedule refresh. Not applied to Production. Migration numbering 346–349 remains owned by other tasks.
+
+> Local schedule-import candidate: migrations reviewed through `349`; forward-only migration 历史已到 `349`. Migration numbers 348/349 are allocated by the integration coordinator; 347 belongs to checklist and approval-flow migrations start at 350. Partial import receipts and append-only draft rows were validated only in the isolated synthetic database; no Production application.
+
+> 2026-10-14 Wilson local candidate: migrations reviewed through `347`; forward-only migration 历史已到 `347`. Migration 347 connects checklist exceptions to scoped maintenance notifications and My Actions; 346/347 remain unapproved for Production.
+
+> 2026-10-13 isolated release package: migrations reviewed through `346`; forward-only migration 历史已到 `346`. The only new migration in this package is 346 (general maintenance, scoped reporter permissions and private attachments), verified locally only. Migrations 343/344 are unchanged baseline files; 345 and all new schedule/import changes are excluded. Production migration requires separate approval.
+
 > 2026-10-12 candidate: migrations reviewed through `344`; forward-only migration 历史已到 `344`. Migration 344 adds an explicit by-order demand basis. Prepared for isolated validation; not applied to Production.
 
 > 2026-10-10 isolated schedule repair: repository migrations reviewed through `343`; forward-only migration 历史已到 `343`. Migration 343 makes version validation, destination save and submit atomic; Wilson approved application only to the isolated local test DB (341 migration rows, maximum 343). No grants changed. This is not evidence of Production schema or deployment changes.

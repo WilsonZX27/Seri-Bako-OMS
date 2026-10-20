@@ -1,0 +1,13 @@
+{
+  "scope": "isolated synthetic database",
+  "credit": 40,
+  "attempts": [
+    30,
+    30
+  ],
+  "succeeded": 1,
+  "allocated": 30,
+  "checks": [
+    "Concurrent allocations cannot overdraw one earning"
+  ]
+}

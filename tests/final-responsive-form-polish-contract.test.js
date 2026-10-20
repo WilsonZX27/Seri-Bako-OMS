@@ -6,12 +6,12 @@ function read(file) {
   return fs.readFileSync(file, "utf8");
 }
 
-test("new document headers center one status and workflow summary without repeating the document title", () => {
+test("new document headers align status left and workflow right without repeating the document title", () => {
   const workspace = read("src/components/documents/document-workspace.tsx");
 
   assert.match(workspace, /isNewDocument && !hideWorkflow/);
   assert.match(workspace, /!hideWorkflow && !hideMobileWorkflow/);
-  assert.match(workspace, /justify-center gap-2 md:hidden/);
+  assert.match(workspace, /justify-between gap-2 md:hidden/);
   assert.match(workspace, /<StatusBadge status=\{status\}/);
   assert.match(workspace, /isNewDocument && "hidden md:flex"/);
 });
@@ -33,7 +33,7 @@ test("dense creation forms avoid nested card shells and use responsive field gri
   assert.match(purchaseOrder, /data-purchase-order-setup[^>]+grid grid-cols-2/);
   assert.match(invoice, /data-supplier-invoice-setup[^>]+grid grid-cols-2/);
   assert.match(purchaseReturn, /grid grid-cols-2 gap-3 lg:grid-cols-3/);
-  assert.match(production, /CardContent className="grid grid-cols-3 gap-3/);
+  assert.match(production, /CardContent className="sb-production-fields grid grid-cols-2 gap-3 xl:grid-cols-3/);
 });
 
 test("goods receiving uses one collapsible setup instead of a nested details disclosure", () => {

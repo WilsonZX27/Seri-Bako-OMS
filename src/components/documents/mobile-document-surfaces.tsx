@@ -8,8 +8,13 @@ import { Button } from "@/components/ui/button";
 import type { WorkflowStep } from "@/components/workflow-status-pipeline";
 import { cn } from "@/lib/utils";
 
+// Nested sheets share one scroll lock, including simultaneous breakpoint closure.
+let sheetScrollLocks = 0;
+let overflowBeforeSheets = "";
+
 function MobileSheet({ label, title, children, danger = false, triggerClassName, triggerAriaLabel, trailingChevron = true, hideAt = "md" }: { label: ReactNode; title: string; children: ReactNode; danger?: boolean; triggerClassName?: string; triggerAriaLabel?: string; trailingChevron?: boolean; hideAt?: "md" | "xl" }) {
   const [open, setOpen] = useState(false);
+  const [nested, setNested] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -19,15 +24,18 @@ function MobileSheet({ label, title, children, danger = false, triggerClassName,
 
   useEffect(() => {
     if (!open) return;
-    const previousOverflow = document.body.style.overflow;
+    if (sheetScrollLocks === 0) overflowBeforeSheets = document.body.style.overflow;
+    sheetScrollLocks += 1;
     const trigger = triggerRef.current;
     document.body.style.overflow = "hidden";
     document.documentElement.dataset.mobileSheetOpen = "true";
     const dialog = dialogRef.current;
-    const focusable = () => Array.from(dialog?.querySelectorAll<HTMLElement>("button, a, input, select, textarea, [tabindex]:not([tabindex='-1'])") ?? []).filter((element) => !element.hasAttribute("disabled"));
+    const focusable = () => Array.from(dialog?.querySelectorAll<HTMLElement>("button, a, input, select, textarea, summary, [tabindex]:not([tabindex='-1'])") ?? []).filter((element) => !element.hasAttribute("disabled") && element.getClientRects().length > 0);
     focusable()[0]?.focus();
 
     function onKeyDown(event: KeyboardEvent) {
+      const visibleDialogs = Array.from(document.querySelectorAll<HTMLElement>('[role="dialog"][aria-modal="true"]')).filter((element) => element.getClientRects().length > 0);
+      if (visibleDialogs.at(-1) !== dialog) return;
       if (event.key === "Escape") {
         setOpen(false);
         return;
@@ -46,27 +54,48 @@ function MobileSheet({ label, title, children, danger = false, triggerClassName,
       }
     }
 
+    const desktop = window.matchMedia(`(min-width: ${hideAt === "xl" ? 1280 : 768}px)`);
+    const closeBeyondBreakpoint = () => { if (desktop.matches) setOpen(false); };
+    desktop.addEventListener("change", closeBeyondBreakpoint);
+    closeBeyondBreakpoint();
     document.addEventListener("keydown", onKeyDown);
     return () => {
-      document.body.style.overflow = previousOverflow;
-      delete document.documentElement.dataset.mobileSheetOpen;
+      desktop.removeEventListener("change", closeBeyondBreakpoint);
+      sheetScrollLocks -= 1;
+      if (sheetScrollLocks === 0) document.body.style.overflow = overflowBeforeSheets;
+      if (!Array.from(document.querySelectorAll<HTMLElement>('[data-bottom-sheet][role="dialog"]')).some((element) => element !== dialog && element.getClientRects().length > 0)) delete document.documentElement.dataset.mobileSheetOpen;
       document.removeEventListener("keydown", onKeyDown);
-      requestAnimationFrame(() => trigger?.focus());
+      requestAnimationFrame(() => {
+        if (trigger?.getClientRects().length) { trigger.focus(); return; }
+        // At the wider layout the original trigger is hidden; return to content.
+        if (sheetScrollLocks === 0) {
+          const content = Array.from(document.querySelectorAll<HTMLElement>("[data-document-workspace-header], main, h1")).find((element) => element.getClientRects().length > 0);
+          if (content) {
+            const previousTabIndex = content.getAttribute("tabindex");
+            content.setAttribute("tabindex", "-1");
+            content.focus({ preventScroll: true });
+            content.addEventListener("blur", () => {
+              if (previousTabIndex === null) content.removeAttribute("tabindex");
+              else content.setAttribute("tabindex", previousTabIndex);
+            }, { once: true });
+          }
+        }
+      });
     };
-  }, [open]);
+  }, [hideAt, open]);
 
   return (
     <>
-      <Button ref={triggerRef} type="button" variant="outline" className={cn("w-full justify-between text-[13px]", danger && "text-[var(--sb-danger)]", triggerClassName)} disabled={!hydrated} onClick={() => setOpen(true)} aria-label={triggerAriaLabel} aria-haspopup="dialog" aria-expanded={open}>
+      <Button ref={triggerRef} type="button" variant="outline" className={cn("w-full justify-between text-[13px]", danger && "text-[var(--sb-danger)]", triggerClassName)} disabled={!hydrated} onClick={() => { setNested(Boolean(triggerRef.current?.closest('[role="dialog"]'))); setOpen(true); }} aria-label={triggerAriaLabel} aria-haspopup="dialog" aria-expanded={open}>
         {label}{trailingChevron ? <ChevronRight className="h-4 w-4" aria-hidden="true" /> : null}
       </Button>
       {open && hydrated ? createPortal(
         <div className={cn("fixed inset-0 z-[var(--sb-z-dialog)]", hideAt === "xl" ? "xl:hidden" : "md:hidden")}>
-          <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={() => setOpen(false)} aria-label={`Close ${title}`} />
-          <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">
+          <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" style={nested ? { background: "transparent", backdropFilter: "none" } : undefined} onClick={() => setOpen(false)} aria-label={`Close ${title}`} />
+          <div data-bottom-sheet ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">
             <header className="flex min-h-12 items-center justify-between border-b px-3">
               <h2 id={titleId} className="text-[14px] font-semibold">{title}</h2>
-              <Button type="button" variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label={`Close ${title}`}><X className="h-5 w-5" /></Button>
+              <Button type="button" variant="ghost" size="icon" className="focus-visible:ring-inset focus-visible:ring-offset-0" onClick={() => setOpen(false)} aria-label={`Close ${title}`}><X className="h-5 w-5" /></Button>
             </header>
             <div className="max-h-[calc(88dvh-3rem-env(safe-area-inset-bottom))] min-w-0 overflow-y-auto overscroll-contain px-3 py-3 text-[13px]">{children}</div>
           </div>
@@ -83,7 +112,7 @@ export function MobileWorkflowStatus({ steps, currentStatus, trailing }: { steps
 
   return (
     <div data-mobile-workflow-summary className={cn("flex min-w-0 items-center gap-1 md:hidden", trailing && "justify-between")}>
-      <MobileSheet label={<span className="inline-flex items-center gap-1.5 text-left"><span className="font-semibold">Step {activeIndex + 1} of {steps.length}</span><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" /></span>} triggerAriaLabel={`View workflow, step ${activeIndex + 1} of ${steps.length}`} title="Workflow progress" trailingChevron={false} triggerClassName="h-[var(--sb-control-height)] min-h-[var(--sb-control-height)] w-auto shrink-0 justify-start border-0 px-1.5 text-[12px] shadow-none">
+      <MobileSheet label={<span className="inline-flex items-center gap-1.5 text-left"><span className="font-semibold">Step {activeIndex + 1} / {steps.length}</span><ChevronRight className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" /></span>} triggerAriaLabel={`View workflow, step ${activeIndex + 1} of ${steps.length}`} title="Workflow progress" trailingChevron={false} triggerClassName="h-[var(--sb-control-height)] min-h-[var(--sb-control-height)] w-auto shrink-0 justify-start border-0 bg-transparent px-1.5 text-[12px] shadow-none">
         <ol className="space-y-1" aria-label="Document workflow">
           {steps.map((step, index) => {
             const done = index < activeIndex;

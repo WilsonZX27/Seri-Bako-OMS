@@ -1,0 +1,34 @@
+{
+  "company": "ecf98462-bd2f-48cf-b79d-fb4965cea567",
+  "branch": "8e85234c-81bf-4fa0-8726-be123d9a81f1",
+  "empty": "d736ebb0-ede0-46ea-b03d-c063a3c6224f",
+  "products": [
+    "424dbe7c-d8ff-4f62-9f8f-20bcec8a5883",
+    "d0842633-3e2c-4440-bfd3-306cd5979421",
+    "90382fcf-4ffa-4841-a693-0339afad135d"
+  ],
+  "item": "f397a467-4da6-4b04-a98b-9195e818871b",
+  "supplier": "926748e1-3157-43f1-9417-40b8c23f146f",
+  "po": "d94cc783-d778-4473-9693-f0931b77d698",
+  "grn": "5a17828f-489c-4c8c-8c5a-cdc1d9e7e3a4",
+  "tag": "QA-CHART-4eafbb0e",
+  "today": "2026-10-14",
+  "expected": {
+    "dailyReceived": 300,
+    "dailyWastage": 15,
+    "dailyMovement": 243,
+    "periodRate": 5,
+    "signalCounts": {
+      "over_supplied": 1,
+      "under_supplied": 1,
+      "balanced": 1
+    },
+    "stockOccurrences": 2,
+    "stockShort": 1,
+    "stockOver": 1,
+    "procurementAmounts": [
+      3,
+      -2
+    ]
+  }
+}

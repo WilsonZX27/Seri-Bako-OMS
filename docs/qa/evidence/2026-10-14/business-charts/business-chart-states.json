@@ -1,0 +1,98 @@
+{
+  "scope": "Actual local routes, synthetic DB fixtures, no business submissions",
+  "results": [
+    {
+      "name": "production-1440",
+      "passed": true
+    },
+    {
+      "name": "wastage-1440",
+      "passed": true
+    },
+    {
+      "name": "procurement-1440",
+      "passed": true
+    },
+    {
+      "name": "inventory-1440",
+      "passed": true
+    },
+    {
+      "name": "production-320",
+      "passed": true
+    },
+    {
+      "name": "wastage-320",
+      "passed": true
+    },
+    {
+      "name": "procurement-320",
+      "passed": true
+    },
+    {
+      "name": "inventory-320",
+      "passed": true
+    },
+    {
+      "name": "production-720",
+      "passed": true
+    },
+    {
+      "name": "wastage-720",
+      "passed": true
+    },
+    {
+      "name": "procurement-720",
+      "passed": true
+    },
+    {
+      "name": "inventory-720",
+      "passed": true
+    },
+    {
+      "name": "demand-empty-recovery",
+      "passed": true
+    },
+    {
+      "name": "wastage-empty-recovery",
+      "passed": true
+    },
+    {
+      "name": "stock-empty-recovery",
+      "passed": true
+    },
+    {
+      "name": "demand-1440",
+      "passed": true
+    },
+    {
+      "name": "stock-1440",
+      "passed": true
+    },
+    {
+      "name": "demand-320",
+      "passed": true
+    },
+    {
+      "name": "stock-320",
+      "passed": true
+    },
+    {
+      "name": "demand-720",
+      "passed": true
+    },
+    {
+      "name": "stock-720",
+      "passed": true
+    },
+    {
+      "name": "production-empty-recovery",
+      "passed": true
+    },
+    {
+      "name": "procurement-empty-recovery",
+      "passed": true
+    }
+  ],
+  "blockedWrites": 0
+}

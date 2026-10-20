@@ -125,7 +125,7 @@ test("new outlet daily saves route existing outlet-days back to their authoritat
 test("new outlet days require fresh physical quantities", () => {
   assert.match(form, /const source = line;/);
   assert.match(query, /wastage_qty: 0,/);
-  assert.match(form, /placeholder="Physical balance"/);
+  assert.match(form, /aria-label=\{`\$\{product\.product_name\} closing balance`\}/);
   assert.match(form, /required=\{!locked && canEditOutletValues && \(received !== "" \|\| wastage !== ""\)\}/);
 });
 

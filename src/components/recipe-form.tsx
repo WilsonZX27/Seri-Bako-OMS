@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Calculator, Plus, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -41,9 +41,10 @@ type RecipeFormLine = {
 
 type RecipeFormProps = {
   recipe?: RecipeDetail;
+  requestKey: string;
   products: ProductOption[];
   items: RecipeIngredientOption[];
-  action: (formData: FormData) => Promise<void>;
+  action: (formData: FormData) => Promise<void | { error: string }>;
   formId?: string;
   showSubmit?: boolean;
 };
@@ -77,7 +78,12 @@ function itemFallback(label: string) {
   );
 }
 
-export function RecipeForm({ recipe, products, items, action, formId, showSubmit = true }: RecipeFormProps) {
+export function RecipeForm({ recipe, products, items, action, formId, showSubmit = true, requestKey }: RecipeFormProps) {
+  const [stableRequestKey] = useState(requestKey);
+  const [result, submitAction] = useActionState<{ error?: string }, FormData>(async (_previous: { error?: string }, data: FormData) => (await action(data)) ?? {}, {});
+  const [expectedUpdatedAt] = useState(recipe?.updated_at ?? "");
+  const [effectiveDate, setEffectiveDate] = useState(recipe?.effective_date ?? getToday());
+  const [remarks, setRemarks] = useState(recipe?.remarks ?? "");
   const itemById = useMemo(() => new Map(items.map((item) => [item.id, item])), [items]);
   const itemBySearch = useMemo(() => new Map(items.map((item) => [buildItemSearch(item), item])), [items]);
   const productById = useMemo(() => new Map(products.map((product) => [product.id, product])), [products]);
@@ -146,7 +152,11 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
   }
 
   return (
-    <form id={formId} action={action} className="space-y-3 md:space-y-5">
+    <form id={formId} action={submitAction} className="space-y-3 md:space-y-5">
+      {!items.length ? <p role="status" className="rounded-lg border border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] p-3 text-sm">No active ingredients. Ask an authorised item manager to configure ingredients, then reload.</p> : null}
+      <input type="hidden" name="request_key" value={stableRequestKey} />
+      <input type="hidden" name="expected_updated_at" value={expectedUpdatedAt} />
+      {result.error ? <p role="alert" className="rounded-lg border border-warning/30 bg-warning/10 p-3 text-sm">{result.error}</p> : null}
       <input
         type="hidden"
         name="lines_json"
@@ -171,10 +181,11 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
         <CardHeader className="px-3 py-3 md:px-5">
           <CardTitle>Recipe details</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-3 px-3 pb-3 sm:gap-4 md:grid-cols-4 md:px-5 md:pb-5">
-          <Field label="Product" className="col-span-2 md:col-span-1">
+        <CardContent className="grid grid-cols-2 gap-3 px-3 pb-3 sm:gap-4 xl:grid-cols-4 md:px-5 md:pb-5">
+          <Field label="Product" className="col-span-2 xl:col-span-1" description={!products.length ? "No active products. Ask an authorised product manager to create or activate a product, then reload." : undefined}>
             <SelectNative
               name="product_id"
+              disabled={!products.length}
               value={productId}
               required
               onChange={(event) => {
@@ -183,6 +194,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
                 setYieldUnit(normalizeUom(nextProduct?.selling_unit) || yieldUnit);
               }}
             >
+              {!products.length ? <option value="">No active products</option> : null}
               {products.map((product) => (
                 <option key={product.id} value={product.id}>
                   {product.product_code} - {product.product_name}
@@ -199,11 +211,11 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
             </SelectNative>
           </Field>
           <Field label="Effective Date">
-            <Input name="effective_date" type="date" defaultValue={recipe?.effective_date ?? getToday()} required />
+            <Input name="effective_date" type="date" value={effectiveDate} onChange={event => setEffectiveDate(event.target.value)} required />
           </Field>
-          <div className="col-span-2 md:col-span-3">
+          <div className="col-span-2 xl:col-span-3">
             <Field label="Remarks">
-              <Textarea name="remarks" defaultValue={recipe?.remarks ?? ""} />
+              <Textarea name="remarks" value={remarks} onChange={event => setRemarks(event.target.value)} />
             </Field>
           </div>
         </CardContent>
@@ -226,7 +238,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
             ))}
           </datalist>
 
-          <div className="sb-table-region hidden overflow-x-auto rounded-[var(--sb-panel-radius)] border md:block">
+          <div data-inset-surface className="sb-table-region hidden overflow-x-auto rounded-[var(--sb-panel-radius)] border md:block">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -251,7 +263,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
                           <Image src={line.item_image_url} alt="" width={40} height={40} className="h-10 w-10 rounded-[var(--sb-control-radius)] object-cover" />
                         ) : itemFallback(line.item_code || "IT")}
                         <div className="min-w-64 space-y-1">
-                          <Input list="recipe-ingredient-items" value={line.itemSearch} placeholder="Type item code or name" onChange={(event) => selectItem(index, event.target.value)} />
+                          <Input list="recipe-ingredient-items" value={line.itemSearch} aria-label={`Ingredient ${index + 1}`} placeholder="Type item code or name" onChange={(event) => selectItem(index, event.target.value)} />
                           {line.item_code ? <p className="text-xs text-muted-foreground">{line.item_code} - {line.item_name}</p> : null}
                           {line.ingredient_item_id && duplicateIds.includes(line.ingredient_item_id) ? <p className="text-xs text-destructive">Duplicate ingredient</p> : null}
                         </div>
@@ -292,12 +304,12 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
           <div className="overflow-hidden rounded-[var(--sb-radius-control)] border md:hidden" data-recipe-ingredient-list>
             {enrichedLines.map((line, index) => (
               <div key={index} className="space-y-3 border-b p-3 last:border-b-0">
-                <div className="flex items-start gap-3">
+                <div className="grid grid-cols-[1fr_auto] items-start gap-2">
                   {line.item_image_url ? (
                     <Image src={line.item_image_url} alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-[var(--sb-control-radius)] object-cover" />
                   ) : itemFallback(line.item_code || "IT")}
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <Input list="recipe-ingredient-items" value={line.itemSearch} placeholder="Ingredient code or name" onChange={(event) => selectItem(index, event.target.value)} />
+                  <div className="order-last col-span-2 min-w-0 space-y-1">
+                    <Input list="recipe-ingredient-items" value={line.itemSearch} aria-label={`Ingredient ${index + 1}`} placeholder="Ingredient code or name" onChange={(event) => selectItem(index, event.target.value)} />
                     {line.item_code ? <p className="break-words text-xs text-muted-foreground">{line.item_code} - {line.item_name}</p> : null}
                     {line.ingredient_item_id && duplicateIds.includes(line.ingredient_item_id) ? <p className="text-xs text-destructive">Duplicate ingredient</p> : null}
                   </div>
@@ -339,7 +351,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
 
           {hasDuplicate ? <p className="text-sm text-destructive">Duplicate ingredients are not allowed.</p> : null}
 
-          <div className="grid grid-cols-2 gap-3 rounded-[var(--sb-panel-radius)] border bg-secondary/50 p-3 md:grid-cols-4">
+          <div data-inset-surface className="grid grid-cols-2 gap-3 rounded-[var(--sb-panel-radius)] border bg-secondary/50 p-3 md:grid-cols-4">
             <div>
               <p className="text-xs text-muted-foreground">Ingredient Cost</p>
               <p className="text-base font-semibold">{formatCurrency(totalIngredientCost)}</p>
@@ -376,4 +388,15 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
       </Card>
     </form>
   );
+}
+
+export function RecipeVersionForm({ action, requestKey }: { requestKey: string; action: (data: FormData) => Promise<void | { error: string }> }) {
+  const [stableRequestKey] = useState(requestKey);
+  const [result, submit] = useActionState<{ error?: string }, FormData>(async (_previous: { error?: string }, data: FormData) => (await action(data)) ?? {}, {});
+  return <form action={submit}>
+
+      <input type="hidden" name="request_key" value={stableRequestKey} />
+    <SubmitButton type="submit" variant="outline" className="w-full" pendingLabel="Creating...">New Version</SubmitButton>
+    {result.error ? <p role="alert" className="mt-2 text-sm text-destructive">{result.error}</p> : null}
+  </form>;
 }

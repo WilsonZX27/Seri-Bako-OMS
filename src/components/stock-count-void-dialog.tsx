@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ModalShell } from "@/components/ui/modal-shell";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
-import { formatQuantity } from "@/lib/utils";
+import { formatStockCountQuantity as formatQuantity } from "@/lib/stock-count-quantity";
 
 export type StockCountVoidPreview = {
   fingerprint: string;

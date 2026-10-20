@@ -23,7 +23,7 @@ test("foundation mutations use the authenticated company and replace staff acces
   const actor = read("src/server/auth/tenant-actor.ts");
 
   assert.match(foundation, /requireActiveTenantActor/);
-  assert.match(foundation, /rpc\("replace_staff_access_atomic"/);
+  assert.match(foundation, /rpc\("replace_staff_access_with_username"/);
   assert.match(foundation, /branchPayload\(formData, actor\.companyId\)/);
   assert.match(foundation, /\.eq\("company_id", actor\.companyId\)/);
   assert.doesNotMatch(foundation, /String\(formData\.get\("company_id"\)/);

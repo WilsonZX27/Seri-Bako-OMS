@@ -1,17 +1,17 @@
+import { buildPeoplePdf } from "@/lib/attendance/people-pdf";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { looseSupabase } from "@/lib/supabase/loose";
 import { hasPermission } from "@/server/auth/permissions";
-import { formatAttendanceTime } from "@/lib/attendance/time";
 import { logServerError } from "@/server/observability/logger";
-import { exportPunches, exportWorkedSeconds, exportExceptionLabels } from "@/lib/attendance/export-policy";
+import { exportPunches, exportWorkedSeconds, exportShortHoursSeconds, exportExceptionLabels } from "@/lib/attendance/export-policy";
 import { buildPeopleWorkbook, buildZipArchive, type PeopleWorkbookDay, type PeopleWorkbookSheet } from "@/lib/attendance/people-workbook";
 
 // Role and outlet scope apply equally to draft and final reports. Export never closes a week.
 const schema = z.object({
   week: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  format: z.literal("xlsx"),
+  format: z.enum(["xlsx","pdf"]),
   branches: z.array(z.string().uuid()).min(1).max(50),
   period: z.enum(["week","month"]).default("week"),
   mode: z.enum(["draft","final"]).default("draft"),
@@ -39,7 +39,7 @@ function scheduleRangeStart(month: string) {
 function clock(value: unknown) {
   if (!value) return null;
   const text = String(value);
-  return text.includes("T") ? formatAttendanceTime(text) : text.slice(0, 5);
+  return text.includes("T") ? new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kuala_Lumpur", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).format(new Date(text)) : text.slice(0, 8);
 }
 
 function object(value: Nested): Row {
@@ -87,9 +87,10 @@ function sheetDay(date: string, result: Nested, assignment: Nested, outlet: stri
     off: isOffAssignment(assignment),
     punches,
     workedSeconds: result ? exportWorkedSeconds(row) : null,
-    overtimeSeconds: result ? Number(row.overtime_seconds ?? 0) : null,
-    shortHoursSeconds: result ? Number(row.early_leave_seconds ?? 0) : null,
-    pphSeconds: result ? Number(row.holiday_ot_equivalent_seconds ?? row.holiday_normal_equivalent_seconds ?? 0) : null,
+    overtimeSeconds: result && exportWorkedSeconds(row) != null ? Number(row.overtime_seconds ?? 0) : null,
+    shortHoursSeconds: result ? exportShortHoursSeconds(row) : null,
+    pendingOvertimeSeconds: result && exportWorkedSeconds(row) != null ? Math.max(0, Number(row.overtime_candidate_seconds ?? 0) - Number(row.overtime_seconds ?? 0)) : null,
+    pphSeconds: null, // Deferred: total triple pay, never an extra three times.
   };
 }
 
@@ -144,10 +145,10 @@ export async function GET(request: Request) {
         return day;
       })}));
       if(!sheets.length) sheets.push({name:"Report status",employee:"No published staff days or calculated results",outlet,month,period:{start,end,draft,generatedAt},days:dates.map(value=>({date:value,day:dayLabel(value),outlet,event:"No records"}))});
-      files.push({name:`People Workbook - ${filePart(outlet)} - ${start} to ${end}${draft ? " - Draft" : ""}.xlsx`,content:buildPeopleWorkbook(sheets)});
+      files.push({name:`People Workbook - ${filePart(outlet)} - ${start} to ${end}${draft ? " - Draft" : ""}.${input.format}`,content:input.format==="pdf"?await buildPeoplePdf(sheets):buildPeopleWorkbook(sheets)});
     }
     const multiple=files.length>1,output=multiple ? buildZipArchive(files) : files[0].content,name=multiple ? `People Workbooks - ${start} to ${end}.zip` : files[0].name;
-    return new NextResponse(new Uint8Array(output),{headers:{"content-type":multiple ? "application/zip" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","content-disposition":`attachment; filename="${name.replace(/[^\x20-\x7e]/g,"_")}"; filename*=UTF-8''${encodeURIComponent(name)}`,"cache-control":"private, no-store"}});
+    return new NextResponse(new Uint8Array(output),{headers:{"content-type":multiple ? "application/zip" : input.format==="pdf" ? "application/pdf" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet","content-disposition":`attachment; filename="${name.replace(/[^\x20-\x7e]/g,"_")}"; filename*=UTF-8''${encodeURIComponent(name)}`,"cache-control":"private, no-store"}});
   } catch(error) {
     logServerError(error,{source:"api.attendance.export"});
     return NextResponse.json({ok:false,message:"Attendance workbook could not be generated."},{status:500});

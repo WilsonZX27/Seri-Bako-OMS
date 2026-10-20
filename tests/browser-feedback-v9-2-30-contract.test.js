@@ -11,23 +11,23 @@ test("People rows keep identity compact and omit redundant open copy", () => {
   const staff = read("src", "app", "(app)", "people", "page.tsx");
   const table = read("src", "components", "ui", "table.tsx");
   assert.doesNotMatch(people, /meta="Open profile"/);
-  assert.match(staff, /className="erp-surface overflow-hidden"/);
-  assert.match(table, /secondary \? <div className="mt-0\.5/);
+  assert.match(staff, /className="sb-list-content-card erp-surface overflow-hidden"/);
+  assert.match(table, /secondary \? <div className=\{cn\("mt-0\.5/);
 });
 
 test("new Staff hides generated auth fields and states the temporary-password flow", () => {
   const form = read("src", "components", "foundation-forms.tsx");
   const page = read("src", "app", "(app)", "staffs", "new", "page.tsx");
-  const detail = read("src", "app", "(app)", "staffs", "[id]", "page.tsx");
+  const detail = read("src", "components", "staff-security-panel.tsx");
   const actions = read("src", "server", "actions", "foundation.ts");
   assert.match(form, /type="hidden" name="temporary_password" value=""/);
   assert.doesNotMatch(form, /Leave blank to auto-generate/);
   assert.match(page, /issue an auto-generated temporary password/);
-  assert.match(detail, /Temporary password shown once/);
-  assert.match(detail, /Share it securely\. The staff member must change it after first login\./);
+  assert.match(detail, /<CardTitle>Temporary password<\/CardTitle>/);
+  assert.match(detail, /Copy it now and share it securely\./);
   assert.doesNotMatch(detail, /Copy this temporary password now/);
   assert.doesNotMatch(actions, /Staff account created\. Copy the temporary password now\./);
-  assert.match(actions, /redirect\(`\/staffs\/\$\{createdStaffId\}`\)/);
+  assert.match(actions, /redirect\(`\/people\/\$\{createdStaffId\}\?section=security`\)/);
 });
 
 test("schedule asks for time per Add and avoids the native time picker", () => {
@@ -58,8 +58,8 @@ test("Attendance, calendar and PO headers retain stable alignment", () => {
   assert.match(nav, /WorkspaceTabs/);
   assert.match(read("src", "components", "ui", "workspace-tabs.tsx"), /repeat\(\$\{items\.length\}, minmax\(max-content, 1fr\)\)/);
   assert.match(calendar, /grid-cols-\[auto_minmax\(0,1fr\)_auto\]/);
-  assert.match(po, /className="min-w-36" label="PO No \/ PR No"/);
-  assert.match(po, /className="w-40 max-w-40">Request context/);
+  assert.match(po, /className="w-32 min-w-32" label="PO No"/);
+  assert.match(po, /className="w-36 max-w-36">Request context/);
 });
 
 test("portrait tablet filters and compliance rail keep deliberate geometry", () => {

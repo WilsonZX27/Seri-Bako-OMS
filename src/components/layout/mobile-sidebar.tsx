@@ -1,4 +1,5 @@
 "use client";
+import { createPortal } from "react-dom";
 
 import { Menu, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -65,8 +66,8 @@ export function MobileSidebar({ role, permissionMap, companyName, companyLogoUrl
         <Menu className="h-5 w-5" />
       </Button>
 
-      {open ? (
-        <div className="fixed inset-0 z-50 hidden md:block xl:hidden">
+      {open ? createPortal(
+        <div className="fixed inset-0 z-[var(--sb-z-dialog)] hidden md:block xl:hidden">
           <button type="button" className="absolute inset-0 bg-[var(--sb-green-950)]/45" aria-label="Close navigation menu" onClick={close} />
           <aside ref={dialogRef} role="dialog" aria-modal="true" aria-label="Application navigation" className="relative flex h-full w-[min(var(--sb-sidebar-width),88vw)] flex-col border-r bg-[var(--sb-green-950)]">
             <div className="absolute right-3 top-3 z-10">
@@ -76,7 +77,7 @@ export function MobileSidebar({ role, permissionMap, companyName, companyLogoUrl
             </div>
             <WorkspaceSidebar role={role} permissionMap={permissionMap} mobile companyName={companyName} companyLogoUrl={companyLogoUrl} onNavigate={close} />
           </aside>
-        </div>
+        </div>, document.body
       ) : null}
     </>
   );

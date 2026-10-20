@@ -28,7 +28,7 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
   const transferOut = rows.filter((row) => row.transaction_type === "transfer_out").reduce((sum, row) => sum + row.quantity_out, 0);
   const wastage = rows.filter((row) => ["wastage", "damage"].includes(row.transaction_type)).reduce((sum, row) => sum + row.quantity_out, 0);
   const adjustment = rows.filter((row) => ["stock_adjustment", "stock_count_adjustment", "correction"].includes(row.transaction_type)).reduce((sum, row) => sum + row.quantity_in - row.quantity_out, 0);
-  const current = rows.reduce((sum, row) => sum + row.quantity_in - row.quantity_out, 0);
+  const filteredNetMovement = rows.reduce((sum, row) => sum + row.quantity_in - row.quantity_out, 0);
   const filtered = hasActiveFilters(filters);
   const movementSummary = [
     ["Opening", opening],
@@ -66,7 +66,7 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
                   <label className="grid gap-1 text-xs">From date<Input name="from" type="date" defaultValue={effectiveFilters.from} aria-label="From date" /></label>
                   <label className="grid gap-1 text-xs">To date<Input name="to" type="date" defaultValue={effectiveFilters.to} aria-label="To date" /></label>
                 </FilterBarMore>
-              <Button type="submit" variant="secondary" className="sb-filter-submit" data-list-action="primary">Apply</Button>
+              <Button type="submit" variant="secondary" className="sb-filter-submit" data-list-action="primary">Search</Button>
               {filtered ? <Button asChild variant="secondary" className="sb-filter-submit" data-list-action="secondary"><Link href="/stock-card">Reset</Link></Button> : null}
               </FilterBar>
           </section>
@@ -76,7 +76,7 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
           <section className="erp-surface overflow-hidden">
             <div className="border-b px-3 py-2.5">
               <h2 className="text-sm font-semibold">{selectedItem ? `${selectedItem.item_code} — ${selectedItem.item_name}` : "Stock Movement History"}</h2>
-              <p className="mt-0.5 text-xs text-muted-foreground">Current balance: {unavailable ? "Unavailable" : `${formatNumber(current)} ${selectedItem?.base_unit ?? ""}`}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Filtered net movement: {unavailable ? "Unavailable" : `${formatNumber(filteredNetMovement)} ${selectedItem?.base_unit ?? ""}`}</p>
             </div>
               {unavailable ? <div className="p-3"><Notice tone="error" title="Stock Card data is temporarily unavailable">The inventory movement service did not respond. Retry this page shortly; no data was changed.</Notice></div> : null}
               <Table mobileHidden stickyColumn="first" aria-label="Stock movement history">

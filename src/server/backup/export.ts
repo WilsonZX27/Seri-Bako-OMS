@@ -25,6 +25,10 @@ type BackupDataset = {
 };
 
 export const BACKUP_DATASETS: readonly BackupDataset[] = [
+  { table: "attendance_confirmations", classification: "excluded", reason: "Excluded from generic application exports; activate only with separately authorized protected database backup and restore for immutable attendance/payroll audit." },
+  { table: "attendance_confirmation_events", classification: "excluded", reason: "Excluded from generic application exports; activate only with separately authorized protected database backup and restore for immutable attendance/payroll audit." },
+  { table: "employee_payslips", classification: "excluded", reason: "Excluded from generic application exports; activate only with separately authorized protected database backup and restore for immutable attendance/payroll audit." },
+  { table: "employee_payslip_events", classification: "excluded", reason: "Excluded from generic application exports; activate only with separately authorized protected database backup and restore for immutable attendance/payroll audit." },
   { table: "companies", classification: "company_id filtered", column: "id" },
   { table: "branches", classification: "company_id filtered", column: "company_id" },
   { table: "locations", classification: "excluded", reason: "Retired legacy location table removed by migration 099 after inventory ownership moved to branches." },
@@ -46,6 +50,10 @@ export const BACKUP_DATASETS: readonly BackupDataset[] = [
   { table: "schedule_weeks", classification: "company_id filtered", column: "company_id" },
   { table: "shift_assignment_revisions", classification: "company_id filtered", column: "company_id" },
   { table: "schedule_approval_events", classification: "company_id filtered", column: "company_id", optional: "logs" },
+  { table: "attendance_schedule_refresh", classification: "company_id filtered", column: "company_id", optional: "logs" },
+  { table: "schedule_workbook_rules", classification: "company_id filtered", column: "company_id", cursorColumn:"confirmed_at" },
+  { table: "staff_fingerprint_policies", classification: "company_id filtered", column: "company_id", cursorColumn:"confirmed_at" },
+  { table: "schedule_workbook_receipts", classification: "company_id filtered", column: "company_id", optional: "logs" },
   { table: "schedule_import_batches", classification: "company_id filtered", column: "company_id", optional: "logs" },
   { table: "shift_change_requests", classification: "company_id filtered", column: "company_id" },
   { table: "ngteco_person_mappings", classification: "company_id filtered", column: "company_id" },
@@ -81,6 +89,7 @@ export const BACKUP_DATASETS: readonly BackupDataset[] = [
   { table: "product_packaging", classification: "parent-company filtered", column: "product_id", parent: "products" },
   { table: "branch_supplier_items", classification: "branch/company relation filtered", column: "branch_id", parent: "branches" },
   { table: "recipes", classification: "company_id filtered", column: "company_id" },
+  { table: "recipe_write_requests", classification: "company_id filtered", column: "company_id" },
   { table: "recipe_lines", classification: "parent-company filtered", column: "recipe_id", parent: "recipes" },
   { table: "recipe_cost_snapshots", classification: "parent-company filtered", column: "recipe_id", parent: "recipes" },
   { table: "purchase_requests", classification: "company_id filtered", column: "company_id" },

@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "recipeId": "eb056c29-4bdf-4c3f-ac31-272130580bad",
+  "beforeLines": 1,
+  "failedSaveOldContentsUnchanged": true,
+  "failedSaveRetainedInputs": true,
+  "sameKeyAcrossFailureAndRetry": true,
+  "sameExpectedTimestampAcrossFailureAndRetry": true,
+  "simulatedLostAcknowledgement": "Actual success response replaced with captured error action response after server commit",
+  "retryAfterCommittedButUnacknowledgedSave": {
+    "snapshotsBefore": 1,
+    "snapshotsAfter": 2,
+    "requestLedgerRows": 1
+  },
+  "finalUrl": "http://localhost:3190/recipes/eb056c29-4bdf-4c3f-ac31-272130580bad"
+}

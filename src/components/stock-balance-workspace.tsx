@@ -1,9 +1,13 @@
 "use client";
+import { containDialogTab, focusDialog } from "@/lib/dialog-focus";
+import { hasActiveFilters } from "@/lib/table-state";
+import { createPortal } from "react-dom";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, ShoppingCart, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ModalShell } from "@/components/ui/modal-shell";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Input } from "@/components/ui/input";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
@@ -85,6 +89,7 @@ export function StockBalanceWorkspace({
 }) {
   const [basket, setBasket] = useState<Record<string, BasketLine>>({});
   const [basketStorageReady, setBasketStorageReady] = useState(false);
+  const basketDialogRef = useRef<HTMLElement>(null);
   const [basketOpen, setBasketOpen] = useState(Boolean(filters.error));
   const [branchConflict, setBranchConflict] = useState<{ current: string; attempted: string } | null>(null);
   const [idempotencyKey] = useState(() => crypto.randomUUID());
@@ -146,9 +151,20 @@ export function StockBalanceWorkspace({
     if (!basketOpen) return;
     const root = document.documentElement;
     const previousOverflow = document.body.style.overflow;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const dialog = basketDialogRef.current;
+    if (dialog) focusDialog(dialog);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || document.querySelector('[role="listbox"]')) return;
+      if (event.key === "Escape") { event.preventDefault(); setBasketOpen(false); }
+      if (dialog) containDialogTab(event, dialog);
+    };
+    document.addEventListener("keydown", onKeyDown);
     root.dataset.mobileSheetOpen = "true";
     document.body.style.overflow = "hidden";
     return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      requestAnimationFrame(() => previousFocus?.focus());
       delete root.dataset.mobileSheetOpen;
       document.body.style.overflow = previousOverflow;
     };
@@ -191,6 +207,7 @@ export function StockBalanceWorkspace({
     <>
       <PageHeader title="Stock Balance" description="Calculated from posted Movement Ledger transactions. No direct balance edits." />
       <WorkspaceGrid
+        className={hasCreatePr ? "pb-24 xl:pb-0" : undefined}
         hideMobileConsole
         rightRail={
           <>
@@ -251,7 +268,7 @@ export function StockBalanceWorkspace({
                                   <p className="truncate text-[10px] leading-4 text-[var(--sb-text-muted)]">{line.item_code}{isCreateBranch ? "" : ` · ${line.supplier_name ?? "Supplier mapping missing"}`}</p>
                                   {isCreateBranch ? (
                                     <>
-                                      <div className="flex items-center justify-between gap-2">
+                                      <div className="sb-basket-quantity flex items-stretch justify-between gap-2">
                                         <QuantityStepper
                                           value={line.qty}
                                           uom={null}
@@ -290,7 +307,7 @@ export function StockBalanceWorkspace({
                           </div>
                         );
                       })}
-                      {!basketRows.length ? <p className="text-xs text-muted-foreground">Add items from the table to the basket to create a PR.</p> : null}
+                      {!basketRows.length ? <p className="py-3 text-xs text-muted-foreground">Add items from the table to the basket to create a PR.</p> : null}
                     </div>
                   </>
                 ) : (
@@ -327,17 +344,17 @@ export function StockBalanceWorkspace({
             {Boolean(filters.search || filters.branch_id || filters.status || filters.supplier_id) ? <Button asChild variant="secondary"><Link href="/stock-balance">Reset</Link></Button> : null}
           </FilterBar>
           <div className="sb-list-content-card overflow-hidden">
-          <Table mobileHidden aria-label="Stock balances" stickyColumn="second">
+          <Table mobileHidden className="sb-stock-balance-table" aria-label="Stock balances" stickyColumn="second">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12 text-center">Action</TableHead>
                 <SortableHead label="Item Code" column="item_code" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <SortableHead label="Item Name" column="item_name" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                 <TableHead>Branch</TableHead>
-                <TableHead className="text-right">Available / Reserved</TableHead>
+                <TableHead className="text-right" title="Available / Reserved">Available / Reserved</TableHead>
                 <TableHead className="text-right">Current</TableHead>
-                <TableHead className="text-right">Avg Cost / Value</TableHead>
-                <TableHead>Last Movement</TableHead>
+                <TableHead className="text-right" title="Avg Cost / Value">Avg Cost / Value</TableHead>
+                <TableHead title="Last Movement">Last Movement</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
@@ -355,7 +372,7 @@ export function StockBalanceWorkspace({
               <TableBody>
                 <TableRow>
                   <TableCell colSpan={9}>
-                    <EmptyState title="No stock balances yet" description="Balances appear after posted stock movements." />
+                    <EmptyState title={hasActiveFilters(filters) ? "No balances match these filters" : "No stock balances yet"} description={hasActiveFilters(filters) ? "Reset the filters or search for another item." : "Balances appear after posted stock movements."} action={hasActiveFilters(filters) ? { href: "/stock-balance", label: "Reset filters" } : undefined} />
                   </TableCell>
                 </TableRow>
               </TableBody>
@@ -365,7 +382,7 @@ export function StockBalanceWorkspace({
             <OperationalList ariaLabel="Stock balances">
               {rows.length ? <StockBalanceOperationalRows rows={rows} inBasket={inBasket} onToggleBasket={toggleBasket} /> : null}
               {!rows.length ? (
-                <EmptyState title="No stock balances yet" description="Balances appear after posted stock movements." />
+                <EmptyState title={hasActiveFilters(filters) ? "No balances match these filters" : "No stock balances yet"} description={hasActiveFilters(filters) ? "Reset the filters or search for another item." : "Balances appear after posted stock movements."} action={hasActiveFilters(filters) ? { href: "/stock-balance", label: "Reset filters" } : undefined} />
               ) : null}
             </OperationalList>
           )}
@@ -384,9 +401,9 @@ export function StockBalanceWorkspace({
         <ShoppingCart className="h-5 w-5" aria-hidden="true" />
         {basketRows.length ? <span className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[var(--sb-surface-raised)] px-1 text-[10px] font-bold text-[var(--sb-green-900)] shadow-[0_1px_4px_rgb(6_44_31_/_0.18)]">{basketRows.length}</span> : null}
       </button> : null}
-      {basketOpen ? <div className="fixed inset-0 z-[var(--sb-z-dialog)] xl:hidden">
+      {basketOpen ? createPortal(<div className="fixed inset-0 z-[var(--sb-z-dialog)] xl:hidden">
         <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={() => setBasketOpen(false)} aria-label="Close PR basket" />
-        <section className="sb-pr-basket-sheet sb-popover-surface absolute inset-x-0 bottom-0 flex max-h-[82dvh] flex-col overflow-hidden" role="dialog" aria-modal="true" aria-label="PR basket">
+        <section ref={basketDialogRef} tabIndex={-1} className="sb-pr-basket-sheet sb-popover-surface absolute inset-x-0 bottom-0 flex max-h-[82dvh] flex-col overflow-hidden" role="dialog" aria-modal="true" aria-label="PR basket">
           <header className="flex min-h-14 items-center justify-between border-b border-[var(--sb-border-soft)] px-4">
             <div className="min-w-0"><h2 className="text-base font-semibold text-[var(--sb-green-950)]">PR basket</h2><p className="text-xs text-[var(--sb-text-muted)]">{createBranchId ? branchNameById.get(createBranchId) ?? "Unknown location" : "Select location"} · {supplierGroups.length || 0} PR group{supplierGroups.length === 1 ? "" : "s"} · {basketRows.length} item{basketRows.length === 1 ? "" : "s"}</p></div>
             <Button type="button" variant="ghost" size="icon" onClick={() => setBasketOpen(false)} aria-label="Close PR basket"><X className="h-5 w-5" /></Button>
@@ -409,7 +426,7 @@ export function StockBalanceWorkspace({
                       <div className="flex min-w-0 items-center gap-2.5"><ItemThumbnail src={line.image_url} alt={line.item_name} /><div className="min-w-0"><h3 className="truncate text-[13px] font-semibold leading-4 text-[var(--sb-green-950)]">{line.item_name}</h3><p className="truncate text-[10px] leading-4 text-[var(--sb-text-muted)]">{line.item_code} · {line.supplier_name ?? "Supplier mapping missing"}</p></div></div>
                       <button type="button" className="inline-flex h-8 w-8 shrink-0 items-center justify-center text-[var(--sb-danger)] active:bg-[var(--sb-danger-soft)]" onClick={() => toggleBasket(line)} aria-label={`Remove ${line.item_name} from PR basket`}><Trash2 className="h-3.5 w-3.5" aria-hidden="true" /></button>
                     </div>
-                    {activeBranch ? <div className="flex min-w-0 items-stretch gap-1.5">
+                    {activeBranch ? <div className="sb-basket-quantity flex min-w-0 items-stretch gap-1.5">
                       <QuantityStepper value={line.qty} uom={null} step={0.01} density="compact" label={`Quantity for ${line.item_name}`} onChange={(value) => updateQty(key, value)} className="min-w-0 flex-1" />
                       <SelectNative className="h-10 w-24 shrink-0 px-2 text-xs font-semibold" aria-label={`Purchase UOM for ${line.item_name}`} value={line.uom} onChange={(event) => updateUom(key, event.target.value)}>{uomOptionsWithCurrent(line.purchase_unit || line.base_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}</SelectNative>
                     </div> : null}
@@ -425,8 +442,14 @@ export function StockBalanceWorkspace({
             </footer>
           </form>
         </section>
-      </div> : null}
-      {branchConflict ? <div className="fixed inset-0 z-[var(--sb-z-dialog)] grid place-items-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-label="One branch per PR basket"><div className="w-full max-w-sm rounded-[var(--sb-panel-radius)] bg-white p-4 shadow-xl"><div className="flex items-start gap-3"><AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[var(--sb-warning)]" /><div><h2 className="font-semibold">One branch per PR basket</h2><p className="mt-1 text-sm text-muted-foreground">This basket already contains items from {branchConflict.current}. Remove them before adding an item from {branchConflict.attempted}.</p></div></div><Button type="button" className="mt-4 w-full" onClick={() => setBranchConflict(null)}>Keep current basket</Button></div></div> : null}
+      </div>, document.body) : null}
+      <ModalShell open={Boolean(branchConflict)} onClose={() => setBranchConflict(null)} titleId="stock-branch-conflict-title" className="max-w-sm">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-[var(--sb-warning)]" />
+          <div><h2 id="stock-branch-conflict-title" className="font-semibold">One branch per PR basket</h2><p className="mt-1 text-sm text-muted-foreground">This basket already contains items from {branchConflict?.current}. Remove them before adding an item from {branchConflict?.attempted}.</p></div>
+        </div>
+        <Button type="button" className="mt-4 w-full" onClick={() => setBranchConflict(null)}>Keep current basket</Button>
+      </ModalShell>
     </>
   );
 }

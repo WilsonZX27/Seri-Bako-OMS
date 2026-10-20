@@ -1,3 +1,4 @@
+import { ScheduleRefreshStatus } from "@/components/attendance/schedule-refresh-status";
 import { Fragment } from "react";
 import Link from "next/link";
 import {
@@ -6,6 +7,7 @@ import {
   ChevronRight,
   Eye,
   FileCheck2,
+  CalendarDays,
   TriangleAlert,
 } from "lucide-react";
 import { AttendanceWorkspaceNav } from "@/components/attendance/attendance-workspace-nav";
@@ -28,6 +30,7 @@ import { Button } from "@/components/ui/button";
 import { TableScrollRegion } from "@/components/ui/table-scroll-region";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { exportShortHoursSeconds } from "@/lib/attendance/export-policy";
 import { durationLabel } from "@/lib/attendance/calculation";
 import { formatAttendanceTime } from "@/lib/attendance/time";
 import { getPermissionMap } from "@/server/auth/permissions";
@@ -78,16 +81,17 @@ function signedDuration(value: unknown, tone: "late" | "earlyLeave" | "ot") {
   const className = tone === "ot" ? "text-[var(--sb-success)]" : "text-[var(--sb-danger)]";
   return <span className={`mt-0.5 block text-[11px] font-medium tabular-nums ${className}`}>{prefix}{durationLabel(seconds)}{label ? ` ${label}` : ""}</span>;
 }
+function fingerprintExempt(row:Row){return (row.calculation as {fingerprint_exempt?:boolean}|null)?.fingerprint_exempt===true;}
 function primaryStatus(row: Row) {
-  const staff = row.staffs as { employment_type?: string } | null;
   const values = Array.isArray(row.statuses)
-    ? row.statuses.map(String).filter((value) => value !== "public_holiday" && !(staff?.employment_type === "part_time" && ["missing_break_punch", "short_break"].includes(value)))
+    ? row.statuses.map(String).filter((value) => value !== "public_holiday")
     : [];
-  return values.find(value=>value!=="unpaid_leave") ?? (values.includes("unpaid_leave") ? "unpaid_leave" : undefined) ?? (row.holiday_id ? "public_holiday" : "normal");
+  return values.find(value=>value!=="unpaid_leave") ?? (values.includes("unpaid_leave") ? "unpaid_leave" : undefined) ?? (fingerprintExempt(row)?"fingerprint_exempt":row.holiday_id ? "public_holiday" : "normal");
 }
-function expectedPunchesFor(row: Row, staff: { employment_type?: string } | null) {
+function expectedPunchesFor(row: Row) {
+  if(fingerprintExempt(row))return 0;
   if (Array.isArray(row.statuses) && row.statuses.includes("unpaid_leave")) return 0;
-  return staff?.employment_type === "part_time" ? 2 : Number(row.expected_punch_count ?? 0);
+  return 4;
 }
 const BLOCKING_ATTENDANCE_STATUSES = new Set([
   "missing_punches",
@@ -95,6 +99,9 @@ const BLOCKING_ATTENDANCE_STATUSES = new Set([
   "missing_check_out",
   "odd_punch_count",
   "impossible_ordering",
+  "duplicate_punch",
+  "unexpected_punch_count",
+  "missing_break_punch",
   "unpaid_leave_punch_conflict",
 ]);
 function pageHref(params: Record<string, string | undefined>, page: number) {
@@ -167,7 +174,7 @@ export default async function AttendanceReviewPage({
     staffs?: { full_name?: string } | null;
   }>;
   const attentionCount = rows.filter(
-    (row) => !["normal","unpaid_leave"].includes(primaryStatus(row)),
+    (row) => !["normal","unpaid_leave","fingerprint_exempt"].includes(primaryStatus(row)),
   ).length;
   const blockerCount = closeRows.length;
   const exceptionCount = blockerCount;
@@ -223,7 +230,7 @@ export default async function AttendanceReviewPage({
       return { date, label: `${count} missing` };
     });
     const reportHistory = (actuals.reports as Row[]).filter((report) => String(report.staff_id) === String(row.staff_id)).map((report) => ({ date: String(report.work_date), label: String(report.report_type ?? report.status ?? "Attendance report").replaceAll("_", " ").toUpperCase() }));
-    return <EmployeeAttendanceSummary name={staff?.full_name ?? "Unmatched employee"} staffCode={staff?.staff_code} employmentType={staff?.employment_type ?? "full_time"} workDate={String(row.work_date)} punches={`${Number(row.actual_punch_count ?? 0)} of ${Number(row.expected_punch_count ?? 0)} punches`} missingHistory={missingHistory} reportHistory={reportHistory} detailHref={detailHref} peopleHref={staff && row.staff_id ? `/people/${encodeURIComponent(String(row.staff_id))}` : undefined} />;
+    return <EmployeeAttendanceSummary name={staff?.full_name ?? "Unmatched employee"} staffCode={staff?.staff_code} employmentType={staff?.employment_type ?? "full_time"} workDate={String(row.work_date)} punches={fingerprintExempt(row)?"Fingerprint exempt":`${Number(row.actual_punch_count ?? 0)} of ${Number(row.expected_punch_count ?? 0)} punches`} missingHistory={missingHistory} reportHistory={reportHistory} detailHref={detailHref} peopleHref={staff && row.staff_id ? `/people/${encodeURIComponent(String(row.staff_id))}` : undefined} />;
   };
 
   return (
@@ -266,6 +273,7 @@ export default async function AttendanceReviewPage({
                 <PeopleWorkbookExport branches={review.branches as {id:string;branch_name:string}[]} week={week} branchId={branch}/>
               ) : null}
             </ConsoleSection>
+            <ScheduleRefreshStatus week={week} branch={branch} canRefresh={Boolean(permissions["attendance.import"] || permissions["attendance.adjust"])} />
             <ConsoleSection title="Week status" kind="status">
               <p className="font-semibold">{week}</p>
               <p>
@@ -380,12 +388,12 @@ export default async function AttendanceReviewPage({
           </section>
         ) : <section className="sb-work-surface overflow-hidden">
           <header className="flex flex-wrap items-center gap-3 border-b border-[var(--sb-border-soft)] px-4 py-3">
-            <h2 className="text-sm font-semibold">
+            <h2 className="w-full text-sm font-semibold md:w-auto">
               Schedule vs fingerprint punches
             </h2>
             <StatusBadge status={attentionCount ? "attention" : "reviewed"} />
             <span className="ml-auto text-xs text-muted-foreground">
-              {review.total} results
+              {review.total} {review.total === 1 ? "result" : "results"}
             </span>
           </header>
           <TableScrollRegion label="Attendance results" className="hidden md:block">
@@ -415,7 +423,7 @@ export default async function AttendanceReviewPage({
                 {rows.map((row, index) => {
                   const { staff, candidate, actualOvertime, claim, reservation } = rowContext(row);
                   const actualPunches = Number(row.actual_punch_count ?? 0);
-                  const expectedPunches = expectedPunchesFor(row, staff);
+                  const expectedPunches = expectedPunchesFor(row);
                   const missingPunches = Math.max(0, expectedPunches - actualPunches);
                   const newDay =
                     index === 0 ||
@@ -445,23 +453,23 @@ export default async function AttendanceReviewPage({
                           </strong>
                           {missingPunches > 0 ? (
                             <span title={`Advisory only; payroll is unchanged. Tracking starts ${ATTENDANCE_TRACKING_START_DATE}.${Array.isArray(row.monthly_missing_punch_dates) && row.monthly_missing_punch_dates.length ? ` Missing records: ${row.monthly_missing_punch_dates.join(", ")}.` : ""}`} className="block max-w-full cursor-help text-[10px] leading-tight text-amber-800">
-                              {String(row.work_date) >= ATTENDANCE_TRACKING_START_DATE && Number(row.monthly_missing_punch_count ?? 0) >= 4
+                              {!fingerprintExempt(row) && String(row.work_date) >= ATTENDANCE_TRACKING_START_DATE && Number(row.monthly_missing_punch_count ?? 0) >= 4
                                 ? `${Number(row.monthly_missing_punch_count)} missing this month`
                                 : "Missing punch"}
                             </span>
                           ) : null}
                         </td>
                         <td className="px-3 py-3 tabular-nums">
-                          <span className="block text-[11px] text-muted-foreground">{time(row.scheduled_start)}</span>
-                          <strong className="block">{time(row.actual_first_in)}</strong>
+                          <strong className="block">Actual: {time(row.actual_first_in)}</strong>
+                          <span className="block text-[11px] text-muted-foreground">Scheduled: {time(row.scheduled_start)}</span>
                           {signedDuration(row.late_seconds, "late")}
                         </td>
                         <td className="px-3 py-3 tabular-nums">
                           {row.actual_break_out && row.actual_break_in ? <><strong className="block">{time(row.actual_break_out)}–{time(row.actual_break_in)}</strong><span className="block text-[11px] text-muted-foreground">{duration(row.break_seconds)}</span></> : duration(row.break_seconds)}
                         </td>
                         <td className="px-3 py-3 tabular-nums">
-                          <span className="block text-[11px] text-muted-foreground">{time(row.scheduled_end)}</span>
-                          <strong className="block">{time(row.actual_last_out)}</strong>
+                          <strong className="block">Actual: {time(row.actual_last_out)}</strong>
+                          <span className="block text-[11px] text-muted-foreground">Scheduled: {time(row.scheduled_end)}</span>
                           {Number(row.early_leave_seconds ?? 0) > 0
                             ? signedDuration(row.early_leave_seconds, "earlyLeave")
                             : signedDuration(actualOvertime, "ot")}
@@ -471,7 +479,8 @@ export default async function AttendanceReviewPage({
                         </td>
                         <td className="px-3 py-3 tabular-nums">
                           <span className="block text-[11px] text-muted-foreground">RO {reservation ? `${Math.floor(Number(reservation.final_used_minutes??reservation.reserved_minutes) / 30)} × 30m` : "—"}</span>
-                          <strong className="block text-[var(--sb-success)]">{candidate >= 1800 ? `${Math.floor(candidate / 1800)} × 00:30` : "—"}</strong>
+                          <span className="block text-[11px]">Approved {duration(row.overtime_seconds)}</span>
+                          {candidate > Number(row.overtime_seconds ?? 0) ? <strong className="mt-1 block rounded bg-[var(--sb-warning-bg)] px-1 text-[11px] text-[var(--sb-warning)]">Pending {duration(candidate - Number(row.overtime_seconds ?? 0))}</strong> : null}
                         </td>
                         <td className="px-3 py-3">
                           <RowActions
@@ -495,7 +504,7 @@ export default async function AttendanceReviewPage({
             {rows.map((row, index) => {
               const { staff, candidate, actualOvertime, claim, reservation, status } = rowContext(row);
               const actualPunches = Number(row.actual_punch_count ?? 0);
-              const expectedPunches = expectedPunchesFor(row, staff);
+              const expectedPunches = expectedPunchesFor(row);
               const missingPunches = Math.max(0, expectedPunches - actualPunches);
               const newDay =
                 index === 0 ||
@@ -529,7 +538,7 @@ export default async function AttendanceReviewPage({
                         </dd>
                         {missingPunches > 0 ? (
                           <dd title={`Advisory only; payroll is unchanged. Tracking starts ${ATTENDANCE_TRACKING_START_DATE}.${Array.isArray(row.monthly_missing_punch_dates) && row.monthly_missing_punch_dates.length ? ` Missing records: ${row.monthly_missing_punch_dates.join(", ")}.` : ""}`} className="max-w-full cursor-help text-[10px] leading-tight text-amber-800">
-                            {String(row.work_date) >= ATTENDANCE_TRACKING_START_DATE && Number(row.monthly_missing_punch_count ?? 0) >= 4
+                            {!fingerprintExempt(row) && String(row.work_date) >= ATTENDANCE_TRACKING_START_DATE && Number(row.monthly_missing_punch_count ?? 0) >= 4
                               ? `${Number(row.monthly_missing_punch_count)} missing this month`
                               : "Missing punch"}
                           </dd>
@@ -537,11 +546,13 @@ export default async function AttendanceReviewPage({
                       </div>
                       <div>
                         <dt className="text-muted-foreground">Clock in</dt>
-                        <dd>{time(row.actual_first_in)}</dd>
+                        <dd>Actual: {time(row.actual_first_in)}</dd>
+                        <dd className="text-muted-foreground">Scheduled: {time(row.scheduled_start)}</dd>
                       </div>
                       <div>
                         <dt className="text-muted-foreground">Clock out</dt>
-                        <dd>{time(row.actual_last_out)}</dd>
+                        <dd>Actual: {time(row.actual_last_out)}</dd>
+                        <dd className="text-muted-foreground">Scheduled: {time(row.scheduled_end)}</dd>
                       </div>
                       <div>
                         <dt className="text-muted-foreground">Break</dt>
@@ -565,10 +576,13 @@ export default async function AttendanceReviewPage({
                       ) : null}
                       {actualOvertime > 0 ? (
                         <div>
-                          <dt className="text-muted-foreground">Actual OT</dt>
+                          <dt className="text-muted-foreground">After shift (unapproved)</dt>
                           <dd>{minuteDuration(actualOvertime)}</dd>
                         </div>
                       ) : null}
+                      <div><dt className="text-muted-foreground">Approved OT / RO credit</dt><dd>{duration(row.overtime_seconds)}</dd></div>
+                      {candidate > Number(row.overtime_seconds ?? 0) ? <div className="rounded bg-[var(--sb-warning-bg)] p-2"><dt>Pending People approval</dt><dd>{duration(candidate - Number(row.overtime_seconds ?? 0))}</dd></div> : null}
+                      <div><dt className="text-muted-foreground">Short hours · late + early leave</dt><dd>{exportShortHoursSeconds(row) == null ? "Needs punch review" : duration(exportShortHoursSeconds(row))}</dd></div>
                       {reservation ? <div><dt className="text-muted-foreground">RO</dt><dd>{reservation.final_used_minutes??reservation.reserved_minutes} min · <span className="capitalize">{reservation.status??"reserved"}</span></dd></div>:null}
                     </dl>
                     <div className="mt-3">
@@ -594,6 +608,7 @@ export default async function AttendanceReviewPage({
                 No matching attendance records
               </p>
               <p className="mt-1 text-xs text-muted-foreground">No records match these filters.</p>
+              <Button asChild variant="outline" className="mt-3"><Link href={`/attendance/review?week=${encodeURIComponent(week)}&branch=${encodeURIComponent(branch ?? "select")}`}>Reset filters</Link></Button>
             </div>
           ) : null}
           {totalPages > 1 ? (
@@ -666,11 +681,11 @@ function RowActions({
   weekLocked: boolean;
 }) {
   return (
-    <div className="inline-flex min-w-0 max-w-64 flex-wrap items-center gap-1 [&_button]:font-normal">
+    <div className="inline-flex min-w-0 flex-nowrap items-center gap-1 [&_button]:font-normal">
       <Button asChild size="sm" variant="ghost" className="w-auto justify-start gap-2 bg-transparent px-2 font-normal hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-surface-muted)]">
         <Link href={href} title="View details"><Eye className="h-4 w-4"/><span className="md:sr-only">View details</span></Link>
       </Button>
-      {permissions["attendance.report.submit"] && reportable && !weekLocked ? <Button asChild size="sm" variant="ghost" className="min-h-11 px-2"><Link href={`${href}&report=${encodeURIComponent(String(row.assignment_id))}`}>Report actual attendance</Link></Button> : null}
+      {permissions["attendance.report.submit"] && reportable && !weekLocked ? <Button asChild size="sm" variant="ghost" className="min-h-11 px-2"><Link href={`${href}&report=${encodeURIComponent(String(row.assignment_id))}`} aria-label="Report actual attendance"><FileCheck2 className="size-4" aria-hidden="true"/></Link></Button> : null}
       {permissions["attendance.adjust"] ? (
         <AttendanceAdjustmentButton
           resultId={String(row.id)}
@@ -684,7 +699,7 @@ function RowActions({
       ) : (
         <StatusBadge status={String(row.review_status)} label={String(row.review_status) === "reviewed" ? "Calculated" : undefined} />
       )}
-      {permissions["attendance.report.submit"] && !reportable && !weekLocked ? <Link title="Publish this staff day in the schedule before reporting leave" className="inline-flex min-h-[var(--sb-control-height)] items-center gap-2 px-2 text-xs font-medium text-warning" href={`/attendance/schedule?${href.split("?")[1] ?? ""}`}>Check and publish this staff day before reporting leave</Link> : null}
+      {permissions["attendance.report.submit"] && !reportable && !weekLocked ? <Link title="Publish this staff day in the schedule before reporting leave" className="inline-flex min-h-[var(--sb-control-height)] items-center gap-2 px-2 text-xs font-medium text-warning" href={`/attendance/schedule?${href.split("?")[1] ?? ""}`} aria-label="Review schedule"><CalendarDays className="size-4" aria-hidden="true"/></Link> : null}
       <OtClaimAction
         resultId={String(row.id)}
         candidateSeconds={candidate}

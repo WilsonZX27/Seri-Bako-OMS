@@ -18,11 +18,9 @@ const roleCodes = {
 
 const viewports = [
   { label: "mobile-390", width: 390, height: 844 },
-  { label: "mobile-430", width: 430, height: 932 },
   { label: "tablet-820", width: 820, height: 1180 },
-  { label: "tablet-1024", width: 1024, height: 768 },
+  { label: "landscape-1180", width: 1180, height: 820 },
   { label: "desktop-1440", width: 1440, height: 900 },
-  { label: "wide-2560", width: 2560, height: 1440 },
 ];
 
 const ALL = roles;
@@ -48,6 +46,8 @@ const ATTENDANCE_IMPORT = ["superAdmin", "peopleOperations"];
 // Parent navigation describes read visibility. Create and edit workspaces are
 // narrower and follow the canonical permission grants through migration 218.
 const actionRouteAuthorities = new Map([
+  ["/attendance/confirmations", ALL],
+  ["/attendance/payslips", ALL],
   ["/asset-management/assets/new", ["superAdmin", "manager"]],
   ["/asset-management/transfers/new", ["superAdmin", "manager", "kitchen", "outletSupervisor", "outlet"]],
   ["/attendance/settings", ATTENDANCE_IMPORT],
@@ -88,14 +88,14 @@ const actionRouteAuthorities = new Map([
 // whichever RLS policy happens to answer today. A new route must deliberately
 // join one of these authorities before the v9 matrix will accept it.
 const accessAuthorities = [
-  ["/asset-management/maintenance", ["superAdmin", "manager", "outletSupervisor"]],
+  ["/asset-management/maintenance", ["superAdmin", "manager", "outletSupervisor", "kitchen", "outlet"]],
   ["/asset-management", ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]],
   ["/attendance/imports", ATTENDANCE_IMPORT],
   ["/attendance", ATTENDANCE],
-  ["/outlet-compliance", ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen"]],
-  ["/outlet-calendar", ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen"]],
+  ["/outlet-compliance", ["superAdmin", "peopleOperations", "manager", "purchasing"]],
+  ["/outlet-calendar", ["superAdmin", "peopleOperations", "manager", "purchasing"]],
   ["/people", ["superAdmin", "peopleOperations", "manager"]],
-  ["/compliance", ["superAdmin", "peopleOperations", "manager", "purchasing", "kitchen"]],
+  ["/compliance", ["superAdmin", "peopleOperations", "manager", "purchasing"]],
   ["/reports/costing-readiness", ["superAdmin", "finance"]],
   ["/reports/product-margin", ["superAdmin", "finance"]],
   ["/reports/recipe-costing", ["superAdmin", "finance"]],
@@ -121,8 +121,8 @@ const accessAuthorities = [
   ["/stock-balances", INVENTORY],
   ["/stock-card", INVENTORY],
   ["/low-stock", INVENTORY],
+  ["/production/delivery-orders", ["superAdmin", "manager", "kitchen", "outletSupervisor", "outlet"]],
   ["/production", PRODUCTION],
-  ["/production/planning", ["superAdmin", "manager", "kitchen"]],
   ["/products", PRODUCTION],
   ["/supplier-items", MASTER_DATA],
   ["/suppliers", MASTER_DATA],

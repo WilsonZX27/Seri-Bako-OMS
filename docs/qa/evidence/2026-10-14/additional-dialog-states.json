@@ -1,0 +1,334 @@
+[
+  {
+    "component": "planning-supply-period",
+    "mode": "desktop",
+    "issues": [],
+    "stage": "return-focus",
+    "title": "Product supply period\n\nSynthetic steamed kuih · applies to all kitchens. Leave dates empty for all year.\n\nFirst day\nDD/MM/YYYY\nLast day (inclusive)\nDD/MM/YYYY\nApply to settings\nCancel",
+    "overflow": false,
+    "activeAfterEscape": {
+      "tag": "BUTTON",
+      "label": null,
+      "text": "All year"
+    },
+    "focusReturned": true,
+    "passed": true
+  },
+  {
+    "component": "global-search",
+    "mode": "desktop",
+    "issues": [],
+    "stage": "return-focus",
+    "title": "Global search\n\nGO DIRECTLY TO\n\nDashboard\nOperations\nProduction Jobs\nOperations\nProduction Planning\nOperations\nAsset Management\nOperations\nOutlet Daily Records\nOutlet Management\nPackaging Stock\nOutlet Management\nOutlet Compliance\nOutlet Management\nEmployees\nPeople\n\nType to search records, item codes, suppliers or document numbers.",
+    "overflow": false,
+    "activeAfterEscape": {
+      "tag": "BUTTON",
+      "label": "Open global search",
+      "text": ""
+    },
+    "focusReturned": true,
+    "passed": true
+  },
+  {
+    "component": "planning-adjust",
+    "mode": "desktop",
+    "issues": [],
+    "stage": "return-focus",
+    "title": "Adjust production\n\nSynthetic steamed kuih\n\nWhole trays\nReason\nApply\nAutomatic\nCancel",
+    "overflow": false,
+    "activeAfterEscape": {
+      "tag": "BUTTON",
+      "label": "Adjust Synthetic steamed kuih production",
+      "text": "Adjust"
+    },
+    "focusReturned": true,
+    "passed": true
+  },
+  {
+    "component": "purchase-request-export",
+    "mode": "desktop",
+    "issues": [],
+    "stage": "return-focus",
+    "title": "Export purchase requests\n\nChoose the records and columns to include.\n\nStatus\nAll statuses\nColumns\nPR number\nRequest date\nNeeded by\nPriority\nStatus\nBranch\nRemarks\nCancel\nDownload CSV",
+    "overflow": false,
+    "activeAfterEscape": {
+      "tag": "BUTTON",
+      "label": null,
+      "text": "Export CSV"
+    },
+    "focusReturned": true,
+    "passed": true
+  },
+  {
+    "component": "outlet-daily-export",
+    "mode": "desktop",
+    "issues": [],
+    "stage": "return-focus",
+    "title": "Export outlet daily records\n\nChoose a date range and one or more outlets.\n\nFrom\nTo\nOutlets\nSelect all\nSynthetic outlet A\nSynthetic outlet B\nCancel\nDownload CSV",
+    "overflow": false,
+    "activeAfterEscape": {
+      "tag": "BUTTON",
+      "label": null,
+      "text": "Export CSV"
+    },
+    "focusReturned": true,
+    "passed": true
+  },
+  {
+    "component": "stock-count-export",
+    "mode": "desktop",
+    "issues": [],
+    "stage": "return-focus",
+    "title": "Export Stock Counts\n\nOne outlet per workbook, one worksheet per date.\n\nOutlet / Branch\nSelect one outlet\nSynthetic central kitchen\nSynthetic outlet A\nSynthetic outlet B\nFrom date\n14/10/2026\nTo date\n14/10/2026\n\nThe range includes both dates. Dates without a Stock Count will still receive an empty worksheet with the standard columns.\n\nCancel\nDownload Excel",
+    "overflow": false,
+    "activeAfterEscape": {
+      "tag": "BUTTON",
+      "label": null,
+      "text": "Export workbook"
+    },
+    "focusReturned": true,
+    "passed": true
+  },
+  {
+    "component": "asset-chart",
+    "mode": "desktop",
+    "issues": [],
+    "name": "Recorded maintenance requests by day. Hover, tap, or use the left and right arrow keys to preview each recorded point.",
+    "lastPreview": "14/10/2026\n\n6 requests\n\nSelect to open requests",
+    "firstPreview": "01/10/2026\n\n0 requests\n\nSelect to open requests",
+    "gaps": "M 35.0 165.0 L 58.9 165.0 L 82.8 165.0 L 106.8 165.0 L 130.7 165.0 L 154.6 165.0 L 178.5 165.0 L 202.5 165.0 L 226.4 165.0 L 250.3 165.0 L 274.2 165.0 L 298.2 165.0 L 322.1 165.0 L 346.0 20.0",
+    "passed": true
+  },
+  {
+    "component": "asset-chart",
+    "mode": "desktop",
+    "issues": [],
+    "name": "Recorded asset exceptions by day. Hover, tap, or use the left and right arrow keys to preview each recorded point.",
+    "lastPreview": "14/10/2026\n\n1 exceptions\n\n2 asset checks recorded",
+    "firstPreview": "01/10/2026\n\nNo checks recorded\n\n0 asset checks recorded",
+    "gaps": "             M 346.0 20.0",
+    "passed": true
+  },
+  {
+    "component": "planning-supply-period",
+    "mode": "phone320",
+    "issues": [],
+    "stage": "return-focus",
+    "title": "Product supply period\n\nSynthetic steamed kuih · applies to all kitchens. Leave dates empty for all year.\n\nFirst day\nDD/MM/YYYY\nLast day (inclusive)\nDD/MM/YYYY\nApply to settings\nCancel",
+    "overflow": false,
+    "activeAfterEscape": {
+      "tag": "BUTTON",
+      "label": null,
+      "text": "All year"
+    },
+    "focusReturned": true,
+    "passed": true
+  },
+  {
+    "component": "global-search",
+    "mode": "phone320",
+    "issues": [],
+    "openedBy": "keyboard shortcut",
+    "stage": "return-focus",
+    "title": "Global search\n\nGO DIRECTLY TO\n\nDashboard\nOperations\nProduction Jobs\nOperations\nProduction Planning\nOperations\nAsset Management\nOperations\nOutlet Daily Records\nOutlet Management\nPackaging Stock\nOutlet Management\nOutlet Compliance\nOutlet Management\nEmployees\nPeople\n\nType to search records, item codes, suppliers or document numbers.",
+    "overflow": false,
+    "activeAfterEscape": {
+      "tag": "BUTTON",
+      "label": null,
+      "text": "Change password"
+    },
+    "focusReturned": true,
+    "passed": true
+  },
+  {
+    "component": "planning-adjust",
+    "mode": "phone320",
+    "issues": [],
+    "stage": "return-focus",
+    "title": "Adjust production\n\nSynthetic steamed kuih\n\nWhole trays\nReason\nApply\nAutomatic\nCancel",
+    "overflow": false,
+    "activeAfterEscape": {
+      "tag": "BUTTON",
+      "label": "Adjust Synthetic steamed kuih production",
+      "text": "Adjust"
+    },
+    "focusReturned": true,
+    "passed": true
+  },
+  {
+    "component": "purchase-request-export",
+    "mode": "phone320",
+    "issues": [],
+    "stage": "return-focus",
+    "title": "Export purchase requests\n\nChoose the records and columns to include.\n\nStatus\nAll statuses\nColumns\nPR number\nRequest date\nNeeded by\nPriority\nStatus\nBranch\nRemarks\nCancel\nDownload CSV",
+    "overflow": false,
+    "activeAfterEscape": {
+      "tag": "BUTTON",
+      "label": null,
+      "text": "Export CSV"
+    },
+    "focusReturned": true,
+    "passed": true
+  },
+  {
+    "component": "outlet-daily-export",
+    "mode": "phone320",
+    "issues": [],
+    "stage": "return-focus",
+    "title": "Export outlet daily records\n\nChoose a date range and one or more outlets.\n\nFrom\nTo\nOutlets\nSelect all\nSynthetic outlet A\nSynthetic outlet B\nCancel\nDownload CSV",
+    "overflow": false,
+    "activeAfterEscape": {
+      "tag": "BUTTON",
+      "label": null,
+      "text": "Export CSV"
+    },
+    "focusReturned": true,
+    "passed": true
+  },
+  {
+    "component": "stock-count-export",
+    "mode": "phone320",
+    "issues": [],
+    "stage": "return-focus",
+    "title": "Export Stock Counts\n\nOne outlet per workbook, one worksheet per date.\n\nOutlet / Branch\nSelect one outlet\nSynthetic central kitchen\nSynthetic outlet A\nSynthetic outlet B\nFrom date\n14/10/2026\nTo date\n14/10/2026\n\nThe range includes both dates. Dates without a Stock Count will still receive an empty worksheet with the standard columns.\n\nCancel\nDownload Excel",
+    "overflow": false,
+    "activeAfterEscape": {
+      "tag": "BUTTON",
+      "label": null,
+      "text": "Export workbook"
+    },
+    "focusReturned": true,
+    "passed": true
+  },
+  {
+    "component": "asset-chart",
+    "mode": "phone320",
+    "issues": [],
+    "name": "Recorded maintenance requests by day. Hover, tap, or use the left and right arrow keys to preview each recorded point.",
+    "lastPreview": "14/10/2026\n\n6 requests\n\nSelect to open requests",
+    "firstPreview": "01/10/2026\n\n0 requests\n\nSelect to open requests",
+    "gaps": "M 35.0 165.0 L 50.9 165.0 L 66.8 165.0 L 82.8 165.0 L 98.7 165.0 L 114.6 165.0 L 130.5 165.0 L 146.5 165.0 L 162.4 165.0 L 178.3 165.0 L 194.2 165.0 L 210.2 165.0 L 226.1 165.0 L 242.0 20.0",
+    "passed": true
+  },
+  {
+    "component": "asset-chart",
+    "mode": "phone320",
+    "issues": [],
+    "name": "Recorded asset exceptions by day. Hover, tap, or use the left and right arrow keys to preview each recorded point.",
+    "lastPreview": "14/10/2026\n\n1 exceptions\n\n2 asset checks recorded",
+    "firstPreview": "01/10/2026\n\nNo checks recorded\n\n0 asset checks recorded",
+    "gaps": "             M 242.0 20.0",
+    "passed": true
+  },
+  {
+    "component": "planning-supply-period",
+    "mode": "zoom200",
+    "issues": [],
+    "stage": "return-focus",
+    "title": "Product supply period\n\nSynthetic steamed kuih · applies to all kitchens. Leave dates empty for all year.\n\nFirst day\nDD/MM/YYYY\nLast day (inclusive)\nDD/MM/YYYY\nApply to settings\nCancel",
+    "overflow": false,
+    "activeAfterEscape": {
+      "tag": "BUTTON",
+      "label": null,
+      "text": "All year"
+    },
+    "focusReturned": true,
+    "passed": true
+  },
+  {
+    "component": "global-search",
+    "mode": "zoom200",
+    "issues": [],
+    "openedBy": "keyboard shortcut",
+    "stage": "return-focus",
+    "title": "Global search\n\nGO DIRECTLY TO\n\nDashboard\nOperations\nProduction Jobs\nOperations\nProduction Planning\nOperations\nAsset Management\nOperations\nOutlet Daily Records\nOutlet Management\nPackaging Stock\nOutlet Management\nOutlet Compliance\nOutlet Management\nEmployees\nPeople\n\nType to search records, item codes, suppliers or document numbers.",
+    "overflow": false,
+    "activeAfterEscape": {
+      "tag": "BUTTON",
+      "label": null,
+      "text": "Change password"
+    },
+    "focusReturned": true,
+    "passed": true
+  },
+  {
+    "component": "planning-adjust",
+    "mode": "zoom200",
+    "issues": [],
+    "stage": "return-focus",
+    "title": "Adjust production\n\nSynthetic steamed kuih\n\nWhole trays\nReason\nApply\nAutomatic\nCancel",
+    "overflow": false,
+    "activeAfterEscape": {
+      "tag": "BUTTON",
+      "label": "Adjust Synthetic steamed kuih production",
+      "text": "Adjust"
+    },
+    "focusReturned": true,
+    "passed": true
+  },
+  {
+    "component": "purchase-request-export",
+    "mode": "zoom200",
+    "issues": [],
+    "stage": "return-focus",
+    "title": "Export purchase requests\n\nChoose the records and columns to include.\n\nStatus\nAll statuses\nColumns\nPR number\nRequest date\nNeeded by\nPriority\nStatus\nBranch\nRemarks\nCancel\nDownload CSV",
+    "overflow": false,
+    "activeAfterEscape": {
+      "tag": "BUTTON",
+      "label": null,
+      "text": "Export CSV"
+    },
+    "focusReturned": true,
+    "passed": true
+  },
+  {
+    "component": "outlet-daily-export",
+    "mode": "zoom200",
+    "issues": [],
+    "stage": "return-focus",
+    "title": "Export outlet daily records\n\nChoose a date range and one or more outlets.\n\nFrom\nTo\nOutlets\nSelect all\nSynthetic outlet A\nSynthetic outlet B\nCancel\nDownload CSV",
+    "overflow": false,
+    "activeAfterEscape": {
+      "tag": "BUTTON",
+      "label": null,
+      "text": "Export CSV"
+    },
+    "focusReturned": true,
+    "passed": true
+  },
+  {
+    "component": "stock-count-export",
+    "mode": "zoom200",
+    "issues": [],
+    "stage": "return-focus",
+    "title": "Export Stock Counts\n\nOne outlet per workbook, one worksheet per date.\n\nOutlet / Branch\nSelect one outlet\nSynthetic central kitchen\nSynthetic outlet A\nSynthetic outlet B\nFrom date\n14/10/2026\nTo date\n14/10/2026\n\nThe range includes both dates. Dates without a Stock Count will still receive an empty worksheet with the standard columns.\n\nCancel\nDownload Excel",
+    "overflow": false,
+    "activeAfterEscape": {
+      "tag": "BUTTON",
+      "label": null,
+      "text": "Export workbook"
+    },
+    "focusReturned": true,
+    "passed": true
+  },
+  {
+    "component": "asset-chart",
+    "mode": "zoom200",
+    "issues": [],
+    "name": "Recorded maintenance requests by day. Hover, tap, or use the left and right arrow keys to preview each recorded point.",
+    "lastPreview": "14/10/2026\n\n6 requests\n\nSelect to open requests",
+    "firstPreview": "01/10/2026\n\n0 requests\n\nSelect to open requests",
+    "gaps": "M 35.0 165.0 L 77.4 165.0 L 119.8 165.0 L 162.2 165.0 L 204.5 165.0 L 246.9 165.0 L 289.3 165.0 L 331.7 165.0 L 374.1 165.0 L 416.5 165.0 L 458.8 165.0 L 501.2 165.0 L 543.6 165.0 L 586.0 20.0",
+    "passed": true
+  },
+  {
+    "component": "asset-chart",
+    "mode": "zoom200",
+    "issues": [],
+    "name": "Recorded asset exceptions by day. Hover, tap, or use the left and right arrow keys to preview each recorded point.",
+    "lastPreview": "14/10/2026\n\n1 exceptions\n\n2 asset checks recorded",
+    "firstPreview": "01/10/2026\n\nNo checks recorded\n\n0 asset checks recorded",
+    "gaps": "             M 586.0 20.0",
+    "passed": true
+  }
+]

@@ -35,7 +35,7 @@ export function BranchSupplyRouteForm({ branch, context, action }: {
         <form action={action} className="space-y-3">
           {branch.branch_type === "outlet" ? (
             <label className="grid max-w-xl gap-1.5 text-sm font-medium">
-              Primary Central Kitchen <span className="text-destructive">*</span>
+              <span>Primary Central Kitchen <span className="text-destructive" aria-hidden="true">*</span></span>
               <SelectNative name="related_branch_id" defaultValue={selectedKitchenId} required>
                 <option value="" disabled>Select a Central Kitchen</option>
                 {context.centralKitchens.map((kitchen) => <option key={kitchen.id} value={kitchen.id}>{kitchen.branch_name} ({kitchen.branch_code})</option>)}

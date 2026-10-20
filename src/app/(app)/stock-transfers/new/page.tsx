@@ -12,6 +12,7 @@ export default async function NewStockTransferPage({ searchParams }: { searchPar
   const branches = await getBranchesForSelect({ restrictToActorScope: true });
   const selectedFromBranchId = branches.find((branch) => branch.id === filters.from_branch_id)?.id ?? branches[0]?.id;
   const seedLines = await getOperationSeedLines(selectedFromBranchId);
+  const actionHint = branches.length < 2 ? "Access to two different branches is required. Contact an administrator." : !seedLines.length ? "No available branch stock. Choose a source branch with stock." : "Choose different branches and enter at least one positive quantity.";
   const formId = "stock-transfer-create-form";
   const primaryAction = <SubmitButton form={formId} type="submit" disabled={!seedLines.length || branches.length < 2} className="w-full"><ArrowLeftRight className="h-4 w-4" />Save Transfer Draft</SubmitButton>;
   const steps = [
@@ -29,7 +30,8 @@ export default async function NewStockTransferPage({ searchParams }: { searchPar
         workflowSteps={steps}
         currentStatus="draft"
         mobilePrimaryAction={primaryAction}
-        sidePanel={<><DocumentSideSection title="Primary Action">{primaryAction}</DocumentSideSection><DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">Choose different source and destination branches and enter at least one positive quantity.</p></DocumentSideSection></>}
+        mobileActionHint={actionHint}
+        sidePanel={<><DocumentSideSection title="Primary Action">{primaryAction}</DocumentSideSection><DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{actionHint}</p></DocumentSideSection></>}
       >
         <ActionErrorNotice message={filters.error} />
         <StockTransferForm key={selectedFromBranchId ?? "no-branch"} formId={formId} showSubmit={false} branches={branches} selectedFromBranchId={selectedFromBranchId} seedLines={seedLines} action={createStockTransfer} />

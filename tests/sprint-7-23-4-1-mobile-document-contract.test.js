@@ -24,18 +24,18 @@ test("procurement documents use focused mobile workflow and exact primary action
   assert.match(mobile, /mobileSheetOpen/);
   assert.match(mobile, /sb-dialog-backdrop/);
   assert.match(css, /\.sb-dialog-backdrop[\s\S]*backdrop-filter: blur/);
-  assert.match(mobile, /Step \{activeIndex \+ 1\} of \{steps\.length\}/);
+  assert.match(mobile, /\{activeIndex \+ 1\} \/ \{steps\.length\}/);
   assert.match(mobile, /title="Workflow progress"/);
   assert.doesNotMatch(mobile, />WORKFLOW</);
   assert.doesNotMatch(mobile, /grid w-full max-w-56/);
   assert.match(mobile, /max-w-20/);
   assert.match(mobile, /flex min-w-0 items-center gap-1 md:hidden/);
   assert.match(mobile, /h-\[var\(--sb-control-height\)\] min-h-\[var\(--sb-control-height\)\]/);
-  assert.match(pr, />Submit PR</);
+  assert.match(pr, />Submit</);
   for (const label of ["Approve as Manager", "Complete Purchasing Review", "Approve as Finance"]) assert.match(pr, new RegExp(label));
   assert.match(pr, /Finish PO creation/);
   assert.match(po, /Send to Supplier/);
-  assert.match(po, /Record Receiving (?:&amp;|&) Attach DO/);
+  assert.match(po, /Receive goods/);
 });
 
 test("danger, activity, and mobile line information stay separated", () => {
@@ -74,7 +74,7 @@ test("More filters escapes list clipping on mobile and tablet", () => {
   assert.match(css, /z-index: var\(--sb-z-dialog\)/);
   assert.match(filter, />Filters</);
   assert.match(filter, /active filters/);
-  assert.match(filter, /Changes take effect after you select Apply/);
+  assert.match(filter, /type="submit">Apply/);
   assert.match(filter, />Reset</);
   assert.match(filter, />Apply</);
   assert.match(filter, /aria-label="Close filters"/);

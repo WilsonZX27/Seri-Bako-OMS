@@ -8,7 +8,7 @@ test("dashboard composition is all-role, task-first, and finance-gated", () => {
   const ia = read("src/lib/information-architecture.ts");
   const query = read("src/server/queries/dashboard.ts");
   const view = read("src/components/dashboard-workspace.tsx");
-  assert.match(ia, /href: "\/dashboard"[^\n]*roles: ALL[^\n]*defaultFor: \["super_admin","finance","manager","purchasing","kitchen","outlet_supervisor","outlet_staff"\]/);
+  assert.match(ia, /href: "\/dashboard"[^\n]*roles: ALL[^\n]*defaultFor: \["super_admin","finance","manager","purchasing","chef", "kitchen","outlet_supervisor","outlet_staff"\]/);
   assert.match(ia, /href: "\/people"[^\n]*defaultFor: \["people_operations"\]/);
   assert.match(query, /isOwner \|\| isFinance/);
   assert.match(query, /getPayablesAttention\(\)/);

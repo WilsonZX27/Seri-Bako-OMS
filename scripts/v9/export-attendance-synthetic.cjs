@@ -1,0 +1,7 @@
+const fs=require('node:fs'),ts=require('typescript'),vm=require('node:vm');
+const moduleObject={exports:{}};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/lib/attendance/people-workbook.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:moduleObject,exports:moduleObject.exports,Buffer,Intl,Date,Set,Map});
+const sheet={name:'Synthetic',employee:'Synthetic Employee',staffCode:'TEST-001',employmentType:'full_time',outlet:'Synthetic Outlet',month:'2026-10',period:{start:'2026-10-05',end:'2026-10-11',draft:true,generatedAt:'2026-10-13T00:00:00Z'},days:Array.from({length:7},(_,i)=>({date:`2026-10-${String(i+5).padStart(2,'0')}`,day:'',outlet:'Synthetic Outlet',scheduleStart:'09:00',scheduleEnd:'17:00',punches:['09:00','12:00','13:00','17:00'],workedSeconds:25200,overtimeSeconds:0,shortHoursSeconds:0,exceptions:i===1?'Late; missing break evidence requires review':'',off:i===6}))};
+const output=process.argv[2] ?? '/tmp/oms-weekly-final.xlsx';
+fs.writeFileSync(output,moduleObject.exports.buildPeopleWorkbook([sheet,{...sheet,name:'Long employee',employee:'Synthetic employee with a deliberately long name for layout verification',outlet:'Synthetic outlet with a long display name',days:sheet.days.map((d,i)=>({...d,exceptions:i===1?'Synthetic long note: check the scheduled shift, recorded breaks and missing evidence with the employee before confirming. This note tests wrapping without truncation.':''}))}]));
+console.log('Synthetic-only XLSX: '+output);

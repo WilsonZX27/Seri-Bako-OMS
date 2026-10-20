@@ -1,0 +1,16 @@
+{
+  "scope": "local synthetic rollback",
+  "checks": [
+    "Already-used OT credit reversal is rejected",
+    "People fixture permissions match migration 265 (read, submit, approve)",
+    "Pending reversal leaves credit unchanged",
+    "Self approval rejected",
+    "Other People approval reverses exactly 60 minutes",
+    "Original earning allocated to reversal and unavailable for RO",
+    "Money-only reversal preserves attendance signature",
+    "Time correction after reconciliation invalidates signature",
+    "Corrected 30-minute OT claim produces net RO 30 minutes",
+    "Repeated original reversal rejected"
+  ],
+  "rollback": true
+}

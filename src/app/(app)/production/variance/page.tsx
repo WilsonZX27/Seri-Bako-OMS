@@ -15,7 +15,7 @@ import { getProductionDemandVariance } from "@/server/queries/outlet-daily-recor
 import { ProductionVarianceSignalChart } from "@/components/reports/production-variance-signal-chart";
 import { logServerError } from "@/server/observability/logger";
 
-const metric = (label: string, value: number) => <div><p className="text-xs text-muted-foreground">{label}</p><strong>{formatNumber(value)}</strong></div>;
+const metric = (label: string, value: number) => <div className="flex min-w-0 items-start justify-between gap-3"><p className="text-xs text-muted-foreground">{label}</p><strong>{formatNumber(value)}</strong></div>;
 const signalBadge = (signal: string) => <Badge variant={signal === "over_supplied" ? "warning" : signal === "under_supplied" ? "danger" : signal === "review_manual" ? "secondary" : "success"}>{signal === "over_supplied" ? "Over-supplied" : signal === "under_supplied" ? "Under-supplied" : signal === "review_manual" ? "Review manually" : "Balanced"}</Badge>;
 
 export default async function ProductionVariancePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {

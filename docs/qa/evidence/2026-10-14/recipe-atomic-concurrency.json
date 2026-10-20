@@ -1,0 +1,27 @@
+{
+  "parallelDistinctCopies": [
+    {
+      "version": 5,
+      "lines": 1,
+      "snapshots": 1
+    },
+    {
+      "version": 6,
+      "lines": 1,
+      "snapshots": 1
+    }
+  ],
+  "passed": true,
+  "recipeId": "bb48873e-e97b-4058-a8e9-46a19260c0fa",
+  "parallelSameKeyCreate": {
+    "successes": 2,
+    "recipes": 1,
+    "snapshots": 1
+  },
+  "parallelSameVersionUpdates": {
+    "successes": 1,
+    "staleRejected": 1,
+    "snapshots": 2,
+    "ingredientsPreserved": true
+  }
+}

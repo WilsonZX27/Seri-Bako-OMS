@@ -1,8 +1,42 @@
+> Local candidate — 2026-10-19: migrations reviewed through `366`; forward-only migration 历史已到 `366`. Chef and unique username login are local changes pending database verification and release.
+
+> Local candidate — 2026-10-18: migrations reviewed through `364`. Week-only roster exclusions and the 16-comment interface corrections are under local verification. Migration 364 is not applied to Production.
+
+> Local candidate — 2026-10-17: migrations reviewed through `363`; forward-only migration 历史已到 `363`. Migrations 362/363 add payment channels and independent daily product tracking; applied only to the isolated visual-audit database. Migration 361 adds one checklist per outlet/date and has not been deployed. Production statements below remain historical release evidence.
+
+# v9.2.107 (unreleased)
+
+Asset inspection uses compact identity rows with explicit result choices on expansion. General repair is a separate form above the checklist. Maintenance queues share one rendering; the desktop workspace uses a 4:6 split with the queue aligned to the detail stack. Shared workspace navigation and closed surface disclosures are 44px overall. Desktop inputs retain the existing 36px control rhythm; phone inputs retain 44px touch sizing. Two-action confirmation footers use equal columns. Saved maintenance state survives history refresh and prevents repeated submissions. No database, permissions or workflow transitions change.
+
+> Production release — 2026-10-16: v9.2.106 is deployed. Migrations reviewed through `360`; forward-only migration 历史已到 `360`. Migrations 325 and 357–360 are applied. Effective migrations 339–344 were verified against 15 exact latest function bodies, current constraints and access policies, then their missing history records were reconciled without replaying old DDL. Asset/attendance/roster data did not change during this release. Earlier local-candidate notes below are historical snapshots, superseded by this release status.
+
+> Schedule import verification — 2026-10-16: migrations reviewed through `360`; forward-only migration 历史已到 `360`. Production migrations 358/359/360 are applied; the existing head-chef fingerprint exception is dated and audited. Migration 360 aligns explicit support destinations with the roster editor’s company eligibility, without changing permanent branch access. Colour alone cannot link an OT remark to an employee. Migration 357 is now applied; see the current production release status above.
+
+> Local schedule reconciliation candidate — 2026-10-16: migrations reviewed through `359`; forward-only migration 历史已到 `359`. Migration 358 adds atomic, version-checked draft reconciliation and reusable source rules; 359 adds dated Owner-confirmed staff fingerprint exceptions without inferred hours. Synthetic verification only; not applied to Production.
+
+> Local feedback patch — 2026-10-16: migrations reviewed through `357`; forward-only migration 历史已到 `357`. Migration 357 adds owner-managed non-operating asset destinations, with existing tenant/location access unchanged. Verified with ten synthetic transfer lifecycles only; not applied to Production. UI repair and portrait production export are not yet deployed.
+
+> Local candidate: migrations reviewed through `355`; forward-only migration 历史已到 `355`. Migration 355 makes recipe header, ingredients, document revisions, costing and audit atomic with request-key replay and optimistic update protection. Local verification only; Production has not been migrated.
+
+> Local candidate: migrations reviewed through `354`; forward-only migration 历史已到 `354`. Migration 354 brings automatic per-day schedule refresh into parity with four-punch import calculations, preserves active OT claims and released payroll, and changes no historical rows. Applied and rollback-tested on both isolated local databases only; Production remains unchanged.
+
+> Local candidate: migrations reviewed through `353`; forward-only migration 历史已到 `353`. Migration 353 links People-approved OT reversals to their original RO credits and prevents duplicate allocation. Synthetic reconciliation and concurrent approvals passed locally; not applied to Production. Attendance PDF uses the existing scoped export data; local synthetic browser PDF/ZIP download verified.
+
+> Local candidate: migrations reviewed through `352`; forward-only migration 历史已到 `352`. Migration 352 implements four-punch evidence and separated pending/approved OT; validated only on the isolated synthetic database, not Production.
+
+> Local candidate: migrations reviewed through `351`; forward-only migration 历史已到 `351`. Migration 350 adds versioned attendance confirmation and People-only payslips; 351 binds released-payroll protection into schedule refresh. Not applied to Production. Migration numbering 346–349 remains owned by other tasks.
+
+> Local schedule-import candidate: migrations reviewed through `349`; forward-only migration 历史已到 `349`. Migration numbers 348/349 are allocated by the integration coordinator; 347 belongs to checklist and approval-flow migrations start at 350. Partial import receipts and append-only draft rows were validated only in the isolated synthetic database; no Production application.
+
+> 2026-10-14 Wilson local candidate: migrations reviewed through `347`; forward-only migration 历史已到 `347`. Migration 347 connects checklist exceptions to scoped maintenance notifications and My Actions; 346/347 remain unapproved for Production.
+
+> 2026-10-13 isolated release package: migrations reviewed through `346`; forward-only migration 历史已到 `346`. The only new migration in this package is 346 (general maintenance, scoped reporter permissions and private attachments), verified locally only. Migrations 343/344 are unchanged baseline files; 345 and all new schedule/import changes are excluded. Production migration requires separate approval.
+
 > 2026-10-12 candidate: migrations reviewed through `344`; forward-only migration 历史已到 `344`. Migration 344 adds an explicit by-order demand basis. Prepared for isolated validation; not applied to Production.
 
-# v9.2.106 (unreleased)
+# v9.2.106 (deployed)
 
-Reviewed operations UI and reliable draft submission candidate. Production remains v9.2.105. Migration 343 is validated only in the isolated test database; production application requires separate authorization. No post-release permission expansion is included.
+Operations UI and reliable draft submission are deployed as v9.2.106. Current production migration history is reconciled through 360. Existing tenant, location and workflow permissions remain enforced.
 
 > 2026-10-10 isolated schedule repair: repository migrations reviewed through `343`; forward-only migration 历史已到 `343`. Migration 343 makes version validation, destination save and submit atomic; Wilson approved application only to the isolated local test DB (341 migration rows, maximum 343). No grants changed. This is not evidence of Production schema or deployment changes.
 
@@ -10,7 +44,7 @@ Reviewed operations UI and reliable draft submission candidate. Production remai
 
 Current design authority: desktop controls are 36px at widths >=1024px; phone and portrait-tablet controls below1024px retain at least44px touch targets. Preserve OMS semantic colours, radii and elevation. The shared query owner supplies embedded search with300ms debounce and Enter; mutation forms never auto-submit. Sheet backdrop100/sheet101 cover navigation50; native dialogs retain the browser top layer. The right console remains >=1280px, so it never appears on1024–1194px tablets. Mobile creation stays80px above the bottom edge.
 
-All versioned notes below are historical evidence unless explicitly identified as current. Earlier40/44px desktop geometry must not override this contract. Audit receipt: outputs/systemic-audit-104/AUDIT-RECEIPT.md. The currently released application is `v9.2.105`; the current released application baseline is `v9.2.105`. A versioned section above that number is an unreleased implementation note, pending verification and publication.
+All versioned notes below are historical evidence unless explicitly identified as current. Earlier40/44px desktop geometry must not override this contract. Audit receipt: outputs/systemic-audit-104/AUDIT-RECEIPT.md. The currently released application is `v9.2.106`; the current released application baseline is `v9.2.106`. A versioned section above that number is an unreleased implementation note, pending verification and publication.
 
 ## v9.2.103 approved release verification — 2026-10-09
 

@@ -36,6 +36,7 @@ type Branch = {
 };
 
 type Staff = {
+  username?: string | null;
   id: string;
   company_id: string;
   staff_code: string | null;
@@ -167,9 +168,10 @@ export function BranchForm({ branch, companies, action, formId, showSubmit = tru
               <option value="office">Office</option>
               <option value="other">Other</option>
             </SelectNative>
-            <p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p>
-            <p className="mt-1 text-xs text-muted-foreground">Stock movements for this branch are recorded to an internal default stock area automatically.</p>
           </Field>
+          <div className="md:col-span-2">            <p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Stock movements for this branch are recorded to an internal default stock area automatically.</p>
+</div>
         </div>
       </RecordSection>
       <RecordSection title="Contact & Address" description="Operational contact and branch / outlet address.">
@@ -228,14 +230,17 @@ export function StaffForm({
           <CompanyHidden companies={companies} companyId={staff?.company_id} />
           <input type="hidden" name="status" value={staff?.status ?? "invited"} />
         <div className="grid gap-4 md:grid-cols-2">
-          <Field label="Staff Code">
-            <Input name="staff_code" defaultValue={staff?.staff_code?.toUpperCase() ?? ""} className="form-control-compact uppercase" />
+          <Field label="Staff Code" required>
+            <Input name="staff_code" defaultValue={staff?.staff_code?.toUpperCase() ?? ""} required className="form-control-compact uppercase" />
           </Field>
           <Field label="Full Name" required>
             <Input name="full_name" defaultValue={staff?.full_name ?? ""} required className="form-control-compact" />
           </Field>
-          <Field label="Email" required>
-            <Input name="email" type="email" defaultValue={staff?.email ?? staff?.invite_email ?? ""} required className="form-control-compact" />
+          <Field label="Username">
+            <Input name="username" defaultValue={staff?.username ?? ""} autoCapitalize="none" autoComplete="off" minLength={3} maxLength={32} pattern="[a-zA-Z0-9][a-zA-Z0-9._-]{2,31}" className="form-control-compact" />
+          </Field>
+          <Field label="Email (optional with username)">
+            <Input name="email" type="email" defaultValue={staff?.email?.endsWith("@accounts.seribako.invalid") ? "" : staff?.email ?? staff?.invite_email ?? ""} className="form-control-compact" />
           </Field>
           <Field label="Phone">
             <Input name="phone" defaultValue={staff?.phone ?? ""} className="form-control-compact" />
@@ -328,7 +333,7 @@ export function DocumentSequenceForm({
             <StatusSelect value={sequence?.status} />
           </Field>
           <div className="md:col-span-2">
-            <div className="rounded-[var(--sb-panel-radius)] border bg-secondary p-4">
+            <div data-inset-surface className="rounded-[var(--sb-panel-radius)] border bg-secondary p-4">
               <p className="text-xs font-medium uppercase text-muted-foreground">Preview Number</p>
               <p className="mt-1 font-mono text-lg font-semibold">{previewDocumentNumber(prefix, nextNumber, padding)}</p>
             </div>

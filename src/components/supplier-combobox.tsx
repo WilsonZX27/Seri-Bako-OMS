@@ -33,7 +33,7 @@ export function SupplierCombobox({ suppliers, initialSupplierId }: { suppliers: 
           setQuery(value);
           setSupplierId(labels.get(value) ?? "");
         }}
-        placeholder="Search supplier code or name"
+        placeholder="Search supplier code or name" aria-label="Supplier"
         autoComplete="off"
         aria-describedby={query && !hasExactMatch ? "supplier-selection-help" : undefined}
       />

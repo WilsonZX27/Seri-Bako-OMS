@@ -1,0 +1,12 @@
+{
+  "scope": "isolated synthetic browser contexts",
+  "checks": [
+    "Populated single-outlet browser PDF downloaded",
+    "Final export rejected for unclosed period; modal selections retained",
+    "staff: scoped PDF and foreign OT reversal denied",
+    "manager: scoped PDF and foreign OT reversal denied",
+    "other-manager: scoped PDF and foreign OT reversal denied",
+    "owner: scoped PDF and foreign OT reversal denied",
+    "Denials left the target ledger unchanged"
+  ]
+}

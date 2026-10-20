@@ -30,7 +30,7 @@ test("inventory fallbacks mark low-stock unavailable when the canonical fallback
   assert.match(source, /const summaryError = error \?\? \(data == null \? new Error\("Low stock summary returned no data\."\) : null\)/);
   assert.match(source, /from\("low_stock_items"\)/);
   assert.match(source, /error = legacyResult\.error/);
-  assert.match(source, /if \(!branchId\)/);
+  assert.match(source, /if \(!branchId && !customThreshold\)/);
   assert.match(source, /return \{ rows: \[\], count: null, unavailable: true \}/);
 });
 

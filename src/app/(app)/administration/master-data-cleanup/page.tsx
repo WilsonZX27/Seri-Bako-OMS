@@ -43,7 +43,7 @@ export default async function MasterDataCleanupPage({ searchParams }: { searchPa
             <Button type="submit">Filter</Button>
           </FilterBar>
           <section className="sb-list-content-card overflow-hidden">
-          <Table mobileHidden stickyColumn="second" aria-label="Master data cleanup issues">
+          <Table mobileHidden stickyColumn="none" aria-label="Master data cleanup issues">
             <TableHeader><TableRow><TableHead className="w-20 text-center">Open</TableHead><TableHead>Severity</TableHead><TableHead>Module</TableHead><TableHead>Issue</TableHead><TableHead>Record</TableHead><TableHead>Suggested manual action</TableHead></TableRow></TableHeader>
             <TableBody>{report.issues.map((issue) => <TableRow key={issue.id}><TableCell className="text-center"><Button asChild variant="outline" size="sm"><Link href={issue.href}>Open</Link></Button></TableCell><TableCell><Badge variant={severityVariant[issue.severity]}>{issue.severity}</Badge></TableCell><TableCell className="capitalize">{issue.module}</TableCell><TableCell className="font-medium">{issue.issueType}</TableCell><TableCell>{issue.record}</TableCell><TableCell className="text-muted-foreground">{issue.action}</TableCell></TableRow>)}{!report.issues.length ? <TableRow><TableCell colSpan={6}><EmptyState title="No matching cleanup issues" description="Try another filter, or the visible master data is complete for these checks." /></TableCell></TableRow> : null}</TableBody>
           </Table>

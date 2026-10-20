@@ -1,3 +1,4 @@
+import { formatStockCountQuantity as formatQuantity } from "@/lib/stock-count-quantity";
 import { DocumentActionBar } from "@/components/document-action-bar";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
 import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
@@ -12,7 +13,7 @@ import { StockCountVoidDialog } from "@/components/stock-count-void-dialog";
 import { Button } from "@/components/ui/button";
 import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatDateOnly, formatQuantity } from "@/lib/utils";
+import { formatDateOnly } from "@/lib/utils";
 import { addItemToStockCount, autosaveStockCountDraft, cancelStockCount, postStockCount, resolveStockCountLineRevision, reviseStockCountLine, saveAndPostStockCount, updateStockCountDraft, voidStockCount } from "@/server/actions/stock-counts";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getBranchesForSelect, getItemsForSelect } from "@/server/queries/common";
@@ -92,6 +93,7 @@ export default async function StockCountDetailPage({ params, searchParams }: { p
 
   return (
     <DocumentWorkspace
+      hideMobileHeader={canEdit}
       breadcrumbs={[{ label: "Inventory", href: "/inventory" }, { label: "Stock Counts", href: "/stock-counts" }, { label: count.count_no }]}
       documentNo={count.count_no}
       title="Stock Count"
@@ -99,9 +101,9 @@ export default async function StockCountDetailPage({ params, searchParams }: { p
       branch={count.branch_name}
       workflowSteps={stockCountSteps}
       currentStatus={isLegacyPending ? "draft" : count.status}
-      mobilePrimaryAction={mobilePrimaryAction}
-      mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /></> : null}
-      mobileMoreOptions={<DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions>}
+      mobilePrimaryAction={canEdit ? null : mobilePrimaryAction}
+      mobileActivity={!canEdit && documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /></> : null}
+      mobileMoreOptions={!canEdit && <DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions>}
       sidePanel={
         <>
           {hasPrimaryAction || canCancel ? <DocumentActionSection description={canVoid ? "Reversal preserves the original count and creates equal opposite ledger movements." : undefined}>
@@ -139,12 +141,13 @@ export default async function StockCountDetailPage({ params, searchParams }: { p
       </section> : null}
       {retiredLines.length ? <section id="retired-stock-count-lines" className="overflow-hidden rounded-[var(--sb-panel-radius)] border border-amber-200 bg-amber-50"><div className="border-b border-[var(--sb-border-soft)] p-3"><h2 className="text-sm font-semibold">Retired by this Stock Count</h2><p className="mt-1 text-xs text-muted-foreground">{retiredLines.length} item{retiredLines.length === 1 ? "" : "s"} removed from future counts for this branch. Historical quantities remain intact.</p></div><div className="divide-y divide-[var(--sb-border-soft)]">{retiredLines.map((line, index)=><div key={line.id} className="grid gap-1 p-3 text-xs sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><div><p className="font-semibold"><span className="mr-2 inline-flex min-w-5 justify-center rounded-full bg-amber-100 px-1 tabular-nums" aria-label={`Retired item ${index + 1}`}>{index + 1}</span>{line.item?.item_code} · {line.item?.item_name}</p><p className="text-muted-foreground">{line.retirement?.note || line.retirement?.reason?.replaceAll("_", " ")}</p></div><p className="tabular-nums">Final count {formatQuantity(line.retirement?.actual_qty ?? line.physical_qty)} {line.uom}</p></div>)}</div></section> : null}
       </div> : null}
-      {canEdit ? <StockCountForm formId={formId} branches={branches} selectedBranchId={count.branch_id ?? undefined} seedLines={editableLines} action={updateStockCountDraft.bind(null, count.id)} autosaveAction={autosaveStockCountDraft.bind(null, count.id)} lineRevisionAction={reviseStockCountLine.bind(null, count.id)} itemCatalog={items} addItemControl={addItemControl} initialLineAction={initialLineAction} draftId={count.id} showSubmit={false} initialCountDate={count.count_date} initialRemarks={count.remarks} /> : null}
+      {canEdit ? <StockCountForm formId={formId} branches={branches} selectedBranchId={count.branch_id ?? undefined} seedLines={editableLines} action={updateStockCountDraft.bind(null, count.id)} autosaveAction={autosaveStockCountDraft.bind(null, count.id)} lineRevisionAction={reviseStockCountLine.bind(null, count.id)} itemCatalog={items} addItemControl={addItemControl} initialLineAction={initialLineAction} draftId={count.id} showSubmit={true} initialCountDate={count.count_date} initialRemarks={count.remarks} /> : null}
+      {canEdit ? <details className="sb-work-surface p-3 md:hidden"><summary className="min-h-11 cursor-pointer py-3 text-sm">Actions, files & activity</summary><div className="space-y-3">{confirmAction}{secondaryActions}{documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /></> : null}</div></details> : null}
 
       {!canEdit ? <Card>
         <CardContent className="space-y-4 p-5">
           <h2 className="text-sm font-semibold">Count Summary</h2>
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="sb-label-value-summary grid gap-4 md:grid-cols-4">
             <div><p className="text-xs uppercase text-muted-foreground">Date</p><p className="font-medium">{formatDateOnly(count.count_date)}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{count.branch_name ?? "-"}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Adjusted lines</p><p className="font-medium">{adjustedLines.length}</p></div>
@@ -179,7 +182,7 @@ export default async function StockCountDetailPage({ params, searchParams }: { p
                   const high = Number(line.variance_qty) !== 0;
                   return (
                     <TableRow key={line.id} className={high ? "bg-warning/10" : ""}>
-                      <TableCell><p className="font-medium">{line.item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground">{line.item?.item_code}</p></TableCell>
+                      <TableCell><p className="font-medium">{line.item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground sb-item-code" title={line.item?.item_code ?? undefined}>{line.item?.item_code}</p></TableCell>
                       <TableCell className="text-right">{formatQuantity(line.theoretical_qty)}</TableCell>
                       <TableCell className="text-right font-medium">{formatQuantity(line.physical_qty)}</TableCell>
                       <TableCell className="text-right">{formatQuantity(line.variance_qty)}</TableCell>
@@ -197,7 +200,7 @@ export default async function StockCountDetailPage({ params, searchParams }: { p
               const high = Number(line.variance_qty) !== 0;
               return (
                 <article key={line.id} className={`space-y-3 py-4 first:pt-1 last:pb-1 ${high ? "bg-[var(--sb-warning-bg)] px-3" : ""}`} role="listitem">
-                  <div className="flex items-start justify-between gap-4"><div className="min-w-0"><h3 className="font-medium leading-snug">{line.item?.item_name ?? line.item_id}</h3><p className="mt-0.5 text-xs text-muted-foreground">{line.item?.item_code}</p></div><div className="flex shrink-0 items-start gap-2 text-right"><div><strong>{formatQuantity(line.physical_qty)} {line.uom}</strong><p className={`text-xs ${high ? "font-semibold text-[var(--sb-warning)]" : "text-muted-foreground"}`}>{formatQuantity(line.variance_qty)} · {formatQuantity(line.variance_percent)}%</p></div>{isLegacyPending && permissions["stock_count.post"] && revisionsAvailable ? <StockCountLineRecovery action={reviseStockCountLine.bind(null, count.id)} line={line} items={items} reviewMode /> : null}</div></div>
+                  <div className="flex items-start justify-between gap-4"><div className="min-w-0"><h3 className="font-medium leading-snug">{line.item?.item_name ?? line.item_id}</h3><p className="mt-0.5 text-xs text-muted-foreground sb-item-code" title={line.item?.item_code ?? undefined}>{line.item?.item_code}</p></div><div className="flex shrink-0 items-start gap-2 text-right"><div><strong>{formatQuantity(line.physical_qty)} {line.uom}</strong><p className={`text-xs ${high ? "font-semibold text-[var(--sb-warning)]" : "text-muted-foreground"}`}>{formatQuantity(line.variance_qty)} · {formatQuantity(line.variance_percent)}%</p></div>{isLegacyPending && permissions["stock_count.post"] && revisionsAvailable ? <StockCountLineRecovery action={reviseStockCountLine.bind(null, count.id)} line={line} items={items} reviewMode /> : null}</div></div>
                   <dl className="grid grid-cols-2 gap-4 rounded-md bg-secondary/35 p-3 text-xs"><div><dt className="text-muted-foreground">Starting balance</dt><dd className="mt-1 font-medium">{formatQuantity(line.theoretical_qty)} {line.uom}</dd></div><div><dt className="text-muted-foreground">Variance</dt><dd className="mt-1 font-medium">{formatQuantity(line.variance_qty)} {line.uom}</dd></div></dl>
                   {line.remarks ? <p className="text-xs"><span className="text-muted-foreground">Remarks:</span> {line.remarks}</p> : null}
                 </article>

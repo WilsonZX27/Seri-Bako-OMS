@@ -59,5 +59,5 @@ export function StatusBadge({ status, className, label }: { status: string; clas
         : "secondary";
   const description = normalized === "ready_to_post" ? "All required values are present, but the daily record has not been posted yet." : normalized === "posted" ? "The daily record is finalised and posted." : normalized === "attention" ? "The record is posted but needs follow-up." : undefined;
   const visibleLabel = label ?? formatStatusLabel(status);
-  return <Badge variant={variant} title={description} aria-label={description ? `${visibleLabel}. ${description}` : undefined} data-status={normalized} data-status-icon={StatusIcon ? "true" : undefined} className={cn("gap-1.5", stageClassName, className)}>{StatusIcon ? <StatusIcon className="h-3 w-3 shrink-0" aria-hidden="true" /> : null}{visibleLabel}</Badge>;
+  return <Badge variant={variant} title={description} aria-label={description ? `${visibleLabel}. ${description}` : undefined} data-status={normalized} data-status-icon={StatusIcon ? "true" : undefined} className={cn("gap-1.5 min-w-min whitespace-normal overflow-visible text-left", stageClassName, className)}>{StatusIcon ? <StatusIcon className="h-3 w-3 shrink-0" aria-hidden="true" /> : null}<span className="min-w-min break-normal">{visibleLabel}</span></Badge>;
 }

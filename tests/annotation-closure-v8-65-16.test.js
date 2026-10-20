@@ -14,9 +14,9 @@ test("shared number inputs block accidental wheel and arrow stepping", () => {
 
 test("Outlet Daily aligns quantities and details in five desktop columns", () => {
   const form = read("src/components/outlet-daily-record-form.tsx");
-  assert.equal(form.split("md:grid-cols-[minmax(0,1fr)_repeat(3,minmax(3.5rem,4.5rem))_minmax(0,1fr)]").length - 1, 2);
-  assert.match(form, /hidden md:block">Wastage details/);
-  assert.match(form, /md:col-start-5 md:col-span-1 md:grid/);
+  assert.equal(form.split("xl:grid-cols-[minmax(0,1fr)_repeat(3,minmax(3.5rem,4.5rem))_minmax(0,1fr)]").length - 1, 2);
+  assert.match(form, /tracking === "food_daily" \? "Wastage details"/);
+  assert.match(form, /xl:col-start-5 xl:col-span-1 xl:grid/);
   assert.doesNotMatch(form, />Sold out</);
   assert.match(form, /type="hidden" name="stockout"/);
 });

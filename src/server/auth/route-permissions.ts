@@ -1,8 +1,9 @@
 import { informationArchitecture } from "@/lib/information-architecture";
 
 const exactRoutePermissions: Record<string, string[]> = {
+  "/attendance/confirmations": ["dashboard.view"],
+  "/attendance/payslips": ["dashboard.view"],
   "/compliance": ["outlet_compliance.read"],
-  "/outlet-calendar": ["outlet_compliance.read"],
   "/attendance/imports": ["attendance.import"],
   "/attendance/settings": ["shift_template.manage"],
   "/attendance/templates": ["shift_template.manage"],
@@ -44,11 +45,13 @@ const exactRoutePermissions: Record<string, string[]> = {
 };
 
 const exactRouteRoles: Record<string, readonly string[]> = {
-  "/compliance": ["super_admin", "people_operations", "manager", "purchasing", "kitchen"],
-  "/outlet-calendar": ["super_admin", "people_operations", "manager", "purchasing", "kitchen"],
-  "/documents": ["super_admin", "finance", "manager", "purchasing", "kitchen"],
-  "/procurement": ["super_admin", "finance", "manager", "purchasing", "kitchen"],
-  "/production/variance": ["super_admin", "finance", "manager", "purchasing", "kitchen"],
+  // Self-service entry only; database ACLs still restrict time and payroll data.
+  "/attendance/confirmations": ["super_admin", "people_operations", "finance", "manager", "purchasing", "chef", "kitchen", "outlet_supervisor", "outlet_staff"],
+  "/attendance/payslips": ["super_admin", "people_operations", "finance", "manager", "purchasing", "chef", "kitchen", "outlet_supervisor", "outlet_staff"],
+  "/documents": ["super_admin", "finance", "manager", "purchasing", "chef", "kitchen"],
+  "/procurement": ["super_admin", "finance", "manager", "purchasing", "chef", "kitchen"],
+  "/production/planning": ["super_admin", "finance", "manager", "purchasing", "chef", "kitchen"],
+  "/production/variance": ["super_admin", "finance", "manager", "purchasing", "chef", "kitchen"],
 };
 
 const routePermissions: Array<{ prefixes: string[]; permissions: string[] }> = [

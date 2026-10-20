@@ -1,0 +1,67 @@
+[
+  {
+    "width": 1440,
+    "status": "passed",
+    "checks": [
+      "56 date points",
+      "missing-date preview",
+      "missing-wastage point omitted",
+      "4 wastage observations",
+      "5 received observations",
+      "pointer selection",
+      "keyboard Home End Arrow",
+      "Escape closes parent"
+    ],
+    "overflow": false
+  },
+  {
+    "width": 320,
+    "status": "passed",
+    "checks": [
+      "56 date points",
+      "missing-date preview",
+      "missing-wastage point omitted",
+      "4 wastage observations",
+      "5 received observations",
+      "pointer selection",
+      "keyboard Home End Arrow",
+      "Escape closes parent"
+    ],
+    "overflow": false
+  },
+  {
+    "width": 720,
+    "status": "passed",
+    "checks": [
+      "56 date points",
+      "missing-date preview",
+      "missing-wastage point omitted",
+      "4 wastage observations",
+      "5 received observations",
+      "pointer selection",
+      "keyboard Home End Arrow",
+      "Escape closes parent"
+    ],
+    "overflow": false
+  },
+  {
+    "state": "loading",
+    "status": "passed",
+    "recovery": "live synthetic history loaded"
+  },
+  {
+    "state": "error",
+    "status": "passed",
+    "recovery": "live synthetic history loaded"
+  },
+  {
+    "state": "empty",
+    "status": "passed",
+    "injection": "read-only history response rows=[]"
+  },
+  {
+    "state": "long",
+    "status": "passed",
+    "injection": "same synthetic product name replaced with long unbroken label in read-only page response"
+  }
+]

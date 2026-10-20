@@ -212,8 +212,8 @@ export async function autosaveNewStockCount(formData: FormData): Promise<StockCo
     return { ok: true, id, savedAt: new Date().toISOString(), operationId };
   } catch (error) {
     const kind = classifyActionError(error);
-    const userMessage = formatStockCountDraftError(error, "Autosave failed. Your changes remain on this device.");
-    await recordSystemIncident({ module: "stock_count", code: kind, message: userMessage, route: "/stock-counts/new", operationId, eventType: "failed", recommendedAction: "Retry after connection recovery; the device snapshot remains available." });
+    const userMessage = formatStockCountDraftError(error, "Save failed. Keep this page open and try Save draft.");
+    await recordSystemIncident({ module: "stock_count", code: kind, message: userMessage, route: "/stock-counts/new", operationId, eventType: "failed", recommendedAction: "Keep the count page open and retry after connection recovery." });
     return {
       ok: false,
       error: userMessage,
@@ -231,8 +231,8 @@ export async function autosaveStockCountDraft(id: string, formData: FormData): P
     return { ok: true, id: countId, savedAt: new Date().toISOString(), operationId };
   } catch (error) {
     const kind = classifyActionError(error);
-    const userMessage = formatStockCountDraftError(error, "Autosave failed. Your changes remain on this device.");
-    await recordSystemIncident({ module: "stock_count", code: kind, message: userMessage, route: `/stock-counts/${id}`, operationId, eventType: "failed", recommendedAction: "Retry after connection recovery; the device snapshot remains available." });
+    const userMessage = formatStockCountDraftError(error, "Save failed. Keep this page open and try Save draft.");
+    await recordSystemIncident({ module: "stock_count", code: kind, message: userMessage, route: `/stock-counts/${id}`, operationId, eventType: "failed", recommendedAction: "Keep the count page open and retry after connection recovery." });
     return {
       ok: false,
       error: userMessage,

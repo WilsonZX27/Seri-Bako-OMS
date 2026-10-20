@@ -28,6 +28,7 @@ export type LooseQuery<T extends Record<string, unknown> = Record<string, unknow
   gte: (column: string, value: unknown) => LooseQuery<T>;
   gt: (column: string, value: unknown) => LooseQuery<T>;
   ilike: (column: string, pattern: string) => LooseQuery<T>;
+  not: (column: string, operator: string, value: unknown) => LooseQuery<T>;
   contains: (column: string, value: unknown) => LooseQuery<T>;
   or: (filters: string) => LooseQuery<T>;
   order: (column: string, options?: Record<string, unknown>) => LooseQuery<T>;

@@ -48,7 +48,8 @@ test('keyboard and modified link clicks bypass touch double-tap suppression', ()
 test('invalid optional sales does not invalidate valid outlet quantities', () => {
   const text = fs.readFileSync('src/server/actions/outlet-daily-records.ts', 'utf8').split('export async function saveOutletDailyRecord')[0].replace(/^import .*;\r?\n/gm, '');
   const js = ts.transpileModule(text, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
-  const extract = new Function('z', `${js}; return extractOutletDailyPayload;`)(require('zod').z);
+  const channels = JSON.parse(fs.readFileSync('src/lib/outlet-sales-channels.ts','utf8').match(/export const salesChannels = (\[[^;]+\]) as const/)[1]);
+  const extract = new Function('z', 'salesChannels', `${js}; return extractOutletDailyPayload;`)(require('zod').z, channels);
   const form = new FormData();
   form.set('branch_id', '11111111-1111-4111-8111-111111111111');
   form.set('record_date', '2026-09-05');

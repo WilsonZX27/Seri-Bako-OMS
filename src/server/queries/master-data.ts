@@ -183,3 +183,22 @@ export async function getItemStockCountRetirementHistory(itemId: string) {
   const staffById = new Map((staffs.data ?? []).map((staff) => [staff.id, staff]));
   return rows.map((row) => ({ ...row, branch: branchById.get(row.branch_id) ?? null, requestedBy: staffById.get(row.requested_by) ?? null }));
 }
+
+/** System defaults plus units already used by visible records in the active company. */
+export async function getSystemUomOptions() {
+  const { uomOptionsForValues } = await import("@/lib/uom");
+  if (isMockMode()) return uomOptionsForValues(mockUomConversions.flatMap(row => [row.from_uom, row.to_uom]));
+  const { requireActiveTenantActor } = await import("@/server/auth/tenant-actor");
+  const actor = await requireActiveTenantActor();
+  const db = looseSupabase(await createClient());
+  const values: string[] = [];
+  for (const [table, columns] of [["items", ["base_unit"]], ["uom_conversions", ["from_uom", "to_uom"]], ["supplier_items", ["purchase_uom"]]] as const) {
+    for (let offset = 0;; offset += 500) {
+      const result = await db.from(table).select(["id", ...columns].join(",")).eq("company_id", actor.companyId).is("deleted_at", null).order("id").range(offset, offset + 499);
+      if (result.error || !result.data) throw new Error(result.error?.message ?? "UOM options unavailable.");
+      for (const row of result.data) for (const column of columns) if (typeof row[column] === "string") values.push(row[column] as string);
+      if (result.data.length < 500) break;
+    }
+  }
+  return uomOptionsForValues(values);
+}

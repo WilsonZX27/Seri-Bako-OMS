@@ -1,3 +1,4 @@
+import { RecipeVersionForm } from "@/components/recipe-form";
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
@@ -56,7 +57,7 @@ export default async function RecipeDetailPage({
                 </>
               ) : null}
               {permissions["recipes.approve"] && recipe.status === "approved" ? <form action={activateRecipe.bind(null, recipe.id)}><SubmitButton type="submit" className="w-full" pendingLabel="Activating..." data-mobile-primary-action>Activate</SubmitButton></form> : null}
-              {permissions["recipes.create"] && recipe.status === "active" ? <form action={createNewRecipeVersion.bind(null, recipe.id)}><SubmitButton type="submit" variant="outline" className="w-full" pendingLabel="Creating...">New Version</SubmitButton></form> : null}
+              {permissions["recipes.create"] && recipe.status === "active" ? <RecipeVersionForm requestKey={crypto.randomUUID()} action={createNewRecipeVersion.bind(null, recipe.id)} /> : null}
               {permissions["recipes.archive"] && ["active", "approved"].includes(recipe.status) ? <DestructiveActionDialog action={archiveRecipe.bind(null, recipe.id)} label="Archive Recipe" title="Archive this recipe?" description="The recipe will leave active operational use. Its history remains available." pendingLabel="Archiving..." /> : null}
               {permissions["recipes.archive"] ? <PhaseOneDeleteAction recordType="recipe" recordId={recipe.id} label="recipe" /> : null}
             </RecordActionPanel>
@@ -79,19 +80,19 @@ export default async function RecipeDetailPage({
           </Card>
         ) : null}
         <section aria-labelledby="recipe-summary" className="overflow-hidden rounded-[var(--sb-panel-radius)] border bg-card">
-          <div className="border-b px-4 py-3"><h2 id="recipe-summary" className="text-sm font-semibold">Recipe Summary</h2></div>
-          <dl className="grid divide-y sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-5">
-            <div className="min-w-0 px-4 py-3"><dt className="text-xs text-muted-foreground">Version</dt><dd className="mt-1 font-mono text-sm font-semibold">v{recipe.version}</dd></div>
-            <div className="min-w-0 px-4 py-3"><dt className="text-xs text-muted-foreground">Yield</dt><dd className="mt-1 truncate font-mono text-sm font-semibold">{formatNumber(recipe.yield_qty)} {recipe.yield_unit}</dd></div>
-            <div className="min-w-0 px-4 py-3"><dt className="text-xs text-muted-foreground">Ingredient Cost</dt><dd className="mt-1 truncate font-mono text-sm font-semibold">{formatCurrency(recipe.total_ingredient_cost)}</dd></div>
-            <div className="min-w-0 px-4 py-3"><dt className="text-xs text-muted-foreground">Adjusted Cost</dt><dd className="mt-1 truncate font-mono text-sm font-semibold">{formatCurrency(recipe.wastage_adjusted_cost)}</dd></div>
-            <div className="min-w-0 px-4 py-3"><dt className="text-xs text-muted-foreground">Cost / Unit</dt><dd className="mt-1 truncate font-mono text-sm font-semibold">{formatCurrency(recipe.cost_per_finished_unit)}</dd></div>
+          <div className="px-4 py-3"><h2 id="recipe-summary" className="text-sm font-semibold">Recipe Summary</h2></div>
+          <dl className="sb-label-value-summary grid gap-4 px-4 pb-4 xl:grid-cols-5">
+            <div className="col-span-2 min-w-0 px-3 py-3 xl:col-span-1 [&:nth-child(-n+2)]:col-span-3 xl:[&:nth-child(-n+2)]:col-span-1"><dt className="text-xs text-muted-foreground">Version</dt><dd className="mt-1 font-mono text-sm font-semibold">v{recipe.version}</dd></div>
+            <div className="col-span-2 min-w-0 px-3 py-3 xl:col-span-1 [&:nth-child(-n+2)]:col-span-3 xl:[&:nth-child(-n+2)]:col-span-1"><dt className="text-xs text-muted-foreground">Yield</dt><dd className="mt-1 break-words font-mono text-sm font-semibold">{formatNumber(recipe.yield_qty)} {recipe.yield_unit}</dd></div>
+            <div className="col-span-2 min-w-0 px-3 py-3 xl:col-span-1 [&:nth-child(-n+2)]:col-span-3 xl:[&:nth-child(-n+2)]:col-span-1"><dt className="text-xs text-muted-foreground">Ingredient Cost</dt><dd className="mt-1 break-words font-mono text-sm font-semibold">{formatCurrency(recipe.total_ingredient_cost)}</dd></div>
+            <div className="col-span-2 min-w-0 px-3 py-3 xl:col-span-1 [&:nth-child(-n+2)]:col-span-3 xl:[&:nth-child(-n+2)]:col-span-1"><dt className="text-xs text-muted-foreground">Adjusted Cost</dt><dd className="mt-1 break-words font-mono text-sm font-semibold">{formatCurrency(recipe.wastage_adjusted_cost)}</dd></div>
+            <div className="col-span-2 min-w-0 px-3 py-3 xl:col-span-1 [&:nth-child(-n+2)]:col-span-3 xl:[&:nth-child(-n+2)]:col-span-1"><dt className="text-xs text-muted-foreground">Cost / Unit</dt><dd className="mt-1 break-words font-mono text-sm font-semibold">{formatCurrency(recipe.cost_per_finished_unit)}</dd></div>
           </dl>
         </section>
 
         <Card>
-          <CardHeader><CardTitle>Header</CardTitle></CardHeader>
-          <CardContent className="grid gap-4 text-sm md:grid-cols-4">
+          <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-2"><CardTitle>Recipe Details</CardTitle><div className="flex flex-wrap gap-2" aria-label="Recipe status and approval"><Badge variant={recipe.status === "active" ? "success" : recipe.status === "rejected" ? "danger" : "secondary"}>{recipe.status}</Badge><Badge variant={recipe.approval_status === "approved" ? "success" : recipe.approval_status === "rejected" ? "danger" : "secondary"}>{recipe.approval_status}</Badge></div></CardHeader>
+          <CardContent className="sb-label-value-summary grid gap-4 text-sm xl:grid-cols-2">
             <div>
               <p className="text-muted-foreground">Product</p>
               <p className="font-medium">{recipe.product_name}</p>
@@ -99,14 +100,6 @@ export default async function RecipeDetailPage({
             <div>
               <p className="text-muted-foreground">Effective Date</p>
               <p className="font-medium">{formatDateOnly(recipe.effective_date)}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Status</p>
-              <Badge variant={recipe.status === "active" ? "success" : recipe.status === "rejected" ? "danger" : "secondary"}>{recipe.status}</Badge>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Approval</p>
-              <Badge variant={recipe.approval_status === "approved" ? "success" : recipe.approval_status === "rejected" ? "danger" : "secondary"}>{recipe.approval_status}</Badge>
             </div>
             <div>
               <p className="text-muted-foreground">Cost / Pack</p>
@@ -122,7 +115,7 @@ export default async function RecipeDetailPage({
         <Card>
           <CardHeader><CardTitle>Ingredient Lines</CardTitle></CardHeader>
           <CardContent>
-            <div className="rounded-[var(--sb-panel-radius)] border">
+            <div data-inset-surface className="overflow-hidden rounded-[var(--sb-panel-radius)] border">
               <Table mobileHidden aria-label="Recipe ingredient availability">
                 <TableHeader>
                     <TableRow>
@@ -143,7 +136,7 @@ export default async function RecipeDetailPage({
                           {line.ingredient_image_url ? <Image src={line.ingredient_image_url} alt="" width={40} height={40} className="h-10 w-10 rounded-[var(--sb-control-radius)] object-cover" /> : imageFallback(line.ingredient_item_code)}
                           <div>
                             <p className="font-medium">{line.ingredient_name}</p>
-                            <p className="text-xs text-muted-foreground">{line.ingredient_item_code}</p>
+                            <p className="text-xs text-muted-foreground sb-item-code" title={line.ingredient_item_code ?? undefined}>{line.ingredient_item_code}</p>
                           </div>
                         </div>
                       </TableCell>
@@ -160,7 +153,7 @@ export default async function RecipeDetailPage({
                 </TableBody>
               </Table>
               <div className="divide-y xl:hidden" role="list" aria-label="Recipe ingredient availability" data-recipe-ingredient-detail-list>
-                {recipe.lines.map((line) => { const action = line.stock_status === "available" ? "Use stock" : line.stock_status === "unknown" ? "Check stock" : "Create PR"; return <article key={line.id} className="space-y-3 p-3" role="listitem"><div className="flex items-start gap-3">{line.ingredient_image_url ? <Image src={line.ingredient_image_url} alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-[var(--sb-control-radius)] object-cover" /> : imageFallback(line.ingredient_item_code)}<div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="font-medium leading-snug">{line.ingredient_name}</h3><p className="text-xs text-muted-foreground">{line.ingredient_item_code}</p></div><strong className="shrink-0">{formatNumber(line.base_qty_required)} {line.base_uom}</strong></div></div></div><dl className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-md bg-secondary/35 p-3 text-xs"><div><dt className="text-muted-foreground">Current stock</dt><dd className="mt-1 font-medium">{line.current_stock == null ? "Unknown" : `${formatNumber(line.current_stock)} ${line.base_uom}`}</dd></div><div><dt className="text-muted-foreground">Shortage</dt><dd className="mt-1 font-medium">{line.shortage_qty == null ? "Unavailable" : `${formatNumber(line.shortage_qty)} ${line.base_uom}`}</dd></div><div><dt className="text-muted-foreground">Suggested action</dt><dd className="mt-1 font-medium">{action}</dd></div><div><dt className="text-muted-foreground">Line cost</dt><dd className="mt-1 font-medium">{formatCurrency(line.calculated_line_cost)}</dd></div></dl><Badge variant={line.stock_status === "available" ? "success" : line.stock_status === "short" ? "danger" : "secondary"}>{line.stock_status === "need_purchase" ? "Need Purchase" : line.stock_status}</Badge></article>; })}
+                {recipe.lines.map((line) => { const action = line.stock_status === "available" ? "Use stock" : line.stock_status === "unknown" ? "Check stock" : "Create PR"; return <article key={line.id} className="space-y-3 p-3" role="listitem"><div className="flex items-start gap-3">{line.ingredient_image_url ? <Image src={line.ingredient_image_url} alt="" width={40} height={40} className="h-10 w-10 shrink-0 rounded-[var(--sb-control-radius)] object-cover" /> : imageFallback(line.ingredient_item_code)}<div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="font-medium leading-snug">{line.ingredient_name}</h3><p className="text-xs text-muted-foreground sb-item-code" title={line.ingredient_item_code ?? undefined}>{line.ingredient_item_code}</p></div><strong className="shrink-0">{formatNumber(line.base_qty_required)} {line.base_uom}</strong></div></div></div><dl className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-md bg-secondary/35 p-3 text-xs"><div><dt className="text-muted-foreground">Current stock</dt><dd className="mt-1 font-medium">{line.current_stock == null ? "Unknown" : `${formatNumber(line.current_stock)} ${line.base_uom}`}</dd></div><div><dt className="text-muted-foreground">Shortage</dt><dd className="mt-1 font-medium">{line.shortage_qty == null ? "Unavailable" : `${formatNumber(line.shortage_qty)} ${line.base_uom}`}</dd></div><div><dt className="text-muted-foreground">Suggested action</dt><dd className="mt-1 font-medium">{action}</dd></div><div><dt className="text-muted-foreground">Line cost</dt><dd className="mt-1 font-medium">{formatCurrency(line.calculated_line_cost)}</dd></div></dl><Badge variant={line.stock_status === "available" ? "success" : line.stock_status === "short" ? "danger" : "secondary"}>{line.stock_status === "need_purchase" ? "Need Purchase" : line.stock_status}</Badge></article>; })}
               </div>
             </div>
           </CardContent>

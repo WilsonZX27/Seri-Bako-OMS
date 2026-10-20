@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "cases": [
+    "15 injected-stage rollback checks",
+    "create update copy replay",
+    "changed input key rejection",
+    "stale update rejection",
+    "workflow preservation",
+    "active and archived updates rejected",
+    "ingredient and wastage totals, unit and six-unit pack costs match",
+    "same-actor permission removal rejected",
+    "foreign-company product and recipe rejected",
+    "create/copy orphan counts unchanged",
+    "ACL"
+  ],
+  "output": "BEGIN\n              set_config              \n--------------------------------------\n c5ed1b6e-d7ea-423b-a1e9-6e1b862fd33f\n(1 row)\n\nCREATE FUNCTION\nCREATE TRIGGER\nCREATE TRIGGER\nCREATE TRIGGER\nCREATE TRIGGER\nCREATE TRIGGER\nCREATE FUNCTION\nDO\nROLLBACK\n"
+}

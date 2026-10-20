@@ -1,0 +1,4 @@
+{
+  "retained": true,
+  "text": "New Recipe\n\nCreate a recipe header and ingredient BOM lines.\n\nIngredient item is required\n\nRecipe details\nProduct\nREL-KUIH - Synthetic steamed kuih\nYield Qty\nYield UOM\nBAG\nBLOCK\nBOTTLE\nBOX\nBUNCH\nCAN\nCASE\nCRATE\nCTN\nDOZEN\nG\nGAL\nGUNI\nJAR\nKG\nL\nMG\nML\nNOS\nPACK\nPAIR\nPCS\nPKT\nPORTION\nROLL\nSACHET\nSHEET\nSLICE\nSTICK\nTIN\nTONG\nTONNE\nTRAY\nTUB\nUNIT\nEffective Date\n14/10/2026\nRemarks\nIngredient Lines\nAdd row\nINGREDIENT\tQTY\tRECIPE UOM\tFACTOR\tBASE QTY\tBASE UOM\tWASTAGE %\tCOST / BASE\tLINE COST\t\n\nIT\n\t\n\t\nSelect UOM\nBAG\nBLOCK\nBOTTLE\nBOX\nBUNCH\nCAN\nCASE\nCRATE\nCTN\nDOZEN\nG\nGAL\nGUNI\nJAR\nKG\nL\nMG\nML\nNOS\nPACK\nPAIR\nPCS\nPKT\nPORTION\nROLL\nSACHET\nSHEET\nSLICE\nSTICK\nTIN\nTONG\nTONNE\nTRAY\nTUB\nUNIT\n\t\n\t1\t-\t\n\t\n\tRM 0.00\t\n\nIngredient Cost\n\nRM 0.00\n\nWastage Adjusted\n\nRM 0.00\n\nCost / Finished Unit\n\nRM 0.00\n\nCost / Pack\n\n-\n\nAdd row"
+}

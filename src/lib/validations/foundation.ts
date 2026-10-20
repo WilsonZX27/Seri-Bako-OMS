@@ -42,6 +42,7 @@ export const branchSchema = z.object({
 });
 
 export const staffSchema = z.object({
+  username: z.string().trim().toLowerCase().regex(/^[a-z0-9][a-z0-9._-]{2,31}$/, "Username must be 3–32 letters, numbers, dots, underscores or hyphens.").optional().nullable(),
   company_id: z.string().uuid("Company is required"),
   staff_code: optionalUpperText,
   full_name: z.string().trim().min(1, "Full name is required").max(160),

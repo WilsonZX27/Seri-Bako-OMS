@@ -1,0 +1,55 @@
+{
+  "results": [
+    {
+      "width": 1440,
+      "owner": "stock-add",
+      "passed": true
+    },
+    {
+      "width": 1440,
+      "owner": "stock-replace",
+      "passed": true
+    },
+    {
+      "width": 1440,
+      "owner": "stock-remove",
+      "passed": true
+    },
+    {
+      "width": 1440,
+      "owner": "stock-retire",
+      "passed": true
+    },
+    {
+      "width": 1440,
+      "owner": "po-export",
+      "passed": true
+    },
+    {
+      "width": 320,
+      "owner": "stock-add",
+      "passed": true
+    },
+    {
+      "width": 320,
+      "owner": "stock-replace",
+      "passed": true
+    },
+    {
+      "width": 320,
+      "owner": "stock-remove",
+      "passed": true
+    },
+    {
+      "width": 320,
+      "owner": "stock-retire",
+      "passed": true
+    },
+    {
+      "width": 320,
+      "owner": "po-export",
+      "passed": true
+    }
+  ],
+  "blockedMutations": 0
+}

@@ -28,15 +28,25 @@ export async function GET(request: Request) {
     const latest = new Map<string, { id: string; status: string }>();
     for (const row of (weekResult.data ?? []) as Array<{ id: string; branch_id: string; status: string }>) if (!latest.has(row.branch_id)) latest.set(row.branch_id, row);
     const weekIds = [...latest.values()].map((row) => row.id);
-    const assignmentResult = weekIds.length ? await db.from("shift_assignment_revisions").select("schedule_week_id,staff_id,work_date,assignment_kind,shift_template_id,custom_start,custom_end,custom_crosses_midnight,custom_break_seconds,custom_maximum_recognised_seconds,work_site_label").in("schedule_week_id", weekIds).eq("is_current", true) : { data: [], error: null };
+    const assignmentResult = weekIds.length ? await db.from("shift_assignment_revisions").select("id,schedule_week_id,staff_id,work_date,assignment_kind,shift_template_id,custom_start,custom_end,custom_crosses_midnight,custom_break_seconds,custom_maximum_recognised_seconds,work_site_label,ro_minutes").in("schedule_week_id", weekIds).eq("is_current", true) : { data: [], error: null };
     if (assignmentResult.error) throw assignmentResult.error;
-    const staffIds = new Set<string>(), staff: Array<{ id: string; name: string; branch_id: string; home_branch_id?: string | null; eligibility?: Array<{ from: string; to: string | null }> }> = [];
+    const staffIds = new Set<string>(), staff: Array<{ id: string; name: string; staff_code: string | null; branch_id: string; home_branch_id?: string | null; eligibility?: Array<{ from: string; to: string | null }> }> = [];
     const staffResults = await Promise.all(branches.map(async (branch) => {
-      const staffResult = await db.rpc("get_schedule_staff", { p_branch_id: branch.id, p_week_id: latest.get(branch.id)?.id ?? null });
+      // Match the roster editor: eligible company staff can work at an authorised
+      // destination without granting permanent branch membership or app access.
+      // Retain the existing week catalogue for historical staff as well.
+      const [staffResult, candidates] = await Promise.all([
+        db.rpc("get_schedule_staff", { p_branch_id: branch.id, p_week_id: latest.get(branch.id)?.id ?? null }),
+        db.rpc("get_schedule_staff_candidates", { p_branch_id: branch.id }),
+      ]);
       if (staffResult.error) throw staffResult.error;
-      return { branchId: branch.id, people: (staffResult.data ?? []) as Array<{ id: string; full_name: string }> };
+      if (candidates.error) throw candidates.error;
+      type Person = { id: string; full_name: string; staff_code: string | null };
+      const combined = [...((staffResult.data ?? []) as Person[]), ...((candidates.data ?? []) as Person[])];
+      const people = [...new Map(combined.map(person => [person.id, person])).values()];
+      return { branchId: branch.id, people };
     }));
-    for (const result of staffResults) for (const person of result.people) { staffIds.add(person.id); staff.push({ id: person.id, name: person.full_name, branch_id: result.branchId }); }
+    for (const result of staffResults) for (const person of result.people) { staffIds.add(person.id); staff.push({ id: person.id, name: person.full_name, staff_code: person.staff_code, branch_id: result.branchId }); }
     const homeResult = staffIds.size ? await db.from("staffs").select("id,default_branch_id,employment_end_date").in("id", [...staffIds]) : { data: [], error: null };
     if (homeResult.error) throw homeResult.error;
     const homeByStaff = new Map(((homeResult.data ?? []) as Array<{ id: string; default_branch_id: string | null }>).map((person) => [person.id, person.default_branch_id]));
@@ -62,7 +72,14 @@ export async function GET(request: Request) {
       eligibilityByStaff.set(staffId, eligibleDays.map((day) => ({ from: day, to: day })));
     }
     const branchForWeek = new Map([...latest].map(([branchId, row]) => [row.id, branchId]));
+    const history = await db.rpc("get_schedule_workbook_import_history", {p_week_start:week.data});
+    if (history.error) throw history.error;
+    const [rules,exemptions,owner]=await Promise.all([db.rpc("get_schedule_workbook_rules"),db.rpc("get_staff_fingerprint_exemptions",{p_week_start:week.data}),db.rpc("current_staff_has_company_role",{role_codes:["super_admin"]})]);
+    if(rules.error)throw rules.error;
+    if(exemptions.error)throw exemptions.error;
     return NextResponse.json({
+      import_rules:rules.data??{},fingerprint_exempt_staff:exemptions.data??[],can_manage_exemptions:owner.data===true,
+      import_history:history.data ?? [],
       branches: branches.map((branch) => ({ id: branch.id, name: branch.branch_name, status: latest.get(branch.id)?.status ?? "not_started" })),
       staff: staff.map((person) => ({ ...person, home_branch_id: homeByStaff.get(person.id) ?? null, eligibility: eligibilityByStaff.get(person.id) ?? [] })),
       current_assignments: (assignmentResult.data ?? []).map((row: Record<string, unknown>) => ({ ...row, branch_id: branchForWeek.get(String(row.schedule_week_id)) })),

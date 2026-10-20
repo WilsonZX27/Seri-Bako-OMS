@@ -129,8 +129,12 @@ export async function rejectStockTransfer(id: string) { await transitionStockTra
 
 export async function createStockWastage(formData: FormData) {
   await requirePermissionOrRedirect("stock_wastage.create", "/stock-wastage/new");
+  // Preserve inputs only for known pre-write validation failures.
+  let payload: ReturnType<typeof extractWastage>;
+  try { payload = extractWastage(formData); } catch (error) {
+    return { error: formatActionError(error, "Check the wastage fields.") };
+  }
   try {
-    const payload = extractWastage(formData);
     if (isMockMode()) redirect("/stock-wastage/wastage-damaged");
     const profile = await identity();
     const idempotencyKey = z.uuid().parse(String(formData.get("idempotency_key") ?? ""));

@@ -1,3 +1,4 @@
+import { stockEnumSearch } from "@/lib/stock-enum-search";
 import { isMockMode, mockBranches, mockItems, mockProfile, mockStockTransferLines, mockStockTransfers, mockStockWastage, mockStockWastageLines } from "@/lib/mock-mode";
 import { todayInKualaLumpur } from "@/lib/business-date";
 import { createClient } from "@/lib/supabase/server";
@@ -89,7 +90,7 @@ export async function getStockTransfers(filters: Filters = {}) {
     const branchFilters = matchingBranchIds.length
       ? `,from_branch_id.in.(${matchingBranchIds.join(",")}),to_branch_id.in.(${matchingBranchIds.join(",")})`
       : "";
-    query = query.or(`transfer_no.ilike.%${search}%,status.ilike.%${search}%,remarks.ilike.%${search}%${branchFilters}`);
+    query = query.or(`transfer_no.ilike.%${search}%,remarks.ilike.%${search}%${branchFilters}${stockEnumSearch("operation", filters.search ?? "")}`);
   }
   query = query.order(sort, { ascending: filters.dir === "asc" }).order("id", { ascending: false });
   const range = pageRange(filters.page);
@@ -184,7 +185,7 @@ export async function getStockWastage(filters: Filters = {}) {
     if (filters.date === "today") query = query.eq("wastage_date", todayInKualaLumpur());
   if (search) {
     const branchFilter = matchingBranchIds.length ? `,branch_id.in.(${matchingBranchIds.join(",")})` : "";
-    query = query.or(`wastage_no.ilike.%${search}%,status.ilike.%${search}%,reason.ilike.%${search}%,remarks.ilike.%${search}%${branchFilter}`);
+    query = query.or(`wastage_no.ilike.%${search}%,remarks.ilike.%${search}%${branchFilter}${stockEnumSearch("operation", filters.search ?? "")}${stockEnumSearch("reason", filters.search ?? "")}`);
   }
   query = query.order(sort, { ascending: filters.dir === "asc" }).order("id", { ascending: false });
   const range = pageRange(filters.page);

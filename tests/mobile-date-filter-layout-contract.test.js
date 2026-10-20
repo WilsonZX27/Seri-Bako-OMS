@@ -31,7 +31,7 @@ test("outlet daily matrix scroll stays inside its own viewport and cannot collap
 });
 
 test("phone result count stays beside the date and filter controls", () => {
-  assert.match(design, /grid-template-columns: minmax\(0, 1fr\) 44px 104px auto;/);
+  assert.match(design, /grid-template-columns: minmax\(0, 1fr\) 44px 44px auto;/);
   assert.match(design, /\.unified-list-result \{[\s\S]*?grid-column: 4;/);
   assert.match(globals, /form\.sb-list-filters\.sb-list-filters--date-first:not\(\.sb-list-query-card\) > :first-child/);
   assert.doesNotMatch(globals, /form\.sb-list-filters\.sb-list-filters--date-first > :first-child/);

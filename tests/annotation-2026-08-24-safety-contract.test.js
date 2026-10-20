@@ -4,11 +4,11 @@ import test from "node:test";
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("PR attachments use one compact action row and icon-only file actions", () => {
+test("PR attachments wrap narrow action rows and retain icon-only file actions", () => {
   const upload = read("src/components/documents/attachment-upload-form.tsx");
   const panels = read("src/components/documents/document-panels.tsx");
   assert.match(upload, /Add Attachment/);
-  assert.match(upload, /grid-cols-\[minmax\(0,1fr\)_auto\]/);
+  assert.match(upload, /flex min-w-0 flex-wrap gap-2/);
   assert.match(upload, /labelClassName="sr-only"/);
   assert.doesNotMatch(panels, />Download</);
   assert.match(panels, /<Eye/);
@@ -53,7 +53,7 @@ test("Purchasing review explicitly requires the AutoCount PO number", () => {
 test("PR and Dashboard mobile rows share a compact three-line operational composition", () => {
   const list = read("src/app/(app)/purchase-requests/page.tsx");
   const dashboard = read("src/components/dashboard-workspace.tsx");
-  assert.match(list, /secondary=\{<span className="flex min-w-0 items-center gap-2/);
+  assert.match(list, /secondary=\{<span className="flex min-w-0 flex-wrap items-center gap-x-2/);
   assert.match(list, /detail=\{<span className="flex min-w-0 items-center justify-between/);
   assert.match(dashboard, /row\.branch_name \?\? "Unassigned"/);
   assert.match(dashboard, /row\.line_count\} items/);

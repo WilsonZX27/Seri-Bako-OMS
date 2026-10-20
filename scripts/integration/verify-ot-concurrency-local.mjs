@@ -1,0 +1,31 @@
+import fs from 'node:fs';import {spawn,spawnSync} from 'node:child_process';import {randomUUID} from 'node:crypto';import assert from 'node:assert/strict';
+const container='supabase_db_oms-integration-replay-20261014';
+function sql(input,onOutput){return new Promise((resolve,reject)=>{const p=spawn('docker',['exec','-i',container,'psql','-X','-qAt','-U','postgres','-d','postgres','-v','ON_ERROR_STOP=1']);let out='',err='';p.stdout.on('data',b=>{out+=b;onOutput?.(out);});p.stderr.on('data',b=>err+=b);p.on('error',reject);p.on('close',code=>code?reject(Error(err)):resolve(out.trim()));p.stdin.end(input);});}
+const ids=new Map();const remap=s=>s.replace(/[1-9][0-9a-f]{7}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g,id=>{if(!ids.has(id))ids.set(id,randomUUID());return ids.get(id);});
+const source=fs.readFileSync('tests/sql/attendance-four-punch-local.sql','utf8').split('select public.decide_attendance_ot_claim')[0];
+await sql(remap(source).replaceAll("'CALC'",`'C${Date.now()}'`).replaceAll('people-calc@test.local',`people-${randomUUID()}@test.local`).replaceAll('second-people-synthetic@test.local',`people-${randomUUID()}@test.local`)+'\nreset role;commit;');
+const company=ids.get('11000000-0000-0000-0000-000000000001'),staff=ids.get('41000000-0000-0000-0000-000000000002'),actor=ids.get('31000000-0000-0000-0000-000000000003');
+const claim=await sql(`select id from attendance_ot_claims where company_id='${company}' and status='submitted';`);assert.match(claim,/^[a-f0-9-]{36}$/);
+const auth=`set local role authenticated;set local request.jwt.claims='{"sub":"${actor}","role":"authenticated"}';`;
+let ready;const held=new Promise(r=>ready=r);
+const first=sql(`begin;select public.attestation_lock('${staff}');${auth}select 'HELD';select pg_sleep(1);select (public.decide_attendance_ot_claim('${claim}','approve',60,null)).status;commit;`,out=>{if(out.includes('HELD'))ready();});
+await held;const second=sql(`begin;${auth}select (public.decide_attendance_ot_claim('${claim}','approve',60,null)).status;commit;`);
+const race=await Promise.allSettled([first,second]);assert.equal(race.filter(x=>x.status==='fulfilled').length,1);assert.match(race.find(x=>x.status==='rejected').reason.message,/Submitted OT claim was not found/);
+const ledger=JSON.parse(await sql(`select json_build_object('count',count(*),'minutes',sum(minutes)) from comp_time_transactions where source_ot_claim_id='${claim}';`));assert.deepEqual(ledger,{count:1,minutes:60});
+const report={scope:'Independent local synthetic database only',company,staff,claim,checks:['Concurrent approvals serialize; exactly one succeeds','Exactly one RO credit of 60 minutes remains'],ledger,fixture:'Committed isolated synthetic company retained for subsequent reconciliation tests'};
+fs.writeFileSync('outputs/qa/component-states/ot-concurrency.json',JSON.stringify(report,null,2));fs.writeFileSync('/tmp/oms-ot-concurrency-fixture.json',JSON.stringify({company,staff,claim,ids:Object.fromEntries(ids)},null,2));console.log(JSON.stringify(report));
+const reconciliation=spawnSync(process.execPath,['scripts/integration/verify-ot-reconciliation-local.mjs'],{stdio:'inherit'});assert.equal(reconciliation.status,0);
+// Separate approvers race on the linked reversal of that exact synthetic earning.
+const firstActor=ids.get('31000000-0000-0000-0000-000000000001');
+await sql(`insert into role_permissions(role_id,permission_id) select '${ids.get('51000000-0000-0000-0000-000000000001')}',id from permissions where permission_code in ('comp_time.read','comp_time.submit','comp_time.approve') on conflict do nothing;`);
+const reversal=await sql(`begin;${auth}select (public.submit_attendance_ot_reconciliation('${claim}','Synthetic concurrent reversal',null)).id;commit;`);
+const approveAuth=`set local role authenticated;set local request.jwt.claims='{"sub":"${firstActor}","role":"authenticated"}';`;
+let reversalReady;const reversalHeld=new Promise(r=>reversalReady=r);
+const reverseOne=sql(`begin;select public.attestation_lock('${staff}');${approveAuth}select 'HELD';select pg_sleep(1);select (public.decide_comp_time_transaction('${reversal}','approve',null)).status;commit;`,out=>{if(out.includes('HELD'))reversalReady();});
+await reversalHeld;
+const reverseTwo=sql(`begin;${approveAuth}select (public.decide_comp_time_transaction('${reversal}','approve',null)).status;commit;`);
+const reversed=await Promise.allSettled([reverseOne,reverseTwo]);assert.equal(reversed.filter(x=>x.status==='fulfilled').length,1);
+const reversalState=JSON.parse(await sql(`select json_build_object('balance',(select sum(minutes) from comp_time_transactions where staff_id='${staff}' and status='approved'),'allocated',(select sum(allocated_minutes) from comp_time_allocations where used_transaction_id='${reversal}'),'claim',(select status from attendance_ot_claims where id='${claim}'));`));
+assert.deepEqual(reversalState,{balance:0,allocated:60,claim:'cancelled'});
+report.checks.push('Concurrent reversal approvals serialize; exactly one succeeds','Reversal consumes original credit exactly once; final balance zero');report.reversal=reversalState;
+fs.writeFileSync('outputs/qa/component-states/ot-concurrency.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report));

@@ -1,21 +1,8 @@
-const test = require("node:test");
-const assert = require("node:assert/strict");
-
-// Keep this contract close to the People workbook rules: gross full-time
-// presence is the default, and a break only affects the report after People
-// explicitly records break out/in.
-test("full-time export uses first and last punch without an explicit break correction", () => {
-  const source = require("node:fs").readFileSync("src/lib/attendance/export-policy.ts", "utf8");
-  assert.match(source, /punches\.at\(-1\)/);
-  assert.match(source, /presence_seconds/);
-  assert.match(source, /!hasExplicitBreak\(row\)/);
-  assert.match(source, /missing_break_punch/);
-  assert.match(source, /short_break/);
-});
-
-test("export retains four punches when People supplied an audited break", () => {
-  const source = require("node:fs").readFileSync("src/lib/attendance/export-policy.ts", "utf8");
-  assert.match(source, /actual_break_out/);
-  assert.match(source, /actual_break_in/);
-  assert.match(source, /filter\(Boolean\)/);
-});
+const test=require("node:test"),assert=require("node:assert/strict"),fs=require("node:fs"),Module=require("node:module"),ts=require("typescript");
+const file="src/lib/attendance/export-policy.ts",m=new Module(file,module);m.paths=module.paths;m._compile(ts.transpileModule(fs.readFileSync(file,"utf8"),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,file);
+const {exportPunches,exportWorkedSeconds,exportShortHoursSeconds,exportExceptionLabels}=m.exports;
+const punches=["2026-10-05T09:05:00+08:00","2026-10-05T13:00:00+08:00","2026-10-05T14:00:00+08:00","2026-10-05T18:00:00+08:00"];
+const row={staffs:{employment_type:"full_time"},calculation:{punches},presence_seconds:32100,worked_seconds:28500,late_seconds:300,early_leave_seconds:1800};
+test("four actual punches override gross presence and retain the break",()=>{assert.deepEqual(exportPunches(row),punches);assert.equal(exportWorkedSeconds(row),28500);assert.equal(exportShortHoursSeconds(row),2100)});
+test("missing and duplicate evidence never exports guessed working time",()=>{for(const p of [punches.slice(0,3),[punches[0],punches[1],punches[1],punches[3]]])assert.equal(exportWorkedSeconds({...row,calculation:{punches:p}}),null);assert.match(exportExceptionLabels({...row,statuses:["missing_break_punch"]}),/missing break/)});
+test("an audited complete correction exports its four timestamps",()=>{assert.deepEqual(exportPunches({...row,actual_first_in:punches[0],actual_break_out:punches[1],actual_break_in:punches[2],actual_last_out:punches[3]}),punches)});

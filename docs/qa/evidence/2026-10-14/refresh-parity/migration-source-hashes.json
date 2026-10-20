@@ -1,0 +1,4 @@
+{
+  "supabase/migrations/353_attendance_ot_credit_reconciliation.sql": "393d2868032541f2fd7855428d712cf3efd974c3d74ccb920dbfdcf1281793b2",
+  "supabase/migrations/354_schedule_refresh_four_punch_parity.sql": "7148cb7a463ea0e8f4ed04933fd43654269f376ffc492757d60b019ddbe68dde"
+}

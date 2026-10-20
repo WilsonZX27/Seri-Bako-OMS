@@ -27,7 +27,7 @@ export default async function RecipesPage({ searchParams }: { searchParams: Prom
   return (
     <>
       <PageHeader
-        title="Recipe / BOM"
+        title="Recipes"
         description="Finished product recipes linked to Item Master ingredients."
       />
       <WorkspaceGrid tabletRailMode="split" tabletRailBreakpoint="md" hideMobileConsole={!canCreate} rightRail={<><ConsoleSection title="Actions">{canCreate ? <Button asChild className="w-full" data-mobile-primary-action><PendingLink href="/recipes/new" pendingLabel="Opening recipe form...">New recipe</PendingLink></Button> : <p className="text-xs text-muted-foreground">Recipe master data is read-only for Finance.</p>}</ConsoleSection><ConsoleSection title="Recipe Summary">{summary ? <dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{summary.total}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{summary.active}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Pending approval</dt><dd className="font-semibold">{summary.pendingApproval}</dd></div></dl> : <div role="status"><p className="text-xs font-semibold text-[var(--sb-warning)]">Unavailable</p><p className="mt-1 text-xs text-muted-foreground">The recipe list remains current. Retry to load recipe totals.</p></div>}</ConsoleSection></>}>
@@ -44,10 +44,10 @@ export default async function RecipesPage({ searchParams }: { searchParams: Prom
                   <TableHead className="hidden lg:table-cell">Version</TableHead>
                   <TableHead className="hidden md:table-cell">Yield</TableHead>
                   <TableHead className="hidden lg:table-cell">Effective</TableHead>
-                  <TableHead className="hidden md:table-cell">Approval</TableHead>
+                  <TableHead className="hidden w-28 md:table-cell">Approval</TableHead>
                   <TableHead className="hidden text-right lg:table-cell">Total Cost</TableHead>
                   <TableHead className="hidden text-right lg:table-cell">Cost / Unit</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="w-24">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

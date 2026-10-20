@@ -12,6 +12,7 @@ import { SelectControl } from "@/components/ui/select-control";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { StatusTabs } from "@/components/status-tabs";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { getCanonicalDocumentHref } from "@/lib/document-routing";
 import { formatStatusLabel } from "@/lib/status-label";
@@ -45,7 +46,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
   return (
     <>
       <PageHeader title="Documents Register" description="Audit-ready register for document status, approvals, attachments, revisions, and timelines." />
-      <WorkspaceGrid className="p-3 sm:p-4">
+      <WorkspaceGrid className="p-3 sm:p-4" hideMobileConsole rightRail={<><ConsoleSection title="Register summary"><dl className="grid gap-3 text-xs"><div className="flex justify-between gap-3"><dt className="text-muted-foreground">Matching documents</dt><dd className="font-semibold">{documents.totalRows}</dd></div><div className="flex justify-between gap-3"><dt className="text-muted-foreground">On this page</dt><dd className="font-semibold">{documents.rows.length}</dd></div></dl></ConsoleSection><ConsoleSection title="Document details"><p className="text-xs leading-5 text-muted-foreground">Open a document to review its status, approvals, attachments and activity.</p></ConsoleSection></>}>
         <div className="overflow-hidden rounded-[var(--sb-panel-radius)] border bg-card">
           <FilterBar resultCount={documents.totalRows} resetHref="/documents" filtered={filtered}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search document no, title, type" />
@@ -72,6 +73,7 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
             <Button type="submit" variant="secondary">Filter</Button>
           </FilterBar>
           <DataGridHint text="Pro-tip: Double-click any row to open the document." />
+          <div className="sb-list-content-card overflow-hidden">
             <Table mobileHidden aria-label="Documents register" stickyColumn="second">
               <TableHeader>
                 <TableRow>
@@ -92,14 +94,14 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                     <TableCell className="text-center"><TableActionLink href={href} label={`Open ${document.document_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                     <TableCell><DocumentNumber value={document.document_no} size="sm" /></TableCell>
                     <TableCell>{formatStatusLabel(document.document_type)}</TableCell>
-                    <TableCell><StatusBadge status={getDocumentStageLabel(document)} /></TableCell>
+                    <TableCell><StatusBadge status={getDocumentStageLabel(document)} className="whitespace-normal" /></TableCell>
                     <TableCell>{document.created_by_name ?? "Unknown user"}</TableCell>
                     <TableCell>{formatDateTime(document.created_at).slice(0, 10)}</TableCell>
                     <TableCell>{formatDateTime(document.updated_at).slice(0, 10)}</TableCell>
                   </DataGridRow>
                   );
                 })}
-                {!documents.rows.length ? <TableRow><TableCell colSpan={7}><EmptyState title="No documents found" description="Documents will appear here after PR, PO, GRN, inventory, or approval activity is recorded." /></TableCell></TableRow> : null}
+                {!documents.rows.length ? <TableRow><TableCell colSpan={7}><EmptyState title={filtered ? "No documents match these filters" : "No documents found"} description={filtered ? "Reset the filters or widen the search." : "Documents will appear here after PR, PO, GRN, inventory, or approval activity is recorded."} action={filtered ? { href: "/documents", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Documents register">
@@ -107,9 +109,10 @@ export default async function DocumentsPage({ searchParams }: { searchParams: Pr
                 const href = getCanonicalDocumentHref(document);
                 return <OperationalListRow key={document.id} href={href} label={`Open ${document.document_no}`} primary={<DocumentNumber value={document.document_no} size="sm" />} status={<StatusBadge status={getDocumentStageLabel(document)} />} secondary={`${formatStatusLabel(document.document_type)} · ${document.created_by_name ?? "Unknown user"}`} meta={formatDateTime(document.updated_at).slice(0, 10)} />;
               })}
-              {!documents.rows.length ? <EmptyState title="No documents found" description="Documents will appear here after PR, PO, GRN, inventory, or approval activity is recorded." action={filtered ? { href: "/documents", label: "Reset filters" } : undefined} /> : null}
+              {!documents.rows.length ? <EmptyState title={filtered ? "No documents match these filters" : "No documents found"} description={filtered ? "Reset the filters or widen the search." : "Documents will appear here after PR, PO, GRN, inventory, or approval activity is recorded."} action={filtered ? { href: "/documents", label: "Reset filters" } : undefined} /> : null}
             </OperationalList>
           <PaginationControls page={documents.page} totalPages={documents.totalPages} totalRows={documents.totalRows} searchParams={filters} />
+          </div>
         </div>
       </WorkspaceGrid>
     </>

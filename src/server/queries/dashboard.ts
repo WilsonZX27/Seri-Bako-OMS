@@ -337,7 +337,7 @@ export async function getDashboardSummary() {
   const isFinance = role === "finance";
   const isManager = role === "manager";
   const isPurchasing = role === "purchasing";
-  const isKitchen = role === "kitchen";
+  const isKitchen = (role === "kitchen" || role === "chef");
   const isOutlet = role === "outlet_staff" || role === "outlet_supervisor";
   const needsProcurement = isOwner || isFinance || isManager || isPurchasing || isKitchen;
   const needsInventory = isOwner || isFinance || isManager || isPurchasing || isKitchen;

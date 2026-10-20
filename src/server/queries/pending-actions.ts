@@ -1,3 +1,4 @@
+import { looseSupabase } from "@/lib/supabase/loose";
 import { createClient } from "@/lib/supabase/server";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getCurrentUserScope } from "@/server/queries/notifications";
@@ -40,7 +41,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
 
   const permissions = await getPermissionMap([
     "pr.admin_review", "pr.purchasing_review", "pr.manager_approve", "pr.finance_review",
-    "pr.convert_to_po", "pr.view_all", "schedule.approve", "outlet_daily_record.post",
+    "pr.convert_to_po", "pr.view_all", "schedule.approve", "outlet_daily_record.post", "assets.maintenance",
   ]);
   const canAdminReview = permissions["pr.admin_review"];
   const canPurchasingReview = permissions["pr.purchasing_review"];
@@ -212,8 +213,24 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
     };
   })();
 
-  const [prResults, scheduleResult, outletDailyResult] = await Promise.all([prResultsPromise, scheduleResultPromise, outletDailyResultPromise]);
-  const results = [...prResults, scheduleResult, ...(includeOutletDaily ? [outletDailyResult] : [])];
+  const maintenanceResultPromise = (async () => {
+    if (!permissions["assets.maintenance"]) return { items: [] as PendingAction[], count: 0, unavailable: false };
+    const { data, error } = await looseSupabase(supabase).rpc("get_my_maintenance_actions", { p_limit: limit });
+    if (error || !data) {
+      if (error) logServerWarning(error, { source: "pending-actions.maintenance" });
+      return { items: [] as PendingAction[], count: null, unavailable: true };
+    }
+    const snapshot = data as { total: number; items: { id: string; created_at: string; location: string }[] };
+    return { count: snapshot.total, unavailable: false, items: snapshot.items.map(row => ({
+      id: `maintenance-${row.id}`, document_no: "Repair request", title: "Maintenance follow-up",
+      href: `/asset-management/maintenance/${row.id}`, step: "Repair", branch_name: row.location,
+      age_label: ageLabel(row.created_at), updated_at: row.created_at, supplier_names: [], line_count: 0,
+      submitted_by_name: null, estimated_total: 0,
+    } satisfies PendingAction)) };
+  })();
+
+  const [prResults, scheduleResult, outletDailyResult, maintenanceResult] = await Promise.all([prResultsPromise, scheduleResultPromise, outletDailyResultPromise, maintenanceResultPromise]);
+  const results = [...prResults, maintenanceResult, scheduleResult, ...(includeOutletDaily ? [outletDailyResult] : [])];
   const unavailable = results.some((result) => result.unavailable);
   const items = results
     .flatMap((result) => result.items)

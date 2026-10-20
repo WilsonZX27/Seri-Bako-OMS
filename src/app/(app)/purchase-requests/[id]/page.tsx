@@ -152,7 +152,7 @@ export default async function PurchaseRequestDetailPage({
   const supplierIds = suppliers ? new Set(suppliers.map((supplier) => supplier.id)) : null;
   const branch = branches?.find((row) => row.id === request.branch_id);
   const total = lines.reduce((sum, line) => sum + line.qty * line.estimated_unit_cost, 0);
-  const canViewCommercial = permissions["pr.view_all"] && !["kitchen", "kitchen_staff"].includes(roleCode);
+  const canViewCommercial = permissions["pr.view_all"] && !["chef", "kitchen", "kitchen_staff"].includes(roleCode);
   const canSubmit = isStatus(request.status, "draft", "rejected", "returned") && permissions["pr.submit"];
   const isOwner = roleCode === "super_admin";
   const canCancel = request.status === "draft" && permissions["pr.cancel"];
@@ -201,6 +201,9 @@ export default async function PurchaseRequestDetailPage({
     (request.status === "finance_review" && (roleCode === "finance" || isOwner) && (permissions["pr.finance_review"] || permissions["pr.reject"]));
   const hasPrimaryAction = canSubmit || canManagerReview || canAdminReview || canFinanceReview || canConvert;
   const deleteControl = canManageDeletion && !canCancel ? (deletePreview?.eligible ? <DangerConfirmForm action={hardDeletePhaseOne.bind(null, "purchase_request", request.id)} title={`Permanently delete ${request.request_no}?`} description="This cannot be undone. Purchase request lines will be removed; the document number will remain consumed." checkboxLabel="I understand this permanently deletes the eligible request." confirmWord={deletePreview.confirmation} buttonLabel="Delete purchase request" pendingLabel="Deleting..." /> : <BlockedDestructiveAction buttonLabel="Delete purchase request" title={`Cannot delete ${request.request_no}`} description="Permanent deletion is blocked by the current status or linked records." recommendation={deletePreview ? Object.entries(deletePreview.dependencies).filter(([, count]) => count > 0).map(([key, count]) => `${key}: ${count}`).join("; ") : "Dependency preview unavailable."} />) : null;
+  const editableItems = Boolean(canEditRequest && items && suppliers && supplierMappings && branches);
+  const ItemsContainer = editableItems ? "div" : Card;
+  const ItemsContent = editableItems ? "div" : CardContent;
   const saveDraftAction = canEditRequest ? <SubmitButton form="purchase-request-form" type="submit" pendingLabel="Saving..." className="w-full justify-center">Save request changes</SubmitButton> : null;
   const withdrawControl = canRequesterWithdraw || canOwnerRecoverWithdraw ? <MobileTaskSheet label={canRequesterWithdraw ? "Revoke submission" : "Owner recovery: revoke submission"}><form action={withdrawPurchaseRequest.bind(null, request.id)} className="space-y-3"><p className="text-xs text-muted-foreground">Available only before Manager makes a decision. The request returns to Draft so it can be corrected or cancelled.</p><Field label="Revoke reason" required><Input name="reason" placeholder="Example: Submitted twice" required minLength={3} maxLength={500} /></Field><SubmitButton className="w-full justify-center" pendingLabel="Revoking..."><RotateCcw className="h-4 w-4" aria-hidden="true" />Revoke to Draft</SubmitButton></form></MobileTaskSheet> : null;
   const requestControls = saveDraftAction || canRequesterWithdraw || canCancel ? <div className="space-y-2">
@@ -236,7 +239,7 @@ export default async function PurchaseRequestDetailPage({
     </div>
   ) : null;
   const mobilePrimaryAction = canSubmit
-    ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..."><Send className="h-4 w-4" aria-hidden="true" />Submit PR</DocumentActionForm>
+    ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..."><Send className="h-4 w-4" aria-hidden="true" />Submit</DocumentActionForm>
     : canManagerReview
       ? blockingLineIssues.length ? <Button asChild><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <ConfirmActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} label={<><CircleCheck className="h-4 w-4" aria-hidden="true" />Approve as Manager</>} title="Approve this PR as Manager?" description="This moves the request to Purchasing Review." pendingLabel="Approving..." mobilePrimary />
       : canAdminReview
@@ -267,7 +270,7 @@ export default async function PurchaseRequestDetailPage({
         <>
           {hasPrimaryAction || canReject || administrativeControls ? <DocumentActionSection moreOptions={administrativeControls}>
             <DocumentActionBar>
-              {canSubmit ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..." mobilePrimary><Send className="h-4 w-4" aria-hidden="true" />Submit to Manager Review</DocumentActionForm> : null}
+              {canSubmit ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..." mobilePrimary><Send className="h-4 w-4" aria-hidden="true" />Submit</DocumentActionForm> : null}
               {canManagerReview ? blockingLineIssues.length ? <Button asChild className="w-full"><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <ConfirmActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} label={<><CircleCheck className="h-4 w-4" aria-hidden="true" />Approve as Manager</>} title="Approve this PR as Manager?" description="This moves the request to Purchasing Review." pendingLabel="Approving..." mobilePrimary /> : null}
               {canAdminReview ? blockingLineIssues.length ? <Button asChild className="w-full"><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <form action={adminApprovePurchaseRequest.bind(null, request.id)} className="space-y-3"><Field label="AutoCount PO Number" required><Input name="autocount_po_no" placeholder="Enter the number from AutoCount" required /></Field><p className="text-[11px] leading-4 text-muted-foreground">Required before Finance Review.</p><SubmitButton className="w-full justify-center" pendingLabel="Approving..."><ShoppingCart className="h-4 w-4" aria-hidden="true" />Send to Finance Review</SubmitButton></form> : null}
               {canFinanceReview ? <ConfirmActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} label={<><BadgeCheck className="h-4 w-4" aria-hidden="true" />Approve as Finance</>} title="Approve and create the PO?" description={`Finance approval will create ${request.autocount_po_no ?? "the saved AutoCount PO"} and make it ready to send.`} pendingLabel="Approving..." mobilePrimary /> : null}
@@ -328,10 +331,10 @@ export default async function PurchaseRequestDetailPage({
         <div className="flex items-start gap-3"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--sb-warning)]" /><div><h2 className="text-sm font-semibold">{blockingLineIssues.length} item{blockingLineIssues.length === 1 ? " needs" : "s need"} attention before this review can continue</h2><p className="mt-1 text-xs text-muted-foreground">{recoveryAvailable ? `The PR remains saved in ${getPrWorkflowLabel(request.status)}. Open the warning icon on an affected row to use a mapped supplier, change UOM, select another supplier, replace the item, or remove that line. Other lines remain available.` : "The PR remains saved and readable. Guided repair setup is unavailable in this environment; ask an Owner to apply migration 170, then Retry this page. No line will be changed until setup is available."}</p></div></div>
       </section> : null}
 
-      <Card className="document-surface shadow-none">
+      <Card className="document-surface shadow-none mb-3">
             <CardContent className="space-y-3 p-4">
               <h2 className="text-[14px] font-semibold">Request Summary</h2>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
+              <div className="sb-label-value-summary grid gap-x-6 gap-y-4 xl:grid-cols-3">
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Request Date</p><p className="text-sm font-medium text-[var(--sb-text)]">{formatDateTime(request.created_at)}</p></div>
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Location</p><p className="text-sm font-medium text-[var(--sb-text)]">{branch?.branch_name ?? (branches ? "Unassigned" : "Unavailable")}</p></div>
                 <div><p className="text-[11px] uppercase tracking-wide text-muted-foreground">Submitted By</p><p className="text-sm font-medium text-[var(--sb-text)]">{request.requested_by_name ?? "—"}</p></div>
@@ -347,9 +350,9 @@ export default async function PurchaseRequestDetailPage({
             </CardContent>
           </Card>
 
-          <Card className="document-surface shadow-none">
-            <CardContent className="p-4">
-              <div className="mb-2 flex items-center justify-between">
+          <ItemsContainer className={editableItems ? "min-w-0" : "document-surface shadow-none"}>
+            <ItemsContent className={editableItems ? "min-w-0" : "p-4"}>
+              <div className={canEditRequest && items && suppliers && supplierMappings && branches ? "hidden" : "mb-2 flex items-center justify-between"}>
                 <div className="flex min-w-0 items-baseline gap-2"><h2 className="text-[14px] font-semibold">Requested Items</h2><span className="text-xs text-muted-foreground">{requestedItemCount} {requestedItemCount === 1 ? "item" : "items"}</span></div>
                 {canViewCommercial ? <p className="text-xs font-semibold">{formatCurrency(total)}</p> : null}
               </div>
@@ -459,8 +462,8 @@ export default async function PurchaseRequestDetailPage({
                   {canRepairReviewLines && canonicalSupplierId && items && suppliers && supplierMappings ? <div className="mt-3"><AddPurchaseRequestLineDialog action={addPurchaseRequestLineDuringReview.bind(null, request.id)} items={addLineItems} suppliers={addLineSuppliers} canViewCommercial={canViewCommercial} /></div> : null}
                 </>
               )}
-            </CardContent>
-          </Card>
+            </ItemsContent>
+          </ItemsContainer>
 
           {procurementChain ? <ProcurementChain nodes={procurementChain.nodes} /> : <Card className="document-surface shadow-none"><CardContent className="p-3 text-[12px] text-muted-foreground">Purchase chain unavailable. Retry this page to load linked PO, GRN, and invoice documents.</CardContent></Card>}
 

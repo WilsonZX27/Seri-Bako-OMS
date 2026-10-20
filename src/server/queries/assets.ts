@@ -7,18 +7,18 @@ import { requirePermission } from "@/server/auth/permissions";
 import { createClient } from "@/lib/supabase/server";
 import { looseSupabase } from "@/lib/supabase/loose";
 
-export type AssetLocation = { id: string; source_name: string; branch_id: string | null; kind: "branch" | "event" };
+export type AssetLocation = { id: string; source_name: string; branch_id: string | null; kind: "branch" | "event" | "other" };
 export type Asset = { id: string; asset_code: string; item_name: string; source_data: Record<string, unknown>; current_details: Record<string, unknown>; updated_at: string; original_record_access?: boolean };
 export type AssetSummary = Pick<Asset, "id" | "asset_code" | "item_name"> & { current_details?: Record<string, unknown>; audits?: {location_id:string;result:string|null;date:string|null}[] };
-export type AssetAttachment = { id: string; asset_id: string; maintenance_id: string | null; location_id: string | null; created_at: string; url: string; storage_path: string | null; verified_at: string | null; source_data: Record<string, unknown> };
+export type AssetAttachment = { id: string; asset_id: string | null; maintenance_id: string | null; location_id: string | null; created_at: string; url: string; storage_path: string | null; verified_at: string | null; source_data: Record<string, unknown> };
 function exactAssetCount(value: unknown): number {
   if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0) throw new Error("Asset result count unavailable.");
   return value;
 }
 const attachmentColumns = "id,asset_id,maintenance_id,location_id,created_at,url,storage_path,verified_at,source_data";
 export type AssetHolding = { asset_id: string; location_id: string; quantity: number | null; condition?:string|null; status?:string|null; latest_check_result?:string|null };
-export type AssetOverview = { assetCount: number; knownQuantity: number; unknownHoldings: number; attentionAssets: number; openMaintenance: number; inTransitQuantity: number; locations: { id: string; name: string; assetCount: number; quantity: number | null }[]; checkDate: string; checklist: { id: string; name: string; kind: "branch" | "event"; open: boolean; reason: string | null; expected: number; checked: number }[]; maintenanceTrend: { date: string; count: number }[]; issueTrend: { date: string; count: number | null; checked: number }[]; maintenanceByStatus: { status: string; count: number }[] };
-export type AssetRecord = { id: string; asset_id: string; location_id?: string; from_location_id?: string; to_location_id?: string; source_id?: string; status?: string; priority?: string; description?: string; reason?: string; quantity?: number | null; author_name?: string; created_at?: string; check_date?: string; result?: string; source_data: Record<string, unknown> };
+export type AssetOverview = { assetCount: number; knownQuantity: number; unknownHoldings: number; attentionAssets: number; openMaintenance: number; inTransitQuantity: number; locations: { id: string; name: string; assetCount: number; quantity: number | null }[]; checkDate: string; checklist: { id: string; name: string; kind: "branch" | "event" | "other"; open: boolean; reason: string | null; expected: number; checked: number; submitted?: boolean }[]; maintenanceTrend: { date: string; count: number }[]; issueTrend: { date: string; count: number | null; checked: number }[]; maintenanceByStatus: { status: string; count: number }[] };
+export type AssetRecord = { id: string; asset_id: string | null; reported_by?: string; location_id?: string; from_location_id?: string; to_location_id?: string; source_id?: string; status?: string; priority?: string; description?: string; reason?: string; quantity?: number | null; author_name?: string; created_at?: string; check_date?: string; result?: string; source_data: Record<string, unknown> };
 export type AssetView = "overview" | "assets" | "checklist" | "maintenance" | "transfers";
 
 export const getAssetRegistration = cache(async () => {
@@ -34,7 +34,8 @@ export const getAssetRegistration = cache(async () => {
 
 export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query = "", date = "", status = "", locationId = "", sort = "code", category = "") => {
   const actor = await requireActiveTenantActor();
-  if ((view === "overview" || view === "maintenance") && !canAccessAssetManagement(actor.roleCode)) throw new Error("Asset management role required.");
+  if ((view === "overview") && !canAccessAssetManagement(actor.roleCode)) throw new Error("Asset management role required.");
+  if (view === "maintenance" && !canAccessAssetManagement(actor.roleCode)) await requirePermission("assets.report");
   await requirePermission("assets.view");
   const db = looseSupabase(await createClient());
   const company = actor.companyId;
@@ -54,6 +55,14 @@ export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query =
     const result = await db.rpc(view === "checklist" ? "get_asset_checklist_summary" : "get_asset_overview", { p_date: checkDate });
     if (result.error || !result.data) throw new Error(result.error?.message ?? "Asset summary unavailable.");
     overview = result.data as AssetOverview;
+    const submitted = new Set<string>();
+    for (let offset = 0; ; offset += 500) {
+      const checks = await db.from("asset_daily_checks").select("id,location_id").eq("company_id", company).eq("check_date", checkDate).not("source_data", "cs", '{"Count Confirmation":true}').order("id").range(offset, offset + 499);
+      if (checks.error || !checks.data) throw new Error("Checklist submission status unavailable.");
+      for (const check of checks.data) submitted.add(String(check.location_id));
+      if (checks.data.length < 500) break;
+    }
+    overview.checklist = overview.checklist.map(location => ({ ...location, submitted: submitted.has(location.id) }));
   }
   if (view === "assets") {
     const result=await db.rpc("get_asset_register",{p_page:page,p_query:query,p_location:locationId || null,p_sort:sort,p_status:status,p_category:category});
@@ -69,7 +78,7 @@ export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query =
       records.push(...(result.data as AssetRecord[]).filter(row=>!["closed","resolved","cancelled"].includes((row.status ?? "").toLowerCase())));
       if(result.data.length<500) break;
     }
-    const ids=[...new Set(records.map(row=>row.asset_id))];
+    const ids=[...new Set(records.flatMap(row=>row.asset_id ? [row.asset_id] : []))];
     for(let offset=0;offset<ids.length;offset+=100) {
       const result=await db.from("assets").select("id,asset_code,item_name,current_details").eq("company_id",company).in("id",ids.slice(offset,offset+100));
       if(result.error || result.data === null) throw new Error(result.error?.message ?? "Maintenance assets unavailable.");
@@ -91,7 +100,7 @@ export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query =
     const result = await request.order(view === "checklist" ? "check_date" : view === "maintenance" ? "source_data->>Created Date" : "created_at", { ascending: false }).order("id", { ascending: false }).range((page - 1) * 50, page * 50 - 1);
     if (result.error || result.data === null) throw new Error(result.error?.message ?? "Asset records unavailable.");
     records = result.data as AssetRecord[]; total = exactAssetCount(result.count);
-    const ids = [...new Set(records.map(r => r.asset_id))];
+    const ids = [...new Set(records.flatMap(r => r.asset_id ? [r.asset_id] : []))];
     if (ids.length) {
       const result = await db.from("assets").select("id,asset_code,item_name,current_details").eq("company_id", company).in("id", ids);
       if (result.error || result.data === null) throw new Error(result.error?.message ?? "Related assets unavailable.");
@@ -175,7 +184,7 @@ export async function getAssetLocation(id: string, page: number) {
 export async function getAssetMaintenanceDetail(id: string, page: number) {
   if (!Number.isSafeInteger(page) || page < 1 || page > 1_000_000) throw new Error("Choose a valid asset history page.");
   const actor = await requireActiveTenantActor();
-  if (!canAccessAssetManagement(actor.roleCode)) throw new Error("Asset management role required.");
+  if (!canAccessAssetManagement(actor.roleCode)) await requirePermission("assets.report");
   await requirePermission("assets.view");
   const db = looseSupabase(await createClient());
   const [request, history, attachments] = await Promise.all([
@@ -186,7 +195,9 @@ export async function getAssetMaintenanceDetail(id: string, page: number) {
   if (request.error || history.error || attachments.error) throw new Error(request.error?.message ?? history.error?.message ?? attachments.error?.message);
   if (!request.data) return null;
   if (history.data === null || attachments.data === null || typeof attachments.count !== "number") throw new Error("Maintenance history or attachments unavailable.");
-  return { request: request.data as AssetRecord, history: history.data as { id: string; source_id: string; author_name: string; source_data: Record<string, unknown>; created_at: string }[], total: exactAssetCount(history.count), attachments: attachments.data as AssetAttachment[], attachmentTotal: exactAssetCount(attachments.count) };
+  const location = await db.from("asset_locations").select("id,source_name,branch_id,kind").eq("company_id",actor.companyId).eq("id",request.data.location_id).maybeSingle();
+  if (location.error) throw new Error(location.error.message);
+  return { location: location.data as AssetLocation | null, request: request.data as AssetRecord, history: history.data as { id: string; source_id: string; author_name: string; source_data: Record<string, unknown>; created_at: string }[], total: exactAssetCount(history.count), attachments: attachments.data as AssetAttachment[], attachmentTotal: exactAssetCount(attachments.count) };
 }
 
 export async function getAssetMasterHistory(id: string, page: number) {
@@ -205,7 +216,7 @@ export async function getAssetMasterHistory(id: string, page: number) {
 export async function getAssetAttachmentRegister(kind: "asset" | "maintenance", id: string, page: number) {
   if (!Number.isSafeInteger(page) || page < 1 || page > 1_000_000) throw new Error("Choose a valid attachment page.");
   const actor = await requireActiveTenantActor(); await requirePermission("assets.view");
-  if (kind === "maintenance" && !canAccessAssetManagement(actor.roleCode)) throw new Error("Asset management role required.");
+  if (kind === "maintenance" && !canAccessAssetManagement(actor.roleCode)) await requirePermission("assets.report");
   const db = looseSupabase(await createClient());
   const parent = await db.from(kind === "asset" ? "assets" : "asset_maintenance")
     .select(kind === "asset" ? "id,asset_code,item_name,current_details" : "id,source_id,asset_id")
@@ -237,4 +248,87 @@ export async function getAssetTransferDetail(id: string, page: number) {
   if (asset.error || locations.error || history.error) throw new Error(asset.error?.message ?? locations.error?.message ?? history.error?.message);
   if (!asset.data || locations.data === null || history.data === null || typeof history.count !== "number") throw new Error("Transfer details unavailable.");
   return { transfer: row, asset: asset.data as AssetSummary, locations: locations.data as AssetLocation[], history: history.data as { id: string; author_name: string; created_at: string; source_data: Record<string, unknown> }[], total: history.count };
+}
+
+/** Location-scoped choices for reporting; ordinary staff never receive company-wide assets. */
+export async function getMaintenanceReportOptions() {
+  const actor = await requireActiveTenantActor();
+  await requirePermission("assets.view");
+  const db = looseSupabase(await createClient());
+  const locations = await db.from("asset_locations").select("id,source_name,branch_id,kind").eq("company_id",actor.companyId).order("source_name");
+  if (locations.error || !locations.data) throw new Error("Locations unavailable. Try again.");
+  const choices: {id:string;locationId:string;label:string}[]=[];
+  for (let offset=0; ; offset+=500) {
+    const result=await db.from("asset_holdings").select("asset_id,location_id,quantity,assets!inner(id,asset_code,item_name)").eq("company_id",actor.companyId).order("id").range(offset,offset+499);
+    if(result.error || !result.data) throw new Error("Assets unavailable. Try again.");
+    for(const row of result.data) {
+      const asset=Array.isArray(row.assets) ? row.assets[0] : row.assets;
+      if(asset && (row.quantity===null || Number(row.quantity)>0)) choices.push({id:String(row.asset_id),locationId:String(row.location_id),label:`${asset.item_name} · ${asset.asset_code}`});
+    }
+    if(result.data.length<500) break;
+    if(offset>=9500) throw new Error("Too many asset choices. Contact your manager.");
+  }
+  return {locations:locations.data as AssetLocation[],choices};
+}
+
+/** Existing daily checks are immutable; quantity confirmations are a separate workflow. */
+export async function hasAssetChecklistSubmission(locationId: string, date: string) {
+  const actor = await requireActiveTenantActor();
+  const db = looseSupabase(await createClient());
+  const result = await db.from("asset_daily_checks").select("id").eq("company_id", actor.companyId).eq("location_id", locationId).eq("check_date", date).not("source_data", "cs", '{"Count Confirmation":true}').limit(1);
+  if (result.error) throw new Error("Checklist submission status unavailable.");
+  return Boolean(result.data?.length);
+}
+
+/** Reuse only values visible to the authenticated tenant actor; no elevated client. */
+export const getAssetMasterOptions = cache(async () => {
+  const actor = await requireActiveTenantActor();
+  await requirePermission("assets.manage");
+  const db = looseSupabase(await createClient());
+  const choices: Record<string, Set<string>> = { "Department / Area": new Set(), Category: new Set() };
+  const collect = (raw: unknown) => {
+    const details = raw && typeof raw === "object" ? raw as Record<string, unknown> : {};
+    for (const key of Object.keys(choices)) {
+      const value = details?.[key];
+      if (typeof value === "string" && value.trim()) choices[key].add(value.trim());
+    }
+  };
+  for (let offset = 0;; offset += 500) {
+    const rows = await db.from("assets").select("id,current_details").eq("company_id", actor.companyId).order("id").range(offset, offset + 499);
+    if (rows.error || !rows.data) throw new Error(rows.error?.message ?? "Asset choices unavailable.");
+    const source = rows.data.length ? await db.rpc("get_asset_register_source_fields", { p_assets: rows.data.map(row => String(row.id)) }) : { data: [], error: null };
+    if (source.error || !source.data) throw new Error(source.error?.message ?? "Asset source choices unavailable.");
+    for (const row of source.data as {details: unknown}[]) collect(row.details);
+    for (const row of rows.data) collect(row.current_details);
+    if (rows.data.length < 500) break;
+  }
+  for (let offset = 0;; offset += 500) {
+    const history = await db.from("asset_master_updates").select("id,source_data").eq("company_id", actor.companyId).order("id").range(offset, offset + 499);
+    if (history.error || !history.data) throw new Error(history.error?.message ?? "Asset history choices unavailable.");
+    for (const row of history.data) for (const key of ["Details", "Details Before", "Details After"]) collect((row.source_data as Record<string, unknown> | null)?.[key]);
+    if (history.data.length < 500) break;
+  }
+  const people: {id: string; full_name: string; staff_code: string | null}[] = [];
+  for (let offset = 0;; offset += 500) {
+    const result = await db.from("staffs").select("id,full_name,staff_code").eq("company_id", actor.companyId).eq("status", "active").is("deleted_at", null).not("auth_user_id", "is", null).order("id").range(offset, offset + 499);
+    if (result.error || !result.data) throw new Error(result.error?.message ?? "OMS users unavailable.");
+    people.push(...result.data as typeof people);
+    if (result.data.length < 500) break;
+  }
+  return { fields: Object.fromEntries(Object.entries(choices).map(([key, values]) => [key, [...values].sort()])), people };
+});
+
+/** Read the immutable submitted checklist under the same tenant and RLS scope. */
+export async function getAssetChecklistRecords(locationId: string, date: string) {
+  const actor = await requireActiveTenantActor();
+  await requirePermission("assets.view");
+  const db = looseSupabase(await createClient());
+  const records: { id: string; asset_id: string; result: string; quantity: number | null; author_name: string; created_at: string }[] = [];
+  for (let offset = 0; ; offset += 500) {
+    const result = await db.from("asset_daily_checks").select("id,asset_id,result,quantity,author_name,created_at").eq("company_id", actor.companyId).eq("location_id", locationId).eq("check_date", date).not("source_data", "cs", '{"Count Confirmation":true}').order("created_at").order("id").range(offset, offset + 499);
+    if (result.error || !result.data) throw new Error("Checklist records unavailable.");
+    records.push(...result.data as typeof records);
+    if (result.data.length < 500) break;
+  }
+  return records;
 }

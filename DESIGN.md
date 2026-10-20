@@ -1,12 +1,26 @@
-# v9.2.106 (unreleased)
+> Local candidate — 2026-10-18: desktop query filters use 120px at the existing 1280px desktop breakpoint; search is a named icon action and the query field absorbs remaining space. Phone/tablet touch sizes remain unchanged. Shared card/profile/form headers separate titles from fields with a soft rule. Employment and access editing stays in the People profile. Pending release; see final-audit/FEEDBACK-16-AUDIT.txt in the task workspace.
 
-Reviewed operations UI and reliable draft submission candidate. Production remains v9.2.105. Migration 343 is validated only in the isolated test database; production application requires separate authorization. No post-release permission expansion is included.
+# v9.2.107 (unreleased)
+
+Asset inspection uses compact identity rows with explicit result choices on expansion. General repair is a separate form above the checklist. Maintenance queues share one rendering; the desktop workspace uses a 4:6 split with the queue aligned to the detail stack. Shared workspace navigation and closed surface disclosures are 44px overall. Desktop inputs retain the existing 36px control rhythm; phone inputs retain 44px touch sizing. Two-action confirmation footers use equal columns. Saved maintenance state survives history refresh and prevents repeated submissions. No database, permissions or workflow transitions change.
+
+> Production release — 2026-10-16: v9.2.106 is deployed. Migrations reviewed through `360`; forward-only migration 历史已到 `360`. Migrations 325 and 357–360 are applied. Effective migrations 339–344 were verified against 15 exact latest function bodies, current constraints and access policies, then their missing history records were reconciled without replaying old DDL. Asset/attendance/roster data did not change during this release. Earlier local-candidate notes below are historical snapshots, superseded by this release status.
+
+> Schedule import verification — 2026-10-16: migrations reviewed through `360`; forward-only migration 历史已到 `360`. Production migrations 358/359/360 are applied; the existing head-chef fingerprint exception is dated and audited. Migration 360 aligns explicit support destinations with the roster editor’s company eligibility, without changing permanent branch access. Colour alone cannot link an OT remark to an employee. Migration 357 is now applied; see the current production release status above.
+
+> Local schedule reconciliation candidate — 2026-10-16: migrations reviewed through `359`; forward-only migration 历史已到 `359`. Migration 358 adds atomic, version-checked draft reconciliation and reusable source rules; 359 adds dated Owner-confirmed staff fingerprint exceptions without inferred hours. Synthetic verification only; not applied to Production.
+
+> Local feedback patch — 2026-10-16: migrations reviewed through `357`; forward-only migration 历史已到 `357`. Migration 357 adds owner-managed non-operating asset destinations, with existing tenant/location access unchanged. Verified with ten synthetic transfer lifecycles only; not applied to Production. UI repair and portrait production export are not yet deployed.
+
+# v9.2.106 (deployed)
+
+Operations UI and reliable draft submission are deployed as v9.2.106. Current production migration history is reconciled through 360. Existing tenant, location and workflow permissions remain enforced.
 
 ## v9.2.105 (deployed) — systemic hardening
 
 Current design authority: desktop controls are 36px at widths >=1024px; phone and portrait-tablet controls below1024px retain at least44px touch targets. Preserve OMS semantic colours, radii and elevation. The shared query owner supplies embedded search with300ms debounce and Enter; mutation forms never auto-submit. Sheet backdrop100/sheet101 cover navigation50; native dialogs retain the browser top layer. The right console remains >=1280px, so it never appears on1024–1194px tablets. Mobile creation stays80px above the bottom edge.
 
-All versioned notes below are historical evidence unless explicitly identified as current. Earlier40/44px desktop geometry must not override this contract. Audit receipt: outputs/systemic-audit-104/AUDIT-RECEIPT.md. The currently released application is `v9.2.105`; the current released application baseline is `v9.2.105`. A versioned section above that number is an unreleased implementation note, pending verification and publication.
+All versioned notes below are historical evidence unless explicitly identified as current. Earlier40/44px desktop geometry must not override this contract. Audit receipt: outputs/systemic-audit-104/AUDIT-RECEIPT.md. The currently released application is `v9.2.106`; the current released application baseline is `v9.2.106`. A versioned section above that number is an unreleased implementation note, pending verification and publication.
 
 ## Annotation correction — 2026-10-10, unreleased
 
@@ -3086,3 +3100,14 @@ Use a single date-range entry for interval-based Insights, keeping single operat
 Asset attachments use a short latest-five preview in operational details and a separate full-record view when needed. The full register reuses the shared attachment disclosure list, PageHeader and workspace layout; exact result count and Previous/Next navigation sit beside the actual records rather than repeated instructions. Long filenames wrap within the list, and pagination links retain 44px touch height.
 
 Transfer details use one operational summary followed by concise action history. Show source, destination and quantity together; restricted location names stay restricted. In-transit quantity explains the next receipt task once, adjacent to the action. Notes are optional and inline; complete raw updates remain collapsed. Match visible actions to source/destination access, retain touch-sized controls, and reset successful forms against the current status/history identity. Transfer list identity opens that transfer directly.
+
+## Shared mobile refinement — 2026-10-17 (local candidate)
+
+- Shared filters use an icon-only 44px touch target with no visible frame on phone, an accessible Filter name and an active-count badge. Short visible search prompts retain full accessible labels.
+- Mobile modal sheets render outside page stacking contexts. Their content and final action must pass hit-testing above bottom navigation after animations finish. Legacy anchored filters suppress underlying fixed navigation while open, preserving form ownership.
+- Mobile console sections use one 12px gap, without additive margins. Pagination avoids duplicating page totals in a second row.
+- Shared Field infers the required marker from a single required child, while explicit required remains supported. New/edit mobile titles retain task context.
+- My Profile and Logout share a row; Logout uses the danger colour. Installation promotion is absent from navigation.
+- Inspection results retain both labels/icons and semantic colours: Checked green, Damaged/Missing pale red, Needs Maintenance pale yellow. Selection has an additional outline; colour alone is not the state indicator.
+- Maintenance author, history and attachments stay visible as distinct sections. Upload is a visible muted card; essential context is not hidden in nested disclosures.
+- Dense tables retain an internal horizontal scrolling affordance. These are shared component rules, not route-specific stylesheet patches.

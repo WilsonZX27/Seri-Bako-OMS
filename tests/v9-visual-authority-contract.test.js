@@ -24,9 +24,9 @@ test("v9 typography uses fixed steps and medium-weight identity headings", () =>
   assert.match(globals, /--sb-text-display:\s*1\.5rem/);
   assert.match(globals, /--sb-text-identity:\s*1\.25rem/);
   assert.doesNotMatch(globals, /--sb-text-(?:display|identity):\s*clamp\(/);
-  assert.match(design, /\[data-page-header\] h1\s*\{[\s\S]*?font-weight:\s*500/);
+  assert.match(design, /\[data-page-header\] h1,\s*\.sb-page-title\s*\{[^}]*font-weight:\s*600/);
   assert.match(design, /\[data-dashboard-user-name\]\s*\{[\s\S]*?font-weight:\s*500/);
-  assert.match(design, /\[data-dashboard-panel\][\s\S]*?font-weight:\s*500/);
+  assert.match(design, /\[data-dashboard-panel\] > :first-child :where\(h2, h3\)\s*\{[^}]*font-weight:\s*600/);
 });
 
 test("v9 motion stays purposeful and respects reduced-motion preferences", () => {

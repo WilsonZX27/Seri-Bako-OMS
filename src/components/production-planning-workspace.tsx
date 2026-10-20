@@ -30,7 +30,7 @@ import { formatDateOnly, formatNumber } from "@/lib/utils";
 
 export function PlanningDialog({ title, onClose, children, compact = false }: {title:string;onClose:()=>void;children:ReactNode;compact?:boolean}) {
   const titleId=useId();
-  return <ModalShell open onClose={onClose} titleId={titleId} className={compact?"max-w-md":"max-w-5xl"}><div className="mb-4 flex items-center justify-between gap-3"><h2 id={titleId} className="text-base font-semibold">{title}</h2><Button variant="outline" onClick={onClose} aria-label="Close dialog">Close</Button></div>{children}</ModalShell>;
+  return <ModalShell open onClose={onClose} titleId={titleId} className={compact?"max-w-md":"max-w-5xl"}><div className="mb-4 flex items-center justify-between gap-3"><h2 id={titleId} className="min-w-0 flex-1 break-words text-base font-semibold">{title}</h2></div>{children}</ModalShell>;
 }
 type Props={ view?:"plan"|"settings"|"events"; companyId:string; selectedPlanId?:string; date:string; kitchenId:string; kitchens:PlanningBranch[]; outlets:PlanningBranch[]; products:PlanningProduct[]; plans:Plan[]; orders:DeliveryOrder[]; config:PlanningConfig; batches:Record<string,unknown>[]; minimums:Record<string,unknown>[]; events?:PlanningEvent[]; canManage:boolean };
 export function ProductionPlanningWorkspace(props:Props) {

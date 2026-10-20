@@ -69,7 +69,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
   const mobilePrimaryAction = order.status === "approved" && permissions["po.send"]
         ? <MobileTaskSheet label="Send to Supplier"><div className="space-y-3">{documentBundle ? <AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} title="Supporting Attachments" uploadLabel="Upload" canManage={permissions["documents.attach"]} documentStatus={documentBundle.document.status} /> : null}<DocumentActionForm action={sendPurchaseOrder.bind(null, order.id)} pendingLabel="Sending...">Send to Supplier</DocumentActionForm></div></MobileTaskSheet>
         : ["sent", "partial_received"].includes(order.status) && permissions["po.receive"]
-          ? receivingAction("Record Receiving & Attach DO")
+          ? receivingAction("Receive goods")
           : null;
 
   return (
@@ -107,7 +107,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
           <Card>
             <CardContent className="space-y-4 p-5">
               <h2 className="text-sm font-semibold">Order Summary</h2>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-4">
+              <div className="sb-label-value-summary grid grid-cols-2 gap-x-4 gap-y-3 md:grid-cols-4">
                 <div><p className="text-xs uppercase text-muted-foreground">AutoCount PO Number</p><p className="font-medium">{order.po_no}</p></div>
                 <div className="col-span-2 md:col-span-1"><p className="text-xs uppercase text-muted-foreground">Supplier</p><p className="font-medium">{supplier?.name ?? order.supplier_id}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{branch?.branch_name ?? "-"}</p></div>
@@ -149,7 +149,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
                       const pending = line.qty_ordered - line.qty_received - line.qty_cancelled;
                       return (
                         <TableRow key={line.id}>
-                          <TableCell><p className="font-medium">{item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground">{item?.item_code}</p></TableCell>
+                          <TableCell><p className="font-medium">{item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground sb-item-code" title={item?.item_code ?? undefined}>{item?.item_code}</p></TableCell>
                           <TableCell className="text-right">{formatNumber(line.qty_ordered)}</TableCell>
                           <TableCell className="text-right">{formatNumber(line.qty_received)}</TableCell>
                           <TableCell className="text-right">{formatNumber(line.qty_cancelled)}</TableCell>
@@ -167,7 +167,19 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
                 {lines.map((line) => {
                   const item = itemById.get(line.item_id);
                   const pending = line.qty_ordered - line.qty_received - line.qty_cancelled;
-                  return <div key={line.id} role="listitem" className="min-w-0 py-3 text-[13px]"><div className="flex min-w-0 items-start justify-between gap-3"><div className="min-w-0"><p className="break-words font-semibold">{item?.item_name ?? line.item_id}</p><p className="text-[12px] text-muted-foreground">{item?.item_code ?? "No item code"}</p></div><p className="shrink-0 font-semibold">{formatNumber(line.qty_ordered)} {line.uom}</p></div><div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[12px] text-muted-foreground"><span>Received {formatNumber(line.qty_received)}</span><span>Pending {formatNumber(pending)}</span><span>{formatCurrency(line.unit_price)} / {line.uom}</span></div>{line.remarks ? <p className="mt-1 text-[12px] text-muted-foreground">Comment · {line.remarks}</p> : null}</div>;
+                  return <div key={line.id} role="listitem" className="min-w-0 py-3 text-sm">
+                    <div className="flex min-w-0 items-start justify-between gap-4">
+                      <div className="min-w-0"><p className="break-words font-semibold">{item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground">{item?.item_code ?? "No item code"}</p></div>
+                      <div className="shrink-0 text-right"><p className="text-xs text-muted-foreground">Ordered</p><p className="font-semibold">{formatNumber(line.qty_ordered)} {line.uom}</p></div>
+                    </div>
+                    <div className="my-3 grid grid-cols-3 gap-3 border-y border-[var(--sb-border-soft)] py-3">
+                      <div><p className="text-xs text-muted-foreground">Received</p><p className="mt-1 tabular-nums">{formatNumber(line.qty_received)}</p></div>
+                      <div><p className="text-xs text-muted-foreground">Cancelled</p><p className="mt-1 tabular-nums">{formatNumber(line.qty_cancelled)}</p></div>
+                      <div><p className="text-xs text-muted-foreground">Pending</p><p className="mt-1 tabular-nums">{formatNumber(pending)}</p></div>
+                    </div>
+                    <div className="flex flex-wrap items-baseline justify-between gap-2"><p className="text-xs text-muted-foreground">{formatCurrency(line.unit_price)} / {line.uom}</p><p className="text-xs font-medium">Line total {formatCurrency(line.qty_ordered * line.unit_price)}</p></div>
+                    {line.remarks ? <p className="mt-3 text-xs text-muted-foreground">Comment · {line.remarks}</p> : null}
+                  </div>;
                 })}
               </div>
             </CardContent>

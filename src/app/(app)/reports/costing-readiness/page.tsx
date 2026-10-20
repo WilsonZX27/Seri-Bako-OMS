@@ -50,7 +50,7 @@ export default async function CostingReadinessPage({ searchParams }: { searchPar
 
   return <>
     <PageHeader title="Costing Readiness" description="Read-only checks for the data needed before trusting future recipe or product costing." />
-    <WorkspaceGrid hideMobileConsole rightRail={rightRail} tabletRailMode="split" tabletRailBreakpoint="md">
+    <WorkspaceGrid mobileRailSummary="How to read this report" hideMobileConsole rightRail={rightRail} tabletRailMode="split" tabletRailBreakpoint="md">
       {!report ? (
         <Card>
           <CardContent className="p-5">

@@ -5,9 +5,9 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import Link from "next/link";
 
-export default function ErrorState({ reset }: { reset: () => void }) {
+export default function ErrorState() {
   return <>
     <PageHeader title="Cash Flow Forecast" description="Upcoming supplier payables could not be loaded." />
-    <div className="border bg-card p-4 text-center"><EmptyState title="Cash Flow Forecast is unavailable" description="This report is temporarily unavailable. Please retry or contact the Super Admin / Owner." /><div className="flex flex-wrap justify-center gap-2"><Button type="button" onClick={reset} size="sm" className="min-h-11 xl:min-h-9">Retry</Button><Button asChild variant="outline" size="sm" className="min-h-11 xl:min-h-9"><Link href="/reports">Back to reports</Link></Button></div></div>
+    <div className="border bg-card p-4 text-center"><EmptyState title="Cash Flow Forecast is unavailable" description="This report is temporarily unavailable. Please retry or contact the Super Admin / Owner." /><div className="flex flex-wrap justify-center gap-2"><Button type="button" onClick={() => window.location.reload()} size="sm" className="min-h-11 xl:min-h-9">Retry</Button><Button asChild variant="outline" size="sm" className="min-h-11 xl:min-h-9"><Link href="/reports">Back to reports</Link></Button></div></div>
   </>;
 }

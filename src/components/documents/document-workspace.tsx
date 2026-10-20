@@ -1,5 +1,6 @@
+import { MobileActionReserve } from "./mobile-action-reserve";
 import type { ReactNode } from "react";
-import { MapPin } from "lucide-react";
+import { Info, MapPin } from "lucide-react";
 import { DocumentNumber } from "@/components/document-number";
 import { PriorityBadge } from "@/components/priority-badge";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -28,6 +29,7 @@ export function DocumentWorkspace({
   children,
   sidePanel,
   mobilePrimaryAction,
+  mobileActionHint,
   mobileActivity,
   mobileMoreOptions,
   mobileWorkflowTrailing,
@@ -51,6 +53,7 @@ export function DocumentWorkspace({
   children: ReactNode;
   sidePanel: ReactNode;
   mobilePrimaryAction?: ReactNode;
+  mobileActionHint?: ReactNode;
   mobileActivity?: ReactNode;
   mobileMoreOptions?: ReactNode;
   mobileWorkflowTrailing?: ReactNode;
@@ -65,6 +68,7 @@ export function DocumentWorkspace({
   const isNewDocument = documentNo.toLowerCase().startsWith("new ");
   const resolvedWorkflowSteps = workflowSteps ?? [];
   const resolvedCurrentStatus = currentStatus ?? status;
+  const statusLabel = resolvedWorkflowSteps.find((step) => step.key === status)?.label;
   const hasLegacyDocumentContext = (!isNewDocument || priority || branch);
   const showDocumentContext = hasLegacyDocumentContext || (isNewDocument && title);
 
@@ -77,7 +81,7 @@ export function DocumentWorkspace({
         {showDocumentContext ? <div data-tablet-document-header className={cn("flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between", isNewDocument && "hidden md:flex")}>
           <div className="min-w-0">
             <div className={cn("min-w-0", isNewDocument ? "min-h-7" : "flex min-h-8 flex-wrap items-center gap-2")}>
-              {isNewDocument ? <DocumentContextSummary title={title} status={status} branch={branch} date={mobileContextDate} mobileStatusOnly={mobileStatusOnly} /> : <>
+              {isNewDocument ? <DocumentContextSummary title={title} status={status} statusLabel={statusLabel} branch={branch} date={mobileContextDate} mobileStatusOnly={mobileStatusOnly} /> : <>
               {!isNewDocument ? documentIdentity ?? <DocumentNumber value={documentNo} size="lg" className="max-w-[min(100%,18rem)] break-all text-[16px] sm:text-lg" /> : null}
               {priority ? <PriorityBadge priority={priority} /> : null}
               {branch ? <span className="ml-auto hidden min-w-0 items-center justify-end gap-1.5 whitespace-nowrap text-right text-xs text-muted-foreground md:flex"><MapPin className="h-3.5 w-3.5 shrink-0" aria-hidden="true" /><span className="truncate">{branch}</span></span> : null}
@@ -88,13 +92,13 @@ export function DocumentWorkspace({
             </div>
           </div>
         </div> : null}
-        {isNewDocument && hideWorkflow ? <div data-document-status-only className="flex min-h-9 items-center justify-center md:hidden"><StatusBadge status={status} /></div> : null}
-        {isNewDocument && !hideWorkflow ? <div className="flex min-h-9 items-center justify-center gap-2 md:hidden"><StatusBadge status={status} /><MobileWorkflowStatus steps={resolvedWorkflowSteps} currentStatus={resolvedCurrentStatus} trailing={mobileWorkflowTrailing} /></div> : null}
+        {isNewDocument && hideWorkflow ? <div data-document-status-only className="flex min-h-9 items-center justify-start md:hidden"><StatusBadge status={status} label={statusLabel} /></div> : null}
+        {isNewDocument && !hideWorkflow ? <div className="flex min-h-9 items-center justify-between gap-2 md:hidden"><StatusBadge status={status} label={statusLabel} /><MobileWorkflowStatus steps={resolvedWorkflowSteps} currentStatus={resolvedCurrentStatus} trailing={mobileWorkflowTrailing} /></div> : null}
         {!hideWorkflow && !hideMobileWorkflow ? <div data-tablet-document-header className={cn("min-w-0", isNewDocument ? "mt-0 md:mt-1" : "mt-1 md:mt-2", isNewDocument && "hidden md:block")}>{!isNewDocument ? <MobileWorkflowStatus steps={resolvedWorkflowSteps} currentStatus={resolvedCurrentStatus} trailing={mobileWorkflowTrailing} /> : null}<div className="hidden md:block"><WorkflowStatusPipeline steps={resolvedWorkflowSteps} currentStatus={resolvedCurrentStatus} compact /></div></div> : null}
-        {hideWorkflow && isNewDocument ? <div data-tablet-document-header className="hidden items-center md:flex"><StatusBadge status={status} /></div> : null}
+        {hideWorkflow && isNewDocument ? <div data-tablet-document-header className="hidden items-center md:flex"><StatusBadge status={status} label={statusLabel} /></div> : null}
       </header>
 
-      <WorkspaceGrid documentMode tabletRailMode={tabletRailMode} className={cn("min-w-0 p-3", compactMobileSpacing && "pt-0 md:pt-3", mobilePrimaryAction && "pb-20 md:pb-3")} rightRail={sidePanel} hideMobileConsole>
+      <WorkspaceGrid documentMode tabletRailMode={tabletRailMode} className={cn("min-w-0 p-3", compactMobileSpacing && "pt-0 md:pt-3")} rightRail={sidePanel} hideMobileConsole>
         <div className="min-w-0">
           <div className="min-w-0 space-y-3">
             {tabletRailMode === "context" && (mobilePrimaryAction || mobileMoreOptions) ? <div data-tablet-document-actions className="hidden md:block xl:hidden"><ConsoleSection title="Actions">{mobilePrimaryAction}{mobileMoreOptions}</ConsoleSection></div> : null}
@@ -103,7 +107,7 @@ export function DocumentWorkspace({
           </div>
         </div>
       </WorkspaceGrid>
-      {mobilePrimaryAction || mobileActivity || mobileMoreOptions ? <div data-mobile-document-action data-action-count={[mobilePrimaryAction, mobileActivity, mobileMoreOptions].filter(Boolean).length} data-has-more={mobileMoreOptions ? "true" : undefined} className={cn(
+      {mobilePrimaryAction || mobileActivity || mobileMoreOptions ? <MobileActionReserve><div data-mobile-document-action data-action-count={[mobilePrimaryAction, mobileActivity, mobileMoreOptions].filter(Boolean).length} data-has-more={mobileMoreOptions ? "true" : undefined} className={cn(
         "sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] grid min-w-0 items-center gap-2 border-x-0 border-b-0 bg-white/95 p-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(17,30,22,0.16)] md:hidden [&_button]:h-11 [&_button]:w-full",
         [mobilePrimaryAction, mobileActivity, mobileMoreOptions].filter(Boolean).length === 3
           ? "grid-cols-3"
@@ -111,10 +115,11 @@ export function DocumentWorkspace({
             ? "grid-cols-2"
             : "grid-cols-1",
       )}>
+        {mobileActionHint ? <div role="status" className="col-span-full flex items-start gap-2 rounded-lg border border-[var(--sb-border-soft)] bg-white px-3 py-2 text-[11px] leading-4 text-muted-foreground"><Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" /><div className="min-w-0 [&_p]:text-[11px] [&_p]:leading-4">{mobileActionHint}</div></div> : null}
         {mobilePrimaryAction ? <div className="min-w-0">{mobilePrimaryAction}</div> : null}
         {mobileActivity ? <div className="min-w-0"><MobileActivityAndFiles>{mobileActivity}</MobileActivityAndFiles></div> : null}
         {mobileMoreOptions ? <div className="min-w-0">{mobileMoreOptions}</div> : null}
-      </div> : null}
+      </div></MobileActionReserve> : null}
     </>
   );
 }

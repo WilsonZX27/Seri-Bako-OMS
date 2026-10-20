@@ -44,7 +44,7 @@ export default async function AccountPage() {
     <>
       <PageHeader title="My Profile" description="Manage your account details, profile picture, and password." />
       <WorkspaceGrid documentMode tabletRailMode="split" tabletCanvas="contained" rightRail={accountContext}>
-        <section data-account-identity className="border border-[var(--sb-border-soft)] bg-white px-4 py-4">
+        <section data-account-identity className="sb-work-surface px-4 py-4">
           <div className="flex items-start gap-4">
             <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-lg font-semibold text-primary">
               {account?.avatar_url ? (
@@ -60,7 +60,7 @@ export default async function AccountPage() {
           </div>
         </section>
 
-        <section className="border border-[var(--sb-border-soft)] bg-white p-4">
+        <section className="sb-work-surface p-4">
           <div className="mb-4 flex items-center gap-2"><UserRound className="h-4 w-4 text-primary" /><h2 className="font-semibold">Profile details</h2></div>
           <form id="account-profile-form" action={updateOwnProfile} className="grid gap-4">
             <label className="grid gap-2 text-sm font-medium">Display name <span className="sr-only">required</span><Input name="full_name" defaultValue={account?.full_name ?? ""} required className="form-control-compact" /></label>
@@ -68,13 +68,12 @@ export default async function AccountPage() {
           </form>
         </section>
 
-        <section id="password" className="border border-[var(--sb-border-soft)] bg-white p-4">
-          <div className="mb-4 flex items-center gap-2"><KeyRound className="h-4 w-4 text-primary" /><h2 className="font-semibold">Change password</h2></div>
+        <section id="password" className="sb-work-surface p-4">
           <form action={changeOwnPassword} className="grid gap-4">
+            <div className="flex items-center justify-between gap-3"><div className="flex min-w-0 items-center gap-2"><KeyRound className="h-4 w-4 shrink-0 text-primary" /><h2 className="text-sm font-semibold">Change password</h2></div><SubmitButton pendingLabel="Changing..." className="shrink-0">Change password</SubmitButton></div>
             <Input name="current_password" type="password" placeholder="Current password" required className="form-control-compact" />
             <Input name="new_password" type="password" placeholder="New password" minLength={8} required className="form-control-compact" />
             <Input name="confirm_password" type="password" placeholder="Confirm new password" minLength={8} required className="form-control-compact" />
-            <div className="flex justify-end"><SubmitButton pendingLabel="Changing...">Change password</SubmitButton></div>
           </form>
         </section>
       </WorkspaceGrid>

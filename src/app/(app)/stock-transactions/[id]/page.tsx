@@ -82,19 +82,19 @@ export default async function StockTransactionDetailPage({ params }: { params: P
         <div className="space-y-5">
           <Card>
             <CardContent className="space-y-4 p-5">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-xs uppercase text-muted-foreground">Transaction Status</p>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex w-full items-center justify-between gap-3">
+                  <p className="text-xs text-muted-foreground">Status</p>
                   <Badge className="mt-1" variant={statusVariant(transaction.status)}>{transaction.status}</Badge>
                 </div>
               </div>
-              <div className="grid gap-4 md:grid-cols-4">
+              <div className="sb-label-value-summary sb-inventory-summary grid gap-4 md:grid-cols-4">
                 <div><p className="text-xs uppercase text-muted-foreground">Date</p><p className="font-medium">{formatDateOnly(transaction.transaction_date)}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Type</p><p className="font-medium">{transaction.transaction_type.replaceAll("_", " ")}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Posted At</p><p className="font-medium">{formatDateTime(transaction.posted_at)}</p></div>
                 <div><p className="text-xs uppercase text-muted-foreground">Reference</p><p className="font-medium">{transaction.reference_type ?? "-"}</p></div>
               </div>
-              {transaction.remarks ? <p className="rounded-md border bg-secondary/30 p-3 text-sm">{transaction.remarks}</p> : null}
+              {transaction.remarks ? <p className="rounded-md bg-secondary/35 p-3 text-sm">{transaction.remarks}</p> : null}
             </CardContent>
           </Card>
 

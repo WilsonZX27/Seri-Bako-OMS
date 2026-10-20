@@ -51,19 +51,20 @@ test("the shared shell gives iPad a contained canvas and an explicit operational
   assert.doesNotMatch(workspaceGrid, /grid-cols-\[/);
   assert.match(styles, /data-tablet-rail-breakpoint="md"[\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(14rem, 24%\)/);
   assert.match(styles, /data-tablet-rail-breakpoint="md"\]\[data-tablet-rail-width="compact"\][\s\S]*grid-template-columns: minmax\(0, 1fr\) minmax\(14rem, 18rem\)/);
-  assert.match(grn, /tabletRailMode="context"/);
+  assert.match(grn, /tabletRailMode="split"/);
   assert.match(pr, /tabletRailMode="split"/);
   assert.match(recordWorkspace, /tabletRailMode="split"/);
   assert.match(workspace, /data-mobile-document-action/);
   assert.match(workspace, /mobilePrimaryAction \?/);
   assert.match(workspace, /md:hidden/);
-  assert.match(sheets, /Step \{activeIndex \+ 1\} of \{steps\.length\}/);
+  assert.match(sheets, /\{activeIndex \+ 1\} \/ \{steps\.length\}/);
   assert.match(sheets, /title="Workflow progress"/);
   assert.doesNotMatch(sheets, />WORKFLOW</);
   assert.doesNotMatch(sheets, /grid w-full max-w-56/);
   assert.match(sheets, /document\.body\.style\.overflow = "hidden"/);
   assert.match(sheets, /event\.key === "Escape"/);
-  assert.match(sheets, /requestAnimationFrame\(\(\) => trigger\?\.focus\(\)\)/);
+  assert.match(sheets, /requestAnimationFrame\([\s\S]*trigger\?\.getClientRects\(\)\.length[\s\S]*trigger\.focus\(\)/);
+  assert.match(sheets, /content\.focus\(\{ preventScroll: true \}\)/);
   assert.match(confirm, /ModalShell/);
   assert.match(modal, /role="dialog"/);
   assert.match(modal, /containDialogTab\(event, dialog\)/);
@@ -113,7 +114,7 @@ test("required files remain visible on mobile and support follows the canonical 
   const count = app("stock-counts/[id]");
   assert.match(grn, /className="md:hidden"><AttachmentPanel[\s\S]*uploadLabel="Attach DO"/);
   assert.match(invoice, /className="md:hidden"><AttachmentPanel[\s\S]*Attach Supplier Invoice/);
-  assert.match(count, /mobileActivity=\{documentBundle \?[\s\S]*<AttachmentPanel[\s\S]*<CommentsPanel[\s\S]*<DocumentTimeline/);
+  assert.match(count, /mobileActivity=\{!canEdit && documentBundle \?[\s\S]*<AttachmentPanel[\s\S]*<CommentsPanel[\s\S]*<DocumentTimeline/);
   assert.doesNotMatch(count, /Count Evidence Required/);
   for (const route of detailRoutes.slice(0, 8)) {
     const source = app(route);

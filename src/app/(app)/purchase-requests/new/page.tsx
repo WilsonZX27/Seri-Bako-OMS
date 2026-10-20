@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PurchaseRequestGuidance } from "@/components/purchase-request-guidance";
 import { ArrowLeft, Save, Send } from "lucide-react";
 import { ActionErrorNotice } from "@/components/action-error-notice";
 import { PurchaseRequestForm } from "@/components/procurement-forms";
@@ -20,7 +21,7 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
     hasPermission("pr.view_all"),
     getCurrentProfile(),
   ]);
-  const canViewCommercial = hasCommercialAccess && !["kitchen", "kitchen_staff"].includes(String(profile?.role_code ?? "").toLowerCase());
+  const canViewCommercial = hasCommercialAccess && !["chef", "kitchen", "kitchen_staff"].includes(String(profile?.role_code ?? "").toLowerCase());
   const selectedBranchId = params.branch_id && branches.some((branch) => branch.id === params.branch_id) ? params.branch_id : branches[0]?.id;
   const initialItem = params.item_id ? items.find((item) => item.id === params.item_id) : null;
   const initialMappings = initialItem && selectedBranchId ? supplierMappings.filter((mapping) => mapping.item_id === initialItem.id && mapping.branch_id === selectedBranchId) : [];
@@ -56,10 +57,11 @@ export default async function NewPurchaseRequestPage({ searchParams }: { searchP
         currentStatus="draft"
         tabletRailMode="split"
         mobilePrimaryAction={primaryAction}
+        mobileActionHint={<PurchaseRequestGuidance />}
         mobileMoreOptions={<DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions>}
         sidePanel={<>
             <DocumentActionSection moreOptions={secondaryActions}>{primaryAction}</DocumentActionSection>
-            <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">Add at least one item before submitting this purchase request.</p></DocumentSideSection>
+            <DocumentSideSection title="Validation / Next Step"><PurchaseRequestGuidance /></DocumentSideSection>
             <DocumentSideSection title="Request Summary">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between gap-3"><span className="text-muted-foreground">Status</span><strong>Draft</strong></div>

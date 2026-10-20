@@ -84,27 +84,27 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
             </UnifiedListHeader>
           <div className="sb-list-content-card overflow-hidden" data-mobile-list-content-card>
           <DataGridHint text="Pro-tip: Double-click any row to open the goods receiving document." />
-          <Table mobileHidden compactUntil="xl" aria-label="Goods receiving records" stickyColumn="second">
+          <Table className="sb-procurement-table !min-w-[51rem]" mobileHidden compactUntil="xl" aria-label="Goods receiving records" stickyColumn="second">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-10 text-center">Action</TableHead>
-                  <SortableHead label="GRN No" column="grn_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <TableHead className="w-52">Supplier</TableHead>
-                  <SortableHead label="Received" column="received_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <TableHead>Branch</TableHead>
-                  <SortableHead label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <TableHead className="text-right">Received</TableHead>
-                  <TableHead className="text-right">Rejected</TableHead>
+                  <SortableHead className="w-32 min-w-32" label="GRN No" column="grn_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <SortableHead className="w-28" wrap label="Date Received" column="received_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <TableHead className="w-24">Branch</TableHead>
+                  <TableHead className="w-36">Supplier</TableHead>
+                  <SortableHead className="w-36" label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <TableHead className="w-20 text-right">Received</TableHead>
+                  <TableHead className="w-20 text-right">Rejected</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {receivings?.rows.map((receiving) => (
                   <DataGridRow key={receiving.id} href={`/goods-receivings/${receiving.id}`} className="[&>td]:h-16 [&>td]:align-top">
                     <TableCell className="w-10 p-0 text-center"><TableActionLink href={`/goods-receivings/${receiving.id}`} label={`Open ${receiving.grn_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
-                    <TableCell><DocumentNumber value={receiving.grn_no} size="sm" className="max-w-full break-all" /><span className="mt-1 block text-[10px] italic text-muted-foreground">{receiving.purchase_order_id && receiving.po_no ? <Link href={`/purchase-orders/${receiving.purchase_order_id}`} className="text-[var(--sb-link)] underline-offset-4 hover:underline">From {receiving.po_no}</Link> : "No linked PO"}</span></TableCell>
-                    <TableCell className="w-52 max-w-52"><span className="line-clamp-2 leading-4">{receiving.supplier_name ?? "-"}</span></TableCell>
+                    <TableCell className="w-32"><DocumentNumber value={receiving.grn_no} size="sm" className="whitespace-nowrap" /><span className="mt-1 block text-[10px] italic text-muted-foreground">{receiving.purchase_order_id && receiving.po_no ? <Link href={`/purchase-orders/${receiving.purchase_order_id}`} className="text-[var(--sb-link)] underline-offset-4 hover:underline">From {receiving.po_no}</Link> : "No linked PO"}</span></TableCell>
                     <TableCell>{formatDateOnly(receiving.received_date)}</TableCell>
                     <TableCell>{receiving.branch_name ?? "-"}</TableCell>
+                    <TableCell className="w-36 max-w-36"><span className="line-clamp-2 leading-4">{receiving.supplier_name ?? "-"}</span></TableCell>
                     <TableCell className="min-w-36"><StatusBadge status={receiving.workflow_status} className="min-w-max" /></TableCell>
                     <TableCell className="text-right">{formatNumber(receiving.received_total)}</TableCell>
                     <TableCell className="text-right">{formatNumber(receiving.rejected_total)}</TableCell>
@@ -115,13 +115,14 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
             </Table>
             <OperationalList ariaLabel="Goods receiving records" showUntil="xl">
               {receivings?.rows.map((receiving) => <OperationalListRow
+                fullWidthDetails
                 key={receiving.id}
                 href={`/goods-receivings/${receiving.id}`}
                 label={`Open ${receiving.grn_no}`}
-                primary={<div><DocumentNumber value={receiving.grn_no} /><p className="text-[11px] font-normal text-[var(--sb-text-muted)]">{receiving.po_no ?? "No linked PO"} · {formatDateOnly(receiving.received_date)}</p></div>}
+                primary={<DocumentNumber value={receiving.grn_no} />}
                 status={<StatusBadge status={receiving.workflow_status} />}
-                secondary={`${receiving.supplier_name ?? "No supplier"} · ${receiving.branch_name ?? "No branch"}`}
-                meta={`${formatNumber(receiving.received_total)} in · ${formatNumber(receiving.rejected_total)} rejected`}
+                secondary={<span className="flex justify-between gap-3"><span>{receiving.po_no ?? "No linked PO"} · {formatDateOnly(receiving.received_date)}</span><span className="shrink-0">{formatNumber(receiving.received_total)} in · {formatNumber(receiving.rejected_total)} rejected</span></span>}
+                detail={<span className="flex min-w-0 gap-2"><span className="truncate" title={receiving.supplier_name ?? undefined}>{receiving.supplier_name ?? "No supplier"}</span><span className="shrink-0">· {receiving.branch_name ?? "No branch"}</span></span>}
               />)}
               {!receivings?.rows.length ? <EmptyState title={!receivings ? "Goods receiving data unavailable" : filtered ? "No receivings match these filters" : "No goods receivings yet"} description={!receivings ? "The receiving source could not be verified. No quantities or record count are shown as zero." : filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={emptyStateAction} /> : null}
             </OperationalList>

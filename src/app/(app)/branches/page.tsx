@@ -44,7 +44,7 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
             <BulkSelectionProvider ids={branches.map((branch) => branch.id)} action={isArchivedView ? restoreBranches : archiveBranches} fieldName="branch_id" canAct={canUpdate} actionLabel={isArchivedView ? "Restore selected" : "Archive selected"} actionVariant={isArchivedView ? "default" : "destructive"} confirmMessage={isArchivedView ? "Restore the selected branches to active operations?" : "Archive the selected branches? They will be removed from active lists while preserving their history."} actionHint={isArchivedView ? "Restore archived branches only when they are ready for daily operations." : "Archive branches only after confirming they are no longer used by daily operations."}>
               {/* Active view keeps the canonical action={archiveBranches} contract; archived view swaps in restoreBranches. */}
             <DataGridHint text="Pro-tip: Double-click any row to open the branch." />
-              <div>
+              <div className="sb-list-content-card overflow-hidden">
               {canUpdate && branches.length ? <div className="flex min-h-11 items-center gap-1 border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-1 xl:hidden"><BulkSelectAllCheckbox touchTarget /><span className="text-xs font-medium text-muted-foreground">Select all visible branches</span></div> : null}
               <Table mobileHidden compactUntil="xl" aria-label="Branches" stickyColumn={canUpdate ? "third" : "first"}>
                 <TableHeader>

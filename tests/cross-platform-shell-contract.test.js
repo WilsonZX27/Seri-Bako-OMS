@@ -21,7 +21,7 @@ test("tablet keeps role navigation sticky while primary actions stay visible", (
   assert.doesNotMatch(rightConsole, /mobileOnlyBar/);
   assert.match(appLayout, /pb-\[calc\(var\(--sb-mobile-nav-height\)\+env\(safe-area-inset-bottom\)\+1rem\)\] xl:pb-0/);
   assert.doesNotMatch(appLayout, /lg:pb-4/);
-  assert.match(documentWorkspace, /mobilePrimaryAction && "pb-20 md:pb-3"/);
+  assert.match(documentWorkspace, /<MobileActionReserve>/);
   assert.match(documentWorkspace, /sb-mobile-action-bar fixed[\s\S]*md:hidden/);
   assert.match(stockCountForm, /pb-28 xl:pb-0/);
   // The fixed task rail is phone-only; tablet and desktop action ownership stays
@@ -30,7 +30,7 @@ test("tablet keeps role navigation sticky while primary actions stay visible", (
   assert.doesNotMatch(stockCountForm, /hidden xl:inline-flex/);
   assert.match(topBar, /<MobileSidebar/);
   assert.match(tabletSidebar, /hidden md:inline-flex xl:hidden/);
-  assert.match(tabletSidebar, /fixed inset-0 z-50 hidden md:block xl:hidden/);
+  assert.match(tabletSidebar, /fixed inset-0 z-\[var\(--sb-z-dialog\)\] hidden md:block xl:hidden/);
 });
 
 test("desktop and tablet shared geometry remains token based", () => {
@@ -144,7 +144,7 @@ test("administration collection pages reuse the contained operational tool-list 
   const toolList = read("src", "components", "operational-tool-list.tsx");
 
   assert.match(imports, /<WorkspaceGrid tabletCanvas="contained">/);
-  assert.match(administration, /<WorkspaceGrid tabletCanvas="contained">/);
+  assert.match(administration, /<WorkspaceGrid tabletCanvas="contained" hideMobileConsole rightRail=/);
   assert.match(imports, /OperationalToolList/);
   assert.match(administration, /OperationalToolList/);
   assert.match(toolList, /divide-y divide-\[var\(--sb-border-soft\)\]/);

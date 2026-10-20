@@ -20,8 +20,6 @@ type Filters = {
   branch_id?: string;
   search?: string;
   status?: string;
-  sort?: string;
-  dir?: string;
 };
 
 type StaffStatus = NonNullable<Database["public"]["Tables"]["staffs"]["Row"]["status"]>;
@@ -130,8 +128,7 @@ export async function getStaffs(filters: Filters = {}) {
           branch_access_level: defaultBranch?.access_level ?? null,
         };
       })
-      .filter((staff) => matchesFilter([staff.staff_code, staff.full_name, staff.email, staff.role_name, staff.default_branch_name], filters, staff.status))
-      .sort((a, b) => String(filters.sort === "staff_code" ? a.staff_code ?? "" : a.full_name).localeCompare(String(filters.sort === "staff_code" ? b.staff_code ?? "" : b.full_name), undefined, { sensitivity: "base" }) * (filters.dir === "desc" ? -1 : 1));
+      .filter((staff) => matchesFilter([staff.staff_code, staff.full_name, staff.username, staff.email, staff.role_name, staff.default_branch_name], filters, staff.status));
   }
 
   const [supabase, profile] = await Promise.all([createClient(), getCurrentProfile()]);
@@ -141,9 +138,9 @@ export async function getStaffs(filters: Filters = {}) {
     .select("*")
     .eq("company_id", profile.company_id)
     .is("deleted_at", null)
-    .order(filters.sort === "staff_code" ? "staff_code" : "full_name", { ascending: filters.dir === "desc" ? false : true, nullsFirst: false });
+    .order("full_name", { ascending: true });
   const search = filters.search?.trim().replace(/[,%()]/g, " ");
-  if (search) staffQuery = staffQuery.or(`staff_code.ilike.%${search}%,full_name.ilike.%${search}%,email.ilike.%${search}%`);
+  if (search) staffQuery = staffQuery.or(`staff_code.ilike.%${search}%,full_name.ilike.%${search}%,username.ilike.%${search}%,email.ilike.%${search}%`);
   if (filters.status && filters.status !== "all") staffQuery = staffQuery.eq("status", filters.status as StaffStatus);
   const { data: staffs, error: staffsError } = await staffQuery;
   if (staffsError) throw new Error(staffsError.message);
@@ -205,7 +202,8 @@ export async function getStaff(id: string) {
 
 export async function getStaffProfileSummary(staffId: string) {
   if (isMockMode()) {
-    return (await getStaffs()).find((staff) => staff.id === staffId) ?? null;
+    const staff = (await getStaffs()).find((row) => row.id === staffId);
+    return staff ? { ...staff, accessible_branch_names: staff.default_branch_name ? [staff.default_branch_name] : [] } : null;
   }
 
   const [supabase, profile] = await Promise.all([createClient(), getCurrentProfile()]);
@@ -222,16 +220,17 @@ export async function getStaffProfileSummary(staffId: string) {
     roleIds.length
       ? supabase.from("roles").select("role_code,role_name").eq("company_id", profile.company_id).in("id", roleIds)
       : Promise.resolve({ data: [], error: null }),
-    defaultBranchId
-      ? supabase.from("branches").select("branch_name").eq("company_id", profile.company_id).eq("id", defaultBranchId).maybeSingle()
-      : Promise.resolve({ data: null, error: null }),
+    (staffBranches ?? []).length
+      ? supabase.from("branches").select("id,branch_name").eq("company_id", profile.company_id).in("id", (staffBranches ?? []).map((row) => row.branch_id))
+      : Promise.resolve({ data: [], error: null }),
   ]);
   if (rolesError) throw new Error(rolesError.message);
   if (branchError) throw new Error(branchError.message);
   return {
     role_name: (roles ?? []).map((role) => getRoleDisplayLabel(role.role_code, role.role_name)).join(", ") || null,
-    default_branch_name: branch?.branch_name ?? null,
+    default_branch_name: (branch ?? []).find((item) => item.id === defaultBranchId)?.branch_name ?? null,
     default_branch_id: defaultBranchId ?? null,
+    accessible_branch_names: (branch ?? []).map((item) => item.branch_name).sort(),
   };
 }
 

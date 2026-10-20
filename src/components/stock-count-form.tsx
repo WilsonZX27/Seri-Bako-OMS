@@ -13,7 +13,9 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { TableActionMenuPortal } from "@/components/ui/table-action-menu-portal";
 import { StockCountLineRecovery } from "@/components/stock-count-line-recovery";
-import { formatDateOnly, formatQuantity, formatQuantityInput, getToday } from "@/lib/utils";
+import { formatDateOnly, getToday } from "@/lib/utils";
+import { formatStockCountQuantity as formatQuantity, stockCountQuantityInput as formatQuantityInput, stockCountInputStep } from "@/lib/stock-count-quantity";
+import { tryStockCountStorage } from "@/lib/stock-count-storage";
 import type { StockCountAutosaveResult } from "@/server/actions/stock-counts";
 
 type BranchOption = { id: string; branch_code: string; branch_name: string; status: string };
@@ -60,7 +62,7 @@ function allowsFraction(uom: string) {
 }
 
 function quantityStep(uom: string) {
-  return allowsFraction(uom) ? 0.01 : 1;
+  return allowsFraction(uom) ? 0.001 : 1;
 }
 
 function quantityInputValue(value: number, uom: string) {
@@ -129,6 +131,7 @@ export function StockCountForm({
   const [dirtyRevision, setDirtyRevision] = useState(0);
   const [autosaveState, setAutosaveState] = useState<AutosaveState>("idle");
   const [autosaveError, setAutosaveError] = useState("");
+  const [localBackupAvailable, setLocalBackupAvailable] = useState(true);
   const [autosaveRetryable, setAutosaveRetryable] = useState(true);
   const [search, setSearch] = useState("");
   const [showAdjustedOnly, setShowAdjustedOnly] = useState(false);
@@ -173,14 +176,14 @@ export function StockCountForm({
   }, [selectedBranchId, seedLines, initialCountDate, initialRemarks]);
 
   useEffect(() => {
-    const storedSort = window.localStorage.getItem(STOCK_COUNT_SORT_KEY);
+    const storedSort = tryStockCountStorage(() => window.localStorage.getItem(STOCK_COUNT_SORT_KEY)).value;
     if (storedSort === "name" || storedSort === "code") setSortBy(storedSort);
     sortPreferenceReady.current = true;
   }, []);
 
   useEffect(() => {
     if (!sortPreferenceReady.current) return;
-    window.localStorage.setItem(STOCK_COUNT_SORT_KEY, sortBy);
+    tryStockCountStorage(() => window.localStorage.setItem(STOCK_COUNT_SORT_KEY, sortBy));
   }, [sortBy]);
 
   useEffect(() => {
@@ -192,12 +195,15 @@ export function StockCountForm({
   }, []);
 
   useEffect(() => {
+    const stored = tryStockCountStorage(() => window.localStorage.getItem(localStorageKey));
+    setLocalBackupAvailable(stored.ok);
+    if (!stored.ok) return;
     try {
-      const raw = window.localStorage.getItem(localStorageKey);
+      const raw = stored.value;
       if (!raw) return;
       const snapshot = JSON.parse(raw) as LocalDraftSnapshot;
       if (snapshot.branchId !== resolvedBranchId) {
-        window.localStorage.removeItem(localStorageKey);
+        tryStockCountStorage(() => window.localStorage.removeItem(localStorageKey));
         return;
       }
       const isLegacySnapshot = snapshot.version !== 2;
@@ -228,7 +234,7 @@ export function StockCountForm({
       setAutosaveState("recovered");
       setDirtyRevision((current) => current + 1);
     } catch {
-      window.localStorage.removeItem(localStorageKey);
+      tryStockCountStorage(() => window.localStorage.removeItem(localStorageKey));
     }
   }, [localStorageKey, resolvedBranchId, seedLines]);
 
@@ -255,7 +261,7 @@ export function StockCountForm({
       if (sequence !== saveSequence.current) return result.ok;
       if (!result.ok || !result.id) {
         setAutosaveState("error");
-        setAutosaveError(result.error ?? "Autosave failed. Your changes remain on this device.");
+        setAutosaveError(result.error ?? "Save failed. Keep this page open and try Save draft.");
         const canRetry = result.retryable === false ? false : retryAttempts.current < MAX_AUTOSAVE_RETRIES;
         retryAttempts.current += 1;
         setAutosaveRetryable(canRetry);
@@ -267,7 +273,7 @@ export function StockCountForm({
       }
       lastSavedRevision.current = revision;
       retryAttempts.current = 0;
-      window.localStorage.removeItem(localStorageKey);
+      tryStockCountStorage(() => window.localStorage.removeItem(localStorageKey));
       setAutosaveState("saved");
       setAutosaveRetryable(true);
       if (!draftId) router.replace(`/stock-counts/${result.id}?autosaved=1`);
@@ -277,7 +283,7 @@ export function StockCountForm({
         setAutosaveState("error");
         const canRetry = retryAttempts.current < MAX_AUTOSAVE_RETRIES;
         retryAttempts.current += 1;
-        setAutosaveError(canRetry ? "Autosave failed. Your changes remain on this device and will retry." : "Autosave failed. Your changes remain on this device. Save draft manually when the connection is ready.");
+        setAutosaveError(canRetry ? "Save failed. Keep this page open; retrying." : "Save failed. Keep this page open and try Save draft.");
         setAutosaveRetryable(canRetry);
         if (retryTimer.current !== null) window.clearTimeout(retryTimer.current);
         retryTimer.current = canRetry ? window.setTimeout(() => void saveDraft(revision), 15_000) : null;
@@ -300,10 +306,11 @@ export function StockCountForm({
       lines: lines.map((line) => ({ itemId: line.item_id, physicalQty: line.physicalQty, initialPhysicalQty: line.initialPhysicalQty, remarks: line.remarks })),
       savedLocallyAt: new Date().toISOString(),
     };
-    window.localStorage.setItem(localStorageKey, JSON.stringify(snapshot));
+    const backup = tryStockCountStorage(() => window.localStorage.setItem(localStorageKey, JSON.stringify(snapshot)));
+    setLocalBackupAvailable(backup.ok);
     // Give a physical-count entry session time to finish a short burst of
-    // edits before sending a draft write. The local snapshot is still written
-    // immediately, so this delay never risks losing the user's work.
+    // edits before sending a draft write. Local storage is best-effort; a
+    // blocked or full device must never prevent the server save from running.
     const timer = window.setTimeout(() => void saveDraft(dirtyRevision), AUTOSAVE_DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
   }, [countDate, countRemarks, dirtyRevision, lines, localStorageKey, resolvedBranchId, saveDraft]);
@@ -390,7 +397,7 @@ export function StockCountForm({
     setLines((current) => current.map((line) => {
       if (line.item_id !== itemId) return line;
       const next = Math.max(0, toNumber(line.physicalQty) + (quantityStep(line.uom) * direction));
-      const physicalQty = quantityInputValue(next, line.uom);
+      const physicalQty = quantityInputValue(Math.round(next * 10_000) / 10_000, line.uom);
       return { ...line, physicalQty, adjusted: physicalQty !== line.initialPhysicalQty };
     }));
   }
@@ -416,6 +423,10 @@ export function StockCountForm({
     ? "Saving…"
     : autosaveState === "saved"
       ? "Saved"
+      : !localBackupAvailable
+        ? autosaveState === "error"
+          ? "Save failed — keep this page open"
+          : "Device backup unavailable — keep this page open until Saved"
       : autosaveState === "recovered"
         ? "Recovered unsaved changes"
         : autosaveState === "local"
@@ -458,7 +469,7 @@ export function StockCountForm({
               <div className="hidden min-w-0 items-center justify-between gap-3 rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] p-3 md:flex" aria-live="polite">
                 <div className="min-w-0">
                   <p className={`text-xs font-medium ${autosaveState === "error" ? "text-destructive" : autosaveState === "saved" ? "text-[var(--sb-green-900)]" : "text-muted-foreground"}`} title={autosaveError || autosaveLabel}>{autosaveLabel}</p>
-                  <p className="text-xs text-muted-foreground">{completedCount} of {lines.length} counted · {adjustedCount} adjusted</p>
+                  <p className="text-xs text-muted-foreground">{completedCount} of {lines.length} counted · {adjustedCount} edited this session</p>
                 </div>
                 <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{countComplete ? "Ready to save" : `${needsPhysicalCount} need${needsPhysicalCount === 1 ? "s" : ""} a physical count`}</span>
               </div>
@@ -468,6 +479,7 @@ export function StockCountForm({
               <div className="lg:col-span-2"><Textarea name="remarks" value={countRemarks} onChange={(event) => { setCountRemarks(event.target.value); markDirty(); }} className="min-h-16" placeholder="Count note (optional)" /></div>
             </div>
           </section>
+          {!showSubmit && autosaveAction ? <p role="status" className={`text-xs md:hidden ${autosaveState === "error" ? "text-destructive" : "text-muted-foreground"}`}>{autosaveLabel}</p> : null}
 
           <section data-stock-count-workspace className="erp-surface overflow-hidden rounded-[var(--sb-panel-radius)] border bg-[var(--sb-surface)]">
 
@@ -504,14 +516,14 @@ export function StockCountForm({
               }}
             >
               <ListFilter className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline">{showMissingOnly || showAdjustedOnly ? "Show all items" : `Show adjusted (${adjustedCount})`}</span>
+              <span className="hidden sm:inline">{showMissingOnly || showAdjustedOnly ? "Show all items" : `Show edited (${adjustedCount})`}</span>
               <span className="text-xs tabular-nums sm:hidden">{showMissingOnly ? `Missing ${needsPhysicalCount}` : showAdjustedOnly ? "All" : adjustedCount}</span>
             </button>
           </div>
 
           <div className="flex min-w-0 items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface)] px-4 py-2 text-xs" role="status" aria-live="polite">
             <p className="min-w-0 text-muted-foreground"><strong className="font-semibold text-foreground">{visibleLines.length}</strong> items shown</p>
-            <p className="shrink-0 tabular-nums text-muted-foreground"><strong className="font-semibold text-foreground">{adjustedCount}</strong> adjusted</p>
+            <p className="shrink-0 tabular-nums text-muted-foreground"><strong className="font-semibold text-foreground">{adjustedCount}</strong> edited</p>
           </div>
 
           <div className="hidden" aria-hidden="true">
@@ -537,7 +549,7 @@ export function StockCountForm({
               <p className="text-xs text-right font-semibold">Variance</p>
               <p className="text-xs font-semibold">Count</p>
             </div>
-            <div className="grid grid-cols-1 min-[400px]:grid-cols-2 gap-2 p-2 lg:block lg:divide-y lg:gap-0 lg:p-0">
+            <div className="grid grid-cols-2 gap-2 p-2 lg:block lg:divide-y lg:gap-0 lg:p-0">
               {visibleLines.map((line, visibleIndex) => {
                 const displayIndex = visibleIndex + 1;
                 const hasPhysical = line.physicalQty.trim() !== "";
@@ -565,7 +577,7 @@ export function StockCountForm({
                       </div>
                       <div className="min-w-0">
                         <p className="break-words text-[13px] font-medium leading-tight text-slate-800">{line.item_name}</p>
-                        <p className="min-w-0 break-all text-[10px] leading-3 tracking-[0.01em] text-muted-foreground">{line.item_code}</p>
+                        <p className="min-w-0 break-all text-[10px] leading-3 tracking-[0.01em] text-muted-foreground sb-item-code" title={line.item_code ?? undefined}>{line.item_code}</p>
                         <p className="mt-1 hidden text-[10px] leading-3 text-muted-foreground lg:block">{line.prefill_source === "unavailable" ? "No prior ledger balance · enter count" : `Starting balance · ${formatQuantity(line.theoretical_qty)} ${line.uom}`}</p>
                       </div>
                     </div>
@@ -582,7 +594,7 @@ export function StockCountForm({
                           name="line_physical_qty"
                           type="number"
                           min="0"
-                          step={quantityStep(line.uom)}
+                          step={stockCountInputStep(line.uom, line.physicalQty)}
                           value={line.physicalQty}
                           onChange={(event) => updatePhysicalQty(line.item_id, event.target.value)}
                           onBlur={() => normalizePhysicalQty(line.item_id)}
@@ -590,7 +602,7 @@ export function StockCountForm({
                           aria-invalid={validationAttempted && !hasPhysical}
                           aria-describedby={validationAttempted && !hasPhysical ? `physical-error-${line.item_id}` : undefined}
                            aria-label={`Counted quantity for ${line.item_name}`}
-                          placeholder={line.prefill_source === "unavailable" ? "Enter count" : "0.00"}
+                          placeholder={line.prefill_source === "unavailable" ? "Enter count" : "0.000"}
                            className="h-10 w-full min-w-10 flex-1 rounded-none border-0 px-1 text-center text-[13px] font-semibold tabular-nums shadow-none focus-visible:ring-inset [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         />
                           <button type="button" className="flex h-10 w-10 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, 1)} aria-label={`Increase physical quantity for ${line.item_name}`}><Plus className="h-4 w-4" /></button>
@@ -639,7 +651,7 @@ export function StockCountForm({
 
           {showSubmit ? (
             <div
-              data-mobile-document-action
+              data-mobile-document-action data-stock-count-save-bar
               className="sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t border-[var(--sb-border)] bg-[var(--sb-surface)] p-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgb(6_44_31_/_0.16)] md:hidden"
             >
               <div className="flex min-w-0 flex-1 flex-col items-start gap-0">
@@ -652,7 +664,7 @@ export function StockCountForm({
                   {autosaveLabel}
                 </span>
                 <span className="text-sm font-semibold tabular-nums">{completedCount} of {lines.length} counted</span>
-                <span className="text-xs tabular-nums text-muted-foreground">{needsPhysicalCount ? `${needsPhysicalCount} remaining` : `${adjustedCount} adjusted`}{autosaveError ? ` · ${autosaveError}` : ""}</span>
+                <span className="text-xs tabular-nums text-muted-foreground">{needsPhysicalCount ? `${needsPhysicalCount} remaining` : `${adjustedCount} edited this session`}{autosaveError ? ` · ${autosaveError}` : ""}</span>
               </div>
               <SubmitButton type="submit" className="h-12 w-auto min-w-32 shrink-0 px-5" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Save draft</SubmitButton>
             </div>

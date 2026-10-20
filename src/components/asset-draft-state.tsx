@@ -1,20 +1,33 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
+import { useAssetFeedback } from "@/components/asset-action-feedback";
 import { usePathname } from "next/navigation";
 import { clearAssetDraft, readAssetDraft, writeAssetDraft } from "@/lib/asset-draft";
 
 export const AssetDraftScope = createContext<string | null>(null);
 export const AssetDraftIssue = createContext<((form: string, unavailable: boolean) => void) | null>(null);
-export function useAssetDraftAction<T extends { ok: boolean }>(form: string, action: (previous: T, data: FormData) => Promise<T>) {
-  const scope = useContext(AssetDraftScope), pathname = usePathname();
-  return useCallback(async (previous: T, data: FormData) => {
-    const result = await action(previous, data);
-    // Clear at action completion rather than relying on an effect in a component
-    // that can be remounted by the server's refreshed history.
+export function useAssetDraftAction<T extends { ok: boolean; message: string; photoError?: string }>(form: string, action: (previous: T, data: FormData) => Promise<T>) {
+  const scope = useContext(AssetDraftScope), pathname = usePathname(), publish = useAssetFeedback();
+  // Retain the submitted identity on an unconfirmed transport failure. Retrying
+  // this same form must not turn a possibly completed write into a new request.
+  const uncertain = useRef<FormData | null>(null);
+  return useCallback(async (previous: T, data: FormData): Promise<T> => {
+    if (uncertain.current) data = uncertain.current;
+    publish?.({ path: pathname, tone: "pending", message: form.startsWith("attachment:") ? "Uploading…" : "Saving…" });
+    let result: T;
+    try {
+      result = await action(previous, data);
+      uncertain.current = null;
+    } catch {
+      uncertain.current = data;
+      result = { ...previous, ok: false, message: form.startsWith("attachment:") ? "Could not confirm the upload. Your label is kept. Select the same file again, then retry to check or finish the original upload." : "Could not confirm the result. Your inputs are kept. Retry checks or finishes the original submitted values." };
+    }
+    // Clear before the refreshed history can remount the keyed form.
     if (result.ok && scope) { try { clearAssetDraft(window.sessionStorage, scope, `${pathname}:${form}`); } catch { /* Storage disabled. */ } }
+    publish?.({ path: pathname, tone: result.ok && !result.photoError ? "success" : "error", message: result.photoError ? `${result.message} The photo was not uploaded. ${result.photoError}` : result.message });
     return result;
-  }, [action, scope, pathname, form]);
+  }, [action, scope, pathname, form, publish]);
 }
 export function useAssetDraftFields<T extends Record<string, string>>(form: string, revision: string, initial: T, saved: boolean, validate?: (value: T) => boolean): [T, <K extends keyof T>(key: K, value: T[K]) => void, boolean] {
   const [fields, setFields, restored] = useAssetDraftState(form, revision, initial, (value): value is T => {

@@ -1,3 +1,4 @@
+import { stockEnumSearch } from "@/lib/stock-enum-search";
 import { isMockMode, mockBranches, mockItems, mockProfile, mockStockCountLines, mockStockCounts } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { compareTableValues, paginateRows } from "@/lib/table-state";
@@ -91,7 +92,7 @@ function countSearchExpression(value?: string) {
   const search = value?.trim();
   if (!search) return null;
   const term = search.replace(/[(),]/g, " ").replace(/[\\%_]/g, "\\$&");
-  return ["count_no", "status", "branch_name", "remarks"].map((column) => `${column}.ilike.%${term}%`).join(",");
+  return ["count_no", "branch_name", "remarks"].map((column) => `${column}.ilike.%${term}%`).join(",") + stockEnumSearch("count", search);
 }
 
 function hydrateCount(row: StockCount, lines: StockCountLine[]): StockCountRow {

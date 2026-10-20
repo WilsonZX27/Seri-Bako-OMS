@@ -1,0 +1,20 @@
+[
+  {
+    "case": "update_invalid_yield",
+    "responses": [
+      200
+    ],
+    "retained": true,
+    "alert": "Yield quantity must be more than zero"
+  },
+  {
+    "case": "reference_read_outage",
+    "responses": [
+      200
+    ],
+    "retained": true,
+    "alert": "Could not validate the product and ingredients. Check your selections and retry.",
+    "faultProbe": "This workspace could not finish the request\n\nThe result could not be confirmed. Changes may already be saved. Check the record before trying the action again.\n\nReference: 1111197921\n\nRetry\nReturn to previous page\nDashboard",
+    "safety": "Nonexistent ingredient additionally guarantees no mutation if fault injection is unavailable"
+  }
+]

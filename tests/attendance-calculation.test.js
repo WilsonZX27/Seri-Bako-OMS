@@ -29,9 +29,9 @@ test("07 pairs two work intervals",()=>assert.equal(pairPunches([event("09:00:00
 test("08 pairs three work intervals",()=>assert.equal(pairPunches([event("09:00:00"),event("11:00:00"),event("11:15:00"),event("13:00:00"),event("14:00:00"),event("18:30:00")]).intervals.length,3));
 test("09 reports an odd punch without fabricating an OUT",()=>{const result=pairPunches([event("09:00:00"),event("13:00:00"),event("14:00:00")]);assert.equal(result.intervals.length,1);assert.ok(result.exceptions.includes("Odd Punch Count"))});
 test("10 reports a required missing break",()=>assert.ok(calculateAttendance(standard,[event("09:00:00"),event("18:30:00")]).exceptions.includes("Missing Break Punch")));
-test("11 enforces the 510-minute full-time cap",()=>assert.equal(calculateAttendance({...standard,requiresBreak:false},[event("08:00:00"),event("20:00:00")]).recognisedPaidSeconds,510*60));
-test("12 keeps extra part-time time as ordinary payable hours",()=>assert.equal(calculateAttendance({...standard,employmentType:"part_time",requiresBreak:false,maximumRecognisedSeconds:4*3600},[event("09:00:00"),event("18:30:00")]).recognisedPaidSeconds,9.5*3600));
-test("13 gives a complete cross-day full-time shift the fixed 8.5 hours",()=>assert.equal(calculateAttendance({scheduledStart:new Date("2026-09-01T22:00:00+08:00"),scheduledEnd:new Date("2026-09-02T06:00:00+08:00"),maximumRecognisedSeconds:28800},[{occurredAt:new Date("2026-09-01T22:00:00+08:00")},{occurredAt:new Date("2026-09-02T06:00:00+08:00")}]).recognisedPaidSeconds,30600));
+test("11 enforces the 510-minute full-time cap",()=>assert.equal(calculateAttendance({...standard,requiresBreak:false},[event("08:00:00"),event("12:00:00"),event("13:00:00"),event("20:00:00")]).recognisedPaidSeconds,510*60));
+test("12 keeps extra part-time time as ordinary payable hours",()=>assert.equal(calculateAttendance({...standard,employmentType:"part_time",requiresBreak:false,maximumRecognisedSeconds:4*3600},[event("09:00:00"),event("13:00:00"),event("14:00:00"),event("19:30:00")]).recognisedPaidSeconds,9.5*3600));
+test("13 gives a complete cross-day full-time shift the fixed 8.5 hours",()=>assert.equal(calculateAttendance({scheduledStart:new Date("2026-09-01T22:00:00+08:00"),scheduledEnd:new Date("2026-09-02T06:00:00+08:00"),maximumRecognisedSeconds:28800},[{occurredAt:new Date("2026-09-01T22:00:00+08:00")},{occurredAt:new Date("2026-09-02T01:00:00+08:00")},{occurredAt:new Date("2026-09-02T02:00:00+08:00")},{occurredAt:new Date("2026-09-02T06:00:00+08:00")}]).recognisedPaidSeconds,30600));
 test("14 reports a device mismatch",()=>assert.ok(calculateAttendance(standard,[event("09:00:00","OTHER"),event("18:30:00","OTHER")]).exceptions.includes("Wrong Branch/Device")));
 test("15 rejects impossible explicit OUT then IN ordering",()=>assert.equal(pairPunches([{...event("09:00:00"),type:"out"},{...event("18:30:00"),type:"in"}]).intervals.length,0));
 test("16 does not fabricate missing punches",()=>{const result=calculateAttendance(standard,[]);assert.equal(result.actualFirstIn,null);assert.equal(result.intervals.length,0)});
@@ -70,40 +70,40 @@ test("odd and missing-break punches create exceptions without invented events", 
 });
 
 test("full-time is fixed while part-time extra time remains ordinary", () => {
-  const events = [event("08:00:00"), event("19:00:00")];
+  const events = [event("08:00:00"),event("12:00:00"),event("13:00:00"),event("20:00:00")];
   assert.equal(calculateAttendance({ ...standard, requiresBreak: false }, events).recognisedPaidSeconds, 30600);
   assert.equal(calculateAttendance({ ...standard, employmentType: "part_time", requiresBreak: false, maximumRecognisedSeconds: 14400 }, events).recognisedPaidSeconds, 39600);
 });
 
 test("cross-day shifts, unscheduled states and wrong devices are explicit", () => {
-  const crossDay = calculateAttendance({ scheduledStart: new Date("2026-09-01T22:00:00+08:00"), scheduledEnd: new Date("2026-09-02T06:00:00+08:00"), maximumRecognisedSeconds: 28800 }, [{ occurredAt: new Date("2026-09-01T21:55:00+08:00") }, { occurredAt: new Date("2026-09-02T06:05:00+08:00") }]);
+  const crossDay = calculateAttendance({ scheduledStart: new Date("2026-09-01T22:00:00+08:00"), scheduledEnd: new Date("2026-09-02T06:00:00+08:00"), maximumRecognisedSeconds: 28800 }, [{ occurredAt: new Date("2026-09-01T21:55:00+08:00") }, { occurredAt: new Date("2026-09-02T01:00:00+08:00") }, { occurredAt: new Date("2026-09-02T02:00:00+08:00") }, { occurredAt: new Date("2026-09-02T06:05:00+08:00") }]);
   assert.equal(crossDay.recognisedPaidSeconds, 30600);
   assert.ok(calculateAttendance(standard, [event("09:00:00", "WRONG"), event("18:30:00", "WRONG")]).exceptions.includes("Wrong Branch/Device"));
   assert.equal(calculateAttendance(standard, []).actualFirstIn, null);
 });
 
 test("part-time floors the daily worked total after unpaid breaks",()=>{
- const fourTwentyTwo=calculateAttendance({...standard,employmentType:"part_time",maximumRecognisedSeconds:8*3600},[event("09:00:00"),event("13:22:00")]);
- const fourFiftyNine=calculateAttendance({...standard,employmentType:"part_time",maximumRecognisedSeconds:8*3600},[event("09:00:00"),event("13:59:00")]);
+ const fourTwentyTwo=calculateAttendance({...standard,employmentType:"part_time",maximumRecognisedSeconds:8*3600},[event("09:00:00"),event("11:00:00"),event("11:30:00"),event("13:52:00")]);
+ const fourFiftyNine=calculateAttendance({...standard,employmentType:"part_time",maximumRecognisedSeconds:8*3600},[event("09:00:00"),event("11:00:00"),event("11:30:00"),event("14:29:00")]);
  assert.equal(fourTwentyTwo.payableSeconds,4*3600);assert.equal(fourFiftyNine.payableSeconds,4.5*3600);
 });
 
-test("full-time full-day is automatic and requires two one-hour breaks",()=>{
+test("full-time full-day keeps its cap but uses four explicit punches",()=>{
  const shift={...standard,scheduledEnd:date("19:00:01"),maximumRecognisedSeconds:34200};
- const result=calculateAttendance(shift,[event("09:00:00"),event("11:00:00"),event("12:00:00"),event("15:00:00"),event("16:00:00"),event("19:00:01")]);
- assert.equal(result.shiftClass,"full_day");assert.equal(result.payableSeconds,34200);assert.equal(result.paidBreakSeconds,7200);assert.ok(!result.exceptions.includes("Short Break"));
+ const result=calculateAttendance(shift,[event("09:00:00"),event("13:00:00"),event("14:00:00"),event("19:00:01")]);
+ assert.equal(result.shiftClass,"full_day");assert.equal(result.payableSeconds,34200);assert.equal(result.paidBreakSeconds,0);assert.ok(!result.exceptions.includes("Short Break"));
 });
 
-test("holiday output returns equivalent hours only when HR configured multipliers",()=>{
+test("holiday equivalents remain blank even with legacy multipliers",()=>{
  const result=calculateAttendance({...standard,holidayNormalMultiplier:2,holidayOtMultiplier:3},[event("09:00:00"),event("13:00:00"),event("14:00:00"),event("18:30:00")]);
- assert.equal(result.holidayNormalEquivalentSeconds,61200);assert.equal(result.holidayOtEquivalentSeconds,0);
+ assert.equal(result.holidayNormalEquivalentSeconds,null);assert.equal(result.holidayOtEquivalentSeconds,null);
 });
 
-test("part-time staff need only one IN and one OUT",()=>{
+test("part-time missing break evidence also requires review",()=>{
  const five=calculateAttendance({scheduledStart:date("09:00:00"),scheduledEnd:date("14:00:00"),maximumRecognisedSeconds:18000,employmentType:"part_time"},[event("09:00:00"),event("14:00:00")]);
  const overFive=calculateAttendance({scheduledStart:date("09:00:00"),scheduledEnd:date("14:00:01"),maximumRecognisedSeconds:18001,employmentType:"part_time"},[event("09:00:00"),event("14:00:01")]);
- assert.equal(five.expectedPunchCount,2);assert.equal(five.missingPunchCount,0);assert.ok(!five.exceptions.includes("Missing Break Punch"));
- assert.equal(overFive.expectedPunchCount,2);assert.equal(overFive.missingPunchCount,0);assert.ok(!overFive.exceptions.includes("Missing Break Punch"));
+ assert.equal(five.expectedPunchCount,4);assert.equal(five.missingPunchCount,2);assert.ok(five.exceptions.includes("Missing Break Punch"));
+ assert.equal(overFive.expectedPunchCount,4);assert.equal(overFive.missingPunchCount,2);assert.ok(overFive.exceptions.includes("Missing Break Punch"));
 });
 
 test("full-time OT counts only paired work after the original shift end and floors daily",()=>{
@@ -141,4 +141,14 @@ test("migrations enforce Monday weeks, immutable source and role boundaries", ()
   assert.ok(!attendance.includes("schedule.approve','attendance"));
   for(const contract of ["recalculate_attendance_week","adjust_attendance_result","attendance_period_locks","upsert_ngteco_person_mapping","upsert_ngteco_device_mapping"]) assert.ok(attendance.includes(contract));
   for(const contract of ["save_schedule_week","copy_schedule_week","review_shift_change_request","cannot approve their own roster","Cross-branch schedule collision"]) assert.ok(scheduling.includes(contract));
+});
+
+test("four-punch validation blocks missing, duplicate, extra and incorrectly typed evidence",()=>{
+ const valid=[event("09:05:00"),event("13:00:00"),event("14:00:00"),event("18:00:00")];
+ const normal=calculateAttendance(standard,valid);assert.equal(normal.workedSeconds,28500);assert.equal(normal.breakSeconds,3600);assert.equal(normal.shortHoursSeconds,2100);
+ for(const punches of [valid.slice(0,3),[valid[0],valid[1],valid[1],valid[3]],[...valid,event("19:00:00")],[{...valid[0],type:"out"},...valid.slice(1)]]){const r=calculateAttendance(standard,punches);assert.equal(r.workedSeconds,null);assert.equal(r.payableSeconds,null);assert.equal(r.overtimeCandidateSeconds,0);}
+});
+test("OT pending and approved are disjoint and floor to half hours",()=>{
+ const r=calculateAttendance({...standard,approvedOvertimeSeconds:1801},[event("09:00:00"),event("13:00:00"),event("14:00:00"),event("20:00:00")]);
+ assert.equal(r.overtimeCandidateSeconds,5400);assert.equal(r.overtimeSeconds,1800);assert.equal(r.pendingOvertimeSeconds,3600);
 });

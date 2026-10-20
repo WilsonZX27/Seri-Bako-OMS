@@ -1,3 +1,5 @@
+"use client";
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -38,15 +40,17 @@ type StockTransactionFormProps = {
 };
 
 export function StockTransactionForm({ items, branches, action, formId, showSubmit = true }: StockTransactionFormProps) {
+  const [itemId, setItemId] = useState("");
+  const unit = items.find(item => item.id === itemId)?.base_unit;
   return (
     <Card className="border-0 bg-transparent shadow-none md:border md:bg-card md:shadow-sm" data-stock-transaction-setup>
-      <CardContent className="p-0 md:p-5">
-        <form id={formId} action={action} className="grid gap-4 md:grid-cols-3">
-          <Field label="Transaction Date" className="order-1">
+      <CardContent className="p-3 md:p-5">
+        <form id={formId} action={action} className="grid grid-cols-2 gap-3 md:grid-cols-3">
+          <Field label="Transaction Date" className="order-1 col-span-2 md:col-span-1">
             <Input name="transaction_date" type="date" defaultValue={getToday()} required />
           </Field>
-          <Field label="Item" className="order-1">
-            <SelectNative name="item_id" required>
+          <Field label="Item" className="order-1 col-span-2 md:col-span-1">
+            <SelectNative name="item_id" required value={itemId} onChange={event => setItemId(event.target.value)}>
               <option value="">Select item</option>
               {items.map((item) => (
                 <option key={item.id} value={item.id}>
@@ -55,7 +59,7 @@ export function StockTransactionForm({ items, branches, action, formId, showSubm
               ))}
             </SelectNative>
           </Field>
-          <Field label="Branch" className="order-1">
+          <Field label="Branch" className="order-1 col-span-2 md:col-span-1">
             <SelectNative name="branch_id" defaultValue={branches[0]?.id ?? ""} required>
               {branches.map((branch) => (
                 <option key={branch.id} value={branch.id}>
@@ -79,13 +83,13 @@ export function StockTransactionForm({ items, branches, action, formId, showSubm
               <option value="out">Reduce stock</option>
             </SelectNative>
           </Field>
-          <Field label="Quantity in Base Unit" className="order-2">
+          <Field label={unit ? `Quantity · ${unit}` : "Quantity in base unit"} className="order-2">
             <Input name="quantity" type="number" step="0.0001" min="0.0001" required />
           </Field>
-          <Field label="Unit Cost" className="order-3">
+          <Field label="Unit cost · RM" className="order-3">
             <Input name="unit_cost" type="number" step="0.0001" min="0" />
           </Field>
-          <div className="order-4 md:col-span-3">
+          <div className="order-4 col-span-2 md:col-span-3">
             <Field label="Remarks">
               <Textarea name="remarks" placeholder="Reason, batch note, or manual reference." />
             </Field>

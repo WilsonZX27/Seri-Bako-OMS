@@ -1,4 +1,4 @@
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Send, PackageCheck } from "lucide-react";
 import { notFound } from "next/navigation";
 import { DocumentActionBar, DocumentActionForm, DocumentActionLink } from "@/components/document-action-bar";
 import { ActionErrorNotice } from "@/components/action-error-notice";
@@ -53,7 +53,8 @@ export default async function ProductionJobDetailPage({
   const hasPrimaryAction = canSubmit || canApprove || canPost;
   const deleteControl = <BlockedDestructiveAction buttonLabel="Delete production job" title={`Cannot delete ${job.production_job_no}`} description="Posted production has material consumption and output movements." recommendation="Posted jobs require a controlled stock correction; physical deletion is prohibited." />;
   const secondaryActions = canReject || canCancel ? <div className="space-y-2">{canReject ? <DestructiveActionDialog action={rejectProductionJob.bind(null, job.id)} label="Reject Production Job" title="Reject this production job?" description="The job will return for correction and cannot progress until resubmitted." pendingLabel="Rejecting..."><Input name="remarks" placeholder="Rejection remarks required" required /></DestructiveActionDialog> : null}{canCancel ? <DocumentActionForm action={cancelProductionJob.bind(null, job.id)} pendingLabel="Deleting unposted job..." variant="destructive">Delete unposted job</DocumentActionForm> : null}{job.status === "posted" ? deleteControl : null}</div> : deleteControl;
-  const mobilePrimaryAction = canSubmit ? <DocumentActionForm action={submitProductionJob.bind(null, job.id)} pendingLabel="Submitting...">Submit Production Job</DocumentActionForm> : canApprove ? <ConfirmActionForm action={approveProductionJob.bind(null, job.id)} label="Approve as Manager" title="Approve this production job as Manager?" description="This makes the production job ready to post to stock." pendingLabel="Approving..." mobilePrimary /> : canPost ? <DocumentActionForm action={postProductionJob.bind(null, job.id)} pendingLabel="Posting...">Post Production to Stock</DocumentActionForm> : null;
+  const nextStep = job.status === "draft" ? "Check recipe, output, and ingredient quantities before submission." : job.status === "submitted" ? "Manager approval is required before stock posting." : job.status === "approved" ? "Posting rechecks stock and creates the audited movement." : "Posted production is read-only.";
+  const mobilePrimaryAction = canSubmit ? <DocumentActionForm action={submitProductionJob.bind(null, job.id)} pendingLabel="Submitting..."><Send className="h-4 w-4" aria-hidden="true" />Submit Production Job</DocumentActionForm> : canApprove ? <ConfirmActionForm action={approveProductionJob.bind(null, job.id)} label="Approve as Manager" title="Approve this production job as Manager?" description="This makes the production job ready to post to stock." pendingLabel="Approving..." mobilePrimary /> : canPost ? <DocumentActionForm action={postProductionJob.bind(null, job.id)} pendingLabel="Posting..."><PackageCheck className="h-4 w-4" aria-hidden="true" />Post Production to Stock</DocumentActionForm> : null;
 
   return (
     <DocumentWorkspace
@@ -66,19 +67,20 @@ export default async function ProductionJobDetailPage({
       workflowSteps={productionSteps}
       currentStatus={job.status}
       mobilePrimaryAction={mobilePrimaryAction}
+      mobileActionHint={nextStep}
       mobileActivity={documentBundle ? <><AttachmentPanel documentId={documentBundle.document.id} attachments={documentBundle.attachments} /><CommentsPanel documentId={documentBundle.document.id} comments={documentBundle.comments} /><DocumentTimeline document={documentBundle.document} activities={documentBundle.activityLogs} comments={documentBundle.comments} attachments={documentBundle.attachments} /></> : null}
       mobileMoreOptions={<DocumentMoreOptions>{secondaryActions}</DocumentMoreOptions>}
       sidePanel={
         <>
           <DocumentActionSection description="Only valid next workflow actions are shown." moreOptions={secondaryActions}>
             <DocumentActionBar>
-              {canSubmit ? <DocumentActionForm action={submitProductionJob.bind(null, job.id)} pendingLabel="Submitting...">Submit Production Job</DocumentActionForm> : null}
+              {canSubmit ? <DocumentActionForm action={submitProductionJob.bind(null, job.id)} pendingLabel="Submitting..."><Send className="h-4 w-4" aria-hidden="true" />Submit Production Job</DocumentActionForm> : null}
               {canApprove ? <ConfirmActionForm action={approveProductionJob.bind(null, job.id)} label="Approve as Manager" title="Approve this production job as Manager?" description="This makes the production job ready to post to stock." pendingLabel="Approving..." mobilePrimary /> : null}
-              {canPost ? <DocumentActionForm action={postProductionJob.bind(null, job.id)} pendingLabel="Posting...">Post Production to Stock</DocumentActionForm> : null}
+              {canPost ? <DocumentActionForm action={postProductionJob.bind(null, job.id)} pendingLabel="Posting..."><PackageCheck className="h-4 w-4" aria-hidden="true" />Post Production to Stock</DocumentActionForm> : null}
             </DocumentActionBar>
             {!hasPrimaryAction ? <p className="text-sm text-muted-foreground">You can view this production job, but there is no workflow action available for your role or this status.</p> : null}
           </DocumentActionSection>
-          <DocumentSideSection title="Validation / Next Step">{job.stock_transaction_id ? <DocumentActionLink href={`/stock-transactions/${job.stock_transaction_id}`} variant="outline">View Stock Movement</DocumentActionLink> : null}<p className="text-xs text-muted-foreground">{job.status === "draft" ? "Check recipe, output, and ingredient quantities before submission." : job.status === "submitted" ? "Manager approval is required before stock posting." : job.status === "approved" ? "Posting rechecks stock and creates the audited movement." : "Posted production is read-only."}</p></DocumentSideSection>
+          <DocumentSideSection title="Validation / Next Step">{job.stock_transaction_id ? <DocumentActionLink href={`/stock-transactions/${job.stock_transaction_id}`} variant="outline">View Stock Movement</DocumentActionLink> : null}<p className="text-xs text-muted-foreground">{nextStep}</p></DocumentSideSection>
           {hasShortage && job.status !== "posted" ? (
             <DocumentSideSection title="Ingredient Warning">
               <div className="flex gap-2 rounded-md bg-warning/10 p-3 text-sm text-warning">
@@ -118,7 +120,7 @@ export default async function ProductionJobDetailPage({
       <Card>
         <CardContent className="space-y-4 p-5">
           <h2 className="text-sm font-semibold">Production Summary</h2>
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="sb-label-value-summary grid grid-cols-2 gap-x-4 gap-y-3 text-sm md:grid-cols-4 [&>div]:min-w-0 [&_p]:break-words">
             <div><p className="text-xs uppercase text-muted-foreground">Production Date</p><p className="font-medium">{formatDateOnly(job.production_date)}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Branch</p><p className="font-medium">{job.branch_name ?? "-"}</p></div>
             <div><p className="text-xs uppercase text-muted-foreground">Recipe</p><p className="font-medium">{job.recipe_no ?? "-"}</p></div>
@@ -155,7 +157,7 @@ export default async function ProductionJobDetailPage({
               <TableBody>
                 {ingredientLines.map((line) => (
                   <TableRow key={line.id}>
-                    <TableCell><p className="font-medium">{line.item_name}</p><p className="text-xs text-muted-foreground">{line.item_code}</p></TableCell>
+                    <TableCell><p className="font-medium">{line.item_name}</p><p className="text-xs text-muted-foreground sb-item-code" title={line.item_code ?? undefined}>{line.item_code}</p></TableCell>
                     <TableCell className="text-right">{formatNumber(line.required_qty)}</TableCell>
                     <TableCell className="text-right">{line.actual_qty != null ? formatNumber(line.actual_qty) : "-"}</TableCell>
                     <TableCell>{line.uom}</TableCell>
@@ -170,7 +172,7 @@ export default async function ProductionJobDetailPage({
           <div className="divide-y xl:hidden" role="list" aria-label="Ingredient consumption" data-production-job-ingredient-list>
             {ingredientLines.map((line) => (
               <article key={line.id} className="space-y-3 py-4 first:pt-1 last:pb-1" role="listitem">
-                <div className="flex items-start justify-between gap-4"><div className="min-w-0"><h3 className="font-medium leading-snug">{line.item_name}</h3><p className="mt-0.5 text-xs text-muted-foreground">{line.item_code}</p></div><div className="shrink-0 text-right"><strong>{line.actual_qty != null ? formatNumber(line.actual_qty) : "Not recorded"} {line.uom}</strong><p className="text-xs text-muted-foreground">{formatCurrency(line.line_cost)}</p></div></div>
+                <div className="flex items-start justify-between gap-4"><div className="min-w-0"><h3 className="font-medium leading-snug">{line.item_name}</h3><p className="mt-0.5 text-xs text-muted-foreground sb-item-code" title={line.item_code ?? undefined}>{line.item_code}</p></div><div className="shrink-0 text-right"><strong>{line.actual_qty != null ? formatNumber(line.actual_qty) : "—"} {line.uom}</strong><p className="text-xs text-muted-foreground">{formatCurrency(line.line_cost)}</p></div></div>
                 <dl className="grid grid-cols-2 gap-x-4 gap-y-3 rounded-md bg-secondary/35 p-3 text-xs sm:grid-cols-4"><div><dt className="text-muted-foreground">Required</dt><dd className="mt-1 font-medium">{formatNumber(line.required_qty)}</dd></div><div><dt className="text-muted-foreground">Available</dt><dd className="mt-1 font-medium">{line.stock_available_qty == null ? "Unknown" : formatNumber(line.stock_available_qty)}</dd></div><div><dt className="text-muted-foreground">Variance</dt><dd className="mt-1 font-medium">{line.variance_qty == null ? "Pending actual" : formatNumber(line.variance_qty)}</dd></div><div><dt className="text-muted-foreground">Unit cost</dt><dd className="mt-1 font-medium">{formatCurrency(line.unit_cost)}</dd></div></dl>
               </article>
             ))}
@@ -211,7 +213,7 @@ export default async function ProductionJobDetailPage({
           <div className="divide-y xl:hidden" role="list" aria-label="Production outputs" data-production-job-output-list>
             {outputLines.map((line) => (
               <article key={line.id} className="space-y-3 py-4 first:pt-1 last:pb-1" role="listitem">
-                <div className="flex items-start justify-between gap-4"><div className="min-w-0"><h3 className="font-medium leading-snug">{line.output_name}</h3><p className="mt-0.5 text-xs text-muted-foreground">{line.output_code}</p></div><div className="shrink-0 text-right"><strong>{line.actual_qty != null ? formatNumber(line.actual_qty) : "Not recorded"} {line.uom}</strong><p className="text-xs text-muted-foreground">{formatCurrency(line.line_cost)}</p></div></div>
+                <div className="flex items-start justify-between gap-4"><div className="min-w-0"><h3 className="font-medium leading-snug">{line.output_name}</h3><p className="mt-0.5 text-xs text-muted-foreground">{line.output_code}</p></div><div className="shrink-0 text-right"><strong>{line.actual_qty != null ? formatNumber(line.actual_qty) : "—"} {line.uom}</strong><p className="text-xs text-muted-foreground">{formatCurrency(line.line_cost)}</p></div></div>
                 <dl className="grid grid-cols-2 gap-4 rounded-md bg-secondary/35 p-3 text-xs"><div><dt className="text-muted-foreground">Planned</dt><dd className="mt-1 font-medium">{formatNumber(line.planned_qty)} {line.uom}</dd></div><div><dt className="text-muted-foreground">Unit cost</dt><dd className="mt-1 font-medium">{formatCurrency(line.unit_cost)}</dd></div></dl>
               </article>
             ))}

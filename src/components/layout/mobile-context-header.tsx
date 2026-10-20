@@ -12,6 +12,7 @@ const routeTitles: Record<string, RouteTitle> = {
   "/activity": { title: "Activity Log" },
   "/administration": { title: "Administration" },
   "/compliance": { title: "Compliance" },
+  "/administration/system-health": { title: "System Health", backHref: "/administration" },
   "/administration/backups": { title: "System Backup", backHref: "/administration" },
   "/administration/master-data-cleanup": { title: "Master Data Cleanup", backHref: "/administration" },
   "/branches": { title: "Branches / Outlets" },
@@ -31,6 +32,7 @@ const routeTitles: Record<string, RouteTitle> = {
   "/reports/product-margin": { title: "Product Margin", backHref: "/reports" },
   "/reports/recipe-costing": { title: "Recipe Costing", backHref: "/reports" },
   "/recipes/edit": { title: "Recipe / BOM", backHref: "/recipes" },
+  "/staffs": { title: "Employees", backHref: "/people" },
   "/stock-card": { title: "Stock Card" },
   "/stock-balances": { title: "Stock Balance", backHref: "/stock-balance" },
   "/stock-count": { title: "Stock Count" },
@@ -42,7 +44,15 @@ const routeTitles: Record<string, RouteTitle> = {
   "/uom-conversions": { title: "UOM Conversions" },
 };
 
-function pageContext(pathname: string) {
+function pageContext(pathname: string): RouteTitle {
+  if (/\/(new|edit)$/.test(pathname) && !pathname.startsWith("/asset-management/maintenance/")) {
+    const base = pathname.replace(/\/(new|edit)$/, "");
+    const context = pageContext(base);
+    return { title: `${pathname.endsWith("/new") ? "New" : "Edit"} · ${context.title}`, backHref: base };
+  }
+  if (pathname.startsWith("/asset-management/maintenance/")) {
+    return { title: pathname.endsWith("/new") ? "Report a problem" : "Maintenance request", backHref: "/asset-management?view=maintenance" };
+  }
   if (pathname === "/dashboard") {
     return { title: "Today", backHref: null };
   }

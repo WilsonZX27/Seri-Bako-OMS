@@ -65,7 +65,7 @@ export default async function SystemHealthPage({ searchParams }: { searchParams:
         <section className="overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-white">
           <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 border-b border-[var(--sb-border-soft)] px-3 py-2">
             <div><h2 className="text-sm font-semibold">Reliability incidents</h2><p className="text-xs text-[var(--sb-text-muted)]">Recovered signals remain visible for audit and are collapsed into one fingerprint.</p></div>
-            <Link href="/api/health" className="self-center text-xs font-medium text-[var(--sb-green-800)]">Health API</Link>
+            <a href="/api/health" className="self-center text-xs font-medium text-[var(--sb-green-800)]">Health API</a>
           </div>
           <div className="divide-y divide-[var(--sb-border-soft)]">
             {incidents.map((incident) => (

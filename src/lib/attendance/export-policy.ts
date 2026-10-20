@@ -12,7 +12,6 @@ type ExportRow = {
   statuses?: unknown;
 };
 
-const OT_NO_BREAK_STATUSES = new Set(["missing_break_punch", "short_break", "system_inferred_break"]);
 const STATUS_LABELS: Record<string, string> = {
   late: "Late",
   early_leave: "Early leave",
@@ -27,41 +26,35 @@ const STATUS_LABELS: Record<string, string> = {
   unpaid_leave_punch_conflict: "Punch evidence conflicts with full-day unpaid leave",
 };
 
-function isFullTime(row: ExportRow) {
-  return row.staffs?.employment_type === "full_time";
-}
-
-function hasExplicitBreak(row: ExportRow) {
-  return Boolean(row.actual_break_out && row.actual_break_in);
-}
-
 function rawPunches(row: ExportRow) {
   const calculation = row.calculation as { punches?: unknown } | null;
   return Array.isArray(calculation?.punches) ? calculation.punches.map(String) : [];
 }
 
-/** The People workbook uses clock-in/clock-out unless a break is explicitly corrected. */
+/** Preserve the four evidence points; never collapse a break to gross presence. */
 export function exportPunches(row: ExportRow) {
-  if (row.actual_first_in || row.actual_last_out || hasExplicitBreak(row)) {
-    return [row.actual_first_in, row.actual_break_out, row.actual_break_in, row.actual_last_out]
-      .filter(Boolean)
-      .map(String);
-  }
+  const corrected = [row.actual_first_in, row.actual_break_out, row.actual_break_in, row.actual_last_out];
+  if (corrected.every(Boolean)) return corrected.map(String);
   const punches = rawPunches(row);
-  return isFullTime(row) && punches.length >= 2 ? [punches[0], punches.at(-1)!] : punches;
+  return punches.length ? punches : corrected.filter(Boolean).map(String);
 }
 
 export function exportWorkedSeconds(row: ExportRow) {
-  if (isFullTime(row) && !hasExplicitBreak(row) && row.presence_seconds != null) {
-    return Number(row.presence_seconds);
-  }
-  return row.worked_seconds == null ? null : Number(row.worked_seconds);
+  const points = exportPunches(row).map(value => Date.parse(value));
+  const statuses = Array.isArray(row.statuses) ? row.statuses.map(String) : [];
+  if (row.worked_seconds == null || points.length !== 4 || points.some((value,index) => !Number.isFinite(value) || (index > 0 && value <= points[index-1])) ||
+    statuses.some(status => ["duplicate_punch", "impossible_ordering", "odd_punch_count", "system_inferred_break", "unexpected_punch_count"].includes(status))) return null;
+  return Math.floor((points[1]-points[0]+points[3]-points[2])/1000);
+}
+
+export function exportShortHoursSeconds(row: ExportRow & { late_seconds?: unknown; early_leave_seconds?: unknown; scheduled_start?: unknown; scheduled_end?: unknown }) {
+  if (exportWorkedSeconds(row) == null) return null;
+  const total = Math.max(0, Number(row.late_seconds ?? 0)) + Math.max(0, Number(row.early_leave_seconds ?? 0));
+  const span = (Date.parse(String(row.scheduled_end))-Date.parse(String(row.scheduled_start)))/1000;
+  return Number.isFinite(span) && span >= 0 ? Math.min(span,total) : total;
 }
 
 export function exportExceptionLabels(row: ExportRow) {
   const statuses = Array.isArray(row.statuses) ? row.statuses.map(String) : [];
-  const visible = isFullTime(row) && !hasExplicitBreak(row)
-    ? statuses.filter((status) => !OT_NO_BREAK_STATUSES.has(status))
-    : statuses;
-  return visible.filter(status=>!["normal","unpaid_leave"].includes(status)).map((status) => STATUS_LABELS[status] ?? status).join(", ");
+  return statuses.filter(status=>!["normal","unpaid_leave"].includes(status)).map((status) => STATUS_LABELS[status] ?? status.replaceAll("_", " ")).join(", ");
 }

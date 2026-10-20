@@ -1,3 +1,6 @@
+import { StaffSecurityPanel, StaffSecurityRail } from "@/components/staff-security-panel";
+import { StaffEmploymentEditor } from "@/components/staff-employment-editor";
+import { SubmitButton } from "@/components/ui/submit-button";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
@@ -22,7 +25,7 @@ import { detailOrNotFound } from "@/server/queries/detail";
 import { getStaffAttendanceTracking, getStaffCompTime } from "@/server/queries/attendance";
 import { CompTimeCorrectionForm } from "@/components/attendance/comp-time-correction-form";
 
-type ProfileSectionId = "overview" | "employment" | "compliance";
+type ProfileSectionId = "overview" | "employment" | "compliance" | "security";
 export default async function PeopleProfilePage({
   params,
   searchParams,
@@ -35,6 +38,7 @@ export default async function PeopleProfilePage({
     "people.compliance.manage",
     "people.compliance.document.read",
     "comp_time.submit",
+    "staffs.update",
   ]);
   const [
     message,
@@ -57,27 +61,26 @@ export default async function PeopleProfilePage({
   const activeSection: ProfileSectionId =
     section === "documents"
       ? "compliance"
-      : ["overview", "employment", "compliance"].includes(section ?? "")
+      : ["overview", "employment", "compliance", "security"].includes(section ?? "")
         ? (section as ProfileSectionId)
         : "overview";
   const attention = compliance.filter(
     (record) => record.state !== "valid",
   ).length;
-  const rail = (
+  const rail = activeSection === "security" ? <StaffSecurityRail id={id} /> : (
     <>
       <ConsoleSection title="Actions">
-        <Button asChild size="sm" className="w-full" data-mobile-primary-action>
-          <Link href={`/staffs/${staff.id}`}>Manage account & access</Link>
-        </Button>
+        {activeSection === "employment" && permissions["staffs.update"] ? <SubmitButton form="people-employment-form" className="w-full" data-mobile-primary-action>Save staff</SubmitButton> : null}
+      <Button asChild size="sm" variant="outline" className="w-full"><Link href={`/attendance/review?branch=${staffSummary?.default_branch_id ?? "select"}&employee=${encodeURIComponent(staff.full_name)}`}>Open attendance</Link></Button>
       </ConsoleSection>
       <ConsoleSection title="Profile status">
         <div className="flex items-center justify-between">
           <span className="text-muted-foreground">Employment</span>
           <StatusBadge status={staff.status} />
         </div>
-        <div className="flex items-center justify-between border-t pt-2">
+        <div className="flex items-start justify-between gap-3 border-t pt-2">
           <span className="text-muted-foreground">Compliance</span>
-          <strong>
+          <strong className="min-w-0 text-right">
             {attention
               ? `${attention} need attention`
               : "All requirements valid"}
@@ -103,7 +106,7 @@ export default async function PeopleProfilePage({
         tabletCanvas="contained"
         rightRail={rail}
         documentMode
-        tabletRailBreakpoint="lg"
+        tabletRailBreakpoint="md"
       >
         {message.error || message.success ? (
           <div
@@ -119,14 +122,15 @@ export default async function PeopleProfilePage({
         >
           {[
             ["overview", "Overview"],
-            ["employment", "Employment & access"],
+            ["employment", "Employment & Access"],
             ["compliance", "Documents"],
+            ...(permissions["staffs.update"] ? [["security", "Sign-in & Password"]] : []),
           ].map(([sectionId, label]) => (
             <Link
               key={sectionId}
               href={`/people/${id}?section=${sectionId}`}
               aria-current={activeSection === sectionId ? "page" : undefined}
-              className={`inline-flex min-h-9 shrink-0 items-center rounded-[var(--sb-radius-control)] px-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] ${activeSection === sectionId ? "bg-[var(--sb-green-50)] font-semibold text-[var(--sb-green-900)]" : "hover:bg-[var(--sb-surface-muted)]"}`}
+              className={`inline-flex min-h-9 shrink-0 items-center justify-center rounded-[var(--sb-radius-control)] border px-3 text-center sm:flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] ${activeSection === sectionId ? "border-[var(--sb-green-200)] bg-[var(--sb-green-100)] font-semibold text-[var(--sb-green-900)]" : "border-transparent text-muted-foreground hover:bg-[var(--sb-surface-muted)] hover:text-foreground"}`}
             >
               {label}
             </Link>
@@ -141,15 +145,17 @@ export default async function PeopleProfilePage({
                     label="Staff code"
                     value={staff.staff_code?.toUpperCase()}
                   />
-                  <Fact label="Email" value={staff.email?.toLowerCase()} />
+                  <Fact label="Username" value={staff.username} />
+                  <Fact label="Accessible locations" value={staffSummary?.accessible_branch_names?.join(", ")} />
+                  <Fact label="Email" value={staff.email?.endsWith("@accounts.seribako.invalid") ? undefined : staff.email?.toLowerCase()} />
                   <Fact label="Phone" value={staff.phone} />
                   <Fact label="Status" value={staff.status} capitalize />
                 </dl>
               </ProfileSection>
               <div className="grid items-stretch gap-3 lg:grid-cols-2 [&>section]:h-full">
               {compTime.allowed ? (
-                <ProfileSection id="time-off" title="Time-off balance" action={<div className="flex flex-wrap justify-end gap-2"><Button asChild size="sm" variant="outline"><Link href={`/attendance/review?branch=${staffSummary?.default_branch_id ?? "select"}&employee=${encodeURIComponent(staff.full_name)}`}>Open attendance</Link></Button>{permissions["comp_time.submit"] ? <CompTimeCorrectionForm staffId={staff.id} branchId={staffSummary?.default_branch_id??null}/> : null}</div>}>
-                  <div className="flex items-end justify-between gap-3">
+                <ProfileSection id="time-off" title="Time-off balance" action={<div className="flex flex-wrap justify-end gap-2">{permissions["comp_time.submit"] ? <CompTimeCorrectionForm staffId={staff.id} branchId={staffSummary?.default_branch_id??null}/> : null}</div>}>
+                  <div className="sb-label-value-summary">
                     <div>
                       <p className="text-xs text-muted-foreground">
                         Approved OT converted into leave minutes
@@ -157,6 +163,7 @@ export default async function PeopleProfilePage({
                       <strong className="text-2xl tabular-nums">
                         {compTime.balance} min
                       </strong>
+                      {(compTime.ledger as Array<Record<string, unknown>>).some(row => row.status === "pending" && row.transaction_kind === "correction") ? <p role="status" className="mt-2 rounded border border-amber-200 bg-amber-50 px-2 py-1.5 text-xs text-amber-900">Correction submitted and waiting for approval. It will be added to the balance after approval.</p> : null}
                     </div>
                   </div>
                   <div className="mt-3 divide-y border-t border-[var(--sb-border-soft)]">
@@ -168,7 +175,7 @@ export default async function PeopleProfilePage({
                         >
                           <span>{String(row.work_date)}</span>
                           <span className="capitalize">
-                            {String(row.transaction_kind)}
+                            {String(row.transaction_kind)}{row.status === "pending" ? <span className="mt-0.5 block text-[10px] font-medium text-amber-800">Pending approval</span> : null}
                           </span>
                           <span className="truncate text-muted-foreground">
                             {String(row.reason)}
@@ -219,12 +226,13 @@ export default async function PeopleProfilePage({
               </div>
             </>
           ) : null}
+          {activeSection === "security" ? <StaffSecurityPanel id={id} /> : null}
           {activeSection === "employment" ? (
-            <>
+            permissions["staffs.update"] ? <StaffEmploymentEditor id={id} /> : <>
               <ProfileSection
                 id="employment"
                 title="Employment & outlet assignments"
-                action={<Button asChild size="sm"><Link href={`/staffs/${staff.id}`}>Edit employment &amp; access</Link></Button>}
+
               >
                 <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
                   <Fact
@@ -317,7 +325,7 @@ export default async function PeopleProfilePage({
                       size="sm"
                       disabled={!complianceTypes.length}
                     >
-                      {"Save record & file"}
+                      {"Save"}
                     </Button>
                   }
                 >
@@ -352,8 +360,8 @@ function ProfileSection({
       id={id}
       className="min-w-0 scroll-mt-16 rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)] p-4"
     >
-      <div className="mb-3 flex min-h-9 flex-wrap items-start justify-between gap-3">
-        <h2 className="pt-2 text-sm font-semibold">{title}</h2>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] pb-3">
+        <h2 className="text-sm font-semibold">{title}</h2>
         {action ? <div className="min-w-0 max-w-full">{action}</div> : null}
       </div>
       {children}
@@ -371,7 +379,7 @@ function Fact({
 }) {
   return (
     <div>
-      <dt className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+      <dt className="text-xs font-semibold text-[var(--sb-text-muted)]">
         {label}
       </dt>
       <dd className={`mt-1 break-words text-sm ${value ? "font-medium" : "font-normal text-muted-foreground"} ${capitalize ? "capitalize" : ""}`}>
@@ -454,7 +462,7 @@ function ComplianceRecordForm({
           type="file"
           accept="application/pdf,image/png,image/jpeg,image/webp"
           required
-          className="mt-2 block w-full text-xs file:mr-2 file:min-h-9 file:rounded-[var(--sb-radius-control)] file:border-0 file:bg-[var(--sb-green-100)] file:px-3 file:text-[var(--sb-green-900)]"
+          className="mt-2 block w-full rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white p-1 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] file:mr-2 file:min-h-9 file:rounded-[var(--sb-radius-control)] file:border-0 file:bg-[var(--sb-green-100)] file:px-3 file:text-[var(--sb-green-900)]"
         />
       </label>
     </form>

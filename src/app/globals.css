@@ -904,12 +904,7 @@ details > summary { list-style: none; display: flex; align-items: center; gap: .
 details > summary::-webkit-details-marker { display: none; }
 details > summary::after { content: ""; width: .5rem; height: .5rem; flex-shrink: 0; margin-left: auto; margin-right: .25rem; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); }
 details[open] > summary::after { transform: rotate(225deg); }
-.sb-asset-check-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(8rem, 9rem); gap: .75rem; padding: 1rem; }
-.sb-asset-check-row > div:last-child { grid-column: 1 / -1; }
-@media (min-width: 1024px) {
-  .sb-asset-check-row { grid-template-columns: minmax(12rem, 2fr) 5rem minmax(10rem, 1fr) minmax(12rem, 1.5fr); align-items: start; }
-  .sb-asset-check-row > div:last-child { grid-column: auto; }
-}
+.sb-asset-check-row { display: block; padding: 10px 0; }
 
 /* Keep native select controls aligned with text inputs at every density. */
 .sb-native-select {
@@ -994,3 +989,6 @@ html[data-design-layer="v2"] :is(button, select, [role="combobox"], input:not([t
 }
 html[data-design-layer="v2"] :is(button, [role="combobox"]) { min-width: 44px; }
 }
+
+/* All native modal dialogs share the same neutral blurred scrim. */
+dialog::backdrop { background:rgb(0 0 0 / .60) !important; backdrop-filter:blur(3px) !important; }

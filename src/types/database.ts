@@ -1,6 +1,6 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
-export type UserRole = "super_admin" | "people_operations" | "finance" | "manager" | "purchasing" | "kitchen" | "outlet_supervisor" | "outlet_staff";
+export type UserRole = "super_admin" | "people_operations" | "finance" | "manager" | "purchasing" | "chef" | "kitchen" | "outlet_supervisor" | "outlet_staff";
 export type ItemStatus = "active" | "inactive";
 export type SupplierStatus = "active" | "inactive";
 export type RecordStatus = "active" | "inactive" | "archived" | "invited" | "disabled";
@@ -52,13 +52,13 @@ export type StockTransactionType =
 export type Database = {
   public: {
     Tables: {
-      asset_attachments: TableDefinition<{ id: string; company_id: string; asset_id: string; maintenance_id: string | null; location_id: string | null; created_at: string; source_key: string; source_data: Json; url: string; storage_path: string | null; verified_at: string | null; content_sha256: string | null; }>;
+      asset_attachments: TableDefinition<{ id: string; company_id: string; asset_id: string | null; maintenance_id: string | null; location_id: string | null; created_at: string; source_key: string; source_data: Json; url: string; storage_path: string | null; verified_at: string | null; content_sha256: string | null; }>;
       asset_calendar_days: TableDefinition<{ id: string; company_id: string; location_id: string; business_date: string; is_open: boolean; reason: string; created_at: string; updated_at: string; created_by: string; updated_by: string; history: Json; }>;
       asset_daily_checks: TableDefinition<{ id: string; company_id: string; asset_id: string; location_id: string; source_key: string; submission_id: string; check_date: string; result: string; quantity: number | null; author_name: string; source_data: Json; created_at: string; }>;
       asset_holdings: TableDefinition<{ id: string; created_at: string; company_id: string; asset_id: string; location_id: string; quantity: number | null; condition: string | null; status: string | null; latest_check_date: string | null; latest_check_result: string | null; latest_check_remark: string | null; updated_at: string; }>;
       asset_import_batches: TableDefinition<{ id: string; company_id: string; source_sha256: string; imported_at: string; reconciliation: Json; state: string; }>;
       asset_locations: TableDefinition<{ id: string; company_id: string; created_at: string; source_name: string; branch_id: string | null; kind: string; }>;
-      asset_maintenance: TableDefinition<{ id: string; company_id: string; asset_id: string; location_id: string; source_id: string; status: string; priority: string; description: string; author_name: string; source_data: Json; created_at: string; }>;
+      asset_maintenance: TableDefinition<{ id: string; company_id: string; asset_id: string | null; location_id: string; reported_by: string | null; source_id: string; status: string; priority: string; description: string; author_name: string; source_data: Json; created_at: string; }>;
       asset_maintenance_updates: TableDefinition<{ id: string; company_id: string; maintenance_id: string; source_id: string; author_name: string; source_data: Json; created_at: string; }>;
       asset_master_updates: TableDefinition<{ id: string; company_id: string; asset_id: string; source_id: string; author_name: string; source_data: Json; created_at: string; }>;
       asset_suppliers: TableDefinition<{ id: string; company_id: string; created_at: string; source_id: string; source_data: Json; }>;
@@ -147,6 +147,7 @@ export type Database = {
           company_id: string;
           auth_user_id: string | null;
           staff_code: string | null;
+          username: string | null;
           full_name: string;
           email: string | null;
             phone: string | null;
@@ -177,6 +178,7 @@ export type Database = {
           company_id: string;
           auth_user_id?: string | null;
           staff_code?: string | null;
+          username?: string | null;
           full_name: string;
           email?: string | null;
             phone?: string | null;
@@ -420,6 +422,9 @@ export type Database = {
           id: string;
           record_id: string;
           product_id: string;
+          daily_tracking?: "food_daily" | "food_carryover" | "beverage" | "packaging" | null;
+          usage_qty?: number | null;
+          sold_qty?: number | null;
           do_managed: boolean;
           wastage_provided: boolean;
           stockout: boolean;
@@ -441,6 +446,9 @@ export type Database = {
           id?: string;
           record_id: string;
           product_id: string;
+          daily_tracking?: "food_daily" | "food_carryover" | "beverage" | "packaging" | null;
+          usage_qty?: number | null;
+          sold_qty?: number | null;
           do_managed?: boolean;
           wastage_provided?: boolean;
           stockout?: boolean;
@@ -694,8 +702,8 @@ export type Database = {
         Relationships: [];
       };
       outlet_daily_sales_breakdowns: {
-        Row: { id: string; record_id: string; channel: "duitnow" | "credit_card" | "voucher" | "grabfood" | "foodpanda"; amount: number; created_at: string; updated_at: string };
-        Insert: { id?: string; record_id: string; channel: "duitnow" | "credit_card" | "voucher" | "grabfood" | "foodpanda"; amount?: number; created_at?: string; updated_at?: string };
+        Row: { id: string; record_id: string; channel: "visa" | "master" | "debit" | "union_pay" | "alipay" | "jcb" | "feedme_card" | "duitnow" | "bank_transfer" | "feedme_wallet" | "grabfood" | "foodpanda" | "shopee_food" | "voucher" | "credit_card"; amount: number; created_at: string; updated_at: string };
+        Insert: { id?: string; record_id: string; channel: "visa" | "master" | "debit" | "union_pay" | "alipay" | "jcb" | "feedme_card" | "duitnow" | "bank_transfer" | "feedme_wallet" | "grabfood" | "foodpanda" | "shopee_food" | "voucher" | "credit_card"; amount?: number; created_at?: string; updated_at?: string };
         Update: Partial<Database["public"]["Tables"]["outlet_daily_sales_breakdowns"]["Insert"]>;
         Relationships: [];
       };
@@ -1052,6 +1060,10 @@ export type Database = {
           product_code: string;
           product_name: string;
           category: string;
+          is_seasonal?: boolean;
+          available_from?: string | null;
+          available_until?: string | null;
+          daily_tracking?: "food_daily" | "food_carryover" | "beverage" | "packaging" | null;
           display_order: number;
           selling_unit: string;
           status: ItemStatus;
@@ -1068,6 +1080,10 @@ export type Database = {
           product_code: string;
           product_name: string;
           category: string;
+          is_seasonal?: boolean;
+          available_from?: string | null;
+          available_until?: string | null;
+          daily_tracking?: "food_daily" | "food_carryover" | "beverage" | "packaging" | null;
           display_order?: number;
           selling_unit: string;
           status?: ItemStatus;
@@ -1853,6 +1869,16 @@ export type Database = {
           },
         ];
       };
+      recipe_write_requests: {
+        Row: { company_id: string; request_key: string; actor_id: string; request: Json; recipe_id: string; created_at: string };
+        Insert: { company_id: string; request_key: string; actor_id: string; request: Json; recipe_id: string; created_at?: string };
+        Update: Partial<Database["public"]["Tables"]["recipe_write_requests"]["Insert"]>;
+        Relationships: [
+          { foreignKeyName: "recipe_write_requests_recipe_id_fkey"; columns: ["recipe_id"]; isOneToOne: false; referencedRelation: "recipes"; referencedColumns: ["id"] },
+          { foreignKeyName: "recipe_write_requests_company_id_fkey"; columns: ["company_id"]; isOneToOne: false; referencedRelation: "companies"; referencedColumns: ["id"] },
+          { foreignKeyName: "recipe_write_requests_actor_id_fkey"; columns: ["actor_id"]; isOneToOne: false; referencedRelation: "staffs"; referencedColumns: ["id"] }
+        ];
+      };
       recipe_cost_snapshots: {
         Row: {
           id: string;
@@ -2406,6 +2432,10 @@ export type Database = {
       ngteco_device_mappings: TableDefinition<{ id:string; company_id:string; source_code:string; branch_id:string; is_active:boolean; created_by:string; created_at:string }>;
       attendance_import_batches: TableDefinition<{ id:string; company_id:string; parser_profile:"view_attendance_punch"|"attendance_report"|"timecard_report"; week_start:string; file_name:string; file_hash:string; status:"validated"|"finalised"|"rolled_back"; uploader_staff_id:string; row_count:number; error_count:number; warning_count:number; source_metadata:Json; created_at:string; finalised_at:string|null }>;
       management_email_dispatches: TableDefinition<{ dedupe_key:string; company_id:string; staff_id:string; recipient_email:string; status:"claimed"|"sent"|"failed"; provider_id:string|null; error_message:string|null; created_at:string; sent_at:string|null }>;
+      schedule_workbook_rules: TableDefinition<{id:string;company_id:string;rule_key:string;branch_id:string;rule_value:Json;confirmed_by:string;confirmed_at:string}>;
+      staff_fingerprint_policies: TableDefinition<{id:string;company_id:string;staff_id:string;effective_from:string;requires_fingerprint:boolean;reason:string;confirmed_by:string;confirmed_at:string}>;
+      schedule_workbook_receipts: TableDefinition<{id:string;company_id:string;request_key:string;week_start:string;file_hash:string;source_metadata:Json;outcome:Json;imported_by:string;created_at:string}>;
+      attendance_schedule_refresh: TableDefinition<{company_id:string;staff_id:string;work_date:string;branch_id:string;source_revision:number;source_hash:string;calculated_revision:number|null;status:"pending"|"running"|"ready"|"waiting_punches"|"failed"|"needs_review";error_code:string|null;updated_at:string}>;
       schedule_import_batches: TableDefinition<{ id:string; company_id:string; week_start:string; file_name:string; file_hash:string; status:"drafted"|"published"|"superseded"; outlet_count:number; assignment_count:number; unresolved_count:number; source_metadata:Json; imported_by:string; created_at:string }>;
       attendance_raw_punch_events: TableDefinition<{ id:string; company_id:string; person_id:string; person_name:string|null; occurred_at:string; local_timestamp:string; timezone_offset:string; verify_type:string|null; source_code:string; punch_type:string|null; event_fingerprint:string; raw_row:Json; created_at:string }>;
       attendance_import_batch_events: TableDefinition<{ batch_id:string; event_id:string; source_row_number:number; disposition:"inserted"|"duplicate" }>;
@@ -2423,6 +2453,25 @@ export type Database = {
       comp_time_allocations: TableDefinition<{ id:string; company_id:string; used_transaction_id:string; earned_transaction_id:string; allocated_minutes:number; created_at:string }>;
       staff_sensitive_employment: TableDefinition<{ staff_id:string; company_id:string; passport_number:string|null; basic_salary:number|null; updated_by:string; created_at:string; updated_at:string }>;
       attendance_period_locks: TableDefinition<{ id:string; company_id:string; branch_id:string|null; week_start:string; locked_by:string; locked_at:string; unlocked_by:string|null; unlocked_at:string|null; unlock_reason:string|null }>;
+      attendance_confirmations: TableDefinition<{
+        id: string; company_id: string; staff_id: string; period_start: string; period_end: string;
+        version: number; source_hash: string; attendance: Json;
+        state: "prepared" | "checked" | "verified" | "approved" | "disputed" | "superseded";
+        prepared_by: string; prepared_at: string;
+      }>;
+      attendance_confirmation_events: TableDefinition<{
+        id: string; confirmation_id: string; actor_id: string | null; action: string;
+        branch_id: string | null; source_hash: string; reason: string | null; recorded_at: string;
+      }>;
+      employee_payslips: TableDefinition<{
+        id: string; confirmation_id: string; company_id: string; staff_id: string; version: number;
+        calculation_hash: string; currency: "MYR"; earnings: number; deductions: number; detail: Json;
+        state: "draft" | "approved" | "released" | "superseded"; calculated_by: string; calculated_at: string;
+        approved_by: string | null; approved_at: string | null; released_by: string | null; released_at: string | null;
+      }>;
+      employee_payslip_events: TableDefinition<{
+        id: string; payslip_id: string; actor_id: string | null; action: string; version: number; recorded_at: string; detail: Json;
+      }>;
     };
     Views: {
       purchase_returns_list_view: {
@@ -2575,6 +2624,10 @@ export type Database = {
       };
     };
     Functions: {
+      save_recipe_atomic: {
+        Args: { p_action: string; p_request_key: string; p_recipe_id?: string | null; p_payload?: Json; p_expected_updated_at?: string | null };
+        Returns: Json;
+      };
       get_stock_transfer_summary: {
         Args: Record<string, never>;
         Returns: Array<{ total: number; draft: number; in_transit: number; completed: number }>;
@@ -2715,6 +2768,10 @@ export type Database = {
       };
       replace_staff_access_atomic: {
         Args: { p_staff_id: string; p_role_id: string; p_default_branch_id: string; p_accessible_branch_ids?: string[]; p_status?: Database["public"]["Enums"]["record_status"] | null; p_staff_code?: string | null; p_full_name?: string | null; p_email?: string | null; p_phone?: string | null };
+        Returns: Json;
+      };
+      replace_staff_access_with_username: {
+        Args: { p_username?: string | null; p_staff_id: string; p_role_id: string; p_default_branch_id: string; p_accessible_branch_ids?: string[]; p_status?: Database["public"]["Enums"]["record_status"] | null; p_staff_code?: string | null; p_full_name?: string | null; p_email?: string | null; p_phone?: string | null };
         Returns: Json;
       };
       set_staff_status_atomic: { Args: { p_staff_id: string; p_status: Database["public"]["Enums"]["record_status"] }; Returns: void; };
@@ -3110,5 +3167,9 @@ type RequiredOperationalTable =
   | "production_delivery_orders"
   | "schedule_weeks"
   | "attendance_import_batches"
-  | "attendance_period_locks";
+  | "attendance_period_locks"
+  | "attendance_confirmations"
+  | "attendance_confirmation_events"
+  | "employee_payslips"
+  | "employee_payslip_events";
 export type DatabaseOperationalTableCoverage = Assert<RequiredOperationalTable extends keyof Database["public"]["Tables"] ? true : false>;

@@ -184,7 +184,7 @@ test("production ingredient snapshots replace the phone table with a scannable l
   assert.match(source, /sb-table-region hidden rounded-\[var\(--sb-panel-radius\)\] border md:block/);
   assert.match(source, /data-production-ingredient-list/);
   assert.match(source, /grid grid-cols-2 gap-x-4 gap-y-2 text-xs/);
-  assert.match(source, /CardContent className="grid grid-cols-2 gap-4 p-4 md:grid-cols-4/);
+  assert.match(source, /CardContent className="sb-label-value-summary grid grid-cols-2 gap-4 p-4 xl:grid-cols-4/);
 });
 
 test("supplier invoice matching uses editable phone lines instead of a nine-column table", () => {
@@ -199,12 +199,12 @@ test("supplier invoice matching uses editable phone lines instead of a nine-colu
   assert.match(source, /aria-live="polite"/);
   assert.match(source, /\{line \? <div data-supplier-invoice-line-editor>/);
   assert.doesNotMatch(source, /data-supplier-invoice-grn className="erp-surface/);
-  assert.match(source, /data-supplier-invoice-grn className="overflow-hidden border-y/);
+  assert.match(source, /data-supplier-invoice-grn className="overflow-hidden rounded-lg border/);
   assert.match(source, /Field label="Invoice Qty"/);
   assert.match(source, /grid grid-cols-2 gap-3 bg-secondary\/30 p-3 text-sm/);
 });
 
-test("outlet daily entry keeps three compact quantities in one phone row and reveals wastage details conditionally", () => {
+test("outlet daily entry uses labelled quantity rows on phones and reveals wastage details conditionally", () => {
   const source = read("src/components/outlet-daily-record-form.tsx");
   const page = read("src/app/(app)/outlet-daily-records/new/page.tsx");
   const design = read("src/app/design-system-v2.css");
@@ -333,9 +333,9 @@ test("stock adjustments use a flat phone setup and keep quantity before cost and
   const source = read("src/components/stock-transaction-form.tsx");
 
   assert.match(source, /data-stock-transaction-setup/);
-  assert.match(source, /label="Quantity in Base Unit" className="order-2"/);
-  assert.match(source, /label="Unit Cost" className="order-3"/);
-  assert.match(source, /className="order-4 md:col-span-3"/);
+  assert.match(source, /Quantity · \$\{unit\}[\s\S]*className="order-2"/);
+  assert.match(source, /label="Unit cost · RM" className="order-3"/);
+  assert.match(source, /className="order-4 col-span-2 md:col-span-3"/);
 });
 
 test("costing readiness reports use severity-first phone issue rows", () => {
@@ -362,7 +362,7 @@ test("product master editing avoids nested card boundaries on phones", () => {
   assert.match(source, /data-product-setup/);
   assert.match(source, /border-0 bg-transparent shadow-none md:border/);
   assert.match(source, /col-span-2 grid grid-cols-2 gap-3 border-y py-4/);
-  assert.match(source, /border-y py-4 md:col-span-2/);
+  assert.match(source, /col-span-2 rounded-\[var\(--sb-control-radius\)\] border bg-secondary\/30 p-3 md:col-span-1 md:col-start-2 md:p-4/);
 });
 
 test("supplier master uses a flat phone submit boundary", () => {

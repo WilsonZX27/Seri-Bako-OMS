@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { PanelRight, Plus, X } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Ellipsis, PanelRight, Plus, X } from "lucide-react";
 import { Children, cloneElement, createContext, isValidElement, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { MouseEvent, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
@@ -41,7 +42,12 @@ function withoutMobilePrimaryAction(node: ReactNode): ReactNode {
   const mapped = Children.map(node, (child) => {
     if (!isValidElement<MobileActionProps>(child)) return child;
     if (isMobilePrimaryAction(child)) return null;
-    return cloneElement(child, {}, withoutMobilePrimaryAction(child.props.children));
+    const remaining = withoutMobilePrimaryAction(child.props.children);
+    if (child.type === "section" && "data-console-section" in child.props) {
+      const body = Children.toArray(remaining).at(-1);
+      if (isValidElement<MobileActionProps>(body) && Children.toArray(body.props.children).length === 0) return null;
+    }
+    return cloneElement(child, {}, remaining);
   });
   // Slot/asChild requires its original single-element shape, not a mapped array.
   return isValidElement(node) ? mapped?.[0] ?? null : mapped;
@@ -103,6 +109,11 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
     dialog?.querySelector<HTMLElement>("button, a, input, select, textarea, [tabindex]:not([tabindex='-1'])")?.focus();
 
     function onKeyDown(event: KeyboardEvent) {
+      // Native top-layer dialogs also own Escape when Tab reaches browser chrome.
+      if (document.querySelector("dialog:modal")) return;
+      // A portalled child dialog owns its own Escape and focus loop.
+      const eventDialog = event.target instanceof Element ? event.target.closest('[role="dialog"], dialog') : null;
+      if (eventDialog && eventDialog !== dialog) return;
       if (event.key === "Escape") {
         event.preventDefault();
         setOpen(false);
@@ -193,24 +204,24 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
           <Plus className="h-6 w-6" aria-hidden="true" />
         </Link>
       ) : null}
-      {content && !mobileBarHidden && !hasCreateFab ? <div data-mobile-action-bar className={cn("sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] items-center gap-2 rounded-none border-x-0 border-b-0 bg-white/95 p-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_20px_rgba(17,30,22,0.2)]", "grid", primaryAction ? "grid-cols-2" : "grid-cols-1", "md:hidden xl:hidden")}>
+      {content && hasCreateFab ? <Button ref={triggerRef} type="button" variant="outline" data-mobile-secondary-actions className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-20 z-[var(--sb-z-sticky)] h-14 min-h-14 gap-2 rounded-[var(--sb-control-radius)] bg-white px-3 shadow-sm md:hidden" onClick={() => setOpen(true)} aria-label="Open more actions" aria-haspopup="dialog" aria-expanded={open}><PanelRight className="h-4 w-4" aria-hidden="true"/>More actions</Button> : null}
+      {content && !mobileBarHidden && !hasCreateFab ? <div data-mobile-action-bar data-compact-more={primaryAction ? "true" : undefined} className={cn("sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] items-center gap-2 rounded-none border-x-0 border-b-0 bg-white/95 p-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_20px_rgba(17,30,22,0.2)]", "grid", primaryAction ? "grid-cols-2" : "grid-cols-1", "md:hidden xl:hidden")}>
         {primaryAction ? <div data-mobile-primary-slot className="min-w-0 [&>*]:h-11 [&>*]:w-full">{primaryAction}</div> : null}
         <Button ref={triggerRef} type="button" variant={primaryAction ? "outline" : "default"} className="h-11 min-w-0 w-full justify-center gap-2" onClick={() => setOpen(true)} aria-label="Open more actions" aria-haspopup="dialog" aria-expanded={open}>
-          <PanelRight className="h-4 w-4" aria-hidden="true" />
-          {primaryAction ? "More" : "More actions"}
+          <Ellipsis className="h-5 w-5" aria-hidden="true" />{!primaryAction ? <span>More actions</span> : null}
         </Button>
       </div> : null}
-      {open && content && !mobileBarHidden ? (
-        <div className={cn("fixed inset-0 z-[var(--sb-z-dialog)] md:hidden", hasCreateFab && "hidden")}>
+      {open && content && (!mobileBarHidden || hasCreateFab) ? createPortal(
+        <div className="fixed inset-0 z-[var(--sb-z-dialog)] md:hidden">
           <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={close} aria-label="Close more actions" />
-            <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[82dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">
+            <div data-bottom-sheet ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[82dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">
             <header className="flex h-12 items-center justify-between border-b px-3">
               <h2 id={titleId} className="text-sm font-semibold">More actions</h2>
-              <Button type="button" variant="ghost" size="icon" onClick={close} aria-label="Close more actions"><X className="h-5 w-5" /></Button>
+              <Button type="button" variant="ghost" size="icon" className="focus-visible:ring-inset focus-visible:ring-offset-0" onClick={close} aria-label="Close more actions"><X className="h-5 w-5" /></Button>
             </header>
-            <div data-mobile-console-content onClick={handleMobileFormAction} className="sb-scrollbar-none grid max-h-[calc(82dvh-3rem-env(safe-area-inset-bottom))] gap-3 overflow-y-auto overscroll-contain p-3 [&>[data-console-section]]:mb-3 [&>[data-console-section]:last-child]:mb-0">{secondaryConsoleContent}</div>
+            <div data-mobile-console-content onClick={handleMobileFormAction} className="sb-scrollbar-none grid max-h-[calc(82dvh-3rem-env(safe-area-inset-bottom))] gap-3 overflow-y-auto overscroll-contain p-3">{secondaryConsoleContent}</div>
           </div>
-        </div>
+        </div>, document.body
       ) : null}
     </RightConsoleContext.Provider>
   );

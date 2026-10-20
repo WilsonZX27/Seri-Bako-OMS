@@ -18,7 +18,7 @@ export default async function ActivityPage({ searchParams }: { searchParams: Pro
 
   return (
     <>
-      <PageHeader title="Activity" description="Recent operational updates and system actions visible to your role." />
+      <PageHeader title="Activity Log" description="Recent operational updates and system actions visible to your role." />
       <WorkspaceGrid
         hideMobileConsole
         rightRail={

@@ -1,3 +1,7 @@
+## v9.2.120 (Preview) — local closure batch
+
+The next Preview review combines local-only availability states, scoped PR and Daily Records refinements, asset metric grouping, notification alignment, and an expanded viewport audit. Production behavior and remaining evidence limits are listed in `docs/releases/preview-v9.2.120-local-closure.md`.
+
 ## v9.2.119 (unreleased) — operational UI review candidate
 
 Scoped list, notification, and asset inspection refinements are available for Preview review. Local verification scope and remaining gaps are recorded in `docs/releases/preview-v9.2.119-ui-review.md`.

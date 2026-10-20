@@ -1,3 +1,7 @@
+## v9.2.120 (Preview) — local closure batch
+
+The first-batch UI keeps its approved compact type and responsive controls. Phone asset metrics use three columns; the 768px PR first frame reserves space for complete filter labels. Remaining shared-header layout shift and role-matrix drift are recorded in `docs/qa/2026-10-21-closure.md`.
+
 ## v9.2.119 (unreleased) — operational UI review candidate
 
 The current Preview candidate retains the green theme and scopes compact list, status, icon, and asset inspection styles to their owning components. See `docs/releases/preview-v9.2.119-ui-review.md` for the checked viewports and limits.

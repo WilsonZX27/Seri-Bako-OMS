@@ -14,7 +14,8 @@ const roleRoutes = {
   finance: "/supplier-invoices",
   manager: "/purchase-requests",
   purchasing: "/purchase-orders",
-  kitchen: "/production/jobs",
+  chef: "/production/jobs",
+  kitchen: "/asset-management?view=checklist",
   outlet: "/outlet-daily-records",
 };
 const migratedRoutes = [

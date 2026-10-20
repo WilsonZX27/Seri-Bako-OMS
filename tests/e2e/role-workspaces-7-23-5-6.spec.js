@@ -9,6 +9,7 @@ const roles = {
   finance: "Finance",
   manager: "Manager",
   purchasing: "Purchasing",
+  chef: "Chef",
   kitchen: "Kitchen",
   outlet: "Outlet Staff",
 };
@@ -51,21 +52,26 @@ for (const [role, roleLabel] of Object.entries(roles)) {
       });
     }
 
-    await page.getByRole("button", { name: /open workspace updates/i }).click();
-    await expect(page.getByText("Workspace Updates", { exact: true })).toBeVisible();
-    await expect(page.locator('[data-topbar-activity-menu] a[href="/activity"]')).toBeVisible();
-    const notificationHrefs = await page.locator("[data-topbar-activity-menu] section").nth(1).locator("a").evaluateAll((links) => [...new Set(links.map((link) => link.getAttribute("href")).filter(Boolean))]);
-    expect(notificationHrefs).not.toContain("#");
-    for (const href of notificationHrefs.slice(0, 5)) {
-      await page.goto(href, { waitUntil: "domcontentloaded" });
-      await expect(page).toHaveURL(new RegExp(`${href.split("?")[0]}(?:\\?|$)`));
+    if (role === "kitchen") {
+      await expect(page.getByRole("button", { name: /open workspace updates/i })).toHaveCount(0);
+    } else {
+      await page.getByRole("button", { name: /open workspace updates/i }).click();
+      await expect(page.getByText("Workspace Updates", { exact: true })).toBeVisible();
+      await expect(page.locator('[data-topbar-activity-menu] a[href="/activity"]')).toBeVisible();
+      const notificationHrefs = await page.locator("[data-topbar-activity-menu] section").nth(1).locator("a").evaluateAll((links) => [...new Set(links.map((link) => link.getAttribute("href")).filter(Boolean))]);
+      expect(notificationHrefs).not.toContain("#");
+      for (const href of notificationHrefs.slice(0, 5)) {
+        await page.goto(href, { waitUntil: "domcontentloaded" });
+        await expect(page).toHaveURL(new RegExp(`${href.split("?")[0]}(?:\\?|$)`));
+      }
     }
 
     await page.goto("/activity", { waitUntil: "domcontentloaded" });
-    await expect(page).toHaveURL(/\/activity/);
+    if (role === "kitchen") await expect(page).not.toHaveURL(/\/activity/);
+    else await expect(page).toHaveURL(/\/activity/);
     await expect(page.locator("body")).not.toContainText(/Application error|Internal Server Error/i);
 
-    if (!["peopleOperations", "outlet"].includes(role)) {
+    if (!["peopleOperations", "outlet", "kitchen"].includes(role)) {
       for (const route of ["/procurement", "/inventory"]) {
         await page.goto(route, { waitUntil: "domcontentloaded" });
         await expect(page).toHaveURL(new RegExp(`${route}$`));
@@ -77,6 +83,7 @@ for (const [role, roleLabel] of Object.entries(roles)) {
       : role === "peopleOperations" ? ["/procurement", "/inventory", "/supplier-invoices", "/administration/backups"]
       : role === "finance" ? ["/purchase-requests?status=manager_review", "/administration/backups"]
       : role === "manager" ? ["/supplier-invoices", "/reports/recipe-costing", "/administration/backups"]
+      : role === "kitchen" ? ["/procurement", "/inventory", "/activity", "/supplier-invoices", "/reports/recipe-costing", "/purchase-requests", "/items", "/stock-balance", "/production/jobs", "/administration/backups"]
       : ["/supplier-invoices", "/reports/recipe-costing", "/administration/backups"];
     for (const route of denied) {
       await page.goto(route, { waitUntil: "domcontentloaded" });

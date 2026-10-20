@@ -1,4 +1,4 @@
-> Local candidate — 2026-10-20: migrations reviewed through `367`; forward-only migration 历史已到 `367`. Migration 367 adds the seasonal-product flag and marks the listed company products; reviewed from source only, not applied to Production. v9.2.107 remains unreleased and latest Preview status is unverified.
+> Local candidate — 2026-10-20: migrations reviewed through `368`; forward-only migration 历史已到 `368`. Migration 368 restricts Kitchen to assigned asset checks and self-service access while assigning Staff Codes 5 and 57 to Chef; source-reviewed, not applied to Production. v9.2.107 remains unreleased and latest Preview status is unverified.
 
 > Local candidate — 2026-10-19: migrations reviewed through `366`; forward-only migration 历史已到 `366`. Chef and unique username login are local changes pending database verification and release.
 

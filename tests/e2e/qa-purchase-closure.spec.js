@@ -28,7 +28,7 @@ test.describe("QA- procurement payment closure", () => {
     const company = (await must(admin.from("companies").select("id").eq("status", "active").limit(1).single(), "company")).id;
     const branch = await must(admin.from("branches").select("id").eq("company_id", company).eq("status", "active").limit(1).single(), "branch");
     const owner = await must(admin.from("staffs").select("id").eq("email", process.env.TEST_SUPER_ADMIN_EMAIL).single(), "owner staff");
-    const kitchen = await must(admin.from("staffs").select("id").eq("email", process.env.TEST_KITCHEN_EMAIL).single(), "kitchen staff");
+    const chef = await must(admin.from("staffs").select("id").eq("email", process.env.TEST_CHEF_EMAIL).single(), "chef staff");
     const sequenceRows = [];
     for (const [document_type, prefix] of [["purchase_request", "PR"], ["purchase_order", "PO"], ["goods_receiving", "GRN"], ["supplier_invoice", "INV"], ["payment_schedule", "PAY"]]) {
       const existing = await must(admin.from("document_sequences").select("id").eq("company_id", company).eq("document_type", document_type).is("deleted_at", null).limit(1), `sequence lookup ${document_type}`);
@@ -97,7 +97,7 @@ test.describe("QA- procurement payment closure", () => {
       remarks: `QA fixture ${suffix}`,
       reference_type: "qa_fixture",
     }).select("id").single(), "opening stock");
-    fixture = { company, branch: branch.id, owner: owner.id, kitchen: kitchen.id, supplier: supplier.id, item: item.id, itemCode: item.item_code, itemName: "QA-采购测试项目-中文/Malay & <safe>", supplierItem: supplierItem.id, opening: opening.id, sequenceRows, suffix };
+    fixture = { company, branch: branch.id, owner: owner.id, chef: chef.id, supplier: supplier.id, item: item.id, itemCode: item.item_code, itemName: "QA-采购测试项目-中文/Malay & <safe>", supplierItem: supplierItem.id, opening: opening.id, sequenceRows, suffix };
   });
 
   test.afterAll(async () => {
@@ -148,9 +148,9 @@ test.describe("QA- procurement payment closure", () => {
     for (const id of fixture.sequenceRows ?? []) await admin.from("document_sequences").delete().eq("id", id);
   });
 
-  test("kitchen creates and submits a QA PR to Manager Review", async ({ page }) => {
+  test("Chef creates and submits a QA PR to Manager Review", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
-    await login(page, "kitchen");
+    await login(page, "chef");
     await page.goto("/purchase-requests/new", { waitUntil: "domcontentloaded" });
     await page.waitForLoadState("networkidle");
     // Supplier is a required request-level suggestion even when its branch
@@ -253,22 +253,22 @@ test.describe("QA- procurement payment closure", () => {
       current_step: "Ready to Convert",
       related_entity_type: "purchase_request",
       related_entity_id: duplicatePrId,
-      created_by: fixture.kitchen,
-      updated_by: fixture.kitchen,
+      created_by: fixture.chef,
+      updated_by: fixture.chef,
     }), "duplicate PR document");
     await must(admin.from("purchase_requests").insert({
       id: duplicatePrId,
       company_id: fixture.company,
       document_id: duplicateDocumentId,
       request_no: `QA-DUP-PR-${fixture.suffix}`,
-      requested_by: fixture.kitchen,
+      requested_by: fixture.chef,
       request_date: new Date().toISOString().slice(0, 10),
       priority: "normal",
       branch_id: fixture.branch,
       status: "ready_to_convert",
       remarks: "Disposable duplicate PO conversion boundary fixture.",
-      created_by: fixture.kitchen,
-      updated_by: fixture.kitchen,
+      created_by: fixture.chef,
+      updated_by: fixture.chef,
     }), "duplicate PR");
     await must(admin.from("purchase_request_lines").insert({
       purchase_request_id: duplicatePrId,
@@ -341,7 +341,7 @@ test.describe("QA- procurement payment closure", () => {
     await expect(page.locator("body")).toContainText(/Sent to Supplier|Sent/i);
 
     await logout(page);
-    await login(page, "kitchen");
+    await login(page, "chef");
     await page.goto(`/goods-receivings/new?po_id=${created.poId}`, { waitUntil: "domcontentloaded" });
     const receivingSetupToggle = page.locator('button[aria-controls="goods-receiving-setup-fields"]');
     const deliveryOrderInput = page.locator('input[name="delivery_order_no"]:not([type="hidden"])');

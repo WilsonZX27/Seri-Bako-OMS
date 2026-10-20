@@ -11,8 +11,9 @@ test("outlet daily rows retain the next operational step and wastage signal on p
 
   assert.match(source, /outletProgress\(row\)/);
   assert.match(source, /wastageDisplay\(row\)/);
-  assert.match(source, /\["Received", <OperationalValue key="received-value" display=\{receivedDisplay\(row\)\} \/>\]/);
-  assert.match(source, /receivedDisplay\(row\)/);
+  assert.match(source, /label:"Received",icon:ClipboardCheck,value:receivedDisplay\(row\)\.value/);
+  assert.match(source, /Today<\/span>/);
+  assert.match(source, /grid w-full grid-cols-3 divide-x/);
 });
 
 test("production jobs use the shared workspace status rail and reserve shared FAB clearance", () => {
@@ -257,7 +258,8 @@ test("low-stock PR creation uses selectable phone rows instead of a five-column 
   assert.match(source, /Select all visible/);
   assert.match(source, /data-low-stock-pr-quantity/);
   assert.match(source, /\{isSelected \? <span className="col-span-2"/);
-  assert.match(source, /label="Qty for PR"/);
+  assert.doesNotMatch(source, /label="Qty for PR"/);
+  assert.match(source, /label={`Quantity for \$\{item\.item_name\}`}/);
   assert.match(source, /Suggested <strong/);
   assert.match(source, /bg-\[var\(--sb-green-900\)\]/);
   assert.doesNotMatch(source, /var\(--sb-green\)/);

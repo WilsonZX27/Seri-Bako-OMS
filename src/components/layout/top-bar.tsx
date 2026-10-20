@@ -12,8 +12,8 @@ import { Suspense } from "react";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-async function WorkspaceUpdates({ activityPromise }: { activityPromise: ReturnType<typeof GetTopBarActivity> }) {
-  return <TopBarActivityMenu data={await activityPromise} />;
+async function WorkspaceUpdates({ activityPromise, canOpenActivity }: { activityPromise: ReturnType<typeof GetTopBarActivity>; canOpenActivity: boolean }) {
+  return <TopBarActivityMenu data={await activityPromise} canOpenActivity={canOpenActivity} />;
 }
 
 async function MobileSidebarWithAttention({ role, permissionMap, companyName, companyLogoUrl, activityPromise }: { role: UserRole; permissionMap: Record<string, boolean>; companyName: string; companyLogoUrl: string | null; activityPromise: ReturnType<typeof GetTopBarActivity> }) {
@@ -36,9 +36,9 @@ export function TopBar({ permissionMap, role, companyName, companyLogoUrl, displ
         <div data-testid="topbar-search-region" className="hidden md:block">
           <GlobalSearch permissionMap={permissionMap} />
         </div>
-        <Suspense fallback={<Button type="button" variant="ghost" size="icon" disabled aria-label="Loading workspace updates" aria-busy="true"><Bell className="h-5 w-5" /></Button>}>
-          <WorkspaceUpdates activityPromise={activityPromise} />
-        </Suspense>
+        {role !== "kitchen" ? <Suspense fallback={<Button type="button" variant="ghost" size="icon" disabled aria-label="Loading workspace updates" aria-busy="true"><Bell className="h-5 w-5" /></Button>}>
+          <WorkspaceUpdates activityPromise={activityPromise} canOpenActivity />
+        </Suspense> : null}
         <div className="hidden md:block"><AccountMenu displayName={displayName} roleLabel={getRoleDisplayLabel(role)} initials={initials} /></div>
       </div>
     </header>

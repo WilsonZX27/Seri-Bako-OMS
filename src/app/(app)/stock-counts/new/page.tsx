@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { autosaveNewStockCount, createStockCount } from "@/server/actions/stock-counts";
+import { autosaveNewStockCount, createStockCount, updateStockCountDraft } from "@/server/actions/stock-counts";
 import { getBranchesForSelect, getItemsForSelect } from "@/server/queries/common";
 import { getStockCountSeedLines } from "@/server/queries/stock-counts";
 import { logServerError } from "@/server/observability/logger";
@@ -44,7 +44,7 @@ export default async function NewStockCountPage({ searchParams }: { searchParams
         </div>}
       >
         <ActionErrorNotice message={filters.error} />
-        {sourceUnavailable ? <Card role="status"><CardContent className="p-5"><EmptyState title="Starting balances unavailable" description="Verified branch balances could not be loaded. Retry before entering a count; no zero values have been substituted." action={{ href: filters.branch_id ? `/stock-counts/new?branch_id=${encodeURIComponent(filters.branch_id)}` : "/stock-counts/new", label: "Retry" }} /></CardContent></Card> : <StockCountForm formId={formId} branches={branches} selectedBranchId={selectedBranchId} seedLines={seedLines} action={createStockCount} autosaveAction={autosaveNewStockCount} itemCatalog={items} allowAddItem />}
+        {sourceUnavailable ? <Card role="status"><CardContent className="p-5"><EmptyState title="Starting balances unavailable" description="Verified branch balances could not be loaded. Retry before entering a count; no zero values have been substituted." action={{ href: filters.branch_id ? `/stock-counts/new?branch_id=${encodeURIComponent(filters.branch_id)}` : "/stock-counts/new", label: "Retry" }} /></CardContent></Card> : <StockCountForm formId={formId} branches={branches} selectedBranchId={selectedBranchId} seedLines={seedLines} action={createStockCount} updateDraftAction={updateStockCountDraft} autosaveAction={autosaveNewStockCount} itemCatalog={items} allowAddItem />}
       </DocumentWorkspace>
   );
 }

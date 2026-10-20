@@ -1,7 +1,7 @@
 const { test, expect } = require("@playwright/test");
 const { hasAccount, login, missingAccountVars } = require("./helpers");
 
-const roles = ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outlet"];
+const roles = ["superAdmin", "finance", "manager", "purchasing", "chef", "kitchen", "outlet"];
 const widths = [1440, 1024, 768, 430, 390, 360];
 
 function collectCriticalErrors(page) {
@@ -64,7 +64,8 @@ for (const role of roles) {
       finance: "/supplier-invoices",
       manager: "/purchase-requests?status=manager_review",
       purchasing: "/purchase-orders",
-      kitchen: "/purchase-requests/new",
+      chef: "/purchase-requests/new",
+      kitchen: "/asset-management?view=checklist",
       outlet: "/outlet-daily-records/new",
     };
     await page.goto(routeByRole[role], { waitUntil: "domcontentloaded" });
@@ -78,7 +79,7 @@ for (const role of roles) {
       }
     }
     if (role === "finance") await expect(page.getByRole("button", { name: "Approve as Manager" })).toHaveCount(0);
-    if (["kitchen", "outlet"].includes(role)) await expect(page.getByText(/Record Payment|Approve as Finance|Owner controls/i)).toHaveCount(0);
+    if (["chef", "kitchen", "outlet"].includes(role)) await expect(page.getByText(/Record Payment|Approve as Finance|Owner controls/i)).toHaveCount(0);
     expect(errors).toEqual([]);
   });
 }

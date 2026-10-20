@@ -3,7 +3,7 @@ const path = require("path");
 const { test, expect } = require("@playwright/test");
 const { hasAccount, requireAccount } = require("./helpers");
 
-const roles = ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outlet"];
+const roles = ["superAdmin", "finance", "manager", "purchasing", "chef", "kitchen", "outlet"];
 const evidence = path.join(process.cwd(), "test-results", "dashboard-current-role-viewport-matrix");
 
 async function measureHorizontalOverflow(page) {

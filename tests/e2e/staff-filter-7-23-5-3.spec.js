@@ -1,7 +1,7 @@
 const { test, expect } = require("@playwright/test");
 const { account, hasAccount, login, missingAccountVars } = require("./helpers");
 
-const roles = ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outlet"];
+const roles = ["superAdmin", "finance", "manager", "purchasing", "chef", "kitchen", "outlet"];
 const widths = [1440, 1024, 768, 430, 390, 360];
 const filterRoutes = ["/items", "/purchase-requests", "/purchase-orders", "/supplier-invoices"];
 
@@ -23,7 +23,7 @@ for (const role of roles) {
   });
 }
 
-test("Staff list, detail, create and edit controls use one six-role catalogue", async ({ page }) => {
+test("Staff list, detail, create and edit controls use the canonical role catalogue", async ({ page }) => {
   test.skip(!hasAccount("superAdmin"), `Missing Owner credentials: ${missingAccountVars("superAdmin").join(", ")}`);
   await login(page, "superAdmin");
   await page.goto("/staffs", { waitUntil: "domcontentloaded" });
@@ -43,7 +43,7 @@ test("Staff list, detail, create and edit controls use one six-role catalogue", 
   await expect(roleSelect).toBeVisible();
   await expect(branchSelect).toBeVisible();
   await roleSelect.click();
-  await expect(page.getByRole("option")).toHaveText(["Super Admin / Owner", "Finance", "Manager", "Purchasing", "Kitchen", "Outlet Staff"]);
+  await expect(page.getByRole("option")).toHaveText(["Super Admin / Owner", "People Operations", "Finance", "Manager", "Purchasing", "Chef", "Kitchen", "Outlet Supervisor", "Outlet Staff"]);
   await page.keyboard.press("Escape");
   await expect(roleSelect).toBeFocused();
   await branchSelect.focus();

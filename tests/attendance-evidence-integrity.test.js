@@ -52,7 +52,7 @@ test("attendance home uses one bounded database summary instead of loading raw p
   assert.match(migration, /create or replace function public\.get_attendance_workspace_summary/);
   const workspaceBody = queries.slice(queries.indexOf("export async function getAttendanceWorkspace"), queries.indexOf("export async function getSchedulePlanner"));
   assert.doesNotMatch(workspaceBody, /attendance_raw_punch_events/);
-  assert.doesNotMatch(workspaceBody, /hasPermission/);
+  assert.match(workspaceBody, /hasPermission\("attendance\.read"\)/);
   assert.match(attendancePage, /<Suspense[\s\S]+Loading your published schedule/);
 });
 

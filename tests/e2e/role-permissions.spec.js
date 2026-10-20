@@ -4,8 +4,20 @@ const { login } = require("./helpers");
 test("kitchen cannot see restricted approval controls", async ({ page }) => {
   test.skip(!process.env.TEST_KITCHEN_EMAIL || !process.env.TEST_KITCHEN_PASSWORD, "Missing kitchen test credentials.");
   expect(await login(page, "kitchen")).toBe(true);
+  await page.goto("/asset-management?view=checklist");
+  await expect(page.getByRole("heading", { name: /asset management/i })).toBeVisible();
   await page.goto("/purchase-requests");
+  await expect(page).not.toHaveURL(/\/purchase-requests$/);
   await expect(page.getByRole("button", { name: /manager approve|complete purchasing review|convert to purchase order/i })).toHaveCount(0);
+});
+
+test("Chef retains former Kitchen operational access", async ({ page }) => {
+  test.skip(!process.env.TEST_CHEF_EMAIL || !process.env.TEST_CHEF_PASSWORD, "Missing Chef test credentials.");
+  expect(await login(page, "chef")).toBe(true);
+  for (const [route, heading] of [["/production/jobs", /production/i], ["/stock-counts", /stock count/i], ["/purchase-requests", /purchase requests/i]]) {
+    await page.goto(route, { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { name: heading }).first()).toBeVisible();
+  }
 });
 
 for (const role of ["kitchen", "purchasing", "finance"]) {
@@ -14,8 +26,13 @@ for (const role of ["kitchen", "purchasing", "finance"]) {
     const passwordKey = `TEST_${role === "purchasing" ? "PURCHASING" : role.toUpperCase()}_PASSWORD`;
     test.skip(!process.env[emailKey] || !process.env[passwordKey], `Missing ${role} test credentials.`);
     expect(await login(page, role)).toBe(true);
-    await page.goto("/purchase-requests?status=manager_review");
-    await expect(page.getByRole("button", { name: /manager approve/i })).toHaveCount(0);
+    if (role === "kitchen") {
+      await page.goto("/purchase-requests?status=manager_review");
+      await expect(page).not.toHaveURL(/\/purchase-requests/);
+    } else {
+      await page.goto("/purchase-requests?status=manager_review");
+      await expect(page.getByRole("button", { name: /manager approve/i })).toHaveCount(0);
+    }
   });
 }
 

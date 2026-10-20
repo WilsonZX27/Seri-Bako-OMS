@@ -8,8 +8,10 @@ import { SelectControl } from "@/components/ui/select-control";
 
 export function PublishedScheduleList({
   shifts,
+  allowRequests = true,
 }: {
   shifts: Awaited<ReturnType<typeof getOwnPublishedShifts>>;
+  allowRequests?: boolean;
 }) {
   const [outlet, setOutlet] = useState("all");
   const outlets = [
@@ -69,7 +71,7 @@ export function PublishedScheduleList({
                           : shift.assignment_kind.toUpperCase()}
                       </span>
                     </div>
-                    <ShiftRequestButton assignmentId={shift.id} />
+                    {allowRequests ? <ShiftRequestButton assignmentId={shift.id} /> : null}
                   </li>
                 );
               })}

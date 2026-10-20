@@ -290,14 +290,14 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
               </div>
               {groupBySupplier(visibleItems).map(([supplierId, supplierItems]) => <div key={`mobile-supplier-group-${supplierId}`}>
                 <div className="bg-secondary/30 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-muted)]">
-                  {supplierItems[0]?.supplier_name ?? "Supplier mapping missing"}
+                  <span className="block truncate" title={supplierItems[0]?.supplier_name ?? "Supplier mapping missing"}>{supplierItems[0]?.supplier_name ?? "Supplier mapping missing"}</span>
                 </div>
                 {supplierItems.map((item) => {
                 const key = rowKey(item);
                 const isSelected = Boolean(selected[key]);
                 const requestedQty = quantities[key] ?? String(item.suggested_reorder_qty);
                 return (
-                  <div key={key} className="p-3 first:pt-2 last:pb-2" data-low-stock-pr-line data-selected={isSelected ? "true" : "false"}>
+                  <div key={key} className="border-t border-[var(--sb-border-soft)] px-3 py-2.5 first:pt-2 last:pb-2" data-low-stock-pr-line data-selected={isSelected ? "true" : "false"}>
                     <span className="flex items-start gap-3">
                       <input type="checkbox" aria-label={`Select ${item.item_code}`} checked={isSelected} onChange={() => toggleItem(key)} disabled={!branchSelected} className="mt-1 h-4 w-4 shrink-0" />
                       <span className="min-w-0 flex-1">
@@ -308,7 +308,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
                     <span className="mt-3 grid grid-cols-2 gap-3">
                       <span className="text-xs text-muted-foreground">Current <strong className="block text-sm text-foreground">{item.current_stock} {item.base_unit}</strong></span>
                       <span className="text-xs text-muted-foreground">Suggested <strong className="block text-sm text-foreground">{item.suggested_reorder_qty} {item.purchase_unit || item.base_unit}</strong></span>
-                      {isSelected ? <span className="col-span-2" data-low-stock-pr-quantity><Field label="Qty for PR"><div className="flex items-center gap-1.5"><QuantityStepper value={requestedQty} uom={null} step={0.0001} density="touch" label={`Quantity for ${item.item_name}`} onChange={(value) => setItemQty(key, value)} className="min-w-0 flex-1" /><SelectNative aria-label={`Purchase UOM for ${item.item_name}`} value={uoms[key] ?? item.purchase_unit ?? item.base_unit ?? "PCS"} onChange={(event) => setItemUom(key, event.target.value)} className="h-11 w-20 px-1.5 text-xs">{uomOptionsWithCurrent(item.purchase_unit || item.base_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}</SelectNative></div></Field></span> : null}
+                      {isSelected ? <span className="col-span-2" data-low-stock-pr-quantity><div className="flex items-center gap-1.5" aria-label={`Purchase request quantity for ${item.item_name}`}><QuantityStepper value={requestedQty} uom={null} step={0.0001} density="touch" label={`Quantity for ${item.item_name}`} onChange={(value) => setItemQty(key, value)} className="min-w-0 flex-1" /><SelectNative aria-label={`Purchase UOM for ${item.item_name}`} value={uoms[key] ?? item.purchase_unit ?? item.base_unit ?? "PCS"} onChange={(event) => setItemUom(key, event.target.value)} className="h-11 w-20 px-1.5 text-xs">{uomOptionsWithCurrent(item.purchase_unit || item.base_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}</SelectNative></div></span> : null}
                     </span>
                   </div>
                 );

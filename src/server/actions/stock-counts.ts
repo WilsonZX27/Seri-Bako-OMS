@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { isMockMode } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { stockCountSchema } from "@/lib/validations/stock-count";
@@ -26,6 +25,7 @@ export type StockCountAutosaveResult = {
   retryable?: boolean;
   operationId?: string;
 };
+export type StockCountSaveResult = { ok: boolean; id?: string; href?: string; error?: string };
 
 function formatStockCountPostingError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error ?? "");
@@ -157,9 +157,17 @@ async function createStockCountRecord(formData: FormData) {
 async function updateStockCountDraftRecord(id: string, formData: FormData, options: { revalidate?: boolean } = {}) {
   const countId = stockCountIdSchema.parse(id);
   const payload = extractStockCount(formData);
-  const lineIds = formData.getAll("line_id").map(String);
+  let lineIds = formData.getAll("line_id").map(String);
   if (lineIds.length !== payload.lines.length || lineIds.some((lineId) => !z.uuid().safeParse(lineId).success)) {
-    throw new Error("Draft line identifiers are missing. Refresh the count before saving.");
+    if (isMockMode()) throw new Error("Draft line identifiers are missing. Refresh the count before saving.");
+    const supabase = await createClient();
+    const { data, error } = await supabase.from("stock_count_lines").select("id,item_id").eq("stock_count_id", countId);
+    if (error || !data) throw new Error(error?.message ?? "Draft line identifiers are unavailable. Refresh the count before saving.");
+    const lineIdsByItem = new Map(data.map((line) => [line.item_id, line.id]));
+    if (lineIdsByItem.size !== payload.lines.length || payload.lines.some((line) => !lineIdsByItem.has(line.item_id))) {
+      throw new Error("Draft items changed. Refresh the count before saving.");
+    }
+    lineIds = payload.lines.map((line) => String(lineIdsByItem.get(line.item_id)));
   }
   if (!isMockMode()) {
     const supabase = await createClient();
@@ -178,29 +186,27 @@ async function updateStockCountDraftRecord(id: string, formData: FormData, optio
   return countId;
 }
 
-export async function createStockCount(formData: FormData) {
-  await requirePermissionOrRedirect("stock_count.create", "/stock-counts/new");
+export async function createStockCount(formData: FormData): Promise<StockCountSaveResult> {
   try {
+    await requirePermission("stock_count.create");
     const createdId = await createStockCountRecord(formData);
     const afterCreateAction = z.enum(["add-item", "replace", "remove"]).safeParse(formData.get("after_create_action"));
     const afterCreateItemId = z.string().uuid().safeParse(formData.get("after_create_item_id"));
-    if (afterCreateAction.success && afterCreateAction.data === "add-item") redirect(`/stock-counts/${createdId}?open=add-item`);
-    if (afterCreateAction.success && afterCreateItemId.success) redirect(`/stock-counts/${createdId}?open=${afterCreateAction.data}&item_id=${afterCreateItemId.data}`);
-    redirect(`/stock-counts/${createdId}`);
+    if (afterCreateAction.success && afterCreateAction.data === "add-item") return { ok: true, id: createdId, href: `/stock-counts/${createdId}?open=add-item` };
+    if (afterCreateAction.success && afterCreateItemId.success) return { ok: true, id: createdId, href: `/stock-counts/${createdId}?open=${afterCreateAction.data}&item_id=${afterCreateItemId.data}` };
+    return { ok: true, id: createdId, href: `/stock-counts/${createdId}` };
   } catch (error) {
-    rethrowRedirect(error);
-    safeRedirectWithMessage("/stock-counts/new", "error", formatStockCountDraftError(error, "Could not create this stock count."));
+    return { ok: false, error: formatStockCountDraftError(error, "Could not create this stock count.", formData) };
   }
 }
 
-export async function updateStockCountDraft(id: string, formData: FormData) {
-  await requirePermissionOrRedirect("stock_count.update", `/stock-counts/${id}`);
+export async function updateStockCountDraft(id: string, formData: FormData): Promise<StockCountSaveResult> {
   try {
+    await requirePermission("stock_count.update");
     const countId = await updateStockCountDraftRecord(id, formData);
-    redirect(`/stock-counts/${countId}`);
+    return { ok: true, id: countId, href: `/stock-counts/${countId}` };
   } catch (error) {
-    rethrowRedirect(error);
-    safeRedirectWithMessage(`/stock-counts/${id}`, "error", formatStockCountDraftError(error, "Could not save this stock count draft."));
+    return { ok: false, error: formatStockCountDraftError(error, "Could not save this stock count draft.", formData) };
   }
 }
 

@@ -6,6 +6,7 @@ const terminalRoutes = {
   manager: "/dashboard",
   finance: "/dashboard",
   purchasing: "/dashboard",
+  chef: "/dashboard",
   kitchen: "/dashboard",
   outlet: "/dashboard",
 };

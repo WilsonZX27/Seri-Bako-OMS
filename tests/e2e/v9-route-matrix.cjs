@@ -4,13 +4,14 @@ const { execFileSync } = require("node:child_process");
 
 const MISSING_ID = "00000000-0000-4000-8000-000000000000";
 
-const roles = ["superAdmin", "peopleOperations", "finance", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"];
+const roles = ["superAdmin", "peopleOperations", "finance", "manager", "purchasing", "chef", "kitchen", "outletSupervisor", "outlet"];
 const roleCodes = {
   superAdmin: "super_admin",
   peopleOperations: "people_operations",
   finance: "finance",
   manager: "manager",
   purchasing: "purchasing",
+  chef: "chef",
   kitchen: "kitchen",
   outletSupervisor: "outlet_supervisor",
   outlet: "outlet_staff",
@@ -24,10 +25,10 @@ const viewports = [
 ];
 
 const ALL = roles;
-const OUTLET_DAILY = ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"];
-const PROCUREMENT = ["superAdmin", "finance", "manager", "purchasing", "kitchen"];
-const INVENTORY = ["superAdmin", "finance", "manager", "purchasing", "kitchen"];
-const PRODUCTION = ["superAdmin", "finance", "manager", "purchasing", "kitchen"];
+const OUTLET_DAILY = ["superAdmin", "finance", "manager", "purchasing", "chef", "outletSupervisor", "outlet"];
+const PROCUREMENT = ["superAdmin", "finance", "manager", "purchasing", "chef"];
+const INVENTORY = ["superAdmin", "finance", "manager", "purchasing", "chef"];
+const PRODUCTION = ["superAdmin", "finance", "manager", "purchasing", "chef"];
 const REPORTS = ["superAdmin", "finance", "manager", "purchasing"];
 const MASTER_DATA = ["superAdmin", "finance", "purchasing"];
 const OWNER = ["superAdmin"];
@@ -36,10 +37,10 @@ const STAFF_MANAGERS = ["superAdmin", "peopleOperations", "manager"];
 const SEQUENCE_MANAGERS = ["superAdmin", "finance"];
 const OWNER_FINANCE_MANAGER = ["superAdmin", "finance", "manager"];
 const OWNER_PURCHASING = ["superAdmin", "purchasing"];
-const OWNER_KITCHEN = ["superAdmin", "kitchen"];
-const OWNER_PURCHASING_KITCHEN = ["superAdmin", "purchasing", "kitchen"];
-const OWNER_FINANCE_PURCHASING_KITCHEN = ["superAdmin", "finance", "purchasing", "kitchen"];
-const OWNER_KITCHEN_OUTLET = ["superAdmin", "kitchen", "outletSupervisor", "outlet"];
+const OWNER_KITCHEN = ["superAdmin", "chef"];
+const OWNER_PURCHASING_KITCHEN = ["superAdmin", "purchasing", "chef"];
+const OWNER_FINANCE_PURCHASING_KITCHEN = ["superAdmin", "finance", "purchasing", "chef"];
+const OWNER_KITCHEN_OUTLET = ["superAdmin", "chef", "outletSupervisor", "outlet"];
 const ATTENDANCE = ["superAdmin", "peopleOperations", "manager", "outletSupervisor", "outlet"];
 const ATTENDANCE_IMPORT = ["superAdmin", "peopleOperations"];
 
@@ -49,7 +50,7 @@ const actionRouteAuthorities = new Map([
   ["/attendance/confirmations", ALL],
   ["/attendance/payslips", ALL],
   ["/asset-management/assets/new", ["superAdmin", "manager"]],
-  ["/asset-management/transfers/new", ["superAdmin", "manager", "kitchen", "outletSupervisor", "outlet"]],
+  ["/asset-management/transfers/new", ["superAdmin", "manager", "chef", "outletSupervisor", "outlet"]],
   ["/attendance/settings", ATTENDANCE_IMPORT],
   ["/administration", ["superAdmin", "finance", "manager", "purchasing"]],
   [`/branches/${MISSING_ID}`, OWNER_FINANCE_MANAGER],
@@ -88,9 +89,12 @@ const actionRouteAuthorities = new Map([
 // whichever RLS policy happens to answer today. A new route must deliberately
 // join one of these authorities before the v9 matrix will accept it.
 const accessAuthorities = [
-  ["/asset-management/maintenance", ["superAdmin", "manager", "outletSupervisor", "kitchen", "outlet"]],
-  ["/asset-management", ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outletSupervisor", "outlet"]],
+  ["/asset-management/assets", ["superAdmin", "finance", "manager", "purchasing", "chef", "outletSupervisor", "outlet"]],
+  ["/asset-management/maintenance", ["superAdmin", "manager", "finance", "purchasing", "chef", "outletSupervisor", "outlet"]],
+  ["/asset-management/transfers", ["superAdmin", "manager", "finance", "purchasing", "chef", "outletSupervisor", "outlet"]],
+  ["/asset-management", ["superAdmin", "finance", "manager", "purchasing", "chef", "kitchen", "outletSupervisor", "outlet"]],
   ["/attendance/imports", ATTENDANCE_IMPORT],
+  ["/attendance/my-schedule", ["kitchen"]],
   ["/attendance", ATTENDANCE],
   ["/outlet-compliance", ["superAdmin", "peopleOperations", "manager", "purchasing"]],
   ["/outlet-calendar", ["superAdmin", "peopleOperations", "manager", "purchasing"]],
@@ -105,7 +109,7 @@ const accessAuthorities = [
   ["/opening-stock/import", MASTER_DATA],
   ["/supplier-invoices", ["superAdmin", "finance"]],
   ["/document-sequences", SEQUENCE_MANAGERS],
-  ["/outlet-daily-records/delivery-orders", ["superAdmin", "manager", "kitchen", "outletSupervisor", "outlet"]],
+  ["/outlet-daily-records/delivery-orders", ["superAdmin", "manager", "chef", "outletSupervisor", "outlet"]],
   ["/outlet-daily-records/insights", OUTLET_DAILY],
   ["/outlet-daily-records", OUTLET_DAILY],
   ["/outlet-packaging", ["superAdmin", "manager", "purchasing"]],
@@ -121,7 +125,7 @@ const accessAuthorities = [
   ["/stock-balances", INVENTORY],
   ["/stock-card", INVENTORY],
   ["/low-stock", INVENTORY],
-  ["/production/delivery-orders", ["superAdmin", "manager", "kitchen", "outletSupervisor", "outlet"]],
+  ["/production/delivery-orders", ["superAdmin", "manager", "chef", "outletSupervisor", "outlet"]],
   ["/production", PRODUCTION],
   ["/products", PRODUCTION],
   ["/supplier-items", MASTER_DATA],
@@ -166,7 +170,7 @@ function permittedRolesFor(route) {
 }
 
 function discoverRouteMatrix(cwd = process.cwd()) {
-  const files = execFileSync("git", ["ls-files", "src/app/**/page.tsx", "src/app/**/page.ts"], { cwd, encoding: "utf8" })
+  const files = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard", "src/app/**/page.tsx", "src/app/**/page.ts"], { cwd, encoding: "utf8" })
     .split(/\r?\n/)
     .map((entry) => entry.trim())
     .filter(Boolean);

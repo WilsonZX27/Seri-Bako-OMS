@@ -4,7 +4,7 @@ const { login } = require("./helpers");
 test("stock write-off posts one outbound wastage movement", async ({ page }) => {
   test.setTimeout(120_000);
   test.skip(process.env.TEST_MUTATE_WORKFLOW !== "true", "Set TEST_MUTATE_WORKFLOW=true to run the stock write-off mutation workflow.");
-  expect(await login(page, "kitchen")).toBe(true);
+  expect(await login(page, "chef")).toBe(true);
 
   if (process.env.TEST_WASTAGE_NO) {
     await page.goto(`/stock-wastage?search=${encodeURIComponent(process.env.TEST_WASTAGE_NO)}`);

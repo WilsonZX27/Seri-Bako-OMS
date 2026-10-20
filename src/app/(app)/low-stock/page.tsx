@@ -15,6 +15,7 @@ import { getLowStockResult } from "@/server/queries/inventory";
 import { LowStockPrForm } from "@/components/low-stock-pr-form";
 import { UnifiedListHeader } from "@/components/common/UnifiedListHeader";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Barcode, MapPin, Truck } from "lucide-react";
 
 export default async function LowStockPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
@@ -151,23 +152,13 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
           <OperationalList ariaLabel="Low stock items">
             {items.map((item) => {
               const rowKey = `${item.branch_id ?? "no-branch"}-${item.item_id}`;
-              const decision = getReplenishmentDecision({
-                currentStock: Number(item.current_qty ?? item.current_stock ?? 0),
-                safetyStock: Number(item.safety_stock ?? 0),
-                suggestedReorderQty: Number(item.suggested_reorder_qty ?? 0),
-                stockStatus: item.stock_status,
-                supplierId: item.supplier_id,
-                supplierName: item.supplier_name,
-                baseUnit: item.base_unit,
-              });
-              const trailing = <Badge key={`${rowKey}-action`} variant={decision.decision === "buy_now" ? "warning" : decision.blocked ? "danger" : "secondary"} title={decision.reason}>{decision.label}</Badge>;
               return (
                 <OperationalListRow
                   key={rowKey}
                   label={item.item_name}
                   primary={item.item_name}
-                  status={<><Badge variant={item.stock_status === "out_of_stock" ? "danger" : "warning"}>{item.stock_status.replaceAll("_", " ")}</Badge>{trailing}</>}
-                  secondary={`${item.item_code} ${item.branch_name ?? "-"} ${item.supplier_name ?? ""}`}
+                  status={<Badge variant={item.stock_status === "out_of_stock" ? "danger" : "warning"}>{item.stock_status.replaceAll("_", " ")}</Badge>}
+                  secondary={<span className="mt-1 grid min-w-0 grid-cols-[minmax(0,0.8fr)_minmax(0,1fr)_minmax(0,1.3fr)] gap-x-2 text-[11px] leading-4 text-muted-foreground"><span className="inline-flex min-w-0 items-center gap-1"><Barcode aria-hidden="true" className="size-3 shrink-0"/><span className="truncate" title={item.item_code}>{item.item_code}</span></span><span className="inline-flex min-w-0 items-center gap-1"><MapPin aria-hidden="true" className="size-3 shrink-0"/><span className="truncate" title={item.branch_name ?? "No branch"}>{item.branch_name ?? "—"}</span></span><span className="inline-flex min-w-0 items-center gap-1"><Truck aria-hidden="true" className="size-3 shrink-0"/><span className="truncate" title={item.supplier_name ?? "Supplier not assigned"}>{item.supplier_name ?? "Supplier not assigned"}</span></span></span>}
                   detail={`Current: ${formatNumber(item.current_stock)} ${item.base_unit} · Suggested: ${formatNumber(item.suggested_reorder_qty)} ${item.purchase_unit || item.base_unit}`}
                 />
               );

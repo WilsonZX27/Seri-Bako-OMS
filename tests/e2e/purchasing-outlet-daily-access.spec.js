@@ -6,7 +6,7 @@ const { login, requireAccount } = require("./helpers");
 const fixtureNote = "Disposable Purchasing outlet-daily access fixture.";
 let admin = null;
 let purchasingDb = null;
-let kitchenDb = null;
+let chefDb = null;
 let outletDb = null;
 let fixture = null;
 let fixtureBranchCreated = false;
@@ -85,10 +85,10 @@ test.describe("Purchasing company-wide outlet daily access", () => {
     if (lineResult.error) throw lineResult.error;
     fixture = { companyId, branch: branchResult.data, productId: productResult.data.id, recordId: recordResult.data.id, recordDate, outletStaffId: outletStaffResult.data.id };
 
-    const kitchen = requireAccount("kitchen");
-    kitchenDb = createClient(localUrl, anonKey, { auth: { persistSession: false } });
-    const kitchenSignIn = await kitchenDb.auth.signInWithPassword(kitchen);
-    if (kitchenSignIn.error) throw kitchenSignIn.error;
+    const chef = requireAccount("chef");
+    chefDb = createClient(localUrl, anonKey, { auth: { persistSession: false } });
+    const chefSignIn = await chefDb.auth.signInWithPassword(chef);
+    if (chefSignIn.error) throw chefSignIn.error;
 
   });
 
@@ -106,7 +106,7 @@ test.describe("Purchasing company-wide outlet daily access", () => {
       }
     }
     if (purchasingDb) await purchasingDb.auth.signOut();
-    if (kitchenDb) await kitchenDb.auth.signOut();
+    if (chefDb) await chefDb.auth.signOut();
     if (outletDb) await outletDb.auth.signOut();
   });
 
@@ -157,9 +157,9 @@ test.describe("Purchasing company-wide outlet daily access", () => {
     expect(csv).toContain("Unavailable");
   });
 
-  test("Kitchen confirms Qty Sent while Outlet-owned values stay read-only", async ({ page }) => {
-    test.skip(!fixture || !kitchenDb, "Local Kitchen fixture was not created.");
-    await login(page, "kitchen");
+  test("Chef confirms Qty Sent while Outlet-owned values stay read-only", async ({ page }) => {
+    test.skip(!fixture || !chefDb, "Local Chef fixture was not created.");
+    await login(page, "chef");
     await page.goto(`/outlet-daily-records/${fixture.recordId}`, { waitUntil: "domcontentloaded" });
     const sent = page.getByRole("spinbutton", { name: /Purchasing Access Product qty sent/i });
     const received = page.getByRole("spinbutton", { name: /Purchasing Access Product received/i });
@@ -177,7 +177,7 @@ test.describe("Purchasing company-wide outlet daily access", () => {
       .single();
     if (beforeSave.error) throw beforeSave.error;
 
-    const saveResult = await kitchenDb.rpc("save_outlet_daily_record", {
+    const saveResult = await chefDb.rpc("save_outlet_daily_record", {
       p_record_id: fixture.recordId,
       p_branch_id: fixture.branch.id,
       p_record_date: fixture.recordDate,
@@ -202,7 +202,7 @@ test.describe("Purchasing company-wide outlet daily access", () => {
     const sent = page.getByRole("spinbutton", { name: /Purchasing Access Product qty sent/i });
     await expect(sent).toBeDisabled();
     await expect(page.locator("[data-qty-sent-ownership]"))
-      .toContainText("Only Kitchen and authorised company-wide staff can enter it.");
+      .toContainText("Only Chef and authorised company-wide staff can enter it.");
     await expect(page.getByRole("spinbutton", { name: /Purchasing Access Product received/i })).toBeEnabled();
     await expect(page.getByRole("spinbutton", { name: /Purchasing Access Product wastage/i })).toBeEnabled();
 

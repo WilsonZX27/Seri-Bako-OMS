@@ -2,7 +2,7 @@ const { test, expect } = require("@playwright/test");
 const { requireAccount } = require("./helpers");
 const packageVersion = require("../../package.json").version;
 
-const roles = ["superAdmin", "manager", "finance", "purchasing", "kitchen", "outlet"];
+const roles = ["superAdmin", "manager", "finance", "purchasing", "chef", "kitchen", "outlet"];
 
 for (const role of roles) {
   test(`${role} login reaches one stable terminal route`, async ({ page }) => {

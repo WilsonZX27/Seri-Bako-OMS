@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   Activity,
   Boxes,
+  CalendarDays,
   CheckCircle2,
   ClipboardCheck,
   ClipboardList,
@@ -61,7 +62,16 @@ function roleTabs(role: UserRole, permissionMap: Record<string, boolean>): Mobil
     return tabs;
   }
 
-  if ((role === "kitchen" || role === "chef")) {
+  if (role === "kitchen") {
+    tabs.push(
+      { href: "/asset-management?view=checklist", label: "Checklist", icon: ClipboardCheck, permission: "assets.view" },
+      { href: "/attendance/my-schedule", label: "Schedule", icon: CalendarDays, permission: "schedule.read" },
+      { href: "/attendance/payslips", label: "Payslips", icon: ReceiptText, permission: "dashboard.view" },
+    );
+    return tabs;
+  }
+
+  if (role === "chef") {
     tabs.push(
       { href: "/stock-counts", label: "Count", icon: CheckCircle2, permission: "stock_count.read" },
       { href: "/purchase-requests", label: "Request", icon: FileText, permission: "purchase_request.read" },
@@ -97,8 +107,9 @@ function roleTabs(role: UserRole, permissionMap: Record<string, boolean>): Mobil
 }
 
 function isCurrentPath(pathname: string, href: string) {
-  if (href === "/dashboard") return pathname === href;
-  return pathname === href || pathname.startsWith(`${href}/`);
+  const path = href.split("?", 1)[0];
+  if (path === "/dashboard") return pathname === path;
+  return pathname === path || pathname.startsWith(`${path}/`);
 }
 
 export function MobileAppNavigation({
@@ -121,12 +132,12 @@ export function MobileAppNavigation({
   const groups = useMemo(() => getVisibleNavGroups(role, permissionMap, attentionHrefs), [attentionHrefs, permissionMap, role]);
   const tabs = useMemo(() => {
     const preferred = roleTabs(role, permissionMap).filter((tab) => !tab.permission || has(permissionMap, tab.permission)).map((tab) => ({...tab,hasAttention:attentionHrefs.includes(tab.href)}));
-    const seen = new Set(preferred.map((tab) => tab.href));
+    const seen = new Set(preferred.map((tab) => tab.href.split("?", 1)[0]));
     for (const item of groups.flatMap((group) => group.items)) {
       if (preferred.length >= 4) break;
-      if (seen.has(item.href)) continue;
+      if (seen.has(item.href.split("?", 1)[0])) continue;
       preferred.push({ href: item.href, label: item.label, icon: item.icon, hasAttention: item.hasAttention });
-      seen.add(item.href);
+      seen.add(item.href.split("?", 1)[0]);
     }
     return preferred.slice(0, 4);
   }, [attentionHrefs, groups, permissionMap, role]);

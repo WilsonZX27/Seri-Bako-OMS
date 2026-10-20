@@ -159,6 +159,41 @@ const permissionAliases: Record<string, string[]> = {
   "roles.manage": ["roles.update", "users.manage"],
 };
 
+const kitchenPermissions = ["assets.view", "assets.check", "assets.maintenance", "assets.report", "assets.transfer", "schedule.read", "schedule.request",
+    "dashboard.view",
+    "production_planning.view",
+    "inventory.read",
+    "stock.view",
+    "stock_balance.read",
+    "stock_transactions.read",
+    "stock_count.read",
+    "stock_count.create",
+    "stock_count.update",
+    "stock_count.post",
+    "purchase_order.read",
+    "po.receive",
+    "pr.create",
+    "pr.submit",
+    "pr.cancel",
+    "pr.view_branch",
+    "grn.create",
+    "goods_receiving.create",
+    "grn.post",
+    "goods_receiving.post",
+    "purchase_return.view",
+    "attachments.upload",
+    "documents.view",
+    "reports.view",
+    "production.view",
+    "production.create",
+    "production.submit",
+    "production.cancel",
+    "outlet_daily_record.view",
+    "outlet_daily_record.view_all",
+    "outlet_daily_record.create",
+    "outlet_daily_record.qty_sent",
+] as const;
+
 export const rolePermissionMatrix = {
   super_admin: ["*"],
   people_operations: ["dashboard.view", "outlet_compliance.read", "outlet_compliance.upload", "outlet_compliance.manage", "outlet_compliance.review", "outlet_compliance.document.read", "people.read", "people.compliance.status.read", "people.compliance.manage", "people.compliance.document.read", "staffs.read", "staffs.create", "staffs.update", "branches.read", "documents.view", "documents.attach", "schedule.read", "schedule.draft", "attendance.read", "attendance.review", "attendance.adjust", "attendance.lock", "attendance.report.submit", "attendance.report.approve", "comp_time.read", "comp_time.submit", "comp_time.approve"],
@@ -204,40 +239,8 @@ export const rolePermissionMatrix = {
   ],
   outlet_staff: ["assets.view", "assets.check", "assets.transfer", "dashboard.view", "outlet_daily_record.view", "outlet_daily_record.create", "outlet_daily_record.update"],
   outlet_supervisor: ["assets.view", "assets.check", "assets.maintenance", "assets.transfer", "dashboard.view", "outlet_daily_record.view", "outlet_daily_record.create", "outlet_daily_record.update", "schedule.read", "schedule.draft", "schedule.submit", "schedule.request", "schedule.swap_review", "attendance.read", "attendance.review", "attendance.report.submit", "comp_time.read", "comp_time.submit"],
-  kitchen: ["assets.view", "assets.check", "assets.transfer",
-    "dashboard.view",
-    "production_planning.view",
-    "inventory.read",
-    "stock.view",
-    "stock_balance.read",
-    "stock_transactions.read",
-    "stock_count.read",
-    "stock_count.create",
-    "stock_count.update",
-    "stock_count.post",
-    "purchase_order.read",
-    "po.receive",
-    "pr.create",
-    "pr.submit",
-    "pr.cancel",
-    "pr.view_branch",
-    "grn.create",
-    "goods_receiving.create",
-    "grn.post",
-    "goods_receiving.post",
-    "purchase_return.view",
-    "attachments.upload",
-    "documents.view",
-    "reports.view",
-    "production.view",
-    "production.create",
-    "production.submit",
-    "production.cancel",
-    "outlet_daily_record.view",
-    "outlet_daily_record.view_all",
-    "outlet_daily_record.create",
-    "outlet_daily_record.qty_sent",
-  ],
+  chef: kitchenPermissions,
+  kitchen: ["assets.view", "assets.check", "dashboard.view"],
 } as const satisfies Record<string, readonly string[]>;
 
 function permissionCandidates(permission: string) {
@@ -245,7 +248,7 @@ function permissionCandidates(permission: string) {
 }
 
 function roleAllowsPermission(roleCode: string, permission: string) {
-  const grants = rolePermissionMatrix[(roleCode === "chef" ? "kitchen" : roleCode) as keyof typeof rolePermissionMatrix] as readonly string[] | undefined;
+  const grants = rolePermissionMatrix[roleCode as keyof typeof rolePermissionMatrix] as readonly string[] | undefined;
   if (!grants) return false;
   if (grants.includes("*")) return true;
   return permissionCandidates(permission).some((candidate) => grants.includes(candidate));

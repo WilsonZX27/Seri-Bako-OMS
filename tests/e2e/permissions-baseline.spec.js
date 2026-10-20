@@ -23,13 +23,27 @@ test("purchasing can reach PR creation but not role administration", async ({ pa
   expect((await page.request.get("/stock-transactions/export?search=QA-ING-A-721A")).status()).toBe(403);
 });
 
-test("kitchen can read production but cannot export ledger or manage roles", async ({ page }) => {
-  test.skip(!process.env.TEST_KITCHEN_EMAIL || !process.env.TEST_KITCHEN_PASSWORD, "Missing kitchen test credentials.");
-  expect(await login(page, "kitchen")).toBe(true);
+test("chef retains production access and cannot export ledger or manage roles", async ({ page }) => {
+  test.skip(!process.env.TEST_CHEF_EMAIL || !process.env.TEST_CHEF_PASSWORD, "Missing Chef test credentials.");
+  expect(await login(page, "chef")).toBe(true);
   await page.goto("/production/jobs", { waitUntil: "domcontentloaded" });
   await expect(page.locator("body")).toContainText(/Production/i);
-  await expect(page.locator("body")).not.toContainText("Roles & Permissions");
   await page.goto("/stock-transactions", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("link", { name: /CSV/i })).toHaveCount(0);
   expect((await page.request.get("/stock-transactions/export?search=QA-ING-A-721A")).status()).toBe(403);
+});
+
+test("Kitchen is limited to its personal workspace and assigned asset checklist", async ({ page }) => {
+  test.skip(!process.env.TEST_KITCHEN_EMAIL || !process.env.TEST_KITCHEN_PASSWORD, "Missing kitchen test credentials.");
+  expect(await login(page, "kitchen")).toBe(true);
+  await page.goto("/dashboard", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("body")).toContainText(/Asset Checklist|Checklist/i);
+  await expect(page.locator("body")).not.toContainText(/Purchase Requests|Production Jobs|Stock Count/i);
+  await page.goto("/asset-management?view=checklist", { waitUntil: "domcontentloaded" });
+  await expect(page.locator("body")).toContainText(/Daily Checklist|Daily checks/i);
+  await expect(page.locator("body")).not.toContainText("Overview");
+  for (const route of ["/purchase-requests", "/items", "/stock-balance", "/production/jobs", "/supplier-invoices"]) {
+    await page.goto(route, { waitUntil: "domcontentloaded" });
+    await expect(page).not.toHaveURL(new RegExp(`${route.replaceAll("/", "\\/")}(?:\\?.*)?$`));
+  }
 });

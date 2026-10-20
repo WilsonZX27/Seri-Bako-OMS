@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, ClipboardCheck, ListTodo, Megaphone, Package, ShieldAlert, ShoppingCart, TriangleAlert, Wrench } from "lucide-react";
+import { ArrowUpRight, Bell, ClipboardCheck, ListTodo, Megaphone, Package, ShieldAlert, ShoppingCart, TriangleAlert, Wrench } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ const pendingGroupIcons = {
   "Other actions": ListTodo,
 } as const;
 
-export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
+export function TopBarActivityMenu({ data, canOpenActivity = true }: { data: TopBarActivity; canOpenActivity?: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [seen, setSeen] = useState(false);
@@ -168,7 +168,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
                   <p className="mt-1 text-xs text-muted-foreground">{formatTime(activity.created_at)}</p>
                 </div>
               ))}
-              <Link href="/activity" onClick={() => setOpen(false)} className="inline-flex min-h-[var(--sb-control-height)] items-center text-xs font-semibold text-primary underline underline-offset-2">Open full activity log</Link>
+              {canOpenActivity ? <Link href="/activity" onClick={() => setOpen(false)} className="flex min-h-[var(--sb-control-height)] items-center justify-between gap-3 border-t border-[var(--sb-border-soft)] px-2 text-xs font-semibold text-[var(--sb-green-900)] transition-colors hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"><span>Open activity log</span><ArrowUpRight aria-hidden="true" className="size-4 shrink-0"/></Link> : null}
             </section>
           </div>
         </div>

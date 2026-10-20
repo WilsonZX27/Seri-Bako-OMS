@@ -11,14 +11,32 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getAttendanceWorkspace, getOwnPublishedShifts, malaysiaWeekStart } from "@/server/queries/attendance";
 import { logServerError } from "@/server/observability/logger";
+import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 
 export default async function AttendancePage() {
+  const actor = await requireActiveTenantActor();
+  if (actor.roleCode === "kitchen") {
+    const shifts = await getOwnPublishedShifts();
+    return <>
+      <PageHeader title="My Schedule" description="Your published shifts for the current week." contentWidth="wide" />
+      <WorkspaceGrid tabletRailMode="split" hideMobileConsole rightRail={<ConsoleSection title="Schedule access"><p className="text-xs text-muted-foreground">This view contains only your own published shifts.</p></ConsoleSection>}>
+        <PublishedScheduleList shifts={shifts} allowRequests={false} />
+      </WorkspaceGrid>
+    </>;
+  }
+  const permissions = await getPermissionMap(["schedule.read", "attendance.review", "attendance.import"]);
+  if (!permissions["attendance.read"]) {
+    const shifts = await getOwnPublishedShifts();
+    return <>
+      <PageHeader title="My Schedule" description="Your published shifts for the current week." contentWidth="wide" />
+      <WorkspaceGrid tabletRailMode="split" hideMobileConsole rightRail={<ConsoleSection title="Schedule access"><p className="text-xs text-muted-foreground">This view contains only your own published shifts.</p></ConsoleSection>}>
+        <PublishedScheduleList shifts={shifts} allowRequests={false} />
+      </WorkspaceGrid>
+    </>;
+  }
   const currentWeekStart = malaysiaWeekStart();
   const currentWeekEnd = new Date(`${currentWeekStart}T00:00:00Z`); currentWeekEnd.setUTCDate(currentWeekEnd.getUTCDate() + 6);
-  const [workspaceResult, permissions] = await Promise.all([
-    getAttendanceWorkspace().then((data) => ({ data, error: null })).catch((error: unknown) => ({ data: null, error })),
-    getPermissionMap(["schedule.read", "attendance.review", "attendance.import"]),
-  ]);
+  const workspaceResult = await getAttendanceWorkspace().then((data) => ({ data, error: null })).catch((error: unknown) => ({ data: null, error }));
   if (workspaceResult.error) logServerError(workspaceResult.error, { source: "page.attendance.workspace" });
   const data = workspaceResult.data ?? {
     weekStart: currentWeekStart, weekEnd: currentWeekEnd.toISOString().slice(0, 10), pendingApprovals: 0, pendingRequests: 0,

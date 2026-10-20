@@ -28,7 +28,7 @@ const superAdminRoutes = [
   "/activity",
 ];
 
-const roles = ["kitchen", "purchasing", "manager", "finance", "outlet"];
+const roles = ["kitchen", "chef", "purchasing", "manager", "finance", "outlet"];
 
 function ensureSmokeEnv(role) {
   const missing = role ? missingAccountVars(role) : [];

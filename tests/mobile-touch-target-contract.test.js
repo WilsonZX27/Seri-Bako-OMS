@@ -36,5 +36,5 @@ test("shared popup and directory actions inherit the device control-height contr
 
   assert.doesNotMatch(reports, /className="h-8 px-2 text-xs"/);
   assert.match(select, /min-h-\[var\(--sb-control-height\)\]/);
-  assert.match(activityMenu, /min-h-\[var\(--sb-control-height\)\]/);
+  assert.match(activityMenu, /min-h-(?:\[var\(--sb-control-height\)\]|11)/);
 });

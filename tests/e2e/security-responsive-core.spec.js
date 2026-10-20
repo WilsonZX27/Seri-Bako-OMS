@@ -35,7 +35,7 @@ for (const viewport of viewports) {
   });
 }
 
-for (const role of ["superAdmin", "finance", "manager", "purchasing", "kitchen", "outlet"]) {
+for (const role of ["superAdmin", "finance", "manager", "purchasing", "chef", "kitchen", "outlet"]) {
   for (const viewport of viewports) {
     test(`${role} reaches its permission-safe workdesk without console errors at ${viewport.name}`, async ({ page }) => {
     test.skip(!hasAccount(role), `Missing isolated ${role} test credentials.`);
@@ -65,15 +65,15 @@ for (const viewport of [
   { name: "tablet", width: 768, height: 1024 },
   { name: "desktop", width: 1440, height: 960 },
 ]) {
-  test(`kitchen stock count entry remains contained and actionable at ${viewport.name}`, async ({ page }) => {
-    test.skip(!hasAccount("kitchen"), "Missing isolated kitchen test credentials.");
+  test(`Chef stock count entry remains contained and actionable at ${viewport.name}`, async ({ page }) => {
+    test.skip(!hasAccount("chef"), "Missing isolated Chef test credentials.");
     const errors = [];
     page.on("console", (message) => {
       if (message.type() === "error") errors.push(message.text());
     });
 
     await page.setViewportSize(viewport);
-    expect(await login(page, "kitchen")).toBe(true);
+    expect(await login(page, "chef")).toBe(true);
     await page.goto("/stock-counts/new", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: /stock count/i })).toBeAttached();
     await expect(page.locator('input[type="hidden"][name="branch_id"]')).toHaveValue(/.+/);
@@ -137,11 +137,15 @@ for (const viewport of [
   }
 }
 
-const kitchenInventoryRoutes = [
+const kitchenDeniedRoutes = [
+  "/purchase-requests",
+  "/items",
   "/stock-balance",
   "/stock-counts",
   "/stock-transfers",
   "/stock-wastage",
+  "/production/jobs",
+  "/supplier-invoices",
 ];
 
 for (const viewport of [
@@ -149,8 +153,7 @@ for (const viewport of [
   { name: "tablet", width: 768, height: 1024 },
   { name: "desktop", width: 1440, height: 960 },
 ]) {
-  for (const route of kitchenInventoryRoutes) {
-    test(`kitchen ${route} stays contained and navigation-safe at ${viewport.name}`, async ({ page }) => {
+  test(`Kitchen self-service and asset checklist remain safe at ${viewport.name}`, async ({ page }) => {
       test.skip(!hasAccount("kitchen"), "Missing isolated kitchen test credentials.");
       const errors = [];
       page.on("console", (message) => {
@@ -159,10 +162,20 @@ for (const viewport of [
 
       await page.setViewportSize(viewport);
       expect(await login(page, "kitchen")).toBe(true);
-      await page.goto(route, { waitUntil: "domcontentloaded" });
+      await page.goto("/asset-management?view=checklist", { waitUntil: "domcontentloaded" });
       await expect(page.locator("main#main-content")).toBeVisible();
-      await expect(page.getByRole("heading", { name: "This workspace could not finish the request" })).toHaveCount(0);
+      await expect(page.locator("body")).not.toContainText("Overview");
       await expectNoPageOverflow(page);
+      await page.goto("/attendance/my-schedule", { waitUntil: "domcontentloaded" });
+      await expect(page.locator("main#main-content")).toBeVisible();
+      await page.goto("/attendance/payslips", { waitUntil: "domcontentloaded" });
+      await expect(page.locator("main#main-content")).toBeVisible();
+      for (const route of kitchenDeniedRoutes) {
+        await page.goto(route, { waitUntil: "domcontentloaded" });
+        expect(new URL(page.url()).pathname, `Kitchen must not open ${route}`).not.toBe(route);
+      }
+      await page.goto("/stock-transactions/export?search=QA-ING-A-721A", { waitUntil: "domcontentloaded" });
+      expect(new URL(page.url()).pathname).not.toBe("/stock-transactions/export");
 
       const mobileNavigation = page.locator("[data-mobile-app-nav]");
       if (viewport.width < 1280) {
@@ -170,9 +183,8 @@ for (const viewport of [
       } else {
         await expect(mobileNavigation).toBeHidden();
       }
-      expect(errors, `${route} console errors at ${viewport.name}`).toEqual([]);
-    });
-  }
+      expect(errors, `Kitchen console errors at ${viewport.name}`).toEqual([]);
+  });
 }
 
 test("an unauthenticated cross-site mutation never reaches a write handler", async ({ request, baseURL }) => {

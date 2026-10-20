@@ -28,6 +28,6 @@ test("notification scope and validation reads fail closed instead of returning a
 
 test("activity log link no longer claims an unqueried feed is empty", () => {
   assert.match(menu, />Activity Log</);
-  assert.match(menu, />Open full activity log</);
+  assert.match(menu, />Open activity log</);
   assert.doesNotMatch(menu, /No recent activity\./);
 });

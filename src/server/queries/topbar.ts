@@ -44,6 +44,23 @@ export async function getTopBarActivity() {
     };
   }
 
+  const initialScope = await getCurrentUserScope().catch((error) => {
+    logServerWarning(error, { source: "topbar.current-user-scope" });
+    return null;
+  });
+  // Kitchen has no company-wide work queue or announcement feed. Return before
+  // querying approvals, production, or notifications that could expose other
+  // teams' operational data through the shared application shell.
+  if (initialScope?.roleCode === "kitchen") {
+    return {
+      availability: { pendingActions: true, notifications: true },
+      pendingApprovals: [] as PendingAction[],
+      assignedActivities: [] as AssignedActivity[],
+      notifications: [],
+      announcements: [],
+    };
+  }
+
   const supabase = await createClient();
   const db = looseSupabase(supabase);
   const [documentApprovals, notificationsResult, assignedActivities, workflowPendingActionsResult, canApproveProductionResult, canPostProductionResult, currentScope] = await Promise.all([
@@ -67,10 +84,7 @@ export async function getTopBarActivity() {
       logServerWarning(error, { source: "topbar.production-post-permission" });
       return { allowed: false, unavailable: true };
     }),
-    getCurrentUserScope().catch((error) => {
-      logServerWarning(error, { source: "topbar.current-user-scope" });
-      return null;
-    }),
+    Promise.resolve(initialScope),
   ]);
   const notifications = notificationsResult.rows;
   const workflowPendingActions = workflowPendingActionsResult.rows;

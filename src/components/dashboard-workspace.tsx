@@ -130,7 +130,8 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   const isFinance = role === "finance";
   const isManager = role === "manager";
   const isPurchasing = role === "purchasing";
-  const isKitchen = (role === "kitchen" || role === "chef");
+  const isKitchen = role === "chef";
+  const isKitchenStaff = role === "kitchen";
   const isOutlet = role === "outlet_staff" || role === "outlet_supervisor";
   const showFinance = isOwner || isFinance;
   const showOperations = isOwner || isFinance || isManager;
@@ -162,7 +163,13 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   const todayWorkCount = attentionSignals.reduce((sum, signal) => sum + (signal.value ?? 0), 0);
   const outletExceptionCount = summary.operationsControl?.outlet?.missing_evening ?? 0;
   const operationalExceptionCount = (summary.wastageUnavailable ? 0 : summary.wastageAttention ?? 0) + outletExceptionCount + (summary.compliance?.issues ?? 0);
-  const quickActions = isOutlet
+  const quickActions = isKitchenStaff
+    ? [
+        { href: "/asset-management?view=checklist", label: "Asset checklist", icon: ClipboardCheck },
+        { href: "/attendance/my-schedule", label: "My schedule", icon: ClipboardList },
+        { href: "/attendance/payslips", label: "My payslips", icon: ReceiptText },
+      ]
+    : isOutlet
     ? [
         { href: summary.outletToday?.id ? `/outlet-daily-records/${summary.outletToday.id}` : "/outlet-daily-records/new", label: outletAction, icon: ClipboardCheck },
         { href: "/outlet-daily-records", label: "Daily records", icon: ClipboardList },
@@ -237,7 +244,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   return (
     <WorkspaceGrid
       hideMobileConsole
-      tabletRailMode="context"
+      tabletRailMode="split"
       rightRail={desktopActionRail}
       className="gap-4 p-3 pb-32 sm:p-4 sm:pb-24 xl:pb-4"
     >
@@ -253,7 +260,19 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
 
         <div className="border-b border-[var(--sb-border-soft)] pb-3 md:hidden">{workspaceContext}</div>
 
-        {isOutlet ? (
+        {isKitchenStaff ? (
+          <section className="grid gap-3 sm:grid-cols-2" aria-label="Kitchen staff workspace">
+            <Panel title="Asset checklist" action={{ href: "/asset-management?view=checklist", label: "Open checklist" }}>
+              <p className="px-3 py-3 text-xs text-muted-foreground">Complete the daily check for your assigned kitchen location.</p>
+            </Panel>
+            <Panel title="My schedule" action={{ href: "/attendance/my-schedule", label: "View schedule" }}>
+              <p className="px-3 py-3 text-xs text-muted-foreground">View your published shifts and assigned work dates.</p>
+            </Panel>
+            <Panel title="My payslips" action={{ href: "/attendance/payslips", label: "View payslips" }}>
+              <p className="px-3 py-3 text-xs text-muted-foreground">Open your released salary information.</p>
+            </Panel>
+          </section>
+        ) : isOutlet ? (
           <div data-dashboard-layout className="grid w-full gap-4 xl:grid-cols-2 xl:items-stretch">
             <Panel title="Upcoming shifts" action={{ href: "/attendance", label: "View schedule" }}>
               <div className="divide-y divide-[var(--sb-border-soft)]">

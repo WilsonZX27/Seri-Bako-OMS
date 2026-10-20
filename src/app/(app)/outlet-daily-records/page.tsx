@@ -4,7 +4,7 @@ import { receivedDisplay, wastageDisplay } from "@/lib/operational-value-display
 import { OutstandingDailyRecords } from "@/components/outstanding-daily-records";
 import { OutletDailyWorkspaceNav } from "@/components/outlet-daily-workspace-nav";
 import Link from "next/link";
-import { CalendarDays, Pencil } from "lucide-react";
+import { CalendarDays, ClipboardCheck, Pencil, Trash2, Truck } from "lucide-react";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
@@ -98,9 +98,13 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
             href={`/outlet-daily-records/${row.id}`}
             label={`Open ${row.branch_name} daily record`}
             fullWidthDetails
-            primary={<div className="flex min-w-0 flex-wrap items-baseline gap-x-2"><span className="truncate">{row.branch_name}</span><span className="inline-flex shrink-0 items-center gap-1 text-xs font-normal text-muted-foreground"><CalendarDays aria-hidden="true" className="size-3.5"/>{formatDateOnly(row.record_date)}{row.record_date === data.summary.today ? " · Today" : ""}</span></div>}
+            primary={<div className="flex min-w-0 flex-wrap items-baseline gap-x-2"><span className="truncate font-semibold">{row.branch_name}</span><span className="inline-flex shrink-0 items-center gap-1 text-xs font-normal text-muted-foreground"><CalendarDays aria-hidden="true" className="size-3.5"/>{formatDateOnly(row.record_date)}</span>{row.record_date === data.summary.today ? <span className="inline-flex shrink-0 items-center rounded-full bg-[var(--sb-green-100)] px-2 py-0.5 text-[11px] font-bold text-[var(--sb-green-900)]">Today</span> : null}</div>}
             status={<StatusBadge status={outletProgress(row).status} />}
-            detail={<dl className="mt-1 grid w-full grid-cols-2 gap-x-4 gap-y-1.5 sm:grid-cols-3">{[["Qty sent", canViewSentGaps ? row.qty_sent_state === "confirmed" ? row.total_sent === null ? "Unavailable" : formatNumber(row.total_sent) : row.qty_sent_state === "draft" ? "Confirm" : "Missing" : "Restricted"], ["Received", <OperationalValue key="received-value" display={receivedDisplay(row)} />], ["Wastage", <OperationalValue key="wastage-value" display={wastageDisplay(row)} />]].map(([label,value])=><div key={String(label)} className="flex min-w-0 items-center justify-between gap-2 border-t border-[var(--sb-border-soft)] pt-1.5"><dt className="shrink-0 text-xs text-muted-foreground">{label}</dt><dd className={`min-w-0 truncate text-right font-medium ${label === "Qty sent" && canViewSentGaps && row.qty_sent_state !== "confirmed" ? "text-warning" : ""}`}>{value}</dd></div>)}</dl>}
+            detail={<dl className="mt-2 grid w-full grid-cols-3 divide-x divide-[var(--sb-border-soft)] border-t border-[var(--sb-border-soft)] pt-2">{[
+              {label:"Qty Sent",icon:Truck,value:canViewSentGaps?row.qty_sent_state==="confirmed"?row.total_sent===null?"Unavailable":formatNumber(row.total_sent):row.qty_sent_state==="draft"?"Pending":"Missing":"Restricted",detail:canViewSentGaps&&row.qty_sent_state!=="confirmed"?"Not confirmed":null,warning:canViewSentGaps&&row.qty_sent_state!=="confirmed"},
+              {label:"Received",icon:ClipboardCheck,value:receivedDisplay(row).value,detail:receivedDisplay(row).detail,warning:receivedDisplay(row).warning},
+              {label:"Wastage",icon:Trash2,value:wastageDisplay(row).value,detail:!(["evening_completed","reviewed"].includes(row.status))?"Not final":wastageDisplay(row).detail,warning:false},
+            ].map(({label,icon:Icon,value,detail,warning})=><div key={label} className="min-w-0 px-2 first:pl-0 last:pr-0"><dt className="flex min-w-0 items-center gap-1 text-[10px] font-medium leading-4 text-muted-foreground"><Icon aria-hidden="true" className="size-3 shrink-0"/><span className="truncate">{label}</span></dt><dd className={`mt-1 truncate text-xs font-semibold tabular-nums ${warning?"text-warning":"text-[var(--sb-text)]"}`}>{value}</dd>{detail?<dd className="truncate text-[10px] leading-4 text-muted-foreground">{detail}</dd>:null}</div>)}</dl>}
           />)}
           {!data.rows.length ? <EmptyState title={filtered ? "No daily records match these filters" : "No outlet daily records yet"} description={filtered ? "Reset the filters or widen the search." : "Daily receiving and wastage records will appear here."} action={filtered ? { href: "/outlet-daily-records", label: "Reset filters" } : undefined} /> : null}
         </OperationalList>

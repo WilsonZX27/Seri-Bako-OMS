@@ -12,7 +12,8 @@ const access = [
   ["finance", "/recipes", "Recipe / BOM"],
   ["manager", "/purchase-requests", "Purchase Requests", "/supplier-invoices"],
   ["purchasing", "/suppliers", "Suppliers", "/recipes"],
-  ["kitchen", "/production/jobs", "Production Jobs", "/supplier-invoices"],
+  ["chef", "/production/jobs", "Production Jobs", "/supplier-invoices"],
+  ["kitchen", "/asset-management?view=checklist", "Asset Management", "/purchase-requests"],
   ["outlet", "/outlet-daily-records", "Outlet Daily Records", "/purchase-orders"],
 ];
 

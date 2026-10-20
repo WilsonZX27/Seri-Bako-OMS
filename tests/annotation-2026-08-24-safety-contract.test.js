@@ -53,11 +53,11 @@ test("Purchasing review explicitly requires the AutoCount PO number", () => {
 test("PR and Dashboard mobile rows share a compact three-line operational composition", () => {
   const list = read("src/app/(app)/purchase-requests/page.tsx");
   const dashboard = read("src/components/dashboard-workspace.tsx");
-  assert.match(list, /secondary=\{<span className="grid min-w-0 grid-cols-2/);
+  assert.match(list, /secondary=\{<span className="grid min-w-0 grid-cols-\[minmax\(0,1fr\)_auto_minmax\(0,0\.8fr\)\]/);
   assert.match(list, /CalendarDays/);
   assert.match(list, /MapPin/);
   assert.match(list, /UserRound/);
-  assert.match(list, /detail=\{<span className="grid min-w-0 grid-cols-\[minmax\(0,1fr\)_auto\]/);
+  assert.match(list, /detail=\{<span className="mt-1 grid min-w-0 grid-cols-\[minmax\(0,1fr\)_auto\].*border-t/);
   assert.match(dashboard, /row\.branch_name \?\? "Unassigned"/);
   assert.match(dashboard, /row\.line_count\} items/);
   for (const source of [list, dashboard]) assert.doesNotMatch(source, /data-pr-context-grid|data-pr-metrics-grid/);

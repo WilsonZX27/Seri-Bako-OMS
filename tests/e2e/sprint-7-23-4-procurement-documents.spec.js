@@ -14,14 +14,14 @@ const roleRoutes = {
   finance: ["/purchase-requests", "/supplier-invoices"],
   manager: ["/purchase-requests"],
   purchasing: ["/purchase-orders", "/goods-receivings/new", "/supplier-invoices/new"],
-  kitchen: ["/purchase-requests/new"],
+  chef: ["/purchase-requests/new"],
 };
 const detailProbe = {
   superAdmin: { list: "/purchase-orders", prefix: "/purchase-orders/" },
   finance: { list: "/supplier-invoices", prefix: "/supplier-invoices/" },
   manager: { list: "/purchase-requests", prefix: "/purchase-requests/" },
   purchasing: { list: "/goods-receivings", prefix: "/goods-receivings/" },
-  kitchen: { list: "/purchase-requests", prefix: "/purchase-requests/" },
+  chef: { list: "/purchase-requests", prefix: "/purchase-requests/" },
 };
 
 function slug(value) {
@@ -68,13 +68,19 @@ for (const viewport of viewports) {
         await page.screenshot({ path: path.join(evidenceDir, `${viewport.label}-${role}-document-detail.png`), fullPage: true });
       }
 
-      if (role === "kitchen") {
+      if (role === "chef") {
         await page.goto("/purchase-requests/new", { waitUntil: "domcontentloaded" });
         await expect(page.getByText("Purchasing details")).toHaveCount(0);
         await expect(page.getByLabel("Estimated unit cost")).toHaveCount(0);
         await expect(page.getByText("Create new item")).toHaveCount(0);
         await page.goto("/supplier-invoices/new", { waitUntil: "domcontentloaded" });
         expect(new URL(page.url()).pathname).not.toBe("/supplier-invoices/new");
+      }
+      if (role === "kitchen") {
+        for (const route of ["/purchase-requests", "/items", "/stock-balance", "/production/jobs"]) {
+          await page.goto(route, { waitUntil: "domcontentloaded" });
+          expect(new URL(page.url()).pathname).not.toBe(new URL(route, page.url()).pathname);
+        }
       }
       if (role === "purchasing") {
         await page.goto("/supplier-invoices/aging", { waitUntil: "domcontentloaded" });

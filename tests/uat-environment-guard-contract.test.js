@@ -22,6 +22,8 @@ function runPreviewGuard(overrides = {}) {
     TEST_MANAGER_PASSWORD: "disposable-test-password",
     TEST_PURCHASING_EMAIL: "purchasing@example.test",
     TEST_PURCHASING_PASSWORD: "disposable-test-password",
+    TEST_CHEF_EMAIL: "chef@example.test",
+    TEST_CHEF_PASSWORD: "disposable-test-password",
     TEST_KITCHEN_EMAIL: "kitchen@example.test",
     TEST_KITCHEN_PASSWORD: "disposable-test-password",
     TEST_OUTLET_SUPERVISOR_EMAIL: "outlet-supervisor@example.test",
@@ -82,6 +84,7 @@ test("Preview UAT guard rejects Production app and Supabase identities", () => {
 
 test("Preview UAT guard rejects an incomplete role matrix before browser startup", () => {
   assert.match(runPreviewGuardFailure({ TEST_FINANCE_PASSWORD: "" }), /Missing required UAT variable: TEST_FINANCE_PASSWORD/);
+  assert.match(runPreviewGuardFailure({ TEST_CHEF_PASSWORD: "" }), /Missing required UAT variable: TEST_CHEF_PASSWORD/);
 });
 
 test("Preview UAT template stays secret-free and includes every guarded boundary", () => {
@@ -94,6 +97,7 @@ test("Preview UAT template stays secret-free and includes every guarded boundary
     "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=",
     "TEST_SUPER_ADMIN_EMAIL=",
     "TEST_FINANCE_EMAIL=",
+    "TEST_CHEF_EMAIL=",
     "TEST_OUTLET_SUPERVISOR_EMAIL=",
     "TEST_OUTLET_EMAIL=",
   ]) assert.match(template, new RegExp(`^${key.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")}`, "m"));

@@ -45,6 +45,7 @@ const accounts = [
   ["finance", "TEST_FINANCE_EMAIL", "TEST_FINANCE_PASSWORD"],
   ["manager", "TEST_MANAGER_EMAIL", "TEST_MANAGER_PASSWORD"],
   ["purchasing", "TEST_PURCHASING_EMAIL", "TEST_PURCHASING_PASSWORD"],
+  ["chef", "TEST_CHEF_EMAIL", "TEST_CHEF_PASSWORD"],
   ["kitchen", "TEST_KITCHEN_EMAIL", "TEST_KITCHEN_PASSWORD"],
   ["outlet_supervisor", "TEST_OUTLET_SUPERVISOR_EMAIL", "TEST_OUTLET_SUPERVISOR_PASSWORD"],
   ["outlet_staff", "TEST_OUTLET_EMAIL", "TEST_OUTLET_PASSWORD"],
@@ -82,6 +83,9 @@ const { data: authUsers, error: authUsersError } = await admin.auth.admin.listUs
 if (authUsersError) throw authUsersError;
 
 for (const [roleCode, emailKey, passwordKey] of accounts) {
+  // Existing local fixtures may predate Chef. Full Preview UAT requires all
+  // nine identities; local setup may add Chef later without rewriting them.
+  if (roleCode === "chef" && !env[emailKey] && !env[passwordKey]) continue;
   if (!env[emailKey] || !env[passwordKey]) throw new Error(`Missing ${emailKey} or its password variable.`);
   const existingAuthUser = authUsers.users.find((user) => user.email?.toLowerCase() === env[emailKey].toLowerCase());
   const authResult = existingAuthUser

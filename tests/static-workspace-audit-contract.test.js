@@ -22,9 +22,12 @@ test("dynamic detail audit covers the real tablet and laptop review widths", () 
   assert.match(source, /getAttribute\("aria-hidden"\) === "true"/);
 });
 
-test("seven-role workdesk audit uses the release-gate viewport matrix", () => {
+test("nine-role workdesk audit uses the release-gate viewport matrix", () => {
   const source = fs.readFileSync(path.join(process.cwd(), "tests/e2e/role-workspaces-7-23-5-6.spec.js"), "utf8");
   assert.match(source, /peopleOperations: "People Operations"/);
+  assert.match(source, /chef: "Chef"/);
+  assert.match(source, /kitchen: "Kitchen"/);
+  assert.match(source, /outletSupervisor: "Outlet Supervisor"/);
   for (const viewport of [
     "{ width: 390, height: 844 }",
     "{ width: 820, height: 1180 }",

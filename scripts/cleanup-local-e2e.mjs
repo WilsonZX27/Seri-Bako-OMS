@@ -211,7 +211,7 @@ if (fixtureBranchIds.length) {
 }
 await remove("branches", (q) => q.in("id", fixtureBranchIds));
 
-const emails = ["TEST_SUPER_ADMIN_EMAIL", "TEST_PEOPLE_OPERATIONS_EMAIL", "TEST_FINANCE_EMAIL", "TEST_MANAGER_EMAIL", "TEST_PURCHASING_EMAIL", "TEST_KITCHEN_EMAIL", "TEST_OUTLET_SUPERVISOR_EMAIL", "TEST_OUTLET_EMAIL"]
+const emails = ["TEST_SUPER_ADMIN_EMAIL", "TEST_PEOPLE_OPERATIONS_EMAIL", "TEST_FINANCE_EMAIL", "TEST_MANAGER_EMAIL", "TEST_PURCHASING_EMAIL", "TEST_CHEF_EMAIL", "TEST_KITCHEN_EMAIL", "TEST_OUTLET_SUPERVISOR_EMAIL", "TEST_OUTLET_EMAIL"]
   .map((key) => env[key]?.toLowerCase())
   .filter(Boolean);
 const authUsers = (await admin.auth.admin.listUsers({ page: 1, perPage: 1000 })).data.users.filter((user) => emails.includes(user.email?.toLowerCase()));

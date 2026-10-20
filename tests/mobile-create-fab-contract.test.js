@@ -13,6 +13,7 @@ test("new and create links become a phone FAB above the tab bar", () => {
   assert.match(consoleSource, /primaryHref\?\.includes\("\/new"\)/);
   assert.match(consoleSource, /\/\^\(new\|create\)\\b\/i/);
   assert.match(consoleSource, /data-mobile-create-fab/);
+  assert.match(consoleSource, /content && hasCreateFab && primaryHref/);
   assert.match(consoleSource, /bottom-\[calc\(var\(--sb-mobile-nav-height\)\+env\(safe-area-inset-bottom\)\+1rem\)\]/);
   assert.match(consoleSource, /rounded-full/);
   assert.match(consoleSource, /<Plus/);

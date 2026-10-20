@@ -16,6 +16,10 @@ test("purchase-request list uses device-appropriate list surfaces and anchors th
   assert.match(page, /className="sb-pr-tablet-rows" role="list" aria-label="Purchase requests"/);
   assert.match(page, /className="sb-pr-continuous-rows"/);
   assert.match(page, /className="sb-pr-phone-supplier-row"/);
+  assert.match(page, /sb-pr-phone-amount/);
+  const design = fs.readFileSync(path.join(root, "src", "app", "design-system-v2.css"), "utf8");
+  assert.match(design, /\.sb-pr-phone-supplier-row,[\s\S]*font-size: \.6875rem/);
+  assert.match(design, /\.sb-pr-phone-amount \{[^}]*font-size: \.6875rem/);
   assert.match(page, /tabletRailBreakpoint="md"/);
   assert.match(page, /<FilterBar resetHref="\/purchase-requests"/);
   assert.match(page, /resultCount=\{requests\?\.totalRows\}/);

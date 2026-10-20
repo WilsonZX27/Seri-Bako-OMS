@@ -1,4 +1,8 @@
-> Preview candidate — 2026-10-20: application v9.2.114 shortens the missing-balance Stock Count input placeholder for compact phone cards and uses modality-neutral AP Aging chart guidance plus a compact complete date-range label for Outlet Daily Insights. It also includes reduced-motion press feedback, lighter mobile floating-action elevation, a task-first Stock Count list, responsive workspace refinements, and a simplified Low Stock purchase basket. migrations reviewed through `368`; forward-only migration 历史已到 `368`. Migration 368 restricts Kitchen to assigned asset checks and self-service access while assigning Staff Codes 5 and 57 to Chef; source-reviewed, not applied to Production. Production remains v9.2.106; latest Preview verification is in progress.
+> Preview candidate — 2026-10-20: application v9.2.115 reduces Purchase Request phone metadata to 11px and restores its hidden Create PR FAB when the mobile action strip is suppressed. Asset checklist helper and asset names use 12px on phones, the duplicate outlet heading is removed, and the overview metrics use compact bordered tiles. It retains the v9.2.114 Stock Count placeholder, AP Aging guidance, Daily Insights date range, reduced-motion feedback, responsive workspace refinements, and simplified Low Stock basket. migrations reviewed through `368`; forward-only migration 历史已到 `368`. Production remains v9.2.106.
+
+# v9.2.115 (unreleased)
+
+Purchase Request phone metadata is 11px with aligned compact icon sizing; hiding the mobile action strip no longer hides the Create PR FAB. Asset checklist helper copy and asset names are 12px. The asset location page has one outlet title, and overview metrics use compact bordered tiles with smaller labels and restrained number sizing. Desktop/tablet styles and touch targets are preserved.
 
 # v9.2.114 (unreleased)
 

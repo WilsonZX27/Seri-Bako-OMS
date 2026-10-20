@@ -3151,4 +3151,7 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
     justify-self: start;
   }
   html[data-design-layer="v2"] form.sb-daily-insights-filters .unified-list-filter-label { display: inline; }
+  html[data-design-layer="v2"]:has(form.sb-daily-insights-filters) .unified-list-sheet-fields {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
 }

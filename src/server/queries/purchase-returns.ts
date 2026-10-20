@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Database, PurchaseReturnStatus } from "@/types/database";
 import { requireReadRows } from "@/server/queries/common";
 import { requireDetailRow } from "@/server/queries/detail";
+import { isMockMode } from "@/lib/mock-mode";
 
 type Filters = Record<string, string | undefined>;
 type PurchaseReturn = Database["public"]["Tables"]["purchase_returns"]["Row"];
@@ -52,6 +53,7 @@ function requestedPage(pageValue?: string) {
 }
 
 export async function getPurchaseReturns(filters: Filters = {}) {
+  if (isMockMode()) return { rows: [] as PurchaseReturnRow[], totalRows: 0, page: 1, pageSize: PURCHASE_RETURN_PAGE_SIZE, totalPages: 1 };
   const supabase = await createClient();
   const sort = PURCHASE_RETURN_SORT_COLUMNS.has(filters.sort ?? "") ? filters.sort! : "updated_at";
   const ascending = filters.dir === "asc";
@@ -75,6 +77,7 @@ export async function getPurchaseReturns(filters: Filters = {}) {
 }
 
 export async function getPurchaseReturnSummary(): Promise<PurchaseReturnSummary> {
+  if (isMockMode()) return { total: 0, draft: 0, posted: 0, cancelled: 0, value: 0 };
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("get_purchase_return_summary");
   if (error) throw new Error(error.message);
@@ -90,6 +93,7 @@ export async function getPurchaseReturnSummary(): Promise<PurchaseReturnSummary>
 }
 
 export async function getPostedGoodsReceivingsForReturn() {
+  if (isMockMode()) return [] as ReturnableGoodsReceiving[];
   const supabase = await createClient();
   const { data: grns, error } = await supabase
     .from("goods_receivings")

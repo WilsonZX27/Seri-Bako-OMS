@@ -160,6 +160,7 @@ export async function getSupplierInvoiceFilterSuppliers() {
 }
 
 export async function getPostedGrnsForInvoice(supplierId?: string, excludeInvoiceId?: string) {
+  if (isMockMode()) return { grns: [], suppliers: [] };
   const profile = await getCurrentProfile();
   if (!profile?.company_id) throw new Error("Company profile is required.");
   const supabase = await createClient();

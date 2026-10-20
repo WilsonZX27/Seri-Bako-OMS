@@ -5,7 +5,7 @@ import { TopBarActivityMenu } from "@/components/layout/top-bar-activity-menu";
 import { MobileSidebar } from "@/components/layout/mobile-sidebar";
 import { MobileContextBack, MobileContextTitle } from "@/components/layout/mobile-context-header";
 import { getRoleDisplayLabel } from "@/lib/roles";
-import { getTopBarActivity, getNavAttentionHrefs } from "@/server/queries/topbar";
+import { getNavAttentionHrefs } from "@/server/queries/topbar";
 import type { getTopBarActivity as GetTopBarActivity } from "@/server/queries/topbar";
 import type { UserRole } from "@/types/database";
 import { Suspense } from "react";

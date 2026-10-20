@@ -14,7 +14,7 @@ test("mobile web uses a permission-aware app shell without replacing desktop nav
   assert.match(navigation, /data-mobile-app-nav/);
   assert.match(navigation, /grid-cols-5/);
   assert.match(navigation, /xl:hidden/);
-  assert.match(navigation, /getVisibleNavGroups\(role, permissionMap\)/);
+  assert.match(navigation, /getVisibleNavGroups\(role, permissionMap, attentionHrefs\)/);
   assert.match(navigation, /role === "outlet_staff"/);
   assert.match(navigation, /role === "kitchen"/);
   assert.match(navigation, /role === "purchasing"/);
@@ -106,7 +106,9 @@ test("shared dialogs contain their content within the dynamic mobile viewport an
 test("top-bar updates stay within the dynamic viewport rather than relying on a fixed popover height", () => {
   const activityMenu = read("src/components/layout/top-bar-activity-menu.tsx");
 
-  assert.match(activityMenu, /max-h-\[calc\(100dvh-3\.5rem\)\]/);
+  assert.match(activityMenu, /max-h-\[calc\(100dvh-4\.5rem-env\(safe-area-inset-top\)\)\]/);
+  assert.match(activityMenu, /md:max-h-\[calc\(100dvh-3\.5rem\)\]/);
+  assert.match(activityMenu, /top-\[calc\(3\.5rem\+env\(safe-area-inset-top\)\)\]/);
   assert.match(activityMenu, /overflow-y-auto/);
   assert.doesNotMatch(activityMenu, /max-h-96/);
 });

@@ -11,7 +11,7 @@ test("outlet daily rows retain the next operational step and wastage signal on p
 
   assert.match(source, /outletProgress\(row\)/);
   assert.match(source, /wastageDisplay\(row\)/);
-  assert.match(source, /Received<\/dt>/);
+  assert.match(source, /\["Received", <OperationalValue key="received-value" display=\{receivedDisplay\(row\)\} \/>\]/);
   assert.match(source, /receivedDisplay\(row\)/);
 });
 

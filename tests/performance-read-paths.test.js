@@ -222,9 +222,10 @@ test("topbar shell renders without awaiting notification or workflow queries", a
   let calls = 0;
   const { TopBar } = load("src/components/layout/top-bar.tsx", {
     "@/lib/roles": { getRoleDisplayLabel: () => "Manager" },
-    "@/server/queries/topbar": { getTopBarActivity: async () => { calls++; return { notifications: [] }; } },
+    "@/server/queries/topbar": { getNavAttentionHrefs: () => [] },
   });
-  const tree = TopBar({ permissionMap: {}, role: "manager", companyName: "Company", companyLogoUrl: null, displayName: "Manager" });
+  const activityPromise = { then(resolve) { calls++; resolve({ notifications: [] }); } };
+  const tree = TopBar({ permissionMap: {}, role: "manager", companyName: "Company", companyLogoUrl: null, displayName: "Manager", activityPromise });
   assert.equal(calls, 0);
   function findSuspense(element) {
     if (!element || typeof element !== "object") return null;
@@ -238,7 +239,7 @@ test("topbar shell renders without awaiting notification or workflow queries", a
   const boundary = findSuspense(tree);
   assert.ok(boundary);
   assert.equal(boundary.props.fallback.props["aria-busy"], "true");
-  await boundary.props.children.type();
+  await boundary.props.children.type(boundary.props.children.props);
   assert.equal(calls, 1);
 });
 

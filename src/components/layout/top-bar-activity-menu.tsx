@@ -106,7 +106,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
         ) : null}
       </Button>
       {open ? (
-        <div ref={menuRef} data-topbar-activity-menu role="dialog" aria-label="Workspace Updates" className="sb-popover-surface sb-workspace-updates fixed right-4 top-12 z-40 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-[var(--sb-panel-radius)]">
+        <div ref={menuRef} data-topbar-activity-menu role="dialog" aria-label="Workspace Updates" className="sb-popover-surface sb-workspace-updates fixed right-4 top-[calc(3.5rem+env(safe-area-inset-top))] z-40 w-[min(24rem,calc(100vw-2rem))] overflow-hidden rounded-[var(--sb-panel-radius)] md:top-12">
           <div className="border-b p-3">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -118,7 +118,7 @@ export function TopBarActivityMenu({ data }: { data: TopBarActivity }) {
               ) : null}
             </div>
           </div>
-          <div className="max-h-[calc(100dvh-5rem)] divide-y overflow-y-auto">
+          <div className="max-h-[calc(100dvh-4.5rem-env(safe-area-inset-top))] divide-y overflow-y-auto md:max-h-[calc(100dvh-3.5rem)]">
             {showPendingActions ? <section className="space-y-1 p-3">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-semibold uppercase text-muted-foreground">My Pending Actions</p>

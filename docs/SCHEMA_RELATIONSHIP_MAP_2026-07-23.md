@@ -1,3 +1,5 @@
+> Local repository review — 2026-10-20: forward-only migration 历史已到 `367`; repository migration source reviewed through `367`. Migration 367 is not evidence of application to the isolated or Production database. This document remains a historical map, not a current Production schema proof.
+
 > Local candidate — 2026-10-19: migrations reviewed through `366`; forward-only migration 历史已到 `366`. Chef and unique username login are local changes pending database verification and release.
 
 > Local candidate (2026-10-19): migrations reviewed through `365`; forward-only migration 历史已到 `365`. Migration 365 introduces Chef with Kitchen grants and existing scheduling exclusions. Not applied to Production. Migration 364 was applied to Production after approval.

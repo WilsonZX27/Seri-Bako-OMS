@@ -23,7 +23,8 @@ test("staff permission and account panels use the shared Apple-style panel radiu
   const permissions = read("src/components/staff-permission-overrides.tsx");
 
   assert.doesNotMatch(page, /rounded-\[2px\]/);
-  assert.match(page, /rounded-\[var\(--sb-panel-radius\)\]/);
+  assert.match(read("src/components/ui/card.tsx"), /rounded-\[var\(--sb-panel-radius\)\]/);
+  assert.match(page, /rounded-\[var\(--sb-radius-control\)\] border bg-white/);
   assert.match(permissions, /overflow-hidden rounded-\[var\(--sb-panel-radius\)\]/);
   assert.match(permissions, /rounded-\[var\(--sb-radius-control\)\] border border-\[var\(--sb-warning\)\]/);
 });

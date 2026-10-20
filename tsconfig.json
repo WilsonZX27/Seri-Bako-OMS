@@ -30,14 +30,15 @@
     }
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
     ".next-playwright/types/**/*.ts",
     ".next/types/**/*.ts",
     "next-env.d.ts",
     ".next-dev-3015/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "outputs"
   ]
 }

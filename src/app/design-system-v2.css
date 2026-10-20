@@ -2935,6 +2935,7 @@ html[data-design-layer="v2"] table.sb-stock-balance-table :is(th,td):nth-child(3
 
 /* Production based mobile refinements from approved browser annotations. */
 html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"] {
+  --sb-pr-meta-ink: #5a6b62;
   min-height: 0;
   padding-block: .625rem;
 }
@@ -2942,7 +2943,7 @@ html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"]:nth-chil
 html[data-design-layer="v2"] .sb-pr-phone-supplier-row,
 html[data-design-layer="v2"] .sb-pr-phone-location-row {
   min-width: 0;
-  color: var(--sb-text-muted);
+  color: var(--sb-pr-meta-ink);
   font-size: .6875rem;
   font-weight: 400;
   line-height: 1rem;
@@ -2968,7 +2969,7 @@ html[data-design-layer="v2"] .sb-pr-phone-byline-date {
   min-width: 0;
   align-items: center;
   gap: .25rem;
-  color: var(--sb-text-muted);
+  color: var(--sb-pr-meta-ink);
   font-size: .6875rem;
   font-weight: 400;
 }

@@ -796,6 +796,14 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
 /** Before-today context, independent of list pagination and never treating absent entries as zero. */
 export async function getOutletDailyHistoricalContext() {
   const end=shiftDate(todayInKualaLumpur(),-1);
+  if (isMockMode()) {
+    const completion = await getOutletDailyCompletionMatrix({history_date:end,period:"30"});
+    return {
+      end, summary_date: null, start: completion.dates[0],
+      summary: {today_records:0,today_sent:null,today_received:null,today_received_zero_with_sent:0,posted_today:0,ready_to_post:0,missing_evening:0},
+      gaps: completion.rows.map(row=>({...row,gaps:row.cells.filter(cell=>cell.status!=="reviewed")})).filter(row=>row.gaps.length>0),
+    };
+  }
   const db=looseSupabase(await createClient());
   const summaryPromise=(async()=>{
     const latest=await db.from("outlet_daily_records").select("record_date").lte("record_date",end).in("status",["evening_completed","reviewed"]).order("record_date",{ascending:false}).limit(1);

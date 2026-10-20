@@ -78,7 +78,6 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
       <StockCountVarianceDaily insight={varianceInsight} />
     </div>}>
       <div className="space-y-3" data-tablet-main-list>
-          <StockCountVarianceInsights insight={varianceInsight} />
           <FilterBar resultCount={counts?.totalRows} resetHref="/stock-counts" filtered={filtered} className="sb-list-filters--balanced sb-list-filters--portrait-query">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search count no, branch, remarks" aria-label="Search stock counts" />
             <SelectControl name={branches ? "branch_id" : undefined} defaultValue={branches ? filters.branch_id ?? "all" : "unavailable"} ariaLabel="Branch" disabled={!branches} options={branches ? [{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))] : [{ value: "unavailable", label: "Branch filter unavailable" }]} />
@@ -95,6 +94,7 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
         <OperationalList ariaLabel="Stock counts" showUntil="xl">{(counts?.rows ?? []).map((row) => <OperationalListRow key={row.id} href={`/stock-counts/${row.id}`} label={`Open ${row.count_no}`} primary={`${row.branch_name ?? "Unknown branch"} · ${formatDateOnly(row.count_date)}`} status={<StatusBadge status={row.status} />} secondary={`Submitted by ${row.counted_by_name ?? "Unknown user"}`} detail={<span className="hidden sm:inline">{row.count_no}</span>} meta={<span className={row.high_variance_count > 0 ? "font-semibold text-[var(--sb-warning)]" : undefined}>{row.line_count} lines · {row.high_variance_count} variance</span>} />)}{countsResult.unavailable ? <EmptyState title="Stock counts are unavailable" description="The count service did not respond. Retry this page; no count data was changed." /> : !counts?.rows.length ? <EmptyState title={filtered ? "No counts match these filters" : "No stock counts yet"} description={filtered ? "Reset the filters or widen the date range." : "Counts appear after a permitted user starts a branch stock count."} action={filtered ? emptyAction : undefined} /> : null}</OperationalList>
         {counts ? <PaginationControls page={counts.page} totalPages={counts.totalPages} totalRows={counts.totalRows} searchParams={filters} /> : null}
         </div>
+        <StockCountVarianceInsights insight={varianceInsight} />
       </div>
     </WorkspaceGrid>
   </>;

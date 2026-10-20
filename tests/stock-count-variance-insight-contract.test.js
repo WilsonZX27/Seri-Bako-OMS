@@ -46,6 +46,8 @@ test("Stock Count insight provides compact views, exact previews, drill-through 
   assert.doesNotMatch(component, /min-w-\[25rem\]|overflow-x-auto/);
   assert.match(ranking, /activeItem\.href \?/);
   assert.match(page, /<StockCountVarianceInsights insight=\{varianceInsight\}/);
+  assert.ok(page.indexOf("<FilterBar") < page.indexOf("<StockCountVarianceInsights"));
+  assert.ok(page.indexOf("<PaginationControls") < page.indexOf("<StockCountVarianceInsights"));
 });
 
 test("Stock Count insight tabs preserve semantic inverse contrast", () => {

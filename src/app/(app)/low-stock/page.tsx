@@ -10,6 +10,7 @@ import { formatCurrency, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getReplenishmentDecision } from "@/lib/replenishment-decision";
 import { hasPermission } from "@/server/auth/permissions";
+import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 import { getBranchesForSelect } from "@/server/queries/common";
 import { getLowStockResult } from "@/server/queries/inventory";
 import { LowStockPrForm } from "@/components/low-stock-pr-form";
@@ -18,10 +19,11 @@ import { EmptyState } from "@/components/ui/empty-state";
 
 export default async function LowStockPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [lowStockResult, branches, canCreatePr] = await Promise.all([
+  const [lowStockResult, branches, canCreatePr, actor] = await Promise.all([
     getLowStockResult(filters),
     getBranchesForSelect(),
     hasPermission("purchase_request.create"),
+    requireActiveTenantActor(),
   ]);
   const { rows: items, count, unavailable } = lowStockResult;
   const out = items.filter((item) => item.stock_status === "out_of_stock").length;
@@ -69,6 +71,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
               items={items}
               branches={branches}
               defaultBranchId={filters.branch_id}
+              basketOwnerId={actor.staffId}
               disabled={!canCreatePr}
             />}
           </div>

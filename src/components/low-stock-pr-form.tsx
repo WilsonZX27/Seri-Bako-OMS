@@ -30,6 +30,24 @@ type LowStockItem = {
 };
 
 type BranchOption = { id: string; branch_code: string; branch_name: string; status: string };
+type StoredBasketLine = { item: LowStockItem; qty: string; uom: string };
+
+function validStoredLine(value: unknown, branchId: string): value is StoredBasketLine {
+  if (!value || typeof value !== "object") return false;
+  const line = value as Partial<StoredBasketLine>;
+  const item = line.item;
+  return Boolean(item && item.branch_id === branchId && typeof item.item_id === "string"
+    && typeof item.item_code === "string" && typeof item.item_name === "string"
+    && (item.supplier_id === null || typeof item.supplier_id === "string")
+    && (item.supplier_name === null || typeof item.supplier_name === "string")
+    && (item.base_unit === null || typeof item.base_unit === "string")
+    && (item.purchase_unit === null || typeof item.purchase_unit === "string")
+    && typeof item.stock_status === "string"
+    && Number.isFinite(item.suggested_reorder_qty) && Number.isFinite(item.current_stock)
+    && Number.isFinite(item.safety_stock) && Number.isFinite(item.cost)
+    && typeof line.qty === "string" && Number.isFinite(Number(line.qty)) && Number(line.qty) > 0
+    && typeof line.uom === "string" && line.uom.length > 0);
+}
 
 function numberValue(value: string) {
   const parsed = Number(value);
@@ -57,18 +75,30 @@ function BasketSurface({ open, children }: { open: boolean; children: ReactNode 
   return open && mounted ? createPortal(children, document.body) : children;
 }
 
-export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
+export function LowStockPrForm({ items, branches, defaultBranchId, basketOwnerId, disabled }: {
   items: LowStockItem[];
   branches: BranchOption[];
   defaultBranchId?: string;
+  basketOwnerId: string;
   disabled: boolean;
 }) {
   const [selectedBranchId, setSelectedBranchId] = useState(defaultBranchId ?? "all");
-  const visibleItems = useMemo(() => {
-    if (selectedBranchId === "all") return items;
-    return items.filter((item) => item.branch_id === selectedBranchId);
-  }, [items, selectedBranchId]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
+  const [retainedItems, setRetainedItems] = useState<LowStockItem[]>([]);
+  const [hydratedBasketKey, setHydratedBasketKey] = useState<string | null>(null);
+  const basketStorageKey = useMemo(() => `seri-bako:low-stock-pr-basket:v1:${basketOwnerId}:${branches.map((branch) => branch.id).sort().join(".") || "unassigned"}`, [basketOwnerId, branches]);
+  const basketItems = useMemo(() => {
+    const byKey = new Map(items.map((item) => [rowKey(item), item]));
+    for (const item of retainedItems) {
+      const key = rowKey(item);
+      if (selected[key] && !byKey.has(key)) byKey.set(key, item);
+    }
+    return Array.from(byKey.values());
+  }, [items, retainedItems, selected]);
+  const visibleItems = useMemo(() => {
+    if (selectedBranchId === "all") return basketItems;
+    return basketItems.filter((item) => item.branch_id === selectedBranchId);
+  }, [basketItems, selectedBranchId]);
   const [quantities, setQuantities] = useState<Record<string, string>>({});
   const [uoms, setUoms] = useState<Record<string, string>>({});
   const [basketOpen, setBasketOpen] = useState(false);
@@ -110,6 +140,71 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
     })), [quantities, supplierGroups, uoms]);
   const hasMissingSupplier = selectedItems.some((item) => !item.supplier_id);
   const canCreatePr = selectedCount > 0 && selectedBranchId !== "all" && !hasMissingSupplier;
+
+  useEffect(() => {
+    if (hydratedBasketKey !== basketStorageKey || !selectedItems.length) return;
+    setRetainedItems((current) => {
+      const byKey = new Map(current.map((item) => [rowKey(item), item]));
+      let changed = false;
+      for (const item of selectedItems) {
+        if (!byKey.has(rowKey(item))) {
+          byKey.set(rowKey(item), item);
+          changed = true;
+        }
+      }
+      return changed ? Array.from(byKey.values()) : current;
+    });
+  }, [basketStorageKey, hydratedBasketKey, selectedItems]);
+
+  useEffect(() => {
+    if (hydratedBasketKey === basketStorageKey) return;
+    if (disabled) {
+      setHydratedBasketKey(basketStorageKey);
+      return;
+    }
+    setSelectedBranchId(defaultBranchId ?? "all");
+    setRetainedItems([]);
+    setSelected({});
+    setQuantities({});
+    setUoms({});
+    try {
+      const raw = window.localStorage.getItem(basketStorageKey);
+      const stored = raw ? JSON.parse(raw) as { branchId?: unknown; lines?: unknown } : null;
+      const branchId = typeof stored?.branchId === "string" && branches.some((branch) => branch.id === stored.branchId)
+        ? stored.branchId : null;
+      if (branchId) {
+        const lines = (Array.isArray(stored?.lines) ? stored.lines : [])
+          .filter((line): line is StoredBasketLine => validStoredLine(line, branchId))
+          .slice(0, 100);
+        setSelectedBranchId(branchId);
+        setRetainedItems(lines.map((line) => line.item));
+        setSelected(Object.fromEntries(lines.map((line) => [rowKey(line.item), true])));
+        setQuantities(Object.fromEntries(lines.map((line) => [rowKey(line.item), line.qty])));
+        setUoms(Object.fromEntries(lines.map((line) => [rowKey(line.item), line.uom])));
+      }
+    } catch {
+      // A stale or unavailable browser basket does not block the current list.
+    } finally {
+      setHydratedBasketKey(basketStorageKey);
+    }
+  }, [basketStorageKey, branches, defaultBranchId, disabled, hydratedBasketKey]);
+
+  useEffect(() => {
+    if (hydratedBasketKey !== basketStorageKey || disabled) return;
+    try {
+      if (selectedBranchId === "all") {
+        window.localStorage.removeItem(basketStorageKey);
+        return;
+      }
+      const lines = selectedItems.map((item) => ({
+        item, qty: quantities[rowKey(item)] ?? String(item.suggested_reorder_qty),
+        uom: uoms[rowKey(item)] ?? item.purchase_unit ?? item.base_unit ?? "PCS",
+      }));
+      window.localStorage.setItem(basketStorageKey, JSON.stringify({ branchId: selectedBranchId, lines }));
+    } catch {
+      // Selection remains usable until this page is refreshed.
+    }
+  }, [basketStorageKey, hydratedBasketKey, disabled, quantities, selectedBranchId, selectedItems, uoms]);
 
   function toggleItem(key: string) {
     const wasSelected = Boolean(selected[key]);

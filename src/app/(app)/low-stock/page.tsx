@@ -74,7 +74,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
           </div>
 
           <div>
-            <UnifiedListHeader resultCount={unavailable ? undefined : count ?? undefined} resetHref="/low-stock" filtered={filtered}>
+            <UnifiedListHeader className="sb-low-stock-query" resultCount={unavailable ? undefined : count ?? undefined} resetHref="/low-stock" filtered={filtered}>
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, branch, supplier" className="md:max-w-sm" />
               <SelectControl
                 name="branch_id"

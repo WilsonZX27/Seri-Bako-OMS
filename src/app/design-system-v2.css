@@ -2935,6 +2935,35 @@ html[data-design-layer="v2"] table.sb-stock-balance-table :is(th,td):nth-child(3
 }
 
 /* Production based mobile refinements from approved browser annotations. */
+/* Low Stock keeps its summary rail at the desktop shell switch. Place its
+   five filters on two rows until the main canvas can hold them without
+   pushing the record count outside the query card. */
+@media (min-width: 1280px) and (max-width: 1535px) {
+  html[data-design-layer="v2"] form.sb-list-query-card.sb-low-stock-query {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    flex-wrap: wrap !important;
+  }
+  html[data-design-layer="v2"] form.sb-list-query-card.sb-low-stock-query > :is(input, select, [data-select-control], [data-query-control]) {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+  html[data-design-layer="v2"] form.sb-list-query-card.sb-low-stock-query > [data-query-control] {
+    grid-column: span 2;
+  }
+  html[data-design-layer="v2"] form.sb-list-query-card.sb-low-stock-query > [data-query-control] > input {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+  html[data-design-layer="v2"] form.sb-list-query-card.sb-low-stock-query > .unified-list-desktop-actions {
+    grid-column: span 2 !important;
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
 html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"] {
   --sb-pr-meta-ink: #5a6b62;
   min-height: 0;

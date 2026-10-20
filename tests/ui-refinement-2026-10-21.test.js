@@ -39,4 +39,6 @@ test('attention destinations deduplicate and clear when current action data is e
  assert.equal(JSON.stringify(get({pendingApprovals:[],notifications:[]})),'[]');
  const value=get({pendingApprovals:[{href:'/purchase-requests/one'},{href:'/purchase-requests/two'}],notifications:[{action_url:'/asset-management?view=maintenance'},{action_url:'https://example.com/outside'}]});
  assert.equal(JSON.stringify(value),JSON.stringify(['/purchase-requests','/asset-management']));
+ const mixed=get({pendingApprovals:[{href:'/purchase-requests/one'}],attentionHrefs:['/purchase-requests/two','/attendance/schedule?week=2026-10-19','/stock-counts/late'],notifications:[]});
+ assert.equal(JSON.stringify(mixed),JSON.stringify(['/purchase-requests','/attendance','/stock-counts']));
 });

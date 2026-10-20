@@ -23,6 +23,7 @@ export type PendingAction = {
 
 export type PendingActionSnapshot = {
   items: PendingAction[];
+  attentionHrefs: string[];
   total: number | null;
   unavailable: boolean;
 };
@@ -37,7 +38,7 @@ function ageLabel(updatedAt?: string | null) {
 
 export const getCurrentUserPendingActionSnapshot = cache(async function getCurrentUserPendingActionSnapshot(limit = 5, includeOutletDaily = true, includeDetails = true, includeTotal = true): Promise<PendingActionSnapshot> {
   const scope = await getCurrentUserScope();
-  if (!scope) return { items: [], total: null, unavailable: true };
+  if (!scope) return { items: [], attentionHrefs: [], total: null, unavailable: true };
 
   const permissions = await getPermissionMap([
     "pr.admin_review", "pr.purchasing_review", "pr.manager_approve", "pr.finance_review",
@@ -232,12 +233,14 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
   const [prResults, scheduleResult, outletDailyResult, maintenanceResult] = await Promise.all([prResultsPromise, scheduleResultPromise, outletDailyResultPromise, maintenanceResultPromise]);
   const results = [...prResults, maintenanceResult, scheduleResult, ...(includeOutletDaily ? [outletDailyResult] : [])];
   const unavailable = results.some((result) => result.unavailable);
+  const attentionHrefs = [...new Set(results.flatMap((result) => result.items.slice(0, 1).map((item) => item.href)))];
   const items = results
     .flatMap((result) => result.items)
     .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
     .slice(0, limit);
   return {
     items,
+    attentionHrefs,
     total: unavailable || !includeTotal ? null : results.reduce((sum, result) => sum + (result.count ?? 0), 0),
     unavailable,
   };

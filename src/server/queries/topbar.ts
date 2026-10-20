@@ -4,7 +4,7 @@ import { getCanonicalDocumentHref, getCanonicalEntityHref } from "@/lib/document
 import { isMockMode, mockDocuments } from "@/lib/mock-mode";
 import { hasPermission } from "@/server/auth/permissions";
 import { getCurrentUserScope, getVisibleNotificationsForCurrentUser } from "@/server/queries/notifications";
-import { getCurrentUserPendingActions } from "@/server/queries/pending-actions";
+import { getCurrentUserPendingActionSnapshot } from "@/server/queries/pending-actions";
 import { logServerWarning } from "@/server/observability/logger";
 
 type AssignedActivity = {
@@ -38,6 +38,7 @@ export async function getTopBarActivity() {
           title: document.title,
           href: getCanonicalDocumentHref(document),
         })),
+      attentionHrefs: mockDocuments.filter((document) => document.approval_status === "pending").map(getCanonicalDocumentHref),
       assignedActivities: [] as AssignedActivity[],
       notifications: [],
       announcements: [],
@@ -55,6 +56,7 @@ export async function getTopBarActivity() {
     return {
       availability: { pendingActions: true, notifications: true },
       pendingApprovals: [] as PendingAction[],
+      attentionHrefs: [] as string[],
       assignedActivities: [] as AssignedActivity[],
       notifications: [],
       announcements: [],
@@ -72,9 +74,9 @@ export async function getTopBarActivity() {
     // The complete activity stream belongs to /activity. Resolving actor
     // identities here made every application route wait on an audit-log query.
     Promise.resolve([] as AssignedActivity[]),
-    getCurrentUserPendingActions(5).then((rows) => ({ rows, unavailable: false })).catch((error) => {
+    getCurrentUserPendingActionSnapshot(5, true, false, false).then((snapshot) => ({ rows: snapshot.unavailable ? [] : snapshot.items, attentionHrefs: snapshot.unavailable ? [] : snapshot.attentionHrefs, unavailable: snapshot.unavailable })).catch((error) => {
       logServerWarning(error, { source: "topbar.pending-actions" });
-      return { rows: [] as PendingAction[], unavailable: true };
+      return { rows: [] as PendingAction[], attentionHrefs: [] as string[], unavailable: true };
     }),
     hasPermission("production.approve").then((allowed) => ({ allowed, unavailable: false })).catch((error) => {
       logServerWarning(error, { source: "topbar.production-approve-permission" });
@@ -194,6 +196,7 @@ export async function getTopBarActivity() {
       notifications: !notificationsResult.unavailable,
     },
     pendingApprovals,
+    attentionHrefs: [...new Set([...workflowPendingActionsResult.attentionHrefs, ...productionPendingActions.map((item) => item.href), ...scopedDocumentPendingActions.map((item) => item.href)])],
     assignedActivities: assignedActivities as AssignedActivity[],
     notifications: actionableNotifications.slice(0, 5),
     announcements: notifications.filter((row) => row.is_company_wide && !row.read_at).slice(0, 5),
@@ -203,12 +206,14 @@ export async function getTopBarActivity() {
 
 export function getNavAttentionHrefs(activity: Awaited<ReturnType<typeof getTopBarActivity>>) {
   const hrefs = [
+    ...(activity.attentionHrefs ?? []),
     ...(activity.pendingApprovals ?? []).map((item) => item.href),
     ...(activity.notifications ?? []).map((item) => item.action_url ?? ""),
   ];
   const navHrefFor = (href: string): string | null => {
     const path = href.split("?")[0];
     if (path.startsWith("/asset-management")) return "/asset-management";
+    if (path.startsWith("/attendance")) return "/attendance";
     if (path.startsWith("/outlet-compliance")) return "/outlet-compliance";
     if (path.startsWith("/purchase-requests")) return "/purchase-requests";
     if (path.startsWith("/purchase-orders")) return "/purchase-orders";

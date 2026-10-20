@@ -2932,3 +2932,57 @@ html[data-design-layer="v2"] table.sb-stock-balance-table :is(th,td):nth-child(3
 @media (min-width:1280px) {
  html[data-design-layer="v2"] form.sb-list-query-card > [data-date-range-control] { flex:0 0 240px!important; width:240px!important; min-width:0!important; max-width:240px!important; }
 }
+
+/* Production based mobile refinements from approved browser annotations. */
+html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"] {
+  min-height: 0;
+  padding-block: .625rem;
+}
+html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"]:nth-child(even) { background: #edf2ef; }
+html[data-design-layer="v2"] .sb-pr-phone-supplier-row,
+html[data-design-layer="v2"] .sb-pr-phone-location-row {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  color: var(--sb-text-muted);
+  font-size: .6875rem;
+  font-weight: 400;
+  line-height: 1rem;
+}
+html[data-design-layer="v2"] .sb-pr-phone-supplier-row {
+  grid-template-columns: minmax(0, 3fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: .25rem;
+}
+html[data-design-layer="v2"] .sb-pr-phone-location-row {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: .5rem;
+}
+html[data-design-layer="v2"] .sb-pr-phone-supplier,
+html[data-design-layer="v2"] .sb-pr-phone-items,
+html[data-design-layer="v2"] .sb-pr-phone-location,
+html[data-design-layer="v2"] .sb-pr-phone-byline-person,
+html[data-design-layer="v2"] .sb-pr-phone-byline-date {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: .25rem;
+  color: var(--sb-text-muted);
+  font-size: .6875rem;
+  font-weight: 400;
+}
+html[data-design-layer="v2"] .sb-pr-phone-supplier > span,
+html[data-design-layer="v2"] .sb-pr-phone-location > span,
+html[data-design-layer="v2"] .sb-pr-phone-byline-person > span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+html[data-design-layer="v2"] .sb-pr-phone-items { justify-content: flex-end; white-space: nowrap; }
+html[data-design-layer="v2"] .sb-pr-phone-amount { color: var(--sb-text); font-size: .6875rem; font-weight: 600; line-height: 1rem; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+html[data-design-layer="v2"] .sb-pr-phone-byline { display: inline-flex; min-width: 0; align-items: center; justify-content: flex-end; gap: .5rem; }
+html[data-design-layer="v2"] .sb-pr-phone-byline-date { flex-shrink: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
+html[data-design-layer="v2"] :is(.sb-pr-phone-supplier, .sb-pr-phone-items, .sb-pr-phone-location, .sb-pr-phone-byline-person, .sb-pr-phone-byline-date) > svg { width: .875rem; height: .875rem; flex: 0 0 .875rem; }
+@media (max-width: 639px) {
+  html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"] { padding-inline: .875rem; }
+}
+@media (min-width: 768px) and (max-width: 1279px) {
+  html[data-design-layer="v2"] form.sb-purchase-request-filters.unified-list-header { padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; }
+  html[data-design-layer="v2"] form.sb-purchase-request-filters.unified-list-header .unified-list-row { align-items: center; }
+  html[data-design-layer="v2"] form.sb-purchase-request-filters.unified-list-header :is(.unified-list-primary-control, .unified-list-search-submit, .unified-list-filter-trigger) { box-sizing: border-box; height: 2.25rem !important; min-height: 2.25rem !important; max-height: 2.25rem !important; align-self: center; }
+}

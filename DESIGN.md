@@ -1,3 +1,7 @@
+# v9.2.108 (unreleased)
+
+Production-based UI correction candidate. Desktop workspace navigation is 36px; phone navigation remains 44px. Annotated purchase request metadata and asset checklist copy use compact phone typography. Preserve existing OMS colours and surfaces.
+
 > Local candidate — 2026-10-18: desktop query filters use 120px at the existing 1280px desktop breakpoint; search is a named icon action and the query field absorbs remaining space. Phone/tablet touch sizes remain unchanged. Shared card/profile/form headers separate titles from fields with a soft rule. Employment and access editing stays in the People profile. Pending release; see final-audit/FEEDBACK-16-AUDIT.txt in the task workspace.
 
 # v9.2.107 (unreleased)

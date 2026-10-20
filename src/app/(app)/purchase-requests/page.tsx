@@ -1,5 +1,5 @@
 import { supplierDisplay } from "@/lib/operational-value-display";
-import { Pencil, Plus } from "lucide-react";
+import { CalendarDays, MapPin, Package, Pencil, Plus, Store, UserRound } from "lucide-react";
 import Link from "next/link";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { BulkPhaseOneDelete } from "@/components/bulk-phase-one-delete";
@@ -58,7 +58,6 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
         title="Purchase Requests"
         description="Create, review, return, and convert branch requests into purchase orders."
         action={permissions["pr.create"] ? { href: "/purchase-requests/new", label: "New purchase request" } : undefined}
-        hideTabletCreateFab
       />
       <WorkspaceGrid
         className="pt-4 sb-portrait-tablet-rail"
@@ -83,7 +82,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
         }
       >
         <div className="space-y-3" data-tablet-main-list>
-            <FilterBar resetHref="/purchase-requests" filtered={filtered} resultCount={requests?.totalRows} className="sb-list-filters--balanced">
+            <FilterBar resetHref="/purchase-requests" filtered={filtered} resultCount={requests?.totalRows} className="sb-list-filters--balanced sb-purchase-request-filters">
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, remarks" className="md:max-w-sm" />
               <SelectControl name="status" defaultValue={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status.value, label: status.label }))]} />
               <SelectControl name="priority" defaultValue={filters.priority ?? "all"} ariaLabel="Priority" options={[{ value: "all", label: "All priorities" }, { value: "critical", label: "Critical" }, { value: "urgent", label: "Urgent" }, { value: "normal", label: "Normal" }, { value: "low", label: "Low" }]} />
@@ -122,10 +121,10 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                 {!requests?.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={requestsResult.unavailable ? "Purchase request data unavailable" : filtered ? "No requests match these filters" : "No purchase requests yet"} description={requestsResult.unavailable ? "The request source could not be verified. No record count or estimated total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Purchase requests appear here after branch needs are created."} action={requestsResult.unavailable ? { href: "/purchase-requests", label: "Retry requests" } : filtered ? { href: "/purchase-requests", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
-            <OperationalList ariaLabel="Purchase requests" showUntil="xl">
+            <OperationalList ariaLabel="Purchase requests" showUntil="xl" className="sb-pr-continuous-rows">
               {requests?.rows.map((request) => {
                 const supplierLabel = supplierDisplay(request);
-                return <OperationalListRow fullWidthDetails key={request.id} href={`/purchase-requests/${request.id}`} label={`Open ${request.request_no}`} primary={<DocumentNumber value={request.request_no} size="sm" className="text-sm" />} status={<StatusBadge status={request.status === "converted_to_po" && request.procurement_status ? request.procurement_status : request.status} />} secondary={<span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[var(--sb-text-muted)]"><span className="shrink-0">{request.branch_name ?? "Unassigned"}</span><span aria-hidden="true">·</span><span className="shrink-0">{formatDateOnly(request.request_date)}</span><span aria-hidden="true">·</span><span className="min-w-0 truncate">{request.requested_by_name}</span></span>} detail={<span className="flex min-w-0 items-center justify-between gap-3 text-xs text-muted-foreground"><span className="truncate" title={supplierLabel}>{supplierLabel}</span><span className="shrink-0 tabular-nums">{request.line_count} items · <strong className="font-medium text-foreground">{formatCurrency(request.estimated_total)}</strong></span></span>} />;
+                return <OperationalListRow fullWidthDetails key={request.id} href={`/purchase-requests/${request.id}`} label={`Open ${request.request_no}`} primary={<DocumentNumber value={request.request_no} size="sm" className="text-sm" />} status={<StatusBadge status={request.status === "converted_to_po" && request.procurement_status ? request.procurement_status : request.status} />} secondary={<span className="sb-pr-phone-supplier-row"><span className="sb-pr-phone-supplier" title={supplierLabel}><Store aria-hidden="true"/><span>{supplierLabel}</span></span><span className="sb-pr-phone-items"><Package aria-hidden="true"/><span>{request.line_count} items</span></span><strong className="sb-pr-phone-amount">{formatCurrency(request.estimated_total)}</strong></span>} detail={<span className="sb-pr-phone-location-row"><span className="sb-pr-phone-location"><MapPin aria-hidden="true"/><span>{request.branch_name ?? "Unassigned"}</span></span><span className="sb-pr-phone-byline"><span className="sb-pr-phone-byline-person"><UserRound aria-hidden="true"/><span>by {request.requested_by_name}</span></span><time className="sb-pr-phone-byline-date" dateTime={request.request_date}><CalendarDays aria-hidden="true"/><span>{formatDateOnly(request.request_date)}</span></time></span></span>} />;
               })}
               {!requests?.rows.length ? <EmptyState title={requestsResult.unavailable ? "Purchase request data unavailable" : filtered ? "No requests match these filters" : "No purchase requests yet"} description={requestsResult.unavailable ? "The request source could not be verified. No record count or estimated total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Purchase requests appear here after branch needs are created."} action={requestsResult.unavailable ? { href: "/purchase-requests", label: "Retry requests" } : filtered ? { href: "/purchase-requests", label: "Reset filters" } : undefined} /> : null}
             </OperationalList>

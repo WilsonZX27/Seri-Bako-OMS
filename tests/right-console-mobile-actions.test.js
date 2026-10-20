@@ -45,7 +45,7 @@ test('secondary floating actions obey the same real-keyboard and loading visibil
 test('a page-header create FAB does not suppress secondary actions when the full mobile rail is hidden',()=>{
  assert.match(source,/content && hasCreateFab \? <Button[^>]*data-mobile-secondary-actions/);
  assert.match(source,/open && content && \(!mobileBarHidden \|\| hasCreateFab\)/);
- assert.match(source,/content && !mobileBarHidden && hasCreateFab && primaryHref/);
+ assert.match(source,/content && hasCreateFab && primaryHref/);
 });
 test('extracted primary actions do not leave an empty rendered console section',()=>{
  const section=React.createElement('section',{'data-console-section':true},React.createElement('div',null,React.createElement('h2',null,'Actions')),React.createElement('div',null,React.createElement('button',{'data-mobile-primary-action':true},'New branch')));

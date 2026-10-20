@@ -1,3 +1,7 @@
+# v9.2.108 (unreleased)
+
+Production-based UI correction candidate: compact annotated phone text, restore the mobile Create PR action and location title, align workspace navigation to 36px desktop / 44px touch sizing, and use compact asset summary cards. No workflow, permission, or data changes.
+
 > Local candidate — 2026-10-19: migrations reviewed through `366`; forward-only migration 历史已到 `366`. Chef and unique username login are local changes pending database verification and release.
 
 > Local candidate — 2026-10-18: migrations reviewed through `364`. Week-only roster exclusions and the 16-comment interface corrections are under local verification. Migration 364 is not applied to Production.

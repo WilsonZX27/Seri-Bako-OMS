@@ -193,7 +193,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
           </div>
         </aside>
       ) : <aside data-right-console-placeholder aria-hidden="true" className="hidden h-full w-[var(--sb-console-width)] shrink-0 border-l border-[var(--sb-border-soft)] bg-[var(--rail-bg)] p-3"><div className="sb-work-surface space-y-3 p-3"><div className="sb-skeleton h-9" /><div className="sb-skeleton h-9" /></div><div className="sb-work-surface mt-3 space-y-3 p-3"><div className="sb-skeleton h-3" /><div className="sb-skeleton h-3 w-4/5" /></div></aside>}
-      {content && !mobileBarHidden && hasCreateFab && primaryHref ? (
+      {content && hasCreateFab && primaryHref ? (
         <Link
           href={primaryHref}
           data-mobile-create-fab

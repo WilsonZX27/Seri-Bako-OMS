@@ -3036,6 +3036,14 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
 @media (min-width: 768px) and (max-width: 1279px) {
   html[data-design-layer="v2"] .sb-pr-phone-location { flex: 0 1 auto; }
 }
+/* The server renders the desktop query tree before hydration selects the
+   compact tablet toolbar. Give both PR selects enough room in that first
+   frame so their labels stay legible during the handoff. */
+@media (min-width: 640px) and (max-width: 1279px) {
+  html[data-design-layer="v2"] form.sb-purchase-request-filters[data-unified-list-desktop="true"][data-tablet-query-layout="query"] {
+    grid-template-columns: minmax(8rem, 1fr) minmax(8rem, 1fr) minmax(0, 1fr) auto !important;
+  }
+}
 @media (min-width: 768px) and (max-width: 1399px) {
   html[data-design-layer="v2"] .sb-pr-continuous-rows :is(.sb-pr-phone-supplier-row,.sb-pr-phone-location-row,.sb-pr-phone-supplier,.sb-pr-phone-items,.sb-pr-phone-location,.sb-pr-phone-byline-person,.sb-pr-phone-byline-date,.sb-pr-phone-amount) { font-size: 12px; }
 }

@@ -1,3 +1,7 @@
+## v9.2.121 (Preview) — local review follow-up
+
+This Preview includes a scoped page-header contrast correction, complete narrow-screen Attendance descriptions and import filename wrapping, a direct Attendance import entry, and navigation attention for every fetched actionable notification. Production is unchanged. See `docs/releases/preview-v9.2.121-review-follow-up.md` for verification and open items.
+
 ## v9.2.120 (Preview) — local closure batch
 
 The next Preview review combines local-only availability states, scoped PR and Daily Records refinements, asset metric grouping, notification alignment, and an expanded viewport audit. Production behavior and remaining evidence limits are listed in `docs/releases/preview-v9.2.120-local-closure.md`.

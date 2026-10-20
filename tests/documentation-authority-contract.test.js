@@ -11,7 +11,7 @@ const migrationCeiling = Math.max(...fs.readdirSync("supabase/migrations").map((
 
 test("product and design baselines identify released authority and the current forward patch", () => {
   assert.ok(version);
-  const currentSection = new RegExp(`v${version.replaceAll(".", "\\.")} \\((?:deployed|unreleased)\\)`);
+  const currentSection = new RegExp(`v${version.replaceAll(".", "\\.")} \\((?:deployed|unreleased|Preview)\\)`);
   assert.match(product, currentSection);
   assert.match(design, currentSection);
   assert.match(product, /current released application baseline is `v\d+\.\d+\.\d+`/);

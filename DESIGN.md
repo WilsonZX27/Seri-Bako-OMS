@@ -1,3 +1,7 @@
+## v9.2.121 (Preview) — local review follow-up
+
+The page-header description uses a darker scoped muted color on its pale workspace surface without changing body text or type sizes. Attendance task descriptions and long import filenames wrap at phone widths. Navigation dots include actionable notification destinations beyond the popover's five-row preview; live clearing remains to verify.
+
 ## v9.2.120 (Preview) — local closure batch
 
 The first-batch UI keeps its approved compact type and responsive controls. Phone asset metrics use three columns; the 768px PR first frame reserves space for complete filter labels. Remaining shared-header layout shift and role-matrix drift are recorded in `docs/qa/2026-10-21-closure.md`.

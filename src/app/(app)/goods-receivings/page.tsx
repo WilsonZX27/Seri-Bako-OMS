@@ -47,8 +47,6 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
       <PageHeader
         title="Goods Receiving"
         description="Receive supplier deliveries against approved purchase orders. Stock increases only after GRN posting."
-        action={canCreate ? { href: "/goods-receivings/new", label: "New GRN" } : undefined}
-        hideTabletCreateFab
       />
       <WorkspaceGrid
         hideMobileConsole

@@ -65,8 +65,6 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
         <PageHeader
           title="Stock Counts"
           description="Physical counts compared against calculated branch stock."
-          action={canCreate ? { href: "/stock-counts/new", label: "New Stock Count" } : undefined}
-          hideTabletCreateFab
         />
     <WorkspaceGrid
       hideMobileConsole={!canCreate}

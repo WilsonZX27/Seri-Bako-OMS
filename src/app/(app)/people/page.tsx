@@ -26,7 +26,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: Promi
   const filtered = hasActiveFilters(filters);
   const statuses = [{ value: "invited", label: "Invited" }, { value: "active", label: "Active" }, { value: "disabled", label: "Disabled" }];
   return <>
-    <PageHeader title="Employees" description="Profiles, outlet assignments, employment status and OMS access." contentWidth="wide" action={{ href: "/staffs/new", label: "New employee" }} hideTabletCreateFab />
+    <PageHeader title="Employees" description="Profiles, outlet assignments, employment status and OMS access." contentWidth="wide" />
     <WorkspaceGrid tabletCanvas="wide" className="sb-portrait-tablet-rail" hideMobileConsole rightRail={<><ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/staffs/new">New employee</Link></Button></ConsoleSection><ConsoleSection title="Employee summary"><dl className="grid gap-2 text-xs"><Summary label="Shown" value={staffs.length}/><Summary label="Active" value={staffs.filter((staff)=>staff.status==="active").length}/><Summary label="Setup pending" value={staffs.filter((staff)=>getStaffAuthState(staff)==="setup_pending").length}/><Summary label="Disabled" value={staffs.filter((staff)=>staff.status==="disabled").length}/></dl></ConsoleSection></>}>
       {filters.error || filters.success ? <Notice tone={filters.error ? "error" : "success"}>{filters.error??filters.success}</Notice> : null}
       <section className="sb-list-content-card erp-surface overflow-hidden" aria-label="Employee directory">

@@ -10,12 +10,10 @@ test('reviewed lists have one visible phone create owner and scoped metadata sty
  assert.match(requests,/<FilterBar\s+key=\{JSON.stringify\(\[filters\./);
 
  const daily=read('src/app/(app)/outlet-daily-records/page.tsx');
- assert.match(daily,/<PageHeader[^>]*action=\{canCreate \? \{ href: "\/outlet-daily-records\/new", label: "New Daily Record" \} : undefined\} hideTabletCreateFab/);
+ assert.doesNotMatch(daily,/<PageHeader[^>]*action=\{canCreate/);
  assert.match(daily,/canCreate \? <Button[^>]*data-mobile-primary-action><Link href="\/outlet-daily-records\/new"/);
  assert.match(daily,/<FilterBar\s+key=\{JSON.stringify\(\[filters\./);
- const pageHeader=read('src/components/ui/page-header.tsx');
  const rightConsole=read('src/components/layout/right-console.tsx');
- assert.match(pageHeader,/props\.hideTabletCreateFab \? "md:hidden xl:hidden"/);
  assert.match(rightConsole,/className="fixed[^\"]*md:hidden"/);
 
  const css=read('src/app/design-system-v2.css');

@@ -1,4 +1,6 @@
-## v9.2.117 (unreleased) — historical annotation closure candidate
+## v9.2.118 (unreleased) — historical annotation closure candidate
+
+- Keep only one permission-scoped phone create button on Daily Records, Employees, Purchase Orders, Stock Counts, Goods Receiving, Branches and Stock Wastage. The existing right-rail action owns it; creation routes and business actions are unchanged.
 
 The Preview version advances beyond the old Preview branch's v9.2.116 marker. The current candidate preserves its functional repairs while continuing the full historical annotation review. This version change does not imply that remaining viewport, role and interaction checks have passed.
 

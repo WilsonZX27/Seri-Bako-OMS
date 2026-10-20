@@ -32,7 +32,7 @@ export default async function StockWastagePage({ searchParams }: { searchParams:
   const emptyAction = filtered ? { href: "/stock-wastage", label: "Reset filters" } : canCreate ? { href: "/stock-wastage/new", label: "New Wastage" } : undefined;
 
   return <>
-    <PageHeader title="Stock Wastage" description="Record expired, damaged, missing, or abnormal stock loss." action={canCreate ? { href: "/stock-wastage/new", label: "New wastage" } : undefined} />
+    <PageHeader title="Stock Wastage" description="Record expired, damaged, missing, or abnormal stock loss." />
     <WorkspaceGrid hideMobileConsole={!canCreate} tabletRailMode="split" rightRail={
       <ConsoleSection title="Wastage">
         <div className="space-y-3">

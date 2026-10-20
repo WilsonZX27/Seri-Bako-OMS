@@ -1,4 +1,6 @@
-## v9.2.117 (unreleased) — historical annotation closure candidate
+## v9.2.118 (unreleased) — historical annotation closure candidate
+
+- Remove overlaid duplicate phone create buttons from the seven verified operational lists while preserving their 36px desktop right-rail actions and 56px phone FAB.
 
 The version marker is monotonic relative to the earlier v9.2.116 Preview. The pending full-system UI acceptance remains tracked in `docs/qa/HISTORICAL_ANNOTATION_CLOSURE_INDEX.md`.
 

@@ -351,7 +351,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                     ? <span className="col-span-2 text-[11px] font-medium text-[var(--sb-warning)]">Review and publish this outlet roster</span>
                     : isOutletDailyAction
                       ? <span className="col-span-2 text-[11px] font-medium text-[var(--sb-green-800)]">Review outlet quantities and post to lock editing</span>
-                      : <span className="col-span-2 flex min-w-0 items-center justify-between gap-3 text-[11px] text-muted-foreground"><span className="truncate" title={row.supplier_names.join(", ")}>{row.supplier_names.join(", ") || "Supplier pending"}</span><span className="shrink-0 tabular-nums">{row.line_count} items · <strong className="font-medium text-foreground">{formatCurrency(row.estimated_total)}</strong></span></span>}
+                      : <span className="col-span-2 flex min-w-0 items-center justify-between gap-3 text-[11px] text-muted-foreground"><span className="truncate" title={row.supplier_names.join(", ")}>{row.supplier_names.join(", ") || "Supplier pending"}</span><span className="shrink-0 tabular-nums">{row.line_count} {row.line_count === 1 ? "item" : "items"} · <strong className="font-medium text-foreground">{formatCurrency(row.estimated_total)}</strong></span></span>}
                 </Link>
               })}
             </div>

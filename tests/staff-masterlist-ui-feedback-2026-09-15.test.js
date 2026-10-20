@@ -21,9 +21,11 @@ test("staff activity uses the authentication provider's latest successful sign-i
 test("staff permission and account panels use the shared Apple-style panel radius", () => {
   const page = read("src/components/staff-security-panel.tsx");
   const permissions = read("src/components/staff-permission-overrides.tsx");
+  const card = read("src/components/ui/card.tsx");
 
   assert.doesNotMatch(page, /rounded-\[2px\]/);
-  assert.match(page, /rounded-\[var\(--sb-panel-radius\)\]/);
+  assert.match(page, /<Card>/);
+  assert.match(card, /rounded-\[var\(--sb-panel-radius\)\]/);
   assert.match(permissions, /overflow-hidden rounded-\[var\(--sb-panel-radius\)\]/);
   assert.match(permissions, /rounded-\[var\(--sb-radius-control\)\] border border-\[var\(--sb-warning\)\]/);
 });

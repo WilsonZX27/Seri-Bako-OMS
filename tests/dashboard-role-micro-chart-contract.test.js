@@ -8,7 +8,7 @@ const workspace = read("src/components/dashboard-workspace.tsx");
 test("Dashboard does not render a duplicate role snapshot until a unique trend source exists", () => {
   assert.equal((workspace.match(/<DashboardRoleMicroChart/g) ?? []).length, 0);
   assert.doesNotMatch(workspace, /roleChartItems/);
-  assert.match(workspace, /\{isOutlet \? \(/);
+  assert.match(workspace, /\{isKitchenStaff \? \([\s\S]*\) : isOutlet \? \(/);
   assert.match(workspace, /<QuickActionsCluster/);
 });
 

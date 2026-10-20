@@ -219,13 +219,14 @@ test("route data timing records both successful and failed operations without ch
 });
 
 test("topbar shell renders without awaiting notification or workflow queries", async () => {
-  let calls = 0;
   const { TopBar } = load("src/components/layout/top-bar.tsx", {
     "@/lib/roles": { getRoleDisplayLabel: () => "Manager" },
-    "@/server/queries/topbar": { getTopBarActivity: async () => { calls++; return { notifications: [] }; } },
+    "@/server/queries/topbar": { getNavAttentionHrefs: () => [] },
   });
-  const tree = TopBar({ permissionMap: {}, role: "manager", companyName: "Company", companyLogoUrl: null, displayName: "Manager" });
-  assert.equal(calls, 0);
+  let releaseActivity;
+  const activityPromise = new Promise((resolve) => { releaseActivity = resolve; });
+  const tree = TopBar({ permissionMap: {}, role: "manager", companyName: "Company", companyLogoUrl: null, displayName: "Manager", activityPromise });
+  assert.equal(typeof tree.then, "undefined", "topbar shell must render synchronously");
   function findSuspense(element) {
     if (!element || typeof element !== "object") return null;
     if (element.type === React.Suspense) return element;
@@ -238,8 +239,11 @@ test("topbar shell renders without awaiting notification or workflow queries", a
   const boundary = findSuspense(tree);
   assert.ok(boundary);
   assert.equal(boundary.props.fallback.props["aria-busy"], "true");
-  await boundary.props.children.type();
-  assert.equal(calls, 1);
+  const layout = fs.readFileSync("src/app/(app)/layout.tsx", "utf8");
+  assert.match(layout, /const activityPromise = getTopBarActivity\(\)/);
+  assert.doesNotMatch(layout, /await getTopBarActivity\(\)/);
+  releaseActivity({ notifications: [] });
+  await activityPromise;
 });
 
 function pendingActions(db, grants, permissionCalls) {

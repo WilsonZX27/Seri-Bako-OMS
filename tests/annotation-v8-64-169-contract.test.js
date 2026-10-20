@@ -12,7 +12,7 @@ test("PR register and Dashboard use the same compact operational tracks", () => 
   assert.match(register, /supplierLabel/);
   assert.match(register, /request\.line_count\} \{request\.line_count === 1 \? "item" : "items"\}/);
   assert.match(dashboard, /row\.supplier_names\.join/);
-  assert.match(dashboard, /row\.line_count\} items/);
+  assert.match(dashboard, /row\.line_count\} \{row\.line_count === 1 \? "item" : "items"\}/);
   for (const source of [register, dashboard]) assert.doesNotMatch(source, /data-pr-context-grid|data-pr-metrics-grid/);
 });
 

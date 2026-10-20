@@ -15,7 +15,7 @@ test("purchase-request list uses device-appropriate list surfaces and anchors th
   assert.match(page, /<TableSelectionCell><BulkSelectRowCheckbox id=\{request\.id\} \/><\/TableSelectionCell>[\s\S]*<TableActionLink[\s\S]*<DocumentNumber/);
   assert.match(page, /<OperationalList ariaLabel="Purchase requests" showUntil="xl" className="sb-pr-continuous-rows">/);
   assert.match(page, /tabletRailBreakpoint="md"/);
-  assert.match(page, /<FilterBar resetHref="\/purchase-requests"/);
+  assert.match(page, /<FilterBar key=\{JSON\.stringify\(\[filters\.search, filters\.status, filters\.priority\]\)\} resetHref="\/purchase-requests"/);
   assert.match(page, /resultCount=\{requests\?\.totalRows\}/);
   assert.match(page, /\{request\.requested_by_name/);
   assert.doesNotMatch(page, /Submitted by/);

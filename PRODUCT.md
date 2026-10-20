@@ -1,6 +1,6 @@
-## v9.2.110 — responsive list completion
+## v9.2.110 (unreleased) — responsive list completion
 
-Purchase Requests keeps the complete compact row at 1280–1399px until the desktop table fits with its summary rail. Outlet Daily Records keeps its complete compact row below 1536px for the same reason. Singular line and item labels are corrected. The active Preview candidate retains the v9.2.109 workflow and permission repairs; Production is unchanged. See `docs/qa/2026-10-21-closure.md` for verification scope and open items.
+Purchase Requests keeps the complete compact row at 1280–1399px until the desktop table fits with its summary rail. Outlet Daily Records keeps its complete compact row below 1536px for the same reason. Singular line and item labels are corrected. The active Preview candidate retains the v9.2.109 workflow and permission repairs; Production is unchanged. Repository migrations reviewed through `368`; this does not mean migration 368 has been applied to Production. See `docs/qa/2026-10-21-closure.md` for verification scope and open items.
 
 ## v9.2.109 — reviewed operational UI
 

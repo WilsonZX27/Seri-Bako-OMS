@@ -56,7 +56,7 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
   }
   const filtered = hasActiveFilters(filters);
   return <>
-    <PageHeader title="Outlet Daily Records" description="Morning receiving and evening wastage by outlet." contentWidth="wide" />
+    <PageHeader title="Outlet Daily Records" description="Morning receiving and evening wastage by outlet." contentWidth="wide" action={canCreate ? { href: "/outlet-daily-records/new", label: "New Daily Record" } : undefined} hideTabletCreateFab />
     <WorkspaceGrid className="sb-portrait-tablet-rail" hideMobileConsole rightRail={<>
       <ConsoleSection title="Actions">
         {canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/outlet-daily-records/new">New Daily Record</Link></Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}

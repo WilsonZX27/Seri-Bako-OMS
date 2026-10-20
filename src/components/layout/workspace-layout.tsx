@@ -15,6 +15,7 @@ export function WorkspaceGrid({
   rightRailClassName,
   hideMobileConsole = false,
   mobileRailSummary,
+  mobileConsoleLabel,
   hideDesktopConsole = false,
   documentMode = false,
   tabletCanvas,
@@ -28,6 +29,7 @@ export function WorkspaceGrid({
   rightRailClassName?: string;
   hideMobileConsole?: boolean;
   mobileRailSummary?: string;
+  mobileConsoleLabel?: string;
   hideDesktopConsole?: boolean;
   documentMode?: boolean;
   /** Keeps touch-focused work contained while technical registers retain horizontal working room. */
@@ -74,7 +76,7 @@ export function WorkspaceGrid({
           <div className="min-w-0 space-y-3">{children}</div>
         </div>
       ) : <div className="min-w-0 space-y-3">{children}</div>}
-      {rightRail || hideDesktopConsole ? <RightConsoleMount hideMobileBar={hideMobileConsole} hideDesktopConsole={hideDesktopConsole}>{contextualRail}</RightConsoleMount> : null}
+      {rightRail || hideDesktopConsole ? <RightConsoleMount hideMobileBar={hideMobileConsole} hideDesktopConsole={hideDesktopConsole} mobileConsoleLabel={mobileConsoleLabel}>{contextualRail}</RightConsoleMount> : null}
     </div>
   );
 }

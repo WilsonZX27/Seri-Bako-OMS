@@ -12,7 +12,7 @@ const {
 
 test("v9 UAT classifies every application page", () => {
   const routes = discoverRouteMatrix();
-  assert.equal(routes.length, 129, "Route count changed. Classify the new or removed page deliberately.");
+  assert.equal(routes.length, 130, "Route count changed. Classify the new or removed page deliberately.");
   for (const route of ["/asset-management/maintenance/new", "/outlet-daily-records/insights", "/outlet-daily-records/delivery-orders"]) assert.ok(routes.some(entry=>entry.route===route), `${route} must be classified`);
   assert.equal(new Set(routes.map((entry) => entry.file)).size, routes.length);
   assert.equal(new Set(routes.map((entry) => entry.route)).size, routes.length);
@@ -41,6 +41,7 @@ test("Attendance routes follow the eighth-role permission boundary", () => {
   assert.deepEqual(permittedRolesFor("/attendance/review"), ["superAdmin", "peopleOperations", "manager", "outletSupervisor", "outlet"]);
   assert.deepEqual(permittedRolesFor("/attendance/imports"), ["superAdmin", "peopleOperations"]);
   assert.deepEqual(permittedRolesFor("/attendance/settings"), ["superAdmin", "peopleOperations"]);
+  assert.deepEqual(permittedRolesFor("/attendance/my-schedule"), ["kitchen"]);
   const permissions = fs.readFileSync("src/server/auth/route-permissions.ts", "utf8");
   assert.match(permissions, /"\/attendance\/settings": \["shift_template\.manage"\]/);
 });

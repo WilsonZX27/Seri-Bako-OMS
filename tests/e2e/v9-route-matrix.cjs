@@ -48,6 +48,7 @@ const ATTENDANCE_IMPORT = ["superAdmin", "peopleOperations"];
 const actionRouteAuthorities = new Map([
   ["/attendance/confirmations", ALL],
   ["/attendance/payslips", ALL],
+  ["/attendance/my-schedule", ["kitchen"]],
   ["/asset-management/assets/new", ["superAdmin", "manager"]],
   ["/asset-management/transfers/new", ["superAdmin", "manager", "kitchen", "outletSupervisor", "outlet"]],
   ["/attendance/settings", ATTENDANCE_IMPORT],

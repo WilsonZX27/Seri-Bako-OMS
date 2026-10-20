@@ -11,7 +11,7 @@ export default async function NewPurchaseReturnPage({ searchParams }: { searchPa
   const selectedReceiving = filters.grn_id ? receivings.find((row) => row.id === filters.grn_id) ?? null : null;
   const selected = selectedReceiving ? await getGoodsReceivingForReturn(selectedReceiving.id) : null;
   const lines = selected?.lines ?? [];
-  const nextStep = !selectedReceiving ? "Select a posted GRN to continue." : !lines.length ? "This receiving has no returnable lines. Choose another GRN." : "Enter the quantities to return before saving.";
+  const nextStep = !receivings.length ? "No posted GRNs have stock available for return." : !selectedReceiving ? "Select a posted GRN to continue." : !lines.length ? "This receiving has no returnable lines. Choose another GRN." : "Enter the quantities to return before saving.";
   const validationHint = !selectedReceiving || !lines.length ? nextStep : "Return quantity must not exceed the remaining received quantity.";
   const primaryAction = <SubmitButton type="submit" form="purchase-return-form" disabled={!selectedReceiving || !lines.length} className="w-full" pendingLabel="Creating...">Create Draft Return</SubmitButton>;
   const steps = [

@@ -31,8 +31,8 @@ export function PurchaseReturnForm({
           <input type="hidden" name="purchase_return_no" value="PRT-AUTO" />
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
             <Field label="Posted GRN" required className="col-span-2 lg:col-span-1">
-              <SelectNative value={selectedReceiving?.id ?? ""} onChange={(event) => router.push(event.target.value ? `/purchase-returns/new?grn_id=${event.target.value}` : "/purchase-returns/new")} required>
-                <option value="">Select posted GRN</option>
+              <SelectNative value={selectedReceiving?.id ?? ""} onChange={(event) => router.push(event.target.value ? `/purchase-returns/new?grn_id=${event.target.value}` : "/purchase-returns/new")} disabled={!receivings.length} required>
+                <option value="">{receivings.length ? "Select posted GRN" : "No returnable GRNs available"}</option>
                 {receivings.map((grn) => (
                   <option key={grn.id} value={grn.id}>
                     {grn.grn_no} - {grn.supplier_name ?? "Supplier"} - Returnable {formatNumber(grn.returnable_qty)}
@@ -92,8 +92,8 @@ export function PurchaseReturnForm({
           ) : (
             <div data-inset-surface className="rounded-[var(--sb-panel-radius)] border bg-secondary/30 p-8 text-center">
               <PackageX className="mx-auto h-10 w-10 text-muted-foreground" />
-              <p className="mt-3 font-semibold">Select a posted GRN to return stock</p>
-              <p className="mt-1 text-sm text-muted-foreground">Only GRN lines with remaining returnable quantity appear here.</p>
+              <p className="mt-3 font-semibold">{receivings.length ? "Select a posted GRN to return stock" : "No stock available for return"}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{receivings.length ? "Only GRN lines with remaining returnable quantity appear here." : "Posted receivings with remaining returnable quantity will appear here."}</p>
             </div>
           )}
         </form>

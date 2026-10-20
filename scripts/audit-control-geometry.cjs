@@ -17,7 +17,10 @@ const allViewports = [
   { label: "desktop", width: 1440, height: 900 },
 ];
 const requestedViewports = process.env.AUDIT_VIEWPORTS?.split(",").map((viewport) => viewport.trim()).filter(Boolean);
-const viewports = allViewports.filter((viewport) => !requestedViewports || requestedViewports.includes(viewport.label));
+const requestedWidths = process.env.AUDIT_WIDTHS?.split(",").map((width) => Number(width.trim())).filter((width) => Number.isInteger(width) && width >= 240 && width <= 2400);
+const viewports = requestedWidths?.length
+  ? [...new Set(requestedWidths)].map((width) => ({ label: `${width}px`, width, height: width < 768 ? 852 : 900 }))
+  : allViewports.filter((viewport) => !requestedViewports || requestedViewports.includes(viewport.label));
 const output = path.resolve(process.env.AUDIT_OUTPUT || path.join(process.cwd(), "test-results", "control-geometry-audit.json"));
 
 (async () => {
@@ -76,6 +79,6 @@ const output = path.resolve(process.env.AUDIT_OUTPUT || path.join(process.cwd(),
   fs.mkdirSync(path.dirname(output), { recursive: true });
   fs.writeFileSync(output, JSON.stringify({ date: new Date().toISOString(), baseUrl, results }, null, 2));
   const problems = results.filter((row) => row.failed || row.errors?.length || row.overflow > 5 || row.errorBoundary);
-  const undersized = results.flatMap((row) => (row.controls || []).filter((control) => ["small-phone", "phone"].includes(row.viewport) && control.tag !== "a" && (control.width < 44 || control.height < 44)).map((control) => ({ viewport: row.viewport, route: row.route, ...control })));
+  const undersized = results.flatMap((row) => (row.controls || []).filter((control) => (["small-phone", "phone"].includes(row.viewport) || (Number.parseInt(row.viewport, 10) < 768)) && control.tag !== "a" && (control.width < 44 || control.height < 44)).map((control) => ({ viewport: row.viewport, route: row.route, ...control })));
   console.log(JSON.stringify({ routes: routes.length, pages: results.length, problems: problems.length, navigationFailures: results.filter((row) => row.failed).length, errorBoundaries: results.filter((row) => row.errorBoundary).length, overflowPages: results.filter((row) => row.overflow > 5).length, undersized: undersized.length, output }));
 })().catch((error) => { console.error(error); process.exitCode = 1; });

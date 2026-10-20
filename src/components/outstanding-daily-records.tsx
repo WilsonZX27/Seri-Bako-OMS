@@ -3,7 +3,7 @@ import { ConsoleSection } from "@/components/layout/right-console";
 import { formatDateOnly } from "@/lib/utils";
 import type { getOutletDailyHistoricalContext } from "@/server/queries/outlet-daily-records";
 
-export function OutstandingDailyRecords({ history }: { history: Awaited<ReturnType<typeof getOutletDailyHistoricalContext>> }) {
+export function OutstandingDailyRecords({ history, showHistoryLink = true }: { history: Awaited<ReturnType<typeof getOutletDailyHistoricalContext>>; showHistoryLink?: boolean }) {
   return <ConsoleSection title="Outstanding daily records">
     <p className="mb-2 text-xs text-muted-foreground">
       {formatDateOnly(history.start)} - {formatDateOnly(history.end)} · {history.outlet_count ? "not posted" : "no outlets in scope"}
@@ -23,8 +23,8 @@ export function OutstandingDailyRecords({ history }: { history: Awaited<ReturnTy
           </details>
         </li>)}
       </ul> : <p className="text-xs">All records posted in this period.</p>}
-    <Link className="mt-3 inline-flex min-h-9 items-center justify-center rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white px-3 text-xs font-medium hover:bg-[var(--sb-surface-muted)]" href={`/outlet-daily-records/insights?report=completion&period=30&history_date=${history.end}`}>
+    {showHistoryLink ? <Link className="mt-3 inline-flex min-h-9 items-center justify-center rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white px-3 text-xs font-medium hover:bg-[var(--sb-surface-muted)]" href={`/outlet-daily-records/insights?report=completion&period=30&history_date=${history.end}`}>
       View completion history
-    </Link>
+    </Link> : null}
   </ConsoleSection>;
 }

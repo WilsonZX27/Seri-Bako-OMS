@@ -6,6 +6,7 @@ import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 import { requirePermission } from "@/server/auth/permissions";
 import { createClient } from "@/lib/supabase/server";
 import { looseSupabase } from "@/lib/supabase/loose";
+import { isMockMode } from "@/lib/mock-mode";
 
 export type AssetLocation = { id: string; source_name: string; branch_id: string | null; kind: "branch" | "event" | "other" };
 export type Asset = { id: string; asset_code: string; item_name: string; source_data: Record<string, unknown>; current_details: Record<string, unknown>; updated_at: string; original_record_access?: boolean };
@@ -20,6 +21,13 @@ export type AssetHolding = { asset_id: string; location_id: string; quantity: nu
 export type AssetOverview = { assetCount: number; knownQuantity: number; unknownHoldings: number; attentionAssets: number; openMaintenance: number; inTransitQuantity: number; locations: { id: string; name: string; assetCount: number; quantity: number | null }[]; checkDate: string; checklist: { id: string; name: string; kind: "branch" | "event" | "other"; open: boolean; reason: string | null; expected: number; checked: number; submitted?: boolean }[]; maintenanceTrend: { date: string; count: number }[]; issueTrend: { date: string; count: number | null; checked: number }[]; maintenanceByStatus: { status: string; count: number }[] };
 export type AssetRecord = { id: string; asset_id: string | null; reported_by?: string; location_id?: string; from_location_id?: string; to_location_id?: string; source_id?: string; status?: string; priority?: string; description?: string; reason?: string; quantity?: number | null; author_name?: string; created_at?: string; check_date?: string; result?: string; source_data: Record<string, unknown> };
 export type AssetView = "overview" | "assets" | "checklist" | "maintenance" | "transfers";
+
+const mockInspectionLocationId = "2c562468-c4d1-5e21-8279-e97e55cc84c3";
+const mockInspectionAssets: AssetSummary[] = [
+  { id: "00000000-0000-4000-8000-000000000028", asset_code: "SB-0028", item_name: "Clock In Punch Card Machine", current_details: { Category: "Device" } },
+  { id: "00000000-0000-4000-8000-000000000029", asset_code: "SB-0029", item_name: "Counter Display Refrigerator With Extended Asset Name", current_details: { Category: "Equipment" } },
+  { id: "00000000-0000-4000-8000-000000000030", asset_code: "SB-0030", item_name: "Kitchen Scale", current_details: { Category: "Device" } },
+];
 
 export const getAssetRegistration = cache(async () => {
   const actor = await requireActiveTenantActor(); await requirePermission("assets.manage");
@@ -166,6 +174,12 @@ export async function getAssetLocation(id: string, page: number) {
   if (!Number.isSafeInteger(page) || page < 1 || page > 1_000_000) throw new Error("Choose a valid asset history page.");
   const actor = await requireActiveTenantActor();
   await requirePermission("assets.view");
+  if (isMockMode()) {
+    if (id !== mockInspectionLocationId) return null;
+    const location: AssetLocation = { id, source_name: "KL - Publika", branch_id: null, kind: "branch" };
+    const holdings: AssetHolding[] = mockInspectionAssets.map((asset) => ({ asset_id: asset.id, location_id: id, quantity: 1 }));
+    return { location, holdings: page === 1 ? holdings : [], assets: page === 1 ? mockInspectionAssets : [], total: holdings.length };
+  }
   const db = looseSupabase(await createClient());
   if (actor.roleCode === "kitchen") {
     const access = await db.rpc("asset_location_access", { p_location: id });
@@ -282,6 +296,7 @@ export async function getMaintenanceReportOptions() {
 /** Existing daily checks are immutable; quantity confirmations are a separate workflow. */
 export async function hasAssetChecklistSubmission(locationId: string, date: string) {
   const actor = await requireActiveTenantActor();
+  if (isMockMode()) return false;
   const db = looseSupabase(await createClient());
   const result = await db.from("asset_daily_checks").select("id").eq("company_id", actor.companyId).eq("location_id", locationId).eq("check_date", date).not("source_data", "cs", '{"Count Confirmation":true}').limit(1);
   if (result.error) throw new Error("Checklist submission status unavailable.");

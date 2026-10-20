@@ -221,6 +221,7 @@ export async function getAttendanceReview(weekStart = malaysiaWeekStart(), filte
 export async function getAttendanceReviewBranches() {
   if (!(await hasPermission("attendance.read")))
     throw new Error("Missing permission: attendance.read");
+  if (isMockMode()) return [];
   const db = looseSupabase(await createClient());
   const { data, error } = await db
     .from("branches")
@@ -268,6 +269,7 @@ export async function getScheduleValidation(weekId:string){
 
 export async function getAttendancePaySettings() {
   if (!(await hasPermission("attendance.read"))) throw new Error("Missing permission: attendance.read");
+  if (isMockMode()) return { rules: [], holidays: [], branches: [] };
   const db=looseSupabase(await createClient());
   const [rules,holidays,branches]=await Promise.all([
     db.from("attendance_pay_rule_versions").select("*").eq("is_active",true).order("effective_from",{ascending:false}).limit(20),
@@ -331,6 +333,7 @@ export async function getPendingShiftRequests() {
 
 export async function getAttendanceMappings() {
   if (!(await hasPermission("attendance.map"))) return { people: [], devices: [], staffs: [], branches: [], allowed: false };
+  if (isMockMode()) return { people: [], devices: [], staffs: [], branches: [], allowed: true };
   const db = looseSupabase(await createClient());
   const [people, devices, staffs, branches] = await Promise.all([
     db.from("ngteco_person_mappings").select("*,staffs!ngteco_person_mappings_staff_id_fkey(full_name,staff_code)").order("person_id"),

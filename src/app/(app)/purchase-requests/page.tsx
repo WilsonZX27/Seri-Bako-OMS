@@ -52,6 +52,13 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
   if (summaryResult.status === "rejected") logServerError(summaryResult.reason, { source: "page.purchaseRequests.summary" });
   const summary = summaryResult.status === "fulfilled" ? summaryResult.value : null;
   const filtered = hasActiveFilters(filters);
+  const emptyDescription = requestsResult.unavailable
+    ? "The request source could not be verified. No record count or estimated total is shown as zero."
+    : filtered
+      ? "Reset the filters or widen the search."
+      : permissions["pr.create"]
+        ? "Use New PR to record what a branch needs to buy."
+        : "Purchase requests will appear here when your team creates them.";
   return (
     <>
       <PageHeader
@@ -117,7 +124,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                     <TableCell className="text-right"><p>{request.line_count} {request.line_count === 1 ? "line" : "lines"}</p><p className="mt-1 text-[11px] text-muted-foreground">{formatCurrency(request.estimated_total)}</p></TableCell>
                   </DataGridRow>
                 ))}
-                {!requests?.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={requestsResult.unavailable ? "Purchase request data unavailable" : filtered ? "No requests match these filters" : "No purchase requests yet"} description={requestsResult.unavailable ? "The request source could not be verified. No record count or estimated total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Purchase requests appear here after branch needs are created."} action={requestsResult.unavailable ? { href: "/purchase-requests", label: "Retry requests" } : filtered ? { href: "/purchase-requests", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
+                {!requests?.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={requestsResult.unavailable ? "Purchase request data unavailable" : filtered ? "No requests match these filters" : "No purchase requests yet"} description={emptyDescription} action={requestsResult.unavailable ? { href: "/purchase-requests", label: "Retry requests" } : filtered ? { href: "/purchase-requests", label: "Reset filters" } : undefined} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Purchase requests" showUntil="xl" className="sb-pr-continuous-rows">
@@ -125,7 +132,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                 const supplierLabel = supplierDisplay(request);
                 return <OperationalListRow fullWidthDetails key={request.id} href={`/purchase-requests/${request.id}`} label={`Open ${request.request_no}`} primary={<DocumentNumber value={request.request_no} size="sm" className="text-sm" />} status={<StatusBadge status={request.status === "converted_to_po" && request.procurement_status ? request.procurement_status : request.status} />} secondary={<span className="sb-pr-phone-supplier-row"><span className="sb-pr-phone-supplier" title={supplierLabel}><Store aria-hidden="true"/><span>{supplierLabel}</span></span><span className="sb-pr-phone-items"><Package aria-hidden="true"/><span>{request.line_count} {request.line_count === 1 ? "item" : "items"}</span></span><strong className="sb-pr-phone-amount">{formatCurrency(request.estimated_total)}</strong></span>} detail={<span className="sb-pr-phone-location-row"><span className="sb-pr-phone-location"><MapPin aria-hidden="true"/><span>{request.branch_name ?? "Unassigned"}</span></span><span className="sb-pr-phone-byline"><span className="sb-pr-phone-byline-person"><UserRound aria-hidden="true"/><span>by {request.requested_by_name}</span></span><time className="sb-pr-phone-byline-date" dateTime={request.request_date}><CalendarDays aria-hidden="true"/><span>{formatDateOnly(request.request_date)}</span></time></span></span>} />;
               })}
-              {!requests?.rows.length ? <EmptyState title={requestsResult.unavailable ? "Purchase request data unavailable" : filtered ? "No requests match these filters" : "No purchase requests yet"} description={requestsResult.unavailable ? "The request source could not be verified. No record count or estimated total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Purchase requests appear here after branch needs are created."} action={requestsResult.unavailable ? { href: "/purchase-requests", label: "Retry requests" } : filtered ? { href: "/purchase-requests", label: "Reset filters" } : undefined} /> : null}
+              {!requests?.rows.length ? <EmptyState title={requestsResult.unavailable ? "Purchase request data unavailable" : filtered ? "No requests match these filters" : "No purchase requests yet"} description={emptyDescription} action={requestsResult.unavailable ? { href: "/purchase-requests", label: "Retry requests" } : filtered ? { href: "/purchase-requests", label: "Reset filters" } : undefined} /> : null}
             </OperationalList>
           </BulkSelectionProvider>
           {requests ? <PaginationControls page={requests.page} totalPages={requests.totalPages} totalRows={requests.totalRows} searchParams={filters} /> : null}

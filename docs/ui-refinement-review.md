@@ -48,6 +48,17 @@ Widths: 360, 393, 767, 768, 1180, 1279, 1280, 1440. No document horizontal overf
 
 These are **synthetic layout checks**, using the actual row/header source and production styles, with a reserved right rail. Desktop fixture deliberately keeps the compact row visible to stress it; it does not replace verification of the actual desktop table. No authenticated workflow, database mutation, touch-device emulation or real stock-count save is claimed from this fixture.
 
-### Preview acceptance still pending
+### Authenticated Preview checks
 
-The stable Preview host requires a separate staff login; the existing session belongs to the previous deployment host. Login was requested in this chat. After login, verify both real lists at the six agreed widths, search/filter/reset/sort, detail/create entry, notification/activity navigation, one FAB, full Owner Attendance, and selected stock-count flows against a disposable test record. No production business records were created or modified during this task.
+After the user logged in, the stable host was verified as Owner at an actual 820px viewport:
+- PR search for PR/OCT26/030 returned exactly one record; detail opened with two lines and RM 290.00.
+- Daily branch filter changed 687 records to 73 for Gurney Plaza; adding Posted preserved the branch and returned 67 records.
+- Notification icons measured 16×16px; the outlined activity entry opened Activity Log.
+- Attendance shows Overview, Schedule, Attendance, Confirmation, Payslips and Settings, plus schedule/review/import actions.
+- Requests pending dot is present. No live completion action was performed to clear a queue.
+- One visible New PR entry was measured at 820px; phone FAB remains covered by source contracts, not authenticated phone verification.
+- Real screenshots: attendance-after-820.png, daily-after-820.png, notifications-after-820.png under the evidence directory.
+
+The browser viewport override did not change this authenticated tab: innerWidth stayed 820 despite requested sizes. The eight pr-after-{requested-width}.png captures were therefore removed; they must not be presented as evidence for those dimensions. The separate synthetic stress checks remain valid. Full live six-width acceptance, desktop sorting, phone FAB interaction, asset page review and stock-count save against disposable data remain unverified. No business records were created or modified. Migration 368 was not executed.
+
+A live visual check found the labelled Filter control still inherited a 44px fixed width, squeezing its icon. A scoped width/min-width and nonshrinking 16px icon fix was added for the two reviewed list toolbars; focused eight tests pass. Final live deployment check remains required.

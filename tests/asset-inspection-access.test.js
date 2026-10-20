@@ -40,7 +40,7 @@ test('inspection refuses an incomplete or duplicate cross-page asset set', async
   await assert.rejects(() => load('outlet_staff', 5001).queries.getAssetInspection('location'), /limit/);
 });
 test('overview requires management; maintenance queries require an explicit reporting grant for other roles', async () => {
-  for (const role of ['outlet_staff', 'kitchen', 'finance', 'purchasing', 'people_operations', 'unknown']) {
+  for (const role of ['outlet_staff', 'finance', 'purchasing', 'people_operations', 'unknown']) {
     const h = load(role);
     await assert.rejects(() => h.queries.getAssetWorkspace('overview'), /management role/);
     await assert.rejects(() => h.queries.getAssetWorkspace('maintenance'), /Reporting permission/);
@@ -48,6 +48,10 @@ test('overview requires management; maintenance queries require an explicit repo
     await assert.rejects(() => h.queries.getAssetAttachmentRegister('maintenance', 'request', 1), /Reporting permission/);
     assert.equal(h.calls.length, 0);
   }
+  const kitchen = load('kitchen');
+  await assert.rejects(() => kitchen.queries.getAssetWorkspace('overview'), /only access the assigned asset checklist/);
+  await assert.rejects(() => kitchen.queries.getAssetWorkspace('assets'), /only access the assigned asset checklist/);
+  assert.equal(kitchen.calls.length, 0);
   for (const role of ['super_admin', 'manager', 'outlet_supervisor']) assert.equal(load(role).policy.canAccessAssetManagement(role), true);
 });
 

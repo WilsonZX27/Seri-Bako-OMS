@@ -37,7 +37,9 @@ export default async function AssetManagementPage({ searchParams }: { searchPara
   const actor = await requireActiveTenantActor();
   const managementRole = canAccessAssetManagement(actor.roleCode);
   const canReport = await hasPermission("assets.report");
-  const availableTabs = tabs.filter(tab => managementRole || (tab.id === "maintenance" && canReport) || !["overview", "maintenance"].includes(tab.id));
+  const availableTabs = actor.roleCode === "kitchen"
+    ? tabs.filter(tab => tab.id === "checklist")
+    : tabs.filter(tab => managementRole || (tab.id === "maintenance" && canReport) || !["overview", "maintenance"].includes(tab.id));
   if (!managementRole && (params.view === "overview" || (params.view === "maintenance" && !canReport))) redirect("/asset-management?view=checklist");
   const view = (availableTabs.some(t => t.id === params.view) ? params.view : managementRole ? "overview" : "checklist") as AssetView;
   const page = Math.max(1, Math.min(10000, Number.parseInt(params.page ?? "1", 10) || 1));

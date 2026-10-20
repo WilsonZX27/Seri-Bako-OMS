@@ -337,7 +337,8 @@ export async function getDashboardSummary() {
   const isFinance = role === "finance";
   const isManager = role === "manager";
   const isPurchasing = role === "purchasing";
-  const isKitchen = (role === "kitchen" || role === "chef");
+  const isKitchen = role === "chef";
+  const isKitchenStaff = role === "kitchen";
   const isOutlet = role === "outlet_staff" || role === "outlet_supervisor";
   const needsProcurement = isOwner || isFinance || isManager || isPurchasing || isKitchen;
   const needsInventory = isOwner || isFinance || isManager || isPurchasing || isKitchen;
@@ -351,8 +352,8 @@ export async function getDashboardSummary() {
   const nextWeek = new Date(`${today}T00:00:00Z`); nextWeek.setUTCDate(nextWeek.getUTCDate()+7);
   const [coreSnapshotRpcResult, pendingApprovalsSnapshot, notifications, recentActivities, outletToday, currentStaff, assignedBranches, payablesAttention, lowStockViewResult, upcomingShifts, outletCompletion, wastageTrend, complianceIssueCount] = await Promise.all([
     (needsProcurement || needsInventory) ? supabase.rpc("get_dashboard_core_snapshot", { p_today: today }) : Promise.resolve({ data: null, error: null }),
-    getCurrentUserPendingActionSnapshot(5, false),
-    getVisibleNotificationsForCurrentUser(),
+    isKitchenStaff ? Promise.resolve({ items: [], total: 0, unavailable: false }) : getCurrentUserPendingActionSnapshot(5, false),
+    isKitchenStaff ? Promise.resolve([]) : getVisibleNotificationsForCurrentUser(),
     // Actor resolution is intentionally reserved for Activity Log and the
     // notification workspace. It is not part of the dashboard's critical path.
     Promise.resolve([]),

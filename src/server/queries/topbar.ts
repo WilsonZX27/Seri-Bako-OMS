@@ -44,6 +44,23 @@ export async function getTopBarActivity() {
     };
   }
 
+  const initialScope = await getCurrentUserScope().catch((error) => {
+    logServerWarning(error, { source: "topbar.current-user-scope" });
+    return null;
+  });
+  // Kitchen has no company-wide work queue or announcement feed. Return before
+  // querying approvals, production, or notifications that could expose other
+  // teams' operational data through the shared application shell.
+  if (initialScope?.roleCode === "kitchen") {
+    return {
+      availability: { pendingActions: true, notifications: true },
+      pendingApprovals: [] as PendingAction[],
+      assignedActivities: [] as AssignedActivity[],
+      notifications: [],
+      announcements: [],
+    };
+  }
+
   const supabase = await createClient();
   const db = looseSupabase(supabase);
   const [documentApprovals, notificationsResult, assignedActivities, workflowPendingActionsResult, canApproveProductionResult, canPostProductionResult, currentScope] = await Promise.all([
@@ -67,10 +84,7 @@ export async function getTopBarActivity() {
       logServerWarning(error, { source: "topbar.production-post-permission" });
       return { allowed: false, unavailable: true };
     }),
-    getCurrentUserScope().catch((error) => {
-      logServerWarning(error, { source: "topbar.current-user-scope" });
-      return null;
-    }),
+    Promise.resolve(initialScope),
   ]);
   const notifications = notificationsResult.rows;
   const workflowPendingActions = workflowPendingActionsResult.rows;
@@ -185,4 +199,29 @@ export async function getTopBarActivity() {
     announcements: notifications.filter((row) => row.is_company_wide && !row.read_at).slice(0, 5),
   };
   return result;
+}
+
+export function getNavAttentionHrefs(activity: Awaited<ReturnType<typeof getTopBarActivity>>) {
+  const hrefs = [
+    ...(activity.pendingApprovals ?? []).map((item) => item.href),
+    ...(activity.notifications ?? []).map((item) => item.action_url ?? ""),
+  ];
+  const navHrefFor = (href: string): string | null => {
+    const path = href.split("?")[0];
+    if (path.startsWith("/asset-management")) return "/asset-management";
+    if (path.startsWith("/outlet-compliance")) return "/outlet-compliance";
+    if (path.startsWith("/purchase-requests")) return "/purchase-requests";
+    if (path.startsWith("/purchase-orders")) return "/purchase-orders";
+    if (path.startsWith("/supplier-invoices")) return "/supplier-invoices";
+    if (path.startsWith("/production/planning")) return "/production/planning";
+    if (path.startsWith("/production")) return "/production/jobs";
+    if (path.startsWith("/outlet-daily-records")) return "/outlet-daily-records";
+    if (path.startsWith("/stock-counts")) return "/stock-counts";
+    if (path.startsWith("/stock-balance")) return "/stock-balance";
+    if (path.startsWith("/stock-transfers")) return "/stock-transfers";
+    if (path.startsWith("/stock-wastage")) return "/stock-wastage";
+    if (path.startsWith("/goods-receivings")) return "/goods-receivings";
+    return null;
+  };
+  return [...new Set(hrefs.map(navHrefFor).filter((href): href is string => href !== null))];
 }

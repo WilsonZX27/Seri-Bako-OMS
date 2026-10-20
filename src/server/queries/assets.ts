@@ -34,6 +34,7 @@ export const getAssetRegistration = cache(async () => {
 
 export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query = "", date = "", status = "", locationId = "", sort = "code", category = "") => {
   const actor = await requireActiveTenantActor();
+  if (actor.roleCode === "kitchen" && view !== "checklist") throw new Error("Kitchen staff may only access the assigned asset checklist.");
   if ((view === "overview") && !canAccessAssetManagement(actor.roleCode)) throw new Error("Asset management role required.");
   if (view === "maintenance" && !canAccessAssetManagement(actor.roleCode)) await requirePermission("assets.report");
   await requirePermission("assets.view");
@@ -52,15 +53,17 @@ export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query =
   let assets: AssetSummary[] = [], holdings: AssetHolding[] = [], records: AssetRecord[] = [], total = 0;
   if (view === "overview" || view === "checklist") {
     const checkDate = date || todayInKualaLumpur(); addDays(checkDate, 0);
-    const result = await db.rpc(view === "checklist" ? "get_asset_checklist_summary" : "get_asset_overview", { p_date: checkDate });
+    const result = await db.rpc(actor.roleCode === "kitchen" || view === "checklist" ? "get_asset_checklist_summary" : "get_asset_overview", { p_date: checkDate });
     if (result.error || !result.data) throw new Error(result.error?.message ?? "Asset summary unavailable.");
     overview = result.data as AssetOverview;
     const submitted = new Set<string>();
-    for (let offset = 0; ; offset += 500) {
-      const checks = await db.from("asset_daily_checks").select("id,location_id").eq("company_id", company).eq("check_date", checkDate).not("source_data", "cs", '{"Count Confirmation":true}').order("id").range(offset, offset + 499);
-      if (checks.error || !checks.data) throw new Error("Checklist submission status unavailable.");
-      for (const check of checks.data) submitted.add(String(check.location_id));
-      if (checks.data.length < 500) break;
+    if (actor.roleCode !== "kitchen") {
+      for (let offset = 0; ; offset += 500) {
+        const checks = await db.from("asset_daily_checks").select("id,location_id").eq("company_id", company).eq("check_date", checkDate).not("source_data", "cs", '{"Count Confirmation":true}').order("id").range(offset, offset + 499);
+        if (checks.error || !checks.data) throw new Error("Checklist submission status unavailable.");
+        for (const check of checks.data) submitted.add(String(check.location_id));
+        if (checks.data.length < 500) break;
+      }
     }
     overview.checklist = overview.checklist.map(location => ({ ...location, submitted: submitted.has(location.id) }));
   }
@@ -124,6 +127,7 @@ export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query =
 
 export async function getAssetDetail(id: string) {
   const actor = await requireActiveTenantActor();
+  if (actor.roleCode === "kitchen") throw new Error("Kitchen staff may only access the assigned asset checklist.");
   await requirePermission("assets.view");
   const db = looseSupabase(await createClient());
   const results = await Promise.all([
@@ -163,6 +167,10 @@ export async function getAssetLocation(id: string, page: number) {
   const actor = await requireActiveTenantActor();
   await requirePermission("assets.view");
   const db = looseSupabase(await createClient());
+  if (actor.roleCode === "kitchen") {
+    const access = await db.rpc("asset_location_access", { p_location: id });
+    if (access.error || access.data !== true) return null;
+  }
   const location = await db.from("asset_locations").select("id,source_name,branch_id,kind").eq("company_id", actor.companyId).eq("id", id).maybeSingle();
   if (location.error) throw new Error(location.error.message);
   if (!location.data) return null;
@@ -323,6 +331,10 @@ export async function getAssetChecklistRecords(locationId: string, date: string)
   const actor = await requireActiveTenantActor();
   await requirePermission("assets.view");
   const db = looseSupabase(await createClient());
+  if (actor.roleCode === "kitchen") {
+    const access = await db.rpc("asset_location_access", { p_location: locationId });
+    if (access.error || access.data !== true) throw new Error("This asset checklist location is outside your assigned scope.");
+  }
   const records: { id: string; asset_id: string; result: string; quantity: number | null; author_name: string; created_at: string }[] = [];
   for (let offset = 0; ; offset += 500) {
     const result = await db.from("asset_daily_checks").select("id,asset_id,result,quantity,author_name,created_at").eq("company_id", actor.companyId).eq("location_id", locationId).eq("check_date", date).not("source_data", "cs", '{"Count Confirmation":true}').order("created_at").order("id").range(offset, offset + 499);

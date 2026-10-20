@@ -9,6 +9,7 @@ import { getCurrentProfile } from "@/server/queries/common";
 import { getStaff, getStaffAccess, getRoles } from "@/server/queries/foundation";
 import { forceStaffPasswordChange, permanentlyDeleteStaff, repairStaffSignInLink, resetStaffTemporaryPassword } from "@/server/actions/foundation";
 import { ConsoleSection } from "@/components/layout/right-console";
+import { formatDateTime } from "@/lib/utils";
 
 async function securityContext(id: string) {
   if (!(await hasPermission("staffs.update"))) return null;
@@ -32,6 +33,7 @@ export async function StaffSecurityPanel({ id }: { id: string }) {
         <div><dt className="text-muted-foreground">Username</dt><dd className="mt-0.5 font-medium">{staff.username ?? "—"}</dd></div>
         <div><dt className="text-muted-foreground">Staff code</dt><dd className="mt-0.5 font-medium">{staff.staff_code?.toUpperCase() ?? "—"}</dd></div>
         <div><dt className="text-muted-foreground">Account</dt><dd className="mt-0.5 font-medium">{staffAuthStateLabels[authState]}</dd></div>
+        <div><dt className="text-muted-foreground">Last sign-in</dt><dd className="mt-0.5 font-medium">{staff.auth_last_sign_in_at ? formatDateTime(staff.auth_last_sign_in_at) : "Not available"}</dd></div>
       </dl></CardContent>
     </Card>
     {temporaryPassword ? (

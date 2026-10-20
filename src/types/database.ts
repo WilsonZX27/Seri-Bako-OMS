@@ -1061,8 +1061,6 @@ export type Database = {
           product_name: string;
           category: string;
           is_seasonal?: boolean;
-          available_from?: string | null;
-          available_until?: string | null;
           daily_tracking?: "food_daily" | "food_carryover" | "beverage" | "packaging" | null;
           display_order: number;
           selling_unit: string;
@@ -1087,8 +1085,6 @@ export type Database = {
           display_order?: number;
           selling_unit: string;
           status?: ItemStatus;
-          available_from?: string | null;
-          available_until?: string | null;
           product_image_url?: string | null;
           created_at?: string;
           updated_at?: string;

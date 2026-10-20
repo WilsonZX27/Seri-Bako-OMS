@@ -2594,6 +2594,24 @@ html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-gap { padding: 0; 
   }
 }
 
+html[data-design-layer="v2"] [data-pr-continuous-list] {
+  background: var(--sb-surface-raised);
+}
+
+html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"] {
+  min-height: 0;
+  padding-block: 0.625rem;
+  transition: background-color 150ms ease-out;
+}
+
+html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"]:nth-child(even) {
+  background: #edf2ef;
+}
+
+html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"]:hover {
+  background: var(--sb-green-100);
+}
+
 /* Asset registers use the shared query card's compact command measure. */
 @media (min-width: 1280px) {
   html[data-design-layer="v2"] form.sb-asset-query.sb-list-query-card {

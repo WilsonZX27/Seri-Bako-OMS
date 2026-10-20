@@ -23,9 +23,10 @@ export function OperationalList({ children, ariaLabel, className, showUntil = "x
   return <div className={cn("divide-y divide-[var(--sb-border-soft)]", showUntil === "2xl" ? "2xl:hidden" : showUntil === "xl" ? "xl:hidden" : "md:hidden", className)} role="list" aria-label={ariaLabel}>{children}</div>;
 }
 
-export function OperationalListRow({ href, label, primary, status, statusMeta, secondary, detail, meta, leading, trailing, fullWidthDetails = false, stackedStatus = false }: {
+export function OperationalListRow({ href, label, primary, status, statusMeta, secondary, detail, meta, leading, trailing, fullWidthDetails = false, stackedStatus = false, className: rowClassNameProp }: {
   stackedStatus?: boolean;
   fullWidthDetails?: boolean;
+  className?: string;
   href?: string;
   label?: string;
   primary: React.ReactNode;
@@ -52,7 +53,7 @@ export function OperationalListRow({ href, label, primary, status, statusMeta, s
     }, 350);
   };
   const className = "grid min-h-16 grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 px-3 py-2.5 hover:bg-[var(--sb-surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--sb-green-700)]";
-  const rowClassName = cn(className, stackedStatus && "!grid-cols-1 gap-y-3 !pr-16");
+  const rowClassName = cn(className, rowClassNameProp, stackedStatus && "!grid-cols-1 gap-y-3 !pr-16");
   const renderContent = (withTrailing: boolean) => <>
       <div className={cn("min-w-0 self-center", fullWidthDetails && "contents")}>
         <div className="min-w-0 text-[13px] font-medium leading-5">{primary}</div>

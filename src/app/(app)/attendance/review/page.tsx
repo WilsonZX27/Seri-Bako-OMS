@@ -241,7 +241,8 @@ export default async function AttendanceReviewPage({
         contentWidth="wide"
       />
       <WorkspaceGrid
-        tabletRailMode="context"
+        tabletRailMode="split"
+        tabletRailBreakpoint="md"
         tabletCanvas="wide"
         className="sb-portrait-tablet-rail"
         hideMobileConsole

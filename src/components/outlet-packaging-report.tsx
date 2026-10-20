@@ -65,7 +65,7 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
       </>}
     </ConsoleSection>
   </>;
-  return <WorkspaceGrid tabletCanvas="wide" rightRail={rail} tabletRailMode="context">
+  return <WorkspaceGrid tabletCanvas="wide" rightRail={rail} tabletRailMode="split" tabletRailBreakpoint="md">
   <div className="space-y-4" data-packaging-report>
     {/* Outlet/product are local state; only changePeriod owns server navigation. */}
     <FilterBar resetHref="/outlet-packaging" phoneMode="inline" className="gap-3" onSubmit={(event) => event.preventDefault()}>

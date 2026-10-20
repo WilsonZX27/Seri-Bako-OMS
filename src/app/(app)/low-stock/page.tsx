@@ -49,7 +49,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
       <WorkspaceGrid
         className="pb-24 xl:pb-0"
         tabletRailMode="split"
-        tabletRailBreakpoint="lg"
+        tabletRailBreakpoint="md"
         hideMobileConsole
         rightRail={
           <ConsoleSection title="Low Stock Summary">

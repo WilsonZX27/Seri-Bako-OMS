@@ -2941,21 +2941,23 @@ html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"] {
 html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"]:nth-child(even) { background: #edf2ef; }
 html[data-design-layer="v2"] .sb-pr-phone-supplier-row,
 html[data-design-layer="v2"] .sb-pr-phone-location-row {
-  display: grid;
   min-width: 0;
-  align-items: center;
   color: var(--sb-text-muted);
   font-size: .6875rem;
   font-weight: 400;
   line-height: 1rem;
 }
 html[data-design-layer="v2"] .sb-pr-phone-supplier-row {
+  display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
-  gap: .25rem;
+  align-items: start;
+  gap: .25rem .75rem;
 }
 html[data-design-layer="v2"] .sb-pr-phone-location-row {
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: .5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25rem 1rem;
 }
 html[data-design-layer="v2"] .sb-pr-phone-supplier,
 html[data-design-layer="v2"] .sb-pr-phone-items,
@@ -2976,7 +2978,7 @@ html[data-design-layer="v2"] .sb-pr-phone-location > span,
 html[data-design-layer="v2"] .sb-pr-phone-byline-person > span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 html[data-design-layer="v2"] .sb-pr-phone-items { justify-content: flex-end; white-space: nowrap; }
 html[data-design-layer="v2"] .sb-pr-phone-amount { color: var(--sb-text); font-size: .6875rem; font-weight: 600; line-height: 1rem; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-html[data-design-layer="v2"] .sb-pr-phone-byline { display: inline-flex; min-width: 0; align-items: center; justify-content: flex-end; gap: .5rem; }
+html[data-design-layer="v2"] .sb-pr-phone-byline { display: inline-flex; min-width: 0; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: .5rem; }
 html[data-design-layer="v2"] .sb-pr-phone-byline-date { flex-shrink: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
 html[data-design-layer="v2"] :is(.sb-pr-phone-supplier, .sb-pr-phone-items, .sb-pr-phone-location, .sb-pr-phone-byline-person, .sb-pr-phone-byline-date) > svg { width: .875rem; height: .875rem; flex: 0 0 .875rem; }
 @media (max-width: 639px) {
@@ -2995,10 +2997,7 @@ html[data-design-layer="v2"] :is(.sb-pr-phone-supplier, .sb-pr-phone-items, .sb-
 #main-content .sb-daily-record-metrics dt { font-size: 11px; color: var(--sb-text-muted); }
 #main-content .sb-daily-record-metrics dd { font-size: 12px; color: var(--sb-text); }
 .sb-daily-compact-list > [role="listitem"] { row-gap: .375rem; }
-html[data-design-layer="v2"] .sb-pr-phone-supplier-row { column-gap: .75rem; align-items: start; }
-html[data-design-layer="v2"] .sb-pr-phone-location-row { display: flex; flex-wrap: wrap; gap: .25rem 1rem; }
 html[data-design-layer="v2"] .sb-pr-phone-location { flex: 1 1 auto; }
-html[data-design-layer="v2"] .sb-pr-phone-byline { flex-wrap: wrap; justify-content: flex-start; }
 html[data-design-layer="v2"] .sb-pr-phone-byline-person > span { white-space: normal; overflow-wrap: anywhere; }
 html[data-design-layer="v2"] .sb-pr-phone-supplier svg { margin-top: 1px; }
 html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }

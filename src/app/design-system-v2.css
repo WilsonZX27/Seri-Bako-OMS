@@ -2950,11 +2950,11 @@ html[data-design-layer="v2"] .sb-pr-phone-location-row {
   line-height: 1rem;
 }
 html[data-design-layer="v2"] .sb-pr-phone-supplier-row {
-  grid-template-columns: minmax(0, 3fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto auto;
   gap: .25rem;
 }
 html[data-design-layer="v2"] .sb-pr-phone-location-row {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: .5rem;
 }
 html[data-design-layer="v2"] .sb-pr-phone-supplier,
@@ -2970,7 +2970,8 @@ html[data-design-layer="v2"] .sb-pr-phone-byline-date {
   font-size: .6875rem;
   font-weight: 400;
 }
-html[data-design-layer="v2"] .sb-pr-phone-supplier > span,
+html[data-design-layer="v2"] .sb-pr-phone-supplier > span { white-space: normal; overflow-wrap: anywhere; }
+
 html[data-design-layer="v2"] .sb-pr-phone-location > span,
 html[data-design-layer="v2"] .sb-pr-phone-byline-person > span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 html[data-design-layer="v2"] .sb-pr-phone-items { justify-content: flex-end; white-space: nowrap; }
@@ -2981,8 +2982,60 @@ html[data-design-layer="v2"] :is(.sb-pr-phone-supplier, .sb-pr-phone-items, .sb-
 @media (max-width: 639px) {
   html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"] { padding-inline: .875rem; }
 }
+
+
+/* Reviewed list components: compact fields follow their container, not global dl rules. */
+#main-content .sb-daily-record-metrics {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem;
+}
+#main-content .sb-daily-record-metrics > div:has(> dt + dd:last-child) {
+  display: flex; flex-direction: column; align-items: flex-start; grid-column: auto; gap: .125rem;
+}
+#main-content .sb-daily-record-metrics > div > dd { margin: 0; text-align: left; justify-self: start; }
+#main-content .sb-daily-record-metrics dt { font-size: 11px; color: var(--sb-text-muted); }
+#main-content .sb-daily-record-metrics dd { font-size: 12px; color: var(--sb-text); }
+.sb-daily-compact-list > [role="listitem"] { row-gap: .375rem; }
+html[data-design-layer="v2"] .sb-pr-phone-supplier-row { column-gap: .75rem; align-items: start; }
+html[data-design-layer="v2"] .sb-pr-phone-location-row { display: flex; flex-wrap: wrap; gap: .25rem 1rem; }
+html[data-design-layer="v2"] .sb-pr-phone-location { flex: 1 1 auto; }
+html[data-design-layer="v2"] .sb-pr-phone-byline { flex-wrap: wrap; justify-content: flex-start; }
+html[data-design-layer="v2"] .sb-pr-phone-byline-person > span { white-space: normal; overflow-wrap: anywhere; }
+html[data-design-layer="v2"] .sb-pr-phone-supplier svg { margin-top: 1px; }
+.sb-workspace-updates { display: flex; flex-direction: column; max-height: calc(100dvh - 5rem); }
+.sb-workspace-updates > :first-child { flex: none; }
+.sb-workspace-updates > :last-child { min-height: 0; }
+.sb-workspace-updates section > a { min-height: 36px; align-items: flex-start; }
+.sb-workspace-updates section > a > span { min-width: 0; overflow-wrap: anywhere; }
+.sb-workspace-updates section svg { width: 16px; height: 16px; flex: 0 0 16px; }
+@media (max-width: 1279px) {
+  html[data-design-layer="v2"] form:is(.sb-outlet-daily-filters,.sb-purchase-request-filters).unified-list-header { padding: .5rem !important; }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-row {
+    display: grid !important; grid-template-columns: minmax(0,1fr) minmax(0,1fr) auto auto; gap: .5rem;
+  }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-primary-control { display: block; width: 100% !important; max-width: none !important; grid-column: 1; }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-pinned-control { min-width: 0; grid-column: 2; }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-pinned-control > * { width: 100%; min-width: 0; }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-filter-trigger { grid-column: 3; width: auto; }
+  html[data-design-layer="v2"] form:is(.sb-outlet-daily-filters,.sb-purchase-request-filters) .unified-list-result { grid-column: 4; justify-self: end; display: flex !important; gap: .25rem; white-space: nowrap; }
+  html[data-design-layer="v2"] form:is(.sb-outlet-daily-filters,.sb-purchase-request-filters) .unified-list-filter-label { display: inline; }
+  html[data-design-layer="v2"] form.sb-purchase-request-filters .unified-list-row { grid-template-columns: minmax(0,1fr) 44px auto auto; }
+  html[data-design-layer="v2"] form.sb-purchase-request-filters .unified-list-primary-control { width: 100% !important; max-width: none !important; }
+  html[data-design-layer="v2"] form.sb-purchase-request-filters .unified-list-filter-trigger { width: auto; }
+}
+@media (max-width: 639px) {
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-row { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-filter-trigger { grid-column: 1; grid-row: 2; justify-self: start; }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-result { grid-column: 2; grid-row: 2; }
+  html[data-design-layer="v2"] form.sb-purchase-request-filters .unified-list-result { display: grid !important; gap: 0; font-size: 11px; }
+}
 @media (min-width: 768px) and (max-width: 1279px) {
-  html[data-design-layer="v2"] form.sb-purchase-request-filters.unified-list-header { padding: 0 !important; border: 0 !important; background: transparent !important; box-shadow: none !important; }
-  html[data-design-layer="v2"] form.sb-purchase-request-filters.unified-list-header .unified-list-row { align-items: center; }
-  html[data-design-layer="v2"] form.sb-purchase-request-filters.unified-list-header :is(.unified-list-primary-control, .unified-list-search-submit, .unified-list-filter-trigger) { box-sizing: border-box; height: 2.25rem !important; min-height: 2.25rem !important; max-height: 2.25rem !important; align-self: center; }
+  html[data-design-layer="v2"] .sb-pr-phone-location { flex: 0 1 auto; }
+  html[data-design-layer="v2"] .sb-pr-continuous-rows :is(.sb-pr-phone-supplier-row,.sb-pr-phone-location-row,.sb-pr-phone-supplier,.sb-pr-phone-items,.sb-pr-phone-location,.sb-pr-phone-byline-person,.sb-pr-phone-byline-date,.sb-pr-phone-amount) { font-size: 12px; }
+}
+@media (pointer: coarse), (max-width: 767px) {
+  .sb-workspace-updates section > a { min-height: 44px; }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-pinned-control button { min-height: 44px; }
+}
+@media (min-width: 768px) and (pointer: fine) {
+  html[data-design-layer="v2"] form:is(.sb-outlet-daily-filters,.sb-purchase-request-filters) :is(.unified-list-primary-control,.unified-list-primary-input,.unified-list-search-submit,.unified-list-filter-trigger,.unified-list-pinned-control button) { height: 36px !important; min-height: 36px !important; }
 }

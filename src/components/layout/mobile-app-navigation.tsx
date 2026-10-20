@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   Activity,
   Boxes,
+  CalendarDays,
   CheckCircle2,
   ClipboardCheck,
   ClipboardList,
@@ -35,6 +36,7 @@ type MobileTab = {
   label: string;
   icon: LucideIcon;
   permission?: string;
+  hasAttention?: boolean;
 };
 
 
@@ -60,7 +62,16 @@ function roleTabs(role: UserRole, permissionMap: Record<string, boolean>): Mobil
     return tabs;
   }
 
-  if ((role === "kitchen" || role === "chef")) {
+  if (role === "kitchen") {
+    tabs.push(
+      { href: "/asset-management?view=checklist", label: "Checklist", icon: ClipboardCheck, permission: "assets.view" },
+      { href: "/attendance/my-schedule", label: "Schedule", icon: CalendarDays, permission: "schedule.read" },
+      { href: "/attendance/payslips", label: "Payslips", icon: ReceiptText, permission: "dashboard.view" },
+    );
+    return tabs;
+  }
+
+  if (role === "chef") {
     tabs.push(
       { href: "/stock-counts", label: "Count", icon: CheckCircle2, permission: "stock_count.read" },
       { href: "/purchase-requests", label: "Request", icon: FileText, permission: "purchase_request.read" },
@@ -96,18 +107,21 @@ function roleTabs(role: UserRole, permissionMap: Record<string, boolean>): Mobil
 }
 
 function isCurrentPath(pathname: string, href: string) {
-  if (href === "/dashboard") return pathname === href;
-  return pathname === href || pathname.startsWith(`${href}/`);
+  const path = href.split("?", 1)[0];
+  if (path === "/dashboard") return pathname === path;
+  return pathname === path || pathname.startsWith(`${path}/`);
 }
 
 export function MobileAppNavigation({
   role,
   permissionMap,
   companyName,
+  attentionHrefs = [],
 }: {
   role: UserRole;
   permissionMap: Record<string, boolean>;
   companyName: string;
+  attentionHrefs?: string[];
 }) {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
@@ -115,18 +129,18 @@ export function MobileAppNavigation({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
-  const groups = useMemo(() => getVisibleNavGroups(role, permissionMap), [permissionMap, role]);
+  const groups = useMemo(() => getVisibleNavGroups(role, permissionMap, attentionHrefs), [attentionHrefs, permissionMap, role]);
   const tabs = useMemo(() => {
-    const preferred = roleTabs(role, permissionMap).filter((tab) => !tab.permission || has(permissionMap, tab.permission));
-    const seen = new Set(preferred.map((tab) => tab.href));
+    const preferred = roleTabs(role, permissionMap).filter((tab) => !tab.permission || has(permissionMap, tab.permission)).map((tab) => ({...tab,hasAttention:attentionHrefs.includes(tab.href)}));
+    const seen = new Set(preferred.map((tab) => tab.href.split("?", 1)[0]));
     for (const item of groups.flatMap((group) => group.items)) {
       if (preferred.length >= 4) break;
-      if (seen.has(item.href)) continue;
-      preferred.push({ href: item.href, label: item.label, icon: item.icon });
-      seen.add(item.href);
+      if (seen.has(item.href.split("?", 1)[0])) continue;
+      preferred.push({ href: item.href, label: item.label, icon: item.icon, hasAttention: item.hasAttention });
+      seen.add(item.href.split("?", 1)[0]);
     }
     return preferred.slice(0, 4);
-  }, [groups, permissionMap, role]);
+  }, [attentionHrefs, groups, permissionMap, role]);
 
   useEffect(() => setMoreOpen(false), [pathname]);
 
@@ -300,6 +314,7 @@ export function MobileAppNavigation({
                 )}
               >
                 <Icon className="h-5 w-5" strokeWidth={active ? 2.25 : 1.8} aria-hidden="true" />
+                {tab.hasAttention ? <span className="absolute left-1/2 top-1.5 ml-2 size-1.5 rounded-full bg-amber-500" role="img" aria-label="Pending update"/> : null}
                 <span className="max-w-full truncate">{tab.label}</span>
               </Link>
             );

@@ -37,6 +37,8 @@ type HeaderProps = {
   phoneOnly?: boolean;
   phoneMode?: "drawer" | "inline";
   phonePrimary?: "inline" | "drawer";
+  /** Opt-in persistent compact filters; other routes keep their existing layout. */
+  compactPinnedFields?: string[];
 };
 
 function propsOf(child: ReactNode): Record<string, unknown> {
@@ -165,7 +167,7 @@ function SearchControl({ child, value, onChange }: { child: ReactElement; value:
   );
 }
 
-export function UnifiedListHeader({ children, actions, onSubmit, resultCount, resultLabel, resetHref, filtered = false, activeCount = 0, className, phoneOnly = false, phoneMode = "drawer", phonePrimary = "inline" }: HeaderProps) {
+export function UnifiedListHeader({ children, actions, onSubmit, resultCount, resultLabel, resetHref, filtered = false, activeCount = 0, className, phoneOnly = false, phoneMode = "drawer", phonePrimary = "inline", compactPinnedFields = [] }: HeaderProps) {
   // The first client render must match SSR exactly. Viewport detection belongs
   // in the effect below; reading matchMedia in the state initializer rendered
   // different desktop/mobile trees and caused hydration recovery on every
@@ -234,6 +236,7 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
     ? primaryProps.defaultValue
     : typeof primaryProps.value === "string" ? primaryProps.value : "";
   const [searchValue, setSearchValue] = useState(initialSearchValue);
+  const [pinnedValues, setPinnedValues] = useState<Record<string, string>>({});
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => {
@@ -349,15 +352,18 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
       ? cloneElement(child as ReactElement<Record<string, unknown>>, { key: child.key ?? index, value: undefined, defaultValue: props.value })
       : child;
   };
-  const filterControls = <>{primaryInDrawer ? primary : null}{filters.map(editableFilter)}{nested.map(editableFilter)}</>;
+  const pinnedFilters = filters.filter(child => compactPinnedFields.includes(String(propsOf(child).name)));
+  const drawerFilters = filters.filter(child => !compactPinnedFields.includes(String(propsOf(child).name)));
+  const filterControls = <>{primaryInDrawer ? primary : null}{drawerFilters.map(editableFilter)}{nested.map(editableFilter)}</>;
   const filterSheet = open && typeof document !== "undefined" ? createPortal(
     <div className="unified-list-layer">
       <button type="button" className="unified-list-backdrop" aria-label="Close filters" onClick={() => setOpen(false)} />
       <form ref={filterDialogRef} tabIndex={-1} className="unified-list-sheet" role="dialog" aria-modal="true" aria-label="Filters" onSubmit={submit}>
         {!primaryInDrawer && primary && isValidElement(primary) ? (() => {
           const hidden = hiddenFilterValue(primary);
-          return hidden ? <input type="hidden" name={hidden.name} value={searchValue || hidden.value} /> : null;
+          return hidden ? <input type="hidden" name={hidden.name} value={searchValue} /> : null;
         })() : null}
+        {pinnedFilters.map(child => { const field = hiddenFilterValue(child); return field ? <input key={field.name} type="hidden" name={field.name} value={pinnedValues[field.name] ?? field.value} /> : null; })}
         <header className="unified-list-sheet-header"><h2>Filters</h2><button type="button" onClick={() => setOpen(false)} aria-label="Close filters"><X /></button></header>
         <div className="unified-list-sheet-fields">{filterControls}</div>
         <footer className="unified-list-sheet-actions"><Button asChild type="button" variant="ghost"><Link href={resetHref}>Reset</Link></Button><Button type="submit">Apply filters</Button></footer>
@@ -370,7 +376,15 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
   return (
     <form ref={formRef} className={cn("unified-list-header sb-list-query-card", className)} data-filtered={filtered || undefined} data-reset-href={resetHref} onSubmit={submit} onKeyDown={cancelDebounceOnEnter}>
       {(!primaryInDrawer && primary || resolvedPhoneMode === "drawer" || contextualFilterCount === 1 || typeof resultCount === "number") ? <div className={cn("unified-list-row", (primaryInDrawer || !primary) && "unified-list-row--filter-only")}>
-        {!primaryInDrawer && primary && isValidElement(primary) ? <SearchControl child={primary} value={searchValue} onChange={updateSearch} /> : null}
+        {!primaryInDrawer && primary && isValidElement(primary) ? <SearchControl child={primary} value={searchValue} onChange={(value) => { updateSearch(value); if (compactPinnedFields.length && primaryProps.type === "date") queueQuery(); }} /> : null}
+        {pinnedFilters.map((child, index) => {
+          const field = hiddenFilterValue(child);
+          if (!field || !isValidElement(child)) return null;
+          return <div className="unified-list-pinned-control" key={field.name}>{cloneElement(child as ReactElement<Record<string, unknown>>, {
+            key: index, defaultValue: undefined, value: pinnedValues[field.name] ?? field.value,
+            onValueChange: (value: string) => { setPinnedValues(current => ({ ...current, [field.name]: value })); queueQuery(); },
+          })}</div>;
+        })}
         {showMobileSearchAction ? <Button type="submit" size="icon" variant="default" className="unified-list-search-submit" aria-label="Search" title="Search" onClick={() => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); }}><Search className="size-4 shrink-0" aria-hidden="true"/></Button> : null}
         {showMobileDateAction ? <Button type="submit" className="unified-list-date-submit">View</Button> : null}
         {resolvedPhoneMode === "drawer" && !showMobileDateAction ? <button ref={filterTriggerRef} type="button" className="unified-list-filter-trigger" onClick={() => setOpen(true)} aria-label={active ? `Filter, ${active} active` : "Filter"} aria-haspopup="dialog" aria-expanded={open}><SlidersHorizontal /><span className="unified-list-filter-label">Filter</span>{active ? <span className="unified-list-filter-badge" aria-hidden="true">{active}</span> : null}</button> : null}
@@ -379,7 +393,7 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
       </div> : null}
       {resolvedPhoneMode === "inline" ? all.filter(isHiddenControl) : null}
       {resolvedPhoneMode === "inline" && contextualFilterCount > 1 ? <div className="unified-list-inline-fields">{filterControls}</div> : null}
-      {resolvedPhoneMode === "drawer" && !open ? [...filters, ...nested].map((child, index) => {
+      {resolvedPhoneMode === "drawer" && !open ? [...drawerFilters, ...nested].map((child, index) => {
         const hidden = hiddenFilterValue(child);
         return hidden ? <input key={`${hidden.name}-${index}`} type="hidden" name={hidden.name} value={hidden.value} /> : null;
       }) : null}

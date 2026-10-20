@@ -1,3 +1,7 @@
+## v9.2.109 — reviewed operational UI
+
+Daily Records and PR use scoped compact layouts, persistent daily filters, semantic notification icons and permission-scoped attention dots. Phone PR metadata stays 11px; desktop controls 36px and touch targets 44px. Functional restorations are tracked independently in docs/ui-refinement-review.md.
+
 # v9.2.108 (unreleased)
 
 Production-based UI correction candidate. Desktop workspace navigation is 36px; phone navigation remains 44px. Annotated purchase request metadata and asset checklist copy use compact phone typography. Preserve existing OMS colours and surfaces.

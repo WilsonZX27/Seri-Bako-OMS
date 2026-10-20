@@ -26,3 +26,8 @@ test("unified filter sheet covers the complete phone viewport and nav", () => {
   assert.match(styles, /\.unified-list-sheet\s*\{[\s\S]*bottom:\s*0;[\s\S]*z-index:\s*var\(--sb-z-sheet\)/);
   assert.match(styles, /body:has\(\[data-mobile-action-bar\]\)\s+\[data-mobile-app-nav\]/);
 });
+
+test("narrow phone list search keeps the input and query actions on one aligned row", () => {
+  assert.match(styles, /@media \(max-width: 380px\)[\s\S]*grid-template-columns:\s*minmax\(0, 1fr\) 44px 40px auto;[\s\S]*\.unified-list-search-submit \{ grid-column: 2; \}[\s\S]*\.unified-list-filter-trigger \{ width: 40px/);
+  assert.doesNotMatch(styles, /@media \(max-width: 380px\)[\s\S]*\.unified-list-primary-control \{ grid-column: 1 \/ -1; \}/);
+});

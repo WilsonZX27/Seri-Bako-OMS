@@ -2851,14 +2851,17 @@ html[data-design-layer="v2"] form.sb-asset-query .unified-list-desktop-actions b
   width: 1rem; height: 1rem; flex: none;
 }
 
-/* At narrow phone widths, keep the query readable instead of reducing it to
-   its search icon. The commands occupy the following row. */
+/* Narrow phones keep search and its commands in one aligned row. Let the
+   search field absorb the reduced width while touch targets stay consistent. */
 @media (max-width: 380px) {
   html[data-design-layer="v2"] form.unified-list-header .unified-list-row:has(.unified-list-search-submit) {
-    grid-template-columns: minmax(0, 1fr) max-content auto;
+    grid-template-columns: minmax(0, 1fr) 44px 40px auto;
+    gap: 4px;
+    align-items: center;
   }
-  html[data-design-layer="v2"] form.unified-list-header .unified-list-row:has(.unified-list-search-submit) > .unified-list-primary-control { grid-column: 1 / -1; }
-  html[data-design-layer="v2"] form.unified-list-header .unified-list-search-submit { grid-column: 1; }
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-row:has(.unified-list-search-submit) > .unified-list-primary-control { grid-column: 1; }
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-search-submit { grid-column: 2; }
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-filter-trigger { width: 40px; min-width: 40px; padding: 0; }
   html[data-design-layer="v2"] form.unified-list-header .unified-list-row:has(.unified-list-search-submit) > .unified-list-result { grid-column: 3; }
 }
 

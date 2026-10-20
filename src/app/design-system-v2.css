@@ -2596,6 +2596,7 @@ html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-gap { padding: 0; 
 
 html[data-design-layer="v2"] [data-pr-continuous-list] {
   background: var(--sb-surface-raised);
+  container: pr-list / inline-size;
 }
 
 html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"] {
@@ -2610,6 +2611,76 @@ html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"]:nth-chil
 
 html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"]:hover {
   background: var(--sb-green-100);
+}
+
+/* The main PR list switches to a compact single-line row only when its own
+   canvas can support the fixed information tracks. The tablet rail remains
+   visible and the mobile list stays comfortably readable on narrower canvases. */
+html[data-design-layer="v2"] .sb-pr-tablet-rows { display: none; }
+@container pr-list (min-width: 680px) {
+  html[data-design-layer="v2"] .sb-pr-tablet-rows { display: block; }
+  html[data-design-layer="v2"] .sb-pr-continuous-rows { display: none !important; }
+  html[data-design-layer="v2"] .sb-pr-tablet-row {
+    display: grid;
+    grid-template-columns: minmax(6rem, 1.15fr) minmax(5rem, 1fr) minmax(6rem, 1fr) minmax(5.625rem, 1.35fr) minmax(2.25rem, .5fr) minmax(5rem, .9fr) minmax(6rem, 1.15fr) .75rem;
+    align-items: center;
+    gap: .5rem;
+    min-height: 3.5rem;
+    padding: .5rem .625rem;
+    border-bottom: 1px solid var(--sb-border-soft);
+    color: var(--sb-text);
+    font-size: .6875rem;
+    font-weight: 500;
+    line-height: 1rem;
+    text-decoration: none;
+  }
+  html[data-design-layer="v2"] .sb-pr-tablet-row:nth-child(even) { background: #edf2ef; }
+  html[data-design-layer="v2"] .sb-pr-tablet-row:hover { background: var(--sb-green-100); }
+  html[data-design-layer="v2"] .sb-pr-tablet-row > :is(span, svg) { min-width: 0; }
+  html[data-design-layer="v2"] .sb-pr-tablet-row > span:not(.sb-pr-tablet-location-copy) { display: flex; align-items: center; gap: .375rem; }
+  html[data-design-layer="v2"] .sb-pr-tablet-row :is(.sb-pr-tablet-request, .sb-pr-tablet-location, .sb-pr-tablet-date, .sb-pr-tablet-supplier, .sb-pr-tablet-items) > svg,
+  html[data-design-layer="v2"] .sb-pr-tablet-chevron { width: 1rem; height: 1rem; flex: 0 0 1rem; color: var(--sb-text-muted); }
+  html[data-design-layer="v2"] .sb-pr-tablet-location-copy { display: grid; min-width: 0; }
+  html[data-design-layer="v2"] .sb-pr-tablet-location-copy > :is(span, small),
+  html[data-design-layer="v2"] .sb-pr-tablet-supplier > span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  html[data-design-layer="v2"] .sb-pr-tablet-location-copy small { color: var(--sb-text-muted); font-size: .625rem; font-weight: 400; }
+  html[data-design-layer="v2"] .sb-pr-tablet-date { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  html[data-design-layer="v2"] .sb-pr-tablet-items,
+  html[data-design-layer="v2"] .sb-pr-tablet-amount { justify-content: flex-end; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  html[data-design-layer="v2"] .sb-pr-tablet-amount { font-size: .6875rem; font-weight: 600; }
+  html[data-design-layer="v2"] .sb-pr-tablet-status { justify-content: flex-end; }
+  html[data-design-layer="v2"] .sb-pr-tablet-status > * { max-width: 100%; white-space: nowrap; font-size: .625rem; }
+  html[data-design-layer="v2"] .sb-pr-tablet-chevron { justify-self: end; }
+}
+
+@media (min-width: 768px) {
+  html[data-design-layer="v2"] form.sb-purchase-request-filters[data-unified-list-desktop] .unified-list-desktop-actions {
+    min-height: 2.25rem;
+    align-items: center;
+  }
+  html[data-design-layer="v2"] form.sb-purchase-request-filters[data-unified-list-desktop] .unified-list-desktop-actions > :is(button, a, .sb-filter-more, .sb-filter-summary) {
+    align-self: center;
+    height: 2.25rem;
+    min-height: 2.25rem;
+  }
+  html[data-design-layer="v2"] form.sb-purchase-request-filters[data-unified-list-desktop] .sb-filter-more > summary {
+    height: 2.25rem;
+    min-height: 2.25rem;
+  }
+}
+
+@media (max-width: 767px) {
+  html[data-design-layer="v2"] form.sb-purchase-request-filters.unified-list-header .unified-list-row {
+    align-items: center;
+  }
+  html[data-design-layer="v2"] form.sb-purchase-request-filters.unified-list-header :is(.unified-list-search-submit, .unified-list-filter-trigger, .unified-list-result) {
+    height: 2.75rem;
+    min-height: 2.75rem;
+    align-self: center;
+  }
+  html[data-design-layer="v2"] form.sb-purchase-request-filters.unified-list-header .unified-list-result {
+    align-content: center;
+  }
 }
 
 /* Asset registers use the shared query card's compact command measure. */

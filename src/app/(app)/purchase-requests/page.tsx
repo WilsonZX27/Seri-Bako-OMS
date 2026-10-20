@@ -1,5 +1,5 @@
 import { supplierDisplay } from "@/lib/operational-value-display";
-import { CalendarDays, FileText, MapPin, Package, Pencil, Plus, Store, UserRound } from "lucide-react";
+import { CalendarDays, ChevronRight, FileText, MapPin, Package, Pencil, Plus, Store, UserRound } from "lucide-react";
 import Link from "next/link";
 import { BulkSelectAllCheckbox, BulkSelectionProvider, BulkSelectRowCheckbox } from "@/components/bulk-selection";
 import { BulkPhaseOneDelete } from "@/components/bulk-phase-one-delete";
@@ -83,7 +83,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
         }
       >
         <div className="space-y-3" data-tablet-main-list>
-            <FilterBar resetHref="/purchase-requests" filtered={filtered} resultCount={requests?.totalRows} className="sb-list-filters--balanced">
+            <FilterBar resetHref="/purchase-requests" filtered={filtered} resultCount={requests?.totalRows} className="sb-list-filters--balanced sb-purchase-request-filters">
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, remarks" className="md:max-w-sm" />
               <SelectControl name="status" defaultValue={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status.value, label: status.label }))]} />
               <SelectControl name="priority" defaultValue={filters.priority ?? "all"} ariaLabel="Priority" options={[{ value: "all", label: "All priorities" }, { value: "critical", label: "Critical" }, { value: "urgent", label: "Urgent" }, { value: "normal", label: "Normal" }, { value: "low", label: "Low" }]} />
@@ -123,16 +123,44 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
               </TableBody>
             </Table>
             <div className="overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)] xl:hidden" data-pr-continuous-list>
-              <div className="grid grid-cols-[minmax(0,3fr)_minmax(0,1fr)_minmax(0,1fr)] items-center border-b border-[var(--sb-border)] bg-[var(--sb-surface-muted)] px-3 py-2 text-[10px] font-semibold uppercase tracking-wide text-[var(--sb-text-muted)]">
-                <span>Supplier</span><span className="text-right">Items</span><span className="text-right">Amount</span>
+              <div className="sb-pr-tablet-rows" role="list" aria-label="Purchase requests">
+                {requests?.rows.map((request) => <Link className="sb-pr-tablet-row" key={request.id} href={`/purchase-requests/${request.id}`} aria-label={`Open ${request.request_no}`}>
+                  <span className="sb-pr-tablet-request"><FileText aria-hidden="true"/><DocumentNumber value={request.request_no} size="sm" /></span>
+                  <span className="sb-pr-tablet-location" title={`${request.branch_name ?? "Unassigned"} · ${request.requested_by_name}`}><MapPin aria-hidden="true"/><span className="sb-pr-tablet-location-copy"><span>{request.branch_name ?? "Unassigned"}</span><small>{request.requested_by_name}</small></span></span>
+                  <span className="sb-pr-tablet-date"><CalendarDays aria-hidden="true"/><span>{formatDateOnly(request.request_date)}</span></span>
+                  <span className="sb-pr-tablet-supplier" title={supplierDisplay(request)}><Store aria-hidden="true"/><span>{supplierDisplay(request)}</span></span>
+                  <span className="sb-pr-tablet-items"><Package aria-hidden="true"/><span>{request.line_count}</span></span>
+                  <span className="sb-pr-tablet-amount" title={formatCurrency(request.estimated_total)}>{formatCurrency(request.estimated_total)}</span>
+                  <span className="sb-pr-tablet-status"><StatusBadge status={request.status === "converted_to_po" && request.procurement_status ? request.procurement_status : request.status} /></span>
+                  <ChevronRight aria-hidden="true" className="sb-pr-tablet-chevron"/>
+                </Link>)}
+                {!requests?.rows.length ? <EmptyState title={requestsResult.unavailable ? "Purchase request data unavailable" : filtered ? "No requests match these filters" : "No purchase requests yet"} description={requestsResult.unavailable ? "The request source could not be verified. No record count or estimated total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Purchase requests appear here after branch needs are created."} action={requestsResult.unavailable ? { href: "/purchase-requests", label: "Retry requests" } : filtered ? { href: "/purchase-requests", label: "Reset filters" } : undefined} /> : null}
               </div>
-            <OperationalList ariaLabel="Purchase requests" showUntil="xl" className="sb-pr-continuous-rows">
+              <OperationalList ariaLabel="Purchase requests" showUntil="xl" className="sb-pr-continuous-rows">
               {requests?.rows.map((request) => {
                 const supplierLabel = supplierDisplay(request);
-                return <OperationalListRow className="sb-pr-continuous-row" fullWidthDetails key={request.id} href={`/purchase-requests/${request.id}`} label={`Open ${request.request_no}`} primary={<span className="inline-flex min-w-0 items-center gap-2"><FileText aria-hidden="true" className="size-4 shrink-0 text-primary"/><DocumentNumber value={request.request_no} size="sm" className="text-sm" /></span>} status={<StatusBadge status={request.status === "converted_to_po" && request.procurement_status ? request.procurement_status : request.status} />} secondary={<span className="grid min-w-0 grid-cols-[minmax(0,3fr)_minmax(0,1fr)_minmax(0,1fr)] text-[11px] text-[var(--sb-text-muted)]"><span className="inline-flex min-w-0 items-center gap-1 pr-1"><MapPin aria-hidden="true" className="size-3 shrink-0"/><span className="truncate">{request.branch_name ?? "Unassigned"}</span></span><span className="inline-flex min-w-0 items-center justify-end gap-1 tabular-nums"><CalendarDays aria-hidden="true" className="size-3 shrink-0"/><span className="truncate">{formatDateOnly(request.request_date)}</span></span><span className="inline-flex min-w-0 items-center justify-end gap-1 pl-1"><UserRound aria-hidden="true" className="size-3 shrink-0"/><span className="truncate">{request.requested_by_name}</span></span></span>} detail={<span className="grid min-w-0 grid-cols-[minmax(0,3fr)_minmax(0,1fr)_minmax(0,1fr)] items-center text-[11px] leading-4"><span className="inline-flex min-w-0 items-center gap-1.5 pr-2" title={supplierLabel}><Store aria-hidden="true" className="size-3.5 shrink-0"/><span className="truncate font-medium text-[var(--sb-text)]">{supplierLabel}</span></span><span className="inline-flex min-w-0 items-center justify-end gap-1 tabular-nums text-[var(--sb-text-muted)]"><Package aria-hidden="true" className="size-3.5 shrink-0"/><span className="truncate">{request.line_count}</span></span><strong className="truncate text-right text-[10px] font-medium tabular-nums text-foreground" title={formatCurrency(request.estimated_total)}>{formatCurrency(request.estimated_total)}</strong></span>} />;
+                return <OperationalListRow
+                  className="sb-pr-continuous-row"
+                  fullWidthDetails
+                  key={request.id}
+                  href={`/purchase-requests/${request.id}`}
+                  label={`Open ${request.request_no}`}
+                  primary={<span className="inline-flex min-w-0 items-center gap-2"><FileText aria-hidden="true" className="size-4 shrink-0 text-[var(--sb-text-muted)]"/><DocumentNumber value={request.request_no} size="sm" className="text-sm" /></span>}
+                  status={<StatusBadge status={request.status === "converted_to_po" && request.procurement_status ? request.procurement_status : request.status} />}
+                  secondary={<span className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,0.6fr)] items-center gap-1 text-[11px] leading-4 text-[var(--sb-text-muted)]">
+                    <span className="inline-flex min-w-0 items-center gap-1"><MapPin aria-hidden="true" className="size-4 shrink-0"/><span className="truncate">{request.branch_name ?? "Unassigned"}</span></span>
+                    <span className="inline-flex shrink-0 items-center justify-center gap-1 tabular-nums whitespace-nowrap"><CalendarDays aria-hidden="true" className="size-4 shrink-0"/><span>{formatDateOnly(request.request_date)}</span></span>
+                    <span className="inline-flex min-w-0 items-center justify-end gap-1"><UserRound aria-hidden="true" className="size-4 shrink-0"/><span className="truncate">{request.requested_by_name}</span></span>
+                  </span>}
+                  detail={<span className="grid min-w-0 grid-cols-[minmax(0,3fr)_minmax(0,1fr)_minmax(0,1fr)] items-center gap-1 text-[11px] font-medium leading-4 text-[var(--sb-text)]">
+                    <span className="inline-flex min-w-0 items-center gap-1" title={supplierLabel}><Store aria-hidden="true" className="size-4 shrink-0 text-[var(--sb-text-muted)]"/><span className="truncate">{supplierLabel}</span></span>
+                    <span className="inline-flex min-w-0 items-center justify-end gap-1 tabular-nums"><Package aria-hidden="true" className="size-4 shrink-0 text-[var(--sb-text-muted)]"/><span>{request.line_count}</span></span>
+                    <strong className="whitespace-nowrap text-right text-[11px] font-medium tabular-nums" title={formatCurrency(request.estimated_total)}>{formatCurrency(request.estimated_total)}</strong>
+                  </span>}
+                />;
               })}
               {!requests?.rows.length ? <EmptyState title={requestsResult.unavailable ? "Purchase request data unavailable" : filtered ? "No requests match these filters" : "No purchase requests yet"} description={requestsResult.unavailable ? "The request source could not be verified. No record count or estimated total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Purchase requests appear here after branch needs are created."} action={requestsResult.unavailable ? { href: "/purchase-requests", label: "Retry requests" } : filtered ? { href: "/purchase-requests", label: "Reset filters" } : undefined} /> : null}
-            </OperationalList>
+              </OperationalList>
             </div>
           </BulkSelectionProvider>
           {requests ? <PaginationControls page={requests.page} totalPages={requests.totalPages} totalRows={requests.totalRows} searchParams={filters} /> : null}

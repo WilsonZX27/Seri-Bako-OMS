@@ -3095,6 +3095,11 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
 #main-content dl.sb-asset-overview-metrics > div:has(> dt + dd:last-child) > dd { text-align: left; margin-top: .25rem; }
 @media (min-width:640px) { #main-content dl.sb-asset-overview-metrics { grid-template-columns: repeat(3,minmax(0,1fr)); } }
 @media (min-width:1024px) { #main-content dl.sb-asset-overview-metrics { grid-template-columns: repeat(6,minmax(0,1fr)); } }
+/* Maintenance KPIs are peer cards, so keep their label above the value. */
+#main-content dl.sb-asset-maintenance-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
+#main-content dl.sb-asset-maintenance-metrics > div:has(> dt + dd:last-child) { display:block; grid-column:auto; }
+#main-content dl.sb-asset-maintenance-metrics > div:has(> dt + dd:last-child) > dd { margin-top:.125rem; text-align:left; }
+@media (min-width:640px) { #main-content dl.sb-asset-maintenance-metrics { grid-template-columns: repeat(4,minmax(0,1fr)); } }
 @media (min-width:640px) and (max-width:1023px) {
  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-row { grid-template-columns: minmax(0,1fr) minmax(0,1fr) !important; }
  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-filter-trigger { grid-column:1; grid-row:2; justify-self:start; }

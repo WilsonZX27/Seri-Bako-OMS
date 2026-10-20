@@ -164,6 +164,19 @@ export async function getAssetDetail(id: string) {
   const actor = await requireActiveTenantActor();
   if (actor.roleCode === "kitchen") throw new Error("Kitchen staff may only access the assigned asset checklist.");
   await requirePermission("assets.view");
+  if (isMockMode()) {
+    const summary = mockInspectionAssets.find((asset) => asset.id === id);
+    if (!summary) return null;
+    const location: AssetLocation = { id: mockInspectionLocationId, source_name: "KL - Publika", branch_id: null, kind: "branch" };
+    return {
+      asset: { ...summary, source_data: {}, current_details: summary.current_details ?? {}, updated_at: new Date(0).toISOString() } as Asset,
+      holdings: [{ asset_id: id, location_id: location.id, quantity: 1 }] as AssetHolding[],
+      locations: [location],
+      maintenance: [] as AssetRecord[], transfers: [] as AssetRecord[],
+      masterUpdates: [] as { id: string; author_name: string; created_at: string; source_data: Record<string, unknown> }[],
+      attachments: [] as AssetAttachment[], attachmentTotal: 0,
+    };
+  }
   const db = looseSupabase(await createClient());
   const results = await Promise.all([
     db.rpc("get_asset_identity", { p_asset: id }),

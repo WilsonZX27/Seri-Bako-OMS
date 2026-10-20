@@ -310,8 +310,10 @@ test("Kitchen can resolve outlet branch labels without generic branch access", (
 });
 
 test("the role matrix keeps Qty Sent ownership above Outlet in local and mock mode", () => {
-  for (const role of ["finance", "manager", "purchasing", "kitchen"]) {
-    const roleBlock = permissions.match(new RegExp(`${role}: \\[([\\s\\S]*?)\\]`))?.[1] ?? "";
+  for (const role of ["finance", "manager", "purchasing", "chef"]) {
+    const roleBlock = role === "chef"
+      ? permissions.match(/const kitchenPermissions = \[([\s\S]*?)\] as const/)?.[1] ?? ""
+      : permissions.match(new RegExp(`${role}: \\[([\\s\\S]*?)\\]`))?.[1] ?? "";
     assert.match(roleBlock, /outlet_daily_record\.qty_sent/);
   }
   const outletBlock = permissions.match(/outlet_staff: \[([\s\S]*?)\]/)?.[1] ?? "";

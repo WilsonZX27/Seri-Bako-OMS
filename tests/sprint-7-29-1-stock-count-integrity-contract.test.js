@@ -38,12 +38,16 @@ test("Sprint 7.29.1 uses draft save plus direct atomic confirmation", () => {
   assert.match(schema, /4 decimal places/);
 });
 
-test("Kitchen receives only the scoped Stock Count and inventory-read permissions", () => {
+test("Chef retains former Kitchen Stock Count permissions while Kitchen is self-service only", () => {
   const permissions = read("src/server/auth/permissions.ts");
-  const migration = read("supabase/migrations/110_sprint_7_29_1_stock_count_posting_integrity.sql");
+  const migration = read("supabase/migrations/368_kitchen_role_boundary_and_chef_assignments.sql");
 
-  const kitchenMatrix = permissions.match(/kitchen:\s*\[([\s\S]*?)\n\s*\],/);
+  const chefMatrix = permissions.match(/chef:\s*kitchenPermissions/);
+  const kitchenMatrix = permissions.match(/kitchen:\s*\[([^\]]*)\]/);
+  assert.ok(chefMatrix, "Chef must preserve the former Kitchen matrix");
   assert.ok(kitchenMatrix, "Kitchen permission matrix must exist");
+  const chefPermissions = permissions.match(/const kitchenPermissions = \[([\s\S]*?)\] as const/);
+  assert.ok(chefPermissions, "Chef's inherited permission set must be explicit");
   for (const permission of [
     "stock_count.read",
     "stock_count.create",
@@ -54,16 +58,16 @@ test("Kitchen receives only the scoped Stock Count and inventory-read permission
     "stock_balance.read",
     "stock_transactions.read",
   ]) {
-    assert.match(kitchenMatrix[1], new RegExp(`"${permission.replace(".", "\\.")}"`));
+    assert.match(chefPermissions[1], new RegExp(`"${permission.replace(".", "\\.")}"`));
   }
-  assert.match(migration, /cross join public\.permissions permission/);
-  assert.match(migration, /where role\.role_code = 'kitchen'/);
-  assert.match(migration, /kitchen_role_count \* cardinality\(required_permissions\)/);
-  assert.match(migration, /'stock_count\.post'/);
-  assert.match(migration, /missing canonical permissions/);
-  assert.match(migration, /granted_count <> kitchen_role_count \* cardinality\(required_permissions\)/);
-  assert.doesNotMatch(migration, /'stock_balances\.view'/);
-  assert.doesNotMatch(kitchenMatrix[1], /pr\.purchasing_review|items\.manage|suppliers\.manage/);
+  assert.match(migration, /insert into public\.role_permissions/);
+  assert.match(migration, /where chef\.role_code = 'chef'/);
+  assert.match(migration, /delete from public\.role_permissions/);
+  assert.match(migration, /p\.permission_code not in \('assets\.view', 'assets\.check', 'dashboard\.view'\)/);
+  assert.match(migration, /Staff Code %/);
+  assert.match(migration, /public\.asset_location_access/);
+  assert.deepEqual(kitchenMatrix[1].split(",").map((value) => value.trim().replaceAll('"', "")).filter(Boolean), ["assets.view", "assets.check", "dashboard.view"]);
+  assert.match(migration, /p\.permission_code not in \('assets\.view', 'assets\.check', 'dashboard\.view'\)/);
 });
 
 test("legacy stock_balances.view resolves only to canonical stock_balance.read", () => {

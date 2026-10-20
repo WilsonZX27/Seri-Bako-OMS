@@ -13,7 +13,7 @@ test("purchase-request list uses device-appropriate list surfaces and anchors th
   assert.match(page, /<TableSelectionHead><BulkSelectAllCheckbox \/><\/TableSelectionHead>/);
   assert.match(page, /<SortableHead label="PR number \/ Priority" column="request_no"/);
   assert.match(page, /<TableSelectionCell><BulkSelectRowCheckbox id=\{request\.id\} \/><\/TableSelectionCell>[\s\S]*<TableActionLink[\s\S]*<DocumentNumber/);
-  assert.match(page, /<OperationalList ariaLabel="Purchase requests" showUntil="xl">/);
+  assert.match(page, /<OperationalList ariaLabel="Purchase requests" showUntil="xl" className="sb-pr-continuous-rows">/);
   assert.match(page, /tabletRailBreakpoint="md"/);
   assert.match(page, /<FilterBar resetHref="\/purchase-requests"/);
   assert.match(page, /resultCount=\{requests\?\.totalRows\}/);

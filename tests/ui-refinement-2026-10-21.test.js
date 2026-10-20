@@ -22,3 +22,13 @@ test('attention dots aggregate only visible items and notifications use nonshrin
  assert.match(menu,/h-4 w-4 shrink-0 text-primary/);
  assert.match(menu,/<Button asChild variant="outline" className="w-full"><Link href="\/activity"/);
 });
+test('attention destinations deduplicate and clear when current action data is empty',()=>{
+ const ts=require('typescript'),vm=require('node:vm');
+ const source=read('src/server/queries/topbar.ts').split('export function getNavAttentionHrefs')[1];
+ const context={exports:{}};
+ vm.runInNewContext(ts.transpileModule('export function getNavAttentionHrefs'+source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,context);
+ const get=context.exports.getNavAttentionHrefs;
+ assert.equal(JSON.stringify(get({pendingApprovals:[],notifications:[]})),'[]');
+ const value=get({pendingApprovals:[{href:'/purchase-requests/one'},{href:'/purchase-requests/two'}],notifications:[{action_url:'/asset-management?view=maintenance'},{action_url:'https://example.com/outside'}]});
+ assert.equal(JSON.stringify(value),JSON.stringify(['/purchase-requests','/asset-management']));
+});

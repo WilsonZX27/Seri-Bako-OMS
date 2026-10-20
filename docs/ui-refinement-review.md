@@ -19,4 +19,35 @@ Old branch visual-only changes to low-stock, production planning, packaging, ins
 
 ## UI annotations / verification
 
-Pending implementation and viewport evidence. User-supplied screenshots are the before evidence (latest comments 1–7).
+User-supplied screenshots are the before evidence (latest comments 1–7). PR before screenshot also saved under `outputs/ui-refinement-2026-10-21/pr-before-1180.png`.
+
+| Annotation | Owner / change | Verification |
+| --- | --- | --- |
+| 1 navigation dots | shared activity promise → visible permission-filtered nav items → group summary | Contract checks: deduplication, empty queues, visible-item aggregation; authenticated refresh pending |
+| 2 notification icons | activity menu maps maintenance, PR, PO, invoices, compliance, production and inventory; 16px shrink-0 icons | Source/type checks; authenticated popover inspection pending |
+| 3 activity entry | existing /activity navigation with outlined button presentation | Source contract; authenticated click pending |
+| 4 daily metadata | page-specific three-column label/value groups; full-width detail region | Actual row-component synthetic browser stress check |
+| 5 daily query row | opt-in persistent date + branch; named Filter disclosure; result count right-aligned | SSR check: each field submitted once; synthetic browser sizing; live filtering pending |
+| 6 summary numbers | Records value now same 12px size as peer totals | Source check; authenticated screenshot pending |
+| 7 PR metadata | auto-sized count/amount columns; wrapping supplier; grouped byline and full dates | Actual source row extracted into synthetic browser fixture, long names and RM 1,234,567.89 |
+| earlier FAB | phone FAB owned by console; create actions remain permission guarded in rail | 58 shared-shell/list contracts pass; authenticated single-FAB count pending |
+| earlier assets | preserve 12px checklist copy, existing H1 and cards; scoped grid protection | source checks; authenticated asset review pending |
+
+### Automated results
+
+- ESLint and source-only TypeScript check pass. Source-only configuration excludes ignored historical output snapshots; the remote Vercel build supplies the complete release build check.
+- 96 stock-count / attendance / procurement / topbar regression checks pass.
+- 23 focused refinement / query rendering / attendance permission / asset / product / PR order checks pass.
+- 58 mobile shell / FAB / daily list / PR list checks pass.
+- Existing role-sensitive contract tests restored alongside the old branch’s Kitchen/Chef changes; assertions retain their original role boundaries rather than treating the old Kitchen entitlement as current.
+
+### Browser fixture results and limits
+
+Evidence: `outputs/ui-refinement-2026-10-21/stress-results.json` and `stress-{width}.png`.
+Widths: 360, 393, 767, 768, 1180, 1279, 1280, 1440. No document horizontal overflow; all tested amounts and dates fit. 360/393 metadata is 11px, tablet metadata is 12px. Daily date and branch controls remain usable at each compact breakpoint.
+
+These are **synthetic layout checks**, using the actual row/header source and production styles, with a reserved right rail. Desktop fixture deliberately keeps the compact row visible to stress it; it does not replace verification of the actual desktop table. No authenticated workflow, database mutation, touch-device emulation or real stock-count save is claimed from this fixture.
+
+### Preview acceptance still pending
+
+The stable Preview host requires a separate staff login; the existing session belongs to the previous deployment host. Login was requested in this chat. After login, verify both real lists at the six agreed widths, search/filter/reset/sort, detail/create entry, notification/activity navigation, one FAB, full Owner Attendance, and selected stock-count flows against a disposable test record. No production business records were created or modified during this task.

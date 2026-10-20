@@ -94,7 +94,7 @@ export function WorkspaceSidebar({
             const groupClosed = closedGroups[group.id] ?? group.id !== activeGroupId;
             return (
               <div key={group.id}>
-                  <div className={cn("mb-1 flex w-full items-center rounded-[var(--sb-control-radius)] font-medium leading-none text-white/60 hover:bg-white/8 hover:text-white", activeGroupId === group.id && group.href ? "bg-white/8 text-white" : "", mobile ? "min-h-9 text-[11px]" : "min-h-8 text-[10px]")}>
+                  <div className={cn("mb-1 flex w-full items-center rounded-[var(--sb-control-radius)] font-medium leading-none text-white/60 hover:bg-white/8 hover:text-white", activeGroupId === group.id && group.href ? "bg-white/8 text-white" : "", mobile ? "min-h-11 text-[11px]" : "min-h-9 text-[10px]")}>
                     {group.href ? (
                       <Link href={group.href} prefetch={false} onClick={onNavigate} className="flex min-h-[inherit] min-w-0 flex-1 items-center px-2">
                         <span className={mobile ? "text-[11px]" : "text-[10px]"}>{group.label}</span>
@@ -105,7 +105,7 @@ export function WorkspaceSidebar({
                       </button>
                     )}
                     {hasAttention ? <span className="size-1.5 shrink-0 rounded-full bg-amber-400" role="img" aria-label="Pending update" /> : null}
-                    <button type="button" className="flex min-h-8 min-w-8 items-center justify-center rounded-[var(--sb-control-radius)] hover:bg-white/10" onClick={() => toggleGroup(group.id, groupClosed)} aria-expanded={!groupClosed} aria-label={`${groupClosed ? "Expand" : "Collapse"} ${group.label}`}>
+                    <button type="button" className={cn("flex items-center justify-center rounded-[var(--sb-control-radius)] hover:bg-white/10", mobile ? "min-h-11 min-w-11" : "min-h-9 min-w-9")} onClick={() => toggleGroup(group.id, groupClosed)} aria-expanded={!groupClosed} aria-label={`${groupClosed ? "Expand" : "Collapse"} ${group.label}`}>
                       <ChevronDown className={cn("h-3 w-3 transition-transform", groupClosed ? "-rotate-90" : "")} />
                     </button>
                   </div>

@@ -14,7 +14,7 @@ test("mobile web uses a permission-aware app shell without replacing desktop nav
   assert.match(navigation, /data-mobile-app-nav/);
   assert.match(navigation, /grid-cols-5/);
   assert.match(navigation, /xl:hidden/);
-  assert.match(navigation, /getVisibleNavGroups\(role, permissionMap\)/);
+  assert.match(navigation, /getVisibleNavGroups\(role, permissionMap, attentionHrefs\)/);
   assert.match(navigation, /role === "outlet_staff"/);
   assert.match(navigation, /role === "kitchen"/);
   assert.match(navigation, /role === "purchasing"/);
@@ -28,16 +28,16 @@ test("mobile web uses a permission-aware app shell without replacing desktop nav
   assert.match(sidebar, /xl:block/);
 });
 
-test("kitchen mobile navigation follows Home, Count, Request, Stock, More task order", () => {
+test("Kitchen mobile navigation exposes only checklist, schedule and payslips", () => {
   const navigation = read("src/components/layout/mobile-app-navigation.tsx");
-  const kitchenStart = navigation.indexOf('if ((role === "kitchen" || role === "chef"))');
-  const kitchenEnd = navigation.indexOf('if (role === "purchasing")');
+  const kitchenStart = navigation.indexOf('if (role === "kitchen")');
+  const kitchenEnd = navigation.indexOf('if (role === "chef")');
   const kitchenTabs = navigation.slice(kitchenStart, kitchenEnd);
 
-  assert.match(kitchenTabs, /href: "\/stock-counts"[\s\S]*?label: "Count"/);
-  assert.match(kitchenTabs, /href: "\/stock-counts"[\s\S]*?href: "\/purchase-requests"[\s\S]*?label: "Request"[\s\S]*?href: "\/stock-balance"/);
-  assert.match(kitchenTabs, /href: "\/stock-balance"[\s\S]*?label: "Stock"/);
-  assert.doesNotMatch(kitchenTabs, /href: "\/stock-wastage"/);
+  assert.match(kitchenTabs, /href: "\/asset-management\?view=checklist"[\s\S]*?label: "Checklist"/);
+  assert.match(kitchenTabs, /href: "\/attendance\/my-schedule"[\s\S]*?label: "Schedule"/);
+  assert.match(kitchenTabs, /href: "\/attendance\/payslips"[\s\S]*?label: "Payslips"/);
+  assert.doesNotMatch(kitchenTabs, /stock-counts|purchase-requests|stock-balance|stock-wastage/);
 });
 
 test("mobile shell respects safe areas, action stacking, and standalone web installation", () => {

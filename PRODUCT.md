@@ -1,3 +1,7 @@
+## v9.2.117 (unreleased) — historical annotation closure candidate
+
+The Preview version advances beyond the old Preview branch's v9.2.116 marker. The current candidate preserves its functional repairs while continuing the full historical annotation review. This version change does not imply that remaining viewport, role and interaction checks have passed.
+
 ## v9.2.110 (unreleased) — responsive list completion
 
 Purchase Requests keeps the complete compact row at 1280–1399px until the desktop table fits with its summary rail. Outlet Daily Records keeps its complete compact row below 1536px for the same reason. Singular line and item labels are corrected. The active Preview candidate retains the v9.2.109 workflow and permission repairs; Production is unchanged. Repository migrations reviewed through `368`; this does not mean migration 368 has been applied to Production. See `docs/qa/2026-10-21-closure.md` for verification scope and open items.

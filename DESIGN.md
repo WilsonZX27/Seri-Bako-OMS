@@ -1,3 +1,7 @@
+## v9.2.117 (unreleased) — historical annotation closure candidate
+
+The version marker is monotonic relative to the earlier v9.2.116 Preview. The pending full-system UI acceptance remains tracked in `docs/qa/HISTORICAL_ANNOTATION_CLOSURE_INDEX.md`.
+
 ## v9.2.110 (unreleased) — responsive list completion
 
 At widths where a summary rail leaves less space than a data table needs, use the already established compact row until the full table fits. The PR threshold is 1400px; Daily Records uses the existing 2xl threshold at 1536px. No global typography or table rule changes.

@@ -119,7 +119,7 @@ export function WorkspaceSidebar({
                         prefetch={false}
                         onClick={onNavigate}
                         className={cn(
-                          "flex min-h-10 items-center gap-2 rounded-[var(--sb-control-radius)] px-2 font-medium transition-colors",
+                          cn("flex items-center gap-2 rounded-[var(--sb-control-radius)] px-2 font-medium transition-colors", mobile ? "min-h-11" : "min-h-9"),
                           "text-xs",
                           active ? "bg-[var(--sb-green-100)] text-[var(--sb-green-950)] ring-1 ring-white/10" : "text-white/72 hover:bg-white/8 hover:text-white",
                         )}

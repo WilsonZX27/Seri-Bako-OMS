@@ -1,4 +1,8 @@
-> Preview candidate — 2026-10-20: application v9.2.115 reduces Purchase Request phone metadata to 11px and restores its hidden Create PR FAB when the mobile action strip is suppressed. Asset checklist helper and asset names use 12px on phones, the duplicate outlet heading is removed, and the overview metrics use compact bordered tiles. It retains the v9.2.114 Stock Count placeholder, AP Aging guidance, Daily Insights date range, reduced-motion feedback, responsive workspace refinements, and simplified Low Stock basket. migrations reviewed through `368`; forward-only migration 历史已到 `368`. Production remains v9.2.106.
+> Preview candidate — 2026-10-20: application v9.2.116 restores the Attendance overview by requesting the `attendance.read` permission before checking it; the desktop sidebar uses 36px rows while mobile keeps 44px touch targets. It includes the v9.2.115 compact Purchase Request phone metadata and Create PR FAB, 12px asset checklist text, single location title, and compact overview metrics. Production remains v9.2.106; migrations reviewed through `368`.
+
+# v9.2.116 (unreleased)
+
+The Attendance landing page now includes `attendance.read` in its permission query, preventing an authorized account from incorrectly falling back to My Schedule. Desktop sidebar links are 36px high; mobile links retain 44px touch targets.
 
 # v9.2.115 (unreleased)
 

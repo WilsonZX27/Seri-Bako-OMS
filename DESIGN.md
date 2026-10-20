@@ -1,5 +1,9 @@
 > Local candidate — 2026-10-18: desktop query filters use 120px at the existing 1280px desktop breakpoint; search is a named icon action and the query field absorbs remaining space. Phone/tablet touch sizes remain unchanged. Shared card/profile/form headers separate titles from fields with a soft rule. Employment and access editing stays in the People profile. Pending release; see final-audit/FEEDBACK-16-AUDIT.txt in the task workspace.
 
+# v9.2.116 (unreleased)
+
+The Attendance page requests every permission consumed by its role-sensitive landing decision. Navigation rows are 36px on desktop and 44px in mobile navigation drawers.
+
 # v9.2.115 (unreleased)
 
 Purchase Request phone metadata uses 11px type and 14px icons, while the primary request number retains its existing stronger hierarchy. The Create PR floating action remains visible when only the mobile secondary-action strip is suppressed. Asset overview metrics use compact bordered tiles; checklist guidance and asset names use 12px type. The location name appears once in the shared page header.

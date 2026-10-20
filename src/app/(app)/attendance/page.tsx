@@ -24,7 +24,7 @@ export default async function AttendancePage() {
       </WorkspaceGrid>
     </>;
   }
-  const permissions = await getPermissionMap(["schedule.read", "attendance.review", "attendance.import"]);
+  const permissions = await getPermissionMap(["attendance.read", "schedule.read", "attendance.review", "attendance.import"]);
   if (!permissions["attendance.read"]) {
     const shifts = await getOwnPublishedShifts();
     return <>

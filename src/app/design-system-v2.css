@@ -24,6 +24,7 @@
   --sb-border-soft: #e7ebe7;
   --sb-text: #13261f;
   --sb-text-muted: #66766f;
+  --sb-text-muted-workspace: #5f6f68;
   --sb-text-soft: #8A948E;
   --sb-text-inverse: #FFFFFF;
   --sb-success: #0F6B3F;
@@ -460,7 +461,7 @@ html[data-design-layer="v2"] :is(a, button, summary, [role="button"]) {
 
 [data-page-header] p {
   max-width: 48rem;
-  color: var(--sb-text-muted);
+  color: var(--sb-text-muted-workspace);
   font-size: var(--sb-text-body);
 }
 

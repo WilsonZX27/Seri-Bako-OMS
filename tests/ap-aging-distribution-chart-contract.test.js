@@ -38,4 +38,6 @@ test("Every aging bar preserves current filters and drills into the same invoice
   assert.match(chart, /min-h-\[4\.5rem\][\s\S]*border/);
   assert.doesNotMatch(chart, /return <Link[\s\S]*?href=\{item\.href\}/);
   assert.match(chart, /Select a bucket to filter invoice detail/);
+  assert.match(chart, /Preview a bucket to see its balance and invoice count/);
+  assert.doesNotMatch(chart, /Hover, tap, or focus a bucket/);
 });

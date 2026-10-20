@@ -1,4 +1,8 @@
-> Preview candidate — 2026-10-20: application v9.2.112 includes a compact complete date-range label for Outlet Daily Insights, reduced-motion press feedback, lighter mobile floating-action elevation, a task-first Stock Count list, responsive workspace refinements, and a simplified Low Stock purchase basket using suggested quantities. migrations reviewed through `368`; forward-only migration 历史已到 `368`. Migration 368 restricts Kitchen to assigned asset checks and self-service access while assigning Staff Codes 5 and 57 to Chef; source-reviewed, not applied to Production. Production remains v9.2.106; latest Preview verification is in progress.
+> Preview candidate — 2026-10-20: application v9.2.113 uses modality-neutral AP Aging chart guidance and a compact complete date-range label for Outlet Daily Insights, alongside reduced-motion press feedback, lighter mobile floating-action elevation, a task-first Stock Count list, responsive workspace refinements, and a simplified Low Stock purchase basket using suggested quantities. migrations reviewed through `368`; forward-only migration 历史已到 `368`. Migration 368 restricts Kitchen to assigned asset checks and self-service access while assigning Staff Codes 5 and 57 to Chef; source-reviewed, not applied to Production. Production remains v9.2.106; latest Preview verification is in progress.
+
+# v9.2.113 (unreleased)
+
+AP Aging distribution guidance now describes the preview action without assuming hover or a specific input method. Preview verification is in progress; Production remains v9.2.106.
 
 # v9.2.112 (unreleased)
 

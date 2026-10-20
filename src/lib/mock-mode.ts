@@ -52,9 +52,84 @@ export const mockCompany: Row<"companies"> = {
   deleted_at: null,
 };
 
-export const mockBranches: Row<"branches">[] = [];
-export const mockSuppliers: Row<"suppliers">[] = [];
-export const mockItems: Row<"items">[] = [];
+export const mockBranches: Row<"branches">[] = [{
+  id: "mock-branch-low-stock",
+  company_id: mockCompany.id,
+  branch_code: "MOCK-OUTLET",
+  branch_name: "Mock Outlet",
+  branch_type: "outlet",
+  phone: null,
+  email: null,
+  address: null,
+  status: "active",
+  created_at: mockCompany.created_at,
+  updated_at: mockCompany.updated_at,
+  created_by: null,
+  updated_by: null,
+  deleted_at: null,
+}];
+export const mockSuppliers: Row<"suppliers">[] = [{
+  id: "mock-supplier-low-stock",
+  company_id: mockCompany.id,
+  supplier_code: "MOCK-SUP-001",
+  supplier_group: null,
+  name: "Mock Supplier with a Long Trading Company Name",
+  contact_person: null,
+  phone: null,
+  email: null,
+  address: null,
+  payment_terms_days: 30,
+  status: "active",
+  created_at: mockCompany.created_at,
+  updated_at: mockCompany.updated_at,
+  deleted_at: null,
+}];
+export const mockItems: Row<"items">[] = [
+  {
+    id: "mock-low-stock-long-name",
+    company_id: mockCompany.id,
+    item_code: "MOCK-LONG-001",
+    autocount_code: null,
+    item_name: "Extra Long Premium Coconut Milk Ingredient for Outlet Preparation",
+    brand_name: null,
+    category: "Ingredients",
+    purchase_unit: "KG",
+    base_unit: "KG",
+    conversion_to_base_unit: 1,
+    supplier_id: "mock-supplier-low-stock",
+    cost: 1234.56,
+    safety_stock: 1234.5,
+    lead_time_days: 7,
+    moq: 12,
+    status: "active",
+    item_image_url: null,
+    created_at: mockCompany.created_at,
+    updated_at: mockCompany.updated_at,
+    deleted_at: null,
+  },
+  {
+    id: "mock-low-stock-unmapped",
+    company_id: mockCompany.id,
+    item_code: "MOCK-OUT-002",
+    autocount_code: null,
+    item_name: "Unmapped packaging carton",
+    brand_name: null,
+    category: "Packaging",
+    purchase_unit: "PCS",
+    base_unit: "PCS",
+    conversion_to_base_unit: 1,
+    supplier_id: null,
+    cost: 9.8,
+    safety_stock: 250,
+    lead_time_days: 0,
+    moq: 50,
+    status: "active",
+    item_image_url: null,
+    created_at: mockCompany.created_at,
+    updated_at: mockCompany.updated_at,
+    deleted_at: null,
+  },
+];
 export const mockRoles: Row<"roles">[] = SYSTEM_ROLE_CODES.map((roleCode) => ({
   id: `mock-role-${roleCode}`,
   company_id: mockCompany.id,
@@ -107,5 +182,36 @@ export function getMockStockBalances(): ViewRow<"stock_balances_view">[] {
 }
 
 export function getMockLowStockItems(): ViewRow<"low_stock_items">[] {
-  return [];
+  return [
+    {
+      item_id: "mock-low-stock-long-name",
+      item_code: "MOCK-LONG-001",
+      item_name: "Extra Long Premium Coconut Milk Ingredient for Outlet Preparation",
+      category: "Ingredients",
+      base_unit: "KG",
+      supplier_id: "mock-supplier-low-stock",
+      supplier_name: "Mock Supplier with a Long Trading Company Name",
+      current_stock: 2.5,
+      safety_stock: 1234.5,
+      shortage_quantity: 1232,
+      moq: 12,
+      lead_time_days: 7,
+      cost: 1234.56,
+    },
+    {
+      item_id: "mock-low-stock-unmapped",
+      item_code: "MOCK-OUT-002",
+      item_name: "Unmapped packaging carton",
+      category: "Packaging",
+      base_unit: "PCS",
+      supplier_id: null,
+      supplier_name: null,
+      current_stock: 0,
+      safety_stock: 250,
+      shortage_quantity: 250,
+      moq: 50,
+      lead_time_days: 0,
+      cost: 9.8,
+    },
+  ];
 }

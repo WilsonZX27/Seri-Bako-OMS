@@ -31,8 +31,11 @@ test('attention dots aggregate only visible items and notifications use nonshrin
  assert.match(menu,/<Button asChild variant="outline" className="w-full"><Link href="\/activity"/);
 });
 test('attention destinations deduplicate and clear when current action data is empty',()=>{
+ const activitySource=read('src/server/queries/topbar.ts');
+ assert.match(activitySource,/\.\.\.actionableNotifications\.map\(\(item\) => item\.action_url \?\? ""\)/);
+ assert.match(activitySource,/notifications: actionableNotifications\.slice\(0, 5\)/);
  const ts=require('typescript'),vm=require('node:vm');
- const source=read('src/server/queries/topbar.ts').split('export function getNavAttentionHrefs')[1];
+ const source=activitySource.split('export function getNavAttentionHrefs')[1];
  const context={exports:{}};
  vm.runInNewContext(ts.transpileModule('export function getNavAttentionHrefs'+source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,context);
  const get=context.exports.getNavAttentionHrefs;

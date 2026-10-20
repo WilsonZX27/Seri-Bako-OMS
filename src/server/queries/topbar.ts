@@ -201,7 +201,14 @@ export async function getTopBarActivity() {
       notifications: !notificationsResult.unavailable,
     },
     pendingApprovals,
-    attentionHrefs: [...new Set([...workflowPendingActionsResult.attentionHrefs, ...productionPendingActions.map((item) => item.href), ...scopedDocumentPendingActions.map((item) => item.href)])],
+    attentionHrefs: [...new Set([
+      ...workflowPendingActionsResult.attentionHrefs,
+      ...productionPendingActions.map((item) => item.href),
+      ...scopedDocumentPendingActions.map((item) => item.href),
+      // The popover is intentionally capped at five notifications. Navigation
+      // attention must still include the other visible, actionable notices.
+      ...actionableNotifications.map((item) => item.action_url ?? ""),
+    ])],
     assignedActivities: assignedActivities as AssignedActivity[],
     notifications: actionableNotifications.slice(0, 5),
     announcements: notifications.filter((row) => row.is_company_wide && !row.read_at).slice(0, 5),

@@ -2147,12 +2147,12 @@ html[data-design-layer="v2"] table[data-ui-table] > thead > tr > th {
 
   html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(1) { width: 2.5rem; }
   html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(2) { width: 2.5rem; }
-  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(3) { width: 8.5rem; }
-  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(4) { width: 6.25rem; }
-  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(5) { width: 6.5rem; }
-  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(6) { width: 10.5rem; }
-  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(7) { width: 7.75rem; }
-  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(8) { width: 5.5rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(3) { width: 8rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(4) { width: 6rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(5) { width: 6rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(6) { width: 9.5rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(7) { width: 7rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(8) { width: 8.5rem; }
   html[data-design-layer="v2"] .sb-purchase-request-table td:nth-child(6) {
     white-space: normal;
     overflow-wrap: anywhere;

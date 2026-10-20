@@ -1,4 +1,8 @@
-> Local candidate — 2026-10-20: migrations reviewed through `368`; forward-only migration 历史已到 `368`. Migration 368 restricts Kitchen to assigned asset checks and self-service access while assigning Staff Codes 5 and 57 to Chef; source-reviewed, not applied to Production. v9.2.107 remains unreleased and latest Preview status is unverified.
+> Preview candidate — 2026-10-20: application v9.2.108 includes responsive workspace refinements. migrations reviewed through `368`; forward-only migration 历史已到 `368`. Migration 368 restricts Kitchen to assigned asset checks and self-service access while assigning Staff Codes 5 and 57 to Chef; source-reviewed, not applied to Production. Production remains v9.2.106; latest Preview verification is in progress.
+
+# v9.2.108 (unreleased)
+
+Responsive workspace refinements keep tablet action rails visible beside their content and align Purchase Request rows across phone, tablet and desktop. Preview verification is in progress; Production remains v9.2.106.
 
 > Local candidate — 2026-10-19: migrations reviewed through `366`; forward-only migration 历史已到 `366`. Chef and unique username login are local changes pending database verification and release.
 
@@ -6,7 +10,7 @@
 
 > Local candidate — 2026-10-17: migrations reviewed through `363`; forward-only migration 历史已到 `363`. Migrations 362/363 add payment channels and independent daily product tracking; applied only to the isolated visual-audit database. Migration 361 adds one checklist per outlet/date and has not been deployed. Production statements below remain historical release evidence.
 
-# v9.2.107 (unreleased)
+## v9.2.107 (unreleased)
 
 Asset inspection uses compact identity rows with explicit result choices on expansion. General repair is a separate form above the checklist. Maintenance queues share one rendering; the desktop workspace uses a 4:6 split with the queue aligned to the detail stack. Shared workspace navigation and closed surface disclosures are 44px overall. Desktop inputs retain the existing 36px control rhythm; phone inputs retain 44px touch sizing. Two-action confirmation footers use equal columns. Saved maintenance state survives history refresh and prevents repeated submissions. No database, permissions or workflow transitions change.
 

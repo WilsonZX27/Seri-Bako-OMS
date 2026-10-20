@@ -3112,3 +3112,12 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-filter-trigger { grid-column:1; grid-row:2; justify-self:start; }
  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-result { grid-column:2 !important; grid-row:2; }
 }
+/* Delivery Orders has one date and one submit action. Keep those controls
+   adjacent while the record count remains at the far edge of the toolbar. */
+@media (min-width:1280px) {
+  html[data-design-layer="v2"] form.sb-delivery-order-filters.sb-list-query-card > .unified-list-desktop-actions {
+    flex: 1 1 auto;
+    margin-left: 0;
+    justify-content: space-between;
+  }
+}

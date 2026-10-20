@@ -38,6 +38,7 @@ test("shared popup and directory actions inherit the device control-height contr
   assert.doesNotMatch(reports, /className="h-8 px-2 text-xs"/);
   assert.match(select, /min-h-\[var\(--sb-control-height\)\]/);
   assert.match(activityMenu, /sb-workspace-updates/);
-  assert.match(design, /\.sb-workspace-updates section > a \{ min-height: 36px;/);
+  assert.match(design, /\.sb-workspace-updates section > a:not\(\[data-activity-log-action\]\) \{ min-height: 36px;/);
+  assert.match(design, /\.sb-workspace-updates section > a\[data-activity-log-action\] \{ align-items: center;/);
   assert.match(design, /@media \(pointer: coarse\), \(max-width: 767px\) \{[\s\S]*?\.sb-workspace-updates section > a \{ min-height: 44px;/);
 });

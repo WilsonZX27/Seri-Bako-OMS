@@ -29,7 +29,8 @@ test("list and production annotations use the shared responsive authorities", ()
 test("outlet status and today summary are concise and non-duplicated", () => {
   const outlet = read("src", "app", "(app)", "outlet-daily-records", "page.tsx");
   const badges = read("src", "components", "ui", "status-badge.tsx");
-  assert.match(outlet, /Completed data before today/);
+  assert.match(outlet, /history\.summary_date\?`Completed ·/);
+  assert.match(outlet, /No completed records before today\./);
   assert.doesNotMatch(outlet, /<StatusBadge status=\{progress\.status\} \/><p/);
   assert.match(badges, /in_progress: "border-\[#DDE4E0\] bg-\[#F1F4F2\]/);
   assert.match(badges, /ready_to_post: "border-\[#8FB8DC\] bg-\[#E7F1FA\]/);

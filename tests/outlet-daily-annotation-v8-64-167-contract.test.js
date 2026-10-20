@@ -39,7 +39,8 @@ test("Historical rail has explicit operational hierarchy", () => {
   for (const label of ["Records", "Qty sent", "Total received", "Posted", "In progress"]) assert.match(page, new RegExp(label));
   assert.doesNotMatch(page, />Dispatch</);
   assert.doesNotMatch(page, />Receiving</);
-  assert.match(page, /Completed data before today/);
+  assert.match(page, /history\.summary_date\?`Completed ·/);
+  assert.match(page, /No completed records before today\./);
   assert.doesNotMatch(page, /ConsoleSection title="Completion"/);
 });
 

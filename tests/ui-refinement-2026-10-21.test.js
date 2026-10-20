@@ -7,6 +7,7 @@ test('reviewed lists have one create owner and scoped metadata styling', () => {
   const source=read(`src/app/(app)/${route}/page.tsx`);
   assert.ok(!source.slice(source.indexOf('<PageHeader'),source.indexOf('<WorkspaceGrid',source.indexOf('<PageHeader'))).includes('action='));
   assert.match(source,/data-mobile-primary-action/);
+  assert.match(source,/<FilterBar\s+key=\{JSON.stringify\(\[filters\./);
  }
  const css=read('src/app/design-system-v2.css');
  assert.match(css,/#main-content \.sb-daily-record-metrics/);

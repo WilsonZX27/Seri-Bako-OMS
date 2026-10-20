@@ -74,6 +74,7 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
         <OutletDailyWorkspaceNav current="records" />
         <div className="flex min-w-0 flex-col gap-3" data-outlet-daily-primary>
           <FilterBar
+          key={JSON.stringify([filters.date, filters.branch, filters.status, filters.sent_state])}
           resultCount={data.totalRows}
           resetHref="/outlet-daily-records"
           filtered={filtered}

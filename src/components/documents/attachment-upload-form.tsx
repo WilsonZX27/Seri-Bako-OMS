@@ -48,6 +48,7 @@ export function AttachmentUploadForm({
           required
           accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.csv,.docx,.xlsx"
           className="sr-only"
+          aria-describedby={`${inputId}-guidance`}
           onChange={(event) => {
             const file = event.target.files?.[0];
             setFileName(file?.name ?? "");
@@ -60,7 +61,7 @@ export function AttachmentUploadForm({
           <SubmitButton type="submit" pendingLabel="Uploading..." disabled={Boolean(fileError)} className="flex-[1_1_6rem] justify-center"><Upload className="h-4 w-4 shrink-0" aria-hidden="true" />{submitLabel}</SubmitButton>
         </div>
       </Field>
-      <p className="break-words text-[10px] text-[var(--sb-text-muted)]">Give the file a recognisable name. PDF, image, text, CSV, DOCX, or XLSX up to 10 MB.</p>
+      <p id={`${inputId}-guidance`} className="break-words text-xs leading-4 text-[var(--sb-text-muted)]">Give the file a recognisable name. PDF, image, text, CSV, DOCX, or XLSX up to 10 MB.</p>
       {fileError || state.error ? <p role="alert" className="text-xs text-destructive">{fileError ?? state.error}</p> : null}
       {state.success ? <p role="status" className="text-xs text-success">{state.success}</p> : null}
     </form>

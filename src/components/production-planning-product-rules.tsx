@@ -42,14 +42,17 @@ export function PlanningProductRules({ showHidden, onShowHidden, products, avail
       <Input type="search" aria-label="Find product rules" placeholder="Find product" value={search} onChange={event => setSearch(event.target.value)} onKeyDown={event => { if (event.key === "Enter") event.preventDefault(); }} />
       <span className="shrink-0 text-xs text-muted-foreground" role="status">{visible.length} products</span>
     </div>
-    {!visible.length ? <p className="p-3 text-sm text-muted-foreground">No matching products.</p> : <>
+    {!visible.length ? <div className="space-y-2 p-3">
+      <label className="flex min-h-11 items-center gap-2 text-xs"><input type="checkbox" checked={showHidden} onChange={event=>onShowHidden(event.target.checked)}/>Show hidden products</label>
+      <p className="text-sm text-muted-foreground">{showHidden ? "No matching products." : "No visible products match. Turn on Show hidden products to include items outside their supply period."}</p>
+    </div> : <>
       <ResponsiveFormFields mode="desktop" aria-label="Production rules"><Table aria-label="Production yields and outlet minimums">
         <TableHeader><TableRow><TableHead>Product</TableHead><TableHead>Demand basis</TableHead><TableHead>Yield / tray</TableHead><TableHead>Outlet minimum</TableHead><TableHead><div className="grid gap-1"><span>Supply period</span><label className="flex min-h-9 items-center gap-2 font-normal normal-case"><input type="checkbox" checked={showHidden} onChange={e=>onShowHidden(e.target.checked)}/>Show hidden</label></div></TableHead></TableRow></TableHeader>
         <TableBody>{visible.map(product => <TableRow key={product.id}>
           <TableCell>{product.product_code} · {product.product_name}</TableCell><TableCell>{demand(product)}</TableCell><TableCell>{tray(product)}</TableCell><TableCell>{minimum(product)}</TableCell><TableCell>{period(product)}</TableCell>
         </TableRow>)}</TableBody>
       </Table></ResponsiveFormFields>
-      <ResponsiveFormFields mode="compact" aria-label="Production rules"><OperationalList ariaLabel="Production yields and outlet minimums">{visible.map(product => <OperationalListRow key={product.id} primary={product.product_name} secondary={product.product_code} detail={<div className="mt-2 grid grid-cols-2 gap-2">
+      <ResponsiveFormFields mode="compact" aria-label="Production rules"><label className="mb-2 flex min-h-11 items-center gap-2 text-xs"><input type="checkbox" checked={showHidden} onChange={event=>onShowHidden(event.target.checked)}/>Show hidden products</label><OperationalList ariaLabel="Production yields and outlet minimums">{visible.map(product => <OperationalListRow key={product.id} primary={product.product_name} secondary={product.product_code} detail={<div className="mt-2 grid grid-cols-2 gap-2">
         <label className="col-span-2 grid gap-1 text-xs">Demand basis{demand(product)}</label>
         <label className="grid content-start gap-1 text-xs">Yield / tray{tray(product)}</label>
         <label className="grid content-start gap-1 text-xs">Outlet minimum{minimum(product)}</label><div className="col-span-2 flex flex-wrap items-center gap-2 text-xs">Supply period{period(product)}</div>

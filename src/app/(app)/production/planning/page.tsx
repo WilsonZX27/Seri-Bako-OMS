@@ -10,9 +10,23 @@ import { addDays } from "@/lib/production-planning/forecast";
 import { todayInKualaLumpur } from "@/lib/business-date";
 import type { PlanningBranch, Plan, DeliveryOrder } from "@/lib/production-planning/types";
 import { logServerError } from "@/server/observability/logger";
+import { isMockMode, mockProfile } from "@/lib/mock-mode";
+import type { PlanningProduct } from "@/lib/production-planning/types";
 export default async function ProductionPlanningPage({searchParams}:{searchParams:Promise<Record<string,string|undefined>>}) {
  const filters=await searchParams;
  try {
+  if (isMockMode()) {
+   const date=filters.date??addDays(todayInKualaLumpur(),1);
+   const kitchen:PlanningBranch={id:"mock-kitchen",branch_name:"Central Kitchen",branch_type:"central_kitchen"};
+   const outlet:PlanningBranch={id:"mock-outlet",branch_name:"Kwan Kee Store @ Sunway Velocity",branch_type:"outlet"};
+   const products:PlanningProduct[]=[
+    {id:"mock-product-1",product_code:"SC001",product_name:"Hawthorn",category:"Snack",display_order:1,selling_unit:"piece"},
+    {id:"mock-product-2",product_code:"RB002",product_name:"Signature Rice Bowl with a Longer Product Name",category:"Rice Bowl",display_order:2,selling_unit:"bowl"},
+    {id:"mock-product-hidden",product_code:"SC003",product_name:"Seasonal Chrysanthemum",category:"Snack",display_order:3,selling_unit:"piece",available_from:"2099-01-01"},
+   ];
+   const view=filters.view==="settings"?"settings":filters.view==="events"?"events":"plan";
+   return <><PageHeader title="Production Planning" description="Daily production and outlet allocation."/><ProductionPlanningWorkspace view={view} companyId={mockProfile.company_id} date={date} kitchenId={kitchen.id} kitchens={[kitchen]} outlets={[outlet]} products={products} plans={[]} orders={[]} config={{kitchen_id:kitchen.id,enabled:false,draft_time:"20:00",buffer_percent:0,max_decrease_percent:0,recipients:[]}} batches={[]} minimums={[]} events={[]} canManage/></>;
+  }
   const profile=await getCurrentProfile(); if(!profile?.company_id)throw new Error("Active company access is required.");
   const db=looseSupabase(await createClient());
   const canManage=["super_admin","manager"].includes(profile.role_code??"");

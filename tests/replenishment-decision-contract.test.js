@@ -7,13 +7,13 @@ const root = path.join(__dirname, "..");
 const model = fs.readFileSync(path.join(root, "src", "lib", "replenishment-decision.ts"), "utf8");
 const page = fs.readFileSync(path.join(root, "src", "app", "(app)", "low-stock", "page.tsx"), "utf8");
 
-test("low-stock recommendations expose accountable next actions", () => {
+test("low-stock recommendations preserve decision logic without the Buy now marker", () => {
   assert.match(model, /export type ReplenishmentDecision = "buy_now" \| "fix_supplier" \| "monitor"/);
   assert.match(model, /No supplier is mapped/);
   assert.match(model, /Below safety by/);
   assert.match(model, /Supplier mapped; keep watching/);
   assert.match(page, /getReplenishmentDecision/);
-  assert.match(page, /data-low-stock-decision/);
-  assert.match(page, /Buy now/);
+  assert.match(page, /decision\.decision === "fix_supplier"/);
+  assert.doesNotMatch(page, /data-low-stock-decision=|Buy now/);
   assert.match(page, /Supplier fixes/);
 });

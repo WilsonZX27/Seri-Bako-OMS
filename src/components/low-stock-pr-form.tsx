@@ -6,9 +6,7 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { SelectNative } from "@/components/ui/select-native";
-import { QuantityStepper } from "@/components/ui/quantity-stepper";
 import { getToday } from "@/lib/utils";
-import { uomOptionsWithCurrent } from "@/lib/uom";
 import { createPurchaseRequestsFromBasket } from "@/server/actions/procurement";
 
 type LowStockItem = {
@@ -29,11 +27,6 @@ type LowStockItem = {
 };
 
 type BranchOption = { id: string; branch_code: string; branch_name: string; status: string };
-
-function numberValue(value: string) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
-}
 
 function rowKey(item: LowStockItem) {
   return `${item.branch_id ?? "all"}|${item.item_id}`;
@@ -62,23 +55,12 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
     return items.filter((item) => item.branch_id === selectedBranchId);
   }, [items, selectedBranchId]);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
-  const [quantities, setQuantities] = useState<Record<string, string>>({});
-  const [uoms, setUoms] = useState<Record<string, string>>({});
   const [basketOpen, setBasketOpen] = useState(false);
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const branchSelected = selectedBranchId !== "all";
 
   const selectedCount = visibleItems.filter((item) => selected[rowKey(item)]).length;
   const selectedLabel = selectedCount ? `${selectedCount} selected` : "No items selected";
-  const selectedTotal = selectedCount === 0
-    ? "0"
-    : visibleItems
-      .filter((item) => selected[rowKey(item)])
-      .reduce((sum, item) => {
-        const key = rowKey(item);
-        return sum + Math.max(0, numberValue(quantities[key] ?? String(item.suggested_reorder_qty)));
-      }, 0)
-      .toFixed(2);
   const selectedItems = useMemo(() => visibleItems.filter((item) => selected[rowKey(item)]), [selected, visibleItems]);
   const allVisibleSelected = branchSelected && visibleItems.length > 0 && visibleItems.every((item) => selected[rowKey(item)]);
   const someVisibleSelected = branchSelected && visibleItems.some((item) => selected[rowKey(item)]);
@@ -90,43 +72,24 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
     .map(([supplierId, lines]) => ({
       supplier_id: supplierId,
       lines: lines.map((item) => {
-        const key = rowKey(item);
         return {
           item_id: item.item_id,
-          qty: quantities[key] ?? String(item.suggested_reorder_qty),
-          uom: uoms[key] ?? item.purchase_unit ?? item.base_unit ?? "pcs",
+          qty: String(item.suggested_reorder_qty),
+          uom: item.purchase_unit ?? item.base_unit ?? "pcs",
           estimated_unit_cost: item.cost ?? 0,
         };
       }),
-    })), [quantities, supplierGroups, uoms]);
+    })), [supplierGroups]);
   const hasMissingSupplier = selectedItems.some((item) => !item.supplier_id);
   const canCreatePr = selectedCount > 0 && selectedBranchId !== "all" && !hasMissingSupplier;
 
   function toggleItem(key: string) {
-    const wasSelected = Boolean(selected[key]);
     setSelected((current) => ({ ...current, [key]: !current[key] }));
-    if (wasSelected) {
-      setQuantities((current) => {
-        const next = { ...current };
-        delete next[key];
-        return next;
-      });
-    }
-  }
-
-  function setItemQty(key: string, value: string) {
-    setQuantities((current) => ({ ...current, [key]: value }));
-  }
-
-  function setItemUom(key: string, value: string) {
-    setUoms((current) => ({ ...current, [key]: value }));
   }
 
   function selectBranch(branchId: string) {
     setSelectedBranchId(branchId);
     setSelected({});
-    setQuantities({});
-    setUoms({});
   }
 
   useEffect(() => {
@@ -143,13 +106,6 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
       for (const item of visibleItems) next[rowKey(item)] = nextValue;
       return next;
     });
-    if (!nextValue) {
-      setQuantities((current) => {
-        const next = { ...current };
-        for (const item of visibleItems) delete next[rowKey(item)];
-        return next;
-      });
-    }
   }
 
   return (
@@ -166,14 +122,12 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
             <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">Procurement queue</p>
             <p className="mt-1 text-base font-semibold tracking-[-0.01em]">PR basket</p>
-            <p className="text-xs text-muted-foreground">Add low-stock items, adjust quantities, then create ordinary draft PRs.</p>
+            <p className="text-xs text-muted-foreground">Select low-stock items to create ordinary draft PRs using suggested quantities.</p>
             </div>
             <button type="button" className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border md:hidden" onClick={() => setBasketOpen(false)} aria-label="Close PR basket"><X className="h-4 w-4" /></button>
           </div>
           <div className="flex items-baseline gap-2 text-xs text-muted-foreground md:text-right">
             <strong className="text-sm text-foreground">{selectedLabel}</strong>
-            <span aria-hidden="true">·</span>
-            <span>Suggested total {selectedTotal}</span>
           </div>
         </div>
 
@@ -216,21 +170,19 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
                     <th className="px-3 py-2 font-medium">Item</th>
                     <th className="px-3 py-2 font-medium">Current</th>
                     <th className="px-3 py-2 font-medium">Suggested</th>
-                    <th className="px-3 py-2 font-medium text-right">Qty for PR</th>
                   </tr>
                 </thead>
                 <tbody>
                   {groupBySupplier(visibleItems).map(([supplierId, supplierItems]) => (
                     <Fragment key={`supplier-group-${supplierId}`}>
                     <tr className="bg-secondary/30">
-                      <td colSpan={5} className="px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-muted)]">
+                      <td colSpan={4} className="px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-muted)]">
                         {supplierItems[0]?.supplier_name ?? "Supplier mapping missing"}
                       </td>
                     </tr>
                     {supplierItems.map((item) => {
                     const key = rowKey(item);
                     const isSelected = Boolean(selected[key]);
-                    const requestedQty = quantities[key] ?? String(item.suggested_reorder_qty);
                     return (
                       <tr key={key} className="border-b last:border-0" data-low-stock-pr-line data-selected={isSelected ? "true" : "false"}>
                         <td className="px-3 py-2">
@@ -248,25 +200,6 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
                         </td>
                         <td className="px-3 py-2 text-xs text-muted-foreground">{item.current_stock}</td>
                         <td className="px-3 py-2 text-xs text-muted-foreground">{item.suggested_reorder_qty} {item.purchase_unit || item.base_unit}</td>
-                        <td className="px-3 py-2">
-                          {branchSelected ? <div className="flex items-center justify-end gap-1.5">
-                            <QuantityStepper
-                              value={requestedQty}
-                              uom={null}
-                              step={0.0001}
-                              density="compact"
-                              label={`Quantity for ${item.item_name}`}
-                              onChange={(value) => {
-                                setItemQty(key, value);
-                                if (!isSelected) setSelected((current) => ({ ...current, [key]: true }));
-                              }}
-                              className="min-w-0"
-                            />
-                            <SelectNative aria-label={`Purchase UOM for ${item.item_name}`} value={uoms[key] ?? item.purchase_unit ?? item.base_unit ?? "PCS"} onChange={(event) => setItemUom(key, event.target.value)} className="h-10 w-20 px-1.5 text-xs">
-                              {uomOptionsWithCurrent(item.purchase_unit || item.base_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
-                            </SelectNative>
-                          </div> : <span className="text-xs text-muted-foreground">Choose branch</span>}
-                        </td>
                       </tr>
                     );
                     })}
@@ -274,7 +207,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
                   ))}
                   {!visibleItems.length ? (
                     <tr>
-                      <td className="px-3 py-4 text-center text-sm text-muted-foreground" colSpan={5}>
+                      <td className="px-3 py-4 text-center text-sm text-muted-foreground" colSpan={4}>
                         No items match this branch filter.
                       </td>
                     </tr>
@@ -295,7 +228,6 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
                 {supplierItems.map((item) => {
                 const key = rowKey(item);
                 const isSelected = Boolean(selected[key]);
-                const requestedQty = quantities[key] ?? String(item.suggested_reorder_qty);
                 return (
                   <div key={key} className="border-t border-[var(--sb-border-soft)] px-3 py-2.5 first:pt-2 last:pb-2" data-low-stock-pr-line data-selected={isSelected ? "true" : "false"}>
                     <span className="flex items-start gap-3">
@@ -308,7 +240,6 @@ export function LowStockPrForm({ items, branches, defaultBranchId, disabled }: {
                     <span className="mt-3 grid grid-cols-2 gap-3">
                       <span className="text-xs text-muted-foreground">Current <strong className="block text-sm text-foreground">{item.current_stock} {item.base_unit}</strong></span>
                       <span className="text-xs text-muted-foreground">Suggested <strong className="block text-sm text-foreground">{item.suggested_reorder_qty} {item.purchase_unit || item.base_unit}</strong></span>
-                      {isSelected ? <span className="col-span-2" data-low-stock-pr-quantity><div className="flex items-center gap-1.5" aria-label={`Purchase request quantity for ${item.item_name}`}><QuantityStepper value={requestedQty} uom={null} step={0.0001} density="touch" label={`Quantity for ${item.item_name}`} onChange={(value) => setItemQty(key, value)} className="min-w-0 flex-1" /><SelectNative aria-label={`Purchase UOM for ${item.item_name}`} value={uoms[key] ?? item.purchase_unit ?? item.base_unit ?? "PCS"} onChange={(event) => setItemUom(key, event.target.value)} className="h-11 w-20 px-1.5 text-xs">{uomOptionsWithCurrent(item.purchase_unit || item.base_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}</SelectNative></div></span> : null}
                     </span>
                   </div>
                 );

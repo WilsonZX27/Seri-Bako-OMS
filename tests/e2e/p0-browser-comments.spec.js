@@ -122,16 +122,15 @@ test("aging, outlet insight, and wide production canvas use the requested densit
   await page.screenshot({ path: testInfo.outputPath("outlet-daily-mobile.png"), fullPage: true });
 });
 
-test("low-stock rows expose an auditable next decision", async ({ page }, testInfo) => {
+test("low-stock avoids Buy now and per-row PR quantity controls", async ({ page }, testInfo) => {
   test.skip(!hasAccount("purchasing"), "Missing purchasing test credentials.");
   await page.setViewportSize({ width: 1440, height: 900 });
   await login(page, "purchasing");
   await page.goto("/low-stock", { waitUntil: "domcontentloaded" });
   await expect(page.locator("[data-low-stock-decision-summary]:visible").first()).toBeVisible();
-  const decisions = page.locator("[data-low-stock-decision]:visible");
-  if (await decisions.count()) {
-    await expect(decisions.first()).toHaveAttribute("aria-label", /Buy now|Fix supplier first|Monitor/);
-  }
+  await expect(page.locator("[data-low-stock-decision]:visible")).toHaveCount(0);
+  await expect(page.getByText("Buy now", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Qty for PR", { exact: true })).toHaveCount(0);
   await expectContained(page);
   await page.screenshot({ path: testInfo.outputPath("low-stock-decision-summary.png"), fullPage: true });
 });

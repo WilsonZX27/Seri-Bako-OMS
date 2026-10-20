@@ -242,7 +242,7 @@ test("recipe BOM editing replaces the phone table with input-first continuous in
   assert.equal((source.match(/Add row/g) ?? []).length, 2);
 });
 
-test("low-stock PR creation uses selectable phone rows instead of a five-column table", () => {
+test("low-stock PR creation uses selectable rows and suggested quantities without a separate quantity control", () => {
   const source = read("src/components/low-stock-pr-form.tsx");
 
   assert.match(source, /data-low-stock-pr-setup/);
@@ -256,10 +256,10 @@ test("low-stock PR creation uses selectable phone rows instead of a five-column 
   assert.match(source, /Select all visible low-stock items/);
   assert.match(source, /input\.indeterminate = someVisibleSelected && !allVisibleSelected/);
   assert.match(source, /Select all visible/);
-  assert.match(source, /data-low-stock-pr-quantity/);
-  assert.match(source, /\{isSelected \? <span className="col-span-2"/);
   assert.doesNotMatch(source, /label="Qty for PR"/);
-  assert.match(source, /label={`Quantity for \$\{item\.item_name\}`}/);
+  assert.doesNotMatch(source, /Qty for PR|QuantityStepper|Purchase UOM for/);
+  assert.match(source, /qty: String\(item\.suggested_reorder_qty\)/);
+  assert.match(source, /uom: item\.purchase_unit \?\? item\.base_unit/);
   assert.match(source, /Suggested <strong/);
   assert.match(source, /bg-\[var\(--sb-green-900\)\]/);
   assert.doesNotMatch(source, /var\(--sb-green\)/);

@@ -36,7 +36,6 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
     supplierName: item.supplier_name,
     baseUnit: item.base_unit,
   }));
-  const buyNow = decisions.filter((decision) => decision.decision === "buy_now").length;
   const supplierFixes = decisions.filter((decision) => decision.decision === "fix_supplier").length;
   const filtered = hasActiveFilters(filters);
 
@@ -57,7 +56,6 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
               <div className="flex justify-between"><span className="text-muted-foreground">Rows</span><strong>{unavailable ? "Unavailable" : count}</strong></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Out of Stock</span><strong>{unavailable ? "-" : out}</strong></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Low Stock</span><strong>{unavailable ? "-" : low}</strong></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Buy now</span><strong>{unavailable ? "Unavailable" : buyNow}</strong></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Supplier fixes</span><strong>{unavailable ? "Unavailable" : supplierFixes}</strong></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Create PR</span><strong>{canCreatePr ? "Allowed" : "Read-only"}</strong></div>
             </div>
@@ -105,7 +103,6 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
                 <TableHead>Branch</TableHead>
                 <TableHead>Supplier</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Decision</TableHead>
                 <TableHead className="text-right">Current</TableHead>
                 <TableHead className="text-right">Safety</TableHead>
                 <TableHead className="text-right">Suggested</TableHead>
@@ -115,15 +112,6 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
             </TableHeader>
             <TableBody>
               {items.map((item) => {
-                const decision = getReplenishmentDecision({
-                  currentStock: Number(item.current_qty ?? item.current_stock ?? 0),
-                  safetyStock: Number(item.safety_stock ?? 0),
-                  suggestedReorderQty: Number(item.suggested_reorder_qty ?? 0),
-                  stockStatus: item.stock_status,
-                  supplierId: item.supplier_id,
-                  supplierName: item.supplier_name,
-                  baseUnit: item.base_unit,
-                });
                 return (
                   <TableRow key={`${item.branch_id ?? "no-branch"}-${item.item_id}`}>
                     <TableCell><span className="sb-item-code" title={item.item_code ?? undefined}>{item.item_code}</span></TableCell>
@@ -131,12 +119,9 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
                     <TableCell>{item.branch_name ?? "-"}</TableCell>
                     <TableCell>{item.supplier_name ?? "-"}</TableCell>
                     <TableCell><Badge variant={item.stock_status === "out_of_stock" ? "danger" : "warning"}>{item.stock_status.replaceAll("_", " ")}</Badge></TableCell>
-                    <TableCell><Badge variant={decision.decision === "buy_now" ? "warning" : decision.blocked ? "danger" : "secondary"} title={decision.reason} aria-label={`${decision.label}: ${decision.reason}`} data-low-stock-decision={decision.decision}>{decision.label}</Badge></TableCell>
                     <TableCell className="text-right">{formatNumber(item.current_stock)} {item.base_unit}</TableCell>
                     <TableCell className="text-right">{formatNumber(item.safety_stock)} {item.base_unit}</TableCell>
-                    <TableCell className="text-right">
-                      <Badge variant="warning">{formatNumber(item.suggested_reorder_qty)} {item.purchase_unit || item.base_unit}</Badge>
-                    </TableCell>
+                    <TableCell className="text-right tabular-nums">{formatNumber(item.suggested_reorder_qty)} {item.purchase_unit || item.base_unit}</TableCell>
                     <TableCell className="text-right">{formatNumber(item.moq)} {item.base_unit}</TableCell>
                     <TableCell className="text-right">{formatCurrency(item.cost)}</TableCell>
                   </TableRow>
@@ -144,7 +129,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
               })}
               {!items.length ? (
                 <TableRow>
-                  <TableCell colSpan={11}><EmptyState title={unavailable ? "Low stock is unavailable" : filtered ? "No items match these filters" : "Stock levels are healthy"} description={unavailable ? "The inventory summary could not be confirmed. Try again shortly." : filtered ? "Reset the filters or search for another item." : "Items that need replenishment will appear here."} action={filtered && !unavailable ? { href: "/low-stock", label: "Reset filters" } : undefined} /></TableCell>
+                  <TableCell colSpan={10}><EmptyState title={unavailable ? "Low stock is unavailable" : filtered ? "No items match these filters" : "Stock levels are healthy"} description={unavailable ? "The inventory summary could not be confirmed. Try again shortly." : filtered ? "Reset the filters or search for another item." : "Items that need replenishment will appear here."} action={filtered && !unavailable ? { href: "/low-stock", label: "Reset filters" } : undefined} /></TableCell>
                 </TableRow>
               ) : null}
             </TableBody>

@@ -28,6 +28,10 @@ test("unified filter sheet covers the complete phone viewport and nav", () => {
 });
 
 test("narrow phone list search keeps the input and query actions on one aligned row", () => {
-  assert.match(styles, /@media \(max-width: 380px\)[\s\S]*grid-template-columns:\s*minmax\(0, 1fr\) 44px 40px auto;[\s\S]*\.unified-list-search-submit \{ grid-column: 2; \}[\s\S]*\.unified-list-filter-trigger \{ width: 40px/);
+  const narrowPhone = styles.match(/@media \(max-width: 380px\) \{([\s\S]*?)\n\}/)?.[1] ?? "";
+  assert.match(narrowPhone, /grid-template-columns:\s*minmax\(0, 1fr\) 44px 40px auto;/);
+  assert.match(narrowPhone, /\.unified-list-search-submit \{ grid-column: 2; \}/);
+  assert.match(narrowPhone, /\.unified-list-filter-trigger \{ width: 40px/);
+  assert.match(narrowPhone, /\.unified-list-result \{ grid-column: 4; \}/);
   assert.doesNotMatch(styles, /@media \(max-width: 380px\)[\s\S]*\.unified-list-primary-control \{ grid-column: 1 \/ -1; \}/);
 });

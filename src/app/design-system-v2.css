@@ -2862,7 +2862,7 @@ html[data-design-layer="v2"] form.sb-asset-query .unified-list-desktop-actions b
   html[data-design-layer="v2"] form.unified-list-header .unified-list-row:has(.unified-list-search-submit) > .unified-list-primary-control { grid-column: 1; }
   html[data-design-layer="v2"] form.unified-list-header .unified-list-search-submit { grid-column: 2; }
   html[data-design-layer="v2"] form.unified-list-header .unified-list-filter-trigger { width: 40px; min-width: 40px; padding: 0; }
-  html[data-design-layer="v2"] form.unified-list-header .unified-list-row:has(.unified-list-search-submit) > .unified-list-result { grid-column: 3; }
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-row:has(.unified-list-search-submit) > .unified-list-result { grid-column: 4; }
 }
 
 /* The accessible file input is visually hidden; reflect its keyboard focus on

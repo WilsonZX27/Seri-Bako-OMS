@@ -14,7 +14,7 @@ const rows: Array<{names:string[];penang?:number;kl?:number}> = [
  {names:["Steamed Jujube Kuih (Red Date)","Red Date"],penang:32,kl:32},
  {names:["Steamed Water Chestnut Kuih","Water Chestnut"],penang:32,kl:32},
  {names:["Steamed Nutmeg Kuih","Nutmeg"],penang:32,kl:32},
- {names:["Chrysanthemum Kuih","Crysanthenum Kueh"],kl:32},
+ {names:["Chrysanthemum Kuih","Crysanthenum Kueh"],penang:32,kl:32},
  {names:["Roselle Kuih","Roselle Kueh"],penang:32,kl:32},
  {names:["Longan Sugar Cane Barley Kuih","Longan Sugar Cane Kueh"],penang:32,kl:32},
  {names:["Yam Kuih","Yam Cake"],penang:16,kl:16},

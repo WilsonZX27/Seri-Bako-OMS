@@ -111,3 +111,20 @@ test('on-order products stay absent without orders and produce only confirmed de
  f.tables.production_planning_events.push({id:'event-order',company_id:f.company,kitchen_id:f.kitchen,branch_id:null,event_date:'2026-10-03',confirmed:true,name:'Order',lines:[{product_id:'p-0',qty:17}]});
  plan=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');assert.equal(plan.product_lines.find(line=>line.product_id==='p-0').trays,17);assert.ok(plan.allocations.filter(line=>line.product_id==='p-0').every(line=>line.suggested_qty===0));
 });
+
+test('employee forecasts use day type, protect high-waste outlets and leave tray remainder unresolved',async()=>{
+ const f=fixture();const dates=['2026-09-21','2026-09-22','2026-09-23','2026-09-24','2026-09-25','2026-09-28','2026-09-29','2026-09-30'];
+ for(const r of f.tables.outlet_daily_records)r.record_date=dates[Number(r.id.split('-r-')[1])];
+ f.tables.production_outlet_forecasts=f.tables.branches.filter(b=>b.branch_type==='outlet').map(b=>({company_id:f.company,kitchen_id:f.kitchen,branch_id:b.id,product_id:'p-0',weekday_qty:100,weekend_qty:5,updated_at:null,source:'Employee'}));
+ const p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-01');const a=p.allocations.filter(a=>a.product_id==='p-0');
+ assert.equal(a.length,10);assert.ok(a.every(a=>a.evidence.employee.historyDays===8));assert.ok(a.every(a=>a.approved_qty===90));assert.ok(a.every(a=>a.evidence.employee.extra===0));assert.equal(p.product_lines[0].trays,57);assert.equal(p.product_lines[0].retained_qty,0);
+});
+
+test('safe balancing stays inside low-waste capacity and snapshots additions separately from employee baseline',async()=>{
+ const f=fixture();const dates=['2026-09-21','2026-09-22','2026-09-23','2026-09-24','2026-09-25','2026-09-28','2026-09-29','2026-09-30'];
+ for(const r of f.tables.outlet_daily_records)r.record_date=dates[Number(r.id.split('-r-')[1])];
+ for(const l of f.tables.outlet_daily_record_lines)l.wastage_qty=10;
+ f.tables.production_outlet_forecasts=f.tables.branches.filter(b=>b.branch_type==='outlet').map(b=>({company_id:f.company,kitchen_id:f.kitchen,branch_id:b.id,product_id:'p-0',weekday_qty:100,weekend_qty:5,updated_at:null,source:'Employee'}));
+ const p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-01');const a=p.allocations.filter(a=>a.product_id==='p-0');
+ assert.equal(a.reduce((s,a)=>s+a.approved_qty,0),1008);assert.equal(a.reduce((s,a)=>s+a.evidence.employee.extra,0),8);assert.ok(a.every(a=>a.approved_qty<=a.evidence.employee.capacity));assert.ok(a.every(a=>a.evidence.employee.quantity===100));assert.equal(p.product_lines[0].trays,63);
+});

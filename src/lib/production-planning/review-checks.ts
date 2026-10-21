@@ -31,7 +31,7 @@ export function planReviewChecks(allocations: Allocation[], production: Producti
     if (!yieldReady || !traysReady || !retentionReady || destinations.some(item => !validQuantity(item.approved_qty))) continue;
     const allocated = destinations.reduce((sum, item) => sum + item.approved_qty!, 0) + line.event_qty;
     const remainder = line.trays! * line.yield_per_tray! - allocated - line.retained_qty;
-    if (Math.abs(remainder) > 1e-8) checks.push({...location, category: "balance", message: remainder > 0 ? "Allocate the remaining output or keep it in the kitchen." : "Allocation exceeds production; adjust trays or quantities."});
+    if (Math.abs(remainder) > 1e-8) checks.push({...location, category: "balance", message: remainder > 0 ? `${remainder} remaining output is unallocated. Adjust trays, demand or schedule; do not force extra stock into high-wastage outlets.` : "Allocation exceeds production; adjust trays or quantities."});
   }
   return checks;
 }

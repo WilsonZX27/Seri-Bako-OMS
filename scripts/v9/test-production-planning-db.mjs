@@ -45,6 +45,7 @@ try {
  await db.exec(sql('supabase/migrations/334_production_external_order_kind.sql'));
  await db.exec(sql('supabase/migrations/335_production_in_app_release.sql'));
  check((await query("select proacl::text,proowner,prosecdef from pg_proc where oid='public.update_production_plan(uuid,integer,text,jsonb,uuid)'::regprocedure"))[0],beforePartialFunction);
+ await db.exec(sql('supabase/migrations/369_employee_production_forecasts.sql'));
  await actor(managerAuth);
  await query('begin');
  const externalId=await rpc('save_production_event',[{kitchen_id:kitchen,branch_id:null,event_date:'2026-10-05',name:'BINTANG fixture',confirmed:true,notes:'',demand_kind:'franchise_order',lines:[{product_id:product,qty:32}]}]);
@@ -55,6 +56,26 @@ try {
  await query('rollback');
  await rpc('configure_production_planning',[{kitchen_id:kitchen,enabled:false,draft_time:'20:00',buffer_percent:10,max_decrease_percent:10,recipients:[],batches:[{product_id:product,yield_per_tray:16}],minimums:[{branch_id:outlet,product_id:product,minimum_qty:4},{branch_id:outlet2,product_id:product,minimum_qty:0}]}]);
  check((await query('select forecast_basis from production_batch_rules'))[0].forecast_basis,'manual');
+ // Recurring forecast persistence keeps unknown, zero, concurrency and tenant boundaries.
+ const forecastRow={branch_id:outlet,product_id:product,weekday_qty:3,weekend_qty:0,source:'Employee fixture',expected_updated_at:null};
+ const forecastConfig={kitchen_id:kitchen,as_of:'2026-10-03',forecasts:[forecastRow]};
+ await rpc('configure_production_planning_forecasts',[forecastConfig]);
+ check((await query('select weekday_qty::int,weekend_qty::int from production_outlet_forecasts'))[0],{weekday_qty:3,weekend_qty:0});
+ check((await query('select minimum_qty::int from production_outlet_minimums where branch_id=$1',[outlet]))[0].minimum_qty,4);
+ await rejected(()=>rpc('configure_production_planning_forecasts',[forecastConfig]),/changed/);
+ const stamp=(await query('select updated_at::text value from production_outlet_forecasts'))[0].value;
+ await rejected(()=>rpc('configure_production_planning_forecasts',[{...forecastConfig,forecasts:[{...forecastRow,branch_id:foreignOutlet}]}]),/supply route/);
+ await rejected(()=>rpc('configure_production_planning_forecasts',[{...forecastConfig,forecasts:[{...forecastRow,expected_updated_at:stamp,weekday_qty:-1}]}]),/check constraint/);
+ await rejected(()=>rpc('configure_production_planning_forecasts',[{...forecastConfig,forecasts:[{...forecastRow,expected_updated_at:stamp,weekday_qty:1.5}]}]),/check constraint/);
+ await rejected(()=>rpc('configure_production_planning_forecasts',[{...forecastConfig,forecasts:[forecastRow,forecastRow]}]),/Duplicate/);
+ await actor(workerAuth);
+ await rejected(()=>rpc('configure_production_planning_forecasts',[forecastConfig]),/Manager or Owner/);
+ await actor(managerAuth);
+ await rpc('configure_production_planning_forecasts',[{...forecastConfig,forecasts:[{...forecastRow,weekday_qty:null,weekend_qty:null,expected_updated_at:stamp}]}]);
+ check((await query('select weekday_qty,weekend_qty from production_outlet_forecasts'))[0],{weekday_qty:null,weekend_qty:null});
+ const atomicBefore=(await query('select buffer_percent::int value from production_planning_settings'))[0].value;
+ await rejected(()=>rpc('configure_production_planning_with_forecasts',[{kitchen_id:kitchen,enabled:false,draft_time:'20:00',buffer_percent:77,max_decrease_percent:10,recipients:[],batches:[],minimums:[],as_of:'2026-10-03',forecasts:[forecastRow]}]),/changed/);
+ check((await query('select buffer_percent::int value from production_planning_settings'))[0].value,atomicBefore);
  const evidence={version:'quantity-proxy-v1',method:'same-weekday',suggested:12,reductionFloor:0,minimum:4,stockoutRisk:false,evidence:[]};
  const payload={kitchen_id:kitchen,delivery_date:'2026-10-03',buffer_percent:10,max_decrease_percent:10,forecast_version:'quantity-proxy-v1',events:[],holidays:[],product_lines:[{product_id:product,yield_per_tray:16,trays:1,event_qty:0}],allocations:[{product_id:product,branch_id:outlet,suggested_qty:12,approved_qty:12,minimum_qty:4,event_qty:0,evidence},{product_id:product,branch_id:outlet2,suggested_qty:4,approved_qty:4,minimum_qty:0,event_qty:0,evidence}]};
  // A real franchise confirmation follows production -> release -> branchless DO,

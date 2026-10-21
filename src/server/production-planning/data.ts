@@ -110,7 +110,7 @@ export async function buildPlanPayload(db: LooseSupabase, companyId: string, kit
       if(product.daily_tracking === "food_carryover") {
         const records=priorRecords.filter(r=>r.branch_id===branch.id);
         const candidates=carryLines.filter(l=>records.some(r=>r.id===l.record_id)&&l.product_id===product.id);
-        const stock=records.length===1&&candidates.length===1&&candidates[0].daily_tracking==="food_carryover"?candidates[0]:null;
+        const stock=records.length===1&&candidates.length===1?candidates[0]:null;
         applyOutletCarryover(evidence,date,stock ? {recordId:String(stock.record_id),quantity:stock.saleable_next_day_qty} : null);
       }
       const suggested_qty = evidence.suggested === null ? null : evidence.suggested + event_qty;

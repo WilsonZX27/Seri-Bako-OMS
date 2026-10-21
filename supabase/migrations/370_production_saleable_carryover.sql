@@ -15,7 +15,7 @@ begin
    if x ? 'saleable_next_day_qty' then
     qty:=nullif(x->>'saleable_next_day_qty','')::numeric;
     if qty<0 or qty>1000000 or qty::text in ('NaN','Infinity','-Infinity') then raise exception 'Saleable tomorrow count is invalid.'; end if;
-    if qty is not null and not exists(select 1 from public.products p join public.outlet_daily_record_lines l on l.product_id=p.id where l.record_id=rid and l.product_id=(x->>'product_id')::uuid and p.daily_tracking='food_carryover' and l.daily_tracking='food_carryover') then
+    if qty is not null and not exists(select 1 from public.products p join public.outlet_daily_record_lines l on l.product_id=p.id where l.record_id=rid and l.product_id=(x->>'product_id')::uuid and p.daily_tracking='food_carryover') then
      raise exception 'Only Next day products can have saleable tomorrow stock.';
     end if;
     update public.outlet_daily_record_lines set saleable_next_day_qty=qty where record_id=rid and product_id=(x->>'product_id')::uuid;
@@ -39,7 +39,7 @@ begin
   stock:=null;
   select l.saleable_next_day_qty into stock from public.outlet_daily_records r join public.outlet_daily_record_lines l on l.record_id=r.id
    where r.company_id=new.company_id and r.branch_id=a.branch_id and r.record_date=new.delivery_date-1
-    and r.status in ('evening_completed','reviewed') and l.product_id=a.product_id and l.daily_tracking='food_carryover';
+    and r.status in ('evening_completed','reviewed') and l.product_id=a.product_id;
   if stock is distinct from nullif(a.evidence->'carryover'->>'available','')::numeric then raise exception 'Yesterday saleable stock changed. Recalculate before submitting or approving.'; end if;
  end loop;
  return new;

@@ -101,7 +101,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
         }
       >
         <div className="space-y-3" data-tablet-main-list>
-            <UnifiedListHeader className="sb-purchase-order-query" resultCount={orders?.totalRows} resetHref="/purchase-orders" filtered={filtered} activeCount={Number(Boolean(filters.status))}>
+            <UnifiedListHeader className="sb-purchase-order-query" resultCount={orders?.totalRows} resetHref="/purchase-orders" filtered={filtered} activeCount={Number(Boolean(filters.status))} stableResponsive>
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PO no or remarks" aria-label="Search purchase orders" className="min-w-0 flex-1 md:max-w-sm" />
               <StatusTabs statuses={statuses} activeStatus={filters.status} />
 

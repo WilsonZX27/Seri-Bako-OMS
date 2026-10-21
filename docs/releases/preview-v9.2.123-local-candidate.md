@@ -9,7 +9,7 @@ This version identifies the local follow-up after v9.2.122. It has not been push
 - Asset Management names its mobile context “Asset actions.” The create FAB stays separate from the secondary action sheet, which uses the same page-specific name.
 - Supplier Invoices gives search an accessible name, shows a labelled compact Filter entry, and aligns its 1180px Filter control to the 36px desktop action step.
 - Purchase Returns clarifies the posted goods receipt path and when stock is deducted, gives creators and read-only roles suitable empty states, and labels the compact search and Filter controls.
-- Purchase Orders and Goods Receiving use the same labelled compact Filter pattern, explain empty queues by role, and leave creation to the single mobile FAB when no filters are active.
+- Purchase Orders and Goods Receiving use the same labelled compact Filter pattern and stable first-render toolbar, explain empty queues by role, and leave creation to the single mobile FAB when no filters are active.
 
 ## Verification and remaining work
 

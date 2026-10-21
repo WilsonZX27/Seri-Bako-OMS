@@ -18,6 +18,7 @@ test("procurement mobile empty states show one creation entry point", () => {
     const source = fs.readFileSync(path.join(__dirname, "..", "src", "app", "(app)", route, "page.tsx"), "utf8");
     assert.match(source, /data-mobile-primary-action/, `${route} must keep its create FAB`);
     assert.match(source, /action=\{(?:ordersResult\.unavailable \? .* : filtered \? emptyStateAction|!receivings \|\| filtered \? emptyStateAction) : undefined\}/, `${route} must not duplicate creation in an unfiltered mobile empty state`);
+    assert.match(source, /<UnifiedListHeader[^>]*stableResponsive/, `${route} must render its responsive toolbar before hydration`);
   }
 });
 

@@ -1,4 +1,4 @@
-import { addDays, type Forecast } from "./forecast";
+import { addDays, type Forecast } from "@/lib/production-planning/forecast";
 
 /** Deduct a physical, saleable count at this outlet, not old deliveries or planned kitchen retention.
  * Keep the exact net amount (including odd quantities) so pair rounding cannot undo the stock offset.

@@ -267,5 +267,24 @@ try {
  check(packageReport.rows.filter(r=>r.code==='PKG_TEST').map(r=>r.closing).sort((a,b)=>a-b),[8,16]);
  check(packageReport.latest.filter(r=>r.code==='PKG_TEST').map(r=>r.closing).sort((a,b)=>a-b),[8,16]);
  await query('rollback');
+ await db.exec(sql('supabase/migrations/363_daily_product_tracking.sql'));
+ await db.exec(sql('supabase/migrations/370_production_saleable_carryover.sql'));
+ await actor(managerAuth);
+ const carryProduct=uid();
+ await query("insert into products(id,company_id,product_code,product_name,daily_tracking) values($1,$2,'CARRY_TEST','Carry fixture','food_carryover')",[carryProduct,company]);
+ const carryInput={product_id:carryProduct,daily_tracking:'food_carryover',qty_sent:8,morning_received_qty:8,morning_received_provided:true,wastage_qty:0,wastage_provided:true,usage_qty:5,saleable_next_day_qty:3};
+ const carryRecord=await rpc('save_outlet_daily_record',[null,outlet,'2031-10-21',null,[carryInput],'evening_completed']);
+ check(Number((await query('select saleable_next_day_qty from outlet_daily_record_lines where record_id=$1',[carryRecord]))[0].saleable_next_day_qty),3);
+ await rejected(()=>rpc('save_outlet_daily_record',[carryRecord,outlet,'2031-10-21',null,[{...carryInput,saleable_next_day_qty:-1}],'evening_completed']),/Saleable tomorrow/);
+ check(Number((await query('select saleable_next_day_qty from outlet_daily_record_lines where record_id=$1',[carryRecord]))[0].saleable_next_day_qty),3);
+ const carryPlan=uid();
+ await query("insert into production_plans(id,company_id,kitchen_id,delivery_date,version,buffer_percent,max_decrease_percent,forecast_version) values($1,$2,$3,'2031-10-22',1,10,10,'carry-test')",[carryPlan,company,kitchen]);
+ await query('insert into production_plan_allocations(plan_id,product_id,branch_id,suggested_qty,approved_qty,minimum_qty,evidence) values($1,$2,$3,5,5,0,$4)',[carryPlan,carryProduct,outlet,{carryover:{available:3,recordId:carryRecord}}]);
+ await query("update production_plans set status='submitted' where id=$1",[carryPlan]);checks++;
+ await query('update outlet_daily_record_lines set saleable_next_day_qty=2 where record_id=$1',[carryRecord]);
+ await rejected(()=>query("update production_plans set status='approved' where id=$1",[carryPlan]),/saleable stock changed/);
+ await query("update products set daily_tracking='food_daily' where id=$1",[carryProduct]);
+ await rejected(()=>query("update production_plans set status='approved' where id=$1",[carryPlan]),/expiry classification changed/);
+ await rejected(()=>rpc('save_outlet_daily_record',[carryRecord,outlet,'2031-10-21',null,[carryInput],'evening_completed']),/Only Next day/);
   console.log(`Production planning PostgreSQL integration: ${checks} checks passed.`);
 } finally { await db.close(); }

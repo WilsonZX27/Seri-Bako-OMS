@@ -29,7 +29,8 @@ test("workflow actions retain descriptive mobile controls", () => {
   assert.match(source, /data-mobile-action-bar/);
   assert.match(source, /md:hidden xl:hidden/);
   assert.match(source, /primaryAction \? <div data-mobile-primary-slot/);
-  assert.match(source, /aria-label="Open more actions"/);
+  assert.match(source, /useState\("More actions"\)/);
+  assert.match(source, /aria-label=\{`Open \$\{mobileConsoleLabel\.toLowerCase\(\)\}`\}/);
 });
 
 test("page-header create actions are icon-only below desktop without an empty action strip", () => {

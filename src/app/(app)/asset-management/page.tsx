@@ -68,7 +68,7 @@ export default async function AssetManagementPage({ searchParams }: { searchPara
         {data.total > 50 ? <PaginationControls page={page} totalPages={Math.ceil(data.total / 50)} totalRows={data.total} searchParams={{...params,view,sort}} resetScrollOnPageChange /> : null}
       </section>
   </>;
-  return <>{params.report === "1" ? <MaintenanceReportDialog searchParams={Promise.resolve(params)}/> : null}<PageHeader title="Asset Management" description="Assets, checks, maintenance and transfers." /><WorkspaceGrid rightRail={<>
+  return <>{params.report === "1" ? <MaintenanceReportDialog searchParams={Promise.resolve(params)}/> : null}<PageHeader title="Asset Management" description="Assets, checks, maintenance and transfers." /><WorkspaceGrid mobileConsoleLabel="Asset actions" rightRail={<>
     <ConsoleSection title={availableTabs.find(tab=>tab.id===view)?.label ?? "Assets"} kind="action">
       {view === "overview" ? <><p>Check today’s outstanding locations and open requests in the main workspace.</p><Button asChild><Link href="/asset-management?view=checklist">Inspect a location</Link></Button></> : null}
       {view === "assets" && canManage ? <ConsoleActionLink href="/asset-management/assets/new" kind="create" primary>New asset</ConsoleActionLink> : null}

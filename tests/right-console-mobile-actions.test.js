@@ -29,6 +29,12 @@ test('FAB-page secondary actions retain exports without duplicating the create a
  assert.match(source,/hasCreateFab \? <Button[^>]*data-mobile-secondary-actions/);
  assert.doesNotMatch(source,/hasCreateFab && "hidden"/);
 });
+test('FAB-page secondary trigger uses the page-specific console label when supplied',()=>{
+ const trigger=source.slice(source.indexOf('data-mobile-secondary-actions'),source.indexOf('</Button> : null}',source.indexOf('data-mobile-secondary-actions')));
+ assert.ok(trigger.includes('aria-label={`Open ${mobileConsoleLabel.toLowerCase()}`}'));
+ assert.match(source,/<PanelRight className="h-4 w-4" aria-hidden="true"\/>\{mobileConsoleLabel\}<\/Button>/);
+ assert.match(fs.readFileSync('src\/app\/(app)\/asset-management\/page.tsx','utf8'),/mobileConsoleLabel="Asset actions"/);
+});
 test('a nested dialog owns Escape before the action sheet can dismiss itself',()=>{
  let handler;function visit(node){if(ts.isFunctionDeclaration(node)&&node.name?.text==='onKeyDown')handler=node.getText(ast);ts.forEachChild(node,visit);}visit(ast);assert.ok(handler);
  class Element {constructor(dialog){this.dialog=dialog;}closest(){return this.dialog;}}

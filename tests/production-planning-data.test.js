@@ -128,3 +128,11 @@ test('safe balancing stays inside low-waste capacity and snapshots additions sep
  const p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-01');const a=p.allocations.filter(a=>a.product_id==='p-0');
  assert.equal(a.reduce((s,a)=>s+a.approved_qty,0),1008);assert.equal(a.reduce((s,a)=>s+a.evidence.employee.extra,0),8);assert.ok(a.every(a=>a.approved_qty<=a.evidence.employee.capacity));assert.ok(a.every(a=>a.evidence.employee.quantity===100));assert.equal(p.product_lines[0].trays,63);
 });
+
+test('employee workflow excludes unscheduled catalogue products but retains confirmed orders',async()=>{
+ const f=fixture();f.tables.production_outlet_forecasts=[{company_id:f.company,kitchen_id:f.kitchen,branch_id:'outlet-0',product_id:'p-0',weekday_qty:2,weekend_qty:4}];
+ f.tables.production_batch_rules=f.tables.production_batch_rules.filter(p=>p.product_id!=='p-1');
+ let p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');assert.equal(p.product_lines.some(p=>p.product_id==='p-1'),false);
+ f.tables.production_planning_events.push({id:'confirmed',company_id:f.company,kitchen_id:f.kitchen,branch_id:null,event_date:'2026-10-03',confirmed:true,name:'Confirmed order',lines:[{product_id:'p-1',qty:4}]});
+ p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');assert.equal(p.product_lines.find(p=>p.product_id==='p-1').event_qty,4);
+});

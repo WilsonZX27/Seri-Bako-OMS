@@ -80,8 +80,12 @@ export async function buildPlanPayload(db: LooseSupabase, companyId: string, kit
   if(events.some(e=>e.lines.some(line=>!availableIds.has(line.product_id))))throw new Error("A confirmed event contains a product outside its supply period. Review the event before recalculating.");
   const allocations: Allocation[] = [];
   const product_lines: ProductionLine[] = [];
+  const employeePlanning=context.forecasts.some(f=>f.weekday_qty!==null||f.weekend_qty!==null);
   for (const product of context.products) {
     const batch = context.batches.find((b) => b.product_id === product.id);
+    // In the employee workflow, unscheduled catalogue items do not become unknown daily orders.
+    if(employeePlanning&&!batch&&!context.forecasts.some(f=>f.product_id===product.id&&(f.weekday_qty!==null||f.weekend_qty!==null))
+      &&!events.some(e=>e.lines.some(l=>l.product_id===product.id)))continue;
     const onOrder=batch?.forecast_basis === "on_order";
     if(onOrder&&!events.some(event=>event.lines.some(line=>line.product_id===product.id)))continue;
     let demand = 0, manual = false;

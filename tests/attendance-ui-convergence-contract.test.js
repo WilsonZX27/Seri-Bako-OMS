@@ -45,6 +45,13 @@ test("Actual Attendance uses responsive grouped views and hides payroll diagnost
   assert.match(sharedFilters, /Reset/);
 });
 
+test("Actual Attendance compact filters keep a visible label and sized actions", () => {
+  const styles = read("src/app/design-system-v2.css");
+  assert.match(styles, /form\.sb-attendance-review-query \.unified-list-filter-label \{ display: inline; \}/);
+  assert.match(styles, /form\.unified-list-header\.sb-attendance-review-query \.unified-list-row \{ grid-template-columns: minmax\(0, 1fr\) 44px !important; \}/);
+  assert.match(styles, /form\.unified-list-header\.sb-attendance-review-query \.unified-list-filter-trigger \{ height: 36px !important; min-height: 36px !important; align-self: center; \}/);
+});
+
 test("schedule submit and Manager correction are atomic, audited and reason-bound", () => {
   assert.doesNotMatch(planner, /window\.prompt/);
   for (const contract of [

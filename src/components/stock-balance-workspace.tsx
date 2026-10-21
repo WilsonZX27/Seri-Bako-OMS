@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, ShoppingCart, Trash2, X } from "lucide-react";
+import { AlertTriangle, RotateCcw, ShoppingCart, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModalShell } from "@/components/ui/modal-shell";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -325,7 +325,7 @@ export function StockBalanceWorkspace({
         tabletRailWidth="compact"
       >
         <div className="space-y-3">
-          <FilterBar resultCount={totalRows} resetHref="/stock-balance" filtered={Boolean(filters.search || filters.branch_id || filters.status || filters.supplier_id)} className="sb-list-filters--balanced">
+          <FilterBar key={JSON.stringify([filters.search, filters.branch_id, filters.status, filters.supplier_id])} resultCount={totalRows} resetHref="/stock-balance" filtered={Boolean(filters.search || filters.branch_id || filters.status || filters.supplier_id)} tabletMode="drawer" className="sb-list-filters--balanced">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, branch, status" />
             <SelectControl name="branch_id" defaultValue={filters.branch_id ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
             <SelectControl
@@ -341,7 +341,7 @@ export function StockBalanceWorkspace({
             />
             <SelectControl name="supplier_id" defaultValue={filters.supplier_id ?? "all"} ariaLabel="Default supplier" options={[{ value: "all", label: "All default suppliers" }, ...suppliers.map(supplier => ({ value: supplier.id, label: supplier.name }))]} />
             <input type="hidden" name="view" value="branch" />
-            {Boolean(filters.search || filters.branch_id || filters.status || filters.supplier_id) ? <Button asChild variant="secondary"><Link href="/stock-balance">Reset</Link></Button> : null}
+            {Boolean(filters.search || filters.branch_id || filters.status || filters.supplier_id) ? <Button asChild variant="secondary" data-list-action="secondary"><Link href="/stock-balance" aria-label="Reset filters" title="Reset filters"><RotateCcw width={18} height={18} className="shrink-0" aria-hidden="true" /><span className="sr-only">Reset</span></Link></Button> : null}
           </FilterBar>
           <div className="sb-list-content-card overflow-hidden">
           <Table mobileHidden className="sb-stock-balance-table" aria-label="Stock balances" stickyColumn="second">

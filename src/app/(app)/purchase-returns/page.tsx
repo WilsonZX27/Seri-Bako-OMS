@@ -28,9 +28,14 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
   const summary = summaryResult.status === "fulfilled" ? summaryResult.value : null;
   const filtered = hasActiveFilters(filters);
   const emptyAction = filtered ? { href: "/purchase-returns", label: "Reset filters" } : canCreate ? { href: "/purchase-returns/new", label: "New Return" } : undefined;
+  const emptyDescription = filtered
+    ? "Reset the filters or widen the search."
+    : canCreate
+      ? "Create a return from a posted goods receipt when items need to go back to the supplier."
+      : "Returns created from posted goods receipts will appear here.";
   return (
     <>
-      <PageHeader title="Purchase Returns" description="Return posted supplier receipts and deduct stock once posted." />
+      <PageHeader title="Purchase Returns" description="Prepare returns from posted goods receipts. Stock is deducted when a return is posted." />
       <WorkspaceGrid
         hideMobileConsole={!canCreate}
         tabletRailMode="split"
@@ -53,8 +58,8 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
         }
       >
         <div className="space-y-3">
-          <UnifiedListHeader resultCount={returns.totalRows} resetHref="/purchase-returns" filtered={filtered} activeCount={filters.status ? 1 : 0}>
-            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search return, GRN, PO, supplier" className="md:max-w-sm" />
+          <UnifiedListHeader className="sb-purchase-return-query" resultCount={returns.totalRows} resetHref="/purchase-returns" filtered={filtered} activeCount={filters.status ? 1 : 0}>
+            <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search return, GRN, PO, supplier" aria-label="Search return, GRN, PO, or supplier" className="md:max-w-sm" />
             <StatusTabs statuses={statuses} activeStatus={filters.status} />
             {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
 
@@ -87,7 +92,7 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
                     <TableCell className="text-right">{formatCurrency(row.return_value)}</TableCell>
                   </DataGridRow>
                 ))}
-                {!returns.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={filtered ? "No returns match these filters" : "No purchase returns yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier returns appear after a posted receiving is returned."} action={emptyAction} /></TableCell></TableRow> : null}
+                {!returns.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={filtered ? "No returns match these filters" : "No purchase returns yet"} description={emptyDescription} action={emptyAction} /></TableCell></TableRow> : null}
               </TableBody>
           </Table>
           <OperationalList ariaLabel="Purchase returns">
@@ -100,7 +105,7 @@ export default async function PurchaseReturnsPage({ searchParams }: { searchPara
               secondary={`${row.supplier_name ?? "No supplier"} · ${row.grn_no ?? "No GRN"}`}
               meta={formatCurrency(row.return_value)}
             />)}
-            {!returns.rows.length ? <EmptyState title={filtered ? "No returns match these filters" : "No purchase returns yet"} description={filtered ? "Reset the filters or widen the search." : "Supplier returns appear after a posted receiving is returned."} action={filtered ? emptyAction : undefined} /> : null}
+            {!returns.rows.length ? <EmptyState title={filtered ? "No returns match these filters" : "No purchase returns yet"} description={emptyDescription} action={filtered ? emptyAction : undefined} /> : null}
           </OperationalList>
           <PaginationControls page={returns.page} totalPages={returns.totalPages} totalRows={returns.totalRows} searchParams={filters} />
           </div>

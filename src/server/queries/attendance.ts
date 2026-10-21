@@ -4,6 +4,7 @@ import { hasPermission } from "@/server/auth/permissions";
 import { logServerError } from "@/server/observability/logger";
 import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 import { summarizeScheduleWeeks } from "@/lib/attendance/schedule-summary";
+import { isMockMode } from "@/lib/mock-mode";
 
 export function malaysiaWeekStart(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
@@ -13,6 +14,17 @@ export function malaysiaWeekStart(date = new Date()) {
 }
 
 export async function getAttendanceWorkspace(weekStart = malaysiaWeekStart()) {
+  if (!(await hasPermission("attendance.read"))) throw new Error("Missing permission: attendance.read");
+  if (isMockMode()) {
+    const weekEnd = new Date(`${weekStart}T00:00:00Z`);
+    weekEnd.setUTCDate(weekEnd.getUTCDate() + 6);
+    return {
+      weekStart, weekEnd: weekEnd.toISOString().slice(0, 10),
+      pendingApprovals: 0, pendingRequests: 0, unresolvedExceptions: 0,
+      pendingActualReports: 0, missingMappings: 0, scheduleStatus: "not_started",
+      latestBatch: null, activeLocks: 0,
+    };
+  }
   const db = looseSupabase(await createClient());
   const [{ data, error }, weeks] = await Promise.all([
     db.rpc("get_attendance_workspace_summary", { p_week_start: weekStart }),
@@ -33,6 +45,7 @@ export async function getAttendanceWorkspace(weekStart = malaysiaWeekStart()) {
 
 export async function getSchedulePlanner(weekStart = malaysiaWeekStart(), requestedBranchId?: string) {
   if (!(await hasPermission("schedule.read"))) throw new Error("Missing permission: schedule.read");
+  if (isMockMode()) return { branches: [], branchId: null, week: null, previousWeekId: null, untimedDuties: [] as Array<{staff_id:string;work_date:string;label:string}>, templates: [], people: [], candidates: [], assignments: [], externalAssignments: [], roBalances: {} as Record<string,number>, submittedByName: null, importSource: null };
   const canPlan = await hasPermission("schedule.draft") || await hasPermission("schedule.approve");
   const db = looseSupabase(await createClient());
   const { data: branches, error: branchError } = await db.rpc("get_schedule_branches");
@@ -83,6 +96,7 @@ export async function getSchedulePlanner(weekStart = malaysiaWeekStart(), reques
 
 export async function getScheduleOverview(weekStart = malaysiaWeekStart()) {
   if (!(await hasPermission("schedule.read"))) throw new Error("Missing permission: schedule.read");
+  if (isMockMode()) return [];
   const canPlan = await hasPermission("schedule.draft") || await hasPermission("schedule.approve");
   const db = looseSupabase(await createClient());
   const { data: branchData, error: branchError } = await db.rpc("get_schedule_branches");
@@ -207,6 +221,7 @@ export async function getAttendanceReview(weekStart = malaysiaWeekStart(), filte
 export async function getAttendanceReviewBranches() {
   if (!(await hasPermission("attendance.read")))
     throw new Error("Missing permission: attendance.read");
+  if (isMockMode()) return [];
   const db = looseSupabase(await createClient());
   const { data, error } = await db
     .from("branches")
@@ -254,6 +269,7 @@ export async function getScheduleValidation(weekId:string){
 
 export async function getAttendancePaySettings() {
   if (!(await hasPermission("attendance.read"))) throw new Error("Missing permission: attendance.read");
+  if (isMockMode()) return { rules: [], holidays: [], branches: [] };
   const db=looseSupabase(await createClient());
   const [rules,holidays,branches]=await Promise.all([
     db.from("attendance_pay_rule_versions").select("*").eq("is_active",true).order("effective_from",{ascending:false}).limit(20),
@@ -302,19 +318,22 @@ export async function getStaffCompTime(staffId:string){
 }
 
 export async function getOwnPublishedShifts(weekStart = malaysiaWeekStart()) {
-  if (!(await hasPermission("schedule.request"))) return [];
   const actor = await requireActiveTenantActor();
+  if (!(await hasPermission("schedule.read")) && !(await hasPermission("schedule.request"))) return [];
+  if (isMockMode()) return [];
   const db=looseSupabase(await createClient());const end=new Date(`${weekStart}T00:00:00Z`);end.setUTCDate(end.getUTCDate()+6);
   const {data,error}=await db.from("shift_assignment_revisions").select("id,work_date,assignment_kind,custom_start,custom_end,shift_templates(code,name,planned_start,planned_end),branches!shift_assignment_revisions_branch_id_fkey(branch_name),schedule_weeks!shift_assignment_revisions_schedule_week_id_fkey!inner(status)").eq("staff_id",actor.staffId).eq("is_current",true).gte("work_date",weekStart).lte("work_date",end.toISOString().slice(0,10)).in("schedule_weeks.status",["published","locked"]).order("work_date");if(error)throw error;return (data??[]) as unknown as Array<{id:string;work_date:string;assignment_kind:string;custom_start:string|null;custom_end:string|null;shift_templates:{code:string;name:string;planned_start:string;planned_end:string}|null;branches:{branch_name:string}|null}>;
 }
 
 export async function getPendingShiftRequests() {
   if (!(await hasPermission("schedule.swap_review")) && !(await hasPermission("schedule.approve"))) return [];
+  if (isMockMode()) return [];
   const db=looseSupabase(await createClient());const {data,error}=await db.from("shift_change_requests").select("id,status,reason,material_change,created_at,shift_assignment_revisions!shift_change_requests_assignment_id_fkey(work_date,staffs!shift_assignment_revisions_staff_id_fkey(full_name),branches!shift_assignment_revisions_branch_id_fkey(branch_name))").in("status",["pending_supervisor","pending_manager"]).order("created_at");if(error)throw error;return data??[];
 }
 
 export async function getAttendanceMappings() {
   if (!(await hasPermission("attendance.map"))) return { people: [], devices: [], staffs: [], branches: [], allowed: false };
+  if (isMockMode()) return { people: [], devices: [], staffs: [], branches: [], allowed: true };
   const db = looseSupabase(await createClient());
   const [people, devices, staffs, branches] = await Promise.all([
     db.from("ngteco_person_mappings").select("*,staffs!ngteco_person_mappings_staff_id_fkey(full_name,staff_code)").order("person_id"),

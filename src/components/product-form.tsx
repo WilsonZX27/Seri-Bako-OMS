@@ -1,5 +1,5 @@
 import { dailyTrackingLabels, dailyTracking } from "@/lib/daily-product-tracking";
-import { SubmitButton } from "@/components/ui/submit-button";
+import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,7 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
     <Card className="border-0 bg-transparent shadow-none md:border md:bg-card md:shadow-sm" data-product-setup>
       <CardContent className="p-3 md:p-5">
         <form id={formId} action={action} className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2">
+      {formId ? <FormPendingBridge formId={formId} /> : null}
           <Field label="Product Code">
             <Input name="product_code" defaultValue={product?.product_code ?? ""} required />
           </Field>

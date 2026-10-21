@@ -124,11 +124,13 @@ export default async function AttendanceReviewPage({
     batch?: string;
     detail?: string;
     mapping?: string;
+    import?: string;
     report?: string;
   }>;
 }) {
   const params = await searchParams;
   const mappingMode = params.mapping === "1";
+  const importMode = params.import === "1";
   const week = /^\d{4}-\d{2}-\d{2}$/.test(params.week ?? "")
     ? params.week!
     : malaysiaWeekStart();
@@ -245,6 +247,7 @@ export default async function AttendanceReviewPage({
         tabletCanvas="wide"
         className="sb-portrait-tablet-rail"
         hideMobileConsole
+        mobileConsoleLabel="Week status & tools"
         rightRail={
           <>
             <ConsoleSection title="Actions" kind="action">
@@ -321,8 +324,9 @@ export default async function AttendanceReviewPage({
         <AttendanceWorkspaceNav current="review" />
         {mappings?.allowed ? (
           <details
+            id="import-punches"
             className="group sb-work-surface overflow-hidden"
-            open={mappingMode || !latest}
+            open={importMode || mappingMode || !latest}
           >
             <summary className="flex min-h-12 cursor-pointer list-none items-center gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--sb-green-100)] text-[var(--sb-green-900)]">
@@ -333,7 +337,9 @@ export default async function AttendanceReviewPage({
                 )}
               </span>
               <strong className="min-w-0 flex-1 truncate text-sm font-medium">
-                {mappingMode
+                {importMode
+                  ? "Import NGTeco raw punches"
+                  : mappingMode
                   ? "Review missing Person ID mappings"
                   : latest
                   ? "Import another raw punch file"

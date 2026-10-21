@@ -10,7 +10,7 @@ Screenshots that share a page with console hydration assertions must use `caret:
 
 ## Dynamic Scheduling and Attendance
 
-Use disposable local data and the eight-role matrix. Verify roster submission/publication, return/reject comments, own-schedule visibility, pure swap versus material escalation, immutable history, both NGTeco samples, preview-before-mutation, duplicate import, exception review, adjustment revision, period lock and Owner reasoned unlock. Responsive targets are 320, 390×844, 768, 820×1180, 1180×820 and 1440×900.
+Use disposable local data and the nine-role matrix. Verify roster submission/publication, return/reject comments, own-schedule visibility, pure swap versus material escalation, immutable history, both NGTeco samples, preview-before-mutation, duplicate import, exception review, adjustment revision, period lock and Owner reasoned unlock. Responsive targets are 320, 390×844, 768, 820×1180, 1180×820 and 1440×900.
 
 Seri Bako OMS Playwright tests read `.env.test.local` automatically through `playwright.config.js`.
 
@@ -60,6 +60,8 @@ TEST_MANAGER_EMAIL=
 TEST_MANAGER_PASSWORD=
 TEST_PURCHASING_EMAIL=
 TEST_PURCHASING_PASSWORD=
+TEST_CHEF_EMAIL=
+TEST_CHEF_PASSWORD=
 TEST_KITCHEN_EMAIL=
 TEST_KITCHEN_PASSWORD=
 TEST_FINANCE_EMAIL=
@@ -71,7 +73,7 @@ TEST_OUTLET_PASSWORD=
 
 ```
 
-Local role-specific tests may skip only the role whose credentials are missing. Preview UAT is stricter: the guard requires all eight role identities before any browser shard starts, so a green Preview run cannot silently omit a role. If credentials are present but login fails, the test fails with the role and email address only. Passwords are never printed.
+Local role-specific tests may skip only the role whose credentials are missing. The local fixture setup also accepts an older eight-role env file without Chef; supplying both Chef variables creates the ninth fixture. Preview UAT is stricter: the guard requires all nine role identities before any browser shard starts, so a green Preview run cannot silently omit a role. If credentials are present but login fails, the test fails with the role and email address only. Passwords are never printed.
 
 ## Run
 

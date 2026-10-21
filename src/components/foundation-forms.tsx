@@ -3,7 +3,7 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { RecordSection } from "@/components/record-workspace";
 import { StaffAccessFields } from "@/components/staff-access-fields";
-import { SubmitButton } from "@/components/ui/submit-button";
+import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
 import { previewDocumentNumber } from "@/server/queries/foundation";
@@ -102,6 +102,7 @@ function CompanyHidden({ companies, companyId }: { companies: SelectCompany[]; c
 export function CompanyForm({ company, action, formId = "company-form", showSubmit = true }: { company: Company; action: (formData: FormData) => Promise<void>; formId?: string; showSubmit?: boolean }) {
   return (
     <form id={formId} action={action} className="space-y-4">
+      <FormPendingBridge formId={formId} />
       <RecordSection title="Company Identity" description="Legal identity for the operating company.">
         <div className="grid gap-3 md:grid-cols-2">
           <Field label="Company Code">
@@ -150,6 +151,7 @@ export function CompanyForm({ company, action, formId = "company-form", showSubm
 export function BranchForm({ branch, companies, action, formId, showSubmit = true }: { branch?: Branch; companies: SelectCompany[]; action: (formData: FormData) => Promise<void>; formId?: string; showSubmit?: boolean }) {
   return (
     <form id={formId} action={action} className="space-y-4">
+      {formId ? <FormPendingBridge formId={formId} /> : null}
       <CompanyHidden companies={companies} companyId={branch?.company_id} />
       <input type="hidden" name="status" value={branch?.status ?? "active"} />
       <RecordSection title="Identity" description="Branch reference, name, and operating type. Lifecycle changes stay in the action panel.">
@@ -226,6 +228,7 @@ export function StaffForm({
   const branchOptions = branches.filter((branch) => branch.status === "active");
   return (
     <form id={formId} action={action} className="grid gap-5 xl:grid-cols-2">
+      {formId ? <FormPendingBridge formId={formId} /> : null}
       <RecordSection title="Staff Profile">
           <CompanyHidden companies={companies} companyId={staff?.company_id} />
           <input type="hidden" name="status" value={staff?.status ?? "invited"} />
@@ -350,6 +353,7 @@ export function DocumentSequenceForm({
 export function RoleForm({ role, companies, action, formId, showSubmit = true }: { role?: Role; companies: SelectCompany[]; action: (formData: FormData) => Promise<void>; formId?: string; showSubmit?: boolean }) {
   return (
     <form id={formId} action={action} className="space-y-4">
+      {formId ? <FormPendingBridge formId={formId} /> : null}
       <RecordSection title="Role Identity" description="Role name, stable code, and purpose.">
         <div className="grid gap-4 md:grid-cols-2">
           <CompanyHidden companies={companies} companyId={role?.company_id} />

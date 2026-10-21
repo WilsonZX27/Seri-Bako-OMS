@@ -28,7 +28,8 @@ This is the review contract extracted from Wilson's repeated browser annotations
 
 ## 2. One component vocabulary
 
-- Shared query buttons, filters, and text inputs use the canonical 44px control height at every release viewport. Dense row actions may use a smaller visual glyph only when their interactive hit area remains at least 44px on touch devices. Search is the only elastic control; filters, More filters, date controls, and the terminal action use the shared 8rem track unless a documented field label requires more.
+- Shared query controls follow the current product authority: 36px visual controls at desktop widths, with 44px minimum touch targets on phone and touch-tablet. A smaller desktop glyph is allowed only when its visual action remains clear and the hit area is preserved where touch applies. Search absorbs available width; filter/date/action tracks use the shared responsive geometry rather than a fixed width that forces wrapping.
+- Do not open a filter sheet solely because the viewport is a phone. If the search control and filter fields fit in the available list width, keep filters inline and allow a compact second row or two-column group. Use the sheet when the route's fields cannot remain readable beside or below search without clipping, tiny controls, or horizontal page overflow. A visible icon-only Filter trigger keeps its accessible name.
 - Phone lists use one shared search surface: one search field, one icon-led Filter trigger, and one result count. The result/content surface is a sibling, never a nested card.
 - A query card and its result card are two sibling surfaces. Nested cards are allowed only when the inner surface is a genuinely different task boundary, such as a right action rail or progressive detail.
 - Primary actions use the same icon vocabulary, icon-to-label spacing, height, radius, and semantic color across modules. A plus action is not redesigned per page.

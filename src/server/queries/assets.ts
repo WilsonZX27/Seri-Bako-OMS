@@ -6,6 +6,7 @@ import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 import { requirePermission } from "@/server/auth/permissions";
 import { createClient } from "@/lib/supabase/server";
 import { looseSupabase } from "@/lib/supabase/loose";
+import { isMockMode } from "@/lib/mock-mode";
 
 export type AssetLocation = { id: string; source_name: string; branch_id: string | null; kind: "branch" | "event" | "other" };
 export type Asset = { id: string; asset_code: string; item_name: string; source_data: Record<string, unknown>; current_details: Record<string, unknown>; updated_at: string; original_record_access?: boolean };
@@ -21,8 +22,16 @@ export type AssetOverview = { assetCount: number; knownQuantity: number; unknown
 export type AssetRecord = { id: string; asset_id: string | null; reported_by?: string; location_id?: string; from_location_id?: string; to_location_id?: string; source_id?: string; status?: string; priority?: string; description?: string; reason?: string; quantity?: number | null; author_name?: string; created_at?: string; check_date?: string; result?: string; source_data: Record<string, unknown> };
 export type AssetView = "overview" | "assets" | "checklist" | "maintenance" | "transfers";
 
+const mockInspectionLocationId = "2c562468-c4d1-5e21-8279-e97e55cc84c3";
+const mockInspectionAssets: AssetSummary[] = [
+  { id: "00000000-0000-4000-8000-000000000028", asset_code: "SB-0028", item_name: "Clock In Punch Card Machine", current_details: { Category: "Device" } },
+  { id: "00000000-0000-4000-8000-000000000029", asset_code: "SB-0029", item_name: "Counter Display Refrigerator With Extended Asset Name", current_details: { Category: "Equipment" } },
+  { id: "00000000-0000-4000-8000-000000000030", asset_code: "SB-0030", item_name: "Kitchen Scale", current_details: { Category: "Device" } },
+];
+
 export const getAssetRegistration = cache(async () => {
   const actor = await requireActiveTenantActor(); await requirePermission("assets.manage");
+  if (isMockMode()) return { active: true, locations: [{ id: mockInspectionLocationId, source_name: "KL - Publika", branch_id: null, kind: "branch" }] as AssetLocation[] };
   const db = looseSupabase(await createClient());
   const activation = await db.rpc("asset_company_live", { p_company: actor.companyId });
   if (activation.error || activation.data === null) throw new Error(activation.error?.message ?? "Asset activation unavailable.");
@@ -34,9 +43,36 @@ export const getAssetRegistration = cache(async () => {
 
 export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query = "", date = "", status = "", locationId = "", sort = "code", category = "") => {
   const actor = await requireActiveTenantActor();
+  if (actor.roleCode === "kitchen" && view !== "checklist") throw new Error("Kitchen staff may only access the assigned asset checklist.");
   if ((view === "overview") && !canAccessAssetManagement(actor.roleCode)) throw new Error("Asset management role required.");
   if (view === "maintenance" && !canAccessAssetManagement(actor.roleCode)) await requirePermission("assets.report");
   await requirePermission("assets.view");
+  if (isMockMode()) {
+    if (locationId && locationId !== mockInspectionLocationId) throw new Error("Asset location unavailable.");
+    const checkDate = date || todayInKualaLumpur();
+    addDays(checkDate, 0);
+    const location: AssetLocation = { id: mockInspectionLocationId, source_name: "KL - Publika", branch_id: null, kind: "branch" };
+    const filteredAssets = mockInspectionAssets.filter((asset) =>
+      (!query || `${asset.asset_code} ${asset.item_name}`.toLowerCase().includes(query.toLowerCase()))
+      && (!category || category === "all" || asset.current_details?.Category === category),
+    ).sort((a, b) => sort === "name" ? a.item_name.localeCompare(b.item_name) : a.asset_code.localeCompare(b.asset_code));
+    const overview: AssetOverview = {
+      assetCount: mockInspectionAssets.length, knownQuantity: mockInspectionAssets.length,
+      unknownHoldings: 0, attentionAssets: 0, openMaintenance: 0, inTransitQuantity: 0,
+      locations: [{ id: location.id, name: location.source_name, assetCount: mockInspectionAssets.length, quantity: mockInspectionAssets.length }],
+      checkDate, checklist: [{ id: location.id, name: location.source_name, kind: location.kind, open: true, reason: null, expected: mockInspectionAssets.length, checked: 0, submitted: false }],
+      maintenanceTrend: [], issueTrend: [], maintenanceByStatus: [],
+    };
+    const assets = view === "assets" && page === 1 ? filteredAssets : [];
+    return {
+      active: true, view, page, query, locations: [location],
+      overview: view === "overview" || view === "checklist" ? overview : null,
+      assets, holdings: assets.map((asset): AssetHolding => ({ asset_id: asset.id, location_id: location.id, quantity: 1 })),
+      records: [] as AssetRecord[], total: view === "assets" ? filteredAssets.length : 0,
+      filterOptions: { categories: ["Device", "Equipment"], statuses: [] as string[] },
+      maintenanceSummary: view === "maintenance" ? { "Total tickets": 0, Outstanding: 0, Processed: 0, Cancelled: 0 } : null,
+    };
+  }
   const db = looseSupabase(await createClient());
   const company = actor.companyId;
   const activation = await db.rpc("asset_company_live", { p_company: company });
@@ -52,15 +88,17 @@ export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query =
   let assets: AssetSummary[] = [], holdings: AssetHolding[] = [], records: AssetRecord[] = [], total = 0;
   if (view === "overview" || view === "checklist") {
     const checkDate = date || todayInKualaLumpur(); addDays(checkDate, 0);
-    const result = await db.rpc(view === "checklist" ? "get_asset_checklist_summary" : "get_asset_overview", { p_date: checkDate });
+    const result = await db.rpc(actor.roleCode === "kitchen" || view === "checklist" ? "get_asset_checklist_summary" : "get_asset_overview", { p_date: checkDate });
     if (result.error || !result.data) throw new Error(result.error?.message ?? "Asset summary unavailable.");
     overview = result.data as AssetOverview;
     const submitted = new Set<string>();
-    for (let offset = 0; ; offset += 500) {
-      const checks = await db.from("asset_daily_checks").select("id,location_id").eq("company_id", company).eq("check_date", checkDate).not("source_data", "cs", '{"Count Confirmation":true}').order("id").range(offset, offset + 499);
-      if (checks.error || !checks.data) throw new Error("Checklist submission status unavailable.");
-      for (const check of checks.data) submitted.add(String(check.location_id));
-      if (checks.data.length < 500) break;
+    if (actor.roleCode !== "kitchen") {
+      for (let offset = 0; ; offset += 500) {
+        const checks = await db.from("asset_daily_checks").select("id,location_id").eq("company_id", company).eq("check_date", checkDate).not("source_data", "cs", '{"Count Confirmation":true}').order("id").range(offset, offset + 499);
+        if (checks.error || !checks.data) throw new Error("Checklist submission status unavailable.");
+        for (const check of checks.data) submitted.add(String(check.location_id));
+        if (checks.data.length < 500) break;
+      }
     }
     overview.checklist = overview.checklist.map(location => ({ ...location, submitted: submitted.has(location.id) }));
   }
@@ -124,7 +162,21 @@ export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query =
 
 export async function getAssetDetail(id: string) {
   const actor = await requireActiveTenantActor();
+  if (actor.roleCode === "kitchen") throw new Error("Kitchen staff may only access the assigned asset checklist.");
   await requirePermission("assets.view");
+  if (isMockMode()) {
+    const summary = mockInspectionAssets.find((asset) => asset.id === id);
+    if (!summary) return null;
+    const location: AssetLocation = { id: mockInspectionLocationId, source_name: "KL - Publika", branch_id: null, kind: "branch" };
+    return {
+      asset: { ...summary, source_data: {}, current_details: summary.current_details ?? {}, updated_at: new Date(0).toISOString() } as Asset,
+      holdings: [{ asset_id: id, location_id: location.id, quantity: 1 }] as AssetHolding[],
+      locations: [location],
+      maintenance: [] as AssetRecord[], transfers: [] as AssetRecord[],
+      masterUpdates: [] as { id: string; author_name: string; created_at: string; source_data: Record<string, unknown> }[],
+      attachments: [] as AssetAttachment[], attachmentTotal: 0,
+    };
+  }
   const db = looseSupabase(await createClient());
   const results = await Promise.all([
     db.rpc("get_asset_identity", { p_asset: id }),
@@ -162,7 +214,17 @@ export async function getAssetLocation(id: string, page: number) {
   if (!Number.isSafeInteger(page) || page < 1 || page > 1_000_000) throw new Error("Choose a valid asset history page.");
   const actor = await requireActiveTenantActor();
   await requirePermission("assets.view");
+  if (isMockMode()) {
+    if (id !== mockInspectionLocationId) return null;
+    const location: AssetLocation = { id, source_name: "KL - Publika", branch_id: null, kind: "branch" };
+    const holdings: AssetHolding[] = mockInspectionAssets.map((asset) => ({ asset_id: asset.id, location_id: id, quantity: 1 }));
+    return { location, holdings: page === 1 ? holdings : [], assets: page === 1 ? mockInspectionAssets : [], total: holdings.length };
+  }
   const db = looseSupabase(await createClient());
+  if (actor.roleCode === "kitchen") {
+    const access = await db.rpc("asset_location_access", { p_location: id });
+    if (access.error || access.data !== true) return null;
+  }
   const location = await db.from("asset_locations").select("id,source_name,branch_id,kind").eq("company_id", actor.companyId).eq("id", id).maybeSingle();
   if (location.error) throw new Error(location.error.message);
   if (!location.data) return null;
@@ -274,6 +336,7 @@ export async function getMaintenanceReportOptions() {
 /** Existing daily checks are immutable; quantity confirmations are a separate workflow. */
 export async function hasAssetChecklistSubmission(locationId: string, date: string) {
   const actor = await requireActiveTenantActor();
+  if (isMockMode()) return false;
   const db = looseSupabase(await createClient());
   const result = await db.from("asset_daily_checks").select("id").eq("company_id", actor.companyId).eq("location_id", locationId).eq("check_date", date).not("source_data", "cs", '{"Count Confirmation":true}').limit(1);
   if (result.error) throw new Error("Checklist submission status unavailable.");
@@ -284,6 +347,7 @@ export async function hasAssetChecklistSubmission(locationId: string, date: stri
 export const getAssetMasterOptions = cache(async () => {
   const actor = await requireActiveTenantActor();
   await requirePermission("assets.manage");
+  if (isMockMode()) return { fields: { "Department / Area": [], Category: ["Device", "Equipment"] }, people: [] as { id: string; full_name: string; staff_code: string | null }[] };
   const db = looseSupabase(await createClient());
   const choices: Record<string, Set<string>> = { "Department / Area": new Set(), Category: new Set() };
   const collect = (raw: unknown) => {
@@ -323,6 +387,10 @@ export async function getAssetChecklistRecords(locationId: string, date: string)
   const actor = await requireActiveTenantActor();
   await requirePermission("assets.view");
   const db = looseSupabase(await createClient());
+  if (actor.roleCode === "kitchen") {
+    const access = await db.rpc("asset_location_access", { p_location: locationId });
+    if (access.error || access.data !== true) throw new Error("This asset checklist location is outside your assigned scope.");
+  }
   const records: { id: string; asset_id: string; result: string; quantity: number | null; author_name: string; created_at: string }[] = [];
   for (let offset = 0; ; offset += 500) {
     const result = await db.from("asset_daily_checks").select("id,asset_id,result,quantity,author_name,created_at").eq("company_id", actor.companyId).eq("location_id", locationId).eq("check_date", date).not("source_data", "cs", '{"Count Confirmation":true}').order("created_at").order("id").range(offset, offset + 499);

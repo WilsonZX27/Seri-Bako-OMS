@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type RightConsoleContextValue = {
-  setContent: (owner: symbol, content: ReactNode, hideMobileBar?: boolean, hideDesktopConsole?: boolean) => void;
+  setContent: (owner: symbol, content: ReactNode, hideMobileBar?: boolean, hideDesktopConsole?: boolean, mobileConsoleLabel?: string) => void;
   clearContent: (owner: symbol) => void;
 };
 
@@ -77,6 +77,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
   const [content, setContentState] = useState<ReactNode>(null);
   const [mobileBarHidden, setMobileBarHidden] = useState(false);
   const [desktopConsoleHidden, setDesktopConsoleHidden] = useState(false);
+  const [mobileConsoleLabel, setMobileConsoleLabel] = useState("More actions");
   const activeOwnerRef = useRef<symbol | null>(null);
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -84,11 +85,12 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
   const titleId = useId();
   const value = useMemo(
     () => ({
-      setContent: (owner: symbol, nextContent: ReactNode, hideMobileBar = false, hideDesktopConsole = false) => {
+      setContent: (owner: symbol, nextContent: ReactNode, hideMobileBar = false, hideDesktopConsole = false, nextMobileConsoleLabel = "More actions") => {
         activeOwnerRef.current = owner;
         setContentState(nextContent);
         setMobileBarHidden(hideMobileBar);
         setDesktopConsoleHidden(hideDesktopConsole);
+        setMobileConsoleLabel(nextMobileConsoleLabel);
       },
       clearContent: (owner: symbol) => {
         if (activeOwnerRef.current !== owner) return;
@@ -96,6 +98,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
         setContentState(null);
         setMobileBarHidden(false);
         setDesktopConsoleHidden(false);
+        setMobileConsoleLabel("More actions");
       },
     }),
     [],
@@ -193,7 +196,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
           </div>
         </aside>
       ) : <aside data-right-console-placeholder aria-hidden="true" className="hidden h-full w-[var(--sb-console-width)] shrink-0 border-l border-[var(--sb-border-soft)] bg-[var(--rail-bg)] p-3"><div className="sb-work-surface space-y-3 p-3"><div className="sb-skeleton h-9" /><div className="sb-skeleton h-9" /></div><div className="sb-work-surface mt-3 space-y-3 p-3"><div className="sb-skeleton h-3" /><div className="sb-skeleton h-3 w-4/5" /></div></aside>}
-      {content && !mobileBarHidden && hasCreateFab && primaryHref ? (
+      {content && hasCreateFab && primaryHref ? (
         <Link
           href={primaryHref}
           data-mobile-create-fab
@@ -204,20 +207,20 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
           <Plus className="h-6 w-6" aria-hidden="true" />
         </Link>
       ) : null}
-      {content && hasCreateFab ? <Button ref={triggerRef} type="button" variant="outline" data-mobile-secondary-actions className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-20 z-[var(--sb-z-sticky)] h-14 min-h-14 gap-2 rounded-[var(--sb-control-radius)] bg-white px-3 shadow-sm md:hidden" onClick={() => setOpen(true)} aria-label="Open more actions" aria-haspopup="dialog" aria-expanded={open}><PanelRight className="h-4 w-4" aria-hidden="true"/>More actions</Button> : null}
+      {content && hasCreateFab ? <Button ref={triggerRef} type="button" variant="outline" data-mobile-secondary-actions className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-20 z-[var(--sb-z-sticky)] h-14 min-h-14 gap-2 rounded-[var(--sb-control-radius)] bg-white px-3 shadow-sm md:hidden" onClick={() => setOpen(true)} aria-label={`Open ${mobileConsoleLabel.toLowerCase()}`} aria-haspopup="dialog" aria-expanded={open}><PanelRight className="h-4 w-4" aria-hidden="true"/>{mobileConsoleLabel}</Button> : null}
       {content && !mobileBarHidden && !hasCreateFab ? <div data-mobile-action-bar data-compact-more={primaryAction ? "true" : undefined} className={cn("sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] items-center gap-2 rounded-none border-x-0 border-b-0 bg-white/95 p-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_20px_rgba(17,30,22,0.2)]", "grid", primaryAction ? "grid-cols-2" : "grid-cols-1", "md:hidden xl:hidden")}>
         {primaryAction ? <div data-mobile-primary-slot className="min-w-0 [&>*]:h-11 [&>*]:w-full">{primaryAction}</div> : null}
-        <Button ref={triggerRef} type="button" variant={primaryAction ? "outline" : "default"} className="h-11 min-w-0 w-full justify-center gap-2" onClick={() => setOpen(true)} aria-label="Open more actions" aria-haspopup="dialog" aria-expanded={open}>
-          <Ellipsis className="h-5 w-5" aria-hidden="true" />{!primaryAction ? <span>More actions</span> : null}
+        <Button ref={triggerRef} type="button" variant={primaryAction || mobileConsoleLabel !== "More actions" ? "outline" : "default"} className="h-11 min-w-0 w-full justify-center gap-2" onClick={() => setOpen(true)} aria-label={`Open ${mobileConsoleLabel.toLowerCase()}`} aria-haspopup="dialog" aria-expanded={open}>
+          {mobileConsoleLabel === "More actions" ? <Ellipsis className="h-5 w-5" aria-hidden="true" /> : <PanelRight className="h-4 w-4" aria-hidden="true" />}{!primaryAction ? <span>{mobileConsoleLabel}</span> : null}
         </Button>
       </div> : null}
       {open && content && (!mobileBarHidden || hasCreateFab) ? createPortal(
         <div className="fixed inset-0 z-[var(--sb-z-dialog)] md:hidden">
-          <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={close} aria-label="Close more actions" />
+          <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" onClick={close} aria-label={`Close ${mobileConsoleLabel.toLowerCase()}`} />
             <div data-bottom-sheet ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={titleId} className="sb-popover-surface absolute inset-x-0 bottom-0 max-h-[82dvh] overflow-hidden pb-[env(safe-area-inset-bottom)]">
             <header className="flex h-12 items-center justify-between border-b px-3">
-              <h2 id={titleId} className="text-sm font-semibold">More actions</h2>
-              <Button type="button" variant="ghost" size="icon" className="focus-visible:ring-inset focus-visible:ring-offset-0" onClick={close} aria-label="Close more actions"><X className="h-5 w-5" /></Button>
+              <h2 id={titleId} className="text-sm font-semibold">{mobileConsoleLabel}</h2>
+              <Button type="button" variant="ghost" size="icon" className="focus-visible:ring-inset focus-visible:ring-offset-0" onClick={close} aria-label={`Close ${mobileConsoleLabel.toLowerCase()}`}><X className="h-5 w-5" /></Button>
             </header>
             <div data-mobile-console-content onClick={handleMobileFormAction} className="sb-scrollbar-none grid max-h-[calc(82dvh-3rem-env(safe-area-inset-bottom))] gap-3 overflow-y-auto overscroll-contain p-3">{secondaryConsoleContent}</div>
           </div>
@@ -227,14 +230,14 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function RightConsoleMount({ children, hideMobileBar = false, hideDesktopConsole = false }: { children: ReactNode; hideMobileBar?: boolean; hideDesktopConsole?: boolean }) {
+export function RightConsoleMount({ children, hideMobileBar = false, hideDesktopConsole = false, mobileConsoleLabel }: { children: ReactNode; hideMobileBar?: boolean; hideDesktopConsole?: boolean; mobileConsoleLabel?: string }) {
   const context = useContext(RightConsoleContext);
 
   useEffect(() => {
     const owner = Symbol("right-console-mount");
-    context?.setContent(owner, children, hideMobileBar, hideDesktopConsole);
+    context?.setContent(owner, children, hideMobileBar, hideDesktopConsole, mobileConsoleLabel);
     return () => context?.clearContent(owner);
-  }, [children, context, hideMobileBar, hideDesktopConsole]);
+  }, [children, context, hideMobileBar, hideDesktopConsole, mobileConsoleLabel]);
 
   return null;
 }

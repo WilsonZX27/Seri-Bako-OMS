@@ -33,8 +33,12 @@ test("shared popup and directory actions inherit the device control-height contr
   const reports = fs.readFileSync("src/app/(app)/reports/page.tsx", "utf8");
   const select = fs.readFileSync("src/components/ui/select-control.tsx", "utf8");
   const activityMenu = fs.readFileSync("src/components/layout/top-bar-activity-menu.tsx", "utf8");
+  const design = fs.readFileSync("src/app/design-system-v2.css", "utf8");
 
   assert.doesNotMatch(reports, /className="h-8 px-2 text-xs"/);
   assert.match(select, /min-h-\[var\(--sb-control-height\)\]/);
-  assert.match(activityMenu, /min-h-\[var\(--sb-control-height\)\]/);
+  assert.match(activityMenu, /sb-workspace-updates/);
+  assert.match(design, /\.sb-workspace-updates section > a:not\(\[data-activity-log-action\]\) \{ min-height: 36px;/);
+  assert.match(design, /\.sb-workspace-updates section > a\[data-activity-log-action\] \{ align-items: center;/);
+  assert.match(design, /@media \(pointer: coarse\), \(max-width: 767px\) \{[\s\S]*?\.sb-workspace-updates section > a \{ min-height: 44px;/);
 });

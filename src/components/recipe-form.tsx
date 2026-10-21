@@ -5,7 +5,7 @@ import { Calculator, Plus, Trash2 } from "lucide-react";
 import { useActionState, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { SubmitButton } from "@/components/ui/submit-button";
+import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -153,6 +153,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
 
   return (
     <form id={formId} action={submitAction} className="space-y-3 md:space-y-5">
+      {formId ? <FormPendingBridge formId={formId} /> : null}
       {!items.length ? <p role="status" className="rounded-lg border border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] p-3 text-sm">No active ingredients. Ask an authorised item manager to configure ingredients, then reload.</p> : null}
       <input type="hidden" name="request_key" value={stableRequestKey} />
       <input type="hidden" name="expected_updated_at" value={expectedUpdatedAt} />

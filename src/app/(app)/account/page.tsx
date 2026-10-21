@@ -3,7 +3,7 @@ import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
-import { SubmitButton } from "@/components/ui/submit-button";
+import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 import { DestructiveActionDialog } from "@/components/ui/destructive-action-dialog";
 import { getRoleDisplayLabel } from "@/lib/roles";
 import { changeOwnPassword, removeOwnAvatar, updateOwnProfile, uploadOwnAvatar } from "@/server/actions/account";
@@ -62,7 +62,7 @@ export default async function AccountPage() {
 
         <section className="sb-work-surface p-4">
           <div className="mb-4 flex items-center gap-2"><UserRound className="h-4 w-4 text-primary" /><h2 className="font-semibold">Profile details</h2></div>
-          <form id="account-profile-form" action={updateOwnProfile} className="grid gap-4">
+          <form id="account-profile-form" action={updateOwnProfile} className="grid gap-4"><FormPendingBridge formId="account-profile-form" />
             <label className="grid gap-2 text-sm font-medium">Display name <span className="sr-only">required</span><Input name="full_name" defaultValue={account?.full_name ?? ""} required className="form-control-compact" /></label>
             <label className="grid gap-2 text-sm font-medium">Phone<Input name="phone" defaultValue={account?.phone ?? ""} className="form-control-compact" /></label>
           </form>

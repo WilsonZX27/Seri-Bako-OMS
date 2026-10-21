@@ -4,6 +4,7 @@ import { requireDetailRow } from "@/server/queries/detail";
 import type { ItemStatus } from "@/types/database";
 import { sortProductsForDisplay } from "@/lib/product-order";
 import { requireReadRows } from "@/server/queries/common";
+import { todayInKualaLumpur } from "@/lib/business-date";
 
 type ProductFilters = {
   search?: string;
@@ -21,11 +22,12 @@ function compareValues(a: unknown, b: unknown, direction: string) {
   return direction === "desc" ? -result : result;
 }
 
-function filterProducts<T extends { product_code: string; product_name: string; category: string; status: string }>(
+function filterProducts<T extends { product_code: string; product_name: string; category: string; status: string; available_from?: string | null; available_until?: string | null }>(
   products: T[],
   filters: ProductFilters,
 ) {
   const search = filters.search?.trim().toLowerCase();
+  const today = todayInKualaLumpur();
   const status = filters.status && filters.status !== "all" ? filters.status : null;
   const category = filters.category && filters.category !== "all" ? filters.category : null;
   const sort = filters.sort;
@@ -37,7 +39,9 @@ function filterProducts<T extends { product_code: string; product_name: string; 
       : true;
     const matchesStatus = status ? product.status === status : true;
     const matchesCategory = category ? product.category === category : true;
-    return matchesSearch && matchesStatus && matchesCategory;
+    const withinSupplyPeriod = (!product.available_from || product.available_from <= today)
+      && (!product.available_until || product.available_until >= today);
+    return matchesSearch && matchesStatus && matchesCategory && (status === "inactive" || withinSupplyPeriod);
   });
   return sort ? filtered.sort((a, b) => compareValues(a[sort as keyof T], b[sort as keyof T], dir)) : sortProductsForDisplay(filtered);
 }

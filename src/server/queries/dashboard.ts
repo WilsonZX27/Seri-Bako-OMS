@@ -18,6 +18,8 @@ import {
   mockDocuments,
   mockPurchaseOrders,
   mockPurchaseRequests,
+  mockPurchaseRequestLines,
+  mockProfile,
   mockStockTransactions,
   mockSuppliers,
 } from "@/lib/mock-mode";
@@ -258,20 +260,25 @@ export async function getDashboardSummary() {
       totalStockValue: balances.reduce((sum, row) => sum + Number(row.current_stock ?? 0), 0),
       lastStockCount: null,
       lowStockItems: getMockLowStockItems().slice(0, 5),
-      pendingApprovals: mockPendingApprovals.map((request) => ({
-          id: `pr-finance_review-${request.id}`,
+      pendingApprovals: mockPendingApprovals.map((request) => {
+        const requestLines = mockPurchaseRequestLines.filter((line) => line.purchase_request_id === request.id);
+        const supplierIds = new Set(requestLines.map((line) => line.suggested_supplier_id).filter((id): id is string => Boolean(id)));
+        const stage = request.status === "finance_review" ? "Finance Review" : "Manager Approval";
+        return {
+          id: `pr-${request.status}-${request.id}`,
           document_no: request.request_no,
-          title: "Manager Approval required",
+          title: `${stage} required`,
           href: `/purchase-requests/${request.id}`,
-          step: "Manager Approval",
+          step: stage,
           branch_name: mockBranches.find((branch) => branch.id === request.branch_id)?.branch_name ?? null,
           age_label: "Today",
           updated_at: request.updated_at ?? new Date().toISOString(),
-          supplier_names: [],
-          line_count: 0,
-          submitted_by_name: null,
-          estimated_total: 0,
-        })),
+          supplier_names: mockSuppliers.filter((supplier) => supplierIds.has(supplier.id)).map((supplier) => supplier.name),
+          line_count: requestLines.length,
+          submitted_by_name: mockProfile.full_name,
+          estimated_total: requestLines.reduce((total, line) => total + Number(line.qty ?? 0) * Number(line.estimated_unit_cost ?? 0), 0),
+        };
+      }),
       purchaseRequests: mockPurchaseRequests.slice(0, 5),
       urgentRequests: mockPurchaseRequests.filter((request) => ["urgent", "critical"].includes(request.priority ?? "")).slice(0, 5),
       purchaseOrders: mockPurchaseOrders.slice(0, 5),
@@ -337,7 +344,8 @@ export async function getDashboardSummary() {
   const isFinance = role === "finance";
   const isManager = role === "manager";
   const isPurchasing = role === "purchasing";
-  const isKitchen = (role === "kitchen" || role === "chef");
+  const isKitchen = role === "chef";
+  const isKitchenStaff = role === "kitchen";
   const isOutlet = role === "outlet_staff" || role === "outlet_supervisor";
   const needsProcurement = isOwner || isFinance || isManager || isPurchasing || isKitchen;
   const needsInventory = isOwner || isFinance || isManager || isPurchasing || isKitchen;
@@ -351,8 +359,8 @@ export async function getDashboardSummary() {
   const nextWeek = new Date(`${today}T00:00:00Z`); nextWeek.setUTCDate(nextWeek.getUTCDate()+7);
   const [coreSnapshotRpcResult, pendingApprovalsSnapshot, notifications, recentActivities, outletToday, currentStaff, assignedBranches, payablesAttention, lowStockViewResult, upcomingShifts, outletCompletion, wastageTrend, complianceIssueCount] = await Promise.all([
     (needsProcurement || needsInventory) ? supabase.rpc("get_dashboard_core_snapshot", { p_today: today }) : Promise.resolve({ data: null, error: null }),
-    getCurrentUserPendingActionSnapshot(5, false),
-    getVisibleNotificationsForCurrentUser(),
+    isKitchenStaff ? Promise.resolve({ items: [], total: 0, unavailable: false }) : getCurrentUserPendingActionSnapshot(5, false),
+    isKitchenStaff ? Promise.resolve([]) : getVisibleNotificationsForCurrentUser(),
     // Actor resolution is intentionally reserved for Activity Log and the
     // notification workspace. It is not part of the dashboard's critical path.
     Promise.resolve([]),

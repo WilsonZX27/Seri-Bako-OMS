@@ -1,3 +1,47 @@
+## v9.2.126 (local candidate) — Responsive workspace refinements
+
+Latest annotations are implemented within their owning views: compact desktop planning tabs, grouped navigation dots, single-row receiving controls, inline filters when space allows, two-line PR table headers, a simpler asset overview, a non-nested inspection empty state, equal mobile asset actions, and tablet context rails. Stock Count mobile filters remain inline when the four filter controls fit, and Reset clears the search input. Touch targets stay at least 44px; compact desktop controls use 36px. Evidence and remaining limits are recorded in `docs/releases/preview-v9.2.126-local-candidate.md` and `docs/qa/2026-10-21-closure.md`.
+
+## v9.2.123 (local candidate) — scoped control and first-frame refinement
+
+The two reviewed list toolbars select their responsive form in CSS before hydration. Compact Attendance and Supplier Invoices filters show a text label, while asset and Attendance context controls name their contents. The approved 11px PR metadata, 12px asset checklist copy, 36px fine-pointer desktop actions and 44px touch actions remain. The local screenshots and unresolved hosted checks are recorded in `docs/qa/2026-10-21-closure.md`.
+
+## v9.2.122 (local candidate) — scoped interface follow-up
+
+Keep the 11px annotated PR phone metadata, 12px asset checklist copy, 36px desktop controls and 44px touch controls. Local changes refine the PR and Daily compact rows, Low Stock basket and filters, asset forms, and upload guidance without changing the shared type scale. The remaining shared-list first-frame shift and live role/data checks are tracked in `docs/qa/2026-10-21-closure.md`.
+
+## v9.2.121 (Preview) — local review follow-up
+
+The page-header description uses a darker scoped muted color on its pale workspace surface without changing body text or type sizes. Attendance task descriptions and long import filenames wrap at phone widths. Navigation dots include actionable notification destinations beyond the popover's five-row preview; live clearing remains to verify.
+
+## v9.2.120 (Preview) — local closure batch
+
+The first-batch UI keeps its approved compact type and responsive controls. Phone asset metrics use three columns; the 768px PR first frame reserves space for complete filter labels. Remaining shared-header layout shift and role-matrix drift are recorded in `docs/qa/2026-10-21-closure.md`.
+
+## v9.2.119 (unreleased) — operational UI review candidate
+
+The current Preview candidate retains the green theme and scopes compact list, status, icon, and asset inspection styles to their owning components. See `docs/releases/preview-v9.2.119-ui-review.md` for the checked viewports and limits.
+
+## v9.2.118 (unreleased) — historical annotation closure candidate
+
+- Remove overlaid duplicate phone create buttons from the seven verified operational lists while preserving their 36px desktop right-rail actions and 56px phone FAB.
+
+The version marker is monotonic relative to the earlier v9.2.116 Preview. The pending full-system UI acceptance remains tracked in `docs/qa/HISTORICAL_ANNOTATION_CLOSURE_INDEX.md`.
+
+## v9.2.110 (unreleased) — responsive list completion
+
+At widths where a summary rail leaves less space than a data table needs, use the already established compact row until the full table fits. The PR threshold is 1400px; Daily Records uses the existing 2xl threshold at 1536px. No global typography or table rule changes.
+
+Reference conventions: [Carbon data table guidelines](https://www.carbondesignsystem.com/building-blocks/core/components/data-table/guidelines) group search, filtering and actions in a toolbar and keep row actions discoverable on touch. [Atlassian iconography](https://atlassian.design/guidelines/product/foundations/iconography) uses 16px as its default product icon size. The OMS applies those organization and icon conventions while retaining its reviewed 36px desktop controls, 44px touch targets and green theme.
+
+## v9.2.109 — reviewed operational UI
+
+Daily Records and PR use scoped compact layouts, persistent daily filters, semantic notification icons and permission-scoped attention dots. Phone PR metadata stays 11px; desktop controls 36px and touch targets 44px. Functional restorations are tracked independently in docs/ui-refinement-review.md.
+
+# v9.2.108 (unreleased)
+
+Production-based UI correction candidate. Desktop workspace navigation is 36px; phone navigation remains 44px. Annotated purchase request metadata and asset checklist copy use compact phone typography. Preserve existing OMS colours and surfaces.
+
 > Local candidate — 2026-10-18: desktop query filters use 120px at the existing 1280px desktop breakpoint; search is a named icon action and the query field absorbs remaining space. Phone/tablet touch sizes remain unchanged. Shared card/profile/form headers separate titles from fields with a soft rule. Employment and access editing stays in the People profile. Pending release; see final-audit/FEEDBACK-16-AUDIT.txt in the task workspace.
 
 # v9.2.107 (unreleased)

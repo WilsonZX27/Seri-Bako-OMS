@@ -9,9 +9,9 @@ import { getPermissionMap } from "@/server/auth/permissions";
 import { getProcurementWorkspaceInsights } from "@/server/queries/procurement";
 
 const modules = [
-  { href: "/purchase-requests", label: "Purchase Requests", description: "Create, review, and convert branch requests.", permission: "purchase_request.read", roles: ["super_admin", "finance", "manager", "purchasing", "chef", "kitchen"], icon: ClipboardList },
-  { href: "/purchase-orders", label: "Purchase Orders", description: "Prepare and follow supplier orders.", permission: "purchase_order.read", roles: ["super_admin", "finance", "manager", "purchasing", "chef", "kitchen"], icon: ShoppingCart },
-  { href: "/goods-receivings", label: "Receiving", description: "Receive and post goods against orders.", permission: "goods_receiving.read", roles: ["super_admin", "finance", "manager", "purchasing", "chef", "kitchen"], icon: PackageCheck },
+  { href: "/purchase-requests", label: "Purchase Requests", description: "Create, review, and convert branch requests.", permission: "purchase_request.read", roles: ["super_admin", "finance", "manager", "purchasing", "chef"], icon: ClipboardList },
+  { href: "/purchase-orders", label: "Purchase Orders", description: "Prepare and follow supplier orders.", permission: "purchase_order.read", roles: ["super_admin", "finance", "manager", "purchasing", "chef"], icon: ShoppingCart },
+  { href: "/goods-receivings", label: "Receiving", description: "Receive and post goods against orders.", permission: "goods_receiving.read", roles: ["super_admin", "finance", "manager", "purchasing", "chef"], icon: PackageCheck },
   { href: "/supplier-invoices", label: "Invoice Follow-up", description: "Review invoice and payment status.", permission: "supplier_invoice.view", roles: ["super_admin", "finance"], icon: ReceiptText },
   { href: "/suppliers", label: "Suppliers", description: "Maintain approved supplier records.", permission: "suppliers.view", roles: ["super_admin", "finance", "purchasing"], icon: Truck },
 ] as const;
@@ -46,12 +46,6 @@ export default async function ProcurementPage() {
       { label: "Purchasing review", value: insights.purchasingReview, href: "/purchase-requests?status=admin_review" },
       { label: "Ready to convert", value: insights.readyToConvert, href: "/purchase-requests?status=ready_to_convert" },
       { label: "Draft purchase orders", value: insights.draftPo, href: "/purchase-orders?status=draft" },
-      { label: "Receiving today", value: insights.receivingToday, href: "/goods-receivings?date=today" },
-    ],
-    kitchen: [
-      { label: "Draft requests", value: insights.draftPr, href: "/purchase-requests?status=draft" },
-      { label: "Submitted requests", value: insights.submittedPr, href: "/purchase-requests?status=manager_review" },
-      { label: "Sent purchase orders", value: insights.sentPo, href: "/purchase-orders?status=sent" },
       { label: "Receiving today", value: insights.receivingToday, href: "/goods-receivings?date=today" },
     ],
   } as const;

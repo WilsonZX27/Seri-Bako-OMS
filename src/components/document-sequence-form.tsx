@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { SubmitButton } from "@/components/ui/submit-button";
+import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 import { SelectNative } from "@/components/ui/select-native";
 
 type Sequence = {
@@ -44,6 +44,7 @@ export function DocumentSequenceForm({ sequence, companies, action, formId, show
     <Card>
       <CardContent className="p-5">
         <form id={formId} action={action} className="grid gap-4 pb-20 md:grid-cols-2 md:pb-0">
+          {formId ? <FormPendingBridge formId={formId} /> : null}
           <input type="hidden" name="company_id" value={companyId} />
           <input type="hidden" name="padding" value={padding} />
           <input type="hidden" name="status" value="active" />

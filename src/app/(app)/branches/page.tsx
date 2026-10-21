@@ -30,7 +30,7 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
 
     return (
       <>
-        <PageHeader title="Branches" description="Central kitchen, outlets, event booths, offices, and operating units." action={canCreate ? { href: "/branches/new", label: "New branch" } : undefined} />
+        <PageHeader title="Branches" description="Central kitchen, outlets, event booths, offices, and operating units." />
         <WorkspaceGrid hideMobileConsole tabletRailMode="split" tabletRailBreakpoint="md" rightRail={<>{canCreate ? <ConsoleSection title="Actions"><Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/branches/new">New branch</Link></Button></ConsoleSection> : null}<ConsoleSection title="Branch Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Total</dt><dd className="font-semibold">{summaryBranches.length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{summaryBranches.filter((branch) => branch.status === "active").length}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Archived</dt><dd className="font-semibold">{summaryBranches.filter((branch) => branch.status === "archived").length}</dd></div></dl></ConsoleSection></>}>
           {filters.error || filters.success ? (
             <Card>

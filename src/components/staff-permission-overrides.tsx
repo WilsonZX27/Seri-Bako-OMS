@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { RecordSection } from "@/components/record-workspace";
-import { SubmitButton } from "@/components/ui/submit-button";
+import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 
 type PermissionAccess = { id: string; permission_code: string; module: string; action: string; description: string | null; roleDefault: boolean; override: "allow" | "deny" | null; effective: boolean };
 type OverrideValue = "inherit" | "allow" | "deny";
@@ -52,7 +52,7 @@ export function StaffPermissionOverrides({ permissions, canManage, protectedRole
       </div>
       {protectedRole ? <p className="mb-3 rounded-[var(--sb-radius-control)] border border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] p-2 text-xs text-[var(--sb-warning)]">Super Admin / Owner permissions are protected and cannot be overridden.</p> : null}
       {!canManage ? <p className="mb-3 text-xs text-muted-foreground">You can view effective access but cannot change it.</p> : null}
-      <details className="rounded-lg border border-[var(--sb-border-soft)] px-3 py-2"><summary className="cursor-pointer text-xs font-medium">Permissions by category</summary><form id="staff-permissions-form" action={updateAction} className="mt-3 space-y-3">
+      <details className="rounded-lg border border-[var(--sb-border-soft)] px-3 py-2"><summary className="cursor-pointer text-xs font-medium">Permissions by category</summary><form id="staff-permissions-form" action={updateAction} className="mt-3 space-y-3"><FormPendingBridge formId="staff-permissions-form" />
         {permissions.map((permission) => <input key={permission.id} type="hidden" name={`permission:${permission.id}`} value={overrides[permission.id] ?? "inherit"} />)}
         <div className="grid items-start gap-3 md:grid-cols-[11rem_minmax(0,1fr)]">
           <nav aria-label="Permission categories" className="flex gap-1 overflow-x-auto pb-1 md:flex-col md:overflow-visible">

@@ -20,7 +20,10 @@ export function FilterBar({
   className,
   phoneOnly = false,
   phoneMode = "drawer",
+  tabletMode = "drawer",
   phonePrimary = "inline",
+  compactPinnedFields,
+  stableResponsive,
 }: {
   children: ReactNode;
   actions?: ReactNode;
@@ -33,9 +36,12 @@ export function FilterBar({
   className?: string;
   phoneOnly?: boolean;
   phoneMode?: "drawer" | "inline";
+  tabletMode?: "drawer" | "inline" | "auto";
   phonePrimary?: "inline" | "drawer";
+  compactPinnedFields?: string[];
+  stableResponsive?: boolean;
 }) {
-  return <UnifiedListHeader {...{ children, actions, onSubmit, resultCount, resultLabel, resetHref, filtered, activeCount, className, phoneOnly, phoneMode, phonePrimary }} />;
+  return <UnifiedListHeader {...{ children, actions, onSubmit, resultCount, resultLabel, resetHref, filtered, activeCount, className, phoneOnly, phoneMode, tabletMode, phonePrimary, compactPinnedFields, stableResponsive }} />;
 }
 
 FilterBarMore.displayName = "FilterBarMore";

@@ -90,13 +90,15 @@ test("phone completion insight keeps the summary and seven-day matrix directly s
   assert.doesNotMatch(component, /Morning only|short: "AM"|short: "D"/);
 });
 
-test("outlet daily phone filters keep date, branch, and status inside one drawer", () => {
+test("outlet daily phone filters keep date and branch visible with secondary filters in the drawer", () => {
   const page = read("src/app/(app)/outlet-daily-records/page.tsx");
   const filter = read("src/components/common/UnifiedListHeader.tsx");
-  assert.match(page, /phonePrimary="drawer"/);
-  assert.match(filter, /primaryInDrawer \? primary : null/);
-  assert.match(filter, /unified-list-row--filter-only/);
-  assert.match(filter, /!primaryInDrawer[\s\S]*\? <SearchControl[\s\S]*: null/);
+  assert.match(page, /compactPinnedFields=\{\["branch"\]\}/);
+  assert.match(page, /<Input name="date" type="date"/);
+  assert.match(page, /<SelectControl name="status"/);
+  assert.match(filter, /const pinnedFilters = filters\.filter/);
+  assert.match(filter, /const drawerFilters = filters\.filter/);
+  assert.match(filter, /!primaryInDrawer[\s\S]*\? <SearchControl/);
   assert.doesNotMatch(filter, /: <div className="unified-list-primary-control" \/>/);
 });
 

@@ -1,3 +1,45 @@
+## v9.2.126 (local candidate) — Responsive workspace refinements
+
+This candidate folds the latest UI annotations into scoped responsive patterns for production planning, assets, purchase requests, goods receiving, stock counts, notifications, navigation, and the dashboard. Stock Count keeps its search, branch, status and date controls inline on phones when they fit, including the 360px layout, and clears stale search text on reset. Existing routes, permissions, and data behavior are retained. Local review evidence and Mock-data limitations are recorded in `docs/releases/preview-v9.2.126-local-candidate.md` and `docs/qa/2026-10-21-closure.md`. This candidate is local and not deployed or signed off.
+
+## v9.2.123 (local candidate) — responsive control clarity
+
+The local follow-up stabilizes the first frame of the Purchase Requests and Daily Records toolbars, clarifies Attendance and Asset action labels, and labels the compact Supplier Invoices filters. It is not deployed or signed off. See `docs/releases/preview-v9.2.123-local-candidate.md` and `docs/qa/2026-10-21-closure.md` for verification and open role/data work.
+
+## v9.2.122 (local candidate) — historical annotation follow-up
+
+The local branch includes scoped purchase, Daily Records, Low Stock, asset and upload-guidance refinements made after v9.2.121. The shell version advances so the next consolidated Preview can be identified accurately; this batch has not been pushed or signed off. See `docs/releases/preview-v9.2.122-local-candidate.md` and `docs/qa/2026-10-21-closure.md` for the changes and remaining role/data checks.
+
+## v9.2.121 (Preview) — local review follow-up
+
+This Preview includes a scoped page-header contrast correction, complete narrow-screen Attendance descriptions and import filename wrapping, a direct Attendance import entry, and navigation attention for every fetched actionable notification. Production is unchanged. See `docs/releases/preview-v9.2.121-review-follow-up.md` for verification and open items.
+
+## v9.2.120 (Preview) — local closure batch
+
+The next Preview review combines local-only availability states, scoped PR and Daily Records refinements, asset metric grouping, notification alignment, and an expanded viewport audit. Production behavior and remaining evidence limits are listed in `docs/releases/preview-v9.2.120-local-closure.md`.
+
+## v9.2.119 (unreleased) — operational UI review candidate
+
+Scoped list, notification, and asset inspection refinements are available for Preview review. Local verification scope and remaining gaps are recorded in `docs/releases/preview-v9.2.119-ui-review.md`.
+
+## v9.2.118 (unreleased) — historical annotation closure candidate
+
+- Keep only one permission-scoped phone create button on Daily Records, Employees, Purchase Orders, Stock Counts, Goods Receiving, Branches and Stock Wastage. The existing right-rail action owns it; creation routes and business actions are unchanged.
+
+The Preview version advances beyond the old Preview branch's v9.2.116 marker. The current candidate preserves its functional repairs while continuing the full historical annotation review. This version change does not imply that remaining viewport, role and interaction checks have passed.
+
+## v9.2.110 (unreleased) — responsive list completion
+
+Purchase Requests keeps the complete compact row at 1280–1399px until the desktop table fits with its summary rail. Outlet Daily Records keeps its complete compact row below 1536px for the same reason. Singular line and item labels are corrected. The active Preview candidate retains the v9.2.109 workflow and permission repairs; Production is unchanged. Repository migrations reviewed through `368`; this does not mean migration 368 has been applied to Production. See `docs/qa/2026-10-21-closure.md` for verification scope and open items.
+
+## v9.2.109 — reviewed operational UI
+
+Daily Records and PR use scoped compact layouts, persistent daily filters, semantic notification icons and permission-scoped attention dots. Phone PR metadata stays 11px; desktop controls 36px and touch targets 44px. Functional restorations are tracked independently in docs/ui-refinement-review.md.
+
+# v9.2.108 (unreleased)
+
+Production-based UI correction candidate: compact annotated phone text, restore the mobile Create PR action and location title, align workspace navigation to 36px desktop / 44px touch sizing, and use compact asset summary cards. No workflow, permission, or data changes.
+
 > Local candidate — 2026-10-19: migrations reviewed through `366`; forward-only migration 历史已到 `366`. Chef and unique username login are local changes pending database verification and release.
 
 > Local candidate — 2026-10-18: migrations reviewed through `364`. Week-only roster exclusions and the 16-comment interface corrections are under local verification. Migration 364 is not applied to Production.

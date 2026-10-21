@@ -502,10 +502,11 @@ async function getStockCardFromBaseTables(
 function searchExpression(columns: string[], value: string | undefined) {
   const search = value?.trim();
   if (!search) return null;
-  // PostgREST's `or` syntax uses commas and parentheses as control characters.
-  // Remove those delimiters and escape LIKE wildcards before embedding a value.
-  const term = search.replace(/[(),]/g, " ").replace(/[\\%_]/g, "\\$&");
-  return columns.map((column) => `${column}.ilike.%${term}%`).join(",");
+  // Quote user input in PostgREST's filter grammar so punctuation (including
+  // commas, dots, and parentheses) remains search text instead of syntax.
+  // Escape SQL LIKE wildcards so a search for "%" or "_" is literal.
+  const term = search.replace(/[\\%_"]/g, "\\$&");
+  return columns.map((column) => `${column}.ilike."%${term}%"`).join(",");
 }
 
 function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filters, keys: (keyof T)[], defaultSort: keyof T) {
@@ -1128,13 +1129,14 @@ async function readLowStockPages<T>(query: { range: (from: number, to: number) =
 async function loadLowStockItems(filters: Filters = {}) {
   const customThreshold = Boolean(filters.below_qty?.trim()) && Number.isFinite(Number(filters.below_qty)) && Number(filters.below_qty) >= 0;
   if (isMockMode()) {
+    const search = filters.search?.trim().toLowerCase();
     return getMockLowStockItems().map((row) => ({
       ...row,
       purchase_unit: row.base_unit,
       conversion_to_base_unit: 1,
       status: "active" as const,
-      branch_id: null,
-      branch_name: null,
+      branch_id: "mock-branch-low-stock",
+      branch_name: "Mock Outlet",
       total_quantity_in: row.current_stock,
       total_quantity_out: 0,
       current_qty: row.current_stock,
@@ -1144,7 +1146,11 @@ async function loadLowStockItems(filters: Filters = {}) {
       is_low_stock: true,
       stock_status: row.current_stock <= 0 ? "out_of_stock" as const : "low_stock" as const,
       suggested_reorder_qty: Math.max(Number(row.safety_stock) - Number(row.current_stock), Number(row.moq), 1),
-    }));
+    })).filter((row) =>
+      (!filters.branch_id || filters.branch_id === "all" || row.branch_id === filters.branch_id)
+      && (!filters.status || filters.status === "all" || row.stock_status === filters.status)
+      && (!search || [row.item_code, row.item_name, row.branch_name, row.supplier_name].some((value) => String(value ?? "").toLowerCase().includes(search)))
+    );
   }
 
   const supabase = await createClient();

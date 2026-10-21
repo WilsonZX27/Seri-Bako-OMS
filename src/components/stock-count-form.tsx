@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { AlertTriangle, Archive, CalendarDays, ChevronDown, ListFilter, ListPlus, MapPin, Minus, Plus, RefreshCw, Search, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,14 +9,14 @@ import { ModalShell } from "@/components/ui/modal-shell";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
-import { SubmitButton } from "@/components/ui/submit-button";
+import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { TableActionMenuPortal } from "@/components/ui/table-action-menu-portal";
 import { StockCountLineRecovery } from "@/components/stock-count-line-recovery";
 import { formatDateOnly, getToday } from "@/lib/utils";
 import { formatStockCountQuantity as formatQuantity, stockCountQuantityInput as formatQuantityInput, stockCountInputStep } from "@/lib/stock-count-quantity";
 import { tryStockCountStorage } from "@/lib/stock-count-storage";
-import type { StockCountAutosaveResult } from "@/server/actions/stock-counts";
+import type { StockCountAutosaveResult, StockCountSaveResult } from "@/server/actions/stock-counts";
 
 type BranchOption = { id: string; branch_code: string; branch_name: string; status: string };
 type SeedLine = {
@@ -86,6 +86,7 @@ export function StockCountForm({
   selectedBranchId,
   seedLines,
   action,
+  updateDraftAction,
   formId,
   showSubmit = true,
   initialCountDate,
@@ -101,7 +102,8 @@ export function StockCountForm({
   branches: BranchOption[];
   selectedBranchId?: string;
   seedLines: SeedLine[];
-  action: (formData: FormData) => Promise<void>;
+  action: (formData: FormData) => Promise<StockCountSaveResult>;
+  updateDraftAction?: (id: string, formData: FormData) => Promise<StockCountSaveResult>;
   formId?: string;
   showSubmit?: boolean;
   initialCountDate?: string;
@@ -121,6 +123,10 @@ export function StockCountForm({
   const saveSequence = useRef(0);
   const lastSavedRevision = useRef(0);
   const retryTimer = useRef<number | null>(null);
+  const saveInFlight = useRef<Promise<boolean> | null>(null);
+  const createdDraftId = useRef<string | null>(null);
+  const saveDraftRef = useRef<(revision: number) => Promise<boolean>>(async () => true);
+  const manualSavePending = useRef(false);
   const retryRevision = useRef(0);
   const retryAttempts = useRef(0);
   const [lines, setLines] = useState<SeedLineInput[]>(() =>
@@ -129,10 +135,13 @@ export function StockCountForm({
   const [countDate, setCountDate] = useState(initialCountDate ?? getToday());
   const [countRemarks, setCountRemarks] = useState(initialRemarks ?? "");
   const [dirtyRevision, setDirtyRevision] = useState(0);
+  const dirtyRevisionRef = useRef(0);
   const [autosaveState, setAutosaveState] = useState<AutosaveState>("idle");
   const [autosaveError, setAutosaveError] = useState("");
   const [localBackupAvailable, setLocalBackupAvailable] = useState(true);
   const [autosaveRetryable, setAutosaveRetryable] = useState(true);
+  const [manualSaveError, setManualSaveError] = useState("");
+  const [manualSavePendingState, startManualSave] = useTransition();
   const [search, setSearch] = useState("");
   const [showAdjustedOnly, setShowAdjustedOnly] = useState(false);
   const [showMissingOnly, setShowMissingOnly] = useState(false);
@@ -151,11 +160,15 @@ export function StockCountForm({
   const [settingsOpen, setSettingsOpen] = useState(true);
   const sortPreferenceReady = useRef(false);
   const resolvedBranchId = selectedBranchId ?? branches[0]?.id ?? "";
+  const activeBranchId = useRef(resolvedBranchId);
+  activeBranchId.current = resolvedBranchId;
   const localStorageKey = `seri-bako:stock-count-draft:${draftId ?? `new:${resolvedBranchId}`}`;
 
   function markDirty() {
     hasUserEdited.current = true;
-    setDirtyRevision((current) => current + 1);
+    const nextRevision = dirtyRevisionRef.current + 1;
+    dirtyRevisionRef.current = nextRevision;
+    setDirtyRevision(nextRevision);
   }
 
   // Next can preserve this client component while the branch query changes.
@@ -173,6 +186,11 @@ export function StockCountForm({
     setAutosaveState("idle");
     setAutosaveError("");
     setAutosaveRetryable(true);
+    dirtyRevisionRef.current = 0;
+    lastSavedRevision.current = 0;
+    setDirtyRevision(0);
+    createdDraftId.current = null;
+    saveSequence.current += 1;
   }, [selectedBranchId, seedLines, initialCountDate, initialRemarks]);
 
   useEffect(() => {
@@ -232,13 +250,22 @@ export function StockCountForm({
       setCountRemarks(snapshot.remarks);
       hasUserEdited.current = true;
       setAutosaveState("recovered");
-      setDirtyRevision((current) => current + 1);
+      const nextRevision = dirtyRevisionRef.current + 1;
+      dirtyRevisionRef.current = nextRevision;
+      setDirtyRevision(nextRevision);
     } catch {
       tryStockCountStorage(() => window.localStorage.removeItem(localStorageKey));
     }
   }, [localStorageKey, resolvedBranchId, seedLines]);
 
-  const saveDraft = useCallback(async (revision: number) => {
+  const saveDraft = useCallback(async (revision: number): Promise<boolean> => {
+    if (manualSavePending.current) return false;
+    if (saveInFlight.current) {
+      const pending = saveInFlight.current;
+      const pendingResult = await pending;
+      if (revision <= lastSavedRevision.current) return pendingResult;
+      return saveDraftRef.current(revision);
+    }
     if (!autosaveAction || !formRef.current || !hasUserEdited.current || revision <= lastSavedRevision.current) return true;
     const formData = new FormData(formRef.current);
     const physicalValues = formData.getAll("line_physical_qty").map(String);
@@ -253,11 +280,16 @@ export function StockCountForm({
       retryAttempts.current = 0;
     }
     const sequence = ++saveSequence.current;
+    const branchAtStart = resolvedBranchId;
     setAutosaveState("saving");
     setAutosaveError("");
     setAutosaveRetryable(true);
+    const request = (async () => {
     try {
-      const result = await autosaveAction(formData);
+      const existingDraftId = draftId ?? createdDraftId.current;
+      const result: StockCountAutosaveResult = existingDraftId && updateDraftAction
+        ? await updateDraftAction(existingDraftId, formData).then((saved) => ({ ok: saved.ok, id: saved.id, error: saved.error, retryable: !saved.ok, savedAt: saved.ok ? new Date().toISOString() : undefined }))
+        : await autosaveAction(formData);
       if (sequence !== saveSequence.current) return result.ok;
       if (!result.ok || !result.id) {
         setAutosaveState("error");
@@ -272,11 +304,12 @@ export function StockCountForm({
         return false;
       }
       lastSavedRevision.current = revision;
+      createdDraftId.current = result.id;
       retryAttempts.current = 0;
-      tryStockCountStorage(() => window.localStorage.removeItem(localStorageKey));
-      setAutosaveState("saved");
+      if (dirtyRevisionRef.current === revision) tryStockCountStorage(() => window.localStorage.removeItem(localStorageKey));
+      setAutosaveState(dirtyRevisionRef.current === revision ? "saved" : "local");
       setAutosaveRetryable(true);
-      if (!draftId) router.replace(`/stock-counts/${result.id}?autosaved=1`);
+      if (!existingDraftId && !draftId && !manualSavePending.current && activeBranchId.current === branchAtStart) router.replace(`/stock-counts/${result.id}?autosaved=1`);
       return true;
     } catch {
       if (sequence === saveSequence.current) {
@@ -290,7 +323,15 @@ export function StockCountForm({
       }
       return false;
     }
-  }, [autosaveAction, draftId, localStorageKey, router]);
+    })();
+    saveInFlight.current = request;
+    try {
+      return await request;
+    } finally {
+      if (saveInFlight.current === request) saveInFlight.current = null;
+    }
+  }, [autosaveAction, draftId, localStorageKey, router, resolvedBranchId, updateDraftAction]);
+  saveDraftRef.current = saveDraft;
 
   useEffect(() => () => {
     if (retryTimer.current !== null) window.clearTimeout(retryTimer.current);
@@ -329,6 +370,18 @@ export function StockCountForm({
   }, [dirtyRevision, saveDraft]);
 
   function selectBranch(branchId: string) {
+    if (hasUserEdited.current) {
+      const snapshot: LocalDraftSnapshot = {
+        version: 2,
+        branchId: resolvedBranchId,
+        countDate,
+        remarks: countRemarks,
+        lines: lines.map((line) => ({ itemId: line.item_id, physicalQty: line.physicalQty, initialPhysicalQty: line.initialPhysicalQty, remarks: line.remarks })),
+        savedLocallyAt: new Date().toISOString(),
+      };
+      tryStockCountStorage(() => window.localStorage.setItem(localStorageKey, JSON.stringify(snapshot)));
+    }
+    activeBranchId.current = branchId;
     router.push(branchId ? `/stock-counts/new?branch_id=${branchId}` : "/stock-counts/new");
   }
 
@@ -339,20 +392,97 @@ export function StockCountForm({
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     const firstMissing = lines.find((line) => line.physicalQty.trim() === "");
-    if (!firstMissing) return;
+    if (firstMissing) {
+      event.preventDefault();
+      setAfterCreateAction("");
+      setAfterCreateItemId("");
+      setValidationAttempted(true);
+      setSearch("");
+      setShowAdjustedOnly(false);
+      setShowMissingOnly(true);
+      window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+        const input = document.getElementById(`physical-${firstMissing.item_id}`);
+        input?.scrollIntoView({ behavior: "smooth", block: "center" });
+        input?.focus({ preventScroll: true });
+      }));
+      return;
+    }
 
+    const submitter = (event.nativeEvent as SubmitEvent).submitter;
+    // The confirmed post action submits through its own Server Action. Keep
+    // that native action path intact; draft saves stay on this page on error.
+    if (submitter instanceof HTMLElement && submitter.hasAttribute("formaction")) return;
     event.preventDefault();
+    if (manualSavePending.current || !formRef.current) return;
+    manualSavePending.current = true;
     setAfterCreateAction("");
     setAfterCreateItemId("");
-    setValidationAttempted(true);
-    setSearch("");
-    setShowAdjustedOnly(false);
-    setShowMissingOnly(true);
-    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
-      const input = document.getElementById(`physical-${firstMissing.item_id}`);
-      input?.scrollIntoView({ behavior: "smooth", block: "center" });
-      input?.focus({ preventScroll: true });
-    }));
+    setManualSaveError("");
+    setAutosaveState("saving");
+    const submittedRevision = dirtyRevisionRef.current;
+    const formData = new FormData(formRef.current);
+    if (saveInFlight.current) {
+      const pendingSave = saveInFlight.current;
+      startManualSave(async () => {
+        try {
+          await pendingSave;
+          // Rebuild after the prior request settles so the manual save always
+          // contains the latest controls, and uses the same create idempotency key.
+          const latestForm = formRef.current;
+          if (!latestForm) throw new Error("The count form is no longer available.");
+          const nextDraftId = draftId ?? createdDraftId.current;
+          const result = nextDraftId && updateDraftAction
+            ? await updateDraftAction(nextDraftId, new FormData(latestForm))
+            : await action(new FormData(latestForm));
+          if (!result.ok || !result.id) throw new Error(result.error ?? "The draft could not be saved.");
+          lastSavedRevision.current = dirtyRevisionRef.current;
+          tryStockCountStorage(() => window.localStorage.removeItem(localStorageKey));
+          setAutosaveState("saved");
+          setAutosaveError("");
+          if (!draftId && activeBranchId.current === resolvedBranchId) router.replace(result.href ?? `/stock-counts/${result.id}`);
+        } catch {
+          const message = "The draft could not be saved. Your entries are still on this page; retry when the connection is available.";
+          setManualSaveError(message);
+          setAutosaveError(message);
+          setAutosaveState("error");
+        } finally {
+          manualSavePending.current = false;
+          document.dispatchEvent(new CustomEvent("sb:form-settled", { detail: { formId: formRef.current?.id } }));
+        }
+      });
+      return;
+    }
+    startManualSave(async () => {
+      try {
+        const nextDraftId = draftId ?? createdDraftId.current;
+        const result = nextDraftId && updateDraftAction ? await updateDraftAction(nextDraftId, formData) : await action(formData);
+        if (!result.ok || !result.id) {
+          const message = result.error ?? "The draft could not be saved. Your entries are still on this page.";
+          setManualSaveError(message);
+          setAutosaveError(message);
+          setAutosaveState("error");
+          return;
+        }
+        lastSavedRevision.current = submittedRevision;
+        createdDraftId.current = result.id;
+        if (dirtyRevisionRef.current === submittedRevision) {
+          tryStockCountStorage(() => window.localStorage.removeItem(localStorageKey));
+          setAutosaveState("saved");
+        } else {
+          setAutosaveState("local");
+        }
+        setAutosaveError("");
+        if (!draftId && activeBranchId.current === resolvedBranchId) router.replace(result.href ?? `/stock-counts/${result.id}`);
+      } catch {
+        const message = "The draft could not be saved. Your entries are still on this page; retry when the connection is available.";
+        setManualSaveError(message);
+        setAutosaveError(message);
+        setAutosaveState("error");
+      } finally {
+        manualSavePending.current = false;
+        document.dispatchEvent(new CustomEvent("sb:form-settled", { detail: { formId: formRef.current?.id } }));
+      }
+    });
   }
 
   function openRetirement(line: SeedLineInput) {
@@ -440,7 +570,9 @@ export function StockCountForm({
   return (
     <div className="min-w-0">
       <div>
-        <form ref={formRef} id={formId} action={action} noValidate onSubmit={handleSubmit} className={showSubmit ? "space-y-3 pb-28 xl:pb-0" : "space-y-3"}>
+        <form ref={formRef} id={formId} noValidate onSubmit={handleSubmit} aria-busy={manualSavePendingState || undefined} className={showSubmit ? "space-y-3 pb-28 xl:pb-0" : "space-y-3"}>
+      {formId ? <FormPendingBridge formId={formId} /> : null}
+          {manualSaveError ? <p role="alert" className="rounded-[var(--sb-control-radius)] border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{manualSaveError}</p> : null}
           <input type="hidden" name="has_unsaved_changes" value={String(dirtyRevision > lastSavedRevision.current)} />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="after_create_action" value={afterCreateAction} />
@@ -602,7 +734,7 @@ export function StockCountForm({
                           aria-invalid={validationAttempted && !hasPhysical}
                           aria-describedby={validationAttempted && !hasPhysical ? `physical-error-${line.item_id}` : undefined}
                            aria-label={`Counted quantity for ${line.item_name}`}
-                          placeholder={line.prefill_source === "unavailable" ? "Enter count" : "0.000"}
+                          placeholder={line.prefill_source === "unavailable" ? "Count" : "0.000"}
                            className="h-10 w-full min-w-10 flex-1 rounded-none border-0 px-1 text-center text-[13px] font-semibold tabular-nums shadow-none focus-visible:ring-inset [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                         />
                           <button type="button" className="flex h-10 w-10 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, 1)} aria-label={`Increase physical quantity for ${line.item_name}`}><Plus className="h-4 w-4" /></button>
@@ -666,7 +798,7 @@ export function StockCountForm({
                 <span className="text-sm font-semibold tabular-nums">{completedCount} of {lines.length} counted</span>
                 <span className="text-xs tabular-nums text-muted-foreground">{needsPhysicalCount ? `${needsPhysicalCount} remaining` : `${adjustedCount} edited this session`}{autosaveError ? ` · ${autosaveError}` : ""}</span>
               </div>
-              <SubmitButton type="submit" className="h-12 w-auto min-w-32 shrink-0 px-5" pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Save draft</SubmitButton>
+              <SubmitButton type="submit" disabled={manualSavePendingState} aria-busy={manualSavePendingState || undefined} className="h-12 w-auto min-w-32 shrink-0 px-5" pendingLabel="Saving...">{manualSavePendingState ? "Saving..." : "Save draft"}</SubmitButton>
             </div>
           ) : null}
         </form>

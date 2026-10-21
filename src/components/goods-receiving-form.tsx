@@ -7,6 +7,7 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
+import { FormPendingBridge } from "@/components/ui/submit-button";
 import { formatCurrency, formatNumber, getToday } from "@/lib/utils";
 import type { EligiblePurchaseOrder, PurchaseOrderReceivingLine } from "@/server/queries/goods-receivings";
 
@@ -65,7 +66,7 @@ export function GoodsReceivingForm({
 
   return (
     <div className="min-w-0">
-      <form id="goods-receiving-form" action={action} className="space-y-3">
+      <form id="goods-receiving-form" action={action} className="space-y-3"><FormPendingBridge formId="goods-receiving-form" />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="grn_no" value={grnNo} />
           <input type="hidden" name="status" value="draft" />

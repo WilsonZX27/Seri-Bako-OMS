@@ -194,6 +194,8 @@ const activityEntitiesByRole = {
 const protectedActivityEntities = new Set(["company", "role", "backup"]);
 
 export async function getVisibleRecentActivitiesForCurrentUser(limit = 6) {
+  if (isMockMode()) return [];
+
   const scope = await getCurrentUserScope();
   if (!scope) return [];
 

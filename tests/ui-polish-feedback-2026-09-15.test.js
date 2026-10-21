@@ -13,7 +13,7 @@ test("purchase registers use the requested two-line information order", () => {
   assert.match(requests, />Location \/ Requested by</);
   assert.match(requests, /DocumentNumber value=\{request\.request_no\}[\s\S]*?PriorityBadge priority=\{request\.priority\}/);
   assert.match(requests, /request\.branch_name[\s\S]*?request\.requested_by_name/);
-  assert.match(orders, />Order value<[\s\S]*?order\.line_count\} lines[\s\S]*?formatCurrency\(order\.order_total\)/);
+  assert.match(orders, />Order value<[\s\S]*?order\.line_count\} \{order\.line_count === 1 \? "line" : "lines"\}[\s\S]*?formatCurrency\(order\.order_total\)/);
 });
 
 test("unmatched requested items use one red identity without duplicate copy", () => {

@@ -29,7 +29,8 @@ test("list and production annotations use the shared responsive authorities", ()
 test("outlet status and today summary are concise and non-duplicated", () => {
   const outlet = read("src", "app", "(app)", "outlet-daily-records", "page.tsx");
   const badges = read("src", "components", "ui", "status-badge.tsx");
-  assert.match(outlet, /Completed data before today/);
+  assert.match(outlet, /history\.summary_date\?`Completed ·/);
+  assert.match(outlet, /No completed records before today\./);
   assert.doesNotMatch(outlet, /<StatusBadge status=\{progress\.status\} \/><p/);
   assert.match(badges, /in_progress: "border-\[#DDE4E0\] bg-\[#F1F4F2\]/);
   assert.match(badges, /ready_to_post: "border-\[#8FB8DC\] bg-\[#E7F1FA\]/);
@@ -71,7 +72,8 @@ test("attachment, account, sourcing and inventory copy stay restrained", () => {
   const account = read("src", "components", "layout", "account-menu.tsx");
   const procurement = read("src", "components", "procurement-forms.tsx");
   const inventory = read("src", "app", "(app)", "inventory", "page.tsx");
-  assert.match(upload, /text-\[10px\] text-\[var\(--sb-text-muted\)\]/);
+  assert.match(upload, /text-xs leading-4 text-\[var\(--sb-text-muted\)\]/);
+  assert.match(upload, /aria-describedby=\{`\$\{inputId\}-guidance`\}/);
   assert.match(upload, /Give the file a recognisable name/);
   assert.doesNotMatch(panels, /Attachments are locked after approval or posting/);
   assert.equal((account.match(/text-xs/g) ?? []).length >= 2, true);

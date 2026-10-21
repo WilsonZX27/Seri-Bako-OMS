@@ -24,6 +24,7 @@
   --sb-border-soft: #e7ebe7;
   --sb-text: #13261f;
   --sb-text-muted: #66766f;
+  --sb-text-muted-workspace: #5f6f68;
   --sb-text-soft: #8A948E;
   --sb-text-inverse: #FFFFFF;
   --sb-success: #0F6B3F;
@@ -460,7 +461,7 @@ html[data-design-layer="v2"] :is(a, button, summary, [role="button"]) {
 
 [data-page-header] p {
   max-width: 48rem;
-  color: var(--sb-text-muted);
+  color: var(--sb-text-muted-workspace);
   font-size: var(--sb-text-body);
 }
 
@@ -1011,7 +1012,6 @@ nav[aria-label="Pagination"] > span {
   .unified-list-result strong { color: var(--sb-text); font-size: .8125rem; }
   .unified-list-layer { position: fixed; inset: 0; z-index: var(--sb-z-sheet-backdrop); }
   .unified-list-backdrop { position: fixed; inset: 0; z-index: var(--sb-z-sheet-backdrop); background: rgb(0 0 0 / .60); backdrop-filter:blur(3px); }
-  .unified-list-sheet { position: fixed; inset-inline: 0; bottom: 0; z-index: var(--sb-z-sheet); display: grid; grid-template-rows: auto minmax(0,1fr) auto; max-height: min(85dvh, 40rem); overflow: hidden; padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom)); border-radius: var(--sb-panel-radius) var(--sb-panel-radius) 0 0; border: 1px solid var(--sb-border); background: var(--sb-surface-raised); box-shadow: 0 -1rem 3rem rgb(10 31 25 / .16); }
   .unified-list-sheet-header { display: flex; align-items: center; justify-content: space-between; padding-bottom: .75rem; border-bottom: 1px solid var(--sb-border); }
   .unified-list-sheet-header h2 { margin: 0; font-size: 1rem; font-weight: 500; }
   .unified-list-sheet-header button { display: grid; place-items: center; width: 2rem; height: 2rem; color: var(--sb-muted); }
@@ -1173,8 +1173,8 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
     position: relative;
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) 44px 44px auto;
-    gap: 8px;
-    align-items: stretch;
+    gap: 4px;
+    align-items: center;
   }
 
   html[data-design-layer="v2"] form.unified-list-header .unified-list-row:not(:has(.unified-list-search-submit)):not(.unified-list-row--filter-only) {
@@ -1240,11 +1240,12 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
 
   html[data-design-layer="v2"] form.unified-list-header .unified-list-filter-trigger,
   html[data-design-layer="v2"] form.unified-list-header .unified-list-inline-control {
-    min-width: 0;
+    min-width: 44px;
     min-height: 44px;
     height: 44px;
     border-radius: var(--sb-control-radius) !important;
   }
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-filter-label { display:none !important; }
 
   html[data-design-layer="v2"] form.unified-list-header .unified-list-filter-trigger {
     display: inline-flex !important;
@@ -1299,17 +1300,6 @@ html[data-design-layer="v2"] [data-mobile-bottom-nav] {
     position: fixed !important;
     inset: 0 !important;
     z-index: var(--sb-z-sheet-backdrop) !important;
-  }
-
-  html[data-design-layer="v2"] .unified-list-sheet {
-    position: fixed !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    z-index: var(--sb-z-sheet) !important;
-    max-height: min(78dvh, 640px);
-    padding-bottom: max(16px, env(safe-area-inset-bottom)) !important;
-    border-radius: 16px 16px 0 0 !important;
   }
 
   html[data-design-layer="v2"] body:has(.unified-list-sheet) [data-mobile-bottom-nav] {
@@ -1739,12 +1729,6 @@ html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, butto
   }
 }
 
-@media (min-width: 768px) and (max-width: 1023px) {
-  html[data-design-layer="v2"] form.sb-list-filters--portrait-query[data-tablet-query-layout="query"] > :where(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"]) {
-    grid-column: 1 / -1;
-  }
-}
-
 html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, [role="combobox"], [data-select-control], .sb-status-filter-control, .sb-filter-more > summary) {
   background-color: var(--sb-surface-raised) !important;
   border-color: var(--sb-border) !important;
@@ -2047,6 +2031,13 @@ html[data-design-layer="v2"] [data-outlet-daily-lines] {
     min-width: 9rem !important;
     max-width: 9rem !important;
   }
+  html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-desktop-actions > .unified-list-action[data-list-action="secondary"] {
+    flex:0 0 auto !important;
+    width:auto !important;
+    min-width:0 !important;
+    max-width:fit-content !important;
+    padding-inline:.5rem !important;
+  }
 
   html[data-design-layer="v2"] form.sb-list-query-card.sb-list-filters--date-first > .unified-list-date-control {
     /* A date-first list has no free-text query. Keep its date field the same
@@ -2111,6 +2102,7 @@ html[data-design-layer="v2"] table[data-ui-table] > thead > tr > th {
   font-size: .625rem !important;
   line-height: 1.15 !important;
   letter-spacing: .02em;
+  color: var(--sb-text-muted-workspace);
   vertical-align: middle;
 }
 
@@ -2147,12 +2139,12 @@ html[data-design-layer="v2"] table[data-ui-table] > thead > tr > th {
 
   html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(1) { width: 2.5rem; }
   html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(2) { width: 2.5rem; }
-  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(3) { width: 8.5rem; }
-  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(4) { width: 6.25rem; }
-  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(5) { width: 6.5rem; }
-  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(6) { width: 10.5rem; }
-  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(7) { width: 7.75rem; }
-  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(8) { width: 5.5rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(3) { width: 8rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(4) { width: 6rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(5) { width: 6rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(6) { width: 9.5rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(7) { width: 7rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(8) { width: 8.5rem; }
   html[data-design-layer="v2"] .sb-purchase-request-table td:nth-child(6) {
     white-space: normal;
     overflow-wrap: anywhere;
@@ -2639,17 +2631,6 @@ html[data-design-layer="v2"] form.sb-asset-query .unified-list-desktop-actions b
   width: 1rem; height: 1rem; flex: none;
 }
 
-/* At narrow phone widths, keep the query readable instead of reducing it to
-   its search icon. The commands occupy the following row. */
-@media (max-width: 380px) {
-  html[data-design-layer="v2"] form.unified-list-header .unified-list-row:has(.unified-list-search-submit) {
-    grid-template-columns: minmax(0, 1fr) max-content auto;
-  }
-  html[data-design-layer="v2"] form.unified-list-header .unified-list-row:has(.unified-list-search-submit) > .unified-list-primary-control { grid-column: 1 / -1; }
-  html[data-design-layer="v2"] form.unified-list-header .unified-list-search-submit { grid-column: 1; }
-  html[data-design-layer="v2"] form.unified-list-header .unified-list-row:has(.unified-list-search-submit) > .unified-list-result { grid-column: 3; }
-}
-
 /* The accessible file input is visually hidden; reflect its keyboard focus on
    the visible label that opens the native chooser. */
 .sb-file-picker:has(input[type="file"]:focus-visible) label[for]:not(.sr-only) {
@@ -2798,14 +2779,14 @@ html[data-design-layer="v2"] button[data-mobile-secondary-actions] { height:3.5r
 .unified-list-primary-control { flex:1 1 auto; }
 .unified-list-primary-input { width:100% !important; min-width:0 !important; height:2.75rem !important; padding-left:2.25rem !important; padding-right:2.25rem !important; border-radius:var(--sb-radius-control) !important; }
 .unified-list-filter-trigger { position:relative; display:inline-flex; align-items:center; justify-content:center; gap:.4rem; flex:0 0 auto; min-width:2.75rem; height:2.75rem; padding:0; border:0; border-radius:var(--sb-radius-control); background:transparent; color:var(--sb-green-900); }
-.unified-list-filter-trigger svg { width:1.125rem; height:1.125rem; }
+.unified-list-filter-trigger svg { width:1rem; height:1rem; }
 .unified-list-filter-label { display:none; font-size:.8125rem; font-weight:500; white-space:nowrap; }
 .unified-list-filter-badge { position:absolute; top:-.35rem; right:-.35rem; min-width:1.15rem; height:1.15rem; padding:0 .25rem; border-radius:999px; background:var(--sb-green-900); color:white; font-size:.6875rem; font-weight:600; line-height:1.15rem; }
 .unified-list-result { display:grid; flex:0 0 auto; margin:0; color:var(--sb-text-muted); font-size:.625rem; font-weight:500; line-height:1.05; text-align:center; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .unified-list-result strong { color:var(--sb-text); font-size:.8125rem; }
 .unified-list-layer { position:fixed; inset:0; z-index:var(--sb-z-sheet-backdrop); }
 .unified-list-backdrop { position:fixed; inset:0; z-index:var(--sb-z-sheet-backdrop); background:rgb(0 0 0 / .60); backdrop-filter:blur(3px); }
-.unified-list-sheet { position:fixed; inset-inline:0; bottom:0; z-index:var(--sb-z-sheet); display:grid; grid-template-rows:auto minmax(0,1fr) auto; max-height:min(85dvh, 40rem); overflow:hidden; padding:1rem 1rem calc(1rem + env(safe-area-inset-bottom)); border-radius:var(--sb-panel-radius) var(--sb-panel-radius) 0 0; border:1px solid var(--sb-border); background:var(--sb-surface-raised); box-shadow:0 -1rem 3rem rgb(10 31 25 / .16); }
+.unified-list-sheet { position:fixed; inset:50% auto auto 50%; z-index:var(--sb-z-sheet); display:grid; grid-template-rows:auto minmax(0,1fr) auto; width:min(42rem,calc(100vw - 2rem)); max-height:min(82dvh,40rem); overflow:hidden; padding:1rem; border-radius:var(--sb-panel-radius); border:1px solid var(--sb-border); background:var(--sb-surface-raised); box-shadow:0 1rem 3rem rgb(10 31 25 / .16); transform:translate(-50%,-50%); }
 .unified-list-sheet-header { display:flex; align-items:center; justify-content:space-between; padding-bottom:.75rem; border-bottom:1px solid var(--sb-border); }
 .unified-list-sheet-header h2 { margin:0; font-size:1rem; font-weight:500; }
 .unified-list-sheet-header button { display:grid; place-items:center; width:2rem; height:2rem; color:var(--sb-muted); }
@@ -2839,9 +2820,8 @@ html[data-design-layer="v2"] form.unified-list-header button[type="submit"]:not(
 html[data-design-layer="v2"] form.unified-list-header .unified-list-search-submit { display:inline-flex !important; grid-column:2; width:44px; min-width:44px; height:44px; min-height:44px; padding:0; justify-content:center; border-color:var(--sb-green-900); background:var(--sb-green-900); color:white; }
 html[data-design-layer="v2"] form.unified-list-header .unified-list-inline-fields { display:grid !important; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; margin-top:8px; }
 html[data-design-layer="v2"] .unified-list-backdrop { position:fixed !important; inset:0 !important; z-index:var(--sb-z-sheet-backdrop) !important; }
-html[data-design-layer="v2"] .unified-list-sheet { position:fixed !important; right:0 !important; bottom:0 !important; left:0 !important; z-index:var(--sb-z-sheet) !important; max-height:min(78dvh, 640px); padding-bottom:max(16px, env(safe-area-inset-bottom)) !important; border-radius:16px 16px 0 0 !important; }
 html[data-design-layer="v2"] body:has(.unified-list-sheet) [data-mobile-bottom-nav] { visibility:hidden !important; pointer-events:none !important; }
-html[data-design-layer="v2"] .unified-list-sheet-fields { grid-template-columns:repeat(2, minmax(0, 1fr)) !important; align-items:start; align-content:start; gap:10px 8px; padding:12px 0 16px; }
+html[data-design-layer="v2"] .unified-list-sheet-fields { grid-template-columns:repeat(2, minmax(0, 1fr)) !important; align-items:start; align-content:start; gap:.5rem .625rem; padding:.75rem 0; }
 html[data-design-layer="v2"] .unified-list-sheet-fields > * { width:100%; min-width:0; }
 html[data-design-layer="v2"] .unified-list-sheet-fields > :where([type="hidden"]) { display:none; }
 html[data-design-layer="v2"] .unified-list-sheet-fields .sb-status-filter { width:100%; min-width:0; flex:none; }
@@ -2877,8 +2857,6 @@ html[data-design-layer="v2"] [data-bottom-sheet] { border-radius:var(--sb-panel-
 html[data-design-layer="v2"] .unified-list-sheet-fields > :nth-last-child(1 of :not([aria-hidden="true"]):not([type="hidden"])):nth-child(odd of :not([aria-hidden="true"]):not([type="hidden"])) { grid-column:1 / -1; }
 /* Server-rendered console sections can arrive after primary-action extraction. */
 [data-mobile-console-content] [data-console-section]:has(> div:last-child:empty) { display:none; }
-
-@media(max-width:359px) { .sb-asset-field-grid > label > span:first-child { min-height:2rem; } }
 
 .unified-list-primary-control:has(.unified-list-clear) input[type="search"]::-webkit-search-cancel-button { display:none; }
 
@@ -2931,4 +2909,365 @@ html[data-design-layer="v2"] table.sb-stock-balance-table :is(th,td):nth-child(3
 
 @media (min-width:1280px) {
  html[data-design-layer="v2"] form.sb-list-query-card > [data-date-range-control] { flex:0 0 240px!important; width:240px!important; min-width:0!important; max-width:240px!important; }
+}
+
+/* Production based mobile refinements from approved browser annotations. */
+/* Low Stock keeps its summary rail at the desktop shell switch. Place its
+   five filters on two rows until the main canvas can hold them without
+   pushing the record count outside the query card. */
+@media (min-width: 1280px) and (max-width: 1535px) {
+  html[data-design-layer="v2"] form.sb-list-query-card.sb-low-stock-query {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    flex-wrap: wrap !important;
+  }
+  html[data-design-layer="v2"] form.sb-list-query-card.sb-low-stock-query > :is(input, select, [data-select-control], [data-query-control]) {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+  html[data-design-layer="v2"] form.sb-list-query-card.sb-low-stock-query > [data-query-control] {
+    grid-column: span 2;
+  }
+  html[data-design-layer="v2"] form.sb-list-query-card.sb-low-stock-query > [data-query-control] > input {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+  html[data-design-layer="v2"] form.sb-list-query-card.sb-low-stock-query > .unified-list-desktop-actions {
+    grid-column: span 2 !important;
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"] {
+  --sb-pr-meta-ink: #5a6b62;
+  min-height: 0;
+  padding-block: .625rem;
+}
+html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"]:nth-child(even) { background: #edf2ef; }
+html[data-design-layer="v2"] .sb-pr-phone-supplier-row,
+html[data-design-layer="v2"] .sb-pr-phone-location-row {
+  min-width: 0;
+  color: var(--sb-pr-meta-ink);
+  font-size: .6875rem;
+  font-weight: 400;
+  line-height: 1rem;
+}
+html[data-design-layer="v2"] .sb-pr-phone-supplier-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: start;
+  gap: .25rem .75rem;
+}
+html[data-design-layer="v2"] .sb-pr-phone-location-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25rem 1rem;
+}
+html[data-design-layer="v2"] .sb-pr-phone-supplier,
+html[data-design-layer="v2"] .sb-pr-phone-items,
+html[data-design-layer="v2"] .sb-pr-phone-location,
+html[data-design-layer="v2"] .sb-pr-phone-byline-person,
+html[data-design-layer="v2"] .sb-pr-phone-byline-date {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: .25rem;
+  color: var(--sb-pr-meta-ink);
+  font-size: .6875rem;
+  font-weight: 400;
+}
+html[data-design-layer="v2"] .sb-pr-phone-supplier > span { white-space: normal; overflow-wrap: anywhere; }
+
+html[data-design-layer="v2"] .sb-pr-phone-location > span,
+html[data-design-layer="v2"] .sb-pr-phone-byline-person > span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+html[data-design-layer="v2"] .sb-pr-phone-items { justify-content: flex-end; white-space: nowrap; }
+html[data-design-layer="v2"] .sb-pr-phone-amount { color: var(--sb-text); font-size: .6875rem; font-weight: 600; line-height: 1rem; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+html[data-design-layer="v2"] .sb-pr-phone-byline { display: inline-flex; min-width: 0; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: .5rem; }
+html[data-design-layer="v2"] .sb-pr-phone-byline-date { flex-shrink: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
+html[data-design-layer="v2"] :is(.sb-pr-phone-supplier, .sb-pr-phone-items, .sb-pr-phone-location, .sb-pr-phone-byline-person, .sb-pr-phone-byline-date) > svg { width: .875rem; height: .875rem; flex: 0 0 .875rem; }
+@media (max-width: 639px) {
+  html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"] { padding-inline: .875rem; }
+  html[data-design-layer="v2"] .sb-pr-phone-supplier-row { grid-template-columns:minmax(0,1fr) auto auto; gap:.25rem; }
+  html[data-design-layer="v2"] .sb-pr-phone-supplier { grid-column:auto; min-width:0; overflow:hidden; }
+  html[data-design-layer="v2"] .sb-pr-phone-supplier > span { min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+  html[data-design-layer="v2"] .sb-pr-phone-items,
+  html[data-design-layer="v2"] .sb-pr-phone-amount { grid-column:auto; }
+}
+
+
+/* Reviewed list components: compact fields follow their container, not global dl rules. */
+#main-content .sb-daily-record-metrics {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem;
+}
+#main-content .sb-daily-record-metrics > div:has(> dt + dd:last-child) {
+  display: flex; flex-direction: column; align-items: flex-start; grid-column: auto; gap: .125rem;
+}
+#main-content .sb-daily-record-metrics > div > dd { margin: 0; text-align: left; justify-self: start; }
+#main-content .sb-daily-record-metrics dt { font-size: 11px; color: var(--sb-text-muted); }
+#main-content .sb-daily-record-metrics dd { font-size: 12px; color: var(--sb-text); }
+.sb-daily-compact-list > [role="listitem"] { row-gap: .375rem; }
+html[data-design-layer="v2"] .sb-pr-phone-location { flex: 1 1 auto; }
+html[data-design-layer="v2"] .sb-pr-phone-byline-person > span { white-space: normal; overflow-wrap: anywhere; }
+html[data-design-layer="v2"] .sb-pr-phone-supplier svg { margin-top: 1px; }
+html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
+
+/* Production Planning tabs keep a compact 36px control on desktop. The 8px
+   surface inset makes the full selector 44px; touch layouts keep 44px targets. */
+@media (min-width: 1024px) and (pointer: fine) {
+  html[data-design-layer="v2"] .sb-planning-workspace-tabs > a { height: 36px; min-height: 36px !important; }
+}
+@media (pointer: coarse), (max-width: 767px) {
+  html[data-design-layer="v2"] .sb-mark-updates-read { width: 44px !important; min-width: 44px !important; height: 44px !important; min-height: 44px !important; }
+}
+
+/* Asset query icons use the same desktop control size, with a full touch target
+   on phones and touch tablets. Transfer filters stay inline when the two fields
+   fit; their phone toolbar uses one compact row instead of an empty filter card. */
+@media (min-width: 768px) and (pointer: fine) {
+  html[data-design-layer="v2"] form.sb-asset-query .unified-list-desktop-actions > .unified-list-action,
+  html[data-design-layer="v2"] form.sb-asset-query .sb-filter-more > summary {
+    height: 36px !important;
+    min-height: 36px !important;
+  }
+}
+@media (pointer: coarse), (max-width: 767px) {
+  html[data-design-layer="v2"] form.sb-asset-query .unified-list-desktop-actions > .unified-list-action,
+  html[data-design-layer="v2"] form.sb-asset-query .sb-filter-more > summary { min-height: 44px; }
+}
+@media (max-width: 639px) {
+  html[data-design-layer="v2"] form.sb-asset-query--transfers .unified-list-row { display: grid !important; grid-template-columns: minmax(0, 1fr) auto !important; align-items: center; }
+  html[data-design-layer="v2"] form.sb-asset-query--transfers .unified-list-inline-control { grid-column: 1; min-width: 0; }
+  html[data-design-layer="v2"] form.sb-asset-query--transfers .unified-list-result { grid-column: 2; grid-row: 1; display: flex !important; gap: .25rem; white-space: nowrap; }
+  html[data-design-layer="v2"] form.sb-asset-query--transfers .unified-list-inline-fields { display: none; }
+}
+
+/* Tablet navigation remains a centered two-column picker in portrait and
+   landscape, so the menu does not become an unnecessarily long list. */
+@media (min-width: 640px) and (max-width: 1279px) {
+  html[data-design-layer="v2"] .sb-mobile-navigation-drawer {
+    inset: 1rem 50% auto auto;
+    width: min(48rem, calc(100vw - 2rem));
+    max-height: calc(100dvh - 2rem);
+    border-radius: var(--sb-panel-radius);
+    transform: translateX(50%);
+  }
+  html[data-design-layer="v2"] .sb-mobile-navigation-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; gap: .75rem; }
+  html[data-design-layer="v2"] .sb-mobile-navigation-group { margin: 0; min-width: 0; }
+  html[data-design-layer="v2"] .sb-mobile-navigation-group a { min-height: 40px; font-size: 12px; }
+}
+.sb-workspace-updates { display: flex; flex-direction: column; max-height: calc(100dvh - 5rem); }
+.sb-workspace-updates > :first-child { flex: none; }
+.sb-workspace-updates > :last-child { min-height: 0; }
+.sb-workspace-updates section > a:not([data-activity-log-action]) { min-height: 36px; align-items: flex-start; }
+.sb-workspace-updates section > a[data-activity-log-action] { align-items: center; }
+.sb-workspace-updates section > a > span { min-width: 0; overflow-wrap: anywhere; }
+.sb-workspace-updates section svg { width: 16px; height: 16px; flex: 0 0 16px; }
+/* The two reviewed list toolbars render both form variants in SSR. Let media
+   queries choose the visible form before hydration, with no tree swap flash. */
+@media (max-width: 1279px) {
+  html[data-design-layer="v2"] form.sb-list-query-card.sb-stable-desktop-form { display: none !important; }
+}
+@media (min-width: 1280px) {
+  html[data-design-layer="v2"] form.sb-list-query-card.unified-list-header.sb-stable-mobile-form { display: none !important; }
+}
+@media (max-width: 1279px) {
+  html[data-design-layer="v2"] form.unified-list-header.sb-list-query-card.sb-outlet-daily-filters { display: block !important; padding: .5rem !important; }
+  html[data-design-layer="v2"] form.unified-list-header.sb-outlet-daily-filters .unified-list-row { width: 100% !important; min-width: 0; grid-column: 1 / -1; }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-row {
+    display: grid !important; grid-template-columns: minmax(0,1fr) minmax(0,1fr) auto auto !important; gap: .5rem;
+  }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-primary-control { display: flex; width: 100% !important; max-width: none !important; grid-column: 1; }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-pinned-control { min-width: 0; grid-column: 2; }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-pinned-control > * { width: 100%; min-width: 0; }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-filter-trigger { grid-column: 3; }
+  html[data-design-layer="v2"] form.unified-list-header.sb-outlet-daily-filters .unified-list-filter-trigger { width: auto; min-width: 76px; padding-inline: 8px; }
+  html[data-design-layer="v2"] form.unified-list-header.sb-outlet-daily-filters .unified-list-filter-trigger svg { width: 16px; height: 16px; flex: 0 0 16px; }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-result { grid-column: 4 !important; justify-self: end; display: flex !important; gap: .25rem; white-space: nowrap; }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-filter-label { display: inline; }
+}
+@media (max-width: 639px) {
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-row { grid-template-columns: minmax(0,1fr) minmax(0,1fr) 44px auto !important; gap:.25rem; }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-filter-trigger { grid-column:3; grid-row:1; width:44px; min-width:44px; padding:0; }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-result { grid-column:4 !important; grid-row:1; display:flex !important; white-space:nowrap; }
+  html[data-design-layer="v2"] form.sb-purchase-order-query .unified-list-row { grid-template-columns:minmax(0,1fr) 44px 44px max-content !important; gap:.25rem; align-items:center; }
+  html[data-design-layer="v2"] form.sb-purchase-order-query .unified-list-filter-trigger { width:44px !important; min-width:44px !important; }
+  html[data-design-layer="v2"] form.sb-purchase-order-query .unified-list-result { display:flex !important; width:max-content; gap:.2rem; white-space:nowrap; }
+}
+@media (min-width: 768px) and (max-width: 1279px) {
+  html[data-design-layer="v2"] .sb-pr-phone-location { flex: 0 1 auto; }
+}
+@media (min-width: 768px) and (max-width: 1399px) {
+  html[data-design-layer="v2"] .sb-pr-continuous-rows :is(.sb-pr-phone-supplier-row,.sb-pr-phone-location-row,.sb-pr-phone-supplier,.sb-pr-phone-items,.sb-pr-phone-location,.sb-pr-phone-byline-person,.sb-pr-phone-byline-date,.sb-pr-phone-amount) { font-size: 12px; }
+}
+@media (pointer: coarse), (max-width: 767px) {
+  .sb-workspace-updates section > a { min-height: 44px; }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-pinned-control button { min-height: 44px; }
+}
+@media (min-width: 768px) and (pointer: fine) {
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters :is(.unified-list-primary-control,.unified-list-primary-input,.unified-list-search-submit,.unified-list-filter-trigger,.unified-list-pinned-control button) { height: 36px !important; min-height: 36px !important; }
+}
+
+/* Keep operational queue search, filter and count in one shared row. */
+@media (max-width: 1279px) {
+  html[data-design-layer="v2"] form.unified-list-header:is(.sb-attendance-review-query,.sb-supplier-invoice-query,.sb-purchase-return-query,.sb-purchase-order-query,.sb-goods-receiving-query,.sb-stock-count-query,.sb-stock-wastage-query) .unified-list-row { grid-template-columns: minmax(0, 1fr) 44px 44px max-content; gap: .5rem; }
+  html[data-design-layer="v2"] form:is(.sb-attendance-review-query,.sb-supplier-invoice-query,.sb-purchase-return-query,.sb-purchase-order-query,.sb-goods-receiving-query,.sb-stock-count-query,.sb-stock-wastage-query) .unified-list-filter-trigger { width: 44px; min-width: 44px; }
+}
+@media (min-width: 1024px) and (max-width: 1279px) and (pointer: fine) {
+  html[data-design-layer="v2"] form.unified-list-header:is(.sb-attendance-review-query,.sb-supplier-invoice-query,.sb-purchase-return-query,.sb-purchase-order-query,.sb-goods-receiving-query,.sb-stock-wastage-query) .unified-list-filter-trigger { height: 36px !important; min-height: 36px !important; align-self: center; }
+}
+
+/* The PR table needs roughly 800px after its summary rail. Keep its complete
+   compact row visible until the main pane actually has that width. */
+@media (min-width: 1280px) and (max-width: 1399px) {
+  html[data-design-layer="v2"] .sb-table-region:has(> table.sb-purchase-request-table) { display: none; }
+  html[data-design-layer="v2"] .sb-pr-continuous-rows { display: block; }
+}
+/* Preserve the already-approved asset metric grid against legacy description-list rules. */
+#main-content dl.sb-asset-overview-metrics { grid-template-columns: repeat(3,minmax(0,1fr)); }
+#main-content dl.sb-asset-overview-metrics > div:has(> dt + dd:last-child) { display: block; grid-column: auto; }
+#main-content dl.sb-asset-overview-metrics > div:has(> dt + dd:last-child) > dd { text-align: left; margin-top: .25rem; }
+@media (min-width:640px) { #main-content dl.sb-asset-overview-metrics { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+@media (min-width:1024px) { #main-content dl.sb-asset-overview-metrics { grid-template-columns: repeat(6,minmax(0,1fr)); } }
+/* Maintenance KPIs are peer cards, so keep their label above the value. */
+#main-content dl.sb-asset-maintenance-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
+#main-content dl.sb-asset-maintenance-metrics > div:has(> dt + dd:last-child) { display:block; grid-column:auto; }
+#main-content dl.sb-asset-maintenance-metrics > div:has(> dt + dd:last-child) > dd { margin-top:.125rem; text-align:left; }
+@media (min-width:640px) { #main-content dl.sb-asset-maintenance-metrics { grid-template-columns: repeat(4,minmax(0,1fr)); } }
+@media (min-width:640px) and (max-width:1023px) {
+ html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-row { grid-template-columns: minmax(0,1fr) minmax(0,1fr) !important; }
+ html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-filter-trigger { grid-column:1; grid-row:2; justify-self:start; }
+ html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-result { grid-column:2 !important; grid-row:2; }
+}
+/* Delivery Orders has one date and one submit action. Keep those controls
+   adjacent while the record count remains at the far edge of the toolbar. */
+@media (min-width:1280px) {
+  html[data-design-layer="v2"] form.sb-delivery-order-filters.sb-list-query-card > .unified-list-desktop-actions {
+    flex: 1 1 auto;
+    margin-left: 0;
+    justify-content: space-between;
+  }
+}
+/* Insight KPI cells are peer measures, not generic label/value rows. */
+#main-content dl.sb-daily-insights-metrics {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+}
+#main-content dl.sb-daily-insights-metrics > div { min-width: 0; }
+#main-content dl.sb-daily-insights-metrics > div:has(> dt + dd:last-child) {
+  display: block;
+  grid-column: auto;
+  min-width: 0;
+}
+#main-content dl.sb-daily-insights-metrics > div:has(> dt + dd:last-child) > dd {
+  margin-top: .25rem;
+  text-align: left;
+}
+@media (max-width:639px) {
+  html[data-design-layer="v2"] .sb-daily-insights-report-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    overflow-x: visible;
+  }
+  html[data-design-layer="v2"] form.unified-list-header.sb-daily-insights-filters .unified-list-row--filter-only {
+    grid-template-columns: minmax(0, 1fr) max-content;
+  }
+  html[data-design-layer="v2"] form.unified-list-header.sb-daily-insights-filters .unified-list-filter-trigger {
+    width: auto;
+    min-width: 76px;
+    padding-inline: 8px;
+    justify-self: start;
+  }
+  html[data-design-layer="v2"] form.sb-daily-insights-filters .unified-list-filter-label { display: inline; }
+  html[data-design-layer="v2"]:has(form.sb-daily-insights-filters) .unified-list-sheet-fields {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  html[data-design-layer="v2"] .sb-outlet-daily-workspace-tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    overflow-x: visible;
+  }
+  html[data-design-layer="v2"] .sb-outlet-daily-workspace-tabs > a {
+    flex-direction: column;
+    gap: 2px;
+    padding-inline: 4px;
+    font-size: 12px;
+    line-height: 12px;
+  }
+  html[data-design-layer="v2"] .sb-outlet-daily-workspace-tabs > a > span {
+    white-space: normal;
+    text-align: center;
+  }
+  html[data-design-layer="v2"] form.sb-delivery-order-filters .unified-list-row:has(.unified-list-date-submit) {
+    grid-template-columns: minmax(0, 1fr) 64px 64px !important;
+  }
+  html[data-design-layer="v2"] form.sb-delivery-order-filters .unified-list-row .unified-list-result {
+    grid-column: 3 !important;
+    justify-self: end;
+  }
+}
+@media (min-width: 640px) and (max-width: 1279px) {
+  html[data-design-layer="v2"] form.unified-list-header[data-tablet-mode] :is(.unified-list-search-submit, .unified-list-filter-trigger) {
+    box-sizing: border-box;
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+  }
+  html[data-design-layer="v2"] form.sb-asset-query--transfers[data-tablet-mode="drawer"] .unified-list-row--filter-only {
+    grid-template-columns: 44px max-content;
+    justify-content: start;
+  }
+  html[data-design-layer="v2"] form.sb-asset-query--transfers[data-tablet-mode="drawer"] .unified-list-row--filter-only .unified-list-result {
+    grid-column: 2;
+    justify-self: start;
+  }
+  html[data-design-layer="v2"] form.unified-list-header[data-tablet-mode="inline"] .unified-list-row {
+    grid-template-columns:minmax(0,1fr) 44px auto;
+    gap:.5rem;
+    align-items:center;
+  }
+  html[data-design-layer="v2"] form.unified-list-header[data-tablet-mode="inline"] .unified-list-search-submit { grid-column:2; }
+  html[data-design-layer="v2"] form.unified-list-header[data-tablet-mode="inline"] .unified-list-inline-control { grid-column:3; width:100%; }
+  html[data-design-layer="v2"] form.unified-list-header[data-tablet-mode="inline"] .unified-list-result { grid-column:3; justify-self:end; display:flex !important; flex-direction:row; gap:.25rem; white-space:nowrap; }
+  html[data-design-layer="v2"] form.unified-list-header[data-tablet-mode="inline"][data-inline-field-count="1"] .unified-list-row {
+    grid-template-columns:minmax(0,1fr) 44px minmax(6rem,auto) max-content;
+  }
+  html[data-design-layer="v2"] form.unified-list-header[data-tablet-mode="inline"][data-inline-field-count="1"] .unified-list-inline-control { grid-column:3; }
+  html[data-design-layer="v2"] form.unified-list-header[data-tablet-mode="inline"][data-inline-field-count="1"] .unified-list-result { grid-column:4; }
+  html[data-design-layer="v2"] form.unified-list-header[data-tablet-mode="inline"] .unified-list-inline-fields {
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:.5rem;
+    margin-top:.5rem;
+  }
+  html[data-design-layer="v2"] form.unified-list-header[data-tablet-mode="inline"] .unified-list-inline-fields > * { min-width:0; width:100%; }
+  html[data-design-layer="v2"] form.sb-delivery-order-filters .unified-list-row:has(.unified-list-date-submit) {
+    grid-template-columns: minmax(0, 1fr) 64px 64px !important;
+  }
+  html[data-design-layer="v2"] form.unified-list-header.sb-delivery-order-filters button.unified-list-date-submit[type="submit"] {
+    display: inline-flex !important;
+    grid-column: 2;
+    width: 64px;
+    min-width: 64px;
+    height: 44px;
+    min-height: 44px;
+  }
+  html[data-design-layer="v2"] form.sb-delivery-order-filters .unified-list-row .unified-list-result {
+    grid-column: 3 !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  /* The split workspace's main child already owns its vertical rhythm. Avoid
+     adding an extra top margin that pushes the first list card below its rail. */
+  html[data-design-layer="v2"] [data-tablet-document-split] > .min-w-0.space-y-3 > [data-tablet-main-list] {
+    margin-top: 0;
+  }
+  html[data-design-layer="v2"] [data-tablet-main-list] > form.sb-stable-mobile-form {
+    margin-top: 0 !important;
+  }
 }

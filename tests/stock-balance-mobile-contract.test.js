@@ -23,7 +23,8 @@ test("stock balance keeps PR preparation as a flat grouped rail, not nested card
 });
 
 test("stock balance keeps query controls balanced and the desktop basket compact", () => {
-  assert.match(source, /<FilterBar resultCount=\{totalRows\} resetHref="\/stock-balance"[\s\S]*className="sb-list-filters--balanced">/);
+  assert.match(source, /<FilterBar key=\{JSON\.stringify\(\[filters\.search, filters\.branch_id, filters\.status, filters\.supplier_id\]\)\} resultCount=\{totalRows\} resetHref="\/stock-balance"[\s\S]*className="sb-list-filters--balanced">/);
+  assert.match(source, /aria-label="Reset filters" title="Reset filters"[\s\S]*<span className="sr-only">Reset<\/span>/);
   assert.doesNotMatch(source, /md:max-w-sm|md:max-w-xs|md:max-w-44/);
   assert.doesNotMatch(source, /Saved on this device/);
   assert.match(source, /density="dense"/);

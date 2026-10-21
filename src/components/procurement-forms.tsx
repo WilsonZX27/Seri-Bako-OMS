@@ -15,6 +15,7 @@ import { normalizeUom, uomOptionsForValues } from "@/lib/uom";
 import { getToday } from "@/lib/utils";
 import { ItemCombobox, type ItemComboboxOption } from "@/components/item-combobox";
 import { Notice } from "@/components/ui/system-states";
+import { FormPendingBridge } from "@/components/ui/submit-button";
 
 type ItemOption = ItemComboboxOption;
 type BranchOption = { id: string; branch_code: string; branch_name: string; status: string };
@@ -348,7 +349,7 @@ export function PurchaseRequestForm({
 
   return (
     <div className="min-w-0">
-        <form id="purchase-request-form" action={action} onSubmit={validateSubmission} noValidate className={`space-y-3 ${reserveMobileActionSpace ? "pb-36" : ""} md:pb-0`}>
+        <form id="purchase-request-form" action={action} onSubmit={validateSubmission} noValidate className={`space-y-3 ${reserveMobileActionSpace ? "pb-36" : ""} md:pb-0`}><FormPendingBridge formId="purchase-request-form" />
           <input type="hidden" name="request_no" value="" />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="request_date" value={initialRequestDate ?? getToday()} />
@@ -429,7 +430,7 @@ export function PurchaseRequestForm({
                   <span data-pr-line-number className="grid h-10 place-items-center self-start"><span className="grid h-6 w-6 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] text-[11px] font-semibold tabular-nums text-[var(--sb-text-muted)]">{index + 1}</span></span>
                   <div data-pr-line-item className="col-span-2 col-start-2 min-w-0 space-y-2 lg:col-span-1 lg:col-start-2">
                     <Field label="Item" required labelClassName="sr-only">
-                      <div data-pr-field="item"><ItemCombobox items={selectableItems} value={line.itemSearch} selectedItemId={line.itemId} ariaLabel={`Item for request line ${index + 1}`} ariaInvalid={validationTarget?.field === "item" && validationTarget.lineKey === line.key} className={validationTarget?.field === "item" && validationTarget.lineKey === line.key ? "border-rose-500 ring-2 ring-rose-200" : ""} inputRef={line.key === lines[0]?.key ? firstItemInputRef : undefined} emptyMessage="No item is mapped to this supplier at this branch." onValueChange={(value) => { setValidationError(""); setValidationTarget(null); updateItemSearch(line.key, value); }} onSelect={(item) => { setValidationError(""); setValidationTarget(null); selectItem(line.key, item.id); }} /></div>
+                      <div data-pr-field="item"><ItemCombobox items={selectableItems} value={line.itemSearch} selectedItemId={line.itemId} ariaLabel={`Item for request line ${index + 1}`} placeholder="Search item or code" ariaInvalid={validationTarget?.field === "item" && validationTarget.lineKey === line.key} className={validationTarget?.field === "item" && validationTarget.lineKey === line.key ? "border-rose-500 ring-2 ring-rose-200" : ""} inputRef={line.key === lines[0]?.key ? firstItemInputRef : undefined} emptyMessage="No item is mapped to this supplier at this branch." onValueChange={(value) => { setValidationError(""); setValidationTarget(null); updateItemSearch(line.key, value); }} onSelect={(item) => { setValidationError(""); setValidationTarget(null); selectItem(line.key, item.id); }} /></div>
                     </Field>
                     {line.itemId && mappingsForLine(line).some((mapping) => !line.uom || normalizeUom(mapping.purchase_uom) === line.uom) ? (() => {
                       const compatibleMappings = mappingsForLine(line).filter((mapping) => !line.uom || normalizeUom(mapping.purchase_uom) === line.uom);
@@ -536,7 +537,7 @@ export function PurchaseOrderForm({
 
   return (
     <div className="min-w-0">
-        <form id="purchase-order-form" action={formAction} className="grid gap-3">
+        <form id="purchase-order-form" action={formAction} className="grid gap-3"><FormPendingBridge formId="purchase-order-form" />
           <input hidden type="hidden" name="idempotency_key" value={idempotencyKey} />
           {actionState.error && actionState.attempt !== dismissedErrorAttempt ? <Notice tone="error" title="Purchase order not created"><p>{actionState.error}</p><p className="mt-1 font-medium">Your entries are still here. Review the selected branch, supplier, and items, then try again.</p></Notice> : null}
           <section data-purchase-order-form-surface className="sb-work-surface overflow-hidden">

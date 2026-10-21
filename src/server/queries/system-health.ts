@@ -1,9 +1,11 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
+import { isMockMode } from "@/lib/mock-mode";
 
 export const getSystemHealthWorkspace = cache(async () => {
   await requireActiveTenantActor({ owner: true });
+  if (isMockMode()) return { available: false as const, incidents: [], summary: { incidents24h: null, unresolved: null, actionRequired: null, recoveryRate: null } };
   const supabase = await createClient();
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await supabase
@@ -20,6 +22,7 @@ export const getSystemHealthWorkspace = cache(async () => {
   const totalOccurrences = incidents.reduce((sum, row) => sum + row.occurrence_count, 0);
   const recoveredOccurrences = recovered.reduce((sum, row) => sum + row.occurrence_count, 0);
   return {
+    available: true as const,
     incidents,
     summary: {
       incidents24h: incidents.length,

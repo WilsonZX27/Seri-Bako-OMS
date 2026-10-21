@@ -21,7 +21,7 @@ test("Goods Receiving uses one form surface and compact phone filters", () => {
   const page = read("src", "app", "(app)", "goods-receivings", "page.tsx");
   assert.match(form, /<div className="min-w-0">/);
   assert.doesNotMatch(form, /<Card className=/);
-  assert.match(page, /className="sb-list-filters--compact-mobile"/);
+  assert.match(page, /className="sb-list-filters--compact-mobile sb-goods-receiving-query"/);
 });
 
 test("Goods Receiving keeps the no-PO empty state in the same continuous surface", () => {

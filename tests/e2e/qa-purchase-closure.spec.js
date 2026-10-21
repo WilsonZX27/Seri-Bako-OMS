@@ -158,7 +158,7 @@ test.describe("QA- procurement payment closure", () => {
     // Item Master and Purchasing confirms the route later.
     await page.locator('select[name="request_supplier_id"]').selectOption(fixture.supplier);
     await expect(page.locator('select[name="request_supplier_id"]')).toHaveValue(fixture.supplier);
-    const itemInput = page.locator('input[role="combobox"][placeholder*="Search any words in item name or code"]').first();
+    const itemInput = page.getByRole("combobox", { name: "Item for request line 1" });
     await expect(itemInput).toBeVisible();
     await itemInput.fill(fixture.itemCode);
     await expect(page.getByRole("option", { name: new RegExp(fixture.itemCode, "i") })).toBeVisible();

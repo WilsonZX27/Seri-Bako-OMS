@@ -13,13 +13,31 @@ test("operational workspaces never fade readable content during route streaming"
   assert.doesNotMatch(css, /@keyframes\s+sb-content-enter/);
 });
 
-test("outlet daily create uses the shared page-header phone FAB", () => {
+test("outlet daily create has one permission-scoped phone FAB from the action rail", () => {
   const page = read("src/app/(app)/outlet-daily-records/page.tsx");
 
   assert.match(page, /<WorkspaceGrid(?:\s+className="[^"]*")?\s+hideMobileConsole\s+rightRail=/);
-  assert.match(page, /action=\{canCreate \? \{ href: "\/outlet-daily-records\/new", label: "New Daily Record" \} : undefined\}/);
-  assert.match(page, /hideTabletCreateFab/);
+  assert.match(page, /canCreate \? <Button[^>]*data-mobile-primary-action><Link href="\/outlet-daily-records\/new"/);
+  assert.doesNotMatch(page, /<PageHeader[^>]*action=\{canCreate/);
+  assert.match(read("src/components/layout/right-console.tsx"), /content && hasCreateFab && primaryHref/);
   assert.doesNotMatch(page, /phoneEndAction=/);
+});
+
+test("reviewed operational lists leave phone creation to their existing action rail", () => {
+  for (const [route, destination] of [
+    ["people", "/staffs/new"],
+    ["purchase-orders", "/purchase-orders/new"],
+    ["stock-counts", "/stock-counts/new"],
+    ["goods-receivings", "/goods-receivings/new"],
+    ["branches", "/branches/new"],
+    ["stock-wastage", "/stock-wastage/new"],
+  ]) {
+    const page = read(`src/app/(app)/${route}/page.tsx`);
+    const header = page.slice(page.indexOf("<PageHeader"), page.indexOf("<WorkspaceGrid", page.indexOf("<PageHeader")));
+    assert.doesNotMatch(header, /action=/, `${route} must not render a second create FAB in PageHeader`);
+    assert.match(page, /data-mobile-primary-action/, `${route} must retain its primary rail action`);
+    assert.ok(page.includes(`href="${destination}"`), `${route} must retain its create destination`);
+  }
 });
 
 test("the route matrix treats client runtime errors as release failures", () => {

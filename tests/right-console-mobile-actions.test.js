@@ -29,6 +29,12 @@ test('FAB-page secondary actions retain exports without duplicating the create a
  assert.match(source,/hasCreateFab \? <Button[^>]*data-mobile-secondary-actions/);
  assert.doesNotMatch(source,/hasCreateFab && "hidden"/);
 });
+test('FAB-page secondary trigger uses the page-specific console label when supplied',()=>{
+ const trigger=source.slice(source.indexOf('data-mobile-secondary-actions'),source.indexOf('</Button> : null}',source.indexOf('data-mobile-secondary-actions')));
+ assert.ok(trigger.includes('aria-label={`Open ${mobileConsoleLabel.toLowerCase()}`}'));
+ assert.match(source,/<PanelRight className="h-4 w-4" aria-hidden="true"\/>\{mobileConsoleLabel\}<\/Button>/);
+ assert.match(fs.readFileSync('src\/app\/(app)\/asset-management\/page.tsx','utf8'),/mobileConsoleLabel="Asset actions"/);
+});
 test('a nested dialog owns Escape before the action sheet can dismiss itself',()=>{
  let handler;function visit(node){if(ts.isFunctionDeclaration(node)&&node.name?.text==='onKeyDown')handler=node.getText(ast);ts.forEachChild(node,visit);}visit(ast);assert.ok(handler);
  class Element {constructor(dialog){this.dialog=dialog;}closest(){return this.dialog;}}
@@ -45,7 +51,7 @@ test('secondary floating actions obey the same real-keyboard and loading visibil
 test('a page-header create FAB does not suppress secondary actions when the full mobile rail is hidden',()=>{
  assert.match(source,/content && hasCreateFab \? <Button[^>]*data-mobile-secondary-actions/);
  assert.match(source,/open && content && \(!mobileBarHidden \|\| hasCreateFab\)/);
- assert.match(source,/content && !mobileBarHidden && hasCreateFab && primaryHref/);
+ assert.match(source,/content && hasCreateFab && primaryHref/);
 });
 test('extracted primary actions do not leave an empty rendered console section',()=>{
  const section=React.createElement('section',{'data-console-section':true},React.createElement('div',null,React.createElement('h2',null,'Actions')),React.createElement('div',null,React.createElement('button',{'data-mobile-primary-action':true},'New branch')));

@@ -17,6 +17,7 @@ export function QuantityStepper({
   label,
   uom,
   step = 1,
+  buttonStep = step,
   min = 0,
   density = "touch",
   className,
@@ -26,13 +27,14 @@ export function QuantityStepper({
   label: string;
   uom?: string | null;
   step?: number;
+  buttonStep?: number;
   min?: number;
   density?: QuantityStepperDensity;
   className?: string;
 }) {
   const adjust = (direction: -1 | 1) => {
     const current = Number(value) || 0;
-    onChange(String(Math.max(min, Number((current + direction * step).toFixed(4)))));
+    onChange(String(Math.max(min, Number((current + direction * buttonStep).toFixed(4)))));
   };
 
   const styles = densityStyles[density];

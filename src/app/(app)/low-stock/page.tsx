@@ -10,6 +10,7 @@ import { formatCurrency, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
 import { getReplenishmentDecision } from "@/lib/replenishment-decision";
 import { hasPermission } from "@/server/auth/permissions";
+import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 import { getBranchesForSelect } from "@/server/queries/common";
 import { getLowStockResult } from "@/server/queries/inventory";
 import { LowStockPrForm } from "@/components/low-stock-pr-form";
@@ -18,10 +19,11 @@ import { EmptyState } from "@/components/ui/empty-state";
 
 export default async function LowStockPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [lowStockResult, branches, canCreatePr] = await Promise.all([
+  const [lowStockResult, branches, canCreatePr, actor] = await Promise.all([
     getLowStockResult(filters),
     getBranchesForSelect(),
     hasPermission("purchase_request.create"),
+    requireActiveTenantActor(),
   ]);
   const { rows: items, count, unavailable } = lowStockResult;
   const out = items.filter((item) => item.stock_status === "out_of_stock").length;
@@ -69,12 +71,13 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
               items={items}
               branches={branches}
               defaultBranchId={filters.branch_id}
+              basketOwnerId={actor.staffId}
               disabled={!canCreatePr}
             />}
           </div>
 
           <div>
-            <UnifiedListHeader resultCount={unavailable ? undefined : count ?? undefined} resetHref="/low-stock" filtered={filtered}>
+            <UnifiedListHeader className="sb-low-stock-query" resultCount={unavailable ? undefined : count ?? undefined} resetHref="/low-stock" filtered={filtered}>
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search item, branch, supplier" className="md:max-w-sm" />
               <SelectControl
                 name="branch_id"
@@ -167,7 +170,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
                   label={item.item_name}
                   primary={item.item_name}
                   status={<><Badge variant={item.stock_status === "out_of_stock" ? "danger" : "warning"}>{item.stock_status.replaceAll("_", " ")}</Badge>{trailing}</>}
-                  secondary={`${item.item_code} ${item.branch_name ?? "-"} ${item.supplier_name ?? ""}`}
+                  secondary={[item.item_code, item.branch_name, item.supplier_name].filter(Boolean).join(" · ")}
                   detail={`Current: ${formatNumber(item.current_stock)} ${item.base_unit} · Suggested: ${formatNumber(item.suggested_reorder_qty)} ${item.purchase_unit || item.base_unit}`}
                 />
               );

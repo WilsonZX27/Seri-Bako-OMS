@@ -17,8 +17,11 @@ const allViewports = [
   { label: "desktop", width: 1440, height: 900 },
 ];
 const requestedViewports = process.env.AUDIT_VIEWPORTS?.split(",").map((viewport) => viewport.trim()).filter(Boolean);
-const viewports = allViewports.filter((viewport) => !requestedViewports || requestedViewports.includes(viewport.label));
-const output = path.join(process.cwd(), "test-results", "control-geometry-audit.json");
+const requestedWidths = process.env.AUDIT_WIDTHS?.split(",").map((width) => Number(width.trim())).filter((width) => Number.isInteger(width) && width >= 240 && width <= 2400);
+const viewports = requestedWidths?.length
+  ? [...new Set(requestedWidths)].map((width) => ({ label: `${width}px`, width, height: width < 768 ? 852 : 900 }))
+  : allViewports.filter((viewport) => !requestedViewports || requestedViewports.includes(viewport.label));
+const output = path.resolve(process.env.AUDIT_OUTPUT || path.join(process.cwd(), "test-results", "control-geometry-audit.json"));
 
 (async () => {
   const browser = await chromium.launch({ headless: true });
@@ -43,7 +46,10 @@ const output = path.join(process.cwd(), "test-results", "control-geometry-audit.
           const controls = [...document.querySelectorAll("button,[role=button],input:not([type=hidden]),select,textarea,summary,a")]
             .filter(visible).map((node) => {
               const r = node.getBoundingClientRect();
-              return { tag: node.tagName.toLowerCase(), label: (node.getAttribute("aria-label") || node.textContent || node.getAttribute("name") || "").trim().replace(/\s+/g, " ").slice(0, 60), width: Math.round(r.width), height: Math.round(r.height), x: Math.round(r.x), y: Math.round(r.y), className: String(node.className).slice(0, 120) };
+              const isChoice = node instanceof HTMLInputElement && ["checkbox", "radio"].includes(node.type);
+              const associatedLabel = isChoice ? node.labels?.[0] : null;
+              const tapRect = associatedLabel && visible(associatedLabel) ? associatedLabel.getBoundingClientRect() : r;
+              return { tag: node.tagName.toLowerCase(), label: (node.getAttribute("aria-label") || node.textContent || node.getAttribute("name") || "").trim().replace(/\s+/g, " ").slice(0, 60), width: Math.round(r.width), height: Math.round(r.height), tapWidth: Math.round(tapRect.width), tapHeight: Math.round(tapRect.height), x: Math.round(r.x), y: Math.round(r.y), className: String(node.className).slice(0, 120) };
             });
           return {
             overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -76,6 +82,6 @@ const output = path.join(process.cwd(), "test-results", "control-geometry-audit.
   fs.mkdirSync(path.dirname(output), { recursive: true });
   fs.writeFileSync(output, JSON.stringify({ date: new Date().toISOString(), baseUrl, results }, null, 2));
   const problems = results.filter((row) => row.failed || row.errors?.length || row.overflow > 5 || row.errorBoundary);
-  const undersized = results.flatMap((row) => (row.controls || []).filter((control) => ["small-phone", "phone"].includes(row.viewport) && control.tag !== "a" && (control.width < 44 || control.height < 44)).map((control) => ({ viewport: row.viewport, route: row.route, ...control })));
+  const undersized = results.flatMap((row) => (row.controls || []).filter((control) => (["small-phone", "phone"].includes(row.viewport) || (Number.parseInt(row.viewport, 10) < 768)) && control.tag !== "a" && (control.tapWidth < 44 || control.tapHeight < 44)).map((control) => ({ viewport: row.viewport, route: row.route, ...control })));
   console.log(JSON.stringify({ routes: routes.length, pages: results.length, problems: problems.length, navigationFailures: results.filter((row) => row.failed).length, errorBoundaries: results.filter((row) => row.errorBoundary).length, overflowPages: results.filter((row) => row.overflow > 5).length, undersized: undersized.length, output }));
 })().catch((error) => { console.error(error); process.exitCode = 1; });

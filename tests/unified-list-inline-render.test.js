@@ -11,3 +11,17 @@ for(const phoneOnly of [true,false])test(`query header forwards local submit own
  let disabled=false;const event={defaultPrevented:false,preventDefault(){this.defaultPrevented=true;},currentTarget:{querySelectorAll(){disabled=true;return [];}}};
  forms.at(-1).onSubmit(event);assert.equal(calls,1);assert.equal(event.defaultPrevented,true);assert.equal(disabled,false);
 });
+
+test('daily compact header retains date and branch controls without duplicate branch fields',()=>{
+ const Input=p=>React.createElement('input',p);
+ const Select=p=>React.createElement('select',{name:p.name,'aria-label':p.ariaLabel,defaultValue:p.value??p.defaultValue},p.options.map(o=>React.createElement('option',{key:o.value,value:o.value},o.label)));
+ const result=renderToStaticMarkup(React.createElement(context.exports.UnifiedListHeader,{phoneOnly:true,compactPinnedFields:['branch'],resetHref:'/outlet-daily-records',resultCount:687},[
+  React.createElement(Input,{key:'date',name:'date',type:'date',defaultValue:'2026-10-20'}),
+  React.createElement(Select,{key:'branch',name:'branch',value:'all',ariaLabel:'Branch',options:[{value:'all',label:'All branches'}]}),
+  React.createElement(Select,{key:'status',name:'status',value:'all',ariaLabel:'Status',options:[{value:'all',label:'All statuses'}]})
+ ]));
+ assert.match(result,/type="date"/);assert.match(result,/unified-list-pinned-control/);
+ assert.equal((result.match(/name="branch"/g)||[]).length,1);
+ assert.match(result,/type="hidden" name="status" value="all"/);
+ assert.match(result,/unified-list-filter-label/);assert.match(result,/<strong>687<\/strong>/);
+});

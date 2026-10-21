@@ -1,5 +1,5 @@
 import {
-  Activity, AlertTriangle, Archive, ArrowLeftRight, BarChart3, BookOpen, Boxes, Building2, ClipboardCheck, ClipboardList,
+  Activity, AlertTriangle, Archive, ArrowLeftRight, BarChart3, BookOpen, Boxes, Building2, MapPin, ClipboardCheck, ClipboardList,
   Factory, FileText, Gauge, GitPullRequest, Layers, List, Package, ReceiptText, RotateCcw, Scale, ShoppingCart,
   Upload, UserCog, Users, CalendarDays,
 } from "lucide-react";
@@ -14,15 +14,15 @@ const icons: Record<IaIcon, LucideIcon> = {
   upload: Upload, userCog: UserCog, users: Users, calendar: CalendarDays,
 };
 
-export type NavItem = Omit<(typeof informationArchitecture)[number], "icon" | "roles"> & { icon: LucideIcon };
+export type NavItem = Omit<(typeof informationArchitecture)[number], "icon" | "roles"> & { icon: LucideIcon; hasAttention: boolean };
 export type NavGroup = { id: string; label: string; href?: string; items: NavItem[] };
 
-export function getVisibleNavGroups(role: UserRole, permissionMap?: Record<string, boolean>): NavGroup[] {
+export function getVisibleNavGroups(role: UserRole, permissionMap?: Record<string, boolean>, attentionHrefs: readonly string[] = []): NavGroup[] {
   const visible = getVisibleIaItems(role, permissionMap);
   return Object.entries(iaGroupLabels)
     .map(([id, label]) => ({ id, label, href: id === "procurement" || id === "inventory" ? `/${id}` : undefined, items: visible.filter((item) => item.group === id).map(({ icon, roles, ...item }) => {
       void roles;
-      return { ...item, icon: icons[icon] };
+      return { ...item, icon: item.href === "/branches" ? MapPin : icons[icon], hasAttention: attentionHrefs.includes(item.href) };
     }) }))
     .filter((group) => group.items.length > 0);
 }
@@ -33,7 +33,7 @@ export const navItems = getFlatNavItems("super_admin");
 export const searchableNavItems = [
   ...informationArchitecture.map(({ icon, roles, ...item }) => {
     void roles;
-    return { ...item, icon: icons[icon], group: iaGroupLabels[item.group] };
+    return { ...item, icon: item.href === "/branches" ? MapPin : icons[icon], group: iaGroupLabels[item.group] };
   }),
   { href: "/purchase-requests/new", label: "New Purchase Request", group: "Procurement", permission: "purchase_request.create", keywords: ["request", "needed by", "priority"] },
   { href: "/outlet-daily-records/new", label: "New Outlet Daily Record", group: "Operations", permission: "outlet_daily_record.create", keywords: ["outlet", "daily"] },

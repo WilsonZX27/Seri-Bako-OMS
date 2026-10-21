@@ -36,10 +36,10 @@ export function ComplianceFileInput({ compact = false, action }: { compact?: boo
     <label htmlFor={inputId} className={cn(buttonVariants({ size: compact ? "sm" : "default", variant: "outline" }), "min-w-0 cursor-pointer justify-start overflow-hidden")}>
       <Paperclip className="h-4 w-4 shrink-0" aria-hidden="true" />
       <span className="truncate">{selected?.name ?? "Choose file"}</span>
-      {selected && !error ? <span className="ml-auto shrink-0 text-[10px] opacity-75">{fileSize(selected.size)}</span> : null}
+      {selected && !error ? <span className="ml-auto shrink-0 text-[11px] opacity-75">{fileSize(selected.size)}</span> : null}
     </label>
     {action}
-    <p id={`${inputId}-guidance`} className="col-span-full text-[10px] leading-4 text-muted-foreground">PDF, PNG, JPEG or WebP · maximum 4 MB.</p>
+    <p id={`${inputId}-guidance`} className="col-span-full text-xs leading-4 text-muted-foreground">PDF, PNG, JPEG or WebP · maximum 4 MB.</p>
     {error ? <p id={`${inputId}-error`} role="alert" className="col-span-full text-xs font-medium text-[var(--sb-danger)]">{error}</p> : null}
   </div>;
 }

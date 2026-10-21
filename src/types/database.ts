@@ -423,6 +423,7 @@ export type Database = {
           record_id: string;
           product_id: string;
           daily_tracking?: "food_daily" | "food_carryover" | "beverage" | "packaging" | null;
+          saleable_next_day_qty?: number | null;
           usage_qty?: number | null;
           sold_qty?: number | null;
           do_managed: boolean;
@@ -447,6 +448,7 @@ export type Database = {
           record_id: string;
           product_id: string;
           daily_tracking?: "food_daily" | "food_carryover" | "beverage" | "packaging" | null;
+          saleable_next_day_qty?: number | null;
           usage_qty?: number | null;
           sold_qty?: number | null;
           do_managed?: boolean;

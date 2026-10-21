@@ -5,6 +5,7 @@ export type HistoryPoint = {
   receivedProvided: boolean; completed: boolean; specialEvent: boolean; stockout: boolean; stockoutObserved?: boolean;
 };
 export type Forecast = {
+  carryover?: { date: string; recordId: string | null; available: number | null; deducted: number; gross: number | null; minimum: number | null; status: "confirmed" | "missing" };
   manualReason?: string;
   method: "same-weekday" | "recent-day-type" | "manual" | "employee-baseline" | "employee-history";
   suggested: number | null; weightedMovement: number | null; minimum: number | null;

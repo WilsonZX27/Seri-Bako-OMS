@@ -1,3 +1,4 @@
+import { applyOutletCarryover } from "@/lib/production-planning/carryover";
 import { productAvailableOn } from "@/lib/production-planning/availability";
 import type { LooseSupabase, LooseQuery } from "@/lib/supabase/loose";
 import { addDays, recommendQuantity, FORECAST_VERSION, type HistoryPoint } from "@/lib/production-planning/forecast";
@@ -26,7 +27,7 @@ export async function loadPlanningContext(db: LooseSupabase, companyId: string, 
   const needsEvents = view === "generation" || view === "events";
   const [branches, products, routes, settings, batches, minimums, events, holidayLinks, forecasts] = await Promise.all([
     complete(() => { const query = db.from("branches").select("id,branch_name,branch_type", { count: "exact" }).eq("company_id", companyId).eq("status", "active").is("deleted_at", null); return options.kitchens ? query.eq("branch_type", "outlet") : query; }),
-    complete(() => db.from("products").select("id,product_code,product_name,category,display_order,selling_unit,available_from,available_until", { count: "exact" }).eq("company_id", companyId).eq("status", "active").is("deleted_at", null)),
+    complete(() => db.from("products").select("id,product_code,product_name,category,display_order,selling_unit,daily_tracking,available_from,available_until", { count: "exact" }).eq("company_id", companyId).eq("status", "active").is("deleted_at", null)),
     complete(() => db.from("branch_supply_routes").select("id,destination_branch_id,effective_to", { count: "exact" }).eq("company_id", companyId).eq("source_branch_id", kitchenId).eq("status", "active").eq("is_primary", true).lte("effective_from", date)),
     rows(db.from("production_planning_settings").select("kitchen_id,enabled,draft_time,buffer_percent,max_decrease_percent,recipients").eq("company_id", companyId).eq("kitchen_id", kitchenId)),
     needsRules ? complete(() => db.from("production_batch_rules").select("*", { count: "exact" }).eq("company_id", companyId).eq("kitchen_id", kitchenId), ["product_id"]) : Promise.resolve([]),
@@ -75,6 +76,12 @@ export async function buildPlanPayload(db: LooseSupabase, companyId: string, kit
     points.push({ recordId: String(record.id), date: dateValue, received: Number(line.morning_received_qty), leftover: Number(line.evening_leftover_qty), wastage: Number(line.wastage_qty), receivedProvided: line.morning_received_provided === true, completed: line.wastage_provided === true && !incompleteRecords.has(String(record.id)), specialEvent, stockout: line.stockout === true, stockoutObserved: typeof line.stockout === "boolean" });
     series.set(key, points);
   }
+  // Carry stock is read independently of demand history: exact previous date,
+  // completed records only, never a stale record or a previous plan estimate.
+  const carryProducts = context.products.filter(p => p.daily_tracking === "food_carryover");
+  const priorRecords = carryProducts.length && context.outlets.length ? await complete(() => db.from("outlet_daily_records").select("id,branch_id", {count:"exact"}).eq("company_id",companyId).in("branch_id",context.outlets.map(b=>b.id)).eq("record_date",addDays(date,-1)).in("status",["evening_completed","reviewed"])) : [];
+  const carryLines: Record<string,unknown>[] = [];
+  for(let offset=0;offset<priorRecords.length;offset+=100) carryLines.push(...await complete(()=>db.from("outlet_daily_record_lines").select("id,record_id,product_id,daily_tracking,saleable_next_day_qty",{count:"exact"}).in("record_id",priorRecords.slice(offset,offset+100).map(r=>r.id))));
   const events = context.events.filter((e) => e.confirmed && e.event_date === date);
   const availableIds=new Set(context.products.map(p=>p.id));
   if(events.some(e=>e.lines.some(line=>!availableIds.has(line.product_id))))throw new Error("A confirmed event contains a product outside its supply period. Review the event before recalculating.");
@@ -95,18 +102,24 @@ export async function buildPlanPayload(db: LooseSupabase, companyId: string, kit
       const employee = context.forecasts.find(f => f.branch_id === branch.id && f.product_id === product.id);
       const baseline = employee?.[dayType(date) === "weekday" ? "weekday_qty" : "weekend_qty"];
       const evidence = baseline !== undefined && baseline !== null && !onOrder
-        ? recommendEmployeeQuantity(series.get(`${branch.id}:${product.id}`) ?? [],date,Number(baseline),minimum,Number(context.config.buffer_percent),Number(context.config.max_decrease_percent),batch?.forecast_basis === "same_day")
+        ? recommendEmployeeQuantity(series.get(`${branch.id}:${product.id}`) ?? [],date,Number(baseline),minimum,Number(context.config.buffer_percent),Number(context.config.max_decrease_percent),batch?.forecast_basis === "same_day" && product.daily_tracking !== "food_carryover")
         : recommendQuantity(series.get(`${branch.id}:${product.id}`) ?? [], date, minimum, Number(context.config.buffer_percent), Number(context.config.max_decrease_percent));
-      if (batch?.forecast_basis !== "same_day" && !evidence.employee) { evidence.stockoutRisk = false; evidence.method = "manual"; evidence.suggested = null; evidence.weightedMovement = null; evidence.reductionFloor = null; evidence.manualReason = "Multi-day or unconfirmed shelf-life: daily receipts cannot establish demand. Manager quantity required."; }
+      if ((batch?.forecast_basis !== "same_day" || product.daily_tracking === "food_carryover") && !evidence.employee) { evidence.stockoutRisk = false; evidence.method = "manual"; evidence.suggested = null; evidence.weightedMovement = null; evidence.reductionFloor = null; evidence.manualReason = "Multi-day or unconfirmed shelf-life: daily receipts cannot establish demand. Manager quantity required."; }
       const event_qty = events.filter((e) => e.branch_id === branch.id).reduce((sum,e) => sum+e.lines.filter((l) => l.product_id===product.id).reduce((s,l) => s+Number(l.qty),0),0);
       if(onOrder){evidence.suggested=0;evidence.minimum=0;evidence.manualReason="By order only: confirmed orders determine the quantity.";}
+      if(product.daily_tracking === "food_carryover") {
+        const records=priorRecords.filter(r=>r.branch_id===branch.id);
+        const candidates=carryLines.filter(l=>records.some(r=>r.id===l.record_id)&&l.product_id===product.id);
+        const stock=records.length===1&&candidates.length===1&&candidates[0].daily_tracking==="food_carryover"?candidates[0]:null;
+        applyOutletCarryover(evidence,date,stock ? {recordId:String(stock.record_id),quantity:stock.saleable_next_day_qty} : null);
+      }
       const suggested_qty = evidence.suggested === null ? null : evidence.suggested + event_qty;
-      allocations.push({ product_id: product.id, branch_id: branch.id, suggested_qty, approved_qty: suggested_qty, minimum_qty: minimum, reason: "", evidence, event_qty });
+      allocations.push({ product_id: product.id, branch_id: branch.id, suggested_qty, approved_qty: suggested_qty, minimum_qty: evidence.minimum, reason: "", evidence, event_qty });
       if (suggested_qty === null) manual = true; else demand += suggested_qty;
     }
     const event_qty = events.filter((e) => !e.branch_id).reduce((sum,e) => sum+e.lines.filter((l) => l.product_id===product.id).reduce((s,l) => s+Number(l.qty),0),0);
     const yield_per_tray = batch ? Number(batch.yield_per_tray) : null;
-    if (!manual && yield_per_tray) {
+    if (!manual && yield_per_tray && product.daily_tracking !== "food_carryover") {
       const destinations=allocations.filter(a=>a.product_id===product.id);
       const surplus=Math.ceil((demand+event_qty)/yield_per_tray)*yield_per_tray-demand-event_qty;
       const additions=distributeSafeSurplus(destinations.flatMap(a=>a.evidence.employee&&a.approved_qty!==null?[{branchId:a.branch_id,quantity:a.approved_qty-a.event_qty,capacity:a.evidence.employee.capacity??0,wastageRate:a.evidence.employee.wastageRate,historyDays:a.evidence.employee.historyDays}]:[]),surplus);
@@ -117,7 +130,7 @@ export async function buildPlanPayload(db: LooseSupabase, companyId: string, kit
     }
     product_lines.push({ tray_mode: "automatic", product_id: product.id, yield_per_tray, trays: manual || !yield_per_tray ? null : Math.ceil((demand + event_qty) / yield_per_tray), retained_qty: 0, actual_qty: null, reason: "", event_qty });
   }
-  return { kitchen_id: kitchenId, delivery_date: date, buffer_percent: Number(context.config.buffer_percent), max_decrease_percent: Number(context.config.max_decrease_percent), forecast_version: allocations.some(a=>a.evidence.employee)?"employee-demand-v1":FORECAST_VERSION, product_lines, allocations, events, holidays: context.holidays };
+  return { kitchen_id: kitchenId, delivery_date: date, buffer_percent: Number(context.config.buffer_percent), max_decrease_percent: Number(context.config.max_decrease_percent), forecast_version: allocations.some(a=>a.evidence.employee)?"employee-demand-carryover-v2":FORECAST_VERSION, product_lines, allocations, events, holidays: context.holidays };
 }
 export async function loadPlans(db: LooseSupabase, companyId: string, kitchenId: string, date: string, selectedId?: string): Promise<Plan[]> {
   const plans = (await complete(() => db.from("production_plans").select("id,company_id,kitchen_id,delivery_date,version,revision,status,buffer_percent,max_decrease_percent,created_at,approved_at", { count: "exact" }).eq("company_id", companyId).eq("kitchen_id", kitchenId).eq("delivery_date", date))).sort((a,b) => Number(b.version)-Number(a.version));

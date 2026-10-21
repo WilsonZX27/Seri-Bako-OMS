@@ -47,9 +47,11 @@ test("Actual Attendance uses responsive grouped views and hides payroll diagnost
 
 test("Actual Attendance compact filters keep a visible label and sized actions", () => {
   const styles = read("src/app/design-system-v2.css");
-  assert.match(styles, /form\.sb-attendance-review-query \.unified-list-filter-label \{ display: inline; \}/);
-  assert.match(styles, /form\.unified-list-header\.sb-attendance-review-query \.unified-list-row \{ grid-template-columns: minmax\(0, 1fr\) 44px !important; \}/);
-  assert.match(styles, /form\.unified-list-header\.sb-attendance-review-query \.unified-list-filter-trigger \{ height: 36px !important; min-height: 36px !important; align-self: center; \}/);
+  const queueSelector = /\.sb-attendance-review-query,\.sb-supplier-invoice-query,\.sb-purchase-return-query/;
+  assert.match(styles, queueSelector);
+  assert.match(styles, /\.unified-list-filter-label \{ display: inline; \}/);
+  assert.match(styles, /\.unified-list-row \{ grid-template-columns: minmax\(0, 1fr\) 44px !important; \}/);
+  assert.match(styles, /\.unified-list-filter-trigger \{ height: 36px !important; min-height: 36px !important; align-self: center; \}/);
 });
 
 test("Attendance tablet context names its week status and tools", () => {

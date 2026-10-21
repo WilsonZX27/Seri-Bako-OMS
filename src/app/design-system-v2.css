@@ -3098,40 +3098,22 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
   html[data-design-layer="v2"] form:is(.sb-outlet-daily-filters,.sb-purchase-request-filters) :is(.unified-list-primary-control,.unified-list-primary-input,.unified-list-search-submit,.unified-list-filter-trigger,.unified-list-pinned-control button) { height: 36px !important; min-height: 36px !important; }
 }
 
-/* Attendance review uses the same labelled filter affordance as the other
-   operational queues; on phones the search pair gets its own full row. */
+/* Label the compact filter entry on these three operational queues. Their
+   phone search pair gets a full row; fine-pointer medium screens use 36px. */
 @media (max-width: 1279px) {
-  html[data-design-layer="v2"] form.unified-list-header.sb-attendance-review-query .unified-list-row { grid-template-columns: minmax(0, 1fr) 44px 76px auto; }
-  html[data-design-layer="v2"] form.sb-attendance-review-query .unified-list-filter-trigger { width: 76px; min-width: 76px; }
-  html[data-design-layer="v2"] form.sb-attendance-review-query .unified-list-filter-label { display: inline; }
+  html[data-design-layer="v2"] form.unified-list-header:is(.sb-attendance-review-query,.sb-supplier-invoice-query,.sb-purchase-return-query) .unified-list-row { grid-template-columns: minmax(0, 1fr) 44px 76px auto; }
+  html[data-design-layer="v2"] form:is(.sb-attendance-review-query,.sb-supplier-invoice-query,.sb-purchase-return-query) .unified-list-filter-trigger { width: 76px; min-width: 76px; }
+  html[data-design-layer="v2"] form:is(.sb-attendance-review-query,.sb-supplier-invoice-query,.sb-purchase-return-query) .unified-list-filter-label { display: inline; }
 }
 @media (max-width: 639px) {
-  html[data-design-layer="v2"] form.unified-list-header.sb-attendance-review-query .unified-list-row { grid-template-columns: minmax(0, 1fr) 44px !important; }
-  html[data-design-layer="v2"] form.sb-attendance-review-query .unified-list-primary-control { grid-column: 1; grid-row: 1; }
-  html[data-design-layer="v2"] form.sb-attendance-review-query .unified-list-search-submit { grid-column: 2; grid-row: 1; }
-  html[data-design-layer="v2"] form.sb-attendance-review-query .unified-list-filter-trigger { grid-column: 1; grid-row: 2; justify-self: start; }
-  html[data-design-layer="v2"] form.sb-attendance-review-query .unified-list-result { grid-column: 2 !important; grid-row: 2; justify-self: end; }
+  html[data-design-layer="v2"] form.unified-list-header:is(.sb-attendance-review-query,.sb-supplier-invoice-query,.sb-purchase-return-query) .unified-list-row { grid-template-columns: minmax(0, 1fr) 44px !important; }
+  html[data-design-layer="v2"] form:is(.sb-attendance-review-query,.sb-supplier-invoice-query,.sb-purchase-return-query) .unified-list-primary-control { grid-column: 1; grid-row: 1; }
+  html[data-design-layer="v2"] form:is(.sb-attendance-review-query,.sb-supplier-invoice-query,.sb-purchase-return-query) .unified-list-search-submit { grid-column: 2; grid-row: 1; }
+  html[data-design-layer="v2"] form:is(.sb-attendance-review-query,.sb-supplier-invoice-query,.sb-purchase-return-query) .unified-list-filter-trigger { grid-column: 1; grid-row: 2; justify-self: start; }
+  html[data-design-layer="v2"] form:is(.sb-attendance-review-query,.sb-supplier-invoice-query,.sb-purchase-return-query) .unified-list-result { grid-column: 2 !important; grid-row: 2; justify-self: end; }
 }
 @media (min-width: 1024px) and (max-width: 1279px) and (pointer: fine) {
-  html[data-design-layer="v2"] form.unified-list-header.sb-attendance-review-query .unified-list-filter-trigger { height: 36px !important; min-height: 36px !important; align-self: center; }
-}
-
-/* Supplier invoices have several hidden filters; name their compact entry and
-   give narrow phones a full-width search field beside its submit action. */
-@media (max-width: 1279px) {
-  html[data-design-layer="v2"] form.unified-list-header.sb-supplier-invoice-query .unified-list-row { grid-template-columns: minmax(0, 1fr) 44px 76px auto; }
-  html[data-design-layer="v2"] form.sb-supplier-invoice-query .unified-list-filter-trigger { width: 76px; min-width: 76px; }
-  html[data-design-layer="v2"] form.sb-supplier-invoice-query .unified-list-filter-label { display: inline; }
-}
-@media (max-width: 639px) {
-  html[data-design-layer="v2"] form.unified-list-header.sb-supplier-invoice-query .unified-list-row { grid-template-columns: minmax(0, 1fr) 44px !important; }
-  html[data-design-layer="v2"] form.sb-supplier-invoice-query .unified-list-primary-control { grid-column: 1; grid-row: 1; }
-  html[data-design-layer="v2"] form.sb-supplier-invoice-query .unified-list-search-submit { grid-column: 2; grid-row: 1; }
-  html[data-design-layer="v2"] form.sb-supplier-invoice-query .unified-list-filter-trigger { grid-column: 1; grid-row: 2; justify-self: start; }
-  html[data-design-layer="v2"] form.sb-supplier-invoice-query .unified-list-result { grid-column: 2 !important; grid-row: 2; justify-self: end; }
-}
-@media (min-width: 1024px) and (max-width: 1279px) and (pointer: fine) {
-  html[data-design-layer="v2"] form.unified-list-header.sb-supplier-invoice-query .unified-list-filter-trigger { height: 36px !important; min-height: 36px !important; align-self: center; }
+  html[data-design-layer="v2"] form.unified-list-header:is(.sb-attendance-review-query,.sb-supplier-invoice-query,.sb-purchase-return-query) .unified-list-filter-trigger { height: 36px !important; min-height: 36px !important; align-self: center; }
 }
 
 /* The PR table needs roughly 800px after its summary rail. Keep its complete

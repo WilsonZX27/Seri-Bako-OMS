@@ -136,3 +136,23 @@ test('employee workflow excludes unscheduled catalogue products but retains conf
  f.tables.production_planning_events.push({id:'confirmed',company_id:f.company,kitchen_id:f.kitchen,branch_id:null,event_date:'2026-10-03',confirmed:true,name:'Confirmed order',lines:[{product_id:'p-1',qty:4}]});
  p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');assert.equal(p.product_lines.find(p=>p.product_id==='p-1').event_qty,4);
 });
+
+function carryFixture(){
+ const f=fixture();f.tables.products[0].daily_tracking='food_carryover';
+ f.tables.production_outlet_forecasts=['p-0','p-1'].flatMap(product_id=>f.tables.branches.filter(b=>b.branch_type==='outlet').map(b=>({company_id:f.company,kitchen_id:f.kitchen,branch_id:b.id,product_id,weekday_qty:8,weekend_qty:8})));
+ f.tables.outlet_daily_records.push({id:'prior-count',company_id:f.company,branch_id:'outlet-0',record_date:'2026-09-30',status:'reviewed'});
+ for(const product_id of ['p-0','p-1'])f.tables.outlet_daily_record_lines.push({id:'prior-'+product_id,record_id:'prior-count',product_id,daily_tracking:'food_daily',saleable_next_day_qty:3,morning_received_qty:8,morning_received_provided:true,evening_leftover_qty:0,wastage_qty:0,wastage_provided:true,stockout:false});
+ return f;
+}
+test('expiry classification deducts exact prior physical stock before trays, keeps events and never carries daily-expiry products',async()=>{
+ const f=carryFixture();f.tables.production_planning_events.push({id:'count-event',company_id:f.company,kitchen_id:f.kitchen,branch_id:'outlet-0',event_date:'2026-10-01',confirmed:true,name:'Confirmed event',lines:[{product_id:'p-0',qty:2}]});
+ const p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-01');
+ const a=p.allocations.find(a=>a.product_id==='p-0'&&a.branch_id==='outlet-0');assert.equal(a.approved_qty,7);assert.equal(a.event_qty,2);assert.equal(a.evidence.carryover.deducted,3);assert.equal(a.evidence.employee.extra,0);
+ assert.equal(p.allocations.filter(a=>a.product_id==='p-0').reduce((s,a)=>s+a.approved_qty,0),79);assert.equal(p.product_lines.find(p=>p.product_id==='p-0').trays,5);
+ const daily=p.allocations.find(a=>a.product_id==='p-1'&&a.branch_id==='outlet-0');assert.equal(daily.evidence.carryover,undefined);assert.equal(daily.approved_qty,8);
+});
+test('stock from drafts, older dates, another tenant or unknown counts is never deducted',async()=>{
+ for(const mutate of [f=>f.tables.outlet_daily_records.at(-1).status='draft',f=>f.tables.outlet_daily_records.at(-1).record_date='2026-09-29',f=>f.tables.outlet_daily_records.at(-1).company_id='other',f=>f.tables.outlet_daily_record_lines.find(l=>l.id==='prior-p-0').saleable_next_day_qty=null]){
+ const f=carryFixture();mutate(f);const p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-01');const a=p.allocations.find(a=>a.product_id==='p-0'&&a.branch_id==='outlet-0');assert.equal(a.approved_qty,8);assert.equal(a.evidence.carryover.status,'missing');assert.equal(a.evidence.carryover.deducted,0);
+ }
+});

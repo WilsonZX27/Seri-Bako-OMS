@@ -1,3 +1,7 @@
+## v9.2.123 (local candidate) — scoped control and first-frame refinement
+
+The two reviewed list toolbars select their responsive form in CSS before hydration. Compact Attendance and Supplier Invoices filters show a text label, while asset and Attendance context controls name their contents. The approved 11px PR metadata, 12px asset checklist copy, 36px fine-pointer desktop actions and 44px touch actions remain. The local screenshots and unresolved hosted checks are recorded in `docs/qa/2026-10-21-closure.md`.
+
 ## v9.2.122 (local candidate) — scoped interface follow-up
 
 Keep the 11px annotated PR phone metadata, 12px asset checklist copy, 36px desktop controls and 44px touch controls. Local changes refine the PR and Daily compact rows, Low Stock basket and filters, asset forms, and upload guidance without changing the shared type scale. The remaining shared-list first-frame shift and live role/data checks are tracked in `docs/qa/2026-10-21-closure.md`.

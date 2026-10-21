@@ -1,3 +1,7 @@
+## v9.2.123 (local candidate) — responsive control clarity
+
+The local follow-up stabilizes the first frame of the Purchase Requests and Daily Records toolbars, clarifies Attendance and Asset action labels, and labels the compact Supplier Invoices filters. It is not deployed or signed off. See `docs/releases/preview-v9.2.123-local-candidate.md` and `docs/qa/2026-10-21-closure.md` for verification and open role/data work.
+
 ## v9.2.122 (local candidate) — historical annotation follow-up
 
 The local branch includes scoped purchase, Daily Records, Low Stock, asset and upload-guidance refinements made after v9.2.121. The shell version advances so the next consolidated Preview can be identified accurately; this batch has not been pushed or signed off. See `docs/releases/preview-v9.2.122-local-candidate.md` and `docs/qa/2026-10-21-closure.md` for the changes and remaining role/data checks.

@@ -2,7 +2,8 @@
 import { EmployeeForecastEditor, type ForecastDraft } from "@/components/production-planning-employee-forecasts";
 import type { EmployeeForecast } from "@/lib/production-planning/employee-forecast";
 import { ChevronDown } from "lucide-react";
-import { suppliedTrayYield, type YieldRegion } from "@/lib/production-planning/tray-yields";
+import { suppliedPlanningYield, type YieldRegion } from "@/lib/production-planning/tray-yields";
+import { isRiceBowl } from "@/lib/production-planning/minimum-estimate";
 import { productAvailableOn } from "@/lib/production-planning/availability";
 import { useEffect, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,7 @@ export function PlanningSetup({kitchens,kitchenId,date,outlets,products,config,b
  const [estimated,setEstimated]=useState(false);
  const [pending,start]=useTransition(); const [enabled,setEnabled]=useState(config.enabled); const [buffer,setBuffer]=useState(config.buffer_percent); const [decrease,setDecrease]=useState(config.max_decrease_percent);
  useEffect(()=>{if(mode==="settings")onBusyChange(pending);},[pending,onBusyChange,mode]);
- const [yields,setYields]=useState<Record<string,string>>(()=>Object.fromEntries(batches.map((b)=>[String(b.product_id),String(b.yield_per_tray)])));
+ const [yields,setYields]=useState<Record<string,string>>(()=>Object.fromEntries([...batches.map((b)=>[String(b.product_id),String(b.yield_per_tray)]),...products.filter(p=>isRiceBowl(p.product_name)).map(p=>[p.id,"1"])]));
  const [basis,setBasis]=useState<Record<string,string>>(()=>Object.fromEntries(batches.map((b)=>[String(b.product_id),String(b.forecast_basis??"manual")])));
  const [mins,setMins]=useState<Record<string,string>>(()=>Object.fromEntries(minimums.map((m)=>[`${m.branch_id}:${m.product_id}`,String(m.minimum_qty)])));
  const [availability,setAvailability]=useState(()=>Object.fromEntries(products.map(p=>[p.id,{available_from:p.available_from??null,available_until:p.available_until??null}])));
@@ -33,7 +34,7 @@ export function PlanningSetup({kitchens,kitchenId,date,outlets,products,config,b
   onDirtyChange(changed);
  },[mode,forecastsDirty,enabled,buffer,decrease,yields,basis,mins,availability,config,products,batches,minimums,outlets,onDirtyChange]);
  const [yieldRegion,setYieldRegion]=useState<YieldRegion>(/alma|penang/i.test(kitchens.find(k=>k.id===kitchenId)?.branch_name??"")?"penang":"kl");
- const supplied=products.flatMap(product=>{const value=suppliedTrayYield(product.product_name,yieldRegion);return value===null?[]:[{id:product.id,value}];});
+ const supplied=products.flatMap(product=>{const value=suppliedPlanningYield(product,yieldRegion);return value===null?[]:[{id:product.id,value}];});
  const [yieldNotice,setYieldNotice]=useState("");
  const applySupplied=()=>{setYields(current=>({...current,...Object.fromEntries(supplied.map(row=>[row.id,String(row.value)]))}));setYieldNotice(`${supplied.length} supplied yields applied to this settings draft. Review and save settings. Rice bowls use one bowl per production unit. Missing yields remain unchanged.`);};
  const [showUnavailable,setShowUnavailable]=useState(false);

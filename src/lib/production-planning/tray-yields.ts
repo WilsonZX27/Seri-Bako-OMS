@@ -24,3 +24,9 @@ export function suppliedTrayYield(productName:string,region:YieldRegion):number|
  if(isRiceBowl(productName))return 1; // One bowl is one production unit, never a tray.
  return rows.find(row=>row.names.some(alias=>normalize(alias)===normalize(productName)))?.[region]??null;
 }
+
+/** Similar names in mooncakes or other categories are not steamed-kuih yield references. */
+export function suppliedPlanningYield(product:{product_code:string;product_name:string},region:YieldRegion):number|null {
+ if(!/^(SC|RB)\d+$/i.test(product.product_code))return null;
+ return suppliedTrayYield(product.product_name,region);
+}

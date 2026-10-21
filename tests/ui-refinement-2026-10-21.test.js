@@ -23,8 +23,8 @@ test('reviewed lists have one visible phone create owner and scoped metadata sty
 });
 test('list filters stay in the centered dialog on phones and tablets', () => {
  const header=read('src/components/common/UnifiedListHeader.tsx');
- assert.match(header,/const compactDrawer = tablet \? resolvedTabletMode === "drawer" : resolvedPhoneMode === "drawer"/);
- assert.match(header,/const compactInline = tablet \? resolvedTabletMode === "inline" : resolvedPhoneMode === "inline"/);
+ assert.match(header,/const compactDrawer = sharedSearchRow \|\|/);
+ assert.match(header,/const compactInline = !sharedSearchRow &&/);
  const counts=read('src/app/(app)/stock-counts/page.tsx');
  assert.match(counts,/phoneMode="drawer" tabletMode="drawer" stableResponsive/);
  const css=read('src/app/design-system-v2.css');

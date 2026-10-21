@@ -95,7 +95,7 @@ test("historical outlet records use the same product family order as new records
 });
 
 test("daily record groups retain the requested order without redundant field hints", () => {
-  assert.match(form, /\(Object\.keys\(dailyTrackingLabels\) as DailyTracking\[\]\)\.map/);
+  assert.match(form, /groupDailyProducts\(products,/);
   assert.match(read("src/lib/daily-product-tracking.ts"), /food_daily: "Foods \(Expiry: Daily\)", food_carryover: "Foods \(Expiry: Next day\)", beverage: "Beverage", packaging: "Packaging"/);
   assert.doesNotMatch(form, /Qty sent · qty receive/);
 });
@@ -106,8 +106,10 @@ test("the latest outlet daily form download is permission-scoped and uses curren
   assert.match(list, /Download latest Record Form/);
   assert.match(list, /\/api\/export\/outlet-daily-form-template/);
   assert.match(route, /hasPermission\("outlet_daily_record\.view"\)/);
-  assert.match(route, /getOutletDailyFormOptions\(todayInKualaLumpur\(\)\)/);
-  assert.match(route, /dailyTrackingLabels\[dailyTracking\(product\)\]/);
+  assert.match(route, /getOutletDailyFormOptions\(date\)/);
+  assert.match(route, /groupDailyProducts<\(typeof products\)\[number\]>\(products\)/);
+  assert.match(route, /groups\.flatMap/);
+  assert.match(route, /application\/pdf/);
   assert.match(route, /Content-Disposition.*outlet-daily-record-form-latest\.csv/);
   assert.match(route, /Cache-Control.*private, no-store/);
 });

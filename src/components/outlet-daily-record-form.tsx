@@ -12,7 +12,7 @@ import { CalendarDays, ChevronDown, MapPin, MessageSquare, Search, WalletCards }
 
 import { salesChannelLabels, cardChannels, otherChannels, type SalesChannel } from "@/lib/outlet-sales-channels";
 
-import { dailyTracking, dailyTrackingLabels, type DailyTracking } from "@/lib/daily-product-tracking";
+import { dailyTracking, groupDailyProducts, type DailyTracking } from "@/lib/daily-product-tracking";
 
 type Branch = { id: string; branch_code: string; branch_name: string };
 type Product = { id: string; product_code: string; product_name: string; category: string; daily_tracking?: string | null; selling_unit: string; display_order?: number };
@@ -87,6 +87,7 @@ type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: st
   const [selectedRecordDate, setSelectedRecordDate] = useState(recordDate);
   const [setupOpen, setSetupOpen] = useState(!(initialBranchId && recordDate));
   const lineByProduct = useMemo(() => new Map(lines.map((line) => [line.product_id, line])), [lines]);
+  const productGroups = useMemo(() => groupDailyProducts(products, (product) => dailyTracking(product, lineByProduct.get(product.id)?.daily_tracking)), [products, lineByProduct]);
   const normalizedSearch = productSearch.trim().toLowerCase();
   const matchingProductIds = useMemo(() => new Set(products.filter((product) => `${product.product_code} ${product.product_name} ${product.category}`.toLowerCase().includes(normalizedSearch)).map((product) => product.id)), [products, normalizedSearch]);
   const selectedBranch = branches.find((branch) => branch.id === selectedBranchId);
@@ -177,12 +178,10 @@ type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: st
       <section data-outlet-daily-lines className="erp-surface touch-pan-y overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b px-3 py-2"><h2 className="text-sm font-semibold">Daily Product Lines</h2><label className="relative block w-full min-w-0 sm:ml-auto sm:w-64"><span className="sr-only">Find product</span><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" /><Input className="pl-9" type="search" value={productSearch} onChange={(event) => setProductSearch(event.target.value)} placeholder="Find product" disabled={locked} /></label></div>
       <div className="divide-y">
-        {(Object.keys(dailyTrackingLabels) as DailyTracking[]).map((tracking) => {
+        {productGroups.map(({ tracking, label, products: group }) => {
           const packaging = tracking === "packaging";
-          const group = products.filter((product) => dailyTracking(product, lineByProduct.get(product.id)?.daily_tracking) === tracking);
-          if (!group.length) return null;
           return <div key={tracking} data-outlet-daily-group={tracking}>
-            <div className="flex items-center justify-between gap-3 border-b bg-[var(--sb-surface-muted)] px-3 py-2"><h3 className="text-xs font-semibold">{dailyTrackingLabels[tracking]}</h3></div>
+            <div className="flex items-center justify-between gap-3 border-b bg-[var(--sb-surface-muted)] px-3 py-2"><h3 className="text-xs font-semibold">{label}</h3></div>
             <div className="grid grid-cols-3 gap-2 border-b bg-white px-3 py-2 xl:grid text-[11px] font-medium text-muted-foreground xl:grid-cols-[minmax(0,1fr)_repeat(3,minmax(3.5rem,4.5rem))_minmax(0,1fr)]"><span className="hidden xl:block">Product</span>{packaging ? <><span>Qty sent</span><span>Qty received</span><span>Today usage</span><span className="hidden xl:block">Balance</span></> : <><span>Qty Sent</span><span>Received</span><span>{tracking === "food_daily" ? "Wastage" : tracking === "beverage" ? "Qty Sold" : "Usage"}</span><span className="hidden xl:block">{tracking === "beverage" ? "Balance" : tracking === "food_daily" ? "Wastage details" : ""}</span></>}</div>
             {group.map((product) => {
           const matches = !normalizedSearch || matchingProductIds.has(product.id);

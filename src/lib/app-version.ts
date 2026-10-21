@@ -1,4 +1,4 @@
-export const APP_VERSION = "9.2.126";
+export const APP_VERSION = "9.2.127";
 export const APP_SPRINT = `v${APP_VERSION}`;
 export const APP_RELEASE_TITLE = "Operational UI closure review";
 // Keep the shell footer concise; the detailed release title belongs in release

@@ -67,7 +67,7 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
     <WorkspaceGrid className="sb-portrait-tablet-rail" hideMobileConsole rightRail={<>
       <ConsoleSection title="Actions">
         {canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/outlet-daily-records/new">New Daily Record</Link></Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}
-        {canExport ? <Button asChild variant="outline" size="sm" className="w-full"><Link href="/api/export/outlet-daily-form-template" download="outlet-daily-record-form-latest.csv"><Download className="h-4 w-4" aria-hidden="true" />Download latest Record Form</Link></Button> : null}
+        {canExport ? <Button asChild variant="outline" size="sm" className="w-full"><Link href="/api/export/outlet-daily-form-template" prefetch={false} download="outlet-daily-record-form-latest.pdf"><Download className="h-4 w-4" aria-hidden="true" />Download latest Record Form</Link></Button> : null}
         {canExport ? <OutletDailyExportDialog branches={options.branches} /> : null}
       </ConsoleSection>
       <ConsoleSection title={history.summary_date?`Completed · ${formatDateOnly(history.summary_date)}`:"Completed records"}><p className="mb-3 text-xs text-muted-foreground">{history.summary_date?"Latest completed day. Totals include completed records only.":"No completed records before today."}</p>{history.summary_date ? <dl className="divide-y divide-[var(--sb-border-soft)] text-xs">

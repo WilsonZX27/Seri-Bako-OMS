@@ -1,0 +1,54 @@
+/* Search toolbars have one layout owner at every viewport. Route classes and
+   legacy .unified-list-header rules do not control this component's geometry. */
+.card {
+  --query-control-size: 44px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 12px;
+  border: 1px solid var(--sb-border-soft);
+  border-radius: var(--sb-panel-radius);
+  background: var(--sb-surface-raised);
+  box-shadow: var(--sb-shadow-card);
+}
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--query-control-size) var(--query-control-size) max-content;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.primary { position: relative; min-width: 0; }
+.row .searchInput {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  height: var(--query-control-size);
+  min-height: var(--query-control-size);
+  padding-inline: 34px;
+  font-size: 13px;
+  border-radius: var(--sb-control-radius);
+}
+.searchIcon { position: absolute; top: 50%; left: 12px; width: 16px; height: 16px; transform: translateY(-50%); color: var(--sb-green-800); pointer-events: none; }
+.clear { position: absolute; top: 0; right: 0; display: grid; place-items: center; width: 34px; height: 100%; padding: 0; border: 0; color: var(--sb-text-muted); background: transparent; }
+.clear svg { width: 16px; height: 16px; }
+.row .searchSubmit, .filterTrigger { display: inline-grid; place-items: center; width: var(--query-control-size); min-width: var(--query-control-size); height: var(--query-control-size); min-height: var(--query-control-size); padding: 0; border-radius: var(--sb-control-radius); }
+.filterTrigger { position: relative; border: 0; color: var(--sb-green-900); background: transparent; cursor: pointer; }
+.filterTrigger svg { width: 18px; height: 18px; }
+.filterTrigger:hover { background: var(--sb-surface-muted); }
+.filterTrigger:focus-visible, .clear:focus-visible { outline: 2px solid var(--sb-green-700); outline-offset: 2px; }
+.badge { position: absolute; top: -4px; right: -4px; display: grid; place-items: center; min-width: 18px; height: 18px; padding-inline: 4px; border-radius: 999px; background: var(--sb-green-900); color: white; font-size: 10px; }
+.result { display: grid; justify-items: center; min-width: 44px; color: var(--sb-text-muted); font-size: 11px; line-height: 1.25; font-variant-numeric: tabular-nums; }
+.result strong { color: var(--sb-text); font-size: 13px; font-weight: 600; }
+.layer { position: fixed; inset: 0; z-index: var(--sb-z-sheet-backdrop); }
+.backdrop { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; background: rgb(0 0 0 / .5); }
+.sheet { position: fixed; inset: 50% auto auto 50%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; width: min(42rem, calc(100vw - 32px)); max-height: min(82dvh, 40rem); padding: 16px; overflow: hidden; border: 1px solid var(--sb-border); border-radius: var(--sb-panel-radius); background: var(--sb-surface-raised); transform: translate(-50%, -50%); }
+.sheetHeader { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.sheetHeader h2 { font-size: 16px; font-weight: 600; }
+.sheetHeader button { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: var(--sb-control-radius); background: transparent; }
+.sheetHeader button svg { width: 18px; height: 18px; }
+.sheetFields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; gap: 12px; min-height: 0; padding-block: 16px; overflow-y: auto; }
+.sheetFields > * { min-width: 0; max-width: 100%; }
+.sheetFields > input[type="hidden"] { display: none; }
+.sheetActions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 12px; border-top: 1px solid var(--sb-border-soft); }
+@media (min-width: 768px) and (pointer: fine) { .card { --query-control-size: 36px; } }
+@media (max-width: 380px) { .sheetFields { grid-template-columns: minmax(0, 1fr); } }

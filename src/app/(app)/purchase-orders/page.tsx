@@ -62,6 +62,13 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
     : permissions["po.create"]
       ? { href: "/purchase-orders/new", label: "New PO" }
       : undefined;
+  const emptyDescription = ordersResult.unavailable
+    ? "The order source could not be verified. No record count or order total is shown as zero."
+    : filtered
+      ? "Reset the filters or widen the search."
+      : permissions["po.create"]
+        ? "Create a new order or convert an approved purchase request."
+        : "Orders created by your team will appear here.";
   return (
     <>
       <PageHeader
@@ -94,7 +101,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
         }
       >
         <div className="space-y-3" data-tablet-main-list>
-            <UnifiedListHeader resultCount={orders?.totalRows} resetHref="/purchase-orders" filtered={filtered} activeCount={Number(Boolean(filters.status))}>
+            <UnifiedListHeader className="sb-purchase-order-query" resultCount={orders?.totalRows} resetHref="/purchase-orders" filtered={filtered} activeCount={Number(Boolean(filters.status))}>
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PO no or remarks" aria-label="Search purchase orders" className="min-w-0 flex-1 md:max-w-sm" />
               <StatusTabs statuses={statuses} activeStatus={filters.status} />
 
@@ -102,7 +109,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
               {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
             </UnifiedListHeader>
           <div className="sb-list-content-card overflow-hidden" data-mobile-list-content-card>
-          <DataGridHint text="Pro-tip: Double-click any row to open the purchase order." />
+          {orders?.rows.length ? <DataGridHint text="Pro-tip: Double-click any row to open the purchase order." /> : null}
           <Table className="sb-procurement-table !min-w-[51rem]" mobileHidden compactUntil="md" aria-label="Purchase orders" stickyColumn="second">
               <TableHeader>
                 <TableRow>
@@ -127,7 +134,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                     <TableCell className="w-28 text-right"><p>{order.line_count} {order.line_count === 1 ? "line" : "lines"}</p><p className="mt-1 text-[11px] text-muted-foreground">{formatCurrency(order.order_total)}</p></TableCell>
                   </DataGridRow>
                 ))}
-                {!orders?.rows.length ? <TableRow><TableCell colSpan={7}><EmptyState title={ordersResult.unavailable ? "Purchase order data unavailable" : filtered ? "No orders match these filters" : "No purchase orders yet"} description={ordersResult.unavailable ? "The order source could not be verified. No record count or order total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={ordersResult.unavailable ? { href: "/purchase-orders", label: "Retry orders" } : emptyStateAction} /></TableCell></TableRow> : null}
+                {!orders?.rows.length ? <TableRow><TableCell colSpan={7}><EmptyState title={ordersResult.unavailable ? "Purchase order data unavailable" : filtered ? "No orders match these filters" : "No purchase orders yet"} description={emptyDescription} action={ordersResult.unavailable ? { href: "/purchase-orders", label: "Retry orders" } : emptyStateAction} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Purchase orders" showUntil="md">
@@ -139,7 +146,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                 secondary={<span>{order.branch_name ?? "No outlet"} · {order.supplier_name ?? "No supplier"} · {formatDateOnly(order.order_date)}{order.purchase_request_id && order.request_no ? <> · <Link href={`/purchase-requests/${order.purchase_request_id}`} className="font-medium text-[var(--sb-link)] underline-offset-4 hover:underline">{order.request_no}</Link></> : null}</span>}
                 meta={`${order.line_count} ${order.line_count === 1 ? "item" : "items"} · ${formatCurrency(order.order_total)}`}
               />)}
-              {!orders?.rows.length ? <EmptyState title={ordersResult.unavailable ? "Purchase order data unavailable" : filtered ? "No orders match these filters" : "No purchase orders yet"} description={ordersResult.unavailable ? "The order source could not be verified. No record count or order total is shown as zero." : filtered ? "Reset the filters or widen the search." : "Approved requests and new orders will appear here."} action={ordersResult.unavailable ? { href: "/purchase-orders", label: "Retry orders" } : emptyStateAction} /> : null}
+              {!orders?.rows.length ? <EmptyState title={ordersResult.unavailable ? "Purchase order data unavailable" : filtered ? "No orders match these filters" : "No purchase orders yet"} description={emptyDescription} action={ordersResult.unavailable ? { href: "/purchase-orders", label: "Retry orders" } : filtered ? emptyStateAction : undefined} /> : null}
             </OperationalList>
           {orders ? <PaginationControls page={orders.page} totalPages={orders.totalPages} totalRows={orders.totalRows} searchParams={filters} /> : null}
           </div>

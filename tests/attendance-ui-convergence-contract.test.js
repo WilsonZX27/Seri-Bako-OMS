@@ -47,7 +47,7 @@ test("Actual Attendance uses responsive grouped views and hides payroll diagnost
 
 test("Actual Attendance compact filters keep a visible label and sized actions", () => {
   const styles = read("src/app/design-system-v2.css");
-  const queueSelector = /\.sb-attendance-review-query,\.sb-supplier-invoice-query,\.sb-purchase-return-query/;
+  const queueSelector = /\.sb-attendance-review-query,\.sb-supplier-invoice-query,\.sb-purchase-return-query,\.sb-purchase-order-query,\.sb-goods-receiving-query/;
   assert.match(styles, queueSelector);
   assert.match(styles, /\.unified-list-filter-label \{ display: inline; \}/);
   assert.match(styles, /\.unified-list-row \{ grid-template-columns: minmax\(0, 1fr\) 44px !important; \}/);

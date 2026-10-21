@@ -42,6 +42,13 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
     : canCreate
       ? { href: "/goods-receivings/new", label: "New GRN" }
       : undefined;
+  const emptyDescription = !receivings
+    ? "The receiving source could not be verified. No quantities or record count are shown as zero."
+    : filtered
+      ? "Reset the filters or widen the search."
+      : canCreate
+        ? "Create a GRN when a supplier delivery arrives against an approved purchase order."
+        : "Supplier receivings recorded by your team will appear here.";
   return (
     <>
       <PageHeader
@@ -73,15 +80,15 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
         }
       >
         <div className="space-y-3" data-tablet-main-list>
-            <UnifiedListHeader resultCount={receivings?.totalRows} resetHref="/goods-receivings" filtered={filtered} activeCount={filters.status ? 1 : 0} className="sb-list-filters--compact-mobile">
-              <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN, PO or supplier" className="min-w-0 flex-1 md:max-w-sm" />
+            <UnifiedListHeader resultCount={receivings?.totalRows} resetHref="/goods-receivings" filtered={filtered} activeCount={filters.status ? 1 : 0} className="sb-list-filters--compact-mobile sb-goods-receiving-query">
+              <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN, PO or supplier" aria-label="Search GRN, PO, or supplier" className="min-w-0 flex-1 md:max-w-sm" />
               <StatusTabs statuses={statuses} activeStatus={filters.status} />
 
               {filtered ? <Button asChild variant="secondary" className="shrink-0" data-list-action="secondary"><Link href="/goods-receivings">Reset</Link></Button> : null}
               {filters.status ? <input type="hidden" name="status" value={filters.status} /> : null}
             </UnifiedListHeader>
           <div className="sb-list-content-card overflow-hidden" data-mobile-list-content-card>
-          <DataGridHint text="Pro-tip: Double-click any row to open the goods receiving document." />
+          {receivings?.rows.length ? <DataGridHint text="Pro-tip: Double-click any row to open the goods receiving document." /> : null}
           <Table className="sb-procurement-table !min-w-[51rem]" mobileHidden compactUntil="xl" aria-label="Goods receiving records" stickyColumn="second">
               <TableHeader>
                 <TableRow>
@@ -108,7 +115,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                     <TableCell className="text-right">{formatNumber(receiving.rejected_total)}</TableCell>
                   </DataGridRow>
                 ))}
-                {!receivings?.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={!receivings ? "Goods receiving data unavailable" : filtered ? "No receivings match these filters" : "No goods receivings yet"} description={!receivings ? "The receiving source could not be verified. No quantities or record count are shown as zero." : filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={emptyStateAction} /></TableCell></TableRow> : null}
+                {!receivings?.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={!receivings ? "Goods receiving data unavailable" : filtered ? "No receivings match these filters" : "No goods receivings yet"} description={emptyDescription} action={emptyStateAction} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
             <OperationalList ariaLabel="Goods receiving records" showUntil="xl">
@@ -122,7 +129,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                 secondary={<span className="flex justify-between gap-3"><span>{receiving.po_no ?? "No linked PO"} · {formatDateOnly(receiving.received_date)}</span><span className="shrink-0">{formatNumber(receiving.received_total)} in · {formatNumber(receiving.rejected_total)} rejected</span></span>}
                 detail={<span className="flex min-w-0 gap-2"><span className="truncate" title={receiving.supplier_name ?? undefined}>{receiving.supplier_name ?? "No supplier"}</span><span className="shrink-0">· {receiving.branch_name ?? "No branch"}</span></span>}
               />)}
-              {!receivings?.rows.length ? <EmptyState title={!receivings ? "Goods receiving data unavailable" : filtered ? "No receivings match these filters" : "No goods receivings yet"} description={!receivings ? "The receiving source could not be verified. No quantities or record count are shown as zero." : filtered ? "Reset the filters or widen the search." : "Supplier deliveries will appear after they are recorded."} action={emptyStateAction} /> : null}
+              {!receivings?.rows.length ? <EmptyState title={!receivings ? "Goods receiving data unavailable" : filtered ? "No receivings match these filters" : "No goods receivings yet"} description={emptyDescription} action={!receivings || filtered ? emptyStateAction : undefined} /> : null}
             </OperationalList>
           {receivings ? <PaginationControls page={receivings.page} totalPages={receivings.totalPages} totalRows={receivings.totalRows} searchParams={filters} /> : null}
           </div>

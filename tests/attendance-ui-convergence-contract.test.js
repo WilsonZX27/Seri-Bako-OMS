@@ -52,6 +52,11 @@ test("Actual Attendance compact filters keep a visible label and sized actions",
   assert.match(styles, /form\.unified-list-header\.sb-attendance-review-query \.unified-list-filter-trigger \{ height: 36px !important; min-height: 36px !important; align-self: center; \}/);
 });
 
+test("Attendance tablet context names its week status and tools", () => {
+  assert.match(review, /mobileConsoleLabel="Week status & tools"/);
+  assert.match(read("src/components/layout/workspace-layout.tsx"), /\{mobileConsoleLabel \?\? "More actions"\}/);
+});
+
 test("schedule submit and Manager correction are atomic, audited and reason-bound", () => {
   assert.doesNotMatch(planner, /window\.prompt/);
   for (const contract of [

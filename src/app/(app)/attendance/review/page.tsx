@@ -247,6 +247,7 @@ export default async function AttendanceReviewPage({
         tabletCanvas="wide"
         className="sb-portrait-tablet-rail"
         hideMobileConsole
+        mobileConsoleLabel="Week status & tools"
         rightRail={
           <>
             <ConsoleSection title="Actions" kind="action">

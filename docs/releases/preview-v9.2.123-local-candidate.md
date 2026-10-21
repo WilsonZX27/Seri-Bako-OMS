@@ -5,6 +5,7 @@ This version identifies the local follow-up after v9.2.122. It has not been push
 ## Changes since v9.2.122
 
 - Purchase Requests and Daily Records render their responsive toolbar variants in the server HTML, selecting one before hydration to avoid the compact-layout tree swap. Search and filter submissions retain their existing behavior.
+- Purchase Requests gives long supplier names the full phone row, with item count and complete RM amount together below at the previously approved 11px metadata size.
 - Attendance review shows a labelled Filter control on compact widths; its 1180px context disclosure now says “Week status & tools.”
 - Asset Management names its mobile context “Asset actions.” The create FAB stays separate from the secondary action sheet, which uses the same page-specific name.
 - Supplier Invoices gives search an accessible name, shows a labelled compact Filter entry, and aligns its 1180px Filter control to the 36px desktop action step.

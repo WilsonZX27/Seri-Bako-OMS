@@ -3012,6 +3012,10 @@ html[data-design-layer="v2"] .sb-pr-phone-byline-date { flex-shrink: 0; white-sp
 html[data-design-layer="v2"] :is(.sb-pr-phone-supplier, .sb-pr-phone-items, .sb-pr-phone-location, .sb-pr-phone-byline-person, .sb-pr-phone-byline-date) > svg { width: .875rem; height: .875rem; flex: 0 0 .875rem; }
 @media (max-width: 639px) {
   html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"] { padding-inline: .875rem; }
+  html[data-design-layer="v2"] .sb-pr-phone-supplier-row { grid-template-columns: minmax(0, 1fr) auto; column-gap: .5rem; }
+  html[data-design-layer="v2"] .sb-pr-phone-supplier { grid-column: 1 / -1; }
+  html[data-design-layer="v2"] .sb-pr-phone-items { grid-column: 1; justify-content: flex-start; }
+  html[data-design-layer="v2"] .sb-pr-phone-amount { grid-column: 2; }
 }
 
 

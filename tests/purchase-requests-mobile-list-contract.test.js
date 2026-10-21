@@ -56,6 +56,7 @@ test("compact PR metadata keeps 11px type legible on both striped row surfaces",
   assert.match(design, /\.sb-pr-phone-supplier-row,[\s\S]*?\.sb-pr-phone-location-row \{[\s\S]*?color: var\(--sb-pr-meta-ink\);/);
   assert.match(design, /\.sb-pr-phone-byline-date \{[\s\S]*?color: var\(--sb-pr-meta-ink\);/);
   assert.match(design, /\.sb-pr-phone-amount \{[^}]*font-size: \.6875rem/);
+  assert.match(design, /@media \(max-width: 639px\) \{[\s\S]*?\.sb-pr-phone-supplier \{ grid-column: 1 \/ -1; \}[\s\S]*?\.sb-pr-phone-amount \{ grid-column: 2; \}/);
   for (const background of ["#ffffff", striped]) {
     assert.ok(contrast(ink, background) >= 4.5, `${ink} must meet 4.5:1 on ${background}`);
   }

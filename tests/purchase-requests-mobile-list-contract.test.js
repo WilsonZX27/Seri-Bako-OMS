@@ -23,7 +23,10 @@ function contrast(foreground, background) {
 test("purchase-request list uses device-appropriate list surfaces and anchors the request identity", () => {
   assert.match(page, /<Table className="sb-purchase-request-table" mobileHidden compactUntil="xl" aria-label="Purchase requests" stickyColumn="third">/);
   assert.match(page, /<TableSelectionHead><BulkSelectAllCheckbox \/><\/TableSelectionHead>/);
-  assert.match(page, /<SortableHead label="PR number \/ Priority" column="request_no"/);
+  assert.match(page, /<SortableHead label=\{<>PR number<br \/>Priority<\/>\} wrap column="request_no"/);
+  const sortableHead = fs.readFileSync(path.join(root, "src", "components", "sortable-table.tsx"), "utf8");
+  assert.match(sortableHead, /buildHref\(searchParams, \{ sort: column, dir: nextDir, page: "1" \}\)/);
+  assert.match(sortableHead, /<span className=\{wrap \? "max-w-16 whitespace-normal leading-tight" : "whitespace-nowrap"\}>\{label\}<\/span>/);
   assert.match(page, /<TableSelectionCell><BulkSelectRowCheckbox id=\{request\.id\} \/><\/TableSelectionCell>[\s\S]*<TableActionLink[\s\S]*<DocumentNumber/);
   assert.match(page, /<OperationalList ariaLabel="Purchase requests" showUntil="xl" className="sb-pr-continuous-rows">/);
   assert.match(page, /tabletRailBreakpoint="md"/);
@@ -56,7 +59,7 @@ test("compact PR metadata keeps 11px type legible on both striped row surfaces",
   assert.match(design, /\.sb-pr-phone-supplier-row,[\s\S]*?\.sb-pr-phone-location-row \{[\s\S]*?color: var\(--sb-pr-meta-ink\);/);
   assert.match(design, /\.sb-pr-phone-byline-date \{[\s\S]*?color: var\(--sb-pr-meta-ink\);/);
   assert.match(design, /\.sb-pr-phone-amount \{[^}]*font-size: \.6875rem/);
-  assert.match(design, /@media \(max-width: 639px\) \{[\s\S]*?\.sb-pr-phone-supplier \{ grid-column: 1 \/ -1; \}[\s\S]*?\.sb-pr-phone-amount \{ grid-column: 2; \}/);
+  assert.match(design, /@media \(max-width: 639px\) \{[\s\S]*?\.sb-pr-phone-supplier-row \{ grid-template-columns:minmax\(0,1fr\) auto auto; gap:\.25rem; \}[\s\S]*?\.sb-pr-phone-supplier \{ grid-column:auto; min-width:0; overflow:hidden; \}[\s\S]*?\.sb-pr-phone-amount \{ grid-column:auto; \}/);
   for (const background of ["#ffffff", striped]) {
     assert.ok(contrast(ink, background) >= 4.5, `${ink} must meet 4.5:1 on ${background}`);
   }

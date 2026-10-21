@@ -1,3 +1,7 @@
+## v9.2.126 (local candidate) — Responsive workspace refinements
+
+Latest annotations are implemented within their owning views: compact desktop planning tabs, grouped navigation dots, single-row receiving controls, inline filters when space allows, two-line PR table headers, a simpler asset overview, a non-nested inspection empty state, equal mobile asset actions, and tablet context rails. Stock Count mobile filters remain inline when the four filter controls fit, and Reset clears the search input. Touch targets stay at least 44px; compact desktop controls use 36px. Evidence and remaining limits are recorded in `docs/releases/preview-v9.2.126-local-candidate.md` and `docs/qa/2026-10-21-closure.md`.
+
 ## v9.2.123 (local candidate) — scoped control and first-frame refinement
 
 The two reviewed list toolbars select their responsive form in CSS before hydration. Compact Attendance and Supplier Invoices filters show a text label, while asset and Attendance context controls name their contents. The approved 11px PR metadata, 12px asset checklist copy, 36px fine-pointer desktop actions and 44px touch actions remain. The local screenshots and unresolved hosted checks are recorded in `docs/qa/2026-10-21-closure.md`.

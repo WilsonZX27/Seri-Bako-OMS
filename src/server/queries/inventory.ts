@@ -502,10 +502,11 @@ async function getStockCardFromBaseTables(
 function searchExpression(columns: string[], value: string | undefined) {
   const search = value?.trim();
   if (!search) return null;
-  // PostgREST's `or` syntax uses commas and parentheses as control characters.
-  // Remove those delimiters and escape LIKE wildcards before embedding a value.
-  const term = search.replace(/[(),]/g, " ").replace(/[\\%_]/g, "\\$&");
-  return columns.map((column) => `${column}.ilike.%${term}%`).join(",");
+  // Quote user input in PostgREST's filter grammar so punctuation (including
+  // commas, dots, and parentheses) remains search text instead of syntax.
+  // Escape SQL LIKE wildcards so a search for "%" or "_" is literal.
+  const term = search.replace(/[\\%_"]/g, "\\$&");
+  return columns.map((column) => `${column}.ilike."%${term}%"`).join(",");
 }
 
 function filterRows<T extends Record<string, unknown>>(rows: T[], filters: Filters, keys: (keyof T)[], defaultSort: keyof T) {

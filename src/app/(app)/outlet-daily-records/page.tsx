@@ -4,14 +4,14 @@ import { receivedDisplay, wastageDisplay } from "@/lib/operational-value-display
 import { OutstandingDailyRecords } from "@/components/outstanding-daily-records";
 import { OutletDailyWorkspaceNav } from "@/components/outlet-daily-workspace-nav";
 import Link from "next/link";
-import { Pencil } from "lucide-react";
+import { Download, Pencil } from "lucide-react";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { FilterBar } from "@/components/ui/filter-bar";
+import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
 import { OutletDailyExportDialog } from "@/components/outlet-daily-export-dialog";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
@@ -55,6 +55,8 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
     </>;
   }
   const filtered = hasActiveFilters(filters);
+  const secondaryFilterCount = Number(Boolean(filters.status && filters.status !== "all"))
+    + Number(canViewSentGaps && Boolean(filters.sent_state && filters.sent_state !== "all"));
   const emptyDescription = filtered
     ? "Reset the filters or widen the search."
     : canCreate
@@ -65,6 +67,7 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
     <WorkspaceGrid className="sb-portrait-tablet-rail" hideMobileConsole rightRail={<>
       <ConsoleSection title="Actions">
         {canCreate ? <Button asChild size="sm" className="w-full" data-mobile-primary-action><Link href="/outlet-daily-records/new">New Daily Record</Link></Button> : <p className="text-xs text-muted-foreground">Your role has read-only access.</p>}
+        {canExport ? <Button asChild variant="outline" size="sm" className="w-full"><Link href="/api/export/outlet-daily-form-template" download="outlet-daily-record-form-latest.csv"><Download className="h-4 w-4" aria-hidden="true" />Download latest Record Form</Link></Button> : null}
         {canExport ? <OutletDailyExportDialog branches={options.branches} /> : null}
       </ConsoleSection>
       <ConsoleSection title={history.summary_date?`Completed · ${formatDateOnly(history.summary_date)}`:"Completed records"}><p className="mb-3 text-xs text-muted-foreground">{history.summary_date?"Latest completed day. Totals include completed records only.":"No completed records before today."}</p>{history.summary_date ? <dl className="divide-y divide-[var(--sb-border-soft)] text-xs">
@@ -89,8 +92,10 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
         >
             <Input name="date" type="date" defaultValue={filters.date ?? ""} aria-label="Record date" className="sb-filter-date" />
             <SelectControl name="branch" value={filters.branch ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...options.branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
-            <SelectControl name="status" value={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...outletDailyStatusOptions]} />
-            {canViewSentGaps ? <SelectControl name="sent_state" value={filters.sent_state ?? "all"} ariaLabel="Qty sent state" options={[{ value: "all", label: "All Qty Sent" }, { value: "missing", label: "Qty Sent missing" }]} /> : null}
+            <FilterBarMore activeCount={secondaryFilterCount} resetHref="/outlet-daily-records">
+              <SelectControl name="status" value={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...outletDailyStatusOptions]} />
+              {canViewSentGaps ? <SelectControl name="sent_state" value={filters.sent_state ?? "all"} ariaLabel="Qty sent state" options={[{ value: "all", label: "All Qty Sent" }, { value: "missing", label: "Qty Sent missing" }]} /> : null}
+            </FilterBarMore>
 
               {filtered ? <Button asChild variant="secondary" data-list-action="secondary"><Link href="/outlet-daily-records">Reset</Link></Button> : null}
           </FilterBar>

@@ -87,6 +87,31 @@ test("ready and posted outlet records retain separate operator-facing labels", (
   assert.doesNotMatch(read("src/app/(app)/outlet-daily-records/page.tsx"), /Posted · editable/);
 });
 
+test("historical outlet records use the same product family order as new records", () => {
+  assert.match(detail, /import \{ sortProductsForDisplay \} from "@\/lib\/product-order"/);
+  assert.match(detail, /const products = sortProductsForDisplay\(\[\.\.\.productMap\.values\(\)\]\)/);
+  assert.doesNotMatch(detail, /product_code\.localeCompare/);
+  assert.match(query, /products: sortProductsForDisplay\(activeProducts\)/);
+});
+
+test("daily record groups retain the requested order without redundant field hints", () => {
+  assert.match(form, /\(Object\.keys\(dailyTrackingLabels\) as DailyTracking\[\]\)\.map/);
+  assert.match(read("src/lib/daily-product-tracking.ts"), /food_daily: "Foods \(Expiry: Daily\)", food_carryover: "Foods \(Expiry: Next day\)", beverage: "Beverage", packaging: "Packaging"/);
+  assert.doesNotMatch(form, /Qty sent · qty receive/);
+});
+
+test("the latest outlet daily form download is permission-scoped and uses current product options", () => {
+  const route = read("src/app/api/export/outlet-daily-form-template/route.ts");
+  const list = read("src/app/(app)/outlet-daily-records/page.tsx");
+  assert.match(list, /Download latest Record Form/);
+  assert.match(list, /\/api\/export\/outlet-daily-form-template/);
+  assert.match(route, /hasPermission\("outlet_daily_record\.view"\)/);
+  assert.match(route, /getOutletDailyFormOptions\(todayInKualaLumpur\(\)\)/);
+  assert.match(route, /dailyTrackingLabels\[dailyTracking\(product\)\]/);
+  assert.match(route, /Content-Disposition.*outlet-daily-record-form-latest\.csv/);
+  assert.match(route, /Cache-Control.*private, no-store/);
+});
+
 test("outlet completion creates the controlled ready-to-post queue", () => {
   const page = read("src/app/(app)/outlet-daily-records/page.tsx");
   assert.match(query, /posted_today: Number\(summary\.posted_today\)/);

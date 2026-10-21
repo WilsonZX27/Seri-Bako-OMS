@@ -80,7 +80,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
         }
       >
         <div className="space-y-3" data-tablet-main-list>
-            <UnifiedListHeader resultCount={receivings?.totalRows} resetHref="/goods-receivings" filtered={filtered} activeCount={filters.status ? 1 : 0} className="sb-list-filters--compact-mobile sb-goods-receiving-query" stableResponsive>
+            <UnifiedListHeader resultCount={receivings?.totalRows} resetHref="/goods-receivings" filtered={filtered} activeCount={filters.status ? 1 : 0} className="sb-list-filters--compact-mobile sb-goods-receiving-query" phoneMode="drawer" tabletMode="drawer" stableResponsive>
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search GRN, PO or supplier" aria-label="Search GRN, PO, or supplier" className="min-w-0 flex-1 md:max-w-sm" />
               <StatusTabs statuses={statuses} activeStatus={filters.status} />
 

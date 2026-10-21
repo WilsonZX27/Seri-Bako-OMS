@@ -23,7 +23,7 @@ User-supplied screenshots are the before evidence (latest comments 1–7). PR be
 
 | Annotation | Owner / change | Verification |
 | --- | --- | --- |
-| 1 navigation dots | shared activity promise → visible permission-filtered nav items → group summary | Contract checks: deduplication, empty queues, visible-item aggregation; authenticated refresh pending |
+| 1 navigation dots | shared activity promise → visible permission-filtered nav items → group summary | Contract checks cover deduplication, empty queues, visible-item aggregation and matching 8px group/child right inset; live completion refresh, role matrix and desktop screenshot remain pending |
 | 2 notification icons | activity menu maps maintenance, PR, PO, invoices, compliance, production and inventory; 16px shrink-0 icons | Source/type checks; authenticated popover inspection pending |
 | 3 activity entry | existing /activity navigation with outlined button presentation | Source contract; authenticated click pending |
 | 4 daily metadata | page-specific three-column label/value groups; full-width detail region | Actual row-component synthetic browser stress check |

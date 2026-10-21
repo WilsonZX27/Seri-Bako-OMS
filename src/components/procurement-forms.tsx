@@ -15,6 +15,7 @@ import { normalizeUom, uomOptionsForValues } from "@/lib/uom";
 import { getToday } from "@/lib/utils";
 import { ItemCombobox, type ItemComboboxOption } from "@/components/item-combobox";
 import { Notice } from "@/components/ui/system-states";
+import { FormPendingBridge } from "@/components/ui/submit-button";
 
 type ItemOption = ItemComboboxOption;
 type BranchOption = { id: string; branch_code: string; branch_name: string; status: string };
@@ -348,7 +349,7 @@ export function PurchaseRequestForm({
 
   return (
     <div className="min-w-0">
-        <form id="purchase-request-form" action={action} onSubmit={validateSubmission} noValidate className={`space-y-3 ${reserveMobileActionSpace ? "pb-36" : ""} md:pb-0`}>
+        <form id="purchase-request-form" action={action} onSubmit={validateSubmission} noValidate className={`space-y-3 ${reserveMobileActionSpace ? "pb-36" : ""} md:pb-0`}><FormPendingBridge formId="purchase-request-form" />
           <input type="hidden" name="request_no" value="" />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="request_date" value={initialRequestDate ?? getToday()} />
@@ -536,7 +537,7 @@ export function PurchaseOrderForm({
 
   return (
     <div className="min-w-0">
-        <form id="purchase-order-form" action={formAction} className="grid gap-3">
+        <form id="purchase-order-form" action={formAction} className="grid gap-3"><FormPendingBridge formId="purchase-order-form" />
           <input hidden type="hidden" name="idempotency_key" value={idempotencyKey} />
           {actionState.error && actionState.attempt !== dismissedErrorAttempt ? <Notice tone="error" title="Purchase order not created"><p>{actionState.error}</p><p className="mt-1 font-medium">Your entries are still here. Review the selected branch, supplier, and items, then try again.</p></Notice> : null}
           <section data-purchase-order-form-surface className="sb-work-surface overflow-hidden">

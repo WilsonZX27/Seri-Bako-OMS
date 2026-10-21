@@ -341,7 +341,7 @@ export function MobileAppNavigation({
             role="dialog"
             aria-modal="true"
             aria-labelledby={titleId}
-            className="sb-popover-surface absolute inset-x-0 bottom-0 flex max-h-[88dvh] flex-col overflow-hidden pb-[env(safe-area-inset-bottom)]"
+            className="sb-popover-surface sb-mobile-navigation-drawer absolute inset-x-0 bottom-0 flex max-h-[88dvh] flex-col overflow-hidden pb-[env(safe-area-inset-bottom)]"
           >
             <header className="flex min-h-14 items-center justify-between border-b border-[var(--sb-border-soft)] px-4">
               <div className="min-w-0">
@@ -352,7 +352,7 @@ export function MobileAppNavigation({
                 <X className="h-5 w-5" />
               </Button>
             </header>
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-3">
+            <div className="sb-mobile-navigation-groups min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-3">
               <section className="mb-4 space-y-2">
                 <Button type="button" variant="outline" className="w-full justify-start gap-3" onClick={() => { setMoreOpen(false); setSearchOpen(true); }}>
                   <Search className="h-5 w-5" aria-hidden="true" />
@@ -372,7 +372,7 @@ export function MobileAppNavigation({
                 </div>
               </section>
               {groups.map((group) => (
-                <section key={group.id} className="mb-4 last:mb-0">
+                <section key={group.id} className="sb-mobile-navigation-group mb-4 last:mb-0">
                   <h3 className="px-2 pb-1.5 text-[11px] font-semibold text-[var(--sb-text-muted)]">{group.label}</h3>
                   <div className="divide-y divide-[var(--sb-border-soft)] border-y border-[var(--sb-border-soft)]">
                     {group.items.map((item) => {

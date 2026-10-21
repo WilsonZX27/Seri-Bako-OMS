@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
-import { SubmitButton } from "@/components/ui/submit-button";
+import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { formatNumber, getToday } from "@/lib/utils";
 import { wastageReasons } from "@/lib/validations/stock-operations";
@@ -30,6 +30,7 @@ export function StockTransferForm({ branches, selectedFromBranchId, seedLines, a
   function selectFromBranch(id: string) { router.push(id ? `/stock-transfers/new?from_branch_id=${id}` : "/stock-transfers/new"); }
   return (
       <form key={result?.attempt ?? 0} id={formId} action={submitTransfer} className="space-y-3">
+      {formId ? <FormPendingBridge formId={formId} /> : null}
         {result?.error ? <p role="alert" className="rounded-sm border border-destructive p-3 text-sm text-destructive">{result.error}</p> : null}
         {branches.length < 2 ? <p role="status" className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />A transfer needs access to two different branches. Contact an administrator to review your branch access.</p> : null}
         <input type="hidden" name="idempotency_key" value={saved.get("idempotency_key") ?? idempotencyKey} />
@@ -55,6 +56,7 @@ export function StockTransferReceiveForm({ transferId, lines, action, formId = "
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   return (
     <form id={formId} action={action} className="min-w-0 space-y-3" data-stock-transfer-receive-form>
+      {formId ? <FormPendingBridge formId={formId} /> : null}
       <input type="hidden" name="transfer_id" value={transferId} />
       <input type="hidden" name="idempotency_key" value={idempotencyKey} />
       <div className="min-w-0 overflow-hidden rounded-sm border">
@@ -97,6 +99,7 @@ export function StockWastageForm({ branches, selectedBranchId, seedLines, action
   function selectBranch(id: string) { router.push(id ? `/stock-wastage/new?branch_id=${id}` : "/stock-wastage/new"); }
   return (
       <form key={result?.attempt ?? 0} id={formId} action={submitWastage} className="space-y-3">
+      {formId ? <FormPendingBridge formId={formId} /> : null}
         {result?.error ? <p role="alert" className="rounded border border-destructive p-3 text-sm text-destructive">{result.error}</p> : null}
         <input type="hidden" name="idempotency_key" value={saved.get("idempotency_key") ?? idempotencyKey} />
         <input type="hidden" name="wastage_no" value="WST-AUTO" />

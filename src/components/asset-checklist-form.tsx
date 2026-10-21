@@ -1,4 +1,5 @@
 "use client";
+import { FormPendingBridge } from "@/components/ui/submit-button";
 import { AssetFormWorkspace } from "@/components/asset-form-workspace";
 import { formatRegisteredAssetQuantity } from "@/lib/asset-quantity-display";
 
@@ -32,6 +33,7 @@ export function AssetChecklistForm({ intro, locationId, assets, holdings, date, 
   const hint = !selected.length ? "Select at least one asset and review its condition." : missingNotes ? "Add a note for each exception before submitting." : "Review selected assets. Only one checklist can be submitted per day.";
   const submit = <Button className="w-full min-h-11" form={formId} type="submit" disabled={pending || state.ok || !selected.length}>{pending ? "Saving…" : "Submit checklist"}</Button>;
   return <AssetFormWorkspace actions={submit} hint={hint}>{intro}<form id={formId} action={action} onInvalidCapture={event => { const details = (event.target as HTMLElement).closest("details"); if (details) details.open = true; }} className="max-lg:[&_input]:min-h-11 max-lg:[&_select]:min-h-11 max-lg:[&_button]:min-h-11 sb-work-surface p-3">
+    {formId ? <FormPendingBridge formId={formId} /> : null}
     <p className="mb-3 text-xs">One checklist per location per day. Review all selected assets before submitting.</p>
     {restored ? <p role="status" className="mb-3 text-xs">Unsaved inspection inputs restored. Review counts and selections before saving.</p> : null}
     <input type="hidden" name="location_id" value={locationId}/><input type="hidden" name="submission_id" value={draft.submissionId}/>

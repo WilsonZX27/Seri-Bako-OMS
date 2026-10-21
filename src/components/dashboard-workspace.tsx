@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowUpRight, Boxes, CheckCircle2, ClipboardCheck, ClipboardList, Clock3, Factory, FileText, LockKeyhole, PackageCheck, ReceiptText, ShieldCheck, ShoppingCart, UserRound } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, Boxes, CalendarDays, CheckCircle2, ClipboardCheck, ClipboardList, Clock3, Factory, FileText, LockKeyhole, MapPin, Package, PackageCheck, ReceiptText, ShieldCheck, ShoppingCart, UserRound, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
-import { cn, formatCurrency, formatNumber } from "@/lib/utils";
+import { cn, formatCurrency, formatNumber, formatDateOnly } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 import { StatusBadge } from "@/components/ui/status-badge";
 
@@ -244,7 +244,8 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   return (
     <WorkspaceGrid
       hideMobileConsole
-      tabletRailMode="context"
+      tabletRailMode="split"
+      tabletRailBreakpoint="md"
       rightRail={desktopActionRail}
       className="gap-4 p-3 pb-32 sm:p-4 sm:pb-24 xl:pb-4"
     >
@@ -317,7 +318,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               {summary.attentionSummary.state === "unavailable" ? <p className="mt-1 text-[11px] leading-4 text-muted-foreground">Unavailable: {unavailableAttentionLabels.join(", ")}</p> : null}
             </div>
           </div>
-          <div className={`grid grid-cols-2 divide-x divide-y divide-[var(--sb-border-soft)] border-t border-[var(--sb-border-soft)] ${attentionSignals.length === 4 ? "sm:grid-cols-4" : attentionSignals.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`} data-dashboard-pulse-metrics aria-label="Today work breakdown">
+          <div className="grid grid-cols-2 divide-x divide-y divide-[var(--sb-border-soft)] border-t border-[var(--sb-border-soft)]" data-dashboard-pulse-metrics aria-label="Today work breakdown">
             {attentionSignals.map((signal, index) => {
               const Icon = signal.icon;
               const unavailable = signal.value === null;
@@ -331,8 +332,6 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
           </div>
         </section>
 
-        <QuickActionsCluster actions={quickActions} className="hidden lg:block xl:hidden" />
-
         <Panel title={isKitchen ? "Purchase request progress" : "Actions awaiting you"} tone={summary.pendingApprovals.length ? "danger" : "default"}>
           {summary.pendingApprovals.length ? (
             <div className="divide-y divide-[var(--sb-border-soft)]">
@@ -342,16 +341,31 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                 return <Link prefetch={false}
                   key={row.id}
                   href={row.href}
-                  className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-1 px-3 py-2.5 text-xs hover:bg-[var(--sb-surface-muted)]"
+                  className="grid min-h-14 min-w-0 gap-y-1.5 px-3 py-2.5 text-xs hover:bg-[var(--sb-surface-muted)]"
+                  data-dashboard-pending-row
                 >
-                  <strong className="min-w-0 truncate font-mono">{isOutletDailyAction ? `Outlet Daily · ${row.document_no}` : row.document_no}</strong>
-                  <StatusBadge status={row.step.toLowerCase().replaceAll(" ", "_")} className="shrink-0" />
-                  <span className="col-span-2 flex min-w-0 items-center gap-2 text-[11px] text-muted-foreground"><span className="shrink-0">{row.branch_name ?? "Unassigned"}</span><span>·</span><span className="shrink-0">{row.age_label}</span><span>·</span><span className="truncate">{isOutletDailyAction ? "Outlet Daily" : isScheduleAction ? "Schedule" : row.submitted_by_name ?? "—"}</span></span>
+                  <span className="flex min-w-0 items-center justify-between gap-2">
+                    <strong className="min-w-0 truncate font-mono">{isOutletDailyAction ? `Outlet Daily · ${row.document_no}` : row.document_no}</strong>
+                    <StatusBadge status={row.step.toLowerCase().replaceAll(" ", "_")} className="shrink-0" />
+                  </span>
                   {isScheduleAction
-                    ? <span className="col-span-2 text-[11px] font-medium text-[var(--sb-warning)]">Review and publish this outlet roster</span>
+                    ? <span className="text-[11px] font-medium text-[var(--sb-warning)]">Review and publish this outlet roster</span>
                     : isOutletDailyAction
-                      ? <span className="col-span-2 text-[11px] font-medium text-[var(--sb-green-800)]">Review outlet quantities and post to lock editing</span>
-                      : <span className="col-span-2 flex min-w-0 items-center justify-between gap-3 text-[11px] text-muted-foreground"><span className="truncate" title={row.supplier_names.join(", ")}>{row.supplier_names.join(", ") || "Supplier pending"}</span><span className="shrink-0 tabular-nums">{row.line_count} {row.line_count === 1 ? "item" : "items"} · <strong className="font-medium text-foreground">{formatCurrency(row.estimated_total)}</strong></span></span>}
+                      ? <span className="text-[11px] font-medium text-[var(--sb-green-800)]">Review outlet quantities and post to lock editing</span>
+                      : <>
+                          <span className="sb-pr-phone-supplier-row">
+                            <span className="sb-pr-phone-supplier" title={row.supplier_names.join(", ") || "Supplier pending"}><Store aria-hidden="true"/><span>{row.supplier_names.join(", ") || "Supplier pending"}</span></span>
+                            <span className="sb-pr-phone-items"><Package aria-hidden="true"/><span>{row.line_count} {row.line_count === 1 ? "item" : "items"}</span></span>
+                            <strong className="sb-pr-phone-amount">{formatCurrency(row.estimated_total)}</strong>
+                          </span>
+                          <span className="sb-pr-phone-location-row">
+                            <span className="sb-pr-phone-location"><MapPin aria-hidden="true"/><span>{row.branch_name ?? "Unassigned"}</span></span>
+                            <span className="sb-pr-phone-byline">
+                              <span className="sb-pr-phone-byline-person"><UserRound aria-hidden="true"/><span>by {row.submitted_by_name ?? "—"}</span></span>
+                              <time className="sb-pr-phone-byline-date" dateTime={row.updated_at}><CalendarDays aria-hidden="true"/><span>{formatDateOnly(row.updated_at)}</span></time>
+                            </span>
+                          </span>
+                        </>}
                 </Link>
               })}
             </div>

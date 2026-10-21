@@ -36,6 +36,7 @@ type HeaderProps = {
   className?: string;
   phoneOnly?: boolean;
   phoneMode?: "drawer" | "inline";
+  tabletMode?: "drawer" | "inline" | "auto";
   phonePrimary?: "inline" | "drawer";
   /** Opt-in persistent compact filters; other routes keep their existing layout. */
   compactPinnedFields?: string[];
@@ -169,12 +170,13 @@ function SearchControl({ child, value, onChange }: { child: ReactElement; value:
   );
 }
 
-export function UnifiedListHeader({ children, actions, onSubmit, resultCount, resultLabel, resetHref, filtered = false, activeCount = 0, className, phoneOnly = false, phoneMode = "drawer", phonePrimary = "inline", compactPinnedFields = [], stableResponsive = false }: HeaderProps) {
+export function UnifiedListHeader({ children, actions, onSubmit, resultCount, resultLabel, resetHref, filtered = false, activeCount = 0, className, phoneOnly = false, phoneMode = "drawer", tabletMode = "drawer", phonePrimary = "inline", compactPinnedFields = [], stableResponsive = false }: HeaderProps) {
   // The first client render must match SSR exactly. Viewport detection belongs
   // in the effect below; reading matchMedia in the state initializer rendered
   // different desktop/mobile trees and caused hydration recovery on every
   // phone-sized list route.
   const [mobile, setMobile] = useState(phoneOnly);
+  const [tablet, setTablet] = useState(false);
   const [open, setOpen] = useState(false);
   const desktopFormRef = useRef<HTMLFormElement>(null);
   const mobileFormRef = useRef<HTMLFormElement>(null);
@@ -183,10 +185,14 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
   useEffect(() => {
     if (phoneOnly) return;
     const query = window.matchMedia("(max-width: 1279px)");
+    const tabletQuery = window.matchMedia("(min-width: 640px) and (max-width: 1279px)");
     const sync = () => setMobile(query.matches);
+    const syncTablet = () => setTablet(tabletQuery.matches);
     sync();
+    syncTablet();
     query.addEventListener("change", sync);
-    return () => query.removeEventListener("change", sync);
+    tabletQuery.addEventListener("change", syncTablet);
+    return () => { query.removeEventListener("change", sync); tabletQuery.removeEventListener("change", syncTablet); };
   }, [phoneOnly]);
 
   useEffect(() => {
@@ -232,6 +238,9 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
   const nested = more && isValidElement(more) ? flattenChildren(propsOf(more).children as ReactNode) : [];
   const contextualFilterCount = filters.filter(child => !isHiddenControl(child)).length + nested.filter(child => !isHiddenControl(child)).length;
   const resolvedPhoneMode = phoneMode;
+  const resolvedTabletMode = tabletMode === "auto" ? (contextualFilterCount <= 3 ? "inline" : "drawer") : tabletMode;
+  const compactDrawer = tablet ? resolvedTabletMode === "drawer" : resolvedPhoneMode === "drawer";
+  const compactInline = tablet ? resolvedTabletMode === "inline" : resolvedPhoneMode === "inline";
   const primaryInDrawer = resolvedPhoneMode === "drawer" && phonePrimary === "drawer";
   const active = activeCount || (more && isValidElement(more) && typeof propsOf(more).activeCount === "number" ? propsOf(more).activeCount as number : 0);
   const primaryProps = primary && isValidElement(primary) ? propsOf(primary) : {};
@@ -382,7 +391,7 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
   const showMobileSearchAction = hasTextSearch && !primaryInDrawer;
   const showMobileDateAction = primaryProps.type === "date" && !primaryInDrawer && contextualFilterCount === 0;
   const mobileForm = (
-    <form ref={mobileFormRef} className={cn("unified-list-header sb-list-query-card", renderBoth && "sb-stable-mobile-form", className)} data-filtered={filtered || undefined} data-reset-href={resetHref} onSubmit={submit} onKeyDown={cancelDebounceOnEnter}>
+    <form ref={mobileFormRef} className={cn("unified-list-header sb-list-query-card", renderBoth && "sb-stable-mobile-form", className)} data-tablet-mode={resolvedTabletMode} data-inline-field-count={contextualFilterCount} data-filtered={filtered || undefined} data-reset-href={resetHref} onSubmit={submit} onKeyDown={cancelDebounceOnEnter}>
       {(!primaryInDrawer && primary || resolvedPhoneMode === "drawer" || contextualFilterCount === 1 || typeof resultCount === "number") ? <div className={cn("unified-list-row", (primaryInDrawer || !primary) && "unified-list-row--filter-only")}>
         {!primaryInDrawer && primary && isValidElement(primary) ? <SearchControl child={primary} value={searchValue} onChange={(value) => { updateSearch(value); if (compactPinnedFields.length && primaryProps.type === "date") queueQuery(); }} /> : null}
         {pinnedFilters.map((child, index) => {
@@ -395,13 +404,13 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
         })}
         {showMobileSearchAction ? <Button type="submit" size="icon" variant="default" className="unified-list-search-submit" aria-label="Search" title="Search" onClick={() => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); }}><Search className="size-4 shrink-0" aria-hidden="true"/></Button> : null}
         {showMobileDateAction ? <Button type="submit" className="unified-list-date-submit">View</Button> : null}
-        {resolvedPhoneMode === "drawer" && !showMobileDateAction ? <button ref={filterTriggerRef} type="button" className="unified-list-filter-trigger" onClick={() => setOpen(true)} aria-label={active ? `Filter, ${active} active` : "Filter"} aria-haspopup="dialog" aria-expanded={open}><SlidersHorizontal /><span className="unified-list-filter-label">Filter</span>{active ? <span className="unified-list-filter-badge" aria-hidden="true">{active}</span> : null}</button> : null}
-        {resolvedPhoneMode === "inline" && contextualFilterCount === 1 ? <div className="unified-list-inline-control">{filterControls}</div> : null}
+        {compactDrawer && !showMobileDateAction ? <button ref={filterTriggerRef} type="button" className="unified-list-filter-trigger" onClick={() => setOpen(true)} aria-label={active ? `Filter, ${active} active` : "Filter"} aria-haspopup="dialog" aria-expanded={open}><SlidersHorizontal /><span className="unified-list-filter-label">Filter</span>{active ? <span className="unified-list-filter-badge" aria-hidden="true">{active}</span> : null}</button> : null}
+        {compactInline && contextualFilterCount === 1 ? <div className="unified-list-inline-control">{filterControls}</div> : null}
         {typeof resultCount === "number" ? <span className="unified-list-result" aria-live="polite"><strong>{resultCount}</strong><span>{resultLabel ?? (resultCount === 1 ? "record" : "records")}</span></span> : null}
       </div> : null}
       {resolvedPhoneMode === "inline" ? all.filter(isHiddenControl) : null}
-      {resolvedPhoneMode === "inline" && contextualFilterCount > 1 ? <div className="unified-list-inline-fields">{filterControls}</div> : null}
-      {resolvedPhoneMode === "drawer" && !open ? [...drawerFilters, ...nested].map((child, index) => {
+      {compactInline && contextualFilterCount > 1 ? <div className="unified-list-inline-fields">{filterControls}</div> : null}
+      {compactDrawer && !open ? [...drawerFilters, ...nested].map((child, index) => {
         const hidden = hiddenFilterValue(child);
         return hidden ? <input key={`${hidden.name}-${index}`} type="hidden" name={hidden.name} value={hidden.value} /> : null;
       }) : null}

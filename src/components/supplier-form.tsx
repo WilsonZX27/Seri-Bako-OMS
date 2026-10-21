@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { SubmitButton } from "@/components/ui/submit-button";
+import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import type { Database } from "@/types/database";
 
@@ -20,6 +20,7 @@ type SupplierFormProps = {
 export function SupplierForm({ supplier, action, formId, showSubmit = true }: SupplierFormProps) {
   return (
     <form id={formId} action={action} className="space-y-4">
+      {formId ? <FormPendingBridge formId={formId} /> : null}
       <RecordSection title="Supplier Identity" description="Supplier reference, name, and operational status.">
         <div className="grid gap-4 md:grid-cols-2">
           <Field label="Supplier Code">

@@ -77,7 +77,7 @@ export default async function StockCountsPage({ searchParams }: { searchParams: 
     </div>}>
       <div className="space-y-3" data-tablet-main-list>
           <StockCountVarianceInsights insight={varianceInsight} />
-          <FilterBar resultCount={counts?.totalRows} resetHref="/stock-counts" filtered={filtered} className="sb-list-filters--balanced sb-list-filters--portrait-query">
+          <FilterBar key={JSON.stringify([filters.search, filters.branch_id, filters.status, filters.from, filters.to])} resultCount={counts?.totalRows} resetHref="/stock-counts" filtered={filtered} phoneMode="drawer" tabletMode="drawer" stableResponsive className="sb-list-filters--balanced sb-stock-count-query">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search count no, branch, remarks" aria-label="Search stock counts" />
             <SelectControl name={branches ? "branch_id" : undefined} defaultValue={branches ? filters.branch_id ?? "all" : "unavailable"} ariaLabel="Branch" disabled={!branches} options={branches ? [{ value: "all", label: "All branches" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))] : [{ value: "unavailable", label: "Branch filter unavailable" }]} />
             {!branches && filters.branch_id ? <input type="hidden" name="branch_id" value={filters.branch_id} /> : null}

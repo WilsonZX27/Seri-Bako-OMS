@@ -104,10 +104,10 @@ export function WorkspaceSidebar({
                         <span className={mobile ? "text-[11px]" : "text-[10px]"}>{group.label}</span>
                       </button>
                     )}
-                    {hasAttention ? <span className="size-1.5 shrink-0 rounded-full bg-amber-400" role="img" aria-label="Pending update" /> : null}
                     <button type="button" className={cn("flex items-center justify-center rounded-[var(--sb-control-radius)] hover:bg-white/10", mobile ? "min-h-11 min-w-11" : "min-h-9 min-w-9")} onClick={() => toggleGroup(group.id, groupClosed)} aria-expanded={!groupClosed} aria-label={`${groupClosed ? "Expand" : "Collapse"} ${group.label}`}>
                       <ChevronDown className={cn("h-3 w-3 transition-transform", groupClosed ? "-rotate-90" : "")} />
                     </button>
+                    {hasAttention && groupClosed ? <span className="mr-2 size-1.5 shrink-0 rounded-full bg-amber-400" role="img" aria-label="Pending update" /> : null}
                   </div>
                 <div className={cn("space-y-0.5", groupClosed ? "hidden" : "")}>
                   {visibleItems.map((item) => {

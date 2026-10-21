@@ -9,7 +9,7 @@ import { ModalShell } from "@/components/ui/modal-shell";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
-import { SubmitButton } from "@/components/ui/submit-button";
+import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { TableActionMenuPortal } from "@/components/ui/table-action-menu-portal";
 import { StockCountLineRecovery } from "@/components/stock-count-line-recovery";
@@ -571,6 +571,7 @@ export function StockCountForm({
     <div className="min-w-0">
       <div>
         <form ref={formRef} id={formId} noValidate onSubmit={handleSubmit} aria-busy={manualSavePendingState || undefined} className={showSubmit ? "space-y-3 pb-28 xl:pb-0" : "space-y-3"}>
+      {formId ? <FormPendingBridge formId={formId} /> : null}
           {manualSaveError ? <p role="alert" className="rounded-[var(--sb-control-radius)] border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{manualSaveError}</p> : null}
           <input type="hidden" name="has_unsaved_changes" value={String(dirtyRevision > lastSavedRevision.current)} />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />

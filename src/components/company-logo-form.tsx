@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { SubmitButton } from "@/components/ui/submit-button";
+import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 import { DestructiveActionDialog } from "@/components/ui/destructive-action-dialog";
 
 type CompanyLogoFormProps = {
@@ -59,6 +59,7 @@ export function CompanyLogoForm({
         {logoError ? <p data-inset-surface className="rounded-[var(--sb-panel-radius)] border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">{logoError}</p> : null}
 
         <form id={uploadFormId} action={uploadAction} className="space-y-3">
+          <FormPendingBridge formId={uploadFormId} />
           <input type="hidden" name="company_id" value={companyId} />
           <Field label="Logo image">
             <Input

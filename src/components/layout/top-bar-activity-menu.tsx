@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Bell, ClipboardCheck, Factory, ListTodo, Megaphone, Package, ReceiptText, ShieldAlert, ShoppingCart, TriangleAlert, Wrench } from "lucide-react";
+import { ArrowRight, Bell, Check, ClipboardCheck, Factory, ListTodo, Megaphone, Package, ReceiptText, ShieldAlert, ShoppingCart, TriangleAlert, Wrench } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -111,7 +111,7 @@ export function TopBarActivityMenu({ data, canOpenActivity = true }: { data: Top
                 <p className="text-xs text-muted-foreground">Notifications and recent activity.</p>
               </div>
               {unreadCount > 0 ? (
-                <Button type="button" variant="outline" size="sm" onClick={markVisibleUpdatesSeen}>Mark as read</Button>
+                <Button type="button" variant="ghost" size="icon" className="sb-mark-updates-read size-8 shrink-0 border-0 bg-transparent shadow-none hover:bg-muted" aria-label="Mark as read" title="Mark as read" onClick={markVisibleUpdatesSeen}><Check className="size-4" aria-hidden="true" /></Button>
               ) : null}
             </div>
           </div>

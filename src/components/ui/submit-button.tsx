@@ -36,15 +36,22 @@ export function SubmitButton({
         setSubmitted(event.submitter === buttonRef.current);
       }
     };
-    const markSettled = (event: Event) => {
-      const targetId = (event as CustomEvent<{ formId?: string }>).detail?.formId;
-      if (targetId && targetId === (formId ?? buttonRef.current?.form?.id)) setSubmitted(false);
+    const syncExternalPending = (event: Event) => {
+      const detail = (event as CustomEvent<{ formId?: string; pending?: boolean }>).detail;
+      if (!detail?.formId || detail.formId !== (formId ?? buttonRef.current?.form?.id)) return;
+      if (detail.pending) {
+        sawPending.current = true;
+        setSubmitted(true);
+      } else if (sawPending.current) {
+        sawPending.current = false;
+        setSubmitted(false);
+      }
     };
     document.addEventListener("submit", markSubmitted, true);
-    document.addEventListener("sb:form-settled", markSettled);
+    document.addEventListener("sb:form-pending", syncExternalPending);
     return () => {
       document.removeEventListener("submit", markSubmitted, true);
-      document.removeEventListener("sb:form-settled", markSettled);
+      document.removeEventListener("sb:form-pending", syncExternalPending);
     };
   }, [formId]);
 
@@ -59,40 +66,6 @@ export function SubmitButton({
   useEffect(() => {
     setSubmitted(false);
   }, [locationKey]);
-
-  useEffect(() => {
-    if (!submitted || !formId) return;
-    const form = document.getElementById(formId);
-    const observationRoot = form?.parentElement ?? form;
-    let settled = false;
-    let observer: MutationObserver | null = null;
-    const release = () => {
-      if (settled) return;
-      settled = true;
-      setSubmitted(false);
-    };
-    const beginObserving = window.setTimeout(() => {
-      if (!observationRoot || settled) return;
-      observer = new MutationObserver((records) => {
-        if (records.some((record) => record.type === "childList" || record.type === "characterData")) {
-          window.setTimeout(release, 120);
-        }
-      });
-      observer.observe(observationRoot, { childList: true, subtree: true, characterData: true });
-    }, 250);
-    form?.addEventListener("reset", release);
-    window.addEventListener("pageshow", release);
-    window.addEventListener("popstate", release);
-    const timeout = window.setTimeout(release, 30000);
-    return () => {
-      observer?.disconnect();
-      window.clearTimeout(beginObserving);
-      form?.removeEventListener("reset", release);
-      window.removeEventListener("pageshow", release);
-      window.removeEventListener("popstate", release);
-      window.clearTimeout(timeout);
-    };
-  }, [submitted, formId]);
 
   const isPending = submitted && (formId ? true : pending);
 
@@ -112,4 +85,13 @@ export function SubmitButton({
       ) : null}
     </>
   );
+}
+
+/** Place inside a form when its submit control lives outside the form tree. */
+export function FormPendingBridge({ formId }: { formId: string }) {
+  const { pending } = useFormStatus();
+  useEffect(() => {
+    document.dispatchEvent(new CustomEvent("sb:form-pending", { detail: { formId, pending } }));
+  }, [formId, pending]);
+  return null;
 }

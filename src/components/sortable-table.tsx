@@ -1,11 +1,12 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TableHead } from "@/components/ui/table";
 import { PaginationScrollReset } from "@/components/pagination-scroll-reset";
 
 type SortableHeadProps = {
-  label: string;
+  label: ReactNode;
   column: string;
   currentSort?: string;
   currentDir?: string;

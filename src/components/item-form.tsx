@@ -6,7 +6,7 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { SupplierCombobox } from "@/components/supplier-combobox";
-import { SubmitButton } from "@/components/ui/submit-button";
+import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 import { Button } from "@/components/ui/button";
 import { normalizeUom, uomOptionsWithCurrent } from "@/lib/uom";
 import type { Database } from "@/types/database";
@@ -30,6 +30,7 @@ type ItemFormProps = {
 export function ItemForm({ item, suppliers, action, formId, showSubmit = true, canCreateSupplier = false, canCreateSourcing = false, branches = [], categories = [] }: ItemFormProps) {
   return (
     <form id={formId} action={action} className="space-y-4">
+      {formId ? <FormPendingBridge formId={formId} /> : null}
       <RecordSection title="Identity" description="Item code, name, category, and operational status.">
         <div className="grid gap-4 lg:grid-cols-[14rem_minmax(0,1fr)] lg:items-start">
           <Field label="Item Image">

@@ -1,4 +1,5 @@
 "use client";
+import { FormPendingBridge } from "@/components/ui/submit-button";
 import Link from "next/link";
 import { AssetChoiceSelect } from "@/components/asset-choice-select";
 import { AssetFormWorkspace } from "@/components/asset-form-workspace";
@@ -36,6 +37,7 @@ export function AssetMasterForm({ assetId, code = "", name = "", values, locatio
   const hint = !assetCode.trim() ? "Enter the Asset ID." : !itemName.trim() ? "Enter the item name." : !assetId && !location ? "Choose the initial location." : !reason.trim() ? (assetId ? "Add a change reason." : "Add a registration note.") : !dirty ? "Change a field before saving." : "Review the asset details before saving. Blank quantity stays unknown.";
   const registrationAction = <Button form={formId} className="w-full min-h-11" type="submit" disabled={!dirty || pending || state.ok}>{pending ? "Saving…" : "Register asset"}</Button>;
   const content = <form id={formId} action={action} className={`max-lg:[&_input]:min-h-11 max-lg:[&_select]:min-h-11 max-lg:[&_button]:min-h-11 ${embedded ? "pt-3" : "sb-work-surface p-4"}`}>
+      {formId ? <FormPendingBridge formId={formId} /> : null}
     {restored ? <p role="status" className="mb-3 text-xs">Unsaved inputs restored from this browser tab. Review before saving.</p> : null}
     <input type="hidden" name="asset_id" value={assetId ?? ""}/><input type="hidden" name="client_key" value={requestKey}/><input type="hidden" name="expected_updated_at" value={updatedAt}/>
     <fieldset disabled={pending || state.ok} className="min-w-0 space-y-3">

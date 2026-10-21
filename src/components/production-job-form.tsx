@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { SubmitButton } from "@/components/ui/submit-button";
+import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 import { UrgencySelect } from "@/components/urgency-select";
 import type { ProcurementPriority } from "@/components/priority-badge";
 import { normalizeUom, uomOptionsWithCurrent } from "@/lib/uom";
@@ -70,6 +70,7 @@ export function ProductionJobForm({
 
   return (
     <form id={formId} action={action} className="space-y-5">
+      {formId ? <FormPendingBridge formId={formId} /> : null}
       <input type="hidden" name="idempotency_key" value={idempotencyKey} />
       <Card>
         <CardHeader>

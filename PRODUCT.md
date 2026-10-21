@@ -1,3 +1,7 @@
+## v9.2.126 (local candidate) — Responsive workspace refinements
+
+This candidate folds the latest UI annotations into scoped responsive patterns for production planning, assets, purchase requests, goods receiving, stock counts, notifications, navigation, and the dashboard. Stock Count keeps its search, branch, status and date controls inline on phones when they fit, including the 360px layout, and clears stale search text on reset. Existing routes, permissions, and data behavior are retained. Local review evidence and Mock-data limitations are recorded in `docs/releases/preview-v9.2.126-local-candidate.md` and `docs/qa/2026-10-21-closure.md`. This candidate is local and not deployed or signed off.
+
 ## v9.2.123 (local candidate) — responsive control clarity
 
 The local follow-up stabilizes the first frame of the Purchase Requests and Daily Records toolbars, clarifies Attendance and Asset action labels, and labels the compact Supplier Invoices filters. It is not deployed or signed off. See `docs/releases/preview-v9.2.123-local-candidate.md` and `docs/qa/2026-10-21-closure.md` for verification and open role/data work.

@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
-import { SubmitButton } from "@/components/ui/submit-button";
+import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { getToday } from "@/lib/utils";
 import type { Database, StockTransactionType } from "@/types/database";
@@ -46,6 +46,7 @@ export function StockTransactionForm({ items, branches, action, formId, showSubm
     <Card className="border-0 bg-transparent shadow-none md:border md:bg-card md:shadow-sm" data-stock-transaction-setup>
       <CardContent className="p-3 md:p-5">
         <form id={formId} action={action} className="grid grid-cols-2 gap-3 md:grid-cols-3">
+      {formId ? <FormPendingBridge formId={formId} /> : null}
           <Field label="Transaction Date" className="order-1 col-span-2 md:col-span-1">
             <Input name="transaction_date" type="date" defaultValue={getToday()} required />
           </Field>

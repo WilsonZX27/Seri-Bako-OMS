@@ -7,6 +7,7 @@ import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { Textarea } from "@/components/ui/textarea";
+import { FormPendingBridge } from "@/components/ui/submit-button";
 import { formatCurrency, formatNumber, getToday } from "@/lib/utils";
 import type { ReturnableGoodsReceiving, ReturnableGoodsReceivingLine } from "@/server/queries/purchase-returns";
 
@@ -26,7 +27,7 @@ export function PurchaseReturnForm({
   const [reason, setReason] = useState("");
   return (
     <div className="min-w-0">
-        <form id="purchase-return-form" action={action} className="erp-surface grid gap-3 p-3 md:p-4">
+        <form id="purchase-return-form" action={action} className="erp-surface grid gap-3 p-3 md:p-4"><FormPendingBridge formId="purchase-return-form" />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="purchase_return_no" value="PRT-AUTO" />
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">

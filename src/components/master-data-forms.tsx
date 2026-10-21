@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState, useEffect, useMemo, useState } from "react";
-import { SubmitButton } from "@/components/ui/submit-button";
+import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 import { ItemCombobox, type ItemComboboxOption } from "@/components/item-combobox";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
@@ -59,6 +59,7 @@ export function SupplierItemForm({
     <Card>
       <CardContent className="p-5">
         <form key={result?.attempt ?? 0} id={formId} action={submit} className="grid grid-cols-2 gap-4 pb-20 md:grid-cols-3 md:pb-0">
+      {formId ? <FormPendingBridge formId={formId} /> : null}
           {result?.error ? <p role="alert" className="col-span-full rounded border border-destructive p-3 text-sm text-destructive">{result.error}</p> : null}
           <input type="hidden" name="status" value={supplierItem?.status ?? "active"} />
           <Field label="Supplier" required className="col-span-2 md:col-span-1">
@@ -144,6 +145,7 @@ export function UomConversionForm({ conversion, action, formId, showSubmit = tru
     <Card>
       <CardContent className="p-5">
         <form key={result?.attempt ?? 0} id={formId} action={submit} className="grid grid-cols-2 gap-4 pb-20 md:pb-0">
+      {formId ? <FormPendingBridge formId={formId} /> : null}
           {result?.error ? <p role="alert" className="col-span-full rounded border border-destructive p-3 text-sm text-destructive">{result.error}</p> : null}
           <input type="hidden" name="status" value={conversion?.status ?? "active"} />
           <Field label="From UOM">

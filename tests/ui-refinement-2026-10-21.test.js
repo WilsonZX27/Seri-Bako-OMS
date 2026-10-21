@@ -21,8 +21,41 @@ test('reviewed lists have one visible phone create owner and scoped metadata sty
  assert.match(css,/\.sb-pr-phone-supplier > span \{ white-space: normal; overflow-wrap: anywhere;/);
  assert.match(css,/\.sb-pr-phone-byline-date \{[^}]*white-space: nowrap/);
 });
+test('list filters stay in the centered dialog on phones and tablets', () => {
+ const header=read('src/components/common/UnifiedListHeader.tsx');
+ assert.match(header,/const compactDrawer = tablet \? resolvedTabletMode === "drawer" : resolvedPhoneMode === "drawer"/);
+ assert.match(header,/const compactInline = tablet \? resolvedTabletMode === "inline" : resolvedPhoneMode === "inline"/);
+ const counts=read('src/app/(app)/stock-counts/page.tsx');
+ assert.match(counts,/phoneMode="drawer" tabletMode="drawer" stableResponsive/);
+ const css=read('src/app/design-system-v2.css');
+ assert.match(css,/grid-template-columns: minmax\(0, 1fr\) 44px 44px max-content/);
+ assert.match(css,/\.sb-pr-phone-supplier > span \{ min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;/);
+ assert.match(css,/\.unified-list-sheet-fields\s*\{[^}]*gap:\.5rem \.625rem;[^}]*padding:\.75rem 0;/);
+});
+test('outlet sales totals remain a two-column pair on phone widths', () => {
+ const form=read('src/components/outlet-daily-record-form.tsx');
+ assert.match(form,/className="grid grid-cols-2 gap-2"/);
+ assert.match(form,/POS Total Sales \(RM\)/);
+ assert.doesNotMatch(form,/grid gap-3 sm:grid-cols-2/);
+});
+test('error retry performs a full request and transfer filters use a compact tablet dialog', () => {
+ const appError=read('src/app/error.tsx');
+ const globalError=read('src/app/global-error.tsx');
+ assert.match(appError,/onClick=\{\(\) => window\.location\.reload\(\)\}/);
+ assert.match(globalError,/onClick=\{\(\) => window\.location\.reload\(\)\}/);
+ const assets=read('src/app/(app)/asset-management/page.tsx');
+ assert.match(assets,/tabletMode=\{view === "transfers" \? "drawer" : "auto"\}/);
+ const css=read('src/app/design-system-v2.css');
+ assert.match(css,/form\.unified-list-header\[data-tablet-mode\] :is\(\.unified-list-search-submit, \.unified-list-filter-trigger\)[\s\S]*?width: 44px !important;[\s\S]*?height: 44px !important;/);
+ assert.match(css,/form\.sb-asset-query--transfers\[data-tablet-mode="drawer"\] \.unified-list-row--filter-only[\s\S]*?grid-template-columns: 44px max-content;/);
+ assert.match(read('src/app/(app)/stock-counts/page.tsx'),/className="space-y-3" data-tablet-main-list/);
+ assert.match(read('src/app/(app)/stock-counts/page.tsx'),/sb-stock-count-query/);
+});
 test('attention dots aggregate only visible items and notifications use nonshrinking semantic icons',()=>{
- assert.match(read('src/components/layout/workspace-sidebar.tsx'),/visibleItems.some\(item => item.hasAttention\)/);
+ const sidebar=read('src/components/layout/workspace-sidebar.tsx');
+ assert.match(sidebar,/visibleItems.some\(item => item.hasAttention\)/);
+ assert.match(sidebar,/hasAttention && groupClosed[\s\S]*?className="mr-2 size-1\.5 shrink-0 rounded-full bg-amber-400"/);
+ assert.match(sidebar,/cn\("flex items-center gap-2 rounded-\[var\(--sb-control-radius\)\] px-2 font-medium transition-colors"/);
  assert.match(read('src/components/layout/nav-items.ts'),/getVisibleIaItems\(role, permissionMap\)/);
  const menu=read('src/components/layout/top-bar-activity-menu.tsx');
  for(const name of ['Wrench','ClipboardCheck','ShoppingCart','ReceiptText','ShieldAlert','Factory','Package']) assert.ok(menu.includes(`return ${name}`));

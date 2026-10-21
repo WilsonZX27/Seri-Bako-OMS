@@ -13,7 +13,8 @@ This version identifies the local follow-up after v9.2.122. It has not been push
 - Purchase Returns clarifies the posted goods receipt path and when stock is deducted, gives creators and read-only roles suitable empty states, and labels the compact search and Filter controls.
 - Purchase Orders and Goods Receiving use the same labelled compact Filter pattern and stable first-render toolbar, explain empty queues by role, and leave creation to the single mobile FAB when no filters are active.
 - Asset checklist guidance and item names remain 12px at the annotated phone width; the fifth inspection result now fills its own row below the wide five-column layout.
+- Stock Wastage labels its compact Filter, shows active filter counts, capitalizes status choices, and gives creators and read-only users clearer empty guidance.
 
 ## Verification and remaining work
 
-The local Mock browser checks and dimensions are recorded in `docs/qa/2026-10-21-closure.md`. Strict TypeScript, focused ESLint and 1,668 unit/contract tests pass. This is local interface evidence; populated data, non-Owner roles, real attendance and procurement actions, notification clearing, hosted performance and final Preview widths still require authenticated checks. Migration 368 was not applied by this UI batch.
+The local Mock browser checks and dimensions are recorded in `docs/qa/2026-10-21-closure.md`. Strict TypeScript, focused ESLint and 1,669 unit/contract tests pass. This is local interface evidence; populated data, non-Owner roles, real attendance and procurement actions, notification clearing, hosted performance and final Preview widths still require authenticated checks. Migration 368 was not applied by this UI batch.

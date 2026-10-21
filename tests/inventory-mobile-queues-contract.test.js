@@ -21,3 +21,14 @@ test("transfer and wastage rows retain operational line counts", () => {
   assert.match(transfer, /row\.transfer_date.*row\.line_count/s);
   assert.match(wastage, /row\.wastage_date.*row\.line_count/s);
 });
+
+test("stock wastage keeps a labelled compact filter and role-aware empty guidance", () => {
+  const source = read("src/app/(app)/stock-wastage/page.tsx");
+  const styles = read("src/app/design-system-v2.css");
+  assert.match(source, /className="sb-stock-wastage-query"/);
+  assert.match(source, /activeCount=\{activeFilterCount\}/);
+  assert.match(source, /aria-label="Search wastage number, reason, or branch"/);
+  assert.match(source, /Create a wastage document for expired, damaged, missing, or abnormal stock loss at a branch/);
+  assert.match(source, /Wastage documents recorded by your team will appear here/);
+  assert.match(styles, /\.sb-goods-receiving-query,\.sb-stock-wastage-query/);
+});

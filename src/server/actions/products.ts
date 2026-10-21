@@ -6,7 +6,7 @@ import { isMockMode } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
 import { productSchema } from "@/lib/validations/product";
 import { normalizeUom } from "@/lib/uom";
-import { requirePermissionOrRedirect } from "@/server/actions/error-handling";
+import { formatActionError, requirePermissionOrRedirect, rethrowRedirect } from "@/server/actions/error-handling";
 import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 import { uploadMasterDataImage } from "@/server/storage/master-data-image";
 import { z } from "zod";
@@ -35,9 +35,9 @@ function payload(formData: FormData) {
     product_code: formData.get("product_code"),
     product_name: formData.get("product_name"),
     category: formData.get("category"),
-    is_seasonal: formData.get("is_seasonal") === "true",
-    available_from: String(formData.get("available_from") ?? "").trim() || null,
-    available_until: String(formData.get("available_until") ?? "").trim() || null,
+    is_seasonal: String(formData.get("is_seasonal") ?? "false"),
+    available_from: String(formData.get("available_from") ?? "").trim(),
+    available_until: String(formData.get("available_until") ?? "").trim(),
     daily_tracking: formData.get("daily_tracking") || null,
     display_order: formData.get("display_order") || 9999,
     selling_unit: normalizeUom(String(formData.get("selling_unit") ?? "")),
@@ -79,52 +79,65 @@ async function upsertDefaultPackaging(productId: string, formData: FormData) {
 }
 
 export async function createProduct(formData: FormData) {
-  await requirePermissionOrRedirect("production.create", "/products/new");
-  if (isMockMode()) {
+  try {
+    await requirePermissionOrRedirect("production.create", "/products/new");
+    if (isMockMode()) {
+      redirect("/products");
+    }
+
+    const supabase = await createClient();
+    const actor = await requireActiveTenantActor();
+    const productPayload = payload(formData);
+    const { data, error } = await supabase.from("products").insert({ ...productPayload, company_id: actor.companyId }).select("id").single();
+    if (error) throw new Error(error.message);
+    const imageUrl = await uploadMasterDataImage("products", data.id, formData.get("product_image"));
+    if (imageUrl) {
+      const { error: imageError } = await supabase.from("products").update({ product_image_url: imageUrl }).eq("id", data.id);
+      if (imageError) throw new Error(imageError.message);
+    }
+    await upsertDefaultPackaging(data.id, formData);
+
+    revalidatePath("/products");
     redirect("/products");
+  } catch (error) {
+    rethrowRedirect(error);
+    return { error: formatActionError(error, "We could not confirm this save. Check the product before retrying.") };
   }
-
-  const supabase = await createClient();
-  const actor = await requireActiveTenantActor();
-  const productPayload = payload(formData);
-  const { data, error } = await supabase.from("products").insert({ ...productPayload, company_id: actor.companyId }).select("id").single();
-  if (error) throw new Error(error.message);
-  const imageUrl = await uploadMasterDataImage("products", data.id, formData.get("product_image"));
-  if (imageUrl) {
-    const { error: imageError } = await supabase.from("products").update({ product_image_url: imageUrl }).eq("id", data.id);
-    if (imageError) throw new Error(imageError.message);
-  }
-  await upsertDefaultPackaging(data.id, formData);
-
-  revalidatePath("/products");
-  redirect("/products");
 }
 
 export async function updateProduct(id: string, formData: FormData) {
-  await requirePermissionOrRedirect("production.create", `/products/${id}`);
-  if (isMockMode()) {
+  try {
+    await requirePermissionOrRedirect("production.create", `/products/${id}`);
+    if (isMockMode()) {
+      redirect("/products");
+    }
+
+    const productId = parseProductId(id);
+    const supabase = await createClient();
+    const actor = await requireActiveTenantActor();
+    const { data: existing, error: existingError } = await supabase
+      .from("products")
+      .select("id")
+      .eq("id", productId)
+      .eq("company_id", actor.companyId)
+      .maybeSingle();
+    if (existingError) throw new Error(existingError.message);
+    if (!existing) throw new Error("Product was not found or is outside your workspace.");
+    const productPayload = payload(formData);
+    // Validate packaging before updating the product to avoid a partial save
+    // caused by an invalid pack size or price.
+    packagingPayload(productId, formData);
+    const imageUrl = await uploadMasterDataImage("products", productId, formData.get("product_image"));
+    const { error } = await supabase.from("products").update({ ...productPayload, ...(imageUrl ? { product_image_url: imageUrl } : {}) }).eq("id", productId).eq("company_id", actor.companyId);
+    if (error) throw new Error(error.message);
+    await upsertDefaultPackaging(productId, formData);
+
+    revalidatePath("/products");
     redirect("/products");
+  } catch (error) {
+    rethrowRedirect(error);
+    return { error: formatActionError(error, "We could not confirm this save. Check the product before retrying.") };
   }
-
-  const productId = parseProductId(id);
-  const supabase = await createClient();
-  const actor = await requireActiveTenantActor();
-  const { data: existing, error: existingError } = await supabase
-    .from("products")
-    .select("id")
-    .eq("id", productId)
-    .eq("company_id", actor.companyId)
-    .maybeSingle();
-  if (existingError) throw new Error(existingError.message);
-  if (!existing) throw new Error("Product was not found or is outside your workspace.");
-  const productPayload = payload(formData);
-  const imageUrl = await uploadMasterDataImage("products", productId, formData.get("product_image"));
-  const { error } = await supabase.from("products").update({ ...productPayload, ...(imageUrl ? { product_image_url: imageUrl } : {}) }).eq("id", productId).eq("company_id", actor.companyId);
-  if (error) throw new Error(error.message);
-  await upsertDefaultPackaging(productId, formData);
-
-  revalidatePath("/products");
-  redirect("/products");
 }
 
 export async function deleteProduct(id: string) {

@@ -1,3 +1,6 @@
+"use client";
+
+import { useActionState } from "react";
 import { dailyTrackingLabels, dailyTracking } from "@/lib/daily-product-tracking";
 import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,7 +17,7 @@ type Packaging = Database["public"]["Tables"]["product_packaging"]["Row"];
 type ProductFormProps = {
   product?: Product;
   packaging?: Packaging[];
-  action: (formData: FormData) => Promise<void>;
+  action: (formData: FormData) => Promise<void | { error: string }>;
   formId?: string;
   showSubmit?: boolean;
   categories?: string[];
@@ -22,39 +25,45 @@ type ProductFormProps = {
 
 export function ProductForm({ product, packaging = [], action, formId, showSubmit = true, categories = [] }: ProductFormProps) {
   const primaryPackaging = packaging[0];
+  const [state, submitAction] = useActionState(async (_previous: { error: string; values: FormData | null }, data: FormData) => {
+    const result = await action(data);
+    return { error: result?.error ?? "", values: result?.error ? data : null };
+  }, { error: "", values: null });
+  const value = (name: string, fallback: string | number) => String(state.values?.get(name) ?? fallback);
   return (
     <Card className="border-0 bg-transparent shadow-none md:border md:bg-card md:shadow-sm" data-product-setup>
       <CardContent className="p-3 md:p-5">
-        <form id={formId} action={action} className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2">
+        <form id={formId} action={submitAction} className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-2">
       {formId ? <FormPendingBridge formId={formId} /> : null}
+          {state.error ? <p role="alert" className="col-span-2 rounded-lg border border-destructive p-3 text-sm text-destructive">{state.error}</p> : null}
           <Field label="Product Code">
-            <Input name="product_code" defaultValue={product?.product_code ?? ""} required />
+            <Input name="product_code" defaultValue={value("product_code", product?.product_code ?? "")} required />
           </Field>
           <Field label="Product Name" className="col-span-2 sm:col-span-1">
-            <Input name="product_name" defaultValue={product?.product_name ?? ""} required />
+            <Input name="product_name" defaultValue={value("product_name", product?.product_name ?? "")} required />
           </Field>
           <Field label="Category" className="col-span-2 sm:col-span-1">
             <ProductCategoryCombobox categories={categories} initialValue={product?.category ?? ""} />
             <p className="mt-1 text-xs text-muted-foreground">Choose a saved category or type a new one.</p>
           </Field>
           <Field label="Daily record category" className="col-span-2 sm:col-span-1">
-            <SelectNative name="daily_tracking" defaultValue={product ? dailyTracking(product) : "food_daily"}>{Object.entries(dailyTrackingLabels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</SelectNative>
+            <SelectNative name="daily_tracking" defaultValue={value("daily_tracking", product ? dailyTracking(product) : "food_daily")}>{Object.entries(dailyTrackingLabels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</SelectNative>
             <p className="mt-1 text-xs text-muted-foreground">Next day includes food kept for several days. Usage is recorded separately from wastage; this does not set a fixed expiry date.</p>
           </Field>
           <Field label="Product status">
-            <SelectNative name="status" defaultValue={product?.status ?? "active"} required><option value="active">Active</option><option value="inactive">Inactive</option></SelectNative>
+            <SelectNative name="status" defaultValue={value("status", product?.status ?? "active")} required><option value="active">Active</option><option value="inactive">Inactive</option></SelectNative>
           </Field>
           <Field label="Availability type">
-            <SelectNative name="is_seasonal" defaultValue={product?.is_seasonal ? "true" : "false"}><option value="false">Year-round</option><option value="true">Seasonal</option></SelectNative>
+            <SelectNative name="is_seasonal" defaultValue={value("is_seasonal", product?.is_seasonal ? "true" : "false")}><option value="false">Year-round</option><option value="true">Seasonal</option></SelectNative>
           </Field>
-          <Field label="Available from"><Input name="available_from" type="date" defaultValue={product?.available_from ?? ""} /></Field>
-          <Field label="Available until"><Input name="available_until" type="date" defaultValue={product?.available_until ?? ""} /></Field>
+          <Field label="Available from"><Input name="available_from" type="date" defaultValue={value("available_from", product?.available_from ?? "")} /></Field>
+          <Field label="Available until"><Input name="available_until" type="date" defaultValue={value("available_until", product?.available_until ?? "")} /></Field>
           <p className="col-span-2 -mt-2 text-xs text-muted-foreground">Seasonal items with an end date stop appearing on new Outlet Daily Records after that date. Leave dates blank to keep the item available until you update its season.</p>
           <Field label="Display Order">
-            <Input name="display_order" type="number" min="1" step="1" defaultValue={product?.display_order ?? 9999} required />
+            <Input name="display_order" type="number" min="1" step="1" defaultValue={value("display_order", product?.display_order ?? 9999)} required />
           </Field>
           <Field label="Selling Unit">
-            <SelectNative name="selling_unit" defaultValue={normalizeUom(product?.selling_unit) || "PCS"} required>
+            <SelectNative name="selling_unit" defaultValue={value("selling_unit", normalizeUom(product?.selling_unit) || "PCS")} required>
               {uomOptionsWithCurrent(product?.selling_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
             </SelectNative>
           </Field>
@@ -64,18 +73,18 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
               <p className="mt-1 text-xs text-muted-foreground">Default selling pack used for catalogue and future order pricing.</p>
             </div>
             <Field label="Packaging Name" className="col-span-2 sm:col-span-1">
-              <Input name="packaging_name" defaultValue={primaryPackaging?.packaging_name ?? "Default Pack"} />
+              <Input name="packaging_name" defaultValue={value("packaging_name", primaryPackaging?.packaging_name ?? "Default Pack")} />
             </Field>
             <Field label="Selling UOM">
-              <SelectNative name="packaging_selling_uom" defaultValue={normalizeUom(primaryPackaging?.selling_uom ?? product?.selling_unit) || "PCS"}>
+              <SelectNative name="packaging_selling_uom" defaultValue={value("packaging_selling_uom", normalizeUom(primaryPackaging?.selling_uom ?? product?.selling_unit) || "PCS")}>
                 {uomOptionsWithCurrent(primaryPackaging?.selling_uom ?? product?.selling_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
               </SelectNative>
             </Field>
             <Field label="Units Per Pack">
-              <Input name="units_per_pack" type="number" min="0.0001" step="0.0001" defaultValue={primaryPackaging?.units_per_pack ?? 1} />
+              <Input name="units_per_pack" type="number" min="0.0001" step="0.0001" defaultValue={value("units_per_pack", primaryPackaging?.units_per_pack ?? 1)} />
             </Field>
             <Field label="Price">
-              <Input name="price" type="number" min="0" step="0.0001" defaultValue={primaryPackaging?.price ?? 0} />
+              <Input name="price" type="number" min="0" step="0.0001" defaultValue={value("price", primaryPackaging?.price ?? 0)} />
             </Field>
             <input type="hidden" name="packaging_id" value={primaryPackaging?.id ?? ""} />
           </div>

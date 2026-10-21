@@ -231,7 +231,8 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
   const candidates = all.filter((child) => !isAction(child) && !isFilterMore(child) && !isHiddenControl(child));
   const primary = candidates.find(isSearchControl) ?? candidates.find(isPrimaryControl);
   const hasTextSearch = Boolean(primary && isValidElement(primary) && isSearchControl(primary));
-  const sharedSearchRow = hasTextSearch && !phoneOnly && actions === undefined;
+  // Compact layouts own this row. Desktop retains its existing inline controls.
+  const sharedSearchRow = mobile && hasTextSearch && !phoneOnly && actions === undefined;
   const more = all.find(isFilterMore);
   const filters = useMemo(() => all.filter((child) => child !== primary && !isAction(child) && !isFilterMore(child)), [all, primary]);
   const nested = more && isValidElement(more) ? flattenChildren(propsOf(more).children as ReactNode) : [];

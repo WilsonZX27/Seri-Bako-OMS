@@ -23,6 +23,7 @@ test('reviewed lists have one visible phone create owner and scoped metadata sty
 });
 test('list filters stay in the centered dialog on phones and tablets', () => {
  const header=read('src/components/common/UnifiedListHeader.tsx');
+ assert.match(header,/const sharedSearchRow = mobile && hasTextSearch && !phoneOnly && actions === undefined;/);
  assert.match(header,/const compactDrawer = sharedSearchRow \|\|/);
  assert.match(header,/const compactInline = !sharedSearchRow &&/);
  const counts=read('src/app/(app)/stock-counts/page.tsx');

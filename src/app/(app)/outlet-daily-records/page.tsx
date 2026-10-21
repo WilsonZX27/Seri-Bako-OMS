@@ -84,6 +84,7 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
           resetHref="/outlet-daily-records"
           filtered={filtered}
           compactPinnedFields={["branch"]}
+          stableResponsive
           className="sb-list-filters--date-first sb-list-filters--balanced sb-outlet-daily-filters"
         >
             <Input name="date" type="date" defaultValue={filters.date ?? ""} aria-label="Record date" className="sb-filter-date" />

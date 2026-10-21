@@ -3037,6 +3037,14 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
 .sb-workspace-updates section > a[data-activity-log-action] { align-items: center; }
 .sb-workspace-updates section > a > span { min-width: 0; overflow-wrap: anywhere; }
 .sb-workspace-updates section svg { width: 16px; height: 16px; flex: 0 0 16px; }
+/* The two reviewed list toolbars render both form variants in SSR. Let media
+   queries choose the visible form before hydration, with no tree swap flash. */
+@media (max-width: 1279px) {
+  html[data-design-layer="v2"] form.sb-list-query-card.sb-stable-desktop-form { display: none !important; }
+}
+@media (min-width: 1280px) {
+  html[data-design-layer="v2"] form.sb-list-query-card.unified-list-header.sb-stable-mobile-form { display: none !important; }
+}
 @media (max-width: 1279px) {
   html[data-design-layer="v2"] form.unified-list-header.sb-list-query-card:is(.sb-outlet-daily-filters,.sb-purchase-request-filters) { display: block !important; padding: .5rem !important; }
   html[data-design-layer="v2"] form.unified-list-header:is(.sb-outlet-daily-filters,.sb-purchase-request-filters) .unified-list-row { width: 100% !important; min-width: 0; grid-column: 1 / -1; }

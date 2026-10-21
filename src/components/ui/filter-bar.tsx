@@ -22,6 +22,7 @@ export function FilterBar({
   phoneMode = "drawer",
   phonePrimary = "inline",
   compactPinnedFields,
+  stableResponsive,
 }: {
   children: ReactNode;
   actions?: ReactNode;
@@ -36,8 +37,9 @@ export function FilterBar({
   phoneMode?: "drawer" | "inline";
   phonePrimary?: "inline" | "drawer";
   compactPinnedFields?: string[];
+  stableResponsive?: boolean;
 }) {
-  return <UnifiedListHeader {...{ children, actions, onSubmit, resultCount, resultLabel, resetHref, filtered, activeCount, className, phoneOnly, phoneMode, phonePrimary, compactPinnedFields }} />;
+  return <UnifiedListHeader {...{ children, actions, onSubmit, resultCount, resultLabel, resetHref, filtered, activeCount, className, phoneOnly, phoneMode, phonePrimary, compactPinnedFields, stableResponsive }} />;
 }
 
 FilterBarMore.displayName = "FilterBarMore";

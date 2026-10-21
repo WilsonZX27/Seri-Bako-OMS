@@ -39,6 +39,8 @@ type HeaderProps = {
   phonePrimary?: "inline" | "drawer";
   /** Opt-in persistent compact filters; other routes keep their existing layout. */
   compactPinnedFields?: string[];
+  /** Keep both responsive form trees in the SSR HTML so CSS selects the first visible frame. */
+  stableResponsive?: boolean;
 };
 
 function propsOf(child: ReactNode): Record<string, unknown> {
@@ -167,14 +169,15 @@ function SearchControl({ child, value, onChange }: { child: ReactElement; value:
   );
 }
 
-export function UnifiedListHeader({ children, actions, onSubmit, resultCount, resultLabel, resetHref, filtered = false, activeCount = 0, className, phoneOnly = false, phoneMode = "drawer", phonePrimary = "inline", compactPinnedFields = [] }: HeaderProps) {
+export function UnifiedListHeader({ children, actions, onSubmit, resultCount, resultLabel, resetHref, filtered = false, activeCount = 0, className, phoneOnly = false, phoneMode = "drawer", phonePrimary = "inline", compactPinnedFields = [], stableResponsive = false }: HeaderProps) {
   // The first client render must match SSR exactly. Viewport detection belongs
   // in the effect below; reading matchMedia in the state initializer rendered
   // different desktop/mobile trees and caused hydration recovery on every
   // phone-sized list route.
   const [mobile, setMobile] = useState(phoneOnly);
   const [open, setOpen] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
+  const desktopFormRef = useRef<HTMLFormElement>(null);
+  const mobileFormRef = useRef<HTMLFormElement>(null);
   const filterTriggerRef = useRef<HTMLButtonElement>(null);
   const filterDialogRef = useRef<HTMLFormElement>(null);
   useEffect(() => {
@@ -250,7 +253,10 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
 
   const queueQuery = () => {
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-    searchTimerRef.current = setTimeout(() => formRef.current?.requestSubmit(), 300);
+    searchTimerRef.current = setTimeout(() => {
+      const compact = stableResponsive && !phoneOnly ? window.matchMedia("(max-width: 1279px)").matches : mobile;
+      (compact ? mobileFormRef : desktopFormRef).current?.requestSubmit();
+    }, 300);
   };
   const cancelDebounceOnEnter = (event: ReactKeyboardEvent<HTMLFormElement>) => {
     if (event.key === "Enter" && searchTimerRef.current) clearTimeout(searchTimerRef.current);
@@ -271,12 +277,13 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
     return cloneElement(child as ReactElement<Record<string, unknown>>, { key: child.key ?? index, "data-query-control": isQueryControl(child) || undefined });
   };
 
-  if (actions !== undefined) return <form ref={formRef} className={cn("sb-list-query-card sb-query-explicit",className)} method="get" onSubmit={onSubmit}>
+  if (actions !== undefined) return <form ref={desktopFormRef} className={cn("sb-list-query-card sb-query-explicit",className)} method="get" onSubmit={onSubmit}>
     <div className="sb-query-fields">{children}</div>
     <div className="sb-query-actions">{typeof resultCount==="number"?<span className="sb-query-result" aria-live="polite">{resultCount} {resultLabel??"records"}</span>:null}{actions}</div>
   </form>;
 
-  if (!mobile) {
+  const renderBoth = stableResponsive && !phoneOnly;
+  const desktopForm = !mobile || renderBoth ? (() => {
     const availableActions = all.filter(isAction);
     const resetAction = availableActions.find((child) => propsOf(child)["data-list-action"] === "secondary");
     const desktopActions = availableActions.filter((child) => propsOf(child)["data-list-action"] !== "secondary");
@@ -310,7 +317,7 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
       });
     });
     return <form
-      ref={formRef}
+      ref={desktopFormRef}
       method="get"
       onSubmit={onSubmit}
       onChange={(event) => {
@@ -318,7 +325,7 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
         queueQuery();
       }}
       onKeyDown={cancelDebounceOnEnter}
-      className={cn("sb-list-filters sb-list-query-card", className)}
+      className={cn("sb-list-filters sb-list-query-card", renderBoth && "sb-stable-desktop-form", className)}
       data-unified-list-desktop="true"
       data-tablet-query-layout={tabletLayout}
       data-filtered={filtered || undefined}
@@ -337,7 +344,8 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
       </div>
       <button type="submit" className="sr-only" tabIndex={-1} aria-hidden="true">Apply query</button>
     </form>;
-  }
+  })() : null;
+  if (!renderBoth && !mobile) return desktopForm;
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     onSubmit?.(event);
@@ -373,8 +381,8 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
   ) : null;
   const showMobileSearchAction = hasTextSearch && !primaryInDrawer;
   const showMobileDateAction = primaryProps.type === "date" && !primaryInDrawer && contextualFilterCount === 0;
-  return (
-    <form ref={formRef} className={cn("unified-list-header sb-list-query-card", className)} data-filtered={filtered || undefined} data-reset-href={resetHref} onSubmit={submit} onKeyDown={cancelDebounceOnEnter}>
+  const mobileForm = (
+    <form ref={mobileFormRef} className={cn("unified-list-header sb-list-query-card", renderBoth && "sb-stable-mobile-form", className)} data-filtered={filtered || undefined} data-reset-href={resetHref} onSubmit={submit} onKeyDown={cancelDebounceOnEnter}>
       {(!primaryInDrawer && primary || resolvedPhoneMode === "drawer" || contextualFilterCount === 1 || typeof resultCount === "number") ? <div className={cn("unified-list-row", (primaryInDrawer || !primary) && "unified-list-row--filter-only")}>
         {!primaryInDrawer && primary && isValidElement(primary) ? <SearchControl child={primary} value={searchValue} onChange={(value) => { updateSearch(value); if (compactPinnedFields.length && primaryProps.type === "date") queueQuery(); }} /> : null}
         {pinnedFilters.map((child, index) => {
@@ -401,4 +409,5 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
       {filterSheet}
     </form>
   );
+  return renderBoth ? <>{desktopForm}{mobileForm}</> : mobileForm;
 }

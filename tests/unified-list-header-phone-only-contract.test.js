@@ -16,7 +16,11 @@ const styles = fs.readFileSync(
 test("unified list header uses compact touch layout and preserves desktop controls", () => {
   assert.match(component, /matchMedia\("\(max-width: 1279px\)"\)/);
   assert.match(component, /data-unified-list-desktop="true"/);
-  assert.match(component, /if \(!mobile\)[\s\S]*data-unified-list-desktop/);
+  assert.match(component, /const renderBoth = stableResponsive && !phoneOnly/);
+  assert.match(component, /const desktopForm = !mobile \|\| renderBoth/);
+  assert.match(component, /return renderBoth \? <>\{desktopForm\}\{mobileForm\}<\/> : mobileForm/);
+  assert.match(styles, /form\.sb-list-query-card\.sb-stable-desktop-form \{ display: none !important; \}/);
+  assert.match(styles, /form\.sb-list-query-card\.unified-list-header\.sb-stable-mobile-form \{ display: none !important; \}/);
   assert.match(styles, /@media \(max-width: 639px\)[\s\S]*\.unified-list-header/);
   assert.match(styles, /form\[data-unified-list-desktop="true"\]\s*\{\s*display:\s*none/);
 });

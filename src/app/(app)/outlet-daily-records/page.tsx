@@ -58,7 +58,7 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
   const emptyDescription = filtered
     ? "Reset the filters or widen the search."
     : canCreate
-      ? "Create a daily record to enter today's received quantities and wastage."
+      ? "Create a daily record to capture an outlet's received quantities and wastage."
       : "Records will appear when an outlet starts one.";
   return <>
     <PageHeader title="Outlet Daily Records" description="Morning receiving and evening wastage by outlet." contentWidth="wide" />

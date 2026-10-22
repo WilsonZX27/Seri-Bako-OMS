@@ -12,7 +12,7 @@ test("mobile web uses a permission-aware app shell without replacing desktop nav
   assert.match(appLayout, /MobileAppNavigation/);
   assert.match(appLayout, /mobileNavigationPermissionCodes/);
   assert.match(navigation, /data-mobile-app-nav/);
-  assert.match(navigation, /grid-cols-5/);
+  assert.match(navigation, /gridTemplateColumns: `repeat\(\$\{tabs\.length \+ 1\}, minmax\(0, 1fr\)\)`/);
   assert.match(navigation, /xl:hidden/);
   assert.match(navigation, /getVisibleNavGroups\(role, permissionMap, attentionHrefs\)/);
   assert.match(navigation, /role === "outlet_staff"/);

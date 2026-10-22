@@ -297,7 +297,7 @@ export function MobileAppNavigation({
         aria-label="Primary mobile navigation"
         className="fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] border-t border-[var(--sb-border)] bg-[var(--sb-surface)] pb-[env(safe-area-inset-bottom)] shadow-[0_-5px_10px_rgb(6_44_31_/_0.16)] xl:hidden"
       >
-        <div className="mx-auto grid min-h-[var(--sb-mobile-nav-height)] max-w-3xl grid-cols-5">
+        <div className="mx-auto grid min-h-[var(--sb-mobile-nav-height)] max-w-3xl" style={{ gridTemplateColumns: `repeat(${tabs.length + 1}, minmax(0, 1fr))` }}>
           {tabs.map((tab) => {
             const active = isCurrentPath(pathname, tab.href);
             const Icon = tab.icon;

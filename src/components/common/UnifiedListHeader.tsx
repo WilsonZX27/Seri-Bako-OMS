@@ -241,7 +241,7 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
   const resolvedTabletMode = tabletMode === "auto" ? (contextualFilterCount <= 3 ? "inline" : "drawer") : tabletMode;
   const compactDrawer = sharedSearchRow || (tablet ? resolvedTabletMode === "drawer" : resolvedPhoneMode === "drawer");
   const compactInline = !sharedSearchRow && (tablet ? resolvedTabletMode === "inline" : resolvedPhoneMode === "inline");
-  const primaryInDrawer = !sharedSearchRow && resolvedPhoneMode === "drawer" && phonePrimary === "drawer";
+  const primaryInDrawer = !sharedSearchRow && (tablet ? resolvedTabletMode === "drawer" : resolvedPhoneMode === "drawer") && phonePrimary === "drawer";
   const activeValues = new Map([...filters, ...nested].map(hiddenFilterValue).filter((field): field is { name: string; value: string } => Boolean(field)).map((field) => [field.name, field.value]));
   const active = Math.max(activeCount, [...activeValues.values()].filter(value => value !== "" && value !== "all").length, more && isValidElement(more) && typeof propsOf(more).activeCount === "number" ? propsOf(more).activeCount as number : 0);
   const primaryProps = primary && isValidElement(primary) ? propsOf(primary) : {};
@@ -380,17 +380,17 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
   const drawerFilters = drawerCandidates.filter(child => !isHiddenControl(child) || !visibleFilterNames.has(String(propsOf(child).name)));
   const filterControls = <>{primaryInDrawer ? primary : null}{drawerFilters.map(editableFilter)}{nested.map(editableFilter)}</>;
   const filterSheet = open && typeof document !== "undefined" ? createPortal(
-    <div className={sharedSearchRow ? styles.layer : "unified-list-layer"}>
-      <button type="button" className={sharedSearchRow ? styles.backdrop : "unified-list-backdrop"} aria-label="Close filters" onClick={() => setOpen(false)} />
-      <form ref={filterDialogRef} tabIndex={-1} className={sharedSearchRow ? styles.sheet : "unified-list-sheet"} role="dialog" aria-modal="true" aria-label="Filters" onSubmit={submit}>
+    <div className={styles.layer}>
+      <button type="button" className={styles.backdrop} aria-label="Close filters" onClick={() => setOpen(false)} />
+      <form ref={filterDialogRef} tabIndex={-1} className={styles.sheet} role="dialog" aria-modal="true" aria-label="Filters" onSubmit={submit}>
         {!primaryInDrawer && primary && isValidElement(primary) ? (() => {
           const hidden = hiddenFilterValue(primary);
           return hidden ? <input type="hidden" name={hidden.name} value={searchValue} /> : null;
         })() : null}
         {pinnedFilters.map(child => { const field = hiddenFilterValue(child); return field ? <input key={field.name} type="hidden" name={field.name} value={pinnedValues[field.name] ?? field.value} /> : null; })}
-        <header className={sharedSearchRow ? styles.sheetHeader : "unified-list-sheet-header"}><h2>Filters</h2><button type="button" onClick={() => setOpen(false)} aria-label="Close filters"><X /></button></header>
-        <div className={sharedSearchRow ? styles.sheetFields : "unified-list-sheet-fields"}>{filterControls}</div>
-        <footer className={sharedSearchRow ? styles.sheetActions : "unified-list-sheet-actions"}><Button asChild type="button" variant="ghost"><Link href={resetHref}>Reset</Link></Button><Button type="submit">Apply filters</Button></footer>
+        <header className={styles.sheetHeader}><h2>Filters</h2><button type="button" onClick={() => setOpen(false)} aria-label="Close filters"><X /></button></header>
+        <div className={styles.sheetFields}>{filterControls}</div>
+        <footer className={styles.sheetActions}><Button asChild type="button" variant="ghost"><Link href={resetHref}>Reset</Link></Button><Button type="submit">Apply filters</Button></footer>
       </form>
     </div>,
     document.body,
@@ -409,9 +409,9 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
             onValueChange: (value: string) => { setPinnedValues(current => ({ ...current, [field.name]: value })); queueQuery(); },
           })}</div>;
         })}
+        {compactDrawer && !showMobileDateAction ? <button ref={filterTriggerRef} type="button" className={sharedSearchRow ? styles.filterTrigger : "unified-list-filter-trigger"} onClick={() => setOpen(true)} disabled={contextualFilterCount === 0 && !primaryInDrawer} aria-label={active ? `Filter, ${active} active` : "Filter"} aria-haspopup="dialog" aria-expanded={open}><SlidersHorizontal /><span className={sharedSearchRow ? "sr-only" : "unified-list-filter-label"}>Filter</span>{active ? <span className={sharedSearchRow ? styles.badge : "unified-list-filter-badge"} aria-hidden="true">{active}</span> : null}</button> : null}
         {showMobileSearchAction ? <Button type="submit" size="icon" variant="default" className={sharedSearchRow ? styles.searchSubmit : "unified-list-search-submit"} aria-label="Search" title="Search" onClick={() => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); }}><Search className="size-4 shrink-0" aria-hidden="true"/></Button> : null}
         {showMobileDateAction ? <Button type="submit" className="unified-list-date-submit">View</Button> : null}
-        {compactDrawer && !showMobileDateAction ? <button ref={filterTriggerRef} type="button" className={sharedSearchRow ? styles.filterTrigger : "unified-list-filter-trigger"} onClick={() => setOpen(true)} aria-label={active ? `Filter, ${active} active` : "Filter"} aria-haspopup="dialog" aria-expanded={open}><SlidersHorizontal /><span className={sharedSearchRow ? "sr-only" : "unified-list-filter-label"}>Filter</span>{active ? <span className={sharedSearchRow ? styles.badge : "unified-list-filter-badge"} aria-hidden="true">{active}</span> : null}</button> : null}
         {compactInline && contextualFilterCount === 1 ? <div className="unified-list-inline-control">{filterControls}</div> : null}
         {typeof resultCount === "number" ? <span className={sharedSearchRow ? styles.result : "unified-list-result"} aria-live="polite"><strong>{resultCount}</strong><span>{resultLabel ?? (resultCount === 1 ? "record" : "records")}</span></span> : null}
       </div> : null}

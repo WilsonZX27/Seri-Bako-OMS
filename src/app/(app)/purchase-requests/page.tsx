@@ -87,7 +87,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
           </div>
         }
       >
-        <div className="space-y-2" data-tablet-main-list>
+        <div className="space-y-3" data-tablet-main-list>
             <FilterBar key={JSON.stringify([filters.search, filters.status, filters.priority])} resetHref="/purchase-requests" filtered={filtered} resultCount={requests?.totalRows} tabletMode="drawer" stableResponsive className="sb-list-filters--balanced sb-purchase-request-filters">
               <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search PR no, branch, remarks" />
               <SelectControl name="status" defaultValue={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...statuses.map((status) => ({ value: status.value, label: status.label }))]} />

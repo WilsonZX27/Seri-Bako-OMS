@@ -2414,76 +2414,6 @@ html[data-touch-tablet="true"] [data-app-topbar] > .hidden.min-w-0.items-center 
   box-shadow: inset 0 -2px var(--sb-green-700);
 }
 
-/* Outlet Daily is a date-led operational register. At landscape-tablet
-   widths all four filters, count and action stay in one compact command row. */
-@media (min-width: 768px) and (max-width: 1023px) {
-  html[data-design-layer="v2"] form.sb-outlet-daily-filters.sb-list-query-card {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    grid-auto-flow: row !important;
-    align-items: center;
-  }
-
-  html[data-design-layer="v2"] form.sb-outlet-daily-filters.sb-list-query-card > :where(input, select, [data-select-control], .sb-status-filter, .sb-filter-more, .unified-list-date-control) {
-    grid-column: auto !important;
-    grid-row: auto !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-  }
-
-  html[data-design-layer="v2"] form.sb-outlet-daily-filters.sb-list-query-card > .unified-list-desktop-actions {
-    grid-column: 1 / -1;
-    grid-row: auto !important;
-    display: flex !important;
-    min-width: 0;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 0.5rem;
-  }
-
-  html[data-design-layer="v2"] form.sb-outlet-daily-filters.sb-list-query-card > .unified-list-desktop-actions > .sb-filter-summary {
-    margin-left: 0;
-    margin-right: auto;
-  }
-
-  html[data-design-layer="v2"] form.sb-outlet-daily-filters.sb-list-query-card > .unified-list-desktop-actions > .unified-list-action {
-    order: 2;
-    width: calc(50% - .25rem) !important;
-    min-width: 0 !important;
-  }
-}
-
-@media (min-width: 1024px) and (max-width: 1279px) {
-  html[data-design-layer="v2"] form.sb-outlet-daily-filters.sb-list-query-card {
-    display: grid !important;
-    grid-template-columns: repeat(4, minmax(7rem, 1fr)) auto 5.5rem !important;
-    align-items: center;
-  }
-
-  html[data-design-layer="v2"] form.sb-outlet-daily-filters.sb-list-query-card > :where(input, select, [data-select-control], .sb-status-filter, .sb-filter-more, .unified-list-date-control) {
-    grid-row: 1 !important;
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: none !important;
-  }
-
-  html[data-design-layer="v2"] form.sb-outlet-daily-filters.sb-list-query-card > .unified-list-desktop-actions {
-    display: contents !important;
-  }
-
-  html[data-design-layer="v2"] form.sb-outlet-daily-filters.sb-list-query-card > .unified-list-desktop-actions > .sb-filter-summary {
-    grid-column: 5;
-    grid-row: 1;
-  }
-
-  html[data-design-layer="v2"] form.sb-outlet-daily-filters.sb-list-query-card > .unified-list-desktop-actions > .unified-list-action {
-    grid-column: 6;
-    grid-row: 1;
-    width: 5.5rem !important;
-    min-width: 5.5rem !important;
-  }
-}
 [data-long-mobile-form] [aria-invalid="true"] {
   border-color: var(--sb-danger);
   outline: 1px solid var(--sb-danger);
@@ -2868,6 +2798,7 @@ html[data-design-layer="v2"] .unified-list-sheet-fields > :nth-last-child(1 of :
 
 /* Identity cells must never paint into adjacent columns. */
 .sb-item-code { display:block; min-width:0; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
 .sb-procurement-table { table-layout:fixed; }
 .sb-procurement-table td { overflow:hidden; overflow-wrap:break-word; }
 .sb-procurement-table [data-document-number] { white-space:nowrap; }
@@ -2947,6 +2878,19 @@ html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"] {
   padding-block: .625rem;
 }
 html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"]:nth-child(even) { background: #edf2ef; }
+/* The desktop table is hidden below xl; its spacing must not push the first
+   compact PR row down inside the list surface. */
+html[data-design-layer="v2"] .space-y-3 > .sb-table-region.hidden + .sb-pr-continuous-rows { margin-top: 0; }
+@media (min-width: 768px) {
+  html[data-design-layer="v2"] form.sb-goods-receiving-query .unified-list-primary-control { width: min(100%, 360px); max-width: 360px; }
+}
+@media (max-width: 1279px) {
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-row:has(.unified-list-search-submit) .unified-list-filter-trigger { grid-column: 2; grid-row: 1; }
+  html[data-design-layer="v2"] form.unified-list-header .unified-list-row:has(.unified-list-filter-trigger) .unified-list-search-submit { grid-column: 3 !important; grid-row: 1; }
+}
+html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"] + [role="listitem"],
+html[data-design-layer="v2"] .sb-goods-receiving-rows > [role="listitem"] + [role="listitem"] { border-top: 1px solid var(--sb-border-soft); }
+html[data-design-layer="v2"] .sb-goods-receiving-rows > [role="listitem"] { background: #fff; }
 html[data-design-layer="v2"] .sb-pr-phone-supplier-row,
 html[data-design-layer="v2"] .sb-pr-phone-location-row {
   min-width: 0;
@@ -3047,7 +2991,7 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
 
 /* Tablet navigation remains a centered two-column picker in portrait and
    landscape, so the menu does not become an unnecessarily long list. */
-@media (min-width: 640px) and (max-width: 1279px) {
+@media (min-width: 768px) and (max-width: 1279px) {
   html[data-design-layer="v2"] .sb-mobile-navigation-drawer {
     inset: 1rem 50% auto auto;
     width: min(48rem, calc(100vw - 2rem));
@@ -3097,6 +3041,10 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
   html[data-design-layer="v2"] form.sb-purchase-order-query .unified-list-filter-trigger { width:44px !important; min-width:44px !important; }
   html[data-design-layer="v2"] form.sb-purchase-order-query .unified-list-result { display:flex !important; width:max-content; gap:.2rem; white-space:nowrap; }
 }
+@media (max-width: 767px) {
+  html[data-design-layer="v2"] form.unified-list-header.sb-outlet-daily-filters .unified-list-filter-trigger { width: 44px; min-width: 44px; padding-inline: 0; }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-filter-label { display: none; }
+}
 @media (min-width: 768px) and (max-width: 1279px) {
   html[data-design-layer="v2"] .sb-pr-phone-location { flex: 0 1 auto; }
 }
@@ -3108,7 +3056,7 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
   html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-pinned-control button { min-height: 44px; }
 }
 @media (min-width: 768px) and (pointer: fine) {
-  html[data-design-layer="v2"] form.sb-outlet-daily-filters :is(.unified-list-primary-control,.unified-list-primary-input,.unified-list-search-submit,.unified-list-filter-trigger,.unified-list-pinned-control button) { height: 36px !important; min-height: 36px !important; }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters.sb-stable-desktop-form :is(.unified-list-primary-control,.unified-list-primary-input,.unified-list-search-submit,.unified-list-filter-trigger,.unified-list-pinned-control button) { height: 36px !important; min-height: 36px !important; }
 }
 
 /* Keep operational queue search, filter and count in one shared row. */
@@ -3137,11 +3085,6 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
 #main-content dl.sb-asset-maintenance-metrics > div:has(> dt + dd:last-child) { display:block; grid-column:auto; }
 #main-content dl.sb-asset-maintenance-metrics > div:has(> dt + dd:last-child) > dd { margin-top:.125rem; text-align:left; }
 @media (min-width:640px) { #main-content dl.sb-asset-maintenance-metrics { grid-template-columns: repeat(4,minmax(0,1fr)); } }
-@media (min-width:640px) and (max-width:1023px) {
- html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-row { grid-template-columns: minmax(0,1fr) minmax(0,1fr) !important; }
- html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-filter-trigger { grid-column:1; grid-row:2; justify-self:start; }
- html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-result { grid-column:2 !important; grid-row:2; }
-}
 /* Delivery Orders has one date and one submit action. Keep those controls
    adjacent while the record count remains at the far edge of the toolbar. */
 @media (min-width:1280px) {
@@ -3168,8 +3111,9 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
 }
 @media (max-width:639px) {
   html[data-design-layer="v2"] .sb-daily-insights-report-tabs {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    overflow-x: visible;
+    grid-template-columns: repeat(4, minmax(max-content, 1fr)) !important;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
   }
   html[data-design-layer="v2"] form.unified-list-header.sb-daily-insights-filters .unified-list-row--filter-only {
     grid-template-columns: minmax(0, 1fr) max-content;
@@ -3180,7 +3124,21 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
     padding-inline: 8px;
     justify-self: start;
   }
-  html[data-design-layer="v2"] form.sb-daily-insights-filters .unified-list-filter-label { display: inline; }
+  html[data-design-layer="v2"] form.sb-daily-insights-filters .unified-list-row--filter-only {
+    align-items: center;
+    gap: .75rem;
+  }
+  html[data-design-layer="v2"] form.sb-daily-insights-filters .unified-list-filter-trigger {
+    display: inline-flex;
+    width: auto !important;
+    min-width: 6rem;
+    gap: .5rem;
+    justify-content: center;
+    border: 1px solid var(--sb-border-soft);
+    background: var(--sb-surface-muted);
+  }
+  html[data-design-layer="v2"] form.sb-daily-insights-filters .unified-list-filter-label { display: inline !important; }
+  html[data-design-layer="v2"] form.sb-daily-insights-filters .unified-list-result { display: inline-flex !important; align-items: baseline; gap: .25rem; justify-self: end; white-space: nowrap; }
   html[data-design-layer="v2"]:has(form.sb-daily-insights-filters) .unified-list-sheet-fields {
     grid-template-columns: minmax(0, 1fr) !important;
   }
@@ -3269,5 +3227,24 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
   }
   html[data-design-layer="v2"] [data-tablet-main-list] > form.sb-stable-mobile-form {
     margin-top: 0 !important;
+  }
+}
+
+/* A compact split rail leaves little room for the balance command group.
+   Reserve distinct tracks for the filter, submit, and count on tablets only. */
+@media (min-width: 640px) and (max-width: 1279px) {
+  html[data-design-layer="v2"] form.sb-list-filters--balanced[data-shared-search-row] .unified-list-row {
+    column-gap: 1rem;
+  }
+  html[data-design-layer="v2"] form.sb-list-filters--balanced[data-shared-search-row] .unified-list-result {
+    min-width: 3.5rem;
+    margin-inline-start: .25rem;
+  }
+  html[data-design-layer="v2"] form.sb-daily-insights-filters[data-tablet-mode="inline"] .unified-list-row--filter-only {
+    grid-template-columns: minmax(0, 1fr) max-content;
+    gap: .75rem;
+  }
+  html[data-design-layer="v2"] form.sb-daily-insights-filters[data-tablet-mode="inline"] .unified-list-inline-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

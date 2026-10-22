@@ -339,16 +339,6 @@ input[type="date"]::-webkit-date-and-time-value {
   justify-content: center;
 }
 
-@media (min-width: 768px) and (max-width: 1023px) {
-  .sb-outlet-daily-filters[data-unified-list-desktop="true"] {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-auto-flow: row;
-  }
-
-  .sb-outlet-daily-filters[data-unified-list-desktop="true"] > .unified-list-desktop-actions {
-    grid-column: 1 / -1 !important;
-  }
-}
 
 .sb-list-filters:not(.sb-list-query-card) input,
 .sb-list-filters:not(.sb-list-query-card) select,

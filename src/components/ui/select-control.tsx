@@ -48,6 +48,7 @@ export function SelectControl({
 }) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
+  const [insideDialog, setInsideDialog] = useState(false);
   const [query, setQuery] = useState("");
   // Keep the trigger value controlled after hydration. Radix can otherwise
   // render an empty trigger when a server-provided default value is only
@@ -84,6 +85,7 @@ export function SelectControl({
   }, []);
 
   const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) setInsideDialog(Boolean(triggerRef.current?.closest('[role="dialog"]')));
     setOpen(nextOpen);
     if (!nextOpen) setQuery("");
     if (nextOpen && !triggerRef.current?.closest(".sb-filter-more-panel"))
@@ -136,7 +138,7 @@ export function SelectControl({
             position="popper"
             sideOffset={4}
             collisionPadding={8}
-            className="sb-popover-surface z-[var(--sb-z-dropdown)] max-h-[min(18rem,var(--radix-select-content-available-height))] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[var(--sb-radius-control)] text-foreground"
+            className={cn("sb-popover-surface max-h-[min(18rem,var(--radix-select-content-available-height))] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-[var(--sb-radius-control)] text-foreground", insideDialog ? "z-[calc(var(--sb-z-sheet)+2)]" : "z-[var(--sb-z-dropdown)]")}
           >
             {searchable ? (
               <div className="border-b border-[var(--sb-border-soft)] p-2">

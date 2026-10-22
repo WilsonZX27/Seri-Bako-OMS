@@ -118,7 +118,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                 {!receivings?.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={!receivings ? "Goods receiving data unavailable" : filtered ? "No receivings match these filters" : "No goods receivings yet"} description={emptyDescription} action={emptyStateAction} /></TableCell></TableRow> : null}
               </TableBody>
             </Table>
-            <OperationalList ariaLabel="Goods receiving records" showUntil="xl">
+            <OperationalList ariaLabel="Goods receiving records" showUntil="xl" className="sb-goods-receiving-rows">
               {receivings?.rows.map((receiving) => <OperationalListRow
                 fullWidthDetails
                 key={receiving.id}

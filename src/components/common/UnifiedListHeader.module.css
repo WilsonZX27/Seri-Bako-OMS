@@ -40,8 +40,8 @@
 .result { display: grid; justify-items: center; min-width: 44px; color: var(--sb-text-muted); font-size: 11px; line-height: 1.25; font-variant-numeric: tabular-nums; }
 .result strong { color: var(--sb-text); font-size: 13px; font-weight: 600; }
 .layer { position: fixed; inset: 0; z-index: var(--sb-z-sheet-backdrop); }
-.backdrop { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; background: rgb(0 0 0 / .5); }
-.sheet { position: fixed; inset: 50% auto auto 50%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; width: min(42rem, calc(100vw - 32px)); max-height: min(82dvh, 40rem); padding: 16px; overflow: hidden; border: 1px solid var(--sb-border); border-radius: var(--sb-panel-radius); background: var(--sb-surface-raised); transform: translate(-50%, -50%); }
+.backdrop { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; border: 0; background: rgb(0 0 0 / .5); }
+.sheet { position: fixed; inset: 50% auto auto 50%; z-index: 1; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; width: min(42rem, calc(100vw - 32px)); max-height: min(82dvh, 40rem); padding: 16px; overflow: hidden; border: 1px solid var(--sb-border); border-radius: var(--sb-panel-radius); background: var(--sb-surface-raised); box-shadow: var(--sb-shadow-card); transform: translate(-50%, -50%); }
 .sheetHeader { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .sheetHeader h2 { font-size: 16px; font-weight: 600; }
 .sheetHeader button { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: var(--sb-control-radius); background: transparent; }
@@ -50,5 +50,10 @@
 .sheetFields > * { min-width: 0; max-width: 100%; }
 .sheetFields > input[type="hidden"] { display: none; }
 .sheetActions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 12px; border-top: 1px solid var(--sb-border-soft); }
-@media (min-width: 768px) and (pointer: fine) { .card { --query-control-size: 36px; } }
+.filterTrigger:disabled { cursor: not-allowed; opacity: .4; background: transparent; }
+@media (max-width: 1279px) {
+  .row:has(.searchSubmit) .filterTrigger { grid-column: 2; grid-row: 1; }
+  .row:has(.filterTrigger) .searchSubmit { grid-column: 3; grid-row: 1; }
+}
+@media (min-width: 768px) { .primary:has(input[type="search"], input[name="search"]) { width: min(100%, 360px); max-width: 360px; } }
 @media (max-width: 380px) { .sheetFields { grid-template-columns: minmax(0, 1fr); } }

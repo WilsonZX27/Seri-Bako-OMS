@@ -62,14 +62,16 @@ test("Attendance, calendar and PO headers retain stable alignment", () => {
   assert.match(po, /className="w-36 max-w-36">Request context/);
 });
 
-test("portrait tablet filters and compliance rail keep deliberate geometry", () => {
-  const globals = read("src", "app", "globals.css");
+test("portrait tablet Outlet Daily filters use the shared two-column inline layout", () => {
+  const page = read("src", "app", "(app)", "outlet-daily-records", "page.tsx");
+  const header = read("src", "components", "common", "UnifiedListHeader.tsx");
   const design = read("src", "app", "design-system-v2.css");
+  const globals = read("src", "app", "globals.css");
   const compliance = read("src", "app", "(app)", "outlet-compliance", "page.tsx");
-  assert.match(globals, /\.sb-outlet-daily-filters\[data-unified-list-desktop="true"\]\s*\{[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
-  assert.match(globals, /\.sb-outlet-daily-filters\[data-unified-list-desktop="true"\] > \.unified-list-desktop-actions\s*\{[\s\S]*grid-column: 1 \/ -1 !important/);
-  assert.match(design, /form\.sb-outlet-daily-filters\.sb-list-query-card\s*\{[\s\S]*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
-  assert.match(design, /form\.sb-outlet-daily-filters\.sb-list-query-card > :where\([\s\S]*grid-column: auto !important;[\s\S]*grid-row: auto !important/);
-  assert.match(design, /unified-list-desktop-actions > \.unified-list-action\s*\{[\s\S]*width: calc\(50% - \.25rem\)/);
+  assert.match(page, /compactPinnedFields=\{\["branch"\]\}[\s\S]*tabletMode="inline"/);
+  assert.match(header, /tablet \? resolvedTabletMode === "inline"/);
+  assert.match(design, /form\.unified-list-header\[data-tablet-mode="inline"\] \.unified-list-inline-fields\s*\{[\s\S]*grid-template-columns:\s*repeat\(2, ?minmax\(0, ?1fr\)\)/);
+  assert.doesNotMatch(globals, /\.sb-outlet-daily-filters\[data-unified-list-desktop="true"\]/);
+  assert.doesNotMatch(design, /form\.sb-outlet-daily-filters\.sb-list-query-card\s*\{/);
   assert.match(compliance, /tabletRailBreakpoint="md"/);
 });

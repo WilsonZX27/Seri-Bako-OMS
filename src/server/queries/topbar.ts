@@ -23,6 +23,9 @@ type PendingAction = {
   step?: string;
   branch_name?: string | null;
   age_label?: string;
+  maintenance_description?: string | null;
+  maintenance_asset_name?: string | null;
+  maintenance_priority?: string | null;
 };
 
 export async function getTopBarActivity() {
@@ -184,8 +187,8 @@ export async function getTopBarActivity() {
       return {
         ...row,
         ...(repairAction ? {
-          title: `Repair · ${repairAction.branch_name ?? "Location unavailable"}`,
-          message: `${repairAction.step ?? "Open"} · Open this request to review its repair details.`,
+          title: `Repair · ${repairAction.maintenance_asset_name ?? "Site problem"} · ${repairAction.branch_name ?? "Location unavailable"}`,
+          message: [repairAction.maintenance_priority ? `${repairAction.maintenance_priority} priority` : null, repairAction.maintenance_description?.trim() || repairAction.step || "Open this request to review details"].filter(Boolean).join(" · "),
           action_url: repairAction.href,
         } : { action_url: getCanonicalEntityHref(row.entity_type, row.entity_id, row.action_url ?? "#") }),
       };

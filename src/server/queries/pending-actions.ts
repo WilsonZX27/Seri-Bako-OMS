@@ -19,6 +19,9 @@ export type PendingAction = {
   line_count: number;
   submitted_by_name: string | null;
   estimated_total: number;
+  maintenance_description?: string | null;
+  maintenance_asset_name?: string | null;
+  maintenance_priority?: string | null;
 };
 
 export type PendingActionSnapshot = {
@@ -42,7 +45,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
 
   const permissions = await getPermissionMap([
     "pr.admin_review", "pr.purchasing_review", "pr.manager_approve", "pr.finance_review",
-    "pr.convert_to_po", "pr.view_all", "schedule.approve", "outlet_daily_record.post", "assets.maintenance",
+    "pr.convert_to_po", "pr.view_all", "schedule.approve", "outlet_daily_record.post", "assets.maintenance", "assets.view",
   ]);
   const canAdminReview = permissions["pr.admin_review"];
   const canPurchasingReview = permissions["pr.purchasing_review"];
@@ -222,11 +225,50 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
       return { items: [] as PendingAction[], count: null, unavailable: true };
     }
     const snapshot = data as { total: number; items: { id: string; created_at: string; location: string }[] };
+    const permittedIds = snapshot.items.map((row) => row.id);
+    const maintenanceDetails = new Map<string, { asset_id: string | null; description: string | null; priority: string | null }>();
+    const assetNames = new Map<string, string>();
+    if (permittedIds.length) {
+      // The RPC remains the authorization gate for actionable rows. Read only
+      // its returned IDs; table RLS independently enforces company/location
+      // scope for the description and priority fields shown on the dashboard.
+      const detailsResult = await looseSupabase(supabase)
+        .from("asset_maintenance")
+        .select("id,asset_id,description,priority")
+        .in("id", permittedIds);
+      if (detailsResult.error) {
+        logServerWarning(detailsResult.error, { source: "pending-actions.maintenance-details" });
+      } else {
+        for (const row of (detailsResult.data ?? []) as { id: string; asset_id: string | null; description: string | null; priority: string | null }[]) {
+          maintenanceDetails.set(row.id, row);
+        }
+      }
+      const assetIds = [...new Set([...maintenanceDetails.values()].flatMap((row) => row.asset_id ? [row.asset_id] : []))];
+      if (assetIds.length && permissions["assets.view"]) {
+        const assetsResult = await looseSupabase(supabase)
+          .from("assets")
+          .select("id,item_name")
+          .in("id", assetIds);
+        if (assetsResult.error) {
+          logServerWarning(assetsResult.error, { source: "pending-actions.maintenance-assets" });
+        } else {
+          for (const row of (assetsResult.data ?? []) as { id: string; item_name: string | null }[]) {
+            if (row.item_name) assetNames.set(row.id, row.item_name);
+          }
+        }
+      }
+    }
     return { count: snapshot.total, unavailable: false, items: snapshot.items.map(row => ({
       id: `maintenance-${row.id}`, document_no: "Repair request", title: "Maintenance follow-up",
       href: `/asset-management/maintenance/${row.id}`, step: "Repair", branch_name: row.location,
       age_label: ageLabel(row.created_at), updated_at: row.created_at, supplier_names: [], line_count: 0,
       submitted_by_name: null, estimated_total: 0,
+      maintenance_description: maintenanceDetails.get(row.id)?.description ?? null,
+      maintenance_priority: maintenanceDetails.get(row.id)?.priority ?? null,
+      maintenance_asset_name: (() => {
+        const assetId = maintenanceDetails.get(row.id)?.asset_id;
+        return assetId ? assetNames.get(assetId) ?? null : null;
+      })(),
     } satisfies PendingAction)) };
   })();
 

@@ -277,6 +277,9 @@ export async function getDashboardSummary() {
           line_count: requestLines.length,
           submitted_by_name: mockProfile.full_name,
           estimated_total: requestLines.reduce((total, line) => total + Number(line.qty ?? 0) * Number(line.estimated_unit_cost ?? 0), 0),
+          maintenance_description: null,
+          maintenance_asset_name: null,
+          maintenance_priority: null,
         };
       }),
       purchaseRequests: mockPurchaseRequests.slice(0, 5),

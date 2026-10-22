@@ -81,7 +81,7 @@ export function ProductionPlanningWorkspace(props:Props) {
   {view==="events"?<PlanningEvents compact events={props.events??[]} outlets={outlets} products={products}/>:null}
   {view==="plan"?<PlanningReviewChecks hasPlan={Boolean(plan)} dirty={dirty} checks={checks} products={products} outlets={outlets} date={date} kitchenId={kitchenId} onProduct={id=>setCheckFocus(previous=>({id,request:(previous?.request??0)+1}))}/>:null}
  </div>;
- return <WorkspaceGrid className="sb-planning-workspace" rightRail={rail} tabletRailMode="context">
+ return <WorkspaceGrid className="sb-planning-workspace" rightRail={rail} tabletRailMode="split" tabletRailBreakpoint="md">
   <WorkspaceTabs className="sb-planning-workspace-tabs" prefetchOnIntent onNavigate={navigate} label="Production Planning workspace" current={view} items={[{id:"plan",label:"Plan",icon:ClipboardList},...(canManage?[{id:"events",label:"Events",icon:CalendarDays},{id:"settings",label:"Settings",icon:Settings2}]:[])].map(t=>({...t,href:`/production/planning?date=${date}&kitchen=${kitchenId}&view=${t.id}`}))}/>
   {message?<Notice tone={message.ok?"success":"warning"} title={message.ok?"Plan updated":"Action needs attention"}>{message.message}</Notice>:null}
   {view==="plan"?<>

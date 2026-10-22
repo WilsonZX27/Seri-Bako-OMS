@@ -42,6 +42,7 @@ type HeaderProps = {
   phonePrimary?: "inline" | "drawer";
   /** Opt-in persistent compact filters; other routes keep their existing layout. */
   compactPinnedFields?: string[];
+  inlineFieldsShareQueryTracks?: boolean;
   /** Keep both responsive form trees in the SSR HTML so CSS selects the first visible frame. */
   stableResponsive?: boolean;
 };
@@ -172,7 +173,7 @@ function SearchControl({ child, value, onChange, shared = false }: { child: Reac
   );
 }
 
-export function UnifiedListHeader({ children, actions, onSubmit, resultCount, resultLabel, resetHref, filtered = false, activeCount = 0, className, phoneOnly = false, phoneMode = "drawer", tabletMode = "drawer", phonePrimary = "inline", compactPinnedFields = [], stableResponsive = false }: HeaderProps) {
+export function UnifiedListHeader({ children, actions, onSubmit, resultCount, resultLabel, resetHref, filtered = false, activeCount = 0, className, phoneOnly = false, phoneMode = "drawer", tabletMode = "drawer", phonePrimary = "inline", compactPinnedFields = [], inlineFieldsShareQueryTracks = false, stableResponsive = false }: HeaderProps) {
   // The first client render must match SSR exactly. Viewport detection belongs
   // in the effect below; reading matchMedia in the state initializer rendered
   // different desktop/mobile trees and caused hydration recovery on every
@@ -414,9 +415,10 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
         {showMobileDateAction ? <Button type="submit" className="unified-list-date-submit">View</Button> : null}
         {compactInline && contextualFilterCount === 1 ? <div className="unified-list-inline-control">{filterControls}</div> : null}
         {typeof resultCount === "number" ? <span className={sharedSearchRow ? styles.result : "unified-list-result"} aria-live="polite"><strong>{resultCount}</strong><span>{resultLabel ?? (resultCount === 1 ? "record" : "records")}</span></span> : null}
+        {inlineFieldsShareQueryTracks && compactInline && contextualFilterCount > 1 ? <div className="unified-list-inline-fields" data-share-query-tracks>{filterControls}</div> : null}
       </div> : null}
       {resolvedPhoneMode === "inline" ? all.filter(isHiddenControl) : null}
-      {compactInline && contextualFilterCount > 1 ? <div className="unified-list-inline-fields">{filterControls}</div> : null}
+      {compactInline && contextualFilterCount > 1 && !inlineFieldsShareQueryTracks ? <div className="unified-list-inline-fields">{filterControls}</div> : null}
       {compactDrawer && !open ? [...drawerFilters, ...nested].map((child, index) => {
         const hidden = hiddenFilterValue(child);
         return hidden ? <input key={`${hidden.name}-${index}`} type="hidden" name={hidden.name} value={hidden.value} /> : null;

@@ -177,14 +177,23 @@ export async function getTopBarActivity() {
   const pendingActionHrefs = new Set(pendingApprovals.map((item) => item.href));
   let actionableNotifications = notifications
     .filter((row) => !row.is_company_wide && !row.read_at)
-    .map((row) => ({
-      ...row,
-      action_url: getCanonicalEntityHref(row.entity_type, row.entity_id, row.action_url ?? "#"),
-    }))
+    .map((row) => {
+      const repairAction = row.entity_type === "asset_maintenance" && row.entity_id
+        ? workflowPendingActions.find((item) => item.id === `maintenance-${row.entity_id}`)
+        : undefined;
+      return {
+        ...row,
+        ...(repairAction ? {
+          title: `Repair · ${repairAction.branch_name ?? "Location unavailable"}`,
+          message: `${repairAction.step ?? "Open"} · Open this request to review its repair details.`,
+          action_url: repairAction.href,
+        } : { action_url: getCanonicalEntityHref(row.entity_type, row.entity_id, row.action_url ?? "#") }),
+      };
+    })
     // A workflow item is already represented in "My Pending Actions". Keep
     // the notification feed for events that do not duplicate an actionable
     // queue entry.
-    .filter((row) => !pendingActionHrefs.has(row.action_url ?? ""));
+    .filter((row) => row.entity_type === "asset_maintenance" || !pendingActionHrefs.has(row.action_url ?? ""));
 
   const complianceReminderRoles = new Set(["purchasing", "manager", "finance", "people_operations", "super_admin"]);
   if (currentScope && complianceReminderRoles.has(currentScope.roleCode)) {

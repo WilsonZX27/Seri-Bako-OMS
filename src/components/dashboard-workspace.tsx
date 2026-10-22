@@ -338,6 +338,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               {summary.pendingApprovals.map((row: DashboardSummary["pendingApprovals"][number]) => {
                 const isScheduleAction = row.id.startsWith("schedule-");
                 const isOutletDailyAction = row.id.startsWith("outlet-daily-");
+                const isMaintenanceAction = row.id.startsWith("maintenance-");
                 return <Link prefetch={false}
                   key={row.id}
                   href={row.href}
@@ -345,12 +346,14 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                   data-dashboard-pending-row
                 >
                   <span className="flex min-w-0 items-center justify-between gap-2">
-                    <strong className="min-w-0 truncate font-mono">{isOutletDailyAction ? `Outlet Daily · ${row.document_no}` : row.document_no}</strong>
+                    <strong className="min-w-0 truncate font-mono">{isMaintenanceAction ? `Repair · ${row.branch_name ?? "Location unavailable"}` : isOutletDailyAction ? `Outlet Daily · ${row.document_no}` : row.document_no}</strong>
                     <StatusBadge status={row.step.toLowerCase().replaceAll(" ", "_")} className="shrink-0" />
                   </span>
                   {isScheduleAction
                     ? <span className="text-[11px] font-medium text-[var(--sb-warning)]">Review and publish this outlet roster</span>
-                    : isOutletDailyAction
+                    : isMaintenanceAction
+                      ? <span className="text-[11px] font-medium text-[var(--sb-text-muted)]">{row.step} · Open this request to review its repair details</span>
+                      : isOutletDailyAction
                       ? <span className="text-[11px] font-medium text-[var(--sb-green-800)]">Review outlet quantities and post to lock editing</span>
                       : <>
                           <span className="sb-pr-phone-supplier-row">

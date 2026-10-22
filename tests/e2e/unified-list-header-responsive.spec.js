@@ -174,12 +174,19 @@ test("Outlet Daily tablet filters use the shared inline two-column layout", asyn
     columns: getComputedStyle(element).gridTemplateColumns.split(" ").length,
     width: element.scrollWidth,
     clientWidth: element.clientWidth,
+    queryWidths: [
+      element.closest("form")?.querySelector(".unified-list-primary-control")?.getBoundingClientRect().width ?? 0,
+      element.closest("form")?.querySelector(".unified-list-pinned-control")?.getBoundingClientRect().width ?? 0,
+      ...Array.from(element.querySelectorAll("[data-select-control]"), (control) => control.getBoundingClientRect().width),
+    ],
     controls: Array.from(element.querySelectorAll("[data-select-control], input, button")).map((control) => {
       const rect = control.getBoundingClientRect();
       return { x: rect.x, right: rect.right, width: rect.width };
     }),
   }));
   expect(geometry.columns).toBe(2);
+  expect(geometry.queryWidths.every((width) => width > 0)).toBe(true);
+  expect(Math.max(...geometry.queryWidths) - Math.min(...geometry.queryWidths)).toBeLessThanOrEqual(1);
   expect(geometry.width).toBeLessThanOrEqual(geometry.clientWidth);
   expect(geometry.controls.every((control) => control.width > 0 && control.x >= 0 && control.right <= 820)).toBe(true);
   await page.screenshot({ path: path.join(artifactDir, "outlet-daily-records-820.png"), animations: "disabled" });

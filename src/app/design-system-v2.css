@@ -3046,6 +3046,14 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
   html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-filter-label { display: none; }
 }
 @media (min-width: 768px) and (max-width: 1279px) {
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-row > .unified-list-inline-fields[data-share-query-tracks] {
+    grid-column: 1 / 3;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-width: 0;
+    width: auto;
+  }
+}
+@media (min-width: 768px) and (max-width: 1279px) {
   html[data-design-layer="v2"] .sb-pr-phone-location { flex: 0 1 auto; }
 }
 @media (min-width: 768px) and (max-width: 1399px) {

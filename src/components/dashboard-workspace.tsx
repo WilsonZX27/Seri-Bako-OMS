@@ -346,13 +346,13 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                   data-dashboard-pending-row
                 >
                   <span className="flex min-w-0 items-center justify-between gap-2">
-                    <strong className="min-w-0 truncate font-mono">{isMaintenanceAction ? `Repair · ${row.maintenance_asset_name ?? "Site problem"} · ${row.branch_name ?? "Location unavailable"}` : isOutletDailyAction ? `Outlet Daily · ${row.document_no}` : row.document_no}</strong>
-                    <StatusBadge status={row.step.toLowerCase().replaceAll(" ", "_")} className="shrink-0" />
+                    <strong className="min-w-0 truncate font-mono">{isMaintenanceAction ? "REPAIR REQUEST" : isOutletDailyAction ? `Outlet Daily · ${row.document_no}` : row.document_no}</strong>
+                    {isMaintenanceAction ? <span className="shrink-0 rounded-full bg-[var(--sb-surface-muted)] px-2 py-1 text-[10px] font-medium text-[var(--sb-text-muted)]">{row.maintenance_priority || "Normal"} priority</span> : <StatusBadge status={row.step.toLowerCase().replaceAll(" ", "_")} className="shrink-0" />}
                   </span>
                   {isScheduleAction
                     ? <span className="text-[11px] font-medium text-[var(--sb-warning)]">Review and publish this outlet roster</span>
                     : isMaintenanceAction
-                      ? <span className="min-w-0 truncate text-[11px] font-medium text-[var(--sb-text-muted)]" title={row.maintenance_description ?? undefined}>{row.maintenance_priority ? `${row.maintenance_priority} priority · ` : ""}{row.maintenance_description?.trim() || `${row.step} · Open this request for details`}</span>
+                      ? <><span className="flex min-w-0 items-center gap-2 text-[11px] leading-4"><Package className="size-3.5 shrink-0" aria-hidden="true"/><strong className="min-w-0 truncate text-[var(--sb-text)]">{row.maintenance_asset_name || "General repair"}</strong><span className="inline-flex min-w-0 items-center gap-1 text-[var(--sb-text-muted)]"><span aria-hidden="true">·</span><span className="truncate" title={row.maintenance_description ?? undefined}>{row.maintenance_description?.trim() || "No issue description"}</span></span></span><span className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[var(--sb-text-muted)]"><span className="inline-flex min-w-0 items-center gap-1"><MapPin className="size-3 shrink-0" aria-hidden="true"/><span className="truncate">{row.branch_name ?? "Location unavailable"}</span></span><span className="inline-flex items-center gap-1"><UserRound className="size-3 shrink-0" aria-hidden="true"/>by {row.maintenance_author_name ?? "—"}</span><time className="inline-flex shrink-0 items-center gap-1" dateTime={row.updated_at}><CalendarDays className="size-3" aria-hidden="true"/>{formatDateOnly(row.updated_at)}</time></span></>
                       : isOutletDailyAction
                       ? <span className="text-[11px] font-medium text-[var(--sb-green-800)]">Review outlet quantities and post to lock editing</span>
                       : <>

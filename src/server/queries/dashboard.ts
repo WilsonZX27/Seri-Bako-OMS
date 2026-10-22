@@ -280,6 +280,7 @@ export async function getDashboardSummary() {
           maintenance_description: null,
           maintenance_asset_name: null,
           maintenance_priority: null,
+          maintenance_author_name: null,
         };
       }),
       purchaseRequests: mockPurchaseRequests.slice(0, 5),

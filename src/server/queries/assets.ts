@@ -21,6 +21,7 @@ export type AssetHolding = { asset_id: string; location_id: string; quantity: nu
 export type AssetOverview = { assetCount: number; knownQuantity: number; unknownHoldings: number; attentionAssets: number; openMaintenance: number; inTransitQuantity: number; locations: { id: string; name: string; assetCount: number; quantity: number | null }[]; checkDate: string; checklist: { id: string; name: string; kind: "branch" | "event" | "other"; open: boolean; reason: string | null; expected: number; checked: number; submitted?: boolean }[]; maintenanceTrend: { date: string; count: number }[]; issueTrend: { date: string; count: number | null; checked: number }[]; maintenanceByStatus: { status: string; count: number }[] };
 export type AssetRecord = { id: string; asset_id: string | null; reported_by?: string; location_id?: string; from_location_id?: string; to_location_id?: string; source_id?: string; status?: string; priority?: string; description?: string; reason?: string; quantity?: number | null; author_name?: string; created_at?: string; check_date?: string; result?: string; source_data: Record<string, unknown> };
 export type AssetView = "overview" | "assets" | "checklist" | "maintenance" | "transfers";
+const ASSET_MAINTENANCE_PAGE_SIZE = 10;
 
 const mockInspectionLocationId = "2c562468-c4d1-5e21-8279-e97e55cc84c3";
 const mockInspectionAssets: AssetSummary[] = [
@@ -110,12 +111,13 @@ export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query =
     if(!Array.isArray(register.assets)||!Array.isArray(register.holdings)||!Array.isArray(register.filterOptions?.categories)||!Array.isArray(register.filterOptions?.statuses)) throw new Error("Asset register unavailable.");
     assets=register.assets;holdings=register.holdings;filterOptions=register.filterOptions;
   } else if (view === "overview") {
-    for(let offset=0;;offset+=500) {
-      const result = await db.from("asset_maintenance").select("*").eq("company_id",company).order("id").range(offset,offset+499);
-      if(result.error || result.data === null) throw new Error(result.error?.message ?? "Open maintenance unavailable.");
-      records.push(...(result.data as AssetRecord[]).filter(row=>!["closed","resolved","cancelled"].includes((row.status ?? "").toLowerCase())));
-      if(result.data.length<500) break;
-    }
+    const result = await db.from("asset_maintenance").select("*", { count: "exact" }).eq("company_id",company)
+      .not("status", "in", "(closed,resolved,cancelled)")
+      .order("created_at", { ascending: false }).order("id", { ascending: false })
+      .range((page - 1) * ASSET_MAINTENANCE_PAGE_SIZE, page * ASSET_MAINTENANCE_PAGE_SIZE - 1);
+    if(result.error || result.data === null || result.count === null) throw new Error(result.error?.message ?? "Open maintenance unavailable.");
+    records = result.data as AssetRecord[];
+    total = exactAssetCount(result.count);
     const ids=[...new Set(records.flatMap(row=>row.asset_id ? [row.asset_id] : []))];
     for(let offset=0;offset<ids.length;offset+=100) {
       const result=await db.from("assets").select("id,asset_code,item_name,current_details").eq("company_id",company).in("id",ids.slice(offset,offset+100));
@@ -135,7 +137,8 @@ export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query =
         request = request.gte("source_data->>Created Date", recordDate).lt("source_data->>Created Date", next);
       }
     }
-    const result = await request.order(view === "checklist" ? "check_date" : view === "maintenance" ? "source_data->>Created Date" : "created_at", { ascending: false }).order("id", { ascending: false }).range((page - 1) * 50, page * 50 - 1);
+    const pageSize = view === "maintenance" ? ASSET_MAINTENANCE_PAGE_SIZE : 50;
+    const result = await request.order(view === "checklist" ? "check_date" : view === "maintenance" ? "source_data->>Created Date" : "created_at", { ascending: false }).order("id", { ascending: false }).range((page - 1) * pageSize, page * pageSize - 1);
     if (result.error || result.data === null) throw new Error(result.error?.message ?? "Asset records unavailable.");
     records = result.data as AssetRecord[]; total = exactAssetCount(result.count);
     const ids = [...new Set(records.flatMap(r => r.asset_id ? [r.asset_id] : []))];

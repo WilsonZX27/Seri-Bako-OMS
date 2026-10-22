@@ -103,7 +103,8 @@ test("daily record groups retain the requested order without redundant field hin
 test("the latest outlet daily form download is permission-scoped and uses current product options", () => {
   const route = read("src/app/api/export/outlet-daily-form-template/route.ts");
   const list = read("src/app/(app)/outlet-daily-records/page.tsx");
-  assert.match(list, /Download latest Record Form/);
+  assert.match(list, /Download Record Form/);
+  assert.doesNotMatch(list, /Download latest Record Form/);
   assert.match(list, /\/api\/export\/outlet-daily-form-template/);
   assert.match(route, /hasPermission\("outlet_daily_record\.view"\)/);
   assert.match(route, /getOutletDailyFormOptions\(date\)/);
@@ -247,7 +248,9 @@ test("Qty Sent totals never turn an unavailable default zero into a business fac
   assert.match(summaryMigration, /when count\(\*\) > 0 and bool_and\(total_received is not null\)/);
   assert.match(page, /history\.summary\.today_sent === null \? "Unavailable"/);
   assert.match(detail, /record\.total_sent === null \? "Pending"/);
-  assert.match(detail, /Needs confirmation/);
+  assert.doesNotMatch(detail, /Needs confirmation/);
+  assert.doesNotMatch(detail, /Needs entry/);
+  assert.match(detail, /record\.total_sent === null \? "Pending"/);
 });
 
 test("outlet daily source failures never render an empty zero dashboard", () => {

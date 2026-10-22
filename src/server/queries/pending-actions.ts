@@ -22,6 +22,7 @@ export type PendingAction = {
   maintenance_description?: string | null;
   maintenance_asset_name?: string | null;
   maintenance_priority?: string | null;
+  maintenance_author_name?: string | null;
 };
 
 export type PendingActionSnapshot = {
@@ -226,7 +227,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
     }
     const snapshot = data as { total: number; items: { id: string; created_at: string; location: string }[] };
     const permittedIds = snapshot.items.map((row) => row.id);
-    const maintenanceDetails = new Map<string, { asset_id: string | null; description: string | null; priority: string | null }>();
+    const maintenanceDetails = new Map<string, { asset_id: string | null; description: string | null; priority: string | null; author_name: string | null }>();
     const assetNames = new Map<string, string>();
     if (permittedIds.length) {
       // The RPC remains the authorization gate for actionable rows. Read only
@@ -234,12 +235,12 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
       // scope for the description and priority fields shown on the dashboard.
       const detailsResult = await looseSupabase(supabase)
         .from("asset_maintenance")
-        .select("id,asset_id,description,priority")
+        .select("id,asset_id,description,priority,author_name")
         .in("id", permittedIds);
       if (detailsResult.error) {
         logServerWarning(detailsResult.error, { source: "pending-actions.maintenance-details" });
       } else {
-        for (const row of (detailsResult.data ?? []) as { id: string; asset_id: string | null; description: string | null; priority: string | null }[]) {
+        for (const row of (detailsResult.data ?? []) as { id: string; asset_id: string | null; description: string | null; priority: string | null; author_name: string | null }[]) {
           maintenanceDetails.set(row.id, row);
         }
       }
@@ -265,6 +266,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
       submitted_by_name: null, estimated_total: 0,
       maintenance_description: maintenanceDetails.get(row.id)?.description ?? null,
       maintenance_priority: maintenanceDetails.get(row.id)?.priority ?? null,
+      maintenance_author_name: maintenanceDetails.get(row.id)?.author_name ?? null,
       maintenance_asset_name: (() => {
         const assetId = maintenanceDetails.get(row.id)?.asset_id;
         return assetId ? assetNames.get(assetId) ?? null : null;

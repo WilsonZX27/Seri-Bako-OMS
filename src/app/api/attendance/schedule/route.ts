@@ -420,14 +420,17 @@ export async function POST(request: Request) {
     let attendanceRefresh: unknown = null;
     if (["save","copy","import_drafts","edit_and_publish","decide","submit"].includes(input.data.action)) {
       const changedWeek = "weekStart" in input.data ? input.data.weekStart : (result.data as {week_start?:string}|null)?.week_start;
-      if (changedWeek && ((await hasPermission("attendance.import")) || (await hasPermission("attendance.adjust")))) {
+      if (changedWeek) {
         try {
-          const refresh = await db.rpc("refresh_schedule_attendance", {p_week_start:changedWeek,p_branch_id:null});
-          if (refresh.error) throw refresh.error;
-          attendanceRefresh=refresh.data;
+          const canRefresh = (await hasPermission("attendance.import")) || (await hasPermission("attendance.adjust"));
+          if (canRefresh) {
+            const refresh = await db.rpc("refresh_schedule_attendance", {p_week_start:changedWeek,p_branch_id:null});
+            if (refresh.error) throw refresh.error;
+            attendanceRefresh=refresh.data;
+          }
         } catch (error) {
           logServerError(error,{source:"api.attendance.schedule.refresh"});
-          attendanceRefresh={status:"pending",message:"Schedule saved. Attendance calculation is pending; retry from Attendance."};
+          attendanceRefresh={status:"pending",message:"Schedule saved. Attendance refresh status is unavailable; check Attendance before taking further action."};
         }
       }
     }

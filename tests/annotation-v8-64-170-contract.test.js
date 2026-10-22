@@ -19,10 +19,10 @@ test("Outlet Daily supports an afternoon save and later wastage completion", () 
   assert.match(detail, />Save progress<\/SubmitButton>/);
   assert.match(detail, /name="target_status" value="draft" variant="outline"/);
   assert.match(detail, /Save receiving progress during the day/);
-  assert.match(detail, /complete Wastage, Usage or Qty Sold/);
+  assert.match(detail, /complete Wastage, Usage, or Qty Sold/);
 });
 
-test("unverified receiving explains the exact remaining work", () => {
+test("unverified receiving guidance is concise and avoids duplicate status copy", () => {
   const query = read("src", "server", "queries", "outlet-daily-records.ts");
   const list = read("src", "app", "(app)", "outlet-daily-records", "page.tsx");
   const detail = read("src", "app", "(app)", "outlet-daily-records", "[id]", "page.tsx");
@@ -30,7 +30,11 @@ test("unverified receiving explains the exact remaining work", () => {
   assert.match(list, /receivedDisplay\(row\)/);
   assert.match(read("src", "lib", "operational-value-display.ts"), /received_pending_lines/);
   assert.doesNotMatch(list, /Receiving data is not verified yet">Unavailable/);
-  assert.match(detail, /Received entry still in progress/);
+  assert.match(detail, /Enter received quantities/);
+  assert.match(detail, /Use 0 when none\. Save, then complete Wastage, Usage, or Qty Sold\./);
+  assert.doesNotMatch(detail, /Received entry still in progress/);
+  assert.doesNotMatch(detail, /Needs confirmation/);
+  assert.doesNotMatch(detail, /Needs entry/);
 });
 
 test("PO annotation helper copy stays removed", () => {

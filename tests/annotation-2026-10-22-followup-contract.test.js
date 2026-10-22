@@ -21,12 +21,15 @@ test("repair actions show available details and link to the specific request", (
   const topbar = read("src/server/queries/topbar.ts");
   const query = read("src/server/queries/pending-actions.ts");
   assert.match(dashboard, /isMaintenanceAction = row\.id\.startsWith\("maintenance-"\)/);
-  assert.match(dashboard, /Repair · \$\{row\.maintenance_asset_name \?\? "Site problem"\} · \$\{row\.branch_name \?\? "Location unavailable"\}/);
+  assert.match(dashboard, /"REPAIR REQUEST"/);
+  assert.match(dashboard, /row\.maintenance_asset_name/);
   assert.match(dashboard, /row\.maintenance_description\?\.trim\(\)/);
+  assert.match(dashboard, /row\.maintenance_author_name/);
+  assert.match(dashboard, /formatDateOnly\(row\.updated_at\)/);
   assert.match(topbar, /row\.entity_type === "asset_maintenance"/);
   assert.match(topbar, /repairAction\.maintenance_description\?\.trim\(\)/);
   assert.match(topbar, /action_url: repairAction\.href/);
   assert.match(query, /const permittedIds = snapshot\.items\.map\(\(row\) => row\.id\)/);
-  assert.match(query, /\.select\("id,asset_id,description,priority"\)\s*\.in\("id", permittedIds\)/);
+  assert.match(query, /\.select\("id,asset_id,description,priority,author_name"\)\s*\.in\("id", permittedIds\)/);
   assert.match(query, /assetIds\.length && permissions\["assets\.view"\]/);
 });

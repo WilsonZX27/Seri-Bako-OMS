@@ -5,13 +5,13 @@ const vm = require('node:vm');
 const ts = require('typescript');
 const branchId='e8bea49b-f9d7-4691-b40d-0b5e91993770';
 const assignments=[{staff_id:'dddc2b38-e153-4eaf-bd26-37224e5fa020',work_date:'2026-10-10',assignment_kind:'shift',destination_branch_id:'e2000000-0000-4000-8000-000000000001'}];
-function route({role='manager',permission=true,error=null,excludedStaffIds}={}) {
-  const calls=[],exports={};
+function route({role='manager',permission=true,error=null,excludedStaffIds,permissionErrorAfterMutation=false}={}) {
+  const calls=[],exports={};let permissionCalls=0;
   const mocks={
     'next/server':{NextResponse:{json:(body,options)=>({body,status:options?.status??200})}},
     '@/server/http/request-security':{rejectCrossSiteMutation:()=>null},
     '@/server/auth/tenant-actor':{requireActiveTenantActor:async()=>({roleCode:role})},
-    '@/server/auth/permissions':{hasPermission:async()=>permission},
+    '@/server/auth/permissions':{hasPermission:async()=>{permissionCalls++;if(permissionErrorAfterMutation&&permissionCalls>1)throw new Error('Permission lookup unavailable');return permission;}},
     '@/lib/supabase/server':{createClient:async()=>({rpc:async(name,args)=>{calls.push({name,args});return {error,data:{week:{status:'submitted'}}}}})},
     '@/lib/supabase/loose':{looseSupabase:x=>x},
     '@/server/observability/logger':{logServerError:()=>{}}
@@ -38,4 +38,15 @@ test('explicit week removals use the atomic roster RPC without changing legacy c
 });
 test('empty exclusions explicitly restore roster membership',async()=>{
  const r=route({excludedStaffIds:[]});assert.equal((await r.post()).status,200);assert.equal(r.calls[0].name,'submit_schedule_week_roster');assert.equal(r.calls[0].args.p_excluded_staff_ids.length,0);
+});
+
+test('a post-commit permission lookup failure reports the saved schedule and never invites a blind retry',async()=>{
+ const r=route({permissionErrorAfterMutation:true});const result=await r.post();
+ assert.equal(result.status,200);
+ assert.equal(result.body.ok,true);
+ assert.equal(result.body.attendanceRefresh.status,'pending');
+ assert.match(result.body.attendanceRefresh.message,/Schedule saved/);
+ assert.doesNotMatch(result.body.attendanceRefresh.message,/retry/i);
+ assert.equal(r.calls.length,1);
+ assert.equal(r.calls[0].name,'submit_schedule_week_atomic');
 });

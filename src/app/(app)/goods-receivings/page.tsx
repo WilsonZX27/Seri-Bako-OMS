@@ -126,8 +126,8 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                 label={`Open ${receiving.grn_no}`}
                 primary={<DocumentNumber value={receiving.grn_no} />}
                 status={<StatusBadge status={receiving.workflow_status} />}
-                secondary={<span className="flex justify-between gap-3"><span>{receiving.po_no ?? "No linked PO"} · {formatDateOnly(receiving.received_date)}</span><span className="shrink-0">{formatNumber(receiving.received_total)} in · {formatNumber(receiving.rejected_total)} rejected</span></span>}
-                detail={<span className="flex min-w-0 gap-2"><span className="truncate" title={receiving.supplier_name ?? undefined}>{receiving.supplier_name ?? "No supplier"}</span><span className="shrink-0">· {receiving.branch_name ?? "No branch"}</span></span>}
+                secondary={<span className="flex min-w-0 justify-between gap-3"><span className="truncate" title={receiving.supplier_name ?? undefined}>{receiving.supplier_name ?? "No supplier"}</span><span className="shrink-0">{formatNumber(receiving.received_total)} in · {formatNumber(receiving.rejected_total)} rejected</span></span>}
+                detail={<span className="flex min-w-0 flex-wrap gap-x-2"><span>{receiving.branch_name ?? "No branch"}</span><span>· {receiving.po_no ?? "No linked PO"}</span><span>· {formatDateOnly(receiving.received_date)}</span></span>}
               />)}
               {!receivings?.rows.length ? <EmptyState title={!receivings ? "Goods receiving data unavailable" : filtered ? "No receivings match these filters" : "No goods receivings yet"} description={emptyDescription} action={!receivings || filtered ? emptyStateAction : undefined} /> : null}
             </OperationalList>

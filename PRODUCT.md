@@ -1,3 +1,7 @@
+## v9.2.138 (Preview candidate) — asset maintenance workspace clarity
+
+Intrinsic-height maintenance queue, visible long asset identity/code, bounded peer filter tracks, four phone statistics, and independent asset form cards. Preserve all business/permission behavior.
+
 ## v9.2.137 (Preview candidate) — responsive forecasts and UI recovery
 
 Fix three136 screenshot findings; retain full UI and Production business behavior. Semantic test contracts replace obsolete literal layout expectations. Lifecycle presentation recovery never retries or confirms mutations.

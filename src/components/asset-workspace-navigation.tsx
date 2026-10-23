@@ -27,10 +27,10 @@ export function AssetWorkspaceNavigation({current, managementRole, canReport=fal
     observer.observe(nav);
     return () => observer.disconnect();
   }, [current]);
-  return <>
+  return <div data-asset-workspace-navigation>
     <nav ref={strip} aria-label="Asset workspace" className="sb-work-surface relative flex gap-1 overflow-x-auto p-1 md:hidden">
       {items.map(({id,label,icon:Icon}) => <a key={id} href={`/asset-management?view=${id}`} aria-current={current===id ? "page" : undefined} className={`inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-[var(--sb-radius-control)] px-3 text-xs font-semibold transition-colors ${current===id ? "bg-[var(--sb-green-100)] text-[var(--sb-green-900)]" : "text-muted-foreground hover:bg-muted"}`}><Icon className="size-4" aria-hidden="true"/>{label}</a>)}
     </nav>
     <div className="hidden md:block"><WorkspaceTabs onNavigate={(href) => window.location.assign(href)} label="Asset Management workspace" current={current} items={items.map(tab=>({...tab,href:`/asset-management?view=${tab.id}`}))}/></div>
-  </>;
+  </div>;
 }

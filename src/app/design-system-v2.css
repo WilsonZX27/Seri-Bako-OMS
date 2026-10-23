@@ -2576,7 +2576,7 @@ html[data-design-layer="v2"] form.sb-asset-query .unified-list-desktop-actions b
 /* Shared disclosure geometry: 44px outer height, never padding + a touch row. */
 html[data-design-layer="v2"] details.sb-work-surface:not([open]) { padding-block: 0; }
 html[data-design-layer="v2"] details.sb-work-surface:not([open]) > summary { height: 42px; min-height: 42px !important; padding-block: 0; }
-.sb-maintenance-split { display: grid; gap: 16px; min-width: 0; align-items: stretch; }
+.sb-maintenance-split { display: grid; gap: 16px; min-width: 0; align-items: start; }
 @media (min-width: 1024px) { .sb-maintenance-split { grid-template-columns: minmax(0, 4fr) minmax(0, 6fr); } }
 .sb-maintenance-queue { max-height: 620px; overflow-y: auto; }
 @media (min-width: 1024px) { .sb-maintenance-queue { max-height: 680px; } }
@@ -2585,11 +2585,6 @@ html[data-design-layer="v2"] details.sb-work-surface:not([open]) > summary { hei
 [data-modal-shell] .sb-dialog-actions, dialog .sb-dialog-actions { margin-top: 16px; }
 
 html[data-design-layer="v2"] .sb-workspace-tabs > a { height: 44px; min-height: 44px !important; }
-@media (min-width: 1024px) {
-  .sb-maintenance-split:has(> div:nth-child(2)) > div:first-child { position: relative; min-height: 0; }
-  .sb-maintenance-split:has(> div:nth-child(2)) > div:first-child > section { position: absolute; inset: 0; display: flex; flex-direction: column; }
-  .sb-maintenance-split:has(> div:nth-child(2)) .sb-maintenance-queue { flex: 1; min-height: 0; max-height: none; }
-}
 [data-modal-shell] > div:last-child:has(> button + button),
 dialog > div > div:last-child:has(> button + button) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 [data-modal-shell] > div:last-child:has(> button + button) > button,
@@ -3107,10 +3102,20 @@ html[data-design-layer="v2"] .sb-repair-summary .sb-pr-phone-items { white-space
 @media (min-width:640px) { #main-content dl.sb-asset-overview-metrics { grid-template-columns: repeat(3,minmax(0,1fr)); } }
 @media (min-width:1024px) { #main-content dl.sb-asset-overview-metrics { grid-template-columns: repeat(6,minmax(0,1fr)); } }
 /* Maintenance KPIs are peer cards, so keep their label above the value. */
-#main-content dl.sb-asset-maintenance-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); }
+#main-content dl.sb-asset-maintenance-metrics { grid-template-columns: repeat(4,minmax(0,1fr)); }
 #main-content dl.sb-asset-maintenance-metrics > div:has(> dt + dd:last-child) { display:block; grid-column:auto; }
 #main-content dl.sb-asset-maintenance-metrics > div:has(> dt + dd:last-child) > dd { margin-top:.125rem; text-align:left; }
-@media (min-width:640px) { #main-content dl.sb-asset-maintenance-metrics { grid-template-columns: repeat(4,minmax(0,1fr)); } }
+/* Maintenance has two peer filters, no search placeholder. Share the existing
+   query tracks with the count while preserving the phone filter drawer. */
+@media (min-width:768px) and (max-width:1279px) {
+  html[data-design-layer="v2"] form.sb-asset-query--maintenance { --sb-control-height: 2.75rem; }
+  html[data-design-layer="v2"] form.sb-asset-query--maintenance .unified-list-row--filter-only { grid-template-columns: minmax(0,1fr) minmax(0,1fr) max-content; }
+  html[data-design-layer="v2"] form.sb-asset-query--maintenance .unified-list-inline-fields[data-share-query-tracks] { display: contents; }
+  html[data-design-layer="v2"] form.sb-asset-query--maintenance .unified-list-result { grid-column: 3; grid-row: 1; }
+  html[data-design-layer="v2"] form.sb-asset-query--maintenance .unified-list-inline-fields > [data-field-name="location"] { grid-column: 1; grid-row: 1; }
+  html[data-design-layer="v2"] form.sb-asset-query--maintenance .unified-list-inline-fields > [data-field-name="status"] { grid-column: 2; grid-row: 1; }
+  html[data-design-layer="v2"] form.sb-asset-query--maintenance .unified-list-inline-fields > [data-select-control] { min-width: 0; width: 100%; max-width: 16rem; }
+}
 /* Delivery Orders has one date and one submit action. Keep those controls
    adjacent while the record count remains at the far edge of the toolbar. */
 @media (min-width:1280px) {

@@ -11,7 +11,7 @@ const status=load('src/components/ui/status-badge.tsx');
 const wrapper=({children})=>React.createElement('div',null,children);
 function compile(file, overrides={}) {
  const result={};
- vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText,{exports:result,require(name){
+ vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText,{exports:result,URLSearchParams,require(name){
   if(name in overrides)return overrides[name];
   if(name==='next/link')return {__esModule:true,default:({prefetch,children,...props})=>React.createElement('a',props,children)};
   if(name==='@/lib/utils')return utils;

@@ -40,3 +40,7 @@ Current local137 batch:1786/1786testsPASS; type/lint/build0. This closes the fiv
 Legacy34source recovered from preserved annotation-status report; extracted all34 IDs into legacy34-closure.csv. Historicalpasses remainhistorical; do not inheritascurrentacceptance. Combinedledger has61explicitrequirements across two rounds, with overlaps retaineduntilreviewed. Legacy3missingtarget,7missingnamedrecord,25businessdate remainexplicitblockers/semanticdecisions, not silentlyclosed.
 
 Shared-owner reconciliation:61originalrows grouped into32criterion-union groups in closure-groups.csv: {"business_record_semantics": 1, "feature": 3, "missing_evidence": 2, "ui": 26}. No originalrequirementdeleted; groupingdoesnotturnpartialchecksintoclosure. Three screenshot137fixestrackedseparately. Nextcoherentfamily:Assetmaintenancefilters/queue/stats+assetformcards, afteractualevidence; not automaticnumbering ormultiassetbusinessworkflow.
+
+## Asset138 batch
+
+137F1/F2/F3 nowactualOwner390/820/1440PASS, menuEscape/focusPASS (137ACCEPTANCE.md); nootherrole/livebusiness/lifecycleclosure implied. Assetbefore137screensconfirm#17/#19–24issues. Local138fixes+5regressions pass;1791fullsuitepass. Related27rows remainfixed_pending_render until138exactcandidate screenshots. Legacy15paginationtextcutoffnotreproducedinbefore sample; retainotherwidth gate.

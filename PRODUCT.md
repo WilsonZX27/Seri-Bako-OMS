@@ -1,3 +1,7 @@
+## v9.2.139 (Preview candidate) — shared account and profile navigation
+
+Account menu uses existing panel radius. Employee profile uses existing WorkspaceTabs instead of a separate36px link layout; sectionroutes andsecuritypermissionconditionunchanged. Full26UIgroupstatus remains explicit.
+
 ## v9.2.138 (Preview candidate) — asset maintenance workspace clarity
 
 Intrinsic-height maintenance queue, visible long asset identity/code, bounded peer filter tracks, four phone statistics, and independent asset form cards. Preserve all business/permission behavior.

@@ -39,7 +39,7 @@ export function AccountMenu({ displayName, roleLabel, initials }: { displayName:
         <span className="hidden max-w-28 truncate md:inline">{displayName}</span>
         <span className="hidden max-w-32 truncate text-[10px] font-normal text-muted-foreground lg:inline">{roleLabel}</span>
       </button>
-      {open ? <div role="menu" className="sb-popover-surface absolute right-0 z-[var(--sb-z-dropdown)] mt-1 w-56 p-1 text-xs">
+      {open ? <div role="menu" className="sb-popover-surface rounded-[var(--sb-panel-radius)] absolute right-0 z-[var(--sb-z-dropdown)] mt-1 w-56 p-1 text-xs">
         <div className="border-b px-2 py-2">
           <p className="truncate font-semibold">{displayName}</p>
           <p className="truncate text-[11px] text-muted-foreground">{roleLabel}</p>

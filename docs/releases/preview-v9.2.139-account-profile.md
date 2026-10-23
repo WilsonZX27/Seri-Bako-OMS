@@ -1,0 +1,11 @@
+# v9.2.139 (Preview candidate) — account and profile navigation
+
+Parent23ea555947a65878fe22bb663c8909e31b87fc5b /138. Preserve all priorUI and restoredProduction businessbehavior.
+
+Original27#14 squareAccountmenu confirmed in137menu-open-1440.jpg; addexistingpanelradiustoken locally, no globalpopoverrestyle. Original27#8/#9 same-levelnavigation consistency: profileusesexistingWorkspaceTabs44px/icon/selectedstate instead of36pxbespoke links. Sameoverview/employment/compliancehrefs, securitylinkstillonlystaffs.update; no routeauth/query/grantschanged. Accountpersonalroutesandlogoutowner unchanged.
+
+ActualSSRtestsverifyopenmenuradius/all4items/noactioninvocation, actualprofileJSXexecutedwithpermissionon/off3vs4tabs andexacthref/currentsection. Existingrole/finance/mobilefixturesretained.32focusedpass. Actualafterradius/tabwidth/focus pending.
+
+26UIgroups:4Ownerbrowsercovered,6partialbrowser,12implementedawaitingtargetedbrowser,2localthisbatch,1historicalreferencegap,1partialUIdependentonseparatemultiassetfeature.61originalconditions preserved in32groups, no completioninferredfromtestcounts. Stablealias mayrequireuser-ownedlogin; no credential transfer or furtherrequest. NoProduction/SQL/permission/businesswrite.
+
+FinalNode22.23.4:1793/1793fullsuite0fail;type0;whole-sourceLint0;synthetic-configNextbuild0. Oneinterimoldassertionsearchedaria-currentdirectlyinprofilepage; nowassertspagecurrentbinding+sharedowneraria-current, whileactualprofilefixture rendersrealWorkspaceTabs andtests3/4permissionstates. Noassertionwasremovedwithoutsemanticreplacement.

@@ -129,7 +129,8 @@ test("v9.2 uses the OMS register, progressive checklist and real month calendars
   assert.match(checklist, /tabletCanvas="wide"/);
   assert.match(people, /WorkspaceGrid/);
   assert.match(people, /lg:grid-cols-2 \[&>section\]:h-full/);
-  assert.match(people, /aria-current/);
+  assert.match(people, /<WorkspaceTabs label="Employee profile sections" current=\{activeSection\}/);
+  assert.match(read("src","components","ui","workspace-tabs.tsx"), /aria-current=\{id === current \? "page" : undefined\}/);
   assert.doesNotMatch(people, /backHref/);
   assert.match(calendar, /grid-cols-7/);
   assert.match(calendar, /Previous month/);

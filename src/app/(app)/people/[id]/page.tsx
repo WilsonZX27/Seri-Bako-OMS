@@ -1,3 +1,5 @@
+import { UserRound, BriefcaseBusiness, Files, ShieldCheck } from "lucide-react";
+import { WorkspaceTabs } from "@/components/ui/workspace-tabs";
 import { StaffSecurityPanel, StaffSecurityRail } from "@/components/staff-security-panel";
 import { StaffEmploymentEditor } from "@/components/staff-employment-editor";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -116,26 +118,12 @@ export default async function PeopleProfilePage({
             {message.error ?? message.success}
           </div>
         ) : null}
-        <nav
-          className="flex min-h-11 gap-1 overflow-x-auto rounded-[var(--sb-panel-radius)] border bg-[var(--sb-surface-raised)] p-1 text-xs"
-          aria-label="Employee profile sections"
-        >
-          {[
-            ["overview", "Overview"],
-            ["employment", "Employment & Access"],
-            ["compliance", "Documents"],
-            ...(permissions["staffs.update"] ? [["security", "Sign-in & Password"]] : []),
-          ].map(([sectionId, label]) => (
-            <Link
-              key={sectionId}
-              href={`/people/${id}?section=${sectionId}`}
-              aria-current={activeSection === sectionId ? "page" : undefined}
-              className={`inline-flex min-h-9 shrink-0 items-center justify-center rounded-[var(--sb-radius-control)] border px-3 text-center sm:flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] ${activeSection === sectionId ? "border-[var(--sb-green-200)] bg-[var(--sb-green-100)] font-semibold text-[var(--sb-green-900)]" : "border-transparent text-muted-foreground hover:bg-[var(--sb-surface-muted)] hover:text-foreground"}`}
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
+        <WorkspaceTabs label="Employee profile sections" current={activeSection} items={[
+          { id: "overview", href: `/people/${id}?section=overview`, label: "Overview", icon: UserRound },
+          { id: "employment", href: `/people/${id}?section=employment`, label: "Employment & Access", icon: BriefcaseBusiness },
+          { id: "compliance", href: `/people/${id}?section=compliance`, label: "Documents", icon: Files },
+          ...(permissions["staffs.update"] ? [{ id: "security", href: `/people/${id}?section=security`, label: "Sign-in & Password", icon: ShieldCheck }] : []),
+        ]} />
         <div className="space-y-3">
           {activeSection === "overview" ? (
             <>

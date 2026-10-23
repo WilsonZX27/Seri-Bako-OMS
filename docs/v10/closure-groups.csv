@@ -1,33 +1,33 @@
 group,members,category,status,note
-list-toolbar,legacy-1|legacy-2|legacy-8|legacy-13|legacy-14|legacy-15|legacy-16,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
+list-toolbar,legacy-1|legacy-2|legacy-8|legacy-13|legacy-14|legacy-15|legacy-16,ui,partial_browser_more_criteria_required,"PR/GR1180landscape,Search/Reset44px andGET/zeroresult checks; existing136smoke ispartial"
 dashboard-unknown-space,legacy-3,missing_evidence,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-asset-cards,legacy-4,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-asset-register-filter,legacy-5,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-stock-count-filter,legacy-6|legacy-20,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
+asset-cards,legacy-4,ui,historical_reference_detail_needed,Recover exact legacy4 visualtarget from historicalannotated source before inferring stylechange
+asset-register-filter,legacy-5,ui,implemented_source_pending_targeted_browser,PhoneassetregisterFilter open/apply/reset andfieldwidths
+stock-count-filter,legacy-6|legacy-20,ui,implemented_source_pending_targeted_browser,"390Filterdialog,820oneactionowner/GETpreservation"
 stock-balance-named-search,legacy-7,missing_evidence,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-po-empty-wrap,legacy-9,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-pr-row-structure,legacy-10|legacy-11|legacy-12,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-dashboard-layout,legacy-17|legacy-18|legacy-19,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-dashboard-pending-summary,legacy-21|20261023-1,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-planning-tablet-rail,legacy-22,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-dashboard-task-hierarchy,legacy-23|legacy-24|legacy-28|20261023-2|20261023-3|20261023-4,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
+po-empty-wrap,legacy-9,ui,implemented_source_pending_targeted_browser,Read-only searchwithnomatches;count/text mustwrap withnooverflow
+pr-row-structure,legacy-10|legacy-11|legacy-12,ui,partial_browser_more_criteria_required,"Longsupplier wrap/truncation,groupeditems/amount/metadata at390/1180"
+dashboard-layout,legacy-17|legacy-18|legacy-19,ui,partial_browser_more_criteria_required,1180rail/column geometry andsingleActionsentry; otherwidths137screens exist
+dashboard-pending-summary,legacy-21|20261023-1,ui,owner_browser_covered,Owner5realpending136/137seen; keepcount/no syntheticrows andotherrole limits
+planning-tablet-rail,legacy-22,ui,owner_browser_covered,Owner137390/820/1440screensPASS; no otherroleacceptance
+dashboard-task-hierarchy,legacy-23|legacy-24|legacy-28|20261023-2|20261023-3|20261023-4,ui,implemented_source_pending_targeted_browser,Repairmetadata/PR400computedweight anddistincttarget links againstexistingrecords
 stock-count-business-date,legacy-25,business_record_semantics,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-daily-export-label,legacy-26,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-daily-filter-width,legacy-27,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-maintenance-pagination,legacy-29|legacy-30|20261023-15,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-transfer-request-layout,legacy-31,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-receiving-row-hierarchy,legacy-32|20261023-6,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-daily-copy-density,legacy-33|legacy-34,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
+daily-export-label,legacy-26,ui,implemented_source_pending_targeted_browser,VerifyexactDownloadRecordFormlabel; no export/networkbusinessoperation required
+daily-filter-width,legacy-27,ui,partial_browser_more_criteria_required,1024/1279edges anddate/branchtrackequality;133passed/137partial
+maintenance-pagination,legacy-29|legacy-30|20261023-15,ui,implemented_source_pending_targeted_browser,"138queue10rows/sharedpagination, narrowlabelwrap andscope-preservinglinks;137sample textnotcut"
+transfer-request-layout,legacy-31,ui,feature_dependent_partial_ui,ExistingRequestdetails/Assetslistafterselection implemented; completeinitialPRflowoverlapsnewmultiassetfeature andneedsseparatescope
+receiving-row-hierarchy,legacy-32|20261023-6,ui,partial_browser_more_criteria_required,VerifyPRiconsemantics+supplier/location/PO/date/quantity andzero states inexistingrecord screenshots
+daily-copy-density,legacy-33|legacy-34,ui,partial_browser_more_criteria_required,Compactguidance/noNeedslabels sourceclean; confirmdetailcopy390; preserveessentialwarning
 multi-asset-feature,20261023-5,feature,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-daily-today,20261023-7,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-workspace-tabs,20261023-8|20261023-9,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
+daily-today,20261023-7,ui,owner_browser_covered,137actualToday-only/historydate/dateTime390/820/1440PASS
+workspace-tabs,20261023-8|20261023-9,ui,local139_fix_pending_preview,"Local139profileusesexistingWorkspaceTabs44px/icons, preserves3/4securitygatedsections; actualradius/keyboardpending"
 leave-balance-feature,20261023-10,feature,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-workspace-updates,20261023-11|20261023-12|20261023-13|20261023-25|20261023-26,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-account-menu,20261023-14,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
+workspace-updates,20261023-11|20261023-12|20261023-13|20261023-25|20261023-26,ui,implemented_source_pending_targeted_browser,"390/430/shortlandscape scroll toActivitylog,distinctrepairs/uppercase/headermetadata,Escape/focus"
+account-menu,20261023-14,ui,local139_fix_pending_preview,"Local139radius sharedtoken; actual137squarebeforeimage,personalroutes/logoutgateunchanged; retestcorners/focus"
 asset-number-feature,20261023-16,feature,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-asset-form-cards,20261023-17,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-asset-checklist-error,20261023-18,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-maintenance-filter,20261023-19|20261023-20,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-maintenance-queue,20261023-21|20261023-22|20261023-23,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-maintenance-stats,20261023-24,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
-personal-mobile-access,20261023-27,ui,open_item_evidence_required,"Shared-owner grouping; all original acceptance criteria retained, not a completion claim"
+asset-form-cards,20261023-17,ui,implemented_source_pending_targeted_browser,138threecards/new+editfields/pending/readOnlySSRpassed;actualafterpending
+asset-checklist-error,20261023-18,ui,owner_browser_covered,136Owner390/820/1440loadsnoerror; queryunchanged138; otherrolesnotliveverified
+maintenance-filter,20261023-19|20261023-20,ui,implemented_source_pending_targeted_browser,138compact2boundedpeertracks+count/44touch;afteractualpending
+maintenance-queue,20261023-21|20261023-22|20261023-23,ui,implemented_source_pending_targeted_browser,138name/code/href/selectedID/naturalheight+wrapperalignment;afteractualpending
+maintenance-stats,20261023-24,ui,implemented_source_pending_targeted_browser,1384phonecolumnswithwrap;numbersnottruncated afteractualpending
+personal-mobile-access,20261023-27,ui,implemented_source_pending_targeted_browser,FollowexistingMoreMyattendance/payslips toownreadonlypages; no spoofedidentity

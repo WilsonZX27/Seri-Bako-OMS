@@ -71,7 +71,8 @@ test("August 19 annotation closure groups PR data, simplifies loading, and stand
   const design = read("src", "app", "design-system-v2.css");
 
   assert.match(requests, /label="Schedule" column="request_date"/);
-  assert.match(requests, />Location \/ Requested by</);
+  const register = require("./helpers/render-pr-register.cjs")();
+  assert.deepEqual(register.headers, ["", "Action", "PR number Priority", "Schedule", "Location Requested by", "Supplier", "Status", "Lines / RM"]);
   assert.match(requests, />Lines \/ RM</);
   assert.match(requests, /BulkSelectRowCheckbox[\s\S]*TableActionLink[\s\S]*DocumentNumber/);
   assert.match(pagination, /aria-label="Go to page"/);

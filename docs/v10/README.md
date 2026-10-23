@@ -1,6 +1,6 @@
 # OMS v10 readiness programme
 
-Status: preparation; **v10 is not accepted or complete**. Baseline is Preview `ae6bc16423842824a212f0054b52d78b4912badd` (READY). Current programme release candidate is **9.2.130**, preserving the existing numeric 9.2.x scheme. A future v10 version requires the gates below; no Production promotion is authorised by this plan.
+Status: preparation; **v10 is not accepted or complete**. Baseline is Preview `ae6bc16423842824a212f0054b52d78b4912badd` (READY). Current programme release candidate is **9.2.131**, preserving the existing numeric 9.2.x scheme. A future v10 version requires the gates below; no Production promotion is authorised by this plan.
 
 ## One source of truth
 
@@ -52,3 +52,7 @@ Every applicable route/role/state cell must have exact source SHA, reproduction,
 ## Current follow-up state — 9.2.130
 
 The phase-0 baseline records above remain historical. The Node 22 follow-up explicitly integrates the original five-file fixture batch and fixes a demonstrated pending-bridge unmount subcase. Current full-suite debt is 13 failures (1,719 total / 1,706 pass), with no added failure versus 9.2.129. See `FAILURE-TRIAGE-2026-10-23.md` and `failure-triage-20.csv` for each result. Rendered acceptance and real performance measurements remain unfulfilled gates.
+
+## Current semantic checks — 9.2.131
+
+PR header/value/order checks now use real shared-component SSR and release documentation calls the actual release guard. Current Node 22 result: 1,721 total / 1,711 pass / 10 fail, no new failures. See `SEMANTIC-CONTRACTS-2026-10-23.md`. Product source differs only in displayed release metadata. The programme remains unaccepted until actual route/role/viewport/state gates pass.

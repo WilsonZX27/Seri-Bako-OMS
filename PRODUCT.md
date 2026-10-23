@@ -1,3 +1,7 @@
+## v9.2.131 (Preview candidate) — semantic register contracts
+
+PR header and information-order checks now render the actual page templates with the shared table/sort components instead of requiring one exact JSX spelling. They additionally verify row/column alignment, real field values, sort filter preservation and explicit zero. Release documentation checks call the same release-consistency guard used before deployment and recognise the accepted Preview candidate status. Product layout and business behavior are unchanged; current visual gates remain open.
+
 ## v9.2.130 (Preview candidate) — scoped pending-state recovery
 
 An external submit button releases its own pending UI if the corresponding active form bridge unmounts. This does not assert save success or retry an action. The independently reviewed five-file fixture patch is now explicitly integrated; production behavior is unchanged by those fixtures. The Node 22 failure triage and remaining visual/contract gates are recorded in `docs/v10/FAILURE-TRIAGE-2026-10-23.md` and the versioned release note.

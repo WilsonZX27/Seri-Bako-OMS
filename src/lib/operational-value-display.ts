@@ -27,6 +27,13 @@ export function wastageDisplay(row: DailyMetricRow): OperationalValue {
   };
 }
 
+/** Compact cards show a final quantity or a single honest pending state. */
+export function compactWastageDisplay(row: DailyMetricRow): OperationalValue {
+  const display = wastageDisplay(row);
+  if (display.detail === "Not final") return { value: "Not final", title: `Draft wastage: ${display.value}; not final` };
+  return { value: display.value, title: display.detail === "—" ? undefined : display.detail };
+}
+
 export function supplierDisplay(request: { supplier_state: string; supplier_names: string[] }) {
   switch (request.supplier_state) {
     case "assigned": return request.supplier_names.join(", ");

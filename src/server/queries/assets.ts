@@ -1,6 +1,7 @@
 import { todayInKualaLumpur } from "@/lib/business-date";
 import { addDays } from "@/lib/production-planning/forecast";
 import { cache } from "react";
+import { assetLocationDisplayName } from "@/lib/asset-location-display";
 import { canAccessAssetManagement } from "@/lib/asset-access";
 import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 import { requirePermission } from "@/server/auth/permissions";
@@ -25,7 +26,7 @@ const ASSET_MAINTENANCE_PAGE_SIZE = 10;
 
 async function withCanonicalBranchNames(db: LooseSupabase, rows: AssetLocation[]): Promise<AssetLocation[]> {
   const branchIds = [...new Set(rows.flatMap((row) => row.kind === "branch" && row.branch_id ? [row.branch_id] : []))];
-  if (!branchIds.length) return rows.map((row) => ({ ...row, display_name: row.source_name }));
+  if (!branchIds.length) return rows.map((row) => ({ ...row, display_name: assetLocationDisplayName(row, new Map()) }));
   const result = await db.from("branches").select("id,branch_name").in("id", branchIds);
   const names = new Map<string, string>((result.error ? [] : result.data ?? []).flatMap((row) =>
     typeof row.id === "string" && typeof row.branch_name === "string" ? [[row.id, row.branch_name]] : [],
@@ -34,7 +35,7 @@ async function withCanonicalBranchNames(db: LooseSupabase, rows: AssetLocation[]
     ...row,
     // Imported Google Script labels are aliases only. Branch-backed asset
     // locations must use the OMS branch catalogue as their display authority.
-    display_name: row.kind === "branch" && row.branch_id ? names.get(row.branch_id) ?? "Branch location" : row.source_name,
+    display_name: assetLocationDisplayName(row, names),
   }));
 }
 

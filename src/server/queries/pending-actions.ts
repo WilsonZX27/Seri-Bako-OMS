@@ -1,3 +1,4 @@
+import { assetLocationDisplayName } from "@/lib/asset-location-display";
 import { looseSupabase } from "@/lib/supabase/loose";
 import { createClient } from "@/lib/supabase/server";
 import { getPermissionMap } from "@/server/auth/permissions";
@@ -256,7 +257,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
           if (branchesResult.error) logServerWarning(branchesResult.error, { source: "pending-actions.maintenance-branches" });
           const branchRows = (branchesResult.data ?? []) as { id: string; branch_name: string }[];
           const branchNames = new Map(branchRows.map((row) => [row.id, row.branch_name]));
-          for (const row of locationRows) locationNames.set(row.id, row.kind === "branch" && row.branch_id ? branchNames.get(row.branch_id) ?? row.source_name : row.source_name);
+          for (const row of locationRows) locationNames.set(row.id, assetLocationDisplayName(row, branchNames));
         }
       }
       const assetIds = [...new Set([...maintenanceDetails.values()].flatMap((row) => row.asset_id ? [row.asset_id] : []))];

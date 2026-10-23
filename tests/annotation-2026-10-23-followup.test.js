@@ -20,8 +20,8 @@ test("Google Script branch aliases display through the OMS branch catalogue", ()
   const pending = read("src/server/queries/pending-actions.ts");
   assert.match(importer, /'PNG - ALMA \(Central Kitchen\)': 'CK-ALMA'/);
   assert.match(importer, /'KL - PJS10 \(Central Kitchen\)': 'CK-PJS10'/);
-  assert.match(query, /display_name: row\.kind === "branch" && row\.branch_id \? names\.get\(row\.branch_id\)/);
-  assert.match(pending, /row\.kind === "branch" && row\.branch_id \? branchNames\.get\(row\.branch_id\) \?\? row\.source_name/);
+  assert.match(query, /display_name: assetLocationDisplayName\(row, names\)/);
+  assert.match(pending, /assetLocationDisplayName\(row, branchNames\)/);
   assert.match(query, /source_name: string; display_name\?: string/);
 });
 
@@ -47,7 +47,7 @@ test("daily record compact rows emphasize Today and show four concise submitter 
   assert.match(page, /Submitted by/);
   assert.match(page, /row\.submitted_by_name/);
   assert.match(page, /receivedDisplay\(row\)\.value === "Pending"/);
-  assert.match(page, /wastageDisplay\(row\)\.detail === "Not final"/);
+  assert.match(page, /compactWastageDisplay\(row\)\.value === "Not final"/);
   assert.match(query, /submitted_by_name: actorDisplayName\(actorDisplayMap, record\.submitted_by\)/);
   assert.match(css, /\.sb-daily-record-metrics \{\s*display: grid; grid-template-columns: repeat\(4/);
 });

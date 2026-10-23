@@ -2952,14 +2952,12 @@ html[data-design-layer="v2"] :is(.sb-pr-phone-supplier, .sb-pr-phone-items, .sb-
   display: flex; flex-direction: column; align-items: flex-start; grid-column: auto; gap: .125rem;
 }
 #main-content .sb-daily-record-metrics > div > dd { margin: 0; text-align: left; justify-self: start; }
-#main-content .sb-daily-record-metrics dt { font-size: 10px; color: var(--sb-text-muted); }
+#main-content .sb-daily-record-metrics dt { font-size: 11px; color: var(--sb-text-muted); }
 #main-content .sb-daily-record-metrics dd { font-size: 12px; color: var(--sb-text); }
-.sb-daily-pending, .sb-daily-pending-detail { color: var(--sb-text-muted) !important; font-style: italic; font-weight: 400 !important; }
-.sb-daily-metric-detail { display: block; color: var(--sb-text-muted); font-size: 10px; font-style: italic; font-weight: 400; }
+.sb-daily-pending { color: var(--sb-text-muted) !important; font-style: italic; font-weight: 400 !important; }
 @media (max-width: 639px) {
   #main-content .sb-daily-record-metrics { gap: .4rem; }
-  #main-content .sb-daily-record-metrics dt { font-size: 10px; }
-  #main-content .sb-daily-record-metrics dd { font-size: 11px; }
+  #main-content .sb-daily-record-metrics dt { font-size: 11px; }
 }
 .sb-daily-compact-list > [role="listitem"] { row-gap: .375rem; }
 html[data-design-layer="v2"] .sb-pr-phone-location { flex: 1 1 auto; }

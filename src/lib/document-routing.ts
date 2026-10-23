@@ -6,6 +6,7 @@ type RoutableDocument = {
 };
 
 const entityRoutes: Record<string, string> = {
+  asset_maintenance: "/asset-management/maintenance",
   purchase_request: "/purchase-requests",
   purchase_order: "/purchase-orders",
   goods_receiving: "/goods-receivings",

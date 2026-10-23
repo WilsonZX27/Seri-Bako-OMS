@@ -14,6 +14,7 @@ function load(file, mocks = {}) {
     module, exports: module.exports, URL, console, performance,
     require(name) {
       if (name in mocks) return mocks[name];
+      if (name === "@/lib/asset-location-display") return require("./helpers/load-source.cjs")()("src/lib/asset-location-display.ts");
       if (name === "react" || name === "react/jsx-runtime") return require(name);
       if (name.startsWith("@/components/") || name === "next/link" || name === "lucide-react") {
         return new Proxy({}, { get: () => function Component() {} });

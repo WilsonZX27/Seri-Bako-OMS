@@ -11,9 +11,9 @@ import { cn } from "@/lib/utils";
  * The `third` anchor is used when a compact action column sits between the checkbox and identity.
  * Legacy contract: stickyColumn?: "none" | "first" | "second"
  */
-export function Table({ className, mobileHidden = false, compactUntil = "xl", stickyColumn = "first", ...props }: React.TableHTMLAttributes<HTMLTableElement> & { mobileHidden?: boolean; compactUntil?: "md" | "xl" | "2xl"; stickyColumn?: "none" | "first" | "second" | "third" }) {
+export function Table({ className, mobileHidden = false, compactUntil = "xl", scrollbar = "hidden", stickyColumn = "first", ...props }: React.TableHTMLAttributes<HTMLTableElement> & { mobileHidden?: boolean; scrollbar?: "hidden" | "auto"; compactUntil?: "md" | "xl" | "2xl"; stickyColumn?: "none" | "first" | "second" | "third" }) {
   return (
-    <div className={cn("sb-table-region sb-scrollbar-none", mobileHidden && (compactUntil === "2xl" ? "hidden 2xl:block" : compactUntil === "xl" ? "hidden xl:block" : "hidden md:block"))} data-sticky-column={stickyColumn} role="region" aria-label={props["aria-label"] ?? "Data table"} tabIndex={0}>
+    <div className={cn("sb-table-region", scrollbar === "hidden" && "sb-scrollbar-none", mobileHidden && (compactUntil === "2xl" ? "hidden 2xl:block" : compactUntil === "xl" ? "hidden xl:block" : "hidden md:block"))} data-sticky-column={stickyColumn} data-scrollbar={scrollbar} role="region" aria-label={props["aria-label"] ?? "Data table"} tabIndex={0}>
       <table data-ui-table="true" className={cn("w-full caption-bottom text-xs", className)} {...props} />
     </div>
   );

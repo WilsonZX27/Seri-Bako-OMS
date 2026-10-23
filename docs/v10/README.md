@@ -60,3 +60,7 @@ PR header/value/order checks now use real shared-component SSR and release docum
 ## 9.2.132 semantic workspace checkpoint
 
 Actual synthetic source execution identified and fixed People Operations AP-aging quick-action exposure. Node 22: 1748 / 1743 pass / 5 retained failures; zero added failure. Five original semantic contracts resolved, while their layout/focus/lifecycle parts remain explicitly pending. See `SEMANTIC-WORKSPACES-2026-10-23.md`. No live-role or performance acceptance is implied.
+
+## 9.2.133 browser-evidence correction batch
+
+9.2.132 real IAB Owner acceptance covered four pages ×390/820/1440 and demonstrated four issues. Candidate fixes are bounded to phone query geometry,1536px Daily handoff/optional scrollbar, Inventory section order and odd finance metric span. Tests1753/1748pass/5samefail, typecheck/lint/local synthetic-config build pass. Actual newPreview before/after acceptance pending; all role/lifecycle/performance gates retain their limits.

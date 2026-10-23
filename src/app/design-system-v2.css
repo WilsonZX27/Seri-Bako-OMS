@@ -751,6 +751,11 @@ aside section > h2 {
   display: none;
 }
 
+/* Dense registers can opt into an explicit scrolling affordance. */
+.sb-table-region[data-scrollbar="auto"] { scrollbar-width: thin; scrollbar-color: var(--sb-text-muted) transparent; }
+.sb-table-region[data-scrollbar="auto"]::-webkit-scrollbar { width: 8px; height: 8px; display: block; }
+.sb-table-region[data-scrollbar="auto"]::-webkit-scrollbar-thumb { background: var(--sb-text-muted); border-radius: var(--sb-radius-control); }
+
 nav[aria-label="Pagination"] > span {
   border-radius: var(--sb-radius-control) !important;
 }
@@ -3040,9 +3045,9 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
   html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-filter-label { display: inline; }
 }
 @media (max-width: 639px) {
-  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-row { grid-template-columns: minmax(0,1fr) minmax(0,1fr) 44px auto !important; gap:.25rem; }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-row { grid-template-columns: minmax(9rem,1fr) minmax(0,1fr) 44px !important; gap:.25rem; }
   html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-filter-trigger { grid-column:3; grid-row:1; width:44px; min-width:44px; padding:0; }
-  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-result { grid-column:4 !important; grid-row:1; display:flex !important; white-space:nowrap; }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-result { grid-column:1 / -1 !important; grid-row:2; display:flex !important; white-space:nowrap; }
   html[data-design-layer="v2"] form.sb-purchase-order-query .unified-list-row { grid-template-columns:minmax(0,1fr) 44px 44px max-content !important; gap:.25rem; align-items:center; }
   html[data-design-layer="v2"] form.sb-purchase-order-query .unified-list-filter-trigger { width:44px !important; min-width:44px !important; }
   html[data-design-layer="v2"] form.sb-purchase-order-query .unified-list-result { display:flex !important; width:max-content; gap:.2rem; white-space:nowrap; }

@@ -1,3 +1,7 @@
+## v9.2.133 (Preview candidate) — responsive acceptance fixes
+
+Addresses the four observed Owner-session findings from the 9.2.132 browser report: readable phone date track with count on its own row, Daily compact rows until 1536px and an opt-in table scrollbar, Inventory work actions before the movement chart, and a full-width final payables metric. Existing business fields, query scope, permission checks and chart keyboard behavior remain. The new Preview requires the same actual-browser before/after checks; source tests are not visual acceptance.
+
 ## v9.2.132 (Preview candidate) — workspace semantic verification
 
 Synthetic SSR verifies Daily task copy, nine-role finance visibility, real procurement queue states, inventory permission filtering and GET filter preservation. CSS layer declarations are parsed independently of formatting. People Operations no longer receives an AP-aging quick action; it receives My schedule instead. Permissions, financial queries and business data are unchanged. Browser layout/focus/lifecycle acceptance remains pending; see `docs/v10/SEMANTIC-WORKSPACES-2026-10-23.md`.

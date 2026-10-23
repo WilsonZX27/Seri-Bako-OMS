@@ -15,7 +15,7 @@ test("Vercel uses the pinned LTS runtime and deterministic lockfile install", ()
 });
 
 test("build fails early with a secret-free Supabase environment diagnostic", () => {
-  assert.equal(packageJson.scripts.prebuild, "node scripts/check-build-environment.mjs");
+  assert.equal(packageJson.scripts.prebuild, "node scripts/check-release-consistency.mjs && node scripts/check-build-environment.mjs");
   assert.match(buildPreflight, /NEXT_PUBLIC_SUPABASE_URL/);
   assert.match(buildPreflight, /NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY/);
   assert.match(buildPreflight, /Build environment is incomplete/);

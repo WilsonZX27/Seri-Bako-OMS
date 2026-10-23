@@ -1,12 +1,12 @@
 {
   "name": "seri-bako-ops",
-  "version": "9.2.128",
+  "version": "9.2.129",
   "private": true,
   "engines": {
     "node": "22.x"
   },
   "scripts": {
-    "prebuild": "node scripts/check-build-environment.mjs",
+    "prebuild": "node scripts/check-release-consistency.mjs && node scripts/check-build-environment.mjs",
     "dev": "node --use-system-ca node_modules/next/dist/bin/next dev",
     "build": "next build",
     "start": "node --use-system-ca node_modules/next/dist/bin/next start",
@@ -28,7 +28,8 @@
     "uat:v9:full": "node scripts/v9/run-uat.mjs full",
     "uat:v9:preview": "node scripts/v9/run-uat.mjs preview --env .env.preview.test.local",
     "codex:orchestrate": "node tools/codex-orchestrator/cli.ts",
-    "codex:orchestrator:test": "node --test tools/codex-orchestrator/*.test.ts"
+    "codex:orchestrator:test": "node --test tools/codex-orchestrator/*.test.ts",
+    "release:check": "node scripts/check-release-consistency.mjs"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",

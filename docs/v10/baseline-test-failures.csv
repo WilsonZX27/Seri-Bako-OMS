@@ -1,0 +1,22 @@
+failure_name,baseline_source,candidate_status,root_cause,acceptance_gate
+"August 19 annotation closure groups PR data, simplifies loading, and standardizes outlet analytics",ae6bc16423842824a212f0054b52d78b4912badd,still_fails,not_retriaged_this_batch,V10-09
+Outlet Daily posting actions never inherit procurement-only supplier and amount copy,ae6bc16423842824a212f0054b52d78b4912badd,still_fails,not_retriaged_this_batch,V10-09
+Today's work stays compact without a duplicate role snapshot card,ae6bc16423842824a212f0054b52d78b4912badd,still_fails,not_retriaged_this_batch,V10-09
+"UI smoke keeps the requested routes, console order, current footer, and one tablet action entry",ae6bc16423842824a212f0054b52d78b4912badd,still_fails,not_retriaged_this_batch,V10-09
+current annotation batch keeps shared explanation and responsive filter ownership,ae6bc16423842824a212f0054b52d78b4912badd,still_fails,not_retriaged_this_batch,V10-09
+"dashboard composition is all-role, task-first, and finance-gated",ae6bc16423842824a212f0054b52d78b4912badd,still_fails,not_retriaged_this_batch,V10-09
+dashboard panels retain their hierarchy without a nested sage canvas,ae6bc16423842824a212f0054b52d78b4912badd,still_fails,not_retriaged_this_batch,V10-09
+external form submit feedback releases on server rerender and browser lifecycle recovery,ae6bc16423842824a212f0054b52d78b4912badd,still_fails,not_retriaged_this_batch,V10-09
+failed action restores branch and repeated select values after the native reset,ae6bc16423842824a212f0054b52d78b4912badd,still_fails,not_retriaged_this_batch,V10-09
+maintenance actions use scoped RPC and propagate unavailable,ae6bc16423842824a212f0054b52d78b4912badd,still_fails,not_retriaged_this_batch,V10-09
+outlet action reducer returns each failed attempt without redirect or remount,ae6bc16423842824a212f0054b52d78b4912badd,still_fails,not_retriaged_this_batch,V10-09
+outlet daily phone filters keep date and branch visible with secondary filters in the drawer,ae6bc16423842824a212f0054b52d78b4912badd,still_fails,not_retriaged_this_batch,V10-09
+product and design baselines identify released authority and the current forward patch,ae6bc16423842824a212f0054b52d78b4912badd,still_fails,not_retriaged_this_batch,V10-09
+purchase registers use the requested two-line information order,ae6bc16423842824a212f0054b52d78b4912badd,still_fails,not_retriaged_this_batch,V10-09
+release documents and footer share the current package patch,ae6bc16423842824a212f0054b52d78b4912badd,resolved_by_release_metadata_alignment,current PRODUCT/DESIGN release entries lagged package/footer,V10-04
+role workdesks and workspace links use permitted real queues,ae6bc16423842824a212f0054b52d78b4912badd,still_fails,not_retriaged_this_batch,V10-09
+tests/daily-tracking-groups.test.js,ae6bc16423842824a212f0054b52d78b4912badd,still_fails,not_retriaged_this_batch,V10-09
+tests/production-planning-quantity-layout.test.js,ae6bc16423842824a212f0054b52d78b4912badd,still_fails,not_retriaged_this_batch,V10-09
+tests/unified-list-inline-render.test.js,ae6bc16423842824a212f0054b52d78b4912badd,still_fails,not_retriaged_this_batch,V10-09
+topbar batches permissions and skips full counts and unused details while preserving branch filters,ae6bc16423842824a212f0054b52d78b4912badd,still_fails,not_retriaged_this_batch,V10-09
+v9 surfaces and overlays use semantic color and layer tokens,ae6bc16423842824a212f0054b52d78b4912badd,still_fails,not_retriaged_this_batch,V10-09

@@ -1,0 +1,65 @@
+{
+  "source_sha": "ae6bc16423842824a212f0054b52d78b4912badd",
+  "observed_date": "2026-10-23",
+  "programme": "v10-readiness",
+  "source_version": "9.2.128",
+  "candidate_version": "9.2.129",
+  "node": {
+    "declared": "22.x",
+    "host_default": "24.21.0",
+    "verification": "22.23.4",
+    "distribution": "official nodejs.org darwin-arm64 portable archive; checksum verified"
+  },
+  "inventory": {
+    "pages": 131,
+    "api_handlers": 35,
+    "other_handlers": 3,
+    "roles": 9,
+    "source_ts_modules": 593,
+    "local_import_edges": 3088
+  },
+  "tests": {
+    "baseline": {
+      "total": 1700,
+      "pass": 1679,
+      "fail": 21
+    },
+    "candidate": {
+      "total": 1704,
+      "pass": 1684,
+      "fail": 20
+    },
+    "candidate_only_failures": []
+  },
+  "build": {
+    "baseline": "passed with nonsecret synthetic loopback discard endpoint",
+    "candidate": "passed under same settings",
+    "shared_first_load_js_kb": 102,
+    "middleware_kb": 105,
+    "route_first_load_js_kb": {
+      "dashboard": 119,
+      "asset-management": 170,
+      "goods-receivings": 157,
+      "outlet-daily-records": 159,
+      "purchase-requests": 162
+    }
+  },
+  "live_performance": {
+    "navigation": "unmeasured",
+    "query_counts": "unmeasured",
+    "slow_query_duration": "unmeasured",
+    "TTFB_p95": "unmeasured"
+  },
+  "rendered_coverage_cells": 0,
+  "original_dirty_worktree": {
+    "path": "/Users/seribako/Documents/Codex/2026-10-21/task/oms-ui-stabilization",
+    "sha": "f701ac2065e1da9d568738bcafa126d32b9339ad",
+    "changed_paths": 95,
+    "modified_by_this_batch": false
+  },
+  "separate_fixture_batch": {
+    "path": "/private/tmp/oms-ui-followup-audit-20261023",
+    "changed_paths": 5,
+    "included": false
+  }
+}

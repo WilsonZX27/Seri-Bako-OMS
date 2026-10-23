@@ -1,0 +1,13 @@
+# Coverage execution rules
+
+The plan is the normalized product of `route-ledger.csv` × the nine actual roles × primary viewports × ten states in `coverage-plan.json`: 35,370 planned core cells before state applicability/expected-denial review. This is a plan, not 35,370 tests run. Boundary widths and relevant landscape are additional checks on each affected shared family.
+
+`role-route-ledger.csv` derives shell role inclusion and route permission requirements from the current repository. It does not infer live grants, staff assignments, RLS, accessible branches or missing data. Each eligible/denied/runtime-unresolved role entry needs isolated fixtures and, where legitimately available, live read-only evidence. Never impersonate another Production user or change roles for coverage.
+
+For each page, explicitly assess: loaded, loading, empty, error, expired session, permission denial, invalid input, save outcome uncertainty, successful read-after-write, and long content. Mark N/A only with source reasoning and owner. Form mutation states require an isolated fixture environment; never submit real business actions as a visual test. For handlers, audit authentication/input scope/error/cache/output contracts separately from screenshots.
+
+Use `evidence-ledger.csv` for actual execution: route, role, identity basis (fixture or actual authorised access), viewport, state, exact source SHA, owner, requirement, reproduction, result and artifact. No row means not run. Keep source-reviewed, fixture-tested, local Mock-rendered and authenticated Preview-rendered evidence distinct. Attach an image only if captured in the current audit, inspected and accepted; no old screenshot or indirect research may establish current visual acceptance. Browser blockers are explicit cells, not silent passes.
+
+Review order: shared shell/session recovery → primary Dashboard/PR/PO/GRN/Daily/Assets → other document/form/report/master-data families. Record every actual route reviewed; a shared-component pass never automatically passes every consumer. Each finding has priority, exact source owner, reproduction and expected behavior. Merge overlapping issues at the common owner; do not rebuild every page.
+
+Release protocol: verify clean candidate and current remote Preview SHA → run Node 22 relevant checks and release consistency against that SHA → review exact diff and test failure set → create versioned commit → normal reviewed non-force Preview push → verify exact SHA and Vercel READY → execute rendered acceptance. Keep main/Production, schema, grants and business writes outside this programme unless separately reviewed and authorised.

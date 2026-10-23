@@ -1,0 +1,69 @@
+{
+  "baseline_sha": "ae6bc16423842824a212f0054b52d78b4912badd",
+  "page_count": 131,
+  "handler_count": 38,
+  "roles": [
+    "super_admin",
+    "people_operations",
+    "finance",
+    "manager",
+    "purchasing",
+    "chef",
+    "kitchen",
+    "outlet_supervisor",
+    "outlet_staff"
+  ],
+  "primary_viewports": [
+    {
+      "width": 390,
+      "height": 844
+    },
+    {
+      "width": 820,
+      "height": 1180
+    },
+    {
+      "width": 1440,
+      "height": 900
+    }
+  ],
+  "boundary_widths": [
+    389,
+    390,
+    391,
+    639,
+    640,
+    767,
+    768,
+    1023,
+    1024,
+    1279,
+    1280,
+    1535,
+    1536
+  ],
+  "landscape": {
+    "width": 820,
+    "height": 390
+  },
+  "states": [
+    "loaded",
+    "loading",
+    "empty",
+    "error",
+    "session_expired",
+    "permission_denied",
+    "validation",
+    "save_outcome_uncertain",
+    "saved_read_after_write",
+    "long_content"
+  ],
+  "core_planned_cells": 35370,
+  "interpretation": "Normalized Cartesian plan, not execution evidence. Resolve state applicability per workflow. Excluded roles test denied behavior. Source role lists do not establish effective grants. Only evidence-ledger rows with exact route, role fixture/live identity basis, viewport, state, source SHA, reproduction, observed result and artifact establish coverage.",
+  "counts": {
+    "enumerated_pages": 131,
+    "current_snapshot_page_source_reviewed": 0,
+    "rendered_cells": 0,
+    "live_role_cells": 0
+  }
+}

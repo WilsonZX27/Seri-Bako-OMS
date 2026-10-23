@@ -1,3 +1,7 @@
+## v9.2.129 (Preview candidate) — v10 readiness baseline
+
+This release begins the v10 readiness programme while retaining the existing 9.2.x release scheme. It does not declare v10 complete. The current 131-page / 38-handler source inventory, nine-role coverage plan, frozen design contract, cache ownership, performance baseline and release gates are in `docs/v10/README.md`. Package, lockfile, footer and these release records advance together; the prebuild consistency check rejects drift. No business workflow, authentication policy, database or cache policy changes in this batch.
+
 ## v9.2.126 (local candidate) — Responsive workspace refinements
 
 This candidate folds the latest UI annotations into scoped responsive patterns for production planning, assets, purchase requests, goods receiving, stock counts, notifications, navigation, and the dashboard. Stock Count keeps its search, branch, status and date controls inline on phones when they fit, including the 360px layout, and clears stale search text on reset. Existing routes, permissions, and data behavior are retained. Local review evidence and Mock-data limitations are recorded in `docs/releases/preview-v9.2.126-local-candidate.md` and `docs/qa/2026-10-21-closure.md`. This candidate is local and not deployed or signed off.

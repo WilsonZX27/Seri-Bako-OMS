@@ -1,0 +1,59 @@
+{
+  "basis": "code-derived shell eligibility only; no effective grants or rendered role checks",
+  "roles": {
+    "super_admin": {
+      "auth_or_public_flow_review_required": 6,
+      "runtime_role_resolution_required": 16,
+      "shell_role_included_runtime_grants_required": 108,
+      "shell_role_excluded_expected_denial": 1
+    },
+    "people_operations": {
+      "auth_or_public_flow_review_required": 6,
+      "runtime_role_resolution_required": 16,
+      "shell_role_included_runtime_grants_required": 22,
+      "shell_role_excluded_expected_denial": 87
+    },
+    "finance": {
+      "auth_or_public_flow_review_required": 6,
+      "runtime_role_resolution_required": 16,
+      "shell_role_included_runtime_grants_required": 93,
+      "shell_role_excluded_expected_denial": 16
+    },
+    "manager": {
+      "auth_or_public_flow_review_required": 6,
+      "runtime_role_resolution_required": 16,
+      "shell_role_included_runtime_grants_required": 79,
+      "shell_role_excluded_expected_denial": 30
+    },
+    "purchasing": {
+      "auth_or_public_flow_review_required": 6,
+      "runtime_role_resolution_required": 16,
+      "shell_role_included_runtime_grants_required": 84,
+      "shell_role_excluded_expected_denial": 25
+    },
+    "chef": {
+      "auth_or_public_flow_review_required": 6,
+      "runtime_role_resolution_required": 16,
+      "shell_role_included_runtime_grants_required": 60,
+      "shell_role_excluded_expected_denial": 49
+    },
+    "kitchen": {
+      "auth_or_public_flow_review_required": 6,
+      "runtime_role_resolution_required": 16,
+      "shell_role_excluded_expected_denial": 104,
+      "shell_role_included_runtime_grants_required": 5
+    },
+    "outlet_supervisor": {
+      "auth_or_public_flow_review_required": 6,
+      "runtime_role_resolution_required": 16,
+      "shell_role_included_runtime_grants_required": 25,
+      "shell_role_excluded_expected_denial": 84
+    },
+    "outlet_staff": {
+      "auth_or_public_flow_review_required": 6,
+      "runtime_role_resolution_required": 16,
+      "shell_role_included_runtime_grants_required": 25,
+      "shell_role_excluded_expected_denial": 84
+    }
+  }
+}

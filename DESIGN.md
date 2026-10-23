@@ -1,3 +1,7 @@
+## v9.2.129 (Preview candidate) — v10 readiness baseline
+
+This release begins the v10 readiness programme while retaining the existing 9.2.x release scheme. It does not declare v10 complete. The current 131-page / 38-handler source inventory, nine-role coverage plan, frozen design contract, cache ownership, performance baseline and release gates are in `docs/v10/README.md`. Package, lockfile, footer and these release records advance together; the prebuild consistency check rejects drift. No business workflow, authentication policy, database or cache policy changes in this batch.
+
 ## v9.2.126 (local candidate) — Responsive workspace refinements
 
 Latest annotations are implemented within their owning views: compact desktop planning tabs, grouped navigation dots, single-row receiving controls, inline filters when space allows, two-line PR table headers, a simpler asset overview, a non-nested inspection empty state, equal mobile asset actions, and tablet context rails. Stock Count mobile filters remain inline when the four filter controls fit, and Reset clears the search input. Touch targets stay at least 44px; compact desktop controls use 36px. Evidence and remaining limits are recorded in `docs/releases/preview-v9.2.126-local-candidate.md` and `docs/qa/2026-10-21-closure.md`.

@@ -5,11 +5,14 @@ export type HistoryPoint = {
   receivedProvided: boolean; completed: boolean; specialEvent: boolean; stockout: boolean; stockoutObserved?: boolean;
 };
 export type Forecast = {
+  carryover?: { date: string; recordId: string | null; available: number | null; deducted: number; gross: number | null; minimum: number | null; status: "confirmed" | "missing" };
   manualReason?: string;
-  method: "same-weekday" | "recent-day-type" | "manual";
+  method: "same-weekday" | "recent-day-type" | "manual" | "employee-baseline" | "employee-history";
   suggested: number | null; weightedMovement: number | null; minimum: number | null;
   reductionFloor: number | null; stockoutRisk: boolean; excluded: number;
   evidence: HistoryPoint[]; version: string;
+  employee?: { quantity: number; dayType: "weekday" | "weekend"; historyDays: number; wastageRate: number | null;
+    capacity: number | null; extra: number; oddException: boolean; note: string };
 };
 export function addDays(date: string, days: number) {
   const value = new Date(`${date}T00:00:00Z`);

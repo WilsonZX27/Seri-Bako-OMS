@@ -423,6 +423,7 @@ export type Database = {
           record_id: string;
           product_id: string;
           daily_tracking?: "food_daily" | "food_carryover" | "beverage" | "packaging" | null;
+          saleable_next_day_qty?: number | null;
           usage_qty?: number | null;
           sold_qty?: number | null;
           do_managed: boolean;
@@ -447,6 +448,7 @@ export type Database = {
           record_id: string;
           product_id: string;
           daily_tracking?: "food_daily" | "food_carryover" | "beverage" | "packaging" | null;
+          saleable_next_day_qty?: number | null;
           usage_qty?: number | null;
           sold_qty?: number | null;
           do_managed?: boolean;
@@ -2315,6 +2317,11 @@ export type Database = {
       production_batch_rules: TableDefinition<{
         id: string; company_id: string; kitchen_id: string; product_id: string; yield_per_tray: number;
         updated_by: string | null; created_at: string; updated_at: string;
+      }>;
+      production_outlet_forecasts: TableDefinition<{
+        id: string; company_id: string; kitchen_id: string; branch_id: string; product_id: string;
+        weekday_qty: number | null; weekend_qty: number | null; source: string;
+        updated_by: string; created_at: string; updated_at: string;
       }>;
       production_outlet_minimums: TableDefinition<{
         id: string; company_id: string; kitchen_id: string; branch_id: string; product_id: string;

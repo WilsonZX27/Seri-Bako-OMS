@@ -1,3 +1,7 @@
+## v9.2.136 (Preview candidate) — integrated UI, preserved production behavior
+
+Retain accepted9.2.134 UI while restoring actualProduction forecasting, carryover, product save recovery and backup coverage. No database execution or role changes.
+
 ## v9.2.134 (Preview candidate) — pending work and personal access
 
 Fix the checklist query's narrow RPC contract without schema changes. Dashboard retains up to five real pending actions; selected repair/PR summaries use400 weight and shared information order. Workspace Updates uses concise uppercase task headings, retained state/detail links and navigation clearance. Mobile More exposes the same own-attendance/own-payslips routes as desktop. No permission expansion, business writes or multiasset/numbering/timeoff feature changes. Source and actual before/after evidence remain distinct.
@@ -54,7 +58,7 @@ The Preview version advances beyond the old Preview branch's v9.2.116 marker. Th
 
 ## v9.2.110 (unreleased) — responsive list completion
 
-Purchase Requests keeps the complete compact row at 1280–1399px until the desktop table fits with its summary rail. Outlet Daily Records keeps its complete compact row below 1536px for the same reason. Singular line and item labels are corrected. The active Preview candidate retains the v9.2.109 workflow and permission repairs; Production is unchanged. Repository migrations reviewed through `368`; this does not mean migration 368 has been applied to Production. See `docs/qa/2026-10-21-closure.md` for verification scope and open items.
+Purchase Requests keeps the complete compact row at 1280–1399px until the desktop table fits with its summary rail. Outlet Daily Records keeps its complete compact row below 1536px for the same reason. Singular line and item labels are corrected. The active Preview candidate retains the v9.2.109 workflow and permission repairs; Production is unchanged. Repository migrations reviewed through `370`; this does not mean migration 368 has been applied to Production. See `docs/qa/2026-10-21-closure.md` for verification scope and open items.
 
 ## v9.2.109 — reviewed operational UI
 
@@ -2195,3 +2199,5 @@ Legacy attachment migration uses a separately reviewed local-file copy plan boun
 ### Transfer detail and contextual updates
 
 Transfers link directly to their own detail/history rather than back to the asset. The detail shows source/destination access, quantity, request reason/author and in-transit state. Approval and dispatch are shown only with source-location access; receipt is shown only with destination-location access. SQL remains authoritative. A short optional update note is retained with status-before/status-after and author/time; notes over 2,000 characters are rejected rather than truncated. Update history pages 50 rows in stable timestamp/ID order. An incoming destination can read the asset and transfer history before it has any holding; quantity is created/increased only on confirmed receipt.
+
+Historical369/370 source restored from verifiedProduction commit; this is not a new migration execution or proof of current remote schema.

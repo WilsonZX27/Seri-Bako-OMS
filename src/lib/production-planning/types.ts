@@ -1,5 +1,5 @@
 import type { Forecast } from "./forecast";
-export type PlanningProduct = { id: string; product_code: string; product_name: string; category: string; display_order: number; selling_unit: string; available_from?: string | null; available_until?: string | null };
+export type PlanningProduct = { id: string; product_code: string; product_name: string; category: string; display_order: number; selling_unit: string; daily_tracking?: string | null; available_from?: string | null; available_until?: string | null };
 export type PlanningBranch = { id: string; branch_name: string; branch_type: string };
 export type Allocation = { product_id: string; branch_id: string; suggested_qty: number | null; approved_qty: number | null; minimum_qty: number | null; reason: string; evidence: Forecast; event_qty: number };
 export type ProductionLine = { tray_mode?: "automatic" | "manual" | null; product_id: string; yield_per_tray: number | null; trays: number | null; retained_qty: number; actual_qty: number | null; reason: string; event_qty: number };

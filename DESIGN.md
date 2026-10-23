@@ -1,3 +1,7 @@
+## v9.2.136 (Preview candidate) — integrated UI, preserved production behavior
+
+Retain accepted9.2.134 UI while restoring actualProduction forecasting, carryover, product save recovery and backup coverage. No database execution or role changes.
+
 ## v9.2.134 (Preview candidate) — pending work and personal access
 
 Fix the checklist query's narrow RPC contract without schema changes. Dashboard retains up to five real pending actions; selected repair/PR summaries use400 weight and shared information order. Workspace Updates uses concise uppercase task headings, retained state/detail links and navigation clearance. Mobile More exposes the same own-attendance/own-payslips routes as desktop. No permission expansion, business writes or multiasset/numbering/timeoff feature changes. Source and actual before/after evidence remain distinct.

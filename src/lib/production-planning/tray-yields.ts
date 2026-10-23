@@ -14,7 +14,7 @@ const rows: Array<{names:string[];penang?:number;kl?:number}> = [
  {names:["Steamed Jujube Kuih (Red Date)","Red Date"],penang:32,kl:32},
  {names:["Steamed Water Chestnut Kuih","Water Chestnut"],penang:32,kl:32},
  {names:["Steamed Nutmeg Kuih","Nutmeg"],penang:32,kl:32},
- {names:["Chrysanthemum Kuih","Crysanthenum Kueh"],kl:32},
+ {names:["Chrysanthemum Kuih","Crysanthenum Kueh"],penang:32,kl:32},
  {names:["Roselle Kuih","Roselle Kueh"],penang:32,kl:32},
  {names:["Longan Sugar Cane Barley Kuih","Longan Sugar Cane Kueh"],penang:32,kl:32},
  {names:["Yam Kuih","Yam Cake"],penang:16,kl:16},
@@ -23,4 +23,10 @@ const rows: Array<{names:string[];penang?:number;kl?:number}> = [
 export function suppliedTrayYield(productName:string,region:YieldRegion):number|null {
  if(isRiceBowl(productName))return 1; // One bowl is one production unit, never a tray.
  return rows.find(row=>row.names.some(alias=>normalize(alias)===normalize(productName)))?.[region]??null;
+}
+
+/** Similar names in mooncakes or other categories are not steamed-kuih yield references. */
+export function suppliedPlanningYield(product:{product_code:string;product_name:string},region:YieldRegion):number|null {
+ if(!/^(SC|RB)\d+$/i.test(product.product_code))return null;
+ return suppliedTrayYield(product.product_name,region);
 }

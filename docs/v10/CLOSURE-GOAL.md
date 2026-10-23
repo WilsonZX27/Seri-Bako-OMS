@@ -36,3 +36,5 @@ Never merely alias a Preview-config build to Production. Existing deployment gui
 ChangesarelocaluntilversionedPreviewandread-onlyreview. Entire34legacyledgerstillmustberecovered/reconciled; current27tableand131routeinventorynotimplicitlycomplete.
 
 Current local137 batch:1786/1786testsPASS; type/lint/build0. This closes the five executable failures, not the browser lifecycle gate or remaining annotations. No remote migration/server/business changes from136. Production decision superseded by usercontinue-to-closure instruction; remainPreviewonly.
+
+Legacy34source recovered from preserved annotation-status report; extracted all34 IDs into legacy34-closure.csv. Historicalpasses remainhistorical; do not inheritascurrentacceptance. Combinedledger has61explicitrequirements across two rounds, with overlaps retaineduntilreviewed. Legacy3missingtarget,7missingnamedrecord,25businessdate remainexplicitblockers/semanticdecisions, not silentlyclosed.

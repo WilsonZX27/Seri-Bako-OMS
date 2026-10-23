@@ -36,14 +36,14 @@ export function EmployeeForecastEditor({outlets,products,values,onChange,disable
   return <section className="sb-work-surface p-4">
     <h2 className="text-sm font-semibold">Employee weekday & weekend forecasts</h2>
     <p className="mt-1 max-w-prose text-xs text-muted-foreground">Expected daily demand per outlet. Blank means unknown; 0 means no recurring demand. Odd numbers are allowed. Suggestions use eligible history and prefer pairs within demand limits.</p>
-    <div className="my-3 flex flex-wrap items-end gap-3">
-      <label className="min-w-0 flex-1 text-xs sm:max-w-sm">Forecast outlet<SelectControl value={outlet} onValueChange={setOutlet} ariaLabel="Employee forecast outlet" options={outlets.map(b=>({value:b.id,label:b.branch_name}))}/></label>
+    <div className="my-3 grid min-w-0 grid-cols-1 items-end gap-3 sm:grid-cols-2">
+      <label className="min-w-0 text-xs">Forecast outlet<SelectControl value={outlet} onValueChange={setOutlet} ariaLabel="Employee forecast outlet" options={outlets.map(b=>({value:b.id,label:b.branch_name}))}/></label>
       <label className="min-w-0 text-xs">Import employee forecasts CSV<Input type="file" accept=".csv,text/csv" disabled={disabled} aria-label="Import employee forecasts CSV" onChange={async event=>{const file=event.target.files?.[0];event.target.value="";if(!file)return;setImportError("");setNotice("");try{if(file.size>1_000_000)throw new Error("Forecast CSV must be smaller than 1 MB.");importReference(await file.text());}catch(error){setImportError(error instanceof Error?error.message:"Could not read forecast CSV.");}}}/></label>
     </div>
     {notice?<p className="mb-3 text-xs" role="status">{notice}</p>:null}
     {importError?<p className="mb-3 text-xs text-red-700" role="alert">{importError}</p>:null}
     {!outlets.length?<p className="text-sm">Configure this kitchen’s outlet supply routes first.</p>:<div className="max-h-[32rem] overflow-auto">
-      <Table className="min-w-[30rem] table-fixed text-xs"><TableHeader><TableRow><TableHead>Product</TableHead><TableHead className="w-28">Weekday</TableHead><TableHead className="w-28">Weekend</TableHead></TableRow></TableHeader>
+      <Table stickyColumn="none" scrollbar="auto" aria-label="Employee demand forecasts" className="min-w-[30rem] table-fixed text-xs"><TableHeader><TableRow><TableHead>Product</TableHead><TableHead className="w-28">Weekday</TableHead><TableHead className="w-28">Weekend</TableHead></TableRow></TableHeader>
       <TableBody>{products.map(p=>{const row=values[`${outlet}:${p.id}`];return <TableRow key={p.id}>
         <TableCell><span className="text-muted-foreground">{p.product_code}</span><span className="block whitespace-normal break-words">{p.product_name}</span></TableCell>
         {(["weekday","weekend"] as const).map(field=><TableCell key={field}><Input type="number" min="0" max="1000000" step="1" disabled={disabled} placeholder="—" aria-label={`${p.product_name} ${field} forecast`} value={row?.[field]??""} onChange={e=>edit(p.id,field,e.target.value)}/></TableCell>)}

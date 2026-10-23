@@ -23,7 +23,7 @@ function shiftRequestHarness(fetchImpl) {
     TypeError,
     fetch: fetchImpl,
     window: { prompt: () => "Retained test reason" },
-    require: (id) => id === "react" ? React
+    require: (id) => id === "@/lib/form-pending-recovery" ? require("./helpers/load-source.cjs")()("src/lib/form-pending-recovery.ts") : id === "react" ? React
       : id.includes("ui/button") ? { Button: "button" }
         : id.includes("read-json-response") ? load("src/lib/http/read-json-response.ts")
           : require(id),
@@ -75,8 +75,9 @@ function submitButtonHarness() {
   vm.runInNewContext(compiled, {
     exports,
     document,
+    window: new EventTarget(),
     CustomEvent: function CustomEvent(type, init) { this.type = type; this.detail = init?.detail; },
-    require: (id) => id === "react" ? React
+    require: (id) => id === "@/lib/form-pending-recovery" ? require("./helpers/load-source.cjs")()("src/lib/form-pending-recovery.ts") : id === "react" ? React
       : id === "react/jsx-runtime" ? jsxRuntime
         : id === "react-dom" ? { useFormStatus: () => ({ pending: false }) }
           : id === "next/navigation" ? { usePathname: () => "/fixture", useSearchParams: () => new URLSearchParams() }

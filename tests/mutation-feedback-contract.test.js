@@ -40,12 +40,11 @@ test("shared submit control disables repeated activation and exposes busy state"
 });
 
 test("external form submit feedback releases on server rerender and browser lifecycle recovery", () => {
+  require("./helpers/assert-form-pending-recovery.cjs")();
   const source = read("src/components/ui/submit-button.tsx");
-  assert.match(source, /new MutationObserver/);
-  assert.match(source, /record\.type === "childList" \|\| record\.type === "characterData"/);
-  assert.doesNotMatch(source, /attributes: true/);
-  assert.match(source, /addEventListener\("reset", release\)/);
-  assert.match(source, /addEventListener\("pageshow", release\)/);
-  assert.match(source, /addEventListener\("popstate", release\)/);
-  assert.match(source, /setTimeout\(release, 30000\)/);
+  assert.match(source, /listenForFormPendingRecovery\(document, window/);
+  assert.match(source, /stopRecovery\(\)/);
+  assert.match(source, /if \(pending\) document.dispatchEvent/);
+  assert.match(source, /formId, pending: false/);
+  assert.doesNotMatch(source, /setTimeout\(release, 30000\)/);
 });

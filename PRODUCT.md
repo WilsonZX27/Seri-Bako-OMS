@@ -1,3 +1,7 @@
+## v9.2.137 (Preview candidate) — responsive forecasts and UI recovery
+
+Fix three136 screenshot findings; retain full UI and Production business behavior. Semantic test contracts replace obsolete literal layout expectations. Lifecycle presentation recovery never retries or confirms mutations.
+
 ## v9.2.136 (Preview candidate) — integrated UI, preserved production behavior
 
 Retain accepted9.2.134 UI while restoring actualProduction forecasting, carryover, product save recovery and backup coverage. No database execution or role changes.

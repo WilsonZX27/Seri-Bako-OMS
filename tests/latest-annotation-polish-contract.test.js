@@ -115,7 +115,13 @@ test("current annotation batch keeps shared explanation and responsive filter ow
   assert.match(form, /Purchasing to confirm/);
   assert.match(form, /Purchasing will confirm the/);
   assert.match(production, /tabletCanvas="wide"/);
-  assert.match(stockCounts, /sb-list-filters--portrait-query/);
-  assert.match(design, /sb-list-filters--portrait-query\[data-tablet-query-layout="query"\]/);
+  assert.match(stockCounts, /<FilterBar[^>]*resetHref="\/stock-counts"[^>]*phoneMode="drawer" tabletMode="drawer" stableResponsive/);
+  assert.match(stockCounts, /<Input name="search"[^>]*aria-label="Search stock counts"/);
+  assert.match(stockCounts, /<FilterBarMore[\s\S]*name="from"[\s\S]*name="to"/);
+  const postcss = require("postcss");
+  const css = postcss.parse(design);
+  let hasQueryOwner=false;
+  css.walkRules(rule=>{if(rule.selector.includes(".sb-stock-count-query"))hasQueryOwner=true;});
+  assert.ok(hasQueryOwner, "Stock Count keeps an explicit scoped responsive owner");
   assert.match(design, /--sb-control-height: 2\.25rem/);
 });

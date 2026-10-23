@@ -87,7 +87,7 @@ test("UI smoke keeps the requested routes, console order, current footer, and on
   }
   assert.doesNotMatch(dashboard, /rightRail=\{isOutlet \? undefined/);
   assert.match(dashboard, /ConsoleSection title="Actions"/);
-  assert.match(dashboard, /tabletRailMode="context"/);
+  require("./helpers/assert-current-dashboard.cjs").tabletOwner();
   assert.doesNotMatch(dashboard, /ConsoleSection title="Workspace context"|Panel title="Alerts"/);
   assert.doesNotMatch(dashboard, /<header[\s\S]*primaryAction\.href/);
   assert.doesNotMatch(dashboard, /ConsoleSection title="Recent Activity"/);

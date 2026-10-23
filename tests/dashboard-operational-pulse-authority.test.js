@@ -44,7 +44,7 @@ test("Today's work renders only actionable queues and leaves exceptions to their
 test("Today's work stays compact without a duplicate role snapshot card", () => {
   const dashboard = read("src/components/dashboard-workspace.tsx");
 
-  assert.match(dashboard, /grid grid-cols-2[\s\S]*attentionSignals\.length === 4 \? "sm:grid-cols-4"/);
+  require("./helpers/assert-current-dashboard.cjs").compactAttention();
   assert.match(dashboard, /min-h-12 min-w-0 items-center/);
   assert.match(dashboard, /col-span-2 sm:col-span-1/);
   assert.doesNotMatch(dashboard, /DashboardRoleMicroChart|roleChartItems/);

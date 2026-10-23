@@ -1,5 +1,6 @@
 "use client";
 
+import { listenForFormPendingRecovery } from "@/lib/form-pending-recovery";
 import { LoaderCircle } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -47,9 +48,13 @@ export function SubmitButton({
         setSubmitted(false);
       }
     };
+    const stopRecovery = listenForFormPendingRecovery(document, window,
+      target => formId ? (target as HTMLFormElement | null)?.id === formId : target === buttonRef.current?.form,
+      () => { sawPending.current = false; setSubmitted(false); });
     document.addEventListener("submit", markSubmitted, true);
     document.addEventListener("sb:form-pending", syncExternalPending);
     return () => {
+      stopRecovery();
       document.removeEventListener("submit", markSubmitted, true);
       document.removeEventListener("sb:form-pending", syncExternalPending);
     };

@@ -65,3 +65,7 @@ Original27items are user-authored9.2.132annotations; current9.2.133read-onlyOwne
 5. 保留9.2.133四项定向复测门槛：完整手机日期/分店、计数次行和44px Filter；Daily 1440 compact及1535/1536无双显；Inventory入口先于图表且图表键盘保留；Due soon尾行无灰格。
 
 当前状态：以上为验收要求及源码定位，未实施修复，未新做27项Preview复现；旧9.2.132截图只是用户提供的视觉证据。涉及新业务功能的最终行为应由工程说明并用隔离证据确认，不能从本清单推断数据库迁移已经执行。
+
+## Current immutable136 browser evidence and follow-up
+
+Actual Owner390/820/1440 report /private/tmp/oms-preview-acceptance-evidence-9.2.136/ACCEPTANCE.md. Dashboard5pending (#1), checklistloads (#18), PR/GR/list access and DailySaleablefields observed. This does not close all11sourcefixes: notification interactions/personalroutes/otherroles remainunverified. Three actualfindings aretracked in CLOSURE-GOAL.md; #7Todayduplicate fixedlocally, notrenderedaccepted. Allotheroriginalrows retained asopenunlessexplicititemevidence exists. Features#5/#10/#16 remainopen.

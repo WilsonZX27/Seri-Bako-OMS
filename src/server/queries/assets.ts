@@ -5,10 +5,10 @@ import { canAccessAssetManagement } from "@/lib/asset-access";
 import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 import { requirePermission } from "@/server/auth/permissions";
 import { createClient } from "@/lib/supabase/server";
-import { looseSupabase } from "@/lib/supabase/loose";
+import { looseSupabase, type LooseSupabase } from "@/lib/supabase/loose";
 import { isMockMode } from "@/lib/mock-mode";
 
-export type AssetLocation = { id: string; source_name: string; branch_id: string | null; kind: "branch" | "event" | "other" };
+export type AssetLocation = { id: string; source_name: string; display_name?: string; branch_id: string | null; kind: "branch" | "event" | "other" };
 export type Asset = { id: string; asset_code: string; item_name: string; source_data: Record<string, unknown>; current_details: Record<string, unknown>; updated_at: string; original_record_access?: boolean };
 export type AssetSummary = Pick<Asset, "id" | "asset_code" | "item_name"> & { current_details?: Record<string, unknown>; audits?: {location_id:string;result:string|null;date:string|null}[] };
 export type AssetAttachment = { id: string; asset_id: string | null; maintenance_id: string | null; location_id: string | null; created_at: string; url: string; storage_path: string | null; verified_at: string | null; source_data: Record<string, unknown> };
@@ -22,6 +22,21 @@ export type AssetOverview = { assetCount: number; knownQuantity: number; unknown
 export type AssetRecord = { id: string; asset_id: string | null; reported_by?: string; location_id?: string; from_location_id?: string; to_location_id?: string; source_id?: string; status?: string; priority?: string; description?: string; reason?: string; quantity?: number | null; author_name?: string; created_at?: string; check_date?: string; result?: string; source_data: Record<string, unknown> };
 export type AssetView = "overview" | "assets" | "checklist" | "maintenance" | "transfers";
 const ASSET_MAINTENANCE_PAGE_SIZE = 10;
+
+async function withCanonicalBranchNames(db: LooseSupabase, rows: AssetLocation[]): Promise<AssetLocation[]> {
+  const branchIds = [...new Set(rows.flatMap((row) => row.kind === "branch" && row.branch_id ? [row.branch_id] : []))];
+  if (!branchIds.length) return rows.map((row) => ({ ...row, display_name: row.source_name }));
+  const result = await db.from("branches").select("id,branch_name").in("id", branchIds);
+  const names = new Map<string, string>((result.error ? [] : result.data ?? []).flatMap((row) =>
+    typeof row.id === "string" && typeof row.branch_name === "string" ? [[row.id, row.branch_name]] : [],
+  ));
+  return rows.map((row) => ({
+    ...row,
+    // Imported Google Script labels are aliases only. Branch-backed asset
+    // locations must use the OMS branch catalogue as their display authority.
+    display_name: row.kind === "branch" && row.branch_id ? names.get(row.branch_id) ?? "Branch location" : row.source_name,
+  }));
+}
 
 const mockInspectionLocationId = "2c562468-c4d1-5e21-8279-e97e55cc84c3";
 const mockInspectionAssets: AssetSummary[] = [
@@ -39,7 +54,7 @@ export const getAssetRegistration = cache(async () => {
   if (activation.data !== true) return { active: false, locations: [] as AssetLocation[] };
   const result = await db.from("asset_locations").select("id,source_name,branch_id,kind").eq("company_id", actor.companyId).order("source_name");
   if (result.error || result.data === null) throw new Error(result.error?.message ?? "Asset locations unavailable.");
-  return { active: true, locations: result.data as AssetLocation[] };
+  return { active: true, locations: await withCanonicalBranchNames(looseSupabase(db), result.data as AssetLocation[]) };
 });
 
 export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query = "", date = "", status = "", locationId = "", sort = "code", category = "") => {
@@ -81,7 +96,7 @@ export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query =
   if (activation.data !== true) return { active: false, view, page, query, locations: [] as AssetLocation[], overview: null as AssetOverview | null, assets: [] as AssetSummary[], holdings: [] as AssetHolding[], records: [] as AssetRecord[], total: 0, maintenanceSummary: null as Record<string,number> | null, filterOptions: {categories:[] as string[],statuses:[] as string[]} };
   const locationsResult = await db.from("asset_locations").select("id,source_name,branch_id,kind").eq("company_id", company).order("source_name");
   if (locationsResult.error || locationsResult.data === null) throw new Error(locationsResult.error?.message ?? "Asset locations unavailable.");
-  const locations = locationsResult.data as AssetLocation[];
+  const locations = await withCanonicalBranchNames(db, locationsResult.data as AssetLocation[]);
   if (locationId && !locations.some(location => location.id === locationId)) throw new Error("Asset location unavailable.");
   let maintenanceSummary: Record<string,number> | null = null;
   let filterOptions = {categories:[] as string[],statuses:[] as string[]};
@@ -92,6 +107,9 @@ export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query =
     const result = await db.rpc(actor.roleCode === "kitchen" || view === "checklist" ? "get_asset_checklist_summary" : "get_asset_overview", { p_date: checkDate });
     if (result.error || !result.data) throw new Error(result.error?.message ?? "Asset summary unavailable.");
     overview = result.data as AssetOverview;
+    const canonicalNames = new Map(locations.map((location) => [location.id, location.display_name ?? location.source_name]));
+    overview.locations = overview.locations.map((location) => ({ ...location, name: canonicalNames.get(location.id) ?? location.name }));
+    overview.checklist = overview.checklist.map((location) => ({ ...location, name: canonicalNames.get(location.id) ?? location.name }));
     const submitted = new Set<string>();
     if (actor.roleCode !== "kitchen") {
       for (let offset = 0; ; offset += 500) {
@@ -194,7 +212,7 @@ export async function getAssetDetail(id: string) {
   if (!results[0].data) return null;
   if (typeof results[6].count !== "number") throw new Error("Attachment count unavailable.");
   for (const result of results.slice(1)) if (result.data === null) throw new Error("Asset details unavailable.");
-  return { asset: results[0].data as Asset, holdings: results[1].data as AssetHolding[], locations: results[2].data as AssetLocation[], maintenance: results[3].data as AssetRecord[], transfers: results[4].data as AssetRecord[], masterUpdates: results[5].data as { id: string; author_name: string; created_at: string; source_data: Record<string, unknown> }[], attachments: results[6].data as AssetAttachment[], attachmentTotal: exactAssetCount(results[6].count) };
+  return { asset: results[0].data as Asset, holdings: results[1].data as AssetHolding[], locations: await withCanonicalBranchNames(db, results[2].data as AssetLocation[]), maintenance: results[3].data as AssetRecord[], transfers: results[4].data as AssetRecord[], masterUpdates: results[5].data as { id: string; author_name: string; created_at: string; source_data: Record<string, unknown> }[], attachments: results[6].data as AssetAttachment[], attachmentTotal: exactAssetCount(results[6].count) };
 }
 
 export async function getAssetInspection(id: string) {
@@ -243,7 +261,7 @@ export async function getAssetLocation(id: string, page: number) {
     const sourceFields = new Map((metadata.data as { asset_id: string; details: Record<string, unknown> }[]).map(row => [row.asset_id, row.details]));
     assets = (rows.data as AssetSummary[]).map(asset => ({ ...asset, current_details: { ...sourceFields.get(asset.id), ...asset.current_details } }));
   }
-  return { location: location.data as AssetLocation, holdings, assets, total: exactAssetCount(result.count) };
+  return { location: (await withCanonicalBranchNames(db, [location.data as AssetLocation]))[0], holdings, assets, total: exactAssetCount(result.count) };
 }
 
 export async function getAssetMaintenanceDetail(id: string, page: number) {
@@ -312,7 +330,7 @@ export async function getAssetTransferDetail(id: string, page: number) {
   ]);
   if (asset.error || locations.error || history.error) throw new Error(asset.error?.message ?? locations.error?.message ?? history.error?.message);
   if (!asset.data || locations.data === null || history.data === null || typeof history.count !== "number") throw new Error("Transfer details unavailable.");
-  return { transfer: row, asset: asset.data as AssetSummary, locations: locations.data as AssetLocation[], history: history.data as { id: string; author_name: string; created_at: string; source_data: Record<string, unknown> }[], total: history.count };
+  return { transfer: row, asset: asset.data as AssetSummary, locations: await withCanonicalBranchNames(db, locations.data as AssetLocation[]), history: history.data as { id: string; author_name: string; created_at: string; source_data: Record<string, unknown> }[], total: history.count };
 }
 
 /** Location-scoped choices for reporting; ordinary staff never receive company-wide assets. */
@@ -333,7 +351,7 @@ export async function getMaintenanceReportOptions() {
     if(result.data.length<500) break;
     if(offset>=9500) throw new Error("Too many asset choices. Contact your manager.");
   }
-  return {locations:locations.data as AssetLocation[],choices};
+  return {locations:await withCanonicalBranchNames(db, locations.data as AssetLocation[]),choices};
 }
 
 /** Existing daily checks are immutable; quantity confirmations are a separate workflow. */

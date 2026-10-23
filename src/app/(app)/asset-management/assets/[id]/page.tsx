@@ -18,7 +18,7 @@ export default async function AssetDetailPage({ params }: { params: Promise<{ id
   const [data, permissions] = await Promise.all([getAssetDetail(id), getPermissionMap(["assets.transfer", "assets.approve", "assets.maintenance", "assets.manage", "assets.report"])]);
   if (!data) notFound();
   const masterOptions = permissions["assets.manage"] ? await getAssetMasterOptions() : undefined;
-  const locations = new Map(data.locations.map(l => [l.id, l.source_name]));
+  const locations = new Map(data.locations.map(l => [l.id, l.display_name ?? l.source_name]));
   const recordedDetails = Object.entries(assetMasterValues(data.asset.source_data,data.asset.current_details)).filter(([,value]) => value !== "");
   const reportingLocations = data.holdings.filter(row => row.quantity === null || row.quantity > 0);
   return <><PageHeader title={data.asset.item_name} description={data.asset.asset_code} /><WorkspaceGrid>

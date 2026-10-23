@@ -227,21 +227,36 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
     }
     const snapshot = data as { total: number; items: { id: string; created_at: string; location: string }[] };
     const permittedIds = snapshot.items.map((row) => row.id);
-    const maintenanceDetails = new Map<string, { asset_id: string | null; description: string | null; priority: string | null; author_name: string | null }>();
+    const maintenanceDetails = new Map<string, { asset_id: string | null; location_id: string | null; description: string | null; priority: string | null; author_name: string | null }>();
     const assetNames = new Map<string, string>();
+    const locationNames = new Map<string, string>();
     if (permittedIds.length) {
       // The RPC remains the authorization gate for actionable rows. Read only
       // its returned IDs; table RLS independently enforces company/location
       // scope for the description and priority fields shown on the dashboard.
       const detailsResult = await looseSupabase(supabase)
         .from("asset_maintenance")
-        .select("id,asset_id,description,priority,author_name")
+        .select("id,asset_id,location_id,description,priority,author_name")
         .in("id", permittedIds);
       if (detailsResult.error) {
         logServerWarning(detailsResult.error, { source: "pending-actions.maintenance-details" });
       } else {
-        for (const row of (detailsResult.data ?? []) as { id: string; asset_id: string | null; description: string | null; priority: string | null; author_name: string | null }[]) {
+        for (const row of (detailsResult.data ?? []) as { id: string; asset_id: string | null; location_id: string | null; description: string | null; priority: string | null; author_name: string | null }[]) {
           maintenanceDetails.set(row.id, row);
+        }
+      }
+      const locationIds = [...new Set([...maintenanceDetails.values()].flatMap((row) => row.location_id ? [row.location_id] : []))];
+      if (locationIds.length) {
+        const locationsResult = await looseSupabase(supabase).from("asset_locations").select("id,source_name,kind,branch_id").in("id", locationIds);
+        if (locationsResult.error) logServerWarning(locationsResult.error, { source: "pending-actions.maintenance-locations" });
+        else {
+          const locationRows = (locationsResult.data ?? []) as { id: string; source_name: string; kind: string; branch_id: string | null }[];
+          const branchIds = [...new Set(locationRows.flatMap((row) => row.kind === "branch" && row.branch_id ? [row.branch_id] : []))];
+          const branchesResult = branchIds.length ? await looseSupabase(supabase).from("branches").select("id,branch_name").in("id", branchIds) : { data: [], error: null };
+          if (branchesResult.error) logServerWarning(branchesResult.error, { source: "pending-actions.maintenance-branches" });
+          const branchRows = (branchesResult.data ?? []) as { id: string; branch_name: string }[];
+          const branchNames = new Map(branchRows.map((row) => [row.id, row.branch_name]));
+          for (const row of locationRows) locationNames.set(row.id, row.kind === "branch" && row.branch_id ? branchNames.get(row.branch_id) ?? row.source_name : row.source_name);
         }
       }
       const assetIds = [...new Set([...maintenanceDetails.values()].flatMap((row) => row.asset_id ? [row.asset_id] : []))];
@@ -261,7 +276,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
     }
     return { count: snapshot.total, unavailable: false, items: snapshot.items.map(row => ({
       id: `maintenance-${row.id}`, document_no: "Repair request", title: "Maintenance follow-up",
-      href: `/asset-management/maintenance/${row.id}`, step: "Repair", branch_name: row.location,
+      href: `/asset-management/maintenance/${row.id}`, step: "Repair", branch_name: locationNames.get(maintenanceDetails.get(row.id)?.location_id ?? "") ?? row.location,
       age_label: ageLabel(row.created_at), updated_at: row.created_at, supplier_names: [], line_count: 0,
       submitted_by_name: null, estimated_total: 0,
       maintenance_description: maintenanceDetails.get(row.id)?.description ?? null,

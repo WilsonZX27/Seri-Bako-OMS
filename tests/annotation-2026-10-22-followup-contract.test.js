@@ -30,6 +30,6 @@ test("repair actions show available details and link to the specific request", (
   assert.match(topbar, /repairAction\.maintenance_description\?\.trim\(\)/);
   assert.match(topbar, /action_url: repairAction\.href/);
   assert.match(query, /const permittedIds = snapshot\.items\.map\(\(row\) => row\.id\)/);
-  assert.match(query, /\.select\("id,asset_id,description,priority,author_name"\)\s*\.in\("id", permittedIds\)/);
+  assert.match(query, /\.select\("id,asset_id,location_id,description,priority,author_name"\)\s*\.in\("id", permittedIds\)/);
   assert.match(query, /assetIds\.length && permissions\["assets\.view"\]/);
 });

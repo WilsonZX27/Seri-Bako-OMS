@@ -85,7 +85,11 @@ function isAction(child: ReactNode) {
 
 function isSearchSubmit(child: ReactNode) {
   const props = propsOf(child);
-  return props.type === "submit" && typeof props.children === "string" && /^(search|filter)$/i.test(props.children.trim());
+  if (props.type !== "submit") return false;
+  if (typeof props.children === "string" && /^(search|filter)$/i.test(props.children.trim())) return true;
+  // Shared search actions also own icon-only submit buttons. Requiring a text
+  // child caused callers to render a second explicit Search button beside it.
+  return Boolean(props["aria-label"] && typeof props["aria-label"] === "string" && /\b(search|filter)\b/i.test(props["aria-label"] as string));
 }
 
 function isStatusTabs(child: ReactNode) {

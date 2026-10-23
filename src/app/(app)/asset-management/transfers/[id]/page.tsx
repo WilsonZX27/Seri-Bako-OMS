@@ -16,7 +16,7 @@ export default async function TransferDetail({ params, searchParams }: { params:
   const parsed = Number(query.page ?? "1"), page = Number.isSafeInteger(parsed) && parsed >= 1 && parsed <= 1_000_000 ? parsed : 1;
   const [data, permissions] = await Promise.all([getAssetTransferDetail(id,page),getPermissionMap(["assets.approve","assets.transfer"])]);
   if (!data) notFound();
-  const transfer = data.transfer, locations = new Map(data.locations.map(location=>[location.id,location.source_name]));
+  const transfer = data.transfer, locations = new Map(data.locations.map(location=>[location.id,location.display_name ?? location.source_name]));
   const access = { canApprove: permissions["assets.approve"], canTransfer: permissions["assets.transfer"], canAccessSource: locations.has(transfer.from_location_id ?? ""), canAccessDestination: locations.has(transfer.to_location_id ?? "") };
   const available = assetTransferActions(transfer.status ?? "", access);
   return <><PageHeader title="Asset transfer" description={transfer.source_id ?? `${data.asset.asset_code} · ${transfer.status}`}/><WorkspaceGrid hideMobileConsole rightRail={<ConsoleSection title="Next action" kind="action"><AssetTransferAction key={`${transfer.status}:${data.history[0]?.id ?? id}`} transferId={id} status={transfer.status ?? ""} {...access} showNote mobileDock/>{!available.length ? <p className="text-sm text-muted-foreground">No action is available for your role at this stage.</p> : null}</ConsoleSection>}>

@@ -74,6 +74,7 @@ export async function getOutletDailyActivity(recordId: string) {
 export type OutletDailyRecordRow = RecordRow & {
   branch_name: string;
   created_by_name: string | null;
+  submitted_by_name: string | null;
   updated_by_name: string | null;
   total_sent: number | null;
   total_received: number | null;
@@ -340,6 +341,7 @@ async function hydrateRows(db: Awaited<ReturnType<typeof createClient>>, records
     ...record,
     branch_name: branchNames.get(record.branch_id) ?? "Unknown outlet",
     created_by_name: actorDisplayName(actorDisplayMap, record.created_by),
+    submitted_by_name: actorDisplayName(actorDisplayMap, record.submitted_by),
     updated_by_name: actorDisplayName(actorDisplayMap, record.updated_by ?? record.submitted_by ?? record.created_by),
     ...totals(linesByRecord.get(record.id) ?? [], operationalProductIds),
   }));

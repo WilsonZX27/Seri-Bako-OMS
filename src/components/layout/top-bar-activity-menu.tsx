@@ -121,10 +121,17 @@ export function TopBarActivityMenu({ data, canOpenActivity = true }: { data: Top
                 <p className="text-xs font-semibold uppercase text-muted-foreground">My Pending Actions</p>
                 {pendingCount ? <span className="rounded-full bg-[var(--sb-warning-bg)] px-2 py-0.5 text-xs font-medium text-[var(--sb-warning)]">{pendingCount}</span> : null}
               </div>
-              {pendingApprovals.map((item) => { const Icon = actionIcon(item.href); return (
+              {pendingApprovals.map((item) => { const Icon = actionIcon(item.href); const isRepair = item.id.startsWith("maintenance-"); const repair = item as typeof item & { branch_name?: string | null; maintenance_asset_name?: string | null; maintenance_description?: string | null; maintenance_author_name?: string | null; maintenance_priority?: string | null; updated_at?: string }; return (
                 <Link key={item.id} href={item.href} onClick={() => setOpen(false)} className="flex gap-2 rounded-md p-2 text-xs hover:bg-secondary">
                   <Icon aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                  <span>{item.document_no} - {item.title}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-medium">{isRepair ? "Repair request" : `${item.document_no} · ${item.title}`}</span>
+                    {isRepair ? <>
+                      <span className="mt-1 block truncate">{repair.maintenance_asset_name ?? "Maintenance request"}{repair.maintenance_description?.trim() ? ` · ${repair.maintenance_description.trim()}` : ""}</span>
+                      <span className="mt-1 block truncate text-muted-foreground">{repair.branch_name ?? "Location unavailable"}{repair.maintenance_author_name ? ` · by ${repair.maintenance_author_name}` : ""} · {repair.updated_at ? formatTime(repair.updated_at) : "Date unavailable"}</span>
+                      {repair.maintenance_priority ? <span className="mt-1 inline-flex rounded-full bg-[var(--sb-neutral-bg)] px-2 py-0.5 text-[10px] text-muted-foreground">{repair.maintenance_priority} priority</span> : null}
+                    </> : null}
+                  </span>
                 </Link>
               ); })}
               {!pendingActionsAvailable ? <p className="flex gap-2 rounded-md bg-[var(--sb-warning-bg)] p-2 text-sm text-[var(--sb-warning-text)]"><TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" /><span>Pending actions are temporarily unavailable. Open the relevant workspace before assuming the queue is clear.</span></p> : null}

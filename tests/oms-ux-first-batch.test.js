@@ -9,7 +9,8 @@ const read = (...parts) => fs.readFileSync(path.join(root, ...parts), "utf8");
 test("dashboard repair actions show one request heading, asset/issue, location, reporter and date", () => {
   const query = read("src", "server", "queries", "pending-actions.ts");
   const page = read("src", "components", "dashboard-workspace.tsx");
-  assert.match(query, /\.from\("asset_maintenance"\)[\s\S]*?\.select\("id,asset_id,description,priority,author_name"\)[\s\S]*?\.in\("id", permittedIds\)/);
+  assert.match(query, /\.from\("asset_maintenance"\)[\s\S]*?\.select\("id,asset_id,location_id,description,priority,author_name"\)[\s\S]*?\.in\("id", permittedIds\)/);
+  assert.match(query, /locationNames\.get\(maintenanceDetails\.get\(row\.id\)\?\.location_id \?\? ""\) \?\? row\.location/);
   assert.match(query, /if \(assetIds\.length && permissions\["assets\.view"\]\)/);
   assert.match(query, /maintenance_author_name: maintenanceDetails\.get\(row\.id\)\?\.author_name/);
   assert.match(page, /"REPAIR REQUEST"/);
@@ -33,7 +34,11 @@ test("asset overview and maintenance queues page at ten rows with shared navigat
 
 test("transfer asset search has an explicit accessible apply action", () => {
   const page = read("src", "app", "(app)", "asset-management", "transfers", "new", "page.tsx");
-  assert.match(page, /<FilterBar resetHref="\/asset-management\/transfers\/new"[\s\S]*?<Input type="search" name="q"[\s\S]*?<Button type="submit" size="icon" aria-label="Apply asset search"/);
+  const header = read("src", "components", "common", "UnifiedListHeader.tsx");
+  assert.match(page, /<FilterBar resetHref="\/asset-management\/transfers\/new"[\s\S]*?<Input type="search" name="q"/);
+  assert.doesNotMatch(page, /<Button type="submit"/);
+  assert.match(header, /showSearchAction = hasTextSearch && !all\.some\(isSearchSubmit\)/);
+  assert.match(header, /aria-label="Search"/);
   assert.match(page, /No matching assets\./);
 });
 

@@ -26,6 +26,8 @@ type PendingAction = {
   maintenance_description?: string | null;
   maintenance_asset_name?: string | null;
   maintenance_priority?: string | null;
+  maintenance_author_name?: string | null;
+  updated_at?: string;
 };
 
 export async function getTopBarActivity() {
@@ -196,7 +198,7 @@ export async function getTopBarActivity() {
     // A workflow item is already represented in "My Pending Actions". Keep
     // the notification feed for events that do not duplicate an actionable
     // queue entry.
-    .filter((row) => row.entity_type === "asset_maintenance" || !pendingActionHrefs.has(row.action_url ?? ""));
+    .filter((row) => !pendingActionHrefs.has(row.action_url ?? ""));
 
   const complianceReminderRoles = new Set(["purchasing", "manager", "finance", "people_operations", "super_admin"]);
   if (currentScope && complianceReminderRoles.has(currentScope.roleCode)) {

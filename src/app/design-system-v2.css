@@ -2890,7 +2890,8 @@ html[data-design-layer="v2"] .space-y-3 > .sb-table-region.hidden + .sb-pr-conti
 }
 html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"] + [role="listitem"],
 html[data-design-layer="v2"] .sb-goods-receiving-rows > [role="listitem"] + [role="listitem"] { border-top: 1px solid var(--sb-border-soft); }
-html[data-design-layer="v2"] .sb-goods-receiving-rows > [role="listitem"] { background: #fff; }
+html[data-design-layer="v2"] .sb-goods-receiving-rows > [role="listitem"] { --sb-pr-meta-ink: #5a6b62; min-height: 0; padding-block: .625rem; }
+html[data-design-layer="v2"] .sb-goods-receiving-rows > [role="listitem"]:nth-child(even) { background: #edf2ef; }
 html[data-design-layer="v2"] .sb-pr-phone-supplier-row,
 html[data-design-layer="v2"] .sb-pr-phone-location-row {
   min-width: 0;
@@ -2945,14 +2946,21 @@ html[data-design-layer="v2"] :is(.sb-pr-phone-supplier, .sb-pr-phone-items, .sb-
 
 /* Reviewed list components: compact fields follow their container, not global dl rules. */
 #main-content .sb-daily-record-metrics {
-  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem;
 }
 #main-content .sb-daily-record-metrics > div:has(> dt + dd:last-child) {
   display: flex; flex-direction: column; align-items: flex-start; grid-column: auto; gap: .125rem;
 }
 #main-content .sb-daily-record-metrics > div > dd { margin: 0; text-align: left; justify-self: start; }
-#main-content .sb-daily-record-metrics dt { font-size: 11px; color: var(--sb-text-muted); }
+#main-content .sb-daily-record-metrics dt { font-size: 10px; color: var(--sb-text-muted); }
 #main-content .sb-daily-record-metrics dd { font-size: 12px; color: var(--sb-text); }
+.sb-daily-pending, .sb-daily-pending-detail { color: var(--sb-text-muted) !important; font-style: italic; font-weight: 400 !important; }
+.sb-daily-metric-detail { display: block; color: var(--sb-text-muted); font-size: 10px; font-style: italic; font-weight: 400; }
+@media (max-width: 639px) {
+  #main-content .sb-daily-record-metrics { gap: .4rem; }
+  #main-content .sb-daily-record-metrics dt { font-size: 10px; }
+  #main-content .sb-daily-record-metrics dd { font-size: 11px; }
+}
 .sb-daily-compact-list > [role="listitem"] { row-gap: .375rem; }
 html[data-design-layer="v2"] .sb-pr-phone-location { flex: 1 1 auto; }
 html[data-design-layer="v2"] .sb-pr-phone-byline-person > span { white-space: normal; overflow-wrap: anywhere; }

@@ -108,28 +108,27 @@ export function TopBarActivityMenu({ data, canOpenActivity = true }: { data: Top
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold">Workspace Updates</p>
-                <p className="text-xs text-muted-foreground">Notifications and recent activity.</p>
+
               </div>
               {unreadCount > 0 ? (
                 <Button type="button" variant="ghost" size="icon" className="sb-mark-updates-read size-8 shrink-0 border-0 bg-transparent shadow-none hover:bg-muted" aria-label="Mark as read" title="Mark as read" onClick={markVisibleUpdatesSeen}><Check className="size-4" aria-hidden="true" /></Button>
               ) : null}
             </div>
           </div>
-          <div className="max-h-[calc(100dvh-3.5rem)] divide-y overflow-y-auto">
+          <div className="min-h-0 flex-1 divide-y overflow-y-auto overscroll-contain">
             {showPendingActions ? <section className="space-y-1 p-3">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-semibold uppercase text-muted-foreground">My Pending Actions</p>
                 {pendingCount ? <span className="rounded-full bg-[var(--sb-warning-bg)] px-2 py-0.5 text-xs font-medium text-[var(--sb-warning)]">{pendingCount}</span> : null}
               </div>
               {pendingApprovals.map((item) => { const Icon = actionIcon(item.href); const isRepair = item.id.startsWith("maintenance-"); const repair = item as typeof item & { branch_name?: string | null; maintenance_asset_name?: string | null; maintenance_description?: string | null; maintenance_author_name?: string | null; maintenance_priority?: string | null; updated_at?: string }; return (
-                <Link key={item.id} href={item.href} onClick={() => setOpen(false)} className="flex gap-2 rounded-md p-2 text-xs hover:bg-secondary">
+                <Link key={item.id} href={item.href} onClick={() => setOpen(false)} className="flex gap-2 rounded-md p-2 text-xs font-normal hover:bg-secondary">
                   <Icon aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                   <span className="min-w-0 flex-1">
-                    <span className="block font-medium">{isRepair ? "Repair request" : `${item.document_no} · ${item.title}`}</span>
+                    <span className="flex items-start justify-between gap-2"><span className="block uppercase" title={item.title}>{isRepair ? "REPAIR REQUEST" : item.document_no}</span><span className="shrink-0 text-[10px] text-muted-foreground">{isRepair ? `${repair.maintenance_priority || "Normal"} priority` : "step" in item ? item.step : item.title}</span></span>
                     {isRepair ? <>
                       <span className="mt-1 block truncate">{repair.maintenance_asset_name ?? "Maintenance request"}{repair.maintenance_description?.trim() ? ` · ${repair.maintenance_description.trim()}` : ""}</span>
                       <span className="mt-1 block truncate text-muted-foreground">{repair.branch_name ?? "Location unavailable"}{repair.maintenance_author_name ? ` · by ${repair.maintenance_author_name}` : ""} · {repair.updated_at ? formatTime(repair.updated_at) : "Date unavailable"}</span>
-                      {repair.maintenance_priority ? <span className="mt-1 inline-flex rounded-full bg-[var(--sb-neutral-bg)] px-2 py-0.5 text-[10px] text-muted-foreground">{repair.maintenance_priority} priority</span> : null}
                     </> : null}
                   </span>
                 </Link>
@@ -145,7 +144,7 @@ export function TopBarActivityMenu({ data, canOpenActivity = true }: { data: Top
               {notifications.map((notification) => { const Icon = actionIcon(notification.action_url ?? ""); return (
                 <Link key={notification.id} href={notification.action_url ?? "/activity"} onClick={() => { markUpdateSeen(notification.id); setOpen(false); }} className="flex gap-2 rounded-[var(--sb-control-radius)] p-2 text-xs hover:bg-secondary">
                   <Icon aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                  <span><span className="block">{notification.title}</span>{notification.message ? <span className="block text-xs text-muted-foreground">{notification.message}</span> : null}</span>
+                  <span className="min-w-0"><span className="block uppercase">{notification.title}</span>{notification.message ? <span className="line-clamp-2 text-xs text-muted-foreground" title={notification.message}>{notification.message}</span> : null}</span>
                 </Link>
               ); })}
               {announcements.map((notification) => (

@@ -64,3 +64,7 @@ Actual synthetic source execution identified and fixed People Operations AP-agin
 ## 9.2.133 browser-evidence correction batch
 
 9.2.132 real IAB Owner acceptance covered four pages ×390/820/1440 and demonstrated four issues. Candidate fixes are bounded to phone query geometry,1536px Daily handoff/optional scrollbar, Inventory section order and odd finance metric span. Tests1753/1748pass/5samefail, typecheck/lint/local synthetic-config build pass. Actual newPreview before/after acceptance pending; all role/lifecycle/performance gates retain their limits.
+
+## 9.2.134 pending/mobile batch
+
+New27userannotations are now preserved in `ANNOTATIONS-27-2026-10-23.md`. Current9.2.133screenshots reproduced checklist error, missing selfservice mobilelinks,3vs5actions,400weight mismatches and notificationbottomoverlap. Eleven IDs have boundedcandidatefixes; other16remainopen. FinalNode22fullsuite1760/1755/5, exactsamebaselinefailure set; livePreviewretestpending. Existing role/security/business boundaries unchanged.

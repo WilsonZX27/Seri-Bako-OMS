@@ -3014,7 +3014,14 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
   html[data-design-layer="v2"] .sb-mobile-navigation-group { margin: 0; min-width: 0; }
   html[data-design-layer="v2"] .sb-mobile-navigation-group a { min-height: 40px; font-size: 12px; }
 }
+html[data-design-layer="v2"] [data-dashboard-pending-row],
+html[data-design-layer="v2"] [data-dashboard-pending-row] :is(strong, .font-medium, .font-semibold) { font-weight: 400; }
+html[data-design-layer="v2"] .sb-repair-summary { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+html[data-design-layer="v2"] .sb-repair-summary .sb-pr-phone-items { white-space: normal; overflow-wrap: anywhere; justify-content: flex-start; }
 .sb-workspace-updates { display: flex; flex-direction: column; max-height: calc(100dvh - 5rem); }
+@media (max-width: 1279px) {
+  .sb-workspace-updates { max-height: calc(100dvh - 9rem - env(safe-area-inset-bottom)); }
+}
 .sb-workspace-updates > :first-child { flex: none; }
 .sb-workspace-updates > :last-child { min-height: 0; }
 .sb-workspace-updates section > a:not([data-activity-log-action]) { min-height: 36px; align-items: flex-start; }

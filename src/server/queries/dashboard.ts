@@ -390,7 +390,7 @@ export async function getDashboardSummary() {
 
   // Keep the exact total for the attention summary, while showing only the
   // three newest actionable items on the dashboard command surface.
-  const pendingApprovals = { ...pendingApprovalsSnapshot, items: pendingApprovalsSnapshot.items.slice(0, 3) };
+  const pendingApprovals = { ...pendingApprovalsSnapshot, items: pendingApprovalsSnapshot.items.slice(0, 5) };
 
   let coreSnapshot = coreSnapshotRpcResult.data as DashboardCoreSnapshot | null;
   let coreSnapshotUnavailable = Boolean(coreSnapshotRpcResult.error) || !coreSnapshot;

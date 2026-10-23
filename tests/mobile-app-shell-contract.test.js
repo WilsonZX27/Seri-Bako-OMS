@@ -106,7 +106,12 @@ test("shared dialogs contain their content within the dynamic mobile viewport an
 test("top-bar updates stay within the dynamic viewport rather than relying on a fixed popover height", () => {
   const activityMenu = read("src/components/layout/top-bar-activity-menu.tsx");
 
-  assert.match(activityMenu, /max-h-\[calc\(100dvh-3\.5rem\)\]/);
+  const css = require("postcss").parse(read("src/app/design-system-v2.css"));
+  const heights = [];
+  css.walkRules(rule => { if (rule.selector === ".sb-workspace-updates") rule.walkDecls("max-height", declaration => heights.push({ value: declaration.value, media: rule.parent.type === "atrule" ? rule.parent.params : null })); });
+  assert.ok(heights.some(rule => !rule.media && rule.value.includes("100dvh")), "outer tray owns a dynamic viewport bound");
+  assert.ok(heights.some(rule => rule.media === "(max-width: 1279px)" && rule.value.includes("100dvh - 9rem") && rule.value.includes("safe-area-inset-bottom")), "mobile tray reserves fixed-navigation and safe-area space");
+  assert.match(activityMenu, /min-h-0 flex-1 divide-y overflow-y-auto/);
   assert.match(activityMenu, /overflow-y-auto/);
   assert.doesNotMatch(activityMenu, /max-h-96/);
 });

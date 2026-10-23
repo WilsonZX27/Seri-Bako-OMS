@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowUpRight, Boxes, CalendarDays, CheckCircle2, ClipboardCheck, ClipboardList, Clock3, Factory, FileText, LockKeyhole, MapPin, Package, PackageCheck, ReceiptText, ShieldCheck, ShoppingCart, UserRound, Store } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, Boxes, CalendarDays, CheckCircle2, ClipboardCheck, ClipboardList, Clock3, Factory, FileText, LockKeyhole, MapPin, MessageSquare, Package, PackageCheck, ReceiptText, ShieldCheck, ShoppingCart, UserRound, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
@@ -354,7 +354,19 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                   {isScheduleAction
                     ? <span className="text-[11px] font-medium text-[var(--sb-warning)]">Review and publish this outlet roster</span>
                     : isMaintenanceAction
-                      ? <><span className="flex min-w-0 items-center gap-2 text-[11px] leading-4"><Package className="size-3.5 shrink-0" aria-hidden="true"/><strong className="min-w-0 truncate text-[var(--sb-text)]">{row.maintenance_asset_name || "General repair"}</strong><span className="inline-flex min-w-0 items-center gap-1 text-[var(--sb-text-muted)]"><span aria-hidden="true">·</span><span className="truncate" title={row.maintenance_description ?? undefined}>{row.maintenance_description?.trim() || "No issue description"}</span></span></span><span className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[var(--sb-text-muted)]"><span className="inline-flex min-w-0 items-center gap-1"><MapPin className="size-3 shrink-0" aria-hidden="true"/><span className="truncate">{row.branch_name ?? "Location unavailable"}</span></span><span className="inline-flex items-center gap-1"><UserRound className="size-3 shrink-0" aria-hidden="true"/>by {row.maintenance_author_name ?? "—"}</span><time className="inline-flex shrink-0 items-center gap-1" dateTime={row.updated_at}><CalendarDays className="size-3" aria-hidden="true"/>{formatDateOnly(row.updated_at)}</time></span></>
+                      ? <>
+                          <span className="sb-pr-phone-supplier-row sb-repair-summary">
+                            <span className="sb-pr-phone-supplier"><Package aria-hidden="true"/><span>{row.maintenance_asset_name || "General repair"}</span></span>
+                            <span className="sb-pr-phone-items" title={row.maintenance_description ?? undefined}><MessageSquare aria-hidden="true"/><span>{row.maintenance_description?.trim() || "No issue description"}</span></span>
+                          </span>
+                          <span className="sb-pr-phone-location-row">
+                            <span className="sb-pr-phone-location"><MapPin aria-hidden="true"/><span>{row.branch_name ?? "Location unavailable"}</span></span>
+                            <span className="sb-pr-phone-byline">
+                              <span className="sb-pr-phone-byline-person"><UserRound aria-hidden="true"/><span>by {row.maintenance_author_name ?? "—"}</span></span>
+                              <time className="sb-pr-phone-byline-date" dateTime={row.updated_at}><CalendarDays aria-hidden="true"/><span>{formatDateOnly(row.updated_at)}</span></time>
+                            </span>
+                          </span>
+                        </>
                       : isOutletDailyAction
                       ? <span className="text-[11px] font-medium text-[var(--sb-green-800)]">Review outlet quantities and post to lock editing</span>
                       : <>

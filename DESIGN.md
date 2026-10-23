@@ -1,3 +1,7 @@
+## v9.2.134 (Preview candidate) — pending work and personal access
+
+Fix the checklist query's narrow RPC contract without schema changes. Dashboard retains up to five real pending actions; selected repair/PR summaries use400 weight and shared information order. Workspace Updates uses concise uppercase task headings, retained state/detail links and navigation clearance. Mobile More exposes the same own-attendance/own-payslips routes as desktop. No permission expansion, business writes or multiasset/numbering/timeoff feature changes. Source and actual before/after evidence remain distinct.
+
 ## v9.2.133 (Preview candidate) — responsive acceptance fixes
 
 Addresses the four observed Owner-session findings from the 9.2.132 browser report: readable phone date track with count on its own row, Daily compact rows until 1536px and an opt-in table scrollbar, Inventory work actions before the movement chart, and a full-width final payables metric. Existing business fields, query scope, permission checks and chart keyboard behavior remain. The new Preview requires the same actual-browser before/after checks; source tests are not visual acceptance.

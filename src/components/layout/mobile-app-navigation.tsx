@@ -363,6 +363,12 @@ export function MobileAppNavigation({
                     <UserRound className="h-4.5 w-4.5 shrink-0" aria-hidden="true" />
                     <span className="min-w-0 flex-1">My Profile</span>
                   </Link>
+                  <Link href="/attendance/confirmations" prefetch={false} onClick={() => setMoreOpen(false)} className="flex min-h-12 items-center gap-2 rounded-md border px-2 text-sm font-normal text-[var(--sb-text)] active:bg-[var(--sb-surface-muted)]">
+                    <CheckCircle2 className="h-4.5 w-4.5 shrink-0" aria-hidden="true" /><span>My attendance</span>
+                  </Link>
+                  <Link href="/attendance/payslips" prefetch={false} onClick={() => setMoreOpen(false)} className="flex min-h-12 items-center gap-2 rounded-md border px-2 text-sm font-normal text-[var(--sb-text)] active:bg-[var(--sb-surface-muted)]">
+                    <ReceiptText className="h-4.5 w-4.5 shrink-0" aria-hidden="true" /><span>My payslips</span>
+                  </Link>
                   <form action={signOut}>
                     <SubmitButton type="submit" variant="destructive" pendingLabel="Signing out..." className="min-h-12 w-full justify-center gap-2 bg-[var(--sb-danger)] text-sm text-white hover:bg-[var(--sb-danger)]">
                       <LogOut className="h-4.5 w-4.5 shrink-0" aria-hidden="true" />

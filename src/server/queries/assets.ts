@@ -109,7 +109,8 @@ export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query =
     if (result.error || !result.data) throw new Error(result.error?.message ?? "Asset summary unavailable.");
     overview = result.data as AssetOverview;
     const canonicalNames = new Map(locations.map((location) => [location.id, location.display_name ?? location.source_name]));
-    overview.locations = overview.locations.map((location) => ({ ...location, name: canonicalNames.get(location.id) ?? location.name }));
+    // Checklist RPC deliberately omits overview-only location metrics.
+    if (view === "overview") overview.locations = overview.locations.map((location) => ({ ...location, name: canonicalNames.get(location.id) ?? location.name }));
     overview.checklist = overview.checklist.map((location) => ({ ...location, name: canonicalNames.get(location.id) ?? location.name }));
     const submitted = new Set<string>();
     if (actor.roleCode !== "kitchen") {

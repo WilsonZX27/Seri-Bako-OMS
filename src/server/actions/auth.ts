@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { getLandingIaItems } from "@/lib/information-architecture";
+import { canReturnToRoute, getSafeReturnPath } from "@/lib/http/session-recovery";
 import { isSystemRoleCode } from "@/lib/roles";
 import { isMockMode } from "@/lib/mock-mode";
 import { getAppUrl } from "@/lib/site-url";
@@ -10,6 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 import { formatActionError } from "@/server/actions/error-handling";
 import { readEmailInput, readPasswordChangeInput, readSignInInput } from "@/server/auth/auth-input";
 import { resolveEffectivePermission } from "@/server/auth/permissions";
+import { getRouteAllowedRoles, getRoutePermissionCodes } from "@/server/auth/route-permissions";
 import { acceptCurrentStaffInvite, requireCurrentLinkedStaff } from "@/server/auth/staff-session";
 import { logServerError, logServerWarning } from "@/server/observability/logger";
 
@@ -29,9 +31,16 @@ export async function signIn(formData: FormData) {
     redirect(getLandingIaItems("super_admin")[0]?.href ?? "/access-status?reason=no-permitted-route");
   }
 
+  const returnTo = getSafeReturnPath(formData.get("returnTo"));
+  const redirectToLoginError = (message: string): never => {
+    const params = new URLSearchParams({ error: message });
+    if (returnTo) params.set("returnTo", returnTo);
+    redirect(`/login?${params.toString()}`);
+  };
+
   const parsed = readSignInInput(formData);
   if (!parsed.success) {
-    redirect(`/login?error=${encodeURIComponent(parsed.error.issues[0]?.message ?? "Enter a valid email and password.")}`);
+    return redirectToLoginError(parsed.error.issues[0]?.message ?? "Enter a valid email and password.");
   }
   const { email: identifier, password } = parsed.data;
   let email = identifier;
@@ -56,9 +65,9 @@ export async function signIn(formData: FormData) {
   if (error) {
     logServerError(error, { source: "auth.sign-in" });
     if (isRetryableAuthNetworkError(error)) {
-      redirect(`/login?error=${encodeURIComponent("Unable to contact the sign-in service. Check your connection and try again.")}`);
+      redirectToLoginError("Unable to contact the sign-in service. Check your connection and try again.");
     }
-    redirect(`/login?error=${encodeURIComponent("Invalid email, username or password.")}`);
+    redirectToLoginError("Invalid email, username or password.");
   }
 
   const {
@@ -68,7 +77,7 @@ export async function signIn(formData: FormData) {
   if (userError || !user) {
     logServerError(userError ?? "Signed-in user was unavailable after authentication.", { source: "auth.sign-in.current-user" });
     await supabase.auth.signOut();
-    redirect(`/login?error=${encodeURIComponent("We could not complete your sign-in. Please try again.")}`);
+    return redirectToLoginError("We could not complete your sign-in. Please try again.");
   }
 
   const { data: staff, error: staffError } = await supabase
@@ -95,6 +104,12 @@ export async function signIn(formData: FormData) {
   const assignedRole = assignment?.roles as { role_code?: string | null } | { role_code?: string | null }[] | null;
   const roleCode = Array.isArray(assignedRole) ? assignedRole[0]?.role_code : assignedRole?.role_code;
   if (!isSystemRoleCode(roleCode)) redirect("/access-status?reason=no-permitted-route");
+  if (returnTo) {
+    const routePermissions = getRoutePermissionCodes(returnTo);
+    const allowedRoles = getRouteAllowedRoles(returnTo);
+    const permissionAllowed = !routePermissions || await resolveEffectivePermission(supabase, routePermissions).catch(() => false);
+    if (canReturnToRoute(roleCode, allowedRoles, routePermissions, permissionAllowed)) redirect(returnTo);
+  }
   for (const item of getLandingIaItems(roleCode)) {
     if (await resolveEffectivePermission(supabase, [item.permission]).catch(() => false)) {
       redirect(item.href);

@@ -44,6 +44,13 @@ test("HTML, malformed JSON and expired sessions produce safe recovery messages",
 
   await assert.rejects(readJsonResponse(new Response("<!DOCTYPE html>", { status: 502, headers: { "content-type": "text/html" } })), /unexpected response \(502\).*no changes were applied/i);
   await assert.rejects(readJsonResponse(new Response("{broken", { status: 200, headers: { "content-type": "application/json" } })), /could not be read.*no changes were applied/i);
-  await assert.rejects(readJsonResponse(new Response("{}", { status: 401, headers: { "content-type": "application/json" } })), /session expired.*work remains/i);
+  await assert.rejects(
+    readJsonResponse(new Response("{}", { status: 401, headers: { "content-type": "application/json" } })),
+    (error) => {
+      assert.match(error.message, /session expired.*check the record before submitting again/i);
+      assert.doesNotMatch(error.message, /work remains|your work remains/i);
+      return true;
+    },
+  );
   assert.deepEqual(await readJsonResponse(new Response('{"ok":true}', { status: 200, headers: { "content-type": "application/problem+json" } })), { ok: true });
 });

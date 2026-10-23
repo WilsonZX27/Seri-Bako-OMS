@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { signIn } from "@/server/actions/auth";
+import { getSafeReturnPath } from "@/lib/http/session-recovery";
 
 function friendlyLoginError(error?: string) {
   if (!error) return null;
@@ -22,14 +23,16 @@ function friendlyLoginError(error?: string) {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; message?: string }>;
+  searchParams: Promise<{ error?: string; message?: string; returnTo?: string }>;
 }) {
   const params = await searchParams;
   const errorMessage = friendlyLoginError(params.error);
+  const returnTo = getSafeReturnPath(params.returnTo);
 
   return (
     <AuthShell title="Welcome back" description="Sign in with your staff account to continue.">
       <form action={signIn} className="space-y-4" aria-describedby="login-status">
+        {returnTo ? <input type="hidden" name="returnTo" value={returnTo} /> : null}
         <Field label="Email / Username" required>
           <Input name="email" type="text" autoCapitalize="none" spellCheck={false} autoComplete="username" required autoFocus />
         </Field>

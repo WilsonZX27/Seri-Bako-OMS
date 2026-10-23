@@ -45,13 +45,20 @@ test("Actual Attendance uses responsive grouped views and hides payroll diagnost
   assert.match(sharedFilters, /Reset/);
 });
 
-test("Actual Attendance compact filters keep a visible label and sized actions", () => {
-  const styles = read("src/app/design-system-v2.css");
-  const queueSelector = /\.sb-attendance-review-query,\.sb-supplier-invoice-query,\.sb-purchase-return-query,\.sb-purchase-order-query,\.sb-goods-receiving-query/;
-  assert.match(styles, queueSelector);
-  assert.match(styles, /\.unified-list-filter-label \{ display: inline; \}/);
-  assert.match(styles, /\.unified-list-row \{ grid-template-columns: minmax\(0, 1fr\) 44px !important; \}/);
-  assert.match(styles, /\.unified-list-filter-trigger \{ height: 36px !important; min-height: 36px !important; align-self: center; \}/);
+test("Actual Attendance compact filters show their label and keep shared touch geometry", () => {
+  const header = read("src/components/common/UnifiedListHeader.tsx");
+  const moduleStyles = read("src/components/common/UnifiedListHeader.module.css");
+  assert.match(filters, /<FilterBar[^>]*showFilterLabel/);
+  assert.match(read("src/app/(app)/supplier-invoices/page.tsx"), /<UnifiedListHeader[^>]*showFilterLabel/);
+  assert.match(header, /const \[mobile, setMobile\] = useState\(phoneOnly\);/);
+  assert.match(header, /const sharedSearchRow = mobile && hasTextSearch && !phoneOnly && actions === undefined;/);
+  assert.match(header, /aria-label=\{active \? `Filter, \$\{active\} active` : "Filter"\}/);
+  assert.match(header, /sharedSearchRow \? \(showFilterLabel \? styles\.filterLabel : "sr-only"\)/);
+  assert.match(moduleStyles, /--query-control-size: 44px;/);
+  assert.match(moduleStyles, /grid-template-columns: minmax\(0, 1fr\) var\(--query-control-size\) var\(--query-control-size\) max-content;/);
+  assert.match(moduleStyles, /\.row \.searchSubmit, \.filterTrigger \{[^}]*width: var\(--query-control-size\)[^}]*min-height: var\(--query-control-size\)/s);
+  assert.match(moduleStyles, /\.filterTriggerLabel \{[^}]*min-width: var\(--query-control-size\)[^}]*padding-inline: 8px/);
+  assert.match(moduleStyles, /\.row:has\(\.filterTriggerLabel\) \{ grid-template-columns: minmax\(0, 1fr\) max-content var\(--query-control-size\) max-content; \}/);
 });
 
 test("Attendance tablet context names its week status and tools", () => {

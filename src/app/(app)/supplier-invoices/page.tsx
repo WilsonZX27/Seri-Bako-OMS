@@ -62,7 +62,7 @@ export default async function SupplierInvoicesPage({ searchParams }: { searchPar
         }
       >
         <div className="space-y-3">
-          <UnifiedListHeader className="sb-supplier-invoice-query" resultCount={invoices.totalRows} resetHref="/supplier-invoices" filtered={filtered} activeCount={[filters.status, filters.supplier && filters.supplier !== "all", filters.due && filters.due !== "all"].filter(Boolean).length}>
+          <UnifiedListHeader className="sb-supplier-invoice-query" showFilterLabel resultCount={invoices.totalRows} resetHref="/supplier-invoices" filtered={filtered} activeCount={[filters.status, filters.supplier && filters.supplier !== "all", filters.due && filters.due !== "all"].filter(Boolean).length}>
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search invoice or supplier" aria-label="Search invoice or supplier" className="md:max-w-sm" />
             <StatusTabs statuses={statuses} activeStatus={filters.status} />
             <FilterBarMore activeCount={[filters.supplier && filters.supplier !== "all", filters.due && filters.due !== "all"].filter(Boolean).length} resetHref="/supplier-invoices">

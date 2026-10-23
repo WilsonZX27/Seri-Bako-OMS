@@ -34,6 +34,8 @@
 .row .searchSubmit, .filterTrigger { display: inline-grid; place-items: center; width: var(--query-control-size); min-width: var(--query-control-size); height: var(--query-control-size); min-height: var(--query-control-size); padding: 0; border-radius: var(--sb-control-radius); }
 .filterTrigger { position: relative; border: 0; color: var(--sb-green-900); background: transparent; cursor: pointer; }
 .filterTrigger svg { width: 18px; height: 18px; }
+.filterTriggerLabel { display: inline-flex; width: auto; min-width: var(--query-control-size); gap: 6px; padding-inline: 8px; white-space: nowrap; }
+.filterLabel { position: static; width: auto; height: auto; margin: 0; overflow: visible; clip: auto; white-space: nowrap; font-size: 12px; font-weight: 500; line-height: 1; }
 .filterTrigger:hover { background: var(--sb-surface-muted); }
 .filterTrigger:focus-visible, .clear:focus-visible { outline: 2px solid var(--sb-green-700); outline-offset: 2px; }
 .badge { position: absolute; top: -4px; right: -4px; display: grid; place-items: center; min-width: 18px; height: 18px; padding-inline: 4px; border-radius: 999px; background: var(--sb-green-900); color: white; font-size: 10px; }
@@ -52,6 +54,7 @@
 .sheetActions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 12px; border-top: 1px solid var(--sb-border-soft); }
 .filterTrigger:disabled { cursor: not-allowed; opacity: .4; background: transparent; }
 @media (max-width: 1279px) {
+  .row:has(.filterTriggerLabel) { grid-template-columns: minmax(0, 1fr) max-content var(--query-control-size) max-content; }
   .row:has(.searchSubmit) .filterTrigger { grid-column: 2; grid-row: 1; }
   .row:has(.filterTrigger) .searchSubmit { grid-column: 3; grid-row: 1; }
 }

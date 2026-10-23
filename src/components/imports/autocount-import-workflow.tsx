@@ -89,7 +89,7 @@ export function AutoCountImportWorkflow() {
     try {
       const response = await fetch("/api/imports/autocount/preview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ files }) });
       const payload = await readJsonResponse<PreviewResponse>(response, {
-        sessionExpired: "Your session expired. Sign in again, then retry Review import; your selected files remain here.",
+      sessionExpired: "Your session expired. Sign in again, then check the import status before reviewing again.",
         unexpectedResponse: `The import service returned an unexpected response (${response.status}). Retry; no OMS records were changed.`,
       });
       if (!response.ok || !payload.ok) throw new Error(payload.message ?? "Could not prepare the import preview.");
@@ -118,7 +118,7 @@ export function AutoCountImportWorkflow() {
     try {
       const response = await fetch("/api/imports/autocount/confirm", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jobId: preview.jobId }) });
       const payload = await readJsonResponse<{ ok: boolean; message?: string; result?: ConfirmResult }>(response, {
-        sessionExpired: "Your session expired. Sign in again, then retry confirmation; the prepared preview remains available.",
+      sessionExpired: "Your session expired. Sign in again, then check the import status before confirming again.",
         unexpectedResponse: `The import service returned an unexpected response (${response.status}). Retry confirmation; no duplicate import was created.`,
       });
       if (!response.ok || !payload.ok) throw new Error(payload.message ?? "The import could not be confirmed.");

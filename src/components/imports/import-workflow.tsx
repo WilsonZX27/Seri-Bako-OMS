@@ -407,7 +407,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
         }),
       });
       const payload = await readJsonResponse<ImportResult>(response, {
-        sessionExpired: "Your session expired. Sign in again, then retry; the current rows remain on this page.",
+        sessionExpired: "Your session expired. Sign in again, then check the import status before trying again.",
         unexpectedResponse: `The import service returned an unexpected response (${response.status}). Retry; no records were changed.`,
       });
       setResult(payload);

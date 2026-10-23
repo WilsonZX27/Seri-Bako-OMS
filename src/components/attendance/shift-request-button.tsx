@@ -25,7 +25,7 @@ export function ShiftRequestButton({ assignmentId }: { assignmentId: string }) {
         body: JSON.stringify({ action: "create", assignmentId, proposedStaffId: null, proposedTemplateId: null, reason }),
       });
       const result = await readJsonResponse<{ ok: boolean; message?: string }>(response, {
-        sessionExpired: "Your session expired. Sign in again, then check your requests before retrying. Your reason is retained.",
+        sessionExpired: "Your session expired. Sign in again, then check your request status before trying again.",
         unexpectedResponse: "The service response could not be confirmed. Check your requests before retrying. Your reason is retained.",
         invalidJson: "The service response could not be read. Check your requests before retrying. Your reason is retained.",
       });

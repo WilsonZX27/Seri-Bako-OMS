@@ -23,7 +23,7 @@ type FilterDefaults = { branch: string; week: string; employee: string; status: 
 export function AttendanceReviewFilters({ branches, defaults, total }: { branches: Array<{ id: string; branch_name: string }>; defaults: FilterDefaults; total: number }) {
   const branchOptions = [{ value: "select", label: "Select outlet" }, ...branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))];
   return <section aria-label="Actual attendance filters">
-    <FilterBar className="sb-attendance-review-query" filtered={Boolean(defaults.employee || (defaults.status && defaults.status !== "all"))} resetHref={`/attendance/review?week=${encodeURIComponent(defaults.week)}&branch=${encodeURIComponent(defaults.branch)}`} resultCount={total}>
+    <FilterBar className="sb-attendance-review-query" showFilterLabel filtered={Boolean(defaults.employee || (defaults.status && defaults.status !== "all"))} resetHref={`/attendance/review?week=${encodeURIComponent(defaults.week)}&branch=${encodeURIComponent(defaults.branch)}`} resultCount={total}>
       <Input type="search" name="employee" defaultValue={defaults.employee} placeholder="Search employee" aria-label="Search employee" />
       <SelectControl name="branch" ariaLabel="Filter by outlet" defaultValue={defaults.branch} options={branchOptions} searchable searchPlaceholder="Search outlets" />
       <Input name="week" type="date" defaultValue={defaults.week} aria-label="Attendance week" />

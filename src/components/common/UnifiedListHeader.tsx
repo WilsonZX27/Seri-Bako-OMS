@@ -45,6 +45,8 @@ type HeaderProps = {
   inlineFieldsShareQueryTracks?: boolean;
   /** Keep both responsive form trees in the SSR HTML so CSS selects the first visible frame. */
   stableResponsive?: boolean;
+  /** Keep the compact Filter action understandable with a short visible label. */
+  showFilterLabel?: boolean;
 };
 
 function propsOf(child: ReactNode): Record<string, unknown> {
@@ -173,7 +175,7 @@ function SearchControl({ child, value, onChange, shared = false }: { child: Reac
   );
 }
 
-export function UnifiedListHeader({ children, actions, onSubmit, resultCount, resultLabel, resetHref, filtered = false, activeCount = 0, className, phoneOnly = false, phoneMode = "drawer", tabletMode = "drawer", phonePrimary = "inline", compactPinnedFields = [], inlineFieldsShareQueryTracks = false, stableResponsive = false }: HeaderProps) {
+export function UnifiedListHeader({ children, actions, onSubmit, resultCount, resultLabel, resetHref, filtered = false, activeCount = 0, className, phoneOnly = false, phoneMode = "drawer", tabletMode = "drawer", phonePrimary = "inline", compactPinnedFields = [], inlineFieldsShareQueryTracks = false, stableResponsive = false, showFilterLabel = false }: HeaderProps) {
   // The first client render must match SSR exactly. Viewport detection belongs
   // in the effect below; reading matchMedia in the state initializer rendered
   // different desktop/mobile trees and caused hydration recovery on every
@@ -410,7 +412,7 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
             onValueChange: (value: string) => { setPinnedValues(current => ({ ...current, [field.name]: value })); queueQuery(); },
           })}</div>;
         })}
-        {compactDrawer && !showMobileDateAction ? <button ref={filterTriggerRef} type="button" className={sharedSearchRow ? styles.filterTrigger : "unified-list-filter-trigger"} onClick={() => setOpen(true)} disabled={contextualFilterCount === 0 && !primaryInDrawer} aria-label={active ? `Filter, ${active} active` : "Filter"} aria-haspopup="dialog" aria-expanded={open}><SlidersHorizontal /><span className={sharedSearchRow ? "sr-only" : "unified-list-filter-label"}>Filter</span>{active ? <span className={sharedSearchRow ? styles.badge : "unified-list-filter-badge"} aria-hidden="true">{active}</span> : null}</button> : null}
+        {compactDrawer && !showMobileDateAction ? <button ref={filterTriggerRef} type="button" className={sharedSearchRow ? cn(styles.filterTrigger, showFilterLabel && styles.filterTriggerLabel) : "unified-list-filter-trigger"} onClick={() => setOpen(true)} disabled={contextualFilterCount === 0 && !primaryInDrawer} aria-label={active ? `Filter, ${active} active` : "Filter"} aria-haspopup="dialog" aria-expanded={open}><SlidersHorizontal /><span className={sharedSearchRow ? (showFilterLabel ? styles.filterLabel : "sr-only") : "unified-list-filter-label"}>Filter</span>{active ? <span className={sharedSearchRow ? styles.badge : "unified-list-filter-badge"} aria-hidden="true">{active}</span> : null}</button> : null}
         {showMobileSearchAction ? <Button type="submit" size="icon" variant="default" className={sharedSearchRow ? styles.searchSubmit : "unified-list-search-submit"} aria-label="Search" title="Search" onClick={() => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); }}><Search className="size-4 shrink-0" aria-hidden="true"/></Button> : null}
         {showMobileDateAction ? <Button type="submit" className="unified-list-date-submit">View</Button> : null}
         {compactInline && contextualFilterCount === 1 ? <div className="unified-list-inline-control">{filterControls}</div> : null}

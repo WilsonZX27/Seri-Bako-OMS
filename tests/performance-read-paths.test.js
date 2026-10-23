@@ -268,7 +268,8 @@ test("topbar batches permissions and skips full counts and unused details while 
   const api = pendingActions(db, { "pr.manager_approve": true, "schedule.approve": true, "outlet_daily_record.post": true }, permissionCalls);
   const items = await api.getCurrentUserPendingActions(5);
   assert.equal(permissionCalls.length, 1);
-  assert.equal(permissionCalls[0].length, 9);
+  assert.equal(permissionCalls[0].length, 10);
+  assert.ok(permissionCalls[0].includes("assets.view"));
   assert.equal(items.length, 3);
   assert.deepEqual(db.calls.map((call) => call.table).sort(), ["outlet_daily_records", "purchase_requests", "schedule_weeks"]);
   for (const call of db.calls) {
@@ -304,11 +305,24 @@ test("failed topbar workflow queries propagate unavailable instead of a false em
 
  test("maintenance actions use scoped RPC and propagate unavailable", async () => {
   for (const error of [null, {message:"missing migration"}]) {
-   const db=database(()=>({data:error?null:{total:1,items:[{id:"repair",created_at:"2026-10-13",location:"Assigned outlet"}]},error}));
+   const db=database(call=>call.table==="get_my_maintenance_actions"
+    ? {data:error?null:{total:1,items:[{id:"repair",created_at:"2026-10-13",location:"Assigned outlet"}]},error}
+    : call.table==="asset_maintenance"
+     ? {data:[{id:"repair",asset_id:"asset-1",description:"Cooler not holding temperature",priority:"high",author_name:"Operator"}],error:null}
+     : call.table==="assets"
+      ? {data:[{id:"asset-1",item_name:"Two Door Chiller"}],error:null}
+      : {data:[],count:null,error:null});
    const result=await pendingActions(db,{"assets.maintenance":true},[]).getCurrentUserPendingActionSnapshot(5);
    assert.equal(result.unavailable,Boolean(error));
    assert.equal(result.total,error?null:1);
    assert.equal(db.calls[0].table,"get_my_maintenance_actions");
-   if(!error) assert.equal(result.items[0].href,"/asset-management/maintenance/repair");
+   if(!error) {
+    assert.equal(result.items[0].href,"/asset-management/maintenance/repair");
+    assert.equal(result.items[0].maintenance_description,"Cooler not holding temperature");
+    assert.equal(result.items[0].maintenance_priority,"high");
+    assert.equal(result.items[0].maintenance_author_name,"Operator");
+    assert.equal(result.items[0].maintenance_asset_name,null);
+    assert.equal(db.calls.some(call=>call.table==="assets"),false);
+   }
   }
  });

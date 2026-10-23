@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
 const ts=require('typescript');
-function load(file){const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports});return exports;}
+function load(file){const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports,require:name=>name==='@/lib/product-order'?load('src/lib/product-order.ts'):require(name)});return exports;}
 const {dailyTracking}=load('src/lib/daily-product-tracking.ts');
 const {salesChannels,cardChannels,otherChannels}=load('src/lib/outlet-sales-channels.ts');
 test('daily record snapshots survive later product reclassification',()=>{

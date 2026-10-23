@@ -1,3 +1,7 @@
+## v9.2.130 (Preview candidate) — scoped pending-state recovery
+
+An external submit button releases its own pending UI if the corresponding active form bridge unmounts. This does not assert save success or retry an action. The independently reviewed five-file fixture patch is now explicitly integrated; production behavior is unchanged by those fixtures. The Node 22 failure triage and remaining visual/contract gates are recorded in `docs/v10/FAILURE-TRIAGE-2026-10-23.md` and the versioned release note.
+
 ## v9.2.129 (Preview candidate) — v10 readiness baseline
 
 This release begins the v10 readiness programme while retaining the existing 9.2.x release scheme. It does not declare v10 complete. The current 131-page / 38-handler source inventory, nine-role coverage plan, frozen design contract, cache ownership, performance baseline and release gates are in `docs/v10/README.md`. Package, lockfile, footer and these release records advance together; the prebuild consistency check rejects drift. No business workflow, authentication policy, database or cache policy changes in this batch.

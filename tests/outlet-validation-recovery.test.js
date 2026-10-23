@@ -5,7 +5,7 @@ const vm = require('node:vm');
 const ts = require('typescript');
 function load(file, mocks) {
   const exports = {};
-  vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'), {compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText,{exports,require:name=>name in mocks ? mocks[name] : name.startsWith('@/lib/outlet-sales-channels') || name.startsWith('@/lib/daily-product-tracking') ? load(name.replace('@/', 'src/')+'.ts', mocks) : name === 'zod' || name === 'react/jsx-runtime' ? require(name) : {},FormData,Error,URLSearchParams,...mocks.__globals});
+  vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'), {compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022}}).outputText,{exports,require:name=>name in mocks ? mocks[name] : name.startsWith('@/lib/outlet-sales-channels') || name.startsWith('@/lib/daily-product-tracking') || name.startsWith('@/lib/product-order') ? load(name.replace('@/', 'src/')+'.ts', mocks) : name === 'zod' || name === 'react/jsx-runtime' ? require(name) : {},FormData,Error,URLSearchParams,...mocks.__globals});
   return exports;
 }
 test('outlet schema rejection returns feedback without navigation or writes', async () => {

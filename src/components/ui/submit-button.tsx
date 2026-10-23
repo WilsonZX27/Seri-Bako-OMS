@@ -92,6 +92,12 @@ export function FormPendingBridge({ formId }: { formId: string }) {
   const { pending } = useFormStatus();
   useEffect(() => {
     document.dispatchEvent(new CustomEvent("sb:form-pending", { detail: { formId, pending } }));
+    // A conditional form can disappear before React reports pending=false.
+    // Release only this form's external UI; this says nothing about save outcome
+    // and never retries or confirms the underlying action.
+    return () => {
+      if (pending) document.dispatchEvent(new CustomEvent("sb:form-pending", { detail: { formId, pending: false } }));
+    };
   }, [formId, pending]);
   return null;
 }

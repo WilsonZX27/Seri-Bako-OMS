@@ -1,13 +1,13 @@
 # OMS v10 readiness programme
 
-Status: preparation; **v10 is not accepted or complete**. Baseline is Preview `ae6bc16423842824a212f0054b52d78b4912badd` (READY). Current programme release candidate is **9.2.129**, preserving the existing numeric 9.2.x scheme. A future v10 version requires the gates below; no Production promotion is authorised by this plan.
+Status: preparation; **v10 is not accepted or complete**. Baseline is Preview `ae6bc16423842824a212f0054b52d78b4912badd` (READY). Current programme release candidate is **9.2.130**, preserving the existing numeric 9.2.x scheme. A future v10 version requires the gates below; no Production promotion is authorised by this plan.
 
 ## One source of truth
 
 - Candidate: branch `codex/v10-readiness-20261023` in the existing `/private/tmp/oms-preview-acceptance-20261023` worktree. Historical branches/snapshots stay unchanged; they are evidence, not alternative release candidates.
 - Baseline inventory: `route-ledger.csv`, `role-route-ledger.csv`, `coverage-plan.json`, `source-dependency-edges.csv`. Regenerate with Node 22: `node scripts/v10-readiness-inventory.cjs`. It is offline and reads source only. Do not overwrite accumulated cell evidence in `evidence-ledger.csv`.
 - Package version is release authority; the lockfile root versions, `src/lib/app-version.ts`, current PRODUCT/DESIGN entries and one release note must match. `npm run release:check -- --base-ref <full verified deployed SHA>` must pass before every publication; prebuild rejects consistency drift.
-- Existing separate five-test-file fixture patch stays unpublished and outside this batch. The original source at `/Users/seribako/Documents/Codex/2026-10-21/task/oms-ui-stabilization` is detached at `f701ac2065e1da9d568738bcafa126d32b9339ad` with 95 changed paths; it and all historical worktrees are preserved. No wholesale snapshot copying.
+- The separate five-test-file fixture patch remained outside 9.2.129; its reviewed hunks are explicitly integrated in 9.2.130, with provenance in FAILURE-TRIAGE-2026-10-23.md. The original worktree remains preserved. The original source at `/Users/seribako/Documents/Codex/2026-10-21/task/oms-ui-stabilization` is detached at `f701ac2065e1da9d568738bcafa126d32b9339ad` with 95 changed paths; it and all historical worktrees are preserved. No wholesale snapshot copying.
 
 ## Verified Phase 0 baseline
 
@@ -47,3 +47,8 @@ Karpathy/Ponytail and UI UX Pro Max were discussed as inspiration. This plan ado
 ## Definition of v10 readiness
 
 Every applicable route/role/state cell must have exact source SHA, reproduction, owner, test/artifact and outcome. Excluded roles require evidence of correct denial. Source review, isolated fixtures, Mock rendering, live Preview, and Production evidence remain separate. No P0 defect or unknown save outcome may be hidden by a loading state or generic success message. Performance changes require measured before/after evidence on the same conditions. All remaining P1 exceptions must be explicit and approved before final v10 designation. A READY deployment alone never completes these gates.
+
+
+## Current follow-up state — 9.2.130
+
+The phase-0 baseline records above remain historical. The Node 22 follow-up explicitly integrates the original five-file fixture batch and fixes a demonstrated pending-bridge unmount subcase. Current full-suite debt is 13 failures (1,719 total / 1,706 pass), with no added failure versus 9.2.129. See `FAILURE-TRIAGE-2026-10-23.md` and `failure-triage-20.csv` for each result. Rendered acceptance and real performance measurements remain unfulfilled gates.

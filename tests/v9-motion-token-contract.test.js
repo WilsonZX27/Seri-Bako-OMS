@@ -1,3 +1,5 @@
+import { createRequire } from "node:module";
+const requirePostcss = () => createRequire(import.meta.url)("postcss");
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
@@ -26,9 +28,19 @@ test("v9 surfaces and overlays use semantic color and layer tokens", () => {
   assert.match(globals, /--sb-surface-subtle:\s*#fafafa/);
   assert.match(upload, /text-\[var\(--sb-text-muted\)\]/);
   assert.match(procurement, /bg-\[var\(--sb-surface-subtle\)\]/);
-  assert.match(designSystem, /\.unified-list-layer \{[^}]*z-index: var\(--sb-z-sheet-backdrop\)/);
-  assert.match(designSystem, /\.unified-list-sheet \{[^}]*z-index: var\(--sb-z-sheet\)/);
-  assert.doesNotMatch(designSystem, /\.unified-list-(?:layer|backdrop|sheet) \{[^}]*z-index: 10[01]/);
+  const css = requirePostcss().parse(designSystem);
+  const expected = { ".unified-list-layer": "var(--sb-z-sheet-backdrop)", ".unified-list-backdrop": "var(--sb-z-sheet-backdrop)", ".unified-list-sheet": "var(--sb-z-sheet)" };
+  for (const [selector, value] of Object.entries(expected)) {
+    const declarations = [];
+    css.walkRules(rule => { if (rule.selectors?.includes(selector)) rule.walkDecls("z-index", declaration => declarations.push(declaration.value)); });
+    assert.ok(declarations.length, `${selector} must explicitly declare its layer`);
+    assert.ok(declarations.every(actual => actual === value), `${selector}: ${declarations.join(", ")}`);
+    const token = value.slice(4, -1);
+    const definitions = [];
+    requirePostcss().parse(globals).walkDecls(token, declaration => definitions.push(declaration.value));
+    assert.ok(definitions.length, `${token} must resolve to a defined layer`);
+    assert.ok(definitions.every(definition => /^\d+$/.test(definition)), `${token} must be an integer layer`);
+  }
 });
 
 test("v9 elevation uses defined semantic shadows for panels, rails, and dialogs", () => {

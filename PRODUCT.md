@@ -1,3 +1,7 @@
+## v9.2.132 (Preview candidate) — workspace semantic verification
+
+Synthetic SSR verifies Daily task copy, nine-role finance visibility, real procurement queue states, inventory permission filtering and GET filter preservation. CSS layer declarations are parsed independently of formatting. People Operations no longer receives an AP-aging quick action; it receives My schedule instead. Permissions, financial queries and business data are unchanged. Browser layout/focus/lifecycle acceptance remains pending; see `docs/v10/SEMANTIC-WORKSPACES-2026-10-23.md`.
+
 ## v9.2.131 (Preview candidate) — semantic register contracts
 
 PR header and information-order checks now render the actual page templates with the shared table/sort components instead of requiring one exact JSX spelling. They additionally verify row/column alignment, real field values, sort filter preservation and explicit zero. Release documentation checks call the same release-consistency guard used before deployment and recognise the accepted Preview candidate status. Product layout and business behavior are unchanged; current visual gates remain open.

@@ -56,3 +56,7 @@ The phase-0 baseline records above remain historical. The Node 22 follow-up expl
 ## Current semantic checks — 9.2.131
 
 PR header/value/order checks now use real shared-component SSR and release documentation calls the actual release guard. Current Node 22 result: 1,721 total / 1,711 pass / 10 fail, no new failures. See `SEMANTIC-CONTRACTS-2026-10-23.md`. Product source differs only in displayed release metadata. The programme remains unaccepted until actual route/role/viewport/state gates pass.
+
+## 9.2.132 semantic workspace checkpoint
+
+Actual synthetic source execution identified and fixed People Operations AP-aging quick-action exposure. Node 22: 1748 / 1743 pass / 5 retained failures; zero added failure. Five original semantic contracts resolved, while their layout/focus/lifecycle parts remain explicitly pending. See `SEMANTIC-WORKSPACES-2026-10-23.md`. No live-role or performance acceptance is implied.

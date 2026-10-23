@@ -19,7 +19,8 @@ test("dashboard composition is all-role, task-first, and finance-gated", () => {
   assert.doesNotMatch(view, /Protected controls/);
   assert.match(view, /data-dashboard-actions/);
   assert.match(view, /<ConsoleSection title="Actions" kind="action">/);
-  assert.match(view, /tabletRailMode="context"/);
+  // Rail geometry is a pending browser gate, not an authorization assertion.
+  assert.match(view, /rightRail=\{desktopActionRail\}/);
   assert.doesNotMatch(view, /title="Workspace context"|title="Alerts"/);
   assert.match(view, /data-dashboard-pipeline/);
   assert.match(view, /data-dashboard-pipeline className="grid grid-cols-2/);

@@ -201,7 +201,9 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
               ]
             : [
                 { href: "/purchase-requests", label: "Approval pipeline", icon: FileText },
-                { href: "/supplier-invoices/aging", label: "AP aging", icon: ReceiptText },
+                showFinance
+                  ? { href: "/supplier-invoices/aging", label: "AP aging", icon: ReceiptText }
+                  : { href: "/attendance/my-schedule", label: "My schedule", icon: ClipboardList },
                 { href: "/stock-counts", label: "Stock count", icon: CheckCircle2 },
               ];
 

@@ -26,3 +26,23 @@ test('daily compact header retains date and branch controls without duplicate br
  assert.match(result,/type="hidden" name="status" value="all"/);
  assert.match(result,/unified-list-filter-label/);assert.match(result,/<strong>687<\/strong>/);
 });
+
+test('daily GET form preserves populated date, pinned branch and hidden secondary filters exactly once',()=>{
+ const Select=p=>React.createElement('select',{name:p.name,value:p.value,defaultValue:p.defaultValue,onChange:()=>{},'aria-label':p.ariaLabel},p.options.map(o=>React.createElement('option',{key:o.value,value:o.value},o.label)));
+ forms.length=0;
+ const result=renderToStaticMarkup(React.createElement(context.exports.UnifiedListHeader,{phoneOnly:true,compactPinnedFields:['branch'],resetHref:'/outlet-daily-records',resultCount:0},[
+  React.createElement('input',{key:'date',name:'date',type:'date',defaultValue:'2026-10-23'}),
+  React.createElement(Select,{key:'branch',name:'branch',value:'branch-a',ariaLabel:'Branch',options:[{value:'all',label:'All branches'},{value:'branch-a',label:'Fixture A'}]}),
+  React.createElement(Select,{key:'status',name:'status',value:'morning_recorded',ariaLabel:'Status',options:[{value:'all',label:'All statuses'},{value:'morning_recorded',label:'In Progress'}]}),
+  React.createElement('input',{key:'qty',type:'hidden',name:'qty_sent',value:'missing'})
+ ]));
+ assert.equal((result.match(/<form\b/g)||[]).length,1);
+ assert.ok(!forms[0].method || forms[0].method.toLowerCase()==='get');
+ assert.match(result,/aria-haspopup="dialog"/);assert.match(result,/aria-expanded="false"/);
+ const values=new URLSearchParams();
+ for(const input of result.matchAll(/<input\b[^>]*>/g)){const name=input[0].match(/name="([^"]+)"/)?.[1];if(name)values.append(name,input[0].match(/value="([^"]*)"/)?.[1]??'');}
+ for(const select of result.matchAll(/<select\b[^>]*name="([^"]+)"[^>]*>([\s\S]*?)<\/select>/g)){const selected=select[2].match(/<option[^>]*value="([^"]*)"[^>]*selected=""/);assert.ok(selected);values.append(select[1],selected[1]);}
+ assert.deepEqual(Object.fromEntries(values),{date:'2026-10-23',status:'morning_recorded',qty_sent:'missing',branch:'branch-a'});
+ for(const key of ['date','branch','status','qty_sent'])assert.equal(values.getAll(key).length,1,`${key} submitted once`);
+ assert.match(result,/<strong>0<\/strong>/);
+});

@@ -96,8 +96,9 @@ test("outlet daily phone filters keep date and branch visible with secondary fil
   assert.match(page, /compactPinnedFields=\{\["branch"\]\}/);
   assert.match(page, /<Input name="date" type="date"/);
   assert.match(page, /<SelectControl name="status"/);
-  assert.match(filter, /const pinnedFilters = filters\.filter/);
-  assert.match(filter, /const drawerFilters = filters\.filter/);
+  // Actual SSR/GET field preservation is checked in unified-list-inline-render.
+  // Do not require drawer candidates to be declared in one particular expression.
+  assert.match(filter, /compactPinnedFields/);
   assert.match(filter, /!primaryInDrawer[\s\S]*\? <SearchControl/);
   assert.doesNotMatch(filter, /: <div className="unified-list-primary-control" \/>/);
 });

@@ -82,5 +82,12 @@ test("Outlet Daily posting actions never inherit procurement-only supplier and a
   const dashboard = read("src/components/dashboard-workspace.tsx");
   assert.match(pending, /id: `outlet-daily-\$\{row\.id\}`/);
   assert.match(dashboard, /isOutletDailyAction[\s\S]*Review outlet quantities and post to lock editing/);
-  assert.match(dashboard, /isOutletDailyAction \? "Outlet Daily"/);
+  const { renderDashboard } = require("./helpers/render-workspaces.cjs");
+  const html = renderDashboard("super_admin", { pendingApprovals: [{ id: "outlet-daily-fixture", document_no: "OD/001", href: "/outlet-daily-records/fixture", step: "Ready to post", supplier_names: ["POISON SUPPLIER"], estimated_total: 987654.32, line_count: 999 }] });
+  const row = html.match(/<a[^>]*data-dashboard-pending-row[^>]*>[\s\S]*?<\/a>/)?.[0];
+  assert.ok(row);
+  assert.match(row, /Outlet Daily · OD\/001/);
+  assert.match(row, /Ready to post/i);
+  assert.match(row, /href="\/outlet-daily-records\/fixture"/);
+  assert.doesNotMatch(row, /POISON|987|999|Supplier pending|sb-pr-phone-(supplier|items|amount)/);
 });

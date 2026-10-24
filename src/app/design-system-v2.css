@@ -3283,10 +3283,6 @@ html[data-design-layer="v2"] .sb-repair-summary { grid-template-columns: minmax(
 .sb-daily-product-line {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
-.sb-daily-product-line.sb-daily-line-three > label,
-.sb-daily-line-head.sb-daily-line-three > span:not(:first-child) {
-  translate: calc(50% + .25rem) 0;
-}
 .sb-daily-product-line input[type="number"] {
   width: 100%;
   min-width: 0;

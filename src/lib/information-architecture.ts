@@ -99,5 +99,7 @@ export function getLandingIaItems(role: UserRole, permissionMap?: Record<string,
 }
 
 export function getIaItemForPath(pathname: string) {
-  return informationArchitecture.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`));
+  return informationArchitecture
+    .filter((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))
+    .sort((a, b) => b.href.length - a.href.length)[0];
 }

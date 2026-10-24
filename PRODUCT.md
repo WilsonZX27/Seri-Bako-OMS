@@ -1,3 +1,7 @@
+## v9.2.146 (Preview) — Three verified responsive corrections
+
+Align the complete three-field Daily input group and its headings to the left grid tracks. Make the shared phone primary-action slot 48px high while preserving 44px secondary actions and larger-screen defaults. Resolve nested workspace names by their most-specific path so RO breadcrumbs say RO Management. No SQL capability activation, business-record changes or Production promotion.
+
 ## v9.2.145 (Preview) — Consolidated operational UI corrections
 
 Restore initial asset-transfer details and responsive actions, standardise RO sorting and recovery, simplify Daily and schedule-import layouts, reuse the shared asset tabs, and clarify Planning controls. Repair notifications include actual fault text; permission-scoped maintenance counts remain distinct from approvals. The open-repair reader degrades explicitly when its unactivated RPC is unavailable. Asset batch/numbering, paid EL and shared duplicate-repair SQL remain inactive. No business records, account settings or Production deployment are changed by this Preview release.

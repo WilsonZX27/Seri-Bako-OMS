@@ -54,3 +54,10 @@ test('Last updated by never infers a missing updater from submission or creation
  assert.match(query,/updated_by_name: record.updated_by \? actorDisplayName\(actorDisplayMap, record.updated_by\) : null/);
  assert.doesNotMatch(query,/updated_by_name: [^\n]*updated_by \?\? record.submitted_by/);
 });
+
+test('three-field quantity boxes and headings stay on the left grid tracks',()=>{
+ css.walkRules(rule=>{
+  if(!/sb-daily-(product-line|line-head)/.test(rule.selector))return;
+  rule.walkDecls('translate',decl=>assert.match(decl.value,/^(none|0(?:px)?(?: 0(?:px)?)?)$/,'Quantity boxes must not be shifted away from the product left edge'));
+ });
+});

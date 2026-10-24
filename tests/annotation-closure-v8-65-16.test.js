@@ -18,7 +18,7 @@ test("Outlet Daily aligns quantities and details in five desktop columns", () =>
   assert.match(form, /sb-daily-product-line/);
   const css=read("src/app/design-system-v2.css");
   assert.match(css, /grid-template-columns: minmax\(180px, 2fr\) repeat\(4, minmax\(72px, 1fr\)\)/);
-  assert.match(form, /tracking !== "food_daily" \? <span>/);
+  assert.match(form, /tracking !== "food_daily" \? <span[^>]*>/);
   assert.match(form, /xl:col-start-2 xl:col-span-4/);
   assert.doesNotMatch(form, />Sold out</);
   assert.match(form, /type="hidden" name="stockout"/);

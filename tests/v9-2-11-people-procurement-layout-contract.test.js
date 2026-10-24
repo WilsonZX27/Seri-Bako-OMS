@@ -27,7 +27,7 @@ test("PO and GRN tables nest clickable source documents under their primary numb
   assert.match(grn, /From \{receiving\.po_no\}/);
   assert.match(grn, /purchase-orders\/\$\{receiving\.purchase_order_id\}/);
   for (const source of [po, grn]) {
-    assert.match(source, /\[&>td\]:h-16 \[&>td\]:align-top/);
-    assert.match(source, /line-clamp-2 leading-4/);
+    assert.match(source, /\[&>td\]:h-16 \[&>td\]:align-middle/);
+    assert.match(source, /whitespace-normal break-words leading-4/);
   }
 });

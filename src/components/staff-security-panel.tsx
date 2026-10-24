@@ -1,3 +1,5 @@
+import { todayInKualaLumpur } from "@/lib/business-date";
+import { employmentSignInBlockReason } from "@/lib/staff-employment-status";
 import { CopyTextButton } from "@/components/ui/copy-text-button";
 import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +9,7 @@ import { readTemporaryPasswordHandoff } from "@/server/auth/temporary-password-h
 import { hasPermission } from "@/server/auth/permissions";
 import { getCurrentProfile } from "@/server/queries/common";
 import { getStaff, getStaffAccess, getRoles } from "@/server/queries/foundation";
-import { forceStaffPasswordChange, permanentlyDeleteStaff, repairStaffSignInLink, resetStaffTemporaryPassword } from "@/server/actions/foundation";
+import { disableStaff, forceStaffPasswordChange, permanentlyDeleteStaff, repairStaffSignInLink, resetStaffTemporaryPassword } from "@/server/actions/foundation";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { formatDateTime } from "@/lib/utils";
 
@@ -51,11 +53,22 @@ export async function StaffSecurityPanel({ id }: { id: string }) {
   </div>;
 }
 
+export async function StaffAccessActions({id}:{id:string}) {
+  const context=await securityContext(id);
+  if(!context)return null;
+  const reason=employmentSignInBlockReason(context.staff,todayInKualaLumpur());
+  return <ConsoleSection title="Sign-in access" kind="action">
+    {reason ? <p className="text-xs">{reason}</p> : null}
+    {context.staff.status!=="disabled" ? <DangerConfirmForm action={disableStaff.bind(null,id)} title="Disable sign-in" description="Existing records are retained." checkboxLabel="Confirm disable sign-in." triggerIcon="deactivate" triggerVariant="outline" buttonLabel="Disable sign-in" pendingLabel="Disabling…"/> : null}
+  </ConsoleSection>;
+}
+
 export async function StaffSecurityRail({ id }: { id: string }) {
   const context = await securityContext(id);
   if (!context) return null;
   const { staff, isOwner, authState } = context;
   return <>
+    <StaffAccessActions id={id}/>
     <ConsoleSection title="Password actions" kind="action">
       {isOwner && authState === "link_needs_repair" ? <form action={repairStaffSignInLink.bind(null, id)}><SubmitButton type="submit" variant="outline" className="w-full" pendingLabel="Checking exact match...">Repair sign-in link</SubmitButton></form> : null}
       <form action={resetStaffTemporaryPassword.bind(null, id)}><SubmitButton type="submit" className="w-full" pendingLabel="Generating...">{staff.auth_user_id ? "Reset temporary password" : "Create auth account"}</SubmitButton></form>

@@ -17,6 +17,7 @@ export function SelectControl({
   value,
   defaultValue,
   onValueChange,
+  onCreateOption,
   options,
   placeholder = "Select an option",
   ariaLabel,
@@ -38,6 +39,7 @@ export function SelectControl({
   value?: string | number;
   defaultValue?: string | number;
   onValueChange?: (value: string) => void;
+  onCreateOption?: (label: string) => void;
   options: SelectControlOption[];
   placeholder?: string;
   ariaLabel: string;
@@ -55,6 +57,7 @@ export function SelectControl({
   "data-pr-field"?: string;
 }) {
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const createOptionValue = `sb-create-option-${useId()}`;
   const emptyOptionValue = `sb-empty-option-${useId()}`;
   const [nativeDialogContainer, setNativeDialogContainer] = useState<HTMLElement | null>(null);
   const [open, setOpen] = useState(false);
@@ -120,6 +123,9 @@ export function SelectControl({
 
   const handleValueChange = (optionValue: string) => {
     if (typeof optionValue !== "string") return;
+    // Radix may emit an empty native-select change while a newly created option mounts.
+    if (onCreateOption && required && optionValue === "") return;
+    if (optionValue === createOptionValue) { if(query.trim())onCreateOption?.(query.trim()); return; }
     const nextValue = optionValue === emptyOptionValue ? "" : optionValue;
     if (!isControlled) setInternalValue(nextValue);
     onValueChange?.(nextValue);
@@ -205,7 +211,8 @@ export function SelectControl({
                   <Select.ItemText>{option.label}</Select.ItemText>
                 </Select.Item>
               ))}
-              {!visibleOptions.length ? (
+              {onCreateOption && query.trim() && !options.some(option=>option.label.toLocaleLowerCase()===query.trim().toLocaleLowerCase()) ? <Select.Item value={createOptionValue} className="cursor-pointer rounded px-3 py-2 text-sm font-medium outline-none data-[highlighted]:bg-accent"><Select.ItemText>Add “{query.trim()}” as a location…</Select.ItemText></Select.Item> : null}
+              {!visibleOptions.length && !onCreateOption ? (
                 <p className="px-3 py-4 text-center text-xs text-[var(--sb-text-muted)]">
                   No matching options
                 </p>

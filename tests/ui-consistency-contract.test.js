@@ -100,7 +100,8 @@ test("shared operational feedback uses semantic state tokens instead of one-off 
   assert.match(priorityBadge, /--sb-warning-bg/);
   assert.doesNotMatch(priorityBadge, /(?:border|bg|text)-(?:red|pink|emerald|amber)-\d/);
   assert.match(systemStates, /--sb-success-bg/);
-  assert.match(systemStates, /--sb-info-bg/);
+  assert.match(systemStates, /--sb-border-soft/);
+  assert.match(systemStates, /ShieldAlert : Info/);
   assert.doesNotMatch(systemStates, /(?:border|bg|text)-(?:emerald|blue|amber|purple|teal|slate|red)-\d/);
   assert.match(authSetPassword, /<Notice tone="error">/);
   assert.match(authSetPassword, /<Notice tone="warning"/);
@@ -120,7 +121,8 @@ test("administration decision directories replace narrow tables with shared oper
   assert.match(sequences, /Next \$\{sequence\.next_number\}/);
   assert.match(staffs, /<Table[^>]*mobileHidden[^>]*aria-label="Employees"/);
   assert.match(staffs, /<OperationalList ariaLabel="Employees" className="overflow-hidden[^"]*">/);
-  assert.match(staffs, /staffAuthStateLabels\[getStaffAuthState\(staff\)\]/);
+  assert.doesNotMatch(staffs, /staffAuthStateLabels/);
+  assert.match(staffs, /staffEmploymentStatus/);
   assert.match(staffs, /staff\.default_branch_name\?\?"No default outlet"/);
 });
 

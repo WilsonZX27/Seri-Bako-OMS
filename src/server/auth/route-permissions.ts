@@ -1,6 +1,7 @@
 import { informationArchitecture } from "@/lib/information-architecture";
 
 const exactRoutePermissions: Record<string, string[]> = {
+  "/people/ro": ["comp_time.read"],
   "/attendance/confirmations": ["dashboard.view"],
   "/attendance/payslips": ["dashboard.view"],
   "/attendance/my-schedule": ["schedule.read"],

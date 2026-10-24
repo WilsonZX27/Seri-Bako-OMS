@@ -50,7 +50,7 @@ export async function buildPeoplePdf(sheets: PeopleWorkbookSheet[]) {
       const worked=reviewedFourPunchSeconds(day), valid=worked!=null;
       const pending=valid?day.pendingOvertimeSeconds:null;
       const remarks=[day.exceptions,day.event,(day.punches?.length??0)>4?`All punches: ${day.punches!.join(", ")}`:null,pending?"OT awaits People approval":null].filter(Boolean).join("; ");
-      const values=[day.date,day.day,day.off?"OFF":`${day.scheduleStart??""}–${day.scheduleEnd??""}`,...Array.from({length:4},(_,i)=>day.punches?.[i]??""),attendancePdfDuration(worked),attendancePdfDuration(valid?day.overtimeSeconds:null),attendancePdfDuration(pending),attendancePdfDuration(valid?day.shortHoursSeconds:null),"",remarks];
+      const values=[day.date,day.day,day.paidEmergencyLeave?"EL":day.off?"OFF":`${day.scheduleStart??""}–${day.scheduleEnd??""}`,...Array.from({length:4},(_,i)=>day.punches?.[i]??""),attendancePdfDuration(worked),attendancePdfDuration(valid?day.overtimeSeconds:null),attendancePdfDuration(pending),attendancePdfDuration(day.paidEmergencyLeave?0:valid?day.shortHoursSeconds:null),"",remarks];
       const lines=values.map((value,i)=>wrap(value,widths[i]-6,7)),height=Math.max(29,...lines.map(ls=>ls.length*10+10));
       if(height>340)throw Error("Attendance note is too long for PDF; shorten the note or use XLSX.");
       if(y-height<75)newPage(true);
@@ -58,7 +58,7 @@ export async function buildPeoplePdf(sheets: PeopleWorkbookSheet[]) {
     }
   }
   doc.getPages().forEach((page,i)=>{
-    page.drawText("Net work excludes breaks. Short hours = late + early leave. Pending OT is not approved.",{x:24,y:41,size:7,font,color:muted});
+    page.drawText("Net work excludes breaks. Short hours = late + early leave; paid EL is exempt. Pending OT is not approved.",{x:24,y:41,size:7,font,color:muted});
     page.drawText("PPH is intentionally blank; no pay multiplier or monetary calculation is applied.",{x:24,y:29,size:7,font,color:muted});
     page.drawText(`${i+1} / ${doc.getPageCount()}`,{x:780,y:17,size:7,font,color:muted});
   });

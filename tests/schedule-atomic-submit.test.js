@@ -8,6 +8,7 @@ const assignments=[{staff_id:'dddc2b38-e153-4eaf-bd26-37224e5fa020',work_date:'2
 function route({role='manager',permission=true,error=null,excludedStaffIds,permissionErrorAfterMutation=false}={}) {
   const calls=[],exports={};let permissionCalls=0;
   const mocks={
+    '@/server/queries/schedule-leave-capabilities':{readPaidEmergencyLeaveCapability:async()=>false},
     'next/server':{NextResponse:{json:(body,options)=>({body,status:options?.status??200})}},
     '@/server/http/request-security':{rejectCrossSiteMutation:()=>null},
     '@/server/auth/tenant-actor':{requireActiveTenantActor:async()=>({roleCode:role})},

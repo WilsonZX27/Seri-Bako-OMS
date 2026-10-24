@@ -1,5 +1,5 @@
 const test=require("node:test"),assert=require("node:assert/strict"),fs=require("node:fs"),Module=require("node:module"),ts=require("typescript");
-const file="src/lib/attendance/export-policy.ts",m=new Module(file,module);m.paths=module.paths;m._compile(ts.transpileModule(fs.readFileSync(file,"utf8"),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,file);
+const file="src/lib/attendance/export-policy.ts",m=new Module(file,module);m.paths=module.paths;m.require=name=>name==="@/lib/attendance/emergency-leave"?require("./helpers/load-source.cjs")()("src/lib/attendance/emergency-leave.ts"):require(name);m._compile(ts.transpileModule(fs.readFileSync(file,"utf8"),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,file);
 const {exportPunches,exportWorkedSeconds,exportShortHoursSeconds,exportExceptionLabels}=m.exports;
 const punches=["2026-10-05T09:05:00+08:00","2026-10-05T13:00:00+08:00","2026-10-05T14:00:00+08:00","2026-10-05T18:00:00+08:00"];
 const row={staffs:{employment_type:"full_time"},calculation:{punches},presence_seconds:32100,worked_seconds:28500,late_seconds:300,early_leave_seconds:1800};

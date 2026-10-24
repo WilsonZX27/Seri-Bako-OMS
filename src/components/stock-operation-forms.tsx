@@ -1,5 +1,6 @@
 "use client";
 
+import { ManagedStockDestinationDialog } from "@/components/managed-stock-destination";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { AlertTriangle, ChevronDown, MessageSquare, Search, Plus, X } from "lucide-react";
@@ -16,7 +17,7 @@ type Branch = { id: string; branch_code: string; branch_name: string; status: st
 type SeedLine = { item_id: string; item_code: string; item_name: string; available_qty: number; quantity: number; uom: string };
 type TransferReceiveLine = { id: string; item_id: string; item_name: string; item_code?: string | null; quantity: number; received_quantity: number; uom: string };
 
-export function StockTransferForm({ branches, selectedFromBranchId, seedLines, action, formId, showSubmit = true }: { branches: Branch[]; selectedFromBranchId?: string; seedLines: SeedLine[]; action: (formData: FormData) => Promise<void | { error: string }>; formId?: string; showSubmit?: boolean }) {
+export function StockTransferForm({ branches, selectedFromBranchId, seedLines, action, formId, showSubmit = false, canCreateDestination = false }: { canCreateDestination?:boolean; branches: Branch[]; selectedFromBranchId?: string; seedLines: SeedLine[]; action: (formData: FormData) => Promise<void | { error: string }>; formId?: string; showSubmit?: boolean }) {
   const router = useRouter();
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const [result, submitTransfer] = useActionState(async (previous: { error: string; values: Array<[string, string]>; attempt: number } | null, data: FormData) => {
@@ -25,7 +26,9 @@ export function StockTransferForm({ branches, selectedFromBranchId, seedLines, a
   }, null);
   const saved = new URLSearchParams(result?.values ?? []);
   const [toBranchId, setToBranchId] = useState(() => branches.find(branch => branch.id !== selectedFromBranchId)?.id ?? "");
-  const destinationName = branches.find(branch => branch.id === toBranchId)?.branch_name ?? "";
+  const [createdDestinations,setCreatedDestinations]=useState<Branch[]>([]);
+  const [newDestinationName,setNewDestinationName]=useState<string|null>(null);
+  const destinations=[...branches,...createdDestinations.filter(item=>!branches.some(branch=>branch.id===item.id))];
   useEffect(() => {
     if (result) document.dispatchEvent(new CustomEvent("sb:form-settled", { detail: { formId } }));
   }, [result, formId]);
@@ -34,7 +37,7 @@ export function StockTransferForm({ branches, selectedFromBranchId, seedLines, a
       <form key={result?.attempt ?? 0} id={formId} action={submitTransfer} className="space-y-3">
       {formId ? <FormPendingBridge formId={formId} /> : null}
         {result?.error ? <p role="alert" className="rounded-sm border border-destructive p-3 text-sm text-destructive">{result.error}</p> : null}
-        {branches.length < 2 ? <p role="status" className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />A transfer needs access to two different branches. Contact an administrator to review your branch access.</p> : null}
+        {destinations.length < 2 ? <p role="status" className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />A transfer needs access to two different branches. Contact an administrator to review your branch access.</p> : null}
         <input type="hidden" name="idempotency_key" value={saved.get("idempotency_key") ?? idempotencyKey} />
         <details open data-stock-transfer-setup className="erp-surface group overflow-hidden">
           <summary className="flex min-h-[var(--sb-control-height)] cursor-pointer list-none items-center justify-between border-b px-3 py-2.5 text-sm font-semibold [&::-webkit-details-marker]:hidden">
@@ -43,13 +46,13 @@ export function StockTransferForm({ branches, selectedFromBranchId, seedLines, a
           <div className="grid grid-cols-2 gap-3 p-3 md:grid-cols-3 md:p-4">
             <Field label="Transfer Date" className="col-span-2 md:col-span-1"><Input name="transfer_date" type="date" defaultValue={saved.get("transfer_date") ?? getToday()} required /></Field>
             <Field label="From Branch"><SelectControl name="from_branch_id" ariaLabel="From branch" searchable value={selectedFromBranchId ?? branches[0]?.id ?? ""} onValueChange={selectFromBranch} required options={branches.map(branch => ({value:branch.id,label:branch.branch_name}))}/></Field>
-            <Field label="To Branch"><SelectControl name="to_branch_id" ariaLabel="To branch" searchable value={toBranchId} onValueChange={setToBranchId} required options={branches.map(branch => ({value:branch.id,label:branch.branch_name,disabled:branch.id === selectedFromBranchId}))}/>{destinationName ? <span className="break-words text-[11px] text-muted-foreground lg:sr-only">{destinationName}</span> : null}</Field>
-            <p className="col-span-2 text-xs text-muted-foreground md:col-span-3">From branch → To branch. Stock moves only after posting.</p>
-            <Field label="Remarks" className="col-span-2 md:col-span-3"><Textarea name="remarks" defaultValue={saved.get("remarks") ?? ""} placeholder="Transfer reason or handling note" /></Field>
+            <Field label="To Branch"><SelectControl name="to_branch_id" ariaLabel="To branch" searchable value={toBranchId} onValueChange={setToBranchId} onCreateOption={canCreateDestination?setNewDestinationName:undefined} required options={destinations.map(branch => ({value:branch.id,label:branch.branch_name,disabled:branch.id === selectedFromBranchId}))}/></Field>
+            <details className="group/transfer-note col-span-2 md:col-span-3" open={Boolean(saved.get("remarks"))}><summary className="flex min-h-[var(--sb-control-height)] cursor-pointer list-none items-center justify-between text-xs text-muted-foreground">Transfer note (optional)<ChevronDown className="size-3.5 group-open/transfer-note:rotate-180" aria-hidden="true"/></summary><Textarea name="remarks" aria-label="Transfer note" defaultValue={saved.get("remarks") ?? ""} placeholder="Transfer reason or handling note" /></details>
           </div>
         </details>
+        {canCreateDestination?<ManagedStockDestinationDialog key={newDestinationName??"closed"} name={newDestinationName} onClose={()=>setNewDestinationName(null)} onCreated={destination=>{setCreatedDestinations(current=>[...current.filter(item=>item.id!==destination.id),destination]);setToBranchId(destination.id);router.refresh();}}/>:null}
         <StockTransferLines seedLines={seedLines} recoveredValues={result?.values} />
-        {showSubmit ? <div className="flex justify-end"><SubmitButton disabled={!seedLines.length || branches.length < 2} pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create transfer</SubmitButton></div> : null}
+        {showSubmit ? <div className="flex justify-end"><SubmitButton disabled={!seedLines.length || destinations.length < 2} pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create transfer</SubmitButton></div> : null}
       </form>
   );
 }
@@ -136,16 +139,16 @@ export function StockTransferLines({ seedLines, recoveredValues }: { seedLines: 
     <h2 className="border-b px-3 py-2 text-sm font-semibold">Items</h2>
     <div className="divide-y">{rows.map((row, index) => {
       const item = seedLines.find(line => line.item_id === row.itemId);
-      return <div key={row.key} className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-3 p-3 lg:grid-cols-[minmax(0,2fr)_minmax(7rem,1fr)_minmax(7rem,1fr)_auto_auto]" data-transfer-item-row>
-        <div className="min-w-0 lg:self-end"><SelectControl ariaLabel={`Item ${index + 1}`} searchable startEmpty value={row.itemId} placeholder="Search item or code" searchPlaceholder="Search item or code" options={seedLines.map(line => ({value:line.item_id,label:`${line.item_name} · ${line.item_code}`,disabled:line.available_qty <= 0 || rows.some(other => other.key !== row.key && other.itemId === line.item_id)}))} onValueChange={itemId => update(row.key,{itemId,quantity:"",notes:"",notesOpen:false})}/></div>
+      return <div key={row.key} className="grid min-w-0 grid-cols-[minmax(0,1fr)_2.75rem_2.75rem] items-end gap-2 p-3 lg:grid-cols-[minmax(0,2fr)_minmax(7rem,1fr)_minmax(7rem,1fr)_auto_auto]" data-transfer-item-row>
+        <div className={item ? "min-w-0 lg:self-end" : "col-span-2 min-w-0 lg:col-span-1"}><SelectControl ariaLabel={`Item ${index + 1}`} searchable startEmpty value={row.itemId} placeholder="Search item or code" searchPlaceholder="Search item or code" options={seedLines.map(line => ({value:line.item_id,label:`${line.item_name} · ${line.item_code}`,disabled:line.available_qty <= 0 || rows.some(other => other.key !== row.key && other.itemId === line.item_id)}))} onValueChange={itemId => update(row.key,{itemId,quantity:"",notes:"",notesOpen:false})}/></div>
         {item ? <>
           <input type="hidden" name="line_item_id" value={item.item_id}/><input type="hidden" name="line_enabled" value={item.item_id}/><input type="hidden" name="line_uom" value={item.uom}/>
           <Field label="Quantity" className="col-start-1 row-start-2 lg:col-auto lg:row-auto"><Input name="line_quantity" aria-label={`Quantity for ${item.item_name}`} type="number" inputMode="decimal" min="0.0001" max={item.available_qty} step="0.0001" required value={row.quantity} onChange={event => update(row.key,{quantity:event.target.value})}/></Field>
-          <div className="col-start-1 row-start-3 text-xs lg:col-auto lg:row-auto lg:self-end lg:pb-2"><span className="block text-muted-foreground">Available</span><span className="tabular-nums">{formatNumber(item.available_qty)} {item.uom}</span></div>
-          <Button type="button" variant="ghost" size="icon" className="col-start-2 row-start-2 lg:col-auto lg:row-auto lg:self-end" aria-label={`Notes for ${item.item_name}`} aria-expanded={row.notesOpen} onClick={() => update(row.key,{notesOpen:!row.notesOpen})}><MessageSquare className="size-4"/></Button>
-          {row.notesOpen ? <Field label="Remarks" className="col-span-full"><Input autoFocus name="line_remarks" value={row.notes} onChange={event => update(row.key,{notes:event.target.value})}/></Field> : <input type="hidden" name="line_remarks" value={row.notes}/>}
+          <div className="col-span-2 col-start-2 row-start-2 pb-2 text-right text-xs lg:col-span-1 lg:col-auto lg:row-auto lg:pb-2 lg:text-left"><span className="block text-muted-foreground">Available</span><span className="tabular-nums">{formatNumber(item.available_qty)} {item.uom}</span></div>
+          <Button type="button" variant="ghost" size="icon" className="col-start-2 row-start-1 h-[var(--sb-control-height)] w-[var(--sb-control-height)] lg:col-auto lg:row-auto lg:self-end" aria-label={`Notes for ${item.item_name}`} aria-expanded={row.notesOpen} onClick={() => update(row.key,{notesOpen:!row.notesOpen})}><MessageSquare className="size-4"/></Button>
+          {row.notesOpen ? <Field label="Item note" className="col-span-full"><Input autoFocus name="line_remarks" value={row.notes} onChange={event => update(row.key,{notes:event.target.value})}/></Field> : <input type="hidden" name="line_remarks" value={row.notes}/>}
         </> : <span className="hidden lg:col-span-3 lg:block"/>}
-        <Button type="button" variant="ghost" size="icon" className="col-start-2 row-start-1 lg:col-start-5 lg:self-end" aria-label={`Remove line ${index + 1}`} disabled={rows.length === 1 && !row.itemId} onClick={() => { setRows(current => current.length === 1 ? [{...row,itemId:"",quantity:"",notes:"",notesOpen:false}] : current.filter(other => other.key !== row.key)); focusRow(Math.max(0,index-1)); }}><X className="size-4"/></Button>
+        <Button type="button" variant="ghost" size="icon" className="col-start-3 row-start-1 h-[var(--sb-control-height)] w-[var(--sb-control-height)] lg:col-start-5 lg:self-end" aria-label={`Remove line ${index + 1}`} disabled={rows.length === 1 && !row.itemId} onClick={() => { setRows(current => current.length === 1 ? [{...row,itemId:"",quantity:"",notes:"",notesOpen:false}] : current.filter(other => other.key !== row.key)); focusRow(Math.max(0,index-1)); }}><X className="size-4"/></Button>
       </div>;
     })}</div>
     <div className="flex justify-end border-t p-3"><Button type="button" variant="outline" disabled={rows.some(row => !row.itemId) || rows.length >= seedLines.filter(line => line.available_qty > 0).length} onClick={() => { setRows(current => [...current,{key:crypto.randomUUID(),itemId:"",quantity:"",notes:"",notesOpen:false}]); focusRow(rows.length); }}><Plus className="size-4"/>Add line</Button></div>

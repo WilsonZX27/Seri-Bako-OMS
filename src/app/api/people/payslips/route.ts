@@ -1,3 +1,5 @@
+import { readPaidEmergencyLeaveCapability } from "@/server/queries/schedule-leave-capabilities";
+import { payrollLineSchema } from "@/lib/validations/payroll-line";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -5,7 +7,7 @@ import { looseSupabase } from "@/lib/supabase/loose";
 import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 
 const command = z.discriminatedUnion("action", [
-  z.object({ action: z.literal("calculate"), confirmation: z.string().uuid(), lines: z.array(z.object({ kind: z.enum(["earning", "deduction"]), label: z.string().trim().min(1).max(120), amount: z.number().finite().nonnegative().max(999999999) })).min(1).max(50) }),
+  z.object({ action: z.literal("calculate"), confirmation: z.string().uuid(), lines: z.array(payrollLineSchema).min(1).max(50) }),
   z.object({ action: z.enum(["approve", "release"]), id: z.string().uuid(), version: z.number().int().positive() }),
 ]);
 const headers = { "cache-control": "private, no-store" };
@@ -31,6 +33,7 @@ export async function POST(request: Request) {
     const db = looseSupabase(await createClient()), value = input.data;
     const access = await db.rpc("attestation_people", { p_permission: "payroll.payslip.manage" });
     if (access.error || access.data !== true) return NextResponse.json({ message: "People payroll access is required." }, { status: 403, headers });
+    if (value.action === "calculate" && value.lines.some(line=>line.source_kind && line.source_kind !== "manual") && !await readPaidEmergencyLeaveCapability(db)) return NextResponse.json({message:"Paid-leave payroll protection is not active. No calculation was saved."},{status:409,headers});
     const result = value.action === "calculate"
       ? await db.rpc("save_employee_payslip", { p_confirmation: value.confirmation, p_lines: value.lines })
       : await db.rpc("advance_employee_payslip", { p_id: value.id, p_version: value.version, p_action: value.action });

@@ -1,3 +1,7 @@
+## v9.2.143 (Preview candidate) — Operational UI and People workflows
+
+Responsive actions, concise forms, central RO management and managed stock destinations. Includes the offboarding access guard and Chef import-catalog compatibility. Paid EL and asset batch migrations remain inactive; no historical payroll, holiday or inventory records are rewritten.
+
 ## v9.2.142 (local candidate) — Offboarding access guard
 
 Only login, per-request session checks and linked-profile fallback are changed. Last working day is inclusive in Asia/Kuala_Lumpur. No employee, role, payroll, inventory or database schema changes. Provider Auth ban and global token revocation are outside this release.

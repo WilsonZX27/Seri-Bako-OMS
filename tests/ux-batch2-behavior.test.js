@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const vm=require('node:vm');
 const ts=require('typescript');
-const load=require('./helpers/load-source.cjs')({Error,TypeError,crypto:require('node:crypto').webcrypto});
+const load=require('./helpers/load-source.cjs')({Error,TypeError,process:{env:{}},crypto:require('node:crypto').webcrypto});
 function harness(fetchImpl,promptImpl=()=> 'retained reason'){
  const slots=[];let index=0;
  const react={useRef:v=>{const n=index++;return slots[n]??(slots[n]={current:v})},useState:v=>{const n=index++;if(!(n in slots))slots[n]=v;return [slots[n],v=>{slots[n]=v}]}};

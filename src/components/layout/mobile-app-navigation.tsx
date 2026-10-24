@@ -4,7 +4,6 @@ import Link from "next/link";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import {
-  Activity,
   Boxes,
   CalendarDays,
   CheckCircle2,
@@ -45,19 +44,14 @@ function has(permissionMap: Record<string, boolean>, permission: string) {
   return permissionMap[permission] === true;
 }
 
-function roleTabs(role: UserRole, permissionMap: Record<string, boolean>): MobileTab[] {
+function roleTabs(role: UserRole): MobileTab[] {
   const tabs: MobileTab[] = [{ href: "/dashboard", label: "Home", icon: Home, permission: "dashboard.view" }];
 
   if (role === "outlet_staff" || role === "outlet_supervisor") {
-    const canCreateDailyRecord = has(permissionMap, "outlet_daily_record.create");
     tabs.push(
+      { href: "/stock-counts", label: "Count", icon: CheckCircle2, permission: "stock_count.read" },
+      { href: "/asset-management", label: "Asset", icon: Boxes, permission: "assets.view" },
       { href: "/outlet-daily-records", label: "Daily", icon: ClipboardList, permission: "outlet_daily_record.view" },
-      canCreateDailyRecord
-        ? { href: "/outlet-daily-records/new", label: "New record", icon: ClipboardCheck }
-        : { href: "/activity", label: "Activity", icon: Activity, permission: "dashboard.view" },
-      canCreateDailyRecord
-        ? { href: "/activity", label: "Activity", icon: Activity, permission: "dashboard.view" }
-        : { href: "/account", label: "Profile", icon: UserRound },
     );
     return tabs;
   }
@@ -73,9 +67,9 @@ function roleTabs(role: UserRole, permissionMap: Record<string, boolean>): Mobil
 
   if (role === "chef") {
     tabs.push(
-      { href: "/stock-counts", label: "Count", icon: CheckCircle2, permission: "stock_count.read" },
       { href: "/purchase-requests", label: "Request", icon: FileText, permission: "purchase_request.read" },
-      { href: "/stock-balance", label: "Stock", icon: Boxes, permission: "stock_balance.read" },
+      { href: "/goods-receivings", label: "Receive", icon: PackageCheck, permission: "goods_receiving.read" },
+      { href: "/asset-management", label: "Asset", icon: Boxes, permission: "assets.view" },
     );
     return tabs;
   }
@@ -131,7 +125,7 @@ export function MobileAppNavigation({
   const titleId = useId();
   const groups = useMemo(() => getVisibleNavGroups(role, permissionMap, attentionHrefs), [attentionHrefs, permissionMap, role]);
   const tabs = useMemo(() => {
-    const preferred = roleTabs(role, permissionMap).filter((tab) => !tab.permission || has(permissionMap, tab.permission)).map((tab) => ({...tab,hasAttention:attentionHrefs.includes(tab.href)}));
+    const preferred = roleTabs(role).filter((tab) => !tab.permission || has(permissionMap, tab.permission)).map((tab) => ({...tab,hasAttention:attentionHrefs.includes(tab.href)}));
     const seen = new Set(preferred.map((tab) => tab.href.split("?", 1)[0]));
     for (const item of groups.flatMap((group) => group.items)) {
       if (preferred.length >= 4) break;

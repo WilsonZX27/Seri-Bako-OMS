@@ -2125,7 +2125,7 @@ html[data-design-layer="v2"] table[data-ui-table] > thead > tr > th {
   html[data-design-layer="v2"] .sb-supplier-items-table :is(th, td):nth-child(4) { width: 12rem; }
   html[data-design-layer="v2"] .sb-supplier-items-table :is(th, td):nth-child(5) { width: 8rem; }
   html[data-design-layer="v2"] .sb-supplier-items-table :is(th, td):nth-child(6) { width: 6rem; }
-  html[data-design-layer="v2"] .sb-supplier-items-table :is(th, td):nth-child(7) { width: 7rem; }
+  html[data-design-layer="v2"] .sb-supplier-items-table :is(th, td):nth-child(7) { width: 8.5rem; }
   html[data-design-layer="v2"] .sb-supplier-items-table :is(th, td):nth-child(8) { width: 7rem; }
   html[data-design-layer="v2"] .sb-supplier-items-table td:nth-child(2),
   html[data-design-layer="v2"] .sb-supplier-items-table td:nth-child(3),
@@ -2147,7 +2147,7 @@ html[data-design-layer="v2"] table[data-ui-table] > thead > tr > th {
   html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(5) { width: 6rem; }
   html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(6) { width: 9.5rem; }
   html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(7) { width: 7rem; }
-  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(8) { width: 8.5rem; }
+  html[data-design-layer="v2"] .sb-purchase-request-table :is(th, td):nth-child(8) { width: 7rem; }
   html[data-design-layer="v2"] .sb-purchase-request-table td:nth-child(6) {
     white-space: normal;
     overflow-wrap: anywhere;
@@ -3312,6 +3312,22 @@ html[data-design-layer="v2"] .sb-repair-summary { grid-template-columns: minmax(
   background: var(--sb-surface-raised);
   padding: 1rem;
 }
+.sb-schedule-import-dialog details.sb-import-card {
+  border: 0;
+  outline: 1px solid var(--sb-border-soft);
+  outline-offset: -1px;
+  padding: 0 .75rem;
+}
+.sb-schedule-import-dialog details.sb-import-card > summary {
+  min-height: 44px;
+  margin-block: 0;
+}
+.sb-schedule-import-dialog details.sb-import-card[open] {
+  padding-bottom: .75rem;
+}
+.sb-schedule-import-dialog details.sb-import-card > summary + * {
+  margin-top: .5rem;
+}
 .sb-schedule-import-dialog [data-select-control] {
   min-height: var(--sb-control-height);
   height: var(--sb-control-height);
@@ -3332,3 +3348,21 @@ html[data-design-layer="v2"] form.sb-asset-query--overview .unified-list-date-co
   max-width: 10rem !important;
 }
 html[data-design-layer="v2"] form.sb-asset-query--overview .unified-list-date-submit { margin-left: auto; }
+
+/* Procurement registers share a vertically centred reading line. */
+html[data-design-layer="v2"] :is(.sb-purchase-request-table,.sb-procurement-table) td { vertical-align: middle !important; }
+html[data-design-layer="v2"] :is(.sb-purchase-request-table,.sb-procurement-table) [data-status] { white-space: nowrap; }
+html[data-design-layer="v2"] .sb-purchase-request-table td:nth-child(7) { white-space: nowrap; }
+
+@media (min-width: 1280px) {
+  html[data-design-layer="v2"] form.sb-list-query-card.sb-low-stock-query {
+    grid-template-columns: minmax(9rem,1.4fr) minmax(7rem,1fr) minmax(6.5rem,1fr) minmax(5rem,.7fr) minmax(4rem,.6fr) max-content;
+  }
+  html[data-design-layer="v2"] form.sb-list-query-card.sb-low-stock-query > [data-query-control],
+  html[data-design-layer="v2"] form.sb-list-query-card.sb-low-stock-query > .unified-list-desktop-actions { grid-column: auto !important; }
+  html[data-design-layer="v2"] .sb-daily-product-line > label { display: flex; justify-content: center; }
+  html[data-design-layer="v2"] .sb-daily-product-line input[type="number"] { max-width: 6rem; }
+  html[data-design-layer="v2"] .sb-daily-line-head > span:not(:first-child) { text-align: center; }
+}
+html[data-design-layer="v2"] .sb-purchase-request-table td:nth-child(7) [data-status],
+html[data-design-layer="v2"] .sb-procurement-table [data-status] { white-space: nowrap; }

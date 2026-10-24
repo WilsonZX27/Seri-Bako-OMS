@@ -7,6 +7,7 @@ export type PeopleWorkbookDay = {
   scheduleStart?: string | null;
   scheduleEnd?: string | null;
   off?: boolean;
+  paidEmergencyLeave?: boolean;
   punches?: string[];
   workedSeconds?: number | null;
   overtimeSeconds?: number | null;
@@ -121,13 +122,13 @@ function sheetXml(sheet: PeopleWorkbookSheet) {
     const issues = [day?.pendingOvertimeSeconds ? `OT pending People approval: ${Math.floor(day.pendingOvertimeSeconds / 60)} min (not approved)` : null, day?.exceptions, !day && "No source record", punches.length > 4 && "See remarks"].filter(Boolean).join("; ");
     // These are the reviewed OMS results, not a guessed pay/rounding policy.
     // Formula summaries below reference these editable, typed duration inputs.
-    const worked = duration(day?.workedSeconds), ot = duration(day?.overtimeSeconds), short = duration(day?.shortHoursSeconds);
+    const worked = duration(day?.workedSeconds), ot = duration(day?.overtimeSeconds), short = duration(day?.paidEmergencyLeave ? 0 : day?.shortHoursSeconds);
     // Use the punch formula only when its cached result matches the existing
     // reviewed four-punch evidence. Incomplete evidence stays blank.
     const matchesSource = reviewedFourPunchSeconds(day) != null;
     const punchFormula = `IF(COUNT(E${r}:H${r})=4,IF(AND(MOD(F${r}-E${r},1)>0,MOD(G${r}-F${r},1)>0,MOD(H${r}-G${r},1)>0,MOD(F${r}-E${r},1)+MOD(G${r}-F${r},1)+MOD(H${r}-G${r},1)<=MOD(H${r}-E${r},1)+0.000000001),MOD(F${r}-E${r},1)+MOD(H${r}-G${r},1),""),"")`;
     const totalWorking: Value = matchesSource ? {formula:punchFormula,value:worked} : null;
-    const values: Value[] = [serial(iso), new Intl.DateTimeFormat("en-MY", { weekday: "short", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`)), day?.off ? "OFF" : clock(day?.scheduleStart), day?.off ? null : clock(day?.scheduleEnd), ...Array.from({ length: 4 }, (_, i) => punches[i] ?? null), totalWorking, ot, short, null, issues, day?.event ?? (day?.off ? "OFF" : ""), null, punches.length > 4 ? `All punches: ${(day?.punches ?? []).join(", ")}` : ""];
+    const values: Value[] = [serial(iso), new Intl.DateTimeFormat("en-MY", { weekday: "short", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`)), day?.paidEmergencyLeave ? "EL" : day?.off ? "OFF" : clock(day?.scheduleStart), day?.paidEmergencyLeave || day?.off ? null : clock(day?.scheduleEnd), ...Array.from({ length: 4 }, (_, i) => punches[i] ?? null), totalWorking, ot, short, null, issues, day?.event ?? (day?.off ? "OFF" : ""), null, punches.length > 4 ? `All punches: ${(day?.punches ?? []).join(", ")}` : ""];
     numericRows.push([ot, short, null]);
     body.push(row(r, values, 16, Math.max(17, Math.ceil(issues.length / 14) * 14, punches.length > 4 ? 48 : 0), {0:5,2:day?.off?16:6,3:6,4:6,5:6,6:6,7:6,8:7,9:7,10:7,11:7,12:4}));
   });

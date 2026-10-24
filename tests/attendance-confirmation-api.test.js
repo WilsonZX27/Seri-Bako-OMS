@@ -4,7 +4,7 @@ function load(kind,{active=true,people=false,error=null}={}) {
  const query={select(){return query;},order(){return query;},limit(){return Promise.resolve({data:[],error});}};
  const db={from(table){calls.push({table});return query;},async rpc(name,args){calls.push({name,args});return {data:name==='attestation_people'?people:name==='get_attendance_confirmations'?[]:false,error};}};
  class NextResponse extends Response {static json(data,init){return new NextResponse(JSON.stringify(data),init);}}
- const req=name=>name==='next/server'?{NextResponse}:name==='zod'?require('zod'):name.includes('supabase/server')?{createClient:async()=>db}:name.includes('supabase/loose')?{looseSupabase:x=>x}:name.includes('tenant-actor')?{requireActiveTenantActor:async()=>{if(!active)throw Error('inactive');return {};}}:(()=>{throw Error(name)})();
+ const req=name=>name==='next/server'?{NextResponse}:name==='zod'?require('zod'):name==='@/lib/validations/payroll-line'?require('./helpers/load-source.cjs')()('src/lib/validations/payroll-line.ts'):name==='@/server/queries/schedule-leave-capabilities'?{readPaidEmergencyLeaveCapability:async()=>false}:name.includes('supabase/server')?{createClient:async()=>db}:name.includes('supabase/loose')?{looseSupabase:x=>x}:name.includes('tenant-actor')?{requireActiveTenantActor:async()=>{if(!active)throw Error('inactive');return {};}}:(()=>{throw Error(name)})();
  const path=kind==='attendance'?'src/app/api/attendance/confirmations/route.ts':'src/app/api/people/payslips/route.ts';
  vm.runInNewContext(ts.transpileModule(fs.readFileSync(path,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module,exports:module.exports,require:req,URL});
  return {...module.exports,calls};

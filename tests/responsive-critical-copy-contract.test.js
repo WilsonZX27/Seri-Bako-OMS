@@ -16,7 +16,7 @@ test("outlet daily quantities use one stable shared heading row", () => {
   assert.match(source, /Qty Sent/);
   assert.match(source, /Qty Receive/);
   assert.match(source, /consumptionLabel/);
-  assert.match(source, /grid-cols-3 items-end/);
+  assert.match(source, /grid-cols-3 items-center/);
   assert.match(source, /sb-daily-line-head/);
   assert.match(source, /sb-daily-line-four/);
   assert.match(read("src/app/design-system-v2.css"), /grid-template-columns: repeat\(4, minmax\(0, 1fr\)\)/);

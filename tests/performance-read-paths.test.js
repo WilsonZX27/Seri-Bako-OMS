@@ -117,6 +117,7 @@ test("planner propagates a failed parallel read rather than rendering an empty r
 test("schedule overview does not fetch or validate a hidden outlet planner", async () => {
   const calls = [];
   const { default: Page } = load("src/app/(app)/attendance/schedule/page.tsx", {
+    "@/server/queries/schedule-leave-capabilities": {getPaidEmergencyLeaveCapability:async()=>false},
     "@/server/auth/permissions": { getPermissionMap: async () => ({ "schedule.submit": true }) },
     "@/server/auth/tenant-actor": { requireActiveTenantActor: async () => ({ roleCode: "manager" }) },
     "@/server/queries/attendance": {

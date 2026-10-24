@@ -53,7 +53,7 @@ test('Kitchen scheduling uses one role set in catalog, eligibility and completen
   }
   assert.doesNotMatch(sql, /insert into public\.(?:role_permissions|staff_roles)|update public\.staffs/i);
   const catalog = fs.readFileSync('src/app/api/attendance/schedule/import-catalog/route.ts', 'utf8');
-  assert.match(catalog, /\["outlet_staff", "outlet_supervisor", "kitchen"\]/);
+  assert.match(catalog, /\["outlet_staff", "outlet_supervisor", "kitchen", "chef"\]/);
 });
 
 test('schedule checks accept SQL timestamp days, deduplicate dates and preserve malformed blockers', () => {

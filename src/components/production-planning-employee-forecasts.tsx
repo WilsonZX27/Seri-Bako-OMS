@@ -12,6 +12,7 @@ export function EmployeeForecastEditor({outlets,products,values,onChange,disable
   onChange:(values:Record<string,ForecastDraft>)=>void;disabled:boolean;
 }) {
   const [outlet,setOutlet]=useState(outlets[0]?.id??"");
+  const [search,setSearch]=useState("");
   const [notice,setNotice]=useState("");
   const [importError,setImportError]=useState("");
   const importReference=(text:string)=>{
@@ -34,21 +35,22 @@ export function EmployeeForecastEditor({outlets,products,values,onChange,disable
     onChange({...values,[key]:{...(values[key]??{weekday:"",weekend:""}),[field]:value,source:"Manager edited"}});
   };
   return <section className="sb-work-surface p-4">
-    <h2 className="text-sm font-semibold">Employee weekday & weekend forecasts</h2>
-    <p className="mt-1 max-w-prose text-xs text-muted-foreground">Expected daily demand per outlet. Blank means unknown; 0 means no recurring demand. Odd numbers are allowed. Suggestions use eligible history and prefer pairs within demand limits.</p>
+    <h2 className="text-sm font-semibold">Outlet forecasts</h2>
+    <p className="mt-1 max-w-prose text-xs text-muted-foreground">Daily demand: blank = unknown; 0 = none.</p>
     <div className="my-3 grid min-w-0 grid-cols-1 items-end gap-3 sm:grid-cols-2">
-      <label className="min-w-0 text-xs">Forecast outlet<SelectControl value={outlet} onValueChange={setOutlet} ariaLabel="Employee forecast outlet" options={outlets.map(b=>({value:b.id,label:b.branch_name}))}/></label>
-      <label className="min-w-0 text-xs">Import employee forecasts CSV<Input type="file" accept=".csv,text/csv" disabled={disabled} aria-label="Import employee forecasts CSV" onChange={async event=>{const file=event.target.files?.[0];event.target.value="";if(!file)return;setImportError("");setNotice("");try{if(file.size>1_000_000)throw new Error("Forecast CSV must be smaller than 1 MB.");importReference(await file.text());}catch(error){setImportError(error instanceof Error?error.message:"Could not read forecast CSV.");}}}/></label>
+      <label className="grid min-w-0 gap-2 text-xs">Forecast outlet<SelectControl value={outlet} onValueChange={setOutlet} ariaLabel="Employee forecast outlet" disabled={disabled} searchable options={outlets.map(b=>({value:b.id,label:b.branch_name}))}/></label>
+      <label className="grid min-w-0 gap-2 text-xs">Import forecasts (.csv)<Input type="file" accept=".csv,text/csv" disabled={disabled} aria-label="Import employee forecasts CSV" onChange={async event=>{const file=event.target.files?.[0];event.target.value="";if(!file)return;setImportError("");setNotice("");try{if(file.size>1_000_000)throw new Error("Forecast CSV must be smaller than 1 MB.");importReference(await file.text());}catch(error){setImportError(error instanceof Error?error.message:"Could not read forecast CSV.");}}}/></label>
     </div>
     {notice?<p className="mb-3 text-xs" role="status">{notice}</p>:null}
     {importError?<p className="mb-3 text-xs text-red-700" role="alert">{importError}</p>:null}
-    {!outlets.length?<p className="text-sm">Configure this kitchen’s outlet supply routes first.</p>:<div className="max-h-[32rem] overflow-auto">
+    <div className="mb-3 flex flex-wrap items-center gap-2"><Input type="search" value={search} onChange={event=>setSearch(event.target.value)} placeholder="Find product" aria-label="Find forecast product" onKeyDown={event=>{if(event.key==="Enter")event.preventDefault();}} className="min-w-0 flex-1"/><span className="text-xs text-muted-foreground">{outlets.length} supplied outlets</span></div>
+    {!outlets.length?<p className="text-sm">Configure this kitchen’s outlet supply routes first.</p>:<div className="max-h-80 overflow-auto">
       <Table stickyColumn="none" scrollbar="auto" aria-label="Employee demand forecasts" className="min-w-[30rem] table-fixed text-xs"><TableHeader><TableRow><TableHead>Product</TableHead><TableHead className="w-28">Weekday</TableHead><TableHead className="w-28">Weekend</TableHead></TableRow></TableHeader>
-      <TableBody>{products.map(p=>{const row=values[`${outlet}:${p.id}`];return <TableRow key={p.id}>
+      <TableBody>{products.filter(p=>`${p.product_code} ${p.product_name}`.toLowerCase().includes(search.trim().toLowerCase())).map(p=>{const row=values[`${outlet}:${p.id}`];return <TableRow key={p.id}>
         <TableCell><span className="text-muted-foreground">{p.product_code}</span><span className="block whitespace-normal break-words">{p.product_name}</span></TableCell>
         {(["weekday","weekend"] as const).map(field=><TableCell key={field}><Input type="number" min="0" max="1000000" step="1" disabled={disabled} placeholder="—" aria-label={`${p.product_name} ${field} forecast`} value={row?.[field]??""} onChange={e=>edit(p.id,field,e.target.value)}/></TableCell>)}
       </TableRow>;})}</TableBody></Table>
     </div>}
-    <p className="mt-3 text-xs text-muted-foreground">CSV columns: outlet, product_code, weekday_qty, weekend_qty. Names and codes must match this kitchen. Existing values are kept; clear a field first to replace it. Saving a forecast sets no fixed minimum unless one is already configured. Saved plans change only when recalculated.</p>
+    <details className="mt-3 text-xs text-muted-foreground"><summary className="cursor-pointer">Import format & forecasting rules</summary><p className="mt-2">CSV columns: outlet, product_code, weekday_qty, weekend_qty. Names and codes must match this kitchen. Existing values are kept; clear a field first to replace it. Saving a forecast sets no fixed minimum unless one is already configured. Saved plans change only when recalculated. This list follows the selected kitchen’s active supply routes.</p></details>
   </section>;
 }

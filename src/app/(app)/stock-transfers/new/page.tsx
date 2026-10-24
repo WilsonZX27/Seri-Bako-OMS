@@ -1,3 +1,5 @@
+import { Notice } from "@/components/ui/system-states";
+import { canCreateStockDestination } from "@/server/queries/stock-destination-capability";
 import { ArrowLeftRight } from "lucide-react";
 import { StockTransferForm } from "@/components/stock-operation-forms";
 import { ActionErrorNotice } from "@/components/action-error-notice";
@@ -9,10 +11,10 @@ import { getOperationSeedLines } from "@/server/queries/stock-operations";
 
 export default async function NewStockTransferPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const branches = await getBranchesForSelect({ restrictToActorScope: true });
+  const [branches,canCreateDestination] = await Promise.all([getBranchesForSelect({ restrictToActorScope: true }),canCreateStockDestination()]);
   const selectedFromBranchId = branches.find((branch) => branch.id === filters.from_branch_id)?.id ?? branches[0]?.id;
   const seedLines = await getOperationSeedLines(selectedFromBranchId);
-  const actionHint = branches.length < 2 ? "Access to two different branches is required. Contact an administrator." : !seedLines.length ? "No available branch stock. Choose a source branch with stock." : "Choose different branches and enter at least one positive quantity.";
+  const actionHint = branches.length < 2 ? "Access to two different branches is required. Contact an administrator." : !seedLines.length ? "No available branch stock. Choose a source branch with stock." : null;
   const formId = "stock-transfer-create-form";
   const primaryAction = <SubmitButton form={formId} type="submit" disabled={!seedLines.length || branches.length < 2} className="w-full"><ArrowLeftRight className="h-4 w-4" />Save Transfer Draft</SubmitButton>;
   const steps = [
@@ -31,10 +33,10 @@ export default async function NewStockTransferPage({ searchParams }: { searchPar
         currentStatus="draft"
         mobilePrimaryAction={primaryAction}
         mobileActionHint={actionHint}
-        sidePanel={<><DocumentSideSection title="Primary Action">{primaryAction}</DocumentSideSection><DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{actionHint}</p></DocumentSideSection></>}
+        sidePanel={<><DocumentSideSection title="Primary Action">{primaryAction}</DocumentSideSection>{actionHint ? <DocumentSideSection title="Next step"><Notice>{actionHint}</Notice></DocumentSideSection> : null}</>}
       >
         <ActionErrorNotice message={filters.error} />
-        <StockTransferForm key={selectedFromBranchId ?? "no-branch"} formId={formId} showSubmit={false} branches={branches} selectedFromBranchId={selectedFromBranchId} seedLines={seedLines} action={createStockTransfer} />
+        <StockTransferForm key={selectedFromBranchId ?? "no-branch"} formId={formId} showSubmit={false} canCreateDestination={canCreateDestination} branches={branches} selectedFromBranchId={selectedFromBranchId} seedLines={seedLines} action={createStockTransfer} />
       </DocumentWorkspace>
   );
 }

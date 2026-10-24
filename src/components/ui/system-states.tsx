@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { AlertTriangle, Ban, CheckCircle2, FileQuestion, SearchX, ShieldAlert } from "lucide-react";
+import { AlertTriangle, Ban, CheckCircle2, FileQuestion, Info, SearchX, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { WorkspaceCanvas, WorkspaceGrid } from "@/components/layout/workspace-layout";
@@ -128,15 +128,15 @@ export function Notice({ tone = "info", title, children, className }: { tone?: "
     success: "border-[var(--sb-success)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]",
     warning: "border-[var(--sb-warning)] bg-[var(--sb-warning-bg)] text-[var(--sb-warning)]",
     error: "border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]",
-    info: "border-[var(--sb-info)] bg-[var(--sb-info-bg)] text-[var(--sb-info)]",
+    info: "border-[var(--sb-border-soft)] bg-white text-muted-foreground",
   };
-  const Icon = tone === "success" ? CheckCircle2 : tone === "error" ? Ban : tone === "warning" ? ShieldAlert : AlertTriangle;
+  const Icon = tone === "success" ? CheckCircle2 : tone === "error" ? Ban : tone === "warning" ? ShieldAlert : Info;
   return (
-    <div className={cn("flex items-start gap-2 rounded-[var(--sb-radius-control)] border p-3 text-sm", tones[tone], className)} role={tone === "error" ? "alert" : "status"}>
-      <Icon className="mt-0.5 h-4 w-4 shrink-0" />
-      <div>
+    <div className={cn("flex items-start gap-2 rounded-lg border px-3 py-2 text-xs leading-4", tones[tone], className)} role={tone === "error" ? "alert" : "status"}>
+      <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+      <div className="min-w-0">
         {title ? <p className="font-semibold">{title}</p> : null}
-        <div className="mt-0.5">{children}</div>
+        <div className={title ? "mt-1" : undefined}>{children}</div>
       </div>
     </div>
   );

@@ -35,10 +35,10 @@ test("asset overview and maintenance queues page at ten rows with shared navigat
 test("transfer asset search has an explicit accessible apply action", () => {
   const page = read("src", "app", "(app)", "asset-management", "transfers", "new", "page.tsx");
   const header = read("src", "components", "common", "UnifiedListHeader.tsx");
-  assert.match(page, /<FilterBar resetHref="\/asset-management\/transfers\/new"[\s\S]*?<Input type="search" name="q"/);
-  assert.equal((page.match(/<Button type="submit"/g) ?? []).length,1);
+  assert.match(page, /<form method="get"[^>]*>[\s\S]*?<Input type="search" name="q"/);
+  assert.equal((page.match(/<Button type="submit"/g) ?? []).length,2);
   assert.match(page, /<Button type="submit">Load assets<\/Button>/);
-  assert.doesNotMatch(page, /<Button[^>]*>Search<\/Button>/);
+  assert.match(page, /<Button type="submit">Search<\/Button>/);
   assert.match(header, /showSearchAction = hasTextSearch && !all\.some\(isSearchSubmit\)/);
   assert.match(header, /aria-label="Search"/);
   assert.match(page, /No matching assets\./);

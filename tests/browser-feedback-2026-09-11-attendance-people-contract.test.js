@@ -45,7 +45,7 @@ test("schedule working-time tools expose quick states and an unambiguous span su
   assert.doesNotMatch(planner, /compared with 8\.5h|−\d{2}:\d{2}:\d{2}/);
   assert.match(planner, /Quick non-working assignment/);
   assert.match(planner, /aria-labelledby="schedule-working-time-title"/);
-  for (const state of ['label: "OFF"', 'label: "AL"', 'label: "PH"', 'label: "UPL"']) {
+  for (const state of ['label: "OFF"', 'label: "AL"', 'label: "UPL"']) {
     assert.ok(planner.includes(state));
   }
 });

@@ -60,7 +60,8 @@ test("Staff UI exposes explicit states and only Owners receive the repair contro
   assert.match(state, /"Link needs repair"/);
   assert.match(detail, /isOwner && authState === "link_needs_repair"/);
   assert.match(detail, />\s*Repair sign-in link\s*</);
-  assert.match(list, /staffAuthStateLabels\[getStaffAuthState\(staff\)\]/);
+  assert.doesNotMatch(list, /staffAuthStateLabels/);
+  assert.match(list, /staffEmploymentStatus/);
   assert.match(compatibility, /redirect\(query\.size \? `\/people\?/);
   assert.doesNotMatch(detail, /target_auth_user_id|auth_user_id\}/);
 });

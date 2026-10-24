@@ -89,7 +89,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
             </UnifiedListHeader>
           <div className="sb-list-content-card overflow-hidden" data-mobile-list-content-card>
           {receivings?.rows.length ? <DataGridHint text="Pro-tip: Double-click any row to open the goods receiving document." /> : null}
-          <Table className="sb-procurement-table !min-w-[51rem]" mobileHidden compactUntil="xl" aria-label="Goods receiving records" stickyColumn="second">
+          <Table className="sb-procurement-table sb-goods-receivings-table !min-w-[51rem]" mobileHidden compactUntil="xl" aria-label="Goods receiving records" stickyColumn="second">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-10 text-center">Action</TableHead>
@@ -104,12 +104,12 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
               </TableHeader>
               <TableBody>
                 {receivings?.rows.map((receiving) => (
-                  <DataGridRow key={receiving.id} href={`/goods-receivings/${receiving.id}`} className="[&>td]:h-16 [&>td]:align-top">
+                  <DataGridRow key={receiving.id} href={`/goods-receivings/${receiving.id}`} className="[&>td]:h-16 [&>td]:align-middle">
                     <TableCell className="w-10 p-0 text-center"><TableActionLink href={`/goods-receivings/${receiving.id}`} label={`Open ${receiving.grn_no}`}><Pencil className="h-4 w-4" /></TableActionLink></TableCell>
                     <TableCell className="w-32"><DocumentNumber value={receiving.grn_no} size="sm" className="whitespace-nowrap" /><span className="mt-1 block text-[10px] italic text-muted-foreground">{receiving.purchase_order_id && receiving.po_no ? <Link href={`/purchase-orders/${receiving.purchase_order_id}`} className="text-[var(--sb-link)] underline-offset-4 hover:underline">From {receiving.po_no}</Link> : "No linked PO"}</span></TableCell>
                     <TableCell>{formatDateOnly(receiving.received_date)}</TableCell>
                     <TableCell>{receiving.branch_name ?? "-"}</TableCell>
-                    <TableCell className="w-36 max-w-36"><span className="line-clamp-2 leading-4">{receiving.supplier_name ?? "-"}</span></TableCell>
+                    <TableCell className="w-36 max-w-36"><span className="whitespace-normal break-words leading-4">{receiving.supplier_name ?? "-"}</span></TableCell>
                     <TableCell className="min-w-36"><StatusBadge status={receiving.workflow_status} className="min-w-max" /></TableCell>
                     <TableCell className="text-right">{formatNumber(receiving.received_total)}</TableCell>
                     <TableCell className="text-right">{formatNumber(receiving.rejected_total)}</TableCell>

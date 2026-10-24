@@ -1,5 +1,6 @@
 "use client";
 
+import { Notice } from "@/components/ui/system-states";
 import { AlertTriangle, CirclePause, Trash2 } from "lucide-react";
 import { useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -61,17 +62,17 @@ export function DangerConfirmForm({
                 <AlertTriangle className="h-4 w-4" />
                 {title}
               </h2>
-              <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+              <p className="mt-2 text-xs leading-4 text-muted-foreground">{description}</p>
             </header>
               <form action={action} className="space-y-4">
-                <label className="flex items-start gap-2 border border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] px-3 py-3 text-sm text-[var(--sb-danger)]">
+                <label className="flex items-start gap-2 rounded-lg border border-[var(--sb-border-soft)] bg-white px-3 py-2 text-xs leading-4">
                   <input type="checkbox" className="mt-0.5 h-4 w-4" checked={checked} onChange={(event) => setChecked(event.target.checked)} />
                   <span>{checkboxLabel}</span>
                 </label>
-                {warning ? <p className="text-sm text-muted-foreground">{warning}</p> : null}
+                {warning ? <Notice tone="warning">{warning}</Notice> : null}
                 {confirmWord ? (
                   <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">Type {confirmWord} to continue.</p>
+                    <p className="text-xs text-muted-foreground">Type {confirmWord} to continue.</p>
                     <Input name="confirmation" value={typed} onChange={(event) => setTyped(event.target.value)} placeholder={confirmWord} />
                   </div>
                 ) : null}
@@ -119,10 +120,10 @@ export function BlockedDestructiveAction({
       <ModalShell open={open} onClose={() => setOpen(false)} titleId={titleId} triggerRef={triggerRef} initialFocusRef={closeRef}>
             <header className="mb-4">
               <h2 id={titleId} className="flex items-center gap-2 text-base font-semibold text-[var(--sb-danger)]"><AlertTriangle className="h-4 w-4" />{title}</h2>
-              <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+              <p className="mt-2 text-xs leading-4 text-muted-foreground">{description}</p>
             </header>
             <div className="space-y-4">
-              <p className="border border-[var(--sb-info)] bg-[var(--sb-info-bg)] p-3 text-sm text-[var(--sb-info)]">{recommendation}</p>
+              <Notice>{recommendation}</Notice>
               <div className="flex justify-end"><Button ref={closeRef} type="button" variant="ghost" onClick={() => setOpen(false)}>Close</Button></div>
             </div>
       </ModalShell>

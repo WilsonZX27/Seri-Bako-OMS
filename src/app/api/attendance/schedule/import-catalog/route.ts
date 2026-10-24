@@ -1,3 +1,4 @@
+import { readPaidEmergencyLeaveCapability } from "@/server/queries/schedule-leave-capabilities";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -62,12 +63,12 @@ export async function GET(request: Request) {
     for (const staffId of staffIds) {
       const rows = rolesByStaff.get(staffId) ?? [];
       const roleCode = (row: (typeof roleRows)[number]) => Array.isArray(row.roles) ? row.roles[0]?.role_code : row.roles?.role_code;
-      const currentSchedulable = rows.some((row) => ["outlet_staff", "outlet_supervisor", "kitchen"].includes(roleCode(row) ?? "") && row.effective_from <= today && (!row.effective_to || row.effective_to >= today));
+      const currentSchedulable = rows.some((row) => ["outlet_staff", "outlet_supervisor", "kitchen", "chef"].includes(roleCode(row) ?? "") && row.effective_from <= today && (!row.effective_to || row.effective_to >= today));
       const eligibleDays = days.filter((day) => {
         const employmentEnd = employmentEndByStaff.get(staffId);
         if (employmentEnd && day > employmentEnd) return false;
         const covering = rows.filter((row) => row.effective_from <= day && (!row.effective_to || row.effective_to >= day));
-        return covering.some((row) => ["outlet_staff", "outlet_supervisor", "kitchen"].includes(roleCode(row) ?? "")) || (day < today && covering.length === 0 && currentSchedulable);
+        return covering.some((row) => ["outlet_staff", "outlet_supervisor", "kitchen", "chef"].includes(roleCode(row) ?? "")) || (day < today && covering.length === 0 && currentSchedulable);
       });
       eligibilityByStaff.set(staffId, eligibleDays.map((day) => ({ from: day, to: day })));
     }
@@ -78,6 +79,7 @@ export async function GET(request: Request) {
     if(rules.error)throw rules.error;
     if(exemptions.error)throw exemptions.error;
     return NextResponse.json({
+      paid_emergency_leave:await readPaidEmergencyLeaveCapability(db),
       import_rules:rules.data??{},fingerprint_exempt_staff:exemptions.data??[],can_manage_exemptions:owner.data===true,
       import_history:history.data ?? [],
       branches: branches.map((branch) => ({ id: branch.id, name: branch.branch_name, status: latest.get(branch.id)?.status ?? "not_started" })),

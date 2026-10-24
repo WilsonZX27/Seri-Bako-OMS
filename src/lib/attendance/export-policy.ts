@@ -1,3 +1,4 @@
+import { hasPaidEmergencyLeaveProof } from "@/lib/attendance/emergency-leave";
 type StaffSummary = { employment_type?: unknown } | null;
 
 type ExportRow = {
@@ -13,6 +14,8 @@ type ExportRow = {
 };
 
 const STATUS_LABELS: Record<string, string> = {
+  el_paid: "EL · paid leave, no deduction",
+  emergency_leave: "Emergency Leave",
   late: "Late",
   early_leave: "Early leave",
   missing_punches: "Missing punches",
@@ -48,6 +51,7 @@ export function exportWorkedSeconds(row: ExportRow) {
 }
 
 export function exportShortHoursSeconds(row: ExportRow & { late_seconds?: unknown; early_leave_seconds?: unknown; scheduled_start?: unknown; scheduled_end?: unknown }) {
+  if (hasPaidEmergencyLeaveProof(row)) return 0;
   if (exportWorkedSeconds(row) == null) return null;
   const total = Math.max(0, Number(row.late_seconds ?? 0)) + Math.max(0, Number(row.early_leave_seconds ?? 0));
   const span = (Date.parse(String(row.scheduled_end))-Date.parse(String(row.scheduled_start)))/1000;

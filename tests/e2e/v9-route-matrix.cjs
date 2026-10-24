@@ -97,6 +97,7 @@ const accessAuthorities = [
   ["/attendance", ATTENDANCE],
   ["/outlet-compliance", ["superAdmin", "peopleOperations", "manager", "purchasing", "chef"]],
   ["/outlet-calendar", ["superAdmin", "peopleOperations", "manager", "purchasing"]],
+  ["/people/ro", ["superAdmin", "peopleOperations", "manager"]],
   ["/people", ["superAdmin", "peopleOperations", "manager"]],
   ["/compliance", ["superAdmin", "peopleOperations", "manager", "purchasing"]],
   ["/reports/costing-readiness", ["superAdmin", "finance"]],

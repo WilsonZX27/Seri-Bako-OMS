@@ -1,3 +1,4 @@
+import { readPaidEmergencyLeaveCapability } from "@/server/queries/schedule-leave-capabilities";
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -22,6 +23,7 @@ const assignment = z.object({
     "upl",
     "ro",
     "oil",
+    "el",
   ]),
   shift_template_id: uuid.nullable().optional(),
   custom_start: z
@@ -335,6 +337,9 @@ export async function POST(request: Request) {
         { status: 403 },
       );
     const db = looseSupabase(await createClient());
+    const payload = input.data;
+    const containsEl = "assignments" in payload && payload.assignments.some(row=>row.assignment_kind==="el") || "outlets" in payload && payload.outlets.some(outlet=>outlet.assignments.some(row=>row.assignment_kind==="el"));
+    if (containsEl && !await readPaidEmergencyLeaveCapability(db)) return NextResponse.json({ok:false,message:"Paid Emergency Leave support is not active. Your draft was not saved."},{status:409});
     let result;
     if (input.data.action === "template")
       result = await db.rpc("upsert_shift_template", {

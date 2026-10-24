@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import type { ReactNode, ButtonHTMLAttributes } from "react";
 import {
   AlertTriangle,
   ChevronLeft,
@@ -81,19 +81,23 @@ type Palette = {
   label: string;
   kind: string;
   templateId?: string;
-  tone: "work" | "off" | "al" | "ph" | "upl" | "ro" | "medical" | "custom";
+  tone: "work" | "off" | "al" | "el" | "upl" | "ro" | "medical" | "custom";
 };
+
+function ScheduleDayCell({assignmentKind,...props}:ButtonHTMLAttributes<HTMLButtonElement>&{assignmentKind?:string}) {
+  if(assignmentKind==="ph") return <span role="note" aria-label={props["aria-label"]} className={cn(props.className,"inline-flex items-center justify-center border-transparent bg-transparent font-normal text-muted-foreground ring-0")} style={props.style}>{props.children}</span>;
+  return <button {...props}/>;
+}
 
 const leavePalette: Palette[] = [
   { key: "off", label: "OFF", kind: "off", tone: "off" },
   { key: "al", label: "AL", kind: "al", tone: "al" },
-  { key: "ph", label: "PH", kind: "ph", tone: "ph" },
   { key: "upl", label: "UPL", kind: "upl", tone: "upl" },
 ];
 function paletteButtonTone(tone: Palette["tone"]) {
   if (tone === "off") return "border-rose-200 bg-rose-50 text-rose-800 hover:bg-rose-100";
   if (tone === "al") return "border-blue-200 bg-blue-50 text-blue-800 hover:bg-blue-100";
-  if (tone === "ph") return "border-violet-200 bg-violet-50 text-violet-800 hover:bg-violet-100";
+  if (tone === "el") return "border-violet-200 bg-violet-50 text-violet-800 hover:bg-violet-100";
   if (tone === "upl") return "border-amber-200 bg-amber-50 text-amber-900 hover:bg-amber-100";
   return "";
 }
@@ -172,6 +176,7 @@ export function SchedulePlanner({
   externalAssignments = [],
   roBalances = {},
   canDraft,
+  paidEmergencyLeaveEnabled = false,
   canSubmit,
   canApprove,
   initialWarnings,
@@ -192,6 +197,7 @@ export function SchedulePlanner({
   initialAssignments: Assignment[];
   externalAssignments?: ExternalAssignment[];
   roBalances?: Record<string, number>;
+  paidEmergencyLeaveEnabled?: boolean;
   canDraft: boolean;
   canSubmit: boolean;
   canApprove: boolean;
@@ -260,6 +266,7 @@ export function SchedulePlanner({
   const decisionDialog = useRef<HTMLDialogElement>(null);
   const removeDialog = useRef<HTMLDialogElement>(null);
   const saveDraftRef = useRef<(automatic?: boolean) => Promise<void>>(async () => {});
+  const nonWorkingPalette = useMemo<Palette[]>(() => paidEmergencyLeaveEnabled ? [...leavePalette, { key: "el", label: "EL", kind: "el", tone: "el" }] : leavePalette, [paidEmergencyLeaveEnabled]);
   const palette = useMemo<Palette[]>(
     () => [
       ...templates.map((template) => ({
@@ -269,9 +276,9 @@ export function SchedulePlanner({
         templateId: template.id,
         tone: "work" as const,
       })),
-      ...leavePalette,
+      ...nonWorkingPalette,
     ],
-    [templates],
+    [templates, nonWorkingPalette],
   );
   const templateColours = useMemo(
     () => new Map(templates.map((template) => [template.id, template.colour])),
@@ -602,7 +609,8 @@ export function SchedulePlanner({
   latestDraftSnapshot.current = JSON.stringify([assignments, excludedStaffIds]);
   const cellLabel = (value?: Assignment) => {
     if (!value) return "";
-    if (value.assignment_kind === "oil") return "EL";
+    if (value.assignment_kind === "ph") return "Holiday";
+    if (value.assignment_kind === "oil") return "OIL";
     if (value.assignment_kind !== "shift")
       return value.assignment_kind.toUpperCase();
     const template = value.shift_template_id
@@ -909,7 +917,7 @@ export function SchedulePlanner({
                 Quick assign
               </span>
               <div className="flex flex-wrap items-center gap-2">
-                {leavePalette.map((item) => (
+                {nonWorkingPalette.map((item) => (
                   <Button
                     key={item.key}
                     type="button"
@@ -976,17 +984,17 @@ export function SchedulePlanner({
                 <Button
                   size="sm"
                   variant="ghost"
-                  disabled={!selected.size}
-                  onClick={() => setCopied(cells.get([...selected][0]) ?? null)}
+                  disabled={!selected.size || cells.get([...selected][0])?.assignment_kind === "ph"}
+                  onClick={() => { const value=cells.get([...selected][0]); if(value?.assignment_kind!=="ph")setCopied(value??null); }}
                 >
                   Copy
                 </Button>
                 <Button
                   size="sm"
                   variant="ghost"
-                  disabled={!selected.size || !copied}
+                  disabled={!selected.size || !copied || copied.assignment_kind === "ph"}
                   onClick={() => {
-                    if (copied) {
+                    if (copied && copied.assignment_kind !== "ph") {
                       setCells((current) => {
                         const next = new Map(current);
                         for (const key of selected) {
@@ -1087,9 +1095,9 @@ export function SchedulePlanner({
                       {person.staff_code ? `#${person.staff_code} · ` : ""}{(weekly / 3600).toFixed(1)}h week
                     </span>
                   </span>
-                  <button
+                  <ScheduleDayCell assignmentKind={value?.assignment_kind}
                     type="button"
-                    disabled={!editableStatus || !canDraft}
+                    disabled={!editableStatus || !canDraft || value?.assignment_kind === "ph"}
                     onClick={(event) => clickCell(key, event)}
                     className={cn(
                       "relative min-h-11 w-full rounded-[var(--sb-radius-control)] border px-2 py-1 text-[11px] font-semibold leading-tight",
@@ -1102,7 +1110,7 @@ export function SchedulePlanner({
                         "border-rose-200 bg-rose-50 text-rose-800",
                       tone === "al" &&
                         "border-blue-200 bg-blue-50 text-blue-800",
-                      tone === "ph" &&
+                      tone === "el" &&
                         "border-violet-200 bg-violet-50 text-violet-800",
                       tone === "upl" &&
                         "border-amber-200 bg-amber-50 text-amber-900",
@@ -1124,7 +1132,7 @@ export function SchedulePlanner({
                         aria-label={`Comment: ${value.custom_reason}`}
                       />
                     ) : null}
-                  </button>
+                  </ScheduleDayCell>
                 </div>
               );
             })}
@@ -1323,9 +1331,9 @@ export function SchedulePlanner({
                           tone = awayLabel ? "external" : cellTone(value);
                         return (
                           <td key={date} className="border-b border-r p-1">
-                            <button
+                            <ScheduleDayCell assignmentKind={value?.assignment_kind}
                               type="button"
-                              disabled={ended || !editableStatus || !canDraft}
+                              disabled={ended || !editableStatus || !canDraft || value?.assignment_kind === "ph"}
                               onClick={(event) => clickCell(key, event)}
                               aria-label={`${person.full_name}, ${date}: ${awayLabel ? `working at ${awayLabel}` : cellLabel(value) || "unassigned"}`}
                               className={cn(
@@ -1340,7 +1348,7 @@ export function SchedulePlanner({
                                   "border-rose-200 bg-rose-50 text-rose-800",
                                 tone === "al" &&
                                   "border-blue-200 bg-blue-50 text-blue-800",
-                                tone === "ph" &&
+                                tone === "el" &&
                                   "border-violet-200 bg-violet-50 text-violet-800",
                                 tone === "upl" &&
                                   "border-amber-200 bg-amber-50 text-amber-900",
@@ -1366,7 +1374,7 @@ export function SchedulePlanner({
                                   aria-label={`Comment: ${value.custom_reason}`}
                                 />
                               ) : null}
-                            </button>
+                            </ScheduleDayCell>
                           </td>
                         );
                       })}
@@ -1473,7 +1481,7 @@ export function SchedulePlanner({
             </div>
             <div className="flex flex-wrap items-center gap-2" aria-label="Quick non-working assignment">
               <span className="mr-1 text-xs font-semibold">Quick assign</span>
-              {leavePalette.map((item) => (
+              {nonWorkingPalette.map((item) => (
                 <Button
                   key={item.key}
                   type="button"

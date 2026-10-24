@@ -1,6 +1,7 @@
+import { Notice } from "@/components/ui/system-states";
 import { MobileActionReserve } from "./mobile-action-reserve";
 import type { ReactNode } from "react";
-import { Info, MapPin } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { DocumentNumber } from "@/components/document-number";
 import { PriorityBadge } from "@/components/priority-badge";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -115,7 +116,7 @@ export function DocumentWorkspace({
             ? "grid-cols-2"
             : "grid-cols-1",
       )}>
-        {mobileActionHint ? <div role="status" className="col-span-full flex items-start gap-2 rounded-lg border border-[var(--sb-border-soft)] bg-white px-3 py-2 text-[11px] leading-4 text-muted-foreground"><Info className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" /><div className="min-w-0 [&_p]:text-[11px] [&_p]:leading-4">{mobileActionHint}</div></div> : null}
+        {mobileActionHint ? <Notice className="col-span-full">{mobileActionHint}</Notice> : null}
         {mobilePrimaryAction ? <div className="min-w-0">{mobilePrimaryAction}</div> : null}
         {mobileActivity ? <div className="min-w-0"><MobileActivityAndFiles>{mobileActivity}</MobileActivityAndFiles></div> : null}
         {mobileMoreOptions ? <div className="min-w-0">{mobileMoreOptions}</div> : null}

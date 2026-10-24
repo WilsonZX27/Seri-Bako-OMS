@@ -1,3 +1,7 @@
+## v9.2.143 (Preview candidate) — Operational UI and People workflows
+
+Responsive actions, concise forms, central RO management and managed stock destinations. Includes the offboarding access guard and Chef import-catalog compatibility. Paid EL and asset batch migrations remain inactive; no historical payroll, holiday or inventory records are rewritten.
+
 ## v9.2.142 (local candidate) — Offboarding access guard
 
 Only login, per-request session checks and linked-profile fallback are changed. Last working day is inclusive in Asia/Kuala_Lumpur. No employee, role, payroll, inventory or database schema changes. Provider Auth ban and global token revocation are outside this release.
@@ -3207,3 +3211,7 @@ Transfer details use one operational summary followed by concise action history.
 - Inspection results retain both labels/icons and semantic colours: Checked green, Damaged/Missing pale red, Needs Maintenance pale yellow. Selection has an additional outline; colour alone is not the state indicator.
 - Maintenance author, history and attachments stay visible as distinct sections. Upload is a visible muted card; essential context is not hidden in nested disclosures.
 - Dense tables retain an internal horizontal scrolling affordance. These are shared component rules, not route-specific stylesheet patches.
+
+### Local task-guidance refinement (unreleased)
+
+One primary action belongs to the phone bottom action bar and desktop right console. Transfer-level and item-level notes remain distinct, optional and collapsed until requested. Use the shared Notice Info variant for necessary task guidance: neutral surface, soft rounded border, Info icon, 12px/16px helper text. Error/warning/success remain semantic variants. Remove copy that repeats the current label, button or consequence; do not wrap every metadata value in an Info box. RO correction needs one mandatory reason; historical optional notes and API fields remain intact. EL has a distinct violet treatment from AL blue, with labels retained. Recorded PH remains history-only and noninteractive; calendar/attendance/payroll rules are not rewritten by visual cleanup.

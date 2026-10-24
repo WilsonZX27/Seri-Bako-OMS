@@ -1,6 +1,8 @@
+import { todayInKualaLumpur } from "@/lib/business-date";
+import { staffEmploymentStatus } from "@/lib/staff-employment-status";
 import { UserRound, BriefcaseBusiness, Files, ShieldCheck } from "lucide-react";
 import { WorkspaceTabs } from "@/components/ui/workspace-tabs";
-import { StaffSecurityPanel, StaffSecurityRail } from "@/components/staff-security-panel";
+import { StaffSecurityPanel, StaffSecurityRail, StaffAccessActions } from "@/components/staff-security-panel";
 import { StaffEmploymentEditor } from "@/components/staff-employment-editor";
 import { SubmitButton } from "@/components/ui/submit-button";
 import type { ReactNode } from "react";
@@ -75,10 +77,11 @@ export default async function PeopleProfilePage({
         {activeSection === "employment" && permissions["staffs.update"] ? <SubmitButton form="people-employment-form" className="w-full" data-mobile-primary-action>Save staff</SubmitButton> : null}
       <Button asChild size="sm" variant="outline" className="w-full"><Link href={`/attendance/review?branch=${staffSummary?.default_branch_id ?? "select"}&employee=${encodeURIComponent(staff.full_name)}`}>Open attendance</Link></Button>
       </ConsoleSection>
+      <StaffAccessActions id={id}/>
       <ConsoleSection title="Profile status">
         <div className="flex items-center justify-between">
           <span className="text-muted-foreground">Employment</span>
-          <StatusBadge status={staff.status} />
+          <StatusBadge status={staffEmploymentStatus(staff,todayInKualaLumpur())} />
         </div>
         <div className="flex items-start justify-between gap-3 border-t pt-2">
           <span className="text-muted-foreground">Compliance</span>
@@ -137,7 +140,7 @@ export default async function PeopleProfilePage({
                   <Fact label="Accessible locations" value={staffSummary?.accessible_branch_names?.join(", ")} />
                   <Fact label="Email" value={staff.email?.endsWith("@accounts.seribako.invalid") ? undefined : staff.email?.toLowerCase()} />
                   <Fact label="Phone" value={staff.phone} />
-                  <Fact label="Status" value={staff.status} capitalize />
+                  <Fact label="Status" value={staffEmploymentStatus(staff,todayInKualaLumpur()).replaceAll("_"," ")} capitalize />
                 </dl>
               </ProfileSection>
               <div className="grid items-stretch gap-3 lg:grid-cols-2 [&>section]:h-full">

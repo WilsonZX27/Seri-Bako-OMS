@@ -66,15 +66,7 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
         }
       >
         <div className="space-y-3">
-          <div>
-            {unavailable ? <p role="status" className="erp-surface p-3 text-sm">Replenishment is unavailable until stock data can be confirmed.</p> : <LowStockPrForm
-              items={items}
-              branches={branches}
-              defaultBranchId={filters.branch_id}
-              basketOwnerId={actor.staffId}
-              disabled={!canCreatePr}
-            />}
-          </div>
+
 
           <div>
             <UnifiedListHeader className="sb-low-stock-query" resultCount={unavailable ? undefined : count ?? undefined} resetHref="/low-stock" filtered={filtered}>
@@ -96,6 +88,16 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
               <Input name="below_qty" type="number" min="0" step="any" defaultValue={filters.below_qty ?? ""} placeholder="Quantity below" aria-label="Current quantity below" className="md:max-w-40" />
               <SelectControl name="quantity_uom" defaultValue={filters.quantity_uom ?? "KG"} ariaLabel="Threshold base UOM" className="md:max-w-28" options={uomOptionsWithCurrent(filters.quantity_uom ?? "KG").map(unit => ({ value: unit, label: unit }))} />
             </UnifiedListHeader>
+          </div>
+
+          <div>
+            {unavailable ? <p role="status" className="erp-surface p-3 text-sm">Replenishment is unavailable until stock data can be confirmed.</p> : <LowStockPrForm
+              items={items}
+              branches={branches}
+              defaultBranchId={filters.branch_id}
+              basketOwnerId={actor.staffId}
+              disabled={!canCreatePr}
+            />}
           </div>
 
           <div className="sb-list-content-card overflow-hidden">

@@ -18,7 +18,7 @@ test('Daily quantities share fluid four tracks and carryover does not wrap its f
  if(r.selector==='.sb-daily-product-line input[type="number"]'){if(d.prop==='width')width=d.value==='100%';if(d.prop==='min-height')height=d.value==='var(--sb-control-height)';}
  }));assert.ok(tracks);assert.ok(width);assert.ok(height);
  assert.match(form,/tracking === "food_carryover" \? <label className="min-w-0"/);
- assert.match(form,/tracking !== "food_daily" \? <span>/);
+ assert.match(form,/tracking !== "food_daily" \? <span[^>]*>/);
  assert.doesNotMatch(form,/· Not counted/);
  assert.match(form,/sb-daily-balance min-w-0/);
 });

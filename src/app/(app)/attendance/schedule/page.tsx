@@ -1,3 +1,4 @@
+import { getPaidEmergencyLeaveCapability } from "@/server/queries/schedule-leave-capabilities";
 import Link from "next/link";
 import { AttendanceWorkspaceNav } from "@/components/attendance/attendance-workspace-nav";
 import { RequestDecisionButtons } from "@/components/attendance/request-review";
@@ -22,12 +23,13 @@ export default async function SchedulePage({ searchParams }: { searchParams: Pro
   const params = await searchParams;
   const weekStart = /^\d{4}-\d{2}-\d{2}$/.test(params.week ?? "") ? params.week! : malaysiaWeekStart();
   const overviewMode = params.view === "overview";
-  const [data, overview, requests, permissions, actor] = await Promise.all([
+  const [data, overview, requests, permissions, actor, paidEmergencyLeaveEnabled] = await Promise.all([
     overviewMode ? Promise.resolve(null) : getSchedulePlanner(weekStart, params.branch),
     overviewMode ? getScheduleOverview(weekStart) : Promise.resolve([]),
     getPendingShiftRequests(),
     getPermissionMap(["schedule.draft", "schedule.submit", "schedule.approve", "attendance.import", "shift_template.manage"]),
     requireActiveTenantActor(),
+    getPaidEmergencyLeaveCapability(),
   ]);
   const canDraft = permissions["schedule.draft"];
   const canSubmit = permissions["schedule.submit"] && ["outlet_supervisor", "manager", "super_admin"].includes(actor.roleCode);
@@ -55,6 +57,6 @@ export default async function SchedulePage({ searchParams }: { searchParams: Pro
           </Link>)}
           {!overview.length ? <div className="p-5"><h3 className="text-sm font-semibold">No accessible outlets</h3><p className="mt-1 text-xs text-muted-foreground">Outlet schedules will appear when an outlet is available to your account.</p></div> : null}
         </div>
-      </section></WorkspaceGrid></div> : data?.branchId ? <SchedulePlanner branches={data.branches} branchId={data.branchId} weekStart={weekStart} week={data.week} submittedByName={data.submittedByName} importSource={data.importSource} previousWeekId={data.previousWeekId} people={data.people} candidates={data.candidates} templates={data.templates} initialAssignments={data.assignments} externalAssignments={data.externalAssignments} roBalances={data.roBalances} canDraft={canDraft} canSubmit={canSubmit} canApprove={canApprove} initialWarnings={validation.warnings} initialBlockers={validation.blockers} rightRailDetails={rightRail} headerContent={<><AttendanceWorkspaceNav current="schedule"/>{importPanel}{dutyNotes}{requestPanel}</>}/> : <div className="sb-workspace-canvas min-h-0 space-y-3"><AttendanceWorkspaceNav current="schedule"/>{importPanel}<section className="sb-work-surface p-5"><h2 className="text-sm font-semibold">No accessible outlet</h2><p className="mt-1 text-xs text-muted-foreground">Create an outlet or have one assigned to your account before building its schedule.</p></section></div>}
+      </section></WorkspaceGrid></div> : data?.branchId ? <SchedulePlanner paidEmergencyLeaveEnabled={paidEmergencyLeaveEnabled} branches={data.branches} branchId={data.branchId} weekStart={weekStart} week={data.week} submittedByName={data.submittedByName} importSource={data.importSource} previousWeekId={data.previousWeekId} people={data.people} candidates={data.candidates} templates={data.templates} initialAssignments={data.assignments} externalAssignments={data.externalAssignments} roBalances={data.roBalances} canDraft={canDraft} canSubmit={canSubmit} canApprove={canApprove} initialWarnings={validation.warnings} initialBlockers={validation.blockers} rightRailDetails={rightRail} headerContent={<><AttendanceWorkspaceNav current="schedule"/>{importPanel}{dutyNotes}{requestPanel}</>}/> : <div className="sb-workspace-canvas min-h-0 space-y-3"><AttendanceWorkspaceNav current="schedule"/>{importPanel}<section className="sb-work-surface p-5"><h2 className="text-sm font-semibold">No accessible outlet</h2><p className="mt-1 text-xs text-muted-foreground">Create an outlet or have one assigned to your account before building its schedule.</p></section></div>}
   </>;
 }

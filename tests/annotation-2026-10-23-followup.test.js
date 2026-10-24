@@ -29,14 +29,14 @@ test("transfer picker uses one shared search action and PR-style request/list se
   const page = read("src/app/(app)/asset-management/transfers/new/page.tsx");
   const header = read("src/components/common/UnifiedListHeader.tsx");
   const schema = read("supabase/migrations/337_asset_management_foundation.sql");
-  assert.match(page, /<FilterBar[^>]*>[\s\S]*<Input type="search" name="q"/);
-  assert.equal((page.match(/type="submit"/g) ?? []).length, 1);
+  assert.match(page, /<form method="get"[^>]*>[\s\S]*<Input type="search" name="q"/);
+  assert.equal((page.match(/type="submit"/g) ?? []).length, 2);
   assert.match(page, /<form method="get"[\s\S]*?<Button type="submit">Load assets<\/Button>/);
   assert.match(page, /if \(batchOptions\) return/);
-  assert.doesNotMatch(page, /<Button[^>]*Search/);
+  assert.match(page, /<Button type="submit">Search<\/Button>/);
   assert.match(header, /\\b\(search\|filter\)\\b/i);
   assert.match(page, /Request details/);
-  assert.match(page, /Assets list/);
+  assert.match(page, /Requested assets/);
   assert.match(schema, /asset_id uuid not null/);
   assert.doesNotMatch(page, /type="checkbox"|multiple/);
 });

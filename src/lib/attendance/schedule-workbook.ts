@@ -5,6 +5,7 @@ export type ScheduleOtResolution = {kind:"shift"|"off"|"ro"|"separate";start?:st
 export type ScheduleOtReview = {key:string;sheet:string;employee:string;date:string;value:string;noteOnly:boolean;confirmed:boolean};
 const hasOt=(text:string)=>/(?:^|[^A-Z])OT(?:$|[^A-Z])/i.test(text);
 export type ScheduleImportCatalog = {
+  paid_emergency_leave?: boolean;
   import_rules?: Record<string, ScheduleImportRule>;
   fingerprint_exempt_staff?: string[];
   can_manage_exemptions?: boolean;
@@ -17,7 +18,7 @@ export type ScheduleImportCatalog = {
 export type ScheduleWorkbookAssignment = {
   staff_id: string;
   work_date: string;
-  assignment_kind: "shift" | "off" | "ph" | "al" | "mc" | "upl" | "ro" | "oil";
+  assignment_kind: "shift" | "off" | "ph" | "al" | "mc" | "upl" | "ro" | "oil" | "el";
   shift_template_id: string | null;
   custom_start?: string;
   custom_end?: string;
@@ -135,7 +136,7 @@ export const SCHEDULE_SHEET_BRANCHES: Record<string, string> = {
   VELOCITY: "Kwan Kee Store @ Sunway Velocity",
 };
 const KINDS: Record<string, ScheduleWorkbookAssignment["assignment_kind"]> = {
-  "M/C": "mc", OFF: "off", "OFF DAY": "off", PH: "ph", AL: "al", MC: "mc", UPL: "upl", RO: "ro", OIL: "oil",
+  "M/C": "mc", OFF: "off", "OFF DAY": "off", PH: "ph", AL: "al", MC: "mc", UPL: "upl", RO: "ro", OIL: "oil", EL: "el", "EMERGENCY LEAVE": "el", "EMERGENCY LEAVE (EL)": "el",
 };
 const BLOCKED = new Set(["CLEAR OT", "LATE"]);
 const LOCATION_ALIASES: Record<string, string> = {
@@ -655,6 +656,8 @@ export async function parseScheduleWorkbooks(inputFiles: File[], weekStart: stri
       if (existing) outlet.assignments.push({ staff_id: staff.id, work_date: item.date, assignment_kind: "shift", shift_template_id: existing.shift_template_id ? String(existing.shift_template_id) : null, custom_start: existing.custom_start ? String(existing.custom_start) : undefined, custom_end: existing.custom_end ? String(existing.custom_end) : undefined, custom_crosses_midnight: Boolean(existing.custom_crosses_midnight), custom_break_seconds: existing.custom_break_seconds == null ? undefined : Number(existing.custom_break_seconds), custom_maximum_recognised_seconds: existing.custom_maximum_recognised_seconds == null ? undefined : Number(existing.custom_maximum_recognised_seconds), work_site_label: existing.work_site_label ? String(existing.work_site_label) : null });
       issues.push({ sheet: item.sheet, employee: item.employee, date: item.date, value: label, reason: "actual_attendance_exception", message: `${item.sheet} · ${item.employee} · ${item.date}: MC belongs in actual attendance; the existing scheduled shift ${existing ? "was retained" : "must be reported separately"}.` });
     }
+    else if (KINDS[label] === "ph") issues.push({sheet:item.sheet,employee:item.employee,date:item.date,value:label,reason:"calendar_holiday",message:"Public holidays follow the calendar; no manual assignment added."});
+    else if (KINDS[label] === "el" && !catalog.paid_emergency_leave) issues.push({sheet:item.sheet,employee:item.employee,date:item.date,value:label,reason:"emergency_leave_not_enabled",message:`${item.sheet} · ${item.employee} · ${item.date}: paid Emergency Leave support is not active. No assignment was imported.`});
     else if (KINDS[label] && !secondText) outlet.assignments.push({ staff_id: staff.id, work_date: item.date, assignment_kind: KINDS[label], shift_template_id: null });
     else if (["MORNING","AFTERNOON","NIGHT"].includes(label) && catalog.fingerprint_exempt_staff?.includes(staff.id) && !secondText) {untimedDuties.push({branchId:item.branchId,staffId:staff.id,date:item.date,label,sheet:item.sheet});notices.push(`${item.sheet} · ${item.employee} · ${item.date}: ${label} retained as a source note for a fingerprint-exempt employee; no working hours inferred.`);}
     else if (label === "RESIGN" && !secondText) { /* HR marker: the profile's last working date owns future eligibility. */ }

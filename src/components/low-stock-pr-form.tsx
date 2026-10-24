@@ -3,6 +3,7 @@
 import { Fragment, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { PackageOpen, ShoppingBasket, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
@@ -102,6 +103,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, basketOwnerId
   const [quantities, setQuantities] = useState<Record<string, string>>({});
   const [uoms, setUoms] = useState<Record<string, string>>({});
   const [basketOpen, setBasketOpen] = useState(false);
+  const [desktopExpanded, setDesktopExpanded] = useState(false);
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const branchSelected = selectedBranchId !== "all";
 
@@ -306,22 +308,13 @@ export function LowStockPrForm({ items, branches, defaultBranchId, basketOwnerId
       {basketOpen ? <button type="button" className="sb-dialog-backdrop fixed inset-0 z-[var(--sb-z-backdrop)] md:hidden" aria-label="Close PR basket" onClick={() => setBasketOpen(false)} /> : null}
       <Card role={basketOpen ? "dialog" : undefined} aria-modal={basketOpen ? true : undefined} aria-label={basketOpen ? "PR basket" : undefined} className={`sb-procurement-basket max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-[var(--sb-z-dialog)] max-md:max-h-[84dvh] max-md:overflow-hidden max-md:rounded-b-none max-md:rounded-t-[var(--sb-panel-radius)] ${basketOpen ? "max-md:block" : "max-md:hidden"}`} data-low-stock-pr-setup>
       <CardContent className="space-y-4 p-4 max-md:max-h-[84dvh] max-md:overflow-y-auto max-md:pb-[calc(env(safe-area-inset-bottom)+1rem)] md:p-5">
-        <div className="flex flex-col gap-3 border-b border-[var(--sb-border-soft)] pb-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="flex min-w-0 items-start justify-between gap-3">
-            <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--sb-text-muted)]">Procurement queue</p>
-            <p className="mt-1 text-base font-semibold tracking-[-0.01em]">PR basket</p>
-            <p className="text-xs text-muted-foreground">Add low-stock items, adjust quantities, then create ordinary draft PRs.</p>
-            </div>
-            <button ref={basketCloseRef} type="button" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md border md:hidden" onClick={() => setBasketOpen(false)} aria-label="Close PR basket"><X className="h-4 w-4" /></button>
-          </div>
-          <div className="flex items-baseline gap-2 text-xs text-muted-foreground lg:text-right">
-            <strong className="whitespace-nowrap text-sm text-foreground">{selectedLabel}</strong>
-            <span aria-hidden="true">·</span>
-            <span>Suggested total {selectedTotal}</span>
-          </div>
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0"><h2 className="text-sm font-semibold">PR basket</h2><p className="mt-1 text-xs text-muted-foreground"><span aria-live="polite">{selectedLabel}</span> · Suggested total {selectedTotal}</p></div>
+          <Button type="button" variant="outline" className="hidden md:inline-flex" aria-expanded={desktopExpanded} aria-controls="low-stock-basket-editor" onClick={()=>setDesktopExpanded(value=>!value)}>{desktopExpanded ? "Hide items" : "Choose items"}</Button>
+          <button ref={basketCloseRef} type="button" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md border md:hidden" onClick={() => setBasketOpen(false)} aria-label="Close PR basket"><X className="h-4 w-4" /></button>
         </div>
 
+        <div id="low-stock-basket-editor" hidden={!basketOpen && !desktopExpanded} className="space-y-3">
         <div className="grid gap-3 md:grid-cols-2">
           <Field label="Branch">
             <SelectControl value={selectedBranchId} onValueChange={selectedValue => selectBranch(selectedValue)} aria-describedby="low-stock-branch-guidance" ariaLabel={"Branch"} options={[({value: "all", label: "Choose a branch"}), ...(branches.map((branch) => ({value: String((branch.id) ?? ""), label: String((branch.branch_name) ?? "")})))]}/>
@@ -469,6 +462,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, basketOwnerId
             </div>
           </form>
         )}
+        </div>
       </CardContent>
     </Card>
       </BasketSurface>

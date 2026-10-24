@@ -1,3 +1,4 @@
+import { hasPaidEmergencyLeaveProof } from "@/lib/attendance/emergency-leave";
 import { buildPeoplePdf } from "@/lib/attendance/people-pdf";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -63,7 +64,7 @@ function assignmentSchedule(value: Nested) {
 
 function isOffAssignment(value: Nested) {
   const kind = String(object(value).assignment_kind ?? "").toLowerCase();
-  return kind !== "" && kind !== "shift";
+  return kind !== "" && kind !== "shift" && kind !== "el";
 }
 
 function dayLabel(date: string) {
@@ -73,12 +74,14 @@ function dayLabel(date: string) {
 function sheetDay(date: string, result: Nested, assignment: Nested, outlet: string): PeopleWorkbookDay {
   const row = object(result);
   const schedule = assignmentSchedule(assignment);
+  const paidEmergencyLeave = object(assignment).assignment_kind === "el" || hasPaidEmergencyLeaveProof(row);
   const punches = result ? exportPunches(row).map((value) => clock(value)).filter((value): value is string => Boolean(value)) : [];
   const scheduledStart = clock(row.scheduled_start) ?? clock(schedule.start);
   const scheduledEnd = clock(row.scheduled_end) ?? clock(schedule.end);
   return {
     date,
-    event: Array.isArray(row.statuses) && row.statuses.includes("unpaid_leave") ? "Unpaid Leave" : undefined,
+    paidEmergencyLeave,
+    event: paidEmergencyLeave ? "EL · Paid Emergency Leave" : Array.isArray(row.statuses) && row.statuses.includes("unpaid_leave") ? "Unpaid Leave" : undefined,
     exceptions: result ? exportExceptionLabels(row) : isOffAssignment(assignment) ? "" : "No calculated result",
     day: dayLabel(date),
     outlet: branchName(row.branches) || outlet,
@@ -88,7 +91,7 @@ function sheetDay(date: string, result: Nested, assignment: Nested, outlet: stri
     punches,
     workedSeconds: result ? exportWorkedSeconds(row) : null,
     overtimeSeconds: result && exportWorkedSeconds(row) != null ? Number(row.overtime_seconds ?? 0) : null,
-    shortHoursSeconds: result ? exportShortHoursSeconds(row) : null,
+    shortHoursSeconds: paidEmergencyLeave ? 0 : result ? exportShortHoursSeconds(row) : null,
     pendingOvertimeSeconds: result && exportWorkedSeconds(row) != null ? Math.max(0, Number(row.overtime_candidate_seconds ?? 0) - Number(row.overtime_seconds ?? 0)) : null,
     pphSeconds: null, // Deferred: total triple pay, never an extra three times.
   };

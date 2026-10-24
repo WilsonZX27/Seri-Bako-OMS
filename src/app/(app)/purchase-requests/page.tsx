@@ -119,7 +119,7 @@ export default async function PurchaseRequestsPage({ searchParams }: { searchPar
                     <TableCell><div className="min-w-0"><DocumentNumber value={request.request_no} size="sm" /><div className="mt-1"><PriorityBadge priority={request.priority} /></div></div></TableCell>
                     <TableCell><p>{formatDateOnly(request.request_date)}</p>{request.needed_by_date ? <p className="mt-1 text-[11px] italic text-muted-foreground">{formatDateOnly(request.needed_by_date)}</p> : null}</TableCell>
                     <TableCell><p>{request.branch_name ?? "—"}</p><p className="mt-1 text-[11px] text-muted-foreground">{request.requested_by_name}</p></TableCell>
-                    <TableCell className="whitespace-normal break-words align-top"><span className={request.supplier_state === "assigned" ? "text-[var(--sb-text)]" : "font-medium text-[var(--sb-warning)]"}>{supplierDisplay(request)}</span></TableCell>
+                    <TableCell className="whitespace-normal break-words align-middle"><span className={request.supplier_state === "assigned" ? "text-[var(--sb-text)]" : "font-medium text-[var(--sb-warning)]"}>{supplierDisplay(request)}</span></TableCell>
                     <TableCell className="whitespace-normal"><StatusBadge status={request.status === "converted_to_po" && request.procurement_status ? request.procurement_status : request.status} /></TableCell>
                     <TableCell className="text-right"><p>{request.line_count} {request.line_count === 1 ? "line" : "lines"}</p><p className="mt-1 text-[11px] text-muted-foreground">{formatCurrency(request.estimated_total)}</p></TableCell>
                   </DataGridRow>

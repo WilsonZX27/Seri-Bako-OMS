@@ -15,7 +15,7 @@ const verification302 = fs.readFileSync("supabase/verification/production_migrat
 test("schedule editor and draft actions only exist in editable workflow states", () => {
   assert.match(source, /\["draft", "returned", "rejected", "amendment_pending"\]\.includes\([\s\S]*?week\.status/);
   assert.match(source, /editableStatus && canDraft/);
-  assert.match(source, /disabled=\{!editableStatus \|\| !canDraft\}/);
+  assert.match(source, /disabled=\{!editableStatus \|\| !canDraft \|\| value\?\.assignment_kind === "ph"\}/);
 });
 
 test("workbook replays continue cleared assignment revision history", () => {

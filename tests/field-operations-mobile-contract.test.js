@@ -213,7 +213,7 @@ test("outlet daily entry uses labelled quantity rows on phones and reveals wasta
   assert.match(source, /data-outlet-daily-lines/);
   assert.match(source, /data-long-mobile-form/);
   assert.match(source, /touch-pan-y/);
-  assert.match(source, /grid grid-cols-3 items-end gap-2 p-3/);
+  assert.match(source, /grid grid-cols-3 items-center gap-2 px-3 py-2/);
   assert.match(source, /showWastageDetails = Number\(wastage \|\| 0\) > 0/);
   assert.match(source, /className="min-w-0 px-2 text-center tabular-nums"/);
   assert.match(source, /required=\{Number\(wastage \|\| 0\) > 0\}/);

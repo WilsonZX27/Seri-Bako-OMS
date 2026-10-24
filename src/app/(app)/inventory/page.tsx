@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { SelectControl } from "@/components/ui/select-control";
 import { formatNumber } from "@/lib/utils";
+import { inventoryReadDeadline } from "@/lib/inventory-read-deadline";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getInventoryDailyMovement, getInventoryDashboard } from "@/server/queries/inventory";
 
@@ -25,11 +26,11 @@ const modules = [
 export default async function InventoryPage({ searchParams }: { searchParams: Promise<{ consumption?: string }> }) {
   const params = await searchParams;
   const period = params.consumption === "7d" || params.consumption === "month" ? params.consumption : "30d";
-  const [summary, movement, permissions] = await Promise.all([
+  const [summary, movement, permissions] = await inventoryReadDeadline(Promise.all([
     getInventoryDashboard(period),
     getInventoryDailyMovement(period),
     getPermissionMap([...modules.map((module) => module.permission), "goods_receiving.read"]),
-  ]);
+  ]));
   const visibleModules = modules.filter((module) => permissions[module.permission]);
   const formatCounter = (counter: { value: number; unavailable?: boolean }) => counter.unavailable ? "Unavailable" : formatNumber(counter.value);
   const counters = [

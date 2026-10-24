@@ -17,7 +17,7 @@ type MobileSidebarProps = {
 
 // Tablet navigation is intentionally contextual: desktop keeps its persistent
 // sidebar at xl, while phone uses the role-aware bottom navigation below md.
-export function MobileSidebar({ role, permissionMap, companyName, companyLogoUrl, attentionHrefs = [] }: MobileSidebarProps) {
+export function MobileSidebar({ role, permissionMap, companyName, companyLogoUrl, attentionHrefs }: MobileSidebarProps) {
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);

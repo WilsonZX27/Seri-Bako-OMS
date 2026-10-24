@@ -8,6 +8,7 @@ import { getVisibleNavGroups } from "@/components/layout/nav-items";
 import { APP_RELEASE_NOTE } from "@/lib/app-version";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/database";
+import { useNavigationAttention } from "@/components/layout/navigation-attention";
 
 type WorkspaceSidebarProps = {
   role: UserRole;
@@ -30,8 +31,10 @@ export function WorkspaceSidebar({
   brandHref = "/dashboard",
   onNavigate,
   permissionMap,
-  attentionHrefs = [],
+  attentionHrefs: suppliedAttentionHrefs,
 }: WorkspaceSidebarProps) {
+  const sharedAttentionHrefs = useNavigationAttention();
+  const attentionHrefs = suppliedAttentionHrefs ?? sharedAttentionHrefs;
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [closedGroups, setClosedGroups] = useState<Record<string, boolean>>({});

@@ -5,7 +5,7 @@ const vm=require('node:vm');
 const ts=require('typescript');
 const React=require('react');
 const {renderToStaticMarkup}=require('react-dom/server');
-const load=require('./load-source.cjs')();
+const load=require('./load-source.cjs')({setTimeout,clearTimeout});
 const utils=load('src/lib/utils.ts');
 const status=load('src/components/ui/status-badge.tsx');
 const wrapper=({children})=>React.createElement('div',null,children);
@@ -15,6 +15,7 @@ function compile(file, overrides={}) {
   if(name in overrides)return overrides[name];
   if(name==='next/link')return {__esModule:true,default:({prefetch,children,...props})=>React.createElement('a',props,children)};
   if(name==='@/lib/utils')return utils;
+  if(name==='@/lib/inventory-read-deadline')return load('src/lib/inventory-read-deadline.ts');
   if(name==='@/lib/workspace-notification-copy')return load('src/lib/workspace-notification-copy.ts');
   if(name==='@/components/ui/status-badge')return status;
   if(name==='@/components/layout/workspace-layout')return {WorkspaceGrid:({children,rightRail})=>React.createElement('main',null,children,React.createElement('aside',null,rightRail))};

@@ -1,0 +1,9 @@
+const test=require('node:test'),assert=require('node:assert/strict');
+const {compile,React,renderToStaticMarkup}=require('./helpers/render-workspaces.cjs');
+const states=compile('src/components/ui/system-states.tsx');
+const {RecordDetailError}=compile('src/components/ui/record-detail-error.tsx',{'@/components/ui/system-states':states});
+for(const [label,href]of [['Asset','/asset-management'],['Stock transfer','/stock-transfers'],['Purchase order','/purchase-orders'],['Employee','/people'],['Recipe','/recipes'],['Goods receiving','/goods-receivings']]){
+ test(label+' missing detail does not expose data or imply a verified deletion',()=>{const html=renderToStaticMarkup(React.createElement(RecordDetailError,{error:Error('Cannot coerce the result to a single JSON object'),reset(){},recordLabel:label,collectionLabel:'records',collectionHref:href}));assert.match(html,/unavailable/);assert.match(html,/outside your access/);assert.ok(html.includes(`href="${href}"`));assert.doesNotMatch(html,/Retry/);});
+ test(label+' failed detail offers recovery without leaking backend diagnostics',()=>{const error=Object.assign(Error('SECRET_QUERY_fixture_private_record'),{digest:'synthetic-reference'});const html=renderToStaticMarkup(React.createElement(RecordDetailError,{error,reset(){},recordLabel:label,collectionLabel:'records',collectionHref:href}));assert.match(html,/could not be loaded/);assert.match(html,/Retry/);assert.match(html,/synthetic-reference/);assert.doesNotMatch(html,/SECRET_QUERY/);});
+}
+test('actual permission-denied state retains a safe escape and does not render record content',()=>{const html=renderToStaticMarkup(React.createElement(states.PermissionDeniedState,{}));assert.match(html,/Permission required/);assert.match(html,/href="\/dashboard"/);assert.match(html,/role="alert"/);assert.doesNotMatch(html,/Sign in again|record_id|fixture_private_record/);});

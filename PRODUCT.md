@@ -1,3 +1,7 @@
+## v9.2.147 (Preview) — Bounded inventory recovery and independent navigation
+
+Render existing permission-scoped navigation without waiting for optional workspace updates; update attention dots asynchronously within the current request. Bound the Inventory page read wait at twelve seconds and reuse the shared explicit retry/Dashboard recovery without fabricated stock values or automatic retries. This is read recovery, not a proven backend performance fix. Synthetic loaded schedule-import review, partial retry, explicit mapping, nonzero RO ordering/boundaries and representative detail recovery checks are recorded separately from real-account acceptance. No Production promotion, shared SQL, role/account or business-record changes. Paid EL, asset numbering/batch and repair SQL remain inactive.
+
 ## v9.2.146 (Preview) — Three verified responsive corrections
 
 Align the complete three-field Daily input group and its headings to the left grid tracks. Make the shared phone primary-action slot 48px high while preserving 44px secondary actions and larger-screen defaults. Resolve nested workspace names by their most-specific path so RO breadcrumbs say RO Management. No SQL capability activation, business-record changes or Production promotion.

@@ -14,7 +14,7 @@ import { navPermissionCodes } from "@/components/layout/nav-items";
 import { MobileAppNavigation } from "@/components/layout/mobile-app-navigation";
 import { getCompanyBranding } from "@/server/queries/common";
 import { getTopBarActivity, getNavAttentionHrefs } from "@/server/queries/topbar";
-import type { getTopBarActivity as GetTopBarActivity } from "@/server/queries/topbar";
+import { NavigationAttentionProvider } from "@/components/layout/navigation-attention";
 import { Suspense } from "react";
 import type { UserRole } from "@/types/database";
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -50,7 +50,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const displayName = account?.full_name ?? account?.email ?? "Signed in";
 
   return (
-    <div data-app-shell data-design-layer="v2" className="min-h-dvh bg-[var(--app-bg)] xl:h-dvh xl:overflow-hidden">
+    <NavigationAttentionProvider hrefs={activityPromise.then(getNavAttentionHrefs)}><div data-app-shell data-design-layer="v2" className="min-h-dvh bg-[var(--app-bg)] xl:h-dvh xl:overflow-hidden">
       <div className="flex min-h-dvh min-w-0 xl:h-dvh">
         <Suspense fallback={<aside data-app-sidebar aria-hidden="true" className="hidden h-dvh w-[var(--sb-sidebar-width)] shrink-0 bg-[var(--sb-green-950)] xl:block"/>}><Sidebar permissionMap={permissionMap} role={role} companyName={branding.company_name} companyLogoUrl={branding.logo_url} displayName={displayName} activityPromise={activityPromise} /></Suspense>
         <div className="flex min-w-0 flex-1 flex-col xl:overflow-hidden">
@@ -73,12 +73,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </div>
         </div>
       </div>
-      <Suspense fallback={null}><MobileNavigationWithAttention role={role} permissionMap={permissionMap} companyName={branding.company_name} activityPromise={activityPromise}/></Suspense>
-    </div>
+      <MobileAppNavigation role={role} permissionMap={permissionMap} companyName={branding.company_name}/>
+    </div></NavigationAttentionProvider>
   );
-}
-
-async function MobileNavigationWithAttention({ role, permissionMap, companyName, activityPromise }: { role: UserRole; permissionMap: Record<string, boolean>; companyName: string; activityPromise: ReturnType<typeof GetTopBarActivity> }) {
-  const activity = await activityPromise;
-  return <MobileAppNavigation role={role} permissionMap={permissionMap} companyName={companyName} attentionHrefs={getNavAttentionHrefs(activity)} />;
 }

@@ -35,3 +35,20 @@ test('RO disabled and resigned staff are absent before ledger reads; last workin
 test('RO balance sorts globally before25-row paging and preserves the authoritative available calculation',async()=>{const h=load({wide:true,people:Array.from({length:30},(_,i)=>person(i)),balanceFor:(name,id)=>Number(id.slice(1))*(name==='get_comp_time_balance'?10:3)});const r=await h.run({sort:'available',dir:'desc',page:'2'});assert.equal(r.totalRows,30);assert.equal(r.rows.length,5);assert.deepEqual(Array.from(r.rows,x=>x.available),[12,9,6,3,0]);assert.ok(h.max()<=10);});
 test('RO large numeric sorting refuses partial results before balance reads',async()=>{const h=load({wide:true,people:Array.from({length:502},(_,i)=>person(i))});const result=await h.run({sort:'balance'});assert.equal(result.sortUnavailable,true);assert.equal(result.rows.length,0);assert.equal(result.totalRows,502);assert.equal(h.calls.filter(c=>c.name).length,0);});
 test('RO uses standard table sortable headers pagination and right panel, with no ad-hoc footer',()=>{const page=fs.readFileSync('src/app/(app)/people/ro/page.tsx','utf8');assert.match(page,/<Table /);assert.match(page,/<SortableHead label="Available"/);assert.match(page,/<PaginationControls/);assert.match(page,/rightRail={rail}/);assert.doesNotMatch(page,/<article|<footer|staffEmploymentStatus/);});
+
+test('RO nonzero ascending and descending sorts retain negatives, available versus balance, and stable ties',async()=>{
+ const values={s0:[-30,-45],s1:[120,80],s2:[120,50],s3:[0,0]};
+ for(const sort of ['balance','available'])for(const dir of ['asc','desc']){
+  const h=load({wide:true,people:[person(2),person(0),person(3),person(1)],balanceFor:(name,id)=>values[id][name==='get_comp_time_balance'?0:1]});
+  const result=await h.run({sort,dir});const numbers=Array.from(result.rows,r=>r[sort]);assert.deepEqual(numbers,[...numbers].sort((a,b)=>dir==='asc'?a-b:b-a));
+  assert.equal(result.rows.find(r=>r.id==='s0').available,-45);assert.equal(result.rows.find(r=>r.id==='s1').balance,120);
+  if(sort==='balance')assert.deepEqual(Array.from(result.rows.filter(r=>r.balance===120),r=>r.id),['s1','s2']);
+ }
+});
+test('RO exact500-row numeric boundary sorts,501 refuses partial ledger results and pagination clamps',async()=>{
+ for(const count of [500,501]){
+  const h=load({wide:true,people:Array.from({length:count},(_,i)=>person(i)),balanceFor:(name,id)=>Number(id.slice(1))});const r=await h.run({sort:'available',dir:'desc'});
+  assert.equal(r.sortUnavailable,count>500);if(count===500){assert.equal(r.rows[0].available,499);assert.equal(r.rows.length,25);assert.equal(r.hasNext,true);}else assert.equal(h.calls.filter(c=>c.name).length,0);
+ }
+ const h=load({wide:true,people:[person(1)]});assert.equal((await h.run({page:'-9'})).page,1);assert.equal((await h.run({page:'20001'})).page,10000);
+});

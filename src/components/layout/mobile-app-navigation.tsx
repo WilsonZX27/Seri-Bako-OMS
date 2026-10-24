@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useNavigationAttention } from "@/components/layout/navigation-attention";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import {
@@ -110,7 +111,7 @@ export function MobileAppNavigation({
   role,
   permissionMap,
   companyName,
-  attentionHrefs = [],
+  attentionHrefs: suppliedAttentionHrefs,
 }: {
   role: UserRole;
   permissionMap: Record<string, boolean>;
@@ -123,6 +124,8 @@ export function MobileAppNavigation({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
+  const sharedAttentionHrefs = useNavigationAttention();
+  const attentionHrefs = suppliedAttentionHrefs ?? sharedAttentionHrefs;
   const groups = useMemo(() => getVisibleNavGroups(role, permissionMap, attentionHrefs), [attentionHrefs, permissionMap, role]);
   const tabs = useMemo(() => {
     const preferred = roleTabs(role).filter((tab) => !tab.permission || has(permissionMap, tab.permission)).map((tab) => ({...tab,hasAttention:attentionHrefs.includes(tab.href)}));

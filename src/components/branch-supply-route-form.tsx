@@ -1,6 +1,6 @@
 import { ArrowRight, MapPin, Warehouse } from "lucide-react";
 import { RecordSection } from "@/components/record-workspace";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { SubmitButton } from "@/components/ui/submit-button";
 import type { BranchType } from "@/types/database";
 
@@ -36,10 +36,7 @@ export function BranchSupplyRouteForm({ branch, context, action }: {
           {branch.branch_type === "outlet" ? (
             <label className="grid max-w-xl gap-1.5 text-sm font-medium">
               <span>Primary Central Kitchen <span className="text-destructive" aria-hidden="true">*</span></span>
-              <SelectNative name="related_branch_id" defaultValue={selectedKitchenId} required>
-                <option value="" disabled>Select a Central Kitchen</option>
-                {context.centralKitchens.map((kitchen) => <option key={kitchen.id} value={kitchen.id}>{kitchen.branch_name} ({kitchen.branch_code})</option>)}
-              </SelectNative>
+              <SelectControl name="related_branch_id" defaultValue={selectedKitchenId} required ariaLabel={"Primary Central Kitchen "} options={[({value: "", label: "Select a Central Kitchen", disabled: true}), ...(context.centralKitchens.map((kitchen) => ({value: String((kitchen.id) ?? ""), label: [kitchen.branch_name, " (", kitchen.branch_code, ")"].join("")})))]}/>
               <span className="text-xs font-normal text-muted-foreground">This controls Kitchen access, dispatch ownership, and Qty Sent confirmation for the outlet.</span>
             </label>
           ) : (

@@ -7,7 +7,7 @@ import { Building2, CalendarDays, ChevronDown, MapPin, MessageSquare, Minus, Plu
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { Textarea } from "@/components/ui/textarea";
 import { UrgencySelect } from "@/components/urgency-select";
 import type { ProcurementPriority } from "@/components/priority-badge";
@@ -377,16 +377,11 @@ export function PurchaseRequestForm({
             </div>
             <div className={`${detailsOpen ? "grid" : "hidden"} grid-cols-1 gap-3 p-3 sm:grid-cols-2 lg:grid-cols-4`}>
             <Field label="Request branch" required>
-                <SelectNative data-pr-field="branch" name="branch_id" aria-label="Request branch" aria-invalid={validationTarget?.field === "branch" || undefined} className={validationTarget?.field === "branch" ? "border-rose-500 ring-2 ring-rose-200" : ""} value={branchId} onChange={(event) => { setValidationError(""); setValidationTarget(null); changeBranch(event.target.value); }} required disabled={lockBranch}>
-                  {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
-                </SelectNative>
+                <SelectControl data-pr-field="branch" name="branch_id" ariaLabel="Request branch" aria-invalid={validationTarget?.field === "branch" || undefined} className={validationTarget?.field === "branch" ? "border-rose-500 ring-2 ring-rose-200" : ""} value={branchId} onValueChange={selectedValue => { setValidationError(""); setValidationTarget(null); changeBranch(selectedValue); }} required disabled={lockBranch} options={[...(branches.map((branch) => ({value: String((branch.id) ?? ""), label: String((branch.branch_name) ?? "")})))]}/>
                 {lockBranch ? <input type="hidden" name="branch_id" value={branchId} /> : null}
             </Field>
             <Field label="Supplier" required>
-              <SelectNative data-pr-field="supplier" name="request_supplier_id" aria-label="Request supplier" aria-invalid={validationTarget?.field === "supplier" || undefined} className={validationTarget?.field === "supplier" ? "border-rose-500 ring-2 ring-rose-200" : ""} value={requestSupplierId} onChange={(event) => { setValidationError(""); setValidationTarget(null); changeRequestSupplier(event.target.value); }} required>
-                <option value="">Choose supplier</option>
-                {supplierOptions.map((supplier) => <option key={supplier.supplier_id} value={supplier.supplier_id}>{supplier.supplier_name}</option>)}
-              </SelectNative>
+              <SelectControl data-pr-field="supplier" name="request_supplier_id" ariaLabel="Request supplier" aria-invalid={validationTarget?.field === "supplier" || undefined} className={validationTarget?.field === "supplier" ? "border-rose-500 ring-2 ring-rose-200" : ""} value={requestSupplierId} onValueChange={selectedValue => { setValidationError(""); setValidationTarget(null); changeRequestSupplier(selectedValue); }} required options={[({value: "", label: "Choose supplier"}), ...(supplierOptions.map((supplier) => ({value: String((supplier.supplier_id) ?? ""), label: String((supplier.supplier_name) ?? "")})))]}/>
               {validationTarget?.field === "supplier" ? <p className="text-[11px] font-medium text-rose-700">Choose the suggested supplier. Purchasing can confirm the final route during review.</p> : null}
             </Field>
             <Field label="Needed By">
@@ -451,10 +446,7 @@ export function PurchaseRequestForm({
                       </div>
                     </Field>
                     <Field label="UOM" labelClassName="sr-only" className="pr-line-uom row-start-3 lg:col-start-4 lg:row-start-1">
-                      <SelectNative data-pr-field="uom" name="line_uom" value={line.uom} aria-invalid={validationTarget?.field === "uom" && validationTarget.lineKey === line.key || undefined} className={validationTarget?.field === "uom" && validationTarget.lineKey === line.key ? "border-rose-500 ring-2 ring-rose-200" : ""} onChange={(event) => { setValidationError(""); setValidationTarget(null); selectLineUom(line.key, event.target.value); }} aria-label={`Unit of measure for ${line.itemSearch || "request line"}`}>
-                        <option value="">Choose unit</option>
-                        {allowedUomsForLine(line).map((uom) => <option key={uom} value={uom}>{uom.toUpperCase()}</option>)}
-                      </SelectNative>
+                      <SelectControl data-pr-field="uom" name="line_uom" value={line.uom} aria-invalid={validationTarget?.field === "uom" && validationTarget.lineKey === line.key || undefined} className={validationTarget?.field === "uom" && validationTarget.lineKey === line.key ? "border-rose-500 ring-2 ring-rose-200" : ""} onValueChange={selectedValue => { setValidationError(""); setValidationTarget(null); selectLineUom(line.key, selectedValue); }} ariaLabel={`Unit of measure for ${line.itemSearch || "request line"}`} options={[({value: "", label: "Choose unit"}), ...(allowedUomsForLine(line).map((uom) => ({value: String((uom) ?? ""), label: String((uom.toUpperCase()) ?? "")})))]}/>
                     </Field>
                   {validationTarget?.lineKey === line.key && ["item", "quantity", "uom"].includes(validationTarget.field) ? <p className="col-span-full text-[11px] font-medium text-rose-700">Complete this line before continuing.</p> : null}
                   <input type="hidden" name="line_suggested_supplier_id" value={line.supplierId} />
@@ -551,15 +543,10 @@ export function PurchaseOrderForm({
               <p className="mt-1 text-xs text-muted-foreground">Use the exact PO number from AutoCount. OMS will not generate or replace it.</p>
             </Field>
             <Field label="Branch" required>
-              <SelectNative name="branch_id" value={branchId} onChange={(event) => { setBranchId(event.target.value); setDismissedErrorAttempt(actionState.attempt); setCatalogueNotice("Branch changed. Your supplier and item lines were kept for review."); }} required>
-                {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
-              </SelectNative>
+              <SelectControl name="branch_id" value={branchId} onValueChange={selectedValue => { setBranchId(selectedValue); setDismissedErrorAttempt(actionState.attempt); setCatalogueNotice("Branch changed. Your supplier and item lines were kept for review."); }} required ariaLabel={"Branch"} options={[...(branches.map((branch) => ({value: String((branch.id) ?? ""), label: String((branch.branch_name) ?? "")})))]}/>
             </Field>
             <Field label="Supplier" required className="col-span-1 md:col-span-2">
-              <SelectNative name="supplier_id" value={supplierId} onChange={(event) => {setSupplierId(event.target.value);setDismissedErrorAttempt(actionState.attempt);setCatalogueNotice("Supplier changed. Existing item lines were kept so you can review or replace them.");}} required>
-                <option value="">Select supplier</option>
-                {eligibleSuppliers.map((supplier) => <option key={supplier.supplier_id} value={supplier.supplier_id}>{supplier.supplier_name}</option>)}
-              </SelectNative>
+              <SelectControl name="supplier_id" value={supplierId} onValueChange={selectedValue => {setSupplierId(selectedValue);setDismissedErrorAttempt(actionState.attempt);setCatalogueNotice("Supplier changed. Existing item lines were kept so you can review or replace them.");}} required ariaLabel={"Supplier"} options={[({value: "", label: "Select supplier"}), ...(eligibleSuppliers.map((supplier) => ({value: String((supplier.supplier_id) ?? ""), label: String((supplier.supplier_name) ?? "")})))]}/>
             </Field>
               <div className="col-span-2 grid grid-cols-2 gap-3 border-t border-[var(--sb-border-soft)] pt-3 md:col-span-3 md:grid-cols-3">
                 <Field label="Order Date" required>
@@ -601,7 +588,7 @@ export function PurchaseOrderForm({
                         <Input name="line_qty_ordered" type="number" inputMode="decimal" min="0.0001" step="0.0001" placeholder="Qty" required={index === 0} />
                       </Field>
                       <Field label="UOM" required={Boolean(itemId)} labelClassName="md:sr-only" className="min-w-0 md:col-start-4 md:row-start-1">
-                        {itemId ? <SelectNative name="line_uom" value={lineUom} onChange={(event) => { const next = [...selectedItemUoms]; next[index] = normalizeUom(event.target.value); setSelectedItemUoms(next); setDismissedErrorAttempt(actionState.attempt); }} aria-label={`Unit of measure for ${selectedItem?.item_name ?? "order line"}`} className="w-full text-xs" disabled={!options.length}><option value="">Choose UOM</option>{options.map((uom) => <option key={uom} value={uom}>{uom.toUpperCase()}</option>)}</SelectNative> : <SelectNative aria-label={`Unit of measure for order line ${index + 1}`} disabled><option>UOM</option></SelectNative>}
+                        {itemId ? <SelectControl name="line_uom" value={lineUom} onValueChange={selectedValue => { const next = [...selectedItemUoms]; next[index] = normalizeUom(selectedValue); setSelectedItemUoms(next); setDismissedErrorAttempt(actionState.attempt); }} ariaLabel={`Unit of measure for ${selectedItem?.item_name ?? "order line"}`} className="w-full text-xs" disabled={!options.length} options={[({value: "", label: "Choose UOM"}), ...(options.map((uom) => ({value: String((uom) ?? ""), label: String((uom.toUpperCase()) ?? "")})))]}/> : <SelectControl ariaLabel={`Unit of measure for order line ${index + 1}`} disabled options={[({value: "UOM", label: "UOM"})]}/>}
                       </Field>
                       <Field label="Unit Price" labelClassName="md:sr-only" className="min-w-0 md:col-start-5 md:row-start-1">
                         <Input name="line_unit_price" type="number" inputMode="decimal" min="0" step="0.0001" placeholder="0.00" defaultValue={0} />

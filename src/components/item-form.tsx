@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { RecordSection } from "@/components/record-workspace";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { SupplierCombobox } from "@/components/supplier-combobox";
 import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 import { Button } from "@/components/ui/button";
@@ -49,18 +49,14 @@ export function ItemForm({ item, suppliers, action, formId, showSubmit = true, c
       <RecordSection title="Inventory Controls" description="Stock units, safety level, and cost.">
         <div className="grid gap-4 md:grid-cols-3">
           <Field label="Base Unit" required>
-            <SelectNative name="base_unit" defaultValue={normalizeUom(item?.base_unit) || "KG"} required>
-              {uomOptionsWithCurrent(item?.base_unit).map((uom) => (
-                <option key={uom} value={uom}>{uom}</option>
-              ))}
-            </SelectNative>
+            <SelectControl name="base_unit" defaultValue={normalizeUom(item?.base_unit) || "KG"} required ariaLabel={"Base Unit"} options={[...(uomOptionsWithCurrent(item?.base_unit).map((uom) => (
+                ({value: String((uom) ?? ""), label: String((uom) ?? "")})
+              )))]}/>
           </Field>
           <Field label="Purchase Unit" required>
-            <SelectNative name="purchase_unit" defaultValue={normalizeUom(item?.purchase_unit ?? item?.base_unit) || "KG"} required>
-              {uomOptionsWithCurrent(item?.purchase_unit ?? item?.base_unit).map((uom) => (
-                <option key={uom} value={uom}>{uom}</option>
-              ))}
-            </SelectNative>
+            <SelectControl name="purchase_unit" defaultValue={normalizeUom(item?.purchase_unit ?? item?.base_unit) || "KG"} required ariaLabel={"Purchase Unit"} options={[...(uomOptionsWithCurrent(item?.purchase_unit ?? item?.base_unit).map((uom) => (
+                ({value: String((uom) ?? ""), label: String((uom) ?? "")})
+              )))]}/>
           </Field>
           <Field label="Cost">
             <Input name="cost" type="number" step="0.0001" min="0" defaultValue={item?.cost ?? 0} />
@@ -87,7 +83,7 @@ export function ItemForm({ item, suppliers, action, formId, showSubmit = true, c
             <span>Supplier terms & branch availability</span><span className="text-xs font-normal text-muted-foreground group-open:hidden">Optional</span>
           </summary>
           <div className="grid gap-4 border-t p-3 md:grid-cols-2">
-            <Field label="Supplier purchase UOM"><SelectNative name="supplier_purchase_uom" defaultValue="KG">{uomOptionsWithCurrent("KG").map((uom) => <option key={uom} value={uom}>{uom}</option>)}</SelectNative></Field>
+            <Field label="Supplier purchase UOM"><SelectControl name="supplier_purchase_uom" defaultValue="KG" ariaLabel={"Supplier purchase UOM"} options={[...(uomOptionsWithCurrent("KG").map((uom) => ({value: String((uom) ?? ""), label: String((uom) ?? "")})))]}/></Field>
             <Field label="Conversion to base UOM"><Input name="supplier_conversion_to_base_uom" type="number" step="0.000001" min="0.000001" defaultValue={1} /></Field>
             <Field label="Supplier unit cost"><Input name="supplier_unit_cost" type="number" step="0.0001" min="0" defaultValue={0} /></Field>
             <Field label="Supplier MOQ"><Input name="supplier_moq" type="number" step="0.0001" min="0" defaultValue={0} /></Field>

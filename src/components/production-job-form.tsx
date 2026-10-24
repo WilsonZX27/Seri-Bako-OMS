@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
@@ -82,38 +82,27 @@ export function ProductionJobForm({
             <Input name="production_date" type="date" defaultValue={getToday()} required />
           </Field>
           <Field label="Branch" required className="col-span-1">
-            <SelectNative name="branch_id" value={branchId} required onChange={(event) => setBranchId(event.target.value)}>
-              {branches.map((branch) => (
-                <option key={branch.id} value={branch.id}>{branch.branch_name}</option>
-              ))}
-            </SelectNative>
+            <SelectControl name="branch_id" value={branchId} required onValueChange={selectedValue => setBranchId(selectedValue)} ariaLabel={"Branch"} options={[...(branches.map((branch) => (
+                ({value: String((branch.id) ?? ""), label: String((branch.branch_name) ?? "")})
+              )))]}/>
           </Field>
           <Field label="Recipe" required className="col-span-1">
-            <SelectNative
-              name="recipe_id"
-              value={recipeId}
-              required
-              onChange={(event) => {
-                const recipe = recipes.find((row) => row.id === event.target.value);
-                setRecipeId(event.target.value);
+            <SelectControl name="recipe_id" value={recipeId} required onValueChange={selectedValue => {
+                const recipe = recipes.find((row) => row.id === selectedValue);
+                setRecipeId(selectedValue);
                 if (recipe) {
                   setPlannedQty(recipe.yield_qty);
                   setOutputUom(normalizeUom(recipe.yield_unit) || "PCS");
                 }
-              }}
-            >
-              {recipes.map((recipe) => (
-                <option key={recipe.id} value={recipe.id}>{recipe.recipe_no} - {recipe.product_name}</option>
-              ))}
-            </SelectNative>
+              }} ariaLabel={"Recipe"} options={[...(recipes.map((recipe) => (
+                ({value: String((recipe.id) ?? ""), label: [recipe.recipe_no, " - ", recipe.product_name].join("")})
+              )))]}/>
           </Field>
           <Field label="Planned Output Qty" required className="col-span-1">
             <Input name="planned_output_qty" type="number" min="0.0001" step="0.0001" value={plannedQty} onChange={(event) => setPlannedQty(Number(event.target.value))} required />
           </Field>
           <Field label="Output UOM" required className="col-span-1">
-            <SelectNative name="output_uom" value={outputUom} onChange={(event) => setOutputUom(event.target.value)} required>
-              {uomOptionsWithCurrent(outputUom).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
-            </SelectNative>
+            <SelectControl name="output_uom" value={outputUom} onValueChange={selectedValue => setOutputUom(selectedValue)} required ariaLabel={"Output UOM"} options={[...(uomOptionsWithCurrent(outputUom).map((uom) => ({value: String((uom) ?? ""), label: String((uom) ?? "")})))]}/>
           </Field>
           <Field label="Priority" className="col-span-1">
             <UrgencySelect name="priority" value={priority} onValueChange={setPriority} />

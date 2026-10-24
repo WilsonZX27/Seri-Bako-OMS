@@ -41,13 +41,13 @@ test("transfer picker uses one shared search action and PR-style request/list se
   assert.doesNotMatch(page, /type="checkbox"|multiple/);
 });
 
-test("daily record compact rows emphasize Today and show four concise submitter metrics", () => {
+test("daily record compact rows emphasize Today and show four concise last-updater metrics", () => {
   const page = read("src/app/(app)/outlet-daily-records/page.tsx");
   const query = read("src/server/queries/outlet-daily-records.ts");
   const css = read("src/app/design-system-v2.css");
   assert.match(page, /font-semibold text-\[var\(--sb-success-strong\)\].*Today/);
-  assert.match(page, /Submitted by/);
-  assert.match(page, /row\.submitted_by_name/);
+  assert.match(page, /Last updated by/);
+  assert.match(page, /row\.updated_by_name/);
   assert.match(page, /receivedDisplay\(row\)\.value === "Pending"/);
   assert.match(page, /compactWastageDisplay\(row\)\.value === "Not final"/);
   assert.match(query, /submitted_by_name: record\.submitted_by \? actorDisplayName\(actorDisplayMap, record\.submitted_by\) : null/);

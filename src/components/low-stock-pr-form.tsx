@@ -6,7 +6,7 @@ import { PackageOpen, ShoppingBasket, X } from "lucide-react";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
 import { getToday } from "@/lib/utils";
 import { uomOptionsWithCurrent } from "@/lib/uom";
@@ -324,14 +324,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, basketOwnerId
 
         <div className="grid gap-3 md:grid-cols-2">
           <Field label="Branch">
-            <SelectNative
-              value={selectedBranchId}
-              onChange={(event) => selectBranch(event.target.value)}
-              aria-describedby="low-stock-branch-guidance"
-            >
-              <option value="all">Choose a branch</option>
-              {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
-            </SelectNative>
+            <SelectControl value={selectedBranchId} onValueChange={selectedValue => selectBranch(selectedValue)} aria-describedby="low-stock-branch-guidance" ariaLabel={"Branch"} options={[({value: "all", label: "Choose a branch"}), ...(branches.map((branch) => ({value: String((branch.id) ?? ""), label: String((branch.branch_name) ?? "")})))]}/>
           </Field>
         </div>
 
@@ -408,9 +401,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, basketOwnerId
                               }}
                               className="min-w-0"
                             />
-                            <SelectNative aria-label={`Purchase UOM for ${item.item_name}`} value={uoms[key] ?? item.purchase_unit ?? item.base_unit ?? "PCS"} onChange={(event) => setItemUom(key, event.target.value)} className="h-10 w-20 px-1.5 text-xs">
-                              {uomOptionsWithCurrent(item.purchase_unit || item.base_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
-                            </SelectNative>
+                            <SelectControl ariaLabel={`Purchase UOM for ${item.item_name}`} value={uoms[key] ?? item.purchase_unit ?? item.base_unit ?? "PCS"} onValueChange={selectedValue => setItemUom(key, selectedValue)} className="h-10 w-20 px-1.5 text-xs" options={[...(uomOptionsWithCurrent(item.purchase_unit || item.base_unit).map((uom) => ({value: String((uom) ?? ""), label: String((uom) ?? "")})))]}/>
                           </div> : <span className="text-xs text-muted-foreground">Choose branch</span>}
                         </td>
                       </tr>
@@ -454,7 +445,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, basketOwnerId
                     <span className="mt-3 grid grid-cols-2 gap-3">
                       <span className="text-xs text-muted-foreground">Current <strong className="block text-sm text-foreground">{item.current_stock} {item.base_unit}</strong></span>
                       <span className="text-xs text-muted-foreground">Suggested <strong className="block text-sm text-foreground">{item.suggested_reorder_qty} {item.purchase_unit || item.base_unit}</strong></span>
-                      {isSelected ? <span className="col-span-2" data-low-stock-pr-quantity><Field label="Qty for PR"><div className="flex items-center gap-1.5"><QuantityStepper value={requestedQty} uom={null} step={0.0001} buttonStep={1} density="touch" label={`Quantity for ${item.item_name}`} onChange={(value) => setItemQty(key, value)} className="min-w-0 flex-1" /><SelectNative aria-label={`Purchase UOM for ${item.item_name}`} value={uoms[key] ?? item.purchase_unit ?? item.base_unit ?? "PCS"} onChange={(event) => setItemUom(key, event.target.value)} className="h-11 w-20 px-1.5 text-xs">{uomOptionsWithCurrent(item.purchase_unit || item.base_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}</SelectNative></div></Field></span> : null}
+                      {isSelected ? <span className="col-span-2" data-low-stock-pr-quantity><Field label="Qty for PR"><div className="flex items-center gap-1.5"><QuantityStepper value={requestedQty} uom={null} step={0.0001} buttonStep={1} density="touch" label={`Quantity for ${item.item_name}`} onChange={(value) => setItemQty(key, value)} className="min-w-0 flex-1" /><SelectControl ariaLabel={`Purchase UOM for ${item.item_name}`} value={uoms[key] ?? item.purchase_unit ?? item.base_unit ?? "PCS"} onValueChange={selectedValue => setItemUom(key, selectedValue)} className="h-11 w-20 px-1.5 text-xs" options={[...(uomOptionsWithCurrent(item.purchase_unit || item.base_unit).map((uom) => ({value: String((uom) ?? ""), label: String((uom) ?? "")})))]}/></div></Field></span> : null}
                     </span>
                   </div>
                 );

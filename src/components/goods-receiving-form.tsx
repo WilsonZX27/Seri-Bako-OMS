@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { AlertTriangle, ChevronDown, Info, PackageCheck } from "lucide-react";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { Textarea } from "@/components/ui/textarea";
 import { FormPendingBridge } from "@/components/ui/submit-button";
 import { formatCurrency, formatNumber, getToday } from "@/lib/utils";
@@ -89,14 +89,9 @@ export function GoodsReceivingForm({
             {setupOpen ? (
               <div id="goods-receiving-setup-fields" className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-3">
                 <Field label="Purchase Order" required className="col-span-2 lg:col-span-1">
-                  <SelectNative value={selectedOrder?.id ?? ""} onChange={(event) => selectPo(event.target.value)} required>
-                    <option value="">Select approved/sent PO</option>
-                    {purchaseOrders.map((order) => (
-                      <option key={order.id} value={order.id}>
-                        {order.po_no} - {order.supplier_name ?? "Supplier"} - Pending {formatNumber(order.pending_qty)}
-                      </option>
-                    ))}
-                  </SelectNative>
+                  <SelectControl value={selectedOrder?.id ?? ""} onValueChange={selectedValue => selectPo(selectedValue)} required ariaLabel={"Purchase Order"} options={[({value: "", label: "Select approved/sent PO"}), ...(purchaseOrders.map((order) => (
+                      ({value: String((order.id) ?? ""), label: [order.po_no, " - ", order.supplier_name ?? "Supplier", " - Pending ", formatNumber(order.pending_qty)].join("")})
+                    )))]}/>
                 </Field>
                 <Field label="Received Date" required>
                   <Input name="received_date" type="date" value={receivedDate} onChange={(event) => setReceivedDate(event.target.value)} required />
@@ -105,9 +100,7 @@ export function GoodsReceivingForm({
                   <Input name="delivery_order_no" value={deliveryOrderNo} onChange={(event) => setDeliveryOrderNo(event.target.value)} placeholder="Supplier DO reference" />
                 </Field>
                 <Field label="Branch" required description="Select the branch receiving this delivery." className="col-span-2 lg:col-span-1">
-                  <SelectNative name="branch_id" value={branchId} onChange={(event) => setBranchId(event.target.value)} required>
-                    {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
-                  </SelectNative>
+                  <SelectControl name="branch_id" value={branchId} onValueChange={selectedValue => setBranchId(selectedValue)} required ariaLabel={"Branch"} options={[...(branches.map((branch) => ({value: String((branch.id) ?? ""), label: String((branch.branch_name) ?? "")})))]}/>
                 </Field>
                 <Field label="Remarks" className="col-span-2 lg:col-span-3">
                   <Textarea name="remarks" value={remarks} onChange={(event) => setRemarks(event.target.value)} placeholder="Delivery notes, vehicle, temperature, or supplier remarks" />

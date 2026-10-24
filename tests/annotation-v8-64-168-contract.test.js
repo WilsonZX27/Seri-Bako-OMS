@@ -31,7 +31,7 @@ test("Wastage detail controls cannot create a horizontal blank canvas", () => {
 test("PR line UOM is controlled and attachment label starts empty", () => {
   const dialog = read("src/components/add-purchase-request-line-dialog.tsx");
   const page = read("src/app/(app)/purchase-requests/[id]/page.tsx");
-  assert.match(dialog, /<SelectNative name="uom"/);
+  assert.match(dialog, /<SelectControl name="uom"/);
   assert.match(dialog, /uomOptionsForValues/);
   assert.doesNotMatch(page, /defaultLabel="Purchase Request Attachment"/);
 });

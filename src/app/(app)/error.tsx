@@ -1,10 +1,23 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { buildLoginHref } from "@/lib/http/session-recovery";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function WorkspaceError({ error }: { error: Error & { digest?: string }; reset: () => void }) {
+  const [sessionExpired, setSessionExpired] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    void createClient().auth.getUser().then(({data, error}) => {
+      const absent = !data.user && (!error || error.name === "AuthSessionMissingError" || error.status === 401);
+      if (!cancelled && absent) setSessionExpired(true);
+    }).catch(() => undefined);
+    return () => { cancelled = true; };
+  }, []);
+  if (sessionExpired) return <div className="p-3 sm:p-5"><Card><CardContent className="space-y-3 p-4 sm:p-5"><h1 className="text-sm font-semibold">Your session has expired</h1><p className="text-xs text-muted-foreground">Sign in to continue. Check the record before submitting again; this request has not been retried automatically.</p><Button asChild><Link href={buildLoginHref(typeof window === "undefined" ? null : window.location.pathname)}>Sign in again</Link></Button></CardContent></Card></div>;
   const missingRecord = /Cannot coerce the result to a single JSON object/i.test(error.message);
   return (
     <div className="p-3 sm:p-5">

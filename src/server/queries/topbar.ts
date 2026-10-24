@@ -22,6 +22,7 @@ type PendingAction = {
   href: string;
   step?: string;
   branch_name?: string | null;
+  supplier_names?: string[];
   age_label?: string;
   maintenance_description?: string | null;
   maintenance_asset_name?: string | null;
@@ -84,7 +85,7 @@ export async function getTopBarActivity() {
     // The complete activity stream belongs to /activity. Resolving actor
     // identities here made every application route wait on an audit-log query.
     Promise.resolve([] as AssignedActivity[]),
-    getCurrentUserPendingActionSnapshot(5, true, false, false).then((snapshot) => ({ rows: snapshot.unavailable ? [] : snapshot.items, attentionHrefs: snapshot.unavailable ? [] : snapshot.attentionHrefs, unavailable: snapshot.unavailable })).catch((error) => {
+    getCurrentUserPendingActionSnapshot(5, true, false, false, true).then((snapshot) => ({ rows: snapshot.unavailable ? [] : snapshot.items, attentionHrefs: snapshot.unavailable ? [] : snapshot.attentionHrefs, unavailable: snapshot.unavailable })).catch((error) => {
       logServerWarning(error, { source: "topbar.pending-actions" });
       return { rows: [] as PendingAction[], attentionHrefs: [] as string[], unavailable: true };
     }),

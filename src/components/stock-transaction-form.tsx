@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { getToday } from "@/lib/utils";
@@ -51,38 +51,22 @@ export function StockTransactionForm({ items, branches, action, formId, showSubm
             <Input name="transaction_date" type="date" defaultValue={getToday()} required />
           </Field>
           <Field label="Item" className="order-1 col-span-2 md:col-span-1">
-            <SelectNative name="item_id" required value={itemId} onChange={event => setItemId(event.target.value)}>
-              <option value="">Select item</option>
-              {items.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.item_code} - {item.item_name} ({item.base_unit})
-                </option>
-              ))}
-            </SelectNative>
+            <SelectControl name="item_id" required value={itemId} onValueChange={selectedValue => setItemId(selectedValue)} ariaLabel={"Item"} options={[({value: "", label: "Select item"}), ...(items.map((item) => (
+                ({value: String((item.id) ?? ""), label: [item.item_code, " - ", item.item_name, " (", item.base_unit, ")"].join("")})
+              )))]}/>
           </Field>
           <Field label="Branch" className="order-1 col-span-2 md:col-span-1">
-            <SelectNative name="branch_id" defaultValue={branches[0]?.id ?? ""} required>
-              {branches.map((branch) => (
-                <option key={branch.id} value={branch.id}>
-                  {branch.branch_name}
-                </option>
-              ))}
-            </SelectNative>
+            <SelectControl name="branch_id" defaultValue={branches[0]?.id ?? ""} required ariaLabel={"Branch"} options={[...(branches.map((branch) => (
+                ({value: String((branch.id) ?? ""), label: String((branch.branch_name) ?? "")})
+              )))]}/>
           </Field>
           <Field label="Transaction Type" className="order-2">
-            <SelectNative name="transaction_type" required>
-              {types.map((type) => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </SelectNative>
+            <SelectControl name="transaction_type" required ariaLabel={"Transaction Type"} options={[...(types.map((type) => (
+                ({value: String((type.value) ?? ""), label: String((type.label) ?? "")})
+              )))]}/>
           </Field>
           <Field label="Direction" className="order-2">
-            <SelectNative name="direction" defaultValue="in" required>
-              <option value="in">Increase stock</option>
-              <option value="out">Reduce stock</option>
-            </SelectNative>
+            <SelectControl name="direction" defaultValue="in" required ariaLabel={"Direction"} options={[({value: "in", label: "Increase stock"}), ({value: "out", label: "Reduce stock"})]}/>
           </Field>
           <Field label={unit ? `Quantity · ${unit}` : "Quantity in base unit"} className="order-2">
             <Input name="quantity" type="number" step="0.0001" min="0.0001" required />

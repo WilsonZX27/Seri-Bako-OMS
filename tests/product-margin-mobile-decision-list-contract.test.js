@@ -18,9 +18,9 @@ test("Product Margin replaces the ten-column phone table with a decision-first o
 test("Product Margin keeps primary filters visible and moves secondary dimensions into More filters", () => {
   assert.match(page, /<FilterBar resultCount=\{rows\.length\}/);
   assert.match(page, /<Input name="search"/);
-  assert.match(page, /<SelectNative name="status"/);
+  assert.match(page, /<SelectControl name="status"/);
   assert.match(page, /<FilterBarMore activeCount=/);
-  assert.match(page, /<SelectNative name="margin_band"/);
-  assert.match(page, /<SelectNative name="incomplete"/);
+  assert.match(page, /<SelectControl name="margin_band"/);
+  assert.match(page, /<SelectControl name="incomplete"/);
   assert.doesNotMatch(page, /className="sb-list-filters"/);
 });

@@ -1,12 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useState } from "react";
-import { AlertTriangle, ChevronDown, MessageSquare, Search } from "lucide-react";
+import { useActionState, useEffect, useRef, useState } from "react";
+import { AlertTriangle, ChevronDown, MessageSquare, Search, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { formatNumber, getToday } from "@/lib/utils";
@@ -24,6 +24,8 @@ export function StockTransferForm({ branches, selectedFromBranchId, seedLines, a
     return response?.error ? { error: response.error, values: Array.from(data.entries()).map(([key, value]) => [key, String(value)] as [string, string]), attempt: (previous?.attempt ?? 0) + 1 } : null;
   }, null);
   const saved = new URLSearchParams(result?.values ?? []);
+  const [toBranchId, setToBranchId] = useState(() => branches.find(branch => branch.id !== selectedFromBranchId)?.id ?? "");
+  const destinationName = branches.find(branch => branch.id === toBranchId)?.branch_name ?? "";
   useEffect(() => {
     if (result) document.dispatchEvent(new CustomEvent("sb:form-settled", { detail: { formId } }));
   }, [result, formId]);
@@ -40,13 +42,13 @@ export function StockTransferForm({ branches, selectedFromBranchId, seedLines, a
           </summary>
           <div className="grid grid-cols-2 gap-3 p-3 md:grid-cols-3 md:p-4">
             <Field label="Transfer Date" className="col-span-2 md:col-span-1"><Input name="transfer_date" type="date" defaultValue={saved.get("transfer_date") ?? getToday()} required /></Field>
-            <Field label="From Branch"><SelectNative name="from_branch_id" value={selectedFromBranchId ?? branches[0]?.id ?? ""} onChange={(e) => selectFromBranch(e.target.value)} required>{branches.map((b) => <option key={b.id} value={b.id}>{b.branch_name}</option>)}</SelectNative></Field>
-            <Field label="To Branch"><SelectNative name="to_branch_id" defaultValue={saved.get("to_branch_id") ?? branches[1]?.id ?? branches[0]?.id ?? ""} required>{branches.map((b) => <option key={b.id} value={b.id}>{b.branch_name}</option>)}</SelectNative></Field>
+            <Field label="From Branch"><SelectControl name="from_branch_id" ariaLabel="From branch" searchable value={selectedFromBranchId ?? branches[0]?.id ?? ""} onValueChange={selectFromBranch} required options={branches.map(branch => ({value:branch.id,label:branch.branch_name}))}/></Field>
+            <Field label="To Branch"><SelectControl name="to_branch_id" ariaLabel="To branch" searchable value={toBranchId} onValueChange={setToBranchId} required options={branches.map(branch => ({value:branch.id,label:branch.branch_name,disabled:branch.id === selectedFromBranchId}))}/>{destinationName ? <span className="break-words text-[11px] text-muted-foreground lg:sr-only">{destinationName}</span> : null}</Field>
             <p className="col-span-2 text-xs text-muted-foreground md:col-span-3">From branch → To branch. Stock moves only after posting.</p>
             <Field label="Remarks" className="col-span-2 md:col-span-3"><Textarea name="remarks" defaultValue={saved.get("remarks") ?? ""} placeholder="Transfer reason or handling note" /></Field>
           </div>
         </details>
-        <LineGrid seedLines={seedLines} mode="transfer" recoveredValues={result?.values} />
+        <StockTransferLines seedLines={seedLines} recoveredValues={result?.values} />
         {showSubmit ? <div className="flex justify-end"><SubmitButton disabled={!seedLines.length || branches.length < 2} pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create transfer</SubmitButton></div> : null}
       </form>
   );
@@ -109,8 +111,8 @@ export function StockWastageForm({ branches, selectedBranchId, seedLines, action
           </summary>
           <div className="grid grid-cols-2 gap-3 p-3 md:grid-cols-3 md:p-4">
             <Field label="Wastage Date"><Input name="wastage_date" type="date" defaultValue={saved.get("wastage_date") ?? getToday()} required /></Field>
-            <Field label="Main Reason"><SelectNative name="reason" defaultValue={saved.get("reason") ?? "damaged"}>{wastageReasons.map((r) => <option key={r} value={r}>{r.replaceAll("_", " ")}</option>)}</SelectNative></Field>
-            <Field label="Branch" className="col-span-2 md:col-span-1"><SelectNative name="branch_id" value={selectedBranchId ?? branches[0]?.id ?? ""} onChange={(e) => selectBranch(e.target.value)} required>{branches.map((b) => <option key={b.id} value={b.id}>{b.branch_name}</option>)}</SelectNative></Field>
+            <Field label="Main Reason"><SelectControl name="reason" defaultValue={saved.get("reason") ?? "damaged"} ariaLabel={"Main Reason"} options={[...(wastageReasons.map((r) => ({value: String((r) ?? ""), label: String((r.replaceAll("_", " ")) ?? "")})))]}/></Field>
+            <Field label="Branch" className="col-span-2 md:col-span-1"><SelectControl name="branch_id" value={selectedBranchId ?? branches[0]?.id ?? ""} onValueChange={selectedValue => selectBranch(selectedValue)} required ariaLabel={"Branch"} options={[...(branches.map((b) => ({value: String((b.id) ?? ""), label: String((b.branch_name) ?? "")})))]}/></Field>
             <Field label="Evidence note" className="col-span-2 md:col-span-3"><Textarea name="remarks" defaultValue={saved.get("remarks") ?? ""} placeholder="Photo reference, supplier claim, or handling note" /></Field>
           </div>
         </details>
@@ -118,6 +120,37 @@ export function StockWastageForm({ branches, selectedBranchId, seedLines, action
         {showSubmit ? <div className="flex justify-end"><SubmitButton disabled={!seedLines.length} pendingLabel="Saving..." showOverlay overlayLabel="Saving changes...">Create wastage</SubmitButton></div> : null}
       </form>
   );
+}
+
+export function StockTransferLines({ seedLines, recoveredValues }: { seedLines: SeedLine[]; recoveredValues?: Array<[string, string]> }) {
+  const saved = new URLSearchParams(recoveredValues ?? []);
+  const editorRef = useRef<HTMLElement>(null);
+  const focusRow = (index: number) => requestAnimationFrame(() => editorRef.current?.querySelectorAll<HTMLElement>('[data-transfer-item-row] [role="combobox"]')[index]?.focus());
+  const [rows, setRows] = useState(() => {
+    const enabled = new Set(saved.getAll("line_enabled"));
+    const restored = saved.getAll("line_item_id").flatMap((id, index) => enabled.has(id) ? [{ key: crypto.randomUUID(), itemId: id, quantity: saved.getAll("line_quantity")[index] ?? "", notes: saved.getAll("line_remarks")[index] ?? "", notesOpen: Boolean(saved.getAll("line_remarks")[index]) }] : []);
+    return restored.length ? restored : [{ key: crypto.randomUUID(), itemId: "", quantity: "", notes: "", notesOpen: false }];
+  });
+  function update(key: string, patch: Partial<(typeof rows)[number]>) { setRows(current => current.map(row => row.key === key ? {...row, ...patch} : row)); }
+  return <section ref={editorRef} data-stock-transfer-lines className="erp-surface overflow-hidden">
+    <h2 className="border-b px-3 py-2 text-sm font-semibold">Items</h2>
+    <div className="divide-y">{rows.map((row, index) => {
+      const item = seedLines.find(line => line.item_id === row.itemId);
+      return <div key={row.key} className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-3 p-3 lg:grid-cols-[minmax(0,2fr)_minmax(7rem,1fr)_minmax(7rem,1fr)_auto_auto]" data-transfer-item-row>
+        <div className="min-w-0 lg:self-end"><SelectControl ariaLabel={`Item ${index + 1}`} searchable startEmpty value={row.itemId} placeholder="Search item or code" searchPlaceholder="Search item or code" options={seedLines.map(line => ({value:line.item_id,label:`${line.item_name} · ${line.item_code}`,disabled:line.available_qty <= 0 || rows.some(other => other.key !== row.key && other.itemId === line.item_id)}))} onValueChange={itemId => update(row.key,{itemId,quantity:"",notes:"",notesOpen:false})}/></div>
+        {item ? <>
+          <input type="hidden" name="line_item_id" value={item.item_id}/><input type="hidden" name="line_enabled" value={item.item_id}/><input type="hidden" name="line_uom" value={item.uom}/>
+          <Field label="Quantity" className="col-start-1 row-start-2 lg:col-auto lg:row-auto"><Input name="line_quantity" aria-label={`Quantity for ${item.item_name}`} type="number" inputMode="decimal" min="0.0001" max={item.available_qty} step="0.0001" required value={row.quantity} onChange={event => update(row.key,{quantity:event.target.value})}/></Field>
+          <div className="col-start-1 row-start-3 text-xs lg:col-auto lg:row-auto lg:self-end lg:pb-2"><span className="block text-muted-foreground">Available</span><span className="tabular-nums">{formatNumber(item.available_qty)} {item.uom}</span></div>
+          <Button type="button" variant="ghost" size="icon" className="col-start-2 row-start-2 lg:col-auto lg:row-auto lg:self-end" aria-label={`Notes for ${item.item_name}`} aria-expanded={row.notesOpen} onClick={() => update(row.key,{notesOpen:!row.notesOpen})}><MessageSquare className="size-4"/></Button>
+          {row.notesOpen ? <Field label="Remarks" className="col-span-full"><Input autoFocus name="line_remarks" value={row.notes} onChange={event => update(row.key,{notes:event.target.value})}/></Field> : <input type="hidden" name="line_remarks" value={row.notes}/>}
+        </> : <span className="hidden lg:col-span-3 lg:block"/>}
+        <Button type="button" variant="ghost" size="icon" className="col-start-2 row-start-1 lg:col-start-5 lg:self-end" aria-label={`Remove line ${index + 1}`} disabled={rows.length === 1 && !row.itemId} onClick={() => { setRows(current => current.length === 1 ? [{...row,itemId:"",quantity:"",notes:"",notesOpen:false}] : current.filter(other => other.key !== row.key)); focusRow(Math.max(0,index-1)); }}><X className="size-4"/></Button>
+      </div>;
+    })}</div>
+    <div className="flex justify-end border-t p-3"><Button type="button" variant="outline" disabled={rows.some(row => !row.itemId) || rows.length >= seedLines.filter(line => line.available_qty > 0).length} onClick={() => { setRows(current => [...current,{key:crypto.randomUUID(),itemId:"",quantity:"",notes:"",notesOpen:false}]); focusRow(rows.length); }}><Plus className="size-4"/>Add line</Button></div>
+    {!seedLines.length ? <p className="p-3 text-xs text-warning">No available branch stock found.</p> : null}
+  </section>;
 }
 
 function LineGrid({ seedLines, mode, recoveredValues }: { seedLines: SeedLine[]; mode: "transfer" | "wastage"; recoveredValues?: Array<[string, string]> }) {
@@ -178,7 +211,7 @@ function LineGrid({ seedLines, mode, recoveredValues }: { seedLines: SeedLine[];
               <Field label="Quantity" labelClassName="xl:sr-only"><Input name="line_quantity" type="number" inputMode="decimal" min={line.available_qty > 0 ? "0.0001" : "0"} max={Math.max(0, line.available_qty)} step="0.0001" value={quantities[line.item_id] ?? recovered.getAll("line_quantity")[index] ?? (line.available_qty > 0 ? Math.min(line.quantity, line.available_qty) : 0)} onChange={(event) => setQuantities((current) => ({ ...current, [line.item_id]: event.target.value }))} /></Field>
               <div className="flex items-center justify-between gap-2 rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] p-2 text-sm"><div><p className="text-xs text-muted-foreground xl:sr-only">Available</p><p className="font-semibold">{formatNumber(line.available_qty)} {line.uom}</p></div>{selected ? <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" aria-label={`Notes for ${line.item_name}`} aria-expanded={openNotes.has(index)} onClick={() => toggleNote(index)}><MessageSquare className="h-4 w-4" /></Button> : null}</div>
               <input type="hidden" name="line_uom" value={line.uom} />
-              {mode === "wastage" ? <Field label="Reason" labelClassName="xl:sr-only" className="col-span-2 xl:col-span-1"><SelectNative name="line_reason" defaultValue={recovered.getAll("line_reason")[index] ?? "damaged"}>{wastageReasons.map((r) => <option key={r} value={r}>{r.replaceAll("_", " ")}</option>)}</SelectNative></Field> : <input type="hidden" name="line_reason" value="other" />}
+              {mode === "wastage" ? <Field label="Reason" labelClassName="xl:sr-only" className="col-span-2 xl:col-span-1"><SelectControl name="line_reason" defaultValue={recovered.getAll("line_reason")[index] ?? "damaged"} ariaLabel={"Reason"} options={[...(wastageReasons.map((r) => ({value: String((r) ?? ""), label: String((r.replaceAll("_", " ")) ?? "")})))]}/></Field> : <input type="hidden" name="line_reason" value="other" />}
               <div className="col-span-2 xl:col-span-1" hidden={!openNotes.has(index)}>
                 <div hidden={!openNotes.has(index)} className="mt-2 grid gap-2">
                   {mode === "wastage" ? <Field label="Batch"><Input name="line_batch_no" defaultValue={recovered.getAll("line_batch_no")[index] ?? ""} placeholder="Batch" /></Field> : <input type="hidden" name="line_batch_no" value="" />}

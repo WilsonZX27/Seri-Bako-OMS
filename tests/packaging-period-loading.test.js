@@ -17,7 +17,7 @@ function render(pending){const navigations=[];let period,filters;const context={
  if(n.endsWith('/workspace-layout'))return {WorkspaceGrid:p=>React.createElement('main',null,p.children,p.rightRail)};
  if(n.endsWith('/right-console'))return {ConsoleSection:p=>React.createElement('section',null,p.children)};
  if(n.endsWith('/button'))return {buttonVariants:()=>'',Button:p=>React.createElement('button',p,p.children)};if(n.endsWith('/filter-bar'))return {FilterBar:p=>{filters=p;return React.createElement('div',null,p.children);}};
- if(n.endsWith('/select-native'))return {SelectNative:p=>{if(p['aria-label']==='Report period')period=p;return React.createElement('select',p,p.children);}};
+ if(n.endsWith('/select-control'))return {SelectControl:p=>{if(p.ariaLabel==='Report period')period=p;return React.createElement(require('./helpers/render-select-control.cjs'),p);}};
  if(n.endsWith('/system-states'))return {SectionLoadingState:p=>React.createElement('span',{'role':'status'},p.label)};
  if(n.endsWith('/interactive-line-chart'))return {InteractiveLineChart:p=>React.createElement('div',{'data-chart':true},p.points.map(x=>React.createElement('span',{key:x.id},x.previewValue)))};
  if(n.endsWith('/utils'))return {formatNumber:x=>String(x),formatDateOnly:x=>x};
@@ -28,9 +28,9 @@ test('pending period loads hide stale totals, coverage and chart gaps while keep
  const {html,period}=render(true);assert.equal(period.disabled,true);assert.equal(period['aria-busy'],true);assert.match(html,/Loading packaging trend/);assert.match(html,/Loading packaging report coverage/);assert.ok(!html.includes('data-chart'));assert.ok(!html.includes('1/7 days recorded'));assert.ok(!html.includes('Incomplete balance coverage'));assert.match(html,/0<span[^>]*>PCS/);
 });
 test('loaded explicit zero usage is visible and period changes navigate once without eager zero-month data',()=>{
- const {html,period,navigations}=render(false);assert.match(html,/data-chart/);assert.match(html,/0 PCS/);assert.match(html,/4\/7 days with full balance coverage/);period.onChange({target:{value:'30'}});assert.equal(navigations.length,1);assert.equal(navigations[0][0],'/outlet-packaging?keep=1&days=30');assert.equal(navigations[0][1].scroll,false);
+ const {html,period,navigations}=render(false);assert.match(html,/data-chart/);assert.match(html,/0 PCS/);assert.match(html,/4\/7 days with full balance coverage/);period.onValueChange('30');assert.equal(navigations.length,1);assert.equal(navigations[0][0],'/outlet-packaging?keep=1&days=30');assert.equal(navigations[0][1].scroll,false);
 });
 
 test('local packaging filters cancel the shared GET submit while period navigation retains its single owner',()=>{
- const {filters,period,navigations}=render(false);let prevented=false;filters.onSubmit({preventDefault(){prevented=true;}});assert.equal(prevented,true);assert.equal(navigations.length,0);period.onChange({target:{value:'30'}});assert.equal(navigations.length,1);
+ const {filters,period,navigations}=render(false);let prevented=false;filters.onSubmit({preventDefault(){prevented=true;}});assert.equal(prevented,true);assert.equal(navigations.length,0);period.onValueChange('30');assert.equal(navigations.length,1);
 });

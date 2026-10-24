@@ -13,7 +13,7 @@ test("UOM aliases resolve to one canonical value and guided PR repair uses a con
   assert.match(uom, /BTL:\s*"BOTTLE"/);
   assert.match(uom, /"GUNI"/);
   assert.match(uom, /localeCompare/);
-  assert.match(recovery, /SelectNative name="uom"/);
+  assert.match(recovery, /SelectControl name="uom"/);
   assert.doesNotMatch(recovery, /<Input name="uom"/);
   assert.match(recovery, /normalizeUom\(line\.uom\)/);
   assert.match(migration, /update public\.supplier_items[\s\S]*purchase_uom = 'BOTTLE'/);

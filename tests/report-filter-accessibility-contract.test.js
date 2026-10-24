@@ -28,10 +28,10 @@ test("balanced report filters keep query, disclosure and action controls in one 
 test("report filter controls expose stable accessible names", () => {
   for (const file of reportPages) {
     const source = read(file);
-    const selects = source.match(/<SelectNative\b[^>]*>/g) ?? [];
+    const selects = source.match(/<SelectControl\b[^>]*>/g) ?? [];
     assert.ok(selects.length > 0, `${file} must keep its report filters`);
     for (const select of selects) {
-      assert.match(select, /aria-label=/, `${file} has an unnamed report select: ${select}`);
+      assert.match(select, /ariaLabel=/, `${file} has an unnamed report select: ${select}`);
     }
   }
 });

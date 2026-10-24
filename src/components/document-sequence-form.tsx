@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 
 type Sequence = {
   company_id: string;
@@ -58,12 +58,7 @@ export function DocumentSequenceForm({ sequence, companies, action, formId, show
             <Input name="next_number" type="number" min="1" value={nextNumber} onChange={(event) => setNextNumber(Number(event.target.value))} required />
           </Field>
           <Field label="Reset Cycle">
-            <SelectNative name="reset_frequency" value={resetFrequency} onChange={(event) => setResetFrequency(event.target.value as Sequence["reset_frequency"])}>
-              <option value="monthly">Monthly</option>
-              <option value="quarterly">Quarterly</option>
-              <option value="yearly">Yearly</option>
-              <option value="never">Never reset</option>
-            </SelectNative>
+            <SelectControl name="reset_frequency" value={resetFrequency} onValueChange={selectedValue => setResetFrequency(selectedValue as Sequence["reset_frequency"])} ariaLabel={"Reset Cycle"} options={[({value: "monthly", label: "Monthly"}), ({value: "quarterly", label: "Quarterly"}), ({value: "yearly", label: "Yearly"}), ({value: "never", label: "Never reset"})]}/>
           </Field>
           <div data-inset-surface className="md:col-span-2 rounded-[var(--sb-panel-radius)] border bg-secondary p-4">
             <p className="text-xs font-medium uppercase text-muted-foreground">Format Preview</p>

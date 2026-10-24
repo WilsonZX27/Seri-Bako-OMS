@@ -6,7 +6,7 @@ import { ItemCombobox, type ItemComboboxOption } from "@/components/item-combobo
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { normalizeUom, uomOptionsForValues } from "@/lib/uom";
@@ -88,7 +88,7 @@ export function PurchaseRequestLineRecovery({
               <Field label="Purchase quantity / UOM">
                 <div className="grid grid-cols-[minmax(0,1fr)_minmax(7rem,.55fr)] gap-2">
                   <Input name="qty" type="number" min="0.0001" step="0.0001" defaultValue={line.qty} aria-label="Purchase quantity" disabled={!itemId} required />
-                  <SelectNative name="uom" value={uom} aria-label="Purchase unit of measure" disabled={!itemId} onChange={(event) => setUom(normalizeUom(event.target.value))} required><option value="">Choose UOM</option>{uomOptions.map((option) => <option key={option} value={option}>{option}</option>)}</SelectNative>
+                  <SelectControl name="uom" value={uom} ariaLabel="Purchase unit of measure" disabled={!itemId} onValueChange={selectedValue => setUom(normalizeUom(selectedValue))} required options={[({value: "", label: "Choose UOM"}), ...(uomOptions.map((option) => ({value: String((option) ?? ""), label: String((option) ?? "")})))]}/>
                 </div>
                 {!itemId ? <p className="mt-1 text-xs text-muted-foreground">Choose a replacement item to set its quantity and UOM.</p> : null}
               </Field>

@@ -26,7 +26,7 @@ test("review line dialogs expose purchase quantity and UOM before selection", ()
   assert.match(recovery, /Field label="Purchase quantity \/ UOM"/);
   assert.match(recovery, /disabled=\{!itemId\}/);
   assert.match(addLine, />Purchase qty<Input/);
-  assert.match(addLine, />UOM<SelectNative/);
+  assert.match(addLine, />UOM<SelectControl/);
   assert.match(addLine, /overflow-y-auto/);
 });
 

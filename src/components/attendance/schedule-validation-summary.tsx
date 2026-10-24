@@ -30,7 +30,7 @@ export function ScheduleValidationSummary({ issues, dirty }: { issues: Issue[]; 
       <details>
         <summary className="cursor-pointer py-2 font-medium">Review missing days ({[...missing.values()].reduce((sum, group) => sum + group.days.length, 0)})</summary>
         <ul className="max-h-60 space-y-2 overflow-y-auto break-words">
-          {[...missing].map(([id, group]) => <li key={id}><strong>{group.name}</strong><p>{group.days.sort().map((day) => new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "2-digit", month: "short", timeZone: "UTC" }).format(new Date(`${day}T00:00:00Z`))).join(" · ")}</p></li>)}
+          {[...missing].map(([id, group]) => <li key={id} className="border-t border-[var(--sb-border-soft)] py-2"><strong className="block text-xs font-medium">{group.name}</strong><ul aria-label={`Missing days for ${group.name}`} className="mt-1 flex flex-wrap gap-1">{group.days.sort().map(day => <li key={day} className="rounded bg-[var(--sb-surface-muted)] px-1.5 py-1"><time dateTime={day} title={day}>{new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "2-digit", timeZone: "UTC" }).format(new Date(`${day}T00:00:00Z`))}</time></li>)}</ul></li>)}
         </ul>
       </details>
     </> : null}

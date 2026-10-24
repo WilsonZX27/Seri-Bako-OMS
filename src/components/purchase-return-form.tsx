@@ -5,7 +5,7 @@ import { useState } from "react";
 import { PackageX } from "lucide-react";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { Textarea } from "@/components/ui/textarea";
 import { FormPendingBridge } from "@/components/ui/submit-button";
 import { formatCurrency, formatNumber, getToday } from "@/lib/utils";
@@ -32,28 +32,15 @@ export function PurchaseReturnForm({
           <input type="hidden" name="purchase_return_no" value="PRT-AUTO" />
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
             <Field label="Posted GRN" required className="col-span-2 lg:col-span-1">
-              <SelectNative value={selectedReceiving?.id ?? ""} onChange={(event) => router.push(event.target.value ? `/purchase-returns/new?grn_id=${event.target.value}` : "/purchase-returns/new")} disabled={!receivings.length} required>
-                <option value="">{receivings.length ? "Select posted GRN" : "No returnable GRNs available"}</option>
-                {receivings.map((grn) => (
-                  <option key={grn.id} value={grn.id}>
-                    {grn.grn_no} - {grn.supplier_name ?? "Supplier"} - Returnable {formatNumber(grn.returnable_qty)}
-                  </option>
-                ))}
-              </SelectNative>
+              <SelectControl value={selectedReceiving?.id ?? ""} onValueChange={selectedValue => router.push(selectedValue ? `/purchase-returns/new?grn_id=${selectedValue}` : "/purchase-returns/new")} disabled={!receivings.length} required ariaLabel={"Posted GRN"} options={[({value: "", label: receivings.length ? "Select posted GRN" : "No returnable GRNs available"}), ...(receivings.map((grn) => (
+                  ({value: String((grn.id) ?? ""), label: [grn.grn_no, " - ", grn.supplier_name ?? "Supplier", " - Returnable ", formatNumber(grn.returnable_qty)].join("")})
+                )))]}/>
             </Field>
             <Field label="Return Date" required>
               <Input name="return_date" type="date" defaultValue={getToday()} required />
             </Field>
             <Field label="Reason" className="col-span-1 lg:col-span-1">
-              <SelectNative name="reason" value={reason} onChange={(event) => setReason(event.target.value)}>
-                <option value="">Select a reason</option>
-                <option value="Supplier return">Supplier return</option>
-                <option value="Quality issue">Quality issue</option>
-                <option value="Damaged in transit">Damaged in transit</option>
-                <option value="Wrong item">Wrong item</option>
-                <option value="Over-delivered">Over-delivered</option>
-                <option value="Other">Other</option>
-              </SelectNative>
+              <SelectControl name="reason" value={reason} onValueChange={selectedValue => setReason(selectedValue)} ariaLabel={"Reason"} options={[({value: "", label: "Select a reason"}), ({value: "Supplier return", label: "Supplier return"}), ({value: "Quality issue", label: "Quality issue"}), ({value: "Damaged in transit", label: "Damaged in transit"}), ({value: "Wrong item", label: "Wrong item"}), ({value: "Over-delivered", label: "Over-delivered"}), ({value: "Other", label: "Other"})]}/>
             </Field>
             {reason === "Other" ? <Field label="Notes" className="col-span-2 lg:col-span-3"><Textarea name="remarks" placeholder="Describe the return reason" required /></Field> : <input type="hidden" name="remarks" value="" />}
           </div>

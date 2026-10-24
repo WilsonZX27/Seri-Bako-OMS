@@ -6,7 +6,7 @@ import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { ProductCategoryCombobox } from "@/components/product-category-combobox";
 import { normalizeUom, uomOptionsWithCurrent } from "@/lib/uom";
 import type { Database } from "@/types/database";
@@ -47,14 +47,14 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
             <p className="mt-1 text-xs text-muted-foreground">Choose a saved category or type a new one.</p>
           </Field>
           <Field label="Daily record category" className="col-span-2 sm:col-span-1">
-            <SelectNative name="daily_tracking" defaultValue={value("daily_tracking", product ? dailyTracking(product) : "food_daily")}>{Object.entries(dailyTrackingLabels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</SelectNative>
+            <SelectControl name="daily_tracking" defaultValue={value("daily_tracking", product ? dailyTracking(product) : "food_daily")} ariaLabel={"Daily record category"} options={[...(Object.entries(dailyTrackingLabels).map(([value,label])=>({value: String((value) ?? ""), label: String((label) ?? "")})))]}/>
             <p className="mt-1 text-xs text-muted-foreground">Next day includes food kept for several days. Usage is recorded separately from wastage; this does not set a fixed expiry date.</p>
           </Field>
           <Field label="Product status">
-            <SelectNative name="status" defaultValue={value("status", product?.status ?? "active")} required><option value="active">Active</option><option value="inactive">Inactive</option></SelectNative>
+            <SelectControl name="status" defaultValue={value("status", product?.status ?? "active")} required ariaLabel={"Product status"} options={[({value: "active", label: "Active"}), ({value: "inactive", label: "Inactive"})]}/>
           </Field>
           <Field label="Availability type">
-            <SelectNative name="is_seasonal" defaultValue={value("is_seasonal", product?.is_seasonal ? "true" : "false")}><option value="false">Year-round</option><option value="true">Seasonal</option></SelectNative>
+            <SelectControl name="is_seasonal" defaultValue={value("is_seasonal", product?.is_seasonal ? "true" : "false")} ariaLabel={"Availability type"} options={[({value: "false", label: "Year-round"}), ({value: "true", label: "Seasonal"})]}/>
           </Field>
           <Field label="Available from"><Input name="available_from" type="date" defaultValue={value("available_from", product?.available_from ?? "")} /></Field>
           <Field label="Available until"><Input name="available_until" type="date" defaultValue={value("available_until", product?.available_until ?? "")} /></Field>
@@ -63,9 +63,7 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
             <Input name="display_order" type="number" min="1" step="1" defaultValue={value("display_order", product?.display_order ?? 9999)} required />
           </Field>
           <Field label="Selling Unit">
-            <SelectNative name="selling_unit" defaultValue={value("selling_unit", normalizeUom(product?.selling_unit) || "PCS")} required>
-              {uomOptionsWithCurrent(product?.selling_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
-            </SelectNative>
+            <SelectControl name="selling_unit" defaultValue={value("selling_unit", normalizeUom(product?.selling_unit) || "PCS")} required ariaLabel={"Selling Unit"} options={[...(uomOptionsWithCurrent(product?.selling_unit).map((uom) => ({value: String((uom) ?? ""), label: String((uom) ?? "")})))]}/>
           </Field>
           <div className="col-span-2 grid grid-cols-2 gap-3 border-y py-4 sm:gap-4 md:rounded-[var(--sb-control-radius)] md:border md:bg-secondary/30 md:p-4 xl:grid-cols-4">
             <div className="col-span-2 xl:col-span-4">
@@ -76,9 +74,7 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
               <Input name="packaging_name" defaultValue={value("packaging_name", primaryPackaging?.packaging_name ?? "Default Pack")} />
             </Field>
             <Field label="Selling UOM">
-              <SelectNative name="packaging_selling_uom" defaultValue={value("packaging_selling_uom", normalizeUom(primaryPackaging?.selling_uom ?? product?.selling_unit) || "PCS")}>
-                {uomOptionsWithCurrent(primaryPackaging?.selling_uom ?? product?.selling_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
-              </SelectNative>
+              <SelectControl name="packaging_selling_uom" defaultValue={value("packaging_selling_uom", normalizeUom(primaryPackaging?.selling_uom ?? product?.selling_unit) || "PCS")} ariaLabel={"Selling UOM"} options={[...(uomOptionsWithCurrent(primaryPackaging?.selling_uom ?? product?.selling_unit).map((uom) => ({value: String((uom) ?? ""), label: String((uom) ?? "")})))]}/>
             </Field>
             <Field label="Units Per Pack">
               <Input name="units_per_pack" type="number" min="0.0001" step="0.0001" defaultValue={value("units_per_pack", primaryPackaging?.units_per_pack ?? 1)} />

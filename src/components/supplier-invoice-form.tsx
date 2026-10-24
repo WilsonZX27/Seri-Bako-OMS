@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { FormPendingBridge } from "@/components/ui/submit-button";
@@ -83,17 +83,7 @@ export function SupplierInvoiceForm({
           <input type="hidden" name="lines" value={JSON.stringify(chosen)} />
           <section data-supplier-invoice-setup className="grid grid-cols-2 items-end gap-3 border-b border-[var(--sb-border-soft)] pb-4 md:grid-cols-3">
             <Field label="Supplier" required className="col-span-2 md:col-span-1">
-              <SelectNative
-                aria-label="Supplier"
-                name={initial ? undefined : "supplier_id"}
-                value={selectedSupplierId ?? ""}
-                disabled={!!initial}
-                onChange={(event) => router.push(event.target.value ? `/supplier-invoices/new?supplier_id=${event.target.value}` : "/supplier-invoices/new")}
-                required
-              >
-                <option value="">Select supplier first</option>
-                {suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}
-              </SelectNative>
+              <SelectControl ariaLabel="Supplier" name={initial ? undefined : "supplier_id"} value={selectedSupplierId ?? ""} disabled={!!initial} onValueChange={selectedValue => router.push(selectedValue ? `/supplier-invoices/new?supplier_id=${selectedValue}` : "/supplier-invoices/new")} required options={[({value: "", label: "Select supplier first"}), ...(suppliers.map((supplier) => ({value: String((supplier.id) ?? ""), label: String((supplier.name) ?? "")})))]}/>
               {initial ? <input type="hidden" name="supplier_id" value={selectedSupplierId} /> : null}
             </Field>
             <Field label="Supplier Invoice Reference" required className="col-span-2 md:col-span-1"><Input name="supplier_invoice_no" defaultValue={initial?.supplier_invoice_no} required /></Field>

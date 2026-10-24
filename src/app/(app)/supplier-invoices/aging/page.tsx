@@ -5,7 +5,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -76,10 +76,10 @@ export default async function ApAgingPage({ searchParams }: { searchParams: Prom
         <section id="aging-table" className="space-y-3">
           <FilterBar resultCount={report.total_rows} resetHref="/supplier-invoices/aging" filtered={activeFilterCount > 0} activeCount={activeFilterCount} className="sb-list-filters--balanced">
             <Input name="search" defaultValue={filters.search ?? ""} placeholder="Search invoice, reference, or supplier" aria-label="Search invoices" />
-            <SelectNative name="supplier" defaultValue={filters.supplier ?? "all"} aria-label="Supplier"><option value="all">All suppliers</option>{report.suppliers.map((row) => <option key={row.supplier_id} value={row.supplier_id}>{row.supplier_name}</option>)}</SelectNative>
-            <SelectNative name="bucket" defaultValue={filters.bucket ?? "all"} aria-label="Aging bucket"><option value="all">All aging buckets</option>{Object.entries(bucketLabels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</SelectNative>
+            <SelectControl name="supplier" defaultValue={filters.supplier ?? "all"} ariaLabel="Supplier" options={[({value: "all", label: "All suppliers"}), ...(report.suppliers.map((row) => ({value: String((row.supplier_id) ?? ""), label: String((row.supplier_name) ?? "")})))]}/>
+            <SelectControl name="bucket" defaultValue={filters.bucket ?? "all"} ariaLabel="Aging bucket" options={[({value: "all", label: "All aging buckets"}), ...(Object.entries(bucketLabels).map(([key, label]) => ({value: String((key) ?? ""), label: String((label) ?? "")})))]}/>
             <FilterBarMore activeCount={activeFilterCount} resetHref="/supplier-invoices/aging">
-              <SelectNative name="status" defaultValue={filters.status ?? "all"} aria-label="Invoice status"><option value="all">All open statuses</option><option value="open">Open</option><option value="partially_paid">Partially Paid</option></SelectNative>
+              <SelectControl name="status" defaultValue={filters.status ?? "all"} ariaLabel="Invoice status" options={[({value: "all", label: "All open statuses"}), ({value: "open", label: "Open"}), ({value: "partially_paid", label: "Partially Paid"})]}/>
               <Input name="due_from" type="date" defaultValue={filters.due_from ?? ""} aria-label="Due date from" />
               <Input name="due_to" type="date" defaultValue={filters.due_to ?? ""} aria-label="Due date to" />
               <label className="flex min-h-9 items-center gap-2 text-xs"><input type="checkbox" name="overdue" value="1" defaultChecked={filters.overdue === "1"} /> Overdue only</label>

@@ -146,7 +146,7 @@ export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query =
       assets.push(...result.data as AssetSummary[]);
     }
   } else {
-    const table = view === "checklist" ? "asset_daily_checks" : view === "maintenance" ? "asset_maintenance" : (await assetFeatureCapabilities(db)).transferBatch ? "asset_transfer_register" : "asset_transfers";
+    const table = view === "checklist" ? "asset_daily_checks" : view === "maintenance" ? "asset_maintenance" : ((await assetFeatureCapabilities(db)).transferBatchRead) ? "asset_transfer_register" : "asset_transfers";
     let request = db.from(table).select("*", { count: "exact" }).eq("company_id", company);
     if (locationId && view !== "transfers") request = request.eq("location_id", locationId);
     if (status && (view === "maintenance" || view === "transfers")) request = request.eq("status", status);
@@ -461,7 +461,7 @@ export async function getAssetTransferBatchDetail(id: string, page: number) {
   if (!Number.isSafeInteger(page) || page < 1 || page > 1_000_000) throw new Error("Choose a valid transfer history page.");
   const actor = await requireActiveTenantActor(); await requirePermission("assets.view");
   const db = looseSupabase(await createClient());
-  if (isMockMode() || !(await assetFeatureCapabilities(db)).transferBatch) return null;
+  if (isMockMode() || !(await assetFeatureCapabilities(db)).transferBatchRead) return null;
   const header = await db.from("asset_transfer_register").select("*").eq("company_id", actor.companyId).eq("batch_id", id).maybeSingle();
   if (header.error) throw new Error(header.error.message);
   if (!header.data) return null;

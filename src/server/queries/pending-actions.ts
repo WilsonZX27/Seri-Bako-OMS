@@ -41,7 +41,7 @@ function ageLabel(updatedAt?: string | null) {
   return `${days} days`;
 }
 
-export const getCurrentUserPendingActionSnapshot = cache(async function getCurrentUserPendingActionSnapshot(limit = 5, includeOutletDaily = true, includeDetails = true, includeTotal = true): Promise<PendingActionSnapshot> {
+export const getCurrentUserPendingActionSnapshot = cache(async function getCurrentUserPendingActionSnapshot(limit = 5, includeOutletDaily = true, includeDetails = true, includeTotal = true, includeSupplierNames = false): Promise<PendingActionSnapshot> {
   const scope = await getCurrentUserScope();
   if (!scope) return { items: [], attentionHrefs: [], total: null, unavailable: true };
 
@@ -94,11 +94,11 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
         return { items: [] as PendingAction[], count: null, unavailable: true };
       }
 
-      // The topbar displays links and workflow labels, not costs or suppliers.
-      const requestIds = includeDetails ? data.map((row) => row.id) : [];
+      // Detailed consumers also show the request supplier and location.
+      const requestIds = includeDetails || includeSupplierNames ? data.map((row) => row.id) : [];
       const requesterIds = includeDetails ? [...new Set(data.map((row) => row.requested_by).filter((value): value is string => Boolean(value)))] : [];
       const [lineResult, requesterResult] = await Promise.all([
-        requestIds.length ? supabase.from("purchase_request_lines").select("purchase_request_id, qty, estimated_unit_cost, suggested_supplier_id").in("purchase_request_id", requestIds) : Promise.resolve({ data: [], error: null }),
+        requestIds.length ? includeDetails ? supabase.from("purchase_request_lines").select("purchase_request_id, qty, estimated_unit_cost, suggested_supplier_id").in("purchase_request_id", requestIds) : supabase.from("purchase_request_lines").select("purchase_request_id, suggested_supplier_id").in("purchase_request_id", requestIds).then(result => ({...result, data: result.data?.map(line => ({...line, qty: 0, estimated_unit_cost: 0})) ?? null})) : Promise.resolve({ data: [], error: null }),
         requesterIds.length ? supabase.from("staffs").select("id, full_name").in("id", requesterIds) : Promise.resolve({ data: [], error: null }),
       ]);
       if (lineResult.error) logServerWarning(lineResult.error, { source: "pending-actions.lines" });

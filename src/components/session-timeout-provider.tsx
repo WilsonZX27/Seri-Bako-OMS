@@ -12,7 +12,7 @@ import {
   sessionWarningAfterMs,
 } from "@/lib/session-activity";
 
-const activityEvents = ["mousemove", "keydown", "click", "scroll", "touchstart"] as const;
+const activityEvents = ["pointerdown", "mousemove", "keydown", "input", "click", "scroll", "touchstart"] as const;
 
 export function SessionTimeoutProvider() {
   const router = useRouter();
@@ -30,15 +30,19 @@ export function SessionTimeoutProvider() {
     if (logoutTimer.current) window.clearTimeout(logoutTimer.current);
   }, []);
 
-  const signOutExpired = useCallback(async () => {
+  const signOutExpired = useCallback(async (explicit = false) => {
     let sharedActivity: number | null = null;
     try {
       sharedActivity = parseSharedSessionActivity(window.localStorage.getItem(sessionActivityStorageKey));
     } catch {
       // Private browsing/storage restrictions fall back to this tab's timer.
     }
-    if (sharedActivity !== null && sharedActivity > lastActivityAt.current) {
+    if (!explicit && sharedActivity !== null && sharedActivity > lastActivityAt.current) {
       scheduleTimersRef.current(sharedActivity);
+      return;
+    }
+    if (!explicit && Date.now() - lastActivityAt.current < sessionLogoutAfterMs) {
+      scheduleTimersRef.current(lastActivityAt.current);
       return;
     }
     clearTimers();
@@ -107,14 +111,14 @@ export function SessionTimeoutProvider() {
       if (sharedActivity !== null && sharedActivity > lastActivityAt.current) scheduleTimers(sharedActivity);
     };
     for (const event of activityEvents) {
-      window.addEventListener(event, recordActivity, { passive: true });
+      window.addEventListener(event, recordActivity, { passive: true, capture: true });
     }
     window.addEventListener("focus", onFocus);
     window.addEventListener("storage", onStorage);
     return () => {
       clearTimers();
       for (const event of activityEvents) {
-        window.removeEventListener(event, recordActivity);
+        window.removeEventListener(event, recordActivity, true);
       }
       window.removeEventListener("focus", onFocus);
       window.removeEventListener("storage", onStorage);
@@ -141,7 +145,7 @@ export function SessionTimeoutProvider() {
         <h2 id={titleId} className="text-lg font-semibold">Are you still there?</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">Your session will expire soon for security.</p>
         <div className="mt-5 flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={() => void signOutExpired()}>
+          <Button type="button" variant="outline" onClick={() => void signOutExpired(true)}>
             Sign out now
           </Button>
           <Button ref={stayRef} type="button" onClick={staySignedIn}>

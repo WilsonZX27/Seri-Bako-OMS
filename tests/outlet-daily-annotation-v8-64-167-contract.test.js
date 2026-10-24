@@ -6,10 +6,10 @@ const path = require("node:path");
 const root = path.resolve(__dirname, "..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
-test("draft ownership falls back through updated and created users", () => {
+test("actor hydration preserves submitter, updater and creator without inventing an updater", () => {
   const source = read("src/server/queries/outlet-daily-records.ts");
   assert.match(source, /record\.submitted_by, record\.updated_by, record\.created_by/);
-  assert.match(source, /record\.updated_by \?\? record\.submitted_by \?\? record\.created_by/);
+  assert.match(source, /updated_by_name: record.updated_by \? actorDisplayName\(actorDisplayMap, record.updated_by\) : null/);
 });
 
 test("packaging is excluded from received and wastage analytics", () => {

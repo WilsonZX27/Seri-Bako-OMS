@@ -9,7 +9,7 @@ import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { normalizeUom, uomOptionsWithCurrent } from "@/lib/uom";
@@ -184,32 +184,19 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-3 px-3 pb-3 sm:gap-4 xl:grid-cols-4 md:px-5 md:pb-5">
           <Field label="Product" className="col-span-2 xl:col-span-1" description={!products.length ? "No active products. Ask an authorised product manager to create or activate a product, then reload." : undefined}>
-            <SelectNative
-              name="product_id"
-              disabled={!products.length}
-              value={productId}
-              required
-              onChange={(event) => {
-                const nextProduct = productById.get(event.target.value);
-                setProductId(event.target.value);
+            <SelectControl name="product_id" disabled={!products.length} value={productId} required onValueChange={selectedValue => {
+                const nextProduct = productById.get(selectedValue);
+                setProductId(selectedValue);
                 setYieldUnit(normalizeUom(nextProduct?.selling_unit) || yieldUnit);
-              }}
-            >
-              {!products.length ? <option value="">No active products</option> : null}
-              {products.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.product_code} - {product.product_name}
-                </option>
-              ))}
-            </SelectNative>
+              }} ariaLabel={"Product"} options={[...(!products.length ? [({value: "", label: "No active products"})] : []), ...(products.map((product) => (
+                ({value: String((product.id) ?? ""), label: [product.product_code, " - ", product.product_name].join("")})
+              )))]}/>
           </Field>
           <Field label="Yield Qty">
             <Input name="yield_qty" type="number" step="0.0001" min="0.0001" value={yieldQty} onChange={(event) => setYieldQty(Number(event.target.value))} required />
           </Field>
           <Field label="Yield UOM">
-            <SelectNative name="yield_unit" value={yieldUnit} onChange={(event) => setYieldUnit(event.target.value)} required>
-              {uomOptionsWithCurrent(yieldUnit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
-            </SelectNative>
+            <SelectControl name="yield_unit" value={yieldUnit} onValueChange={selectedValue => setYieldUnit(selectedValue)} required ariaLabel={"Yield UOM"} options={[...(uomOptionsWithCurrent(yieldUnit).map((uom) => ({value: String((uom) ?? ""), label: String((uom) ?? "")})))]}/>
           </Field>
           <Field label="Effective Date">
             <Input name="effective_date" type="date" value={effectiveDate} onChange={event => setEffectiveDate(event.target.value)} required />
@@ -274,10 +261,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
                       <Input type="number" step="0.0001" min="0.0001" value={line.qty_required} onChange={(event) => updateLine(index, { qty_required: Number(event.target.value) })} />
                     </TableCell>
                     <TableCell>
-                      <SelectNative value={line.recipe_uom} onChange={(event) => updateLine(index, { recipe_uom: event.target.value })} aria-label={`Recipe UOM for ${line.item_name || `ingredient ${index + 1}`}`}>
-                        <option value="">Select UOM</option>
-                        {uomOptionsWithCurrent(line.recipe_uom).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
-                      </SelectNative>
+                      <SelectControl value={line.recipe_uom} onValueChange={selectedValue => updateLine(index, { recipe_uom: selectedValue })} ariaLabel={`Recipe UOM for ${line.item_name || `ingredient ${index + 1}`}`} options={[({value: "", label: "Select UOM"}), ...(uomOptionsWithCurrent(line.recipe_uom).map((uom) => ({value: String((uom) ?? ""), label: String((uom) ?? "")})))]}/>
                     </TableCell>
                     <TableCell>
                       <Input type="number" step="0.000001" min="0.000001" value={line.conversion_factor} onChange={(event) => updateLine(index, { conversion_factor: Number(event.target.value) })} />
@@ -323,10 +307,7 @@ export function RecipeForm({ recipe, products, items, action, formId, showSubmit
                     <Input type="number" step="0.0001" min="0.0001" value={line.qty_required} onChange={(event) => updateLine(index, { qty_required: Number(event.target.value) })} />
                   </Field>
                   <Field label="Recipe UOM">
-                    <SelectNative value={line.recipe_uom} onChange={(event) => updateLine(index, { recipe_uom: event.target.value })}>
-                      <option value="">Select UOM</option>
-                      {uomOptionsWithCurrent(line.recipe_uom).map((uom) => <option key={uom} value={uom}>{uom}</option>)}
-                    </SelectNative>
+                    <SelectControl value={line.recipe_uom} onValueChange={selectedValue => updateLine(index, { recipe_uom: selectedValue })} ariaLabel={"Recipe UOM"} options={[({value: "", label: "Select UOM"}), ...(uomOptionsWithCurrent(line.recipe_uom).map((uom) => ({value: String((uom) ?? ""), label: String((uom) ?? "")})))]}/>
                   </Field>
                   <Field label="Conversion factor">
                     <Input type="number" step="0.000001" min="0.000001" value={line.conversion_factor} onChange={(event) => updateLine(index, { conversion_factor: Number(event.target.value) })} />

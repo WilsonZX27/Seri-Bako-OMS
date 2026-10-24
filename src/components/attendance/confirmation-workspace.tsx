@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { readJsonResponse } from "@/lib/http/read-json-response";
 
 type Day = { date: string; branch_id: string; outlet: string; punches: string[]; worked_seconds: number | null; break_out: string | null; break_in: string | null; scheduled_start: string | null; scheduled_end: string | null; first_in: string | null; last_out: string | null; late_seconds: number | null; early_leave_seconds: number | null; statuses: string[] | null };
@@ -51,7 +51,7 @@ export function ConfirmationWorkspace() {
     {error ? <p role="alert" className="text-sm text-warning">{error}</p> : null}
     {!data && !error ? <p role="status">Loading attendance…</p> : null}
     {data?.people ? <form className="sb-work-surface grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4" onSubmit={event => { event.preventDefault(); void prepare(); }}>
-      <label className="grid gap-1 text-sm">Employee<SelectNative aria-label="Employee" required value={staff} onChange={event => setStaff(event.target.value)}><option value="*">All active employees</option>{data.employees.map(employee => <option key={employee.id} value={employee.id}>{employee.full_name} · {employee.staff_code}</option>)}</SelectNative></label>
+      <label className="grid gap-1 text-sm">Employee<SelectControl ariaLabel="Employee" required value={staff} onValueChange={selectedValue => setStaff(selectedValue)} options={[({value: "*", label: "All active employees"}), ...(data.employees.map(employee => ({value: String((employee.id) ?? ""), label: [employee.full_name, " · ", employee.staff_code].join("")})))]}/></label>
       <label className="grid gap-1 text-sm">From<Input aria-label="From" type="date" required value={start} onChange={event => setStart(event.target.value)} /></label><label className="grid gap-1 text-sm">To<Input aria-label="To" type="date" required min={start} value={end} onChange={event => setEnd(event.target.value)} /></label><Button className="self-end" disabled={busy}>Prepare attendance</Button>
     </form> : null}
     {progress ? <p role="status" className="text-sm text-muted-foreground">{progress}</p> : null}

@@ -1,14 +1,13 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript'),vm=require('node:vm');
 function load(file,requireFn=()=>({})){const ctx={exports:{},require:requireFn,FormData,File,Buffer,console};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,ctx);return ctx.exports;}
 const caps=load('src/server/queries/asset-feature-capabilities.ts').assetFeatureCapabilities;
-test('UI-only release always retains manual IDs and single transfers without calling shared DB readiness',async()=>{
+test('UI-only Preview disables all asset feature gates and never calls shared readiness',async()=>{
  let calls=0;
- for(const data of [null,{}, {version:1,automatic_id:true,transfer_batch:true},{version:2,automatic_id:true,transfer_batch:true,transfer_batch_revision:1}]) {
+ for(const data of [null,{}, {version:3,automatic_id:true,transfer_batch:true,transfer_batch_revision:1}]) {
   const result=await caps({rpc:async()=>{calls++;return {data,error:null}}});
-  assert.equal(result.automaticId,false);assert.equal(result.transferBatch,false);
+  assert.equal(result.automaticId,false);assert.equal(result.transferBatch,false);assert.equal(result.transferBatchRead,false);
  }
- const result=await caps({rpc:async()=>{throw Error('Unexpected shared DB call')}});
- assert.equal(result.automaticId,false);assert.equal(result.transferBatch,false);assert.equal(calls,0);
+ await caps({rpc:async()=>{throw Error('Unexpected shared DB readiness call')}});assert.equal(calls,0);
 });
 function actionHarness(ready=true,error=null){const calls=[];const db={rpc:async(name,args)=>{calls.push({name,args});return {data:error?null:'11111111-1111-4111-8111-111111111111',error};}};const actions=load('src/server/actions/assets.ts',id=>{
  if(id==='next/cache')return {revalidatePath:()=>{}};
@@ -16,7 +15,7 @@ function actionHarness(ready=true,error=null){const calls=[];const db={rpc:async
  if(id.endsWith('/permissions'))return {requirePermission:async()=>{},hasPermission:async()=>false};
  if(id.endsWith('/supabase/server'))return {createClient:async()=>db};
  if(id.endsWith('/supabase/loose'))return {looseSupabase:v=>v};
- if(id.endsWith('/asset-feature-capabilities'))return {assetFeatureCapabilities:async()=>({automaticId:ready,transferBatch:ready})};
+ if(id.endsWith('/asset-feature-capabilities'))return {assetFeatureCapabilities:async()=>({automaticId:ready,transferBatch:ready,transferBatchRead:ready})};
  if(id.endsWith('/asset-master'))return {assetMasterFields:[]};
  if(id.endsWith('/asset-transfer'))return load('src/lib/asset-transfer.ts');
  if(id.endsWith('/production-planning/forecast'))return load('src/lib/production-planning/forecast.ts');
@@ -63,7 +62,7 @@ test('partial or old readiness contracts cannot enable batch UI and numbering re
   {version:2,automatic_id:true,transfer_batch:false,transfer_batch_revision:1},
  ]) {const result=await caps({rpc:async()=>({data,error:null})});assert.equal(result.transferBatch,false);assert.equal(result.automaticId,false);}
  const ready=await caps({rpc:async()=>({data:{version:2,automatic_id:true,transfer_batch:true,transfer_batch_revision:1},error:null})});
- assert.equal(ready.transferBatch,false);assert.equal(ready.automaticId,false);
+ assert.equal(ready.transferBatch,false);assert.equal(ready.automaticId,false);assert.equal(ready.transferBatchRead,false);
 });
 test('SQL readiness owns exact versioned request, transition, invoker view, types, RLS and trigger dependencies',()=>{
  const sql=fs.readFileSync('docs/v10/proposals/asset-feature-capabilities-v1-review-only.sql','utf8');

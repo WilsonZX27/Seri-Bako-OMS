@@ -11,15 +11,16 @@ test('Daily carryover guidance belongs once to its group and each input referenc
  assert.match(form,/max="1000000" step="0.01" value=\{saleable\}/);
  assert.match(form,/disabled=\{locked \|\| !canEditOutletValues\}/);
 });
-test('Daily four quantity tracks stay 72px and touch height remains 44px',()=>{
- let four=false,width=false,height=false;
+test('Daily quantities share fluid four tracks and carryover does not wrap its fourth input',()=>{
+ let tracks=false,width=false,height=false;
  css.walkRules(r=>r.walkDecls(d=>{
- if(r.selector==='.sb-daily-line-head.sb-daily-line-four,\n.sb-daily-product-line.sb-daily-line-four'&&r.parent.type==='root'&&d.prop==='grid-template-columns')four=d.value==='repeat(4, 72px)';
- if(r.selector==='.sb-daily-product-line input[type="number"]'){if(d.prop==='width')width=d.value==='72px';if(d.prop==='min-height')height=d.value==='44px';}
- }));assert.ok(four);assert.ok(width);assert.ok(height);
- assert.match(form,/packaging \|\| sold \? "sb-daily-line-four"/);
+ if(r.selector==='.sb-daily-line-head,\n.sb-daily-product-line'&&r.parent.type==='root'&&d.prop==='grid-template-columns')tracks=d.value==='repeat(4, minmax(0, 1fr))';
+ if(r.selector==='.sb-daily-product-line input[type="number"]'){if(d.prop==='width')width=d.value==='100%';if(d.prop==='min-height')height=d.value==='var(--sb-control-height)';}
+ }));assert.ok(tracks);assert.ok(width);assert.ok(height);
+ assert.match(form,/tracking === "food_carryover" \? <label className="min-w-0"/);
+ assert.match(form,/tracking !== "food_daily" \? <span>/);
+ assert.doesNotMatch(form,/· Not counted/);
  assert.match(form,/sb-daily-balance min-w-0/);
- assert.doesNotMatch(form,/col-span-full grid min-w-0 grid-cols-2 items-center gap-3 xl:col-span-1 xl:col-start-5 xl:block/);
 });
 test('Daily table and compact rows share one 1280 switch with accessible scrolling',()=>{
  assert.match(page,/compactUntil="xl" scrollbar="auto" aria-label="Outlet daily records"/);
@@ -39,4 +40,17 @@ test('Daily absent submitter stays absent rather than being inferred as System',
 
 test('phone date styles target the visible DateInput wrapper rather than transparent native input',()=>{
  let wrapper=false;css.walkRules(r=>{if(r.selector.includes('form.sb-outlet-daily-filters .unified-list-date-control')&&r.parent.params==='(max-width: 639px)'){let padding,font;r.walkDecls(d=>{if(d.prop==='padding-inline')padding=d.value;if(d.prop==='font-size')font=d.value;});wrapper=padding==='6px'&&font==='12px';}});assert.ok(wrapper);
+});
+
+test('Daily list uses actual last updater and bounded centered table content',()=>{
+ assert.match(page,/<dt>Last updated by<\/dt>/);
+ assert.match(page,/title=\{row.updated_by_name \?\? "Not recorded"\}/);
+ assert.match(page,/line-clamp-2 break-words/);
+ assert.match(page,/flex justify-center text-center/);
+});
+
+test('Last updated by never infers a missing updater from submission or creation',()=>{
+ const query=fs.readFileSync('src/server/queries/outlet-daily-records.ts','utf8');
+ assert.match(query,/updated_by_name: record.updated_by \? actorDisplayName\(actorDisplayMap, record.updated_by\) : null/);
+ assert.doesNotMatch(query,/updated_by_name: [^\n]*updated_by \?\? record.submitted_by/);
 });

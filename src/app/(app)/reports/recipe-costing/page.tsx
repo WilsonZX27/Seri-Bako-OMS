@@ -9,7 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import {
   OperationalList,
   OperationalListRow,
@@ -68,29 +68,13 @@ export default async function RecipeCostingPage({ searchParams }: { searchParams
         <div className="space-y-3" data-recipe-costing-workspace>
           <FilterBar resultCount={rows.length} resetHref="/reports/recipe-costing" filtered={filtered} className="sb-list-filters--balanced">
             <Input name="search" defaultValue={filters.search} placeholder="Search recipe" aria-label="Search recipes" />
-            <SelectNative name="status" defaultValue={filters.status ?? "active"} aria-label="Recipe status">
-              <option value="all">All statuses</option>
-              <option value="active">Active</option>
-              <option value="approved">Approved</option>
-              <option value="draft">Draft</option>
-              <option value="pending_approval">Pending approval</option>
-              <option value="archived">Archived</option>
-            </SelectNative>
+            <SelectControl name="status" defaultValue={filters.status ?? "active"} ariaLabel="Recipe status" options={[({value: "all", label: "All statuses"}), ({value: "active", label: "Active"}), ({value: "approved", label: "Approved"}), ({value: "draft", label: "Draft"}), ({value: "pending_approval", label: "Pending approval"}), ({value: "archived", label: "Archived"})]}/>
             <FilterBarMore
               activeCount={[filters.confidence && filters.confidence !== "all", filters.missing_cost && filters.missing_cost !== "all"].filter(Boolean).length}
               resetHref="/reports/recipe-costing"
             >
-              <SelectNative name="confidence" defaultValue={filters.confidence ?? "all"} aria-label="Cost confidence">
-                <option value="all">All confidence</option>
-                <option value="high">High</option>
-                <option value="medium">Medium</option>
-                <option value="low">Low confidence</option>
-              </SelectNative>
-              <SelectNative name="missing_cost" defaultValue={filters.missing_cost ?? "all"} aria-label="Cost completeness">
-                <option value="all">All cost gaps</option>
-                <option value="yes">Missing cost only</option>
-                <option value="no">Cost complete</option>
-              </SelectNative>
+              <SelectControl name="confidence" defaultValue={filters.confidence ?? "all"} ariaLabel="Cost confidence" options={[({value: "all", label: "All confidence"}), ({value: "high", label: "High"}), ({value: "medium", label: "Medium"}), ({value: "low", label: "Low confidence"})]}/>
+              <SelectControl name="missing_cost" defaultValue={filters.missing_cost ?? "all"} ariaLabel="Cost completeness" options={[({value: "all", label: "All cost gaps"}), ({value: "yes", label: "Missing cost only"}), ({value: "no", label: "Cost complete"})]}/>
             </FilterBarMore>
             <Button type="submit" variant="secondary">Filter</Button>
           </FilterBar>

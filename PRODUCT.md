@@ -1,3 +1,7 @@
+## v9.2.141 (Preview) — unified dropdowns and operational UI fixes
+
+Publish the latest Daily, asset overview/search, PR notification, schedule import layout, stock item line editor and session recovery fixes.97 dropdown instances now use the house component, preserving native date/file inputs, validation, reset and dialog behavior. Asset readiness and creation gates remain hard OFF without RPC; manual IDs and legacy single transfers remain. Chef roster restoration, database proposals and temporary external destination behavior are not included. Production and shared database are unchanged by this release.
+
 ## v9.2.140 (Preview candidate) — compatible pre-v10 UI repair
 
 Retain all compatible Daily, notification, Dashboard, Goods Receiving, asset workspace, responsive compact-control and authorized-branch time-off staff-list repairs. UI-only release always retains manual asset IDs and single-asset transfers and never invokes the capability RPC, regardless of shared database state. No migrations, permission changes or business writes. AutoID/batch activation, N9 reference and untested real roles/save flows remain open; this is not v10 or whole-system acceptance.

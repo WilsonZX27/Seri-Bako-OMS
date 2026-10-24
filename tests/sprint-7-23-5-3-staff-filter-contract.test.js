@@ -46,7 +46,7 @@ test("canonical select and FilterBar preserve keyboard behavior without nested r
   const invoices = read("src/app/(app)/supplier-invoices/page.tsx");
 
   assert.match(select, /@radix-ui\/react-select/);
-  assert.match(select, /<Select\.Portal(?:\s+container=\{portalContainer\})?>/);
+  assert.match(select, /<Select\.Portal\s+container=\{portalContainer \?\? nativeDialogContainer\}>/);
   assert.match(select, /z-\[var\(--sb-z-dropdown\)\]/);
   assert.match(filters, /event\.key === "Escape"/);
   assert.match(filters, /summaryRef\.current\?\.focus\(\)/);

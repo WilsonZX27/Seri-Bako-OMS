@@ -235,7 +235,7 @@ export async function advanceAssetTransfer(_previous: AssetActionState, form: Fo
     const kind = String(form.get("transfer_kind") ?? "single");
     if (!["single", "batch"].includes(kind)) throw new Error("Choose a valid transfer document.");
     const batch = kind === "batch";
-    if (batch && !(await assetFeatureCapabilities(db)).transferBatch) throw new Error("Multi-asset transfer setup is not ready.");
+    if (batch && !(await assetFeatureCapabilities(db)).transferBatchRead) throw new Error("Multi-asset transfer setup is not ready.");
     const result = batch
       ? await db.rpc("advance_asset_transfer_batch", { p_batch: transfer, p_action: action, p_note: note })
       : await db.rpc("advance_asset_transfer", { p_transfer: transfer, p_action: action, p_note: note });

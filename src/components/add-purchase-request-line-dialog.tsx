@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { uomOptionsForValues } from "@/lib/uom";
 
 export function AddPurchaseRequestLineDialog({ action, items, suppliers, canViewCommercial }: {
@@ -36,7 +36,7 @@ export function AddPurchaseRequestLineDialog({ action, items, suppliers, canView
             <ItemCombobox items={items} value={itemQuery} selectedItemId={itemId} name="item_id" ariaLabel="Request item" placeholder="Search item code or name" emptyMessage="No item from this PR supplier matches." onValueChange={(value) => { setItemQuery(value); setItemId(""); setUom(""); }} onSelect={(item) => { setItemQuery(`${item.item_code} - ${item.item_name}`); setItemId(item.id); setUom(item.purchase_unit || item.base_unit); }} />
           </Field>
           <label className="space-y-1 text-xs font-medium">Purchase qty<Input name="qty" type="number" min="0.0001" step="any" disabled={!selectedItem} required /></label>
-          <label className="space-y-1 text-xs font-medium">UOM<SelectNative name="uom" aria-label="Purchase unit of measure" required value={uom} disabled={!selectedItem} onChange={(event) => setUom(event.target.value)}><option value="" disabled>Choose UOM</option>{uomOptions.map((option) => <option key={option} value={option}>{option}</option>)}</SelectNative></label>
+          <label className="space-y-1 text-xs font-medium">UOM<SelectControl name="uom" ariaLabel="Purchase unit of measure" required value={uom} disabled={!selectedItem} onValueChange={selectedValue => setUom(selectedValue)} options={[({value: "", label: "Choose UOM", disabled: true}), ...(uomOptions.map((option) => ({value: String((option) ?? ""), label: String((option) ?? "")})))]}/></label>
           {!selectedItem ? <p className="text-xs text-muted-foreground sm:col-span-2">Choose an item to enable purchase quantity and UOM.</p> : null}
           {canViewCommercial ? <label className="space-y-1 text-xs font-medium">Est. unit cost<Input name="unit_cost" type="number" min="0" step="0.01" defaultValue="0" disabled={!selectedItem} required /></label> : <input type="hidden" name="unit_cost" value="0" />}
           <label className="space-y-1 text-xs font-medium sm:col-span-2">Reason<Input name="reason" required minLength={3} maxLength={1000} disabled={!selectedItem} placeholder="Why is this line being added?" /></label>

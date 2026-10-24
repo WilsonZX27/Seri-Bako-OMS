@@ -39,15 +39,16 @@ test('outlet action reducer returns each failed attempt without redirect or remo
   const result=await reducer(null,data);assert.equal(result.error,'business rejection');assert.deepEqual(Array.from(result.values, pair=>Array.from(pair)),Array.from(data.entries()));assert.equal(received,data);assert.deepEqual(data.getAll('line_notes'),['a','b']);
 });
 
-test('failed action restores branch and repeated select values after the native reset', () => {
-  const effects=[],frames=[];
-  const selects=[{name:'branch_id',value:''},{name:'wastage_reason',value:'unsold'},{name:'wastage_reason',value:'unsold'}];
+test('failed action settles pending UI without mutating hidden proxy selections', () => {
+  const effects=[],events=[];
   const result={error:'business rejection',values:[['branch_id','selected-branch'],['wastage_reason','damaged'],['wastage_reason','other']]};
   const {OutletDailyRecordForm}=load('src/components/outlet-daily-record-form.tsx',{
     react:{useState:initial=>[typeof initial==='function'?initial():initial,()=>{}],useMemo:fn=>fn(),useEffect:fn=>effects.push(fn),useActionState:()=>[result,()=>{}]},
-    __globals:{document:{dispatchEvent(){},getElementById:()=>({querySelectorAll:()=>selects})},CustomEvent:class{},requestAnimationFrame:fn=>{frames.push(fn);return 1},cancelAnimationFrame(){}}
+    __globals:{document:{dispatchEvent:event=>events.push(event),getElementById:()=>{throw Error('No direct native proxy mutation')}},CustomEvent:class{constructor(type,options){this.type=type;this.detail=options.detail;}}}
   });
   OutletDailyRecordForm({formId:'test',branches:[],products:[],recordDate:'2026-10-11',action:async()=>result});
-  effects[0]();assert.equal(selects[0].value,'');frames[0]();
-  assert.deepEqual(selects.map(x=>x.value),['selected-branch','damaged','other']);
+  effects[0]();assert.equal(events[0].type,'sb:form-settled');assert.equal(events[0].detail.formId,'test');
+  const source=fs.readFileSync('src/components/outlet-daily-record-form.tsx','utf8');
+  assert.match(source,/name="branch_id" value=\{selectedBranchId\}/);
+  assert.match(source,/name="wastage_reason" value=\{reason \|\| "unsold"\}/);
 });

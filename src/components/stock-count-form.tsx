@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ModalShell } from "@/components/ui/modal-shell";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { TableActionMenuPortal } from "@/components/ui/table-action-menu-portal";
@@ -606,7 +606,7 @@ export function StockCountForm({
                 <span className="shrink-0 text-xs tabular-nums text-muted-foreground">{countComplete ? "Ready to save" : `${needsPhysicalCount} need${needsPhysicalCount === 1 ? "s" : ""} a physical count`}</span>
               </div>
               <div className="grid gap-2 lg:col-span-2">
-                {branches.length > 1 ? <Field label="Branch"><SelectNative name="branch_selector" value={selectedBranchId ?? branches[0]?.id ?? ""} onChange={(event) => selectBranch(event.target.value)}><option value="">Select branch</option>{branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}</SelectNative></Field> : <p data-stock-count-branch-lock className="self-end pb-2 text-xs text-muted-foreground">Branch locked to {branches[0]?.branch_name ?? "assigned kitchen"}.</p>}
+                {branches.length > 1 ? <Field label="Branch"><SelectControl name="branch_selector" value={selectedBranchId ?? branches[0]?.id ?? ""} onValueChange={selectedValue => selectBranch(selectedValue)} ariaLabel={"Branch"} options={[({value: "", label: "Select branch"}), ...(branches.map((branch) => ({value: String((branch.id) ?? ""), label: String((branch.branch_name) ?? "")})))]}/></Field> : <p data-stock-count-branch-lock className="self-end pb-2 text-xs text-muted-foreground">Branch locked to {branches[0]?.branch_name ?? "assigned kitchen"}.</p>}
               </div>
               <div className="lg:col-span-2"><Textarea name="remarks" value={countRemarks} onChange={(event) => { setCountRemarks(event.target.value); markDirty(); }} className="min-h-16" placeholder="Count note (optional)" /></div>
             </div>
@@ -631,10 +631,7 @@ export function StockCountForm({
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
             <Input value={search} onChange={(event) => { setSearch(event.target.value); setShowMissingOnly(false); }} className="pl-9" placeholder="Find item name or code" />
             </label>
-            <SelectNative aria-label="Sort items" value={sortBy} onChange={(event) => setSortBy(event.target.value as "name" | "code")} className="h-[var(--sb-control-height)] w-[4.75rem] shrink-0 px-2 text-xs">
-              <option value="name">Name</option>
-              <option value="code">Code</option>
-            </SelectNative>
+            <SelectControl ariaLabel="Sort items" value={sortBy} onValueChange={selectedValue => setSortBy(selectedValue as "name" | "code")} className="h-[var(--sb-control-height)] w-[4.75rem] shrink-0 px-2 text-xs" options={[({value: "name", label: "Name"}), ({value: "code", label: "Code"})]}/>
             <button
               type="button"
               className="inline-flex h-[var(--sb-control-height)] min-w-11 shrink-0 items-center justify-center gap-1.5 border border-[var(--sb-border)] bg-[var(--sb-surface)] px-2.5 text-sm font-medium hover:bg-[var(--sb-surface-muted)]"
@@ -774,7 +771,7 @@ export function StockCountForm({
             <h2 id="stock-count-retirement-title" className="flex items-center gap-2 text-base font-semibold"><Archive className="h-4 w-4" />Retire item after this count</h2>
             <p className="mt-2 text-sm text-muted-foreground">The item stays in this final count. After posting, it will be removed from future Stock Counts for this branch and Purchasing and Finance will be notified.</p>
             <div className="mt-4 space-y-4">
-              <Field label="Retirement reason"><SelectNative value={retirementReason} onChange={(event) => setRetirementReason(event.target.value as RetirementReason)}><option value="used_up">Used up and no longer required</option><option value="wrong_or_duplicate_code">Wrong or duplicate item code</option><option value="branch_no_longer_uses">This branch no longer uses it</option><option value="other">Other</option></SelectNative></Field>
+              <Field label="Retirement reason"><SelectControl value={retirementReason} onValueChange={selectedValue => setRetirementReason(selectedValue as RetirementReason)} ariaLabel={"Retirement reason"} options={[({value: "used_up", label: "Used up and no longer required"}), ({value: "wrong_or_duplicate_code", label: "Wrong or duplicate item code"}), ({value: "branch_no_longer_uses", label: "This branch no longer uses it"}), ({value: "other", label: "Other"})]}/></Field>
               <Field label="What happened and what Purchasing should update"><Textarea value={retirementNote} onChange={(event) => setRetirementNote(event.target.value)} minLength={3} maxLength={1000} required placeholder="Explain why this item is retiring and any AutoCount correction needed." /></Field>
               <p className="rounded-[var(--sb-control-radius)] bg-[var(--sb-surface-muted)] p-3 text-xs text-muted-foreground">Final actual stock: <strong className="text-foreground">{formatQuantity(toNumber(lines.find((line) => line.item_id === retirementItemId)?.physicalQty ?? 0))} {lines.find((line) => line.item_id === retirementItemId)?.uom ?? ""}</strong>. An item can retire only when this count is zero.</p>
               <div className="flex justify-end gap-2"><Button ref={retirementCancelRef} type="button" variant="outline" onClick={() => setRetirementItemId(null)}>Keep active</Button><Button type="button" disabled={retirementNote.trim().length < 3 || toNumber(lines.find((line) => line.item_id === retirementItemId)?.physicalQty ?? 0) !== 0} onClick={confirmRetirement}>Retire after posting</Button></div>

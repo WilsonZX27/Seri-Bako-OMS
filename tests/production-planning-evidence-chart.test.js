@@ -5,7 +5,7 @@ function render(history,selectedDate=null){let index=0,chart;const values=[histo
  if(name==='react/jsx-runtime')return require(name);
  if(name==='next/link')return {default:p=>React.createElement('a',p,p.children)};
  if(name.endsWith('/button'))return {Button:p=>React.createElement('button',p,p.children)};
- if(name.endsWith('/select-native'))return {SelectNative:p=>React.createElement('select',p,p.children)};
+ if(name.endsWith('/select-control'))return {SelectControl:require('./helpers/render-select-control.cjs')};
  if(name.endsWith('/interactive-line-chart'))return {InteractiveLineChart:p=>{chart=p;return React.createElement('svg',{'aria-label':p.ariaLabel});}};
  if(name.endsWith('/table'))return Object.fromEntries(['Table','TableHeader','TableBody','TableRow','TableHead','TableCell'].map((n,i)=>[n,p=>React.createElement(['table','thead','tbody','tr','th','td'][i],p,p.children)]));
  if(name.endsWith('/production-planning'))return {readPlanningHistory:()=>{throw Error('SSR must not fetch');}};

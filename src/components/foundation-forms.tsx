@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { RecordSection } from "@/components/record-workspace";
 import { StaffAccessFields } from "@/components/staff-access-fields";
 import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { Textarea } from "@/components/ui/textarea";
 import { previewDocumentNumber } from "@/server/queries/foundation";
 import type { BranchType, RecordStatus, ResetFrequency, StaffAccessLevel, StaffStatus } from "@/types/database";
@@ -86,11 +86,7 @@ type SelectRole = { id: string; role_name: string; role_code: string };
 
 function StatusSelect({ value }: { value?: string }) {
   return (
-    <SelectNative name="status" defaultValue={value ?? "active"}>
-      <option value="active">Active</option>
-      <option value="inactive">Inactive</option>
-      <option value="archived">Archived</option>
-    </SelectNative>
+    <SelectControl name="status" defaultValue={value ?? "active"} ariaLabel={"status"} options={[({value: "active", label: "Active"}), ({value: "inactive", label: "Inactive"}), ({value: "archived", label: "Archived"})]}/>
   );
 }
 
@@ -163,13 +159,7 @@ export function BranchForm({ branch, companies, action, formId, showSubmit = tru
             <Input name="branch_name" defaultValue={branch?.branch_name ?? ""} required />
           </Field>
           <Field label="Branch Type">
-            <SelectNative name="branch_type" defaultValue={branch?.branch_type ?? "outlet"}>
-              <option value="central_kitchen">Central Kitchen</option>
-              <option value="outlet">Outlet</option>
-              <option value="event_booth">Event Booth</option>
-              <option value="office">Office</option>
-              <option value="other">Other</option>
-            </SelectNative>
+            <SelectControl name="branch_type" defaultValue={branch?.branch_type ?? "outlet"} ariaLabel={"Branch Type"} options={[({value: "central_kitchen", label: "Central Kitchen"}), ({value: "outlet", label: "Outlet"}), ({value: "event_booth", label: "Event Booth"}), ({value: "office", label: "Office"}), ({value: "other", label: "Other"})]}/>
           </Field>
           <div className="md:col-span-2">            <p className="mt-1 text-xs text-muted-foreground">Select the outlet, kitchen, office, or event booth this record belongs to.</p>
             <p className="mt-1 text-xs text-muted-foreground">Stock movements for this branch are recorded to an internal default stock area automatically.</p>
@@ -249,10 +239,7 @@ export function StaffForm({
             <Input name="phone" defaultValue={staff?.phone ?? ""} className="form-control-compact" />
           </Field>
           <Field label="Employment Type" required>
-            <SelectNative name="employment_type" defaultValue={staff?.employment_type ?? "full_time"} className="form-control-compact">
-              <option value="full_time">Full-time</option>
-              <option value="part_time">Part-time</option>
-            </SelectNative>
+            <SelectControl name="employment_type" defaultValue={staff?.employment_type ?? "full_time"} className="form-control-compact" ariaLabel={"Employment Type"} options={[({value: "full_time", label: "Full-time"}), ({value: "part_time", label: "Part-time"})]}/>
           </Field>
           <Field label="Last Working Date">
             <Input name="employment_end_date" type="date" defaultValue={staff?.employment_end_date ?? ""} className="form-control-compact" />
@@ -325,12 +312,7 @@ export function DocumentSequenceForm({
             <Input name="next_number" type="number" min="1" defaultValue={nextNumber} required />
           </Field>
           <Field label="Reset Rule">
-            <SelectNative name="reset_frequency" defaultValue={sequence?.reset_frequency ?? "yearly"}>
-              <option value="never">Never</option>
-              <option value="yearly">Yearly</option>
-              <option value="monthly">Monthly</option>
-              <option value="daily">Daily</option>
-            </SelectNative>
+            <SelectControl name="reset_frequency" defaultValue={sequence?.reset_frequency ?? "yearly"} ariaLabel={"Reset Rule"} options={[({value: "never", label: "Never"}), ({value: "yearly", label: "Yearly"}), ({value: "monthly", label: "Monthly"}), ({value: "daily", label: "Daily"})]}/>
           </Field>
           <Field label="Status">
             <StatusSelect value={sequence?.status} />

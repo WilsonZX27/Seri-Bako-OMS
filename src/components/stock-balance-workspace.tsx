@@ -24,7 +24,6 @@ import { formatCurrency, formatQuantityInput, getToday } from "@/lib/utils";
 import { createPurchaseRequestsFromBasket } from "@/server/actions/procurement";
 import { StockBalanceOperationalRows, StockBalanceTableRows, type StockBalanceRow } from "@/components/stock-balance-table";
 import { ItemThumbnail } from "@/components/ui/item-thumbnail";
-import { SelectNative } from "@/components/ui/select-native";
 import { uomOptionsWithCurrent } from "@/lib/uom";
 
 type BranchOption = { id: string; branch_name: string };
@@ -278,7 +277,7 @@ export function StockBalanceWorkspace({
                                           onChange={(value) => updateQty(key, value)}
                                           className="min-w-0 flex-1"
                                         />
-                                        <SelectNative className="h-8 w-20 shrink-0 px-2 text-[10px] font-semibold" aria-label={`Purchase UOM for ${line.item_name}`} value={line.uom} onChange={(event) => updateUom(key, event.target.value)}>{uomOptionsWithCurrent(line.purchase_unit || line.base_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}</SelectNative>
+                                        <SelectControl className="h-8 w-20 shrink-0 px-2 text-[10px] font-semibold" ariaLabel={`Purchase UOM for ${line.item_name}`} value={line.uom} onValueChange={selectedValue => updateUom(key, selectedValue)} options={[...(uomOptionsWithCurrent(line.purchase_unit || line.base_unit).map((uom) => ({value: String((uom) ?? ""), label: String((uom) ?? "")})))]}/>
                                         <button
                                           type="button"
                                           className="inline-flex h-8 w-7 shrink-0 items-center justify-center text-[var(--sb-danger)] hover:bg-[var(--sb-danger-soft)]"
@@ -428,7 +427,7 @@ export function StockBalanceWorkspace({
                     </div>
                     {activeBranch ? <div className="sb-basket-quantity flex min-w-0 items-stretch gap-1.5">
                       <QuantityStepper value={line.qty} uom={null} step={0.01} density="compact" label={`Quantity for ${line.item_name}`} onChange={(value) => updateQty(key, value)} className="min-w-0 flex-1" />
-                      <SelectNative className="h-10 w-24 shrink-0 px-2 text-xs font-semibold" aria-label={`Purchase UOM for ${line.item_name}`} value={line.uom} onChange={(event) => updateUom(key, event.target.value)}>{uomOptionsWithCurrent(line.purchase_unit || line.base_unit).map((uom) => <option key={uom} value={uom}>{uom}</option>)}</SelectNative>
+                      <SelectControl className="h-10 w-24 shrink-0 px-2 text-xs font-semibold" ariaLabel={`Purchase UOM for ${line.item_name}`} value={line.uom} onValueChange={selectedValue => updateUom(key, selectedValue)} options={[...(uomOptionsWithCurrent(line.purchase_unit || line.base_unit).map((uom) => ({value: String((uom) ?? ""), label: String((uom) ?? "")})))]}/>
                     </div> : null}
                   </article>
                 );

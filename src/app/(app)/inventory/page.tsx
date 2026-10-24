@@ -7,7 +7,7 @@ import { InventoryDailyMovementChart } from "@/components/reports/inventory-dail
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { formatNumber } from "@/lib/utils";
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getInventoryDailyMovement, getInventoryDashboard } from "@/server/queries/inventory";
@@ -96,7 +96,7 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
                 <p className="mt-0.5 max-w-[68ch] text-xs text-muted-foreground">Are inbound and outbound ledger entries changing by day? Counts are posted entries, not quantities mixed across different UOMs.</p>
               </div>
               <form className="flex shrink-0 items-center gap-2">
-                <SelectNative name="consumption" defaultValue={period} aria-label="Inventory insight period"><option value="7d">7 days</option><option value="30d">30 days</option><option value="month">Current month</option></SelectNative>
+                <SelectControl name="consumption" defaultValue={period} ariaLabel="Inventory insight period" options={[({value: "7d", label: "7 days"}), ({value: "30d", label: "30 days"}), ({value: "month", label: "Current month"})]}/>
                 <Button type="submit" size="sm" variant="outline">Apply</Button>
               </form>
             </div>

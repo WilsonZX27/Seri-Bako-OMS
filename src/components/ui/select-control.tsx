@@ -1,7 +1,7 @@
 "use client";
 
 import * as Select from "@radix-ui/react-select";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type AriaAttributes } from "react";
 import { Check, ChevronDown, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,11 +28,15 @@ export function SelectControl({
   startEmpty = false,
   emptyValue,
   portalContainer,
+  "aria-invalid": ariaInvalid,
+  "aria-describedby": ariaDescribedBy,
+  "aria-busy": ariaBusy,
+  "data-pr-field": prField,
 }: {
   id?: string;
   name?: string;
-  value?: string;
-  defaultValue?: string;
+  value?: string | number;
+  defaultValue?: string | number;
   onValueChange?: (value: string) => void;
   options: SelectControlOption[];
   placeholder?: string;
@@ -45,22 +49,30 @@ export function SelectControl({
   startEmpty?: boolean;
   emptyValue?: string;
   portalContainer?: HTMLElement | null;
+  "aria-invalid"?: AriaAttributes["aria-invalid"];
+  "aria-describedby"?: string;
+  "aria-busy"?: AriaAttributes["aria-busy"];
+  "data-pr-field"?: string;
 }) {
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const emptyOptionValue = `sb-empty-option-${useId()}`;
+  const [nativeDialogContainer, setNativeDialogContainer] = useState<HTMLElement | null>(null);
   const [open, setOpen] = useState(false);
   const [insideDialog, setInsideDialog] = useState(false);
   const [query, setQuery] = useState("");
+  const [resetRevision, setResetRevision] = useState(0);
   // Keep the trigger value controlled after hydration. Radix can otherwise
   // render an empty trigger when a server-provided default value is only
   // available during the first render (most visible in the shared tablet
   // filter bar). Preserve the public controlled `value` contract while using
   // local state for the uncontrolled/defaultValue variant.
   const isControlled = value !== undefined;
+  const normalizedDefault = defaultValue === undefined ? undefined : String(defaultValue);
   const fallbackValue = startEmpty
-    ? defaultValue
-    : (defaultValue ?? options[0]?.value);
+    ? normalizedDefault
+    : (normalizedDefault ?? options[0]?.value);
   const [internalValue, setInternalValue] = useState(fallbackValue);
-  const selectedValue = isControlled ? value : internalValue;
+  const selectedValue = isControlled ? String(value) : internalValue;
   const selectedLabel = options.find(
     (option) => option.value === selectedValue,
   )?.label;
@@ -78,6 +90,17 @@ export function SelectControl({
   }, [fallbackValue, isControlled]);
 
   useEffect(() => {
+    const form = triggerRef.current?.closest("form");
+    const reset = () => queueMicrotask(() => {
+      if (!isControlled) setInternalValue(fallbackValue);
+      // Native reset also resets Radix's hidden select; remount it from the authoritative value.
+      setResetRevision(current => current + 1);
+    });
+    form?.addEventListener("reset", reset);
+    return () => form?.removeEventListener("reset", reset);
+  }, [fallbackValue, isControlled]);
+
+  useEffect(() => {
     const closeForMore = () => setOpen(false);
     document.addEventListener("sb:close-select-controls", closeForMore);
     return () =>
@@ -85,14 +108,19 @@ export function SelectControl({
   }, []);
 
   const handleOpenChange = (nextOpen: boolean) => {
-    if (nextOpen) setInsideDialog(Boolean(triggerRef.current?.closest('[role="dialog"]')));
+    if (nextOpen) {
+      setInsideDialog(Boolean(triggerRef.current?.closest('dialog, [role="dialog"]')));
+      setNativeDialogContainer(triggerRef.current?.closest<HTMLElement>("dialog") ?? null);
+    }
     setOpen(nextOpen);
     if (!nextOpen) setQuery("");
     if (nextOpen && !triggerRef.current?.closest(".sb-filter-more-panel"))
       document.dispatchEvent(new CustomEvent("sb:close-filter-more"));
   };
 
-  const handleValueChange = (nextValue: string) => {
+  const handleValueChange = (optionValue: string) => {
+    if (typeof optionValue !== "string") return;
+    const nextValue = optionValue === emptyOptionValue ? "" : optionValue;
     if (!isControlled) setInternalValue(nextValue);
     onValueChange?.(nextValue);
   };
@@ -105,9 +133,10 @@ export function SelectControl({
   return (
     <>
       {name && emptyValue !== undefined ? (
-        <input type="hidden" name={name} value={submittedValue ?? ""} />
+        <input type="hidden" name={name} value={submittedValue ?? ""} disabled={disabled} />
       ) : null}
       <Select.Root
+        key={resetRevision}
         value={selectedValue}
         open={open}
         onOpenChange={handleOpenChange}
@@ -122,6 +151,10 @@ export function SelectControl({
           data-select-control
           data-field-name={name}
           aria-label={ariaLabel}
+          aria-invalid={ariaInvalid}
+          aria-describedby={ariaDescribedBy}
+          aria-busy={ariaBusy}
+          data-pr-field={prField}
           title={selectedLabel ?? placeholder}
           className={cn(
             "flex min-h-[var(--sb-control-height)] w-full min-w-0 touch-manipulation items-center justify-between gap-2 overflow-hidden whitespace-nowrap rounded-[var(--sb-radius-control)] border border-input bg-background px-2.5 text-left text-sm outline-none transition-[background-color,box-shadow,transform] duration-150 active:scale-[0.99] focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span:first-child]:min-w-0 [&>span:first-child]:truncate",
@@ -133,7 +166,7 @@ export function SelectControl({
             <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           </Select.Icon>
         </Select.Trigger>
-        <Select.Portal container={portalContainer}>
+        <Select.Portal container={portalContainer ?? nativeDialogContainer}>
           <Select.Content
             position="popper"
             sideOffset={4}
@@ -162,7 +195,7 @@ export function SelectControl({
               {visibleOptions.map((option) => (
                 <Select.Item
                   key={option.value}
-                  value={option.value}
+                  value={option.value || emptyOptionValue}
                   disabled={option.disabled}
                   className="relative flex min-h-9 cursor-default select-none items-center rounded-md py-1.5 pl-7 pr-2 text-xs outline-none focus:bg-[var(--sb-green-100)] data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[state=checked]:font-medium"
                 >

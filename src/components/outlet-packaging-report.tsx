@@ -9,7 +9,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { InteractiveLineChart } from "@/components/ui/interactive-line-chart";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { SectionLoadingState } from "@/components/ui/system-states";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { formatDateOnly, formatNumber } from "@/lib/utils";
 import { packagingTrendPoints } from "@/lib/packaging-trend";
 import { shiftBusinessDate } from "@/lib/business-date";
@@ -68,14 +68,9 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
   <div className="space-y-4" data-packaging-report>
     {/* Outlet/product are local state; only changePeriod owns server navigation. */}
     <FilterBar resetHref="/outlet-packaging" phoneMode="inline" className="gap-3" onSubmit={(event) => event.preventDefault()}>
-      <SelectNative aria-label="Outlet" className="w-full sm:w-64" value={outlet} onChange={(event) => { setOutlet(event.target.value); setSelectedDate(null); }}>
-        <option value="all">All outlets</option>
-        {report.outlets.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-      </SelectNative>
-      <SelectNative aria-label="Packaging" className="w-full sm:w-56 lg:hidden" value={product} onChange={(event) => { setProduct(event.target.value); setSelectedDate(null); }}>
-        {report.products.map((item) => <option key={item.id} value={item.code}>{item.name}</option>)}
-      </SelectNative>
-      <SelectNative aria-label="Report period" className="w-full sm:w-32" value={periodPending ? requestedDays : days} disabled={periodPending} aria-busy={periodPending || undefined} onChange={(event) => changePeriod(event.target.value === "30" ? 30 : 7)}><option value="7">7 days</option><option value="30">30 days</option></SelectNative>
+      <SelectControl ariaLabel="Outlet" className="w-full sm:w-64" value={outlet} onValueChange={selectedValue => { setOutlet(selectedValue); setSelectedDate(null); }} options={[({value: "all", label: "All outlets"}), ...(report.outlets.map((item) => ({value: String((item.id) ?? ""), label: String((item.name) ?? "")})))]}/>
+      <SelectControl ariaLabel="Packaging" className="w-full sm:w-56 lg:hidden" value={product} onValueChange={selectedValue => { setProduct(selectedValue); setSelectedDate(null); }} options={[...(report.products.map((item) => ({value: String((item.code) ?? ""), label: String((item.name) ?? "")})))]}/>
+      <SelectControl ariaLabel="Report period" className="w-full sm:w-32" value={periodPending ? requestedDays : days} disabled={periodPending} aria-busy={periodPending || undefined} onValueChange={selectedValue => changePeriod(selectedValue === "30" ? 30 : 7)} options={[({value: "7", label: "7 days"}), ({value: "30", label: "30 days"})]}/>
     </FilterBar>
     <section className="grid grid-cols-2 divide-x border-y py-3" aria-label="Selected packaging summary"><div className="px-3"><span className="text-xs text-muted-foreground">Last counted balance</span><strong className="block text-2xl tabular-nums">{balances.length?formatNumber(balanceTotal):"—"} <span className="text-sm font-normal">{selectedProduct?.unit}</span></strong><p className="text-xs text-muted-foreground">{balances.length}/{count} outlets · dates may differ</p></div><div className="px-3"><span className="text-xs text-muted-foreground">{days}-day usage</span><strong className="block text-2xl tabular-nums">{periodPending?"Loading…":rows.length?rows.every(row=>row.usage!==null)?formatNumber(rows.reduce((n,r)=>n+(r.usage ?? 0),0)):"Unknown":"—"} <span className="text-sm font-normal">{selectedProduct?.unit}</span></strong><p className="text-xs text-muted-foreground">Completed records only</p></div></section>
     <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.2fr)]">

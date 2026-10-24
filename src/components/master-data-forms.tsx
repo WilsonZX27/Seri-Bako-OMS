@@ -7,7 +7,7 @@ import { ItemCombobox, type ItemComboboxOption } from "@/components/item-combobo
 import { Card, CardContent } from "@/components/ui/card";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { normalizeUom, uomOptionsWithCurrent, uomOptionsForValues } from "@/lib/uom";
 import type { Database } from "@/types/database";
 
@@ -63,13 +63,9 @@ export function SupplierItemForm({
           {result?.error ? <p role="alert" className="col-span-full rounded border border-destructive p-3 text-sm text-destructive">{result.error}</p> : null}
           <input type="hidden" name="status" value={supplierItem?.status ?? "active"} />
           <Field label="Supplier" required className="col-span-2 md:col-span-1">
-            <SelectNative name="supplier_id" defaultValue={saved.get("supplier_id") ?? (supplierItem?.supplier_id ?? initialSupplierId ?? suppliers[0]?.id ?? "")} required>
-              {suppliers.map((supplier) => (
-                <option key={supplier.id} value={supplier.id}>
-                  {supplier.name}
-                </option>
-              ))}
-            </SelectNative>
+            <SelectControl name="supplier_id" defaultValue={saved.get("supplier_id") ?? (supplierItem?.supplier_id ?? initialSupplierId ?? suppliers[0]?.id ?? "")} required ariaLabel={"Supplier"} options={[...(suppliers.map((supplier) => (
+                ({value: String((supplier.id) ?? ""), label: String((supplier.name) ?? "")})
+              )))]}/>
           </Field>
           <Field label="Item" required className="col-span-2 md:col-span-1">
             <ItemCombobox
@@ -91,11 +87,9 @@ export function SupplierItemForm({
             {selectedItem ? <Link href={`/items/${selectedItem.id}`} className="mt-1 inline-flex text-xs font-semibold text-primary underline-offset-4 hover:underline">Open Item Master</Link> : null}
           </div>
           <Field label="Purchase UOM" required className="md:self-end">
-            <SelectNative name="purchase_uom" defaultValue={saved.get("purchase_uom") ?? (normalizeUom(supplierItem?.purchase_uom) || "KG")} required>
-              {uomOptionsWithCurrent(supplierItem?.purchase_uom).map((uom) => (
-                <option key={uom} value={uom}>{uom}</option>
-              ))}
-            </SelectNative>
+            <SelectControl name="purchase_uom" defaultValue={saved.get("purchase_uom") ?? (normalizeUom(supplierItem?.purchase_uom) || "KG")} required ariaLabel={"Purchase UOM"} options={[...(uomOptionsWithCurrent(supplierItem?.purchase_uom).map((uom) => (
+                ({value: String((uom) ?? ""), label: String((uom) ?? "")})
+              )))]}/>
           </Field>
           <Field label="Conversion to Base UOM" required className="md:self-end">
             <Input name="conversion_to_base_uom" type="number" step="0.000001" min="0.000001" defaultValue={saved.get("conversion_to_base_uom") ?? (supplierItem?.conversion_to_base_uom ?? 1)} required />
@@ -149,18 +143,14 @@ export function UomConversionForm({ conversion, action, formId, showSubmit = tru
           {result?.error ? <p role="alert" className="col-span-full rounded border border-destructive p-3 text-sm text-destructive">{result.error}</p> : null}
           <input type="hidden" name="status" value={conversion?.status ?? "active"} />
           <Field label="From UOM">
-            <SelectNative name="from_uom" value={from} onChange={event => setFrom(event.target.value)} required>
-              {options.map((uom) => (
-                <option key={uom} value={uom}>{uom}</option>
-              ))}
-            </SelectNative>
+            <SelectControl name="from_uom" value={from} onValueChange={selectedValue => setFrom(selectedValue)} required ariaLabel={"From UOM"} options={[...(options.map((uom) => (
+                ({value: String((uom) ?? ""), label: String((uom) ?? "")})
+              )))]}/>
           </Field>
           <Field label="To UOM">
-            <SelectNative name="to_uom" value={to} onChange={event => setTo(event.target.value)} required>
-              {options.map((uom) => (
-                <option key={uom} value={uom}>{uom}</option>
-              ))}
-            </SelectNative>
+            <SelectControl name="to_uom" value={to} onValueChange={selectedValue => setTo(selectedValue)} required ariaLabel={"To UOM"} options={[...(options.map((uom) => (
+                ({value: String((uom) ?? ""), label: String((uom) ?? "")})
+              )))]}/>
           </Field>
           <Field label="Factor">
             <Input name="factor" type="number" min="0.00000001" step="0.00000001" value={factor} onChange={event => setFactor(event.target.value)} required />

@@ -3,6 +3,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import Link from "next/link";
 import { AssetTransferBatchDetail } from "@/components/asset-transfer-batch-detail";
 import { notFound, redirect } from "next/navigation";
+import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { AssetTransferAction } from "@/components/asset-transfer-form";
@@ -19,7 +20,11 @@ export default async function TransferDetail({ params, searchParams }: { params:
   if (batch) return <AssetTransferBatchDetail data={batch} permissions={await getPermissionMap(["assets.approve","assets.transfer"])} page={page}/>;
   const [data, permissions] = await Promise.all([getAssetTransferDetail(id,page),getPermissionMap(["assets.approve","assets.transfer"])]);
   if (!data) notFound();
-  if (data.transfer.batch_id) redirect(`/asset-management/transfers/${data.transfer.batch_id}`);
+  if (data.transfer.batch_id) {
+    const complete = await getAssetTransferBatchDetail(data.transfer.batch_id, page);
+    if (complete) redirect(`/asset-management/transfers/${data.transfer.batch_id}`);
+    return <><PageHeader title="Asset transfer"/><EmptyState title="Complete transfer unavailable" description="This asset belongs to a multi-asset transfer. The complete document must be available before any action can continue."/><Link className="underline" href="/asset-management?view=transfers">Back to transfers</Link></>;
+  }
   const transfer = data.transfer, locations = new Map(data.locations.map(location=>[location.id,location.display_name ?? location.source_name]));
   const access = { canApprove: permissions["assets.approve"], canTransfer: permissions["assets.transfer"], canAccessSource: locations.has(transfer.from_location_id ?? ""), canAccessDestination: locations.has(transfer.to_location_id ?? "") };
   const available = assetTransferActions(transfer.status ?? "", access);

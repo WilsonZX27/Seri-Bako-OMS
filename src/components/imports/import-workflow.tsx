@@ -6,7 +6,7 @@ import { importTemplates, type ImportEntity, type ImportMode } from "@/lib/impor
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -500,13 +500,9 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
                 </div>
                 <div className="grid min-w-0 content-start gap-1">
                   <p className="text-xs font-medium">Import mode</p>
-                  <SelectNative value={mode} onChange={(event) => setMode(event.target.value as ImportMode)} disabled={spec.modes.length === 1}>
-                    {spec.modes.map((value) => (
-                      <option key={value} value={value}>
-                        {value === "create" ? "Create only" : value === "update" ? "Update existing" : "Create or update"}
-                      </option>
-                    ))}
-                  </SelectNative>
+                  <SelectControl value={mode} onValueChange={selectedValue => setMode(selectedValue as ImportMode)} disabled={spec.modes.length === 1} ariaLabel={"Import mode"} options={[...(spec.modes.map((value) => (
+                      ({value: String((value) ?? ""), label: value === "create" ? "Create only" : value === "update" ? "Update existing" : "Create or update"})
+                    )))]}/>
                 </div>
               </div>
 

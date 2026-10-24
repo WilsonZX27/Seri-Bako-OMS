@@ -39,5 +39,5 @@ test("schedule quick actions and dialog selects remain operable",()=>{
  for(const label of ["OFF","AL","PH","UPL","Working time"])assert.ok(schedule.includes(`label: "${label}"`),label);
  assert.ok(schedule.includes("portalContainer={customDialog.current}"));
  const select=fs.readFileSync("src/components/ui/select-control.tsx","utf8");
- assert.ok(select.includes("<Select.Portal container={portalContainer}>"));
+ assert.ok(select.includes("<Select.Portal container={portalContainer ?? nativeDialogContainer}>"));
 });

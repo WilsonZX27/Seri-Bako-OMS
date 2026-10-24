@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { recoverField } from "@/lib/field-recovery";
+import { recoverField, visibleFieldControl } from "@/lib/field-recovery";
 
 /** Capture native validation once for every authenticated form, including portals. */
 export function FormValidationRecovery() {
@@ -13,7 +13,8 @@ export function FormValidationRecovery() {
       const field = event.target;
       if (!(field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement) || !field.form) return;
       // Hidden responsive copies and native proxy selects are owned by their visible control.
-      const proxy = field.getAttribute("aria-hidden") === "true" ? Array.from(field.form.querySelectorAll<HTMLElement>("[data-field-name]")).find((trigger) => trigger.dataset.fieldName === field.name && trigger.getClientRects().length) : undefined;
+      const ownControl = visibleFieldControl(field);
+      const proxy = ownControl !== field ? ownControl : field.getAttribute("aria-hidden") === "true" ? Array.from(field.form.querySelectorAll<HTMLElement>("[data-field-name]")).find((trigger) => trigger.dataset.fieldName === field.name && trigger.getClientRects().length) : undefined;
       const visibleTarget = proxy ?? field;
       if (!visibleTarget.getClientRects().length || visibleTarget.getAttribute("aria-hidden") === "true") return;
       event.preventDefault();
@@ -27,7 +28,7 @@ export function FormValidationRecovery() {
       });
     };
     const edited = (event: Event) => {
-      if (event.target instanceof HTMLElement && event.target.dataset.fieldRecovery) {
+      if (event.target instanceof HTMLElement && visibleFieldControl(event.target).dataset.fieldRecovery) {
         cleanup?.();
         cleanup = undefined;
       }

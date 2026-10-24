@@ -1,3 +1,9 @@
+/** Resolve the visible house control for a native validation proxy in the same row. */
+export function visibleFieldControl(field: HTMLElement): HTMLElement {
+  const adjacent = field.previousElementSibling;
+  return field.getAttribute("aria-hidden") === "true" && adjacent instanceof HTMLElement && adjacent.matches("[data-select-control]") ? adjacent : field;
+}
+
 /** Shared recovery for native constraints and server-returned field errors. */
 export function recoverField(target: HTMLElement, message: string) {
   const oldInvalid = target.getAttribute("aria-invalid");

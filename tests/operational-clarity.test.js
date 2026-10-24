@@ -36,7 +36,7 @@ test('schedule checks group missing days by employee ID, retain blockers and dis
   const html = renderToStaticMarkup(React.createElement(ScheduleValidationSummary, { issues, dirty: true }));
   assert.match(html, /2 employees have unassigned days/);
   assert.match(html, /Review missing days \(3\)/);
-  assert.equal((html.match(/<strong>Same name<\/strong>/g) ?? []).length, 2);
+  assert.equal((html.match(/<strong[^>]*>Same name<\/strong>/g) ?? []).length, 2);
   assert.match(html, /Conflicting shift at another outlet/);
   assert.match(html, /Save your changes to refresh/);
   assert.doesNotMatch(html, /role="alert"/);
@@ -63,7 +63,9 @@ test('schedule checks accept SQL timestamp days, deduplicate dates and preserve 
   }));
   const html = renderToStaticMarkup(React.createElement(ScheduleValidationSummary, { issues, dirty: false }));
   assert.match(html, /Review missing days \(2\)/);
-  assert.match(html, /Mon 07 Sept · Tue 08 Sept/);
+  assert.match(html, /dateTime="2026-09-07"/);
+  assert.match(html, /dateTime="2026-09-08"/);
+  assert.equal((html.match(/<time /g) ?? []).length, 2);
   assert.match(html, /Unresolved: 2026-02-30/);
   assert.match(html, /Unresolved: invalid/);
 });

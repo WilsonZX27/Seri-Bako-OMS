@@ -10,7 +10,7 @@ import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
 import { Input } from "@/components/ui/input";
 import { MetricStrip } from "@/components/ui/metric-strip";
 import { PageHeader } from "@/components/ui/page-header";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import {
   OperationalList,
   OperationalListRow,
@@ -109,10 +109,7 @@ export default async function ProcurementVariancePage({ searchParams }: { search
         <div className="space-y-3" data-procurement-variance-workspace>
           <FilterBar resultCount={rows.length} resetHref="/reports/procurement-variance" filtered={hasActiveFilters(filters)} className="sb-list-filters--balanced">
             <Input name="search" defaultValue={filters.search} placeholder="Search PO, supplier, or item" aria-label="Search PO, supplier, or item" />
-            <SelectNative name="status" defaultValue={filters.status ?? "all"} aria-label="Variance status">
-              <option value="all">All statuses</option>
-              {Object.keys(variants).map((status) => <option key={status} value={status.toLowerCase().replaceAll(" ", "_")}>{status}</option>)}
-            </SelectNative>
+            <SelectControl name="status" defaultValue={filters.status ?? "all"} ariaLabel="Variance status" options={[({value: "all", label: "All statuses"}), ...(Object.keys(variants).map((status) => ({value: String((status.toLowerCase().replaceAll(" ", "_")) ?? ""), label: String((status) ?? "")})))]}/>
             <FilterBarMore activeCount={[filters.date_from, filters.date_to].filter(Boolean).length} resetHref="/reports/procurement-variance">
               <Input name="date_from" type="date" defaultValue={filters.date_from} aria-label="Date from" />
               <Input name="date_to" type="date" defaultValue={filters.date_to} aria-label="Date to" />

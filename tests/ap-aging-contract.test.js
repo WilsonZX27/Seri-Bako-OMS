@@ -64,6 +64,6 @@ test("AP aging uses the shared balanced query surface", () => {
   assert.match(page, /<FilterBarMore activeCount=\{activeFilterCount\}/);
   assert.doesNotMatch(page, /<form className="sb-list-filters sb-list-query-card sb-list-filters--dense">/);
   for (const label of ["Search invoices", "Supplier", "Aging bucket", "Invoice status", "Due date from", "Due date to"]) {
-    assert.match(page, new RegExp(`aria-label="${label}"`));
+    assert.match(page, new RegExp(`(?:ariaLabel|aria-label)="${label}"`));
   }
 });

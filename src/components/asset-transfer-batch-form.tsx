@@ -6,7 +6,7 @@ import { useAssetDraftAction } from "@/components/asset-draft-state";
 import { useAssetFormGuard } from "@/components/asset-unsaved-guard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import type { AssetLocation } from "@/server/queries/assets";
 
 type Choice = { id: string; asset_code: string; item_name: string; quantity: number };
@@ -25,7 +25,7 @@ export function AssetTransferBatchForm({ source, locations, choices, requestKey,
     <fieldset disabled={pending || state.ok} className="min-w-0 space-y-4">
       <section className="sb-work-surface p-4" aria-labelledby="transfer-details"><h2 id="transfer-details" className="mb-3 text-sm font-semibold">Request details</h2>
         <dl className="mb-3 text-xs"><dt className="text-muted-foreground">From</dt><dd className="break-words">{locations.find(location => location.id === source)?.display_name ?? locations.find(location => location.id === source)?.source_name}</dd></dl>
-        <div className="grid gap-3 sm:grid-cols-2"><label className="grid gap-1 text-xs">To<SelectNative name="to" required value={destination} onChange={event => setDestination(event.target.value)}><option value="" disabled>Choose destination</option>{locations.filter(location => location.id !== source).map(location => <option key={location.id} value={location.id}>{location.display_name ?? location.source_name}</option>)}</SelectNative></label>
+        <div className="grid gap-3 sm:grid-cols-2"><label className="grid gap-1 text-xs">To<SelectControl name="to" required value={destination} onValueChange={selectedValue => setDestination(selectedValue)} ariaLabel={"To"} options={[({value: "", label: "Choose destination", disabled: true}), ...(locations.filter(location => location.id !== source).map(location => ({value: String((location.id) ?? ""), label: String((location.display_name ?? location.source_name) ?? "")})))]}/></label>
           <label className="grid gap-1 text-xs">Request date<Input name="date" type="date" required value={date} onChange={event => setDate(event.target.value)}/></label>
           <label className="grid gap-1 text-xs sm:col-span-2">Reason<Input name="reason" required maxLength={2000} value={reason} onChange={event => setReason(event.target.value)}/></label></div>
       </section>

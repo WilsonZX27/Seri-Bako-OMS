@@ -23,7 +23,7 @@ function compile(file, overrides={}) {
   if(name==='@/components/operational-hub')return {OperationalHub:({queue=[],tools=[],primaryAction})=>React.createElement('nav',null,[...queue,...tools,...(primaryAction?[primaryAction]:[])].map((x,i)=>React.createElement('a',{key:i,href:x.href},x.title??x.label)))};
   if(name==='@/components/ui/page-header')return {PageHeader:({title})=>React.createElement('h1',null,title)};
   if(name==='@/components/ui/card')return {Card:wrapper,CardContent:wrapper};
-  if(name==='@/components/ui/select-native')return {SelectNative:wrapper};
+  if(name==='@/components/ui/select-control')return {SelectControl:require('./render-select-control.cjs')};
   if(name==='@/components/reports/inventory-daily-movement-chart')return {InventoryDailyMovementChart:()=>null};
   if(['react/jsx-runtime','react','lucide-react'].includes(name))return require(name);
   throw Error(`Unmocked dependency ${name}`);

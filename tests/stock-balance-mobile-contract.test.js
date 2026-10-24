@@ -29,7 +29,7 @@ test("stock balance keeps query controls balanced and the desktop basket compact
   assert.doesNotMatch(source, /Saved on this device/);
   assert.match(source, /density="dense"/);
   assert.doesNotMatch(source, /\[&_button\]|\[&_input\]/);
-  assert.match(source, /SelectNative className="h-8 w-20 shrink-0/);
+  assert.match(source, /SelectControl className="h-8 w-20 shrink-0/);
 });
 
 test("stock balance persists the PR basket across filter refreshes without trusting browser state", () => {

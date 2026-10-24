@@ -4,7 +4,7 @@ import { type FormEvent, useRef, useState } from "react";
 import { Download, LoaderCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SelectNative } from "@/components/ui/select-native";
+import { SelectControl } from "@/components/ui/select-control";
 import { getToday } from "@/lib/utils";
 
 type BranchOption = { id: string; branch_name: string };
@@ -76,10 +76,7 @@ export function StockCountExportDialog({
           <div className="grid gap-4 p-4">
             <label className="grid gap-1.5 text-xs font-semibold text-[var(--sb-text-muted)]">
               Outlet / Branch
-              <SelectNative name="branch_id" required defaultValue={branches[0]?.id ?? ""}>
-                <option value="" disabled>Select one outlet</option>
-                {branches.map((branch) => <option key={branch.id} value={branch.id}>{branch.branch_name}</option>)}
-              </SelectNative>
+              <SelectControl name="branch_id" required defaultValue={branches[0]?.id ?? ""} ariaLabel={"Outlet / Branch"} options={[({value: "", label: "Select one outlet", disabled: true}), ...(branches.map((branch) => ({value: String((branch.id) ?? ""), label: String((branch.branch_name) ?? "")})))]}/>
             </label>
             <div className="grid grid-cols-2 gap-3">
               <label className="grid gap-1.5 text-xs font-semibold text-[var(--sb-text-muted)]">From date<Input name="from" type="date" required defaultValue={defaultFrom ?? today} /></label>

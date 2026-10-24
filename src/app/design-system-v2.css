@@ -3278,30 +3278,25 @@ html[data-design-layer="v2"] .sb-repair-summary { grid-template-columns: minmax(
   }
 }
 
-/* Daily quantities share fixed tracks; product identity stays above on compact screens. */
+/* A shared four-column measure keeps three- and four-field groups aligned. */
 .sb-daily-line-head,
 .sb-daily-product-line {
-  grid-template-columns: repeat(3, 72px);
-  justify-content: space-between;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
-.sb-daily-line-head.sb-daily-line-four,
-.sb-daily-product-line.sb-daily-line-four {
-  grid-template-columns: repeat(4, 72px);
+.sb-daily-product-line.sb-daily-line-three > label,
+.sb-daily-line-head.sb-daily-line-three > span:not(:first-child) {
+  translate: calc(50% + .25rem) 0;
 }
 .sb-daily-product-line input[type="number"] {
-  width: 72px;
-  min-width: 72px;
-  max-width: 72px;
-  min-height: 44px;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  min-height: var(--sb-control-height);
 }
 @media (min-width: 1280px) {
   .sb-daily-line-head,
   .sb-daily-product-line {
-    grid-template-columns: minmax(0, 1fr) repeat(3, 72px) minmax(120px, 1fr);
-  }
-  .sb-daily-line-head.sb-daily-line-four,
-  .sb-daily-product-line.sb-daily-line-four {
-    grid-template-columns: minmax(0, 1fr) repeat(4, 72px);
+    grid-template-columns: minmax(180px, 2fr) repeat(4, minmax(72px, 1fr));
   }
 }
 
@@ -3309,3 +3304,31 @@ html[data-design-layer="v2"] .sb-repair-summary { grid-template-columns: minmax(
   html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-date-control { padding-inline: 6px; font-size: 12px; }
   html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-pinned-control button { padding-inline: 6px; gap: 4px; font-size: 12px; }
 }
+
+/* Import correction groups are separate, compact task surfaces. */
+.sb-schedule-import-dialog .sb-import-card {
+  border: 1px solid var(--sb-border-soft);
+  border-radius: var(--sb-panel-radius);
+  background: var(--sb-surface-raised);
+  padding: 1rem;
+}
+.sb-schedule-import-dialog [data-select-control] {
+  min-height: var(--sb-control-height);
+  height: var(--sb-control-height);
+  font-size: 12px;
+}
+@media (min-width: 1024px) and (pointer: fine) {
+  .sb-schedule-import-dialog { --sb-control-height: 36px; }
+}
+
+html[data-design-layer="v2"] form.sb-asset-query--overview .unified-list-row {
+  display: flex !important;
+  align-items: center;
+  gap: .75rem;
+}
+html[data-design-layer="v2"] form.sb-asset-query--overview .unified-list-date-control {
+  flex: 0 1 10rem !important;
+  width: 10rem !important;
+  max-width: 10rem !important;
+}
+html[data-design-layer="v2"] form.sb-asset-query--overview .unified-list-date-submit { margin-left: auto; }

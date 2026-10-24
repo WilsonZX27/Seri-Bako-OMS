@@ -68,6 +68,9 @@ export const getCurrentProfile = cache(async function getCurrentProfile() {
     return { ...staff, role: roleCode, role_code: roleCode, has_staff_role: Boolean(roleCode) };
   }
 
+  // A linked but inactive/ended employee must never fall back to a legacy profile.
+  if (staff) return null;
+
   const { data } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
   return data ? { ...data, company_id: null, role_code: data.role, has_staff_role: false } : null;
 });

@@ -1,3 +1,4 @@
+import { todayInKualaLumpur } from "@/lib/business-date";
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { isMockMode } from "@/lib/mock-mode";
@@ -63,13 +64,15 @@ export async function updateSession(request: NextRequest) {
 
   const { data: staff, error: staffError } = await supabase
     .from("staffs")
-    .select("id, status, must_change_password, staff_roles(role_id, is_primary, effective_from, effective_to, roles(role_code))")
+    .select("id, status, employment_end_date, deleted_at, must_change_password, staff_roles(role_id, is_primary, effective_from, effective_to, roles(role_code))")
     .eq("auth_user_id", authUserId)
     .maybeSingle();
 
   const staffRecord = staff as unknown as {
     id: string;
     status: string | null;
+    employment_end_date?: string | null;
+    deleted_at?: string | null;
     must_change_password: boolean | null;
     staff_roles?: Array<{
       role_id: string;
@@ -108,7 +111,7 @@ export async function updateSession(request: NextRequest) {
   const decision = resolveAuthRoute({
     pathname,
     authenticated: true,
-    staffStatus: staffError ? null : staffRecord?.status ?? null,
+    staffStatus: staffError ? null : staffRecord?.deleted_at || (staffRecord?.employment_end_date && staffRecord.employment_end_date < todayInKualaLumpur()) ? "disabled" : staffRecord?.status ?? null,
     mustChangePassword: staffRecord?.must_change_password ?? false,
     routeProtected: Boolean(permissionCodes),
     routeAllowed,

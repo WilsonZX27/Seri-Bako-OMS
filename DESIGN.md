@@ -1,3 +1,7 @@
+## v9.2.142 (local candidate) — Offboarding access guard
+
+Only login, per-request session checks and linked-profile fallback are changed. Last working day is inclusive in Asia/Kuala_Lumpur. No employee, role, payroll, inventory or database schema changes. Provider Auth ban and global token revocation are outside this release.
+
 ## v9.2.141 (Preview) — unified dropdowns and operational UI fixes
 
 Publish the latest Daily, asset overview/search, PR notification, schedule import layout, stock item line editor and session recovery fixes.97 dropdown instances now use the house component, preserving native date/file inputs, validation, reset and dialog behavior. Asset readiness and creation gates remain hard OFF without RPC; manual IDs and legacy single transfers remain. Chef roster restoration, database proposals and temporary external destination behavior are not included. Production and shared database are unchanged by this release.

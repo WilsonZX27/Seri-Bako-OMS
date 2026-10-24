@@ -1,5 +1,6 @@
 "use server";
 
+import { todayInKualaLumpur } from "@/lib/business-date";
 import { redirect } from "next/navigation";
 import { getLandingIaItems } from "@/lib/information-architecture";
 import { canReturnToRoute, getSafeReturnPath } from "@/lib/http/session-recovery";
@@ -82,12 +83,16 @@ export async function signIn(formData: FormData) {
 
   const { data: staff, error: staffError } = await supabase
     .from("staffs")
-    .select("id, must_change_password")
+    .select("id, status, employment_end_date, deleted_at, must_change_password")
     .eq("auth_user_id", user.id)
     .maybeSingle();
   if (staffError) {
     logServerError(staffError, { source: "auth.sign-in.staff-lookup", actorId: user.id });
     redirect("/access-status?reason=workspace-unavailable");
+  }
+  if (staff && (staff.deleted_at || ["disabled", "inactive", "archived"].includes(staff.status) || (staff.employment_end_date && staff.employment_end_date < todayInKualaLumpur()))) {
+    await supabase.auth.signOut({ scope: "local" });
+    return redirectToLoginError("OMS access is inactive. Contact your administrator.");
   }
   if (staff?.must_change_password) {
     redirect("/change-password");

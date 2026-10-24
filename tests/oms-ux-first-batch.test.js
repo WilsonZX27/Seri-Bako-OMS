@@ -15,7 +15,7 @@ test("dashboard repair actions show one request heading, asset/issue, location, 
   assert.match(query, /maintenance_author_name: maintenanceDetails\.get\(row\.id\)\?\.author_name/);
   assert.match(page, /"REPAIR REQUEST"/);
   assert.match(page, /row\.maintenance_asset_name/);
-  assert.match(page, /row\.maintenance_description/);
+  assert.doesNotMatch(page, /row\.maintenance_description/);
   assert.match(page, /row\.branch_name/);
   assert.match(page, /row\.maintenance_author_name/);
   assert.match(page, /formatDateOnly\(row\.updated_at\)/);
@@ -36,7 +36,9 @@ test("transfer asset search has an explicit accessible apply action", () => {
   const page = read("src", "app", "(app)", "asset-management", "transfers", "new", "page.tsx");
   const header = read("src", "components", "common", "UnifiedListHeader.tsx");
   assert.match(page, /<FilterBar resetHref="\/asset-management\/transfers\/new"[\s\S]*?<Input type="search" name="q"/);
-  assert.doesNotMatch(page, /<Button type="submit"/);
+  assert.equal((page.match(/<Button type="submit"/g) ?? []).length,1);
+  assert.match(page, /<Button type="submit">Load assets<\/Button>/);
+  assert.doesNotMatch(page, /<Button[^>]*>Search<\/Button>/);
   assert.match(header, /showSearchAction = hasTextSearch && !all\.some\(isSearchSubmit\)/);
   assert.match(header, /aria-label="Search"/);
   assert.match(page, /No matching assets\./);
@@ -45,7 +47,8 @@ test("transfer asset search has an explicit accessible apply action", () => {
 test("goods receiving rows follow the PR hierarchy without hiding quantities", () => {
   const page = read("src", "app", "(app)", "goods-receivings", "page.tsx");
   assert.match(page, /primary=\{<DocumentNumber value=\{receiving\.grn_no\} \/>\}/);
-  assert.match(page, /secondary=\{<span className="flex min-w-0 justify-between gap-3"><span className="truncate" title=\{receiving\.supplier_name/);
+  assert.match(page, /secondary=\{<span className="sb-pr-phone-supplier-row"><span className="sb-pr-phone-supplier" title=\{receiving\.supplier_name/);
+  for(const icon of ["Store","Package","MapPin","FileText","CalendarDays"])assert.ok(page.includes(`<${icon} aria-hidden="true"`));
   assert.match(page, /formatNumber\(receiving\.received_total\)\} in · \{formatNumber\(receiving\.rejected_total\)\} rejected/);
   assert.match(page, /receiving\.branch_name[\s\S]*?receiving\.po_no[\s\S]*?formatDateOnly\(receiving\.received_date\)/);
 });

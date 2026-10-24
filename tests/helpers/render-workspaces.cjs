@@ -15,6 +15,7 @@ function compile(file, overrides={}) {
   if(name in overrides)return overrides[name];
   if(name==='next/link')return {__esModule:true,default:({prefetch,children,...props})=>React.createElement('a',props,children)};
   if(name==='@/lib/utils')return utils;
+  if(name==='@/lib/workspace-notification-copy')return load('src/lib/workspace-notification-copy.ts');
   if(name==='@/components/ui/status-badge')return status;
   if(name==='@/components/layout/workspace-layout')return {WorkspaceGrid:({children,rightRail})=>React.createElement('main',null,children,React.createElement('aside',null,rightRail))};
   if(name==='@/components/layout/right-console')return {ConsoleSection:({title,children})=>React.createElement('section',null,React.createElement('h2',null,title),children)};

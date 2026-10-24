@@ -11,7 +11,7 @@ function harness(options={}){
   'next/cache':{revalidatePath:path=>calls.push({name:'revalidate',path})},
   '@/server/auth/tenant-actor':{requireActiveTenantActor:async()=>{actors++;return options.sessionChanged&&actors>1?{...actor,companyId:id(9)}:actor;}},
   '@/server/auth/permissions':{hasPermission:async permission=>options.general ? permission==="assets.report" : !options.operator,requirePermission:async permission=>{calls.push({name:'permission',permission});if(options.permissionRevoked&&actors>1)throw new Error('Permission revoked');}},
-  '@/lib/supabase/server':{createClient:async()=>db},'@/lib/supabase/loose':{looseSupabase:value=>value},
+  '@/lib/supabase/server':{createClient:async()=>db},'@/server/queries/asset-feature-capabilities':{assetFeatureCapabilities:async()=>({automaticId:false,transferBatch:false})},'@/lib/asset-transfer':require('./helpers/load-source.cjs')()('src/lib/asset-transfer.ts'),'@/lib/supabase/loose':{looseSupabase:value=>value},
   '@/lib/supabase/admin':{createAdminClient:()=>admin},'@/lib/asset-attachments':content,
   '@/lib/asset-master':{assetMasterFields:[]},'@/lib/production-planning/forecast':{addDays:()=>{}},
  });
@@ -42,7 +42,7 @@ function readHarness(change={}){
  const calls=[],row={asset_id:id(3),storage_path:`${id(1)}/${id(3)}/${id(4)}.jpg`,verified_at:'2026-10-08T01:00:00Z',content_sha256:'a'.repeat(64),...change};
  const query={select:()=>query,eq:(key,value)=>{calls.push({name:'scope',key,value});return query;},maybeSingle:async()=>({data:change.missing?null:row,error:change.queryError?{message:'Unavailable'}:null})};
  const client={from:()=>query,storage:{from:()=>({createSignedUrl:async(path,seconds)=>{calls.push({name:'sign',path,seconds});return {error:null,data:{signedUrl:'https://example.test/private-synthetic-file'}};}})}};
- const route=load('src/app/(app)/asset-management/attachments/[id]/route.ts',{'@/server/auth/tenant-actor':{requireActiveTenantActor:async()=>({companyId:id(1),staffId:id(2)})},'@/server/auth/permissions':{requirePermission:async permission=>calls.push({name:'permission',permission})},'@/lib/supabase/server':{createClient:async()=>client},'@/lib/supabase/loose':{looseSupabase:value=>value}});
+ const route=load('src/app/(app)/asset-management/attachments/[id]/route.ts',{'@/server/auth/tenant-actor':{requireActiveTenantActor:async()=>({companyId:id(1),staffId:id(2)})},'@/server/auth/permissions':{requirePermission:async permission=>calls.push({name:'permission',permission})},'@/lib/supabase/server':{createClient:async()=>client},'@/server/queries/asset-feature-capabilities':{assetFeatureCapabilities:async()=>({automaticId:false,transferBatch:false})},'@/lib/asset-transfer':require('./helpers/load-source.cjs')()('src/lib/asset-transfer.ts'),'@/lib/supabase/loose':{looseSupabase:value=>value}});
  return {route,calls};
 }
 test('actual attachment route signs only scoped verified metadata with a private noncached redirect',async()=>{

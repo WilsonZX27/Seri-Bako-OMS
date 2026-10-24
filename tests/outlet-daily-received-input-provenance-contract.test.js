@@ -11,6 +11,8 @@ test("outlet daily detail inputs cannot render an unverified receipt as zero", (
 
   assert.match(form, /line\?\.morning_received_provided === true/);
   assert.match(form, /receivedIsKnown && source\?\.morning_received_qty != null/);
-  assert.match(form, /placeholder=\{receivedIsKnown \? undefined : "Not verified"\}/);
+  assert.match(form, /placeholder=\{receivedIsKnown \? undefined : "—"\}/);
+  assert.match(form, /!receivedIsKnown \? " · Received unverified" : ""/);
+  assert.match(form, /title=\{receivedIsKnown \? undefined : "Received quantity has not been verified"\}/);
   assert.match(form, /data-received-unverified=\{!receivedIsKnown \? "true" : undefined\}/);
 });

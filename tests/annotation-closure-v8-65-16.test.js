@@ -14,7 +14,10 @@ test("shared number inputs block accidental wheel and arrow stepping", () => {
 
 test("Outlet Daily aligns quantities and details in five desktop columns", () => {
   const form = read("src/components/outlet-daily-record-form.tsx");
-  assert.equal(form.split("xl:grid-cols-[minmax(0,1fr)_repeat(3,minmax(3.5rem,4.5rem))_minmax(0,1fr)]").length - 1, 2);
+  assert.match(form, /sb-daily-line-head/);
+  assert.match(form, /sb-daily-product-line/);
+  const css=read("src/app/design-system-v2.css");
+  assert.match(css, /grid-template-columns: minmax\(0, 1fr\) repeat\(3, 72px\) minmax\(120px, 1fr\)/);
   assert.match(form, /tracking === "food_daily" \? "Wastage details"/);
   assert.match(form, /xl:col-start-5 xl:col-span-1 xl:grid/);
   assert.doesNotMatch(form, />Sold out</);

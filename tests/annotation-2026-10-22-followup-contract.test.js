@@ -23,7 +23,7 @@ test("repair actions show available details and link to the specific request", (
   assert.match(dashboard, /isMaintenanceAction = row\.id\.startsWith\("maintenance-"\)/);
   assert.match(dashboard, /"REPAIR REQUEST"/);
   assert.match(dashboard, /row\.maintenance_asset_name/);
-  assert.match(dashboard, /row\.maintenance_description\?\.trim\(\)/);
+  assert.doesNotMatch(dashboard, /row\.maintenance_description\?\.trim\(\)/);
   assert.match(dashboard, /row\.maintenance_author_name/);
   assert.match(dashboard, /formatDateOnly\(row\.updated_at\)/);
   assert.match(topbar, /row\.entity_type === "asset_maintenance"/);

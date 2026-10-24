@@ -1,3 +1,4 @@
+import { assetFeatureCapabilities } from "@/server/queries/asset-feature-capabilities";
 import { todayInKualaLumpur } from "@/lib/business-date";
 import { addDays } from "@/lib/production-planning/forecast";
 import { cache } from "react";
@@ -20,7 +21,7 @@ function exactAssetCount(value: unknown): number {
 const attachmentColumns = "id,asset_id,maintenance_id,location_id,created_at,url,storage_path,verified_at,source_data";
 export type AssetHolding = { asset_id: string; location_id: string; quantity: number | null; condition?:string|null; status?:string|null; latest_check_result?:string|null };
 export type AssetOverview = { assetCount: number; knownQuantity: number; unknownHoldings: number; attentionAssets: number; openMaintenance: number; inTransitQuantity: number; locations: { id: string; name: string; assetCount: number; quantity: number | null }[]; checkDate: string; checklist: { id: string; name: string; kind: "branch" | "event" | "other"; open: boolean; reason: string | null; expected: number; checked: number; submitted?: boolean }[]; maintenanceTrend: { date: string; count: number }[]; issueTrend: { date: string; count: number | null; checked: number }[]; maintenanceByStatus: { status: string; count: number }[] };
-export type AssetRecord = { id: string; asset_id: string | null; reported_by?: string; location_id?: string; from_location_id?: string; to_location_id?: string; source_id?: string; status?: string; priority?: string; description?: string; reason?: string; quantity?: number | null; author_name?: string; created_at?: string; check_date?: string; result?: string; source_data: Record<string, unknown> };
+export type AssetRecord = { id: string; batch_id?: string | null; line_count?: number; request_date?: string; asset_id: string | null; reported_by?: string; location_id?: string; from_location_id?: string; to_location_id?: string; source_id?: string; status?: string; priority?: string; description?: string; reason?: string; quantity?: number | null; author_name?: string; created_at?: string; check_date?: string; result?: string; source_data: Record<string, unknown> };
 export type AssetView = "overview" | "assets" | "checklist" | "maintenance" | "transfers";
 const ASSET_MAINTENANCE_PAGE_SIZE = 10;
 
@@ -48,14 +49,14 @@ const mockInspectionAssets: AssetSummary[] = [
 
 export const getAssetRegistration = cache(async () => {
   const actor = await requireActiveTenantActor(); await requirePermission("assets.manage");
-  if (isMockMode()) return { active: true, locations: [{ id: mockInspectionLocationId, source_name: "KL - Publika", branch_id: null, kind: "branch" }] as AssetLocation[] };
+  if (isMockMode()) return { active: true, automaticId: false, locations: [{ id: mockInspectionLocationId, source_name: "KL - Publika", branch_id: null, kind: "branch" }] as AssetLocation[] };
   const db = looseSupabase(await createClient());
   const activation = await db.rpc("asset_company_live", { p_company: actor.companyId });
   if (activation.error || activation.data === null) throw new Error(activation.error?.message ?? "Asset activation unavailable.");
-  if (activation.data !== true) return { active: false, locations: [] as AssetLocation[] };
+  if (activation.data !== true) return { active: false, automaticId: false, locations: [] as AssetLocation[] };
   const result = await db.from("asset_locations").select("id,source_name,branch_id,kind").eq("company_id", actor.companyId).order("source_name");
   if (result.error || result.data === null) throw new Error(result.error?.message ?? "Asset locations unavailable.");
-  return { active: true, locations: await withCanonicalBranchNames(looseSupabase(db), result.data as AssetLocation[]) };
+  return { active: true, automaticId: (await assetFeatureCapabilities(db)).automaticId, locations: await withCanonicalBranchNames(looseSupabase(db), result.data as AssetLocation[]) };
 });
 
 export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query = "", date = "", status = "", locationId = "", sort = "code", category = "") => {
@@ -145,7 +146,7 @@ export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query =
       assets.push(...result.data as AssetSummary[]);
     }
   } else {
-    const table = view === "checklist" ? "asset_daily_checks" : view === "maintenance" ? "asset_maintenance" : "asset_transfers";
+    const table = view === "checklist" ? "asset_daily_checks" : view === "maintenance" ? "asset_maintenance" : (await assetFeatureCapabilities(db)).transferBatch ? "asset_transfer_register" : "asset_transfers";
     let request = db.from(table).select("*", { count: "exact" }).eq("company_id", company);
     if (locationId && view !== "transfers") request = request.eq("location_id", locationId);
     if (status && (view === "maintenance" || view === "transfers")) request = request.eq("status", status);
@@ -422,4 +423,61 @@ export async function getAssetChecklistRecords(locationId: string, date: string)
     if (result.data.length < 500) break;
   }
   return records;
+}
+
+/** Load only RLS-visible holdings of the selected source; never use an admin client. */
+export async function getAssetTransferRequestOptions(source = "") {
+  const actor = await requireActiveTenantActor(); await requirePermission("assets.transfer");
+  if (isMockMode()) return null;
+  const db = looseSupabase(await createClient());
+  if (!(await assetFeatureCapabilities(db)).transferBatch) return null;
+  const locationResult = await db.from("asset_locations").select("id,source_name,branch_id,kind").eq("company_id", actor.companyId).order("source_name");
+  if (locationResult.error || !locationResult.data) throw new Error(locationResult.error?.message ?? "Transfer locations unavailable.");
+  const locations = await withCanonicalBranchNames(db, locationResult.data as AssetLocation[]);
+  const choices: { id: string; asset_code: string; item_name: string; quantity: number }[] = [];
+  if (source) {
+    if (!locations.some(location => location.id === source)) throw new Error("Choose an accessible source location.");
+    const access = await db.rpc("asset_location_access", { p_location: source });
+    if (access.error || access.data !== true) throw new Error(access.error?.message ?? "Source location unavailable.");
+    for (let offset = 0; ; offset += 500) {
+      const result = await db.from("asset_holdings").select("asset_id,location_id,quantity").eq("company_id", actor.companyId).eq("location_id", source).gt("quantity", 0).order("asset_id").range(offset, offset + 499);
+      if (result.error || !result.data) throw new Error(result.error?.message ?? "Source holdings unavailable.");
+      const holdings = result.data as AssetHolding[];
+      if (holdings.length) {
+        const quantities = new Map(holdings.map(row => [row.asset_id, row.quantity]));
+        for (let start = 0; start < holdings.length; start += 100) {
+          const assets = await db.from("assets").select("id,asset_code,item_name").eq("company_id", actor.companyId).in("id", holdings.slice(start, start + 100).map(row => row.asset_id));
+          if (assets.error || !assets.data) throw new Error(assets.error?.message ?? "Transfer assets unavailable.");
+          for (const asset of assets.data as AssetSummary[]) choices.push({ ...asset, quantity: quantities.get(asset.id)! });
+        }
+      }
+      if (holdings.length < 500) break;
+    }
+  }
+  return { locations, choices };
+}
+
+export async function getAssetTransferBatchDetail(id: string, page: number) {
+  if (!Number.isSafeInteger(page) || page < 1 || page > 1_000_000) throw new Error("Choose a valid transfer history page.");
+  const actor = await requireActiveTenantActor(); await requirePermission("assets.view");
+  const db = looseSupabase(await createClient());
+  if (isMockMode() || !(await assetFeatureCapabilities(db)).transferBatch) return null;
+  const header = await db.from("asset_transfer_register").select("*").eq("company_id", actor.companyId).eq("batch_id", id).maybeSingle();
+  if (header.error) throw new Error(header.error.message);
+  if (!header.data) return null;
+  const transfer = header.data as AssetRecord;
+  const lineResult = await db.from("asset_transfers").select("id,asset_id,quantity,status").eq("company_id", actor.companyId).eq("batch_id", id).order("asset_id");
+  if (lineResult.error || !lineResult.data?.length) throw new Error(lineResult.error?.message ?? "Transfer assets unavailable.");
+  const lines = lineResult.data as AssetRecord[];
+  if (lines.length !== transfer.line_count) throw new Error("The complete transfer could not be loaded.");
+  const [assets, locations, history, metadata] = await Promise.all([
+    db.from("assets").select("id,asset_code,item_name").eq("company_id", actor.companyId).in("id", lines.map(line => line.asset_id)),
+    db.from("asset_locations").select("id,source_name,branch_id,kind").eq("company_id", actor.companyId).in("id", [transfer.from_location_id, transfer.to_location_id]),
+    db.from("asset_transfer_updates").select("id,transfer_id,author_name,created_at,source_data", { count: "exact" }).eq("company_id", actor.companyId).in("transfer_id", lines.map(line => line.id)).order("created_at", { ascending: false }).order("id", { ascending: false }).range((page - 1) * 50, page * 50 - 1),
+    db.from("asset_transfer_batches").select("request_date").eq("company_id", actor.companyId).eq("id", id).maybeSingle(),
+  ]);
+  if (assets.error || locations.error || history.error || metadata.error) throw new Error(assets.error?.message ?? locations.error?.message ?? history.error?.message ?? metadata.error?.message);
+  if (!assets.data || !locations.data || !history.data || !metadata.data || typeof history.count !== "number") throw new Error("Transfer details unavailable.");
+  transfer.request_date = String(metadata.data.request_date);
+  return { transfer, lines, assets: assets.data as AssetSummary[], locations: await withCanonicalBranchNames(db, locations.data as AssetLocation[]), history: history.data as { id: string; transfer_id: string; author_name: string; created_at: string; source_data: Record<string, unknown> }[], total: history.count };
 }

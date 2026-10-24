@@ -11,7 +11,7 @@ function harness(error = null) {
     '@/server/auth/tenant-actor': { requireActiveTenantActor: async () => ({ companyId: id(1), staffId: id(2) }) },
     '@/server/auth/permissions': { requirePermission: async permission => assert.equal(permission, 'assets.check') },
     '@/lib/supabase/server': { createClient: async () => ({ rpc: async (name, args) => { calls.push({ name, args }); return { data: error ? null : id(4), error: error ? { message: error } : null }; } }) },
-    '@/lib/supabase/loose': { looseSupabase: value => value },
+    '@/server/queries/asset-feature-capabilities':{assetFeatureCapabilities:async()=>({automaticId:false,transferBatch:false})},'@/lib/asset-transfer':require('./helpers/load-source.cjs')()('src/lib/asset-transfer.ts'),'@/lib/supabase/loose': { looseSupabase: value => value },
     '@/lib/supabase/admin': {}, '@/lib/asset-attachments': {}, '@/lib/asset-master': {}, '@/lib/production-planning/forecast': {},
   };
   vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/server/actions/assets.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, { module, exports: module.exports, require: name => bindings[name] ?? require(name) });

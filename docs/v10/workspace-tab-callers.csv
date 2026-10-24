@@ -1,0 +1,8 @@
+caller,sha256,instances,evidence,remaining
+src/app/(app)/outlet-compliance/page.tsx,503608643cfe9273deec98609c0464e1bef35a3bdfa7b90900048f2c5e988a3b,1,source reviewed; browser coverage remains per page,icons and eligibility require caller-specific checks
+src/app/(app)/outlet-daily-records/insights/page.tsx,fdfc62d7f321841c54c6e9f39b1645346c9e07e96c8977fdb558e1dbaaf165a2,1,source reviewed; browser coverage remains per page,icons and eligibility require caller-specific checks
+src/app/(app)/people/[id]/page.tsx,f155003c7dc33ad1352c0f4ae08d38fda16b56b5d94a47ffc397aaeab788d77c,1,source reviewed; browser coverage remains per page,icons and eligibility require caller-specific checks
+src/components/production-planning-workspace.tsx,2554150f94a239a19bd79ee198c74d62198ad1cd799604d252913df486fe046d,1,source reviewed; browser coverage remains per page,icons and eligibility require caller-specific checks
+src/components/outlet-daily-workspace-nav.tsx,3e432ae526e1bf1e7f9069b70230380fe6021224f1546a4261de7efe7365835c,1,source reviewed; browser coverage remains per page,icons and eligibility require caller-specific checks
+src/components/asset-workspace-navigation.tsx,ffb19a21ec1afd687c1180b0db744f5d02998acd421701804f6c67dc978b6609,1,source reviewed; browser coverage remains per page,icons and eligibility require caller-specific checks
+src/components/attendance/attendance-workspace-nav.tsx,8f16c903eb2ee6136771de02b6805e1fe7aebdd81fb6017294235271d7f84641,1,source reviewed; browser coverage remains per page,icons and eligibility require caller-specific checks

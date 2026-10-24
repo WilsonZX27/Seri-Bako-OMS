@@ -9,8 +9,8 @@ test("workspace updates do not repeat repair requests already in the pending que
   const menu = read("src/components/layout/top-bar-activity-menu.tsx");
   assert.match(query, /filter\(\(row\) => !pendingActionHrefs\.has\(row\.action_url \?\? ""\)\)/);
   assert.match(menu, /repair\.maintenance_asset_name/);
-  assert.match(menu, /repair\.maintenance_description/);
-  assert.match(menu, /repair\.maintenance_author_name/);
+  assert.doesNotMatch(menu, /repair\.maintenance_description/);
+  assert.match(menu, /repair\.branch_name/);
   assert.match(menu, /repair\.maintenance_priority/);
 });
 
@@ -30,7 +30,9 @@ test("transfer picker uses one shared search action and PR-style request/list se
   const header = read("src/components/common/UnifiedListHeader.tsx");
   const schema = read("supabase/migrations/337_asset_management_foundation.sql");
   assert.match(page, /<FilterBar[^>]*>[\s\S]*<Input type="search" name="q"/);
-  assert.equal((page.match(/type="submit"/g) ?? []).length, 0);
+  assert.equal((page.match(/type="submit"/g) ?? []).length, 1);
+  assert.match(page, /<form method="get"[\s\S]*?<Button type="submit">Load assets<\/Button>/);
+  assert.match(page, /if \(batchOptions\) return/);
   assert.doesNotMatch(page, /<Button[^>]*Search/);
   assert.match(header, /\\b\(search\|filter\)\\b/i);
   assert.match(page, /Request details/);
@@ -48,7 +50,7 @@ test("daily record compact rows emphasize Today and show four concise submitter 
   assert.match(page, /row\.submitted_by_name/);
   assert.match(page, /receivedDisplay\(row\)\.value === "Pending"/);
   assert.match(page, /compactWastageDisplay\(row\)\.value === "Not final"/);
-  assert.match(query, /submitted_by_name: actorDisplayName\(actorDisplayMap, record\.submitted_by\)/);
+  assert.match(query, /submitted_by_name: record\.submitted_by \? actorDisplayName\(actorDisplayMap, record\.submitted_by\) : null/);
   assert.match(css, /\.sb-daily-record-metrics \{\s*display: grid; grid-template-columns: repeat\(4/);
 });
 

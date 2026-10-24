@@ -5,6 +5,7 @@ import { ArrowRight, Bell, Check, ClipboardCheck, Factory, ListTodo, Megaphone, 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { workspaceNotificationDetail } from "@/lib/workspace-notification-copy";
 import { formatDateTime } from "@/lib/utils";
 
 type TopBarActivity = Awaited<ReturnType<typeof import("@/server/queries/topbar").getTopBarActivity>>;
@@ -121,14 +122,13 @@ export function TopBarActivityMenu({ data, canOpenActivity = true }: { data: Top
                 <p className="text-xs font-semibold uppercase text-muted-foreground">My Pending Actions</p>
                 {pendingCount ? <span className="rounded-full bg-[var(--sb-warning-bg)] px-2 py-0.5 text-xs font-medium text-[var(--sb-warning)]">{pendingCount}</span> : null}
               </div>
-              {pendingApprovals.map((item) => { const Icon = actionIcon(item.href); const isRepair = item.id.startsWith("maintenance-"); const repair = item as typeof item & { branch_name?: string | null; maintenance_asset_name?: string | null; maintenance_description?: string | null; maintenance_author_name?: string | null; maintenance_priority?: string | null; updated_at?: string }; return (
+              {pendingApprovals.map((item) => { const Icon = actionIcon(item.href); const isRepair = item.id.startsWith("maintenance-"); const repair = item as typeof item & { branch_name?: string | null; maintenance_asset_name?: string | null; maintenance_priority?: string | null; updated_at?: string }; return (
                 <Link key={item.id} href={item.href} onClick={() => setOpen(false)} className="flex gap-2 rounded-md p-2 text-xs font-normal hover:bg-secondary">
                   <Icon aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-start justify-between gap-2"><span className="block uppercase" title={item.title}>{isRepair ? "REPAIR REQUEST" : item.document_no}</span><span className="shrink-0 text-[10px] text-muted-foreground">{isRepair ? `${repair.maintenance_priority || "Normal"} priority` : "step" in item ? item.step : item.title}</span></span>
                     {isRepair ? <>
-                      <span className="mt-1 block truncate">{repair.maintenance_asset_name ?? "Maintenance request"}{repair.maintenance_description?.trim() ? ` · ${repair.maintenance_description.trim()}` : ""}</span>
-                      <span className="mt-1 block truncate text-muted-foreground">{repair.branch_name ?? "Location unavailable"}{repair.maintenance_author_name ? ` · by ${repair.maintenance_author_name}` : ""} · {repair.updated_at ? formatTime(repair.updated_at) : "Date unavailable"}</span>
+                      <span className="mt-1 block whitespace-normal break-words text-muted-foreground" title={`${repair.maintenance_asset_name ?? "Maintenance request"} · ${repair.branch_name ?? "Location unavailable"}`}>{repair.maintenance_asset_name ?? "Maintenance request"} · {repair.branch_name ?? "Location unavailable"}</span>
                     </> : null}
                   </span>
                 </Link>
@@ -141,10 +141,10 @@ export function TopBarActivityMenu({ data, canOpenActivity = true }: { data: Top
                 <p className="text-xs font-semibold uppercase text-muted-foreground">My Notifications</p>
                 {unreadNotificationCount ? <span className="rounded-full bg-[var(--sb-warning-bg)] px-2 py-0.5 text-xs font-medium text-[var(--sb-warning)]">{unreadNotificationCount}</span> : null}
               </div>
-              {notifications.map((notification) => { const Icon = actionIcon(notification.action_url ?? ""); return (
+              {notifications.map((notification) => { const Icon = actionIcon(notification.action_url ?? ""); const detail = workspaceNotificationDetail(notification.title, notification.message); return (
                 <Link key={notification.id} href={notification.action_url ?? "/activity"} onClick={() => { markUpdateSeen(notification.id); setOpen(false); }} className="flex gap-2 rounded-[var(--sb-control-radius)] p-2 text-xs hover:bg-secondary">
                   <Icon aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                  <span className="min-w-0"><span className="block uppercase">{notification.title}</span>{notification.message ? <span className="line-clamp-2 text-xs text-muted-foreground" title={notification.message}>{notification.message}</span> : null}</span>
+                  <span className="min-w-0"><span className="block uppercase" title={notification.title}>{notification.title}</span>{detail ? <span className="line-clamp-1 text-xs text-muted-foreground" title={detail}>{detail}</span> : null}</span>
                 </Link>
               ); })}
               {announcements.map((notification) => (

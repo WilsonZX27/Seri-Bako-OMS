@@ -157,7 +157,7 @@ export default async function AttendanceReviewPage({
       page,
       detail: params.detail,
     }) : getAttendanceReviewBranches().then((branches) => ({ rows: [], total: 0, page: 1, pageSize: 100, branches, batches: [], unscheduledPunches: [], detail: null })),
-    branch ? getAttendanceActuals(week, branch) : Promise.resolve({ assignments: [], reports: [], ledger: [], balances: {}, claims: [], reservations: [], locks: [] }),
+    branch ? getAttendanceActuals(week, branch) : Promise.resolve({ compPeople: [], assignments: [], reports: [], ledger: [], balances: {}, claims: [], reservations: [], locks: [] }),
     permissions["attendance.import"]
       ? getAttendanceMappings()
       : Promise.resolve(null),
@@ -311,6 +311,7 @@ export default async function AttendanceReviewPage({
                   reports={actuals.reports as Row[]}
                   ledger={actuals.ledger}
                   balances={actuals.balances}
+                  compPeople={actuals.compPeople}
                   canSubmit={permissions["attendance.report.submit"]}
                   canApprove={permissions["attendance.report.approve"]}
                   canSubmitComp={permissions["comp_time.submit"]}
@@ -657,6 +658,7 @@ export default async function AttendanceReviewPage({
               reports={actuals.reports as Row[]}
               ledger={actuals.ledger}
               balances={actuals.balances}
+                  compPeople={actuals.compPeople}
               canSubmit={permissions["attendance.report.submit"]}
               canApprove={permissions["attendance.report.approve"]}
               canSubmitComp={permissions["comp_time.submit"]}

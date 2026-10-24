@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Pencil, Plus } from "lucide-react";
+import { CalendarDays, MapPin, Package, Pencil, Plus, Store, FileText } from "lucide-react";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
@@ -126,8 +126,8 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                 label={`Open ${receiving.grn_no}`}
                 primary={<DocumentNumber value={receiving.grn_no} />}
                 status={<StatusBadge status={receiving.workflow_status} />}
-                secondary={<span className="flex min-w-0 justify-between gap-3"><span className="truncate" title={receiving.supplier_name ?? undefined}>{receiving.supplier_name ?? "No supplier"}</span><span className="shrink-0">{formatNumber(receiving.received_total)} in · {formatNumber(receiving.rejected_total)} rejected</span></span>}
-                detail={<span className="flex min-w-0 flex-wrap gap-x-2"><span>{receiving.branch_name ?? "No branch"}</span><span>· {receiving.po_no ?? "No linked PO"}</span><span>· {formatDateOnly(receiving.received_date)}</span></span>}
+                secondary={<span className="sb-pr-phone-supplier-row"><span className="sb-pr-phone-supplier" title={receiving.supplier_name ?? undefined}><Store aria-hidden="true"/><span>{receiving.supplier_name ?? "No supplier"}</span></span><span className="sb-pr-phone-items"><Package aria-hidden="true"/><span>{formatNumber(receiving.received_total)} in · {formatNumber(receiving.rejected_total)} rejected</span></span></span>}
+                detail={<span className="sb-pr-phone-location-row"><span className="sb-pr-phone-location"><MapPin aria-hidden="true"/><span>{receiving.branch_name ?? "No branch"}</span></span><span className="sb-pr-phone-byline"><span className="sb-pr-phone-byline-person"><FileText aria-hidden="true"/><span>{receiving.po_no ?? "No linked PO"}</span></span><time className="sb-pr-phone-byline-date" dateTime={receiving.received_date}><CalendarDays aria-hidden="true"/><span>{formatDateOnly(receiving.received_date)}</span></time></span></span>}
               />)}
               {!receivings?.rows.length ? <EmptyState title={!receivings ? "Goods receiving data unavailable" : filtered ? "No receivings match these filters" : "No goods receivings yet"} description={emptyDescription} action={!receivings || filtered ? emptyStateAction : undefined} /> : null}
             </OperationalList>

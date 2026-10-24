@@ -280,6 +280,31 @@ export async function getAttendancePaySettings() {
   return {rules:rules.data??[],holidays:holidays.data??[],branches:branches.data??[]};
 }
 
+/** Independent directory, constrained by existing staff/comp-time RLS and selected branch. */
+export async function getAttendanceCompPeople(weekStart: string, branchId?: string) {
+  if (!branchId || !(await hasPermission("attendance.read")) || !(await hasPermission("comp_time.read")) || !(await hasPermission("staffs.read"))) return [];
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(weekStart) || new Date(`${weekStart}T00:00:00Z`).toISOString().slice(0,10) !== weekStart) throw new Error("Invalid balance period.");
+  const actor = await requireActiveTenantActor();
+  const db = looseSupabase(await createClient());
+  const access = await db.rpc("can_access_company_branch", { target_company_id: actor.companyId, target_branch_id: branchId });
+  if (access.error) throw access.error;
+  if (access.data !== true) return [];
+  const people: Array<Record<string, unknown>> = [];
+  for (let offset = 0; ; offset += 500) {
+    const result = await db.from("staffs")
+      .select("id,full_name,staff_code,status,employment_end_date,staff_branches!inner(branch_id)")
+      .eq("company_id", actor.companyId).eq("staff_branches.branch_id", branchId)
+      .in("status", ["active", "invited"]).is("deleted_at", null)
+      .or(`employment_end_date.is.null,employment_end_date.gte.${weekStart}`)
+      .order("id").range(offset, offset + 499);
+    if (result.error) throw result.error;
+    const rows = (result.data ?? []) as Array<Record<string, unknown>>;
+    people.push(...rows);
+    if (rows.length < 500) break;
+  }
+  return people;
+}
+
 export async function getAttendanceActuals(weekStart = malaysiaWeekStart(), branchId?: string) {
   if (!(await hasPermission("attendance.read"))) throw new Error("Missing permission: attendance.read");
   const db=looseSupabase(await createClient());const end=new Date(`${weekStart}T00:00:00Z`);end.setUTCDate(end.getUTCDate()+6);const weekEnd=end.toISOString().slice(0,10);
@@ -297,7 +322,9 @@ export async function getAttendanceActuals(weekStart = malaysiaWeekStart(), bran
   const weekIds=[...latestWeeks.values()].map(row=>String(row.id));
   const assignments=weekIds.length?await db.from("shift_assignment_revisions").select("id,staff_id,branch_id,work_date,assignment_kind,custom_start,custom_end,custom_reason,ro_minutes,ro_original_start,ro_original_end,ro_direction,shift_templates(name,planned_start,planned_end),staffs!shift_assignment_revisions_staff_id_fkey(full_name,staff_code),branches!shift_assignment_revisions_branch_id_fkey(branch_name)").in("schedule_week_id",weekIds).eq("is_current",true).gte("work_date",weekStart).lte("work_date",weekEnd).order("work_date"):{data:[],error:null};
   if(assignments.error)throw assignments.error;
+  const compPeople = await getAttendanceCompPeople(weekStart, branchId);
   const relevantStaffIds = [...new Set([
+    ...compPeople.map(person => ({staff_id: person.id})),
     ...(assignments.data ?? []),
     ...(reports.data ?? []),
     ...(claims.data ?? []),
@@ -307,9 +334,9 @@ export async function getAttendanceActuals(weekStart = malaysiaWeekStart(), bran
     ? await db.from("comp_time_transactions").select("*,staffs!comp_time_transactions_staff_id_fkey(full_name,staff_code),branches!comp_time_transactions_branch_id_fkey(branch_name)").in("staff_id", relevantStaffIds).lte("work_date",weekEnd).order("work_date",{ascending:false}).order("created_at",{ascending:false})
     : {data:[],error:null};
   if(ledger.error)throw ledger.error;
-  const ledgerRows=(ledger.data??[]) as Array<Record<string,unknown>>;const balances:Record<string,number>={};
+  const ledgerRows=(ledger.data??[]) as Array<Record<string,unknown>>;const balances:Record<string,number>=Object.fromEntries(compPeople.map(person=>[String(person.id),0]));
   for(const row of ledgerRows)if(row.status==="approved")balances[String(row.staff_id)]=(balances[String(row.staff_id)]??0)+Number(row.minutes??0);
-  return {assignments:assignments.data??[],reports:reports.data??[],ledger:ledgerRows,balances,claims:claims.data??[],reservations:reservations.data??[],locks:locks.data??[]};
+  return {compPeople,assignments:assignments.data??[],reports:reports.data??[],ledger:ledgerRows,balances,claims:claims.data??[],reservations:reservations.data??[],locks:locks.data??[]};
 }
 
 export async function getStaffCompTime(staffId:string){

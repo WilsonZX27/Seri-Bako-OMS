@@ -1,3 +1,7 @@
+## v9.2.140 (Preview candidate) — compatible pre-v10 UI repair
+
+Retain all compatible Daily, notification, Dashboard, Goods Receiving, asset workspace, responsive compact-control and authorized-branch time-off staff-list repairs. UI-only release always retains manual asset IDs and single-asset transfers and never invokes the capability RPC, regardless of shared database state. No migrations, permission changes or business writes. AutoID/batch activation, N9 reference and untested real roles/save flows remain open; this is not v10 or whole-system acceptance.
+
 ## v9.2.139 (Preview candidate) — shared account and profile navigation
 
 Account menu uses existing panel radius. Employee profile uses existing WorkspaceTabs instead of a separate36px link layout; sectionroutes andsecuritypermissionconditionunchanged. Full26UIgroupstatus remains explicit.

@@ -13,7 +13,8 @@ import { SelectNative } from "@/components/ui/select-native";
 import { Button } from "@/components/ui/button";
 import type { AssetLocation } from "@/server/queries/assets";
 
-export function AssetMasterForm({ assetId, code = "", name = "", values, locations = [], requestKey, updatedAt = "", embedded = false, options = { fields: {}, people: [] } }: {
+export function AssetMasterForm({ assetId, code = "", name = "", values, locations = [], requestKey, updatedAt = "", embedded = false, automaticId = false, options = { fields: {}, people: [] } }: {
+  automaticId?: boolean;
   options?: { fields: Record<string, string[]>; people: {id: string; full_name: string; staff_code: string | null}[] };
   assetId?: string; code?: string; name?: string; values: Record<string, string>; locations?: AssetLocation[]; requestKey: string; updatedAt?: string; embedded?: boolean;
 }) {
@@ -34,16 +35,16 @@ export function AssetMasterForm({ assetId, code = "", name = "", values, locatio
   const dirty = itemName !== name || assetCode !== code || Boolean(location || quantity || reason) || assetMasterFields.some(field => fields[field.key] !== values[field.key]);
   useAssetFormGuard(!state.ok && dirty);
   const formId = `asset-master-${assetId ?? "new"}`;
-  const hint = !assetCode.trim() ? "Enter the Asset ID." : !itemName.trim() ? "Enter the item name." : !assetId && !location ? "Choose the initial location." : !reason.trim() ? (assetId ? "Add a change reason." : "Add a registration note.") : !dirty ? "Change a field before saving." : "Review the asset details before saving. Blank quantity stays unknown.";
-  const registrationAction = <Button form={formId} className="w-full min-h-11" type="submit" disabled={!dirty || pending || state.ok}>{pending ? "Saving…" : "Register asset"}</Button>;
-  const content = <form id={formId} action={action} className={`max-lg:[&_input]:min-h-11 max-lg:[&_select]:min-h-11 max-lg:[&_button]:min-h-11 ${embedded ? "pt-3" : ""}`}>
+  const hint = !automaticId && !assetCode.trim() ? "Enter the Asset ID." : !itemName.trim() ? "Enter the item name." : !assetId && !location ? "Choose the initial location." : !reason.trim() ? (assetId ? "Add a change reason." : "Add a registration note.") : !dirty ? "Change a field before saving." : "Review the asset details before saving. Blank quantity stays unknown.";
+  const registrationAction = <Button data-asset-registration-action form={formId} className="w-full min-h-11" type="submit" disabled={!dirty || pending || state.ok}>{pending ? "Saving…" : "Register asset"}</Button>;
+  const content = <form id={formId} data-asset-entry-form={!assetId || undefined} action={action} className={`max-lg:[&_input]:min-h-11 max-lg:[&_select]:min-h-11 max-lg:[&_button]:min-h-11 ${embedded ? "pt-3" : ""}`}>
       {formId ? <FormPendingBridge formId={formId} /> : null}
     {restored ? <p role="status" className="mb-3 text-xs">Unsaved inputs restored from this browser tab. Review before saving.</p> : null}
-    <input type="hidden" name="asset_id" value={assetId ?? ""}/><input type="hidden" name="client_key" value={requestKey}/><input type="hidden" name="expected_updated_at" value={updatedAt}/>
+    <input type="hidden" name="code_mode" value={!assetId && automaticId ? "sequence" : "manual"}/><input type="hidden" name="asset_id" value={assetId ?? ""}/><input type="hidden" name="client_key" value={requestKey}/><input type="hidden" name="expected_updated_at" value={updatedAt}/>
     <fieldset disabled={pending || state.ok} className="min-w-0 space-y-4">
       <section className="sb-work-surface p-4" data-asset-master-card="identity" aria-labelledby={`${formId}-identity`}><h2 id={`${formId}-identity`} className="mb-3 text-sm font-semibold">{assetId ? "Asset identity" : "Registration details"}</h2>
       <div className="sb-asset-field-grid grid grid-cols-1 gap-3 lg:grid-cols-2">
-        <label className="grid min-w-0 content-start gap-1 text-xs"><span>Asset ID <span className="text-destructive" aria-hidden="true">*</span></span><Input name="asset_code" value={assetCode} readOnly={Boolean(assetId)} required maxLength={80} onChange={event=>setAssetCode(event.target.value)}/></label>
+        <label className="grid min-w-0 content-start gap-1 text-xs"><span>Asset ID <span className="text-destructive" aria-hidden="true">*</span></span><Input name="asset_code" value={!assetId && automaticId ? "" : assetCode} placeholder={!assetId && automaticId ? "Assigned on registration" : undefined} readOnly={Boolean(assetId) || automaticId} required={!automaticId} maxLength={80} onChange={event=>setAssetCode(event.target.value)}/>{!assetId && automaticId ? <span className="text-muted-foreground">Document Sequences assigns the ID when registration succeeds.</span> : null}</label>
         <label className="grid min-w-0 content-start gap-1 text-xs"><span>Item name <span className="text-destructive" aria-hidden="true">*</span></span><Input name="item_name" value={itemName} required maxLength={200} onChange={event=>setItemName(event.target.value)}/></label>
         {!assetId ? <><label className="grid min-w-0 content-start gap-1 text-xs"><span>Initial location <span className="text-destructive" aria-hidden="true">*</span></span><SelectNative name="location_id" required value={location} onChange={event=>setLocation(event.target.value)}><option value="" disabled>Choose location</option>{locations.map(item=><option key={item.id} value={item.id}>{item.display_name ?? item.source_name}</option>)}</SelectNative></label><label className="grid min-w-0 content-start gap-1 text-xs"><span>Initial physical quantity</span><Input name="quantity" type="number" min="0" step="1" placeholder="Not recorded" value={quantity} onChange={event=>setQuantity(event.target.value)}/></label></> : null}
       </div>

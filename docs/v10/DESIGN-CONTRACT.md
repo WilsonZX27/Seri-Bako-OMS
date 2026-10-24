@@ -14,3 +14,5 @@ Baseline owner: existing `DESIGN.md`, `src/app/design-system-v2.css`, shared Wor
 10. Changes stay small and reviewable: requirement → owning source → reproduction → targeted change → regression → rendered comparison. No speculative abstraction, global restyle or page-wide redesign from a local annotation.
 
 Audit widths: primary 390/820/1440; boundaries 389/390/391, 639/640, 767/768, 1023/1024, 1279/1280, 1535/1536; relevant landscape 820×390. Use the same data/state and source SHA for comparison. Screenshot capture must come from the actual target; Mock and old screenshots cannot establish current Preview acceptance.
+
+Correction: the temporary all-viewport asset44px gate was an engineering inference, not an original user requirement, and is retired. Asset desktop fine-pointer controls use the accepted compact36px token; phone/tablet and coarse-pointer targets retain their existing touch geometry. Do not change font sizes or widths as part of this height correction. Prior44px screenshots remain historical before evidence, not the current target.

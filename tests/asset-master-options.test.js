@@ -18,7 +18,7 @@ function harness(fail = false) {
       return q;
     }
   };
-  const bindings = {'@/lib/asset-location-display': require('./helpers/load-source.cjs')()('src/lib/asset-location-display.ts'), 'react':{cache:fn=>fn},'@/lib/mock-mode':{isMockMode:()=>false},'@/lib/asset-access':{},'@/lib/business-date':{},'@/lib/production-planning/forecast':{},'@/server/auth/tenant-actor':{requireActiveTenantActor:async()=>({companyId:'tenant'})},'@/server/auth/permissions':{requirePermission:async permission=>calls.push({permission})},'@/lib/supabase/server':{createClient:async()=>db},'@/lib/supabase/loose':{looseSupabase:v=>v}};
+  const bindings = {'@/lib/asset-location-display': require('./helpers/load-source.cjs')()('src/lib/asset-location-display.ts'), 'react':{cache:fn=>fn},'@/lib/mock-mode':{isMockMode:()=>false},'@/lib/asset-access':{},'@/lib/business-date':{},'@/lib/production-planning/forecast':{},'@/server/auth/tenant-actor':{requireActiveTenantActor:async()=>({companyId:'tenant'})},'@/server/auth/permissions':{requirePermission:async permission=>calls.push({permission})},'@/lib/supabase/server':{createClient:async()=>db},'@/server/queries/asset-feature-capabilities':{assetFeatureCapabilities:async()=>({automaticId:false,transferBatch:false})},'@/lib/asset-transfer':require('./helpers/load-source.cjs')()('src/lib/asset-transfer.ts'),'@/lib/supabase/loose':{looseSupabase:v=>v}};
   vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/server/queries/assets.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module,exports:module.exports,require:n=>bindings[n]??require(n)});
   return {run:module.exports.getAssetMasterOptions,calls};
 }

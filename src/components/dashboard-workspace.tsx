@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowUpRight, Boxes, CalendarDays, CheckCircle2, ClipboardCheck, ClipboardList, Clock3, Factory, FileText, LockKeyhole, MapPin, MessageSquare, Package, PackageCheck, ReceiptText, ShieldCheck, ShoppingCart, UserRound, Store } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, Boxes, CalendarDays, CheckCircle2, ClipboardCheck, ClipboardList, Clock3, Factory, FileText, LockKeyhole, MapPin, Package, PackageCheck, ReceiptText, ShieldCheck, ShoppingCart, UserRound, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
@@ -357,7 +357,6 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                       ? <>
                           <span className="sb-pr-phone-supplier-row sb-repair-summary">
                             <span className="sb-pr-phone-supplier"><Package aria-hidden="true"/><span>{row.maintenance_asset_name || "General repair"}</span></span>
-                            <span className="sb-pr-phone-items" title={row.maintenance_description ?? undefined}><MessageSquare aria-hidden="true"/><span>{row.maintenance_description?.trim() || "No issue description"}</span></span>
                           </span>
                           <span className="sb-pr-phone-location-row">
                             <span className="sb-pr-phone-location"><MapPin aria-hidden="true"/><span>{row.branch_name ?? "Location unavailable"}</span></span>
@@ -424,6 +423,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                   icon={Factory}
                   alert={Boolean(summary.productionSummary?.ingredientShortages)}
                   unavailable={!summary.productionSummary}
+                  className={!summary.compliance ? "col-span-2" : undefined}
                   variant="tile"
                   density="compact"
                 />

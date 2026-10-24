@@ -13,6 +13,7 @@ import { formatAttendanceTime } from "@/lib/attendance/time";
 type Row = Record<string, unknown>;
 type Props = {
   assignments: Row[];
+  compPeople?: Row[];
   reports: Row[];
   ledger: Row[];
   balances: Record<string, number>;
@@ -45,6 +46,10 @@ function minutes(value: unknown) {
 }
 
 export function ActualAttendancePanel(props: Props) {
+  const compPeople = [...new Map([
+    ...props.assignments.map(row => [String(row.staff_id), {id:row.staff_id, ...relation(row, "staffs")}] as const),
+    ...(props.compPeople ?? []).map(person => [String(person.id), person] as const),
+  ]).values()];
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [reportDialog, setReportDialog] = useState<HTMLDialogElement | null>(null);
@@ -326,14 +331,12 @@ export function ActualAttendancePanel(props: Props) {
         </div>
         <div className={props.compact ? "grid gap-px bg-[var(--sb-border-soft)]" : "grid gap-px bg-[var(--sb-border-soft)] sm:grid-cols-3"}>
           {Object.entries(props.balances).map(([staffId, balance]) => {
-            const assignment = props.assignments.find(
-              (row) => String(row.staff_id) === staffId,
-            );
+            const person = compPeople.find(row => String(row.id) === staffId);
+            const ledgerPerson = props.ledger.find(row => String(row.staff_id) === staffId);
             return (
               <div key={staffId} className="bg-white p-3">
                 <p className="text-xs text-muted-foreground">
-                  {relation(assignment ?? {}, "staffs")?.full_name ??
-                    "Employee"}
+                  {String(person?.full_name ?? relation(ledgerPerson ?? {}, "staffs")?.full_name ?? "Employee")}
                 </p>
                 <strong className="text-lg tabular-nums">{balance} min</strong>
               </div>
@@ -557,12 +560,10 @@ export function ActualAttendancePanel(props: Props) {
               ariaLabel="Employee"
               searchable
               options={[
-                ...new Map(
-                  props.assignments.map((row) => [String(row.staff_id), row]),
-                ).values(),
+                ...compPeople,
               ].map((row) => ({
-                value: String(row.staff_id),
-                label: relation(row, "staffs")?.full_name ?? "Employee",
+                value: String(row.id),
+                label: String(row.full_name ?? "Employee"),
               }))}
               portalContainer={compDialog}
             />

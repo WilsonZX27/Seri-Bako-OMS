@@ -1,0 +1,39 @@
+id,requirement,status,scope,original_record,observed139_status
+O1,Dashboard五项真实待办,verified_scoped_sample,139 Owner / explicitly recorded earlier live sample,20261023-1,已修
+O2,维修/PR正文与元信息400，排列已有统一；新增删除备注/参考色另列N8/N9,verified_scoped_sample,139 Owner / explicitly recorded earlier live sample,20261023-2,已修
+O3,CK @ ALMA样板字重400,verified_scoped_sample,139 Owner / explicitly recorded earlier live sample,20261023-3,已修
+O4,PR供应商/项数/金额/位置/人员/日期400，金额另读叶节点确认400,verified_scoped_sample,139 Owner / explicitly recorded earlier live sample,20261023-4,已修
+O5,转移仍445资产选择列表，非Request Details/Request Items两卡多选,local_integration_candidate,Local readiness-gated app;1818 frozen source tests;35 isolated SQL/action groups;four-width readonly display pass;no full JWT or browser-value-change acceptance or deployment; synthetic browser multi-select/search/quantity/remove data passed390/820/1180/1440; Remove focus12four-width paths plus keyboard previous390/1440 passed; no browser submit/API acceptance,20261023-5,未修
+O6,GR未全面复用PR图标元信息行,verified_scoped_sample,"local synthetic candidate, four widths; no release",20261023-6,未修
+O7,Today不重复数字日期，历史日期保留,verified_scoped_sample,139 Owner / explicitly recorded earlier live sample,20261023-7,已修
+O8,Daily/Asset/Profile样本已有共享图标tabs，但“别页全部使用”未做完整调用方覆盖,implemented_pending_acceptance,local synthetic candidate only,20261023-8,未测
+O9,Profile tabs共享样式、44px图标链接,verified_scoped_sample,139 Owner / explicitly recorded earlier live sample,20261023-9,已修
+O10,所选授权分店独立人员余额入口已接通本地候选；未扩展全公司访问,implemented_pending_acceptance,Local permission/query and actual component tests; real account/branch UI not verified,20261023-10,本地通过/真实应用待验
+O11,通知仍重复Repair needs attention及长解释，未达简写要求,verified_scoped_sample,"local synthetic candidate, four widths; no release",20261023-11,未修
+O12,通知标题全大写REPAIR NEEDS ATTENTION等,verified_scoped_sample,139 Owner / explicitly recorded earlier live sample,20261023-12,已修
+O13,pending/通知优化不能只以标题大写关闭，摘要重复仍在,verified_scoped_sample,"local synthetic candidate, four widths; no release",20261023-13,未修
+O14,账户菜单12px共享圆角；Enter/Escape返回,verified_scoped_sample,139 Owner / explicitly recorded earlier live sample,20261023-14,已修
+O15,维护窄队列当前分页文字完整/可达，href保留view/sort/page；非默认筛选scope未测,verified_scoped_sample,139 Owner / explicitly recorded earlier live sample,20261023-15,已修
+O16,Asset ID仍空白必填，验证提示Enter the Asset ID,local_integration_candidate,Local readiness-gated app;1818 frozen source tests;35 isolated SQL/action groups;four-width readonly display pass;no full JWT or browser-value-change acceptance or deployment; synthetic automatic readonly display and manual-ID required/value checks; numbering remains disabled; no real allocation,20261023-16,未修
+O17,Registration details/General/Purchase三独立卡，note位于第一卡,verified_scoped_sample,139 Owner / explicitly recorded earlier live sample,20261023-17,已修
+O18,checklist已正常显示13locations/126inspections，原error不复现；不保证后续异常链,verified_scoped_sample,139 Owner / explicitly recorded earlier live sample,20261023-18,已修
+O19,820/1180计数和筛选同轨，无原计数单独大空白,verified_scoped_sample,139 Owner / explicitly recorded earlier live sample,20261023-19,已修
+O20,同断点两框等宽有界：820约180×44、1180 256×44、1440 128×36；非全尺寸固定同一宽,verified_scoped_sample,139 Owner / explicitly recorded earlier live sample,20261023-20,已修
+O21,tablet主tabs与右轨同起点；desktop按共享PageHeader层级，不宣称全局同顶,verified_scoped_sample,139 Owner / explicitly recorded earlier live sample,20261023-21,已修
+O22,维护长名+ID分行，名称完整title，真实样本不再被状态挤成几个字,verified_scoped_sample,139 Owner / explicitly recorded earlier live sample,20261023-22,已修
+O23,队列不随详情等高，分页后空白1px,verified_scoped_sample,139 Owner / explicitly recorded earlier live sample,20261023-23,已修
+O24,手机Total/Outstanding/Processed/Cancelled四列,verified_scoped_sample,139 Owner / explicitly recorded earlier live sample,20261023-24,已修
+O25,手机通知末项底部可达/短横屏完整focus环未对当前139专项复测；不得沿用旧fail当新pass,implemented_pending_acceptance,local synthetic candidate only,20261023-25,未测
+O26,同O11/13，通知默认内容仍长且重复,verified_scoped_sample,"local synthetic candidate, four widths; no release",20261023-26,未修
+O27,手机More已出现My attendance/payslips，但新版本实际到本人页面未完成专项复测,verified_scoped_sample,139 Owner390 navigation and empty states only,20261023-27,未测
+N1,Daily1440要电脑表格，不要compact卡片,implemented_pending_acceptance,local synthetic candidate only,new11-1,未修
+N2,删除每行重复Saleable tomorrow说明；不能删除字段语义/可访问名称,verified_scoped_sample,local synthetic candidate only,new11-2,未修
+N3,该Daily数量输入统一72px，按既有响应式；保留触控高度，不全站改金额/日期,verified_scoped_sample,local synthetic candidate only,new11-3,未修
+N4,平板饮料Qty Sent/Received/Qty Sold/Balance一行四列,verified_scoped_sample,local synthetic candidate only,new11-4,未修
+N5,手机同四列，每个数量输入72px，标签/产品名不挤入数值行,verified_scoped_sample,local synthetic candidate only,new11-5,未修
+N6,Submitted by System语义待追查，不把系统建立者等同实际提交人,implemented_pending_acceptance,local synthetic candidate only,new11-6,未测
+N7,Daily records计数回到同一筛选轨道，不再手机独占第二行,verified_scoped_sample,local synthetic candidate only,new11-7,未修
+N8,删除Dashboard维修项comment/问题描述Damaged: Damage等,verified_scoped_sample,local synthetic candidate only,new11-8,未修
+N9,Dashboard选定正文颜色/字号用用户参考Qty sent/Pending样本，字重400已修不等于颜色字号完成,missing_evidence,N9 exact original reference pixels unavailable,new11-9,未修
+N10,仍要求PR式Request Details/Request Items两卡、多选资产转移,local_integration_candidate,Local readiness-gated app;1818 frozen source tests;35 isolated SQL/action groups;four-width readonly display pass;no full JWT or browser-value-change acceptance or deployment; synthetic browser multi-select/search/quantity/remove data passed390/820/1180/1440; Remove focus12four-width paths plus keyboard previous390/1440 passed; no browser submit/API acceptance,new11-10,未修
+N11,自动Asset ID由Document Sequences事务分配,local_integration_candidate,Local readiness-gated app;1818 frozen source tests;35 isolated SQL/action groups;four-width readonly display pass;no full JWT or browser-value-change acceptance or deployment; synthetic automatic readonly display and manual-ID required/value checks; numbering remains disabled; no real allocation,new11-11,未修

@@ -341,7 +341,7 @@ async function hydrateRows(db: Awaited<ReturnType<typeof createClient>>, records
     ...record,
     branch_name: branchNames.get(record.branch_id) ?? "Unknown outlet",
     created_by_name: actorDisplayName(actorDisplayMap, record.created_by),
-    submitted_by_name: actorDisplayName(actorDisplayMap, record.submitted_by),
+    submitted_by_name: record.submitted_by ? actorDisplayName(actorDisplayMap, record.submitted_by) : null,
     updated_by_name: actorDisplayName(actorDisplayMap, record.updated_by ?? record.submitted_by ?? record.created_by),
     ...totals(linesByRecord.get(record.id) ?? [], operationalProductIds),
   }));

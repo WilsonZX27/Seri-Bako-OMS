@@ -1719,10 +1719,9 @@ html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, butto
   font-size: 0.75rem !important;
 }
 
-/* Established ERP pattern: a 36px visual control rhythm on tablet and
-   desktop. Phones retain the larger touch-safe rhythm; tablet/desktop action
-   spacing remains generous so controls never collapse into one another. */
-@media (min-width: 1024px) {
+/* Fine-pointer ERP controls retain the compact 36px rhythm. Coarse pointers
+   keep the base 44px target even on a wide tablet or desktop viewport. */
+@media (min-width: 1024px) and (pointer: fine) {
   html[data-design-layer="v2"] {
     --sb-control-height: 2.25rem;
   }
@@ -1746,10 +1745,9 @@ html[data-design-layer="v2"] [data-right-console] [data-console-section] :where(
   justify-content: center;
 }
 
-/* The user-facing visual height is shared across every non-phone viewport.
-   Keep this after the rail defaults above so route-level action sections cannot
-   drift back to 44px while the shared token is already 36px. */
-@media (min-width: 768px) {
+/* Fine-pointer query and rail controls keep the established compact rhythm.
+   Touch pointers use the shared touch-safe token instead. */
+@media (min-width: 768px) and (pointer: fine) {
   html[data-design-layer="v2"] form.sb-list-query-card :where(input, select, button, [role="combobox"], [data-select-control], .sb-status-filter, .sb-status-filter-control, .sb-filter-more, .sb-filter-more > summary),
   html[data-design-layer="v2"] [data-right-console] [data-console-section] :where(a.inline-flex, button.inline-flex) {
     height: 2.25rem !important;
@@ -2677,7 +2675,7 @@ html[data-design-layer="v2"] [data-page-jump], html[data-design-layer="v2"] [dat
 }
 .sb-asset-field-grid > label { align-content:start; gap:.25rem; }
 .sb-asset-field-grid > label > span:first-child { min-height:0; display:block; }
-[data-console-section] button, [data-console-section] a { max-width:100%; min-width:0; white-space:normal; overflow-wrap:anywhere; height:auto; min-height:2.25rem; }
+[data-console-section] button, [data-console-section] a { max-width:100%; min-width:0; white-space:normal; overflow-wrap:anywhere; height:auto; min-height:var(--sb-control-height); }
 [data-console-section] + [data-console-section] { margin-top:.75rem; }
 /* Semantic read-only description lists share the same label/value grammar. */
 @media(max-width:1279px) {
@@ -2939,6 +2937,7 @@ html[data-design-layer="v2"] :is(.sb-pr-phone-supplier, .sb-pr-phone-items, .sb-
   html[data-design-layer="v2"] .sb-pr-phone-supplier-row { grid-template-columns:minmax(0,1fr) auto auto; gap:.25rem; }
   html[data-design-layer="v2"] .sb-pr-phone-supplier { grid-column:auto; min-width:0; overflow:hidden; }
   html[data-design-layer="v2"] .sb-pr-phone-supplier > span { min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+  html[data-design-layer="v2"] .sb-goods-receiving-rows .sb-pr-phone-supplier > span { white-space:normal; overflow-wrap:anywhere; }
   html[data-design-layer="v2"] .sb-pr-phone-items,
   html[data-design-layer="v2"] .sb-pr-phone-amount { grid-column:auto; }
 }
@@ -3011,8 +3010,7 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
 }
 html[data-design-layer="v2"] [data-dashboard-pending-row],
 html[data-design-layer="v2"] [data-dashboard-pending-row] :is(strong, .font-medium, .font-semibold) { font-weight: 400; }
-html[data-design-layer="v2"] .sb-repair-summary { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
-html[data-design-layer="v2"] .sb-repair-summary .sb-pr-phone-items { white-space: normal; overflow-wrap: anywhere; justify-content: flex-start; }
+html[data-design-layer="v2"] .sb-repair-summary { grid-template-columns: minmax(0,1fr); }
 .sb-workspace-updates { display: flex; flex-direction: column; max-height: calc(100dvh - 5rem); }
 @media (max-width: 1279px) {
   .sb-workspace-updates { max-height: calc(100dvh - 9rem - env(safe-area-inset-bottom)); }
@@ -3047,9 +3045,9 @@ html[data-design-layer="v2"] .sb-repair-summary .sb-pr-phone-items { white-space
   html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-filter-label { display: inline; }
 }
 @media (max-width: 639px) {
-  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-row { grid-template-columns: minmax(9rem,1fr) minmax(0,1fr) 44px !important; gap:.25rem; }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-row { grid-template-columns: minmax(8rem,1fr) minmax(0,1fr) 44px max-content !important; gap:.25rem; }
   html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-filter-trigger { grid-column:3; grid-row:1; width:44px; min-width:44px; padding:0; }
-  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-result { grid-column:1 / -1 !important; grid-row:2; display:flex !important; white-space:nowrap; }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-result { grid-column:4 !important; grid-row:1; display:flex !important; white-space:nowrap; flex-direction:column; gap:0; line-height:1.2; }
   html[data-design-layer="v2"] form.sb-purchase-order-query .unified-list-row { grid-template-columns:minmax(0,1fr) 44px 44px max-content !important; gap:.25rem; align-items:center; }
   html[data-design-layer="v2"] form.sb-purchase-order-query .unified-list-filter-trigger { width:44px !important; min-width:44px !important; }
   html[data-design-layer="v2"] form.sb-purchase-order-query .unified-list-result { display:flex !important; width:max-content; gap:.2rem; white-space:nowrap; }
@@ -3278,4 +3276,36 @@ html[data-design-layer="v2"] .sb-repair-summary .sb-pr-phone-items { white-space
   html[data-design-layer="v2"] form.sb-daily-insights-filters[data-tablet-mode="inline"] .unified-list-inline-fields {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+/* Daily quantities share fixed tracks; product identity stays above on compact screens. */
+.sb-daily-line-head,
+.sb-daily-product-line {
+  grid-template-columns: repeat(3, 72px);
+  justify-content: space-between;
+}
+.sb-daily-line-head.sb-daily-line-four,
+.sb-daily-product-line.sb-daily-line-four {
+  grid-template-columns: repeat(4, 72px);
+}
+.sb-daily-product-line input[type="number"] {
+  width: 72px;
+  min-width: 72px;
+  max-width: 72px;
+  min-height: 44px;
+}
+@media (min-width: 1280px) {
+  .sb-daily-line-head,
+  .sb-daily-product-line {
+    grid-template-columns: minmax(0, 1fr) repeat(3, 72px) minmax(120px, 1fr);
+  }
+  .sb-daily-line-head.sb-daily-line-four,
+  .sb-daily-product-line.sb-daily-line-four {
+    grid-template-columns: minmax(0, 1fr) repeat(4, 72px);
+  }
+}
+
+@media (max-width: 639px) {
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-date-control { padding-inline: 6px; font-size: 12px; }
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-pinned-control button { padding-inline: 6px; gap: 4px; font-size: 12px; }
 }

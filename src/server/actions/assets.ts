@@ -1,9 +1,11 @@
 "use server";
+import { assetFeatureCapabilities } from "@/server/queries/asset-feature-capabilities";
 import { revalidatePath } from "next/cache";
 import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 import { requirePermission, hasPermission } from "@/server/auth/permissions";
 import { createClient } from "@/lib/supabase/server";
 import { looseSupabase } from "@/lib/supabase/loose";
+import { assetTransferBatchLines } from "@/lib/asset-transfer";
 import { assetMasterFields } from "@/lib/asset-master";
 import { addDays } from "@/lib/production-planning/forecast";
 import { createHash } from "node:crypto";
@@ -80,8 +82,12 @@ export async function saveAssetMaster(_previous: AssetActionState, form: FormDat
       response = await db.rpc("update_asset_master", { p_asset: uuid(rawId), p_name: name, p_details: details, p_reason: reason, p_client_key: clientKey, p_expected_updated_at: expected });
     } else {
       const code = String(form.get("asset_code") ?? "").trim();
+      const mode = String(form.get("code_mode") ?? "manual");
+      if (!["manual", "sequence"].includes(mode)) throw new Error("Choose a valid asset ID mode.");
+      const generated = mode === "sequence";
+      if (generated && (code || !(await assetFeatureCapabilities(db)).automaticId)) throw new Error("Automatic asset numbering is not ready. Refresh before registering.");
       const raw = String(form.get("quantity") ?? "").trim(), quantity = raw ? Number(raw) : null;
-      if (!/^[A-Za-z0-9][A-Za-z0-9._/-]{0,79}$/.test(code) || (quantity !== null && (!Number.isSafeInteger(quantity) || quantity < 0 || quantity > 2147483647))) throw new Error("Enter a valid asset ID and a whole physical quantity, or leave quantity unknown.");
+      if ((!generated && !/^[A-Za-z0-9][A-Za-z0-9._/-]{0,79}$/.test(code)) || (quantity !== null && (!Number.isSafeInteger(quantity) || quantity < 0 || quantity > 2147483647))) throw new Error("Enter a valid asset ID and a whole physical quantity, or leave quantity unknown.");
       response = await db.rpc("create_asset_master", { p_code: code, p_name: name, p_location: uuid(form.get("location_id")), p_quantity: quantity, p_details: details, p_reason: reason, p_client_key: clientKey });
     }
     if (!rawId && response.error && "code" in response.error && response.error.code === "23505" && /unique constraint "(?:assets_company_id_asset_code_key|asset_code_case_unique)"/.test(response.error.message ?? "")) {
@@ -155,6 +161,25 @@ export async function requestAssetTransfer(_previous: AssetActionState, form: Fo
   } catch (error) { return { ok: false, message: error instanceof Error ? error.message : "Could not request transfer." }; }
 }
 
+export async function requestAssetTransferBatch(_previous: AssetActionState, form: FormData): Promise<AssetActionState> {
+  try {
+    await requireActiveTenantActor(); await requirePermission("assets.transfer");
+    const from = uuid(form.get("from")), to = uuid(form.get("to"));
+    const reason = String(form.get("reason") ?? "").trim(), date = String(form.get("date") ?? "");
+    if (from.toLowerCase() === to.toLowerCase() || !reason || reason.length > 2000) throw new Error("Choose different locations and enter a transfer reason.");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error("Choose a valid request date.");
+    addDays(date, 0);
+    const lines = assetTransferBatchLines(form), key = uuid(form.get("client_key"));
+    const db = looseSupabase(await createClient());
+    if (!(await assetFeatureCapabilities(db)).transferBatch) throw new Error("Multi-asset transfer setup is not ready. Refresh before requesting.");
+    const result = await db.rpc("request_asset_transfer_batch", { p_from: from, p_to: to, p_reason: reason, p_lines: lines, p_client_key: key, p_date: date });
+    if (result.error || typeof result.data !== "string") throw new Error(result.error?.message ?? "Transfer was not confirmed. Check the register before retrying with the same request.");
+    const requestId = uuid(result.data);
+    revalidatePath("/asset-management", "layout");
+    return { ok: true, message: "Transfer requested. All assets require approval before dispatch.", requestId };
+  } catch (error) { return { ok: false, message: error instanceof Error ? error.message : "Transfer outcome could not be confirmed. Check the register before retrying." }; }
+}
+
 export async function reportAssetMaintenance(_previous: AssetActionState, form: FormData): Promise<AssetActionState> {
   try {
     await requireActiveTenantActor(); await requirePermission(await hasPermission("assets.report") ? "assets.report" : "assets.maintenance");
@@ -207,7 +232,13 @@ export async function advanceAssetTransfer(_previous: AssetActionState, form: Fo
     const note = String(form.get("note") ?? "").trim();
     if (note.length > 2000) throw new Error("Keep the transfer update note within 2,000 characters.");
     const db = looseSupabase(await createClient());
-    const result = await db.rpc("advance_asset_transfer", { p_transfer: transfer, p_action: action, p_note: note });
+    const kind = String(form.get("transfer_kind") ?? "single");
+    if (!["single", "batch"].includes(kind)) throw new Error("Choose a valid transfer document.");
+    const batch = kind === "batch";
+    if (batch && !(await assetFeatureCapabilities(db)).transferBatch) throw new Error("Multi-asset transfer setup is not ready.");
+    const result = batch
+      ? await db.rpc("advance_asset_transfer_batch", { p_batch: transfer, p_action: action, p_note: note })
+      : await db.rpc("advance_asset_transfer", { p_transfer: transfer, p_action: action, p_note: note });
     if (result.error || !result.data) throw new Error(result.error?.message ?? "Transfer update was not confirmed.");
     revalidatePath("/asset-management", "layout");
     return { ok: true, message: `Transfer ${action === "receive" ? "received" : action === "approve" ? "approved" : action === "reject" ? "rejected" : "dispatched"}.` };

@@ -1,7 +1,7 @@
 id,requirement_owner,historical_evidence,current_status,current_evidence
 legacy-1,PR phone toolbar / UnifiedListHeader,Earlier local Mock pass; live pending.,pending_current_item_acceptance,
 legacy-2,PR/GR landscape layout / list pages + shared header,Earlier local Mock pass; live pending.,pending_current_item_acceptance,
-legacy-3,Dashboard blank-space target / dashboard layout,Unresolved: original annotated image not recovered; do not guess the target.,blocked_original_target_evidence_missing,
+legacy-3,PR whitespace target / purchase-requests,Recovered original wording: 这个上面怎么会有空位? Route /purchase-requests; rectangle x42.28 y220.58 width645.04 height10.55. Original pixels remain unavailable; do not guess the target.,blocked_original_target_evidence_missing,
 legacy-4,Asset cards / asset list card styles,Earlier local Mock pass; live pending.,pending_current_item_acceptance,
 legacy-5,Asset phone filters / shared filter header,Earlier local Mock pass; live pending.,pending_current_item_acceptance,
 legacy-6,Stock Counts phone Filter dialog / shared header,Earlier local Mock pass; live pending.,pending_current_item_acceptance,

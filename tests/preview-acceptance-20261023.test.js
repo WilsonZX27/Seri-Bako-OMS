@@ -63,6 +63,7 @@ test('repair dedup keeps distinct IDs and out-of-cap notifications while removin
     return chain;
   }};
   const topbar = load('src/server/queries/topbar.ts', {
+    '@/server/queries/repair-notification-identity': { getRepairNotificationIdentities: async () => { throw Error('Permission gate must prevent identity reads'); } },
     '@/lib/supabase/server': { createClient: async () => db },
     '@/lib/supabase/loose': { looseSupabase: x => x },
     '@/lib/document-routing': routes,
@@ -108,4 +109,21 @@ test('Today uses Kuala Lumpur midnight rather than the execution host calendar',
   const dates = load('src/lib/business-date.ts');
   assert.equal(dates.todayInKualaLumpur(new Date('2026-10-22T15:59:59Z')), '2026-10-22');
   assert.equal(dates.todayInKualaLumpur(new Date('2026-10-22T16:00:00Z')), '2026-10-23');
+});
+
+test('visible repair notices gain identity and distinct references without changing IDs or destinations', async () => {
+  const notices = ['11111111-aaaa','22222222-bbbb'].map(id => ({id:`notice-${id}`,entity_type:'asset_maintenance',entity_id:id,action_url:`/asset-management/maintenance/${id}`,title:'Repair needs attention',message:'Review the maintenance queue.',is_company_wide:false,read_at:null}));
+  const db={from(name){assert.equal(name,'documents');const chain={select(){return this;},eq(){return this;},order(){return this;},limit(){return Promise.resolve({data:[],error:null});}};return chain;}};
+  let enriched;
+  const topbar=load('src/server/queries/topbar.ts',{
+    '@/server/queries/repair-notification-identity':{getRepairNotificationIdentities:async(client,rows)=>{assert.equal(client,db);enriched=rows;return new Map(rows.map(row=>[row.entity_id,'Same chiller · AS-1 · CK @ ALMA']));}},
+    '@/lib/supabase/server':{createClient:async()=>db},'@/lib/supabase/loose':{looseSupabase:x=>x},'@/lib/document-routing':load('src/lib/document-routing.ts'),
+    '@/lib/mock-mode':{isMockMode:()=>false,mockDocuments:[]},'@/server/auth/permissions':{hasPermission:async permission=>['assets.maintenance','assets.view'].includes(permission)},
+    '@/server/queries/notifications':{getCurrentUserScope:async()=>({roleCode:'maintenance'}),getVisibleNotificationsForCurrentUser:async()=>notices},
+    '@/server/queries/pending-actions':{getCurrentUserPendingActionSnapshot:async()=>({items:[],attentionHrefs:[],unavailable:false})},
+    '@/server/observability/logger':{logServerWarning(){throw Error('Unexpected warning');}},
+  });
+  const result=await topbar.getTopBarActivity();assert.equal(enriched.length,2);
+  for(let i=0;i<2;i++){const row=result.notifications[i];assert.equal(row.id,notices[i].id);assert.equal(row.action_url,notices[i].action_url);assert.equal(row.title,'Repair request');assert.match(row.message,/Same chiller · AS-1 · CK @ ALMA/);assert.ok(row.message.endsWith(notices[i].entity_id.slice(0,8)));}
+  assert.notEqual(result.notifications[0].message,result.notifications[1].message);
 });

@@ -1,3 +1,4 @@
+import { getRepairNotificationIdentities } from "@/server/queries/repair-notification-identity";
 import { createClient } from "@/lib/supabase/server";
 import { looseSupabase } from "@/lib/supabase/loose";
 import { getCanonicalDocumentHref, getCanonicalEntityHref } from "@/lib/document-routing";
@@ -200,6 +201,22 @@ export async function getTopBarActivity() {
     // the notification feed for events that do not duplicate an actionable
     // queue entry.
     .filter((row) => !pendingActionHrefs.has(row.action_url ?? ""));
+
+  // Repair notices outside the five-item pending queue still need an identity.
+  // Enrich only after deduplication, without broadening either notice or asset access.
+  if (actionableNotifications.slice(0, 5).some(row => row.entity_type === "asset_maintenance" && row.entity_id)) {
+    try {
+      if (await hasPermission("assets.maintenance") && await hasPermission("assets.view")) {
+        const identities = await getRepairNotificationIdentities(looseSupabase(supabase), actionableNotifications.slice(0, 5));
+        actionableNotifications = actionableNotifications.map(row => {
+          const identity = row.entity_id ? identities.get(row.entity_id) : undefined;
+          return row.entity_type === "asset_maintenance" && identity ? { ...row, title: "Repair request", message: `${identity} · Ref ${row.entity_id!.slice(0, 8)}` } : row;
+        });
+      }
+    } catch (error) {
+      logServerWarning(error, { source: "topbar.repair-notification-identity" });
+    }
+  }
 
   const complianceReminderRoles = new Set(["purchasing", "manager", "finance", "people_operations", "super_admin"]);
   if (currentScope && complianceReminderRoles.has(currentScope.roleCode)) {

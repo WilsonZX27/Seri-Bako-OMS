@@ -1,3 +1,7 @@
+## v9.2.144 (Preview) — Distinguishable repair notifications
+
+Repair notifications retain visible asset identity, canonical location and a short request reference. Separate requests for the same asset remain distinguishable. Existing operational UI, transfer cards and offboarding guards are retained; asset batch and paid EL activation remain unavailable.
+
 ## v9.2.143 (Preview candidate) — Operational UI and People workflows
 
 Responsive actions, concise forms, central RO management and managed stock destinations. Includes the offboarding access guard and Chef import-catalog compatibility. Paid EL and asset batch migrations remain inactive; no historical payroll, holiday or inventory records are rewritten.

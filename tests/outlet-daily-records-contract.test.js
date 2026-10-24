@@ -236,7 +236,7 @@ test("received totals never turn an unverified default zero into a business fact
   assert.match(query, /morning_received_qty: receivedValueIsTrusted\(line\) \? line\.morning_received_qty : null/);
   assert.match(form, /receivedIsKnown && source\?\.morning_received_qty != null/);
   assert.match(form, /placeholder=\{receivedIsKnown \? undefined : "—"\}/);
-  assert.match(form, /Received unverified/);
+  assert.match(form, /data-received-unverified/);
 });
 
 test("Qty Sent totals never turn an unavailable default zero into a business fact", () => {

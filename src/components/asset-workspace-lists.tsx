@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { formatRegisteredAssetQuantity } from "@/lib/asset-quantity-display";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -47,13 +48,17 @@ export function AssetDailyCheckLocations({ locations, date }: { locations: Asset
 export function AssetInspectionRows({ records, assets, locations }: { records: AssetRecord[]; assets: Map<string, AssetSummary>; locations: Map<string, string> }) {
   return <div className="divide-y">{records.map(record => <details key={record.id} className="min-w-0">
     <summary className="grid cursor-pointer grid-cols-[minmax(0,1fr)_auto_auto] gap-2 px-3 py-2.5">
-      <span className="min-w-0"><span className="block break-words text-sm font-medium">{assets.get(record.asset_id ?? "")?.item_name ?? "Unavailable asset"}</span><span className="block break-words text-xs text-muted-foreground">{assets.get(record.asset_id ?? "")?.asset_code ?? "—"} · {locations.get(record.location_id ?? "") ?? "Unavailable location"}</span><span className="mt-1 block break-words text-xs text-muted-foreground">{formatDateOnly(record.check_date ?? record.created_at, "Date unavailable")}{record.author_name ? ` · ${record.author_name}` : ""}{record.quantity !== undefined ? ` · Qty ${record.quantity === null ? "Unknown" : formatNumber(record.quantity)}` : ""}</span></span>
+      <span className="min-w-0"><span className="block break-words text-sm font-medium">{assets.get(record.asset_id ?? "")?.item_name ?? "Unavailable asset"}</span><span className="block break-words text-xs text-muted-foreground">{assets.get(record.asset_id ?? "")?.asset_code ?? "—"} · {locations.get(record.location_id ?? "") ?? "Unavailable location"}</span></span>
       <span className="self-start whitespace-nowrap text-xs font-medium">{record.result ?? record.status ?? "Not recorded"}</span>
     </summary>
-    <div className="space-y-3 border-t border-[var(--sb-border-soft)] px-3 py-3 text-xs">
+    <div className="space-y-3 border-t border-[var(--sb-border-soft)] px-3 py-3 text-xs"><span className="mt-1 block break-words text-xs text-muted-foreground">{formatDateOnly(record.check_date ?? record.created_at, "Date unavailable")}{record.author_name ? ` · ${record.author_name}` : ""}{record.quantity !== undefined ? ` · Qty ${record.quantity === null ? "Unknown" : formatNumber(record.quantity)}` : ""}</span>
       {record.asset_id ? <Link className="inline-flex min-h-[var(--sb-control-height)] items-center underline" href={`/asset-management/assets/${record.asset_id}`}>Open asset</Link> : null}
       {record.description ? <p className="break-words">{record.description}</p> : null}
       <dl className="grid gap-2 sm:grid-cols-2">{Object.entries(record.source_data).filter(([key,value])=>!key.startsWith("_") && value!==null && value!=="").map(([key,value])=><div key={key} className="min-w-0"><dt className="text-muted-foreground">{key}</dt><dd className="break-words">{String(value)}</dd></div>)}</dl>
     </div>
   </details>)}</div>;
+}
+
+export function AssetSectionHeading({title,value}:{title:string;value:ReactNode}) {
+  return <h2 className="flex items-center justify-between gap-3 border-b p-3 text-sm font-semibold"><span>{title}</span><span className="text-xs font-normal text-muted-foreground">{value}</span></h2>;
 }

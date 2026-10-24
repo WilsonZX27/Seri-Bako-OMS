@@ -39,5 +39,6 @@ export function GeneralMaintenanceForm({locations,choices,initialLocation="",ini
       <div className={dialogMode ? "sb-dialog-actions !mt-0 shrink-0 border-t bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))]" : "sb-dialog-actions"}><Button type="submit" disabled={pending||!locations.length||Boolean(photoError)}>{pending?"Sending…":"Send request"}</Button><Button type="button" variant="outline" onClick={event=>{if(onClose){onClose();return;}const details=event.currentTarget.closest("details");if(details)details.open=false;}}>Close</Button></div>
     {!locations.length ? <p role="alert" className="text-sm">No reporting location assigned. Contact your manager.</p> : null}
     {state.message ? <p role="alert" className="text-sm">{state.message}</p> : null}
+    {!state.ok&&state.requestId?<a className="inline-flex min-h-11 items-center text-xs underline" href={`/asset-management/maintenance/${state.requestId}`}>Open existing repair</a>:null}
   </form>;
 }

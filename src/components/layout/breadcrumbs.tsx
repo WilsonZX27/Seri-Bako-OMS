@@ -86,9 +86,9 @@ export function Breadcrumbs() {
   const crumbs: Crumb[] = [];
 
   if (root?.parent) crumbs.push(root.parent);
-  crumbs.push({ label: root?.label ?? titleize(first), href: segments.length > 1 ? root?.href ?? `/${first}` : undefined });
+  crumbs.push({ label: root?.label ?? titleize(first), href: segments.length > 1 && pathname !== "/people/ro" ? root?.href ?? `/${first}` : undefined });
 
-  if (segments[1]) {
+  if (segments[1] && pathname !== "/people/ro") {
     if (segments[1] === "new") {
       crumbs.push({ label: `New ${root?.label ?? titleize(first)}` });
     } else if (!isOpaqueId(segments[1])) {

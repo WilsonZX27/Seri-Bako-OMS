@@ -64,11 +64,11 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
     mobileContextDate={recordDate}
     sidePanel={sidePanel}
     mobilePrimaryAction={primaryAction}
+    mobileActionHint={<span id="outlet-save-guidance" role="status">{saveGuidance}</span>}
     mobileMoreOptions={<DocumentMoreOptions><div className="grid gap-3">{secondaryActions}</div></DocumentMoreOptions>}
     tabletRailMode="split"
   >
     <ActionErrorNotice message={filters.error} />
-    <p id="outlet-save-guidance" role="status" className="rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] p-3 text-sm text-[var(--sb-text)]">{saveGuidance}</p>
     <OutletDailyRecordForm formId={formId} action={saveOutletDailyRecord} branches={options.branches} products={options.products} branchId={selectedBranchId} recordDate={recordDate} defaultsByBranch={options.defaultsByBranch} validationError={filters.error} canEditQtySent={canEditQtySent} canEditOutletValues={canEnterOutlet} />
   </DocumentWorkspace>;
 }

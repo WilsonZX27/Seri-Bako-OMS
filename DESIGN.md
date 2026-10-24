@@ -1,3 +1,7 @@
+## v9.2.145 (Preview) — Consolidated operational UI corrections
+
+Restore initial asset-transfer details and responsive actions, standardise RO sorting and recovery, simplify Daily and schedule-import layouts, reuse the shared asset tabs, and clarify Planning controls. Repair notifications include actual fault text; permission-scoped maintenance counts remain distinct from approvals. The open-repair reader degrades explicitly when its unactivated RPC is unavailable. Asset batch/numbering, paid EL and shared duplicate-repair SQL remain inactive. No business records, account settings or Production deployment are changed by this Preview release.
+
 ## v9.2.144 (Preview) — Distinguishable repair notifications
 
 Repair notifications retain visible asset identity, canonical location and a short request reference. Separate requests for the same asset remain distinguishable. Existing operational UI, transfer cards and offboarding guards are retained; asset batch and paid EL activation remain unavailable.

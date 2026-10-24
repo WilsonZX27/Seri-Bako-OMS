@@ -3360,9 +3360,20 @@ html[data-design-layer="v2"] .sb-purchase-request-table td:nth-child(7) { white-
   }
   html[data-design-layer="v2"] form.sb-list-query-card.sb-low-stock-query > [data-query-control],
   html[data-design-layer="v2"] form.sb-list-query-card.sb-low-stock-query > .unified-list-desktop-actions { grid-column: auto !important; }
-  html[data-design-layer="v2"] .sb-daily-product-line > label { display: flex; justify-content: center; }
+  html[data-design-layer="v2"] .sb-daily-product-line > label { display: flex; justify-content: flex-start; }
   html[data-design-layer="v2"] .sb-daily-product-line input[type="number"] { max-width: 6rem; }
-  html[data-design-layer="v2"] .sb-daily-line-head > span:not(:first-child) { text-align: center; }
+  html[data-design-layer="v2"] .sb-daily-line-head > span:not(:first-child) { text-align: left; }
 }
 html[data-design-layer="v2"] .sb-purchase-request-table td:nth-child(7) [data-status],
 html[data-design-layer="v2"] .sb-procurement-table [data-status] { white-space: nowrap; }
+
+/* User49: keep repair headings distinct from quiet supporting facts. */
+html[data-design-layer="v2"] [data-dashboard-pending-row][data-repair-action] strong { font-weight: 800; }
+html[data-design-layer="v2"] [data-dashboard-pending-row][data-repair-action] :is(.sb-pr-phone-supplier-row, .sb-pr-phone-location-row, .sb-pr-phone-supplier, .sb-pr-phone-location, .sb-pr-phone-byline, .sb-pr-phone-byline-person, .sb-pr-phone-byline-date) { color: var(--sb-text-muted); }
+
+/* Pagination responds to its panel, including narrow desktop split queues. */
+[data-pagination-controls] { container-type: inline-size; }
+@container (max-width: 38rem) {
+  [data-pagination-summary], [data-pagination-full] { display: none; }
+  [data-pagination-compact] { display: flex; }
+}

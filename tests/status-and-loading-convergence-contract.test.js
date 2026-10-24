@@ -81,7 +81,7 @@ test("reference-only mobile surfaces retain app navigation instead of inventing 
   const design = read("src/app/design-system-v2.css");
   assert.match(calendar, /<WorkspaceGrid[^>]*hideMobileConsole[^>]*rightRail=\{rightRail\}/);
   assert.match(compliance, /<WorkspaceGrid[^>]*hideMobileConsole[^>]*rightRail=\{rail\}/);
-  assert.match(rightConsole, /className="h-11 min-w-0 w-full justify-center gap-2"/);
+  assert.match(rightConsole, /className="h-12 min-w-0 w-full justify-center gap-2 shadow-sm"/);
   assert.doesNotMatch(design, /\[data-mobile-action-bar\][\s\S]{0,300}justify-content: space-evenly/);
 });
 

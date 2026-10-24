@@ -182,7 +182,7 @@ export async function requestAssetTransferBatch(_previous: AssetActionState, for
 
 export async function reportAssetMaintenance(_previous: AssetActionState, form: FormData): Promise<AssetActionState> {
   try {
-    await requireActiveTenantActor(); await requirePermission(await hasPermission("assets.report") ? "assets.report" : "assets.maintenance");
+    const actor=await requireActiveTenantActor(); await requirePermission(await hasPermission("assets.report") ? "assets.report" : "assets.maintenance");
     const description = String(form.get("description") ?? "").trim(), priority = String(form.get("priority") ?? "");
     if (description.length === 0 || description.length > 4000 || !["Low", "Normal", "High", "Urgent"].includes(priority)) throw new Error("Enter the issue and priority.");
     const selectedPhoto = form.get("photo");
@@ -191,6 +191,11 @@ export async function reportAssetMaintenance(_previous: AssetActionState, form: 
       if (selectedPhoto.size > assetAttachmentLimit || !["image/jpeg","image/png","image/webp"].includes(selectedPhoto.type) || !assetAttachmentSignature(selectedPhoto.type, Buffer.from(await selectedPhoto.arrayBuffer()))) throw new Error("Choose a valid JPG, PNG or WebP photo up to 10 MB.");
     }
     const db = looseSupabase(await createClient());
+    if(form.get("asset_id")) {
+      const existing=await db.from("asset_maintenance").select("id,status").eq("company_id",actor.companyId).eq("asset_id",uuid(form.get("asset_id"))).eq("location_id",uuid(form.get("location_id"))).not("status","in","(Closed,Resolved,Cancelled,closed,resolved,cancelled)").not("source_id","eq","OMS-"+uuid(form.get("client_key"))).order("created_at",{ascending:false}).limit(1);
+      if(existing.error)throw Error("Existing repair status could not be checked. No request was sent.");
+      if(existing.data?.length)return {ok:false,message:"An open repair already exists for this asset. Review it before sending another request.",requestId:String(existing.data[0].id)};
+    }
     const result = await db.rpc("report_asset_maintenance", { p_asset: form.get("asset_id") ? uuid(form.get("asset_id")) : null, p_location: uuid(form.get("location_id")), p_description: description, p_priority: priority, p_client_key: uuid(form.get("client_key")) });
     if (result.error || !result.data) throw new Error(result.error?.message ?? "Maintenance request was not confirmed.");
     revalidatePath("/asset-management", "layout");

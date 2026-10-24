@@ -260,6 +260,7 @@ export async function getDashboardSummary() {
       totalStockValue: balances.reduce((sum, row) => sum + Number(row.current_stock ?? 0), 0),
       lastStockCount: null,
       lowStockItems: getMockLowStockItems().slice(0, 5),
+      repairAttention: {allowed:false,count:0 as number|null},
       pendingApprovals: mockPendingApprovals.map((request) => {
         const requestLines = mockPurchaseRequestLines.filter((line) => line.purchase_request_id === request.id);
         const supplierIds = new Set(requestLines.map((line) => line.suggested_supplier_id).filter((id): id is string => Boolean(id)));
@@ -474,6 +475,7 @@ export async function getDashboardSummary() {
     // Transaction history is intentionally loaded only from Inventory drill-down
     // routes. The owner workdesk must remain a summary read, not a ledger scan.
     recentTransactions: [],
+    repairAttention: ("maintenance" in pendingApprovalsSnapshot ? pendingApprovalsSnapshot.maintenance : null) ?? {allowed:false,count:0},
     pendingApprovals: pendingApprovals.items,
     purchaseRequests: coreSnapshot?.purchase_requests ?? [],
     purchaseOrders: coreSnapshot?.purchase_orders ?? [],

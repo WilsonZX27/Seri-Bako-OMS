@@ -1,4 +1,4 @@
-export const APP_VERSION = "9.2.144";
+export const APP_VERSION = "9.2.145";
 export const APP_SPRINT = `v${APP_VERSION}`;
 export const APP_RELEASE_TITLE = "Unified dropdowns and operational UI fixes";
 // Keep the shell footer concise; the detailed release title belongs in release

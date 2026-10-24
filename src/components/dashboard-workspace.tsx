@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowUpRight, Boxes, CalendarDays, CheckCircle2, ClipboardCheck, ClipboardList, Clock3, Factory, FileText, LockKeyhole, MapPin, Package, PackageCheck, ReceiptText, ShieldCheck, ShoppingCart, UserRound, Store } from "lucide-react";
+import { AlertTriangle, ArrowUpRight, Boxes, CalendarDays, CheckCircle2, ClipboardCheck, ClipboardList, Clock3, Factory, FileText, LockKeyhole, MapPin, Package, PackageCheck, ReceiptText, ShieldCheck, ShoppingCart, UserRound, Store, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
@@ -154,9 +154,15 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   } as const;
   const unavailableAttentionLabels = summary.attentionSummary.unavailableSources.map((source) => attentionSourceLabels[source]);
   const pendingApprovalsHref = isFinance ? "/purchase-requests?status=finance_review" : isManager ? "/purchase-requests?status=manager_review" : isPurchasing ? "/purchase-requests?status=admin_review" : "/purchase-requests";
+  const repairAttention = summary.repairAttention;
+  const showRepairAttention = repairAttention?.allowed === true;
+  const pendingApprovalCount = summary.attentionSummary.sources.pending_approvals;
+  const distinctApprovalCount = pendingApprovalCount == null || (showRepairAttention && repairAttention.count == null)
+    ? null : Math.max(0, pendingApprovalCount - (showRepairAttention ? repairAttention.count ?? 0 : 0));
   const attentionSignals = [
     ...((isOwner || isFinance || isManager || isPurchasing || isKitchen) ? [{ key: "low_stock", label: "Low stock", value: summary.inventoryUnavailable ? null : summary.lowStockCount, href: "/low-stock", icon: AlertTriangle }] : []),
-    { key: "pending_approvals", label: "Pending approvals", value: summary.attentionSummary.sources.pending_approvals, href: pendingApprovalsHref, icon: ClipboardCheck },
+    { key: "pending_approvals", label: "Pending approvals", value: distinctApprovalCount, href: pendingApprovalsHref, icon: ClipboardCheck },
+    ...(showRepairAttention ? [{key:"asset_maintenance",label:"Asset maintenance",value:repairAttention.count,href:"/asset-management?view=maintenance",icon:Wrench}] : []),
     { key: "stock_count_due", label: "Stock count due", value: summary.attentionSummary.sources.stock_count_due, href: "/stock-counts", icon: CheckCircle2 },
     ...(showFinance ? [{ key: "overdue_payables", label: "Overdue payables", value: summary.attentionSummary.sources.overdue_payables, href: "/supplier-invoices/aging?overdue=1", icon: ReceiptText }] : []),
   ];
@@ -346,6 +352,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                   href={row.href}
                   className="grid min-h-14 min-w-0 gap-y-1.5 px-3 py-2.5 text-xs hover:bg-[var(--sb-surface-muted)]"
                   data-dashboard-pending-row
+                  data-repair-action={isMaintenanceAction || undefined}
                 >
                   <span className="flex min-w-0 items-center justify-between gap-2">
                     <strong className="min-w-0 truncate font-mono">{isMaintenanceAction ? "REPAIR REQUEST" : isOutletDailyAction ? `Outlet Daily · ${row.document_no}` : row.document_no}</strong>

@@ -27,6 +27,7 @@ export type PendingAction = {
 };
 
 export type PendingActionSnapshot = {
+  maintenance?: { allowed: boolean; count: number | null };
   items: PendingAction[];
   attentionHrefs: string[];
   total: number | null;
@@ -300,6 +301,7 @@ export const getCurrentUserPendingActionSnapshot = cache(async function getCurre
     .slice(0, limit);
   return {
     items,
+    maintenance: { allowed: Boolean(permissions["assets.maintenance"]), count: maintenanceResult.unavailable ? null : maintenanceResult.count },
     attentionHrefs,
     total: unavailable || !includeTotal ? null : results.reduce((sum, result) => sum + (result.count ?? 0), 0),
     unavailable,

@@ -23,7 +23,9 @@ test('PR pending context uses scoped supplier and branch metadata',()=>{
 });
 test('schedule matching groups are distinct cards and assignment total is not repeated in every heading',()=>{
  const s=read('src/components/attendance/schedule-workbook-import.tsx');
- assert.ok((s.match(/sb-import-card/g)||[]).length>=5);
+ assert.ok((s.match(/sb-import-card/g)||[]).length>=4);
+ assert.match(s,/aria-label="Source issues"/);
+ assert.doesNotMatch(s,/<details[^>]*><summary[^>]*>Source issues/);
  assert.match(s,/eligibleCount !== preview.assignmentCount/);
  assert.match(s,/Review recognised assignments/);
  assert.doesNotMatch(s,/safe assignments are readable|View \{preview.assignmentCount\} recognised/);

@@ -30,6 +30,7 @@ const statusLabels: Record<string, string> = {
   qc_review: "QC Review",
   dispatched: "Dispatched",
   disabled: "Disabled",
+  employment_ended: "Resigned",
   short: "Short",
   available: "Available",
   evening_completed: "Ready to post",

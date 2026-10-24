@@ -1,3 +1,4 @@
+import type { OpenAssetRepair } from "@/server/queries/asset-open-repairs";
 import { assetFeatureCapabilities } from "@/server/queries/asset-feature-capabilities";
 import { todayInKualaLumpur } from "@/lib/business-date";
 import { addDays } from "@/lib/production-planning/forecast";
@@ -231,7 +232,8 @@ export async function getAssetInspection(id: string) {
     assets.push(...next.assets);
   }
   if (holdings.length !== first.total || new Set(holdings.map(row => row.asset_id)).size !== first.total) throw new Error("Location assets changed. Reload the checklist.");
-  return { ...first, holdings, assets };
+  const repairState=isMockMode()?{available:true,repairs:[]}:await readAssetOpenRepairs(looseSupabase(await createClient()),id,holdings.map(row=>row.asset_id));
+  return { ...first, holdings, assets, openRepairs:repairState.repairs, repairTrackingAvailable:repairState.available };
 }
 
 export async function getAssetLocation(id: string, page: number) {
@@ -480,4 +482,14 @@ export async function getAssetTransferBatchDetail(id: string, page: number) {
   if (!assets.data || !locations.data || !history.data || !metadata.data || typeof history.count !== "number") throw new Error("Transfer details unavailable.");
   transfer.request_date = String(metadata.data.request_date);
   return { transfer, lines, assets: assets.data as AssetSummary[], locations: await withCanonicalBranchNames(db, locations.data as AssetLocation[]), history: history.data as { id: string; transfer_id: string; author_name: string; created_at: string; source_data: Record<string, unknown> }[], total: history.count };
+}
+
+export async function readAssetOpenRepairs(db:LooseSupabase,locationId:string,assetIds:string[]) {
+ if(!assetIds.length)return {available:true,repairs:[] as OpenAssetRepair[]};
+ const result=await db.rpc("get_asset_check_open_repairs",{p_location:locationId,p_assets:assetIds});
+ if(result.error){if(["PGRST202","42883"].includes((result.error as {code?:string}).code??""))return {available:false,repairs:[] as OpenAssetRepair[]};throw result.error;}
+ if(!Array.isArray(result.data))throw Error("Current repair status unavailable.");
+ const repairs=result.data as OpenAssetRepair[],seen=new Set<string>();
+ for(const row of repairs){if(!assetIds.includes(row.asset_id)||seen.has(row.asset_id)||!row.id||!row.status||["closed","resolved","cancelled"].includes(row.status.toLowerCase())||!Number.isSafeInteger(row.open_count)||row.open_count<1)throw Error("Current repair status unavailable.");seen.add(row.asset_id);}
+ return {available:true,repairs};
 }

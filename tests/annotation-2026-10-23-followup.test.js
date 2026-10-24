@@ -45,7 +45,7 @@ test("daily record compact rows emphasize Today and show four concise last-updat
   const page = read("src/app/(app)/outlet-daily-records/page.tsx");
   const query = read("src/server/queries/outlet-daily-records.ts");
   const css = read("src/app/design-system-v2.css");
-  assert.match(page, /font-semibold text-\[var\(--sb-success-strong\)\].*Today/);
+  assert.match(page, /font-semibold text-\[var\(--sb-info\)\].*Today/);
   assert.match(page, /Last updated by/);
   assert.match(page, /row\.updated_by_name/);
   assert.match(page, /receivedDisplay\(row\)\.value === "Pending"/);

@@ -46,7 +46,7 @@ export const informationArchitecture: readonly IaItem[] = [
   { href: "/outlet-packaging", label: "Packaging Stock", group: "outlet_management", icon: "package", roles: ["super_admin", "manager", "purchasing"], permission: "outlet_daily_record.view_all", keywords: ["packaging", "usage", "balance", "warehouse"] },
   { href: "/outlet-compliance", label: "Outlet Compliance", group: "outlet_management", icon: "check", roles: ["super_admin","people_operations","manager","purchasing","chef"], permission: "outlet_compliance.read", attention: true, keywords: ["bomba", "permit", "expiry", "inspection"] },
   { href: "/people", label: "Employees", group: "people", icon: "users", roles: ["super_admin","people_operations","manager"], permission: "people.read", defaultFor: ["people_operations"] },
-  { href: "/people/ro", label: "RO management", group: "people", icon: "rotate", roles: ["super_admin","people_operations","manager"], permission: "comp_time.read", keywords: ["time off", "OT", "balance"] },
+  { href: "/people/ro", label: "RO Management", group: "people", icon: "rotate", roles: ["super_admin","people_operations","manager"], permission: "comp_time.read", keywords: ["time off", "OT", "balance"] },
   { href: "/attendance", label: "Attendance", group: "people", icon: "calendar", roles: ["super_admin","people_operations","manager","outlet_supervisor","outlet_staff"], permission: "attendance.read", attention: true, keywords: ["roster", "shift", "punch", "NGTeco"] },
   { href: "/attendance/my-schedule", label: "My Schedule", group: "people", icon: "calendar", roles: ["kitchen"], permission: "schedule.read", keywords: ["personal shifts", "schedule"] },
 

@@ -109,7 +109,7 @@ export function DocumentWorkspace({
         </div>
       </WorkspaceGrid>
       {mobilePrimaryAction || mobileActivity || mobileMoreOptions ? <MobileActionReserve><div data-mobile-document-action data-action-count={[mobilePrimaryAction, mobileActivity, mobileMoreOptions].filter(Boolean).length} data-has-more={mobileMoreOptions ? "true" : undefined} className={cn(
-        "sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] grid min-w-0 items-center gap-2 border-x-0 border-b-0 bg-white/95 p-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(17,30,22,0.16)] md:hidden [&_button]:h-11 [&_button]:w-full",
+        "sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] grid min-w-0 items-center gap-2 border-x-0 border-b-0 bg-white/95 p-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_24px_rgba(17,30,22,0.16)] md:hidden [&_button]:h-12 [&_button]:w-full",
         [mobilePrimaryAction, mobileActivity, mobileMoreOptions].filter(Boolean).length === 3
           ? "grid-cols-3"
           : [mobilePrimaryAction, mobileActivity, mobileMoreOptions].filter(Boolean).length === 2

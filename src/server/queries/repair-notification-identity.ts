@@ -8,9 +8,9 @@ export async function getRepairNotificationIdentities(db: LooseSupabase, notices
   const ids = [...new Set(notices.filter(row => row.entity_type === "asset_maintenance" && row.entity_id).map(row => row.entity_id!))].slice(0, 5);
   const identities = new Map<string, string>();
   if (!ids.length) return identities;
-  const repairs = await db.from("asset_maintenance").select("id,asset_id,location_id").in("id", ids);
+  const repairs = await db.from("asset_maintenance").select("id,asset_id,location_id,description").in("id", ids);
   if (repairs.error) throw repairs.error;
-  const rows = (repairs.data ?? []) as { id: string; asset_id: string | null; location_id: string | null }[];
+  const rows = (repairs.data ?? []) as { id: string; asset_id: string | null; location_id: string | null; description?: string | null }[];
   const assetIds = [...new Set(rows.flatMap(row => row.asset_id ? [row.asset_id] : []))];
   const locationIds = [...new Set(rows.flatMap(row => row.location_id ? [row.location_id] : []))];
   const [assets, locations] = await Promise.all([
@@ -27,7 +27,8 @@ export async function getRepairNotificationIdentities(db: LooseSupabase, notices
   const assetNames = new Map(((assets.data ?? []) as {id:string;item_name:string;asset_code:string}[]).map(row => [row.id, [row.item_name,row.asset_code].filter(Boolean).join(" · ")]));
   const locationNames = new Map(locationRows.map(row => [row.id,assetLocationDisplayName(row,branchNames)]));
   for (const row of rows) {
-    const label = [assetNames.get(row.asset_id ?? ""),locationNames.get(row.location_id ?? "")].filter(Boolean).join(" · ");
+    const description=row.description?.trim();
+    const label = [assetNames.get(row.asset_id ?? ""),locationNames.get(row.location_id ?? ""),description ? description.slice(0,160)+(description.length>160?"…":"") : null].filter(Boolean).join(" · ");
     if (label) identities.set(row.id,label);
   }
   return identities;

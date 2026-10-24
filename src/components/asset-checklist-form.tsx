@@ -1,4 +1,6 @@
 "use client";
+import {openRepairInspectionFields} from "@/lib/asset-open-repair";
+import type {OpenAssetRepair} from "@/server/queries/asset-open-repairs";
 import { FormPendingBridge } from "@/components/ui/submit-button";
 import { AssetFormWorkspace } from "@/components/asset-form-workspace";
 import { formatRegisteredAssetQuantity } from "@/lib/asset-quantity-display";
@@ -13,10 +15,12 @@ import { Button } from "@/components/ui/button";
 import { submitAssetChecklist } from "@/server/actions/assets";
 import type { AssetSummary, AssetHolding } from "@/server/queries/assets";
 
-export function AssetChecklistForm({ intro, locationId, assets, holdings, date, today, submissionId }: { intro?: ReactNode; locationId: string; locationName?: string; assets: AssetSummary[]; holdings: AssetHolding[]; date: string; today: string; submissionId: string }) {
+export function AssetChecklistForm({ intro, locationId, assets, holdings, date, today, submissionId, openRepairs=[],repairTrackingAvailable=true }: {openRepairs?:OpenAssetRepair[];repairTrackingAvailable?:boolean; intro?: ReactNode; locationId: string; locationName?: string; assets: AssetSummary[]; holdings: AssetHolding[]; date: string; today: string; submissionId: string }) {
   const [state, action, pending] = useActionState(useAssetDraftAction(`checklist:${locationId}:${date}`, submitAssetChecklist), { ok: false, message: "" });
-  const revision=JSON.stringify([today,holdings.map(row=>[row.asset_id,row.quantity]).sort()]);
-  const [draft,setDraft,restored]=useAssetDraftState(`checklist:${locationId}:${date}`,revision,{fields:{} as Record<string,string>,checkDate:date,selected:[] as string[],submissionId},(value): value is {fields:Record<string,string>;checkDate:string;selected:string[];submissionId:string}=>isAssetChecklistDraft(value,holdings.map(row=>row.asset_id),today) && "submissionId" in value && typeof value.submissionId === "string" && /^[0-9a-f-]{36}$/i.test(value.submissionId),state.ok);
+  const initialFields=openRepairInspectionFields(openRepairs);
+  const repairByAsset=new Map(openRepairs.map(row=>[row.asset_id,row]));
+  const revision=JSON.stringify([today,holdings.map(row=>[row.asset_id,row.quantity]).sort(),openRepairs.map(row=>[row.asset_id,row.id,row.status]).sort()]);
+  const [draft,setDraft,restored]=useAssetDraftState(`checklist:${locationId}:${date}`,revision,{fields:initialFields,checkDate:date,selected:[] as string[],submissionId},(value): value is {fields:Record<string,string>;checkDate:string;selected:string[];submissionId:string}=>isAssetChecklistDraft(value,holdings.map(row=>row.asset_id),today) && "submissionId" in value && typeof value.submissionId === "string" && /^[0-9a-f-]{36}$/i.test(value.submissionId),state.ok);
   const {fields,checkDate,selected}=draft;
   const [expanded, setExpanded] = useState<string | null>(null);
   const [bulkUndo, setBulkUndo] = useState<{ selected: string[]; fields: Record<string,string>; touched: string[] } | null>(null);
@@ -25,7 +29,7 @@ export function AssetChecklistForm({ intro, locationId, assets, holdings, date, 
   const setFields=(update:(previous:Record<string,string>)=>Record<string,string>)=>setDraft(previous=>({...previous,fields:update(previous.fields)}));
   const setCheckDate=(value:string)=>setDraft(previous=>({...previous,checkDate:value}));
   const setSelected=(update:(previous:string[])=>string[])=>setDraft(previous=>({...previous,selected:update(previous.selected)}));
-  useAssetFormGuard(!state.ok && (selected.length > 0 || checkDate !== date || Object.values(fields).some(Boolean)));
+  useAssetFormGuard(!state.ok && (selected.length > 0 || checkDate !== date || Object.keys({...initialFields,...fields}).some(key=>(fields[key]??"")!==(initialFields[key]??""))));
   const markEdited=(id:string)=>setBulkUndo(previous=>previous ? {...previous,touched:[...new Set([...previous.touched,id])]} : null);
   const update = (key: string, value: string) => { markEdited(key.slice(key.indexOf("_")+1)); setFields(current => ({ ...current, [key]: value })); };
   const names = new Map(assets.map(asset => [asset.id, asset]));
@@ -41,9 +45,10 @@ export function AssetChecklistForm({ intro, locationId, assets, holdings, date, 
       <Button type="button" variant="default" className="w-full sm:w-auto sm:shrink-0" disabled={pending || state.ok} onClick={() => { setBulkUndo({ selected: [...selected], fields: {...fields}, touched: [] }); setSelected(() => holdings.map(row => row.asset_id)); }}><CheckCheck className="size-4" aria-hidden="true"/>Set all as checked</Button>
     </div>
     <div className="flex min-h-11 items-center justify-between gap-2 text-xs text-muted-foreground"><p role="status">{selected.length}/{holdings.length} checked · {exceptions} exceptions</p>{bulkUndo !== null ? <Button type="button" size="sm" variant="ghost" disabled={pending || state.ok} onClick={() => { setSelected(current => current.filter(id => bulkUndo.selected.includes(id) || bulkUndo.touched.includes(id) || Object.keys(fields).some(key => key.endsWith(id) && fields[key] !== bulkUndo.fields[key]))); setBulkUndo(null); }}>Undo</Button> : null}</div>
+    {!repairTrackingAvailable?<p role="status" className="mb-3 text-xs text-[var(--sb-warning)]">Current repair status is unavailable. Check existing requests before reporting an issue.</p>:null}
     <p className="mb-3 text-xs text-muted-foreground">Inspection counts are saved separately and do not change registered quantities.</p>
     <div className="divide-y">{[...holdings].sort((a,b)=>(names.get(a.asset_id)?.asset_code ?? "").localeCompare(names.get(b.asset_id)?.asset_code ?? "")).map(holding => {
-      const id = holding.asset_id, result = fields[`result_${id}`] ?? "Checked", checked = selected.includes(id), open=expanded===id;
+      const id = holding.asset_id, currentRepair=repairByAsset.get(id), result = fields[`result_${id}`] ?? "Checked", checked = selected.includes(id), open=expanded===id;
       const choose=(value:string)=>{markEdited(id);update(`result_${id}`,value);setSelected(current=>current.includes(id)?current:[...current,id]);};
       return <fieldset key={id} disabled={pending || state.ok} className="sb-asset-check-row min-w-0">
         <div className="flex min-w-0 items-center gap-3">
@@ -53,6 +58,7 @@ export function AssetChecklistForm({ intro, locationId, assets, holdings, date, 
           </label>
           <button type="button" aria-label={`Result for ${names.get(id)?.asset_code}`} aria-expanded={open} aria-controls={`choices-${id}`} onClick={()=>setExpanded(open?null:id)} className={`inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md px-2 text-xs font-medium ${checked ? result==="Checked" ? "text-[var(--sb-success)]" : result==="Damaged" || result==="Missing" ? "text-[var(--sb-danger)]" : "text-[var(--sb-warning)]" : "text-muted-foreground"}`}>{checked?result:"Not checked"}<ChevronDown className={`size-3.5 ${open?"rotate-180":""}`} aria-hidden="true"/></button>
         </div>
+        {currentRepair?<p className="mt-1 text-xs text-[var(--sb-warning)]">Open repair · {currentRepair.status} · Ref {currentRepair.id.slice(0,8)}{currentRepair.open_count>1?` · ${currentRepair.open_count} existing requests`:""}</p>:null}
         <input type="hidden" name={`result_${id}`} value={result}/>
         {open ? <div id={`choices-${id}`} className="grid grid-cols-2 xl:grid-cols-5 gap-2 pt-2" role="group" aria-label={`Inspection result for ${names.get(id)?.asset_code}`}>{["Checked","Needs Maintenance","Damaged","Missing","Other"].map(value=>{const Icon=value==="Checked"?Check:value==="Needs Maintenance"?Wrench:value==="Missing"?SearchX:value==="Damaged"?TriangleAlert:CircleHelp;return <Button key={value} type="button" variant="outline" data-inspection-result={value} className={`sb-inspection-choice ${value === "Other" ? "col-span-2 xl:col-span-1" : ""}`} aria-pressed={checked&&result===value} onClick={()=>choose(value)}><Icon className="size-4 shrink-0" aria-hidden="true"/>{value}</Button>;})}</div>:null}
         {checked&&result!=="Checked" ? <label className="mt-2 grid gap-1 text-xs">Exception note<Input name={`remark_${id}`} required maxLength={4000} value={fields[`remark_${id}`] ?? ""} onChange={event=>update(`remark_${id}`,event.target.value)} placeholder="Describe the issue"/></label> : <input type="hidden" name={`remark_${id}`} value={fields[`remark_${id}`] ?? ""}/>}

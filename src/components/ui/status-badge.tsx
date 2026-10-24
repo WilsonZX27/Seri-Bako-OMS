@@ -50,7 +50,7 @@ export function StatusBadge({ status, className, label }: { status: string; clas
     ? "secondary"
     : ["approved", "posted", "completed", "evening_completed", "ready", "closed", "converted", "converted_to_po", "sent", "active", "available", "dispatched", "paid"].includes(normalized)
     ? "success"
-    : ["rejected", "cancelled", "void", "critical", "short", "suspended", "inactive", "disabled", "archived"].includes(normalized)
+    : ["rejected", "cancelled", "void", "critical", "short", "suspended", "inactive", "disabled", "employment_ended", "archived"].includes(normalized)
       ? "danger"
       : ["pending", "submitted", "pending_approval", "in_review", "admin_review", "purchasing_review", "manager_review", "manager_approval", "finance_review", "in_transit", "need_repair", "open", "partially_paid"].includes(normalized)
         ? "warning"

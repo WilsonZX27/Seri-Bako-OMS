@@ -7,7 +7,7 @@ function load(role = 'outlet_staff', count = 73, duplicate = false) {
   const module = { exports: {} }, calls = [], queryCalls = [];
   const policyModule = { exports: {} };
   vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/lib/asset-access.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, { module: policyModule, exports: policyModule.exports });
-  const db = { rpc: async (name,args) => { queryCalls.push({table:name,method:"rpc",args}); return {data:name==="get_asset_register_source_fields" ? args.p_assets.map(asset_id=>({asset_id,details:{Category:"Device"}})) : name==="get_asset_register" ? {total:count,assets:[],holdings:[],filterOptions:{categories:[],statuses:[]}} : true,error:null}; }, from(table) {
+  const db = { rpc: async (name,args) => { queryCalls.push({table:name,method:"rpc",args}); return {data:name==="get_asset_check_open_repairs" ? [] : name==="get_asset_register_source_fields" ? args.p_assets.map(asset_id=>({asset_id,details:{Category:"Device"}})) : name==="get_asset_register" ? {total:count,assets:[],holdings:[],filterOptions:{categories:[],statuses:[]}} : true,error:null}; }, from(table) {
     calls.push(table);
     let start = 0, end = 49, ids = [];
     const query = {};

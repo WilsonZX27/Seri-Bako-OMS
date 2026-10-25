@@ -1,3 +1,7 @@
+## v9.2.151 (local candidate) — Single-page multi-asset transfer
+
+PR-style editable request details and direct multi-selection with per-asset quantities, retained drafts and one atomic batch request. Batch creation is enabled only with complete backend readiness; automatic numbering remains independently OFF. Asset guarded retry and independent postflight must pass before this candidate is released. No compact formatter, sequence initialization or real transfer test.
+
 ## v9.2.150 (local candidate) — Complete operational UI release
 
 Publish the verified Preview UI with Production tenant/batch-line protections retained. Asset batch creation and automatic numbering remain disabled; no SQL activation or idle local-signout change is included.

@@ -1,13 +1,13 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript'),vm=require('node:vm');
 function compile(file,mocks){const out={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText,{exports:out,FormData,URL,URLSearchParams,Date,JSON,crypto:require('node:crypto').webcrypto,require:n=>{if(n in mocks)return mocks[n];if(n==='react/jsx-runtime')return require(n);return {};}});return out;}
 const id='11111111-1111-4111-8111-111111111111',batch='22222222-2222-4222-8222-222222222222';
-test('read/process capabilities are exact-version gated and never enable creation',async()=>{
+test('read/process capabilities and batch creation are exact-version gated while numbering stays off',async()=>{
  const api=compile('src/server/queries/asset-feature-capabilities.ts',{});
  for(const value of [null,{}, {version:2,transfer_batch:true,transfer_batch_revision:1},{version:3,transfer_batch:'true',transfer_batch_revision:1},{version:3,transfer_batch:true,transfer_batch_revision:0}]){
   const c=await api.assetFeatureCapabilities({rpc:async()=>({data:value,error:null})});assert.equal(c.transferBatchRead,false);assert.equal(c.transferBatch,false);assert.equal(c.automaticId,false);
  }
  for(const code of ['PGRST202','42883','42501'])assert.equal((await api.assetFeatureCapabilities({rpc:async()=>({error:{code}})})).transferBatchRead,false);
- const c=await api.assetFeatureCapabilities({rpc:async()=>({data:{version:3,transfer_batch:true,transfer_batch_revision:1},error:null})});assert.equal(c.transferBatchRead,true);assert.equal(c.transferBatch,false);assert.equal(c.automaticId,false);
+ const c=await api.assetFeatureCapabilities({rpc:async()=>({data:{version:3,transfer_batch:true,transfer_batch_revision:1},error:null})});assert.equal(c.transferBatchRead,true);assert.equal(c.transferBatch,true);assert.equal(c.automaticId,false);
  await assert.rejects(api.assetFeatureCapabilities({rpc:async()=>({error:{code:'network'}})}),/verified/);
 });
 function actionHarness({ready=true,lineBatch=null,denied=false,error=null}={}){

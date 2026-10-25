@@ -1,3 +1,7 @@
+# Release151 preparation
+
+The human approved corrected asset-base retry followed by this UI release and batch-only submission activation on2026-10-25. The release candidate now sets ASSET_BATCH_CREATION_ENABLED=true with exact backend readiness gating; ASSET_NUMBERING_ENABLED remains false. No compact/init is allowed. Deployment waits for independent live postflight. The original local closed-gate candidate below remains historical preparation evidence.
+
 # Single-page asset transfer candidate (not deployed)
 
 Source: human clarification 2026-10-25 06:06 UTC, Sentinel_e9887244fd648191bd852b5c5cff6f0e. Reopens the existing multi-asset requirement; Production150 single-asset layout acceptance did not close it.

@@ -2,7 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 function load(file,requireFn=()=>({})){const ctx={exports:{},require:requireFn,FormData,File,Buffer,console};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,ctx);return ctx.exports;}
 const caps=load('src/server/queries/asset-feature-capabilities.ts').assetFeatureCapabilities;
 const creationEnabled=fs.readFileSync('src/server/queries/asset-feature-capabilities.ts','utf8').includes('ASSET_BATCH_CREATION_ENABLED = true');
-test('compatibility Preview keeps creation disabled while complete backend contracts allow existing batch reads',async()=>{
+test('batch release preserves exact backend readiness while automatic numbering stays disabled',async()=>{
  for(const data of [null,{}, {version:2,transfer_batch:true,transfer_batch_revision:1}]) {
   const result=await caps({rpc:async()=>({data,error:null})});assert.equal(result.automaticId,false);assert.equal(result.transferBatch,false);assert.equal(result.transferBatchRead,false);
  }

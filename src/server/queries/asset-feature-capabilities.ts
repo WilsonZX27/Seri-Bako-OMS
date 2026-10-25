@@ -1,5 +1,5 @@
 import type { LooseSupabase } from "@/lib/supabase/loose";
-const ASSET_BATCH_CREATION_ENABLED = false;
+const ASSET_BATCH_CREATION_ENABLED = true;
 const ASSET_NUMBERING_ENABLED = false;
 export async function assetFeatureCapabilities(db: LooseSupabase) {
   const result = await db.rpc("asset_feature_capabilities");

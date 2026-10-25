@@ -1,13 +1,13 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript'),vm=require('node:vm');
 function load(file,requireFn=()=>({})){const ctx={exports:{},require:requireFn,FormData,File,Buffer,console};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,ctx);return ctx.exports;}
 const caps=load('src/server/queries/asset-feature-capabilities.ts').assetFeatureCapabilities;
-test('UI-only Preview disables all asset feature gates and never calls shared readiness',async()=>{
- let calls=0;
- for(const data of [null,{}, {version:3,automatic_id:true,transfer_batch:true,transfer_batch_revision:1}]) {
-  const result=await caps({rpc:async()=>{calls++;return {data,error:null}}});
-  assert.equal(result.automaticId,false);assert.equal(result.transferBatch,false);assert.equal(result.transferBatchRead,false);
+const creationEnabled=fs.readFileSync('src/server/queries/asset-feature-capabilities.ts','utf8').includes('ASSET_CREATION_ENABLED = true');
+test('compatibility Preview keeps creation disabled while complete backend contracts allow existing batch reads',async()=>{
+ for(const data of [null,{}, {version:2,transfer_batch:true,transfer_batch_revision:1}]) {
+  const result=await caps({rpc:async()=>({data,error:null})});assert.equal(result.automaticId,false);assert.equal(result.transferBatch,false);assert.equal(result.transferBatchRead,false);
  }
- await caps({rpc:async()=>{throw Error('Unexpected shared DB readiness call')}});assert.equal(calls,0);
+ const result=await caps({rpc:async()=>({data:{version:3,transfer_batch:true,transfer_batch_revision:1},error:null})});assert.equal(result.automaticId,false);assert.equal(result.transferBatch,creationEnabled);assert.equal(result.transferBatchRead,true);
+ assert.equal((await caps({rpc:async()=>({data:null,error:{code:'PGRST202'}})})).transferBatchRead,false);
 });
 function actionHarness(ready=true,error=null){const calls=[];const db={rpc:async(name,args)=>{calls.push({name,args});return {data:error?null:'11111111-1111-4111-8111-111111111111',error};}};const actions=load('src/server/actions/assets.ts',id=>{
  if(id==='next/cache')return {revalidatePath:()=>{}};
@@ -70,4 +70,11 @@ test('SQL readiness owns exact versioned request, transition, invoker view, type
  assert.match(sql,/not exists[\s\S]*not exists/);
  const batch=fs.readFileSync('docs/v10/proposals/asset-transfer-batch-review-only.sql','utf8');
  assert.ok(batch.indexOf('comment on function')>batch.indexOf('create view public.asset_transfer_register'));
+});
+
+test('the reviewed activation switch only enables complete backend contracts; missing numbering policy stays manual',async()=>{
+ const file='src/server/queries/asset-feature-capabilities.ts';const original=fs.readFileSync(file,'utf8');const ctx={exports:{},require:()=>({})};vm.runInNewContext(ts.transpileModule(original.replace('ASSET_CREATION_ENABLED = false','ASSET_CREATION_ENABLED = true'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,ctx);const ready=ctx.exports.assetFeatureCapabilities;
+ const noSequence=await ready({rpc:async()=>({data:{version:3,transfer_batch:true,transfer_batch_revision:1,automatic_id:false,automatic_id_revision:0},error:null})});assert.equal(noSequence.transferBatch,true);assert.equal(noSequence.automaticId,false);
+ const configured=await ready({rpc:async()=>({data:{version:3,transfer_batch:true,transfer_batch_revision:1,automatic_id:true,automatic_id_revision:1},error:null})});assert.equal(configured.automaticId,true);
+ const partial=await ready({rpc:async()=>({data:{version:2,transfer_batch:true,transfer_batch_revision:1,automatic_id:true,automatic_id_revision:1},error:null})});assert.equal(partial.transferBatch,false);assert.equal(partial.automaticId,false);
 });

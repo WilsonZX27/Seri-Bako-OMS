@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { RequestLineRow } from "@/components/request-line-row";
+import { RequestLineHeader, RequestLineRow } from "@/components/request-line-row";
 import { usePurchaseRequestGuidance } from "@/components/purchase-request-guidance";
 import { type FormEvent, useActionState, useEffect, useRef, useState } from "react";
 import { Building2, CalendarDays, ChevronDown, MapPin, MessageSquare, Minus, Plus, X } from "lucide-react";
@@ -409,7 +409,7 @@ export function PurchaseRequestForm({
               </div>
               <span />
             </div>
-            <div
+            <RequestLineHeader
               data-purchase-request-line-header
               className="hidden grid-cols-[1.5rem_minmax(10rem,1fr)_10rem_8.5rem_2.75rem_2.75rem] gap-3 border-b border-[var(--sb-border-soft)] bg-[var(--sb-surface-subtle)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-muted)] lg:grid"
             >
@@ -418,7 +418,7 @@ export function PurchaseRequestForm({
               <span>Quantity</span>
               <span>UOM</span>
               <span className="sr-only">Line actions</span>
-            </div>
+            </RequestLineHeader>
             <div className="divide-y">
               {/* Legacy contract token: grid-cols-[minmax(0,1fr)_7.5rem_2.25rem]. The current four-column line keeps UOM, quantity, comments, and removal aligned. */}
               {lines.map((line, index) => (

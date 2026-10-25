@@ -10,7 +10,7 @@ function harness({pending=false,message='',ok=false,ready=true}={}){
   '@/server/actions/assets':{requestAssetTransferBatch:()=>{throw Error('No business action')}},
   '@/components/asset-draft-state':{useAssetDraftAction:()=>()=>{},useAssetDraftState:(_form,_revision,initial)=>{draft??=initial;return[draft,next=>{draft=typeof next==='function'?next(draft):next},false]}},
   '@/components/asset-unsaved-guard':{useAssetFormGuard:()=>{}},'@/components/asset-transfer-action-slots':{useAssetTransferActionSlots:()=>[]},
-  '@/components/item-combobox':{ItemCombobox:Picker},'@/components/request-line-row':{RequestLineRow:wrap('div')},'@/components/ui/field':{Field:wrap('div')},
+  '@/components/item-combobox':{ItemCombobox:Picker},'@/components/request-line-row':{RequestLineRow:wrap('div'),RequestLineHeader:wrap('div')},'@/components/ui/field':{Field:wrap('div')},
   '@/components/ui/button':{Button:wrap('button')},'@/components/ui/input':{Input:wrap('input')},'@/components/ui/select-control':{SelectControl:require('./helpers/render-select-control.cjs')},'@/components/ui/system-states':{Notice:wrap('div')},'@/lib/asset-transfer-draft':model
  });
  const props={locations:[{id:source,source_name:'Synthetic source'},{id:to,source_name:'Synthetic destination'}],choices:[{id:one,asset_code:'SYN-1',item_name:'Synthetic mixer',holdings:{[source]:4}},{id:two,asset_code:'SYN-2',item_name:'Synthetic scale',holdings:{[source]:2}}],requestKey:'synthetic-key',today:'2026-10-24',canSubmit:ready};

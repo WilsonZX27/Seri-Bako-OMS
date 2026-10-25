@@ -8,7 +8,7 @@ import { useAssetDraftAction, useAssetDraftState } from "@/components/asset-draf
 import { useAssetFormGuard } from "@/components/asset-unsaved-guard";
 import { useAssetTransferActionSlots } from "@/components/asset-transfer-action-slots";
 import { ItemCombobox, type ItemComboboxOption } from "@/components/item-combobox";
-import { RequestLineRow } from "@/components/request-line-row";
+import { RequestLineHeader, RequestLineRow } from "@/components/request-line-row";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,8 @@ import { SelectControl } from "@/components/ui/select-control";
 import { Notice } from "@/components/ui/system-states";
 import { toggleTransferAsset, transferDraftError, validTransferDraft, type AssetTransferDraft, type TransferAssetChoice } from "@/lib/asset-transfer-draft";
 import type { AssetLocation } from "@/server/queries/assets";
+
+const assetLineColumns = "grid-cols-[minmax(0,1fr)_4.5rem_5rem_3.25rem] lg:grid-cols-[minmax(0,1fr)_5rem_8rem_3.25rem]";
 
 export function AssetTransferBatchForm({ locations, choices, requestKey, today, canSubmit = false, sourceIds = locations.map(location => location.id), initialAsset = "", initialSource = "", initialQuery = "" }: { locations: AssetLocation[]; choices: TransferAssetChoice[]; requestKey: string; today: string; canSubmit?: boolean; sourceIds?: string[]; initialAsset?: string; initialSource?: string; initialQuery?: string }) {
   const [state, action, pending] = useActionState(useAssetDraftAction("transfer-batch", requestAssetTransferBatch), { ok: false, message: "", requestId: undefined as string | undefined });
@@ -43,13 +45,14 @@ export function AssetTransferBatchForm({ locations, choices, requestKey, today, 
       <section className="sb-work-surface overflow-hidden" aria-labelledby="transfer-items">
         <header data-document-section-header className="flex items-center justify-between gap-3 border-b bg-white px-3 py-2"><h2 id="transfer-items" className="text-sm font-semibold">Requested assets</h2><span className="text-xs tabular-nums text-muted-foreground">{ids.length} selected</span></header>
         <div className="border-b p-3"><Field label="Add assets"><ItemCombobox items={catalogue} value={draft.query} selectedItemIds={ids} selectionLimit={100} inputRef={picker} ariaLabel="Find assets to add" placeholder="Search asset name or ID" emptyMessage="No accessible assets with a known positive holding match." onValueChange={value => change("query", value)} onSelect={item => setDraft(current => ({ ...current, selected: toggleTransferAsset(current.selected, item.id) }))} optionDetail={item => { const available = choices.find(choice => choice.id === item.id)?.holdings[draft.from]; return `${item.item_code}${draft.from ? available === undefined ? " · Not held at source" : ` · ${available} available` : ""}`; }}/></Field></div>
+        <RequestLineHeader data-transfer-line-header className={assetLineColumns}><span>Asset</span><span>Available</span><span>Quantity</span><span>Remove</span></RequestLineHeader>
         <div className="divide-y">{ids.map((id, index) => {
           const choice = choices.find(item => item.id === id), available = choice?.holdings[draft.from];
-          return <RequestLineRow key={id} data-transfer-line={id} className="grid-cols-[1.5rem_minmax(0,1fr)_5rem_2.75rem] lg:grid-cols-[1.5rem_minmax(0,1fr)_8rem_2.75rem]">
-            <span className="pt-2 text-xs tabular-nums text-muted-foreground">{index + 1}</span>
-            <div className="min-w-0 self-center text-xs"><span className="block break-words font-medium">{choice?.item_name ?? "Asset unavailable"}</span><span className="block break-words text-muted-foreground">{choice?.asset_code ?? "Remove this unavailable asset"}</span>{draft.from ? <span className={available === undefined ? "block text-warning" : "block text-muted-foreground"}>{available === undefined ? "Not held at this source" : `${available} available`}</span> : null}</div>
+          return <RequestLineRow key={id} data-transfer-line={id} className={assetLineColumns}>
+            <div className="min-w-0 self-center text-xs"><span className="block break-words font-medium">{choice?.item_name ?? "Asset unavailable"}</span><span className="block break-words text-muted-foreground">{choice?.asset_code ?? "Remove this unavailable asset"}</span></div>
+            <span className={draft.from && available === undefined ? "self-center text-xs text-warning" : "self-center text-xs tabular-nums text-muted-foreground"}>{draft.from ? available === undefined ? "Not held" : available : "—"}</span>
             <input type="hidden" name="asset_id" value={id}/>
-            <Field label="Quantity" required><Input name={`quantity_${id}`} aria-label={`Quantity for ${choice?.item_name ?? `line ${index + 1}`}`} type="number" min="1" max={available} step="1" required value={draft.selected[id]} onChange={event => change("selected", { ...draft.selected, [id]: event.target.value })}/></Field>
+            <Field label="Quantity" labelClassName="sr-only" required><Input name={`quantity_${id}`} aria-label={`Quantity for ${choice?.item_name ?? `line ${index + 1}`}`} type="number" min="1" max={available} step="1" required value={draft.selected[id]} onChange={event => change("selected", { ...draft.selected, [id]: event.target.value })}/></Field>
             <Button type="button" variant="ghost" size="icon" className="self-end" aria-label={`Remove ${choice?.item_name ?? `line ${index + 1}`}`} onClick={event => {
               const form = event.currentTarget.form, neighbour = ids[index + 1] ?? ids[index - 1];
               change("selected", toggleTransferAsset(draft.selected, id));

@@ -1,6 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { requestDeadline } from "@/lib/http/request-deadline";
+
+import { useEffect, useRef, useState } from "react";
 import { FileSpreadsheet, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SelectControl } from "@/components/ui/select-control";
@@ -13,6 +15,9 @@ import { parseScheduleWorkbooks, scheduleImportDisposition, scheduleOtResolution
 
 export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: string; canDraft: boolean }) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const requestVersion = useRef(0);
+  const mutationPending = useRef(false);
+  useEffect(() => () => { requestVersion.current++; }, []);
   const refreshOnClose = useRef(false);
   const [openError, setOpenError] = useState<string | null>(null);
   const [step,setStep]=useState<1|2|3>(1);
@@ -39,7 +44,7 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
   const [sheetMappings, setSheetMappings] = useState<Record<string,string>>({});
   const [selectedOutlets, setSelectedOutlets] = useState<string[]>([]);
   const [excludedRows, setExcludedRows] = useState<string[]>([]);
-  const [outcomes, setOutcomes] = useState<Record<string,{status:"importing"|"imported"|"failed";message:string}>>({});
+  const [outcomes, setOutcomes] = useState<Record<string,{status:"importing"|"imported"|"failed"|"unconfirmed";message:string}>>({});
   const rowKey = (branch: string, staff: string, date: string) => `${branch}:${staff}:${date}`;
   const [sheetNames,setSheetNames] = useState<string[]>([]);
   const [importWeek, setImportWeek] = useState(weekStart);
@@ -53,69 +58,94 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
   const pendingSelected = selected.filter(outlet => outcomes[outlet.branchId]?.status !== "imported");
   const eligibleCount = importable.filter(outlet => outcomes[outlet.branchId]?.status !== "imported").reduce((sum, outlet) => sum + outlet.assignments.length, 0);
   async function load(files: File[]) {
-    if (!files.length) return;
+    if (!files.length || mutationPending.current) return;
+    const requestId = ++requestVersion.current;
     setShiftSelections({});setShiftConflicts([]);setDestinationMappings({});setDestinationReviews([]);setEmployeeMappings({}); setEmployeeMatches([]);
     setEndTimes({}); setMissingEndTimes([]); setCatalog(null); setSheetNames([]);
     setSheetMappings({}); setSelectedOutlets([]); setExcludedRows([]); setOutcomes({});
     setOtReviews([]);setOtResolutions({});setRules({});setNamedShifts([]);setStep(1); setSource(files); setSheet(""); setBranchId(""); setDatesConfirmed(false);
     setBusy(true); setMessage("Checking the workbook against current OMS staff and outlets…"); setPreview(null);
     try {
-      const response = await fetch(`/api/attendance/schedule/import-catalog?week=${encodeURIComponent(importWeek)}`);
-      const catalog = await readJsonResponse<ScheduleImportCatalog & { ok?: boolean; message?: string }>(response, { unexpectedResponse: "The schedule catalog returned an unexpected response." });
-      if (!response.ok) throw new Error(catalog.message ?? "The schedule catalog could not be loaded.");
+      const catalog = await requestDeadline(async signal => {
+        const response = await fetch(`/api/attendance/schedule/import-catalog?week=${encodeURIComponent(importWeek)}`, { signal });
+        const value = await readJsonResponse<ScheduleImportCatalog & { ok?: boolean; message?: string }>(response, { unexpectedResponse: "The schedule catalog returned an unexpected response." });
+        if (!response.ok) throw new Error(value.message ?? "The schedule catalog could not be loaded.");
+        return value;
+      }, 20_000, "The staff and outlet catalog is taking too long. Your workbook is retained; check again when the connection is ready.");
+      if (requestId !== requestVersion.current) return;
       setCatalog(catalog);
       const result = await parseScheduleWorkbooks(files, importWeek, catalog);
+      if (requestId !== requestVersion.current) return;
       setSheetMappings(result.sheetBranches);setNamedShifts(result.namedShifts);const aiden=[...new Map(catalog.staff.filter(person=>person.name.trim().toLowerCase()==="aiden").map(person=>[person.id,person])).values()];setPolicyStaff(aiden.length===1?aiden[0].id:"");
       setOtReviews(result.otReviews);setPreview(result); setEmployeeMatches(result.employeeMatches);setShiftConflicts(result.shiftConflicts);setDestinationReviews(result.destinationReviews); setSheetNames(result.sheets); setMissingEndTimes(result.missingEndTimeSources);
       setMessage(result.issues.length ? `${result.issues.length} source item${result.issues.length === 1 ? " needs" : "s need"} review.` : result.assignmentCount ? "Workbook checked. Select available outlets below." : "No assignments were recognised. Select a sheet, check its dates and map its outlet.");
-    } catch (error) { setMessage(error instanceof Error ? error.message : "The workbook could not be read."); }
-    finally { setBusy(false); }
+    } catch (error) { if (requestId === requestVersion.current) setMessage(error instanceof Error ? error.message : "The workbook could not be read."); }
+    finally { if (requestId === requestVersion.current) setBusy(false); }
   }
   async function recheck(targetWeek = importWeek) {
-    if (!source.length || !catalog || (sheet && !branchId)) return;
-    setBusy(true); setPreview(null); setSelectedOutlets([]); setExcludedRows([]); setOutcomes({}); setMessage("Checking dates and assignments…");
+    if (!source.length || !catalog || (sheet && !branchId) || mutationPending.current) return;
+    const requestId = ++requestVersion.current;
+    setBusy(true); setMessage("Checking dates and assignments…");
     try {
-      const response = await fetch(`/api/attendance/schedule/import-catalog?week=${encodeURIComponent(targetWeek)}`);
-      const fresh = await readJsonResponse<ScheduleImportCatalog & { message?: string }>(response, { unexpectedResponse: "The schedule catalog returned an unexpected response." });
-      if (!response.ok) throw new Error(fresh.message ?? "The schedule catalog could not be loaded.");
+      const fresh = await requestDeadline(async signal => {
+        const response = await fetch(`/api/attendance/schedule/import-catalog?week=${encodeURIComponent(targetWeek)}`, { signal });
+        const value = await readJsonResponse<ScheduleImportCatalog & { message?: string }>(response, { unexpectedResponse: "The schedule catalog returned an unexpected response." });
+        if (!response.ok) throw new Error(value.message ?? "The schedule catalog could not be loaded.");
+        return value;
+      }, 20_000, "The staff and outlet catalog is taking too long. Your workbook is retained; check again when the connection is ready.");
+      if (requestId !== requestVersion.current) return;
       const result = await parseScheduleWorkbooks(source, targetWeek, fresh, {otResolutions,rules,sheet: sheet || undefined,branchId: branchId || undefined,confirmDateContext:datesConfirmed && targetWeek === importWeek,sheetEndTimes:endTimes,employeeMappings,shiftSelections,destinationMappings,sheetMappings});
+      if (requestId !== requestVersion.current) return;
       const detectedWeek = result.issues.find(issue => issue.suggestedWeekStart)?.suggestedWeekStart;
       if (sheet && detectedWeek && detectedWeek !== targetWeek) {
         await recheck(detectedWeek);
         return;
       }
+      setSelectedOutlets([]); setExcludedRows([]); setOutcomes({});
       setNamedShifts(result.namedShifts);setSheetNames(result.sheets);setSheetMappings(current=>({...result.sheetBranches,...current}));setCatalog(fresh); setImportWeek(targetWeek); setOtReviews(result.otReviews);setPreview(result); setEmployeeMatches(result.employeeMatches);setShiftConflicts(result.shiftConflicts);setDestinationReviews(result.destinationReviews); setMissingEndTimes(result.missingEndTimeSources);
       if (targetWeek !== importWeek) setDatesConfirmed(false);
       setMessage(`${result.weekStart} – ${result.weekEnd} · ${result.issues.length} to review`);
-    } catch(error) { setMessage(error instanceof Error ? error.message : "Could not check this sheet."); }
-    finally {setBusy(false);}
+    } catch(error) { if (requestId === requestVersion.current) setMessage(error instanceof Error ? error.message : "Could not check this sheet."); }
+    finally {if (requestId === requestVersion.current) setBusy(false);}
   }
   async function confirm() {
-    if (!preview || !selected.length) return;
+    if (!preview || !selected.length || mutationPending.current) return;
+    mutationPending.current = true;
+    const requestId = ++requestVersion.current;
     setBusy(true);
     const pending = selected.filter(outlet => outcomes[outlet.branchId]?.status !== "imported");
     for(const outlet of pending)setOutcomes(current=>({...current,[outlet.branchId]:{status:"importing",message:"Importing batch…"}}));
     try {
       const days=new Set(pending.flatMap(outlet=>outlet.assignments.map(assignment=>`${assignment.staff_id}:${assignment.work_date}`)));
-      const response=await fetch("/api/attendance/schedule",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action:"import_drafts",reconcileDrafts:true,weekStart:preview.weekStart,fileName:preview.fileName,fileHash:preview.fileHash,outlets:pending.map(outlet=>({branch_id:outlet.branchId,assignments:outlet.assignments})),unresolvedCount:0,sourceMetadata:{source:"schedule_workbook_ui",parserVersion:12,otResolutions,files:preview.files,untimedDuties:preview.untimedDuties.filter(row=>pending.some(outlet=>outlet.branchId===row.branchId)),reusableRules:preview.reusableRules,expectedAssignments:(catalog?.current_assignments??[]).filter(row=>days.has(`${row.staff_id}:${row.work_date}`)).map(row=>row.id).sort(),sheetMappings,employeeMatches:preview.employeeMatches,assignmentSources:preview.assignmentSources,shiftSelections,destinationMappings,sourceIssues:preview.issues,sourceNotices:preview.notices,sourceNotes:preview.notes,excludedRows}})});
-      const result=await readJsonResponse<{ok:boolean;message?:string;data?:{idempotent?:boolean}}>(response,{unexpectedResponse:"The batch response could not be read. Retry the same selection to check its receipt."});
+      const result = await requestDeadline(async signal => {
+      const response=await fetch("/api/attendance/schedule",{signal,method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action:"import_drafts",reconcileDrafts:true,weekStart:preview.weekStart,fileName:preview.fileName,fileHash:preview.fileHash,outlets:pending.map(outlet=>({branch_id:outlet.branchId,assignments:outlet.assignments})),unresolvedCount:0,sourceMetadata:{source:"schedule_workbook_ui",parserVersion:12,otResolutions,files:preview.files,untimedDuties:preview.untimedDuties.filter(row=>pending.some(outlet=>outlet.branchId===row.branchId)),reusableRules:preview.reusableRules,expectedAssignments:(catalog?.current_assignments??[]).filter(row=>days.has(`${row.staff_id}:${row.work_date}`)).map(row=>row.id).sort(),sheetMappings,employeeMatches:preview.employeeMatches,assignmentSources:preview.assignmentSources,shiftSelections,destinationMappings,sourceIssues:preview.issues,sourceNotices:preview.notices,sourceNotes:preview.notes,excludedRows}})});
+      const result=await readJsonResponse<{ok:boolean;message?:string;data?:{idempotent?:boolean}}>(response,{unexpectedResponse:"Import result is unconfirmed. Keep the same workbook and selection; check Recent imports before retrying.",invalidJson:"Import result is unconfirmed. Keep the same workbook and selection; check Recent imports before retrying."});
       if(!response.ok||!result.ok)throw new Error(result.message??"The batch was not imported. Check changes and try again.");
+      return result;
+      }, 60_000, "Import result is unconfirmed. The server may have saved drafts. Keep the same workbook and selection; check Recent imports before retrying.");
+      if (requestId !== requestVersion.current) return;
       for(const outlet of pending)setOutcomes(current=>({...current,[outlet.branchId]:{status:"imported",message:`${outlet.assignments.length} assignments saved${result.data?.idempotent?" · already saved":""}`}}));
       refreshOnClose.current = true;
       const savedAssignments = pending.reduce((sum, outlet) => sum + outlet.assignments.length, 0);
       setMessage("Import succeeded: " + pending.length + " outlets and " + savedAssignments + " employee days saved as drafts. Employees can see the shifts after the schedule is published.");
-    }catch(error){const message=error instanceof Error?error.message:"Import failed.";for(const outlet of pending)setOutcomes(current=>({...current,[outlet.branchId]:{status:"failed",message}}));setMessage(message);}
-    finally{setBusy(false);}
+    }catch(error){if (requestId !== requestVersion.current) return; const message=error instanceof Error && !(error instanceof TypeError)?error.message:"Import result is unconfirmed. Keep the workbook and selection; check Recent imports before retrying.";for(const outlet of pending)setOutcomes(current=>({...current,[outlet.branchId]:{status:"unconfirmed",message}}));setMessage(message);}
+    finally{mutationPending.current = false;if (requestId === requestVersion.current) setBusy(false);}
   }
   async function saveFingerprintException(){
-    if(!policyStaff)return;setBusy(true);
+    if(!policyStaff || mutationPending.current)return;
+    mutationPending.current = true;
+    const requestId = ++requestVersion.current;
+    setBusy(true);
     try{
-      const response=await fetch("/api/attendance/schedule/fingerprint-policy",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({staffId:policyStaff,effectiveFrom:importWeek,requiresFingerprint:policyRequiresFingerprint,reason:policyReason})});
-      const result=await readJsonResponse<{ok:boolean;message?:string}>(response,{unexpectedResponse:"The policy response could not be read."});
+      await requestDeadline(async signal => {
+      const response=await fetch("/api/attendance/schedule/fingerprint-policy",{signal,method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({staffId:policyStaff,effectiveFrom:importWeek,requiresFingerprint:policyRequiresFingerprint,reason:policyReason})});
+      const result=await readJsonResponse<{ok:boolean;message?:string}>(response,{unexpectedResponse:"Staff exception result is unconfirmed. Keep your inputs and check the policy before trying again."});
       if(!response.ok||!result.ok)throw new Error(result.message??"Policy could not be saved.");
+      }, 60_000, "Staff exception result is unconfirmed. The server may have saved it. Keep your inputs and check the policy before trying again.");
+      if (requestId !== requestVersion.current) return;
       setCatalog(current=>current?{...current,fingerprint_exempt_staff:policyRequiresFingerprint?(current.fingerprint_exempt_staff??[]).filter(id=>id!==policyStaff):[...new Set([...(current.fingerprint_exempt_staff??[]),policyStaff])]}:current);
       setMessage("Staff exception saved. Check changes to refresh this preview. No working or paid hours were assumed.");setPreview(null);
-    }catch(error){setMessage(error instanceof Error?error.message:"Could not save staff exception.");}finally{setBusy(false);}
+    }catch(error){if (requestId === requestVersion.current) setMessage(error instanceof Error && !(error instanceof TypeError)?error.message:"Staff exception result is unconfirmed. Keep your inputs and check the policy before trying again.");}finally{mutationPending.current = false;if (requestId === requestVersion.current) setBusy(false);}
   }
 
   return <>
@@ -131,7 +161,7 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
       }}><FileSpreadsheet className="h-4 w-4"/>Import workbook</Button>
     </section>
     {openError ? <p role="status" className="text-xs text-destructive">{openError}</p> : null}
-    <dialog ref={dialog} onCancel={event => { if (busy) event.preventDefault(); }} onClose={() => { if (refreshOnClose.current) window.location.reload(); }} className="sb-schedule-import-dialog m-auto max-h-[calc(100dvh-4rem)] w-[min(48rem,calc(100vw-2rem))] max-w-none overflow-visible rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-2xl backdrop:bg-black/55">
+    <dialog ref={dialog} onCancel={event => { if (busy) event.preventDefault(); }} onClose={() => { requestVersion.current++; if (refreshOnClose.current) window.location.reload(); }} className="sb-schedule-import-dialog m-auto max-h-[calc(100dvh-4rem)] w-[min(48rem,calc(100vw-2rem))] max-w-none overflow-visible rounded-[var(--sb-panel-radius)] border-0 bg-white p-0 shadow-2xl backdrop:bg-black/55">
       <div className="flex max-h-[calc(100dvh-4rem)] flex-col">
         <header className="flex items-start gap-3 border-b border-[var(--sb-border-soft)] p-4"><div className="min-w-0 flex-1"><h2 className="text-base font-semibold">Import schedule workbook</h2><p className="mt-1 text-xs text-muted-foreground">Select a workbook, resolve issues, then import drafts.</p></div><Button size="icon" variant="ghost" aria-label="Close schedule import" disabled={busy} onClick={() => dialog.current?.close()}><X className="h-4 w-4"/></Button></header>
         <nav aria-label="Import steps" className="relative z-10 grid grid-cols-3 gap-1 border-b bg-white px-4 py-3 shadow-[0_4px_8px_-4px_rgba(19,38,31,0.22)]">{(["Import","Fix import","Review"] as const).map((label,index)=><Button key={label} type="button" variant={step===index+1?"default":"ghost"} aria-current={step===index+1?"step":undefined} disabled={busy || (index>0 && !catalog) || (index===2 && (!preview || step===1))} onClick={()=>setStep((index+1) as 1|2|3)}>{index+1}. {label}</Button>)}</nav>
@@ -181,7 +211,7 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
           {shiftConflicts.length ? <section className="space-y-2"><h3 className="text-sm font-semibold">Confirm overlapping shifts</h3>{shiftConflicts.map(conflict => <label key={conflict.key} className="grid min-w-0 gap-1 text-xs"><span>{conflict.employee} · {conflict.date}</span><SelectControl ariaLabel={`Shift for ${conflict.employee} ${conflict.date}`} portalContainer={dialog.current} disabled={busy} placeholder="Choose source shift" value={shiftSelections[conflict.key] ?? conflict.selected} options={conflict.choices.map(choice => ({value:choice.key,label:choice.label}))} onValueChange={value => {setShiftSelections(current => ({...current,[conflict.key]:value}));setPreview(null);setMessage("Shift selection changed. Preview import again before saving.");}}/></label>)}</section> : null}
           </div>
           <div hidden={step!==3} className="space-y-4">
-          {Object.keys(outcomes).length ? <section aria-label="Import results" className="space-y-2 rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-white p-3 text-xs"><h3 className="font-semibold">Import results</h3>{Object.entries(outcomes).map(([id,outcome]) => <p key={id} role={outcome.status === "failed" ? "alert" : "status"} className={outcome.status === "failed" ? "text-[var(--sb-danger)]" : outcome.status === "imported" ? "text-emerald-800" : "text-muted-foreground"}><strong>{catalog?.branches.find(branch => branch.id === id)?.name}</strong> · {outcome.message}</p>)}</section> : null}
+          {Object.keys(outcomes).length ? <section aria-label="Import results" className="space-y-2 rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-white p-3 text-xs"><h3 className="font-semibold">Import results</h3>{Object.entries(outcomes).map(([id,outcome]) => <p key={id} role={["failed", "unconfirmed"].includes(outcome.status) ? "alert" : "status"} className={["failed", "unconfirmed"].includes(outcome.status) ? "text-[var(--sb-danger)]" : outcome.status === "imported" ? "text-emerald-800" : "text-muted-foreground"}><strong>{catalog?.branches.find(branch => branch.id === id)?.name}</strong> · {outcome.message}</p>)}</section> : null}
           {preview ? <>
             <div className="flex flex-wrap items-center justify-between gap-2"><span/>{importable.length ? <Button size="sm" variant="outline" disabled={busy} onClick={() => setSelectedOutlets(importable.filter(outlet => outcomes[outlet.branchId]?.status !== "imported").map(outlet => outlet.branchId))}>Select all available outlets</Button> : null}</div>
             {preview.untimedDuties.length ? <p className="rounded border p-3 text-xs">{preview.untimedDuties.length} named duties for fingerprint-exempt employees will be kept as roster notes, with no assumed hours.</p>:null}

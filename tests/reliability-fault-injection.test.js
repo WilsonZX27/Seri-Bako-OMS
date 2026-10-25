@@ -42,8 +42,8 @@ test("three repeated transient failures open the short circuit", async () => {
 test("HTML, malformed JSON and expired sessions produce safe recovery messages", async () => {
   const { readJsonResponse } = await import("../src/lib/http/read-json-response.ts");
 
-  await assert.rejects(readJsonResponse(new Response("<!DOCTYPE html>", { status: 502, headers: { "content-type": "text/html" } })), /unexpected response \(502\).*no changes were applied/i);
-  await assert.rejects(readJsonResponse(new Response("{broken", { status: 200, headers: { "content-type": "application/json" } })), /could not be read.*no changes were applied/i);
+  await assert.rejects(readJsonResponse(new Response("<!DOCTYPE html>", { status: 502, headers: { "content-type": "text/html" } })), /unexpected response \(502\).*result is unconfirmed/i);
+  await assert.rejects(readJsonResponse(new Response("{broken", { status: 200, headers: { "content-type": "application/json" } })), /could not be read.*result is unconfirmed/i);
   await assert.rejects(
     readJsonResponse(new Response("{}", { status: 401, headers: { "content-type": "application/json" } })),
     (error) => {

@@ -1,9 +1,9 @@
+import { PaginationControls } from "@/components/sortable-table";
 import { ScheduleRefreshStatus } from "@/components/attendance/schedule-refresh-status";
 import { Fragment } from "react";
 import Link from "next/link";
 import {
   CheckCircle2,
-  ChevronLeft,
   ChevronRight,
   Eye,
   FileCheck2,
@@ -618,32 +618,7 @@ export default async function AttendanceReviewPage({
               <Button asChild variant="outline" className="mt-3"><Link href={`/attendance/review?week=${encodeURIComponent(week)}&branch=${encodeURIComponent(branch ?? "select")}`}>Reset filters</Link></Button>
             </div>
           ) : null}
-          {totalPages > 1 ? (
-            <footer className="flex items-center justify-between border-t border-[var(--sb-border-soft)] px-3 py-2">
-              <Button asChild size="sm" variant="ghost" disabled={page <= 1}>
-                <Link href={pageHref(filterParams, Math.max(1, page - 1))}>
-                  <ChevronLeft className="h-4 w-4" />
-                  Previous
-                </Link>
-              </Button>
-              <span className="text-xs text-muted-foreground">
-                Page {page} of {totalPages}
-              </span>
-              <Button
-                asChild
-                size="sm"
-                variant="ghost"
-                disabled={page >= totalPages}
-              >
-                <Link
-                  href={pageHref(filterParams, Math.min(totalPages, page + 1))}
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </footer>
-          ) : null}
+          <PaginationControls page={page} totalPages={totalPages} totalRows={review.total} searchParams={filterParams} />
         </section>}
         <details className="group sb-work-surface overflow-hidden xl:hidden">
           <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">

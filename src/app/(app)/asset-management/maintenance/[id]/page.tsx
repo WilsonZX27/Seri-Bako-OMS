@@ -1,8 +1,8 @@
+import { PaginationControls } from "@/components/sortable-table";
 import { randomUUID } from "node:crypto";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { AssetMaintenanceUpdate } from "@/components/asset-maintenance-form";
 import { AssetMaintenanceDetailPanel } from "@/components/asset-maintenance-detail-panel";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/ui/page-header";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
@@ -22,6 +22,6 @@ export default async function MaintenanceDetail({ params, searchParams }: { para
     <ConsoleSection title="Next Step"><p className="text-xs text-muted-foreground">Add a work note before saving an update. Attach repair photos in the attachments section.</p></ConsoleSection>
   </>}>
     <AssetMaintenanceDetailPanel hideUpdate data={data} asset={asset} permissions={permissions}/>
-    {data.total > 50 ? <nav className="flex justify-between text-sm" aria-label="Maintenance history pages">{page > 1 ? <Link className="min-h-11 py-3 underline" href={`?page=${page - 1}`}>Previous</Link> : <span/>}{page * 50 < data.total ? <Link className="min-h-11 py-3 underline" href={`?page=${page + 1}`}>Next</Link> : null}</nav> : null}
+    {data.total > 50 ? <PaginationControls page={page} totalPages={Math.max(1, Math.ceil(data.total / 50))} totalRows={data.total} searchParams={{}} /> : null}
   </WorkspaceGrid></>;
 }

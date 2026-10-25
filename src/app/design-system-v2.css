@@ -2,7 +2,8 @@
 :root {
   /* Shared palette: the single source of truth for legacy and v2 surfaces. */
   --sb-green-950: #053c2c;
-  --sb-green-900: #074b37;
+  --sb-green-900-rgb: 7 75 55;
+  --sb-green-900: rgb(var(--sb-green-900-rgb));
   --sb-green-800: #096247;
   --sb-green-700: #0f7757;
   --sb-green-300: #8fc5ad;
@@ -22,8 +23,12 @@
   --sb-radius-control: var(--sb-control-radius);
   --sb-shadow-card: 0 1px 2px rgb(6 44 31 / 0.04), 0 8px 24px rgb(6 44 31 / 0.06);
   --sb-border-soft: #e7ebe7;
-  --sb-text: #13261f;
-  --sb-text-muted: #66766f;
+  --sb-switch-off-border: #c7c7cc;
+  --sb-switch-off-bg: #e9e9eb;
+  --sb-text-rgb: 19 38 31;
+  --sb-text: rgb(var(--sb-text-rgb));
+  --sb-text-muted-rgb: 102 118 111;
+  --sb-text-muted: rgb(var(--sb-text-muted-rgb));
   --sb-text-muted-workspace: #5f6f68;
   --sb-text-soft: #8A948E;
   --sb-text-inverse: #FFFFFF;
@@ -2459,7 +2464,9 @@ html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-outlet { min-width
 html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-retention { width: 96px; min-width: 96px; position: sticky; right: 0; z-index: 3; background: var(--sb-surface); box-shadow: -1px 0 var(--sb-border-soft); }
 html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-summary button { padding-inline: 4px; white-space: normal; text-align: left; width: 100%; }
 @media (max-width: 1023px) { html[data-design-layer="v2"] .sb-planning-worksheet .sb-table-region { max-height: 65dvh; } }
+@media (min-width: 1024px) and (pointer: fine) {
 html[data-design-layer="v2"] :is(.sb-planning-workspace, .sb-planning-actions, form.sb-query-explicit) { --sb-control-height: 2.25rem; }
+}
 
 /* Operational controls share the register density; phone targets are enlarged below. */
 html[data-design-layer="v2"] form.sb-query-explicit :where(input:not([type="hidden"]), button, [data-select-control]),
@@ -2480,7 +2487,7 @@ html[data-design-layer="v2"] .sb-planning-matrix thead .sb-planning-product { le
 html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-summary .sb-planning-adjust { width: auto; height: 23px !important; min-height: 23px !important; max-height: 23px !important; padding: 0 8px; margin-top: 3px; color: #fff; background: #7c9b8d; font-size: 11px; font-weight: 500; gap: 4px; }
 html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-adjust > svg { width: 12px; height: 12px; }
 html[data-design-layer="v2"] .sb-planning-product button { min-height: 0; line-height: 18px; }
-@media (max-width: 1023px) {
+@media (max-width: 1023px), (pointer: coarse) {
  html[data-design-layer="v2"] :is(.sb-planning-workspace, .sb-planning-actions, form.sb-query-explicit) { --sb-control-height: 2.75rem; }
  html[data-design-layer="v2"] .sb-planning-product button { min-height: 44px; }
  html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-summary .sb-planning-adjust { height: 44px !important; min-height: 44px !important; max-height: 44px !important; }
@@ -2820,7 +2827,7 @@ html[data-design-layer="v2"] table.sb-stock-balance-table :is(th,td):nth-child(3
     flex: 0 0 var(--sb-control-height) !important; width: var(--sb-control-height) !important; min-width: var(--sb-control-height) !important; max-width: var(--sb-control-height) !important; padding-inline: 0 !important;
   }
 }
-@media (min-width: 1024px) {
+@media (min-width: 1024px) and (pointer: fine) {
   details > summary.sb-compact-disclosure { min-height: 36px; }
 }
 
@@ -2928,7 +2935,7 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier > span { white-space: normal;
 html[data-design-layer="v2"] .sb-pr-phone-location > span,
 html[data-design-layer="v2"] .sb-pr-phone-byline-person > span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 html[data-design-layer="v2"] .sb-pr-phone-items { justify-content: flex-end; white-space: nowrap; }
-html[data-design-layer="v2"] .sb-pr-phone-amount { color: var(--sb-text); font-size: .6875rem; font-weight: 600; line-height: 1rem; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+html[data-design-layer="v2"] .sb-pr-phone-amount { color: var(--sb-text); font-size: .6875rem; font-weight: 400; line-height: 1rem; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
 html[data-design-layer="v2"] .sb-pr-phone-byline { display: inline-flex; min-width: 0; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: .5rem; }
 html[data-design-layer="v2"] .sb-pr-phone-byline-date { flex-shrink: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
 html[data-design-layer="v2"] :is(.sb-pr-phone-supplier, .sb-pr-phone-items, .sb-pr-phone-location, .sb-pr-phone-byline-person, .sb-pr-phone-byline-date) > svg { width: .875rem; height: .875rem; flex: 0 0 .875rem; }

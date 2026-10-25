@@ -2,6 +2,7 @@ const test=require('node:test'),assert=require('node:assert/strict');
 const {compile}=require('./helpers/render-workspaces.cjs');
 const line='11111111-1111-4111-8111-111111111111',batch='22222222-2222-4222-8222-222222222222';
 function harness(complete){const calls=[];const Route=compile('src/app/(app)/asset-management/transfers/[id]/page.tsx',{
+ '@/components/sortable-table':{PaginationControls:()=>null},
  '@/server/queries/assets':{getAssetTransferBatchDetail:async id=>{calls.push({batch:id});return id===batch&&complete?{transfer:{id:batch},lines:[{},{}]}:null},getAssetTransferDetail:async()=>({transfer:{batch_id:batch}})},
  '@/server/auth/permissions':{getPermissionMap:async()=>({})},'next/navigation':{redirect:path=>{throw Error('REDIRECT:'+path)},notFound:()=>{throw Error('NOTFOUND')}},
  '@/components/asset-transfer-batch-detail':{AssetTransferBatchDetail:()=>null},'@/components/asset-transfer-form':{AssetTransferAction:()=>{throw Error('No single-line action for batches')}},

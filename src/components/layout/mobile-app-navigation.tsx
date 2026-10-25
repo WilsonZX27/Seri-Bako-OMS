@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { activeNavigationHref } from "@/lib/active-navigation";
 import { useNavigationAttention } from "@/components/layout/navigation-attention";
 import { createPortal } from "react-dom";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   Boxes,
   CalendarDays,
@@ -119,6 +120,7 @@ export function MobileAppNavigation({
   attentionHrefs?: string[];
 }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [moreOpen, setMoreOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -127,6 +129,7 @@ export function MobileAppNavigation({
   const sharedAttentionHrefs = useNavigationAttention();
   const attentionHrefs = suppliedAttentionHrefs ?? sharedAttentionHrefs;
   const groups = useMemo(() => getVisibleNavGroups(role, permissionMap, attentionHrefs), [attentionHrefs, permissionMap, role]);
+  const activeMoreHref = activeNavigationHref(pathname, searchParams, groups.flatMap(group => group.items.map(item => item.href)));
   const tabs = useMemo(() => {
     const preferred = roleTabs(role).filter((tab) => !tab.permission || has(permissionMap, tab.permission)).map((tab) => ({...tab,hasAttention:attentionHrefs.includes(tab.href)}));
     const seen = new Set(preferred.map((tab) => tab.href.split("?", 1)[0]));
@@ -380,7 +383,7 @@ export function MobileAppNavigation({
                   <div className="divide-y divide-[var(--sb-border-soft)] border-y border-[var(--sb-border-soft)]">
                     {group.items.map((item) => {
                       const Icon = item.icon;
-                      const active = isCurrentPath(pathname, item.href);
+                      const active = activeMoreHref === item.href;
                       return (
                         <Link
                           key={item.href}

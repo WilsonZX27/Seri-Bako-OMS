@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { RecordSection } from "@/components/record-workspace";
 import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 
@@ -66,7 +67,7 @@ export function StaffPermissionOverrides({ permissions, canManage, protectedRole
                 const effective = override === "allow" || (override === "inherit" && permission.roleDefault);
                 return <div key={permission.id} className="flex min-h-14 items-center justify-between gap-3 px-3 py-2.5">
                   <div className="min-w-0"><p className="text-xs font-medium text-[var(--sb-text)]">{permissionName(permission)}</p><span className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ${override === "inherit" ? "bg-[var(--sb-surface-muted)] text-muted-foreground" : "bg-[var(--sb-green-50)] text-[var(--sb-green-800)]"}`}>{override === "inherit" ? "Role default" : "Override"}</span></div>
-                  <button type="button" role="switch" aria-checked={effective} aria-label={`${permissionName(permission)} ${effective ? "on" : "off"}`} disabled={disabled} onClick={() => setEffective(permission, !effective)} className={`relative h-6 w-11 shrink-0 rounded-full border transition-[background-color,border-color] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${effective ? "border-[var(--sb-green-700)] bg-[var(--sb-green-700)]" : "border-[#c7c7cc] bg-[#e9e9eb]"}`}><span className={`absolute left-0.5 top-0.5 h-[1.125rem] w-[1.125rem] rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.28)] transition-transform duration-200 ${effective ? "translate-x-5" : "translate-x-0"}`} /></button>
+                  <Button variant="ghost" size="icon" type="button" role="switch" aria-checked={effective} aria-label={`${permissionName(permission)} ${effective ? "on" : "off"}`} disabled={disabled} onClick={() => setEffective(permission, !effective)} className="w-11 min-w-11 p-0"><span aria-hidden="true" className={`relative block h-6 w-11 shrink-0 rounded-full border transition-[background-color,border-color] duration-200 ${effective ? "border-[var(--sb-green-700)] bg-[var(--sb-green-700)]" : "border-[var(--sb-switch-off-border)] bg-[var(--sb-switch-off-bg)]"}`}><span className={`absolute left-0.5 top-0.5 h-[1.125rem] w-[1.125rem] rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.28)] transition-transform duration-200 ${effective ? "translate-x-5" : "translate-x-0"}`} /></span></Button>
                 </div>;
               })}
             </div>

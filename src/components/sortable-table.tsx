@@ -70,7 +70,7 @@ export function PaginationControls({
         max={totalPages}
         defaultValue={page}
         aria-label={`Page number, 1 to ${totalPages}`}
-        className="h-9 w-10 border-0 bg-transparent p-0 text-center text-xs font-normal tabular-nums outline-none"
+        className="h-[var(--sb-control-height)] min-w-[var(--sb-control-height)] w-11 border-0 bg-transparent p-0 text-center text-xs font-normal tabular-nums focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sb-green-700)]"
       />
       <span className="px-0.5 text-xs text-muted-foreground">/ {totalPages}</span>
     </form>

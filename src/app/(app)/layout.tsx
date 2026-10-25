@@ -1,3 +1,4 @@
+import { readShellBranding } from "@/lib/shell-branding-read";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { TopBar } from "@/components/layout/top-bar";
@@ -40,7 +41,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     }
   }
 
-  const [permissionMap, branding] = await Promise.all([getPermissionMap(permissionCodes), getCompanyBranding()]);
+  const [permissionMap, branding] = await Promise.all([getPermissionMap(permissionCodes), readShellBranding(getCompanyBranding())]);
   const activityPromise = getTopBarActivity();
 
   const hasStaffRole = (profile as { has_staff_role?: boolean } | null)?.has_staff_role ?? false;

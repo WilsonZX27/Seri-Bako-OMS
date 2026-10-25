@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { requestDeadline } from "@/lib/http/request-deadline";
 import { AlertTriangle, CheckCircle2, Download, FileSpreadsheet, Save, Trash2, Upload, XCircle } from "lucide-react";
 import { importTemplates, type ImportEntity, type ImportMode } from "@/lib/imports/config";
 import { Button } from "@/components/ui/button";
@@ -185,8 +186,8 @@ function validateRows(entity: ImportEntity, rows: Record<string, string>[]) {
   });
 }
 
-function draftKey(entity: ImportEntity) {
-  return `seri-bako-import-draft-${entity}`;
+function draftKey(entity: ImportEntity, scope: string) {
+  return `seri-bako-import-draft-v2:${scope}:${entity}`;
 }
 
 function emptyRow(entity: ImportEntity) {
@@ -207,7 +208,11 @@ const steps = [
 
 type SupplierPreview = { id: string; supplier_code: string | null; name: string };
 
-export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntity; suppliers?: SupplierPreview[] }) {
+export function ImportWorkflow(props: { entity: ImportEntity; draftScope: string; suppliers?: SupplierPreview[] }) {
+  return <ScopedImportWorkflow key={`${props.draftScope}:${props.entity}`} {...props} />;
+}
+
+function ScopedImportWorkflow({ entity, draftScope, suppliers = [] }: { entity: ImportEntity; draftScope: string; suppliers?: SupplierPreview[] }) {
   const spec = importTemplates[entity];
   const [rows, setRows] = useState<RowState[]>(() => validateRows(entity, [emptyRow(entity)]));
   const [validationRequested, setValidationRequested] = useState(false);
@@ -219,6 +224,8 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
   const [result, setResult] = useState<ImportResult | null>(null);
   const [draftSavedAt, setDraftSavedAt] = useState<string | null>(null);
   const savingRef = useRef(false);
+  const requestVersion = useRef(0);
+  useEffect(() => () => { requestVersion.current++; }, []);
   const validRows = useMemo(() => rows.filter((row) => !row.errors.length), [rows]);
   const errorRows = useMemo(() => rows.filter((row) => row.errors.length), [rows]);
   const rowValidationMessage = (row: RowState) => {
@@ -233,7 +240,7 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
 
   useEffect(() => {
     try {
-      const saved = window.localStorage.getItem(draftKey(entity));
+      const saved = window.localStorage.getItem(draftKey(entity, draftScope));
       if (!saved) return;
       const draft = JSON.parse(saved) as DraftPayload;
       if (!Array.isArray(draft.rows) || !draft.rows.length) return;
@@ -244,9 +251,9 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
       setDraftSavedAt(draft.savedAt);
       setMessage(`Loaded saved draft with ${draft.rows.length} row(s).`);
     } catch {
-      // Ignore invalid local drafts and let the user start clean.
+      setMessage("Saved draft could not be read on this browser. Existing saved data was not removed.");
     }
-  }, [entity, spec.defaultMode]);
+  }, [entity, draftScope, spec.defaultMode]);
 
   function downloadTemplate() {
     const csv = [spec.headers.join(","), spec.headers.map((header) => csvEscape(spec.sample[header] ?? "")).join(",")].join("\r\n");
@@ -351,14 +358,18 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
       rows: rows.map((row) => row.values),
       savedAt: new Date().toISOString(),
     };
-    window.localStorage.setItem(draftKey(entity), JSON.stringify(payload));
-    setDraftSavedAt(payload.savedAt);
-    setMessage("Draft saved on this browser only.");
+    try {
+      window.localStorage.setItem(draftKey(entity, draftScope), JSON.stringify(payload));
+      setDraftSavedAt(payload.savedAt);
+      setMessage("Draft saved on this browser only.");
+    } catch {
+      setMessage("Draft could not be saved on this browser. Keep this page open to preserve your inputs.");
+    }
   }
 
   function loadDraft() {
     try {
-      const saved = window.localStorage.getItem(draftKey(entity));
+      const saved = window.localStorage.getItem(draftKey(entity, draftScope));
       if (!saved) {
         setMessage("No saved draft was found on this browser.");
         return;
@@ -376,9 +387,13 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
   }
 
   function clearDraft() {
-    window.localStorage.removeItem(draftKey(entity));
-    setDraftSavedAt(null);
-    setMessage("Saved draft cleared.");
+    try {
+      window.localStorage.removeItem(draftKey(entity, draftScope));
+      setDraftSavedAt(null);
+      setMessage("Saved draft cleared.");
+    } catch {
+      setMessage("Saved draft could not be cleared on this browser. Your current inputs are unchanged.");
+    }
   }
 
   function checkErrors() {
@@ -392,11 +407,14 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
   async function confirmImport() {
     if (savingRef.current) return;
     savingRef.current = true;
+    const requestId = ++requestVersion.current;
     setIsSaving(true);
     setResult(null);
 
     try {
+      const payload = await requestDeadline(async signal => {
       const response = await fetch("/api/imports/confirm", {
+        signal,
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -408,19 +426,27 @@ export function ImportWorkflow({ entity, suppliers = [] }: { entity: ImportEntit
       });
       const payload = await readJsonResponse<ImportResult>(response, {
         sessionExpired: "Your session expired. Sign in again, then check the import status before trying again.",
-        unexpectedResponse: `The import service returned an unexpected response (${response.status}). Retry; no records were changed.`,
+        unexpectedResponse: `The import service returned an unexpected response (${response.status}). The result is unconfirmed. Keep this draft and check import results before trying again.`,
       });
+      if (!response.ok && payload.ok) throw new Error("Import result is unconfirmed. Keep this draft and check import results before trying again.");
+      return payload;
+      }, 60_000, "Import result is unconfirmed. The server may have imported some rows. Keep this draft and check import results before trying again.");
+      if (requestId !== requestVersion.current) return;
       setResult(payload);
       setMessage(payload.message);
       if (payload.ok) {
-        window.localStorage.removeItem(draftKey(entity));
-        setDraftSavedAt(null);
+        try {
+          window.localStorage.removeItem(draftKey(entity, draftScope));
+          setDraftSavedAt(null);
+        } catch {
+          setMessage("Import succeeded, but its browser draft could not be removed. Do not import that draft again.");
+        }
       }
-    } catch {
-      setMessage("Could not complete this import. Please try again.");
+    } catch (error) {
+      if (requestId === requestVersion.current) setMessage(error instanceof Error && !(error instanceof TypeError) ? error.message : "Import result could not be confirmed. Keep this draft and check import results before trying again.");
     } finally {
       savingRef.current = false;
-      setIsSaving(false);
+      if (requestId === requestVersion.current) setIsSaving(false);
     }
   }
 

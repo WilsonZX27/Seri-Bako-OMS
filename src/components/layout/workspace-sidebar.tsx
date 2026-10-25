@@ -1,5 +1,7 @@
 "use client";
 
+import { activeNavigationHref } from "@/lib/active-navigation";
+
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { ChevronDown, Factory } from "lucide-react";
@@ -44,31 +46,10 @@ export function WorkspaceSidebar({
     setClosedGroups((current) => ({ ...current, [groupId]: !currentlyClosed }));
   }
 
-  function isActiveNavItem(href: string) {
-    const [targetPath, queryString] = href.split("?");
-    if (queryString) {
-      if (pathname !== targetPath) return false;
-      const targetParams = new URLSearchParams(queryString);
-      for (const [key, value] of targetParams.entries()) {
-        if (searchParams.get(key) !== value) return false;
-      }
-      return true;
-    }
-    if (pathname.startsWith(`${targetPath}/`)) return true;
-    if (pathname !== targetPath) return false;
-    return !searchParams.has("step") && !searchParams.has("status") && !searchParams.has("type");
-  }
-
-  const activeNavKey = (() => {
-    for (const group of groups) {
-      for (const item of group.items) {
-        if (isActiveNavItem(item.href)) return `${group.id}-${item.href}`;
-      }
-    }
-    return null;
-  })();
-
-  const activeGroupId = groups.find((group) => group.href === pathname)?.id ?? activeNavKey?.split("-")[0] ?? null;
+  const activeHref = activeNavigationHref(pathname, searchParams, groups.flatMap(group => group.items.map(item => item.href)));
+  const activeNavKey = groups.flatMap(group => group.items.map(item => ({group: group.id, href: item.href})))
+    .find(item => item.href === activeHref);
+  const activeGroupId = groups.find((group) => group.href === pathname)?.id ?? activeNavKey?.group ?? null;
 
   return (
     <div className={cn("flex h-dvh w-[var(--sb-sidebar-width)] flex-col border-r border-white/10 bg-[var(--sb-green-950)] text-white", mobile ? "w-full" : "")}>
@@ -115,12 +96,12 @@ export function WorkspaceSidebar({
                 <div className={cn("space-y-0.5", groupClosed ? "hidden" : "")}>
                   {visibleItems.map((item) => {
                     const Icon = item.icon;
-                    const itemKey = `${group.id}-${item.href}`;
-                    const active = activeNavKey === itemKey;
+                    const active = activeNavKey?.group === group.id && activeNavKey.href === item.href;
                     return (
                       <Link
-                        key={itemKey}
+                        key={`${group.id}-${item.href}`}
                         href={item.href}
+                        aria-current={active ? "page" : undefined}
                         prefetch={false}
                         onClick={onNavigate}
                         className={cn(

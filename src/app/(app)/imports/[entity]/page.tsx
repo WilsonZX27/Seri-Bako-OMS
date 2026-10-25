@@ -6,7 +6,7 @@ import { Notice } from "@/components/ui/system-states";
 import { importTemplates, type ImportEntity } from "@/lib/imports/config";
 import { formatPageError } from "@/server/actions/error-handling";
 import { hasPermission } from "@/server/auth/permissions";
-import { getSuppliersForSelect } from "@/server/queries/common";
+import { getCurrentProfile, getSuppliersForSelect } from "@/server/queries/common";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +15,7 @@ export default async function ImportPage({ params }: { params: Promise<{ entity:
     const { entity } = await params;
     if (!(entity in importTemplates)) notFound();
     const typedEntity = entity as ImportEntity;
+    const profile = await getCurrentProfile();
     const allowed = (await hasPermission("imports.create")) || (await hasPermission("company.update"));
     const label = importTemplates[typedEntity].label;
     const suppliers = typedEntity === "items" ? await getSuppliersForSelect() : [];
@@ -22,7 +23,7 @@ export default async function ImportPage({ params }: { params: Promise<{ entity:
     return (
       <>
         <PageHeader title={`Import ${label}`} description="Upload, preview, validate, and import only clean rows." />
-        {allowed ? <ImportWorkflow entity={typedEntity} suppliers={suppliers} /> : <WorkspaceGrid tabletCanvas="contained"><Notice tone="error" title="Permission required">You do not have permission to manage data imports.</Notice></WorkspaceGrid>}
+        {allowed && profile?.company_id ? <ImportWorkflow draftScope={`${profile.company_id}:${profile.id}:${"auth_user_id" in profile ? profile.auth_user_id ?? "" : profile.id}`} entity={typedEntity} suppliers={suppliers} /> : <WorkspaceGrid tabletCanvas="contained"><Notice tone="error" title="Permission required">You do not have permission to manage data imports.</Notice></WorkspaceGrid>}
       </>
     );
   } catch (error) {

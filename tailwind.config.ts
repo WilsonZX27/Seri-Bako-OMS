@@ -18,9 +18,9 @@ const config: Config = {
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        foreground: "rgb(var(--sb-text-rgb) / <alpha-value>)",
         primary: {
-          DEFAULT: "hsl(var(--primary))",
+          DEFAULT: "rgb(var(--sb-green-900-rgb) / <alpha-value>)",
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
@@ -29,11 +29,11 @@ const config: Config = {
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          foreground: "rgb(var(--sb-text-muted-rgb) / <alpha-value>)",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: "var(--sb-green-100)",
+          foreground: "rgb(var(--sb-green-900-rgb) / <alpha-value>)",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",

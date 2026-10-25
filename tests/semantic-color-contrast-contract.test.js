@@ -8,8 +8,12 @@ const sidebar = readFileSync("src/components/layout/workspace-sidebar.tsx", "utf
 
 function hex(variable) {
   const match = globals.match(new RegExp(`--${variable}:\\s*(#[0-9A-Fa-f]{6})`));
-  assert.ok(match, `${variable} must resolve to a six-digit color`);
-  return match[1];
+  if (match) return match[1];
+  const alias = globals.match(new RegExp(`--${variable}:\\s*rgb\\(var\\(--([\\w-]+)\\)\\)`));
+  assert.ok(alias, `${variable} must resolve to a canonical color`);
+  const channels = globals.match(new RegExp(`--${alias[1]}:\\s*(\\d+) (\\d+) (\\d+)`));
+  assert.ok(channels, `${variable} must resolve to RGB channels`);
+  return "#" + channels.slice(1, 4).map(value => Number(value).toString(16).padStart(2, "0")).join("");
 }
 
 function rgb(value) {

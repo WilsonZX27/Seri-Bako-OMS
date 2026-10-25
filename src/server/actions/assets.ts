@@ -229,7 +229,7 @@ export async function updateAssetMaintenance(_previous: AssetActionState, form: 
 }
 export async function advanceAssetTransfer(_previous: AssetActionState, form: FormData): Promise<AssetActionState> {
   try {
-    await requireActiveTenantActor();
+    const actor = await requireActiveTenantActor();
     const action = String(form.get("action") ?? "");
     if (!["approve", "reject", "dispatch", "receive"].includes(action)) throw new Error("Choose a valid transfer action.");
     await requirePermission(action === "approve" || action === "reject" ? "assets.approve" : "assets.transfer");
@@ -241,6 +241,11 @@ export async function advanceAssetTransfer(_previous: AssetActionState, form: Fo
     if (!["single", "batch"].includes(kind)) throw new Error("Choose a valid transfer document.");
     const batch = kind === "batch";
     if (batch && !(await assetFeatureCapabilities(db)).transferBatchRead) throw new Error("Multi-asset transfer setup is not ready.");
+    if (!batch) {
+      const row = await db.from("asset_transfers").select("*").eq("company_id", actor.companyId).eq("id", transfer).maybeSingle();
+      if (row.error || !row.data) throw new Error(row.error?.message ?? "Transfer unavailable.");
+      if (row.data.batch_id) throw new Error("Open the complete transfer before confirming any action.");
+    }
     const result = batch
       ? await db.rpc("advance_asset_transfer_batch", { p_batch: transfer, p_action: action, p_note: note })
       : await db.rpc("advance_asset_transfer", { p_transfer: transfer, p_action: action, p_note: note });

@@ -9,7 +9,7 @@ test('compatibility Preview keeps creation disabled while complete backend contr
  const result=await caps({rpc:async()=>({data:{version:3,transfer_batch:true,transfer_batch_revision:1},error:null})});assert.equal(result.automaticId,false);assert.equal(result.transferBatch,creationEnabled);assert.equal(result.transferBatchRead,true);
  assert.equal((await caps({rpc:async()=>({data:null,error:{code:'PGRST202'}})})).transferBatchRead,false);
 });
-function actionHarness(ready=true,error=null){const calls=[];const db={rpc:async(name,args)=>{calls.push({name,args});return {data:error?null:'11111111-1111-4111-8111-111111111111',error};}};const actions=load('src/server/actions/assets.ts',id=>{
+function actionHarness(ready=true,error=null){const calls=[];const db={from:table=>{assert.equal(table,'asset_transfers');const q={select:()=>q,eq:(key,value)=>{if(key==='company_id')assert.equal(value,'synthetic');return q;},maybeSingle:async()=>({data:{id:'11111111-1111-4111-8111-111111111111',batch_id:null},error:null})};return q;},rpc:async(name,args)=>{calls.push({name,args});return {data:error?null:'11111111-1111-4111-8111-111111111111',error};}};const actions=load('src/server/actions/assets.ts',id=>{
  if(id==='next/cache')return {revalidatePath:()=>{}};
  if(id.endsWith('/tenant-actor'))return {requireActiveTenantActor:async()=>({companyId:'synthetic'})};
  if(id.endsWith('/permissions'))return {requirePermission:async()=>{},hasPermission:async()=>false};

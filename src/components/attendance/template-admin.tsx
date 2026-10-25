@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { requestDeadline } from "@/lib/http/request-deadline";
 import { readJsonResponse } from "@/lib/http/read-json-response";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,15 @@ export function TemplateAdmin({branchId}:{branchId:string}) {
   const [message,setMessage]=useState("");
   const [pending, setPending] = useState(false);
   const pendingRef = useRef(false);
+  const requestVersion = useRef(0);
+  // Invalidate at branch commit, before a late response can refresh the new view.
+  useLayoutEffect(() => {
+    const version = requestVersion;
+    pendingRef.current = false;
+    setPending(false);
+    setMessage("");
+    return () => { version.current++; };
+  }, [branchId]);
   async function submit(form:HTMLFormElement){
     if (pendingRef.current) return;
     const data=new FormData(form), start=String(data.get("start")), end=String(data.get("end"));
@@ -29,6 +38,8 @@ export function TemplateAdmin({branchId}:{branchId:string}) {
     const before=seconds(start)-seconds(checkInStart), after=seconds(checkOutEnd)-seconds(end);
     if(before<0||after<0){setMessage("The punch window must start before check-in and finish after check-out.");return}
     pendingRef.current = true;
+    const requestId = ++requestVersion.current;
+    const isCurrent = () => requestId === requestVersion.current;
     setPending(true);
     setMessage("");
     try {
@@ -41,12 +52,15 @@ export function TemplateAdmin({branchId}:{branchId:string}) {
     });
     return {response, result};
     }, 60_000, "Save result could not be confirmed. The server may have saved the shift. Your inputs are retained. Check the shift list before trying again.");
+    if (!isCurrent()) return;
     setMessage(response.ok && result.ok?"Shift saved and ready to use.":result.message??"Shift could not be saved."); if(response.ok && result.ok)window.location.reload();
     } catch (error) {
-      setMessage(error instanceof Error && !(error instanceof TypeError) ? error.message : "Save result could not be confirmed. Your inputs are retained. Check the shift list before trying again.");
+      if (isCurrent()) setMessage(error instanceof Error && !(error instanceof TypeError) ? error.message : "Save result could not be confirmed. Your inputs are retained. Check the shift list before trying again.");
     } finally {
-      pendingRef.current = false;
-      setPending(false);
+      if (isCurrent()) {
+        pendingRef.current = false;
+        setPending(false);
+      }
     }
   }
   return <section className="overflow-hidden">

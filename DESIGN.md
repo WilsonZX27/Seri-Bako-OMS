@@ -1,3 +1,7 @@
+## v9.2.152 (local candidate) — Shared asset transfer column header
+
+Show Asset, Available, Quantity and Remove once in the shared title row at all widths. Preserve separate per-asset quantity inputs, accessible names, the single-page flow, batch readiness gates and automatic-numbering OFF. No backend, data, role or account change.
+
 ## v9.2.151 (local candidate) — Single-page multi-asset transfer
 
 PR-style editable request details and direct multi-selection with per-asset quantities, retained drafts and one atomic batch request. Batch creation is enabled only with complete backend readiness; automatic numbering remains independently OFF. Asset guarded retry and independent postflight must pass before this candidate is released. No compact formatter, sequence initialization or real transfer test.

@@ -32,16 +32,12 @@ test("asset overview and maintenance queues page at ten rows with shared navigat
   assert.match(page, /Open maintenance requests · \{data\.total\}/);
 });
 
-test("transfer asset search has an explicit accessible apply action", () => {
+test("transfer asset search adds directly to the current request without a GET detour", () => {
   const page = read("src", "app", "(app)", "asset-management", "transfers", "new", "page.tsx");
-  const header = read("src", "components", "common", "UnifiedListHeader.tsx");
-  assert.match(page, /<form method="get"[^>]*>[\s\S]*?<Input type="search" name="q"/);
-  assert.equal((page.match(/<Button type="submit"/g) ?? []).length,2);
-  assert.match(page, /<Button type="submit">Load assets<\/Button>/);
-  assert.match(page, /<Button type="submit">Search<\/Button>/);
-  assert.match(header, /showSearchAction = hasTextSearch && !all\.some\(isSearchSubmit\)/);
-  assert.match(header, /aria-label="Search"/);
-  assert.match(page, /No matching assets\./);
+  const form = read("src", "components", "asset-transfer-batch-form.tsx");
+  assert.match(page, /<AssetTransferBatchForm/);assert.doesNotMatch(page, /method="get"|assetTransferPickerHref/);
+  assert.match(form, /ariaLabel="Find assets to add"/);assert.match(form, /onSelect={item => setDraft/);
+  assert.match(form, /toggleTransferAsset/);
 });
 
 test("goods receiving rows follow the PR hierarchy without hiding quantities", () => {

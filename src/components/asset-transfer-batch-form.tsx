@@ -1,52 +1,70 @@
 "use client";
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useRef } from "react";
+import { createPortal } from "react-dom";
+import { Plus, X } from "lucide-react";
 import { requestAssetTransferBatch } from "@/server/actions/assets";
-import { useAssetDraftAction } from "@/components/asset-draft-state";
+import { useAssetDraftAction, useAssetDraftState } from "@/components/asset-draft-state";
 import { useAssetFormGuard } from "@/components/asset-unsaved-guard";
+import { useAssetTransferActionSlots } from "@/components/asset-transfer-action-slots";
+import { ItemCombobox, type ItemComboboxOption } from "@/components/item-combobox";
+import { RequestLineRow } from "@/components/request-line-row";
 import { Button } from "@/components/ui/button";
+import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { SelectControl } from "@/components/ui/select-control";
+import { Notice } from "@/components/ui/system-states";
+import { toggleTransferAsset, transferDraftError, validTransferDraft, type AssetTransferDraft, type TransferAssetChoice } from "@/lib/asset-transfer-draft";
 import type { AssetLocation } from "@/server/queries/assets";
 
-type Choice = { id: string; asset_code: string; item_name: string; quantity: number };
-export function AssetTransferBatchForm({ source, locations, choices, requestKey, today }: { source: string; locations: AssetLocation[]; choices: Choice[]; requestKey: string; today: string }) {
-  const [state, action, pending] = useActionState(useAssetDraftAction(`transfer-batch:${source}`, requestAssetTransferBatch), { ok: false, message: "", requestId: undefined as string | undefined });
-  const [selected, setSelected] = useState<Record<string, string>>({});
-  const [query, setQuery] = useState("");
-  const [destination, setDestination] = useState("");
-  const [reason, setReason] = useState("");
-  const [date, setDate] = useState(today);
-  const lines = choices.filter(choice => Object.hasOwn(selected, choice.id));
-  const results = choices.filter(choice => `${choice.asset_code} ${choice.item_name}`.toLowerCase().includes(query.toLowerCase()));
-  useAssetFormGuard(!state.ok && (lines.length > 0 || Boolean(destination || reason) || date !== today));
-  return <form data-asset-entry-form action={action} className="grid min-w-0 gap-4">
-    <input type="hidden" name="from" value={source}/><input type="hidden" name="client_key" value={requestKey}/>
-    <fieldset disabled={pending || state.ok} className="min-w-0 space-y-4">
-      <section className="sb-work-surface p-4" aria-labelledby="transfer-details"><h2 id="transfer-details" className="mb-3 text-sm font-semibold">Request details</h2>
-        <dl className="mb-3 text-xs"><dt className="text-muted-foreground">From</dt><dd className="break-words">{locations.find(location => location.id === source)?.display_name ?? locations.find(location => location.id === source)?.source_name}</dd></dl>
-        <div className="grid gap-3 sm:grid-cols-2"><label className="grid gap-1 text-xs">To<SelectControl name="to" required value={destination} onValueChange={selectedValue => setDestination(selectedValue)} ariaLabel={"To"} options={[({value: "", label: "Choose destination", disabled: true}), ...(locations.filter(location => location.id !== source).map(location => ({value: String((location.id) ?? ""), label: String((location.display_name ?? location.source_name) ?? "")})))]}/></label>
-          <label className="grid gap-1 text-xs">Request date<Input name="date" type="date" required value={date} onChange={event => setDate(event.target.value)}/></label>
-          <label className="grid gap-1 text-xs sm:col-span-2">Reason<Input name="reason" required maxLength={2000} value={reason} onChange={event => setReason(event.target.value)}/></label></div>
+export function AssetTransferBatchForm({ locations, choices, requestKey, today, canSubmit = false, sourceIds = locations.map(location => location.id), initialAsset = "", initialSource = "", initialQuery = "" }: { locations: AssetLocation[]; choices: TransferAssetChoice[]; requestKey: string; today: string; canSubmit?: boolean; sourceIds?: string[]; initialAsset?: string; initialSource?: string; initialQuery?: string }) {
+  const [state, action, pending] = useActionState(useAssetDraftAction("transfer-batch", requestAssetTransferBatch), { ok: false, message: "", requestId: undefined as string | undefined });
+  const initial: AssetTransferDraft = { from: initialSource, to: "", date: today, reason: "", query: initialQuery, selected: choices.some(choice => choice.id === initialAsset) ? { [initialAsset]: "1" } : {} };
+  const [draft, setDraft, restored] = useAssetDraftState("transfer-batch", "single-page-v1", initial, validTransferDraft, state.ok);
+  const picker = useRef<HTMLInputElement>(null), actionSlots = useAssetTransferActionSlots();
+  const change = <K extends keyof AssetTransferDraft>(key: K, value: AssetTransferDraft[K]) => setDraft(current => ({ ...current, [key]: value }));
+  const ids = Object.keys(draft.selected), error = transferDraftError(draft, choices, locations);
+  const catalogue: ItemComboboxOption[] = choices.filter(choice => !draft.from || choice.holdings[draft.from] !== undefined || ids.includes(choice.id)).map(choice => ({ id: choice.id, item_code: choice.asset_code, item_name: choice.item_name, base_unit: "PCS", purchase_unit: "PCS", supplier_id: null, cost: 0, status: "active" }));
+  useAssetFormGuard(!state.ok && Boolean(ids.length || draft.from || draft.to || draft.reason || draft.query || draft.date !== today));
+  const submit = <Button form="asset-transfer-request" type="submit" className="h-12 w-full md:h-11 xl:h-9" disabled={pending || state.ok || !canSubmit || Boolean(error)}>{pending ? "Requesting…" : "Request transfer"}</Button>;
+  return <form id="asset-transfer-request" data-asset-entry-form action={action} className="min-w-0 space-y-3">
+    <input type="hidden" name="client_key" value={requestKey}/>
+    {restored ? <p role="status" className="text-xs">Unsaved transfer inputs restored. Review before requesting.</p> : null}
+    <fieldset disabled={pending || state.ok} className="min-w-0 space-y-3">
+      <section className="sb-work-surface overflow-hidden" aria-labelledby="transfer-details">
+        <h2 id="transfer-details" data-document-section-header className="border-b bg-white px-3 py-2 text-sm font-semibold">Request details</h2>
+        <div className="grid gap-3 p-3 sm:grid-cols-2">
+          <Field label="From" required><SelectControl name="from" required value={draft.from} onValueChange={value => change("from", value)} ariaLabel="From" options={[{ value: "", label: "Choose source", disabled: true }, ...locations.filter(location => sourceIds.includes(location.id)).map(location => ({ value: location.id, label: location.display_name ?? location.source_name }))]}/></Field>
+          <Field label="To" required><SelectControl name="to" required value={draft.to} onValueChange={value => change("to", value)} ariaLabel="To" options={[{ value: "", label: "Choose destination", disabled: true }, ...locations.filter(location => location.id !== draft.from).map(location => ({ value: location.id, label: location.display_name ?? location.source_name }))]}/></Field>
+          <Field label="Request date" required><Input name="date" type="date" required value={draft.date} onChange={event => change("date", event.target.value)}/></Field>
+          <Field label="Reason" required><Input name="reason" required maxLength={2000} value={draft.reason} onChange={event => change("reason", event.target.value)}/></Field>
+        </div>
       </section>
-      <section className="sb-work-surface overflow-hidden" aria-labelledby="transfer-items"><h2 id="transfer-items" className="border-b px-4 py-3 text-sm font-semibold">Assets list · {lines.length} selected</h2>
-        <div className="p-4"><Input type="search" aria-label="Find assets to add" placeholder="Find asset by name or ID" value={query} onChange={event => setQuery(event.target.value)}/></div>
-        <div className="max-h-72 overflow-y-auto divide-y" aria-label="Available assets">{results.map(choice => <label key={choice.id} className="flex min-h-11 items-center gap-3 px-4 py-2 text-xs"><input type="checkbox" data-asset-choice={choice.id} className="size-5 shrink-0" checked={Object.hasOwn(selected, choice.id)} disabled={!Object.hasOwn(selected, choice.id) && lines.length >= 100} onChange={event => setSelected(current => { const next = { ...current }; if (event.target.checked) next[choice.id] = "1"; else delete next[choice.id]; return next; })}/><span className="min-w-0 flex-1 break-words">{choice.item_name}<span className="block text-muted-foreground">{choice.asset_code} · {choice.quantity} held</span></span></label>)}{!results.length ? <p className="p-4 text-sm text-muted-foreground">No matching assets with a known positive holding.</p> : null}</div>
-        <div className="divide-y border-t">{lines.map(choice => <div key={choice.id} className="flex flex-wrap items-center gap-3 px-4 py-3"><input type="hidden" name="asset_id" value={choice.id}/><span className="min-w-0 flex-1 break-words text-xs">{choice.item_name}<span className="block text-muted-foreground">{choice.asset_code}</span></span><label className="grid gap-1 text-xs">Quantity<Input className="w-24" name={`quantity_${choice.id}`} aria-label={`Quantity for ${choice.item_name}`} type="number" min="1" max={choice.quantity} step="1" required value={selected[choice.id]} onChange={event => setSelected(current => ({ ...current, [choice.id]: event.target.value }))}/></label><Button type="button" variant="outline" aria-label={`Remove ${choice.item_name}`} onClick={event => {
-          const form = event.currentTarget.form;
-          const index = lines.findIndex(line => line.id === choice.id);
-          const neighbour = lines[index + 1] ?? lines[index - 1];
-          setSelected(current => { const next = { ...current }; delete next[choice.id]; return next; });
-          form?.ownerDocument.defaultView?.requestAnimationFrame(() => {
-            const selector = neighbour ? `input[name="quantity_${neighbour.id}"]` : `input[data-asset-choice="${choice.id}"]`;
-            const target = form.querySelector<HTMLInputElement>(selector) ?? form.querySelector<HTMLInputElement>('input[type="search"]');
-            target?.focus();
-          });
-        }}>Remove</Button></div>)}</div>
+      <section className="sb-work-surface overflow-hidden" aria-labelledby="transfer-items">
+        <header data-document-section-header className="flex items-center justify-between gap-3 border-b bg-white px-3 py-2"><h2 id="transfer-items" className="text-sm font-semibold">Requested assets</h2><span className="text-xs tabular-nums text-muted-foreground">{ids.length} selected</span></header>
+        <div className="border-b p-3"><Field label="Add assets"><ItemCombobox items={catalogue} value={draft.query} selectedItemIds={ids} selectionLimit={100} inputRef={picker} ariaLabel="Find assets to add" placeholder="Search asset name or ID" emptyMessage="No accessible assets with a known positive holding match." onValueChange={value => change("query", value)} onSelect={item => setDraft(current => ({ ...current, selected: toggleTransferAsset(current.selected, item.id) }))} optionDetail={item => { const available = choices.find(choice => choice.id === item.id)?.holdings[draft.from]; return `${item.item_code}${draft.from ? available === undefined ? " · Not held at source" : ` · ${available} available` : ""}`; }}/></Field></div>
+        <div className="divide-y">{ids.map((id, index) => {
+          const choice = choices.find(item => item.id === id), available = choice?.holdings[draft.from];
+          return <RequestLineRow key={id} data-transfer-line={id} className="grid-cols-[1.5rem_minmax(0,1fr)_5rem_2.75rem] lg:grid-cols-[1.5rem_minmax(0,1fr)_8rem_2.75rem]">
+            <span className="pt-2 text-xs tabular-nums text-muted-foreground">{index + 1}</span>
+            <div className="min-w-0 self-center text-xs"><span className="block break-words font-medium">{choice?.item_name ?? "Asset unavailable"}</span><span className="block break-words text-muted-foreground">{choice?.asset_code ?? "Remove this unavailable asset"}</span>{draft.from ? <span className={available === undefined ? "block text-warning" : "block text-muted-foreground"}>{available === undefined ? "Not held at this source" : `${available} available`}</span> : null}</div>
+            <input type="hidden" name="asset_id" value={id}/>
+            <Field label="Quantity" required><Input name={`quantity_${id}`} aria-label={`Quantity for ${choice?.item_name ?? `line ${index + 1}`}`} type="number" min="1" max={available} step="1" required value={draft.selected[id]} onChange={event => change("selected", { ...draft.selected, [id]: event.target.value })}/></Field>
+            <Button type="button" variant="ghost" size="icon" className="self-end" aria-label={`Remove ${choice?.item_name ?? `line ${index + 1}`}`} onClick={event => {
+              const form = event.currentTarget.form, neighbour = ids[index + 1] ?? ids[index - 1];
+              change("selected", toggleTransferAsset(draft.selected, id));
+              const ownerWindow = form?.ownerDocument.defaultView;
+              if (ownerWindow) ownerWindow.requestAnimationFrame(() => (neighbour ? form?.querySelector<HTMLInputElement>(`input[name="quantity_${neighbour}"]`) ?? picker.current : picker.current)?.focus());
+              else picker.current?.focus();
+            }}><X className="size-4"/></Button>
+          </RequestLineRow>;
+        })}{!ids.length ? <p className="px-3 py-4 text-xs text-muted-foreground">Search and select assets to add them to this request.</p> : null}</div>
+        <footer className="flex justify-end border-t px-3 py-2"><Button type="button" variant="outline" onClick={() => picker.current?.focus()}><Plus className="size-4"/>Add assets</Button></footer>
       </section>
     </fieldset>
+    {!canSubmit ? <Notice>Multi-asset submission is not enabled yet. You can prepare this request; your inputs are kept.</Notice> : error && ids.length ? <p role="status" className="text-xs text-warning">{error}</p> : null}
     {state.message ? <p role={state.ok ? "status" : "alert"} className="text-sm">{state.message}</p> : null}
     {state.ok && state.requestId ? <Link className="min-h-11 py-3 underline" href={`/asset-management/transfers/${state.requestId}`}>Open transfer</Link> : null}
-    <Button type="submit" disabled={pending || state.ok || !lines.length}>{pending ? "Requesting…" : "Request transfer"}</Button>
+    {actionSlots.length ? actionSlots.map((slot, index) => createPortal(submit, slot, String(index))) : <div className="pt-2">{submit}</div>}
   </form>;
 }

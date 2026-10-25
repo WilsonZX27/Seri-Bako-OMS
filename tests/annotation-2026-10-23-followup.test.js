@@ -25,21 +25,16 @@ test("Google Script branch aliases display through the OMS branch catalogue", ()
   assert.match(query, /source_name: string; display_name\?: string/);
 });
 
-test("transfer picker uses one shared search action and PR-style request/list sections", () => {
+test("transfer picker is a single editable PR-style request with shared multi-selection", () => {
   const page = read("src/app/(app)/asset-management/transfers/new/page.tsx");
-  const header = read("src/components/common/UnifiedListHeader.tsx");
-  const schema = read("supabase/migrations/337_asset_management_foundation.sql");
-  assert.match(page, /<form method="get"[^>]*>[\s\S]*<Input type="search" name="q"/);
-  assert.equal((page.match(/type="submit"/g) ?? []).length, 2);
-  assert.match(page, /<form method="get"[\s\S]*?<Button type="submit">Load assets<\/Button>/);
-  assert.match(page, /if \(batchOptions\) return/);
-  assert.match(page, /<Button type="submit">Search<\/Button>/);
-  assert.match(header, /\\b\(search\|filter\)\\b/i);
-  assert.match(page, /Request details/);
-  assert.match(page, /Requested assets/);
-  assert.match(schema, /asset_id uuid not null/);
-  assert.doesNotMatch(page, /type="checkbox"|multiple/);
+  const form = read("src/components/asset-transfer-batch-form.tsx");
+  assert.match(page, /<AssetTransferBatchForm/);
+  assert.doesNotMatch(page, /if \(batchOptions\)|<fieldset disabled|Select an asset first|method="get"/);
+  assert.match(form, /Request details/);assert.match(form, /Requested assets/);
+  assert.match(form, /<ItemCombobox/);assert.match(form, /selectedItemIds={ids}/);assert.match(form, /<RequestLineRow/);
+  assert.match(form, /transferDraftError/);
 });
+
 
 test("daily record compact rows emphasize Today and show four concise last-updater metrics", () => {
   const page = read("src/app/(app)/outlet-daily-records/page.tsx");

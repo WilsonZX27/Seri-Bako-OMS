@@ -6,11 +6,11 @@ function harness(options={}){const calls=[];const tables={asset_locations:[{id:s
  if(name.endsWith('/asset-location-display'))return require('./helpers/load-source.cjs')()('src/lib/asset-location-display.ts');if(name==='react')return {cache:v=>v};if(name.endsWith('/asset-feature-capabilities'))return {assetFeatureCapabilities:async()=>({automaticId:false,transferBatch:!options.legacy&&!options.readOnly,transferBatchRead:!options.legacy})};if(name.endsWith('/tenant-actor'))return {requireActiveTenantActor:async()=>({companyId:'synthetic-company',roleCode:'manager'})};if(name.endsWith('/permissions'))return {requirePermission:async p=>{calls.push({permission:p});if(options.permissionDenied)throw Error('permission denied')}};if(name.endsWith('/mock-mode'))return {isMockMode:()=>false};if(name.endsWith('/supabase/server'))return {createClient:async()=>db};if(name.endsWith('/supabase/loose'))return {looseSupabase:v=>v};return {};
  }});return {api:exports,calls};}
 test('transfer choices require transfer permission and source access before loading tenant-scoped holdings',async()=>{
- const h=harness();const result=await h.api.getAssetTransferRequestOptions(source);assert.equal(result.choices[0].quantity,3);assert.equal(result.choices[0].asset_code,'SYN-1');assert.ok(h.calls.findIndex(c=>c.table==='asset_location_access')<h.calls.findIndex(c=>c.table==='asset_holdings'));
+ const h=harness();const result=await h.api.getAssetTransferRequestOptions(source);assert.equal(result.choices[0].holdings[source],3);assert.equal(result.choices[0].asset_code,'SYN-1');assert.ok(h.calls.findIndex(c=>c.table==='asset_location_access')<h.calls.findIndex(c=>c.table==='asset_holdings'));
  for(const row of h.calls.filter(c=>c.ops))assert.ok(row.ops.some(o=>o[0]==='eq'&&o[1]==='company_id'&&o[2]==='synthetic-company'),row.table);
- const denied=harness({denied:true});await assert.rejects(denied.api.getAssetTransferRequestOptions(source),/Source location/);assert.equal(denied.calls.some(c=>c.table==='asset_holdings'),false);
+ const denied=harness({denied:true});const empty=await denied.api.getAssetTransferRequestOptions();assert.equal(empty.sourceIds.length,0);assert.equal(empty.choices.length,0);assert.equal(denied.calls.some(c=>c.table==='asset_holdings'),false);
  const revoked=harness({permissionDenied:true});await assert.rejects(revoked.api.getAssetTransferRequestOptions(source),/permission/);assert.equal(revoked.calls.some(c=>c.table),false);
- assert.equal(await harness({legacy:true}).api.getAssetTransferRequestOptions(source),null);
+ const legacy=await harness({legacy:true}).api.getAssetTransferRequestOptions();assert.equal(legacy.canSubmit,false);assert.equal(legacy.choices.length,1);
 });
 test('batch detail reads visible header first, rejects partial lines, scopes related reads and paginates history',async()=>{
  const hidden=harness({hidden:true});assert.equal(await hidden.api.getAssetTransferBatchDetail(id,1),null);assert.equal(hidden.calls.some(c=>c.table==='assets'),false);
@@ -20,6 +20,6 @@ test('batch detail reads visible header first, rejects partial lines, scopes rel
 });
 
 test('compatibility can read existing batches while new batch creation remains disabled',async()=>{
- const h=harness({readOnly:true});assert.equal(await h.api.getAssetTransferRequestOptions(source),null);assert.equal(h.calls.some(c=>c.table==='asset_holdings'),false);
+ const h=harness({readOnly:true});const options=await h.api.getAssetTransferRequestOptions();assert.equal(options.canSubmit,false);assert.equal(options.choices.length,1);assert.equal(h.calls.some(c=>c.table==='asset_holdings'),true);
  const data=await h.api.getAssetTransferBatchDetail(id,1);assert.equal(data.lines.length,1);assert.equal(data.transfer.batch_id,id);
 });

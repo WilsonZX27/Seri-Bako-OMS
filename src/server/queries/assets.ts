@@ -1,3 +1,4 @@
+import type { TransferAssetChoice } from "@/lib/asset-transfer-draft";
 import type { OpenAssetRepair } from "@/server/queries/asset-open-repairs";
 import { assetFeatureCapabilities } from "@/server/queries/asset-feature-capabilities";
 import { todayInKualaLumpur } from "@/lib/business-date";
@@ -427,36 +428,38 @@ export async function getAssetChecklistRecords(locationId: string, date: string)
   return records;
 }
 
-/** Load only RLS-visible holdings of the selected source; never use an admin client. */
-export async function getAssetTransferRequestOptions(source = "") {
+/** The editable request catalogue uses existing scoped reads; only submission depends on batch activation. */
+export async function getAssetTransferRequestOptions() {
   const actor = await requireActiveTenantActor(); await requirePermission("assets.transfer");
-  if (isMockMode()) return null;
+  if (isMockMode()) return { locations: [] as AssetLocation[], sourceIds: [] as string[], choices: [] as TransferAssetChoice[], canSubmit: false };
   const db = looseSupabase(await createClient());
-  if (!(await assetFeatureCapabilities(db)).transferBatch) return null;
+  const capability = await assetFeatureCapabilities(db);
   const locationResult = await db.from("asset_locations").select("id,source_name,branch_id,kind").eq("company_id", actor.companyId).order("source_name");
   if (locationResult.error || !locationResult.data) throw new Error(locationResult.error?.message ?? "Transfer locations unavailable.");
   const locations = await withCanonicalBranchNames(db, locationResult.data as AssetLocation[]);
-  const choices: { id: string; asset_code: string; item_name: string; quantity: number }[] = [];
-  if (source) {
-    if (!locations.some(location => location.id === source)) throw new Error("Choose an accessible source location.");
-    const access = await db.rpc("asset_location_access", { p_location: source });
-    if (access.error || access.data !== true) throw new Error(access.error?.message ?? "Source location unavailable.");
-    for (let offset = 0; ; offset += 500) {
-      const result = await db.from("asset_holdings").select("asset_id,location_id,quantity").eq("company_id", actor.companyId).eq("location_id", source).gt("quantity", 0).order("asset_id").range(offset, offset + 499);
-      if (result.error || !result.data) throw new Error(result.error?.message ?? "Source holdings unavailable.");
-      const holdings = result.data as AssetHolding[];
-      if (holdings.length) {
-        const quantities = new Map(holdings.map(row => [row.asset_id, row.quantity]));
-        for (let start = 0; start < holdings.length; start += 100) {
-          const assets = await db.from("assets").select("id,asset_code,item_name").eq("company_id", actor.companyId).in("id", holdings.slice(start, start + 100).map(row => row.asset_id));
-          if (assets.error || !assets.data) throw new Error(assets.error?.message ?? "Transfer assets unavailable.");
-          for (const asset of assets.data as AssetSummary[]) choices.push({ ...asset, quantity: quantities.get(asset.id)! });
-        }
-      }
-      if (holdings.length < 500) break;
+  const sourceAccess = await Promise.all(locations.map(async location => {
+    const access = await db.rpc("asset_location_access", { p_location: location.id });
+    if (access.error) throw new Error(access.error.message ?? "Source access unavailable.");
+    return access.data === true ? location.id : null;
+  }));
+  const sourceIds = sourceAccess.filter((id): id is string => id !== null);
+  const holdings: AssetHolding[] = [];
+  if (sourceIds.length) for (let offset = 0; ; offset += 500) {
+    const result = await db.from("asset_holdings").select("asset_id,location_id,quantity").eq("company_id", actor.companyId).in("location_id", sourceIds).gt("quantity", 0).order("asset_id").order("location_id").range(offset, offset + 499);
+    if (result.error || !result.data) throw new Error(result.error?.message ?? "Source holdings unavailable.");
+    holdings.push(...result.data as AssetHolding[]);
+    if (result.data.length < 500) break;
+  }
+  const ids = [...new Set(holdings.map(row => row.asset_id))], choices: TransferAssetChoice[] = [];
+  for (let offset = 0; offset < ids.length; offset += 100) {
+    const result = await db.from("assets").select("id,asset_code,item_name").eq("company_id", actor.companyId).in("id", ids.slice(offset, offset + 100)).order("asset_code");
+    if (result.error || !result.data) throw new Error(result.error?.message ?? "Transfer assets unavailable.");
+    for (const asset of result.data as AssetSummary[]) {
+      const available = Object.fromEntries(holdings.filter(row => row.asset_id === asset.id && sourceIds.includes(row.location_id) && typeof row.quantity === "number" && Number.isSafeInteger(row.quantity) && row.quantity > 0).map(row => [row.location_id, row.quantity as number]));
+      if (Object.keys(available).length) choices.push({ id: asset.id, asset_code: asset.asset_code, item_name: asset.item_name, holdings: available });
     }
   }
-  return { locations, choices };
+  return { locations, sourceIds, choices, canSubmit: capability.transferBatch };
 }
 
 export async function getAssetTransferBatchDetail(id: string, page: number) {

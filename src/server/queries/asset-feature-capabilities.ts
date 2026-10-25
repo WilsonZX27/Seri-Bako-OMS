@@ -1,5 +1,6 @@
 import type { LooseSupabase } from "@/lib/supabase/loose";
-const ASSET_CREATION_ENABLED = false;
+const ASSET_BATCH_CREATION_ENABLED = false;
+const ASSET_NUMBERING_ENABLED = false;
 export async function assetFeatureCapabilities(db: LooseSupabase) {
   const result = await db.rpc("asset_feature_capabilities");
   if (result.error) {
@@ -9,5 +10,5 @@ export async function assetFeatureCapabilities(db: LooseSupabase) {
   const value=result.data as {version?:unknown;transfer_batch?:unknown;transfer_batch_revision?:unknown;automatic_id?:unknown;automatic_id_revision?:unknown}|null;
   const batchReady=value?.version===3 && value.transfer_batch===true && value.transfer_batch_revision===1;
   const numberingReady=value?.version===3 && value.automatic_id===true && value.automatic_id_revision===1;
-  return {automaticId:ASSET_CREATION_ENABLED && numberingReady,transferBatch:ASSET_CREATION_ENABLED && batchReady,transferBatchRead:batchReady};
+  return {automaticId:ASSET_NUMBERING_ENABLED && numberingReady,transferBatch:ASSET_BATCH_CREATION_ENABLED && batchReady,transferBatchRead:batchReady};
 }

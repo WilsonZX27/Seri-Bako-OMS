@@ -1,7 +1,7 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript'),vm=require('node:vm');
 function load(file,requireFn=()=>({})){const ctx={exports:{},require:requireFn,FormData,File,Buffer,console};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,ctx);return ctx.exports;}
 const caps=load('src/server/queries/asset-feature-capabilities.ts').assetFeatureCapabilities;
-const creationEnabled=fs.readFileSync('src/server/queries/asset-feature-capabilities.ts','utf8').includes('ASSET_CREATION_ENABLED = true');
+const creationEnabled=fs.readFileSync('src/server/queries/asset-feature-capabilities.ts','utf8').includes('ASSET_BATCH_CREATION_ENABLED = true');
 test('compatibility Preview keeps creation disabled while complete backend contracts allow existing batch reads',async()=>{
  for(const data of [null,{}, {version:2,transfer_batch:true,transfer_batch_revision:1}]) {
   const result=await caps({rpc:async()=>({data,error:null})});assert.equal(result.automaticId,false);assert.equal(result.transferBatch,false);assert.equal(result.transferBatchRead,false);
@@ -73,8 +73,8 @@ test('SQL readiness owns exact versioned request, transition, invoker view, type
 });
 
 test('the reviewed activation switch only enables complete backend contracts; missing numbering policy stays manual',async()=>{
- const file='src/server/queries/asset-feature-capabilities.ts';const original=fs.readFileSync(file,'utf8');const ctx={exports:{},require:()=>({})};vm.runInNewContext(ts.transpileModule(original.replace('ASSET_CREATION_ENABLED = false','ASSET_CREATION_ENABLED = true'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,ctx);const ready=ctx.exports.assetFeatureCapabilities;
+ const file='src/server/queries/asset-feature-capabilities.ts';const original=fs.readFileSync(file,'utf8');const ctx={exports:{},require:()=>({})};vm.runInNewContext(ts.transpileModule(original.replace('ASSET_BATCH_CREATION_ENABLED = false','ASSET_BATCH_CREATION_ENABLED = true'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,ctx);const ready=ctx.exports.assetFeatureCapabilities;
  const noSequence=await ready({rpc:async()=>({data:{version:3,transfer_batch:true,transfer_batch_revision:1,automatic_id:false,automatic_id_revision:0},error:null})});assert.equal(noSequence.transferBatch,true);assert.equal(noSequence.automaticId,false);
- const configured=await ready({rpc:async()=>({data:{version:3,transfer_batch:true,transfer_batch_revision:1,automatic_id:true,automatic_id_revision:1},error:null})});assert.equal(configured.automaticId,true);
+ const configured=await ready({rpc:async()=>({data:{version:3,transfer_batch:true,transfer_batch_revision:1,automatic_id:true,automatic_id_revision:1},error:null})});assert.equal(configured.automaticId,false);
  const partial=await ready({rpc:async()=>({data:{version:2,transfer_batch:true,transfer_batch_revision:1,automatic_id:true,automatic_id_revision:1},error:null})});assert.equal(partial.transferBatch,false);assert.equal(partial.automaticId,false);
 });

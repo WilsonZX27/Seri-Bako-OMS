@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { RequestLineRow } from "@/components/request-line-row";
 import { usePurchaseRequestGuidance } from "@/components/purchase-request-guidance";
 import { type FormEvent, useActionState, useEffect, useRef, useState } from "react";
 import { Building2, CalendarDays, ChevronDown, MapPin, MessageSquare, Minus, Plus, X } from "lucide-react";
@@ -421,7 +422,7 @@ export function PurchaseRequestForm({
             <div className="divide-y">
               {/* Legacy contract token: grid-cols-[minmax(0,1fr)_7.5rem_2.25rem]. The current four-column line keeps UOM, quantity, comments, and removal aligned. */}
               {lines.map((line, index) => (
-                <div data-purchase-request-line data-purchase-request-line-key={line.key} key={line.key} className="grid grid-cols-[1.75rem_minmax(0,1fr)_minmax(4.5rem,.65fr)_2.75rem] gap-2 p-3 lg:grid-cols-[1.5rem_minmax(10rem,1fr)_10rem_8.5rem_2.75rem_2.75rem] lg:gap-3">
+                <RequestLineRow data-purchase-request-line data-purchase-request-line-key={line.key} key={line.key} className="grid grid-cols-[1.75rem_minmax(0,1fr)_minmax(4.5rem,.65fr)_2.75rem] gap-2 p-3 lg:grid-cols-[1.5rem_minmax(10rem,1fr)_10rem_8.5rem_2.75rem_2.75rem] lg:gap-3">
                   <span data-pr-line-number className="grid h-10 place-items-center self-start"><span className="grid h-6 w-6 place-items-center rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] text-[11px] font-semibold tabular-nums text-[var(--sb-text-muted)]">{index + 1}</span></span>
                   <div data-pr-line-item className="col-span-2 col-start-2 min-w-0 space-y-2 lg:col-span-1 lg:col-start-2">
                     <Field label="Item" required labelClassName="sr-only">
@@ -460,7 +461,7 @@ export function PurchaseRequestForm({
                   {line.itemId && mappingsForLine(line).length === 0 ? <div className="col-span-full grid min-w-0 gap-2 rounded-[var(--sb-radius-control)] border border-[var(--sb-warning)]/35 bg-[var(--sb-warning-bg)] px-3 py-2.5 text-xs text-[var(--sb-warning)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><div className="min-w-0"><p className="font-semibold">Purchasing to confirm</p><p className="mt-0.5 leading-relaxed">No supplier route is configured for this branch yet. You can submit the request; Purchasing will confirm the supplier term during review.</p></div><Button asChild type="button" variant="outline" size="sm" className="h-[var(--sb-control-height)] w-full border-[var(--sb-warning)]/50 text-xs text-[var(--sb-warning)] sm:w-auto"><Link href={`/supplier-items/new?itemId=${line.itemId}&branchId=${branchId}`}>Open supplier mapping</Link></Button></div> : null}
                   {line.itemId && line.uom && mappingsForLine(line).length > 0 && !mappingsForLine(line).some((mapping) => normalizeUom(mapping.purchase_uom) === line.uom) ? <div className="col-span-full grid min-w-0 gap-2 rounded-[var(--sb-radius-control)] border border-[var(--sb-warning)]/35 bg-[var(--sb-warning-bg)] px-3 py-2 text-xs font-medium text-[var(--sb-warning)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"><p>{line.uom.toUpperCase()} is not mapped for this branch. Purchasing will confirm the purchase UOM.</p><Link href={`/supplier-items/new?itemId=${line.itemId}&branchId=${branchId}`} className="inline-flex min-h-[var(--sb-control-height)] items-center justify-center font-semibold underline underline-offset-2 sm:justify-self-end">Set supplier UOM</Link></div> : null}
                   <input type="hidden" name="line_reason" value={line.reason} />
-                </div>
+                </RequestLineRow>
               ))}
             </div>
             <div className="flex justify-end border-t border-[var(--sb-border-soft)] px-3 py-2">

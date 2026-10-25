@@ -123,6 +123,8 @@ export function SelectControl({
 
   const handleValueChange = (optionValue: string) => {
     if (typeof optionValue !== "string") return;
+    // Ignore Radix native-select empty mount events when no selectable empty value exists.
+    if (required && optionValue === "" && !options.some(option => option.value === "" && !option.disabled)) return;
     // Radix may emit an empty native-select change while a newly created option mounts.
     if (onCreateOption && required && optionValue === "") return;
     if (optionValue === createOptionValue) { if(query.trim())onCreateOption?.(query.trim()); return; }

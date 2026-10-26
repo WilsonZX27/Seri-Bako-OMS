@@ -1,0 +1,17 @@
+create schema if not exists auth;
+create or replace function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+create table staffs(id uuid primary key,auth_user_id uuid unique,company_id uuid,status text,deleted_at timestamptz,employment_end_date date);
+create table roles(id uuid primary key,company_id uuid,role_code text,status text,deleted_at timestamptz);
+create table staff_roles(staff_id uuid,role_id uuid,effective_from date,effective_to date);
+create table permissions(id uuid primary key,permission_code text unique);
+create table role_permissions(role_id uuid,permission_id uuid);
+create table staff_permission_overrides(staff_id uuid,permission_id uuid,effect text);
+create table staff_branches(staff_id uuid,branch_id uuid);
+create table purchase_requests(id uuid primary key,company_id uuid,branch_id uuid,requested_by uuid,deleted_at timestamptz,status text,assigned_supplier_id uuid,updated_at timestamptz);
+create table suppliers(id uuid primary key,company_id uuid,status text,deleted_at timestamptz);
+create table items(id uuid primary key,company_id uuid,supplier_id uuid,status text,deleted_at timestamptz,purchase_unit text,base_unit text,cost numeric);
+create table supplier_items(id uuid primary key,company_id uuid,item_id uuid,supplier_id uuid,status text,deleted_at timestamptz,purchase_uom text,unit_cost numeric,updated_at timestamptz);
+create table branch_supplier_items(branch_id uuid,item_id uuid,supplier_item_id uuid,status text,deleted_at timestamptz,is_preferred boolean);
+create table purchase_request_lines(id uuid default gen_random_uuid(),purchase_request_id uuid,item_id uuid,qty numeric,uom text,estimated_unit_cost numeric,suggested_supplier_id uuid,remarks text);
+create table purchase_request_unresolved_lines(id uuid primary key,purchase_request_id uuid,resolution_status text,requested_qty numeric,requested_uom text,remarks text,resolved_item_id uuid,resolved_by uuid,resolved_at timestamptz,updated_at timestamptz);
+create table activity_logs(company_id uuid,entity_type text,entity_id uuid,activity_type text,message text,metadata jsonb,created_by uuid);

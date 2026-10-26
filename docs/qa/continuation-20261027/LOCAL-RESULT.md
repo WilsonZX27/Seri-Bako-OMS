@@ -35,3 +35,7 @@ D-extra5: automatic numbering remains OFF; no allocation/activation performed.
 - Impeccable context launcher: DENIED executing /Users/seribako/.codex/skills/impeccable/scripts/impeccable; read existing project context and craft-floor through permitted file/skill reads instead. No retry.
 
 This is a reviewable local candidate, not a statement that all afternoon items are complete. Parent must retain the unified delivery gate: finish 375 behavior and exact approval package; establish DB state; deploy one complete Preview only when authorized; validate actual original states/images and roles; then promote that same source only after required acceptance. Never promote old154 wholesale.
+
+## Follow-up: local375 blocker resolved by approved tool escalation
+
+The parent authorized a normal one-time escalation of the same Docker read. It succeeded; dedicated network-disabled tmpfs container creation/testing was separately approved. No permission/socket modifications or alternate endpoint were used. 48 actual-helper PostgreSQL behavior cases, four verified lock-wait concurrency scenarios and installation-collision protection now pass. See 375-BEHAVIOR-RESULT.md for precise scope, local role/company hardening and remaining production preflight/approval gates. This supersedes only the earlier local runtime blocker, not the production restrictions or missing Preview acceptance. Earlier375 review remains historical; the new proposal and metadata SELECT have new hashes and remain unapproved for production.

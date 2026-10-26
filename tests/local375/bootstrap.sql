@@ -15,3 +15,5 @@ create table branch_supplier_items(branch_id uuid,item_id uuid,supplier_item_id 
 create table purchase_request_lines(id uuid default gen_random_uuid(),purchase_request_id uuid,item_id uuid,qty numeric,uom text,estimated_unit_cost numeric,suggested_supplier_id uuid,remarks text);
 create table purchase_request_unresolved_lines(id uuid primary key,purchase_request_id uuid,resolution_status text,requested_qty numeric,requested_uom text,remarks text,resolved_item_id uuid,resolved_by uuid,resolved_at timestamptz,updated_at timestamptz);
 create table activity_logs(company_id uuid,entity_type text,entity_id uuid,activity_type text,message text,metadata jsonb,created_by uuid);
+create table branches(id uuid primary key,company_id uuid);
+create table document_line_revisions(document_type text,document_id uuid,status text);

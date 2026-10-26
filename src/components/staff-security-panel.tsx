@@ -60,7 +60,7 @@ export async function StaffAccessActions({id}:{id:string}) {
     <Link data-console-command href={`/people/${id}?section=employment#staff-last-working-day`} className="inline-flex min-h-11 items-center text-sm underline">Record last working day</Link>
     <p className="text-xs text-muted-foreground">For resignation, record the last working day. Access ends after that date; history is retained. Disable sign-in is a separate immediate access restriction.</p>
     {reason ? <p className="text-xs">{reason}</p> : null}
-    {!reason ? <DangerConfirmForm action={disableStaff.bind(null,id)} title="Disable sign-in" description="Existing records are retained." checkboxLabel="Confirm disable sign-in." triggerIcon="deactivate" triggerVariant="outline" buttonLabel="Disable sign-in" pendingLabel="Disabling…"/> : null}
+    {!reason ? <div className="[&>button]:justify-center"><DangerConfirmForm action={disableStaff.bind(null,id)} title="Disable sign-in" description="Existing records are retained." checkboxLabel="Confirm disable sign-in." triggerIcon="deactivate" triggerVariant="outline" buttonLabel="Disable sign-in" pendingLabel="Disabling…"/></div> : null}
   </ConsoleSection>;
 }
 
@@ -79,7 +79,7 @@ export async function StaffSecurityRail({ id }: { id: string }) {
     : null}
     {isOwner ? <details><summary className="min-h-11 cursor-pointer py-3 text-xs text-muted-foreground">Advanced: unused test profiles</summary>
     <ConsoleSection title="Test profile cleanup" kind="danger">
-      <DangerConfirmForm action={permanentlyDeleteStaff.bind(null, id)} title="Permanent delete staff" description="Only use this for test users with no linked business records. For resignation, record the last working day and retain the profile." warning="This is blocked for protected owner accounts and anyone with historical records." checkboxLabel="I understand this permanently deletes only safe test staff records." confirmWord="DELETE" buttonLabel="Permanent delete staff" pendingLabel="Deleting..." />
+      <div className="[&>button]:justify-center"><DangerConfirmForm action={permanentlyDeleteStaff.bind(null, id)} title="Permanent delete staff" description="Only use this for test users with no linked business records. For resignation, record the last working day and retain the profile." warning="This is blocked for protected owner accounts and anyone with historical records." checkboxLabel="I understand this permanently deletes only safe test staff records." confirmWord="DELETE" buttonLabel="Permanent delete staff" pendingLabel="Deleting..." /></div>
     </ConsoleSection></details> : null}
   </>;
 }

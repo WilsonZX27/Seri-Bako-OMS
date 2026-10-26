@@ -1,3 +1,7 @@
+## v9.2.155 (Preview candidate) — Scoped afternoon integration
+
+Retain production153 cards and layouts while integrating named attendance, staff, packaging, cross-outlet schedule, PR, Checklist, RO and session-message corrections. Production migrations371–374 committed and independently verified on2026-10-26; raw/history counts unchanged, Packaging tables empty, PaidEL wrapper preserved. Supplier375 remains an unapproved proposal with no executable client entry. This is a Preview candidate, not full visual/role acceptance or Production promotion. Automatic numbering remains OFF.
+
 ## Unified feedback integration — local, not released
 
 Repository migrations reviewed through `374`; no production execution is claimed. Named feedback is being integrated from production153 with its grouped card design retained. Supplier375 remains a separate unapproved proposal.

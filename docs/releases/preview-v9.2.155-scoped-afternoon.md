@@ -9,3 +9,5 @@ Supplier375 is NOT installed or approved; src has no recovery RPC call/server ac
 Prior final application tests2002/2002, complete build/lint/type validation and targeted Asset status SSR passed. Release version changes require release consistency and final build. Local and previous-SHA screenshots do not establish this Preview's acceptance.
 
 Use this same final Preview source for actual390/430/820/1440 page/state/image comparisons and legal role verification. Preserve full ACCEPTANCE batch IDs and unresolved original comments/routes. Login/session-message distinction does not resolve the intermittent logout root cause. No Production promotion until the complete unified acceptance gates are satisfied; automatic numbering remains OFF.
+
+Scoped follow-up: restore the legacy asset-list redirect with filters preserved; compress Asset phone rows, remove only maintenance queue inner cards, move Overview actions into the existing mobile console, apply notification title600 and the specified Inventory reference to Procurement desktop sections. Manual Asset ID copy explains numbering OFF. Actual authenticated acceptance remains pending.

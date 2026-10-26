@@ -109,7 +109,7 @@ test("current annotation batch keeps shared explanation and responsive filter ow
   const design = read("src", "app", "design-system-v2.css");
   assert.match(detail, /requestedItemCount/);
   assert.match(detail, /TableHead className="w-12 text-center">#/);
-  assert.match(detail, /Item \{index \+ 1\}/);
+  assert.doesNotMatch(detail, /Item \{index \+ 1\}/);
   assert.match(detail, /text-\[var\(--sb-danger\)\]/);
   assert.doesNotMatch(detail, /readiness\.issue\? <div className="mt-1"><p className="break-words text-\[12px\] font-medium text-\[var\(--sb-warning\)\]/);
   assert.match(form, /Purchasing to confirm/);

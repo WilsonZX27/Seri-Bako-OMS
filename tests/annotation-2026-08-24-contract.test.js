@@ -42,7 +42,7 @@ test("PR read-only items show short actionable states in one presentation", () =
   assert.match(read("src/components/procurement/purchase-request-stock.tsx"), /No branch stock history yet/);
   assert.doesNotMatch(detail, /Next: Create or update/);
   assert.doesNotMatch(query, /OMS stock ledger/);
-  assert.match(read("src/components/procurement/purchase-request-stock.tsx"), /New or not previously counted/);
+  assert.doesNotMatch(read("src/components/procurement/purchase-request-stock.tsx"), /New or not previously counted/);
 });
 
 test("register and basket presentations enforce the new operational contract", () => {

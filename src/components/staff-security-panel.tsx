@@ -70,9 +70,9 @@ export async function StaffSecurityRail({ id }: { id: string }) {
   return <>
     <StaffAccessActions id={id}/>
     <ConsoleSection title="Password actions" kind="action">
-      {isOwner && authState === "link_needs_repair" ? <form action={repairStaffSignInLink.bind(null, id)}><SubmitButton type="submit" variant="outline" className="w-full" pendingLabel="Checking exact match...">Repair sign-in link</SubmitButton></form> : null}
-      <form action={resetStaffTemporaryPassword.bind(null, id)}><SubmitButton type="submit" className="w-full" pendingLabel="Generating...">{staff.auth_user_id ? "Reset temporary password" : "Create auth account"}</SubmitButton></form>
-      {staff.auth_user_id ? <form action={forceStaffPasswordChange.bind(null, id)}><SubmitButton type="submit" variant="outline" className="w-full" pendingLabel="Processing...">Force password change</SubmitButton></form> : null}
+      {isOwner && authState === "link_needs_repair" ? <form action={repairStaffSignInLink.bind(null, id)}><SubmitButton data-console-command type="submit" variant="outline" className="w-full" pendingLabel="Checking exact match...">Repair sign-in link</SubmitButton></form> : null}
+      <form action={resetStaffTemporaryPassword.bind(null, id)}><SubmitButton data-console-command type="submit" className="w-full" pendingLabel="Generating...">{staff.auth_user_id ? "Reset temporary password" : "Create auth account"}</SubmitButton></form>
+      {staff.auth_user_id ? <form action={forceStaffPasswordChange.bind(null, id)}><SubmitButton data-console-command type="submit" variant="outline" className="w-full" pendingLabel="Processing...">Force password change</SubmitButton></form> : null}
     </ConsoleSection>
     <ConsoleSection title="Danger zone" kind="danger">
       <DangerConfirmForm action={permanentlyDeleteStaff.bind(null, id)} title="Permanent delete staff" description="Only use this for test users with no linked business records. Real staff with history must use Disable sign-in instead." warning="This is blocked for protected owner accounts and anyone with historical records." checkboxLabel="I understand this permanently deletes only safe test staff records." confirmWord="DELETE" buttonLabel="Permanent delete staff" pendingLabel="Deleting..." />

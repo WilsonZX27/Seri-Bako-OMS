@@ -20,6 +20,7 @@ type MobileActionProps = {
   href?: string;
   primary?: boolean;
   "data-mobile-primary-action"?: boolean;
+  "data-mobile-secondary-action"?: boolean;
 };
 
 function isMobilePrimaryAction(child: ReactNode): boolean {
@@ -28,12 +29,12 @@ function isMobilePrimaryAction(child: ReactNode): boolean {
     || (child.props.primary === true && typeof child.props.href === "string");
 }
 
-function findMobilePrimaryAction(node: ReactNode): ReactNode {
+function findMobilePrimaryAction(node: ReactNode, secondary = false): ReactNode {
   let match: ReactNode = null;
   Children.forEach(node, (child) => {
     if (match || !isValidElement<MobileActionProps>(child)) return;
-    if (isMobilePrimaryAction(child)) match = child;
-    else match = findMobilePrimaryAction(child.props.children);
+    if (secondary ? child.props["data-mobile-secondary-action"] === true : isMobilePrimaryAction(child)) match = child;
+    else match = findMobilePrimaryAction(child.props.children, secondary);
   });
   return match;
 }
@@ -162,6 +163,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
 
   const consoleContent = desktopConsoleHidden ? null : content;
   const primaryAction = findMobilePrimaryAction(consoleContent);
+  const secondaryAction = findMobilePrimaryAction(consoleContent, true);
   const secondaryConsoleContent = withoutMobilePrimaryAction(consoleContent);
   const primaryHref = findActionHref(primaryAction);
   const primaryLabel = actionText(primaryAction);
@@ -208,11 +210,11 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
         </Link>
       ) : null}
       {content && hasCreateFab ? <Button ref={triggerRef} type="button" variant="outline" data-mobile-secondary-actions className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-20 z-[var(--sb-z-sticky)] h-14 min-h-14 gap-2 rounded-[var(--sb-control-radius)] bg-white px-3 shadow-sm md:hidden" onClick={() => setOpen(true)} aria-label={`Open ${mobileConsoleLabel.toLowerCase()}`} aria-haspopup="dialog" aria-expanded={open}><PanelRight className="h-4 w-4" aria-hidden="true"/>{mobileConsoleLabel}</Button> : null}
-      {content && !mobileBarHidden && !hasCreateFab ? <div data-mobile-action-bar data-compact-more={primaryAction ? "true" : undefined} className={cn("sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] items-center gap-2 rounded-none border-x-0 border-b-0 bg-white/95 p-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_20px_rgba(17,30,22,0.2)]", "grid", primaryAction ? "grid-cols-2" : "grid-cols-1", "md:hidden xl:hidden")}>
+      {content && !mobileBarHidden && !hasCreateFab ? <div data-mobile-action-bar data-compact-more={primaryAction && !secondaryAction ? "true" : undefined} className={cn("sb-mobile-action-bar fixed inset-x-0 bottom-0 z-[var(--sb-z-sticky)] items-center gap-2 rounded-none border-x-0 border-b-0 bg-white/95 p-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-[0_-8px_20px_rgba(17,30,22,0.2)]", "grid", primaryAction ? "grid-cols-2" : "grid-cols-1", "md:hidden xl:hidden")}>
         {primaryAction ? <div data-mobile-primary-slot className="min-w-0 [&>*]:h-12 [&>*]:w-full">{primaryAction}</div> : null}
-        <Button ref={triggerRef} type="button" variant="default" className="h-12 min-w-0 w-full justify-center gap-2 shadow-sm" onClick={() => setOpen(true)} aria-label={`Open ${mobileConsoleLabel.toLowerCase()}`} aria-haspopup="dialog" aria-expanded={open}>
+        {secondaryAction ? <div data-mobile-secondary-slot className="min-w-0 [&>*]:h-12 [&>*]:w-full">{secondaryAction}</div> : <Button ref={triggerRef} type="button" variant="default" className="h-12 min-w-0 w-full justify-center gap-2 shadow-sm" onClick={() => setOpen(true)} aria-label={`Open ${mobileConsoleLabel.toLowerCase()}`} aria-haspopup="dialog" aria-expanded={open}>
           {mobileConsoleLabel === "More actions" ? <Ellipsis className="h-5 w-5" aria-hidden="true" /> : <PanelRight className="h-4 w-4" aria-hidden="true" />}{!primaryAction ? <span>{mobileConsoleLabel}</span> : null}
-        </Button>
+        </Button>}
       </div> : null}
       {open && content && (!mobileBarHidden || hasCreateFab) ? createPortal(
         <div className="fixed inset-0 z-[var(--sb-z-dialog)] md:hidden">
@@ -244,7 +246,7 @@ export function RightConsoleMount({ children, hideMobileBar = false, hideDesktop
 
 export function ConsoleSection({ title, children, titleClassName, className, kind = "reference" }: { title: ReactNode; children: ReactNode; titleClassName?: string; className?: string; kind?: "action" | "status" | "reference" | "danger" }) {
   return (
-    <section data-console-section data-console-kind={kind} className={cn("rounded-[var(--sb-panel-radius)] border px-3 py-3", kind === "danger" ? "border-red-200 bg-[var(--sb-danger-bg)]" : "border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)]", className)}>
+    <section data-console-section data-console-kind={kind} className={cn("min-w-0 py-3", kind === "danger" && "rounded-[var(--sb-panel-radius)] bg-[var(--sb-danger-bg)] px-3", className)}>
       <div className="mb-3 flex items-center gap-2">
         <h2 className={cn("min-w-0 break-words text-xs font-semibold uppercase tracking-[0.06em] text-[var(--sb-text-muted)]", titleClassName)}>{title}</h2>
         <span aria-hidden="true" className="h-px min-w-0 flex-1 bg-[var(--sb-border-soft)]" />

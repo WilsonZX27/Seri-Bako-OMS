@@ -1,3 +1,7 @@
+## v9.2.154 (Preview candidate) — Shared workspace corrections and accurate recovery
+
+Integrate reviewed UI candidate ced772e and separate presentation patch3198f9d. Shared query sizing, compact asset register and maintenance rows, audit readability, direct overview actions, natural RO ordering, shared operational hubs, action alignment, single-layer surfaces and pagination synchronization. Recovery distinguishes unexpected redirects and temporarily unavailable verification from definite expiry. Preview real acceptance precedes Production. No Auth policy/duration/signOut scope, SQL/env/permission changes, numbering activation or real business writes; batch state preserved. Intermittent session root cause remains unconfirmed.
+
 ## v9.2.153 (Preview candidate) — Unified controls and request feedback
 
 Reviewed candidate cb0402f10d0fa2899e524eaa5db59116a0d81f46: scoped import drafts, truthful uncertain-result recovery, bounded optional reads and client requests, stale shift-save protection, shared navigation/pagination and responsive semantic controls. Preview first; Production only after bounded legitimate-session read-only acceptance. Keep single-page multi-asset transfer, unique column headers and existing tenant/permission boundaries. No new SQL, business-data writes, idle-local-signout patch or numbering activation. Batch remains readiness-gated and automatic numbering OFF. Synthetic checks are distinct from live/all-role UAT.

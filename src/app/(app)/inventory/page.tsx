@@ -1,5 +1,6 @@
+import { OperationalOverview, OperationalActionGrid } from "@/components/workspace/operational-sections";
 import Link from "next/link";
-import { ArrowDownLeft, ArrowLeftRight, ArrowRight, ArrowUpRight, ClipboardCheck, PackageSearch, ReceiptText, TriangleAlert } from "lucide-react";
+import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, ClipboardCheck, PackageSearch, ReceiptText, TriangleAlert } from "lucide-react";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { OperationalHub } from "@/components/operational-hub";
@@ -82,14 +83,8 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
               }))}
             />
           </div>
-          <section className="hidden overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-green-900)] bg-card md:block" aria-labelledby="inventory-overview">
-            <div className="flex items-end justify-between gap-3 bg-[var(--sb-green-900)] px-4 py-3 text-white"><div><p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/70">Today at a glance</p><h2 id="inventory-overview" className="mt-1 text-sm font-semibold">Operational overview</h2></div><Link href="/stock-balance" className="text-xs font-semibold text-white/80 underline-offset-4 hover:text-white hover:underline">Open stock balance</Link></div>
-            <div className="grid divide-y sm:grid-cols-2 sm:divide-x sm:divide-y-0 xl:grid-cols-4">{counters.map((counter) => <Link key={counter.label} href={counter.href} className="group flex min-h-16 items-center justify-between gap-3 px-3 py-2.5 transition-colors hover:bg-[var(--sb-green-100)] sm:min-h-20 sm:px-4 sm:py-3"><span className="text-xs text-muted-foreground group-hover:text-[var(--sb-green-900)]">{counter.label}</span><strong className={counter.unavailable ? "font-mono text-lg text-[var(--sb-warning)] sm:text-xl" : "font-mono text-lg text-[var(--sb-green-900)] sm:text-xl"}>{formatCounter(counter)}</strong></Link>)}</div>
-          </section>
-          <section className="hidden overflow-hidden rounded-[var(--sb-panel-radius)] border bg-card md:block" aria-labelledby="inventory-actions">
-            <div className="border-b px-4 py-3"><h2 id="inventory-actions" className="text-sm font-semibold">Inventory actions and review</h2></div>
-            <div className="grid sm:grid-cols-2">{visibleModules.map((module) => { const Icon = module.icon; return <Link key={module.href} href={module.href} className="flex min-h-12 items-center gap-3 border-b px-4 py-3 hover:bg-secondary/40 sm:border-r"><Icon className="h-4 w-4 text-primary" /><span className="flex-1 text-sm font-semibold">{module.label}</span><ArrowRight className="h-4 w-4 text-muted-foreground" /></Link>; })}</div>
-          </section>
+          <OperationalOverview id="inventory-overview" title="Operational overview" action={{href:"/stock-balance",label:"Open stock balance"}} metrics={counters.map(counter=>({...counter,value:formatCounter(counter)}))}/>
+          <OperationalActionGrid id="inventory-actions" title="Inventory actions and review" items={visibleModules}/>
           <section className="overflow-hidden border bg-card" aria-labelledby="inventory-movement-activity">
             <div className="flex flex-wrap items-start justify-between gap-3 border-b px-3 py-2.5 sm:px-4 sm:py-3">
               <div className="min-w-0">

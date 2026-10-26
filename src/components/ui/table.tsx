@@ -20,7 +20,7 @@ export function Table({ className, mobileHidden = false, compactUntil = "xl", sc
 }
 
 export function OperationalList({ children, ariaLabel, className, showUntil = "xl" }: { children: React.ReactNode; ariaLabel: string; className?: string; showUntil?: "md" | "xl" | "2xl" }) {
-  return <div className={cn("divide-y divide-[var(--sb-border-soft)]", showUntil === "2xl" ? "2xl:hidden" : showUntil === "xl" ? "xl:hidden" : "md:hidden", className)} role="list" aria-label={ariaLabel}>{children}</div>;
+  return <div className={cn("divide-y divide-[var(--sb-border-soft)]", showUntil === "2xl" ? "2xl:hidden" : showUntil === "xl" ? "xl:hidden" : "md:hidden", className)} data-list-rows role="list" aria-label={ariaLabel}>{children}</div>;
 }
 
 export function OperationalListRow({ href, label, primary, status, statusMeta, secondary, detail, meta, leading, trailing, fullWidthDetails = false, stackedStatus = false }: {

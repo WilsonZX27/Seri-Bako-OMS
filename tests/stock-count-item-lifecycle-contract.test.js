@@ -51,5 +51,5 @@ test("AutoCount API failures remain JSON and the client rejects HTML safely", ()
   assert.match(parser, /headers\.get\("content-type"\)/);
   assert.match(parser, /!contentType\.includes\("application\/json"\)/);
   assert.match(workflow, /Your session expired/);
-  assert.match(parser, /response\.status === 401 \|\| response\.redirected/);
+  assert.match(parser, /response\.status === 401 \|\| \(response\.redirected && isSignInResponse/);
 });

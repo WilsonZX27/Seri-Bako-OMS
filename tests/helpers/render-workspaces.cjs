@@ -15,6 +15,7 @@ function compile(file, overrides={}) {
   if(name in overrides)return overrides[name];
   if(name==='next/link')return {__esModule:true,default:({prefetch,children,...props})=>React.createElement('a',props,children)};
   if(name==='@/lib/utils')return utils;
+  if(name==='@/components/workspace/operational-sections')return compile('src/components/workspace/operational-sections.tsx',overrides);
   if(name==='@/lib/inventory-read-deadline')return load('src/lib/inventory-read-deadline.ts');
   if(name==='@/lib/workspace-notification-copy')return load('src/lib/workspace-notification-copy.ts');
   if(name==='@/components/ui/status-badge')return status;

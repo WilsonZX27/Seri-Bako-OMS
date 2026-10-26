@@ -28,7 +28,7 @@ export function ConsoleActionLink({
       asChild
       variant={primary ? "default" : "outline"}
       size="sm"
-      className="w-full"
+      className={primary ? "w-full" : "w-full justify-start text-left"}
       data-mobile-primary-action={primary || undefined}
     >
       {kind === "export" ? <a href={href}>

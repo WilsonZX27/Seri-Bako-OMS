@@ -27,8 +27,8 @@ test("purchase-request creation is promoted only when permitted", () => {
 
 test("procurement redesign is phone-only and keeps the desktop workspace", () => {
   assert.match(source, /<div className="md:hidden">\s*\n?\s*<OperationalHub/);
-  assert.match(source, /aria-labelledby="procurement-overview"[\s\S]*className="[^\"]*hidden[^\"]*md:block/);
-  assert.match(source, /aria-labelledby="procurement-queue"[\s\S]*className="[^\"]*hidden[^\"]*md:block/);
+  assert.match(source, /<OperationalOverview id="procurement-overview"/);
+  assert.match(source, /<OperationalActionGrid id="procurement-queue"/);
   assert.match(source, /<WorkspaceGrid[\s\S]*?rightRail=/);
   assert.match(source, /pb-24 md:pb-0/);
 });

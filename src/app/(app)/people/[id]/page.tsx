@@ -73,9 +73,9 @@ export default async function PeopleProfilePage({
   ).length;
   const rail = activeSection === "security" ? <StaffSecurityRail id={id} /> : (
     <>
-      <ConsoleSection title="Actions">
+      <ConsoleSection title="Actions" kind="action">
         {activeSection === "employment" && permissions["staffs.update"] ? <SubmitButton form="people-employment-form" className="w-full" data-mobile-primary-action>Save staff</SubmitButton> : null}
-      <Button asChild size="sm" variant="outline" className="w-full"><Link href={`/attendance/review?branch=${staffSummary?.default_branch_id ?? "select"}&employee=${encodeURIComponent(staff.full_name)}`}>Open attendance</Link></Button>
+      <Button data-console-command asChild size="sm" variant="outline" className="w-full"><Link href={`/attendance/review?branch=${staffSummary?.default_branch_id ?? "select"}&employee=${encodeURIComponent(staff.full_name)}`}>Open attendance</Link></Button>
       </ConsoleSection>
       <StaffAccessActions id={id}/>
       <ConsoleSection title="Profile status">

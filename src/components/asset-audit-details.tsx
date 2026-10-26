@@ -1,0 +1,5 @@
+import { assetAuditRows, assetDisplayReference } from "@/lib/asset-audit-display";
+export function AssetAuditDetails({data,sourceId}:{data:Record<string,unknown>;sourceId?:string}){
+ const rows=assetAuditRows(data),technical=rows.filter(row=>row.technical);
+ return <details><summary className="min-h-11 cursor-pointer py-2 text-xs">View audit details</summary><dl className="grid gap-2 text-xs sm:grid-cols-2">{rows.map(row=><div className="min-w-0" key={row.key}><dt className="text-muted-foreground">{row.key}</dt><dd className="whitespace-pre-wrap break-words">{row.display}</dd></div>)}</dl>{sourceId?<p className="mt-2 text-xs text-muted-foreground">{assetDisplayReference(sourceId)}</p>:null}{technical.length||sourceId?<details className="mt-2"><summary className="min-h-11 cursor-pointer py-2 text-xs text-muted-foreground">Technical identifiers</summary><dl className="grid gap-2 text-xs">{technical.map(row=><div key={row.key}><dt>{row.key}</dt><dd className="break-all">{row.raw}</dd></div>)}{sourceId?<div><dt>Source reference</dt><dd className="break-all">{sourceId}</dd></div>:null}</dl></details>:null}</details>;
+}

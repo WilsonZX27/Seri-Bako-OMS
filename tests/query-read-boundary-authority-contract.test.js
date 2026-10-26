@@ -77,7 +77,7 @@ test("list filters have a single final responsive authority", () => {
   assert.match(css, /Final shared list-control authority/);
   assert.match(css, /grid-column: 1 \/ -1/);
   assert.match(css, /grid-template-columns: repeat\(3, minmax\(0, 1fr\)\) auto/);
-  assert.match(css, /flex: 0 0 10rem !important/);
+  assert.match(css, /flex: 0 0 var\(--sb-filter-control-width\) !important/);
 });
 
 test("bounded inventory opening balances use the daily summary instead of an unbounded history scan", () => {

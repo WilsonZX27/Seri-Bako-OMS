@@ -1,3 +1,4 @@
+import { compareStaffCodes } from "@/lib/staff-code-order";
 import { todayInKualaLumpur } from "@/lib/business-date";
 import { createClient } from "@/lib/supabase/server";
 import { looseSupabase } from "@/lib/supabase/loose";
@@ -17,19 +18,20 @@ export async function getRoManagement(filters:{search?:string;branch_id?:string;
   const db=looseSupabase(await createClient());
   const scoped=selected||!scope.companyWideAccess;
   const sort=["full_name","staff_code","balance","available"].includes(filters.sort??"")?filters.sort!:"full_name";
-  const ascending=filters.dir!=="desc", numericSort=sort==="balance"||sort==="available";
+  const ascending=filters.dir!=="desc", numericSort=sort==="balance"||sort==="available", clientSort=numericSort||sort==="staff_code";
   let query=db.from("staffs").select(`id,full_name,staff_code,status,employment_end_date,staff_branches${scoped?"!inner":""}(branch_id,is_default,branches(branch_name))`,{count:"exact"}).eq("company_id",actor.companyId).is("deleted_at",null).in("status",["active","invited"]).or(`employment_end_date.is.null,employment_end_date.gte.${todayInKualaLumpur()}`);
   if(selected)query=query.eq("staff_branches.branch_id",selected);
   else if(!scope.companyWideAccess)query=query.in("staff_branches.branch_id",scope.branchIds);
   const search=filters.search?.trim().replace(/[,%()]/g," ");
   if(search)query=query.or(`staff_code.ilike.%${search}%,full_name.ilike.%${search}%`);
-  const result=await query.order(numericSort?"full_name":sort,{ascending:numericSort?true:ascending}).order("id").range(numericSort?0:(page-1)*25,numericSort?500:page*25);
+  const result=await query.order(clientSort?"full_name":sort,{ascending:clientSort?true:ascending}).order("id").range(clientSort?0:(page-1)*25,clientSort?500:page*25);
   if(result.error)throw result.error;
   const people=(result.data??[]) as Person[];
   if(result.count==null)throw Error("Employee count is unavailable.");
   const totalRows=result.count;
-  if(numericSort&&people.length>500)return {allowed:true,rows:[],page:1,hasNext:false,totalRows,sortUnavailable:true};
-  const selectedPeople=numericSort?people:people.slice(0,25);
+  if(clientSort&&(totalRows>500||people.length!==totalRows))return {allowed:true,rows:[],page:1,hasNext:false,totalRows,sortUnavailable:true};
+  if(sort==="staff_code")people.sort((a,b)=>compareStaffCodes(a,b,ascending));
+  const selectedPeople=numericSort?people:sort==="staff_code"?people.slice((page-1)*25,page*25):people.slice(0,25);
   const rows:Array<Person&{balance:number;available:number;branchId:string|null;branchName:string}> = [];
   // Keep the existing authoritative ledger/reservation RPCs, at most five people in flight.
   for(let offset=0;offset<selectedPeople.length;offset+=5){
@@ -43,5 +45,5 @@ export async function getRoManagement(filters:{search?:string;branch_id?:string;
     })));
   }
   if(numericSort) rows.sort((a,b)=>(ascending?1:-1)*(a[sort]-b[sort])||a.full_name.localeCompare(b.full_name)||a.id.localeCompare(b.id));
-  return {allowed:true,rows:numericSort?rows.slice((page-1)*25,page*25):rows,page,hasNext:numericSort?page*25<totalRows:people.length>25,totalRows,sortUnavailable:false};
+  return {allowed:true,rows:numericSort?rows.slice((page-1)*25,page*25):rows,page,hasNext:clientSort?page*25<totalRows:people.length>25,totalRows,sortUnavailable:false};
 }

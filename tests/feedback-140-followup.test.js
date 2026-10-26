@@ -14,7 +14,7 @@ test('session expiry rechecks activity and catches nested input and scroll event
  assert.match(s,/Date.now\(\) - lastActivityAt.current < sessionLogoutAfterMs/);
  assert.match(s,/passive: true, capture: true/);assert.match(s,/"pointerdown"/);assert.match(s,/"input"/);
  assert.match(s,/signOutExpired\(true\)/);
- const error=read('src/app/(app)/error.tsx');assert.match(error,/auth.getUser\(\)/);assert.match(error,/error.status === 401/);assert.match(error,/Your session has expired/);assert.doesNotMatch(error,/refreshSession|signOut\(/);
+ const error=read('src/app/(app)/error.tsx');assert.match(error,/auth.getUser\(\)/);assert.match(error,/sessionVerificationState/);assert.match(read("src/lib/http/session-result.ts"),/error.status === 401/);assert.match(error,/Your session has expired/);assert.doesNotMatch(error,/refreshSession|signOut\(/);
 });
 test('PR pending context uses scoped supplier and branch metadata',()=>{
  const q=read('src/server/queries/topbar.ts'),ui=read('src/components/layout/top-bar-activity-menu.tsx');

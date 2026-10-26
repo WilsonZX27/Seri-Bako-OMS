@@ -100,6 +100,7 @@ function isStatusTabs(child: ReactNode) {
 
 function isPrimaryControl(child: ReactNode) {
   const props = propsOf(child);
+  if (isValidElement(child) && typeof child.type === "string" && !["input", "select"].includes(child.type)) return false;
   if (props.type === "date" || props.type === "search" || props.type === "text") return true;
   if (props.options || Array.isArray(props.children)) return false;
   return true;

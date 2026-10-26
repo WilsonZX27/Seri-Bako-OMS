@@ -126,7 +126,7 @@ export function TopBarActivityMenu({ data, canOpenActivity = true }: { data: Top
                 <Link key={item.id} href={item.href} onClick={() => setOpen(false)} className="flex gap-2 rounded-md p-2 text-xs font-normal hover:bg-secondary">
                   <Icon aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                   <span className="min-w-0 flex-1">
-                    <span className="flex items-start justify-between gap-2"><span className="block uppercase" title={item.title}>{isRepair ? "REPAIR REQUEST" : item.document_no}</span><span className="shrink-0 text-[10px] text-muted-foreground">{isRepair ? `${repair.maintenance_priority || "Normal"} priority` : "step" in item ? item.step : item.title}</span></span>
+                    <span className="flex items-start justify-between gap-2"><span className="block font-semibold uppercase" title={item.title}>{isRepair ? "REPAIR REQUEST" : item.document_no}</span><span className="shrink-0 text-[10px] text-muted-foreground">{isRepair ? `${repair.maintenance_priority || "Normal"} priority` : "step" in item ? item.step : item.title}</span></span>
                     {isRepair ? <>
                       <span className="mt-1 block whitespace-normal break-words text-muted-foreground" title={`${repair.maintenance_asset_name ?? "Maintenance request"} · ${repair.branch_name ?? "Location unavailable"}`}>{repair.maintenance_asset_name ?? "Maintenance request"} · {repair.branch_name ?? "Location unavailable"} · <span className="text-[10px]">Ref {item.id.slice("maintenance-".length, "maintenance-".length + 8)}</span></span>
                     </> : item.href.startsWith("/purchase-requests/") ? <span className="mt-1 block whitespace-normal break-words text-muted-foreground">{repair.supplier_names?.length ? repair.supplier_names.join(", ") : "Supplier not specified"} · {repair.branch_name ?? "Location unavailable"}</span> : null}
@@ -144,7 +144,7 @@ export function TopBarActivityMenu({ data, canOpenActivity = true }: { data: Top
               {notifications.map((notification) => { const Icon = actionIcon(notification.action_url ?? ""); const detail = workspaceNotificationDetail(notification.title, notification.message); return (
                 <Link key={notification.id} href={notification.action_url ?? "/activity"} onClick={() => { markUpdateSeen(notification.id); setOpen(false); }} className="flex gap-2 rounded-[var(--sb-control-radius)] p-2 text-xs hover:bg-secondary">
                   <Icon aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                  <span className="min-w-0"><span className="block uppercase" title={notification.title}>{notification.title}</span>{detail ? <span className={notification.title === "Repair request" ? "block whitespace-normal break-words text-xs text-muted-foreground" : "line-clamp-1 text-xs text-muted-foreground"} title={detail}>{detail}</span> : null}</span>
+                  <span className="min-w-0"><span className="block font-semibold uppercase" title={notification.title}>{notification.title}</span>{detail ? <span className={notification.title === "Repair request" ? "block whitespace-normal break-words text-xs text-muted-foreground" : "line-clamp-1 text-xs text-muted-foreground"} title={detail}>{detail}</span> : null}</span>
                 </Link>
               ); })}
               {announcements.map((notification) => (

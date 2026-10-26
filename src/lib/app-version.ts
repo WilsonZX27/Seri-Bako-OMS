@@ -1,4 +1,4 @@
-export const APP_VERSION = "9.2.153";
+export const APP_VERSION = "9.2.154";
 export const APP_SPRINT = `v${APP_VERSION}`;
 export const APP_RELEASE_TITLE = "Unified controls and request feedback";
 // Keep the shell footer concise; the detailed release title belongs in release

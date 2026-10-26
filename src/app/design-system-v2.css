@@ -1,5 +1,6 @@
 /* Canonical OMS tokens. globals.css contains structural/Tailwind compatibility only. */
 :root {
+  --sb-filter-control-width: 120px;
   /* Shared palette: the single source of truth for legacy and v2 surfaces. */
   --sb-green-950: #053c2c;
   --sb-green-900-rgb: 7 75 55;
@@ -1747,7 +1748,6 @@ html[data-design-layer="v2"] [data-right-console] [data-console-section] :where(
   height: 2.75rem !important;
   min-height: 2.75rem !important;
   max-height: 2.75rem !important;
-  justify-content: center;
 }
 
 /* Fine-pointer query and rail controls keep the established compact rhythm.
@@ -1980,13 +1980,13 @@ html[data-design-layer="v2"] [data-outlet-daily-lines] {
   html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-desktop-actions > :where(button, a),
   html[data-design-layer="v2"] form.sb-list-filters--equal-controls > :where(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control, select, [data-select-control], .sb-status-filter, .sb-filter-more),
   html[data-design-layer="v2"] form.sb-list-filters--equal-controls > .unified-list-desktop-actions > :where(button, a) {
-    flex: 0 0 10rem !important;
-    width: 10rem !important;
-    min-width: 10rem !important;
-    max-width: 10rem !important;
+    flex: 0 0 var(--sb-filter-control-width) !important;
+    width: var(--sb-filter-control-width) !important;
+    min-width: var(--sb-filter-control-width) !important;
+    max-width: var(--sb-filter-control-width) !important;
   }
 
-  html[data-design-layer="v2"] form.sb-list-query-card > :where(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control) {
+  html[data-design-layer="v2"] form.sb-list-query-card > :where(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"]) {
     flex: 0 1 10rem !important;
     width: 10rem !important;
     min-width: 10rem !important;
@@ -2016,7 +2016,7 @@ html[data-design-layer="v2"] [data-outlet-daily-lines] {
     flex-wrap: nowrap !important;
   }
 
-  html[data-design-layer="v2"] form.sb-list-query-card > :where(input[type="search"], input[name="search"], input[name="date"], input[placeholder*="Search"], input[placeholder*="Find"], .unified-list-date-control) {
+  html[data-design-layer="v2"] form.sb-list-query-card > :where(input[type="search"], input[name="search"], input[placeholder*="Search"], input[placeholder*="Find"]) {
     /* Search is deliberately two filter widths; it should not absorb the
        whole card and make each route invent a different visual proportion. */
     flex: 0 1 18rem !important;
@@ -2432,7 +2432,23 @@ html[data-touch-tablet="true"] [data-app-topbar] > .hidden.min-w-0.items-center 
 }
 
 html[data-design-layer="v2"] [data-console-section] {
-  box-shadow: var(--sb-shadow-card);
+  box-shadow: none;
+}
+
+/* Console commands are menu actions; page/form primary CTAs keep their own alignment. */
+[data-console-section] :where([data-console-command]) {
+  justify-content: flex-start;
+  text-align: left;
+}
+
+/* A list canvas owns the surface; embedded filters and rows do not nest cards. */
+html[data-design-layer="v2"] .sb-list-content-card > :is(form, [data-list-rows]) {
+  border: 0;
+  border-radius: 0 !important;
+  box-shadow: none;
+}
+html[data-design-layer="v2"] .sb-list-content-card > form {
+  border-bottom: 1px solid var(--sb-border-soft);
 }
 
 /* Explicit query slots: controls precede their aligned trailing command. */
@@ -2514,33 +2530,6 @@ html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-gap { padding: 0; 
   }
   html[data-design-layer="v2"] [data-outlet-daily-lines] button:has(svg) {
     min-width: 44px;
-  }
-}
-
-/* Asset registers use the shared query card's compact command measure. */
-@media (min-width: 1280px) {
-  html[data-design-layer="v2"] form.sb-asset-query.sb-list-query-card {
-    flex-wrap: wrap !important;
-  }
-
-  html[data-design-layer="v2"] form.sb-asset-query.sb-list-query-card > :is(select, [data-select-control], .sb-filter-more, .unified-list-date-control),
-  html[data-design-layer="v2"] form.sb-asset-query.sb-list-query-card > .unified-list-desktop-actions > .unified-list-action {
-    flex: 0 0 8rem !important;
-    width: 8rem !important;
-    min-width: 8rem !important;
-    max-width: 8rem !important;
-  }
-  html[data-design-layer="v2"] form.sb-asset-query.sb-list-query-card > [data-search-control] {
-    flex: 1 1 10rem !important;
-    min-width: 10rem !important;
-    max-width: 11rem !important;
-  }
-  html[data-design-layer="v2"] form.sb-asset-query .unified-list-desktop-actions > .sb-filter-summary {
-    order: -1;
-  }
-  html[data-design-layer="v2"] form.sb-asset-query .sb-filter-more > summary {
-    white-space: nowrap;
-    gap: .375rem;
   }
 }
 
@@ -2995,7 +2984,7 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
   html[data-design-layer="v2"] form.sb-asset-query .sb-filter-more > summary { min-height: 44px; }
 }
 @media (max-width: 639px) {
-  html[data-design-layer="v2"] form.sb-asset-query--transfers .unified-list-row { display: grid !important; grid-template-columns: minmax(0, 1fr) auto !important; align-items: center; }
+  html[data-design-layer="v2"] form.sb-asset-query--transfers .unified-list-row { display: grid !important; grid-template-columns: var(--sb-filter-control-width) minmax(0, 1fr) !important; align-items: center; }
   html[data-design-layer="v2"] form.sb-asset-query--transfers .unified-list-inline-control { grid-column: 1; min-width: 0; }
   html[data-design-layer="v2"] form.sb-asset-query--transfers .unified-list-result { grid-column: 2; grid-row: 1; display: flex !important; gap: .25rem; white-space: nowrap; }
   html[data-design-layer="v2"] form.sb-asset-query--transfers .unified-list-inline-fields { display: none; }
@@ -3225,7 +3214,7 @@ html[data-design-layer="v2"] .sb-repair-summary { grid-template-columns: minmax(
     align-items:center;
   }
   html[data-design-layer="v2"] form.unified-list-header[data-tablet-mode="inline"] .unified-list-search-submit { grid-column:2; }
-  html[data-design-layer="v2"] form.unified-list-header[data-tablet-mode="inline"] .unified-list-inline-control { grid-column:3; width:100%; }
+  html[data-design-layer="v2"] form.unified-list-header[data-tablet-mode="inline"] .unified-list-inline-control { grid-column:3; width:var(--sb-filter-control-width); }
   html[data-design-layer="v2"] form.unified-list-header[data-tablet-mode="inline"] .unified-list-result { grid-column:3; justify-self:end; display:flex !important; flex-direction:row; gap:.25rem; white-space:nowrap; }
   html[data-design-layer="v2"] form.unified-list-header[data-tablet-mode="inline"][data-inline-field-count="1"] .unified-list-row {
     grid-template-columns:minmax(0,1fr) 44px minmax(6rem,auto) max-content;
@@ -3345,11 +3334,6 @@ html[data-design-layer="v2"] form.sb-asset-query--overview .unified-list-row {
   align-items: center;
   gap: .75rem;
 }
-html[data-design-layer="v2"] form.sb-asset-query--overview .unified-list-date-control {
-  flex: 0 1 10rem !important;
-  width: 10rem !important;
-  max-width: 10rem !important;
-}
 html[data-design-layer="v2"] form.sb-asset-query--overview .unified-list-date-submit { margin-left: auto; }
 
 /* Procurement registers share a vertically centred reading line. */
@@ -3380,3 +3364,32 @@ html[data-design-layer="v2"] [data-dashboard-pending-row][data-repair-action] :i
   [data-pagination-summary], [data-pagination-full] { display: none; }
   [data-pagination-compact] { display: flex; }
 }
+
+/* Query controls share a compact measure; full form fields and filter sheets retain their own tracks. */
+html[data-design-layer="v2"] form.unified-list-header .unified-list-inline-control,
+html[data-design-layer="v2"] form.unified-list-header .unified-list-inline-fields > [data-select-control],
+html[data-design-layer="v2"] form.unified-list-header .unified-list-date-control,
+html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-date-control {
+  flex: 0 0 var(--sb-filter-control-width);
+  width: var(--sb-filter-control-width);
+  min-width: var(--sb-filter-control-width);
+  max-width: var(--sb-filter-control-width);
+}
+
+/* A lone inline filter has no hidden search/icon columns to reserve. */
+/* Keep all ten date characters readable inside the shared 120px query measure. */
+html[data-design-layer="v2"] form.unified-list-header .unified-list-date-control,
+html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-date-control {
+  padding-inline: 6px;
+}
+html[data-design-layer="v2"] form.unified-list-header .unified-list-date-control > svg,
+html[data-design-layer="v2"] form.sb-list-query-card > .unified-list-date-control > svg {
+  margin-left: 4px;
+}
+
+html[data-design-layer="v2"] form.unified-list-header[data-inline-field-count="1"] .unified-list-row--filter-only:has(> .unified-list-inline-control) {
+  display: grid;
+  grid-template-columns: var(--sb-filter-control-width) minmax(0,1fr);
+}
+html[data-design-layer="v2"] form.unified-list-header[data-inline-field-count="1"] .unified-list-row--filter-only:has(> .unified-list-inline-control) .unified-list-inline-control { grid-column:1; }
+html[data-design-layer="v2"] form.unified-list-header[data-inline-field-count="1"] .unified-list-row--filter-only:has(> .unified-list-inline-control) .unified-list-result { grid-column:2; justify-self:end; }

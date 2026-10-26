@@ -39,13 +39,13 @@ test('outlet sales totals remain a two-column pair on phone widths', () => {
  assert.match(form,/POS Total Sales \(RM\)/);
  assert.doesNotMatch(form,/grid gap-3 sm:grid-cols-2/);
 });
-test('error retry performs a full request and transfer filters use a compact tablet dialog', () => {
+test('error retry performs a full request and lone transfer filter stays compact inline', () => {
  const appError=read('src/app/error.tsx');
  const globalError=read('src/app/global-error.tsx');
  assert.match(appError,/onClick=\{\(\) => window\.location\.reload\(\)\}/);
  assert.match(globalError,/onClick=\{\(\) => window\.location\.reload\(\)\}/);
  const assets=read('src/app/(app)/asset-management/page.tsx');
- assert.match(assets,/tabletMode=\{view === "transfers" \? "drawer" : "auto"\}/);
+ assert.match(assets,/tabletMode="auto"/);
  const css=read('src/app/design-system-v2.css');
  assert.match(css,/form\.unified-list-header\[data-tablet-mode\] :is\(\.unified-list-search-submit, \.unified-list-filter-trigger\)[\s\S]*?width: 44px !important;[\s\S]*?height: 44px !important;/);
  assert.match(css,/form\.sb-asset-query--transfers\[data-tablet-mode="drawer"\] \.unified-list-row--filter-only[\s\S]*?grid-template-columns: 44px max-content;/);

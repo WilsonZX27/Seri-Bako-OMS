@@ -58,7 +58,7 @@ test("Procurement and Inventory are canonical navigable workspaces", () => {
   assert.match(sidebar, /<Link href=\{group\.href\}/);
   assert.match(sidebar, /aria-label=\{`\$\{groupClosed \? "Expand" : "Collapse"\} \$\{group\.label\}`\}/);
   assert.match(procurement, /Procurement Workspace/);
-  assert.match(procurement, /My Work Queue/);
+  assert.match(procurement, /Procurement actions and review/);
   assert.match(inventory, /Inventory Workspace/);
   assert.match(inventory, /Low stock|Low Stock/);
   assert.doesNotMatch(`${procurement}\n${inventory}`, /Location|Quick Tools/i);

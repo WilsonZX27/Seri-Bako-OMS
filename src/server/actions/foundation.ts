@@ -1120,7 +1120,7 @@ export async function permanentlyDeleteStaff(id: string) {
     }
   } catch (error) {
     rethrowRedirect(error);
-    safeRedirectWithMessage(`/staffs/${id}`, "error", formatActionError(error, "Could not permanently delete this staff member."));
+    safeRedirectWithMessage(`/staffs/${id}`, "error", formatActionError(error, "Deletion could not be confirmed. Review this profile and its linked records before trying again. For resignation, record the last working day."));
   }
   revalidatePath("/staffs");
   safeRedirectWithMessage("/staffs", "success", "Staff permanently deleted.");

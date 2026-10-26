@@ -1,4 +1,4 @@
-> Repository inventory — 2026-10-21: forward-only migration 历史已到 `370`. This is a source-file ceiling, not proof that migration 368 has been applied to Production. The relationship map below is a 历史实库快照，不是当前 Production schema 证明.
+> Repository inventory — 2026-10-21: forward-only migration 历史已到 `374`. This is a source-file ceiling, not proof that migration 368 has been applied to Production. The relationship map below is a 历史实库快照，不是当前 Production schema 证明.
 
 > Local candidate — 2026-10-19: migrations reviewed through `366`; forward-only migration 历史已到 `366`. Chef and unique username login are local changes pending database verification and release.
 

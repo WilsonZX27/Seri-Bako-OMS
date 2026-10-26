@@ -25,6 +25,9 @@ type BackupDataset = {
 };
 
 export const BACKUP_DATASETS: readonly BackupDataset[] = [
+  { table: "packaging_stores", classification: "company_id filtered", column: "company_id", reason: "Requires migration373 before activating this application batch; absent schema must stop the backup." },
+  { table: "packaging_store_balances", classification: "company_id filtered", column: "company_id", reason: "Store ledger balances; immutable created_at/id cursor; migration373 is a release prerequisite." },
+  { table: "packaging_store_movements", classification: "company_id filtered", column: "company_id", reason: "Immutable store ledger audit; migration373 is a release prerequisite." },
   { table: "attendance_confirmations", classification: "excluded", reason: "Excluded from generic application exports; activate only with separately authorized protected database backup and restore for immutable attendance/payroll audit." },
   { table: "attendance_confirmation_events", classification: "excluded", reason: "Excluded from generic application exports; activate only with separately authorized protected database backup and restore for immutable attendance/payroll audit." },
   { table: "employee_payslips", classification: "excluded", reason: "Excluded from generic application exports; activate only with separately authorized protected database backup and restore for immutable attendance/payroll audit." },

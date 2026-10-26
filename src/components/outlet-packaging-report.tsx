@@ -17,7 +17,7 @@ import type { getOutletPackagingReport } from "@/server/queries/outlet-packaging
 
 type Report = Awaited<ReturnType<typeof getOutletPackagingReport>>;
 
-export function OutletPackagingReport({ report, days: initialDays }: { report: Report; days: 7 | 30 }) {
+export function OutletPackagingReport({ report, days: initialDays, canManageStores = false }: { report: Report; days: 7 | 30; canManageStores?:boolean }) {
   const days = initialDays;
   const router = useRouter();
   const [periodPending, startPeriodTransition] = useTransition();
@@ -48,6 +48,7 @@ export function OutletPackagingReport({ report, days: initialDays }: { report: R
 
   const rail = <>
     <ConsoleSection title="Packaging actions" kind="action">
+      {canManageStores ? <Link href="/outlet-packaging/stores" className={buttonVariants({variant:"outline",className:"w-full"})}>Store balances and movements</Link> : null}
       <Link href="/outlet-daily-records" className={buttonVariants({ variant: "secondary", className: "w-full" })}>Open Daily Records</Link>
     </ConsoleSection>
     <ConsoleSection title={selected ? "Selected day" : "Report coverage"} kind="status">

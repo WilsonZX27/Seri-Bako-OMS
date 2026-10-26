@@ -242,8 +242,8 @@ export function StaffForm({
             <SelectControl name="employment_type" defaultValue={staff?.employment_type ?? "full_time"} className="form-control-compact" ariaLabel={"Employment Type"} options={[({value: "full_time", label: "Full-time"}), ({value: "part_time", label: "Part-time"})]}/>
           </Field>
           <Field label="Last Working Date">
-            <Input name="employment_end_date" type="date" defaultValue={staff?.employment_end_date ?? ""} className="form-control-compact" />
-            <p className="mt-1 text-xs text-muted-foreground">The account stops working after this date. Historical schedules and payroll stay intact.</p>
+            <Input id="staff-last-working-day" name="employment_end_date" type="date" defaultValue={staff?.employment_end_date ?? ""} className="form-control-compact" />
+            <p className="mt-1 text-xs text-muted-foreground">This date is inclusive. From the next day, sign-in and scheduling are blocked; historical schedules and payroll stay intact. Disable sign-in does not fill or change this date.</p>
           </Field>
         </div>
       </RecordSection>

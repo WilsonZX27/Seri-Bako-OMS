@@ -48,6 +48,7 @@ function GlobalActionToastInner() {
   const error = searchParams.get("error");
   const warning = searchParams.get("warning");
   const [visible, setVisible] = useState(false);
+  const [routeOwnsMessage,setRouteOwnsMessage]=useState(false);
   const message = error ?? warning ?? success;
   const tone = error ? "error" : warning ? "warning" : "success";
   const Icon = error ? AlertTriangle : warning ? Info : CheckCircle2;
@@ -62,8 +63,12 @@ function GlobalActionToastInner() {
     return () => window.clearTimeout(timer);
   }, [message]);
 
+  useEffect(()=>{
+    const inspect=()=>setRouteOwnsMessage(Boolean(message && Array.from(document.querySelectorAll("[data-route-feedback]")).some(node=>node.textContent?.includes(message))));
+    inspect();const observer=new MutationObserver(inspect);observer.observe(document.body,{childList:true,subtree:true});return()=>observer.disconnect();
+  },[message]);
   if (error) return <RouteErrorRecovery message={error} />;
-  if (!message || !visible) return null;
+  if (!message || !visible || routeOwnsMessage) return null;
 
   return (
     <div

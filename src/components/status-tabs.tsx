@@ -57,3 +57,6 @@ export function StatusTabs({ statuses, activeStatus, name, defaultStatus = "all"
     </nav>
   );
 }
+
+// Shared query drawers identify this component after production minification.
+StatusTabs.displayName = "StatusTabs";

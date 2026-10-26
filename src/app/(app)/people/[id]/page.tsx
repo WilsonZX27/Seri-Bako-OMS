@@ -1,3 +1,5 @@
+import { ActionErrorNotice } from "@/components/action-error-notice";
+import { StaffIdentityFacts } from "@/components/staff-identity-facts";
 import { todayInKualaLumpur } from "@/lib/business-date";
 import { staffEmploymentStatus } from "@/lib/staff-employment-status";
 import { UserRound, BriefcaseBusiness, Files, ShieldCheck } from "lucide-react";
@@ -113,14 +115,7 @@ export default async function PeopleProfilePage({
         documentMode
         tabletRailBreakpoint="md"
       >
-        {message.error || message.success ? (
-          <div
-            role="status"
-            className={`rounded-[var(--sb-panel-radius)] border px-3 py-2 text-sm ${message.error ? "border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] text-[var(--sb-danger)]" : "border-[var(--sb-success)] bg-[var(--sb-success-bg)] text-[var(--sb-success)]"}`}
-          >
-            {message.error ?? message.success}
-          </div>
-        ) : null}
+        {message.error ? <ActionErrorNotice message={message.error}/> : message.success ? <p data-route-feedback role="status" className="rounded-[var(--sb-panel-radius)] border border-[var(--sb-success)] bg-[var(--sb-success-bg)] px-3 py-2 text-sm text-[var(--sb-success)]">{message.success}</p> : null}
         <WorkspaceTabs label="Employee profile sections" current={activeSection} items={[
           { id: "overview", href: `/people/${id}?section=overview`, label: "Overview", icon: UserRound },
           { id: "employment", href: `/people/${id}?section=employment`, label: "Employment & Access", icon: BriefcaseBusiness },
@@ -131,17 +126,7 @@ export default async function PeopleProfilePage({
           {activeSection === "overview" ? (
             <>
               <ProfileSection id="overview" title="Overview">
-                <dl className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
-                  <Fact
-                    label="Staff code"
-                    value={staff.staff_code?.toUpperCase()}
-                  />
-                  <Fact label="Username" value={staff.username} />
-                  <Fact label="Accessible locations" value={staffSummary?.accessible_branch_names?.join(", ")} />
-                  <Fact label="Email" value={staff.email?.endsWith("@accounts.seribako.invalid") ? undefined : staff.email?.toLowerCase()} />
-                  <Fact label="Phone" value={staff.phone} />
-                  <Fact label="Status" value={staffEmploymentStatus(staff,todayInKualaLumpur()).replaceAll("_"," ")} capitalize />
-                </dl>
+                <StaffIdentityFacts staff={staff} locations={staffSummary?.accessible_branch_names?.join(", ")} status={staffEmploymentStatus(staff,todayInKualaLumpur())}/>
               </ProfileSection>
               <div className="grid items-stretch gap-3 lg:grid-cols-2 [&>section]:h-full">
               {compTime.allowed ? (

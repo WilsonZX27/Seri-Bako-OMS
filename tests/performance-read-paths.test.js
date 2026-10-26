@@ -67,7 +67,7 @@ test("planner keeps authorised branch, week, staff and RO data while reducing de
     if (call.table === "get_schedule_staff") data = [{ id: "employee", full_name: "Employee" }];
     if (call.table === "get_schedule_staff_candidates") data = [{ id: "candidate" }];
     if (call.table === "shift_assignment_revisions") data = [{ staff_id: "employee", work_date: "2026-09-14", assignment_kind: "shift" }];
-    if (call.table === "get_schedule_external_assignments") data = [{ staff_id: "employee", branch_id: "other" }];
+    if (call.table === "get_schedule_external_assignments_v2") data = [{ staff_id: "employee", branch_id: "other" }];
     if (call.table === "comp_time_transactions") data = [{ staff_id: "employee", minutes: 90 }, { staff_id: "employee", minutes: 30 }];
     if (call.table === "attendance_ro_reservations") data = [{ staff_id: "employee", reserved_minutes: 45 }];
     return { data, error: null };

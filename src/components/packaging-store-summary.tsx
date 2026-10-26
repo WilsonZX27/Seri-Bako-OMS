@@ -1,0 +1,12 @@
+import Link from "next/link";
+import {RetryButton} from "@/components/ui/retry-button";
+import {getPackagingStoreWorkspace} from "@/server/queries/packaging-stores";
+import {getOutletPackagingReport} from "@/server/queries/outlet-packaging";
+import {formatNumber} from "@/lib/utils";
+export async function PackagingStoreSummary({days}:{days:7|30}){
+ try {
+ const [stores,outlets]=await Promise.all([getPackagingStoreWorkspace(),getOutletPackagingReport(days)]);
+ if(!stores)return <section className="sb-work-surface p-4"><h2 className="text-sm font-semibold">Independent stores</h2><p className="mt-2 text-sm text-muted-foreground">The store ledger is not enabled yet. The report above contains outlet records only.</p><Link href="/outlet-packaging/stores" className="mt-2 inline-block underline">Store setup</Link></section>;
+ return <section className="sb-work-surface divide-y"><div className="p-4"><h2 className="text-sm font-semibold">Packaging across outlets and stores</h2><p className="mt-1 text-xs text-muted-foreground">Last recorded balances; dates may differ. Unknown locations are excluded from the known subtotal.</p><Link href="/outlet-packaging/stores" className="mt-2 inline-block text-sm underline">Manage stores and record movements</Link></div><div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 px-4 py-2 text-xs text-muted-foreground"><span>Packaging</span><span>Known balance</span></div>{stores.products.map(p=>{const outletProduct=outlets.products.find(o=>o.id===p.id);const rows=outlets.latest.filter(r=>r.code===outletProduct?.code&&r.closing!==null);const balances=stores.balances.filter(b=>b.product_id===p.id);const known=rows.length+balances.length;const total=rows.reduce((s,r)=>s+(r.closing??0),0)+balances.reduce((s,b)=>s+Number(b.quantity),0);return <div key={p.id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 px-4 py-3 text-sm"><div>{p.product_name}<p className="mt-1 text-xs text-muted-foreground">{rows.length}/{outlets.outlets.length} outlets · {balances.length}/{stores.stores.length} stores recorded</p></div><span className="tabular-nums">{known?`${formatNumber(total)} ${p.selling_unit}`:"Not counted"}</span></div>})}</section>;
+ } catch { return <section className="sb-work-surface space-y-2 p-4"><h2 className="text-sm font-semibold">Store balances unavailable</h2><p className="text-sm text-muted-foreground">Store balances could not be verified. The outlet report above remains available; it does not include unavailable store balances.</p><RetryButton/></section>; }
+}

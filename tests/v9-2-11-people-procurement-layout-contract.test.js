@@ -13,7 +13,8 @@ test("People compliance and documents share one record and upload flow", () => {
   assert.doesNotMatch(page, /id="add-employee-document"/);
   assert.match(page, /ComplianceRecordForm/);
   assert.doesNotMatch(page, /<details className="mt-3 border-t pt-3">/);
-  assert.match(page, /staff\.email\?\.toLowerCase\(\)/);
+  assert.match(page, /StaffIdentityFacts/);
+  assert.match(read("src/components/staff-identity-facts.tsx"), /staff\.email\?\.toLowerCase\(\)/);
 });
 
 test("PO and GRN tables nest clickable source documents under their primary number", () => {

@@ -26,7 +26,7 @@ test('disable entry reuses permission/company/owner guards and existing audited 
  assert.match(source,/staff.company_id !== profile.company_id/);
  assert.match(source,/&& !isOwner/);
  assert.match(source,/action=\{disableStaff.bind\(null,id\)\}/);
- assert.match(source,/context.staff.status!=="disabled"/);
+ assert.match(source,/!reason/);
  assert.match(source,/Existing records are retained/);
  const action=fs.readFileSync('src/server/actions/foundation.ts','utf8');
  const disable=action.slice(action.indexOf('export async function disableStaff'),action.indexOf('export async function enableStaff'));

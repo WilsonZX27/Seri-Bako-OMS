@@ -1,3 +1,7 @@
+## Unified feedback integration — local, not released
+
+Repository migrations reviewed through `374`; no production execution is claimed. Named feedback is being integrated from production153 with its grouped card design retained. Supplier375 remains a separate unapproved proposal.
+
 ## v9.2.153 (Preview candidate) — Unified controls and request feedback
 
 Reviewed candidate cb0402f10d0fa2899e524eaa5db59116a0d81f46: scoped import drafts, truthful uncertain-result recovery, bounded optional reads and client requests, stale shift-save protection, shared navigation/pagination and responsive semantic controls. Preview first; Production only after bounded legitimate-session read-only acceptance. Keep single-page multi-asset transfer, unique column headers and existing tenant/permission boundaries. No new SQL, business-data writes, idle-local-signout patch or numbering activation. Batch remains readiness-gated and automatic numbering OFF. Synthetic checks are distinct from live/all-role UAT.

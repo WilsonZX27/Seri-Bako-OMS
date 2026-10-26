@@ -47,6 +47,7 @@ const exactRoutePermissions: Record<string, string[]> = {
 };
 
 const exactRouteRoles: Record<string, readonly string[]> = {
+  "/outlet-packaging/stores": ["super_admin"],
   // Self-service entry only; database ACLs still restrict time and payroll data.
   "/attendance/confirmations": ["super_admin", "people_operations", "finance", "manager", "purchasing", "chef", "outlet_supervisor", "outlet_staff"],
   "/attendance/payslips": ["super_admin", "people_operations", "finance", "manager", "purchasing", "chef", "kitchen", "outlet_supervisor", "outlet_staff"],
@@ -122,6 +123,7 @@ export function getRoutePermissionCodes(pathname: string) {
 
 export function getRouteAllowedRoles(pathname: string) {
   if (pathname === "/administration") return ["super_admin", "finance", "manager", "purchasing"] as const;
+  if (pathname.startsWith("/items/")) return ["super_admin", "finance", "purchasing"] as const;
   const explicitRoles = Object.entries(exactRouteRoles)
     .sort(([left], [right]) => right.length - left.length)
     .find(([route]) => matchesPrefix(pathname, route))?.[1];

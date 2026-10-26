@@ -352,6 +352,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                   href={row.href}
                   className="grid min-h-14 min-w-0 gap-y-1.5 px-3 py-2.5 text-xs hover:bg-[var(--sb-surface-muted)]"
                   data-dashboard-pending-row
+                  data-queue-secondary-ink
                   data-repair-action={isMaintenanceAction || undefined}
                 >
                   <span className="flex min-w-0 items-center justify-between gap-2">

@@ -65,6 +65,7 @@ test("attachments require a business label and People email preserves email casi
   assert.match(upload, /name="file_name"[\s\S]*minLength=\{3\}[\s\S]*required/);
   assert.match(documents, /Name this attachment before uploading/);
   assert.doesNotMatch(documents, /attachmentLabel \?\? uploadedFile\.name/);
-  assert.match(people, /staff\.email\?\.toLowerCase\(\)/);
+  assert.match(people, /StaffIdentityFacts/);
+  assert.match(read("src", "components", "staff-identity-facts.tsx"), /staff\.email\?\.toLowerCase\(\)/);
   assert.doesNotMatch(people, /<dd className="mt-1 text-sm font-medium capitalize">/);
 });

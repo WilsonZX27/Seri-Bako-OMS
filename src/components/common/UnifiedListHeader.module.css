@@ -50,6 +50,7 @@
 .sheetHeader button svg { width: 18px; height: 18px; }
 .sheetFields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; gap: 12px; min-height: 0; padding-block: 16px; overflow-y: auto; }
 .sheetFields > * { min-width: 0; max-width: 100%; }
+.sheetFields :global([data-select-control]), .sheetFields :global(.sb-status-filter), .sheetFields :global(.sb-status-filter-control) { width: 100%; min-width: 0; max-width: none; flex: none; }
 .sheetFields > input[type="hidden"] { display: none; }
 .sheetActions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 12px; border-top: 1px solid var(--sb-border-soft); }
 .filterTrigger:disabled { cursor: not-allowed; opacity: .4; background: transparent; }

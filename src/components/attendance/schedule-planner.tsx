@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import {externalScheduleDays,externalScheduleLabel,type ExternalScheduleDay} from "@/lib/attendance/external-schedule";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode, ButtonHTMLAttributes } from "react";
 import {
@@ -67,14 +68,7 @@ type Assignment = {
   ro_original_end?: string | null;
   ro_direction?: string | null;
 };
-type ExternalAssignment = {
-  staff_id: string;
-  work_date: string;
-  branch_id: string;
-  branch_name: string;
-  planned_start: string;
-  planned_end: string;
-};
+type ExternalAssignment = ExternalScheduleDay;
 type Week = { id: string; status: string; updated_at?: string; excluded_staff_ids?: string[] } | null;
 type Palette = {
   key: string;
@@ -224,7 +218,7 @@ export function SchedulePlanner({
   const failedAutosaveSnapshot = useRef<string | null>(null);
   const latestDraftSnapshot = useRef("");
   const [cells, setCells] = useState<Map<string, Assignment>>(initial);
-  const externalCells = useMemo(() => new Map(externalAssignments.map((item) => [`${item.staff_id}:${item.work_date}`, item])), [externalAssignments]);
+  const externalCells = useMemo(() => externalScheduleDays(externalAssignments), [externalAssignments]);
   const [excludedStaffIds, setExcludedStaffIds] = useState<string[]>(week?.excluded_staff_ids ?? []);
   const [visiblePersonIds, setVisiblePersonIds] = useState(() => new Set(people.map((person) => person.id)));
   const rosterPeople = candidates.filter((person) => visiblePersonIds.has(person.id));
@@ -369,6 +363,7 @@ export function SchedulePlanner({
     const existing = cells.get(key);
     const external = externalCells.get(key);
     const selectedPerson = candidates.find((item) => item.id === key.split(":")[0]);
+    if(!existing && external && ((external.assignment_kind??"shift")!=="shift" || external.conflict)){setMessage("This entry belongs to another outlet roster. Open that outlet to review it; no local day was created.");return;}
     if (existing?.assignment_kind === "shift") {
       const template = existing.shift_template_id
         ? templates.find((item) => item.id === existing.shift_template_id)
@@ -410,7 +405,7 @@ export function SchedulePlanner({
             ? "early_finish"
             : "late_start",
       });
-    } else if (external) {
+    } else if (external && (external.assignment_kind??"shift")==="shift" && !external.conflict) {
       const start = compactTime(external.planned_start);
       const end = compactTime(external.planned_end);
       const spanMinutes = durationSeconds(start, end, end <= start) / 60;
@@ -1060,7 +1055,7 @@ export function SchedulePlanner({
               const key = `${person.id}:${selectedMobileDate}`,
                 value = cells.get(key),
                 external = externalCells.get(key),
-                awayLabel = localAwayLabel(value) ?? (!value ? external?.branch_name : person.home_branch_id && person.home_branch_id !== branchId ? currentBranchName : null),
+                awayLabel = localAwayLabel(value) ?? (!value ? externalScheduleLabel(external) || null : person.home_branch_id && person.home_branch_id !== branchId ? currentBranchName : null),
                 tone = awayLabel ? "external" : cellTone(value),
                 weekly = dates.reduce(
                   (sum, date) =>
@@ -1326,7 +1321,7 @@ export function SchedulePlanner({
                         const key = `${person.id}:${date}`,
                           value = cells.get(key),
                           external = externalCells.get(key),
-                          awayLabel = localAwayLabel(value) ?? (!value ? external?.branch_name : person.home_branch_id && person.home_branch_id !== branchId ? currentBranchName : null),
+                          awayLabel = localAwayLabel(value) ?? (!value ? externalScheduleLabel(external) || null : person.home_branch_id && person.home_branch_id !== branchId ? currentBranchName : null),
                           ended = Boolean(person.employment_end_date && date > person.employment_end_date),
                           tone = awayLabel ? "external" : cellTone(value);
                         return (

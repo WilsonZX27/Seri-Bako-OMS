@@ -68,6 +68,7 @@ export function PaginationControls({
         name="page"
         min={1}
         max={totalPages}
+        key={page}
         defaultValue={page}
         aria-label={`Page number, 1 to ${totalPages}`}
         className="h-[var(--sb-control-height)] min-w-[var(--sb-control-height)] w-11 border-0 bg-transparent p-0 text-center text-xs font-normal tabular-nums focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sb-green-700)]"

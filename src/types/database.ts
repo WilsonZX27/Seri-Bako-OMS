@@ -52,6 +52,9 @@ export type StockTransactionType =
 export type Database = {
   public: {
     Tables: {
+      packaging_stores: TableDefinition<{id:string;company_id:string;name:string;created_at:string}>;
+      packaging_store_balances: TableDefinition<{id:string;company_id:string;store_id:string;product_id:string;quantity:number;version:number;created_at:string}>;
+      packaging_store_movements: TableDefinition<{id:string;company_id:string;store_id:string;product_id:string;kind:string;quantity:number;delta:number;balance_after:number;reason:string;created_by:string;created_at:string;client_key:string}>;
       asset_attachments: TableDefinition<{ id: string; company_id: string; asset_id: string | null; maintenance_id: string | null; location_id: string | null; created_at: string; source_key: string; source_data: Json; url: string; storage_path: string | null; verified_at: string | null; content_sha256: string | null; }>;
       asset_calendar_days: TableDefinition<{ id: string; company_id: string; location_id: string; business_date: string; is_open: boolean; reason: string; created_at: string; updated_at: string; created_by: string; updated_by: string; history: Json; }>;
       asset_daily_checks: TableDefinition<{ id: string; company_id: string; asset_id: string; location_id: string; source_key: string; submission_id: string; check_date: string; result: string; quantity: number | null; author_name: string; source_data: Json; created_at: string; }>;

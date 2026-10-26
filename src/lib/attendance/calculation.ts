@@ -18,10 +18,16 @@ export type AttendanceException =
 const secondsBetween = (start: Date, end: Date) => Math.max(0, Math.floor((end.getTime() - start.getTime()) / 1000));
 
 export function pairPunches(events: PunchEvent[]) {
-  const ordered = [...events].sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime());
+  const raw = [...events].sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime());
+  const ordered: PunchEvent[] = [], ignored: PunchEvent[] = [];
+  for (const event of raw) {
+    const previous = ordered.at(-1);
+    // Anchor to the last retained punch; a chain of taps cannot erase a later real punch.
+    if (previous && event.occurredAt.getTime() - previous.occurredAt.getTime() < 60_000) ignored.push(event);
+    else ordered.push(event);
+  }
   const intervals: Array<{ start: PunchEvent; end: PunchEvent }> = [];
   const exceptions: AttendanceException[] = [];
-  if (ordered.some((event, index) => index > 0 && event.occurredAt.getTime() === ordered[index - 1].occurredAt.getTime())) exceptions.push("Duplicate Punch");
   if (ordered.length % 2) exceptions.push("Odd Punch Count");
   for (let index = 0; index + 1 < ordered.length; index += 2) {
     const start = ordered[index];
@@ -32,11 +38,11 @@ export function pairPunches(events: PunchEvent[]) {
     }
     intervals.push({ start, end });
   }
-  return { ordered, intervals, exceptions };
+  return { ordered, intervals, exceptions, ignored };
 }
 
 export function calculateAttendance(shift: AttendanceShift, events: PunchEvent[]) {
-  const { ordered, intervals, exceptions } = pairPunches(events);
+  const { ordered, intervals, exceptions, ignored } = pairPunches(events);
   const first = ordered[0]?.occurredAt ?? null;
   const last = ordered.at(-1)?.occurredAt ?? null;
   let rawWorkSeconds = 0;
@@ -63,7 +69,7 @@ export function calculateAttendance(shift: AttendanceShift, events: PunchEvent[]
   if (breakDurations.length >= requiredBreakCount && breakDurations.filter(value => value >= minimumBreakSeconds).length < requiredBreakCount) exceptions.push("Short Break");
   if (first && first < shift.scheduledStart) exceptions.push("Unapproved Pre-shift Time");
   if (last && last > shift.scheduledEnd) exceptions.push("Unapproved Post-shift Time");
-  if (shift.expectedBranchSource && ordered.some((event) => event.source !== shift.expectedBranchSource)) exceptions.push("Wrong Branch/Device");
+  if (shift.expectedBranchSource && events.some((event) => event.source !== shift.expectedBranchSource)) exceptions.push("Wrong Branch/Device");
 
   const lateSeconds = first ? Math.max(0, secondsBetween(shift.scheduledStart, first) - (shift.graceSeconds ?? 0)) : 0;
   const earlyLeaveSeconds = last ? secondsBetween(last, shift.scheduledEnd) : 0;
@@ -85,6 +91,7 @@ export function calculateAttendance(shift: AttendanceShift, events: PunchEvent[]
       : Math.min(payableSeconds, normalCapSeconds);
   return {
     intervals,
+    ignoredDuplicatePunches: ignored,
     actualFirstIn: first,
     actualLastOut: last,
     rawWorkSeconds,

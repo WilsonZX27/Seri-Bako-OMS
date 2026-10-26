@@ -3380,3 +3380,6 @@ html[data-design-layer="v2"] [data-dashboard-pending-row][data-repair-action] :i
   [data-pagination-summary], [data-pagination-full] { display: none; }
   [data-pagination-compact] { display: flex; }
 }
+
+/* Named Dashboard feedback: secondary queue details retain the existing layout. */
+html[data-design-layer="v2"] [data-queue-secondary-ink] :is(.sb-pr-phone-supplier-row,.sb-pr-phone-location-row,.sb-pr-phone-supplier,.sb-pr-phone-items,.sb-pr-phone-location,.sb-pr-phone-byline-person,.sb-pr-phone-byline-date,.sb-pr-phone-amount) { color:var(--sb-text-muted); font-weight:400; }

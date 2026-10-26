@@ -3,7 +3,7 @@ const compile=s=>ts.transpileModule(s,{compilerOptions:{target:ts.ScriptTarget.E
 const source=fs.readFileSync('src/app/(app)/outlet-packaging/page.tsx','utf8');const ast=ts.createSourceFile('page.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);const reportNode=ast.statements.find(n=>ts.isFunctionDeclaration(n)&&n.name?.text==='Report');
 test('the actual server report reads only the selected period once and preserves client filter identity',async()=>{
  const calls=[];const context={exports:{},require, getOutletPackagingReport:async days=>{calls.push(days);return {rows:[]};},OutletPackagingReport:()=>null};vm.runInNewContext(compile(reportNode.getText(ast)),context);
- for(const days of [7,30]){const element=await context.Report({days});assert.equal(element.props.days,days);assert.equal(element.key,null);}
+ for(const days of [7,30]){const element=await context.Report({days});assert.equal(element.props.children[0].props.days,days);assert.equal(element.props.children[0].key,null);}
  assert.deepEqual(calls,[7,30]);
 });
 test('a failed period read offers the shared retry action and never renders unverified report data',async()=>{

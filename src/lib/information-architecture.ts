@@ -57,7 +57,7 @@ export const informationArchitecture: readonly IaItem[] = [
   { href: "/supplier-invoices", label: "Supplier Invoices", group: "procurement", icon: "receipt", roles: ["super_admin", "finance"], permission: "supplier_invoice.view" },
   { href: "/suppliers", label: "Suppliers", group: "procurement", icon: "users", roles: MASTER_DATA, permission: "suppliers.view" },
 
-  { href: "/items", label: "Items / SKU Master", group: "inventory", icon: "layers", roles: MASTER_DATA, permission: "items.view" },
+  { href: "/items", label: "Items / SKU Master", group: "inventory", icon: "layers", roles: [...MASTER_DATA, "manager"], permission: "items.view" },
   { href: "/uom-conversions", label: "UOM Conversions", group: "inventory", icon: "scale", roles: MASTER_DATA, permission: "uom_conversions.read" },
   { href: "/products", label: "Products", group: "inventory", icon: "package", roles: PRODUCTION, permission: "production.view" },
   { href: "/recipes", label: "Recipes", group: "inventory", icon: "bookOpen", roles: ["super_admin", "finance"], permission: "recipes.view" },

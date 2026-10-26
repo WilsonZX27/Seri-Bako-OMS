@@ -12,9 +12,10 @@ const {
 
 test("v9 UAT classifies every application page", () => {
   const routes = discoverRouteMatrix();
-  // Production153 plus the explicitly requested packaging store route; asset alias remains unintegrated.
-  assert.equal(routes.length, 132, "Route count changed. Classify the new or removed page deliberately.");
-  for (const route of ["/outlet-packaging/stores", "/people/ro", "/asset-management/maintenance/new", "/outlet-daily-records/insights", "/outlet-daily-records/delivery-orders"]) assert.ok(routes.some(entry=>entry.route===route), `${route} must be classified`);
+  // Production153 plus the approved packaging store and named legacy asset-list alias.
+  assert.equal(routes.length, 133, "Route count changed. Classify the new or removed page deliberately.");
+  assert.deepEqual(permittedRolesFor("/asset-management/assets"), permittedRolesFor("/asset-management"));
+  for (const route of ["/asset-management/assets", "/outlet-packaging/stores", "/people/ro", "/asset-management/maintenance/new", "/outlet-daily-records/insights", "/outlet-daily-records/delivery-orders"]) assert.ok(routes.some(entry=>entry.route===route), `${route} must be classified`);
   assert.equal(new Set(routes.map((entry) => entry.file)).size, routes.length);
   assert.equal(new Set(routes.map((entry) => entry.route)).size, routes.length);
   for (const entry of routes) {

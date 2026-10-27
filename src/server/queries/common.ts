@@ -1,3 +1,4 @@
+import { sessionVerificationState } from "@/lib/http/session-result";
 import { createClient } from "@/lib/supabase/server";
 import { todayInKualaLumpur } from "@/lib/business-date";
 import { isMockMode, mockBranches, mockCompany, mockItems, mockProfile, mockSuppliers } from "@/lib/mock-mode";
@@ -28,15 +29,20 @@ export const getCurrentProfile = cache(async function getCurrentProfile() {
   const supabase = await createClient();
   const {
     data: { user },
+    error: userError,
   } = await getCurrentAuthUser();
 
+  if (!user && userError && sessionVerificationState(null, userError) === "unavailable") {
+    throw new Error("Session verification is temporarily unavailable.");
+  }
   if (!user) return null;
 
-  const { data: staff } = await supabase
+  const { data: staff, error: staffError } = await supabase
     .from("staffs")
     .select("id,company_id,auth_user_id,staff_code,full_name,email,phone,avatar_url,default_branch_id,employment_type,employment_end_date,status,must_change_password,invitation_status,deleted_at")
     .eq("auth_user_id", user.id)
     .maybeSingle();
+  if (staffError) throw new Error("Workspace profile is temporarily unavailable.");
   if (staff && staff.status === "active" && !staff.deleted_at && (!staff.employment_end_date || staff.employment_end_date >= todayInKualaLumpur())) {
     const { data: staffRoles } = await supabase
       .from("staff_roles")

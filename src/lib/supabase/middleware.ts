@@ -1,3 +1,4 @@
+import { sessionVerificationState } from "@/lib/http/session-result";
 import { todayInKualaLumpur } from "@/lib/business-date";
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
@@ -50,7 +51,11 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  const { data: claimsData } = await supabase.auth.getClaims();
+  const claimsResult = await supabase.auth.getClaims().catch(() => ({ data: null, error: { name: "AuthVerificationUnavailable" } }));
+  const { data: claimsData, error: claimsError } = claimsResult;
+  if (!claimsData?.claims?.sub && sessionVerificationState(null, claimsError) === "unavailable") {
+    return NextResponse.json({ ok: false, message: "Session verification is temporarily unavailable. Please retry; this request was not processed." }, { status: 503 });
+  }
   const authUserId = claimsData?.claims?.sub;
 
   const pathname = request.nextUrl.pathname;

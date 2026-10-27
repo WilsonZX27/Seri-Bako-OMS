@@ -17,6 +17,7 @@ import type { PurchaseOrderStatus } from "@/types/database";
 import { getCurrentUserScope } from "@/server/queries/notifications";
 import { normalizeUom } from "@/lib/uom";
 import { looseSupabase } from "@/lib/supabase/loose";
+import { supplierRecoveryInstalled } from "@/lib/procurement/supplier-recovery";
 
 function cleanText(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
@@ -551,6 +552,31 @@ export async function adminApprovePurchaseRequest(id: string, formData: FormData
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not complete Purchasing Review."));
+  }
+}
+
+export async function selectPurchaseRequestSupplier(id: string, formData: FormData) {
+  try {
+    if (!supplierRecoveryInstalled || isMockMode()) throw new Error("Supplier selection is not available yet. Database installation and verification are pending.");
+    await requirePermission("pr.admin_review");
+    await requirePurchaseRequestWorkflowRole("purchasing");
+    const requestId = parsePurchaseRequestId(id);
+    const payload = z.object({
+      supplierId: z.string().uuid("Select an active supplier."),
+      updatedAt: z.string().datetime({ offset: true }),
+      confirmed: z.literal("yes"),
+    }).parse({ supplierId: formData.get("supplier_id"), updatedAt: formData.get("expected_updated_at"), confirmed: formData.get("confirm_supplier") });
+    const supabase = await createClient();
+    const { data, error } = await supabase.rpc("select_unassigned_purchase_request_supplier" as never, {
+      target_request: requestId, target_supplier: payload.supplierId, expected_updated_at: payload.updatedAt,
+    } as never);
+    if (error) throw new Error(error.message);
+    if (data !== requestId) throw new Error("Supplier selection result is unconfirmed. Reload and check the request before submitting again.");
+    revalidateWorkspaceState([`/purchase-requests/${requestId}`]);
+    safeRedirectWithMessage(`/purchase-requests/${requestId}`, "success", "PR supplier selected. Match the outstanding descriptions to Item Master next.");
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not select the PR supplier."));
   }
 }
 

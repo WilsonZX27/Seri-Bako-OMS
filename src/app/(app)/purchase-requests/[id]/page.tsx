@@ -30,6 +30,7 @@ import {
   rejectPurchaseRequest,
   revisePurchaseRequestLine,
   resolvePurchaseRequestUnresolvedLine,
+  selectPurchaseRequestSupplier,
   submitPurchaseRequest,
   withdrawPurchaseRequest,
 } from "@/server/actions/procurement";
@@ -47,6 +48,8 @@ import { logServerError } from "@/server/observability/logger";
 import { PurchaseRequestLineRecovery } from "@/components/purchase-request-line-recovery";
 import { diagnosePurchaseRequestSupplier } from "@/lib/purchase-request-readiness";
 import { ActionErrorNotice } from "@/components/action-error-notice";
+import { PurchaseRequestSupplierRecovery } from "@/components/purchase-request-supplier-recovery";
+import { canRecoverPurchaseRequestSupplier, supplierRecoveryInstalled } from "@/lib/procurement/supplier-recovery";
 
 const prSteps = PURCHASE_REQUEST_WORKFLOW_STEPS.map((step) => ({
   key: step,
@@ -161,6 +164,7 @@ export default async function PurchaseRequestDetailPage({
   const canEditRequest = isStatus(request.status, "draft", "rejected", "returned") && permissions["purchase_request.create"] && (profile?.id === request.requested_by || isOwner);
   const canManagerReview = request.status === "manager_review" && permissions["pr.manager_approve"] && (roleCode === "manager" || isOwner);
   const canAdminReview = request.status === "admin_review" && permissions["pr.admin_review"] && (roleCode === "purchasing" || isOwner);
+  const canRecoverSupplier = canRecoverPurchaseRequestSupplier({ role: roleCode, canReview: Boolean(permissions["pr.admin_review"]), status: request.status, supplierId: request.assigned_supplier_id, catalogLines: lines.length, unresolvedLines: unresolvedLines.filter(line => line.resolution_status === "unresolved").length });
   const canFinanceReview = request.status === "finance_review" && permissions["pr.finance_review"] && (roleCode === "finance" || isOwner);
   const canPurchasingPrepare = isStatus(request.status, "manager_review", "admin_review") && permissions["pr.admin_review"] && (roleCode === "purchasing" || isOwner);
   const canRepairReviewLines = (canManagerReview || canPurchasingPrepare) && recoveryAvailable;
@@ -295,6 +299,7 @@ export default async function PurchaseRequestDetailPage({
             <div className="space-y-2">
               <p className="text-xs text-muted-foreground">{nextStep ?? "No further workflow step is available."}</p>
               {unresolvedSourcingNotice}
+              {canRecoverSupplier ? <PurchaseRequestSupplierRecovery installed={supplierRecoveryInstalled} suppliers={suppliers} updatedAt={request.updated_at} action={selectPurchaseRequestSupplier.bind(null, request.id)} /> : null}
             </div>
           </DocumentSideSection>
           {documentBundle ? (

@@ -1,3 +1,7 @@
+## v9.2.156 (Preview candidate) — Transient profile verification recovery
+
+Based on released Production155 source9c9ed711. When verified Auth claims are followed by a failed employee-profile lookup, deny the request with a temporary503 instead of falsely reporting session expiry; preserve already-refreshed response cookies. Missing sessions, inactive accounts and permission checks remain protected. No timeout, sign-out scope, RLS, credentials, business data or UI design changes. Production155 remains deployed; this156 candidate is Preview-only pending its own validation and release decision. Existing OT/mapping/original-sample acceptance gaps remain open.
+
 ## v9.2.155 (Preview candidate) — Scoped afternoon integration
 
 Retain production153 cards and layouts while integrating named attendance, staff, packaging, cross-outlet schedule, PR, Checklist, RO and session-message corrections. Production migrations371–374 committed and independently verified on2026-10-26; raw/history counts unchanged, Packaging tables empty, PaidEL wrapper preserved. Supplier375 received explicit permission approval and was installed with independent postflight on2026-10-27; its scoped client entry is now prepared for Preview acceptance. No real PR selection was performed as a test. This is a Preview candidate, not full visual/role acceptance or Production promotion. Automatic numbering remains OFF.

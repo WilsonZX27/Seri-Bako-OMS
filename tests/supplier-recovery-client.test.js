@@ -2,6 +2,21 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 const load=require('./helpers/load-source.cjs');
 const {compile,React,renderToStaticMarkup}=require('./helpers/render-workspaces.cjs');
 const base={role:'purchasing',canReview:true,status:'admin_review',supplierId:null,catalogLines:0,unresolvedLines:1};
+test('missing supplier guidance distinguishes selection from missing item mappings',()=>{
+ const {PurchaseRequestLineResolutionForm:View}=compile('src/components/purchase-request-line-resolution-form.tsx',{
+  '@/components/item-combobox':{ItemCombobox:()=>null},
+  '@/components/ui/modal-shell':{ModalShell:({children})=>React.createElement('div',null,children)},
+  '@/components/ui/submit-button':{SubmitButton:()=>null},
+ });
+ const render=(needsSupplier,awaitingPurchasingReview=false)=>renderToStaticMarkup(React.createElement(View,{action:()=>{},items:[],unresolvedLineId:'fixture',description:'Flour',quantity:'2',uom:'CTN',supplierName:'Fixture supplier',supplierSetupHref:'/supplier-items',needsSupplier,awaitingPurchasingReview}));
+ assert.match(render(true),/Select the PR supplier first/);
+ assert.doesNotMatch(render(true),/Open supplier item setup|Create or correct the branch supplier mapping/);
+ assert.match(render(true,true),/Supplier selection follows Manager approval/);
+ assert.match(render(true,true),/during Purchasing Review/);
+ assert.doesNotMatch(render(true,true),/use Select PR supplier|Open supplier item setup/);
+ assert.match(render(false),/Open supplier item setup/);
+ assert.match(render(false),/Create or correct the branch supplier mapping/);
+});
 test('supplier recovery presentation is confined to the approved role, state and line shape',()=>{
  const {canRecoverPurchaseRequestSupplier:can,supplierRecoveryInstalled}=load()('src/lib/procurement/supplier-recovery.ts');
  assert.equal(supplierRecoveryInstalled,true);

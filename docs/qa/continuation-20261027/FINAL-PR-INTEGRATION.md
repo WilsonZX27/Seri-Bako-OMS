@@ -1,0 +1,11 @@
+# Final scoped PR supplier presentation integration
+
+Received three-file snapshot from /tmp/oms-two-fixes-20261027/evidence matches its recorded SHA256; protected copy at /tmp/oms-final-integration-20261027/received-source. Missing Git blob8758e4d304951b8645758532b50195c51ec6a817 restored from exact-hash original scoped component, without reset or overwriting working changes.
+
+Retain canonical supplier in summary before unresolved descriptions are matched; expose same guarded recovery form through existing phone MobileTaskSheet; distinguish missing supplier from missing mapping guidance. Additional integration correction: Manager Review guidance says complete Manager Review first, then select during Purchasing Review; no pointer to an absent current-stage control.375 remains admin_review-only; no action/RPC/role/DB changes.
+
+Full2010 tests/typecheck/lint/build passed with synthetic public build env. Existing received actual Next/actions/cookie-backed two-RPC fixture completed local supplier selection/matching,2CTN preserved, plus single-location Publika scope; all explicitly synthetic. Received screenshots were reviewed; some desktop captures were cropped/black and do not establish complete desktop visual acceptance. Supplemental current-source 1440 direct tab screenshot reviewed with full layout and no root overflow; wrapper getScreenshot capture differed, so use direct screenshot for geometry. Stage-specific guidance regression executed in actual component render tests. No real PR mutation or production-role positive write test claimed.
+
+371 separate current-production pureSELECT recheck2026-10-27T07:42:27.087183UTC: four relevant function definition MD5s identical to installed371 baseline; immutable helper on synthetic0s/59.999s/60s returned[1,3]. No import, recalculation, migration or historical record write. True new-import end-to-end remains unrun. External result371-current-readonly-recheck.json.
+
+Final deployment SHA/Ready and actual sessions must be recorded independently. This integration does not close missing original OT rows, original notification-first navigation, real single-location role, cross-company boundary, or intermittent logout root cause. Production frontend promotion not performed.

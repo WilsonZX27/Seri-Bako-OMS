@@ -1,6 +1,6 @@
 ## v9.2.155 (Preview candidate) — Scoped afternoon integration
 
-Retain production153 cards and layouts while integrating named attendance, staff, packaging, cross-outlet schedule, PR, Checklist, RO and session-message corrections. Production migrations371–374 committed and independently verified on2026-10-26; raw/history counts unchanged, Packaging tables empty, PaidEL wrapper preserved. Supplier375 remains an unapproved proposal with no executable client entry. This is a Preview candidate, not full visual/role acceptance or Production promotion. Automatic numbering remains OFF.
+Retain production153 cards and layouts while integrating named attendance, staff, packaging, cross-outlet schedule, PR, Checklist, RO and session-message corrections. Production migrations371–374 committed and independently verified on2026-10-26; raw/history counts unchanged, Packaging tables empty, PaidEL wrapper preserved. Supplier375 received explicit permission approval and was installed with independent postflight on2026-10-27; its scoped client entry is now prepared for Preview acceptance. No real PR selection was performed as a test. This is a Preview candidate, not full visual/role acceptance or Production promotion. Automatic numbering remains OFF.
 
 ## v9.2.153 (Preview candidate) — Unified controls and request feedback
 

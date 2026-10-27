@@ -4,7 +4,7 @@ const {compile,React,renderToStaticMarkup}=require('./helpers/render-workspaces.
 const base={role:'purchasing',canReview:true,status:'admin_review',supplierId:null,catalogLines:0,unresolvedLines:1};
 test('supplier recovery presentation is confined to the approved role, state and line shape',()=>{
  const {canRecoverPurchaseRequestSupplier:can,supplierRecoveryInstalled}=load()('src/lib/procurement/supplier-recovery.ts');
- assert.equal(supplierRecoveryInstalled,false);
+ assert.equal(supplierRecoveryInstalled,true);
  for(const role of ['purchasing','super_admin'])assert.equal(can({...base,role}),true);
  for(const patch of [{role:'manager'},{role:'finance'},{canReview:false},{status:'manager_review'},{status:'finance_review'},{supplierId:'existing'},{catalogLines:1},{unresolvedLines:0}])assert.equal(can({...base,...patch}),false);
 });

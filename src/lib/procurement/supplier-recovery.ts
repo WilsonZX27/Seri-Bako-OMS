@@ -1,5 +1,5 @@
-// Enable only after the exact375 installation and independent production postflight.
-export const supplierRecoveryInstalled = false;
+// Exact375 production installation independently verified2026-10-27; no business test calls.
+export const supplierRecoveryInstalled = true;
 
 export function canRecoverPurchaseRequestSupplier(input: {
   role: string; canReview: boolean; status: string; supplierId: string | null;

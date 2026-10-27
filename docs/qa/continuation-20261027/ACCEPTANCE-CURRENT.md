@@ -14,7 +14,7 @@ Original IDs and requirements remain in ACCEPTANCE-SOURCE.md, unchanged. This ta
 |B1/B2/B3|Scoped offboarding explanations/error ownership integrated|Actual original-layout comparison; synthetic errors only, never delete/disable real staff|
 |B4|374 committed; Paid EL wrapper unchanged; validator/postflight passed|Real cross-store read-only state; no real publish authorized|
 |B5|Branch/week/revision navigation key integrated|Original Comment5 recovered with branch/week URL and1440×900 target region; actual notification first navigation pending; do not mark read to manufacture test|
-|C1|375 proposal with production-helper/trigger synthetic behavior+concurrency checks; no executable client entry|Specific approval required, not installed; supplier issue remains undelivered|
+|C1|375 explicitly approved and installed2026-10-27; exact body/ACL and unchanged dependency metadata independently verified. Scoped client gate enabled after verification;2007checks|Same-branch Preview deployment and legitimate eligible PR read-only UI acceptance pending; no real supplier-selection test|
 |C2/C4|Scoped PR transaction alignment and noise reduction retained|Actual PR state and original image comparison|
 |C3/C5/C6|Production153 PR/new, GRN, Daily grouped cards retained; shared flatten changes excluded|Actual new/GRN/Daily records and original screenshots|
 |C7|Single-location Checklist border page-local fix retained|Actual KwanKee single-location original-state check|

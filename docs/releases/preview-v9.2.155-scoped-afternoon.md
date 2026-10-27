@@ -13,3 +13,5 @@ Use this same final Preview source for actual390/430/820/1440 page/state/image c
 Scoped follow-up: restore the legacy asset-list redirect with filters preserved; compress Asset phone rows, remove only maintenance queue inner cards, move Overview actions into the existing mobile console, apply notification title600 and the specified Inventory reference to Procurement desktop sections. Manual Asset ID copy explains numbering OFF. Actual authenticated acceptance remains pending.
 
 Recovered original Employees screenshots: remove only the directory inner list card, and center only employee disable/delete triggers alongside the existing centered password actions. Keep outer cards, dangerous-action safeguards and all shared defaults. Synthetic actual-shell short/long scrolling and action-disclosure checks passed; real authenticated acceptance remains pending.
+
+Transfers-only desktop Record status is120px; page CSS module leaves Maintenance and phone/tablet filter layouts unchanged. Daily sales/payment fields are unchanged because retained evidence only establishes product quantity alignment.

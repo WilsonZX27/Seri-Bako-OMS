@@ -1,3 +1,7 @@
+## v9.2.157 (local candidate) — Controlled attendance repair entry
+
+Built from verified Production155 commit9c9ed711 only. Add an explicit, default-off authenticated API choice for the fixed305-day repair; preserve the ordinary recalculation path and existing tenant/permission/same-origin checks. Null-batch safety prevents a missing DB adapter from invoking broad weekly recalculation. No page layout or navigation changes. Installation, activation and real execution are separately approved operations; no Production deployment or real recalculation has occurred. Preview156 session patch and other UI candidates are not included.
+
 ## v9.2.155 (Preview candidate) — Scoped afternoon integration
 
 Retain production153 cards and layouts while integrating named attendance, staff, packaging, cross-outlet schedule, PR, Checklist, RO and session-message corrections. Production migrations371–374 committed and independently verified on2026-10-26; raw/history counts unchanged, Packaging tables empty, PaidEL wrapper preserved. Supplier375 received explicit permission approval and was installed with independent postflight on2026-10-27; its scoped client entry is now prepared for Preview acceptance. No real PR selection was performed as a test. This is a Preview candidate, not full visual/role acceptance or Production promotion. Automatic numbering remains OFF.

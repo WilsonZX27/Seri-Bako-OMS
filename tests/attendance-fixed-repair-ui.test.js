@@ -1,0 +1,15 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('fs'),vm=require('vm'),ts=require('typescript');
+const source=fs.readFileSync('src/components/attendance/fixed-attendance-repair.tsx','utf8');
+function harness(ready=true,fail=false){
+ let states=[],index=0,effect,calls=[],ref={current:false};const exports={};
+ const jsx=(type,props)=>({type,props});
+ const fetch=async(url,options={})=>{calls.push(options);if(options.method==='POST'&&fail)throw Error('Synthetic lost response');return {ok:true,json:async()=>options.method==='POST'?{calculated:305}:{capability:'oms305-fixed-v3',enabled:ready}}};
+ const mocks={react:{useState:v=>{let i=index++;if(!(i in states))states[i]=v;return [states[i],v=>states[i]=v]},useRef:()=>ref,useEffect:f=>{effect=f}},'react/jsx-runtime':{jsx,jsxs:jsx},'@/components/ui/select-control':{SelectControl:'operation-control'},'@/components/ui/button':{Button:'button'},'@/components/ui/card':{Card:'card',CardContent:'content'}};
+ vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText,{exports,require:n=>mocks[n],fetch,AbortController,Error,Number,JSON});
+ const render=()=>{index=0;return exports.FixedAttendanceRepair()};
+ const find=(n,type)=>{if(!n||typeof n!=='object')return null;if(n.type===type)return n;for(const c of [n.props?.children].flat(Infinity)){const v=find(c,type);if(v)return v}return null};
+ return {render,find,calls,mount:async()=>{render();effect();await new Promise(r=>setImmediate(r))},flush:()=>new Promise(r=>setImmediate(r))};
+}
+test('maintenance UI never mutates during capability check and remains disabled by default',async()=>{const h=harness(false);await h.mount();assert.equal(h.calls.length,1);assert.equal(h.calls[0].method,undefined);assert.equal(h.find(h.render(),'button').props.disabled,true)});
+test('maintenance UI requires explicit confirmation and blocks synchronous duplicate submissions',async()=>{const h=harness();await h.mount();let tree=h.render();assert.equal(h.find(tree,'button').props.disabled,true);h.find(tree,'input').props.onChange({target:{checked:true}});tree=h.render();const click=h.find(tree,'button').props.onClick;click();click();await h.flush();assert.equal(h.calls.filter(c=>c.method==='POST').length,1);assert.equal(JSON.parse(h.calls.at(-1).body).repair,'oms305-20261019-v3/run');assert.equal(h.find(h.render(),'button').props.disabled,true)});
+test('maintenance UI prevents another operation after an uncertain response',async()=>{const h=harness(true,true);await h.mount();h.find(h.render(),'input').props.onChange({target:{checked:true}});h.find(h.render(),'button').props.onClick();await h.flush();const tree=h.render();assert.equal(h.find(tree,'button').props.disabled,true);assert.equal(h.find(tree,'operation-control').props.disabled,true);h.find(tree,'button').props.onClick();await h.flush();assert.equal(h.calls.filter(c=>c.method==='POST').length,1)});

@@ -1,6 +1,6 @@
 ## v9.2.157 (local candidate) — Controlled attendance repair entry
 
-Built from verified Production155 commit9c9ed711 only. Add an explicit, default-off authenticated API choice for the fixed305-day repair; preserve the ordinary recalculation path and existing tenant/permission/same-origin checks. Null-batch safety prevents a missing DB adapter from invoking broad weekly recalculation. No page layout or navigation changes. Installation, activation and real execution are separately approved operations; no Production deployment or real recalculation has occurred. Preview156 session patch and other UI candidates are not included.
+Built from verified Production155 commit9c9ed711 only. Add an explicit, default-off authenticated API choice for the fixed305-day repair; preserve the ordinary recalculation path and existing tenant/permission/same-origin checks. Null-batch safety prevents a missing DB adapter from invoking broad weekly recalculation. The standalone default-off maintenance page uses existing controls; ordinary pages and navigation are unchanged. Installation, activation and real execution are separately approved operations; no Production deployment or real recalculation has occurred. Preview156 session patch and other UI candidates are not included.
 
 ## v9.2.155 (Preview candidate) — Scoped afternoon integration
 

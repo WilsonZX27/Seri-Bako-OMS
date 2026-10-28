@@ -9,3 +9,5 @@ The separately reviewed SQL package creates only owner-private invoker helpers a
 No real employee data, private manifest, salary or credentials are included. Existing raw evidence/history and30 excluded days must be independently verified before/after an approved operation. Real file restoration was not exercised; pointer recovery relies on retained old versions and refuses drift/protected state.
 
 Validation evidence is recorded in the independent integration report. Version157 skips the already-reserved Preview156 without including its separate changes. No production promotion is implied.
+
+The direct `/attendance/controlled-repair` maintenance page provides normal authenticated, explicitly confirmed run/restore controls without changing the ordinary button or navigation. It makes only a read-only capability request on load; mutations require a checked operation and click. Unknown outcomes disable further action until receipt review.

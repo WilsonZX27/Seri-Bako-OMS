@@ -21,8 +21,8 @@ test("quantity stepper density has one component authority", () => {
 test("quantity stepper call sites select semantic density instead of descendant overrides", () => {
   const sources = `${lowStock}\n${stockBalance}`;
   assert.doesNotMatch(sources, /\[&_button\]|\[&_input\]/);
-  assert.match(lowStock, /density="compact"/);
-  assert.match(lowStock, /density="touch"/);
+  assert.match(lowStock, /density="dense"/);
+  assert.match(lowStock, /QuantityStepper/);
   assert.match(stockBalance, /density="dense"/);
   assert.match(stockBalance, /density="compact"/);
 });

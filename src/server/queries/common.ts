@@ -88,39 +88,21 @@ export const getCompanyBranding = cache(async function getCompanyBranding() {
 
   const supabase = await createClient();
   const { data: { user } } = await getCurrentAuthUser();
-  // The companies table remains tenant-protected before authentication. The
-  // company-assets bucket is deliberately public, so the auth shell can still
-  // show the uploaded brand mark without exposing company records.
-  if (!user) {
-    const { data: companyFolders, error: folderError } = await supabase.storage
-      .from("company-assets")
-      .list("", { limit: 2 });
-    if (!folderError && companyFolders?.length === 1 && !companyFolders[0]?.id) {
-      const folder = companyFolders[0].name;
-      const { data: logos, error: logoError } = await supabase.storage
-        .from("company-assets")
-        .list(folder, { limit: 5, sortBy: { column: "updated_at", order: "desc" } });
-      const logo = logoError ? null : logos?.find((file) => file.id && /^logo\.(png|jpe?g|webp|svg)$/i.test(file.name));
-      if (logo) {
-        const { data } = supabase.storage.from("company-assets").getPublicUrl(`${folder}/${logo.name}`);
-        return { company_name: "Seri Bako", logo_url: data.publicUrl };
-      }
-    }
-    return { company_name: "Seri Bako", logo_url: null };
-  }
+  // Authentication determines the company; no public bucket enumeration or
+  // cross-company fallback is used to discover branding.
+  if (!user) return { company_name: "Operations", logo_url: null };
   const profile = await getCurrentProfile();
-  if (!profile?.company_id) return { company_name: "Seri Bako", logo_url: null };
-  const { data } = await supabase
-    .from("companies")
-    .select("company_name, logo_url")
-    .eq("id", profile.company_id)
-    .is("deleted_at", null)
-    .maybeSingle();
-
-  return {
-    company_name: data?.company_name ?? "Seri Bako",
-    logo_url: data?.logo_url ?? null,
-  };
+  if (!profile?.company_id) return { company_name: "Operations", logo_url: null };
+  const result = await supabase.from("companies").select("company_name,logo_url,ui_theme")
+    .eq("id", profile.company_id).is("deleted_at", null).maybeSingle();
+  if (result.error && ["42703", "PGRST204"].includes(result.error.code)) {
+    const legacy = await supabase.from("companies").select("company_name,logo_url")
+      .eq("id", profile.company_id).is("deleted_at", null).maybeSingle();
+    if (legacy.error) throw new Error("Company branding is unavailable.");
+    return { company_name: legacy.data?.company_name ?? "Operations", logo_url: legacy.data?.logo_url ?? null, ui_theme: null };
+  }
+  if (result.error) throw new Error("Company branding is unavailable.");
+  return { company_name: result.data?.company_name ?? "Operations", logo_url: result.data?.logo_url ?? null, ui_theme: result.data?.ui_theme ?? null };
 });
 
 export const getSuppliersForSelect = cache(async function getSuppliersForSelect() {

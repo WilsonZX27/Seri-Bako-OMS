@@ -11,7 +11,7 @@ export function rejectCrossSiteMutation(request: Request) {
   const requestOrigin = new URL(request.url).origin;
 
   if (origin && origin !== requestOrigin) {
-    return NextResponse.json({ ok: false, message: "This request was blocked because it did not originate from Seri Bako OMS." }, { status: 403 });
+    return NextResponse.json({ ok: false, message: "This request was blocked because it did not originate from this application." }, { status: 403 });
   }
 
   if (!origin && fetchSite === "cross-site") {

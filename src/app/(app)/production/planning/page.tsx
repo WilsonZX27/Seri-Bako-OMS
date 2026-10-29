@@ -1,10 +1,11 @@
+import { readShellBranding } from "@/lib/shell-branding-read";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { Notice } from "@/components/ui/system-states";
 import { PageHeader } from "@/components/ui/page-header";
 import { ProductionPlanningWorkspace } from "@/components/production-planning-workspace";
 import { createClient } from "@/lib/supabase/server";
 import { looseSupabase } from "@/lib/supabase/loose";
-import { getCurrentProfile } from "@/server/queries/common";
+import { getCompanyBranding, getCurrentProfile } from "@/server/queries/common";
 import { loadPlanningContext, loadPlans, loadDeliveryOrders, complete } from "@/server/production-planning/data";
 import { addDays } from "@/lib/production-planning/forecast";
 import { todayInKualaLumpur } from "@/lib/business-date";
@@ -35,9 +36,9 @@ export default async function ProductionPlanningPage({searchParams}:{searchParam
   const kitchenId=accessible.some((k)=>k.id===filters.kitchen)?String(filters.kitchen):String(accessible[0]?.id??"");
   const date=filters.date??addDays(todayInKualaLumpur(),1); addDays(date,0);
   if(!kitchenId)return <><PageHeader title="Production Planning" description="Daily production and outlet allocation."/><WorkspaceGrid hideDesktopConsole hideMobileConsole><Notice tone="warning" title="No kitchen available">Ask your administrator to configure a central kitchen and give you access before planning production.</Notice></WorkspaceGrid></>;
-  const [context,plans,orders]=await Promise.all([loadPlanningContext(db,profile.company_id,kitchenId,date,{view,kitchens:accessible as unknown as PlanningBranch[]}),view==="plan"?loadPlans(db,profile.company_id,kitchenId,date,filters.version):Promise.resolve<Plan[]>([]),view==="plan"?loadDeliveryOrders(db,{companyId:profile.company_id,kitchenId,date}):Promise.resolve<DeliveryOrder[]>([])]);
+  const [context,plans,orders,branding]=await Promise.all([loadPlanningContext(db,profile.company_id,kitchenId,date,{view,kitchens:accessible as unknown as PlanningBranch[]}),view==="plan"?loadPlans(db,profile.company_id,kitchenId,date,filters.version):Promise.resolve<Plan[]>([]),view==="plan"?loadDeliveryOrders(db,{companyId:profile.company_id,kitchenId,date}):Promise.resolve<DeliveryOrder[]>([]),readShellBranding(getCompanyBranding())]);
   const selectedPlanId=plans.find(plan=>plan.id===filters.version)?.id??plans[0]?.id;
-  return <><PageHeader title="Production Planning" description="Daily production and outlet allocation."/><ProductionPlanningWorkspace key={`${kitchenId}:${date}:${view}:${selectedPlanId??""}`} selectedPlanId={selectedPlanId} view={view} companyId={profile.company_id} date={date} kitchenId={kitchenId} {...context} plans={plans} orders={orders} canManage={canManage}/></>;
+  return <><PageHeader title="Production Planning" description="Daily production and outlet allocation."/><ProductionPlanningWorkspace companyName={branding.company_name} key={`${kitchenId}:${date}:${view}:${selectedPlanId??""}`} selectedPlanId={selectedPlanId} view={view} companyId={profile.company_id} date={date} kitchenId={kitchenId} {...context} plans={plans} orders={orders} canManage={canManage}/></>;
  } catch(error) {
   logServerError(error,{source:"page.productionPlanning"});
   return <><PageHeader title="Production Planning" description="Daily production, allocation and delivery approval."/><WorkspaceGrid><Notice tone="warning" title="Production planning could not load">Reload to retry. If this continues, check the kitchen configuration and system health.</Notice></WorkspaceGrid></>;

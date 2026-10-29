@@ -1,0 +1,18 @@
+{
+  "environment": "disposable Docker PostgreSQL; no network or host ports",
+  "authorization_helpers": "synthetic stand-ins; live RLS/ACL drift remains an activation gate",
+  "checks": [
+    "same-key retry is idempotent; changed payload or actor rejected",
+    "different fault and holding location append one audited update to same unchanged ticket",
+    "permission, company, selected branch and actual positive/unknown holding guards retained",
+    "cross-location carry-forward exposes only an attention flag outside assigned scope; manager sees authorized details",
+    "daily exception appends to same global ticket; Checked never closes or resets its status",
+    "eight concurrent different issues create exactly one ticket and seven progress rows",
+    "six concurrent identical retries append exactly once",
+    "new ticket after closure is allowed; competing reopen is blocked without deleting old history",
+    "legacy duplicate rows stay byte-for-byte unchanged; new reports append without a third ticket",
+    "recovery restores original function definitions, owner, search_path and ACL without losing appended history"
+  ],
+  "proposal_sha256": "a10bb64d0b8d39154130b38ed79d89a98b0236f210e819ae1dc5ae7ab3b2835a",
+  "production_installed": false
+}

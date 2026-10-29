@@ -1,17 +1,18 @@
+import { APPLICATION_NAME, APPLICATION_DESCRIPTION } from "@/lib/branding/deployment-branding";
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
 import "./design-system-v2.css";
 
 export const metadata: Metadata = {
-  title: "Seri Bako OMS",
-  description: "Seri Bako Operations Management System",
+  title: APPLICATION_NAME,
+  description: APPLICATION_DESCRIPTION,
   manifest: "/manifest.webmanifest",
-  applicationName: "Seri Bako OMS",
+  applicationName: APPLICATION_NAME,
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Seri Bako OMS",
+    title: APPLICATION_NAME,
   },
   icons: {
     icon: "/icon.svg",

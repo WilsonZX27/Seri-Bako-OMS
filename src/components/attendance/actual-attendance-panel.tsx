@@ -22,6 +22,8 @@ type Props = {
   canSubmitComp: boolean;
   canApproveComp: boolean;
   compact?: boolean;
+  sections?: "all" | "reports" | "comp";
+  hideBalances?: boolean;
   initialAssignmentId?: string;
   scheduleHref?: string;
 };
@@ -46,6 +48,8 @@ function minutes(value: unknown) {
 }
 
 export function ActualAttendancePanel(props: Props) {
+  const showReports = props.sections !== "comp";
+  const showComp = props.sections !== "reports";
   const compPeople = [...new Map([
     ...props.assignments.map(row => [String(row.staff_id), {id:row.staff_id, ...relation(row, "staffs")}] as const),
     ...(props.compPeople ?? []).map(person => [String(person.id), person] as const),
@@ -196,7 +200,7 @@ export function ActualAttendancePanel(props: Props) {
   );
   return (
     <div className="space-y-3" data-attendance-actuals>
-      <section className="sb-work-surface overflow-hidden">
+      {showReports ? <section className="sb-work-surface overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-[var(--sb-border-soft)] p-3">
           <div>
             <h2 className="text-sm font-semibold">Daily attendance reports</h2>
@@ -307,14 +311,13 @@ export function ActualAttendancePanel(props: Props) {
             </p>
           ) : null}
         </div>
-      </section>
-      <section className="sb-work-surface overflow-hidden">
+      </section> : null}
+      {showComp ? <section className="sb-work-surface overflow-hidden">
         <div className="flex flex-col gap-3 border-b border-[var(--sb-border-soft)] p-3">
           <div>
-            <h2 className="text-sm font-semibold">Time-off balance</h2>
+            <h2 className="text-sm font-semibold">{props.hideBalances ? "RO corrections" : "Time-off balance"}</h2>
             <p className="text-xs text-muted-foreground">
-              People-approved OT credits, scheduled RO use and audited
-              corrections.
+              Review balance corrections and their audit history.
             </p>
           </div>
           {props.canSubmitComp ? (
@@ -329,7 +332,7 @@ export function ActualAttendancePanel(props: Props) {
             </Button>
           ) : null}
         </div>
-        <div className={props.compact ? "grid gap-px bg-[var(--sb-border-soft)]" : "grid gap-px bg-[var(--sb-border-soft)] sm:grid-cols-3"}>
+        {!props.hideBalances ? <div className={props.compact ? "grid gap-px bg-[var(--sb-border-soft)]" : "grid gap-px bg-[var(--sb-border-soft)] sm:grid-cols-3"}>
           {Object.entries(props.balances).map(([staffId, balance]) => {
             const person = compPeople.find(row => String(row.id) === staffId);
             const ledgerPerson = props.ledger.find(row => String(row.staff_id) === staffId);
@@ -347,17 +350,17 @@ export function ActualAttendancePanel(props: Props) {
               No approved comp time balance yet.
             </p>
           ) : null}
-        </div>
+        </div> : null}
         <div className="divide-y divide-[var(--sb-border-soft)]">
-          {props.ledger.slice(0, 20).map((row) => (
+          {props.ledger.slice(0, 50).map((row) => (
             <div
               key={String(row.id)}
-              className="flex flex-wrap items-center gap-3 p-3 text-xs"
+              className="grid gap-3 p-3 text-xs sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
             >
-              <span className="min-w-36 font-medium">
+              <div className="min-w-0 space-y-1"><span className="block font-semibold">
                 {relation(row, "staffs")?.full_name ?? "Employee"}
               </span>
-              <span>{String(row.transaction_kind)}</span>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1"><span>{String(row.transaction_kind)}</span>
               <strong
                 className={
                   Number(row.minutes) < 0 ? "text-rose-700" : "text-emerald-800"
@@ -368,7 +371,7 @@ export function ActualAttendancePanel(props: Props) {
               <span className="min-w-0 flex-1 text-muted-foreground">
                 {String(row.reason)}
               </span>
-              <StatusBadge status={String(row.status)} />
+              </div></div><div className="flex flex-wrap items-center justify-end gap-2"><StatusBadge status={String(row.status)} />
               {props.canApproveComp && row.status === "pending" ? (
                 <>
                   <Button
@@ -390,11 +393,12 @@ export function ActualAttendancePanel(props: Props) {
                     Reject
                   </Button>
                 </>
-              ) : null}
+              ) : null}</div>
             </div>
           ))}
+          {!props.ledger.length ? <p className="p-3 text-xs text-muted-foreground">No RO corrections for these employees.</p> : null}
         </div>
-      </section>
+      </section> : null}
       {message ? (
         <p
           role="alert"
@@ -424,7 +428,7 @@ export function ActualAttendancePanel(props: Props) {
           </div>
           <label className="grid gap-1 text-xs font-medium">
             Staff day
-            {!props.assignments.length ? <p className="text-sm text-warning">No published staff days in this outlet and week. <a className="underline" href={props.scheduleHref ?? "/attendance/schedule"}>Check and publish the schedule</a>.</p> : null}
+            {!props.assignments.length ? <p className="text-xs font-normal leading-5 text-muted-foreground">No published staff days for this week. <a className="font-medium underline" href={props.scheduleHref ?? "/attendance/schedule"}>Check and publish the schedule</a>.</p> : null}
             <SelectControl
               required
               ariaLabel="Staff day"
@@ -438,7 +442,7 @@ export function ActualAttendancePanel(props: Props) {
               portalContainer={reportDialog}
             />
           </label>
-          <div className="rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] p-3 text-xs">
+          {selected ? <div className="rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] p-3 text-xs">
             <strong>Published schedule</strong>
             <p>
               {selected?.custom_start && selected?.custom_end
@@ -461,10 +465,7 @@ export function ActualAttendancePanel(props: Props) {
                     )?.planned_end,
                   )}
             </p>
-            <p className="text-muted-foreground">
-              This source record will not be edited.
-            </p>
-          </div>
+          </div> : null}
           <label className="grid gap-1 text-xs font-medium">
             Report type
             <SelectControl
@@ -501,10 +502,7 @@ export function ActualAttendancePanel(props: Props) {
             />
           </label>
           <label className="grid gap-1 text-xs font-medium">
-            Note{" "}
-            <span className="font-normal text-muted-foreground">
-              (optional)
-            </span>
+            <span>Note <span className="font-normal text-muted-foreground">(optional)</span></span>
             <textarea
               name="note"
               maxLength={1000}

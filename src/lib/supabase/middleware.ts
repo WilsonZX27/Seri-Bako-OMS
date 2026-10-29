@@ -73,6 +73,12 @@ export async function updateSession(request: NextRequest) {
     .eq("auth_user_id", authUserId)
     .maybeSingle();
 
+  if (staffError) {
+    const unavailable = NextResponse.json({ ok: false, message: "Workspace profile verification is temporarily unavailable. Please retry; this request was not processed." }, { status: 503 });
+    response.cookies.getAll().forEach((cookie) => unavailable.cookies.set(cookie));
+    return unavailable;
+  }
+
   const staffRecord = staff as unknown as {
     id: string;
     status: string | null;

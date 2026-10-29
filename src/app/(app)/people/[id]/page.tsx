@@ -1,3 +1,4 @@
+import { ComplianceFileInput } from "@/components/compliance-file-input";
 import { ActionErrorNotice } from "@/components/action-error-notice";
 import { StaffIdentityFacts } from "@/components/staff-identity-facts";
 import { todayInKualaLumpur } from "@/lib/business-date";
@@ -94,12 +95,7 @@ export default async function PeopleProfilePage({
           </strong>
         </div>
       </ConsoleSection>
-      <ConsoleSection title="Privacy">
-        <p className="text-muted-foreground">
-          Managers see compliance status only. Sensitive originals remain
-          restricted to Owner and People Operations.
-        </p>
-      </ConsoleSection>
+
     </>
   );
   return (
@@ -142,7 +138,7 @@ export default async function PeopleProfilePage({
                       {(compTime.ledger as Array<Record<string, unknown>>).some(row => row.status === "pending" && row.transaction_kind === "correction") ? <p role="status" className="mt-2 rounded border border-amber-200 bg-amber-50 px-2 py-1.5 text-xs text-amber-900">Correction submitted and waiting for approval. It will be added to the balance after approval.</p> : null}
                     </div>
                   </div>
-                  <div className="mt-3 divide-y border-t border-[var(--sb-border-soft)]">
+                  <div className="mt-3 divide-y divide-[var(--sb-border-soft)] border-t border-[var(--sb-border-soft)]">
                     {(compTime.ledger as Array<Record<string, unknown>>).map(
                       (row) => (
                         <div
@@ -184,7 +180,7 @@ export default async function PeopleProfilePage({
                       <span className="ml-1 text-sm text-muted-foreground">this month</span>
                     </div>
                   </div>
-                  <div className="mt-3 divide-y border-t border-[var(--sb-border-soft)]">
+                  <div className="mt-3 divide-y divide-[var(--sb-border-soft)] border-t border-[var(--sb-border-soft)]">
                     {attendanceTracking.months.map((row) => (
                       <div key={row.month} className="flex items-center justify-between py-2 text-xs">
                         <span>{row.month}</span>
@@ -428,19 +424,7 @@ function ComplianceRecordForm({
       <FormField label="Expires on">
         <input name="expires_on" type="date" className={controlClass} />
       </FormField>
-      <label className="min-w-0 text-xs font-medium sm:col-span-2">
-        Supporting file
-        <span className="mt-0.5 block text-[10px] font-normal leading-4 text-muted-foreground">
-          PDF, PNG, JPEG or WebP, up to 10 MB.
-        </span>
-        <input
-          name="file"
-          type="file"
-          accept="application/pdf,image/png,image/jpeg,image/webp"
-          required
-          className="mt-2 block w-full rounded-[var(--sb-radius-control)] border border-[var(--sb-border)] bg-white p-1 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] file:mr-2 file:min-h-9 file:rounded-[var(--sb-radius-control)] file:border-0 file:bg-[var(--sb-green-100)] file:px-3 file:text-[var(--sb-green-900)]"
-        />
-      </label>
+      <div className="min-w-0 sm:col-span-2"><p className="mb-2 text-xs font-medium">Supporting file</p><ComplianceFileInput/></div>
     </form>
   );
 }

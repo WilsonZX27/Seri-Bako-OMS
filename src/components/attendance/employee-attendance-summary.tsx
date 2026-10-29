@@ -42,7 +42,7 @@ export function EmployeeAttendanceSummary({
         </section>
         <section><h3 className="text-sm font-semibold">Missing punch history</h3>{missingHistory.length ? <ul className="mt-2 space-y-1 text-sm">{missingHistory.map((item) => <li key={`${item.date}:${item.label}`} className="flex justify-between gap-4"><span>{item.date}</span><span className="text-amber-800">{item.label}</span></li>)}</ul> : <p className="mt-1 text-sm text-muted-foreground">No missing punches since 14 Sep 2026.</p>}</section>
         <section><h3 className="text-sm font-semibold">MC and attendance reports</h3>{reportHistory.length ? <ul className="mt-2 space-y-1 text-sm">{reportHistory.map((item) => <li key={`${item.date}:${item.label}`} className="flex justify-between gap-4"><span>{item.date}</span><span>{item.label}</span></li>)}</ul> : <p className="mt-1 text-sm text-muted-foreground">No reports in this week.</p>}</section>
-        <footer className="flex flex-wrap justify-end gap-2"><Button type="button" variant="outline" onClick={() => dialog.current?.close()}>Close</Button><Button asChild><Link href={detailHref}>View full attendance</Link></Button></footer>
+        <footer className="flex flex-wrap justify-end gap-2"><Button type="button" variant="outline" onClick={() => dialog.current?.close()}>Close</Button><Button asChild><Link href={detailHref} scroll={false} onClick={() => dialog.current?.close()}>View full attendance</Link></Button></footer>
       </div>
     </dialog>
   </>;

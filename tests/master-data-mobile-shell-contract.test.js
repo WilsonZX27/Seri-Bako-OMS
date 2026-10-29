@@ -16,9 +16,10 @@ test("master-data lists reserve phone action space for creation, not desktop-onl
   assert.match(read("src/app/(app)/supplier-items/page.tsx"), /<WorkspaceGrid hideMobileConsole=\{!canCreate\} rightRail=/);
 });
 
-test("low stock keeps its inline PR workspace clear of a redundant phone action bar", () => {
-  const lowStock = read("src/app/(app)/low-stock/page.tsx");
-
-  assert.match(lowStock, /<WorkspaceGrid\s+className=[^\n]+\s+tabletRailMode="split"\s+tabletRailBreakpoint="lg"\s+hideMobileConsole\s+rightRail=/);
-  assert.match(lowStock, /<LowStockPrForm/);
+test("low stock owns one shared responsive basket rail and no duplicate inline banner", () => {
+ const page=read("src/app/(app)/low-stock/page.tsx"), form=read("src/components/low-stock-pr-form.tsx");
+ assert.match(page,/<LowStockPrForm/);assert.doesNotMatch(page,/<WorkspaceGrid/);
+ assert.match(form,/<WorkspaceGrid tabletRailMode="split" tabletRailBreakpoint="lg"/);
+ assert.match(form,/hideMobileConsole mobileRailSummary=/);
+ assert.equal((form.match(/ConsoleSection title="PR basket"/g)||[]).length,1);
 });

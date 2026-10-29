@@ -29,7 +29,7 @@ test("asset overview and maintenance queues page at ten rows with shared navigat
   assert.match(query, /view === "maintenance" \? ASSET_MAINTENANCE_PAGE_SIZE : 50/);
   assert.match(page, /view === "overview" \|\| view === "maintenance" \? 10 : 50/);
   assert.equal((page.match(/<PaginationControls/g) ?? []).length, 2);
-  assert.match(page, /Open maintenance requests · \{data\.total\}/);
+  assert.match(page, /AssetSectionHeading title="Open maintenance requests" value=\{data\.total\}/);
 });
 
 test("transfer asset search adds directly to the current request without a GET detour", () => {

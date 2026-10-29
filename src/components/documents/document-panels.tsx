@@ -133,7 +133,7 @@ export async function AttachmentPanel({
                   <p className="text-xs text-muted-foreground">Uploaded by {actorLabel(attachment.uploaded_by_name)} - {formatDateTime(attachment.created_at)}</p>
                 </div>
               </div>
-              <div className="flex shrink-0 items-center gap-1">
+              <div className="flex shrink-0 flex-col items-center gap-1">
                 {attachment.storage_path || attachment.file_url ? <Button asChild variant="ghost" size="icon" className="h-8 w-8"><a href={`/api/attachments/${attachment.id}`} target="_blank" rel="noreferrer" aria-label={`View ${attachment.file_name}`} title="View attachment"><Eye className="h-4 w-4" /></a></Button> : <Button type="button" variant="ghost" size="icon" disabled className="h-8 w-8" aria-label="File unavailable"><FileText className="h-4 w-4" /></Button>}
                 {canRemoveAttachments ? <AttachmentRemoveAction action={archiveDocumentAttachment.bind(null, attachment.source_document_id ?? documentId, attachment.id)} fileName={attachment.file_name} /> : null}
               </div>

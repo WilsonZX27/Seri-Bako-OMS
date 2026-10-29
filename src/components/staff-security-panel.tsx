@@ -1,10 +1,10 @@
+import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import Link from "next/link";
 import { StaffIdentityFacts } from "@/components/staff-identity-facts";
 import { staffEmploymentStatus } from "@/lib/staff-employment-status";
 import { todayInKualaLumpur } from "@/lib/business-date";
 import { employmentSignInBlockReason } from "@/lib/staff-employment-status";
 import { CopyTextButton } from "@/components/ui/copy-text-button";
-import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { getStaffAuthState, staffAuthStateLabels } from "@/lib/staff-auth-state";
@@ -12,7 +12,7 @@ import { readTemporaryPasswordHandoff } from "@/server/auth/temporary-password-h
 import { hasPermission } from "@/server/auth/permissions";
 import { getCurrentProfile } from "@/server/queries/common";
 import { getStaff, getStaffAccess, getRoles, getStaffProfileSummary } from "@/server/queries/foundation";
-import { disableStaff, forceStaffPasswordChange, permanentlyDeleteStaff, repairStaffSignInLink, resetStaffTemporaryPassword } from "@/server/actions/foundation";
+import { disableStaff, forceStaffPasswordChange, repairStaffSignInLink, resetStaffTemporaryPassword } from "@/server/actions/foundation";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { formatDateTime } from "@/lib/utils";
 
@@ -77,9 +77,6 @@ export async function StaffSecurityRail({ id }: { id: string }) {
       {staff.auth_user_id ? <form action={forceStaffPasswordChange.bind(null, id)}><SubmitButton data-console-command type="submit" variant="outline" className="w-full" pendingLabel="Processing...">Force password change</SubmitButton></form> : null}
     </ConsoleSection>
     : null}
-    {isOwner ? <details><summary className="min-h-11 cursor-pointer py-3 text-xs text-muted-foreground">Advanced: unused test profiles</summary>
-    <ConsoleSection title="Test profile cleanup" kind="danger">
-      <div className="[&>button]:justify-center"><DangerConfirmForm action={permanentlyDeleteStaff.bind(null, id)} title="Permanent delete staff" description="Only use this for test users with no linked business records. For resignation, record the last working day and retain the profile." warning="This is blocked for protected owner accounts and anyone with historical records." checkboxLabel="I understand this permanently deletes only safe test staff records." confirmWord="DELETE" buttonLabel="Permanent delete staff" pendingLabel="Deleting..." /></div>
-    </ConsoleSection></details> : null}
+
   </>;
 }

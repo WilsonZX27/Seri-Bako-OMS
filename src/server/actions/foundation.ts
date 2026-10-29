@@ -12,7 +12,7 @@ import { setTemporaryPasswordHandoff } from "@/server/auth/temporary-password-ha
 import { createClient } from "@/lib/supabase/server";
 import { branchSchema, companySchema, documentSequenceSchema, staffAccessSchema, staffSchema } from "@/lib/validations/foundation";
 import { writeActivityLog } from "@/server/activity/log";
-import { requirePermission } from "@/server/auth/permissions";
+import { hasPermission, requirePermission } from "@/server/auth/permissions";
 import { formatActionError, requirePermissionOrRedirect, rethrowRedirect, safeRedirectWithMessage } from "@/server/actions/error-handling";
 import { findAuthUsersByEmail } from "@/server/auth/admin-users";
 import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
@@ -192,7 +192,9 @@ export async function createBranch(formData: FormData) {
   await requirePermissionOrRedirect("branches.create", "/branches/new");
   try {
     const actor = await requireActiveTenantActor();
+    const canConfigure = await hasPermission("branches.update");
     const payload = branchPayload(formData, actor.companyId);
+    let createdId: string | null = null;
     if (!isMockMode()) {
       const supabase = createAdminClient();
       const { data: archivedMatch, error: archivedError } = await supabase
@@ -209,9 +211,11 @@ export async function createBranch(formData: FormData) {
       }
       const { data, error } = await supabase.from("branches").insert(payload).select("id").single();
       if (error) throw new Error(error.message);
+      createdId = data.id;
       await writeActivityLog({ entityType: "branch", entityId: data.id, activityType: "created", message: `Branch ${payload.branch_name} created` });
     }
     revalidatePath("/branches");
+    if (createdId && canConfigure) redirect(`/branches/${createdId}`);
     redirect("/branches");
   } catch (error) {
     rethrowRedirect(error);

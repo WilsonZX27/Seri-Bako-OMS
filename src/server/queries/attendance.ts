@@ -305,7 +305,7 @@ export async function getAttendanceCompPeople(weekStart: string, branchId?: stri
   return people;
 }
 
-export async function getAttendanceActuals(weekStart = malaysiaWeekStart(), branchId?: string) {
+export async function getAttendanceActuals(weekStart = malaysiaWeekStart(), branchId?: string, {includeComp = true}: {includeComp?:boolean} = {}) {
   if (!(await hasPermission("attendance.read"))) throw new Error("Missing permission: attendance.read");
   const db=looseSupabase(await createClient());const end=new Date(`${weekStart}T00:00:00Z`);end.setUTCDate(end.getUTCDate()+6);const weekEnd=end.toISOString().slice(0,10);
   const byBranch = <T extends { eq: (column: string, value: string) => T }>(query: T) => branchId ? query.eq("branch_id", branchId) : query;
@@ -322,7 +322,7 @@ export async function getAttendanceActuals(weekStart = malaysiaWeekStart(), bran
   const weekIds=[...latestWeeks.values()].map(row=>String(row.id));
   const assignments=weekIds.length?await db.from("shift_assignment_revisions").select("id,staff_id,branch_id,work_date,assignment_kind,custom_start,custom_end,custom_reason,ro_minutes,ro_original_start,ro_original_end,ro_direction,shift_templates(name,planned_start,planned_end),staffs!shift_assignment_revisions_staff_id_fkey(full_name,staff_code),branches!shift_assignment_revisions_branch_id_fkey(branch_name)").in("schedule_week_id",weekIds).eq("is_current",true).gte("work_date",weekStart).lte("work_date",weekEnd).order("work_date"):{data:[],error:null};
   if(assignments.error)throw assignments.error;
-  const compPeople = await getAttendanceCompPeople(weekStart, branchId);
+  const compPeople = includeComp ? await getAttendanceCompPeople(weekStart, branchId) : [];
   const relevantStaffIds = [...new Set([
     ...compPeople.map(person => ({staff_id: person.id})),
     ...(assignments.data ?? []),
@@ -330,7 +330,7 @@ export async function getAttendanceActuals(weekStart = malaysiaWeekStart(), bran
     ...(claims.data ?? []),
     ...(reservations.data ?? []),
   ].map((row:Record<string,unknown>) => String(row.staff_id ?? "")).filter(Boolean))];
-  const ledger = relevantStaffIds.length
+  const ledger = includeComp && relevantStaffIds.length
     ? await db.from("comp_time_transactions").select("*,staffs!comp_time_transactions_staff_id_fkey(full_name,staff_code),branches!comp_time_transactions_branch_id_fkey(branch_name)").in("staff_id", relevantStaffIds).lte("work_date",weekEnd).order("work_date",{ascending:false}).order("created_at",{ascending:false})
     : {data:[],error:null};
   if(ledger.error)throw ledger.error;

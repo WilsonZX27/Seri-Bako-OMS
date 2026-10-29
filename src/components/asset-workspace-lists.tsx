@@ -1,3 +1,5 @@
+import { groupMaintenanceRequests } from "@/lib/asset-maintenance-groups";
+import { AssetAuditDetails } from "@/components/asset-audit-details";
 import type { ReactNode } from "react";
 import { formatRegisteredAssetQuantity } from "@/lib/asset-quantity-display";
 import { Badge } from "@/components/ui/badge";
@@ -33,10 +35,11 @@ export function AssetPriorityBadge({ priority }: { priority?: string | null }) {
 export function AssetMaintenanceQueue({ records, assets, locations, selection }: { records: AssetRecord[]; assets: Map<string, AssetSummary>; locations: Map<string, string>; selection?: Record<string,string> }) {
   const href=(id:string)=>selection ? `/asset-management?${new URLSearchParams({...selection,view:"maintenance",ticket:id})}` : `/asset-management/maintenance/${id}`;
   const date = (record: AssetRecord) => formatDateOnly(String(record.source_data["Created Date"] ?? record.created_at ?? "").replace(" ", "T"), "Not recorded");
-  return <div className="sb-maintenance-queue divide-y divide-[var(--sb-border-soft)]" aria-label="Maintenance queue">{records.map(record => <Link key={record.id} href={href(record.id)} aria-current={selection?.ticket === record.id ? "true" : undefined} title={record.description ?? undefined} className="block px-3 py-3 hover:bg-muted focus-visible:ring-2 focus-visible:ring-primary aria-[current=true]:bg-[var(--sb-green-100)]">
+  const requestLink = (record: AssetRecord) => <Link key={record.id} href={href(record.id)} aria-current={selection?.ticket === record.id ? "true" : undefined} title={record.description ?? undefined} className="block px-3 py-3 hover:bg-muted focus-visible:ring-2 focus-visible:ring-primary aria-[current=true]:bg-[var(--sb-green-100)]">
     <span className="flex min-w-0 items-start justify-between gap-2"><strong className="line-clamp-2 min-w-0 break-words text-sm font-semibold" title={assets.get(record.asset_id ?? "")?.item_name ?? "Site problem"}>{assets.get(record.asset_id ?? "")?.item_name ?? "Site problem"}</strong><span className="flex shrink-0 flex-wrap justify-end gap-1"><StatusBadge status={(record.status ?? "unknown").toLowerCase()}/><AssetPriorityBadge priority={record.priority}/></span></span>
     <span className="mt-2 grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-2 text-[11px] text-muted-foreground"><span className="whitespace-nowrap">{assets.get(record.asset_id ?? "")?.asset_code ?? "—"}</span><span className="inline-flex min-w-0 items-center gap-1" title={locations.get(record.location_id ?? "") ?? "Unavailable location"}><MapPin className="size-3 shrink-0" aria-hidden="true"/><span className="truncate">{locations.get(record.location_id ?? "") ?? "Unavailable location"}</span></span><span className="inline-flex shrink-0 items-center gap-1"><CalendarDays className="size-3" aria-hidden="true"/>{date(record)}</span><ChevronRight className="size-3.5 shrink-0" aria-hidden="true"/></span>
-  </Link>)}</div>;
+  </Link>;
+  return <div className="sb-maintenance-queue space-y-3" aria-label="Maintenance queue">{groupMaintenanceRequests(records).map(rows=><section key={rows[0].id} className="overflow-hidden rounded-[var(--sb-control-radius)] border border-[var(--sb-border-soft)]">{requestLink(rows[0])}{rows.length>1?<details open={rows.slice(1).some(row=>row.id===selection?.ticket)} className="border-t px-3"><summary className="min-h-11 cursor-pointer py-3 text-xs text-muted-foreground">{rows.length-1} earlier open reports · history retained</summary><div className="divide-y">{rows.slice(1).map(requestLink)}</div></details>:null}</section>)}</div>;
 }
 
 export function AssetDailyCheckLocations({ locations, date }: { locations: AssetOverview["checklist"]; date: string }) {
@@ -46,19 +49,19 @@ export function AssetDailyCheckLocations({ locations, date }: { locations: Asset
 }
 
 export function AssetInspectionRows({ records, assets, locations }: { records: AssetRecord[]; assets: Map<string, AssetSummary>; locations: Map<string, string> }) {
-  return <div className="divide-y">{records.map(record => <details key={record.id} className="min-w-0">
-    <summary className="grid cursor-pointer grid-cols-[minmax(0,1fr)_auto_auto] gap-2 px-3 py-2.5">
+  return <div className="divide-y">{records.map(record => <details key={record.id} className="group min-w-0">
+    <summary className="grid cursor-pointer list-none grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 px-3 py-2.5 [&::-webkit-details-marker]:hidden">
       <span className="min-w-0"><span className="block break-words text-sm font-medium">{assets.get(record.asset_id ?? "")?.item_name ?? "Unavailable asset"}</span><span className="block break-words text-xs text-muted-foreground">{assets.get(record.asset_id ?? "")?.asset_code ?? "—"} · {locations.get(record.location_id ?? "") ?? "Unavailable location"}</span></span>
-      <span className="self-start whitespace-nowrap text-xs font-medium">{record.result ?? record.status ?? "Not recorded"}</span>
+      <StatusBadge status={(record.result ?? record.status ?? "unknown").toLowerCase()}/><ChevronRight className="size-4 shrink-0 text-muted-foreground group-open:rotate-90" aria-hidden="true"/>
     </summary>
     <div className="space-y-3 border-t border-[var(--sb-border-soft)] px-3 py-3 text-xs"><span className="mt-1 block break-words text-xs text-muted-foreground">{formatDateOnly(record.check_date ?? record.created_at, "Date unavailable")}{record.author_name ? ` · ${record.author_name}` : ""}{record.quantity !== undefined ? ` · Qty ${record.quantity === null ? "Unknown" : formatNumber(record.quantity)}` : ""}</span>
-      {record.asset_id ? <Link className="inline-flex min-h-[var(--sb-control-height)] items-center underline" href={`/asset-management/assets/${record.asset_id}`}>Open asset</Link> : null}
+      {record.asset_id ? <Link className="inline-flex min-h-[var(--sb-control-height)] items-center rounded-[var(--sb-control-radius)] border border-[var(--sb-border)] px-3 font-medium" href={`/asset-management/assets/${record.asset_id}`}>Open asset</Link> : null}
       {record.description ? <p className="break-words">{record.description}</p> : null}
-      <dl className="grid gap-2 sm:grid-cols-2">{Object.entries(record.source_data).filter(([key,value])=>!key.startsWith("_") && value!==null && value!=="").map(([key,value])=><div key={key} className="min-w-0"><dt className="text-muted-foreground">{key}</dt><dd className="break-words">{String(value)}</dd></div>)}</dl>
+      <AssetAuditDetails data={record.source_data}/>
     </div>
   </details>)}</div>;
 }
 
-export function AssetSectionHeading({title,value}:{title:string;value:ReactNode}) {
-  return <h2 className="flex items-center justify-between gap-3 border-b p-3 text-sm font-semibold"><span>{title}</span><span className="text-xs font-normal text-muted-foreground">{value}</span></h2>;
+export function AssetSectionHeading({title,value,inset=false}:{title:string;value:ReactNode;inset?:boolean}) {
+  return <h2 className={`flex items-center justify-between gap-3 border-b text-sm font-semibold ${inset?"mb-3 pb-3":"p-3"}`}><span>{title}</span><span className="text-xs font-normal text-muted-foreground">{value}</span></h2>;
 }

@@ -58,5 +58,5 @@ test("warning and empty-state feedback follows the annotated hierarchy", () => {
   assert.doesNotMatch(review, /Attendance records stay unloaded until you choose an outlet above/);
   assert.match(review, /block max-w-full cursor-help text-\[10px\] leading-tight text-amber-800/);
   assert.match(review, /<dd title=\{`Advisory only; payroll is unchanged[^>]*className="max-w-full cursor-help text-\[10px\] leading-tight text-amber-800">/);
-  assert.match(review, /inline-flex min-w-0 flex-nowrap items-center gap-1/);
+  assert.match(review, /ml-auto flex w-max max-w-full flex-nowrap items-center justify-end gap-1/);
 });

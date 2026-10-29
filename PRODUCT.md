@@ -1,3 +1,7 @@
+# v9.2.159 (local candidate) — Unified corrections
+
+Preserves the original design while integrating the reviewed 55+16+7 corrections. Production activation and business validation remain separately gated. Controlled269 and company numbering default OFF.
+
 ## v9.2.157 (local candidate) — Controlled attendance repair entry
 
 Built from verified Production155 commit9c9ed711 only. Add an explicit, default-off authenticated API choice for the fixed305-day repair; preserve the ordinary recalculation path and existing tenant/permission/same-origin checks. Null-batch safety prevents a missing DB adapter from invoking broad weekly recalculation. The standalone default-off maintenance page uses existing controls; ordinary pages and navigation are unchanged. Installation, activation and real execution are separately approved operations; no Production deployment or real recalculation has occurred. Preview156 session patch and other UI candidates are not included.
@@ -2273,3 +2277,22 @@ Legacy attachment migration uses a separately reviewed local-file copy plan boun
 Transfers link directly to their own detail/history rather than back to the asset. The detail shows source/destination access, quantity, request reason/author and in-transit state. Approval and dispatch are shown only with source-location access; receipt is shown only with destination-location access. SQL remains authoritative. A short optional update note is retained with status-before/status-after and author/time; notes over 2,000 characters are rejected rather than truncated. Update history pages 50 rows in stable timestamp/ID order. An incoming destination can read the asset and transfer history before it has any holding; quantity is created/increased only on confirmed receipt.
 
 Historical369/370 source restored from verifiedProduction commit; this is not a new migration execution or proof of current remote schema.
+
+
+## 2026-10-28 commercial refinement contract — local, not released
+
+Retain the accepted grouped OMS design. Document numbers/headings use600; secondary facts use400. Section headings place the title at the leading edge and count/date at the trailing edge through the existing AssetSectionHeading owner. Independent tasks use separate cards; short related facts can share a two-column layout. Avoid repeated field headings on wide item rows; keep row indexes and stronger separation between different items. Phone fields may retain local accessible labels when a wide header cannot map to wrapped rows.
+
+Use houseButton/SelectControl/ComplianceFileInput/UnifiedListHeader/WorkspaceGrid, neutral identifier ink and explicit action boundaries. Keep touch targets44 and phone main actions48; smaller icon drawings do not require smaller hit targets. Input labels, body and help follow the current fixed type scale; state meaning is conveyed by text/icon as well as colour. Technical identifiers belong in progressive audit disclosure. Unknown is never converted to zero. Long names truncate only in compact summaries, with full title/detail available.
+
+Low-stock queries submit explicitly; one selectable source list feeds one basket. No duplicate basket listing. Selection and local drafts do not grant create permission. Historical repair reports remain separate stored records. One unresolved ticket per asset is the confirmed future rule, with a service-side concurrency gate required before activation; current-day checks are never automatically submitted.
+
+Each company gets its own deployment initially, from one codebase. Owner controls the company palette; semantic error/warning/success remain recognisable. Theme metadata is versioned and schema-gated, with preview and default reset. Public/failing branding uses genericOperations. Do not rewrite actual company product/asset names or historical IDs to make the product look generic. Existing salary, payroll and OT remain permission protected.
+
+All55 original IDs and source/browser/activation boundaries are retained in docs/qa/commercial-20261028/ANNOTATIONS.md. Proposed SQL, automatic numbering, new workflow templates and online performance certification are not activated by these local changes. See COMMERCIAL-CONFIGURATION.md and SCOPE.md. Do not claim full commercial readiness from a successful build.
+
+The repair v2 proposal has passed isolated synthetic concurrency/idempotency/recovery checks, but is not installed and does not resolve stored legacy duplicates. The later salary-entry requirement is tracked separately from removing Privacy copy; no payroll permission or monetary calculation is restored by this refinement. Independent-company management email requires explicit company/sender/site/pilot configuration before upgrade; missing configuration safely pauses sending. See the commercial QA release gates.
+
+### Production/attendance follow-up16 (local)
+
+RO Management owns pending correction decisions for the current authorised employee/filter page; existing balance/available RPCs and comp-time decision API remain authoritative. Attendance review retains reports, OT and staff-day comparisons but no longer requests the moved RO directory/ledger. Shared production reasons are deliberate local draft edits, applied only to required blanks and stored in the original per-line payload; this does not waive review or save a plan. The16 follow-up changes remain separate from the approved deployment of the previous commercial candidate.

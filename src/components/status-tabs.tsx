@@ -7,7 +7,7 @@ import { SelectControl } from "@/components/ui/select-control";
 
 type StatusTab = string | { value: string; label: string };
 
-export function StatusTabs({ statuses, activeStatus, name, defaultStatus = "all" }: { statuses: StatusTab[]; activeStatus?: string; name?: string; defaultStatus?: string }) {
+export function StatusTabs({ statuses, activeStatus, name = "status", defaultStatus = "all" }: { statuses: StatusTab[]; activeStatus?: string; name?: string; defaultStatus?: string }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -45,7 +45,7 @@ export function StatusTabs({ statuses, activeStatus, name, defaultStatus = "all"
   }
 
   return (
-    <nav ref={tabsRef} aria-label="Filter by status" className="sb-status-filter [scroll-padding-inline:0.75rem]">
+    <nav ref={tabsRef} aria-label="Filter by status" className="sb-status-filter [scroll-padding-inline:0.75rem]" onChange={(event) => event.stopPropagation()}>
       <SelectControl
         ariaLabel="Filter by status"
         name={name}

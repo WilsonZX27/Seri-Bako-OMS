@@ -1,12 +1,26 @@
 import Link from "next/link";
-import {RetryButton} from "@/components/ui/retry-button";
-import {getPackagingStoreWorkspace} from "@/server/queries/packaging-stores";
-import {getOutletPackagingReport} from "@/server/queries/outlet-packaging";
-import {formatNumber} from "@/lib/utils";
-export async function PackagingStoreSummary({days}:{days:7|30}){
- try {
- const [stores,outlets]=await Promise.all([getPackagingStoreWorkspace(),getOutletPackagingReport(days)]);
- if(!stores)return <section className="sb-work-surface p-4"><h2 className="text-sm font-semibold">Independent stores</h2><p className="mt-2 text-sm text-muted-foreground">The store ledger is not enabled yet. The report above contains outlet records only.</p><Link href="/outlet-packaging/stores" className="mt-2 inline-block underline">Store setup</Link></section>;
- return <section className="sb-work-surface divide-y"><div className="p-4"><h2 className="text-sm font-semibold">Packaging across outlets and stores</h2><p className="mt-1 text-xs text-muted-foreground">Last recorded balances; dates may differ. Unknown locations are excluded from the known subtotal.</p><Link href="/outlet-packaging/stores" className="mt-2 inline-block text-sm underline">Manage stores and record movements</Link></div><div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 px-4 py-2 text-xs text-muted-foreground"><span>Packaging</span><span>Known balance</span></div>{stores.products.map(p=>{const outletProduct=outlets.products.find(o=>o.id===p.id);const rows=outlets.latest.filter(r=>r.code===outletProduct?.code&&r.closing!==null);const balances=stores.balances.filter(b=>b.product_id===p.id);const known=rows.length+balances.length;const total=rows.reduce((s,r)=>s+(r.closing??0),0)+balances.reduce((s,b)=>s+Number(b.quantity),0);return <div key={p.id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 px-4 py-3 text-sm"><div>{p.product_name}<p className="mt-1 text-xs text-muted-foreground">{rows.length}/{outlets.outlets.length} outlets · {balances.length}/{stores.stores.length} stores recorded</p></div><span className="tabular-nums">{known?`${formatNumber(total)} ${p.selling_unit}`:"Not counted"}</span></div>})}</section>;
- } catch { return <section className="sb-work-surface space-y-2 p-4"><h2 className="text-sm font-semibold">Store balances unavailable</h2><p className="text-sm text-muted-foreground">Store balances could not be verified. The outlet report above remains available; it does not include unavailable store balances.</p><RetryButton/></section>; }
+import { Button } from "@/components/ui/button";
+import { RetryButton } from "@/components/ui/retry-button";
+import { getPackagingStoreWorkspace } from "@/server/queries/packaging-stores";
+import { getOutletPackagingReport } from "@/server/queries/outlet-packaging";
+import { formatNumber } from "@/lib/utils";
+type Report = Awaited<ReturnType<typeof getOutletPackagingReport>>;
+export async function PackagingStoreSummary({ days, outletReport }: { days: 7 | 30; outletReport?: Report }) {
+  try {
+    const [stores, outlets] = await Promise.all([getPackagingStoreWorkspace(), outletReport ?? getOutletPackagingReport(days)]);
+    if (!stores) return <section className="sb-work-surface space-y-3 p-4"><h2 className="text-sm font-semibold">Independent stores</h2><p className="text-xs text-muted-foreground">Store balances are unavailable. Outlet balances remain above.</p><Button asChild variant="outline"><Link href="/outlet-packaging/stores">Manage stores</Link></Button></section>;
+    const codeByProduct = new Map(outlets.products.map(product => [product.id, product.code]));
+    const closingByCode = new Map<string, { total: number; count: number }>();
+    for (const row of outlets.latest) { if (row.closing === null) continue; const current = closingByCode.get(row.code) ?? { total: 0, count: 0 }; closingByCode.set(row.code, { total: current.total + row.closing, count: current.count + 1 }); }
+    const storeByProduct = new Map<string, { total: number; count: number }>();
+    for (const row of stores.balances) { const current = storeByProduct.get(row.product_id) ?? { total: 0, count: 0 }; storeByProduct.set(row.product_id, { total: current.total + Number(row.quantity), count: current.count + 1 }); }
+    return <section className="sb-work-surface overflow-hidden" aria-label="Packaging balances">
+      <header className="flex flex-wrap items-center justify-between gap-3 border-b p-3"><div><h2 className="text-sm font-semibold">Packaging balances</h2><p className="mt-1 text-xs text-muted-foreground">Latest counts; uncounted locations are excluded.</p></div><Button asChild variant="outline"><Link href="/outlet-packaging/stores">Manage stores</Link></Button></header>
+      <div className="overflow-x-auto"><table className="w-full text-xs"><thead className="bg-[var(--sb-surface-muted)] text-left text-muted-foreground"><tr><th className="p-3 font-medium">Packaging</th><th className="p-3 text-right font-medium">Outlets counted</th><th className="p-3 text-right font-medium">Stores counted</th><th className="p-3 text-right font-medium">Known balance</th></tr></thead><tbody>{stores.products.map(product => {
+        const outlet = closingByCode.get(codeByProduct.get(product.id) ?? ""), store = storeByProduct.get(product.id);
+        const known = (outlet?.count ?? 0) + (store?.count ?? 0);
+        return <tr key={product.id} className="border-t border-[var(--sb-border-soft)]"><th scope="row" className="p-3 text-left font-medium">{product.product_name}</th><td className="p-3 text-right tabular-nums">{outlet?.count ?? 0} / {outlets.outlets.length}</td><td className="p-3 text-right tabular-nums">{store?.count ?? 0} / {stores.stores.length}</td><td className="whitespace-nowrap p-3 text-right font-semibold tabular-nums">{known ? `${formatNumber((outlet?.total ?? 0) + (store?.total ?? 0))} ${product.selling_unit}` : "Not counted"}</td></tr>;
+      })}</tbody></table></div>
+    </section>;
+  } catch { return <section className="sb-work-surface space-y-2 p-4"><h2 className="text-sm font-semibold">Store balances unavailable</h2><p className="text-xs text-muted-foreground">Retry to include store balances.</p><RetryButton/></section>; }
 }

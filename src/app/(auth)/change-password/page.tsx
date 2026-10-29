@@ -54,7 +54,7 @@ export default async function ChangePasswordPage({
   }
 
   return (
-    <AuthShell title="Change your password" description="Your temporary password must be changed before using Seri Bako OMS.">
+    <AuthShell title="Change your password" description="Your temporary password must be changed before continuing.">
       <form action={changePassword} className="space-y-4">
         <Field label="New Password" required>
           <PasswordInput name="password" autoComplete="new-password" minLength={8} required />

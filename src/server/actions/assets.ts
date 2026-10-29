@@ -60,7 +60,7 @@ export async function uploadAssetAttachment(_previous: AssetActionState, form: F
 }
 export async function saveAssetMaster(_previous: AssetActionState, form: FormData): Promise<AssetActionState> {
   try {
-    await requireActiveTenantActor(); await requirePermission("assets.manage");
+    const actor = await requireActiveTenantActor(); await requirePermission("assets.manage");
     const name = String(form.get("item_name") ?? "").trim(), reason = String(form.get("reason") ?? "").trim();
     if (!name || name.length > 200 || !reason || reason.length > 2000) throw new Error("Enter the item name and reason.");
     const details: Record<string, string> = {};
@@ -85,7 +85,7 @@ export async function saveAssetMaster(_previous: AssetActionState, form: FormDat
       const mode = String(form.get("code_mode") ?? "manual");
       if (!["manual", "sequence"].includes(mode)) throw new Error("Choose a valid asset ID mode.");
       const generated = mode === "sequence";
-      if (generated && (code || !(await assetFeatureCapabilities(db)).automaticId)) throw new Error("Automatic asset numbering is not ready. Refresh before registering.");
+      if (generated && (code || !(await assetFeatureCapabilities(db, actor.companyId)).automaticId)) throw new Error("Automatic asset numbering is not ready. Refresh before registering.");
       const raw = String(form.get("quantity") ?? "").trim(), quantity = raw ? Number(raw) : null;
       if ((!generated && !/^[A-Za-z0-9][A-Za-z0-9._/-]{0,79}$/.test(code)) || (quantity !== null && (!Number.isSafeInteger(quantity) || quantity < 0 || quantity > 2147483647))) throw new Error("Enter a valid asset ID and a whole physical quantity, or leave quantity unknown.");
       response = await db.rpc("create_asset_master", { p_code: code, p_name: name, p_location: uuid(form.get("location_id")), p_quantity: quantity, p_details: details, p_reason: reason, p_client_key: clientKey });
@@ -191,12 +191,18 @@ export async function reportAssetMaintenance(_previous: AssetActionState, form: 
       if (selectedPhoto.size > assetAttachmentLimit || !["image/jpeg","image/png","image/webp"].includes(selectedPhoto.type) || !assetAttachmentSignature(selectedPhoto.type, Buffer.from(await selectedPhoto.arrayBuffer()))) throw new Error("Choose a valid JPG, PNG or WebP photo up to 10 MB.");
     }
     const db = looseSupabase(await createClient());
+    const input={ p_asset: form.get("asset_id") ? uuid(form.get("asset_id")) : null, p_location: uuid(form.get("location_id")), p_description: description, p_priority: priority, p_client_key: uuid(form.get("client_key")) };
+    let result=await db.rpc("report_asset_maintenance_v2",input);
+    // A staged deployment keeps the old RPC and its read-only duplicate guard.
+    // Permission/validation/unknown errors never fall through to another mutation.
+    if(result.error && ["PGRST202","42883"].includes((result.error as {code?:string}).code??"")) {
     if(form.get("asset_id")) {
       const existing=await db.from("asset_maintenance").select("id,status").eq("company_id",actor.companyId).eq("asset_id",uuid(form.get("asset_id"))).eq("location_id",uuid(form.get("location_id"))).not("status","in","(Closed,Resolved,Cancelled,closed,resolved,cancelled)").not("source_id","eq","OMS-"+uuid(form.get("client_key"))).order("created_at",{ascending:false}).limit(1);
       if(existing.error)throw Error("Existing repair status could not be checked. No request was sent.");
       if(existing.data?.length)return {ok:false,message:"An open repair already exists for this asset. Review it before sending another request.",requestId:String(existing.data[0].id)};
     }
-    const result = await db.rpc("report_asset_maintenance", { p_asset: form.get("asset_id") ? uuid(form.get("asset_id")) : null, p_location: uuid(form.get("location_id")), p_description: description, p_priority: priority, p_client_key: uuid(form.get("client_key")) });
+      result=await db.rpc("report_asset_maintenance",input);
+    }
     if (result.error || !result.data) throw new Error(result.error?.message ?? "Maintenance request was not confirmed.");
     revalidatePath("/asset-management", "layout");
     const requestId = uuid(result.data as string);
@@ -209,9 +215,9 @@ export async function reportAssetMaintenance(_previous: AssetActionState, form: 
       attachment.set("file", photo); attachment.set("kind", "Photo");
       attachment.set("label", photo.name.slice(0,180) || "Problem photo");
       const uploaded = await uploadAssetAttachment({ok:false,message:""}, attachment);
-      return {ok:true,requestId,message:"Request received · Open",photoError:uploaded.ok ? undefined : uploaded.message};
+      return {ok:true,requestId,message:"Report received. View the repair for its current status.",photoError:uploaded.ok ? undefined : uploaded.message};
     }
-    return { ok: true, requestId, message: "Request received · Open" };
+    return { ok: true, requestId, message: "Report received. View the repair for its current status." };
   } catch (error) { return { ok: false, message: error instanceof Error ? error.message : "Could not report maintenance." }; }
 }
 export async function updateAssetMaintenance(_previous: AssetActionState, form: FormData): Promise<AssetActionState> {

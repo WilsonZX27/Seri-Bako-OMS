@@ -13,7 +13,7 @@ test("low-stock recommendations expose accountable next actions", () => {
   assert.match(model, /Below safety by/);
   assert.match(model, /Supplier mapped; keep watching/);
   assert.match(page, /getReplenishmentDecision/);
-  assert.match(page, /data-low-stock-decision/);
+  assert.match(fs.readFileSync(path.join(root,"src/components/low-stock-pr-form.tsx"),"utf8"), /data-low-stock-decision/);
   assert.match(page, /Buy now/);
   assert.match(page, /Supplier fixes/);
 });

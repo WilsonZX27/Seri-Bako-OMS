@@ -30,7 +30,7 @@ const transactionTypes: { value: StockTransactionType; label: string }[] = [
   { value: "production_output", label: "Production output" },
   { value: "transfer_out", label: "Transfer out" },
   { value: "transfer_in", label: "Transfer in" },
-  { value: "stock_count_adjustment", label: "Stock count adjustment" },
+  { value: "stock_count_adjustment", label: "Count adjustment" },
   { value: "return_to_supplier", label: "Return to supplier" },
   { value: "return_supplier", label: "Return to supplier" },
   { value: "wastage", label: "Wastage / write-off" },
@@ -163,13 +163,13 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
               </TableHeader>
               <TableBody>
                 {ledger.rows.map((row) => (
-                  <DataGridRow key={row.stock_transaction_id} href={`/stock-transactions/${row.stock_transaction_id}`}>
+                  <DataGridRow className="[&_td]:align-top" key={row.stock_transaction_id} href={`/stock-transactions/${row.stock_transaction_id}`}>
                     <TableCell className="w-16 p-0 text-center">
                       <TableActionLink href={`/stock-transactions/${row.stock_transaction_id}`} label={`Open ${row.transaction_no}`}><Pencil className="h-4 w-4" /></TableActionLink>
                     </TableCell>
                     <TableCell className="font-medium">{row.transaction_no}</TableCell>
                     <TableCell>{formatDateOnly(row.transaction_date)}</TableCell>
-                    <TableCell className="min-w-36"><Badge variant="secondary" className="max-w-none whitespace-normal text-left leading-4">{movementLabel(row.transaction_type)}</Badge></TableCell>
+                    <TableCell className="min-w-36"><Badge variant="secondary" className="max-w-full min-w-0 text-left leading-4" title={movementLabel(row.transaction_type)}><span className="truncate">{row.transaction_type === "stock_count_adjustment" ? "Count" : movementLabel(row.transaction_type)}</span></Badge></TableCell>
                     <TableCell className="font-medium">{row.item_code}<p className="text-xs text-muted-foreground">{row.item_name}</p></TableCell>
                     <TableCell>{row.branch_name ?? "-"}</TableCell>
                     <TableCell className="text-right">{row.quantity_in ? formatNumber(row.quantity_in) : "-"}</TableCell>

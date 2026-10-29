@@ -62,3 +62,11 @@ test('adding no-attendance identities retains approved as-of-period calculation 
  const result=await h.api.getAttendanceActuals('2026-10-19','branch');
  assert.equal(result.balances['no-activity'],60);assert.equal(result.balances.invited,0);assert.equal(result.balances['other-branch'],undefined);assert.equal(result.ledger.length,3);
 });
+
+
+test('review-only actuals does not read or send the moved RO directory and ledger',async()=>{
+ const h=harness();const result=await h.api.getAttendanceActuals('2026-10-19','branch',{includeComp:false});
+ assert.equal(result.compPeople.length,0);assert.equal(result.ledger.length,0);assert.equal(Object.keys(result.balances).length,0);
+ assert.ok(!h.calls.some(c=>c.table==='staffs'||c.table==='comp_time_transactions'));
+ assert.ok(h.calls.some(c=>c.table==='attendance_ro_reservations'));
+});

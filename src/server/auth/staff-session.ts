@@ -145,7 +145,7 @@ export async function getPasswordSetupContext(): Promise<PasswordSetupContext | 
     email: staff.invite_email ?? staff.email ?? user.email,
     staffName: staff.full_name,
     staffStatus: staff.status,
-    companyName: company?.company_name ?? "Seri Bako OMS",
+    companyName: company?.company_name ?? "Operations",
     companyLogoUrl: company?.logo_url ?? null,
     invitedByName: inviter?.full_name ?? null,
     roleName,

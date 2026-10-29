@@ -11,6 +11,9 @@ const nextConfig: NextConfig = {
   // Explicitly allow only local loopback hosts for Playwright and manual dev
   // sessions. Production does not inherit a wildcard origin allowance.
   allowedDevOrigins: ["127.0.0.1", "localhost"],
+  async redirects() {
+    return [{ source: "/attendance/controlled-repair", destination: "/attendance/review?week=2026-10-19&batch=34ffbb89-be58-4d74-b6ed-a8ab3a25cda5", permanent: false }];
+  },
   async headers() {
     return [
       {

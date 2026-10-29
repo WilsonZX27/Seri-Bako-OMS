@@ -47,3 +47,20 @@ export async function getRoManagement(filters:{search?:string;branch_id?:string;
   if(numericSort) rows.sort((a,b)=>(ascending?1:-1)*(a[sort]-b[sort])||a.full_name.localeCompare(b.full_name)||a.id.localeCompare(b.id));
   return {allowed:true,rows:numericSort?rows.slice((page-1)*25,page*25):rows,page,hasNext:clientSort?page*25<totalRows:people.length>25,totalRows,sortUnavailable:false};
 }
+
+/** Pending corrections for the currently authorised employee page, never a company-wide fallback. */
+export async function getRoPendingCorrections(staffIds:string[], branchId?:string) {
+  if (!(await hasPermission("comp_time.read")) || !(await hasPermission("staffs.read")) || !staffIds.length) return {rows:[],total:0};
+  const actor=await requireActiveTenantActor(),scope=await getCurrentUserScope();
+  if (!scope || (!scope.companyWideAccess && !scope.branchIds.length)) return {rows:[],total:0};
+  const selected=branchId && branchId!=="all" ? branchId : null;
+  if (selected && !scope.companyWideAccess && !scope.branchIds.includes(selected)) return {rows:[],total:0};
+  const db=looseSupabase(await createClient());
+  let query=db.from("comp_time_transactions").select("id,staff_id,work_date,transaction_kind,minutes,reason,status,submitted_at,staffs!comp_time_transactions_staff_id_fkey(full_name,staff_code)",{count:"exact"}).eq("company_id",actor.companyId).in("staff_id",staffIds).eq("status","pending");
+  if (selected) query=query.eq("branch_id",selected);
+  else if (!scope.companyWideAccess) query=query.in("branch_id",scope.branchIds);
+  const result=await query.order("submitted_at").order("id").limit(50);
+  if(result.error) throw result.error;
+  if(result.count==null) throw Error("RO correction count is unavailable.");
+  return {rows:result.data??[],total:result.count};
+}

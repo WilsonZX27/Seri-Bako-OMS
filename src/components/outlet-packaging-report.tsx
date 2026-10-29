@@ -48,7 +48,7 @@ export function OutletPackagingReport({ report, days: initialDays, canManageStor
 
   const rail = <>
     <ConsoleSection title="Packaging actions" kind="action">
-      {canManageStores ? <Link href="/outlet-packaging/stores" className={buttonVariants({variant:"outline",className:"w-full"})}>Store balances and movements</Link> : null}
+      {canManageStores ? <Link href="/outlet-packaging/stores" className={buttonVariants({variant:"outline",className:"w-full border-[var(--sb-text-muted)]"})}>Store balances and movements</Link> : null}
       <Link href="/outlet-daily-records" className={buttonVariants({ variant: "secondary", className: "w-full" })}>Open Daily Records</Link>
     </ConsoleSection>
     <ConsoleSection title={selected ? "Selected day" : "Report coverage"} kind="status">

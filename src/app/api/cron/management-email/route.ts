@@ -1,3 +1,4 @@
+import { managementEmailConfig } from "@/lib/branding/management-email-config";
 import { createHash } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -7,9 +8,6 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const managementRoles = new Set(["super_admin", "manager", "people_operations"]);
-const sender = "Seri Bako Operations <admin@seribako.com.my>";
-const baseUrl = "https://system.seribako.com.my";
-const pilotRecipient = "wilson@seribako.com.my";
 
 function malaysiaDate(date = new Date()) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kuala_Lumpur", year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
@@ -30,23 +28,25 @@ export async function GET(request: NextRequest) {
   }
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) return NextResponse.json({ error: "Email provider is not configured" }, { status: 503 });
-  if (process.env.MANAGEMENT_EMAIL_PILOT_RECIPIENT?.trim().toLowerCase() !== pilotRecipient) {
-    return NextResponse.json({ error: "Pilot recipient is not configured" }, { status: 503 });
-  }
-
+  const config=managementEmailConfig(process.env);
+  if(!config)return NextResponse.json({error:"Company email configuration is incomplete"},{status:503});
+  const {sender,baseUrl,pilotRecipient,companyId,brand}=config;
   const db = looseSupabase(createAdminClient());
   const today = malaysiaDate();
-  const [staffResult, assignmentsResult, rolesResult, weeksResult, documentsResult, recordsResult, typesResult, branchesResult] = await Promise.all([
-    db.from("staffs").select("id,company_id,email,status,deleted_at").eq("status", "active").is("deleted_at", null).limit(2000),
-    db.from("staff_roles").select("staff_id,role_id,is_primary,effective_from,effective_to").eq("is_primary", true).limit(2000),
-    db.from("roles").select("id,role_code").eq("status", "active").is("deleted_at", null).limit(200),
-    db.from("schedule_weeks").select("id,company_id,branch_id,week_start,status").eq("status", "submitted").gte("week_start", plusDays(today, -14)).limit(2000),
-    db.from("documents").select("id,company_id,document_no,title,approval_status").eq("approval_status", "pending").limit(2000),
-    db.from("compliance_records").select("id,company_id,branch_id,compliance_type_id,subject_kind,expires_on,review_status").eq("subject_kind", "outlet").is("deleted_at", null).gte("expires_on", plusDays(today, -30)).lte("expires_on", plusDays(today, 30)).limit(2000),
-    db.from("compliance_types").select("id,type_name").limit(2000),
-    db.from("branches").select("id,branch_name").limit(2000),
+  const staffResult=await db.from("staffs").select("id,company_id,email,status,deleted_at").eq("company_id",companyId).eq("status","active").is("deleted_at",null).limit(2000);
+  if(staffResult.error)return NextResponse.json({error:"Notification data unavailable"},{status:503});
+  const recipients=((staffResult.data??[]) as Array<{id:string;company_id:string;email:string}>).filter(row=>row.company_id===companyId&&row.email?.trim().toLowerCase()===pilotRecipient);
+  if(!recipients.length)return NextResponse.json({date:today,sent:0,failed:0,skipped:0});
+  const [assignmentsResult, rolesResult, weeksResult, documentsResult, recordsResult, typesResult, branchesResult] = await Promise.all([
+    db.from("staff_roles").select("staff_id,role_id,is_primary,effective_from,effective_to").in("staff_id",recipients.map(row=>row.id)).eq("is_primary",true).limit(2000),
+    db.from("roles").select("id,role_code").or(`company_id.eq.${companyId},company_id.is.null`).eq("status","active").is("deleted_at",null).limit(200),
+    db.from("schedule_weeks").select("id,company_id,branch_id,week_start,status").eq("company_id",companyId).eq("status","submitted").gte("week_start",plusDays(today,-14)).limit(2000),
+    db.from("documents").select("id,company_id,document_no,title,approval_status").eq("company_id",companyId).eq("approval_status","pending").limit(2000),
+    db.from("compliance_records").select("id,company_id,branch_id,compliance_type_id,subject_kind,expires_on,review_status").eq("company_id",companyId).eq("subject_kind","outlet").is("deleted_at",null).gte("expires_on",plusDays(today,-30)).lte("expires_on",plusDays(today,30)).limit(2000),
+    db.from("compliance_types").select("id,type_name").eq("company_id",companyId).limit(2000),
+    db.from("branches").select("id,branch_name").eq("company_id",companyId).limit(2000),
   ]);
-  for (const result of [staffResult, assignmentsResult, rolesResult, weeksResult, documentsResult, recordsResult, typesResult, branchesResult]) {
+  for (const result of [assignmentsResult, rolesResult, weeksResult, documentsResult, recordsResult, typesResult, branchesResult]) {
     if (result.error) return NextResponse.json({ error: "Notification data unavailable" }, { status: 503 });
   }
   const roles = new Map<string, string>(((rolesResult.data ?? []) as Array<{ id: string; role_code: string }>).map((role: { id: string; role_code: string }) => [role.id, role.role_code]));
@@ -59,14 +59,14 @@ export async function GET(request: NextRequest) {
   let sent = 0;
   let failed = 0;
   let skipped = 0;
-  for (const staff of (staffResult.data ?? []) as Array<{ id: string; company_id: string; email: string }>) {
+  for (const staff of recipients) {
     if (staff.email?.trim().toLowerCase() !== pilotRecipient || !managementRoles.has(roleByStaff.get(staff.id) ?? "")) continue;
     const weeks = ((weeksResult.data ?? []) as Array<{ company_id: string; branch_id: string; week_start: string }>).filter((week) => week.company_id === staff.company_id);
     const documents = ((documentsResult.data ?? []) as Array<{ company_id: string; document_no: string; title: string }>).filter((document) => document.company_id === staff.company_id);
     const records = ((recordsResult.data ?? []) as Array<{ company_id: string; branch_id: string; compliance_type_id: string; expires_on: string; review_status: string }>).filter((record) => record.company_id === staff.company_id && record.expires_on);
     if (!weeks.length && !documents.length && !records.length) continue;
     const lines = [
-      `Seri Bako management actions · ${today}`,
+      `${brand} management actions · ${today}`,
       "",
       ...documents.slice(0, 25).map((document) => `Action awaiting review: ${document.document_no} · ${document.title}`),
       ...weeks.slice(0, 25).map((week) => `Schedule awaiting review: ${branches.get(week.branch_id) ?? "Outlet"} · week ${week.week_start}`),
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
       const response = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json", "Idempotency-Key": key },
-        body: JSON.stringify({ from: sender, to: [staff.email.trim()], subject: `Seri Bako · ${weeks.length + documents.length + records.length} management actions`, text: lines.join("\n") }),
+        body: JSON.stringify({ from: sender, to: [staff.email.trim()], subject: `${brand} · ${weeks.length + documents.length + records.length} management actions`, text: lines.join("\n") }),
         signal: AbortSignal.timeout(12000),
       });
       const payload = await response.json() as { id?: string; message?: string };

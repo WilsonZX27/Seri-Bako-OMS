@@ -1,3 +1,7 @@
+import { CompanyThemeEditor } from "@/components/company-theme-editor";
+import { updateCompanyTheme } from "@/server/actions/company-theme";
+import { hasPermission } from "@/server/auth/permissions";
+import { getCurrentProfile } from "@/server/queries/common";
 import { CompanyForm } from "@/components/foundation-forms";
 import { CompanyLogoForm } from "@/components/company-logo-form";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -16,7 +20,7 @@ export default async function CompanyPage({
   searchParams: Promise<{ logoError?: string; error?: string; success?: string }>;
 }) {
   const params = await searchParams;
-  const company = await getCompany();
+  const [company, canUpdate, profile] = await Promise.all([getCompany(), hasPermission("company.update"), getCurrentProfile()]);
 
   return (
     <>
@@ -59,6 +63,7 @@ export default async function CompanyPage({
           removeAction={removeCompanyLogo}
           showActions={false}
         />
+        <CompanyThemeEditor theme={company.ui_theme} installed={"ui_theme" in company} canManage={canUpdate && profile?.role_code === "super_admin"} action={updateCompanyTheme}/>
         <CompanyForm company={company} action={updateCompany} showSubmit={false} />
       </WorkspaceGrid>
     </>

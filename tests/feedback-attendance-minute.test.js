@@ -33,5 +33,5 @@ test('optional store RPC outage renders unavailable without throwing or fabricat
  const jsx=(type,props)=>({type,props});
  const source=ts.transpileModule(fs.readFileSync('src/components/packaging-store-summary.tsx','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText;
  vm.runInNewContext(source,{exports:out,require:id=>id==='react/jsx-runtime'?{jsx,jsxs:jsx}:id.includes('packaging-stores')?{getPackagingStoreWorkspace:async()=>{throw Error('synthetic timeout')}}:id.includes('queries/outlet-packaging')?{getOutletPackagingReport:async()=>({latest:[],products:[],outlets:[]})}:id.includes('retry-button')?{RetryButton:'retry'}:{default:'a'}});
- const view=await out.PackagingStoreSummary({days:7}),text=JSON.stringify(view);assert.match(text,/Store balances unavailable/);assert.match(text,/outlet report above remains available/);assert.doesNotMatch(text,/0 PCS|synthetic timeout/);
+ const view=await out.PackagingStoreSummary({days:7}),text=JSON.stringify(view);assert.match(text,/Store balances unavailable/);assert.match(text,/Retry to include store balances/);assert.doesNotMatch(text,/0 PCS|synthetic timeout/);
 });

@@ -1,3 +1,4 @@
+import { Building2 } from "lucide-react";
 import { APP_RELEASE_NOTE } from "@/lib/app-version";
 import { getCompanyBranding } from "@/server/queries/common";
 
@@ -21,7 +22,7 @@ export async function AuthShell({
               // eslint-disable-next-line @next/next/no-img-element
               <img src={branding.logo_url} alt="" className="h-full w-full object-contain" />
             ) : (
-              <span className="text-sm font-semibold tracking-[-0.04em] text-white" aria-hidden="true">SB</span>
+              <Building2 className="size-5" aria-hidden="true"/>
             )}
           </div>
           <div className="min-w-0">
@@ -39,7 +40,7 @@ export async function AuthShell({
         </div>
 
         <footer className="mt-4 flex items-center justify-between gap-3 text-xs text-[var(--sb-text-muted)]">
-          <span>Seri Bako OMS</span>
+          <span>Operations</span>
           <span>{APP_RELEASE_NOTE}</span>
         </footer>
       </section>

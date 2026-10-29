@@ -1,4 +1,6 @@
 import { ArrowRight, MapPin, Warehouse } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { RecordSection } from "@/components/record-workspace";
 import { SelectControl } from "@/components/ui/select-control";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -14,10 +16,11 @@ export type BranchSupplyRouteContext = {
   routes: SupplyRoute[];
 };
 
-export function BranchSupplyRouteForm({ branch, context, action }: {
+export function BranchSupplyRouteForm({ branch, context, action, canCreateLocations = false }: {
   branch: BranchOption;
   context: BranchSupplyRouteContext;
   action: (formData: FormData) => void | Promise<void>;
+  canCreateLocations?: boolean;
 }) {
   if (branch.branch_type !== "outlet" && branch.branch_type !== "central_kitchen") return null;
   const sourceByOutlet = new Map(context.routes.map((route) => [route.destination_branch_id, route.source_branch_id]));
@@ -31,10 +34,14 @@ export function BranchSupplyRouteForm({ branch, context, action }: {
         <div className="rounded-[var(--sb-radius-control)] border border-[var(--sb-warning-border)] bg-[var(--sb-warning-bg)] p-3 text-sm text-[var(--sb-warning-text)]">
           Supply-route setup is awaiting the latest database migration. Existing branch details remain editable.
         </div>
+      ) : branch.branch_type === "outlet" && context.centralKitchens.length === 0 ? (
+        <div className="space-y-3"><p className="text-sm text-muted-foreground">No active Central Kitchen is available. Create a location with Branch Type set to Central Kitchen, then return here to choose the supply route. Existing branch details remain editable.</p>{canCreateLocations ? <Button asChild variant="outline"><Link href="/branches/new">Add location</Link></Button> : <p className="text-xs text-muted-foreground">Ask a colleague with branch creation permission to add the location.</p>}</div>
+      ) : branch.branch_type === "central_kitchen" && context.outlets.length === 0 ? (
+        <div className="space-y-3"><p className="text-sm text-muted-foreground">No active outlets are available. Create a location with Branch Type set to Outlet, then return here to choose which outlets this Central Kitchen supplies.</p>{canCreateLocations ? <Button asChild variant="outline"><Link href="/branches/new">Add location</Link></Button> : <p className="text-xs text-muted-foreground">Ask a colleague with branch creation permission to add the location.</p>}</div>
       ) : (
         <form action={action} className="space-y-3">
           {branch.branch_type === "outlet" ? (
-            <label className="grid max-w-xl gap-1.5 text-sm font-medium">
+            <label className="grid w-full gap-1.5 text-sm font-medium md:w-[calc((100%-1rem)/2)]">
               <span>Primary Central Kitchen <span className="text-destructive" aria-hidden="true">*</span></span>
               <SelectControl name="related_branch_id" defaultValue={selectedKitchenId} required ariaLabel={"Primary Central Kitchen "} options={[({value: "", label: "Select a Central Kitchen", disabled: true}), ...(context.centralKitchens.map((kitchen) => ({value: String((kitchen.id) ?? ""), label: [kitchen.branch_name, " (", kitchen.branch_code, ")"].join("")})))]}/>
               <span className="text-xs font-normal text-muted-foreground">This controls Kitchen access, dispatch ownership, and Qty Sent confirmation for the outlet.</span>

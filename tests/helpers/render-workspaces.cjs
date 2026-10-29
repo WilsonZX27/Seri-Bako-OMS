@@ -15,6 +15,8 @@ function compile(file, overrides={}) {
   if(name in overrides)return overrides[name];
   if(name==='next/link')return {__esModule:true,default:({prefetch,children,...props})=>React.createElement('a',props,children)};
   if(name==='@/lib/utils')return utils;
+  if(name==='@/lib/asset-maintenance-groups')return load('src/lib/asset-maintenance-groups.ts');
+  if(name==='@/components/asset-audit-details')return compile('src/components/asset-audit-details.tsx',{'@/lib/asset-audit-display':load('src/lib/asset-audit-display.ts')});
   if(name==='@/lib/inventory-read-deadline')return load('src/lib/inventory-read-deadline.ts');
   if(name==='@/lib/workspace-notification-copy')return load('src/lib/workspace-notification-copy.ts');
   if(name==='@/components/ui/status-badge')return status;

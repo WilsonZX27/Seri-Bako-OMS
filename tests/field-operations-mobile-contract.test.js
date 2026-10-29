@@ -241,26 +241,17 @@ test("recipe BOM editing replaces the phone table with input-first continuous in
   assert.equal((source.match(/Add row/g) ?? []).length, 2);
 });
 
-test("low-stock PR creation uses selectable phone rows instead of a five-column table", () => {
+test("low-stock PR uses staged multiple selection, labelled phone inputs and one basket", () => {
   const source = read("src/components/low-stock-pr-form.tsx");
-
-  assert.match(source, /data-low-stock-pr-setup/);
-  assert.match(source, /hidden overflow-x-auto[\s\S]*md:block/);
-  assert.match(source, /data-low-stock-pr-lines/);
-  assert.match(source, /function selectBranch\(branchId: string\)/);
-  assert.match(source, /setSelected\(\{\}\)/);
-  assert.match(source, /Choose one branch before selecting items for a purchase request\./);
-  assert.match(source, /disabled=\{!branchSelected\}/);
-  assert.match(source, /data-low-stock-pr-line data-selected=/);
-  assert.match(source, /Select all visible low-stock items/);
-  assert.match(source, /input\.indeterminate = someVisibleSelected && !allVisibleSelected/);
-  assert.match(source, /Select all visible/);
-  assert.match(source, /data-low-stock-pr-quantity/);
-  assert.match(source, /\{isSelected \? <span className="col-span-2"/);
-  assert.match(source, /label="Qty for PR"/);
-  assert.match(source, /Suggested <strong/);
-  assert.match(source, /bg-\[var\(--sb-green-900\)\]/);
-  assert.doesNotMatch(source, /var\(--sb-green\)/);
+  for (const marker of ['data-low-stock-pr-setup','data-low-stock-pr-lines','data-low-stock-pr-line','Add selected to basket','Select all visible low-stock items','Purchase UOM for','Quantity for']) assert.ok(source.includes(marker));
+  assert.match(source,/hidden overflow-x-auto md:block/);
+  assert.match(source,/setPicked\(\{\}\)/);
+  assert.match(source,/Choose one branch before selecting items/);
+  assert.match(source,/disabled=\{disabled\|\|!branchSelected/);
+  assert.match(source,/input\.indeterminate = someVisibleSelected && !allVisibleSelected/);
+  assert.match(source,/grid grid-cols-2 items-center/);
+  assert.match(source,/name="supplier_groups"/);
+  assert.match(source,/hasMissingSupplier/);
 });
 
 test("posted production and stock count details keep reconciliation authority off narrow tables", () => {

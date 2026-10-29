@@ -79,6 +79,7 @@ export type Database = {
           email: string | null;
           address: string | null;
           logo_url: string | null;
+          ui_theme?: Json | null;
           logo_path: string | null;
           status: RecordStatus;
           created_at: string;
@@ -97,6 +98,7 @@ export type Database = {
           email?: string | null;
           address?: string | null;
           logo_url?: string | null;
+          ui_theme?: Json | null;
           logo_path?: string | null;
           status?: RecordStatus;
           created_at?: string;

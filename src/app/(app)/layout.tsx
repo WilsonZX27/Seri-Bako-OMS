@@ -1,3 +1,6 @@
+import { CompanyThemeScope } from "@/components/company-theme-scope";
+import { companyThemeTokens } from "@/lib/branding/company-theme";
+import type { CSSProperties } from "react";
 import { readShellBranding } from "@/lib/shell-branding-read";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -51,7 +54,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const displayName = account?.full_name ?? account?.email ?? "Signed in";
 
   return (
-    <NavigationAttentionProvider hrefs={activityPromise.then(getNavAttentionHrefs)}><div data-app-shell data-design-layer="v2" className="min-h-dvh bg-[var(--app-bg)] xl:h-dvh xl:overflow-hidden">
+    <NavigationAttentionProvider hrefs={activityPromise.then(getNavAttentionHrefs)}><div style={companyThemeTokens(branding.ui_theme) as CSSProperties} data-app-shell data-design-layer="v2" className="min-h-dvh bg-[var(--app-bg)] xl:h-dvh xl:overflow-hidden">
+      <CompanyThemeScope theme={branding.ui_theme}/>
       <div className="flex min-h-dvh min-w-0 xl:h-dvh">
         <Suspense fallback={<aside data-app-sidebar aria-hidden="true" className="hidden h-dvh w-[var(--sb-sidebar-width)] shrink-0 bg-[var(--sb-green-950)] xl:block"/>}><Sidebar permissionMap={permissionMap} role={role} companyName={branding.company_name} companyLogoUrl={branding.logo_url} displayName={displayName} activityPromise={activityPromise} /></Suspense>
         <div className="flex min-w-0 flex-1 flex-col xl:overflow-hidden">

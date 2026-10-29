@@ -40,8 +40,8 @@ test("unavailable low-stock data never renders a healthy zero", () => {
   const query = read("src/server/queries/inventory.ts");
   const page = read("src/app/(app)/low-stock/page.tsx");
   assert.match(query, /count: null, unavailable: true/);
-  assert.match(page, /Low stock is unavailable/);
-  assert.match(page, /unavailable \? "Unavailable" : count/);
+  assert.match(page, /Stock data is unavailable/);
+  assert.match(page, /unavailable\?"Unavailable":count/);
 });
 
 test("movement ledger and grouped supplier basket use compact presentation", () => {

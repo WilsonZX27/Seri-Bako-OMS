@@ -834,3 +834,15 @@ export async function createComplianceType(formData: FormData) {
       : "/compliance?success=Compliance+type+created.",
   );
 }
+
+// Retire a requirement; uploaded evidence and historical records stay intact.
+export async function retireOutletComplianceType(typeId: string) {
+  await requirePermission("compliance.types.manage");
+  const actor = await requireActiveTenantActor();
+  const id = z.string().uuid().parse(typeId);
+  const db = await createClient();
+  const {data,error}=await db.from("compliance_types").update({status:"inactive",updated_at:new Date().toISOString()}).eq("id",id).eq("company_id",actor.companyId).eq("subject_kind","outlet").eq("module_scope","outlet").is("deleted_at",null).select("id").maybeSingle();
+  if(error||!data) redirect(complianceMessageUrl("/outlet-compliance?view=settings","error",error?.message??"Requirement could not be confirmed. Reload before retrying."));
+  revalidatePath("/outlet-compliance","layout");
+  redirect(complianceMessageUrl("/outlet-compliance?view=settings","success","Requirement removed from the active checklist. History is retained."));
+}

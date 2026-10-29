@@ -1,3 +1,7 @@
+# v9.2.159 (local candidate) — Unified corrections
+
+Preserves the original design while integrating the reviewed 55+16+7 corrections. Production activation and business validation remain separately gated. Controlled269 and company numbering default OFF.
+
 ## v9.2.157 (local candidate) — Controlled attendance repair entry
 
 Built from verified Production155 commit9c9ed711 only. Add an explicit, default-off authenticated API choice for the fixed305-day repair; preserve the ordinary recalculation path and existing tenant/permission/same-origin checks. Null-batch safety prevents a missing DB adapter from invoking broad weekly recalculation. The standalone default-off maintenance page uses existing controls; ordinary pages and navigation are unchanged. Installation, activation and real execution are separately approved operations; no Production deployment or real recalculation has occurred. Preview156 session patch and other UI candidates are not included.
@@ -3255,3 +3259,22 @@ Transfer details use one operational summary followed by concise action history.
 ### Local task-guidance refinement (unreleased)
 
 One primary action belongs to the phone bottom action bar and desktop right console. Transfer-level and item-level notes remain distinct, optional and collapsed until requested. Use the shared Notice Info variant for necessary task guidance: neutral surface, soft rounded border, Info icon, 12px/16px helper text. Error/warning/success remain semantic variants. Remove copy that repeats the current label, button or consequence; do not wrap every metadata value in an Info box. RO correction needs one mandatory reason; historical optional notes and API fields remain intact. EL has a distinct violet treatment from AL blue, with labels retained. Recorded PH remains history-only and noninteractive; calendar/attendance/payroll rules are not rewritten by visual cleanup.
+
+
+## 2026-10-28 commercial refinement contract — local, not released
+
+Retain the accepted grouped OMS design. Document numbers/headings use600; secondary facts use400. Section headings place the title at the leading edge and count/date at the trailing edge through the existing AssetSectionHeading owner. Independent tasks use separate cards; short related facts can share a two-column layout. Avoid repeated field headings on wide item rows; keep row indexes and stronger separation between different items. Phone fields may retain local accessible labels when a wide header cannot map to wrapped rows.
+
+Use houseButton/SelectControl/ComplianceFileInput/UnifiedListHeader/WorkspaceGrid, neutral identifier ink and explicit action boundaries. Keep touch targets44 and phone main actions48; smaller icon drawings do not require smaller hit targets. Input labels, body and help follow the current fixed type scale; state meaning is conveyed by text/icon as well as colour. Technical identifiers belong in progressive audit disclosure. Unknown is never converted to zero. Long names truncate only in compact summaries, with full title/detail available.
+
+Low-stock queries submit explicitly; one selectable source list feeds one basket. No duplicate basket listing. Selection and local drafts do not grant create permission. Historical repair reports remain separate stored records. One unresolved ticket per asset is the confirmed future rule, with a service-side concurrency gate required before activation; current-day checks are never automatically submitted.
+
+Each company gets its own deployment initially, from one codebase. Owner controls the company palette; semantic error/warning/success remain recognisable. Theme metadata is versioned and schema-gated, with preview and default reset. Public/failing branding uses genericOperations. Do not rewrite actual company product/asset names or historical IDs to make the product look generic. Existing salary, payroll and OT remain permission protected.
+
+All55 original IDs and source/browser/activation boundaries are retained in docs/qa/commercial-20261028/ANNOTATIONS.md. Proposed SQL, automatic numbering, new workflow templates and online performance certification are not activated by these local changes. See COMMERCIAL-CONFIGURATION.md and SCOPE.md. Do not claim full commercial readiness from a successful build.
+
+Direct buttonVariants callers use the same conflict-aware class merge as Button, so an outline cannot retain a competing transparent border. Explicit three-action dialog grids keep their declared columns; generic two-action fallback CSS must exclude them. Phone main-action48 applies only to marked primary console actions, not every button. Shared inset section headings avoid double padding when placed inside padded cards.
+
+### Production/attendance follow-up16 (local)
+
+Production facts use aligned values rather than stacked warnings. Keep row explanations behind a labelled action; an explicit shared explanation may fill only missing required reasons, preserving existing reasons and every quantity. Attendance tables put Actual/Scheduled and RO/Approved OT in column headers; compact mobile cards retain contextual labels. Actions align at the trailing edge without empty optional-action slots. Record details open a shared focus-controlled modal, not an unnoticed rail update. Native Button title help falls back to its existing accessible name; do not invent descriptions for unnamed controls. RO correction decisions belong in RO Management, retaining original server permissions and audit semantics. A one-page attendance list has no redundant pager; multi-page results retain navigation.

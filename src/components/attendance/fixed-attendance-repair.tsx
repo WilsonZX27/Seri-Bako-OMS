@@ -1,42 +1,62 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { SelectControl } from "@/components/ui/select-control";
+import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 
-type Action="run"|"restore";
-export function FixedAttendanceRepair(){
-  const [enabled,setEnabled]=useState(false),[checked,setChecked]=useState(false),[busy,setBusy]=useState(false),[uncertain,setUncertain]=useState(false);
-  const [action,setAction]=useState<Action>("run"),[completed,setCompleted]=useState<Action|null>(null),[message,setMessage]=useState("Checking availability…");
-  const latch=useRef(false);
-  useEffect(()=>{
-    const controller=new AbortController();
-    void fetch("/api/attendance/recalculate",{cache:"no-store",credentials:"same-origin",signal:controller.signal}).then(async response=>{
-      const data=await response.json();if(controller.signal.aborted)return;
-      const ready=response.ok&&data.capability==="oms305-fixed-v3"&&data.enabled===true;
-      setEnabled(ready);setMessage(ready?"Available to an authorised Owner or People account.":"This controlled operation is not enabled.");
-    }).catch(()=>{if(!controller.signal.aborted)setMessage("Availability could not be checked. No operation was sent.");});
-    return ()=>controller.abort();
-  },[]);
-  async function submit(){
-    if(latch.current||!enabled||!checked||uncertain)return;
-    latch.current=true;setBusy(true);setChecked(false);
-    try{
-      const response=await fetch("/api/attendance/recalculate",{method:"POST",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({batchId:"34ffbb89-be58-4d74-b6ed-a8ab3a25cda5",repair:`oms305-20261019-v3/${action}`})});
-      const data=await response.json();if(!response.ok)throw new Error(data.message??"Result is not confirmed. Check the receipt before retrying.");
-      setCompleted(action);setMessage(`${action==="run"?"Repair":"Restoration"} completed for ${Number(data.calculated)} employee-days. Verify the independent receipt before closing maintenance.`);
-      latch.current=false;
-    }catch(error){setUncertain(true);setMessage(error instanceof Error?error.message:"Result is not confirmed. Check the receipt before retrying.");}
-    finally{setBusy(false);}
+const batch = "34ffbb89-be58-4d74-b6ed-a8ab3a25cda5";
+const week = "2026-10-19";
+// Responsive rails can mount the same action twice. Share the attempt latch so
+// changing viewport cannot expose a second submit after an uncertain outcome.
+let repairAttempted = false;
+const attemptListeners = new Set<(value: boolean) => void>();
+
+export function AttendanceFixedRepairAction({ batchId, weekStart, disabled = false }: { batchId: string; weekStart: string; disabled?: boolean }) {
+  const [enabled, setEnabled] = useState(false);
+  const [checked, setChecked] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [settled, setSettled] = useState(repairAttempted);
+  const [message, setMessage] = useState("");
+  const latch = useRef(false);
+  const inScope = batchId === batch && weekStart === week && !disabled;
+
+  useEffect(() => {
+    setEnabled(false);
+    attemptListeners.add(setSettled);
+    if (!inScope) return () => { attemptListeners.delete(setSettled); };
+    const controller = new AbortController();
+    void fetch("/api/attendance/recalculate", { cache: "no-store", credentials: "same-origin", signal: controller.signal })
+      .then(async response => {
+        const data = await response.json();
+        if (!controller.signal.aborted) setEnabled(response.ok && data.capability === "oms269-fixed-v1" && data.enabled === true);
+      }).catch(() => { /* Optional maintenance capability stays unavailable. */ });
+    return () => { controller.abort(); attemptListeners.delete(setSettled); };
+  }, [inScope]);
+
+  async function submit() {
+    if (repairAttempted || latch.current || !inScope || !enabled || !checked || settled) return;
+    latch.current = true;
+    repairAttempted = true;
+    attemptListeners.forEach(listener => listener(true));
+    setBusy(true);
+    setChecked(false);
+    try {
+      const response = await fetch("/api/attendance/recalculate", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ batchId: batch, repair: "oms269-20261019-v1/run", expectedCount:269 }) });
+      const data = await response.json();
+      if (!response.ok || data.ok !== true || ![0, 269].includes(data.calculated)) throw new Error(data.message ?? "The result is not confirmed. Check the repair receipt and current state before retrying.");
+      setMessage(data.calculated === 269 ? "269 staff days processed. Independent receipt verification is still required." : "No additional staff days changed. Verify the existing receipt.");
+    } catch (error) {
+      setMessage(`${error instanceof Error ? error.message : "The result is not confirmed."} Do not submit again until the repair receipt and current state and current versions have been checked.`);
+    } finally {
+      setSettled(true);
+      setBusy(false);
+    }
   }
-  const blocked=busy||uncertain||completed==="restore";
-  return <Card><CardContent className="space-y-4">
-    <p className="text-sm">19–25 October 2026 · 305 employee-days. 17–18 October is excluded. Raw punches and history are retained.</p>
-    <p className="text-sm">Use only for the approved maintenance operation. Genuine missing punches remain subject to review.</p>
-    <label className="flex flex-col gap-2 text-sm">Operation<SelectControl ariaLabel="Operation" value={action} disabled={blocked} onValueChange={value=>{setAction(value as Action);setChecked(false);}} options={[{value:"run",label:"Repair the fixed 305 days"},{value:"restore",label:"Restore original current versions"}]}/></label>
-    <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={checked} disabled={!enabled||blocked} onChange={event=>setChecked(event.target.checked)}/>I confirm this exact operation is approved.</label>
-    <Button type="button" disabled={!enabled||!checked||blocked||(completed==="run"&&action==="run")} onClick={()=>void submit()}>{busy?"Processing…":action==="run"?"Repair fixed 305 days":"Restore original versions"}</Button>
-    <p role="status" aria-live="polite" className="text-sm">{message}</p>
-    {uncertain?<p className="text-sm">Do not submit again until the receipt and current versions have been checked.</p>:null}
-  </CardContent></Card>;
+
+  if (!inScope || !enabled) return null;
+  return <div className="mt-3 space-y-2 border-t border-[var(--sb-border-soft)] pt-3">
+    <p className="text-xs text-muted-foreground">19–25 Oct · Correct only the remaining 269 staff days. Preserve the 36 already updated and 30 outside this range, along with raw punches and history.</p>
+    <label className="flex items-start gap-2 text-xs"><input type="checkbox" checked={checked} disabled={busy || settled} onChange={event => setChecked(event.target.checked)} />Confirm the approved 269-day scope</label>
+    <Button type="button" size="sm" variant="outline" className="w-full" disabled={!checked || busy || settled} onClick={() => void submit()}><RefreshCw className={`h-4 w-4 ${busy ? "animate-spin" : ""}`} />{busy ? "Processing…" : "Apply approved correction"}</Button>
+    {message ? <p role="status" aria-live="polite" className="text-xs text-muted-foreground">{message}</p> : null}
+  </div>;
 }

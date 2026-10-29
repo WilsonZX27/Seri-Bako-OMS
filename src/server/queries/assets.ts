@@ -58,7 +58,7 @@ export const getAssetRegistration = cache(async () => {
   if (activation.data !== true) return { active: false, automaticId: false, locations: [] as AssetLocation[] };
   const result = await db.from("asset_locations").select("id,source_name,branch_id,kind").eq("company_id", actor.companyId).order("source_name");
   if (result.error || result.data === null) throw new Error(result.error?.message ?? "Asset locations unavailable.");
-  return { active: true, automaticId: (await assetFeatureCapabilities(db)).automaticId, locations: await withCanonicalBranchNames(looseSupabase(db), result.data as AssetLocation[]) };
+  return { active: true, automaticId: (await assetFeatureCapabilities(db, actor.companyId)).automaticId, locations: await withCanonicalBranchNames(looseSupabase(db), result.data as AssetLocation[]) };
 });
 
 export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query = "", date = "", status = "", locationId = "", sort = "code", category = "") => {
@@ -489,10 +489,12 @@ export async function getAssetTransferBatchDetail(id: string, page: number) {
 
 export async function readAssetOpenRepairs(db:LooseSupabase,locationId:string,assetIds:string[]) {
  if(!assetIds.length)return {available:true,repairs:[] as OpenAssetRepair[]};
- const result=await db.rpc("get_asset_check_open_repairs",{p_location:locationId,p_assets:assetIds});
+ const input={p_location:locationId,p_assets:assetIds};
+ let result=await db.rpc("get_asset_check_open_repairs_v2",input);
+ if(result.error&&["PGRST202","42883"].includes((result.error as {code?:string}).code??"")) result=await db.rpc("get_asset_check_open_repairs",input);
  if(result.error){if(["PGRST202","42883"].includes((result.error as {code?:string}).code??""))return {available:false,repairs:[] as OpenAssetRepair[]};throw result.error;}
  if(!Array.isArray(result.data))throw Error("Current repair status unavailable.");
  const repairs=result.data as OpenAssetRepair[],seen=new Set<string>();
- for(const row of repairs){if(!assetIds.includes(row.asset_id)||seen.has(row.asset_id)||!row.id||!row.status||["closed","resolved","cancelled"].includes(row.status.toLowerCase())||!Number.isSafeInteger(row.open_count)||row.open_count<1)throw Error("Current repair status unavailable.");seen.add(row.asset_id);}
+ for(const row of repairs){if(!assetIds.includes(row.asset_id)||seen.has(row.asset_id)||!row.status||["closed","resolved","cancelled"].includes(row.status.toLowerCase())||(row.restricted===true ? row.id!==null||row.description!==null||row.open_count!==null||row.status!=="Open" : !row.id||(row.description!=null&&typeof row.description!=="string")||!Number.isSafeInteger(row.open_count)||Number(row.open_count)<1))throw Error("Current repair status unavailable.");seen.add(row.asset_id);}
  return {available:true,repairs};
 }

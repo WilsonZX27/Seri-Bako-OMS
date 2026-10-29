@@ -243,7 +243,7 @@ export function StaffForm({
           </Field>
           <Field label="Last Working Date">
             <Input id="staff-last-working-day" name="employment_end_date" type="date" defaultValue={staff?.employment_end_date ?? ""} className="form-control-compact" />
-            <p className="mt-1 text-xs text-muted-foreground">This date is inclusive. From the next day, sign-in and scheduling are blocked; historical schedules and payroll stay intact. Disable sign-in does not fill or change this date.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Access ends after this date. History is retained; disabling sign-in does not change the date.</p>
           </Field>
         </div>
       </RecordSection>

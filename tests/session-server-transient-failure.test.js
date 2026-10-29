@@ -5,8 +5,8 @@ const vm=require('node:vm');
 const ts=require('typescript');
 const classify=require('./helpers/load-source.cjs')()('src/lib/http/session-result.ts');
 function compile(file,mocks){const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports,URL,require:id=>mocks[id]??{}});return exports;}
-function middlewareHarness(results,options={}){let lookups=0,signouts=0;const writes=[];const cookieJar={getAll:()=>[],set:(...x)=>writes.push(x)};const reply=(kind,status=200,body)=>({kind,status,body,cookies:cookieJar});const response={next:()=>reply('next'),json:(body,o)=>reply('json',o.status,body),redirect:()=>reply('redirect',307)};
- const query={select(){lookups++;return query},eq(){return query},maybeSingle:async()=>({data:options.missingProfile?null:{id:'fixture',status:options.status??'active',staff_roles:[]},error:null})};
+function middlewareHarness(results,options={}){let lookups=0,signouts=0;const writes=[];const makeJar=()=>{const values=new Map();return {getAll:()=>[...values.values()],set:(name,value,options)=>{const cookie=typeof name==='object'?name:{name,value,...options};values.set(cookie.name,cookie);writes.push([cookie.name,cookie.value]);}}};const cookieJar=makeJar();const reply=(kind,status=200,body)=>({kind,status,body,cookies:makeJar()});const response={next:()=>reply('next'),json:(body,o)=>reply('json',o.status,body),redirect:()=>reply('redirect',307)};
+ const query={select(){lookups++;return query},eq(){return query},maybeSingle:async()=>({data:options.missingProfile?null:{id:'fixture',status:options.status??'active',staff_roles:[]},error:options.staffError??null})};
  const middleware=compile('src/lib/supabase/middleware.ts',{
  'next/server':{NextResponse:response},'@supabase/ssr':{createServerClient:(_u,_k,options)=>({auth:{getClaims:async()=>{const result=results.shift();if(result instanceof Error)throw result;if(result.refresh)options.cookies.setAll([{name:'synthetic-refresh',value:'fixture-only',options:{}}]);return result},signOut:()=>signouts++},from:()=>query})},
  '@/lib/mock-mode':{isMockMode:()=>false},'@/lib/supabase/env':{requireSupabaseEnv:()=>({url:'https://fixture.invalid',publishableKey:'fixture-only'})},'@/server/auth/route-permissions':{getRouteAllowedRoles:()=>null,getRoutePermissionCodes:()=>options.protected?['fixture.view']:null},'@/server/auth/permissions':{resolveEffectivePermission:async()=>options.allowed!==false},'@/server/auth/route-resolver':compile('src/server/auth/route-resolver.ts',{'@/lib/information-architecture':{getLandingIaItems:()=>[]}}),'@/lib/roles':{isSystemRoleCode:()=>false},'@/lib/utils':{getToday:()=> '2026-10-27'},'@/lib/http/session-result':classify,
@@ -30,5 +30,13 @@ test('SSR profile transient user or profile read failure throws unavailable rath
 test('verified claims do not bypass disabled, missing profile, or denied tenant permission boundaries',async()=>{
  for(const options of [{status:'disabled'},{status:'inactive'},{status:'archived'},{missingProfile:true},{protected:true,allowed:false}]){
  const h=middlewareHarness([{data:{claims:{sub:'fixture'}},error:null}],options);const result=await h.run('/api/fixture');assert.ok([401,403].includes(result.status));assert.equal(result.kind,'json');assert.doesNotMatch(JSON.stringify(result.body),/staff_roles|fixture-user|company_id/);assert.equal(h.stats().signouts,0);
+ }
+});
+
+test('valid Auth claims plus temporary staff lookup failure returns503 for page and API without false expiry',async()=>{
+ for(const path of ['/dashboard','/api/fixture']){
+ const options={staffError:{message:'synthetic profile unavailable'}};const h=middlewareHarness([{data:{claims:{sub:'fixture'}},error:null,refresh:true},{data:{claims:{sub:'fixture'}},error:null}],options);
+ const failed=await h.run(path);assert.equal(failed.status,503);assert.ok(failed.cookies.getAll().some(c=>c.name==='synthetic-refresh'));assert.doesNotMatch(JSON.stringify(failed.body),/session.*expired|no longer active|fixture-profile-data/i);assert.equal(h.stats().signouts,0);
+ options.staffError=null;assert.equal((await h.run(path)).kind,'next');assert.equal(h.stats().signouts,0);
  }
 });

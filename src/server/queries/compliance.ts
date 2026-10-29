@@ -23,11 +23,11 @@ export function complianceState(expiresOn: string | null, reviewStatus: string, 
 }
 
 export async function getOutletComplianceWorkspace(branchId?: string) {
-  if (isMockMode()) return { branches: [], requirements: [], records: [], migrationReady: true };
+  if (isMockMode()) return { branches: [], requirements: [], records: [], types: [], migrationReady: true };
   const actor = await requireActiveTenantActor();
   if (["outlet_staff", "outlet_supervisor"].includes(actor.roleCode)) throw new Error("Outlet compliance is restricted to management.");
   const [supabase, profile] = await Promise.all([createClient(), getCurrentProfile()]);
-  if (!profile?.company_id) return { branches: [], requirements: [], records: [], migrationReady: true };
+  if (!profile?.company_id) return { branches: [], requirements: [], records: [], types: [], migrationReady: true };
   let branchesQuery = supabase.from("branches").select("id,branch_code,branch_name,branch_type").eq("company_id", profile.company_id).in("branch_type", ["outlet", "central_kitchen"]).eq("status", "active").is("deleted_at", null).order("branch_name");
   let requirementsQuery = supabase.from("outlet_compliance_requirements").select("id,branch_id,compliance_type_id,is_required,waiver_reason").eq("company_id", profile.company_id).order("created_at");
   let recordsQuery = supabase.from("compliance_records").select("*").eq("company_id", profile.company_id).eq("subject_kind", "outlet").is("deleted_at", null).order("updated_at", { ascending: false });
@@ -75,7 +75,7 @@ export async function getOutletComplianceWorkspace(branchId?: string) {
   // idempotent assignment backfill reaches the linked database.
   const requirementRows = (branchesResult.data ?? []).flatMap((branch) => (typesResult.data ?? []).map((type) => savedRequirementByKey.get(`${branch.id}:${type.id}`) ?? ({ id: `${branch.id}:${type.id}`, branch_id: branch.id, compliance_type_id: type.id, is_required: true, waiver_reason: null })));
   const requirements = requirementRows.map((row) => ({ ...row, type: typeById.get(row.compliance_type_id)!, record: latestByRequirement.get(`${row.branch_id}:${row.compliance_type_id}`) ?? null }));
-  return { branches: branchesResult.data ?? [], requirements, records, migrationReady };
+  return { branches: branchesResult.data ?? [], requirements, records, types: typesResult.data ?? [], migrationReady };
 }
 
 export async function getOutletComplianceIssueCount(): Promise<number> {

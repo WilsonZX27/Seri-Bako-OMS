@@ -28,7 +28,7 @@ type WorkspaceSidebarProps = {
 export function WorkspaceSidebar({
   role,
   mobile = false,
-  companyName = "Seri Bako",
+  companyName = "Operations",
   companyLogoUrl,
   brandHref = "/dashboard",
   onNavigate,

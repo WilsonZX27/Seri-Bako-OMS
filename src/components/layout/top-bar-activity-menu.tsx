@@ -112,7 +112,7 @@ export function TopBarActivityMenu({ data, canOpenActivity = true }: { data: Top
 
               </div>
               {unreadCount > 0 ? (
-                <Button type="button" variant="ghost" size="icon" className="sb-mark-updates-read size-8 shrink-0 border-0 bg-transparent shadow-none hover:bg-muted" aria-label="Mark as read" title="Mark as read" onClick={markVisibleUpdatesSeen}><Check className="size-4" aria-hidden="true" /></Button>
+                <Button type="button" variant="ghost" size="icon" className="sb-mark-updates-read h-11 w-11 min-w-11 shrink-0 md:h-8 md:min-h-8 md:w-8 md:min-w-8 border-0 bg-transparent shadow-none hover:bg-muted" aria-label="Mark as read" title="Mark as read" onClick={markVisibleUpdatesSeen}><Check className="size-4" aria-hidden="true" /></Button>
               ) : null}
             </div>
           </div>

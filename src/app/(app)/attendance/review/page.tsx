@@ -1,3 +1,5 @@
+import { AttendanceFixedRepairAction } from "@/components/attendance/fixed-attendance-repair";
+import { AttendanceDetailDialog } from "@/components/attendance/attendance-detail-dialog";
 import { PaginationControls } from "@/components/sortable-table";
 import { ScheduleRefreshStatus } from "@/components/attendance/schedule-refresh-status";
 import { Fragment } from "react";
@@ -157,7 +159,7 @@ export default async function AttendanceReviewPage({
       page,
       detail: params.detail,
     }) : getAttendanceReviewBranches().then((branches) => ({ rows: [], total: 0, page: 1, pageSize: 100, branches, batches: [], unscheduledPunches: [], detail: null })),
-    branch ? getAttendanceActuals(week, branch) : Promise.resolve({ compPeople: [], assignments: [], reports: [], ledger: [], balances: {}, claims: [], reservations: [], locks: [] }),
+    branch ? getAttendanceActuals(week, branch, {includeComp:false}) : Promise.resolve({ compPeople: [], assignments: [], reports: [], ledger: [], balances: {}, claims: [], reservations: [], locks: [] }),
     permissions["attendance.import"]
       ? getAttendanceMappings()
       : Promise.resolve(null),
@@ -270,7 +272,10 @@ export default async function AttendanceReviewPage({
               {latest &&
               (permissions["attendance.import"] ||
                 permissions["attendance.adjust"]) ? (
-                <AttendanceRecalculateButton batchId={String(latest.id)} disabled={weekLocked} />
+                <>
+<AttendanceRecalculateButton batchId={String(latest.id)} disabled={weekLocked} />
+<AttendanceFixedRepairAction batchId={String(latest.id)} weekStart={week} disabled={weekLocked} />
+</>
               ) : null}
               {permissions["attendance.sensitive.export"] ? (
                 <PeopleWorkbookExport branches={review.branches as {id:string;branch_name:string}[]} week={week} branchId={branch}/>
@@ -299,12 +304,10 @@ export default async function AttendanceReviewPage({
                 </p>
               )}
             </ConsoleSection>
-            {review.detail ? (
-              <AttendanceDetail detail={review.detail as Row} />
-            ) : null}
+
 
             <div className="space-y-2" aria-labelledby="attendance-tools-title">
-              <h2 id="attendance-tools-title" className="sr-only">Reports & time-off balance</h2>
+              <h2 id="attendance-tools-title" className="sr-only">Attendance reports</h2>
                 <ActualAttendancePanel
                   scheduleHref={`/attendance/schedule?branch=${encodeURIComponent(branch ?? "")}&week=${week}`}
                   assignments={actuals.assignments as Row[]}
@@ -316,6 +319,7 @@ export default async function AttendanceReviewPage({
                   canApprove={permissions["attendance.report.approve"]}
                   canSubmitComp={permissions["comp_time.submit"]}
                   canApproveComp={permissions["comp_time.approve"]}
+                  sections="reports"
                   compact
                 />
             </div>
@@ -404,10 +408,7 @@ export default async function AttendanceReviewPage({
             </span>
           </header>
           <TableScrollRegion label="Attendance results" className="hidden md:block">
-            <table id="attendance-review-results" className="w-full min-w-[48rem] table-fixed text-left text-xs">
-              <colgroup>
-                {[16, 9, 12, 10, 12, 9, 10, 22].map((width, index) => <col key={index} style={{ width: `${width}%` }} />)}
-              </colgroup>
+            <table id="attendance-review-results" className="w-full min-w-[48rem] text-left text-xs [&_td]:align-top">
               <thead className="sticky top-0 z-10 bg-[var(--sb-surface-muted)]">
                 <tr>
                   {[
@@ -417,11 +418,12 @@ export default async function AttendanceReviewPage({
                     "Break",
                     "Clock out",
                     "Worked",
-                    "RO\nOT",
+                    "RO / OT",
                     "Actions",
                   ].map((label) => (
-                    <th key={label} className="whitespace-pre-line px-3 py-2.5 first:sticky first:left-0 first:bg-[var(--sb-surface-muted)]">
-                      {label}
+                    <th key={label} className="whitespace-pre-line px-2 py-2.5 first:sticky first:left-0 first:bg-[var(--sb-surface-muted)] last:text-right">
+                      <span className="whitespace-nowrap">{label}</span>
+                      {["Clock in","Clock out"].includes(label) ? <span className="block whitespace-nowrap text-[10px] font-normal normal-case">Actual / Scheduled</span> : label==="RO / OT" ? <span className="block whitespace-nowrap text-[10px] font-normal normal-case">Used / approved</span> : null}
                     </th>
                   ))}
                 </tr>
@@ -440,13 +442,13 @@ export default async function AttendanceReviewPage({
                     <Fragment key={String(row.id)}>
                       {newDay ? (
                         <tr className="border-t border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)]">
-                          <th colSpan={8} className="px-3 py-2 font-semibold">
+                          <th colSpan={8} className="px-2 py-2 font-semibold">
                             <span className="sticky left-3 inline-block">{dateHeading(row.work_date)}</span>
                           </th>
                         </tr>
                       ) : null}
                       <tr className="border-t border-[var(--sb-border-soft)] hover:bg-[var(--sb-surface-muted)]">
-                        <td className="sticky left-0 z-[1] bg-white px-3 py-3">
+                        <td className="sticky left-0 z-[1] bg-white px-2 py-3">
                           {employeeSummary(row, staff)}
                           <span className="text-[11px] text-muted-foreground">
                             {staff?.employment_type === "part_time"
@@ -454,7 +456,7 @@ export default async function AttendanceReviewPage({
                               : "Full-time"}
                           </span>
                         </td>
-                        <td className="px-3 py-3">
+                        <td className="px-2 py-3">
                           <strong className="tabular-nums">
                             {actualPunches} of {expectedPunches}
                           </strong>
@@ -466,30 +468,30 @@ export default async function AttendanceReviewPage({
                             </span>
                           ) : null}
                         </td>
-                        <td className="px-3 py-3 tabular-nums">
-                          <strong className="block">Actual: {time(row.actual_first_in)}</strong>
-                          <span className="block text-[11px] text-muted-foreground">Scheduled: {time(row.scheduled_start)}</span>
+                        <td className="px-2 py-3 tabular-nums">
+                          <strong className="block whitespace-nowrap" title={time(row.actual_first_in)}>{typeof row.actual_first_in === "string" ? formatAttendanceTime(row.actual_first_in) : "—"}</strong>
+                          <span className="block whitespace-nowrap text-xs text-muted-foreground" title={time(row.scheduled_start)}>{typeof row.scheduled_start === "string" ? formatAttendanceTime(row.scheduled_start).toLowerCase() : "—"}</span>
                           {signedDuration(row.late_seconds, "late")}
                         </td>
-                        <td className="px-3 py-3 tabular-nums">
-                          {row.actual_break_out && row.actual_break_in ? <><strong className="block">{time(row.actual_break_out)}–{time(row.actual_break_in)}</strong><span className="block text-[11px] text-muted-foreground">{duration(row.break_seconds)}</span></> : duration(row.break_seconds)}
+                        <td className="px-2 py-3 tabular-nums">
+                          {row.actual_break_out && row.actual_break_in ? <><strong className="block whitespace-nowrap" title={`${time(row.actual_break_out)}–${time(row.actual_break_in)}`}>{formatAttendanceTime(String(row.actual_break_out))}<br/>{formatAttendanceTime(String(row.actual_break_in))}</strong><span className="block text-[11px] text-muted-foreground">{duration(row.break_seconds)}</span></> : duration(row.break_seconds)}
                         </td>
-                        <td className="px-3 py-3 tabular-nums">
-                          <strong className="block">Actual: {time(row.actual_last_out)}</strong>
-                          <span className="block text-[11px] text-muted-foreground">Scheduled: {time(row.scheduled_end)}</span>
+                        <td className="px-2 py-3 tabular-nums">
+                          <strong className="block whitespace-nowrap" title={time(row.actual_last_out)}>{typeof row.actual_last_out === "string" ? formatAttendanceTime(row.actual_last_out) : "—"}</strong>
+                          <span className="block whitespace-nowrap text-xs text-muted-foreground" title={time(row.scheduled_end)}>{typeof row.scheduled_end === "string" ? formatAttendanceTime(row.scheduled_end).toLowerCase() : "—"}</span>
                           {Number(row.early_leave_seconds ?? 0) > 0
                             ? signedDuration(row.early_leave_seconds, "earlyLeave")
                             : signedDuration(actualOvertime, "ot")}
                         </td>
-                        <td className="px-3 py-3 tabular-nums">
+                        <td className="px-2 py-3 tabular-nums">
                           {duration(row.worked_seconds)}
                         </td>
-                        <td className="px-3 py-3 tabular-nums">
-                          <span className="block text-[11px] text-muted-foreground">RO {reservation ? `${Math.floor(Number(reservation.final_used_minutes??reservation.reserved_minutes) / 30)} × 30m` : "—"}</span>
-                          <span className="block text-[11px]">Approved {duration(row.overtime_seconds)}</span>
-                          {candidate > Number(row.overtime_seconds ?? 0) ? <strong className="mt-1 block rounded bg-[var(--sb-warning-bg)] px-1 text-[11px] text-[var(--sb-warning)]">Pending {duration(candidate - Number(row.overtime_seconds ?? 0))}</strong> : null}
+                        <td className="px-2 py-3 tabular-nums">
+                          <span className="block text-[11px] text-muted-foreground">{reservation ? `${Math.floor(Number(reservation.final_used_minutes??reservation.reserved_minutes) / 30)} × 30m` : "—"}</span>
+                          <span className="block text-[11px]">{duration(row.overtime_seconds)}</span>
+                          {candidate > Number(row.overtime_seconds ?? 0) ? <strong className="mt-1 block rounded bg-[var(--sb-warning-bg)] px-1 text-[11px] text-[var(--sb-warning)]">Pending {minuteDuration(candidate - Number(row.overtime_seconds ?? 0))}</strong> : null}
                         </td>
-                        <td className="px-3 py-3">
+                        <td className="sticky right-0 bg-white px-2 py-3 text-right" data-attendance-actions>
                           <RowActions
                             row={row}
                             claim={claim}
@@ -618,16 +620,17 @@ export default async function AttendanceReviewPage({
               <Button asChild variant="outline" className="mt-3"><Link href={`/attendance/review?week=${encodeURIComponent(week)}&branch=${encodeURIComponent(branch ?? "select")}`}>Reset filters</Link></Button>
             </div>
           ) : null}
-          <PaginationControls page={page} totalPages={totalPages} totalRows={review.total} searchParams={filterParams} />
+          {totalPages > 1 ? <PaginationControls page={page} totalPages={totalPages} totalRows={review.total} searchParams={filterParams} /> : null}
         </section>}
         <details className="group sb-work-surface overflow-hidden xl:hidden">
           <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-semibold [&::-webkit-details-marker]:hidden">
-            Reports & time-off balance
+            Attendance reports
             <ChevronRight className="h-4 w-4 transition-transform group-open:rotate-90" />
           </summary>
           <div className="border-t border-[var(--sb-border-soft)] p-3">
             <ActualAttendancePanel
                   scheduleHref={`/attendance/schedule?branch=${encodeURIComponent(branch ?? "")}&week=${week}`}
+              sections="reports"
               initialAssignmentId={params.report}
               assignments={actuals.assignments as Row[]}
               reports={actuals.reports as Row[]}
@@ -642,6 +645,7 @@ export default async function AttendanceReviewPage({
           </div>
         </details>
       </WorkspaceGrid>
+      {params.detail && !params.report ? <AttendanceDetailDialog key={params.detail} closeHref={pageHref(filterParams,page)}>{review.detail ? <AttendanceDetail detail={review.detail as Row}/> : <p className="text-sm">This attendance record is unavailable in your current scope.</p>}</AttendanceDetailDialog> : null}
     </>
   );
 }
@@ -664,11 +668,11 @@ function RowActions({
   weekLocked: boolean;
 }) {
   return (
-    <div className="inline-flex min-w-0 flex-nowrap items-center gap-1 [&_button]:font-normal">
+    <div className="ml-auto flex w-max max-w-full flex-nowrap items-center justify-end gap-1 [&_button]:font-normal">
       <Button asChild size="sm" variant="ghost" className="w-auto justify-start gap-2 bg-transparent px-2 font-normal hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-surface-muted)]">
-        <Link href={href} title="View details"><Eye className="h-4 w-4"/><span className="md:sr-only">View details</span></Link>
+        <Link href={href} scroll={false} title="View attendance evidence and exceptions"><Eye className="h-4 w-4"/><span className="md:sr-only">View details</span></Link>
       </Button>
-      {permissions["attendance.report.submit"] && reportable && !weekLocked ? <Button asChild size="sm" variant="ghost" className="min-h-11 px-2"><Link href={`${href}&report=${encodeURIComponent(String(row.assignment_id))}`} aria-label="Report actual attendance"><FileCheck2 className="size-4" aria-hidden="true"/></Link></Button> : null}
+      {permissions["attendance.report.submit"] && reportable && !weekLocked ? <Button asChild size="sm" variant="ghost" className="min-h-11 px-2"><Link href={`${href}&report=${encodeURIComponent(String(row.assignment_id))}`} aria-label="Report actual attendance" title="Report leave or a punch correction"><FileCheck2 className="size-4" aria-hidden="true"/></Link></Button> : null}
       {permissions["attendance.adjust"] ? (
         <AttendanceAdjustmentButton
           resultId={String(row.id)}
@@ -703,7 +707,7 @@ function AttendanceDetail({ detail }: { detail: Row }) {
   const exceptions = (detail.exceptions ?? []) as Row[];
   const adjustments = (detail.adjustments ?? []) as Row[];
   return (
-    <ConsoleSection title="Attendance details" kind="reference">
+    <div className="space-y-3 text-xs">
       <p className="font-semibold">{staff?.full_name ?? "Employee"}</p>
       <p>
         {String(detail.work_date)} · {time(detail.actual_first_in)}–
@@ -735,6 +739,6 @@ function AttendanceDetail({ detail }: { detail: Row }) {
           <p>{isLocationMismatch ? "The punch came from a device mapped to another outlet. System access does not change the fingerprint device location; verify the staff day or device mapping." : String(item.resolution_note ?? "Needs review")}</p>
         </div>
       )})}
-    </ConsoleSection>
+    </div>
   );
 }

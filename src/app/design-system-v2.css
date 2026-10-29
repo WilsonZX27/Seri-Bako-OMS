@@ -18,6 +18,8 @@
   --sb-surface-subtle: #fafafa;
   --sb-muted: var(--sb-surface-muted);
   --sb-border: #d8ded9;
+  --sb-disabled-bg: #eef0f2;
+  --sb-disabled-text: #58616b;
   /* Canonical control geometry: 8px controls, 12px panels across every viewport. */
   --sb-control-radius: 0.5rem;
   --sb-radius-control: var(--sb-control-radius);
@@ -2458,11 +2460,11 @@ html[data-design-layer="v2"] .sb-planning-worksheet .sb-table-region { max-heigh
 html[data-design-layer="v2"] .sb-planning-matrix { table-layout: fixed; width: 100%; min-width: 0; border-collapse: separate; border-spacing: 0; }
 html[data-design-layer="v2"] .sb-planning-matrix :is(th,td) { padding: 8px; white-space: normal; vertical-align: top; }
 html[data-design-layer="v2"] .sb-planning-matrix thead th { position: sticky; top: 0; z-index: 12; background: var(--sb-surface-muted); }
-html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-product { width: 200px; min-width: 200px; max-width: 200px; overflow-wrap: anywhere; }
-html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-summary { width: 136px; min-width: 136px; }
-html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-outlet { min-width: 112px; }
+html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-product { width: 184px; min-width: 184px; max-width: 184px; overflow-wrap: anywhere; }
+html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-summary { width: 180px; min-width: 180px; }
+html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-outlet { min-width: 144px; }
 html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-retention { width: 96px; min-width: 96px; position: sticky; right: 0; z-index: 3; background: var(--sb-surface); box-shadow: -1px 0 var(--sb-border-soft); }
-html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-summary button { padding-inline: 4px; white-space: normal; text-align: left; width: 100%; }
+
 @media (max-width: 1023px) { html[data-design-layer="v2"] .sb-planning-worksheet .sb-table-region { max-height: 65dvh; } }
 @media (min-width: 1024px) and (pointer: fine) {
 html[data-design-layer="v2"] :is(.sb-planning-workspace, .sb-planning-actions, form.sb-query-explicit) { --sb-control-height: 2.25rem; }
@@ -2496,7 +2498,7 @@ html[data-design-layer="v2"] .sb-planning-product button { min-height: 0; line-h
 
 html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-index { width: 32px; min-width: 32px; position: sticky; left: 0; z-index: 2; background: var(--sb-surface); text-align: right; }
 html[data-design-layer="v2"] .sb-planning-matrix thead .sb-planning-index { top: 0; z-index: 14; background: var(--sb-surface-muted); }
-html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-outlet :is(input, [data-select-control]) { width: 96px; max-width: 100%; }
+html[data-design-layer="v2"] .sb-planning-matrix .sb-planning-outlet :is(input, [data-select-control]) { width: 100%; max-width: 100%; }
 html[data-design-layer="v2"] .sb-planning-adjust { color: #fff; background: #7c9b8d; }
 
 html[data-design-layer="v2"] .sb-planning-matrix tbody :is(th,td) { border-bottom: 1px solid var(--sb-border-soft); }
@@ -2587,13 +2589,14 @@ html[data-design-layer="v2"] details.sb-work-surface:not([open]) > summary { hei
 @media (min-width: 1024px) { .sb-maintenance-queue { max-height: 680px; } }
 .sb-dialog-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .sb-dialog-actions > * { width: 100%; min-width: 0; }
+.sb-dialog-actions[data-action-count="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 [data-modal-shell] .sb-dialog-actions, dialog .sb-dialog-actions { margin-top: 16px; }
 
 html[data-design-layer="v2"] .sb-workspace-tabs > a { height: 44px; min-height: 44px !important; }
-[data-modal-shell] > div:last-child:has(> button + button),
-dialog > div > div:last-child:has(> button + button) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-[data-modal-shell] > div:last-child:has(> button + button) > button,
-dialog > div > div:last-child:has(> button + button) > button { width: 100%; }
+[data-modal-shell] > div:last-child:not(.sb-dialog-actions):has(> button + button),
+dialog > div > div:last-child:not(.sb-dialog-actions):has(> button + button) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+[data-modal-shell] > div:last-child:not(.sb-dialog-actions):has(> button + button) > button,
+dialog > div > div:last-child:not(.sb-dialog-actions):has(> button + button) > button { width: 100%; }
 
 /* Inspection results share the same semantics in every checklist. */
 .sb-inspection-choice[data-inspection-result="Checked"] { background: var(--sb-success-bg); color: var(--sb-success); border-color: var(--sb-success); }
@@ -2936,7 +2939,7 @@ html[data-design-layer="v2"] .sb-pr-phone-location > span,
 html[data-design-layer="v2"] .sb-pr-phone-byline-person > span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 html[data-design-layer="v2"] .sb-pr-phone-items { justify-content: flex-end; white-space: nowrap; }
 html[data-design-layer="v2"] .sb-pr-phone-amount { color: var(--sb-text); font-size: .6875rem; font-weight: 400; line-height: 1rem; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
-html[data-design-layer="v2"] .sb-pr-phone-byline { display: inline-flex; min-width: 0; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: .5rem; }
+html[data-design-layer="v2"] .sb-pr-phone-byline { display: inline-flex; min-width: 0; align-items: center; justify-content: flex-end; margin-inline-start: auto; flex-wrap: wrap; gap: .5rem; }
 html[data-design-layer="v2"] .sb-pr-phone-byline-date { flex-shrink: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
 html[data-design-layer="v2"] :is(.sb-pr-phone-supplier, .sb-pr-phone-items, .sb-pr-phone-location, .sb-pr-phone-byline-person, .sb-pr-phone-byline-date) > svg { width: .875rem; height: .875rem; flex: 0 0 .875rem; }
 @media (max-width: 639px) {
@@ -2977,7 +2980,7 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
   html[data-design-layer="v2"] .sb-planning-workspace-tabs > a { height: 36px; min-height: 36px !important; }
 }
 @media (pointer: coarse), (max-width: 767px) {
-  html[data-design-layer="v2"] .sb-mark-updates-read { width: 44px !important; min-width: 44px !important; height: 44px !important; min-height: 44px !important; }
+  html[data-design-layer="v2"] .sb-mark-updates-read { width: 44px; min-width: 44px; height: 44px; min-height: 44px; }
 }
 
 /* Asset query icons use the same desktop control size, with a full touch target
@@ -3016,7 +3019,7 @@ html[data-design-layer="v2"] .sb-pr-phone-supplier { align-items: flex-start; }
   html[data-design-layer="v2"] .sb-mobile-navigation-group a { min-height: 40px; font-size: 12px; }
 }
 html[data-design-layer="v2"] [data-dashboard-pending-row],
-html[data-design-layer="v2"] [data-dashboard-pending-row] :is(strong, .font-medium, .font-semibold) { font-weight: 400; }
+html[data-design-layer="v2"] [data-dashboard-pending-row] strong { font-weight: 600; }
 html[data-design-layer="v2"] .sb-repair-summary { grid-template-columns: minmax(0,1fr); }
 .sb-workspace-updates { display: flex; flex-direction: column; max-height: calc(100dvh - 5rem); }
 @media (max-width: 1279px) {
@@ -3383,3 +3386,12 @@ html[data-design-layer="v2"] [data-dashboard-pending-row][data-repair-action] :i
 
 /* Named Dashboard feedback: secondary queue details retain the existing layout. */
 html[data-design-layer="v2"] [data-queue-secondary-ink] :is(.sb-pr-phone-supplier-row,.sb-pr-phone-location-row,.sb-pr-phone-supplier,.sb-pr-phone-items,.sb-pr-phone-location,.sb-pr-phone-byline-person,.sb-pr-phone-byline-date,.sb-pr-phone-amount) { color:var(--sb-text-muted); font-weight:400; }
+
+/* Named register metrics keep long updater names inside their own track. */
+#main-content .sb-daily-record-metrics > div { min-width: 0; }
+#main-content .sb-daily-record-metrics dd.truncate { display: block; width: 100%; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+html[data-design-layer="v2"] .sb-mark-updates-read svg { width: 16px; height: 16px; }
+html[data-design-layer="v2"] .sb-mark-updates-read { padding: 0; border: 0; background: transparent; }
+@media (max-width: 767px) {
+  html[data-design-layer="v2"] [data-console-section] [data-mobile-primary-action] { height: 3rem !important; min-height: 3rem !important; max-height: none !important; }
+}

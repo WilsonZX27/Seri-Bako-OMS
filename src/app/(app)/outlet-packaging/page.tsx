@@ -12,7 +12,7 @@ import { getOutletPackagingReport } from "@/server/queries/outlet-packaging";
 
 async function Report({ days,canManageStores=false }: { days: 7 | 30;canManageStores?:boolean }) {
   // Read only the selected period. Product and outlet filters stay local.
-  try { const report = await getOutletPackagingReport(days); return <><OutletPackagingReport report={report} days={days} canManageStores={canManageStores} />{canManageStores?<Suspense fallback={<section className="sb-work-surface p-4"><SectionLoadingState label="Loading independent store balances"/></section>}><PackagingStoreSummary days={days}/></Suspense>:null}</>; } catch(error) { logServerError(error,{source:"page.outletPackaging"}); return <WorkspaceGrid><ErrorState title="Packaging report could not load" description="Try again to load stock and usage for this period." action={<RetryButton />} /></WorkspaceGrid>; }
+  try { const report = await getOutletPackagingReport(days); return <><OutletPackagingReport report={report} days={days} canManageStores={canManageStores} />{canManageStores?<Suspense fallback={<section className="sb-work-surface p-4"><SectionLoadingState label="Loading independent store balances"/></section>}><PackagingStoreSummary days={days} outletReport={report}/></Suspense>:null}</>; } catch(error) { logServerError(error,{source:"page.outletPackaging"}); return <WorkspaceGrid><ErrorState title="Packaging report could not load" description="Try again to load stock and usage for this period." action={<RetryButton />} /></WorkspaceGrid>; }
 }
 
 export default async function OutletPackagingPage({ searchParams }: { searchParams: Promise<{ days?: string }> }) {

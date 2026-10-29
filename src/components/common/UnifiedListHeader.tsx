@@ -47,6 +47,7 @@ type HeaderProps = {
   stableResponsive?: boolean;
   /** Keep the compact Filter action understandable with a short visible label. */
   showFilterLabel?: boolean;
+  autoSubmit?: boolean;
 };
 
 function propsOf(child: ReactNode): Record<string, unknown> {
@@ -95,7 +96,10 @@ function isSearchSubmit(child: ReactNode) {
 function isStatusTabs(child: ReactNode) {
   if (!isValidElement(child)) return false;
   const type = child.type as { displayName?: string; name?: string };
-  return type.displayName === "StatusTabs" || type.name === "StatusTabs";
+  // Server-component references can hide the original function name. Preserve
+  // the status field when moving this query control into the compact drawer.
+  return type.displayName === "StatusTabs" || type.name === "StatusTabs"
+    || Array.isArray(propsOf(child).statuses);
 }
 
 function isPrimaryControl(child: ReactNode) {
@@ -136,6 +140,8 @@ function hiddenFilterValue(child: ReactNode) {
       ? String(props.defaultValue)
       : typeof props.activeStatus === "string"
         ? props.activeStatus
+      : isStatusTabs(child)
+        ? String(props.defaultStatus || "all")
       : "";
   return { name, value };
 }
@@ -179,7 +185,7 @@ function SearchControl({ child, value, onChange, shared = false }: { child: Reac
   );
 }
 
-export function UnifiedListHeader({ children, actions, onSubmit, resultCount, resultLabel, resetHref, filtered = false, activeCount = 0, className, phoneOnly = false, phoneMode = "drawer", tabletMode = "drawer", phonePrimary = "inline", compactPinnedFields = [], inlineFieldsShareQueryTracks = false, stableResponsive = false, showFilterLabel = false }: HeaderProps) {
+export function UnifiedListHeader({ children, actions, onSubmit, resultCount, resultLabel, resetHref, filtered = false, activeCount = 0, className, phoneOnly = false, phoneMode = "drawer", tabletMode = "drawer", phonePrimary = "inline", compactPinnedFields = [], inlineFieldsShareQueryTracks = false, stableResponsive = false, showFilterLabel = false, autoSubmit = true }: HeaderProps) {
   // The first client render must match SSR exactly. Viewport detection belongs
   // in the effect below; reading matchMedia in the state initializer rendered
   // different desktop/mobile trees and caused hydration recovery on every
@@ -269,6 +275,7 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
   };
 
   const queueQuery = () => {
+    if (!autoSubmit) return;
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
     searchTimerRef.current = setTimeout(() => {
       const compact = sharedSearchRow || (stableResponsive && !phoneOnly ? window.matchMedia("(max-width: 1279px)").matches : mobile);

@@ -4,7 +4,7 @@ const {requestDeadline}=load('src/lib/http/request-deadline.ts');
 const {readShellBranding}=load('src/lib/shell-branding-read.ts');
 const {activeNavigationHref}=load('src/lib/active-navigation.ts');
 test('optional branding stalls or errors fall back without resolving required permissions',async()=>{
- assert.equal((await readShellBranding(new Promise(()=>{}),5)).company_name,'Seri Bako');
+ assert.equal((await readShellBranding(new Promise(()=>{}),5)).company_name,'Operations');
  assert.equal((await readShellBranding(Promise.reject(Error('synthetic denied')),5)).logo_url,null);
  const branding={company_name:'Synthetic A',logo_url:null};assert.equal(await readShellBranding(Promise.resolve(branding),20),branding);
  const layout=fs.readFileSync('src/app/(app)/layout.tsx','utf8');assert.match(layout,/Promise.all\(\[getPermissionMap\(permissionCodes\), readShellBranding\(getCompanyBranding\(\)\)\]/);

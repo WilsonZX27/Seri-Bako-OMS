@@ -19,7 +19,7 @@ export default async function EditBranchPage({ params, searchParams }: { params:
   const { id } = await params;
   if (!(await hasPermission("branches.update"))) redirect("/branches");
   const messages = await searchParams;
-  const [branch, companies, supplyRouteContext] = await Promise.all([detailOrNotFound(getBranch(id)), getCompaniesForSelect(), getBranchSupplyRouteContext()]);
+  const [branch, companies, supplyRouteContext, canCreateLocations] = await Promise.all([detailOrNotFound(getBranch(id)), getCompaniesForSelect(), getBranchSupplyRouteContext(), hasPermission("branches.create")]);
   const lifecycleAction = branch.deleted_at ? (
     <form action={restoreBranch.bind(null, id)}><SubmitButton type="submit" className="w-full" pendingLabel="Restoring...">Restore Branch</SubmitButton></form>
   ) : (
@@ -31,7 +31,7 @@ export default async function EditBranchPage({ params, searchParams }: { params:
       <RecordWorkspace actionPanel={<><RecordActionPanel title="Branch Actions"><div className="flex items-center justify-between text-xs"><span className="text-muted-foreground">Status</span><StatusBadge status={branch.status} /></div><SubmitButton type="submit" form="branch-edit-form" className="w-full" pendingLabel="Saving..." data-mobile-primary-action>Save Branch</SubmitButton><Button asChild variant="outline" className="w-full"><Link href="/branches">Back to Branches</Link></Button></RecordActionPanel><RecordActionPanel title="Lifecycle">{lifecycleAction}</RecordActionPanel><RecordActionPanel title="Metadata"><dl className="grid gap-2 text-xs"><div className="flex justify-between gap-3"><dt className="text-muted-foreground">Created</dt><dd>{formatDateTime(branch.created_at).slice(0, 10)}</dd></div><div className="flex justify-between gap-3"><dt className="text-muted-foreground">Updated</dt><dd>{formatDateTime(branch.updated_at).slice(0, 10)}</dd></div></dl></RecordActionPanel></>}>
         {messages.error || messages.success ? <Card><CardContent className={`p-4 text-sm ${messages.error ? "text-destructive" : "text-[var(--sb-success)]"}`}>{messages.error ?? messages.success}</CardContent></Card> : null}
         <BranchForm formId="branch-edit-form" branch={branch} companies={companies} action={updateBranch.bind(null, id)} showSubmit={false} />
-        <BranchSupplyRouteForm branch={branch} context={supplyRouteContext} action={updateBranchSupplyRoutes.bind(null, id)} />
+        <BranchSupplyRouteForm branch={branch} context={supplyRouteContext} canCreateLocations={canCreateLocations} action={updateBranchSupplyRoutes.bind(null, id)} />
       </RecordWorkspace>
     </>
   );

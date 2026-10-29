@@ -2,11 +2,11 @@ const test=require('node:test'),assert=require('node:assert/strict'),fs=require(
 function load({permission=true,wide=false,branchIds=['b'],people=[],nullBalance=false,balanceFor,reportedCount,truncateAt}={}){
  const calls=[],m={exports:{}};let current=0,max=0;
  let statuses=null,excludeEnded=false,span=null,ordering=[];
- const q={};for(const method of ['select','eq','is','in','or','order','range'])q[method]=(...args)=>{calls.push({method,args});if(method==='in'&&args[0]==='status')statuses=args[1];if(method==='or'&&args[0].startsWith('employment_end_date.'))excludeEnded=true;if(method==='range')span=args;if(method==='order')ordering.push(args);return q;};
+ const q={};for(const method of ['select','eq','is','in','or','order','range','limit'])q[method]=(...args)=>{calls.push({method,args});if(method==='in'&&args[0]==='status')statuses=args[1];if(method==='or'&&args[0].startsWith('employment_end_date.'))excludeEnded=true;if(method==='range')span=args;if(method==='order')ordering.push(args);return q;};
  q.then=(a,b)=>{let rows=people.filter(p=>(!statuses||statuses.includes(p.status))&&(!excludeEnded||!p.employment_end_date||p.employment_end_date>='2026-10-24'));for(const [key,opts]of [...ordering].reverse())rows.sort((a,b)=>(opts?.ascending===false?-1:1)*String(a[key]??'').localeCompare(String(b[key]??'')));const count=reportedCount??rows.length;if(span)rows=rows.slice(span[0],span[1]+1);if(truncateAt!=null)rows=rows.slice(0,truncateAt);return Promise.resolve({data:rows,count,error:null}).then(a,b);};
  const db={from:table=>(calls.push({table}),q),rpc:async(name,args)=>{calls.push({name,args});current++;max=Math.max(max,current);await Promise.resolve();current--;return {data:nullBalance?null:balanceFor?balanceFor(name,args.p_staff_id):name==='get_comp_time_balance'?120:60,error:null}}};
  const mocks={'@/lib/staff-code-order':require('./helpers/load-source.cjs')()('src/lib/staff-code-order.ts'),'@/lib/business-date':{todayInKualaLumpur:()=> '2026-10-24'},'@/lib/supabase/server':{createClient:async()=>db},'@/lib/supabase/loose':{looseSupabase:x=>x},'@/server/auth/permissions':{hasPermission:async()=>permission},'@/server/auth/tenant-actor':{requireActiveTenantActor:async()=>({companyId:'c'})},'@/server/queries/notifications':{getCurrentUserScope:async()=>({companyWideAccess:wide,branchIds})}};
- vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/server/queries/ro-management.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:m,exports:m.exports,require:n=>{if(!mocks[n])throw Error(n);return mocks[n]}});return {run:m.exports.getRoManagement,calls,max:()=>max};
+ vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/server/queries/ro-management.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:m,exports:m.exports,require:n=>{if(!mocks[n])throw Error(n);return mocks[n]}});return {run:m.exports.getRoManagement,pending:m.exports.getRoPendingCorrections,calls,max:()=>max};
 }
 const person=i=>({id:'s'+i,full_name:'Synthetic '+i,status:'active',employment_end_date:null,staff_branches:[{branch_id:'b',is_default:true,branches:{branch_name:'Synthetic outlet'}}]});
 test('RO central query denies absent permissions and out-of-scope branches before reading balances',async()=>{
@@ -28,7 +28,7 @@ test('RO paging is bounded, preserves next-page indication, and missing balance 
  await assert.rejects(load({people:[person(1)],nullBalance:true}).run({}),/no zero balance was assumed/);
 });
 test('RO corrections reuse the existing approval API and permission gates; no new mutation endpoint',()=>{
- const p=fs.readFileSync('src/app/(app)/people/ro/page.tsx','utf8');assert.match(p,/hasPermission\("comp_time.submit"\)/);assert.match(p,/CompTimeCorrectionForm/);assert.match(p,/\/attendance\/review/);assert.doesNotMatch(p,/createAdminClient|\.rpc\(|\/api\/people\/ro/);
+ const p=fs.readFileSync('src/app/(app)/people/ro/page.tsx','utf8');assert.match(p,/hasPermission\("comp_time.submit"\)/);assert.match(p,/CompTimeCorrectionForm/);assert.match(p,/getRoPendingCorrections/);assert.match(p,/hasPermission\("comp_time.approve"\)/);assert.match(p,/sections="comp" hideBalances/);assert.doesNotMatch(p,/createAdminClient|\.rpc\(|\/api\/people\/ro/);
 });
 
 test('RO disabled and resigned staff are absent before ledger reads; last working day is inclusive',async()=>{const ended={...person(1),employment_end_date:'2026-10-23'},disabled={...person(2),status:'disabled'},lastDay={...person(3),employment_end_date:'2026-10-24'};const h=load({people:[ended,disabled,lastDay]});const result=await h.run({});assert.equal(result.rows.length,1);assert.equal(result.rows[0].id,lastDay.id);assert.ok(h.calls.filter(c=>c.name).every(c=>c.args.p_staff_id===lastDay.id));});
@@ -56,3 +56,15 @@ test('RO exact500-row numeric boundary sorts,501 refuses partial ledger results 
 test('RO staff codes sort naturally before paging; only displayed25 call balances',async()=>{const data=Array.from({length:32},(_,i)=>({...person(i),staff_code:String(i+1)}));for(const dir of ['asc','desc']){const h=load({people:data});const r=await h.run({sort:'staff_code',dir,page:'2'});assert.deepEqual(Array.from(r.rows,r=>r.staff_code),dir==='asc'?['26','27','28','29','30','31','32']:['7','6','5','4','3','2','1']);assert.equal(h.calls.filter(c=>c.name==='get_comp_time_balance').length,7);assert.equal(r.totalRows,32);}});
 
 test('RO refuses truncated staff-code datasets before any ledger read',async()=>{for(const options of [{people:Array.from({length:500},(_,i)=>({...person(i),staff_code:String(i)})),reportedCount:501},{people:Array.from({length:84},(_,i)=>({...person(i),staff_code:String(i)})),truncateAt:50}]){const h=load(options);const result=await h.run({sort:'staff_code'});assert.equal(result.sortUnavailable,true);assert.equal(h.calls.filter(c=>c.name).length,0);assert.equal(result.rows.length,0)}});
+
+
+test('pending RO review denies missing permissions, empty employee pages and foreign branches before reads',async()=>{
+ for(const h of [load({permission:false}),load({branchIds:[]})]){assert.equal((await h.pending(['s1'])).rows.length,0);assert.equal(h.calls.length,0)}
+ const h=load();assert.equal((await h.pending([])).total,0);assert.equal((await h.pending(['s1'],'foreign')).total,0);assert.equal(h.calls.length,0);
+});
+test('pending RO corrections bind company, authorised staff page, branch and pending status with a50 row bound',async()=>{
+ const h=load();await h.pending(['s1','s2']);
+ for(const [method,key,value]of [['eq','company_id','c'],['eq','status','pending'],['in','staff_id',['s1','s2']],['in','branch_id',['b']]])assert.ok(h.calls.some(c=>c.method===method&&c.args[0]===key&&JSON.stringify(c.args[1])===JSON.stringify(value)));
+ assert.ok(h.calls.some(c=>c.method==='limit'&&c.args[0]===50));assert.ok(!h.calls.some(c=>c.name));
+ const wide=load({wide:true});await wide.pending(['s1'],'chosen');assert.ok(wide.calls.some(c=>c.method==='eq'&&c.args[0]==='branch_id'&&c.args[1]==='chosen'));
+});

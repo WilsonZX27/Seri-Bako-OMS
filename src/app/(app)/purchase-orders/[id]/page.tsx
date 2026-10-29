@@ -132,7 +132,7 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
               <Table mobileHidden aria-label="Ordered items">
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Item</TableHead>
+                      <TableHead className="w-10">#</TableHead><TableHead>Item</TableHead>
                       <TableHead className="text-right">Ordered</TableHead>
                       <TableHead className="text-right">Received</TableHead>
                       <TableHead className="text-right">Cancelled</TableHead>
@@ -144,11 +144,11 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {lines.map((line) => {
+                    {lines.map((line, index) => {
                       const item = itemById.get(line.item_id);
                       const pending = line.qty_ordered - line.qty_received - line.qty_cancelled;
                       return (
-                        <TableRow key={line.id}>
+                        <TableRow key={line.id}><TableCell className="text-xs tabular-nums text-muted-foreground">{index + 1}</TableCell>
                           <TableCell><p className="font-medium">{item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground sb-item-code" title={item?.item_code ?? undefined}>{item?.item_code}</p></TableCell>
                           <TableCell className="text-right">{formatNumber(line.qty_ordered)}</TableCell>
                           <TableCell className="text-right">{formatNumber(line.qty_received)}</TableCell>
@@ -163,16 +163,16 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
                     })}
                   </TableBody>
               </Table>
-              <div className="divide-y divide-[var(--sb-border-soft)] xl:hidden" role="list" aria-label="Ordered items">
-                {lines.map((line) => {
+              <div className="space-y-3 xl:hidden" role="list" aria-label="Ordered items">
+                {lines.map((line, index) => {
                   const item = itemById.get(line.item_id);
                   const pending = line.qty_ordered - line.qty_received - line.qty_cancelled;
-                  return <div key={line.id} role="listitem" className="min-w-0 py-3 text-sm">
+                  return <div key={line.id} role="listitem" className="min-w-0 rounded-[var(--sb-control-radius)] border border-[var(--sb-border)] p-3 text-sm">
                     <div className="flex min-w-0 items-start justify-between gap-4">
-                      <div className="min-w-0"><p className="break-words font-semibold">{item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground">{item?.item_code ?? "No item code"}</p></div>
+                      <div className="min-w-0"><p className="mb-1 text-xs text-muted-foreground">Item {index + 1}</p><p className="break-words font-semibold">{item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground">{item?.item_code ?? "No item code"}</p></div>
                       <div className="shrink-0 text-right"><p className="text-xs text-muted-foreground">Ordered</p><p className="font-semibold">{formatNumber(line.qty_ordered)} {line.uom}</p></div>
                     </div>
-                    <div className="my-3 grid grid-cols-3 gap-3 border-y border-[var(--sb-border-soft)] py-3">
+                    <div className="my-3 grid grid-cols-3 gap-3 rounded-[var(--sb-control-radius)] bg-[var(--sb-surface-muted)] p-2">
                       <div><p className="text-xs text-muted-foreground">Received</p><p className="mt-1 tabular-nums">{formatNumber(line.qty_received)}</p></div>
                       <div><p className="text-xs text-muted-foreground">Cancelled</p><p className="mt-1 tabular-nums">{formatNumber(line.qty_cancelled)}</p></div>
                       <div><p className="text-xs text-muted-foreground">Pending</p><p className="mt-1 tabular-nums">{formatNumber(pending)}</p></div>

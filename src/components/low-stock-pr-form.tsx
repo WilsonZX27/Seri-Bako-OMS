@@ -1,11 +1,13 @@
 "use client";
 
-import { Fragment, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import { PackageOpen, ShoppingBasket, X } from "lucide-react";
+import { getReplenishmentDecision } from "@/lib/replenishment-decision";
+import { Badge } from "@/components/ui/badge";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { PackageOpen, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { Card, CardContent } from "@/components/ui/card";
+import { WorkspaceGrid } from "@/components/layout/workspace-layout";
+import { ConsoleSection } from "@/components/layout/right-console";
 import { Field } from "@/components/ui/field";
 import { SelectControl } from "@/components/ui/select-control";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
@@ -25,7 +27,7 @@ type LowStockItem = {
   supplier_id: string | null;
   supplier_name: string | null;
   cost: number;
-  stock_status: string;
+  stock_status: "out_of_stock" | "low_stock" | "sufficient";
   current_stock: number;
   safety_stock: number;
 };
@@ -43,17 +45,13 @@ function validStoredLine(value: unknown, branchId: string): value is StoredBaske
     && (item.supplier_name === null || typeof item.supplier_name === "string")
     && (item.base_unit === null || typeof item.base_unit === "string")
     && (item.purchase_unit === null || typeof item.purchase_unit === "string")
-    && typeof item.stock_status === "string"
+    && ["out_of_stock", "low_stock", "sufficient"].includes(item.stock_status ?? "")
     && Number.isFinite(item.suggested_reorder_qty) && Number.isFinite(item.current_stock)
     && Number.isFinite(item.safety_stock) && Number.isFinite(item.cost)
     && typeof line.qty === "string" && Number.isFinite(Number(line.qty)) && Number(line.qty) > 0
     && typeof line.uom === "string" && line.uom.length > 0);
 }
 
-function numberValue(value: string) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : 0;
-}
 
 function rowKey(item: LowStockItem) {
   return `${item.branch_id ?? "all"}|${item.item_id}`;
@@ -70,20 +68,16 @@ function groupBySupplier(items: LowStockItem[]) {
   );
 }
 
-function BasketSurface({ open, children }: { open: boolean; children: ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  return open && mounted ? createPortal(children, document.body) : children;
-}
-
-export function LowStockPrForm({ items, branches, defaultBranchId, basketOwnerId, disabled }: {
+export function LowStockPrForm({ items, branches, defaultBranchId, basketOwnerId, disabled, summary }: {
   items: LowStockItem[];
   branches: BranchOption[];
   defaultBranchId?: string;
   basketOwnerId: string;
   disabled: boolean;
+  summary?: ReactNode;
 }) {
   const [selectedBranchId, setSelectedBranchId] = useState(defaultBranchId ?? "all");
+  const [picked, setPicked] = useState<Record<string, boolean>>({});
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [retainedItems, setRetainedItems] = useState<LowStockItem[]>([]);
   const [hydratedBasketKey, setHydratedBasketKey] = useState<string | null>(null);
@@ -102,29 +96,17 @@ export function LowStockPrForm({ items, branches, defaultBranchId, basketOwnerId
   }, [basketItems, selectedBranchId]);
   const [quantities, setQuantities] = useState<Record<string, string>>({});
   const [uoms, setUoms] = useState<Record<string, string>>({});
-  const [basketOpen, setBasketOpen] = useState(false);
-  const [desktopExpanded, setDesktopExpanded] = useState(false);
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const branchSelected = selectedBranchId !== "all";
+  const basketReady = hydratedBasketKey === basketStorageKey;
 
   const selectedCount = visibleItems.filter((item) => selected[rowKey(item)]).length;
   const selectedLabel = selectedCount ? `${selectedCount} selected` : "No items selected";
-  const selectedTotal = selectedCount === 0
-    ? "0"
-    : visibleItems
-      .filter((item) => selected[rowKey(item)])
-      .reduce((sum, item) => {
-        const key = rowKey(item);
-        return sum + Math.max(0, numberValue(quantities[key] ?? String(item.suggested_reorder_qty)));
-      }, 0)
-      .toFixed(2);
   const selectedItems = useMemo(() => visibleItems.filter((item) => selected[rowKey(item)]), [selected, visibleItems]);
-  const allVisibleSelected = branchSelected && visibleItems.length > 0 && visibleItems.every((item) => selected[rowKey(item)]);
-  const someVisibleSelected = branchSelected && visibleItems.some((item) => selected[rowKey(item)]);
+  const allVisibleSelected = branchSelected && visibleItems.length > 0 && visibleItems.every((item) => picked[rowKey(item)]);
+  const someVisibleSelected = branchSelected && visibleItems.some((item) => picked[rowKey(item)]);
   const selectAllDesktopRef = useRef<HTMLInputElement>(null);
   const selectAllMobileRef = useRef<HTMLInputElement>(null);
-  const basketTriggerRef = useRef<HTMLButtonElement>(null);
-  const basketCloseRef = useRef<HTMLButtonElement>(null);
   const supplierGroups = useMemo(() => groupBySupplier(selectedItems), [selectedItems]);
   const basketPayload = useMemo(() => supplierGroups
     .filter(([supplierId]) => supplierId !== "unassigned")
@@ -178,6 +160,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, basketOwnerId
         const lines = (Array.isArray(stored?.lines) ? stored.lines : [])
           .filter((line): line is StoredBasketLine => validStoredLine(line, branchId))
           .slice(0, 100);
+        setPicked({});
         setSelectedBranchId(branchId);
         setRetainedItems(lines.map((line) => line.item));
         setSelected(Object.fromEntries(lines.map((line) => [rowKey(line.item), true])));
@@ -229,6 +212,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, basketOwnerId
   }
 
   function selectBranch(branchId: string) {
+    setPicked({});
     setSelectedBranchId(branchId);
     setSelected({});
     setQuantities({});
@@ -241,231 +225,37 @@ export function LowStockPrForm({ items, branches, defaultBranchId, basketOwnerId
     }
   }, [allVisibleSelected, someVisibleSelected]);
 
-  useEffect(() => {
-    if (!basketOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    const basketTrigger = basketTriggerRef.current;
-    document.body.style.overflow = "hidden";
-    basketCloseRef.current?.focus();
-    const onBasketKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setBasketOpen(false);
-        return;
-      }
-      if (event.key !== "Tab") return;
-      const dialog = document.querySelector('[data-low-stock-pr-setup][role="dialog"]');
-      if (!dialog) return;
-      const controls = Array.from(dialog.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'))
-        .filter((control) => control.getClientRects().length > 0);
-      if (!controls.length) return;
-      const first = controls[0];
-      const last = controls[controls.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-    const onResize = () => {
-      if (window.matchMedia("(min-width: 768px)").matches) setBasketOpen(false);
-    };
-    document.addEventListener("keydown", onBasketKeyDown);
-    window.addEventListener("resize", onResize);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener("keydown", onBasketKeyDown);
-      window.removeEventListener("resize", onResize);
-      basketTrigger?.focus();
-    };
-  }, [basketOpen]);
-
   function toggleAllVisible() {
     if (!branchSelected) return;
-    const nextValue = !allVisibleSelected;
-    setSelected((current) => {
-      const next = { ...current };
-      for (const item of visibleItems) next[rowKey(item)] = nextValue;
-      return next;
-    });
-    if (!nextValue) {
-      setQuantities((current) => {
-        const next = { ...current };
-        for (const item of visibleItems) delete next[rowKey(item)];
-        return next;
-      });
-    }
+    setPicked(current => ({...current,...Object.fromEntries(visibleItems.map(item=>[rowKey(item),!allVisibleSelected]))}));
   }
-
-  return (
-    <>
-      <button ref={basketTriggerRef} type="button" className="fixed bottom-[calc(var(--sb-mobile-nav-height)+env(safe-area-inset-bottom)+1rem)] right-4 z-[var(--sb-z-sticky)] inline-flex h-14 w-14 items-center justify-center rounded-full bg-[var(--sb-green-900)] text-white shadow-[0_3px_8px_rgb(6_44_31_/_0.22)] md:hidden" onClick={() => setBasketOpen(true)} aria-label={`Open PR basket, ${selectedCount} selected`} aria-haspopup="dialog" aria-expanded={basketOpen}>
-        <ShoppingBasket className="h-5 w-5" />
-        {selectedCount ? <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-white px-1 text-center text-[11px] font-bold leading-5 text-[var(--sb-green-900)]">{selectedCount}</span> : null}
-      </button>
-      <BasketSurface open={basketOpen}>
-      {basketOpen ? <button type="button" className="sb-dialog-backdrop fixed inset-0 z-[var(--sb-z-backdrop)] md:hidden" aria-label="Close PR basket" onClick={() => setBasketOpen(false)} /> : null}
-      <Card role={basketOpen ? "dialog" : undefined} aria-modal={basketOpen ? true : undefined} aria-label={basketOpen ? "PR basket" : undefined} className={`sb-procurement-basket max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-[var(--sb-z-dialog)] max-md:max-h-[84dvh] max-md:overflow-hidden max-md:rounded-b-none max-md:rounded-t-[var(--sb-panel-radius)] ${basketOpen ? "max-md:block" : "max-md:hidden"}`} data-low-stock-pr-setup>
-      <CardContent className="space-y-4 p-4 max-md:max-h-[84dvh] max-md:overflow-y-auto max-md:pb-[calc(env(safe-area-inset-bottom)+1rem)] md:p-5">
-        <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
-          <div className="min-w-0"><h2 className="text-sm font-semibold">PR basket</h2><p className="mt-1 text-xs text-muted-foreground"><span aria-live="polite">{selectedLabel}</span> · Suggested total {selectedTotal}</p></div>
-          <Button type="button" variant="outline" className="hidden md:inline-flex" aria-expanded={desktopExpanded} aria-controls="low-stock-basket-editor" onClick={()=>setDesktopExpanded(value=>!value)}>{desktopExpanded ? "Hide items" : "Choose items"}</Button>
-          <button ref={basketCloseRef} type="button" className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md border md:hidden" onClick={() => setBasketOpen(false)} aria-label="Close PR basket"><X className="h-4 w-4" /></button>
-        </div>
-
-        <div id="low-stock-basket-editor" hidden={!basketOpen && !desktopExpanded} className="space-y-3">
-        <div className="grid gap-3 md:grid-cols-2">
-          <Field label="Branch">
-            <SelectControl value={selectedBranchId} onValueChange={selectedValue => selectBranch(selectedValue)} aria-describedby="low-stock-branch-guidance" ariaLabel={"Branch"} options={[({value: "all", label: "Choose a branch"}), ...(branches.map((branch) => ({value: String((branch.id) ?? ""), label: String((branch.branch_name) ?? "")})))]}/>
-          </Field>
-        </div>
-
-        <p id="low-stock-branch-guidance" className="text-xs text-muted-foreground">
-          {branchSelected ? "Selections apply only to this branch. Changing branch clears the basket." : "Choose one branch before selecting items for a purchase request."}
-        </p>
-
-        {disabled ? (
-          <div className="rounded-md border border-dashed p-4 text-center text-sm text-muted-foreground">
-            You do not have permission to create purchase requests.
-          </div>
-        ) : (
-          <form action={createPurchaseRequestsFromBasket} className="space-y-3">
-            <input type="hidden" name="idempotency_key" value={idempotencyKey} />
-            <input type="hidden" name="request_no" value="" />
-            <input type="hidden" name="request_date" value={getToday()} />
-            <input type="hidden" name="required_date" value="" />
-            <input type="hidden" name="priority" value="normal" />
-            <input type="hidden" name="branch_id" value={selectedBranchId === "all" ? "" : selectedBranchId} />
-            <input type="hidden" name="supplier_groups" value={JSON.stringify(basketPayload)} />
-
-            <div className="hidden overflow-x-auto rounded-[var(--sb-radius-card)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface)] md:block">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-secondary/40 text-left text-xs">
-                    <th className="w-10 px-3 py-2 font-medium"><input ref={selectAllDesktopRef} type="checkbox" aria-label="Select all visible low-stock items" checked={allVisibleSelected} onChange={toggleAllVisible} disabled={!branchSelected || !visibleItems.length} /></th>
-                    <th className="px-3 py-2 font-medium">Item</th>
-                    <th className="px-3 py-2 font-medium">Current</th>
-                    <th className="px-3 py-2 font-medium">Suggested</th>
-                    <th className="px-3 py-2 font-medium text-right">Qty for PR</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {groupBySupplier(visibleItems).map(([supplierId, supplierItems]) => (
-                    <Fragment key={`supplier-group-${supplierId}`}>
-                    <tr className="bg-secondary/30">
-                      <td colSpan={5} className="px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-muted)]">
-                        {supplierItems[0]?.supplier_name ?? "Supplier mapping missing"}
-                      </td>
-                    </tr>
-                    {supplierItems.map((item) => {
-                    const key = rowKey(item);
-                    const isSelected = Boolean(selected[key]);
-                    const requestedQty = quantities[key] ?? String(item.suggested_reorder_qty);
-                    return (
-                      <tr key={key} className="border-b last:border-0" data-low-stock-pr-line data-selected={isSelected ? "true" : "false"}>
-                        <td className="px-3 py-2">
-                          <input
-                            type="checkbox"
-                            aria-label={`Select ${item.item_code}`}
-                            checked={isSelected}
-                            onChange={() => toggleItem(key)}
-                            disabled={!branchSelected}
-                          />
-                        </td>
-                        <td className="px-3 py-2">
-                          <p className="font-medium leading-tight">{item.item_name}</p>
-                          <p className="text-xs text-muted-foreground">{item.item_code} {item.branch_name ? `• ${item.branch_name}` : ""}</p>
-                        </td>
-                        <td className="px-3 py-2 text-xs text-muted-foreground">{item.current_stock}</td>
-                        <td className="px-3 py-2 text-xs text-muted-foreground">{item.suggested_reorder_qty} {item.purchase_unit || item.base_unit}</td>
-                        <td className="px-3 py-2">
-                          {branchSelected ? <div className="flex items-center justify-end gap-1.5">
-                            <QuantityStepper
-                              value={requestedQty}
-                              uom={null}
-                              step={0.0001}
-                              buttonStep={1}
-                              density="compact"
-                              label={`Quantity for ${item.item_name}`}
-                              onChange={(value) => {
-                                setItemQty(key, value);
-                                if (!isSelected) setSelected((current) => ({ ...current, [key]: true }));
-                              }}
-                              className="min-w-0"
-                            />
-                            <SelectControl ariaLabel={`Purchase UOM for ${item.item_name}`} value={uoms[key] ?? item.purchase_unit ?? item.base_unit ?? "PCS"} onValueChange={selectedValue => setItemUom(key, selectedValue)} className="h-10 w-20 px-1.5 text-xs" options={[...(uomOptionsWithCurrent(item.purchase_unit || item.base_unit).map((uom) => ({value: String((uom) ?? ""), label: String((uom) ?? "")})))]}/>
-                          </div> : <span className="text-xs text-muted-foreground">Choose branch</span>}
-                        </td>
-                      </tr>
-                    );
-                    })}
-                    </Fragment>
-                  ))}
-                  {!visibleItems.length ? (
-                    <tr>
-                      <td className="px-3 py-4 text-center text-sm text-muted-foreground" colSpan={5}>
-                        No items match this branch filter.
-                      </td>
-                    </tr>
-                  ) : null}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="divide-y divide-[var(--sb-border-soft)] border-y border-[var(--sb-border-soft)] md:hidden" data-low-stock-pr-lines>
-              <div className="flex items-center justify-between gap-3 border-b border-[var(--sb-border-soft)] bg-secondary/20 px-3 py-2 text-xs">
-                <label className="inline-flex min-h-11 items-center gap-2 font-medium"><input ref={selectAllMobileRef} type="checkbox" aria-label="Select all visible low-stock items" checked={allVisibleSelected} onChange={toggleAllVisible} disabled={!branchSelected || !visibleItems.length} /> Select all visible</label>
-                <span className="text-muted-foreground">{selectedLabel}</span>
-              </div>
-              {groupBySupplier(visibleItems).map(([supplierId, supplierItems]) => <div key={`mobile-supplier-group-${supplierId}`}>
-                <div className="bg-secondary/30 px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--sb-text-muted)]">
-                  {supplierItems[0]?.supplier_name ?? "Supplier mapping missing"}
-                </div>
-                {supplierItems.map((item) => {
-                const key = rowKey(item);
-                const isSelected = Boolean(selected[key]);
-                const requestedQty = quantities[key] ?? String(item.suggested_reorder_qty);
-                return (
-                  <div key={key} className="p-3 first:pt-2 last:pb-2" data-low-stock-pr-line data-selected={isSelected ? "true" : "false"}>
-                    <span className="flex items-start gap-3">
-                      <input type="checkbox" aria-label={`Select ${item.item_code}`} checked={isSelected} onChange={() => toggleItem(key)} disabled={!branchSelected} className="mt-1 h-4 w-4 shrink-0" />
-                      <span className="min-w-0 flex-1">
-                        <span className="block font-medium leading-tight">{item.item_name}</span>
-                        <span className="mt-1 block text-xs text-muted-foreground">{item.item_code} {item.branch_name ? `- ${item.branch_name}` : ""}</span>
-                      </span>
-                    </span>
-                    <span className="mt-3 grid grid-cols-2 gap-3">
-                      <span className="text-xs text-muted-foreground">Current <strong className="block text-sm text-foreground">{item.current_stock} {item.base_unit}</strong></span>
-                      <span className="text-xs text-muted-foreground">Suggested <strong className="block text-sm text-foreground">{item.suggested_reorder_qty} {item.purchase_unit || item.base_unit}</strong></span>
-                      {isSelected ? <span className="col-span-2" data-low-stock-pr-quantity><Field label="Qty for PR"><div className="flex items-center gap-1.5"><QuantityStepper value={requestedQty} uom={null} step={0.0001} buttonStep={1} density="touch" label={`Quantity for ${item.item_name}`} onChange={(value) => setItemQty(key, value)} className="min-w-0 flex-1" /><SelectControl ariaLabel={`Purchase UOM for ${item.item_name}`} value={uoms[key] ?? item.purchase_unit ?? item.base_unit ?? "PCS"} onValueChange={selectedValue => setItemUom(key, selectedValue)} className="h-11 w-20 px-1.5 text-xs" options={[...(uomOptionsWithCurrent(item.purchase_unit || item.base_unit).map((uom) => ({value: String((uom) ?? ""), label: String((uom) ?? "")})))]}/></div></Field></span> : null}
-                    </span>
-                  </div>
-                );
-                })}
-              </div>)}
-              {!visibleItems.length ? <p className="px-3 py-4 text-center text-sm text-muted-foreground">No items match this branch filter.</p> : null}
-            </div>
-
-            <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
-              <div>
-                <p>Only checked rows will be included. Each supplier becomes a separate draft PR.</p>
-                {hasMissingSupplier ? <p className="mt-1 font-medium text-destructive">Supplier mapping is required before these items can become a PR.</p> : null}
-              </div>
-              <p aria-live="polite">{selectedLabel}</p>
-            </div>
-            <div className="flex justify-end border-t border-[var(--sb-border-soft)] pt-3">
-              <SubmitButton type="submit" disabled={!canCreatePr} className="min-h-11 w-full md:w-auto md:min-w-56" pendingLabel="Creating PR...">
-                <PackageOpen className="h-4 w-4" />
-                Create PR{supplierGroups.length > 1 ? `s (${supplierGroups.length} suppliers)` : ""}
-              </SubmitButton>
-            </div>
-          </form>
-        )}
-        </div>
-      </CardContent>
-    </Card>
-      </BasketSurface>
-    </>
-  );
+  const decisionByKey = new Map(visibleItems.map(item=>[rowKey(item),getReplenishmentDecision({currentStock:item.current_stock,safetyStock:item.safety_stock,suggestedReorderQty:item.suggested_reorder_qty,stockStatus:item.stock_status,supplierId:item.supplier_id,supplierName:item.supplier_name,baseUnit:item.base_unit})]));
+  const pickedItems=visibleItems.filter(item=>picked[rowKey(item)]);
+  const basket=<>
+    <ConsoleSection title="PR basket"><p className="text-xs text-muted-foreground" aria-live="polite">{selectedLabel}</p>
+      <ul className="divide-y">{selectedItems.map(item=>{const key=rowKey(item);return <li key={key} className="flex items-start gap-2 py-3"><div className="min-w-0 flex-1"><p className="break-words text-xs font-semibold">{item.item_name}</p><p className="mt-1 text-xs text-muted-foreground">{quantities[key]??item.suggested_reorder_qty} {uoms[key]??item.purchase_unit??item.base_unit} · {item.supplier_name??"Supplier missing"}</p></div><Button type="button" variant="ghost" size="icon" aria-label={`Remove ${item.item_code} from basket`} onClick={()=>toggleItem(key)}><X className="size-4" aria-hidden="true"/></Button></li>;})}</ul>
+      {!selectedItems.length?<p className="text-xs text-muted-foreground">Select items and add them to the basket.</p>:null}
+      {hasMissingSupplier?<p role="status" className="text-xs text-destructive">Choose a supplier before creating these requests.</p>:null}
+      <SubmitButton size="lg" data-mobile-primary-action type="submit" form="low-stock-pr-create" disabled={!basketReady||disabled||!canCreatePr||selectedItems.some(item=>!Number.isFinite(Number(quantities[rowKey(item)]??item.suggested_reorder_qty))||Number(quantities[rowKey(item)]??item.suggested_reorder_qty)<=0)} className="w-full" pendingLabel="Creating PR..."><PackageOpen className="size-4" aria-hidden="true"/>Create draft PR{supplierGroups.length>1?`s (${supplierGroups.length})`:""}</SubmitButton>
+      <p className="text-xs text-muted-foreground">A separate draft is created for each supplier.</p>
+    </ConsoleSection>{summary}
+  </>;
+  return <WorkspaceGrid tabletRailMode="split" tabletRailBreakpoint="lg" tabletRailWidth="half" hideMobileConsole mobileRailSummary={`PR basket · ${selectedCount}`} rightRail={basket}>
+    <section className="sb-work-surface overflow-hidden" data-low-stock-pr-setup aria-busy={!basketReady}>
+      <fieldset disabled={!basketReady||disabled} className="min-w-0" aria-label="Purchase request basket preparation">
+      <header className="grid items-end gap-3 border-b p-3 sm:grid-cols-[minmax(0,1fr)_auto]">
+        <Field label="Request branch"><SelectControl value={selectedBranchId} onValueChange={selectBranch} ariaLabel="Request branch" options={[{value:"all",label:"Choose a branch"},...branches.map(branch=>({value:branch.id,label:branch.branch_name}))]}/></Field>
+        <Button type="button" disabled={disabled||!pickedItems.length} onClick={()=>{setSelected(current=>({...current,...Object.fromEntries(pickedItems.map(item=>[rowKey(item),true]))}));setPicked({});}}>Add selected to basket ({pickedItems.length})</Button>
+      </header>
+      <p id="low-stock-branch-guidance" className="px-3 py-2 text-xs text-muted-foreground">{branchSelected?"Select items below. Changing the branch clears this basket.":"Choose one branch before selecting items."}</p>
+      {disabled?<p role="status" className="p-3 text-xs text-muted-foreground">You have read-only access.</p>:null}
+      <form id="low-stock-pr-create" action={createPurchaseRequestsFromBasket}>
+        <input type="hidden" name="idempotency_key" value={idempotencyKey}/><input type="hidden" name="request_no" value=""/><input type="hidden" name="request_date" value={getToday()}/><input type="hidden" name="required_date" value=""/><input type="hidden" name="priority" value="normal"/><input type="hidden" name="branch_id" value={selectedBranchId==="all"?"":selectedBranchId}/><input type="hidden" name="supplier_groups" value={JSON.stringify(basketPayload)}/>
+        <div className="hidden overflow-x-auto md:block"><table className="w-full text-xs"><thead className="bg-[var(--sb-surface-muted)] text-left"><tr><th className="p-3"><input ref={selectAllDesktopRef} type="checkbox" aria-label="Select all visible low-stock items" checked={allVisibleSelected} onChange={toggleAllVisible} disabled={disabled||!branchSelected||!visibleItems.length}/></th><th className="p-3 font-medium">Item</th><th className="p-3 font-medium">Decision</th><th className="p-3 text-right font-medium">Current</th><th className="p-3 text-right font-medium">Safety</th><th className="p-3 text-right font-medium">Suggested</th><th className="p-3 font-medium">Qty for PR</th><th className="p-3 font-medium">UOM</th></tr></thead><tbody>{visibleItems.map(item=>{const key=rowKey(item);return <tr key={key} className="border-t border-[var(--sb-border-soft)]" data-low-stock-pr-line data-selected={picked[key]||selected[key]?"true":"false"}><td className="p-3"><input type="checkbox" aria-label={`Select ${item.item_code}`} checked={!!picked[key]} disabled={disabled||!branchSelected} onChange={()=>setPicked(current=>({...current,[key]:!current[key]}))}/></td><th scope="row" className="min-w-40 p-3 text-left font-medium">{item.item_name}<span className="mt-1 block text-xs font-normal text-muted-foreground">{item.item_code} · {item.supplier_name??"Supplier missing"}</span></th><td className="p-3"><Badge variant={decisionByKey.get(key)?.blocked?"danger":"secondary"} title={decisionByKey.get(key)?.reason} data-low-stock-decision={decisionByKey.get(key)?.decision}>{decisionByKey.get(key)?.label}</Badge></td><td className="p-3 text-right tabular-nums">{item.current_stock} {item.base_unit}</td><td className="p-3 text-right tabular-nums">{item.safety_stock}</td><td className="p-3 text-right tabular-nums">{item.suggested_reorder_qty}</td><td className="p-3"><QuantityStepper value={quantities[key]??String(item.suggested_reorder_qty)} label={`Quantity for ${item.item_name}`} uom={null} step={0.0001} buttonStep={1} density="dense" onChange={value=>setItemQty(key,value)}/></td><td className="p-3"><SelectControl ariaLabel={`Purchase UOM for ${item.item_name}`} value={uoms[key]??item.purchase_unit??item.base_unit??"PCS"} onValueChange={value=>setItemUom(key,value)} className="min-w-20" options={uomOptionsWithCurrent(item.purchase_unit||item.base_unit).map(unit=>({value:unit,label:unit}))}/></td></tr>;})}</tbody></table></div>
+        <div className="divide-y md:hidden" data-low-stock-pr-lines><label className="flex min-h-11 items-center gap-3 px-3 text-xs"><input ref={selectAllMobileRef} type="checkbox" aria-label="Select all visible low-stock items" checked={allVisibleSelected} onChange={toggleAllVisible} disabled={disabled||!branchSelected||!visibleItems.length}/>Select all visible</label>{visibleItems.map(item=>{const key=rowKey(item);return <div key={key} className="space-y-3 p-3" data-low-stock-pr-line><label className="flex min-h-11 items-start gap-3 text-xs"><input type="checkbox" aria-label={`Select ${item.item_code}`} checked={!!picked[key]} disabled={disabled||!branchSelected} onChange={()=>setPicked(current=>({...current,[key]:!current[key]}))}/><span><strong>{item.item_name}</strong><span className="mt-1 block text-muted-foreground">{item.item_code} · {item.supplier_name??"Supplier missing"}</span></span></label><p className="text-xs text-muted-foreground">Current {item.current_stock} {item.base_unit} · Safety {item.safety_stock} · Suggested {item.suggested_reorder_qty}</p><p className="text-xs" data-low-stock-decision={decisionByKey.get(key)?.decision}><strong>{decisionByKey.get(key)?.label}</strong><span className="ml-2 text-muted-foreground">{decisionByKey.get(key)?.reason}</span></p><div className="grid grid-cols-2 items-center gap-2"><QuantityStepper className="w-full" label={`Quantity for ${item.item_name}`} value={quantities[key]??String(item.suggested_reorder_qty)} uom={null} step={0.0001} buttonStep={1} onChange={value=>setItemQty(key,value)}/><SelectControl ariaLabel={`Purchase UOM for ${item.item_name}`} value={uoms[key]??item.purchase_unit??item.base_unit??"PCS"} onValueChange={value=>setItemUom(key,value)} options={uomOptionsWithCurrent(item.purchase_unit||item.base_unit).map(unit=>({value:unit,label:unit}))}/></div></div>;})}</div>
+        {!visibleItems.length?<p className="p-4 text-xs text-muted-foreground">No items match this branch.</p>:null}
+      </form>
+      </fieldset>
+    </section>
+  </WorkspaceGrid>;
 }

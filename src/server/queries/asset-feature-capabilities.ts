@@ -1,7 +1,11 @@
 import type { LooseSupabase } from "@/lib/supabase/loose";
 const ASSET_BATCH_CREATION_ENABLED = true;
-const ASSET_NUMBERING_ENABLED = false;
-export async function assetFeatureCapabilities(db: LooseSupabase) {
+// Default OFF. A deployment opt-in is scoped to one verified company and still
+// requires the authenticated database capability/allocator contract below.
+export async function assetFeatureCapabilities(db: LooseSupabase, companyId?: string) {
+  const ASSET_NUMBERING_ENABLED = Boolean(companyId
+    && process.env.ASSET_NUMBERING_COMPANY_ID === companyId
+    && process.env.ASSET_NUMBERING_RELEASE === "verified-allocator-v1");
   const result = await db.rpc("asset_feature_capabilities");
   if (result.error) {
     if (["PGRST202","42883","42501"].includes((result.error as {code?:string}).code ?? "")) return {automaticId:false,transferBatch:false,transferBatchRead:false};

@@ -3,7 +3,7 @@ import type { Allocation, PlanningBranch, PlanningProduct, ProductionLine } from
 export function productionSheetFilename(kitchen: string, date: string, version: number) {
   return `Production Sheet - ${kitchen.replace(/[\\/:*?"<>|]/g, " ").replace(/\s+/g, " ").trim()} - ${date} - v${version}.pdf`;
 }
-export type ProductionSheetData={kitchen:string;date:string;version:number;status:string;dirty:boolean;products:PlanningProduct[];outlets:PlanningBranch[];allocations:Allocation[];production:ProductionLine[]};
+export type ProductionSheetData={companyName?:string;kitchen:string;date:string;version:number;status:string;dirty:boolean;products:PlanningProduct[];outlets:PlanningBranch[];allocations:Allocation[];production:ProductionLine[]};
 /** Runs only on export; names and quantities stay local to the browser. */
 export async function buildProductionSheetPdf(data:ProductionSheetData) {
   const {PDFDocument,StandardFonts,rgb}=await import("pdf-lib");
@@ -12,7 +12,7 @@ export async function buildProductionSheetPdf(data:ProductionSheetData) {
   const clean=(value:string)=>value.replace(/[\r\n\t]+/g," ").replace(/[\u2010-\u2015]/g,"-").replace(/\s+/g," ").trim();
   const number=(value:number|null|undefined)=>value==null?"—":new Intl.NumberFormat("en-MY",{maximumFractionDigits:2}).format(value);
   const date=data.date.split("-").reverse().join("/");
-  const title=productionSheetFilename(data.kitchen,data.date,data.version);doc.setTitle(title.replace(/\.pdf$/,""));doc.setAuthor("Seri Bako");
+  const title=productionSheetFilename(data.kitchen,data.date,data.version);doc.setTitle(title.replace(/\.pdf$/,""));doc.setAuthor(data.companyName?.trim()||"Operations");
   const status=data.dirty?"UNSAVED DRAFT":data.status.toUpperCase();
   const rows=[...data.products].sort(compareProductDisplayOrder).flatMap(product=>{const production=data.production.find(l=>l.product_id===product.id);return production?[{product,production}]:[];});
   const wrap=(value:string,width:number,size:number,isBold=false)=>{
@@ -21,12 +21,18 @@ export async function buildProductionSheetPdf(data:ProductionSheetData) {
     if(current)result.push(current);return result.length?result:[""];
   };
   const left=24,right=571.28,tableWidth=right-left;
+  let brand=clean(data.companyName||"Operations");
+  try { bold.encodeText(brand); } catch { brand="Operations"; }
+  const brandWidth=tableWidth-bold.widthOfTextAtSize(status,10)-16;
+  const completeBrand=brand;
+  while(brand.length&&bold.widthOfTextAtSize(brand+"...",9)>brandWidth)brand=brand.slice(0,-1);
+  if(brand!==completeBrand)brand+="...";
   type Column={label:string;width:number;numeric?:boolean};
   const table=(subtitle:string,columns:Column[],values:string[][])=>{
     columns=columns.map(column=>({...column,width:column.width*tableWidth/columns.reduce((sum,c)=>sum+c.width,0)}));
     let page=doc.addPage([595.28,841.89]),y=0;
     const start=()=>{
-      page.drawText("SERI BAKO",{x:left,y:810,size:9,font:bold,color:green});page.drawText(subtitle,{x:left,y:790,size:16,font:bold,color:ink});
+      page.drawText(brand,{x:left,y:810,size:9,font:bold,color:green});page.drawText(subtitle,{x:left,y:790,size:16,font:bold,color:ink});
       page.drawText(clean(`${data.kitchen} | Delivery ${date} | Version ${data.version}`),{x:left,y:775,size:10,font,color:muted});
       page.drawText(status,{x:right-bold.widthOfTextAtSize(status,10),y:808,size:10,font:bold,color:green});
       page.drawLine({start:{x:left,y:765},end:{x:right,y:765},thickness:1.5,color:green});

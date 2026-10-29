@@ -31,6 +31,7 @@ export default async function NewStockTransferPage({ searchParams }: { searchPar
         branch={branches.find((branch) => branch.id === selectedFromBranchId)?.branch_name}
         workflowSteps={steps}
         currentStatus="draft"
+        tabletRailMode="split"
         mobilePrimaryAction={primaryAction}
         mobileActionHint={actionHint}
         sidePanel={<><DocumentSideSection title="Primary Action">{primaryAction}</DocumentSideSection>{actionHint ? <DocumentSideSection title="Next step"><Notice>{actionHint}</Notice></DocumentSideSection> : null}</>}

@@ -1,3 +1,4 @@
+import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 import { createClient } from "@/lib/supabase/server";
 import { requireDetailRow } from "@/server/queries/detail";
 import { getCurrentProfile } from "@/server/queries/common";
@@ -43,8 +44,9 @@ function matchesFilter(values: Array<string | null | undefined>, filters: Filter
 export async function getCompany() {
   if (isMockMode()) return mockCompany;
 
+  const actor = await requireActiveTenantActor();
   const supabase = await createClient();
-  const { data, error } = await supabase.from("companies").select("*").order("created_at", { ascending: true }).limit(1).single();
+  const { data, error } = await supabase.from("companies").select("*").eq("id", actor.companyId).is("deleted_at", null).single();
   if (error) throw new Error(error.message);
   return data;
 }

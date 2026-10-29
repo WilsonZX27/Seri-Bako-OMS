@@ -4,7 +4,7 @@ const content=load('src/lib/asset-attachments.ts');
 const id=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 function harness(options={}){
  const calls=[],actor={companyId:id(1),staffId:id(2)},asset=id(3),attachment={id:id(4),storage_path:`${id(1)}/${options.general ? `maintenance/${id(6)}` : asset}/${id(4)}.jpg`,verified:!!options.verified};let actors=0,reserves=0;
- const db={rpc:async(name,args)=>{calls.push({name,args});if(options.rpcError)return {data:null,error:options.rpcError};if(name==="report_asset_maintenance") return {data:id(6),error:null};reserves++;return options.denied || (options.accessChanged && reserves===2)?{data:null,error:{message:'Access denied'}}:{data:attachment,error:null};}};
+ const db={rpc:async(name,args)=>{calls.push({name,args});if(name==="report_asset_maintenance_v2")return options.v2?{data:id(6),error:null}:{data:null,error:{code:"PGRST202"}};if(options.rpcError)return {data:null,error:options.rpcError};if(name==="report_asset_maintenance") return {data:id(6),error:null};reserves++;return options.denied || (options.accessChanged && reserves===2)?{data:null,error:{message:'Access denied'}}:{data:attachment,error:null};}};
  const bucket={upload:async(path,bytes,config)=>{calls.push({name:'upload',path,config});return {error:options.uploadError?{message:'Upload response lost'}:null};},download:async path=>{calls.push({name:'download',path});return options.downloadError?{data:null,error:{message:'Unavailable'}}:{data:new Blob([options.corrupt?Buffer.from([255,216,255,9]):Buffer.from([255,216,255,1])]),error:null};}};
  const admin={storage:{from:name=>{assert.equal(name,'asset-documents');return bucket;}},rpc:async(name,args)=>{calls.push({name,args});return {data:true,error:null};}};
  const actions=load('src/server/actions/assets.ts',{
@@ -81,4 +81,9 @@ test('registration duplicate-code feedback does not mask unrelated server failur
   for(const [key,value] of Object.entries({asset_id:'',item_name:'Fictional asset',reason:'Fictional registration',asset_code:'FINAL-AUDIT',location_id:id(7)}))h.form.set(key,value);
   const result=await h.actions.saveAssetMaster({},h.form);assert.equal(result.ok,false);assert.equal(result.message,expected??message);
  }
+});
+
+test('new repair endpoint retains optional-photo recovery and never falls through to old mutation',async()=>{
+ const h=harness({general:true,parent:true,v2:true,downloadError:true});h.form.set('location_id',id(8));h.form.set('description','Additional issue');h.form.set('priority','Normal');h.form.set('photo_key',id(9));h.form.set('photo',h.form.get('file'));
+ const result=await h.actions.reportAssetMaintenance({ok:false,message:''},h.form);assert.equal(result.ok,true);assert.equal(result.requestId,id(6));assert.match(result.photoError,/Retry/);assert.equal(h.calls.filter(c=>c.name==='report_asset_maintenance_v2').length,1);assert.equal(h.calls.some(c=>c.name==='report_asset_maintenance'),false);
 });

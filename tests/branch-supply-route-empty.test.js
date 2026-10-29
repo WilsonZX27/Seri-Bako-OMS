@@ -1,0 +1,7 @@
+const test=require('node:test');const assert=require('node:assert/strict');const {compile,React}=require('./helpers/render-workspaces.cjs');const {renderToStaticMarkup}=require('react-dom/server');
+const {BranchSupplyRouteForm}=compile('src/components/branch-supply-route-form.tsx',{'@/components/record-workspace':{RecordSection:({children})=>React.createElement('section',null,children)},'@/components/ui/submit-button':{SubmitButton:({children})=>React.createElement('button',null,children)}});
+const render=(type,context)=>renderToStaticMarkup(React.createElement(BranchSupplyRouteForm,{branch:{id:'fixture',branch_code:'F',branch_name:'Fixture',branch_type:type},context,action:()=>{throw Error('Must not submit')}}));
+const empty={available:true,centralKitchens:[],outlets:[],routes:[]};
+test('empty company outlet explains required type without impossible save',()=>{const html=render('outlet',empty);assert.match(html,/Branch Type set to Central Kitchen/);assert.doesNotMatch(html,/Save Supply Route/)});
+test('empty kitchen explains outlet prerequisite without a blank checklist',()=>{const html=render('central_kitchen',empty);assert.match(html,/Branch Type set to Outlet/);assert.doesNotMatch(html,/Save Supply Route/)});
+test('missing backend remains unavailable, unsupported types do not acquire route authority',()=>{assert.match(render('outlet',{...empty,available:false}),/awaiting the latest database migration/);assert.equal(render('office',empty),'')});

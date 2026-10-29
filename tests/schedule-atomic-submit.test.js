@@ -51,3 +51,9 @@ test('a post-commit permission lookup failure reports the saved schedule and nev
  assert.equal(r.calls.length,1);
  assert.equal(r.calls[0].name,'submit_schedule_week_atomic');
 });
+
+for(const role of ['chef','outlet_supervisor']) {
+ test(`${role} submits through existing permission-gated atomic RPC`,async()=>{const r=route({role});const result=await r.post();assert.equal(result.status,200);assert.equal(r.calls[0].name,'submit_schedule_week_atomic');assert.equal(r.calls[0].args.p_branch_id,branchId);});
+ test(`${role} effective permission denial blocks submission before RPC`,async()=>{const r=route({role,permission:false});assert.equal((await r.post()).status,403);assert.equal(r.calls.length,0);});
+ test(`${role} branch rejection from database is not treated as success`,async()=>{const r=route({role,error:{message:'Schedule submission is not authorised.'}});const result=await r.post();assert.notEqual(result.status,200);assert.equal(r.calls.length,1);});
+}

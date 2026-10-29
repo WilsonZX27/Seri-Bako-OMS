@@ -239,7 +239,7 @@ export const rolePermissionMatrix = {
   ],
   outlet_staff: ["assets.view", "assets.check", "assets.transfer", "dashboard.view", "outlet_daily_record.view", "outlet_daily_record.create", "outlet_daily_record.update"],
   outlet_supervisor: ["assets.view", "assets.check", "assets.maintenance", "assets.transfer", "dashboard.view", "outlet_daily_record.view", "outlet_daily_record.create", "outlet_daily_record.update", "schedule.read", "schedule.draft", "schedule.submit", "schedule.request", "schedule.swap_review", "attendance.read", "attendance.review", "attendance.report.submit", "comp_time.read", "comp_time.submit"],
-  chef: kitchenPermissions,
+  chef: [...kitchenPermissions, "schedule.draft", "schedule.submit"],
   kitchen: ["assets.view", "assets.check", "dashboard.view"],
 } as const satisfies Record<string, readonly string[]>;
 

@@ -42,7 +42,7 @@ test("Chef retains former Kitchen Stock Count permissions while Kitchen is self-
   const permissions = read("src/server/auth/permissions.ts");
   const migration = read("supabase/migrations/368_kitchen_role_boundary_and_chef_assignments.sql");
 
-  const chefMatrix = permissions.match(/chef:\s*kitchenPermissions/);
+  const chefMatrix = permissions.match(/chef:\s*\[\.\.\.kitchenPermissions, "schedule\.draft", "schedule\.submit"\]/);
   const kitchenMatrix = permissions.match(/kitchen:\s*\[([^\]]*)\]/);
   assert.ok(chefMatrix, "Chef must preserve the former Kitchen matrix");
   assert.ok(kitchenMatrix, "Kitchen permission matrix must exist");

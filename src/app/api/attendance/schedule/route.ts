@@ -302,8 +302,8 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     const actor = await requireActiveTenantActor();
-    if (["submit", "validate"].includes(input.data.action) && !["outlet_supervisor", "manager", "super_admin"].includes(actor.roleCode))
-      return NextResponse.json({ ok: false, message: "Only Supervisors and Managers may submit outlet schedules." }, { status: 403 });
+    if (["submit", "validate"].includes(input.data.action) && !["outlet_supervisor", "chef", "manager", "super_admin"].includes(actor.roleCode))
+      return NextResponse.json({ ok: false, message: "Only Supervisors, Chefs and Managers may submit schedules." }, { status: 403 });
     if (
       input.data.action === "decide" &&
       input.data.decision !== "approve" &&

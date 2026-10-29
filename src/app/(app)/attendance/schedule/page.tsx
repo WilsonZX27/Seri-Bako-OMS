@@ -32,7 +32,7 @@ export default async function SchedulePage({ searchParams }: { searchParams: Pro
     getPaidEmergencyLeaveCapability(),
   ]);
   const canDraft = permissions["schedule.draft"];
-  const canSubmit = permissions["schedule.submit"] && ["outlet_supervisor", "manager", "super_admin"].includes(actor.roleCode);
+  const canSubmit = permissions["schedule.submit"] && ["outlet_supervisor", "chef", "manager", "super_admin"].includes(actor.roleCode);
   const canApprove = permissions["schedule.approve"];
   const validation=canSubmit&&data?.week&&["draft","returned","rejected","amendment_pending"].includes(data.week.status)?await getScheduleValidation(data.week.id):{status:"ready",blockers:[],warnings:[]};
   const requestPanel = requests.length ? <section className="sb-work-surface overflow-hidden"><div className="border-b p-3"><h2 className="text-sm font-semibold">Pending shift requests</h2></div><div className="divide-y">{requests.map((request: Record<string, unknown>) => { const assignment = request.shift_assignment_revisions as { work_date?: string; staffs?: { full_name?: string }; branches?: { branch_name?: string } } | null; return <div key={String(request.id)} className="flex flex-wrap items-center gap-3 p-3 text-xs"><span className="font-medium">{assignment?.staffs?.full_name ?? "Employee"}</span><span>{assignment?.work_date}</span><span className="text-muted-foreground">{assignment?.branches?.branch_name} · {String(request.reason)}</span><StatusBadge status={String(request.status)}/><span className="ml-auto"><RequestDecisionButtons requestId={String(request.id)}/></span></div>; })}</div></section> : null;

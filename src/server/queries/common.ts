@@ -1,3 +1,4 @@
+import { loginBranding } from "@/lib/branding/login-branding";
 import { sessionVerificationState } from "@/lib/http/session-result";
 import { createClient } from "@/lib/supabase/server";
 import { todayInKualaLumpur } from "@/lib/business-date";
@@ -90,7 +91,7 @@ export const getCompanyBranding = cache(async function getCompanyBranding() {
   const { data: { user } } = await getCurrentAuthUser();
   // Authentication determines the company; no public bucket enumeration or
   // cross-company fallback is used to discover branding.
-  if (!user) return { company_name: "Operations", logo_url: null };
+  if (!user) return loginBranding();
   const profile = await getCurrentProfile();
   if (!profile?.company_id) return { company_name: "Operations", logo_url: null };
   const result = await supabase.from("companies").select("company_name,logo_url,ui_theme")

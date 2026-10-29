@@ -891,7 +891,7 @@ nav[aria-label="Pagination"] > span {
     display: none !important;
   }
 
-  #main-content > header:not([data-document-workspace-header]) {
+  #main-content > header:not([data-document-workspace-header]):not([data-mobile-identity]) {
     display: none;
   }
 

@@ -16,3 +16,9 @@ test('content-aligned desktop rail is opt-in and the stock-transfer caller opts 
   assert.doesNotMatch(read('src/app/(app)/purchase-orders/[id]/page.tsx'), /desktopRailPlacement="content"/);
   assert.match(read('src/app/design-system-v2.css'), /\[data-tablet-document-split\]\[data-desktop-rail-placement="content"\]/);
 });
+
+ test('asset detail retains its single identity on phones without changing list headers', () => {
+  assert.match(read('src/app/(app)/asset-management/assets/[id]/page.tsx'), /<PageHeader showMobileIdentity/);
+  assert.match(read('src/components/ui/page-header.tsx'), /data-mobile-identity=\{props.showMobileIdentity \|\| undefined\}/);
+  assert.match(read('src/app/design-system-v2.css'), /\[data-page-header\]:not\(\[data-mobile-identity\]\)/);
+});

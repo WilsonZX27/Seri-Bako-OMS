@@ -6,6 +6,8 @@ import { WorkspaceCanvas, type WorkspaceCanvasMode } from "@/components/layout/w
 
 type PageHeaderProps = {
   title: ReactNode;
+  /** Detail identity is essential when the phone shell only names its module. */
+  showMobileIdentity?: boolean;
   description?: string;
   backHref?: string;
   action?: {
@@ -28,12 +30,12 @@ export function PageHeader(props: PageHeaderProps) {
 
   return (
     <>
-      <header data-page-header className="block border-b border-[var(--sb-border-soft)] bg-[var(--workspace-bg)]">
+      <header data-page-header data-mobile-identity={props.showMobileIdentity || undefined} className="block border-b border-[var(--sb-border-soft)] bg-[var(--workspace-bg)]">
         <WorkspaceCanvas mode={props.contentWidth ?? "wide"} className="flex items-start justify-between gap-3 py-3">
           <div className="min-w-0">
             {props.backHref ? <Link href={props.backHref} className="mb-1 block text-[11px] font-medium text-[var(--sb-text-muted)] hover:text-[var(--sb-text)]">← Back</Link> : null}
             <h1 className="min-w-0 text-balance break-words text-[var(--sb-text-page)] font-semibold leading-6 tracking-[-0.015em] text-[var(--sb-text)]">{props.title}</h1>
-            {props.description ? <p className="mt-0.5 hidden max-w-2xl text-xs leading-4 text-[var(--sb-text-muted)] sm:block">{props.description}</p> : null}
+            {props.description ? <p className={`mt-0.5 max-w-2xl text-xs leading-4 text-[var(--sb-text-muted)] ${props.showMobileIdentity ? "block" : "hidden sm:block"}`}>{props.description}</p> : null}
           </div>
           {props.secondaryAction || (props.action && !isCreateAction) ? (
             <div className="flex shrink-0 flex-wrap gap-2">

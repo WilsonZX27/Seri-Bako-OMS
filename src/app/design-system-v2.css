@@ -722,7 +722,7 @@ aside section > h2 {
     --sb-content-gutter: 0.75rem;
   }
 
-  [data-page-header] {
+  [data-page-header]:not([data-mobile-identity]) {
     display: none !important;
   }
 
@@ -886,7 +886,7 @@ nav[aria-label="Pagination"] > span {
   /* List pages already expose their context in the mobile shell/breadcrumb.
      Remove the repeated desktop header on phones; create actions remain
      available through the fixed FAB or mobile action rail. */
-  [data-page-header],
+  [data-page-header]:not([data-mobile-identity]),
   [data-tablet-page-actions] {
     display: none !important;
   }
@@ -918,7 +918,7 @@ nav[aria-label="Pagination"] > span {
   }
 
   /* List-page subtitles repeat the mobile title and consume scarce vertical space. */
-  [data-page-header] > div > div > p {
+  [data-page-header]:not([data-mobile-identity]) > div > div > p {
     display: none !important;
   }
 

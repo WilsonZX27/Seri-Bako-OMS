@@ -32,7 +32,7 @@ export default async function NewStockTransferPage({ searchParams }: { searchPar
         workflowSteps={steps}
         currentStatus="draft"
         tabletRailMode="split"
-        desktopRailPlacement="content"
+        desktopRailPlacement="shell"
         mobilePrimaryAction={primaryAction}
         mobileActionHint={actionHint}
         sidePanel={<><DocumentSideSection title="Primary Action">{primaryAction}</DocumentSideSection>{actionHint ? <DocumentSideSection title="Next step"><Notice>{actionHint}</Notice></DocumentSideSection> : null}</>}

@@ -33,6 +33,7 @@ export function BulkSelectionProvider(props: {
   action?: (formData: FormData) => void | Promise<void>;
   fieldName?: string;
   selectionActions?: ReactNode;
+  toolbarLayout?: "inline" | "stacked";
 }) {
   const {
     ids,
@@ -45,6 +46,7 @@ export function BulkSelectionProvider(props: {
     action,
     fieldName = "selected_id",
     selectionActions,
+    toolbarLayout = "inline",
   } = props;
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
   const [hydrated, setHydrated] = useState(false);
@@ -83,12 +85,14 @@ export function BulkSelectionProvider(props: {
     <BulkSelectionContext.Provider value={value}>
       <div className="space-y-3">
         {selected.size > 0 ? (
-          <div className="flex flex-col gap-2 rounded-[var(--sb-panel-radius)] border bg-white px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className={toolbarLayout === "stacked"
+            ? "flex flex-col gap-3 rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)] p-3 shadow-[var(--sb-shadow-panel)]"
+            : "flex flex-col gap-2 rounded-[var(--sb-panel-radius)] border bg-white px-3 py-2 sm:flex-row sm:items-center sm:justify-between"}>
             <div className="min-w-0">
               <p className="text-xs font-semibold">Selected {selected.size} item{selected.size === 1 ? "" : "s"}</p>
               <p className="text-[11px] leading-4 text-muted-foreground">{actionHint}</p>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className={toolbarLayout === "stacked" ? "flex flex-wrap items-center justify-end gap-2" : "flex flex-wrap gap-2"}>
               {/* Audit contract: archive remains the variant="destructive" default; restore explicitly supplies the neutral variant. */}
               {action && actionLabel && canAct ? confirmMessage ? (
                 <Button ref={confirmTriggerRef} type="button" variant={actionVariant} size="sm" onClick={() => setConfirmOpen(true)}>

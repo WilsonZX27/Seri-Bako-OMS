@@ -29,3 +29,17 @@ test("mobile bulk checkboxes have a real 44px hit target and unique row names", 
   assert.match(bulk, /aria-label=\{label\}/);
   assert.match(bulk, /<label className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center">/);
 });
+
+test("Branches keeps filter, selection and results in separate surfaces", () => {
+  const branches = read("src/app/(app)/branches/page.tsx");
+  const bulk = read("src/components/bulk-selection.tsx");
+  assert.match(branches, /<div className="min-w-0 space-y-3">\s*<MasterDataFilters/);
+  assert.match(branches, /<BulkSelectionProvider toolbarLayout="stacked"/);
+  assert.match(branches, /sb-list-content-card overflow-hidden/);
+  assert.match(bulk, /toolbarLayout = "inline"/);
+  assert.match(bulk, /toolbarLayout === "stacked"/);
+  assert.match(bulk, /flex flex-wrap items-center justify-end gap-2/);
+  assert.match(bulk, /onClick=\{\(\) => setConfirmOpen\(true\)\}/);
+  const requests = read("src/app/(app)/purchase-requests/page.tsx");
+  assert.doesNotMatch(requests, /toolbarLayout=/);
+});

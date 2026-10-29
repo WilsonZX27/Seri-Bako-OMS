@@ -53,7 +53,11 @@ test("a visible status tab strip remains the only primary status filter", () => 
     "src/app/(app)/suppliers/page.tsx",
   ]) {
     const source = read(page);
-    assert.match(source, /StatusTabs/, `${page}: status tabs are present`);
+    if (page === "src/app/(app)/branches/page.tsx") {
+      // Branches uses one form-owned status select to avoid racing Search with router.push.
+      assert.match(source, /leadingFilter=\{<SelectControl[\s\S]*name="status"/);
+      assert.doesNotMatch(source, /StatusTabs/);
+    } else assert.match(source, /StatusTabs/, `${page}: status tabs are present`);
     assert.match(source, /MasterDataFilters[\s\S]*showStatus=\{false\}/, `${page}: no duplicate status select`);
   }
   const invoices = read("src/app/(app)/supplier-invoices/page.tsx");

@@ -9,7 +9,7 @@ import { DataGridRow } from "@/components/ui/data-grid-row";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
-import { StatusTabs } from "@/components/status-tabs";
+import { SelectControl } from "@/components/ui/select-control";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow, TableSelectionCell, TableSelectionHead } from "@/components/ui/table";
 import { formatPageError } from "@/server/actions/error-handling";
 import { getBranches } from "@/server/queries/foundation";
@@ -40,7 +40,7 @@ export default async function BranchesPage({ searchParams }: { searchParams: Pro
             </Card>
           ) : null}
           <div className="overflow-hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-raised)] shadow-[var(--sb-shadow-panel)]">
-            <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search branch code, name, or type" statuses={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }]} showStatus={false} leadingFilter={<StatusTabs statuses={["active", "archived"]} activeStatus={filters.status} />} resultCount={branches.length} filtered={filtered} resetHref="/branches" />
+            <MasterDataFilters search={filters.search} status={filters.status} placeholder="Search branch code, name, or type" statuses={[{ value: "active", label: "Active" }, { value: "archived", label: "Archived" }]} showStatus={false} leadingFilter={<SelectControl key={filters.status ?? "all"} name="status" defaultValue={filters.status ?? "all"} ariaLabel="Filter by status" options={[{ value: "all", label: "All statuses" }, { value: "active", label: "active" }, { value: "archived", label: "archived" }]} className="sb-status-filter-control min-h-[var(--sb-control-height)] w-full text-xs font-medium" />} resultCount={branches.length} filtered={filtered} resetHref="/branches" />
             <BulkSelectionProvider ids={branches.map((branch) => branch.id)} action={isArchivedView ? restoreBranches : archiveBranches} fieldName="branch_id" canAct={canUpdate} actionLabel={isArchivedView ? "Restore selected" : "Archive selected"} actionVariant={isArchivedView ? "default" : "destructive"} confirmMessage={isArchivedView ? "Restore the selected branches to active operations?" : "Archive the selected branches? They will be removed from active lists while preserving their history."} actionHint={isArchivedView ? "Restore archived branches only when they are ready for daily operations." : "Archive branches only after confirming they are no longer used by daily operations."}>
               {/* Active view keeps the canonical action={archiveBranches} contract; archived view swaps in restoreBranches. */}
             <DataGridHint text="Pro-tip: Double-click any row to open the branch." />

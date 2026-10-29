@@ -2689,7 +2689,7 @@ html[data-design-layer="v2"] [data-page-jump], html[data-design-layer="v2"] [dat
 [data-console-section] + [data-console-section] { margin-top:.75rem; }
 /* Semantic read-only description lists share the same label/value grammar. */
 @media(max-width:1279px) {
-#main-content dl:has(> div > dt) { display:grid; grid-template-columns:minmax(0,1fr); grid-auto-rows:auto; gap:.5rem; }
+#main-content dl:not([data-dashboard-context]):has(> div > dt) { display:grid; grid-template-columns:minmax(0,1fr); grid-auto-rows:auto; gap:.5rem; }
 #main-content dl > div:not(:has(> svg)):has(> dt + dd:last-child) { display:grid; grid-column:1 / -1; grid-template-columns:minmax(0,1fr) fit-content(60%); align-items:start; gap:.75rem; min-height:0; }
 #main-content dl > div:not(:has(> svg)):has(> dt + dd:last-child) > dd { min-width:0; margin-top:0; text-align:right; overflow-wrap:anywhere; }
 }
@@ -3394,4 +3394,16 @@ html[data-design-layer="v2"] .sb-mark-updates-read svg { width: 16px; height: 16
 html[data-design-layer="v2"] .sb-mark-updates-read { padding: 0; border: 0; background: transparent; }
 @media (max-width: 767px) {
   html[data-design-layer="v2"] [data-console-section] [data-mobile-primary-action] { height: 3rem !important; min-height: 3rem !important; max-height: none !important; }
+}
+
+/* Opt-in document content rail; existing shell-mounted pages are unchanged. */
+@media (min-width: 1280px) {
+  [data-tablet-document-split][data-desktop-rail-placement="content"] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--sb-console-width);
+    align-items: start;
+    gap: .75rem;
+  }
+  [data-tablet-document-split][data-desktop-rail-placement="content"] > aside { display: block; }
+  [data-document-workspace-header][data-document-rail-placement="content"] { margin-right: calc(var(--sb-console-width) + .75rem); }
 }

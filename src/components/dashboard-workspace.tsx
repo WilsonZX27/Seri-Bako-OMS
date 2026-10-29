@@ -235,7 +235,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
   );
 
   const desktopWorkspaceContext = (
-    <dl className="flex min-w-0 max-w-[28rem] flex-wrap justify-end gap-x-4 gap-y-1.5 text-xs text-[var(--sb-text-muted)]">
+    <dl data-dashboard-context className="flex min-w-0 max-w-[28rem] flex-wrap justify-end gap-x-4 gap-y-1.5 text-xs text-[var(--sb-text-muted)]">
       <div className="flex min-w-0 items-center gap-1.5">
         <UserRound className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         <dt className="sr-only">Role</dt>

@@ -41,6 +41,7 @@ export function DocumentWorkspace({
   compactMobileSpacing = false,
   hideMobileHeader = false,
   tabletRailMode = "split",
+  desktopRailPlacement = "shell",
 }: {
   breadcrumbs: Crumb[];
   documentNo: string;
@@ -65,6 +66,7 @@ export function DocumentWorkspace({
   compactMobileSpacing?: boolean;
   hideMobileHeader?: boolean;
   tabletRailMode?: "context" | "split";
+  desktopRailPlacement?: "shell" | "content";
 }) {
   const isNewDocument = documentNo.toLowerCase().startsWith("new ");
   const resolvedWorkflowSteps = workflowSteps ?? [];
@@ -77,7 +79,7 @@ export function DocumentWorkspace({
     <>
       <span data-document-breadcrumb={documentNo} data-document-route-context={breadcrumbs.map((crumb) => crumb.label).join("/")} className="sr-only" aria-hidden="true" />
       <span data-document-context-sentinel className="block h-px" aria-hidden="true" />
-      <header data-document-workspace-header className={cn("sticky top-0 z-20 min-w-0 border-b border-[var(--border-muted)] bg-[var(--workspace-bg)] px-3 transition-[padding] duration-200 motion-reduce:transition-none sm:px-4", isNewDocument ? "py-1.5 sm:py-2" : "py-2.5 sm:py-3", hideMobileHeader && "!hidden md:!block")}>
+      <header data-document-workspace-header data-document-rail-placement={desktopRailPlacement} className={cn("sticky top-0 z-20 min-w-0 border-b border-[var(--border-muted)] bg-[var(--workspace-bg)] px-3 transition-[padding] duration-200 motion-reduce:transition-none sm:px-4", isNewDocument ? "py-1.5 sm:py-2" : "py-2.5 sm:py-3", hideMobileHeader && "!hidden md:!block")}>
         <h1 className="sr-only">{title ?? documentNo}</h1>
         {showDocumentContext ? <div data-tablet-document-header className={cn("flex flex-col gap-2 xl:flex-row xl:items-start xl:justify-between", isNewDocument && "hidden md:flex")}>
           <div className="min-w-0">
@@ -99,7 +101,7 @@ export function DocumentWorkspace({
         {hideWorkflow && isNewDocument ? <div data-tablet-document-header className="hidden items-center md:flex"><StatusBadge status={status} label={statusLabel} /></div> : null}
       </header>
 
-      <WorkspaceGrid documentMode tabletRailMode={tabletRailMode} className={cn("min-w-0 p-3", compactMobileSpacing && "pt-0 md:pt-3")} rightRail={sidePanel} hideMobileConsole>
+      <WorkspaceGrid documentMode tabletRailMode={tabletRailMode} desktopRailPlacement={desktopRailPlacement} className={cn("min-w-0 p-3", compactMobileSpacing && "pt-0 md:pt-3")} rightRail={sidePanel} hideMobileConsole>
         <div className="min-w-0">
           <div className="min-w-0 space-y-3">
             {tabletRailMode === "context" && (mobilePrimaryAction || mobileMoreOptions) ? <div data-tablet-document-actions className="hidden md:block xl:hidden"><ConsoleSection title="Actions">{mobilePrimaryAction}{mobileMoreOptions}</ConsoleSection></div> : null}

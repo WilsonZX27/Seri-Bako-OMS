@@ -22,6 +22,7 @@ export function WorkspaceGrid({
   tabletRailMode = rightRail ? "split" : "context",
   tabletRailBreakpoint = "md",
   tabletRailWidth = "compact",
+  desktopRailPlacement = "shell",
 }: {
   children: ReactNode;
   rightRail?: ReactNode;
@@ -40,6 +41,8 @@ export function WorkspaceGrid({
   tabletRailBreakpoint?: TabletRailBreakpoint;
   /** Dense task rails such as the PR basket can claim a wider tablet column. */
   tabletRailWidth?: TabletRailWidth;
+  /** Keep document actions aligned with content instead of the outer shell. */
+  desktopRailPlacement?: "shell" | "content";
 }) {
   const contextualRail = rightRailClassName ? <div className={rightRailClassName}>{rightRail}</div> : rightRail;
   const effectiveTabletCanvas = tabletCanvas ?? (documentMode ? "contained" : "wide");
@@ -48,7 +51,7 @@ export function WorkspaceGrid({
   return (
     <div
       data-workspace-canvas
-      data-workspace-has-rail={Boolean(rightRail && !hideDesktopConsole) || undefined}
+      data-workspace-has-rail={Boolean(rightRail && !hideDesktopConsole && desktopRailPlacement === "shell") || undefined}
       data-canvas-mode={effectiveTabletCanvas}
       data-tablet-canvas={effectiveTabletCanvas}
       data-tablet-content={rightRail && effectiveTabletCanvas !== "full" ? "contained" : undefined}
@@ -66,6 +69,7 @@ export function WorkspaceGrid({
           data-tablet-split-actions
           data-tablet-rail-breakpoint={tabletRailBreakpoint}
           data-tablet-rail-width={tabletRailWidth}
+          data-desktop-rail-placement={desktopRailPlacement}
           className="min-w-0"
         >
           <div className="min-w-0 space-y-3">{children}</div>
@@ -76,7 +80,7 @@ export function WorkspaceGrid({
           <div className="min-w-0 space-y-3">{children}</div>
         </div>
       ) : <div className="min-w-0 space-y-3">{children}</div>}
-      {rightRail || hideDesktopConsole ? <RightConsoleMount hideMobileBar={hideMobileConsole} hideDesktopConsole={hideDesktopConsole} mobileConsoleLabel={mobileConsoleLabel}>{contextualRail}</RightConsoleMount> : null}
+      {rightRail || hideDesktopConsole ? <RightConsoleMount hideMobileBar={hideMobileConsole} hideDesktopConsole={hideDesktopConsole || desktopRailPlacement === "content"} mobileConsoleLabel={mobileConsoleLabel}>{contextualRail}</RightConsoleMount> : null}
     </div>
   );
 }

@@ -357,10 +357,17 @@ export async function parseScheduleWorkbooks(inputFiles: File[], weekStart: stri
     const hintedWeek=weekHints.get(sheet.name);
     if(hintedWeek && hintedWeek!==weekStart && !options.sheet){notices.push(`${sheet.name}: another week (${hintedWeek}) skipped.`);continue;}
     const knownName = SCHEDULE_SHEET_BRANCHES[sheet.originalName.toUpperCase()];
+    // Resolve location independently of date validation so a date error cannot erase it.
+    const branchRule=scheduleRuleKey(sheet.profile,"branch","",/^week\s+\d+$/i.test(sheet.originalName)?"*":sheet.originalName);
+    let mappedBranch=options.sheetMappings?.[sheet.name] ?? (options.sheet===sheet.name?options.branchId:undefined) ?? rules[branchRule]?.branchId;
+    const namedBranches=catalog.branches.filter(b=>key(b.name)===key(knownName??sheet.originalName));
+    if(!mappedBranch && namedBranches.length===1)mappedBranch=namedBranches[0].id;
+    if(mappedBranch==="skip"){sheetBranches[sheet.name]="skip";notices.push(`${sheet.name}: explicitly excluded from this preview.`);continue;}
+    if(mappedBranch && catalog.branches.some(b=>b.id===mappedBranch))sheetBranches[sheet.name]=mappedBranch;
     const sourceName=files.find(file=>file.hash===sheet.fileHash)?.name??"";
     const sourceMonth=sourceName.match(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\b/i)?.[1].toLowerCase(),sourceYear=sourceName.match(/\b(20\d{2})\b/)?.[1];
     const monthIndex=sourceMonth?["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"].indexOf(sourceMonth)+1:0;
-    const contextualDay=(day:number)=>knownName&&monthIndex&&sourceYear?`${sourceYear}-${String(monthIndex).padStart(2,"0")}-${String(day).padStart(2,"0")}`:day;
+    const contextualDay=(day:number)=>monthIndex&&sourceYear?`${sourceYear}-${String(monthIndex).padStart(2,"0")}-${String(day).padStart(2,"0")}`:day;
     const dateValue = (value: unknown) => {
       if (typeof value === "number") return value > 30000 ? new Date((value - 25569) * 86400000).toISOString().slice(0, 10) : Number.isInteger(value) && value >= 1 && value <= 31 ? contextualDay(value) : null;
       const text = clean(value);
@@ -374,16 +381,46 @@ export async function parseScheduleWorkbooks(inputFiles: File[], weekStart: stri
     const matchingWindows: Array<{row:number;step:number;columns:Array<readonly [number,number]>}> = [];
     const detectedDates: string[] = [];
     const explicitDates: string[] = [];
+    const weekdayProblems: string[] = [];
     for (const rowNumber of [...sheet.rows.keys()].filter(n => n <= 12 && !sheet.hiddenRows.has(n))) {
       const pairs = [...sheet.rows.get(rowNumber)!].filter(([column, value]) => column >= 1 && !sheet.hiddenColumns.has(column) && dateValue(value) !== null);
+      // Resolve numeric day headers from the source month, never the selected week.
+      // Day one anchors monthly sheets that retain a preceding-month date block.
+      const resolved = new Map<number, string>();
+      if (monthIndex && sourceYear) {
+        const numeric = pairs.filter(([,v]) => /^\d{1,2}$/.test(clean(v)) && Number(v)>=1 && Number(v)<=31);
+        const anchor = numeric.length>7 ? Math.max(0,numeric.findIndex(([,v])=>Number(v)===1)) : 0;
+        if(numeric.length){
+          const origin=`${sourceYear}-${String(monthIndex).padStart(2,"0")}-${String(numeric[anchor][1]).padStart(2,"0")}`;
+          resolved.set(numeric[anchor][0],origin);
+          for(const direction of [-1,1]){
+            let previous=origin;
+            for(let i=anchor+direction;i>=0&&i<numeric.length;i+=direction){
+              const next=addDays(previous,direction);
+              if(Number(next.slice(-2))!==Number(numeric[i][1]))break;
+              resolved.set(numeric[i][0],next);previous=next;
+            }
+          }
+        }
+      }
+      const headerDate=(column:number,value:unknown)=>resolved.get(column)??dateValue(value);
       if (pairs.length >= 7) {
-        detectedDates.push(...pairs.map(([, value]) => String(dateValue(value))));
+        detectedDates.push(...pairs.map(([column, value]) => String(headerDate(column,value))));
         explicitDates.push(...pairs.filter(([,value]) => typeof value === "number" ? value > 30000 : /\b\d{4}$/.test(clean(value))).map(([,value]) => String(dateValue(value))));
       }
       for (let index = 0; index <= pairs.length - 7; index++) {
         const candidate = pairs.slice(index,index+7);
         const step = candidate[1][0] - candidate[0][0];
-        if ([1, 2].includes(step) && candidate.every(([column,value],offset) => (offset === 0 || column === candidate[offset-1][0]+step) && (typeof dateValue(value) === "number" ? dateValue(value) === expectedDays[offset] : dateValue(value) === addDays(weekStart,offset)))) {
+        if ([1, 2].includes(step) && candidate.every(([column,value],offset) => (offset === 0 || column === candidate[offset-1][0]+step) && (typeof headerDate(column,value) === "number" ? headerDate(column,value) === expectedDays[offset] : headerDate(column,value) === addDays(weekStart,offset)))) {
+          const weekdays=["sun","mon","tue","wed","thu","fri","sat"];
+          const weekdayMismatch=candidate.some(([column,value])=>{
+            const label=clean(sheet.rows.get(rowNumber+1)?.get(column)).slice(0,3).toLowerCase();
+            const date=headerDate(column,value);
+            const mismatch=weekdays.includes(label)&&typeof date==="string"&&weekdays[new Date(`${date}T00:00:00Z`).getUTCDay()]!==label;
+            if(mismatch)weekdayProblems.push(`${date}: source weekday ${label.toUpperCase()} does not match the calendar`);
+            return mismatch;
+          });
+          if(weekdayMismatch)continue;
           matchingWindows.push({row:rowNumber,step,columns:candidate.map(([column,value]) => [column, typeof dateValue(value) === "number" ? Number(dateValue(value)) : Number(String(dateValue(value)).slice(-2))] as const)});
         }
       }
@@ -398,11 +435,9 @@ export async function parseScheduleWorkbooks(inputFiles: File[], weekStart: stri
     const fullDates = [...new Set(explicitDates)].filter(date => /^\d{4}-\d{2}-\d{2}$/.test(date));
     const suggestedWeekStart = fullDates.length === 7 && fullDates.every((date, index) => date === addDays(fullDates[0], index)) && new Date(`${fullDates[0]}T00:00:00Z`).getUTCDay() === 1 ? fullDates[0] : undefined;
     if (!window.length && !options.sheet && /^week\s+\d+$/i.test(sheet.originalName) && sheets.some(other=>other.profile===sheet.profile&&weekHints.get(other.name)===weekStart)) {notices.push(`${sheet.name}: other weekly tab skipped.`);continue;}
-    if (!window.length) { issues.push({ suggestedWeekStart, sheet: sheet.name, reason: "date_window_mismatch", message: `${sheet.name}: selected week ${weekStart} through ${addDays(weekStart, 6)} does not match the readable date headers. ${detectedDates.length ? `Workbook dates: ${[...new Set(detectedDates)].slice(0, 14).join(", ")}. Use the original week shown below; no need to leave this dialog.` : "No supported seven-day date header was found. Check the sheet layout."}` }); continue; }
-    const branchRule=scheduleRuleKey(sheet.profile,"branch","",knownName?sheet.originalName:"*");
-    let mappedBranch=options.sheetMappings?.[sheet.name] ?? (options.sheet===sheet.name?options.branchId:undefined) ?? rules[branchRule]?.branchId;
-    if(!mappedBranch&&!knownName){
-      if(/pjs[\s-]*(?:ck|10)/i.test(sheet.profile))mappedBranch=catalog.branches.find(b=>/pjs\s*10/i.test(b.name))?.id;
+    if (!window.length) { issues.push({ suggestedWeekStart, sheet: sheet.name, reason: "date_window_mismatch", message: `${sheet.name}: selected week ${weekStart} through ${addDays(weekStart, 6)} does not match the readable date headers. ${detectedDates.length ? `Source date range: ${detectedDates[0]} through ${detectedDates[detectedDates.length-1]}. ${weekdayProblems.length ? weekdayProblems[0]+". " : "No complete, unambiguous seven-day header matches this week. "}Check the source dates and weekdays against the selected week; the source dates have not been changed.` : "No supported seven-day date header was found. Check the sheet layout."}` }); continue; }
+    if(!mappedBranch&&!knownName&&namedBranches.length===0){
+      if(/pjs[\s-]*(?:ck|10)/i.test(sheet.profile)){const matches=catalog.branches.filter(b=>/pjs\s*10/i.test(b.name));if(matches.length===1)mappedBranch=matches[0].id;}
       const votes=new Map<string,Set<string>>();
       for(const [r,row] of sheet.rows){if(r<=dateRow||r>dateRow+20)continue;const name=normaliseScheduleName(row.get(0));if(!name)continue;
         const people=[...new Map(catalog.staff.filter(p=>normaliseScheduleName(p.name)===name).map(p=>[p.id,p])).values()];
@@ -413,11 +448,11 @@ export async function parseScheduleWorkbooks(inputFiles: File[], weekStart: stri
       if(!mappedBranch&&consensus.length===1)mappedBranch=consensus[0][0];
     }
     if(mappedBranch==="skip"){notices.push(`${sheet.name}: explicitly excluded from this preview.`);continue;}
-    const branch=mappedBranch?catalog.branches.find(b=>b.id===mappedBranch):catalog.branches.find(b=>key(b.name)===key(knownName));
-    if(!knownName&&!mappedBranch){issues.push({sheet:sheet.name,reason:"sheet_mapping_required",message:`${sheet.name}: choose its source location once. It will be remembered after import.`});continue;}
+    const branch=mappedBranch?catalog.branches.find(b=>b.id===mappedBranch):undefined;
+    if(!mappedBranch){issues.push({sheet:sheet.name,reason:"sheet_mapping_required",message:`${sheet.name}: ${namedBranches.length>1 ? "Several authorised locations have this name; choose the correct location." : "No unique authorised location matches this sheet name; choose its source location."} It will be remembered after import.`});continue;}
     if(!branch){issues.push({sheet:sheet.name,reason:"outlet_not_found",message:`${sheet.name}: matching OMS location is outside the current catalogue.`});continue;}
     const branchName=branch.name;sheetBranches[sheet.name]=branch.id;reusableRules[branchRule]={branchId:branch.id,...(options.confirmDateContext?{year:weekStart.slice(0,4)}:rules[branchRule]?.year?{year:rules[branchRule].year}:{})};
-    if (!knownName && !suggestedWeekStart && !options.confirmDateContext && rules[branchRule]?.year!==weekStart.slice(0,4)) { issues.push({sheet: sheet.name, reason:"date_context_required",message:`${sheet.name}: confirm the displayed dates belong to ${weekStart} through ${addDays(weekStart,6)}. Sheet numbers never establish dates.`}); continue; }
+    if (!knownName && !suggestedWeekStart && !(monthIndex && sourceYear) && !options.confirmDateContext && rules[branchRule]?.year!==weekStart.slice(0,4)) { issues.push({sheet: sheet.name, reason:"date_context_required",message:`${sheet.name}: confirm the displayed dates belong to ${weekStart} through ${addDays(weekStart,6)}. Sheet numbers never establish dates.`}); continue; }
     let nameColumn = 0, idColumn: number | null = null;
     for (const [rowNumber, headers] of sheet.rows) {
       if (rowNumber > dateRow + 1 || sheet.hiddenRows.has(rowNumber)) continue;

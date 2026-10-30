@@ -1,3 +1,4 @@
+import { AssetTransferRows } from "@/components/asset-transfer-rows";
 import queryStyles from "./asset-query.module.css";
 import { MaintenanceReportDialog } from "@/components/maintenance-report-dialog";
 import { AssetMaintenanceDetailPanel } from "@/components/asset-maintenance-detail-panel";
@@ -27,9 +28,7 @@ import { getAssetWorkspace, type AssetView } from "@/server/queries/assets";
 
 const tabs = [{ id: "overview", label: "Overview", icon: ChartNoAxesColumn }, { id: "assets", label: "Assets", icon: Box }, { id: "checklist", label: "Daily Checklist", icon: ClipboardCheck }, { id: "maintenance", label: "Maintenance", icon: Wrench }, { id: "transfers", label: "Transfers", icon: ArrowLeftRight }];
 
-function SourceDetails({ data }: { data: Record<string, unknown> }) {
-  return <details className="min-w-0"><summary className="min-h-[var(--sb-control-height)] cursor-pointer text-xs font-medium">Original details</summary><dl className="grid gap-x-6 gap-y-2 text-xs sm:grid-cols-2">{Object.entries(data).filter(([key, value]) => !key.startsWith("_") && value !== null && value !== "").map(([key, value]) => <div className="min-w-0" key={key}><dt className="text-muted-foreground">{key}</dt><dd className="break-words">{String(value)}</dd></div>)}</dl></details>;
-}
+
 
 export default async function AssetManagementPage({ searchParams }: { searchParams: Promise<{ report?: string; asset?: string; view?: string; page?: string; q?: string; date?: string; status?: string; location?: string; sort?: string; category?: string; ticket?: string }> }) {
   const params = await searchParams;
@@ -62,7 +61,7 @@ export default async function AssetManagementPage({ searchParams }: { searchPara
       ? { title: "No maintenance requests", description: "Reported asset problems and their updates appear here." }
       : { title: "No transfers found", description: "Asset transfer requests and their progress appear here." };
   const recordContent = <>
-        {view === "assets" ? <AssetRegisterRows assets={data.assets} holdings={data.holdings} locations={locations}/> : view === "maintenance" ? <AssetMaintenanceQueue records={data.records} assets={assets} locations={locations} selection={{...selection,ticket:selectedTicket?.id??""}}/> : view === "checklist" ? <AssetInspectionRows records={data.records} assets={assets} locations={locations}/> : data.records.map(record => <article className="min-w-0 border-b border-[var(--sb-border-soft)] px-3 py-2.5 last:border-b-0" key={record.id}><div className="flex flex-wrap justify-between gap-3"><div className="min-w-0"><Link className="font-medium underline" href={view === "transfers" ? `/asset-management/transfers/${record.id}` : `/asset-management/assets/${record.asset_id}`}>{record.batch_id ? `${record.line_count} assets` : assets.get(record.asset_id ?? "")?.item_name ?? "Site problem"}</Link><p className="text-xs text-muted-foreground">{assets.get(record.asset_id ?? "")?.asset_code} · {record.location_id ? locations.get(record.location_id) : `${locations.get(record.from_location_id ?? "") ?? "Restricted location"} → ${locations.get(record.to_location_id ?? "") ?? "Restricted location"}`}</p></div><span className="text-sm font-medium">{record.result ?? record.status}</span></div>{record.description || record.reason ? <p className="mt-1 text-xs">{record.description ?? record.reason}</p> : null}<p className="mt-1 text-xs text-muted-foreground">{record.check_date ? formatDateOnly(record.check_date) : String(record.source_data["Created Date"] ?? record.created_at ?? "").slice(0, 10)} · {record.author_name}{record.quantity !== undefined ? ` · Qty ${record.quantity === null ? "Unknown" : formatNumber(record.quantity)}` : ""}</p><SourceDetails data={record.source_data} /></article>)}
+        {view === "assets" ? <AssetRegisterRows assets={data.assets} holdings={data.holdings} locations={locations}/> : view === "maintenance" ? <AssetMaintenanceQueue records={data.records} assets={assets} locations={locations} selection={{...selection,ticket:selectedTicket?.id??""}}/> : view === "checklist" ? <AssetInspectionRows records={data.records} assets={assets} locations={locations}/> : <AssetTransferRows records={data.records} assets={assets} locations={locations}/>}
         {data.total === 0 ? view === "checklist" ? <p className="p-3 text-sm text-muted-foreground">No recorded inspections for this date and location.</p> : <EmptyState title={emptyRecords.title} description={emptyRecords.description} /> : null}
         {data.total > recordPageSize ? <PaginationControls page={page} totalPages={Math.ceil(data.total / recordPageSize)} totalRows={data.total} searchParams={{...params,view,sort,ticket:undefined}} resetScrollOnPageChange /> : null}
   </>;

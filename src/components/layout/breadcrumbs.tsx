@@ -98,6 +98,11 @@ export function Breadcrumbs() {
     }
   }
 
+  if (first === "asset-management" && segments[1] === "transfers" && segments[2]) {
+    crumbs[crumbs.length - 1].href = "/asset-management?view=transfers";
+    crumbs.push({ label: segments[2] === "new" ? "New Asset Transfer" : "Asset Transfer Details" });
+  }
+
   return (
     <div className="hidden min-w-0 items-center gap-1 text-xs text-muted-foreground md:flex">
       {crumbs.map((crumb, index) => (

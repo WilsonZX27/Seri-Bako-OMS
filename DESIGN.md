@@ -1,4 +1,8 @@
-# v9.2.160 — Fixed 281 repair contract
+# v9.2.161 (local candidate) — Schedule import and reviewed interface corrections
+
+Source-derived cross-month dates and unique authorised sheet-location matching; compact asset transfer rows, detail summary and workflow; scoped Compliance name editing; single-line daily record status. Dashboard remains unchanged. No schema, role or repair-flag changes.
+
+# v9.2.160 (deployed) — Fixed 281 repair contract
 
 Use the existing Review action with the approved281 scope and default-off capability. Asset branch linkage is a separately guarded migration; no new asset UI is included.
 

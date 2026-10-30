@@ -846,3 +846,18 @@ export async function retireOutletComplianceType(typeId: string) {
   revalidatePath("/outlet-compliance","layout");
   redirect(complianceMessageUrl("/outlet-compliance?view=settings","success","Requirement removed from the active checklist. History is retained."));
 }
+
+// Rename in place: retain requirement identity, evidence, and the existing tenant/RLS boundary.
+export async function renameOutletComplianceType(typeId: string, formData: FormData) {
+  await requirePermission("compliance.types.manage");
+  const actor = await requireActiveTenantActor();
+  const id = z.string().uuid().parse(typeId);
+  const parsed = z.string().trim().min(2).max(100).safeParse(formData.get("type_name"));
+  const original = z.string().min(1).max(100).safeParse(formData.get("original_name"));
+  if (!parsed.success || !original.success) redirect(complianceMessageUrl("/outlet-compliance?view=settings","error","Enter a requirement name between 2 and 100 characters."));
+  const db = await createClient();
+  const {data,error}=await db.from("compliance_types").update({type_name:parsed.data,updated_at:new Date().toISOString()}).eq("id",id).eq("company_id",actor.companyId).eq("subject_kind","outlet").eq("module_scope","outlet").eq("status","active").eq("type_name",original.data).is("deleted_at",null).select("id").maybeSingle();
+  if(error||!data) redirect(complianceMessageUrl("/outlet-compliance?view=settings","error",error?.code==="23505"?"That requirement name already exists. Choose a different name.":"The requirement changed or could not be saved. Reload and check its name before retrying."));
+  revalidatePath("/outlet-compliance","layout");
+  redirect(complianceMessageUrl("/outlet-compliance?view=settings","success","Requirement name updated. Evidence and history retained."));
+}

@@ -1,3 +1,4 @@
+import { AssetTransferProgress } from "@/components/asset-transfer-progress";
 import { PaginationControls } from "@/components/sortable-table";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { StatusBadge } from "@/components/ui/status-badge";
@@ -30,6 +31,7 @@ export default async function TransferDetail({ params, searchParams }: { params:
   const access = { canApprove: permissions["assets.approve"], canTransfer: permissions["assets.transfer"], canAccessSource: locations.has(transfer.from_location_id ?? ""), canAccessDestination: locations.has(transfer.to_location_id ?? "") };
   const available = assetTransferActions(transfer.status ?? "", access);
   return <><PageHeader title="Asset transfer" description={transfer.source_id ?? `${data.asset.asset_code} · ${transfer.status}`}/><WorkspaceGrid hideMobileConsole rightRail={<ConsoleSection title="Next action" kind="action"><AssetTransferAction key={`${transfer.status}:${data.history[0]?.id ?? id}`} transferId={id} status={transfer.status ?? ""} {...access} showNote mobileDock/>{!available.length ? <p className="text-sm text-muted-foreground">No action is available for your role at this stage.</p> : null}</ConsoleSection>}>
+    <AssetTransferProgress status={transfer.status ?? "unknown"}/>
     <section className="sb-work-surface p-4">
       <div className="flex flex-wrap items-start justify-between gap-3"><Link className="min-w-0 break-words text-sm font-semibold underline" href={`/asset-management/assets/${transfer.asset_id}`}>{data.asset.item_name}</Link><StatusBadge status={transfer.status ?? "unknown"} className="!rounded-full"/></div>
       <dl className="mt-3 grid gap-3 text-xs sm:grid-cols-3"><div className="min-w-0"><dt className="text-muted-foreground">From</dt><dd className="mt-1 break-words">{locations.get(transfer.from_location_id ?? "") ?? "Restricted location"}</dd></div><div className="min-w-0"><dt className="text-muted-foreground">To</dt><dd className="mt-1 break-words">{locations.get(transfer.to_location_id ?? "") ?? "Restricted location"}</dd></div><div><dt className="text-muted-foreground">Quantity</dt><dd className="mt-1 tabular-nums">{transfer.quantity == null ? "Unknown" : formatNumber(transfer.quantity)}{transfer.status === "dispatched" ? " · In transit" : ""}</dd></div></dl>

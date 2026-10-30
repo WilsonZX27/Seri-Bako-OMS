@@ -19,6 +19,7 @@ function compile(file, overrides={}) {
   if(name==='@/components/asset-audit-details')return compile('src/components/asset-audit-details.tsx',{'@/lib/asset-audit-display':load('src/lib/asset-audit-display.ts')});
   if(name==='@/lib/inventory-read-deadline')return load('src/lib/inventory-read-deadline.ts');
   if(name==='@/lib/workspace-notification-copy')return load('src/lib/workspace-notification-copy.ts');
+  if(name==='@/components/asset-transfer-progress')return load('src/components/asset-transfer-progress.tsx');
   if(name==='@/components/ui/status-badge')return status;
   if(name==='@/components/layout/workspace-layout')return {WorkspaceGrid:({children,rightRail})=>React.createElement('main',null,children,React.createElement('aside',null,rightRail))};
   if(name==='@/components/layout/right-console')return {ConsoleSection:({title,children})=>React.createElement('section',null,React.createElement('h2',null,title),children)};

@@ -1,16 +1,18 @@
 import Link from "next/link";
+import { Table, TableHeader, TableHead, TableBody, TableCell, TableRow } from "@/components/ui/table";
+import { DataGridRow } from "@/components/ui/data-grid-row";
 import { ChevronRight, CalendarDays, UserRound } from "lucide-react";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { formatDateOnly, formatNumber } from "@/lib/utils";
 import type { AssetRecord, AssetSummary } from "@/server/queries/assets";
 
 export function AssetTransferRows({records,assets,locations}:{records:AssetRecord[];assets:Map<string,AssetSummary>;locations:Map<string,string>}) {
-  return <ul className="divide-y divide-[var(--sb-border-soft)]" aria-label="Asset transfers">{records.map(record=>{
+  return <><Table mobileHidden aria-label="Asset transfers"><TableHeader><TableRow><TableHead>Date</TableHead><TableHead>From</TableHead><TableHead>To</TableHead><TableHead>Assets</TableHead><TableHead>Quantity</TableHead><TableHead>Status</TableHead><TableHead>Requested by</TableHead></TableRow></TableHeader><TableBody>{records.map(record => <DataGridRow key={record.id} href={`/asset-management/transfers/${record.id}`}><TableCell className="whitespace-nowrap">{formatDateOnly(record.created_at)}</TableCell><TableCell><Link className="font-medium hover:underline" href={`/asset-management/transfers/${record.id}`}>{locations.get(record.from_location_id??"")??"Restricted location"}</Link></TableCell><TableCell>{locations.get(record.to_location_id??"")??"Restricted location"}</TableCell><TableCell>{record.batch_id ? record.line_count : assets.get(record.asset_id??"")?.item_name??"Asset transfer"}</TableCell><TableCell className="text-right tabular-nums">{record.quantity == null ? "Unknown" : formatNumber(record.quantity)}</TableCell><TableCell className="whitespace-nowrap"><StatusBadge status={record.status??"unknown"}/></TableCell><TableCell>{record.author_name||"Unrecorded author"}</TableCell></DataGridRow>)}</TableBody></Table><ul className="xl:hidden divide-y divide-[var(--sb-border-soft)]" aria-label="Asset transfers">{records.map(record=>{
     const title=record.batch_id?`${record.line_count} asset${record.line_count===1?"":"s"}`:assets.get(record.asset_id??"")?.item_name??"Asset transfer";
     return <li key={record.id}><Link href={`/asset-management/transfers/${record.id}`} className="block px-4 py-3 hover:bg-muted focus-visible:outline-primary">
       <span className="flex items-center justify-between gap-3"><strong className="min-w-0 break-words text-sm font-semibold">{locations.get(record.from_location_id??"")??"Restricted location"} → {locations.get(record.to_location_id??"")??"Restricted location"}</strong><span className="flex shrink-0 items-center gap-2"><StatusBadge status={record.status??"unknown"}/><ChevronRight className="size-4" aria-hidden="true"/></span></span>
       <span className="mt-1 block truncate text-xs text-muted-foreground" title={[title,record.reason].filter(Boolean).join(" · ")}>{title}{record.reason ? ` · ${record.reason}` : ""}</span>
       <span className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground"><span className="inline-flex items-center gap-1"><CalendarDays className="size-3" aria-hidden="true"/>{formatDateOnly(record.created_at)}</span><span className="inline-flex items-center gap-1"><UserRound className="size-3" aria-hidden="true"/>{record.author_name||"Unrecorded author"}</span>{record.quantity!==undefined?<span>Qty {record.quantity===null?"Unknown":formatNumber(record.quantity)}</span>:null}</span>
     </Link></li>;
-  })}</ul>;
+  })}</ul></>;
 }

@@ -1,3 +1,7 @@
+# v9.2.162 (local candidate) — Restore accepted responsive registers
+
+Daily desktop filters remain visible and tablet metrics stay in four columns. Transfers use desktop table columns. Packaging preserves its tablet right rail and visible filters. Page-scoped corrections; no business data, permission or repair configuration changes.
+
 # v9.2.161 (local candidate) — Schedule import and reviewed interface corrections
 
 Source-derived cross-month dates and unique authorised sheet-location matching; compact asset transfer rows, detail summary and workflow; scoped Compliance name editing; single-line daily record status. Dashboard remains unchanged. No schema, role or repair-flag changes.

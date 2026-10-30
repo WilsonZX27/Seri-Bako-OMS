@@ -16,3 +16,11 @@ Baseline owner: existing `DESIGN.md`, `src/app/design-system-v2.css`, shared Wor
 Audit widths: primary 390/820/1440; boundaries 389/390/391, 639/640, 767/768, 1023/1024, 1279/1280, 1535/1536; relevant landscape 820×390. Use the same data/state and source SHA for comparison. Screenshot capture must come from the actual target; Mock and old screenshots cannot establish current Preview acceptance.
 
 Correction: the temporary all-viewport asset44px gate was an engineering inference, not an original user requirement, and is retired. Asset desktop fine-pointer controls use the accepted compact36px token; phone/tablet and coarse-pointer targets retain their existing touch geometry. Do not change font sizes or widths as part of this height correction. Prior44px screenshots remain historical before evidence, not the current target.
+
+## 2026-10-30 follow-up annotations 1–5: responsive regressions
+
+- Annotations 1 and 5: Daily Records tablet rows use a single identity/date/status header and four parallel metrics (Qty sent, Received, Wastage, Last updated by). Never stack these metrics using the generic definition-list rule. Names remain visible; long updater text may truncate with its full accessible title.
+- Annotation 2: desktop Transfers uses a semantic table with column headers, matching the established desktop register. Compact stacked rows are for the smaller viewport, not desktop. Dashboard approval did not authorise replacing desktop tables everywhere.
+- Annotations 3 and 4: Packaging at 768px retains its adjacent right console and visible Outlet/Product/Period controls. No empty query strip and no substitute “More actions” disclosure on tablet.
+- Acceptance requires rendered comparisons at 768, 820, 1024, 1440 and phone 390; inspect column alignment, row height, rail visibility and usable filters. Passing source tests/build alone does not establish these requirements. Keep business data and existing permission scope unchanged.
+- Additional desktop annotation: Daily Records exposes Date, Branch, Status and permission-allowed Qty Sent directly. Do not hide these in Filter while desktop space is available. Scope this rule to this page; do not alter accepted filters elsewhere to enforce uniformity.

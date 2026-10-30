@@ -11,7 +11,7 @@ import { PaginationControls, SortableHead } from "@/components/sortable-table";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { FilterBar, FilterBarMore } from "@/components/ui/filter-bar";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { OutletDailyExportDialog } from "@/components/outlet-daily-export-dialog";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
@@ -55,8 +55,6 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
     </>;
   }
   const filtered = hasActiveFilters(filters);
-  const secondaryFilterCount = Number(Boolean(filters.status && filters.status !== "all"))
-    + Number(canViewSentGaps && Boolean(filters.sent_state && filters.sent_state !== "all"));
   const emptyDescription = filtered
     ? "Reset the filters or widen the search."
     : canCreate
@@ -94,10 +92,8 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
         >
             <Input name="date" type="date" defaultValue={filters.date ?? ""} aria-label="Record date" className="sb-filter-date" />
             <SelectControl name="branch" value={filters.branch ?? "all"} ariaLabel="Branch" options={[{ value: "all", label: "All branches" }, ...options.branches.map((branch) => ({ value: branch.id, label: branch.branch_name }))]} />
-            <FilterBarMore activeCount={secondaryFilterCount} resetHref="/outlet-daily-records">
               <SelectControl name="status" value={filters.status ?? "all"} ariaLabel="Status" options={[{ value: "all", label: "All statuses" }, ...outletDailyStatusOptions]} />
               {canViewSentGaps ? <SelectControl name="sent_state" value={filters.sent_state ?? "all"} ariaLabel="Qty sent state" options={[{ value: "all", label: "All Qty Sent" }, { value: "missing", label: "Qty Sent missing" }]} /> : null}
-            </FilterBarMore>
 
               {filtered ? <Button asChild variant="secondary" data-list-action="secondary"><Link href="/outlet-daily-records">Reset</Link></Button> : null}
           </FilterBar>

@@ -5,7 +5,7 @@ const read = (path) => fs.readFileSync(path, 'utf8');
 
 test('dashboard role/scope keeps its flex owner instead of global definition grid', () => {
   assert.match(read('src/components/dashboard-workspace.tsx'), /<dl data-dashboard-context className="flex/);
-  assert.match(read('src/app/design-system-v2.css'), /dl:not\(\[data-dashboard-context\]\):has\(> div > dt\)/);
+  assert.match(read('src/app/design-system-v2.css'), /dl:not\(\[data-dashboard-context\], \.sb-daily-record-metrics\):has\(> div > dt\)/);
 });
 
 test('stock transfer retains the standard shell right panel', () => {

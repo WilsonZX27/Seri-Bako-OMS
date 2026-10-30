@@ -65,10 +65,10 @@ export function OutletPackagingReport({ report, days: initialDays, canManageStor
       </>}
     </ConsoleSection>
   </>;
-  return <WorkspaceGrid tabletCanvas="wide" rightRail={rail} tabletRailMode="context">
+  return <WorkspaceGrid tabletCanvas="wide" rightRail={rail} tabletRailMode="split" tabletRailBreakpoint="md">
   <div className="space-y-4" data-packaging-report>
     {/* Outlet/product are local state; only changePeriod owns server navigation. */}
-    <FilterBar resetHref="/outlet-packaging" phoneMode="inline" className="gap-3" onSubmit={(event) => event.preventDefault()}>
+    <FilterBar resetHref="/outlet-packaging" phoneMode="inline" tabletMode="inline" className="gap-3" onSubmit={(event) => event.preventDefault()}>
       <SelectControl ariaLabel="Outlet" className="w-full sm:w-64" value={outlet} onValueChange={selectedValue => { setOutlet(selectedValue); setSelectedDate(null); }} options={[({value: "all", label: "All outlets"}), ...(report.outlets.map((item) => ({value: String((item.id) ?? ""), label: String((item.name) ?? "")})))]}/>
       <SelectControl ariaLabel="Packaging" className="w-full sm:w-56 lg:hidden" value={product} onValueChange={selectedValue => { setProduct(selectedValue); setSelectedDate(null); }} options={[...(report.products.map((item) => ({value: String((item.code) ?? ""), label: String((item.name) ?? "")})))]}/>
       <SelectControl ariaLabel="Report period" className="w-full sm:w-32" value={periodPending ? requestedDays : days} disabled={periodPending} aria-busy={periodPending || undefined} onValueChange={selectedValue => changePeriod(selectedValue === "30" ? 30 : 7)} options={[({value: "7", label: "7 days"}), ({value: "30", label: "30 days"})]}/>

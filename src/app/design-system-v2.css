@@ -2689,9 +2689,9 @@ html[data-design-layer="v2"] [data-page-jump], html[data-design-layer="v2"] [dat
 [data-console-section] + [data-console-section] { margin-top:.75rem; }
 /* Semantic read-only description lists share the same label/value grammar. */
 @media(max-width:1279px) {
-#main-content dl:not([data-dashboard-context]):has(> div > dt) { display:grid; grid-template-columns:minmax(0,1fr); grid-auto-rows:auto; gap:.5rem; }
-#main-content dl > div:not(:has(> svg)):has(> dt + dd:last-child) { display:grid; grid-column:1 / -1; grid-template-columns:minmax(0,1fr) fit-content(60%); align-items:start; gap:.75rem; min-height:0; }
-#main-content dl > div:not(:has(> svg)):has(> dt + dd:last-child) > dd { min-width:0; margin-top:0; text-align:right; overflow-wrap:anywhere; }
+#main-content dl:not([data-dashboard-context], .sb-daily-record-metrics):has(> div > dt) { display:grid; grid-template-columns:minmax(0,1fr); grid-auto-rows:auto; gap:.5rem; }
+#main-content dl:not(.sb-daily-record-metrics) > div:not(:has(> svg)):has(> dt + dd:last-child) { display:grid; grid-column:1 / -1; grid-template-columns:minmax(0,1fr) fit-content(60%); align-items:start; gap:.75rem; min-height:0; }
+#main-content dl:not(.sb-daily-record-metrics) > div:not(:has(> svg)):has(> dt + dd:last-child) > dd { min-width:0; margin-top:0; text-align:right; overflow-wrap:anywhere; }
 }
 
 @media(max-width:767px) {

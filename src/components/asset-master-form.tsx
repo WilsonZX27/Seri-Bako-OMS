@@ -3,7 +3,7 @@ import { FormPendingBridge } from "@/components/ui/submit-button";
 import Link from "next/link";
 import { AssetChoiceSelect } from "@/components/asset-choice-select";
 import { AssetFormWorkspace } from "@/components/asset-form-workspace";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useAssetDraftAction, useAssetDraftState } from "@/components/asset-draft-state";
 import { assetMasterFields } from "@/lib/asset-master";
 import { saveAssetMaster } from "@/server/actions/assets";
@@ -13,8 +13,10 @@ import { SelectControl } from "@/components/ui/select-control";
 import { Button } from "@/components/ui/button";
 import type { AssetLocation } from "@/server/queries/assets";
 
-export function AssetMasterForm({ assetId, code = "", name = "", values, locations = [], requestKey, updatedAt = "", embedded = false, automaticId = false, options = { fields: {}, people: [] } }: {
+function AssetMasterFormInstance({ assetId, code = "", name = "", values, locations = [], requestKey, updatedAt = "", embedded = false, automaticId = false, nextCode = null, onRegisterAnother, options = { fields: {}, people: [] } }: {
   automaticId?: boolean;
+  nextCode?: string | null;
+  onRegisterAnother?: () => void;
   options?: { fields: Record<string, string[]>; people: {id: string; full_name: string; staff_code: string | null}[] };
   assetId?: string; code?: string; name?: string; values: Record<string, string>; locations?: AssetLocation[]; requestKey: string; updatedAt?: string; embedded?: boolean;
 }) {
@@ -35,8 +37,8 @@ export function AssetMasterForm({ assetId, code = "", name = "", values, locatio
   const dirty = itemName !== name || assetCode !== code || Boolean(location || quantity || reason) || assetMasterFields.some(field => fields[field.key] !== values[field.key]);
   useAssetFormGuard(!state.ok && dirty);
   const formId = `asset-master-${assetId ?? "new"}`;
-  const hint = !automaticId && !assetCode.trim() ? "Enter the Asset ID." : !itemName.trim() ? "Enter the item name." : !assetId && !location ? "Choose the initial location." : !reason.trim() ? (assetId ? "Add a change reason." : "Add a registration note.") : !dirty ? "Change a field before saving." : "Review the asset details before saving. Blank quantity stays unknown.";
-  const registrationAction = <Button data-asset-registration-action form={formId} className="w-full min-h-11" type="submit" disabled={!dirty || pending || state.ok}>{pending ? "Saving…" : "Register asset"}</Button>;
+  const hint = state.ok ? "Asset registered. Open the asset or register another." : !automaticId && !assetCode.trim() ? "Enter the Asset ID." : !itemName.trim() ? "Enter the item name." : !assetId && !location ? "Choose the initial location." : assetId && !reason.trim() ? "Add a change reason." : !dirty ? "Change a field before saving." : "Review the asset details before saving. Blank quantity stays unknown.";
+  const registrationAction = state.ok && onRegisterAnother ? <Button type="button" className="w-full min-h-11" onClick={onRegisterAnother}>Register new asset</Button> : <Button data-asset-registration-action form={formId} className="w-full min-h-11" type="submit" disabled={!dirty || pending || state.ok}>{pending ? "Saving…" : "Register asset"}</Button>;
   const content = <form id={formId} data-asset-entry-form={!assetId || undefined} action={action} className={`max-lg:[&_input]:min-h-11 max-lg:[&_[data-select-control]]:min-h-11 max-lg:[&_button]:min-h-11 ${embedded ? "pt-3" : ""}`}>
       {formId ? <FormPendingBridge formId={formId} /> : null}
     {restored ? <p role="status" className="mb-3 text-xs">Unsaved inputs restored from this browser tab. Review before saving.</p> : null}
@@ -44,11 +46,11 @@ export function AssetMasterForm({ assetId, code = "", name = "", values, locatio
     <fieldset disabled={pending || state.ok} className="min-w-0 space-y-4">
       <section className="sb-work-surface p-4" data-asset-master-card="identity" aria-labelledby={`${formId}-identity`}><h2 id={`${formId}-identity`} className="mb-3 text-sm font-semibold">{assetId ? "Asset identity" : "Registration details"}</h2>
       <div className="sb-asset-field-grid grid grid-cols-1 gap-3 lg:grid-cols-2">
-        <label className="grid min-w-0 content-start gap-1 text-xs"><span>Asset ID <span className="text-destructive" aria-hidden="true">*</span></span><Input name="asset_code" value={!assetId && automaticId ? "" : assetCode} placeholder={!assetId && automaticId ? "Assigned on registration" : undefined} readOnly={Boolean(assetId) || automaticId} required={!automaticId} maxLength={80} onChange={event=>setAssetCode(event.target.value)}/>{!assetId ? <span className="text-muted-foreground">{automaticId ? "Document Sequences assigns the ID when registration succeeds." : "Automatic numbering awaits a verified starting sequence. Enter a unique Asset ID."}</span> : null}</label>
+        <label className="grid min-w-0 content-start gap-1 text-xs"><span>Asset ID <span className="text-destructive" aria-hidden="true">*</span></span><Input name="asset_code" value={!assetId && automaticId ? "" : assetCode} placeholder={!assetId && automaticId ? state.ok ? "Registered — open asset to view ID" : nextCode ?? "Assigned on registration" : undefined} readOnly={Boolean(assetId) || automaticId} required={!automaticId} maxLength={80} onChange={event=>setAssetCode(event.target.value)}/>{!assetId ? <span className="text-muted-foreground">{automaticId ? state.ok ? "Registration completed. Open the asset to view its confirmed ID." : nextCode ? "Next sequence candidate, not reserved. Concurrent registrations or existing IDs may change the final number." : "The ID is confirmed when registration succeeds." : "Automatic numbering awaits a verified starting sequence. Enter a unique Asset ID."}</span> : null}</label>
         <label className="grid min-w-0 content-start gap-1 text-xs"><span>Item name <span className="text-destructive" aria-hidden="true">*</span></span><Input name="item_name" value={itemName} required maxLength={200} onChange={event=>setItemName(event.target.value)}/></label>
         {!assetId ? <><label className="grid min-w-0 content-start gap-1 text-xs"><span>Initial location <span className="text-destructive" aria-hidden="true">*</span></span><SelectControl name="location_id" required value={location} onValueChange={selectedValue => setLocation(selectedValue)} ariaLabel={"Initial location "} options={[({value: "", label: "Choose location", disabled: true}), ...(locations.map(item=>({value: String((item.id) ?? ""), label: String((item.display_name ?? item.source_name) ?? "")})))]}/></label><label className="grid min-w-0 content-start gap-1 text-xs"><span>Initial physical quantity</span><Input name="quantity" type="number" min="0" step="1" placeholder="Not recorded" value={quantity} onChange={event=>setQuantity(event.target.value)}/></label></> : null}
       </div>
-      <label className="mt-3 grid min-w-0 content-start gap-1 text-xs"><span>{assetId ? "Change reason" : "Registration note"} <span className="text-destructive" aria-hidden="true">*</span></span><Input name="reason" required maxLength={2000} value={reason} onChange={event=>setReason(event.target.value)}/></label>
+      <label className="mt-3 grid min-w-0 content-start gap-1 text-xs"><span>{assetId ? "Change reason" : "Remarks (optional)"} {assetId ? <span className="text-destructive" aria-hidden="true">*</span> : null}</span><Input name="reason" required={Boolean(assetId)} maxLength={2000} value={reason} onChange={event=>setReason(event.target.value)}/></label>
       </section>
       {(["General", "Purchase & warranty"] as const).map(group=><details className="sb-work-surface p-4" data-asset-master-card={group === "General" ? "general" : "purchase"} key={group} open={group === "General"}><summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold">{group}</summary><div className="sb-asset-field-grid mt-3 grid min-w-0 grid-cols-1 gap-3 lg:grid-cols-2">{assetMasterFields.filter(field=>field.group===group).map(field=><label className="grid min-w-0 content-start gap-1 text-xs" key={field.key}><span>{field.label}</span>{field.key === "Responsible Person" ? <SelectControl name={`detail_${field.key}`} value={fields[field.key] ?? ""} onValueChange={selectedValue => setFields(current=>({...current,[field.key]:selectedValue}))} ariaLabel={String((field.label) ?? "")} options={[({value: "", label: "Choose OMS user"}), ...(fields[field.key] && !options.people.some(person=>person.full_name === fields[field.key]) ? [({value: String((fields[field.key]) ?? ""), label: [fields[field.key], " (recorded)"].join("")})] : []), ...(options.people.map(person=>({value: String((person.full_name) ?? ""), label: [person.full_name, person.staff_code ? ` · ${person.staff_code}` : ""].join("")})))]}/> : field.key === "Department / Area" || field.key === "Category" ? <AssetChoiceSelect label={field.label} name={`detail_${field.key}`} value={fields[field.key] ?? ""} options={options.fields[field.key] ?? []} onChange={value=>setFields(current=>({...current,[field.key]:value}))}/> : <Input name={`detail_${field.key}`} type={field.type} value={fields[field.key] ?? ""} maxLength={1000} min={field.type === "number" ? "0" : undefined} step={field.type === "number" ? "0.01" : undefined} onChange={event=>setFields(current=>({...current,[field.key]:event.target.value}))}/>}</label>)}</div></details>)}
 
@@ -61,4 +63,9 @@ export function AssetMasterForm({ assetId, code = "", name = "", values, locatio
     {state.ok && state.assetId ? <Link className="block min-h-11 py-3 text-sm underline" href={`/asset-management/assets/${state.assetId}`}>Open asset</Link> : null}
   </form>;
   return assetId ? content : <AssetFormWorkspace actions={registrationAction} hint={hint}>{content}</AssetFormWorkspace>;
+}
+
+export function AssetMasterForm(props: Parameters<typeof AssetMasterFormInstance>[0]) {
+  const [registration, setRegistration] = useState({ key: props.requestKey, generation: 0 });
+  return <AssetMasterFormInstance {...props} key={registration.generation} requestKey={registration.key} nextCode={registration.generation ? null : props.nextCode} onRegisterAnother={props.assetId ? undefined : () => setRegistration(current => ({key: crypto.randomUUID(), generation: current.generation + 1}))}/>;
 }

@@ -11,6 +11,7 @@ test('asset holding status uses the existing status bullet while unknown quantit
  const render=holdings=>renderToStaticMarkup(React.createElement(AssetRegisterRows,{assets,holdings,locations:new Map([['l','Existing location']])}));
  const html=render([{asset_id:'a',location_id:'l',quantity:0,status:'Active',condition:'Good',latest_check_result:'Checked'}]);
  assert.match(html,/data-status="active"/);assert.match(html,/data-badge-variant="success"/);
- for(const value of ['KEEP-1','Existing location','Condition: Good','Check: Checked'])assert.ok(html.includes(value));
+ for(const value of ['KEEP-1','Existing location','Condition','Check','Good','Checked'])assert.ok(html.includes(value));
+ assert.match(html, /<th[^>]*>Condition<\/th>/);assert.match(html, /<th[^>]*>Check<\/th>/);
  const unknown=render([]);assert.match(unknown,/data-status="unknown"/);assert.match(unknown,/No accessible holding/);assert.match(unknown,/—/);assert.doesNotMatch(unknown,/data-status="active"/);
 });

@@ -1,0 +1,9 @@
+/* Delivery-date control only; no shared FilterBar default changes. */
+@media (min-width: 768px) {
+  :global(html[data-design-layer="v2"]) form.filters :global(.unified-list-row:has(.unified-list-date-submit)) { grid-template-columns: minmax(10rem, 14rem) 4rem minmax(0, 1fr) !important; }
+  :global(html[data-design-layer="v2"]) form.filters :global(.unified-list-date-submit) { width: 4rem !important; min-width: 4rem !important; }
+}
+@media (min-width: 1280px) {
+  :global(html[data-design-layer="v2"] #main-content) form.filters > :global(.unified-list-date-control) { flex: 0 1 14rem !important; width: 14rem !important; max-width: 14rem !important; }
+  :global(html[data-design-layer="v2"] #main-content) form.filters :global(.unified-list-desktop-actions button[type="submit"]) { flex: 0 0 4rem !important; width: 4rem !important; min-width: 4rem !important; max-width: 4rem !important; }
+}

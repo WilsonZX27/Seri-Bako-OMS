@@ -1,3 +1,7 @@
+# v9.2.163 (local candidate) — Asset annotation21 corrections
+
+Scoped asset filters, maintenance rows/history, transfer action/timeline rail, optional creation remarks, read-only ID candidate, register-another flow, and separate desktop condition/check columns. Overview queue preserved. No login patch, basket changes, schema or permissions changes.
+
 # v9.2.162 (local candidate) — Restore accepted responsive registers
 
 Daily desktop filters remain visible and tablet metrics stay in four columns. Transfers use desktop table columns. Packaging preserves its tablet right rail and visible filters. Page-scoped corrections; no business data, permission or repair configuration changes.

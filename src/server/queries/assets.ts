@@ -51,14 +51,25 @@ const mockInspectionAssets: AssetSummary[] = [
 
 export const getAssetRegistration = cache(async () => {
   const actor = await requireActiveTenantActor(); await requirePermission("assets.manage");
-  if (isMockMode()) return { active: true, automaticId: false, locations: [{ id: mockInspectionLocationId, source_name: "KL - Publika", branch_id: null, kind: "branch" }] as AssetLocation[] };
+  if (isMockMode()) return { active: true, automaticId: false, nextCode: null as string | null, locations: [{ id: mockInspectionLocationId, source_name: "KL - Publika", branch_id: null, kind: "branch" }] as AssetLocation[] };
   const db = looseSupabase(await createClient());
   const activation = await db.rpc("asset_company_live", { p_company: actor.companyId });
   if (activation.error || activation.data === null) throw new Error(activation.error?.message ?? "Asset activation unavailable.");
-  if (activation.data !== true) return { active: false, automaticId: false, locations: [] as AssetLocation[] };
+  if (activation.data !== true) return { active: false, automaticId: false, nextCode: null as string | null, locations: [] as AssetLocation[] };
   const result = await db.from("asset_locations").select("id,source_name,branch_id,kind").eq("company_id", actor.companyId).order("source_name");
   if (result.error || result.data === null) throw new Error(result.error?.message ?? "Asset locations unavailable.");
-  return { active: true, automaticId: (await assetFeatureCapabilities(db, actor.companyId)).automaticId, locations: await withCanonicalBranchNames(looseSupabase(db), result.data as AssetLocation[]) };
+  const automaticId = (await assetFeatureCapabilities(db, actor.companyId)).automaticId;
+  let nextCode: string | null = null;
+  // Read-only candidate for the installed compact SB contract. Never allocate on GET.
+  if (automaticId && actor.companyId === "3b104582-f8cb-4a4d-867f-b99e5ffc6486") {
+    const [sequence, period] = await Promise.all([
+      db.from("document_sequences").select("prefix,padding,reset_frequency").eq("company_id", actor.companyId).eq("document_type", "asset").eq("status", "active").is("deleted_at", null).maybeSingle(),
+      db.from("document_sequence_periods").select("next_number").eq("company_id", actor.companyId).eq("document_type", "asset").eq("period_start", "1970-01-01").maybeSingle(),
+    ]);
+    const n = Number(period.data?.next_number), padding = Number(sequence.data?.padding);
+    if (!sequence.error && !period.error && String(sequence.data?.prefix ?? "").trim() === "SB" && sequence.data?.reset_frequency === "never" && Number.isSafeInteger(n) && n > 0 && Number.isInteger(padding) && padding >= 1 && padding <= 64) nextCode = `SB-${String(n).padStart(Math.max(4,padding),"0")}`;
+  }
+  return { active: true, automaticId, nextCode, locations: await withCanonicalBranchNames(looseSupabase(db), result.data as AssetLocation[]) };
 });
 
 export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query = "", date = "", status = "", locationId = "", sort = "code", category = "") => {
@@ -151,7 +162,9 @@ export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query =
     const table = view === "checklist" ? "asset_daily_checks" : view === "maintenance" ? "asset_maintenance" : ((await assetFeatureCapabilities(db)).transferBatchRead) ? "asset_transfer_register" : "asset_transfers";
     let request = db.from(table).select("*", { count: "exact" }).eq("company_id", company);
     if (locationId && view !== "transfers") request = request.eq("location_id", locationId);
-    if (status && (view === "maintenance" || view === "transfers")) request = request.eq("status", status);
+    if (view === "maintenance" && status === "Outstanding") request = request.in("status", ["Open", "Assigned"]);
+    else if (view === "maintenance" && status === "Processed") request = request.in("status", ["Resolved", "Closed"]);
+    else if (status && (view === "transfers" || view === "maintenance" && status !== "All")) request = request.eq("status", status);
     const recordDate = date || (view === "checklist" ? todayInKualaLumpur() : "");
     if (recordDate && /^\d{4}-\d{2}-\d{2}$/.test(recordDate)) {
       if (view === "checklist") request = request.eq("check_date", recordDate);

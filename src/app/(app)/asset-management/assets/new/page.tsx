@@ -11,5 +11,5 @@ export default async function NewAssetPage() {
   await requirePermission("assets.manage");
   const data = await getAssetRegistration();
   const options = data.active ? await getAssetMasterOptions() : undefined;
-  return <><PageHeader title="Register asset" description="Register an asset and its initial physical holding."/>{data.active ? <AssetMasterForm automaticId={data.automaticId} options={options} values={assetMasterValues({},{})} locations={data.locations} requestKey={randomUUID()}/> : <WorkspaceGrid><EmptyState title="Asset migration pending" description="Complete migration reconciliation before registering new assets."/></WorkspaceGrid>}</>;
+  return <><PageHeader title="Register asset" description="Register an asset and its initial physical holding."/>{data.active ? <AssetMasterForm automaticId={data.automaticId} nextCode={data.nextCode} options={options} values={assetMasterValues({},{})} locations={data.locations} requestKey={randomUUID()}/> : <WorkspaceGrid><EmptyState title="Asset migration pending" description="Complete migration reconciliation before registering new assets."/></WorkspaceGrid>}</>;
 }

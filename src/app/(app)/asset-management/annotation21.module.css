@@ -1,0 +1,8 @@
+/* Annotation21: scoped to the asset workspace, never shared control defaults. */
+:global(html[data-design-layer="v2"] #main-content) form.query :global(.unified-list-desktop-actions) { flex: 0 0 auto; width: auto; }
+:global(html[data-design-layer="v2"] #main-content) form.query :global(.unified-list-desktop-actions button[type="submit"]) { width: 2.75rem !important; min-width: 2.75rem !important; max-width: 2.75rem !important; padding-inline: 0; }
+@media (min-width: 1024px) {
+  .maintenance { height: calc(100dvh - 23rem); min-height: 20rem; }
+  .maintenance > div { max-height: 100%; overflow-y: auto; }
+  .maintenance :global(.sb-maintenance-queue) { max-height: none; overflow: visible; }
+}

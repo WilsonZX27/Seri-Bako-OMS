@@ -78,3 +78,9 @@ test('the reviewed activation switch only enables complete backend contracts; mi
  const configured=await ready({rpc:async()=>({data:{version:3,transfer_batch:true,transfer_batch_revision:1,automatic_id:true,automatic_id_revision:1},error:null})});assert.equal(configured.automaticId,false);
  const partial=await ready({rpc:async()=>({data:{version:2,transfer_batch:true,transfer_batch_revision:1,automatic_id:true,automatic_id_revision:1},error:null})});assert.equal(partial.transferBatch,false);assert.equal(partial.automaticId,false);
 });
+
+test('optional registration remarks preserve audit reason and editing still requires a reason',async()=>{
+ for(const remark of ['', '   ', 'Delivered with accessories']){const h=actionHarness();const form=registration();form.set('reason',remark);const result=await h.actions.saveAssetMaster({},form);assert.equal(result.ok,true);assert.equal(h.calls[0].name,'create_asset_master');assert.equal(h.calls[0].args.p_reason,remark.trim()||'Asset registration');}
+ const h=actionHarness();const form=registration();form.set('asset_id',id1);form.set('expected_updated_at','2026-10-30T00:00:00Z');form.set('reason',' ');assert.equal((await h.actions.saveAssetMaster({},form)).ok,false);assert.equal(h.calls.length,0);
+ form.set('reason','Correct name');assert.equal((await h.actions.saveAssetMaster({},form)).ok,true);assert.equal(h.calls[0].name,'update_asset_master');assert.equal(h.calls[0].args.p_reason,'Correct name');
+});

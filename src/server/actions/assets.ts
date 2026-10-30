@@ -61,7 +61,8 @@ export async function uploadAssetAttachment(_previous: AssetActionState, form: F
 export async function saveAssetMaster(_previous: AssetActionState, form: FormData): Promise<AssetActionState> {
   try {
     const actor = await requireActiveTenantActor(); await requirePermission("assets.manage");
-    const name = String(form.get("item_name") ?? "").trim(), reason = String(form.get("reason") ?? "").trim();
+    const rawId = String(form.get("asset_id") ?? "");
+    const name = String(form.get("item_name") ?? "").trim(), reason = String(form.get("reason") ?? "").trim() || (rawId ? "" : "Asset registration");
     if (!name || name.length > 200 || !reason || reason.length > 2000) throw new Error("Enter the item name and reason.");
     const details: Record<string, string> = {};
     for (const field of assetMasterFields) {
@@ -74,7 +75,6 @@ export async function saveAssetMaster(_previous: AssetActionState, form: FormDat
     if (details["Warranty Start Date"] && details["Warranty End Date"] && details["Warranty Start Date"] > details["Warranty End Date"]) throw new Error("Warranty end must follow its start.");
     const db = looseSupabase(await createClient());
     const clientKey = uuid(form.get("client_key"));
-    const rawId = String(form.get("asset_id") ?? "");
     let response;
     if (rawId) {
       const expected = String(form.get("expected_updated_at") ?? "");

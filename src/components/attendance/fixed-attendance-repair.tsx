@@ -27,7 +27,7 @@ export function AttendanceFixedRepairAction({ batchId, weekStart, disabled = fal
     void fetch("/api/attendance/recalculate", { cache: "no-store", credentials: "same-origin", signal: controller.signal })
       .then(async response => {
         const data = await response.json();
-        if (!controller.signal.aborted) setEnabled(response.ok && data.capability === "oms269-fixed-v1" && data.enabled === true);
+        if (!controller.signal.aborted) setEnabled(response.ok && data.capability === "oms281-fixed-v1" && data.enabled === true);
       }).catch(() => { /* Optional maintenance capability stays unavailable. */ });
     return () => { controller.abort(); attemptListeners.delete(setSettled); };
   }, [inScope]);
@@ -40,12 +40,12 @@ export function AttendanceFixedRepairAction({ batchId, weekStart, disabled = fal
     setBusy(true);
     setChecked(false);
     try {
-      const response = await fetch("/api/attendance/recalculate", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ batchId: batch, repair: "oms269-20261019-v1/run", expectedCount:269 }) });
+      const response = await fetch("/api/attendance/recalculate", { method: "POST", credentials: "same-origin", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ batchId: batch, repair: "oms281-20261019-v1/run", expectedCount:281 }) });
       const data = await response.json();
-      if (!response.ok || data.ok !== true || ![0, 269].includes(data.calculated)) throw new Error(data.message ?? "The result is not confirmed. Check the repair receipt and current state before retrying.");
-      setMessage(data.calculated === 269 ? "269 staff days processed. Independent receipt verification is still required." : "No additional staff days changed. Verify the existing receipt.");
+      if (!response.ok || data.ok !== true || ![0, 281].includes(data.calculated)) throw new Error(data.message ?? "The result is not confirmed. Check the repair receipt and current state before retrying.");
+      setMessage(data.calculated === 281 ? "281 staff days processed. Independent receipt verification is still required." : "No additional staff days changed. Verify the existing receipt and matching current state.");
     } catch (error) {
-      setMessage(`${error instanceof Error ? error.message : "The result is not confirmed."} Do not submit again until the repair receipt and current state and current versions have been checked.`);
+      setMessage(`${error instanceof Error ? error.message : "The result is not confirmed."} Do not submit again until the repair receipt and current state and versions have been checked.`);
     } finally {
       setSettled(true);
       setBusy(false);
@@ -54,8 +54,8 @@ export function AttendanceFixedRepairAction({ batchId, weekStart, disabled = fal
 
   if (!inScope || !enabled) return null;
   return <div className="mt-3 space-y-2 border-t border-[var(--sb-border-soft)] pt-3">
-    <p className="text-xs text-muted-foreground">19–25 Oct · Correct only the remaining 269 staff days. Preserve the 36 already updated and 30 outside this range, along with raw punches and history.</p>
-    <label className="flex items-start gap-2 text-xs"><input type="checkbox" checked={checked} disabled={busy || settled} onChange={event => setChecked(event.target.checked)} />Confirm the approved 269-day scope</label>
+    <p className="text-xs text-muted-foreground">19–25 Oct · Correct only the remaining 281 staff days. Preserve the other 24 already updated and 30 outside this range, along with raw punches and history.</p>
+    <label className="flex items-start gap-2 text-xs"><input type="checkbox" checked={checked} disabled={busy || settled} onChange={event => setChecked(event.target.checked)} />Confirm the approved 281-day scope</label>
     <Button type="button" size="sm" variant="outline" className="w-full" disabled={!checked || busy || settled} onClick={() => void submit()}><RefreshCw className={`h-4 w-4 ${busy ? "animate-spin" : ""}`} />{busy ? "Processing…" : "Apply approved correction"}</Button>
     {message ? <p role="status" aria-live="polite" className="text-xs text-muted-foreground">{message}</p> : null}
   </div>;

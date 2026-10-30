@@ -1,7 +1,7 @@
 {
   "passed": 21,
   "checks": [
-    "office linked without daily enrollment",
+    "office creates no asset location",
     "old ID preserved",
     "old holding preserved",
     "missing branch backfilled",

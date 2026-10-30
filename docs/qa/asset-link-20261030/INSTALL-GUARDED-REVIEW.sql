@@ -79,6 +79,7 @@ CREATE UNIQUE INDEX asset_locations_company_branch_unique ON public.asset_locati
 CREATE FUNCTION public.link_branch_asset_location() RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path=pg_catalog,public AS $$
 BEGIN
+ IF NEW.branch_type='office' THEN RETURN NEW; END IF;
  IF TG_OP='UPDATE' AND NEW.company_id IS DISTINCT FROM OLD.company_id AND EXISTS(
   SELECT 1 FROM public.asset_locations WHERE branch_id=OLD.id) THEN
   RAISE EXCEPTION 'A linked branch cannot move company'; END IF;
@@ -99,7 +100,7 @@ CREATE TRIGGER link_branch_asset_location AFTER INSERT OR UPDATE OF company_id,b
 -- Retain existing IDs, aliases, holdings and all history. Seed only missing links.
 INSERT INTO public.asset_locations(company_id,branch_id,kind,source_name,checklist_enabled)
 SELECT b.company_id,b.id,'branch',b.branch_name,b.branch_type IN ('outlet','central_kitchen','event_booth') FROM public.branches b
-WHERE b.status='active' AND b.deleted_at IS NULL
+WHERE b.status='active' AND b.deleted_at IS NULL AND b.branch_type<>'office'
 AND NOT EXISTS(SELECT 1 FROM public.asset_locations l WHERE l.company_id=b.company_id AND l.branch_id=b.id)
 ON CONFLICT(company_id,branch_id) WHERE branch_id IS NOT NULL DO NOTHING;
 

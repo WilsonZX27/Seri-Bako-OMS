@@ -4,7 +4,7 @@ SET LOCAL lock_timeout='5s';
 SET LOCAL statement_timeout='30s';
 LOCK TABLE public.branches IN SHARE ROW EXCLUSIVE MODE;
 DO $$ BEGIN
-IF md5(pg_get_functiondef('get_asset_checklist_summary(date)'::regprocedure))<>'0e4505f08eca14de6e93d24a605ffebe' OR md5(pg_get_functiondef('link_branch_asset_location()'::regprocedure))<>'6ced3361d1d7762683401d83639a1bc5' OR (SELECT md5(pg_get_triggerdef(oid)) FROM pg_trigger WHERE tgname='link_branch_asset_location' AND tgrelid='public.branches'::regclass) IS DISTINCT FROM '58a6abbd8162e2860551d89da14090e0' THEN RAISE EXCEPTION 'Installed definition drift: recovery stopped'; END IF;
+IF md5(pg_get_functiondef('get_asset_checklist_summary(date)'::regprocedure))<>'0e4505f08eca14de6e93d24a605ffebe' OR md5(pg_get_functiondef('link_branch_asset_location()'::regprocedure))<>'bfa2cae6386c7ea1d9611c56f11e538d' OR (SELECT md5(pg_get_triggerdef(oid)) FROM pg_trigger WHERE tgname='link_branch_asset_location' AND tgrelid='public.branches'::regclass) IS DISTINCT FROM '58a6abbd8162e2860551d89da14090e0' THEN RAISE EXCEPTION 'Installed definition drift: recovery stopped'; END IF;
 IF NOT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='asset_locations' AND column_name='checklist_enabled') THEN RAISE EXCEPTION 'Expected installed schema absent'; END IF;
 END $$;
 DROP TRIGGER link_branch_asset_location ON public.branches;

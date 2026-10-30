@@ -14,7 +14,7 @@
   "policies": [
     {
       "cmd": "SELECT",
-      "qual": "((company_id = ( SELECT current_staff_company_id() AS current_staff_company_id)) AND (location_id IN ( SELECT asset_locations.id\n FROM asset_locations)))",
+      "qual": "((company_id = ( SELECT current_staff_company_id() AS current_staff_company_id)) AND (location_id IN ( SELECT asset_locations.id\n   FROM asset_locations)))",
       "roles": [
         "authenticated"
       ],
@@ -26,7 +26,7 @@
     },
     {
       "cmd": "SELECT",
-      "qual": "((company_id = ( SELECT current_staff_company_id() AS current_staff_company_id)) AND (location_id IN ( SELECT asset_locations.id\n FROM asset_locations)))",
+      "qual": "((company_id = ( SELECT current_staff_company_id() AS current_staff_company_id)) AND (location_id IN ( SELECT asset_locations.id\n   FROM asset_locations)))",
       "roles": [
         "authenticated"
       ],
@@ -38,7 +38,7 @@
     },
     {
       "cmd": "SELECT",
-      "qual": "((company_id = ( SELECT current_staff_company_id() AS current_staff_company_id)) AND (location_id IN ( SELECT asset_locations.id\n FROM asset_locations)))",
+      "qual": "((company_id = ( SELECT current_staff_company_id() AS current_staff_company_id)) AND (location_id IN ( SELECT asset_locations.id\n   FROM asset_locations)))",
       "roles": [
         "authenticated"
       ],

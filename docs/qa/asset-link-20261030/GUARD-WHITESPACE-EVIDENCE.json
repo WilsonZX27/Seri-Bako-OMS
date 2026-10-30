@@ -1,0 +1,23 @@
+[
+  {
+    "policy": "asset_calendar_read",
+    "field": "qual",
+    "before": "((company_id = ( SELECT current_staff_company_id() AS current_staff_company_id)) AND (location_id IN ( SELECT asset_locations.id\n FROM asset_locations)))",
+    "after": "((company_id = ( SELECT current_staff_company_id() AS current_staff_company_id)) AND (location_id IN ( SELECT asset_locations.id\n   FROM asset_locations)))",
+    "whitespace_only": true
+  },
+  {
+    "policy": "asset_checks_read",
+    "field": "qual",
+    "before": "((company_id = ( SELECT current_staff_company_id() AS current_staff_company_id)) AND (location_id IN ( SELECT asset_locations.id\n FROM asset_locations)))",
+    "after": "((company_id = ( SELECT current_staff_company_id() AS current_staff_company_id)) AND (location_id IN ( SELECT asset_locations.id\n   FROM asset_locations)))",
+    "whitespace_only": true
+  },
+  {
+    "policy": "asset_holdings_read",
+    "field": "qual",
+    "before": "((company_id = ( SELECT current_staff_company_id() AS current_staff_company_id)) AND (location_id IN ( SELECT asset_locations.id\n FROM asset_locations)))",
+    "after": "((company_id = ( SELECT current_staff_company_id() AS current_staff_company_id)) AND (location_id IN ( SELECT asset_locations.id\n   FROM asset_locations)))",
+    "whitespace_only": true
+  }
+]

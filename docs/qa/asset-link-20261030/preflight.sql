@@ -1,0 +1,8 @@
+-- Read-only. Run only on the approved project, save results before installation.
+SELECT jsonb_build_object(
+ 'missing_active', (SELECT count(*) FROM public.branches b WHERE b.status='active' AND b.deleted_at IS NULL AND NOT EXISTS(SELECT 1 FROM public.asset_locations l WHERE l.company_id=b.company_id AND l.branch_id=b.id)),
+ 'duplicate_mappings',(SELECT coalesce(jsonb_agg(x),'[]') FROM (SELECT company_id,branch_id,count(*) FROM public.asset_locations WHERE branch_id IS NOT NULL GROUP BY company_id,branch_id HAVING count(*)>1)x),
+ 'ambiguous_names',(SELECT coalesce(jsonb_agg(x),'[]') FROM (SELECT b.company_id,b.id AS branch_id,b.branch_name,l.id AS existing_location_id,l.branch_id AS existing_branch_id FROM public.branches b JOIN public.asset_locations l ON l.company_id=b.company_id AND lower(trim(l.source_name))=lower(trim(b.branch_name)) WHERE b.status='active' AND b.deleted_at IS NULL AND l.branch_id IS DISTINCT FROM b.id AND NOT EXISTS(SELECT 1 FROM public.asset_locations x WHERE x.company_id=b.company_id AND x.branch_id=b.id))x),
+ 'definitions',(SELECT jsonb_agg(jsonb_build_object('signature',p.oid::regprocedure::text,'definition',pg_get_functiondef(p.oid),'acl',p.proacl::text,'owner',pg_get_userbyid(p.proowner))) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname IN ('get_asset_checklist_summary','asset_location_access','asset_location_company_guard','asset_company_live')),
+ 'triggers',(SELECT jsonb_agg(pg_get_triggerdef(t.oid)) FROM pg_trigger t WHERE t.tgrelid IN ('public.branches'::regclass,'public.asset_locations'::regclass) AND NOT t.tgisinternal)
+);

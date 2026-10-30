@@ -1,0 +1,36 @@
+{
+  "triggers": [
+    "CREATE TRIGGER branches_refresh_stock_balances_summary AFTER UPDATE OF branch_name, company_id ON public.branches FOR EACH ROW EXECUTE FUNCTION refresh_stock_balances_summary_from_branch()",
+    "CREATE TRIGGER set_branches_updated_at BEFORE UPDATE ON public.branches FOR EACH ROW EXECUTE FUNCTION set_updated_at()",
+    "CREATE TRIGGER asset_location_company BEFORE INSERT OR UPDATE ON public.asset_locations FOR EACH ROW EXECUTE FUNCTION asset_location_company_guard()"
+  ],
+  "definitions": [
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "signature": "asset_company_live(uuid)",
+      "definition": "CREATE OR REPLACE FUNCTION public.asset_company_live(p_company uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$ select p_company=public.current_staff_company_id() and exists(select 1 from public.asset_import_batches b where b.company_id=p_company and b.state='live') $function$\n"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "signature": "asset_location_access(uuid)",
+      "definition": "CREATE OR REPLACE FUNCTION public.asset_location_access(p_location uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\n select exists(select 1 from public.asset_locations l\n where l.id=p_location and l.company_id=public.current_staff_company_id()\n and public.asset_company_live(l.company_id) and public.has_permission('assets.view')\n and (public.current_staff_has_company_role(array['super_admin']) or\n (l.kind='branch' and exists(select 1 from public.staffs s\n where s.id=public.current_staff_id() and s.company_id=l.company_id\n and (s.default_branch_id=l.branch_id or exists(select 1 from public.staff_branches sb where sb.staff_id=s.id and sb.branch_id=l.branch_id))))))\n$function$\n"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "signature": "asset_location_company_guard()",
+      "definition": "CREATE OR REPLACE FUNCTION public.asset_location_company_guard()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'pg_catalog', 'public'\nAS $function$ begin\n if new.branch_id is not null and not exists(select 1 from public.branches b where b.id=new.branch_id and b.company_id=new.company_id) then raise exception 'Asset branch company mismatch'; end if;\n return new; end $function$\n"
+    },
+    {
+      "acl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "owner": "postgres",
+      "signature": "get_asset_checklist_summary(date)",
+      "definition": "CREATE OR REPLACE FUNCTION public.get_asset_checklist_summary(p_date date DEFAULT ((now() AT TIME ZONE 'Asia/Kuala_Lumpur'::text))::date)\n RETURNS jsonb\n LANGUAGE sql\n STABLE\n SET search_path TO 'pg_catalog', 'public'\nAS $function$\n select jsonb_build_object('checkDate',p_date,'checklist',coalesce((select jsonb_agg(jsonb_build_object(\n 'id',l.id,'name',l.source_name,'kind',l.kind,\n 'open',coalesce((select d.is_open from public.asset_calendar_days d where d.location_id=l.id and d.business_date=p_date),l.kind='branch'),\n 'reason',(select d.reason from public.asset_calendar_days d where d.location_id=l.id and d.business_date=p_date),\n 'expected',(select count(*) from public.asset_holdings h where h.location_id=l.id and (h.quantity is null or h.quantity>0)),\n 'checked',(select count(*) from public.asset_holdings h where h.location_id=l.id and (h.quantity is null or h.quantity>0) and exists(select 1 from public.asset_daily_checks c where c.location_id=l.id and c.asset_id=h.asset_id and c.check_date=p_date))) order by l.source_name) from public.asset_locations l),'[]'::jsonb))\n$function$\n"
+    }
+  ],
+  "missing_active": 2,
+  "ambiguous_names": [],
+  "duplicate_mappings": []
+}

@@ -1,0 +1,170 @@
+{
+  "rls": [
+    {
+      "table": "branches",
+      "forced": false,
+      "enabled": true
+    },
+    {
+      "table": "asset_locations",
+      "forced": false,
+      "enabled": true
+    }
+  ],
+  "policies": [
+    {
+      "cmd": "SELECT",
+      "qual": "((company_id = ( SELECT current_staff_company_id() AS current_staff_company_id)) AND (location_id IN ( SELECT asset_locations.id\n FROM asset_locations)))",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "asset_calendar_days",
+      "permissive": "PERMISSIVE",
+      "policyname": "asset_calendar_read",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "((company_id = ( SELECT current_staff_company_id() AS current_staff_company_id)) AND (location_id IN ( SELECT asset_locations.id\n FROM asset_locations)))",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "asset_daily_checks",
+      "permissive": "PERMISSIVE",
+      "policyname": "asset_checks_read",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "((company_id = ( SELECT current_staff_company_id() AS current_staff_company_id)) AND (location_id IN ( SELECT asset_locations.id\n FROM asset_locations)))",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "asset_holdings",
+      "permissive": "PERMISSIVE",
+      "policyname": "asset_holdings_read",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "asset_location_access(id)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "asset_locations",
+      "permissive": "PERMISSIVE",
+      "policyname": "asset_locations_read",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "branches",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant branches insert",
+      "schemaname": "public",
+      "with_check": "((company_id = current_staff_company_id()) AND has_permission('branches.create'::text))"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(can_access_company_branch(company_id, id) AND has_any_permission(ARRAY['branches.read'::text, 'branches.create'::text, 'branches.update'::text]))",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "branches",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant branches read",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "UPDATE",
+      "qual": "((company_id = current_staff_company_id()) AND has_permission('branches.update'::text))",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "branches",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant branches update",
+      "schemaname": "public",
+      "with_check": "((company_id = current_staff_company_id()) AND has_permission('branches.update'::text))"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "((company_id = current_staff_company_id()) AND (branch_type = 'outlet'::branch_type) AND has_permission('outlet_daily_record.view_all'::text))",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "branches",
+      "permissive": "PERMISSIVE",
+      "policyname": "tenant kitchen outlet branches read",
+      "schemaname": "public",
+      "with_check": null
+    }
+  ],
+  "standalone": [
+    {
+      "id": "6437d02c-5b71-5569-8add-3717dd5ad2cc",
+      "kind": "event",
+      "name": "Event",
+      "company": "3b104582-f8cb-4a4d-867f-b99e5ffc6486",
+      "branch_id": null
+    },
+    {
+      "id": "c5eaae8b-d885-4e49-ba8c-edcb99d4daf5",
+      "kind": "other",
+      "name": "Hostel @ Bandar Sunway",
+      "company": "3b104582-f8cb-4a4d-867f-b99e5ffc6486",
+      "branch_id": null
+    }
+  ],
+  "constraints": [
+    {
+      "table": "branches",
+      "definition": "UNIQUE (company_id, branch_code)"
+    },
+    {
+      "table": "branches",
+      "definition": "FOREIGN KEY (company_id) REFERENCES companies(id)"
+    },
+    {
+      "table": "branches",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table": "asset_locations",
+      "definition": "FOREIGN KEY (branch_id) REFERENCES branches(id)"
+    },
+    {
+      "table": "asset_locations",
+      "definition": "CHECK ((((kind = 'branch'::text) AND (branch_id IS NOT NULL)) OR ((kind = ANY (ARRAY['event'::text, 'other'::text])) AND (branch_id IS NULL))))"
+    },
+    {
+      "table": "asset_locations",
+      "definition": "FOREIGN KEY (company_id) REFERENCES companies(id)"
+    },
+    {
+      "table": "asset_locations",
+      "definition": "UNIQUE (company_id, id)"
+    },
+    {
+      "table": "asset_locations",
+      "definition": "UNIQUE (company_id, source_name)"
+    },
+    {
+      "table": "asset_locations",
+      "definition": "CHECK ((kind = ANY (ARRAY['branch'::text, 'event'::text, 'other'::text])))"
+    },
+    {
+      "table": "asset_locations",
+      "definition": "PRIMARY KEY (id)"
+    }
+  ]
+}

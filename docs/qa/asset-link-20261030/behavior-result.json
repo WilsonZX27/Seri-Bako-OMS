@@ -1,0 +1,27 @@
+{
+  "passed": 21,
+  "checks": [
+    "office linked without daily enrollment",
+    "old ID preserved",
+    "old holding preserved",
+    "missing branch backfilled",
+    "kitchen and outlet visible; warehouse excluded",
+    "new branch automatically linked",
+    "rename retains ID",
+    "archive hidden",
+    "archive retains holdings",
+    "restore reuses ID",
+    "empty tenant has no foreign locations",
+    "empty tenant first branch linked",
+    "assigned branch scope retained",
+    "unassigned branch denied",
+    "company move denied",
+    "ambiguous name rejected atomically",
+    "failed ambiguous insert rolled back",
+    "duplicate stable mapping denied",
+    "concurrent updates keep single mapping",
+    "trigger RPC not callable by authenticated",
+    "warehouse requires explicit daily opt-in"
+  ],
+  "limits": "Synthetic PostgreSQL schema; fixture access helper models existing scope; production definitions and RLS still require live preflight"
+}

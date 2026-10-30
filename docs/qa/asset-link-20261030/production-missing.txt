@@ -1,0 +1,3 @@
+Browser tab: 44, Title: "Untitled query | SQL Editor | Seri Bako Project | Seri Bako | Supabase", URL: "https://supabase.com/dashboard/project/nnvdsaftiwpqkekjfrgc/sql/257e6923-1719-4910-a1c7-f0e4382c083a".
+There has been no change in the accessibility tree.
+The focused UI element is 106 editor (settable) Description: Editor content, Value: SELECT b.company_id,b.id AS branch_id,b.branch_name,b.status FROM public.branches b WHERE b.status='active' AND b.deleted_at IS NULL AND NOT EXISTS(SELECT 1 FROM public.asset_locations l WHERE l.company_id=b.company_id AND l.branch_id=b.id) ORDER BY b.company_id,b.branch_name;

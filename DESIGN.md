@@ -1,3 +1,7 @@
+# v9.2.160 — Fixed 281 repair contract
+
+Use the existing Review action with the approved281 scope and default-off capability. Asset branch linkage is a separately guarded migration; no new asset UI is included.
+
 # v9.2.159 (local candidate) — Unified corrections
 
 Preserves the original design while integrating the reviewed 55+16+7 corrections. Production activation and business validation remain separately gated. Controlled269 and company numbering default OFF.

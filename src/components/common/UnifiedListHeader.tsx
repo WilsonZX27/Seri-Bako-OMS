@@ -48,6 +48,8 @@ type HeaderProps = {
   /** Keep the compact Filter action understandable with a short visible label. */
   showFilterLabel?: boolean;
   autoSubmit?: boolean;
+  /** Opt-in: immediately apply visible compact filters without a separate Apply action. */
+  compactAutoSubmit?: boolean;
 };
 
 function propsOf(child: ReactNode): Record<string, unknown> {
@@ -185,7 +187,7 @@ function SearchControl({ child, value, onChange, shared = false }: { child: Reac
   );
 }
 
-export function UnifiedListHeader({ children, actions, onSubmit, resultCount, resultLabel, resetHref, filtered = false, activeCount = 0, className, phoneOnly = false, phoneMode = "drawer", tabletMode = "drawer", phonePrimary = "inline", compactPinnedFields = [], inlineFieldsShareQueryTracks = false, stableResponsive = false, showFilterLabel = false, autoSubmit = true }: HeaderProps) {
+export function UnifiedListHeader({ children, actions, onSubmit, resultCount, resultLabel, resetHref, filtered = false, activeCount = 0, className, phoneOnly = false, phoneMode = "drawer", tabletMode = "drawer", phonePrimary = "inline", compactPinnedFields = [], inlineFieldsShareQueryTracks = false, stableResponsive = false, showFilterLabel = false, autoSubmit = true, compactAutoSubmit = false }: HeaderProps) {
   // The first client render must match SSR exactly. Viewport detection belongs
   // in the effect below; reading matchMedia in the state initializer rendered
   // different desktop/mobile trees and caused hydration recovery on every
@@ -392,7 +394,13 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
   const drawerCandidates = filters.filter(child => !compactPinnedFields.includes(String(propsOf(child).name)));
   const visibleFilterNames = new Set([...drawerCandidates, ...nested].filter(child => !isHiddenControl(child)).map(child => hiddenFilterValue(child)?.name).filter(Boolean));
   const drawerFilters = drawerCandidates.filter(child => !isHiddenControl(child) || !visibleFilterNames.has(String(propsOf(child).name)));
-  const filterControls = <>{primaryInDrawer ? primary : null}{drawerFilters.map(editableFilter)}{nested.map(editableFilter)}</>;
+  const compactFilter = (child: ReactNode, index: number) => {
+    // Inline forms already render their hidden context once below the visible row.
+    if (compactAutoSubmit && compactInline && resolvedPhoneMode === "inline" && isHiddenControl(child)) return null;
+    const editable = editableFilter(child, index);
+    return compactAutoSubmit && compactInline ? queryControl(editable, index) : editable;
+  };
+  const filterControls = <>{primaryInDrawer ? primary : null}{drawerFilters.map(compactFilter)}{nested.map(compactFilter)}</>;
   const filterSheet = open && typeof document !== "undefined" ? createPortal(
     <div className={styles.layer}>
       <button type="button" className={styles.backdrop} aria-label="Close filters" onClick={() => setOpen(false)} />
@@ -414,7 +422,7 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
   const mobileForm = (
     <form ref={mobileFormRef} className={cn(sharedSearchRow ? styles.card : "unified-list-header sb-list-query-card", renderBoth && "sb-stable-mobile-form", className)} data-shared-search-row={sharedSearchRow || undefined} data-tablet-mode={resolvedTabletMode} data-inline-field-count={contextualFilterCount} data-filtered={filtered || undefined} data-reset-href={resetHref} onSubmit={submit} onKeyDown={cancelDebounceOnEnter}>
       {(!primaryInDrawer && primary || resolvedPhoneMode === "drawer" || contextualFilterCount === 1 || typeof resultCount === "number") ? <div className={sharedSearchRow ? styles.row : cn("unified-list-row", (primaryInDrawer || !primary) && "unified-list-row--filter-only")}>
-        {!primaryInDrawer && primary && isValidElement(primary) ? <SearchControl shared={sharedSearchRow} child={primary} value={searchValue} onChange={(value) => { updateSearch(value); if (compactPinnedFields.length && primaryProps.type === "date") queueQuery(); }} /> : null}
+        {!primaryInDrawer && primary && isValidElement(primary) ? <SearchControl shared={sharedSearchRow} child={primary} value={searchValue} onChange={(value) => { updateSearch(value); if ((compactPinnedFields.length || compactAutoSubmit) && primaryProps.type === "date") queueQuery(); }} /> : null}
         {pinnedFilters.map((child, index) => {
           const field = hiddenFilterValue(child);
           if (!field || !isValidElement(child)) return null;

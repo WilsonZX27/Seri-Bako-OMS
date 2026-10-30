@@ -1,3 +1,7 @@
+# v9.2.164 (local candidate) — Asset tablet filter and summary corrections
+
+Overview uses three tablet columns; Maintenance keeps four summary columns. Checklist, Maintenance and Transfers share compact inline filter sizing with one form and preserved query context. Scoped Asset opt-in; other consumers retain defaults. No schema, permission, auth, basket or import changes.
+
 # v9.2.163 (local candidate) — Asset annotation21 corrections
 
 Scoped asset filters, maintenance rows/history, transfer action/timeline rail, optional creation remarks, read-only ID candidate, register-another flow, and separate desktop condition/check columns. Overview queue preserved. No login patch, basket changes, schema or permissions changes.

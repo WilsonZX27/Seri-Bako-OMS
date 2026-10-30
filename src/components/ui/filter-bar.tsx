@@ -25,6 +25,7 @@ export function FilterBar({
   compactPinnedFields,
   inlineFieldsShareQueryTracks,
   stableResponsive,
+  compactAutoSubmit,
   showFilterLabel = false,
 }: {
   children: ReactNode;
@@ -43,9 +44,10 @@ export function FilterBar({
   compactPinnedFields?: string[];
   inlineFieldsShareQueryTracks?: boolean;
   stableResponsive?: boolean;
+  compactAutoSubmit?: boolean;
   showFilterLabel?: boolean;
 }) {
-  return <UnifiedListHeader {...{ children, actions, onSubmit, resultCount, resultLabel, resetHref, filtered, activeCount, className, phoneOnly, phoneMode, tabletMode, phonePrimary, compactPinnedFields, inlineFieldsShareQueryTracks, stableResponsive, showFilterLabel }} />;
+  return <UnifiedListHeader {...{ children, actions, onSubmit, resultCount, resultLabel, resetHref, filtered, activeCount, className, phoneOnly, phoneMode, tabletMode, phonePrimary, compactPinnedFields, inlineFieldsShareQueryTracks, stableResponsive, compactAutoSubmit, showFilterLabel }} />;
 }
 
 FilterBarMore.displayName = "FilterBarMore";

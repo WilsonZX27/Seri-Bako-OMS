@@ -6,3 +6,58 @@
   .maintenance > div { max-height: 100%; overflow-y: auto; }
   .maintenance :global(.sb-maintenance-queue) { max-height: none; overflow: visible; }
 }
+
+/* Tablet follow-up: a single Asset-specific control grammar and compact metrics. */
+:global(html[data-design-layer="v2"] #main-content) .overviewMetrics {
+  display: grid; grid-template-columns: repeat(3,minmax(0,1fr)) !important; gap: .5rem;
+}
+:global(html[data-design-layer="v2"] #main-content) .overviewMetrics > div {
+  display: block !important; grid-column: auto !important; min-width: 0; padding: .625rem;
+}
+:global(html[data-design-layer="v2"] #main-content) .overviewMetrics > div > dd {
+  margin-top: .25rem; text-align: left !important;
+}
+:global(html[data-design-layer="v2"] #main-content) .maintenanceMetrics {
+  display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: .5rem;
+}
+@media(min-width:1280px) {
+  :global(html[data-design-layer="v2"] #main-content) .overviewMetrics { grid-template-columns: repeat(6,minmax(0,1fr)) !important; }
+}
+@media(max-width:1279px) {
+  :global(html[data-design-layer="v2"] #main-content) form.query :global(.unified-list-date-control input[type="date"]) { height: 100% !important; min-height: 0 !important; }
+  :global(html[data-design-layer="v2"] #main-content) form.compactQuery {
+    --sb-control-height: 2.75rem; padding: .75rem; min-height: 0;
+  }
+  :global(html[data-design-layer="v2"] #main-content) form.compactQuery :global(.unified-list-row) {
+    display: grid !important; grid-template-columns: minmax(0,1fr) minmax(0,1fr) max-content !important;
+    align-items: center; gap: .5rem; min-height: 0 !important;
+  }
+  :global(html[data-design-layer="v2"] #main-content) form.compactQuery.singleFilter :global(.unified-list-row) {
+    grid-template-columns: minmax(0,1fr) max-content !important;
+  }
+  :global(html[data-design-layer="v2"] #main-content) form.compactQuery :global(.unified-list-inline-fields) { display: contents !important; }
+  :global(html[data-design-layer="v2"] #main-content) form.compactQuery :global(.unified-list-date-control),
+  :global(html[data-design-layer="v2"] #main-content) form.compactQuery :global(.unified-list-inline-control),
+  :global(html[data-design-layer="v2"] #main-content) form.compactQuery :global([data-select-control]) {
+    min-width: 0; width: 100%; max-width: none; grid-column: auto; grid-row: 1;
+  }
+  :global(html[data-design-layer="v2"] #main-content) form.compactQuery :global(.unified-list-row--filter-only .unified-list-inline-fields > [data-field-name="location"]) { grid-column: 1; }
+  :global(html[data-design-layer="v2"] #main-content) form.compactQuery :global(.unified-list-row--filter-only .unified-list-inline-fields > [data-field-name="status"]) { grid-column: 2; }
+  :global(html[data-design-layer="v2"] #main-content) form.compactQuery :global(.unified-list-result) {
+    display: flex !important; flex-direction: row; gap: .25rem; grid-column: -2; grid-row: 1; justify-self: end; white-space: nowrap;
+  }
+}
+/* A bookmarked maintenance URL can retain a date in addition to both filters. */
+@media (min-width:640px) and (max-width:1279px) {
+  :global(html[data-design-layer="v2"] #main-content) form.compactQuery :global(.unified-list-row:has(.unified-list-date-control):has(.unified-list-inline-fields)) {
+    grid-template-columns: minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) max-content !important;
+  }
+}
+@media (max-width:639px) {
+  :global(html[data-design-layer="v2"] #main-content) form.compactQuery :global(.unified-list-row:has(.unified-list-date-control):has(.unified-list-inline-fields)) {
+    grid-template-columns: minmax(0,1fr) minmax(0,1fr) !important;
+  }
+  :global(html[data-design-layer="v2"] #main-content) form.compactQuery :global(.unified-list-row:has(.unified-list-date-control):has(.unified-list-inline-fields) [data-field-name="status"]),
+  :global(html[data-design-layer="v2"] #main-content) form.compactQuery :global(.unified-list-row:has(.unified-list-date-control):has(.unified-list-inline-fields) .unified-list-result) { grid-row: 2; }
+  :global(html[data-design-layer="v2"] #main-content) form.compactQuery :global(.unified-list-row:has(.unified-list-date-control):has(.unified-list-inline-fields) .unified-list-result) { grid-column: 2; }
+}

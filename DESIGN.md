@@ -1,6 +1,6 @@
-# v9.2.167 — Approved transfer display, current-count items and maintenance grouping
+# v9.2.167 (local candidate) — Approved transfer display, current-count items and maintenance grouping
 
-Document-scoped endpoint/requester display through approved376; current stock-count added items saved through approved377; same asset ID maintenance grouping before pagination with original requests/history preserved. No basket, login, Asset Settings or ODR changes. SQL installed separately on 2026-10-31; no production business-write QA.
+Document-scoped endpoint/requester display through approved376; current stock-count added items saved through approved377; same asset ID maintenance grouping before pagination with original requests/history preserved. No basket, login, Asset Settings or ODR changes. Repository migrations reviewed through `377`. SQL 376/377 installed separately on 2026-10-31; no production business-write QA.
 
 # v9.2.166 (local candidate) — Approved interface corrections
 

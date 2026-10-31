@@ -1,7 +1,10 @@
 "use client";
-import Link from "next/link";
-import { useActionState, useRef } from "react";
+import { useActionState, useRef, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { usePathname } from "next/navigation";
+import { AssetOtherLocationForm } from "@/components/asset-other-location-form";
+import { useAssetFeedback } from "@/components/asset-action-feedback";
+import { ModalShell } from "@/components/ui/modal-shell";
 import { Plus, X } from "lucide-react";
 import { requestAssetTransferBatch } from "@/server/actions/assets";
 import { useAssetDraftAction, useAssetDraftState } from "@/components/asset-draft-state";
@@ -19,17 +22,23 @@ import type { AssetLocation } from "@/server/queries/assets";
 
 const assetLineColumns = "grid-cols-[minmax(0,1fr)_4.5rem_5rem_3.25rem] lg:grid-cols-[minmax(0,1fr)_5rem_8rem_3.25rem]";
 
-export function AssetTransferBatchForm({ locations, choices, requestKey, today, canSubmit = false, sourceIds = locations.map(location => location.id), initialAsset = "", initialSource = "", initialQuery = "" }: { locations: AssetLocation[]; choices: TransferAssetChoice[]; requestKey: string; today: string; canSubmit?: boolean; sourceIds?: string[]; initialAsset?: string; initialSource?: string; initialQuery?: string }) {
+export function AssetTransferBatchForm({ locations, choices, requestKey, today, canSubmit = false, canAddDestination = false, sourceIds = locations.map(location => location.id), initialAsset = "", initialSource = "", initialQuery = "" }: { locations: AssetLocation[]; choices: TransferAssetChoice[]; requestKey: string; today: string; canSubmit?: boolean; canAddDestination?: boolean; sourceIds?: string[]; initialAsset?: string; initialSource?: string; initialQuery?: string }) {
   const [state, action, pending] = useActionState(useAssetDraftAction("transfer-batch", requestAssetTransferBatch), { ok: false, message: "", requestId: undefined as string | undefined });
   const initial: AssetTransferDraft = { from: initialSource, to: "", date: today, reason: "", query: initialQuery, selected: choices.some(choice => choice.id === initialAsset) ? { [initialAsset]: "1" } : {} };
   const [draft, setDraft, restored] = useAssetDraftState("transfer-batch", "single-page-v1", initial, validTransferDraft, state.ok);
+  const destinationDialogRequested = useRef(false);
+  const [addingDestination, setAddingDestination] = useState(false);
+  const publish = useAssetFeedback(), pathname = usePathname();
+  useEffect(() => {
+    if (state.ok && state.requestId) publish?.({ path: pathname, tone: "success", message: state.message, href: `/asset-management/transfers/${state.requestId}`, linkLabel: "Open transfer" });
+  }, [state, publish, pathname]);
   const picker = useRef<HTMLInputElement>(null), actionSlots = useAssetTransferActionSlots();
   const change = <K extends keyof AssetTransferDraft>(key: K, value: AssetTransferDraft[K]) => setDraft(current => ({ ...current, [key]: value }));
   const ids = Object.keys(draft.selected), error = transferDraftError(draft, choices, locations);
   const catalogue: ItemComboboxOption[] = choices.filter(choice => !draft.from || choice.holdings[draft.from] !== undefined || ids.includes(choice.id)).map(choice => ({ id: choice.id, item_code: choice.asset_code, item_name: choice.item_name, base_unit: "PCS", purchase_unit: "PCS", supplier_id: null, cost: 0, status: "active" }));
   useAssetFormGuard(!state.ok && Boolean(ids.length || draft.from || draft.to || draft.reason || draft.query || draft.date !== today));
   const submit = <Button form="asset-transfer-request" type="submit" className="h-12 w-full md:h-11 xl:h-9" disabled={pending || state.ok || !canSubmit || Boolean(error)}>{pending ? "Requesting…" : "Request transfer"}</Button>;
-  return <form id="asset-transfer-request" data-asset-entry-form action={action} className="min-w-0 space-y-3">
+  return <><form id="asset-transfer-request" data-asset-entry-form action={action} className="min-w-0 space-y-3">
     <input type="hidden" name="client_key" value={requestKey}/>
     {restored ? <p role="status" className="text-xs">Unsaved transfer inputs restored. Review before requesting.</p> : null}
     <fieldset disabled={pending || state.ok} className="min-w-0 space-y-3">
@@ -37,7 +46,7 @@ export function AssetTransferBatchForm({ locations, choices, requestKey, today, 
         <h2 id="transfer-details" data-document-section-header className="border-b bg-white px-3 py-2 text-sm font-semibold">Request details</h2>
         <div className="grid gap-3 p-3 sm:grid-cols-2">
           <Field label="From" required><SelectControl name="from" required value={draft.from} onValueChange={value => change("from", value)} ariaLabel="From" options={[{ value: "", label: "Choose source", disabled: true }, ...locations.filter(location => sourceIds.includes(location.id)).map(location => ({ value: location.id, label: location.display_name ?? location.source_name }))]}/></Field>
-          <Field label="To" required><SelectControl name="to" required value={draft.to} onValueChange={value => change("to", value)} ariaLabel="To" options={[{ value: "", label: "Choose destination", disabled: true }, ...locations.filter(location => location.id !== draft.from).map(location => ({ value: location.id, label: location.display_name ?? location.source_name }))]}/></Field>
+          <Field label="To" required><SelectControl name="to" required value={draft.to} onValueChange={value => value === "add-destination" ? (destinationDialogRequested.current = true) : change("to", value)} ariaLabel="To" onCloseAutoFocus={() => { if (destinationDialogRequested.current) { destinationDialogRequested.current = false; setAddingDestination(true); } }} options={[{ value: "", label: "Choose destination", disabled: true }, ...locations.filter(location => location.id !== draft.from).map(location => ({ value: location.id, label: location.display_name ?? location.source_name })), ...(canAddDestination ? [{ value: "add-destination", label: "+ Add destination…" }] : [])]}/></Field>
           <Field label="Request date" required><Input name="date" type="date" required value={draft.date} onChange={event => change("date", event.target.value)}/></Field>
           <Field label="Reason" required><Input name="reason" required maxLength={2000} value={draft.reason} onChange={event => change("reason", event.target.value)}/></Field>
         </div>
@@ -66,8 +75,7 @@ export function AssetTransferBatchForm({ locations, choices, requestKey, today, 
       </section>
     </fieldset>
     {!canSubmit ? <Notice>Multi-asset submission is not enabled yet. You can prepare this request; your inputs are kept.</Notice> : error && ids.length ? <p role="status" className="text-xs text-warning">{error}</p> : null}
-    {state.message ? <p role={state.ok ? "status" : "alert"} className="text-sm">{state.message}</p> : null}
-    {state.ok && state.requestId ? <Link className="min-h-11 py-3 underline" href={`/asset-management/transfers/${state.requestId}`}>Open transfer</Link> : null}
+    {state.message && !publish ? <p role={state.ok ? "status" : "alert"} className="text-sm">{state.message}</p> : null}
     {actionSlots.length ? actionSlots.map((slot, index) => createPortal(submit, slot, String(index))) : <div className="pt-2">{submit}</div>}
-  </form>;
+  </form>{canAddDestination ? <ModalShell open={addingDestination} onClose={() => setAddingDestination(false)} titleId="add-transfer-destination"><h2 id="add-transfer-destination" className="mb-3 text-sm font-semibold">Add destination</h2><AssetOtherLocationForm/><Button type="button" variant="outline" className="mt-3" onClick={() => setAddingDestination(false)}>Close</Button></ModalShell> : null}</>;
 }

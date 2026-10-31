@@ -7,13 +7,13 @@ import { useAssetFormGuard } from "@/components/asset-unsaved-guard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-export function AssetAttachmentForm({ assetId, requestKey, maintenanceId, canManage = true, retryExisting = false }: { assetId: string | null; requestKey: string; maintenanceId?: string; canManage?: boolean; retryExisting?: boolean }) {
+export function AssetAttachmentForm({ assetId, requestKey, maintenanceId, canManage = true, retryExisting = false, embedded = false }: { assetId: string | null; requestKey: string; maintenanceId?: string; canManage?: boolean; retryExisting?: boolean; embedded?: boolean }) {
   const [state, action, pending] = useActionState(useAssetDraftAction(`attachment:${assetId}:${maintenanceId ?? "master"}`, uploadAssetAttachment), { ok: false, message: "" });
   const [draft,setDraft,restored]=useAssetDraftFields(`attachment:${assetId}:${maintenanceId ?? "master"}`,`v1:${canManage}`,{label:"",kind:"Photo",hadFile:"false"},state.ok,row=>row.label.length<=180&&(canManage?assetAttachmentKinds:["Photo"]).some(kind=>kind===row.kind)&&["true","false"].includes(row.hadFile));
   const {label,kind}=draft,setLabel=(value:string)=>setDraft("label",value),setKind=(value:string)=>setDraft("kind",value);
   const [selected, setSelected] = useState(false), [key, setKey] = useState(requestKey);
   useAssetFormGuard(!state.ok && Boolean(selected || label || kind !== "Photo" || draft.hadFile === "true"));
-  return <section className="mt-3 rounded-lg border bg-[var(--sb-surface-muted)] p-3"><h3 className="mb-3 text-sm font-semibold">Add attachment</h3><form action={action} className="max-lg:[&_input]:min-h-11 max-lg:[&_select]:min-h-11 max-lg:[&_button]:min-h-11 space-y-3">
+  return <section className={embedded ? "py-3" : "mt-3 rounded-lg border bg-[var(--sb-surface-muted)] p-3"}>{!embedded ? <h3 className="mb-3 text-sm font-semibold">Add attachment</h3> : null}<form action={action} className="max-lg:[&_input]:min-h-11 max-lg:[&_select]:min-h-11 max-lg:[&_button]:min-h-11 space-y-3">
     {retryExisting ? <p className="text-xs text-muted-foreground">Select the original photo again to finish the same upload.</p> : null}
     {restored ? <p role="status" className="text-xs">Attachment details restored. Select the file again before uploading.</p> : null}
     <input type="hidden" name="asset_id" value={assetId ?? ""}/><input type="hidden" name="client_key" value={key}/><input type="hidden" name="maintenance_id" value={maintenanceId ?? ""}/>

@@ -2882,10 +2882,10 @@ html[data-design-layer="v2"] table.sb-stock-balance-table :is(th,td):nth-child(3
 
 html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"] {
   --sb-pr-meta-ink: #5a6b62;
+  background: white;
   min-height: 0;
   padding-block: .625rem;
 }
-html[data-design-layer="v2"] .sb-pr-continuous-rows > [role="listitem"]:nth-child(even) { background: #edf2ef; }
 /* The desktop table is hidden below xl; its spacing must not push the first
    compact PR row down inside the list surface. */
 html[data-design-layer="v2"] .space-y-3 > .sb-table-region.hidden + .sb-pr-continuous-rows { margin-top: 0; }
@@ -3406,4 +3406,9 @@ html[data-design-layer="v2"] .sb-mark-updates-read { padding: 0; border: 0; back
   }
   [data-tablet-document-split][data-desktop-rail-placement="content"] > aside { display: block; }
   [data-document-workspace-header][data-document-rail-placement="content"] { margin-right: calc(var(--sb-console-width) + .75rem); }
+}
+
+/* ODR tablet filters retain two compact, aligned tracks rather than filling the rail. */
+@media(min-width:768px) and (max-width:1279px) {
+  html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-row { grid-template-columns: minmax(0,14rem) minmax(0,14rem) auto minmax(max-content,1fr) !important; }
 }

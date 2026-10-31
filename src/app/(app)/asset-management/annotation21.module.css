@@ -1,9 +1,10 @@
 /* Annotation21: scoped to the asset workspace, never shared control defaults. */
 :global(html[data-design-layer="v2"] #main-content) form.query :global(.unified-list-desktop-actions) { flex: 0 0 auto; width: auto; }
 :global(html[data-design-layer="v2"] #main-content) form.query :global(.unified-list-desktop-actions button[type="submit"]) { width: 2.75rem !important; min-width: 2.75rem !important; max-width: 2.75rem !important; padding-inline: 0; }
-@media (min-width: 1024px) {
-  .maintenance { height: calc(100dvh - 23rem); min-height: 20rem; }
-  .maintenance > div { max-height: 100%; overflow-y: auto; }
+@media (min-width: 1280px) {
+  .maintenance { align-items: start; }
+  .queuePanel { height: max(20rem, calc(100dvh - 22.5rem)); }
+  .maintenance > :global(.sb-maintenance-detail) { height: max(20rem, calc(100dvh - 22.5rem)); overflow-y: auto; }
   .maintenance :global(.sb-maintenance-queue) { max-height: none; overflow: visible; }
 }
 
@@ -33,7 +34,7 @@
     align-items: center; gap: .5rem; min-height: 0 !important;
   }
   :global(html[data-design-layer="v2"] #main-content) form.compactQuery.singleFilter :global(.unified-list-row) {
-    grid-template-columns: minmax(0,1fr) max-content !important;
+    grid-template-columns: minmax(0,14rem) minmax(max-content,1fr) !important;
   }
   :global(html[data-design-layer="v2"] #main-content) form.compactQuery :global(.unified-list-inline-fields) { display: contents !important; }
   :global(html[data-design-layer="v2"] #main-content) form.compactQuery :global(.unified-list-date-control),
@@ -61,3 +62,22 @@
   :global(html[data-design-layer="v2"] #main-content) form.compactQuery :global(.unified-list-row:has(.unified-list-date-control):has(.unified-list-inline-fields) .unified-list-result) { grid-row: 2; }
   :global(html[data-design-layer="v2"] #main-content) form.compactQuery :global(.unified-list-row:has(.unified-list-date-control):has(.unified-list-inline-fields) .unified-list-result) { grid-column: 2; }
 }
+
+.queuePanel { display: flex; flex-direction: column; overflow: hidden; }
+.queueBody { min-height: 0; flex: 1; overflow-y: auto; }
+@media(max-width:1279px) {
+  :global(.sb-maintenance-split).maintenance { grid-template-columns: minmax(0, 1fr); }
+  .queuePanel { max-height: 65dvh; }
+}
+
+@media(min-width:640px) and (max-width:1279px) {
+  :global(html[data-design-layer="v2"] #main-content) form.compactQuery :global(.unified-list-row) { grid-template-columns: minmax(0,14rem) minmax(0,14rem) minmax(max-content,1fr) !important; }
+  :global(html[data-design-layer="v2"] #main-content) form.compactQuery.singleFilter :global(.unified-list-row) { grid-template-columns: minmax(0,14rem) minmax(max-content,1fr) !important; }
+  :global(html[data-design-layer="v2"] #main-content) form.compactQuery :global(.unified-list-row:has(.unified-list-date-control):has(.unified-list-inline-fields)) { grid-template-columns: minmax(0,14rem) minmax(0,14rem) minmax(0,14rem) max-content !important; }
+}
+
+.queueBody :global(.sb-maintenance-queue) { max-height: none; overflow: visible; }
+
+.inspectionPanel { display: flex; flex-direction: column; overflow: hidden; max-height: min(28rem, 55dvh); }
+.inspectionPanel > :first-child { flex-shrink: 0; }
+@media(min-width:1024px) { .inspectionPanel { max-height: max(20rem, calc(100dvh - 24rem)); } }

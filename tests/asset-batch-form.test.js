@@ -5,7 +5,11 @@ const one='11111111-1111-4111-8111-111111111111',two='22222222-2222-4222-8222-22
 function harness({pending=false,message='',ok=false,ready=true}={}){
  let draft;const focused=[];const wrap=tag=>p=>React.createElement(tag,p,p.children),Picker=()=>null;
  const {AssetTransferBatchForm}=compile('src/components/asset-transfer-batch-form.tsx',{
-  react:{...React,useRef:()=>({current:{focus:()=>focused.push('search')}}),useActionState:()=>[{ok,message,requestId:ok?'synthetic-document':undefined},()=>{throw Error('No real submit')},pending]},
+  'next/navigation':{usePathname:()=>'/asset-management/transfers/new'},
+  '@/components/asset-action-feedback':{useAssetFeedback:()=>null},
+  '@/components/asset-other-location-form':{AssetOtherLocationForm:()=>null},
+  '@/components/ui/modal-shell':{ModalShell:()=>null},
+  react:{...React,useState:initial=>[initial,()=>{}],useEffect:()=>{},useRef:()=>({current:{focus:()=>focused.push('search')}}),useActionState:()=>[{ok,message,requestId:ok?'synthetic-document':undefined},()=>{throw Error('No real submit')},pending]},
   'react-dom':{createPortal:child=>child},'lucide-react':{Plus:()=>null,X:()=>null},
   '@/server/actions/assets':{requestAssetTransferBatch:()=>{throw Error('No business action')}},
   '@/components/asset-draft-state':{useAssetDraftAction:()=>()=>{},useAssetDraftState:(_form,_revision,initial)=>{draft??=initial;return[draft,next=>{draft=typeof next==='function'?next(draft):next},false]}},
@@ -33,7 +37,7 @@ test('shared multi-picker adds directly, retains details and quantities through 
 });
 test('pending and uncertain outcomes keep the request, disable only pending edits and never display false success',()=>{
  const h=harness({pending:true,message:'Synthetic result not confirmed'});assert.equal(h.nodes(h.tree(),n=>n.type==='fieldset')[0].props.disabled,true);assert.match(h.html(),/role="alert"/);assert.doesNotMatch(h.html(),/Open transfer/);
- assert.match(harness({ok:true}).html(),/\/asset-management\/transfers\/synthetic-document/);
+ assert.doesNotMatch(harness({ok:true}).html(),/Open transfer/);
 });
 test('draft validation retains selection across source changes but rejects missing holdings, bad dates, quantities and duplicate destinations',()=>{
  const choices=[{id:one,asset_code:'SYN-1',item_name:'Synthetic mixer',holdings:{[source]:4}}],locations=[{id:source},{id:to}];

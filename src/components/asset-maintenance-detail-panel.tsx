@@ -1,8 +1,7 @@
-import { AssetAuditDetails } from "@/components/asset-audit-details";
 import { assetDisplayReference } from "@/lib/asset-audit-display";
 import { AssetPriorityBadge, AssetSectionHeading } from "@/components/asset-workspace-lists";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, CalendarDays, UserRound } from "lucide-react";
 import { formatDateOnly } from "@/lib/utils";
 import { randomUUID } from "node:crypto";
 import { AssetAttachmentList } from "@/components/asset-attachment-list";
@@ -20,11 +19,8 @@ export function AssetMaintenanceDetailPanel({data,asset,permissions,compact=fals
   <dl className="mt-3 grid gap-2 rounded-lg bg-[var(--sb-surface-muted)] p-3 text-sm xl:grid-cols-2"><div><dt className="text-xs text-muted-foreground">Submitted by</dt><dd className="font-medium">{request.author_name ?? "Unknown author"}</dd></div><div><dt className="text-xs text-muted-foreground">Reference</dt><dd className="text-xs">{assetDisplayReference(request.source_id)}</dd></div></dl>
   {!hideUpdate && permissions["assets.maintenance"] ? <AssetMaintenanceUpdate key={id} requestKey={randomUUID()} requestId={id} status={request.status ?? "Open"} canManage={permissions["assets.manage"]}/>:null}</section>
     <section className="sb-work-surface p-3"><AssetSectionHeading inset title="Update history" value={data.total}/>{!data.total ? <p className="mt-3 text-sm text-muted-foreground">No updates yet.</p> : null}<ol className="divide-y">{data.history.map(update => <li className="min-w-0 py-3" key={update.id}>
-      <p className="break-words text-sm font-semibold">{String(update.source_data["Update Type"] ?? "Maintenance update")}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{formatDateOnly(String(update.source_data["Update Date"] ?? update.created_at).replace(" ", "T"), "Date not recorded")} · {update.author_name ?? "Unknown author"}</p>
-      {update.source_data.Comment ? <p className="mt-2 whitespace-pre-wrap break-words text-sm">{String(update.source_data.Comment)}</p> : null}
-      {update.source_data["Status Before"] !== update.source_data["Status After"] ? <p className="mt-1 break-words text-xs text-muted-foreground">{String(update.source_data["Status Before"] ?? "Unknown status")} → {String(update.source_data["Status After"] ?? "Unknown status")}</p> : null}
-      <AssetAuditDetails data={update.source_data} sourceId={update.source_id}/>
+      <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"><span className="inline-flex items-center gap-1 font-semibold"><CalendarDays className="size-3" aria-hidden="true"/>{formatDateOnly(String(update.source_data["Update Date"] ?? update.created_at).replace(" ", "T"), "Date not recorded")}</span><span className="inline-flex items-center gap-1 text-muted-foreground"><UserRound className="size-3" aria-hidden="true"/>{update.author_name ?? "Unknown author"}</span></p>
+      <p className="mt-1 whitespace-pre-wrap break-words text-sm">{String(update.source_data.Comment || update.source_data["Status After"] || "Inspection recorded")}</p>
     </li>)}</ol></section>
     <section className="sb-work-surface p-3"><AssetSectionHeading inset title="Attachments" value={data.attachmentTotal}/><AssetAttachmentList attachments={data.attachments} showMaintenanceLink={false}/>{data.attachmentTotal > 5 ? <Link className="block min-h-11 py-3 text-xs underline" href={`/asset-management/maintenance/${id}/attachments`}>All attachment records · {data.attachmentTotal}</Link> : null}{permissions["assets.maintenance"] || permissions["assets.manage"] || permissions["assets.report"] ? <details className="mt-3 border-t pt-2"><summary className="min-h-11 cursor-pointer py-3 text-sm font-medium">Add attachment</summary><AssetAttachmentForm key={data.attachments[0]?.id ?? "empty"} assetId={request.asset_id} maintenanceId={id} canManage={permissions["assets.manage"]} requestKey={randomUUID()}/></details> : null}</section></div>;
 }

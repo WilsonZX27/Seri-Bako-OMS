@@ -52,15 +52,16 @@ test("phone list clears fixed actions and keeps the active status visible", () =
   assert.match(page, /hideMobileConsole/);
 });
 
-test("compact PR metadata keeps 11px type legible on both striped row surfaces", () => {
+test("compact PR metadata keeps 11px type legible on white rows with separators", () => {
   const ink = design.match(/--sb-pr-meta-ink:\s*(#[0-9a-f]{6})/i)?.[1];
-  const striped = design.match(/\.sb-pr-continuous-rows > \[role="listitem"\]:nth-child\(even\) \{ background: (#[0-9a-f]{6}); \}/i)?.[1];
-  assert.ok(ink && striped, "Scoped PR metadata ink and alternate surface must be explicit");
+  assert.ok(ink);
+  assert.match(design, /\.sb-pr-continuous-rows > \[role="listitem"\] \{[^}]*background: white/);
+  assert.doesNotMatch(design, /\.sb-pr-continuous-rows > \[role="listitem"\]:nth-child/);
   assert.match(design, /\.sb-pr-phone-supplier-row,[\s\S]*?\.sb-pr-phone-location-row \{[\s\S]*?color: var\(--sb-pr-meta-ink\);/);
   assert.match(design, /\.sb-pr-phone-byline-date \{[\s\S]*?color: var\(--sb-pr-meta-ink\);/);
   assert.match(design, /\.sb-pr-phone-amount \{[^}]*font-size: \.6875rem/);
   assert.match(design, /@media \(max-width: 639px\) \{[\s\S]*?\.sb-pr-phone-supplier-row \{ grid-template-columns:minmax\(0,1fr\) auto auto; gap:\.25rem; \}[\s\S]*?\.sb-pr-phone-supplier \{ grid-column:auto; min-width:0; overflow:hidden; \}[\s\S]*?\.sb-pr-phone-amount \{ grid-column:auto; \}/);
-  for (const background of ["#ffffff", striped]) {
+  for (const background of ["#ffffff"]) {
     assert.ok(contrast(ink, background) >= 4.5, `${ink} must meet 4.5:1 on ${background}`);
   }
 });

@@ -15,7 +15,7 @@ test('packaging keeps tablet rail and inline filter controls',()=>{
 test('transfers have desktop semantic columns and a complementary compact list',()=>{
  const source=fs.readFileSync('src/components/asset-transfer-rows.tsx','utf8');
  assert.ok(source.includes('<Table mobileHidden aria-label="Asset transfers">'));
- for(const label of ['Date','From','To','Assets','Quantity','Status','Requested by'])assert.ok(source.includes(`<TableHead>${label}</TableHead>`));
+ for(const label of ['Date','From','To','Assets Line','Quantity','Status','Requested by'])assert.ok(source.includes(`<TableHead>${label}</TableHead>`));
  assert.ok(source.includes('<ul className="xl:hidden'));
 });
 test('daily desktop filters remain explicit without the more-filters disclosure',()=>{
@@ -28,5 +28,6 @@ test('generic description-list declarations stay identical outside the daily opt
  const {execFileSync}=require('node:child_process');
  const baseline=execFileSync('git',['show','04dbbb92d961ca6327ffdef43ac4d861092872e1:src/app/design-system-v2.css'],{encoding:'utf8'});
  const restored=css.replaceAll('dl:not([data-dashboard-context], .sb-daily-record-metrics)','dl:not([data-dashboard-context])').replaceAll('dl:not(.sb-daily-record-metrics) > div','dl > div');
- assert.equal(restored,baseline);
+ const genericRules = text => [...text.matchAll(/[^{}]*dl[^{}]*\{[^{}]*\}/g)].map(match=>match[0].trim()).filter(rule=>!rule.includes('.sb-daily-record-metrics'));
+ assert.deepEqual(genericRules(restored),genericRules(baseline));
 });

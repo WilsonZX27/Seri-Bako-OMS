@@ -146,7 +146,7 @@ export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query =
     assets=register.assets;holdings=register.holdings;filterOptions=register.filterOptions;
   } else if (view === "overview") {
     const result = await db.from("asset_maintenance").select("*", { count: "exact" }).eq("company_id",company)
-      .not("status", "in", "(closed,resolved,cancelled)")
+      .not("status", "in", "(Closed,Resolved,Cancelled,closed,resolved,cancelled)")
       .order("created_at", { ascending: false }).order("id", { ascending: false })
       .range((page - 1) * ASSET_MAINTENANCE_PAGE_SIZE, page * ASSET_MAINTENANCE_PAGE_SIZE - 1);
     if(result.error || result.data === null || result.count === null) throw new Error(result.error?.message ?? "Open maintenance unavailable.");

@@ -18,6 +18,7 @@ export function SelectControl({
   defaultValue,
   onValueChange,
   onCreateOption,
+  onCloseAutoFocus,
   options,
   placeholder = "Select an option",
   ariaLabel,
@@ -40,6 +41,7 @@ export function SelectControl({
   defaultValue?: string | number;
   onValueChange?: (value: string) => void;
   onCreateOption?: (label: string) => void;
+  onCloseAutoFocus?: (event: Event) => void;
   options: SelectControlOption[];
   placeholder?: string;
   ariaLabel: string;
@@ -176,6 +178,7 @@ export function SelectControl({
         </Select.Trigger>
         <Select.Portal container={portalContainer ?? nativeDialogContainer}>
           <Select.Content
+            onCloseAutoFocus={onCloseAutoFocus}
             position="popper"
             sideOffset={4}
             collisionPadding={8}

@@ -408,7 +408,8 @@ export default async function AttendanceReviewPage({
             </span>
           </header>
           <TableScrollRegion label="Attendance results" className="hidden md:block">
-            <table id="attendance-review-results" className="w-full min-w-[48rem] text-left text-xs [&_td]:align-top">
+            <table id="attendance-review-results" className="w-full min-w-[52rem] table-fixed text-left text-xs leading-5 [&_td]:align-top [&_th]:align-top">
+              <colgroup><col className="w-32"/><col className="w-20"/><col className="w-24"/><col className="w-36"/><col className="w-24"/><col className="w-20"/><col className="w-24"/><col className="w-28"/></colgroup>
               <thead className="sticky top-0 z-10 bg-[var(--sb-surface-muted)]">
                 <tr>
                   {[
@@ -421,9 +422,9 @@ export default async function AttendanceReviewPage({
                     "RO / OT",
                     "Actions",
                   ].map((label) => (
-                    <th key={label} className="whitespace-pre-line px-2 py-2.5 first:sticky first:left-0 first:bg-[var(--sb-surface-muted)] last:text-right">
+                    <th key={label} className="whitespace-pre-line px-2 py-2.5 first:sticky first:left-0 first:bg-[var(--sb-surface-muted)] last:sticky last:right-0 last:bg-[var(--sb-surface-muted)] last:text-right">
                       <span className="whitespace-nowrap">{label}</span>
-                      {["Clock in","Clock out"].includes(label) ? <span className="block whitespace-nowrap text-[10px] font-normal normal-case">Actual / Scheduled</span> : label==="RO / OT" ? <span className="block whitespace-nowrap text-[10px] font-normal normal-case">Used / approved</span> : null}
+                      {["Clock in","Clock out"].includes(label) ? <span className="block whitespace-normal text-[10px] font-normal normal-case leading-3 tracking-normal">Actual / Scheduled</span> : label === "Break" ? <span className="block whitespace-normal text-[10px] font-normal normal-case leading-3 tracking-normal">Break Duration</span> : label==="RO / OT" ? <span className="block whitespace-normal text-[10px] font-normal normal-case leading-3 tracking-normal">Used / approved</span> : null}
                     </th>
                   ))}
                 </tr>
@@ -448,9 +449,9 @@ export default async function AttendanceReviewPage({
                         </tr>
                       ) : null}
                       <tr className="border-t border-[var(--sb-border-soft)] hover:bg-[var(--sb-surface-muted)]">
-                        <td className="sticky left-0 z-[1] bg-white px-2 py-3">
+                        <td className="sticky left-0 z-[1] break-words bg-white px-2 py-3">
                           {employeeSummary(row, staff)}
-                          <span className="text-[11px] text-muted-foreground">
+                          <span className="block text-[11px] text-muted-foreground">
                             {staff?.employment_type === "part_time"
                               ? "Part-time"
                               : "Full-time"}
@@ -474,7 +475,7 @@ export default async function AttendanceReviewPage({
                           {signedDuration(row.late_seconds, "late")}
                         </td>
                         <td className="px-2 py-3 tabular-nums">
-                          {row.actual_break_out && row.actual_break_in ? <><strong className="block whitespace-nowrap" title={`${time(row.actual_break_out)}–${time(row.actual_break_in)}`}>{formatAttendanceTime(String(row.actual_break_out))}<br/>{formatAttendanceTime(String(row.actual_break_in))}</strong><span className="block text-[11px] text-muted-foreground">{duration(row.break_seconds)}</span></> : duration(row.break_seconds)}
+                          {row.actual_break_out && row.actual_break_in ? <><span className="block whitespace-nowrap font-normal" title={`${time(row.actual_break_out)}–${time(row.actual_break_in)}`}>{formatAttendanceTime(String(row.actual_break_out)).toLowerCase()} - {formatAttendanceTime(String(row.actual_break_in)).toLowerCase()}</span><span className="block text-[11px] text-muted-foreground">{duration(row.break_seconds)}</span></> : duration(row.break_seconds)}
                         </td>
                         <td className="px-2 py-3 tabular-nums">
                           <strong className="block whitespace-nowrap" title={time(row.actual_last_out)}>{typeof row.actual_last_out === "string" ? formatAttendanceTime(row.actual_last_out) : "—"}</strong>
@@ -668,7 +669,7 @@ function RowActions({
   weekLocked: boolean;
 }) {
   return (
-    <div className="ml-auto flex w-max max-w-full flex-nowrap items-center justify-end gap-1 [&_button]:font-normal">
+    <div className="ml-auto flex w-max max-w-full flex-wrap items-center justify-end gap-1 [&_button]:font-normal">
       <Button asChild size="sm" variant="ghost" className="w-auto justify-start gap-2 bg-transparent px-2 font-normal hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-surface-muted)]">
         <Link href={href} scroll={false} title="View attendance evidence and exceptions"><Eye className="h-4 w-4"/><span className="md:sr-only">View details</span></Link>
       </Button>

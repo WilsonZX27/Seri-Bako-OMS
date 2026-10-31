@@ -48,6 +48,7 @@ const ATTENDANCE_IMPORT = ["superAdmin", "peopleOperations"];
 // Parent navigation describes read visibility. Create and edit workspaces are
 // narrower and follow the canonical permission grants through migration 368.
 const actionRouteAuthorities = new Map([
+  ["/attendance/schedule", ["superAdmin", "peopleOperations", "manager", "chef", "outletSupervisor", "outlet"]],
   ["/outlet-packaging/stores", OWNER],
   ["/attendance/confirmations", NON_KITCHEN],
   ["/attendance/payslips", ALL],

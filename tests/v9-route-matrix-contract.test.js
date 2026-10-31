@@ -41,7 +41,7 @@ test("v9 authenticated fixtures cover every canonical route-matrix role", () => 
 
 test("Attendance routes follow the Chef and Kitchen permission boundary", () => {
   assert.deepEqual(permittedRolesFor("/attendance"), ["superAdmin", "peopleOperations", "manager", "outletSupervisor", "outlet"]);
-  assert.deepEqual(permittedRolesFor("/attendance/schedule"), ["superAdmin", "peopleOperations", "manager", "outletSupervisor", "outlet"]);
+  assert.deepEqual(permittedRolesFor("/attendance/schedule"), ["superAdmin", "peopleOperations", "manager", "chef", "outletSupervisor", "outlet"]);
   assert.deepEqual(permittedRolesFor("/attendance/review"), ["superAdmin", "peopleOperations", "manager", "outletSupervisor", "outlet"]);
   assert.deepEqual(permittedRolesFor("/attendance/imports"), ["superAdmin", "peopleOperations"]);
   assert.deepEqual(permittedRolesFor("/attendance/settings"), ["superAdmin", "peopleOperations"]);

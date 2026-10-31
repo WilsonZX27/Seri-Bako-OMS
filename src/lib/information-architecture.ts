@@ -48,6 +48,7 @@ export const informationArchitecture: readonly IaItem[] = [
   { href: "/people", label: "Employees", group: "people", icon: "users", roles: ["super_admin","people_operations","manager"], permission: "people.read", defaultFor: ["people_operations"] },
   { href: "/people/ro", label: "RO Management", group: "people", icon: "rotate", roles: ["super_admin","people_operations","manager"], permission: "comp_time.read", keywords: ["time off", "OT", "balance"] },
   { href: "/attendance", label: "Attendance", group: "people", icon: "calendar", roles: ["super_admin","people_operations","manager","outlet_supervisor","outlet_staff"], permission: "attendance.read", attention: true, keywords: ["roster", "shift", "punch", "NGTeco"] },
+  { href: "/attendance/schedule", label: "Schedule", group: "people", icon: "calendar", roles: ["chef"], permission: "schedule.read", keywords: ["roster", "shift", "draft", "submit"] },
   { href: "/attendance/my-schedule", label: "My Schedule", group: "people", icon: "calendar", roles: ["kitchen"], permission: "schedule.read", keywords: ["personal shifts", "schedule"] },
 
   { href: "/purchase-requests", label: "Purchase Requests", group: "procurement", icon: "request", roles: PROCUREMENT, permission: "purchase_request.read", attention: true },

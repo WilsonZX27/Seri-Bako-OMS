@@ -1,4 +1,8 @@
-# v9.2.164 (local candidate) — Asset tablet filter and summary corrections
+# v9.2.165 (local candidate) — Chef assigned-location schedule access
+
+Chef gets a Schedule navigation entry and the schedule route checks schedule.read rather than attendance access. Its workspace shows Schedule only; existing assigned-location scope, draft/submit rights and Manager approval remain unchanged. No database grants, payroll access, transfer display, basket or deferred login changes.
+
+# v9.2.164 (deployed) — Asset tablet filter and summary corrections
 
 Overview uses three tablet columns; Maintenance keeps four summary columns. Checklist, Maintenance and Transfers share compact inline filter sizing with one form and preserved query context. Scoped Asset opt-in; other consumers retain defaults. No schema, permission, auth, basket or import changes.
 

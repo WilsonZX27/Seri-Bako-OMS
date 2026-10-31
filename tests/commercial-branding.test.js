@@ -18,10 +18,10 @@ test('theme generation has no cross-company mutable state',()=>{
  const one=companyThemeTokens({version:1,primary:'#254b91'}),two=companyThemeTokens({version:1,primary:'#624399'});
  assert.notEqual(one['--sb-primary'],two['--sb-primary']);assert.deepEqual(JSON.parse(JSON.stringify(companyThemeTokens(null))),{});
 });
-test('historical open repair grouping preserves every ticket and keeps closed and general issues separate',()=>{
+test('repair grouping retains every status under its asset and keeps general issues separate',()=>{
  const {groupMaintenanceRequests}=load('src/lib/asset-maintenance-groups.ts');
  const rows=[{id:'new',asset_id:'one',status:'Open'},{id:'old',asset_id:'one',status:'Assigned'},{id:'closed',asset_id:'one',status:'Closed'},{id:'other',asset_id:'two',status:'Open'},{id:'site',asset_id:null,status:'Open'}];
- const grouped=groupMaintenanceRequests(rows);assert.equal(grouped.length,4);assert.equal(grouped[0].length,2);assert.equal(grouped.flat().length,rows.length);assert.equal(rows[0].status,'Open');
+ const grouped=groupMaintenanceRequests(rows);assert.equal(grouped.length,3);assert.equal(grouped[0].length,3);assert.equal(grouped.flat().length,rows.length);assert.equal(rows[0].status,'Open');
 });
 
 test('direct outline link styles remove transparent border just like the shared Button',()=>{

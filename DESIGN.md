@@ -1,3 +1,7 @@
+# v9.2.167 — Approved transfer display, current-count items and maintenance grouping
+
+Document-scoped endpoint/requester display through approved376; current stock-count added items saved through approved377; same asset ID maintenance grouping before pagination with original requests/history preserved. No basket, login, Asset Settings or ODR changes. SQL installed separately on 2026-10-31; no production business-write QA.
+
 # v9.2.166 (local candidate) — Approved interface corrections
 
 Bounded filters, white divided lists, compact asset details, independent maintenance scrolling, fixed checklist pagination, flattened transfer timeline and Attendance alignment/Break Duration. Includes case-insensitive resolved maintenance filtering. Existing transfer read scope and stock-count creation flow remain unchanged. No SQL, new permissions, basket or deferred login patch.

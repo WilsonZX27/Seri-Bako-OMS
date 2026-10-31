@@ -54,7 +54,8 @@ test("daily records, receiving, compliance and stock count feedback remains expl
   assert.match(read("src", "app", "(app)", "outlet-compliance", "page.tsx"), /New requirement/);
   assert.match(read("src", "server", "queries", "topbar.ts"), /"purchasing", "manager", "finance", "people_operations", "super_admin"/);
   const countForm = read("src", "components", "stock-count-form.tsx");
-  assert.match(countForm, /disabled=\{!itemCatalog\.length \|\| !countComplete\}/);
+  assert.match(countForm, /disabled=\{!itemCatalog\.length\}/);
+  assert.doesNotMatch(countForm, /Finish the current count first/);
   const countDetail = read("src", "app", "(app)", "stock-counts", "[id]", "page.tsx");
   assert.match(countDetail, /Retired lines/);
   assert.match(countDetail, /Retired by this Stock Count/);

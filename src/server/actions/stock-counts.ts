@@ -125,7 +125,7 @@ async function createStockCountRecord(formData: FormData) {
   const expectedLines = await getStockCountSeedLines(payload.branch_id);
   const expectedIds = new Set(expectedLines.map((line) => line.item_id));
   const submittedIds = new Set(payload.lines.map((line) => line.item_id));
-  if (expectedIds.size !== submittedIds.size || [...expectedIds].some((itemId) => !submittedIds.has(itemId))) {
+  if (submittedIds.size !== payload.lines.length || [...expectedIds].some((itemId) => !submittedIds.has(itemId))) {
     throw new Error("All items for the selected branch must be included in the stock count.");
   }
   const idempotencyKey = z.uuid().parse(String(formData.get("idempotency_key") ?? ""));
@@ -139,7 +139,8 @@ async function createStockCountRecord(formData: FormData) {
   const priorResult = tracked.existing?.safe_result as { id?: string } | null;
   if (tracked.existing?.status === "succeeded" && priorResult?.id) return priorResult.id;
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("create_stock_count_atomic", {
+  const includesAddedItems = [...submittedIds].some(itemId=>!expectedIds.has(itemId));
+  const { data, error } = await looseSupabase(supabase).rpc(includesAddedItems ? "create_stock_count_with_added_items_atomic" : "create_stock_count_atomic", {
     p_payload: { ...payload, idempotency_key: idempotencyKey },
   });
   if (error) {

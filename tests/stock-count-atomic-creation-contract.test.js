@@ -11,7 +11,7 @@ test("stock count creation uses one idempotent database aggregate", () => {
   const form = read("src/components/stock-count-form.tsx");
   const migration = read("supabase/migrations/109_stock_count_creation_atomicity.sql");
 
-  assert.match(action, /rpc\("create_stock_count_atomic"/);
+  assert.match(action, /rpc\(includesAddedItems \? "create_stock_count_with_added_items_atomic" : "create_stock_count_atomic"/);
   assert.doesNotMatch(action, /from\("stock_counts"\)\.insert/);
   assert.match(form, /name="idempotency_key"/);
   assert.match(form, /crypto\.randomUUID\(\)/);

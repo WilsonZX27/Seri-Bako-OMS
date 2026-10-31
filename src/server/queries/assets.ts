@@ -1,3 +1,4 @@
+import { getMaintenanceGroupPage } from "@/server/queries/asset-maintenance-page";
 import type { TransferAssetChoice } from "@/lib/asset-transfer-draft";
 import type { OpenAssetRepair } from "@/server/queries/asset-open-repairs";
 import { assetFeatureCapabilities } from "@/server/queries/asset-feature-capabilities";
@@ -23,9 +24,24 @@ function exactAssetCount(value: unknown): number {
 const attachmentColumns = "id,asset_id,maintenance_id,location_id,created_at,url,storage_path,verified_at,source_data";
 export type AssetHolding = { asset_id: string; location_id: string; quantity: number | null; condition?:string|null; status?:string|null; latest_check_result?:string|null };
 export type AssetOverview = { assetCount: number; knownQuantity: number; unknownHoldings: number; attentionAssets: number; openMaintenance: number; inTransitQuantity: number; locations: { id: string; name: string; assetCount: number; quantity: number | null }[]; checkDate: string; checklist: { id: string; name: string; kind: "branch" | "event" | "other"; open: boolean; reason: string | null; expected: number; checked: number; submitted?: boolean }[]; maintenanceTrend: { date: string; count: number }[]; issueTrend: { date: string; count: number | null; checked: number }[]; maintenanceByStatus: { status: string; count: number }[] };
-export type AssetRecord = { id: string; batch_id?: string | null; line_count?: number; request_date?: string; asset_id: string | null; reported_by?: string; location_id?: string; from_location_id?: string; to_location_id?: string; source_id?: string; status?: string; priority?: string; description?: string; reason?: string; quantity?: number | null; author_name?: string; created_at?: string; check_date?: string; result?: string; source_data: Record<string, unknown> };
+export type AssetRecord = { from_location_name?: string; to_location_name?: string; id: string; batch_id?: string | null; line_count?: number; request_date?: string; asset_id: string | null; reported_by?: string; location_id?: string; from_location_id?: string; to_location_id?: string; source_id?: string; status?: string; priority?: string; description?: string; reason?: string; quantity?: number | null; author_name?: string; created_at?: string; check_date?: string; result?: string; source_data: Record<string, unknown> };
 export type AssetView = "overview" | "assets" | "checklist" | "maintenance" | "transfers";
 const ASSET_MAINTENANCE_PAGE_SIZE = 10;
+
+/** Document-scoped labels only. Never merge these into accessible location choices. */
+async function withTransferDisplay(db: LooseSupabase, records: AssetRecord[]): Promise<AssetRecord[]> {
+  if (!records.length) return records;
+  const result = await db.rpc("get_asset_transfer_display", { p_ids: [...new Set(records.map(row => row.batch_id ?? row.id))] });
+  // Safe rollout: absent RPC retains existing restricted display, never widens queries.
+  if (result.error && ["PGRST202", "42883"].includes(String((result.error as {code?: string}).code))) return records;
+  if (result.error || !Array.isArray(result.data)) throw new Error("Transfer display details unavailable.");
+  const labels = new Map((result.data as { transfer_id: string; from_name: string; to_name: string; author_name: string }[]).map(row => [row.transfer_id, row]));
+  return records.map(row => {
+    const label = labels.get(row.batch_id ?? row.id);
+    return label ? { ...row, from_location_name: label.from_name, to_location_name: label.to_name, author_name: label.author_name } : row;
+  });
+}
+
 
 async function withCanonicalBranchNames(db: LooseSupabase, rows: AssetLocation[]): Promise<AssetLocation[]> {
   const branchIds = [...new Set(rows.flatMap((row) => row.kind === "branch" && row.branch_id ? [row.branch_id] : []))];
@@ -145,13 +161,9 @@ export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query =
     if(!Array.isArray(register.assets)||!Array.isArray(register.holdings)||!Array.isArray(register.filterOptions?.categories)||!Array.isArray(register.filterOptions?.statuses)) throw new Error("Asset register unavailable.");
     assets=register.assets;holdings=register.holdings;filterOptions=register.filterOptions;
   } else if (view === "overview") {
-    const result = await db.from("asset_maintenance").select("*", { count: "exact" }).eq("company_id",company)
-      .not("status", "in", "(Closed,Resolved,Cancelled,closed,resolved,cancelled)")
-      .order("created_at", { ascending: false }).order("id", { ascending: false })
-      .range((page - 1) * ASSET_MAINTENANCE_PAGE_SIZE, page * ASSET_MAINTENANCE_PAGE_SIZE - 1);
-    if(result.error || result.data === null || result.count === null) throw new Error(result.error?.message ?? "Open maintenance unavailable.");
-    records = result.data as AssetRecord[];
-    total = exactAssetCount(result.count);
+    const result = await getMaintenanceGroupPage(db, company, page, ASSET_MAINTENANCE_PAGE_SIZE, { overview: true });
+    records = result.records;
+    total = result.total;
     const ids=[...new Set(records.flatMap(row=>row.asset_id ? [row.asset_id] : []))];
     for(let offset=0;offset<ids.length;offset+=100) {
       const result=await db.from("assets").select("id,asset_code,item_name,current_details").eq("company_id",company).in("id",ids.slice(offset,offset+100));
@@ -174,9 +186,15 @@ export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query =
       }
     }
     const pageSize = view === "maintenance" ? ASSET_MAINTENANCE_PAGE_SIZE : 50;
-    const result = await request.order(view === "checklist" ? "check_date" : view === "maintenance" ? "source_data->>Created Date" : "created_at", { ascending: false }).order("id", { ascending: false }).range((page - 1) * pageSize, page * pageSize - 1);
-    if (result.error || result.data === null) throw new Error(result.error?.message ?? "Asset records unavailable.");
-    records = result.data as AssetRecord[]; total = exactAssetCount(result.count);
+    if (view === "maintenance") {
+      const result = await getMaintenanceGroupPage(db, company, page, pageSize, { locationId, status, date });
+      records = result.records; total = result.total;
+    } else {
+      const result = await request.order(view === "checklist" ? "check_date" : "created_at", { ascending: false }).order("id", { ascending: false }).range((page - 1) * pageSize, page * pageSize - 1);
+      if (result.error || result.data === null) throw new Error(result.error?.message ?? "Asset records unavailable.");
+      records = result.data as AssetRecord[]; total = exactAssetCount(result.count);
+    }
+    if (view === "transfers") records = await withTransferDisplay(db, records);
     const ids = [...new Set(records.flatMap(r => r.asset_id ? [r.asset_id] : []))];
     if (ids.length) {
       const result = await db.from("assets").select("id,asset_code,item_name,current_details").eq("company_id", company).in("id", ids);
@@ -230,7 +248,7 @@ export async function getAssetDetail(id: string) {
   if (!results[0].data) return null;
   if (typeof results[6].count !== "number") throw new Error("Attachment count unavailable.");
   for (const result of results.slice(1)) if (result.data === null) throw new Error("Asset details unavailable.");
-  return { asset: results[0].data as Asset, holdings: results[1].data as AssetHolding[], locations: await withCanonicalBranchNames(db, results[2].data as AssetLocation[]), maintenance: results[3].data as AssetRecord[], transfers: results[4].data as AssetRecord[], masterUpdates: results[5].data as { id: string; author_name: string; created_at: string; source_data: Record<string, unknown> }[], attachments: results[6].data as AssetAttachment[], attachmentTotal: exactAssetCount(results[6].count) };
+  return { asset: results[0].data as Asset, holdings: results[1].data as AssetHolding[], locations: await withCanonicalBranchNames(db, results[2].data as AssetLocation[]), maintenance: results[3].data as AssetRecord[], transfers: await withTransferDisplay(db, results[4].data as AssetRecord[]), masterUpdates: results[5].data as { id: string; author_name: string; created_at: string; source_data: Record<string, unknown> }[], attachments: results[6].data as AssetAttachment[], attachmentTotal: exactAssetCount(results[6].count) };
 }
 
 export async function getAssetInspection(id: string) {
@@ -340,7 +358,7 @@ export async function getAssetTransferDetail(id: string, page: number) {
   const transfer = await db.from("asset_transfers").select("*").eq("company_id", actor.companyId).eq("id", id).maybeSingle();
   if (transfer.error) throw new Error(transfer.error.message);
   if (!transfer.data) return null;
-  const row = transfer.data as AssetRecord;
+  const [row] = await withTransferDisplay(db, [transfer.data as AssetRecord]);
   if (!row.from_location_id || !row.to_location_id) throw new Error("Transfer locations unavailable.");
   const [asset, locations, history] = await Promise.all([
     db.from("assets").select("id,asset_code,item_name,current_details").eq("company_id", actor.companyId).eq("id", row.asset_id).maybeSingle(),
@@ -483,7 +501,7 @@ export async function getAssetTransferBatchDetail(id: string, page: number) {
   const header = await db.from("asset_transfer_register").select("*").eq("company_id", actor.companyId).eq("batch_id", id).maybeSingle();
   if (header.error) throw new Error(header.error.message);
   if (!header.data) return null;
-  const transfer = header.data as AssetRecord;
+  const [transfer] = await withTransferDisplay(db, [header.data as AssetRecord]);
   const lineResult = await db.from("asset_transfers").select("id,asset_id,quantity,status").eq("company_id", actor.companyId).eq("batch_id", id).order("asset_id");
   if (lineResult.error || !lineResult.data?.length) throw new Error(lineResult.error?.message ?? "Transfer assets unavailable.");
   const lines = lineResult.data as AssetRecord[];

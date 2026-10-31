@@ -1,5 +1,7 @@
 "use client";
 
+import { ItemCombobox, type ItemComboboxOption } from "@/components/item-combobox";
+import { previewStockCountItem } from "@/server/actions/stock-count-item-preview";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import type { FormEvent, ReactNode } from "react";
@@ -35,6 +37,7 @@ type SeedLine = {
 type RetirementReason = "used_up" | "wrong_or_duplicate_code" | "branch_no_longer_uses" | "other";
 type SeedLineInput = SeedLine & { physicalQty: string; remarks: string; initialPhysicalQty: string; adjusted: boolean; retireAfterCount: boolean; retirementReason: RetirementReason | ""; retirementNote: string };
 type AutosaveState = "idle" | "local" | "recovered" | "saving" | "saved" | "error";
+const EMPTY_ITEM_CATALOG: ItemComboboxOption[] = [];
 const STOCK_COUNT_SORT_KEY = "seri-bako:stock-count-sort";
 const MAX_AUTOSAVE_RETRIES = 3;
 const AUTOSAVE_DEBOUNCE_MS = 12_000;
@@ -43,7 +46,7 @@ type LocalDraftSnapshot = {
   branchId: string;
   countDate: string;
   remarks: string;
-  lines: Array<{ itemId: string; physicalQty: string; initialPhysicalQty?: string; remarks: string }>;
+  lines: Array<{ itemId: string; physicalQty: string; initialPhysicalQty?: string; remarks: string; addedLine?: SeedLine }>;
   savedLocallyAt: string;
 };
 
@@ -94,7 +97,7 @@ export function StockCountForm({
   autosaveAction,
   draftId,
   lineRevisionAction,
-  itemCatalog = [],
+  itemCatalog = EMPTY_ITEM_CATALOG,
   addItemControl,
   initialLineAction,
   allowAddItem = false,
@@ -111,7 +114,7 @@ export function StockCountForm({
   autosaveAction?: (formData: FormData) => Promise<StockCountAutosaveResult>;
   draftId?: string;
   lineRevisionAction?: (formData: FormData) => Promise<void>;
-  itemCatalog?: Array<{ id: string; item_code: string; item_name: string; base_unit: string }>;
+  itemCatalog?: ItemComboboxOption[];
   addItemControl?: ReactNode;
   initialLineAction?: { mode: "replace" | "remove"; itemId: string } | null;
   allowAddItem?: boolean;
@@ -142,6 +145,14 @@ export function StockCountForm({
   const [autosaveRetryable, setAutosaveRetryable] = useState(true);
   const [manualSaveError, setManualSaveError] = useState("");
   const [manualSavePendingState, startManualSave] = useTransition();
+  const [addOpen, setAddOpen] = useState(false);
+  const [addQuery, setAddQuery] = useState("");
+  const [addItemId, setAddItemId] = useState("");
+  const [addError, setAddError] = useState("");
+  const [adding, setAdding] = useState(false);
+  const addTriggerRef = useRef<HTMLButtonElement>(null);
+  const addRequest = useRef(0);
+  const addPending = useRef(false);
   const [search, setSearch] = useState("");
   const [showAdjustedOnly, setShowAdjustedOnly] = useState(false);
   const [showMissingOnly, setShowMissingOnly] = useState(false);
@@ -226,7 +237,8 @@ export function StockCountForm({
       }
       const isLegacySnapshot = snapshot.version !== 2;
       const savedLines = new Map(snapshot.lines.map((line) => [line.itemId, line]));
-      setLines(seedLines.map((line) => {
+      const recoveredExtra = !draftId ? snapshot.lines.flatMap(saved => saved.addedLine && !seedLines.some(line=>line.item_id===saved.itemId) && itemCatalog.some(item=>item.id===saved.itemId && item.base_unit===saved.addedLine?.uom) ? [saved.addedLine] : []) : [];
+      setLines([...seedLines, ...recoveredExtra].map((line) => {
         const editable = makeEditableLine(line);
         const saved = savedLines.get(line.item_id);
         if (!saved) return editable;
@@ -256,7 +268,7 @@ export function StockCountForm({
     } catch {
       tryStockCountStorage(() => window.localStorage.removeItem(localStorageKey));
     }
-  }, [localStorageKey, resolvedBranchId, seedLines]);
+  }, [localStorageKey, resolvedBranchId, seedLines, draftId, itemCatalog]);
 
   const saveDraft = useCallback(async (revision: number): Promise<boolean> => {
     if (manualSavePending.current) return false;
@@ -344,7 +356,7 @@ export function StockCountForm({
       branchId: resolvedBranchId,
       countDate,
       remarks: countRemarks,
-      lines: lines.map((line) => ({ itemId: line.item_id, physicalQty: line.physicalQty, initialPhysicalQty: line.initialPhysicalQty, remarks: line.remarks })),
+      lines: lines.map((line) => ({ itemId: line.item_id, physicalQty: line.physicalQty, initialPhysicalQty: line.initialPhysicalQty, remarks: line.remarks, addedLine: !seedLines.some(seed=>seed.item_id===line.item_id) ? {item_id:line.item_id,item_code:line.item_code,item_name:line.item_name,theoretical_qty:line.theoretical_qty,physical_qty:null,prefill_source:line.prefill_source,uom:line.uom} : undefined })),
       savedLocallyAt: new Date().toISOString(),
     };
     const backup = tryStockCountStorage(() => window.localStorage.setItem(localStorageKey, JSON.stringify(snapshot)));
@@ -354,7 +366,7 @@ export function StockCountForm({
     // blocked or full device must never prevent the server save from running.
     const timer = window.setTimeout(() => void saveDraft(dirtyRevision), AUTOSAVE_DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
-  }, [countDate, countRemarks, dirtyRevision, lines, localStorageKey, resolvedBranchId, saveDraft]);
+  }, [countDate, countRemarks, dirtyRevision, lines, localStorageKey, resolvedBranchId, saveDraft, seedLines]);
 
   useEffect(() => {
     const flushWhenHidden = () => {
@@ -370,13 +382,14 @@ export function StockCountForm({
   }, [dirtyRevision, saveDraft]);
 
   function selectBranch(branchId: string) {
+    closeAddItem();
     if (hasUserEdited.current) {
       const snapshot: LocalDraftSnapshot = {
         version: 2,
         branchId: resolvedBranchId,
         countDate,
         remarks: countRemarks,
-        lines: lines.map((line) => ({ itemId: line.item_id, physicalQty: line.physicalQty, initialPhysicalQty: line.initialPhysicalQty, remarks: line.remarks })),
+        lines: lines.map((line) => ({ itemId: line.item_id, physicalQty: line.physicalQty, initialPhysicalQty: line.initialPhysicalQty, remarks: line.remarks, addedLine: !seedLines.some(seed=>seed.item_id===line.item_id) ? {item_id:line.item_id,item_code:line.item_code,item_name:line.item_name,theoretical_qty:line.theoretical_qty,physical_qty:null,prefill_source:line.prefill_source,uom:line.uom} : undefined })),
         savedLocallyAt: new Date().toISOString(),
       };
       tryStockCountStorage(() => window.localStorage.setItem(localStorageKey, JSON.stringify(snapshot)));
@@ -503,6 +516,23 @@ export function StockCountForm({
   function cancelRetirement(itemId: string) {
     markDirty();
     setLines((current) => current.map((line) => line.item_id === itemId ? { ...line, retireAfterCount: false, retirementReason: "", retirementNote: "" } : line));
+  }
+
+  function closeAddItem() { addRequest.current += 1; addPending.current = false; setAddOpen(false); setAdding(false); }
+  async function addCurrentItem() {
+    if (!addItemId || addPending.current || lines.some(line=>line.item_id===addItemId)) return;
+    addPending.current = true;
+    const request=++addRequest.current, branch=resolvedBranchId;
+    setAdding(true); setAddError("");
+    try {
+      const result=await previewStockCountItem(branch,addItemId);
+      if(request!==addRequest.current || activeBranchId.current!==branch) return;
+      if(!result.line) {setAddError(result.error ?? "Could not add item.");return;}
+      setLines(current=>current.some(line=>line.item_id===result.line!.item_id) ? current : [...current,makeEditableLine(result.line!)]);
+      markDirty(); setSearch(""); setShowAdjustedOnly(false); setShowMissingOnly(false);
+      setAddOpen(false);setAddQuery("");setAddItemId("");
+    } catch { if(request===addRequest.current) setAddError("Could not load item. Your count is unchanged; try again."); }
+    finally { if(request===addRequest.current) { addPending.current = false; setAdding(false); } }
   }
 
   function continueInSavedDraft(actionName: "add-item" | "replace" | "remove", itemId = "") {
@@ -752,7 +782,7 @@ export function StockCountForm({
                   </div>
                 );
               })}
-              {addItemControl || (!draftId && allowAddItem) ? <div className="flex min-h-28 flex-col items-center justify-center gap-1 rounded-[var(--sb-control-radius)] border border-dashed border-[var(--sb-green-700)] bg-[var(--sb-green-50)] p-3 sm:min-h-20 sm:rounded-none sm:border-x-0 sm:border-t-0 [&_button]:min-h-9 [&_button]:w-full [&_button]:justify-center [&_button]:border-0 [&_button]:bg-transparent [&_button]:shadow-none">{addItemControl ?? <><Button type="button" variant="outline" disabled={!itemCatalog.length || !countComplete} title={!itemCatalog.length ? "No active catalogue items are available" : !countComplete ? "Finish the current count before adding another item" : "Save this draft and choose an item"} onClick={() => continueInSavedDraft("add-item")}><ListPlus className="h-4 w-4" aria-hidden="true" />Add item</Button>{!countComplete ? <p className="text-xs text-muted-foreground">Finish the current count first; your entries will then be saved before the item picker opens.</p> : null}</>}</div> : null}
+              {addItemControl || (!draftId && allowAddItem) ? <div className="flex min-h-28 flex-col items-center justify-center gap-1 rounded-[var(--sb-control-radius)] border border-dashed border-[var(--sb-green-700)] bg-[var(--sb-green-50)] p-3 sm:min-h-20 sm:rounded-none sm:border-x-0 sm:border-t-0 [&_button]:min-h-9 [&_button]:w-full [&_button]:justify-center [&_button]:border-0 [&_button]:bg-transparent [&_button]:shadow-none">{addItemControl ?? <Button ref={addTriggerRef} type="button" variant="outline" disabled={!itemCatalog.length} onClick={()=>{setAddError("");setAddOpen(true);}}><ListPlus className="h-4 w-4" aria-hidden="true"/>Add item</Button>}</div> : null}
               {!lines.length ? (
                 <div className="flex items-center gap-2 px-3 py-2 text-xs text-warning">
                   <AlertTriangle className="h-4 w-4" />
@@ -766,6 +796,15 @@ export function StockCountForm({
             </div>
           </div>
           </section>
+
+          <ModalShell open={addOpen} onClose={closeAddItem} titleId="stock-count-current-item-title" triggerRef={addTriggerRef} className="max-w-lg">
+            <h2 id="stock-count-current-item-title" className="text-sm font-semibold">Add item to this count</h2>
+            <p className="mt-2 text-sm text-muted-foreground">Choose an existing item. Your entered quantities stay in this count.</p>
+            <div className="mt-4 space-y-3"><Field label="Item"><ItemCombobox items={itemCatalog.filter(item=>!lines.some(line=>line.item_id===item.id))} value={addQuery} selectedItemId={addItemId} onValueChange={value=>{setAddQuery(value);setAddItemId("");}} onSelect={item=>{setAddQuery(`${item.item_code} - ${item.item_name}`);setAddItemId(item.id);}} placeholder="Search item name or code" emptyMessage="No matching item, or it is already in this count."/></Field>
+              {addError ? <p role="alert" className="text-sm text-destructive">{addError}</p> : null}
+              <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={closeAddItem}>Cancel</Button><Button type="button" disabled={!addItemId || adding} onClick={addCurrentItem}>{adding ? "Loading item…" : "Add to this count"}</Button></div>
+            </div>
+          </ModalShell>
 
           <ModalShell open={Boolean(retirementItemId)} onClose={() => setRetirementItemId(null)} titleId="stock-count-retirement-title" triggerRef={retirementTriggerRef} initialFocusRef={retirementCancelRef} className="max-w-md">
             <h2 id="stock-count-retirement-title" className="flex items-center gap-2 text-base font-semibold"><Archive className="h-4 w-4" />Retire item after this count</h2>

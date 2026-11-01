@@ -1,3 +1,7 @@
+# v9.2.173 (Preview candidate) — Payslip exports and narrow page reads
+
+Preserve all172 fixes. Add scoped snapshot-only payslip Excel/PDF downloads and narrow Maintenance identity/ODR list reads. No SQL, grants, payroll calculation, business writes or global performance claim. Authenticated Preview acceptance remains pending.
+
 # v9.2.172 (Preview candidate) — Tablet overlay recovery and unsaved PR protection
 
 Preserve171 session recovery, Settings, AutoCount and Asset Excel. Close obsolete tablet overlays and release scroll locks on breakpoint or owner changes; keep same-owner input updates open. Block PR Submit until edits are saved, preserve inputs on failed saves, and require explicit submit after saving. No SQL, permission or production record changes. Physical iPad/WebKit and authenticated combined Preview acceptance remain pending; existing attention/Suspense hydration is not claimed fixed.

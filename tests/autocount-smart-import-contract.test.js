@@ -105,7 +105,10 @@ test("Supplier display identity separates Item Group from internal AutoCount cod
 test("Preview stages normalized rows and confirmation trusts only the job id", () => {
   const preview = read("src/app/api/imports/autocount/preview/route.ts");
   const confirm = read("src/app/api/imports/autocount/confirm/route.ts");
-  assert.match(preview, /autocount_import_rows/);
+  assert.match(preview, /stage_autocount_import_job/);
+  assert.doesNotMatch(preview, /\.insert\(/);
+  assert.match(confirm, /stagingVersion/);
+  assert.match(confirm, /count: "exact"/);
   assert.match(preview, /rejectCrossSiteMutation/);
   assert.match(confirm, /jobId: z\.string\(\)\.uuid\(\)/);
   assert.match(confirm, /apply_autocount_import_job/);

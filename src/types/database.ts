@@ -3014,6 +3014,10 @@ export type Database = {
         Args: { p_item: Json; p_supplier?: Json | null; p_branch_ids?: string[]; p_preferred?: boolean };
         Returns: Json;
       };
+      stage_autocount_import_job: {
+        Args: { p_content_hash: string; p_files: Json; p_rows: Json; p_summary: Json; p_blocking_issues: Json };
+        Returns: Json;
+      };
       apply_autocount_import_job: {
         Args: { p_job_id: string };
         Returns: Json;

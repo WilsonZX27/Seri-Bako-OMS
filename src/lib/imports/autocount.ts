@@ -50,6 +50,12 @@ export function formatAutoCountInfrastructureError(error: unknown) {
       ? ["code", "message", "details", "hint"].map((key) => String((error as Record<string, unknown>)[key] ?? "")).filter(Boolean).join(" ")
       : String(error ?? "");
   const normalized = raw.toLowerCase();
+  if (normalized.includes("stage_autocount_import_job")) {
+    return { message: "The atomic AutoCount upload upgrade is not installed in this environment. Keep the original files and ask an Owner to complete the upgrade before retrying.", setupRequired: true } as const;
+  }
+  if (normalized.includes("incomplete staging")) {
+    return { message: "The saved preview is incomplete. Select the same files and review again before confirming.", setupRequired: false } as const;
+  }
   const migrationMissing = normalized.includes("autocount_import_") || normalized.includes("apply_autocount_import_job") || normalized.includes("pgrst205") || normalized.includes("schema cache");
   if (migrationMissing) {
     return {

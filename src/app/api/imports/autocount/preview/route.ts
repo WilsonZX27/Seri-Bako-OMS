@@ -33,52 +33,26 @@ export async function POST(request: Request) {
   // Version the analysis identity so files staged under older validation
   // semantics are never silently reused after an importer rule correction.
   const contentHash = `autocount-v2:${parsed.data.files.map((file) => file.hash).sort().join(":")}`;
-  const { data: existing, error: existingError } = await supabase.from("autocount_import_jobs").select("id, status, summary, blocking_issues").eq("company_id", profile.company_id).eq("content_hash", contentHash).in("status", ["staging", "ready", "completed"]).maybeSingle();
-  if (existingError) {
-    const failure = formatAutoCountInfrastructureError(existingError);
-    return NextResponse.json({ ok: false, message: failure.message, setupRequired: failure.setupRequired }, { status: 503 });
-  }
-  if (existing) {
-    return NextResponse.json({ ok: true, reused: true, jobId: existing.id, status: existing.status, summary: existing.summary, blockingIssues: existing.blocking_issues, warnings: [] });
-  }
-
   const analysis = analyzeAutoCountFiles(parsed.data.files, branches.map((branch) => branch.branch_code));
-  const status = analysis.blockingIssues.length ? "staging" : "ready";
-  const { data: job, error: jobError } = await supabase.from("autocount_import_jobs").insert({
-    company_id: profile.company_id,
-    status,
-    content_hash: contentHash,
-    file_count: parsed.data.files.length,
-    summary: analysis.summary as unknown as Json,
-    blocking_issues: analysis.blockingIssues as unknown as Json,
-    created_by: profile.id,
-  }).select("id").single();
-  if (jobError || !job) {
-    const failure = formatAutoCountInfrastructureError(jobError ?? "Could not create the import job.");
-    return NextResponse.json({ ok: false, message: failure.message, setupRequired: failure.setupRequired }, { status: failure.setupRequired ? 503 : 500 });
+  // One transaction stages every file and row; retry retains the same job identity.
+  const { data, error } = await supabase.rpc("stage_autocount_import_job", {
+    p_content_hash: contentHash,
+    p_files: parsed.data.files.map((file) => ({
+      file_name: file.name, file_type: file.type, content_hash: file.hash,
+      row_count: file.rows.length, headers: file.headers,
+    })) as Json,
+    p_rows: analysis.rows.map((row) => ({
+      entity_type: row.entityType, business_key: row.businessKey,
+      source_file: row.sourceFile, source_row: row.sourceRow,
+      normalized: row.normalized, warnings: row.warnings,
+    })) as Json,
+    p_summary: analysis.summary as unknown as Json,
+    p_blocking_issues: analysis.blockingIssues as Json,
+  });
+  if (error || !data) {
+    const failure = formatAutoCountInfrastructureError(error ?? "Could not prepare the import.");
+    return NextResponse.json({ ok: false, message: failure.message, setupRequired: failure.setupRequired }, { status: failure.setupRequired ? 503 : 409 });
   }
-
-  const fileRows = parsed.data.files.map((file) => ({
-    job_id: job.id, company_id: profile.company_id, file_name: file.name, file_type: file.type,
-    content_hash: file.hash, row_count: file.rows.length, headers: file.headers as unknown as Json,
-  }));
-  const { error: fileError } = await supabase.from("autocount_import_files").insert(fileRows);
-  if (fileError) {
-    const failure = formatAutoCountInfrastructureError(fileError);
-    return NextResponse.json({ ok: false, jobId: job.id, message: failure.message, setupRequired: failure.setupRequired }, { status: failure.setupRequired ? 503 : 500 });
-  }
-
-  for (let start = 0; start < analysis.rows.length; start += 500) {
-    const rows = analysis.rows.slice(start, start + 500).map((row) => ({
-      job_id: job.id, company_id: profile.company_id, entity_type: row.entityType, business_key: row.businessKey,
-      source_file: row.sourceFile, source_row: row.sourceRow, normalized: row.normalized as unknown as Json, warnings: row.warnings as unknown as Json,
-    }));
-    const { error } = await supabase.from("autocount_import_rows").insert(rows);
-    if (error) {
-      const failure = formatAutoCountInfrastructureError(error);
-      return NextResponse.json({ ok: false, jobId: job.id, message: failure.message, setupRequired: failure.setupRequired }, { status: failure.setupRequired ? 503 : 500 });
-    }
-  }
-
-  return NextResponse.json({ ok: true, reused: false, jobId: job.id, status, summary: analysis.summary, blockingIssues: analysis.blockingIssues, issueDetails: analysis.issueDetails, warnings: analysis.warnings });
+  const staged = data as { jobId: string; status: string; summary: Json; blockingIssues: string[]; reused: boolean };
+  return NextResponse.json({ ok: true, ...staged, issueDetails: analysis.issueDetails, warnings: analysis.warnings });
 }

@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, type DragEvent } from "react";
+import { useState, useRef, type DragEvent } from "react";
 import { AlertTriangle, CheckCircle2, Clock3, FileSpreadsheet, LoaderCircle, RotateCcw, ShieldCheck, Upload, X } from "lucide-react";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Notice } from "@/components/ui/system-states";
+import { requestDeadline } from "@/lib/http/request-deadline";
 import { readJsonResponse } from "@/lib/http/read-json-response";
 import { parseAutoCountWorkbook } from "@/lib/imports/autocount-xlsx";
 import type { AutoCountIssue, AutoCountParsedFile } from "@/lib/imports/autocount";
@@ -59,6 +60,7 @@ function warningSummary(warnings: string[]) {
 }
 
 export function AutoCountImportWorkflow() {
+  const busyRef = useRef(false);
   const [files, setFiles] = useState<AutoCountParsedFile[]>([]);
   const [preview, setPreview] = useState<PreviewResponse | null>(null);
   const [result, setResult] = useState<ConfirmResult | null>(null);
@@ -68,7 +70,8 @@ export function AutoCountImportWorkflow() {
   const [dragActive, setDragActive] = useState(false);
 
   async function selectFiles(selected: FileList | File[] | null) {
-    if (!selected?.length) return;
+    if (!selected?.length || busyRef.current) return;
+    busyRef.current = true;
     setBusy("parsing"); setMessage(null); setSelectionNote(null); setPreview(null); setResult(null);
     try {
       const parsed = await Promise.all(Array.from(selected).map(parseAutoCountWorkbook));
@@ -81,21 +84,26 @@ export function AutoCountImportWorkflow() {
       if (notes.length) setSelectionNote(notes.join(" "));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not read the selected workbooks.");
-    } finally { setBusy(null); }
+    } finally { busyRef.current = false; setBusy(null); }
   }
 
   async function createPreview() {
-    setBusy("preview"); setMessage(null); setResult(null);
+    if (!files.length || busyRef.current) return;
+    busyRef.current = true;
+    setBusy("preview"); setMessage(null); setResult(null); setPreview(null);
     try {
+      const payload = await requestDeadline(async () => {
       const response = await fetch("/api/imports/autocount/preview", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ files }) });
       const payload = await readJsonResponse<PreviewResponse>(response, {
       sessionExpired: "Your session expired. Sign in again, then check the import status before reviewing again.",
         unexpectedResponse: `The import service returned an unexpected response (${response.status}). Retry; no OMS records were changed.`,
       });
       if (!response.ok || !payload.ok) throw new Error(payload.message ?? "Could not prepare the import preview.");
+      return payload;
+      }, 60_000, "Preview result is unconfirmed. Keep these files and retry Review import; the same job will be recovered.");
       setPreview(payload);
     } catch (error) { setMessage(error instanceof Error ? error.message : "Could not prepare the import preview."); }
-    finally { setBusy(null); }
+    finally { busyRef.current = false; setBusy(null); }
   }
 
   function handleDrop(event: DragEvent<HTMLLabelElement>) {
@@ -105,6 +113,7 @@ export function AutoCountImportWorkflow() {
   }
 
   function removeFile(hash: string) {
+    if (busyRef.current) return;
     setFiles((current) => current.filter((file) => file.hash !== hash));
     setPreview(null);
     setResult(null);
@@ -113,18 +122,22 @@ export function AutoCountImportWorkflow() {
   }
 
   async function confirmImport() {
-    if (!preview?.jobId) return;
+    if (!preview?.jobId || preview.status !== "ready" || busyRef.current) return;
+    busyRef.current = true;
     setBusy("confirm"); setMessage(null);
     try {
+      const payload = await requestDeadline(async () => {
       const response = await fetch("/api/imports/autocount/confirm", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ jobId: preview.jobId }) });
       const payload = await readJsonResponse<{ ok: boolean; message?: string; result?: ConfirmResult }>(response, {
       sessionExpired: "Your session expired. Sign in again, then check the import status before confirming again.",
         unexpectedResponse: `The import service returned an unexpected response (${response.status}). Retry confirmation; no duplicate import was created.`,
       });
       if (!response.ok || !payload.ok) throw new Error(payload.message ?? "The import could not be confirmed.");
+      return payload;
+      }, 60_000, "Confirmation result is unconfirmed. Retry confirmation to recover the same job receipt; do not start a new import.");
       setResult(payload.result ?? {});
     } catch (error) { setMessage(error instanceof Error ? error.message : "The import could not be confirmed."); }
-    finally { setBusy(null); }
+    finally { busyRef.current = false; setBusy(null); }
   }
 
   const blockers = preview?.blockingIssues ?? [];
@@ -143,7 +156,7 @@ export function AutoCountImportWorkflow() {
             {busy === "preview" ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />} Review import
           </Button>
         ) : (
-          <Button type="button" className="w-full" onClick={confirmImport} disabled={!preview.jobId || blockers.length > 0 || Boolean(busy) || Boolean(result) || alreadyCompleted} data-mobile-primary-action>
+          <Button type="button" className="w-full" onClick={confirmImport} disabled={!preview.jobId || preview.status !== "ready" || blockers.length > 0 || Boolean(busy) || Boolean(result) || alreadyCompleted} data-mobile-primary-action>
             {busy === "confirm" ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />} {alreadyCompleted ? "Already imported" : retryConfirm ? "Retry confirm" : "Confirm once"}
           </Button>
         )}

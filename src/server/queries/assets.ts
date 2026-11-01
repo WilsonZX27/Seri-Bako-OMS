@@ -13,7 +13,7 @@ import { createClient } from "@/lib/supabase/server";
 import { looseSupabase, type LooseSupabase } from "@/lib/supabase/loose";
 import { isMockMode } from "@/lib/mock-mode";
 
-export type AssetLocation = { id: string; source_name: string; display_name?: string; branch_id: string | null; kind: "branch" | "event" | "other" };
+export type AssetLocation = { id: string; source_name: string; display_name?: string; branch_id: string | null; kind: "branch" | "event" | "other"; other_active?: boolean };
 export type Asset = { id: string; asset_code: string; item_name: string; source_data: Record<string, unknown>; current_details: Record<string, unknown>; updated_at: string; original_record_access?: boolean };
 export type AssetSummary = Pick<Asset, "id" | "asset_code" | "item_name"> & { current_details?: Record<string, unknown>; audits?: {location_id:string;result:string|null;date:string|null}[] };
 export type AssetAttachment = { id: string; asset_id: string | null; maintenance_id: string | null; location_id: string | null; created_at: string; url: string; storage_path: string | null; verified_at: string | null; source_data: Record<string, unknown> };
@@ -72,7 +72,7 @@ export const getAssetRegistration = cache(async () => {
   const activation = await db.rpc("asset_company_live", { p_company: actor.companyId });
   if (activation.error || activation.data === null) throw new Error(activation.error?.message ?? "Asset activation unavailable.");
   if (activation.data !== true) return { active: false, automaticId: false, nextCode: null as string | null, locations: [] as AssetLocation[] };
-  const result = await db.from("asset_locations").select("id,source_name,branch_id,kind").eq("company_id", actor.companyId).order("source_name");
+  const result = await db.from("asset_locations").select("id,source_name,branch_id,kind,other_active").eq("company_id", actor.companyId).order("source_name");
   if (result.error || result.data === null) throw new Error(result.error?.message ?? "Asset locations unavailable.");
   const automaticId = (await assetFeatureCapabilities(db, actor.companyId)).automaticId;
   let nextCode: string | null = null;
@@ -85,7 +85,7 @@ export const getAssetRegistration = cache(async () => {
     const n = Number(period.data?.next_number), padding = Number(sequence.data?.padding);
     if (!sequence.error && !period.error && String(sequence.data?.prefix ?? "").trim() === "SB" && sequence.data?.reset_frequency === "never" && Number.isSafeInteger(n) && n > 0 && Number.isInteger(padding) && padding >= 1 && padding <= 64) nextCode = `SB-${String(n).padStart(Math.max(4,padding),"0")}`;
   }
-  return { active: true, automaticId, nextCode, locations: await withCanonicalBranchNames(looseSupabase(db), result.data as AssetLocation[]) };
+  return { active: true, automaticId, nextCode, locations: await withCanonicalBranchNames(looseSupabase(db), result.data.filter(location => location.kind !== "other" || location.other_active === true) as AssetLocation[]) };
 });
 
 export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query = "", date = "", status = "", locationId = "", sort = "code", category = "") => {
@@ -238,7 +238,7 @@ export async function getAssetDetail(id: string) {
   const results = await Promise.all([
     db.rpc("get_asset_identity", { p_asset: id }),
     db.from("asset_holdings").select("asset_id,location_id,quantity").eq("company_id", actor.companyId).eq("asset_id", id),
-    db.from("asset_locations").select("id,source_name,branch_id,kind").eq("company_id", actor.companyId).order("source_name"),
+    db.from("asset_locations").select("id,source_name,branch_id,kind,other_active").eq("company_id", actor.companyId).order("source_name"),
     db.from("asset_maintenance").select("*").eq("company_id", actor.companyId).eq("asset_id", id).order("created_at", { ascending: false }).limit(50),
     db.from("asset_transfers").select("*").eq("company_id", actor.companyId).eq("asset_id", id).order("created_at", { ascending: false }).limit(50),
     db.from("asset_master_updates").select("*").eq("company_id", actor.companyId).eq("asset_id", id).order("created_at", { ascending: false }).order("id", { ascending: false }).limit(50),
@@ -465,9 +465,9 @@ export async function getAssetTransferRequestOptions() {
   if (isMockMode()) return { locations: [] as AssetLocation[], sourceIds: [] as string[], choices: [] as TransferAssetChoice[], canSubmit: false };
   const db = looseSupabase(await createClient());
   const capability = await assetFeatureCapabilities(db);
-  const locationResult = await db.from("asset_locations").select("id,source_name,branch_id,kind").eq("company_id", actor.companyId).order("source_name");
+  const locationResult = await db.from("asset_locations").select("id,source_name,branch_id,kind,other_active").eq("company_id", actor.companyId).order("source_name");
   if (locationResult.error || !locationResult.data) throw new Error(locationResult.error?.message ?? "Transfer locations unavailable.");
-  const locations = await withCanonicalBranchNames(db, locationResult.data as AssetLocation[]);
+  const locations = await withCanonicalBranchNames(db, locationResult.data.filter(location => location.kind !== "other" || location.other_active === true) as AssetLocation[]);
   const sourceAccess = await Promise.all(locations.map(async location => {
     const access = await db.rpc("asset_location_access", { p_location: location.id });
     if (access.error) throw new Error(access.error.message ?? "Source access unavailable.");

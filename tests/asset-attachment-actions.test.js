@@ -8,7 +8,8 @@ function harness(options={}){
  const bucket={upload:async(path,bytes,config)=>{calls.push({name:'upload',path,config});return {error:options.uploadError?{message:'Upload response lost'}:null};},download:async path=>{calls.push({name:'download',path});return options.downloadError?{data:null,error:{message:'Unavailable'}}:{data:new Blob([options.corrupt?Buffer.from([255,216,255,9]):Buffer.from([255,216,255,1])]),error:null};}};
  const admin={storage:{from:name=>{assert.equal(name,'asset-documents');return bucket;}},rpc:async(name,args)=>{calls.push({name,args});return {data:true,error:null};}};
  const actions=load('src/server/actions/assets.ts',{
-  'next/cache':{revalidatePath:path=>calls.push({name:'revalidate',path})},
+  '@/server/auth/asset-settings': { requireAssetDestinationManager: async () => { throw Error('Unexpected Settings access'); } },
+    'next/cache':{revalidatePath:path=>calls.push({name:'revalidate',path})},
   '@/server/auth/tenant-actor':{requireActiveTenantActor:async()=>{actors++;return options.sessionChanged&&actors>1?{...actor,companyId:id(9)}:actor;}},
   '@/server/auth/permissions':{hasPermission:async permission=>options.general ? permission==="assets.report" : !options.operator,requirePermission:async permission=>{calls.push({name:'permission',permission});if(options.permissionRevoked&&actors>1)throw new Error('Permission revoked');}},
   '@/lib/supabase/server':{createClient:async()=>db},'@/server/queries/asset-feature-capabilities':{assetFeatureCapabilities:async()=>({automaticId:false,transferBatch:false})},'@/lib/asset-transfer':require('./helpers/load-source.cjs')()('src/lib/asset-transfer.ts'),'@/lib/supabase/loose':{looseSupabase:value=>value},

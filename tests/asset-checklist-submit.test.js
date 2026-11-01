@@ -7,6 +7,7 @@ const id = value => `00000000-0000-4000-8000-${String(value).padStart(12, '0')}`
 function harness(error = null) {
   const calls = [], module = { exports: {} };
   const bindings = {
+    '@/server/auth/asset-settings': { requireAssetDestinationManager: async () => { throw Error('Unexpected Settings access'); } },
     'next/cache': { revalidatePath() {} },
     '@/server/auth/tenant-actor': { requireActiveTenantActor: async () => ({ companyId: id(1), staffId: id(2) }) },
     '@/server/auth/permissions': { requirePermission: async permission => assert.equal(permission, 'assets.check') },

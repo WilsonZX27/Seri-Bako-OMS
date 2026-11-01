@@ -1,3 +1,7 @@
+# v9.2.170 (Preview candidate) — Asset destination settings
+
+Preserve169 AutoCount atomic recovery and168 Asset Excel. Add reviewed four-role destination Settings with persistent tablet right panel, inactive destination filtering and mobile transfer timeline order. Uses installed378; no new SQL, payroll or performance changes.
+
 # v9.2.169 (Preview candidate) — Atomic AutoCount recovery
 
 Use installed379 atomic staging and receipt validation before confirmation. Preserve completed receipts and require original-file re-upload for legacy incomplete previews. No Settings, payroll, performance, inventory posting or other SQL changes.

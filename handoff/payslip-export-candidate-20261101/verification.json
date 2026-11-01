@@ -1,0 +1,250 @@
+{
+  "base": "6c8f0822cdf183bc5a4b39ec1e0d0ce6c88bd588",
+  "node": "22.23.4",
+  "tests": 31,
+  "lint": "pass",
+  "typecheck": "pass",
+  "build": "pass, explicit synthetic environment",
+  "sourceSha256": {
+    "src/app/api/people/payslips/export/route.ts": "19f24056a56a86d9b6ac2bff30a9d8a9f4e158aac13aa75edf68023c477c6e85",
+    "src/components/attendance/payslip-workspace.tsx": "e886761c71afc4d58fedefab38bdf41684c74e48432cb95e417233de2697506a",
+    "src/lib/attendance/payslip-export.ts": "1e0ceb805e03a4f2488c6fe5eedc7d5f6fc56e56c44125362657f2b138d5931c",
+    "src/lib/attendance/payslip-workbook.ts": "ab2fbad0d9eb92e0b1d9f7bad7990632213c96948427443a6bda7a40f3af0a57",
+    "src/lib/attendance/payslip-pdf.ts": "f234922cee560d6549f47cfad99b13440fd359786081cb7b320c9977150a8782",
+    "tests/fixtures/payslip-export.cjs": "ba5c8b97076722e9d38c9c9604c5c6b75cf8c02dba98b277ca89a52cf7e6ac2a",
+    "tests/payslip-export.test.js": "27b939ab7da0e9f8ad7196bb430ea69d58c0b78a85442be3cf896f4b77522faa",
+    "scripts/attendance/generate-payslip-export-local.cjs": "ceb3868ac88a3705d06a7d78fbb6b40f6e0f8dbd1a6702d0d48a41f56daf2500",
+    "scripts/attendance/verify-payslip-export-ui-local.cjs": "c9d479c223b7d44e2560cba81267090b937532bbdddcbf5b48679f0d677dfe52",
+    "scripts/attendance/verify-payslip-artifacts-local.py": "684e87a0c0d8f1a368e29915abc1f52f54658a7741f2cf379142b4b2e0d82935",
+    "scripts/attendance/verify-payslip-pdf-local.cjs": "67cdff226baea3bb0d913db4301af47f27273f861a2efa5d271c5f1cfeb10c5d",
+    "scripts/attendance/verify-payslip-postgrest-local.cjs": "cbbc45b472da8451432d78a21eb38b95ab7e4f01f2b642d5372c4efab7a8de5c"
+  },
+  "artifactSha256": {
+    "workspace-1440.png": "a93c83dc372414a2438cd692c61e4b8cc9bcdb190521f2f4f89c51712b612a7b",
+    "synthetic-released-excel-recalculated.xlsx": "dbdc00d667e8c292a315679a9ea18fdf24bd814f86f3722eec0ca6dc4a740935",
+    "synthetic-released.pdf.png": "d999282774c6e2998b89768eb111f8ab74d9d9a2e344fa7991bf29b4904d4c8f",
+    "employee-390.png": "c1b63e80a8848906229a73ad252e64b1c5fee5cf77485698982fc2ebbf3d95aa",
+    "http-released.xlsx": "0c4487cd73d0d7ed408201d1cdc48544158b35da03aff56e8cb014b827436512",
+    "synthetic-released.xlsx": "510bf09f49edcabf9296b7e982857d6019f018c822312b68fb008142b378de20",
+    "workspace-820.png": "0eab09d3dffe1e7909be52f33ea29e59e71d8c72d3f57135417812883726ec2b",
+    "synthetic-long-last-page.pdf.png": "dac86fb4418f378750affac49635c144cfc57744e00de2414c335d0cd63aaff0",
+    "synthetic-released.pdf": "6d3711d9cafbd2d68de7bd5fedaf0a7852a8344a91cf576c383bb91511fc1f18",
+    "synthetic-released-excel-edited.xlsx": "3d069dbffcdf1f60b2c631476bf019d017978911b920857b6cea50ec66829513",
+    "synthetic-approved.xlsx": "63eb0fc1a639f2f3b756c2502b40c91d061c8855a7fe77c68008ca1888e118c2",
+    "synthetic-draft.xlsx": "4359e714a65473264a4485285c8c33df88f7c9579ba2b69e344b3a21d19ed023",
+    "http-draft.pdf": "f29542aecd43dda93db0a5af8a8ba356173a8f1358feff185a3014782c28abf5",
+    "workspace-390.png": "e4f47724d9ded3a34fb15935e14bd20d63c4e97d0ed01f1effd52351a5d796c5",
+    "synthetic-long-last-page.pdf": "6ab077cded4fa99eaf5c62a909ed953b74f596209d40e6db07ea4e59de7d94a8",
+    "synthetic-draft.pdf.png": "67fbe59a4747faaea36e07ab7bb59e2954ad8fb6aeda92c5474de945582a6127",
+    "synthetic-long.pdf": "8bb92617896d5a62e9b21a0955c7d832cab0a309b05ff1b33f4981ac7dc7c581",
+    "synthetic-draft.pdf": "800c8e9c86c85d02acd9c6d7841264f951fb804796ca959b0ad6f0fd011c8e28",
+    "synthetic-approved.pdf": "2abd8ad00af1a537134f2f3a057e8897ae113fb1cb9053262b63ea84b4ad31d6",
+    "synthetic-long-last-page-final.png": "dac86fb4418f378750affac49635c144cfc57744e00de2414c335d0cd63aaff0"
+  },
+  "ui": {
+    "passed": true,
+    "checks": [
+      "actual component at390/820/1440 without horizontal overflow",
+      "real native-anchor XLSX and draft PDF download through actual GET",
+      "superseded and stale version409",
+      "employee draft export404; employee UI only released actions"
+    ],
+    "limits": [
+      "synthetic identity and query adapters",
+      "component harness with current built CSS; not full authenticated app/production acceptance"
+    ]
+  },
+  "xlsx": {
+    "passed": true,
+    "results": [
+      {
+        "file": "synthetic-released.xlsx",
+        "net": 988.05,
+        "formulaCount": 3,
+        "literalFormulaLikeLabel": true
+      },
+      {
+        "file": "synthetic-approved.xlsx",
+        "net": 988.05,
+        "formulaCount": 3,
+        "literalFormulaLikeLabel": true
+      },
+      {
+        "file": "synthetic-draft.xlsx",
+        "net": 988.05,
+        "formulaCount": 3,
+        "literalFormulaLikeLabel": true
+      },
+      {
+        "file": "http-released.xlsx",
+        "net": 988.05,
+        "formulaCount": 3,
+        "literalFormulaLikeLabel": true
+      },
+      {
+        "file": "synthetic-released-excel-recalculated.xlsx",
+        "net": 988.05,
+        "formulaCount": 3,
+        "literalFormulaLikeLabel": true
+      },
+      {
+        "file": "synthetic-released-excel-edited.xlsx",
+        "net": 988.15,
+        "formulaCount": 3,
+        "literalFormulaLikeLabel": true
+      }
+    ],
+    "nativeExcel": "Opened, Calculate, Save As, edited synthetic input, Calculate, Save As, closed/reopened; no repair prompt"
+  },
+  "pdf": {
+    "passed": true,
+    "results": [
+      {
+        "file": "synthetic-released.pdf",
+        "pages": 1,
+        "net": "988.05",
+        "dateOutstandingSameRow": true,
+        "dateRowsChecked": 2,
+        "signatureFieldsOnLastPage": true
+      },
+      {
+        "file": "synthetic-approved.pdf",
+        "pages": 1,
+        "net": "988.05",
+        "dateOutstandingSameRow": true,
+        "dateRowsChecked": 2,
+        "signatureFieldsOnLastPage": true
+      },
+      {
+        "file": "synthetic-draft.pdf",
+        "pages": 1,
+        "net": "988.05",
+        "dateOutstandingSameRow": true,
+        "dateRowsChecked": 2,
+        "signatureFieldsOnLastPage": true
+      },
+      {
+        "file": "synthetic-long.pdf",
+        "pages": 5,
+        "net": "988.05",
+        "dateOutstandingSameRow": true,
+        "dateRowsChecked": 31,
+        "signatureFieldsOnLastPage": true
+      },
+      {
+        "file": "http-draft.pdf",
+        "pages": 1,
+        "net": "988.05",
+        "dateOutstandingSameRow": true,
+        "dateRowsChecked": 2,
+        "signatureFieldsOnLastPage": true
+      }
+    ]
+  },
+  "review": "ship at narrow local candidate scope",
+  "productionAcceptance": false,
+  "utcOffsetRegression": "12:00+08:00 normalized to 04:00Z",
+  "authenticatedLocalRls": {
+    "passed": true,
+    "actualBuiltNextRoute": true,
+    "identityQueryResponseMocks": false,
+    "apiMatrix": [
+      {
+        "actor": "staff",
+        "case": "released",
+        "requestedVersion": 2,
+        "format": "xlsx",
+        "status": 200
+      },
+      {
+        "actor": "staff",
+        "case": "released",
+        "requestedVersion": 2,
+        "format": "pdf",
+        "status": 200
+      },
+      {
+        "actor": "staff",
+        "case": "draft",
+        "requestedVersion": 2,
+        "format": "xlsx",
+        "status": 404
+      },
+      {
+        "actor": "other",
+        "case": "released",
+        "requestedVersion": 2,
+        "format": "xlsx",
+        "status": 404
+      },
+      {
+        "actor": "foreign",
+        "case": "released",
+        "requestedVersion": 2,
+        "format": "xlsx",
+        "status": 404
+      },
+      {
+        "actor": "people",
+        "case": "released",
+        "requestedVersion": 1,
+        "format": "xlsx",
+        "status": 409
+      },
+      {
+        "actor": "people",
+        "case": "mismatch",
+        "requestedVersion": 2,
+        "format": "xlsx",
+        "status": 409
+      },
+      {
+        "actor": "people",
+        "case": "draft",
+        "requestedVersion": 2,
+        "format": "xlsx",
+        "status": 200
+      },
+      {
+        "actor": "people",
+        "case": "released",
+        "requestedVersion": 2,
+        "format": "xlsx",
+        "status": 200
+      }
+    ],
+    "relationShape": {
+      "confirmation": "object",
+      "staffs": "object",
+      "fullNameVerified": true,
+      "staffCodeVerified": true,
+      "actorsVerified": [
+        "staff",
+        "people"
+      ]
+    },
+    "rlsRowCounts": {
+      "ownReleased": 1,
+      "ownDraft": 0,
+      "sameCompanyOther": 0,
+      "foreignCompany": 0,
+      "peopleOriginalScope": 3
+    },
+    "cleanup": {
+      "results": 0,
+      "confirmations": 0,
+      "refreshJobs": 0
+    },
+    "tokenLifetimeSeconds": 600,
+    "credentialsPersisted": false,
+    "productionAcceptance": false,
+    "evidenceSha256": {
+      "postgrest/next.log": "e6eb7411930f5278383fb37458237d328918a329a35a8f19ce3d805570d5b3f9",
+      "postgrest/staff-released.xlsx": "18eabf7a57c63f0429ac0d0230627577e0aec4c5c51b436d2c938c51ddf279c5",
+      "postgrest/result.json": "728459cb423903524723d7ba68d2ab256adce7793271d3c27548870379744de3",
+      "postgrest/people-draft.xlsx": "749df79b394bb9af632ef985bd8497ba2f1ae3629513a98d4a54cfac8a78cd90",
+      "postgrest/cleanup.json": "0335b13e4406710c2f834eea982b330f018bfc5eda024053696d5d6bd86aa9b9",
+      "postgrest/staff-released.pdf": "b585dfe59c85c6c69b2b9d4f947242a725847181eb22906580b3e8a68fca8b15"
+    }
+  }
+}

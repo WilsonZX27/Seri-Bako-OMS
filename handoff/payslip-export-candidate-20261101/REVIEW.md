@@ -1,0 +1,13 @@
+# Read-only finish review
+
+Disposition: **ship at the narrow candidate extension scope**, not production release approval.
+
+Independent reviewer inspected the new export GET, snapshot/cents validation, XLSX/PDF renderers, four-line native-anchor addition, tests and screenshots. No material source or visual blocker found. Explicit company/session binding, employee own/released filtering, exact version rejection, snapshot totals/date/identity checks, three fixed formulas and literal user text were reviewed. Draft marking, same-row date/outstanding and blank bottom signatures were accepted.
+
+Evidence: actual component harness at390/820/1440 and employee390; released/draft PDF renders; long PDF final-page render. An initially stale long-page raster was reread after regeneration using `synthetic-long-last-page-final.png`, resolving its missing-signature concern. Final raster SHA256: `dac86fb4418f378750affac49635c144cfc57744e00de2414c335d0cd63aaff0`.
+
+Limit: synthetic identity/query adapters and component shell are not full authenticated application/RLS or production acceptance. Full navigation overlays, all boundary widths and full focus/error-state matrix were not established. Skill launcher execution was denied by local file execute permission; no design detector ran. Reviewer judged actual screenshots directly. Existing design contract remains suitable; no shared token/design-system file edits were warranted or authorized. Review was read-only and performed no real data/deployment/file mutation.
+
+After review, one additional read-only-query/repeated-download test passed. A narrow UTC metadata normalization correction and its +08:00 regression were then reviewed separately; ship disposition remained unchanged, with no new material finding. The PDF validator was extended to check same-row date/status coordinates for all31 long-document dates, replacing a previous skipped-check false label. Documentation review confirmed scope and that no durable design/token change was warranted.
+
+Subsequent v2 verification by the task owner (not part of the original reviewer's screenshot verdict) ran the actual built Next route through existing local Auth/PostgREST and RLS, without identity/query/response mocks. Employee/People nested names and StaffCode, own released success, own draft/other/foreign denial, stale versions and inconsistent money were verified; temporary fixtures were cleaned. See REPORT.md and postgrest/result.json plus cleanup.json. The five production files are unchanged from the reviewed v1. Production and full-page/navigation acceptance remain outside these local results.

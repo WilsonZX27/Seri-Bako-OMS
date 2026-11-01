@@ -118,3 +118,11 @@ test('filtered summaries preserve SELECT* subset when projections reorder capped
     assert.equal(JSON.stringify(actual.categories), '["Original subset"]');
   }
 });
+
+// Items must use the query form owner rather than a second router-owning status control.
+test("Items status selection has one query owner and retains retirement option", () => {
+  const source = fs.readFileSync("src/app/(app)/items/page.tsx", "utf8");
+  assert.doesNotMatch(source, /StatusTabs/);
+  assert.match(source, /leadingFilter=\{<SelectControl[\s\S]*name="status"/);
+  assert.match(source, /value: "retired", label: "Retired from counts"/);
+});

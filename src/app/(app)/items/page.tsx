@@ -3,10 +3,10 @@ import { Badge } from "@/components/ui/badge";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { EmptyState } from "@/components/ui/empty-state";
+import { SelectControl } from "@/components/ui/select-control";
 import { MasterDataFilters } from "@/components/master-data-filters";
 import { PageHeader } from "@/components/ui/page-header";
 import { PaginationControls, SortableHead } from "@/components/sortable-table";
-import { StatusTabs } from "@/components/status-tabs";
 import { OperationalList, OperationalListRow, Table, TableActionLink, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 import { hasActiveFilters } from "@/lib/table-state";
@@ -49,7 +49,7 @@ export default async function ItemsPage({
             categories={[]}
             suppliers={suppliers}
             showStatus={false}
-            leadingFilter={<StatusTabs name="status" statuses={[{ value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }, { value: "archived", label: "Archived" }, { value: "retired", label: "Retired from counts" }]} activeStatus={filters.status} />}
+            leadingFilter={<SelectControl name="status" defaultValue={filters.status ?? "all"} options={[{ value: "all", label: "All statuses" }, { value: "active", label: "Active" }, { value: "inactive", label: "Inactive" }, { value: "archived", label: "Archived" }, { value: "retired", label: "Retired from counts" }]} ariaLabel="Filter by status" />}
             showStockFilters
             resultCount={itemsPage.totalRows}
             filtered={filtered}

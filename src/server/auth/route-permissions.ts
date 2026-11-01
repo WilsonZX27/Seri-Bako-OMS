@@ -1,6 +1,7 @@
 import { informationArchitecture } from "@/lib/information-architecture";
 
 const exactRoutePermissions: Record<string, string[]> = {
+  "/asset-management/import": ["assets.manage"],
   "/attendance/schedule": ["schedule.read"],
   "/people/ro": ["comp_time.read"],
   "/attendance/confirmations": ["dashboard.view"],
@@ -48,6 +49,7 @@ const exactRoutePermissions: Record<string, string[]> = {
 };
 
 const exactRouteRoles: Record<string, readonly string[]> = {
+  "/asset-management/import": ["super_admin"],
   "/attendance/schedule": ["super_admin", "people_operations", "manager", "chef", "outlet_supervisor", "outlet_staff"],
   "/outlet-packaging/stores": ["super_admin"],
   // Self-service entry only; database ACLs still restrict time and payroll data.

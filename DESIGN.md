@@ -1,3 +1,7 @@
+# v9.2.168 (preview candidate) — Owner asset file import
+
+Owner plus assets.manage entry for CSV/XLSX upload, row validation, confirmation and recoverable per-row registration. Existing asset IDs are never overwritten; blank IDs use the existing allocator with stable retry keys. Unknown quantities remain unknown. Formula cells rejected for assets. Results CSV records saved receipts; successful rows remain after later failure. No new SQL, grants, Settings, OT, mail or login changes.
+
 # v9.2.167 (local candidate) — Approved transfer display, current-count items and maintenance grouping
 
 Document-scoped endpoint/requester display through approved376; current stock-count added items saved through approved377; same asset ID maintenance grouping before pagination with original requests/history preserved. No basket, login, Asset Settings or ODR changes. Repository migrations reviewed through `377`. SQL 376/377 installed separately on 2026-10-31; no production business-write QA.

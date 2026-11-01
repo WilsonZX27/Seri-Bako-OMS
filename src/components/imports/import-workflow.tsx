@@ -94,14 +94,27 @@ function columnIndex(cellRef: string) {
   return [...letters].reduce((sum, letter) => sum * 26 + letter.charCodeAt(0) - 64, 0) - 1;
 }
 
-async function inflateRaw(bytes: Uint8Array) {
+async function inflateRaw(bytes: Uint8Array, limit = Number.POSITIVE_INFINITY) {
   const copy = new Uint8Array(bytes.byteLength);
   copy.set(bytes);
   const stream = new Blob([copy.buffer]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
-  return new Uint8Array(await new Response(stream).arrayBuffer());
+  const reader = stream.getReader();
+  const chunks: Uint8Array[] = [];
+  let length = 0;
+  while (true) {
+    const {done, value} = await reader.read();
+    if (done) break;
+    length += value.byteLength;
+    if (length > limit) { await reader.cancel(); throw new Error("Workbook expands beyond the import size limit."); }
+    chunks.push(value);
+  }
+  const output = new Uint8Array(length);
+  let offset = 0;
+  for (const chunk of chunks) { output.set(chunk, offset); offset += chunk.byteLength; }
+  return output;
 }
 
-async function unzipText(file: File) {
+async function unzipText(file: File, maxExpandedBytes = Number.POSITIVE_INFINITY) {
   const bytes = new Uint8Array(await file.arrayBuffer());
   const view = new DataView(bytes.buffer);
   let eocd = -1;
@@ -115,11 +128,14 @@ async function unzipText(file: File) {
   const entries = view.getUint16(eocd + 10, true);
   let cursor = view.getUint32(eocd + 16, true);
   const files = new Map<string, string>();
+  let expandedBytes = 0;
   const decoder = new TextDecoder();
   for (let entry = 0; entry < entries; entry += 1) {
     if (view.getUint32(cursor, true) !== 0x02014b50) break;
     const method = view.getUint16(cursor + 10, true);
     const compressedSize = view.getUint32(cursor + 20, true);
+    const declaredSize = view.getUint32(cursor + 24, true);
+    if (expandedBytes + declaredSize > maxExpandedBytes) throw new Error("Workbook expands beyond the import size limit.");
     const nameLength = view.getUint16(cursor + 28, true);
     const extraLength = view.getUint16(cursor + 30, true);
     const commentLength = view.getUint16(cursor + 32, true);
@@ -129,8 +145,12 @@ async function unzipText(file: File) {
     const localExtraLength = view.getUint16(localOffset + 28, true);
     const start = localOffset + 30 + localNameLength + localExtraLength;
     const compressed = bytes.slice(start, start + compressedSize);
-    const content = method === 0 ? compressed : method === 8 ? await inflateRaw(compressed) : null;
-    if (content) files.set(name, decoder.decode(content));
+    const content = method === 0 ? compressed : method === 8 ? await inflateRaw(compressed, maxExpandedBytes - expandedBytes) : null;
+    if (content) {
+      expandedBytes += content.byteLength;
+      if (expandedBytes > maxExpandedBytes) throw new Error("Workbook expands beyond the import size limit.");
+      files.set(name, decoder.decode(content));
+    }
     cursor += 46 + nameLength + extraLength + commentLength;
   }
   return files;
@@ -140,11 +160,14 @@ function textContent(xml: string) {
   return xml.replace(/<[^>]+>/g, "").replaceAll("&amp;", "&").replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&quot;", '"').replaceAll("&apos;", "'");
 }
 
-export async function parseXlsx(file: File) {
-  const files = await unzipText(file);
+export async function parseXlsx(file: File, options: { rejectFormulas?: boolean; maxExpandedBytes?: number } = {}) {
+  const files = await unzipText(file, options.maxExpandedBytes);
+  // XLSX writers may use a namespace prefix for spreadsheet elements.
+  for (const [name,xml] of files) if (name.endsWith(".xml")) files.set(name,xml.replace(/(<\/?)[A-Za-z_][\w.-]*:/g,"$1"));
   const shared = [...(files.get("xl/sharedStrings.xml") ?? "").matchAll(/<si[\s\S]*?<\/si>/g)].map((match) => textContent(match[0]));
   const sheet = files.get("xl/worksheets/sheet1.xml");
   if (!sheet) throw new Error("The first worksheet could not be read.");
+  if (options.rejectFormulas && /<f(?:\s|\/?>)/.test(sheet)) throw new Error("Replace formulas with values before importing assets.");
   const rows: string[][] = [];
   for (const rowMatch of sheet.matchAll(/<row[^>]*>([\s\S]*?)<\/row>/g)) {
     const row: string[] = [];

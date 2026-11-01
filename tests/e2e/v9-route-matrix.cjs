@@ -54,6 +54,7 @@ const actionRouteAuthorities = new Map([
   ["/attendance/payslips", ALL],
   ["/attendance/my-schedule", ["kitchen"]],
   ["/asset-management/assets/new", ["superAdmin", "manager"]],
+  ["/asset-management/import", ["superAdmin"]],
   ["/asset-management/transfers/new", ["superAdmin", "manager", "chef", "outletSupervisor", "outlet"]],
   ["/attendance/settings", ATTENDANCE_IMPORT],
   ["/administration", ["superAdmin", "finance", "manager", "purchasing"]],

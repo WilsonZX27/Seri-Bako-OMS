@@ -1,6 +1,6 @@
 import { PurchaseRequestStock } from "@/components/procurement/purchase-request-stock";
 import { stockUomContext } from "@/lib/procurement/stock-uom-context";
-import { AlertTriangle, BadgeCheck, CircleCheck, CircleX, Clock, FileCheck2, MessageSquare, RotateCcw, Send, ShoppingCart, Trash2, UserRound } from "lucide-react";
+import { AlertTriangle, BadgeCheck, CircleCheck, CircleX, Clock, FileCheck2, MessageSquare, RotateCcw, ShoppingCart, Trash2, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -41,7 +41,7 @@ import { getProcurementChainForRequest, getPurchaseOrdersForRequest, getPurchase
 import { ProcurementChain } from "@/components/procurement/procurement-chain";
 import { getPhaseOneDeletePreview } from "@/server/queries/hard-delete";
 import { hardDeletePhaseOne } from "@/server/actions/hard-delete";
-import { PurchaseRequestForm } from "@/components/procurement-forms";
+import { PurchaseRequestForm, PurchaseRequestSubmit } from "@/components/procurement-forms";
 import { PurchaseRequestLineResolutionForm } from "@/components/purchase-request-line-resolution-form";
 import { AddPurchaseRequestLineDialog } from "@/components/add-purchase-request-line-dialog";
 import { logServerError } from "@/server/observability/logger";
@@ -246,7 +246,7 @@ export default async function PurchaseRequestDetailPage({
   const mobilePrimaryAction = supplierRecovery
     ? <MobileTaskSheet label="Select PR supplier" primary>{supplierRecovery}</MobileTaskSheet>
     : canSubmit
-    ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..."><Send className="h-4 w-4" aria-hidden="true" />Submit</DocumentActionForm>
+    ? <PurchaseRequestSubmit requestId={request.id} requiresEditor={canEditRequest} action={submitPurchaseRequest.bind(null, request.id)}>Submit</PurchaseRequestSubmit>
     : canManagerReview
       ? blockingLineIssues.length ? <Button asChild><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <ConfirmActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} label={<><CircleCheck className="h-4 w-4" aria-hidden="true" />Approve as Manager</>} title="Approve this PR as Manager?" description="This moves the request to Purchasing Review." pendingLabel="Approving..." mobilePrimary />
       : canAdminReview
@@ -278,7 +278,7 @@ export default async function PurchaseRequestDetailPage({
           {hasPrimaryAction || canReject || administrativeControls ? <DocumentActionSection moreOptions={administrativeControls}>
             <div data-pr-transaction-actions className="[&_button.inline-flex]:justify-center [&_button.inline-flex]:text-center [&_a.inline-flex]:justify-center [&_a.inline-flex]:text-center">
             <DocumentActionBar>
-              {canSubmit ? <DocumentActionForm action={submitPurchaseRequest.bind(null, request.id)} pendingLabel="Submitting..." mobilePrimary><Send className="h-4 w-4" aria-hidden="true" />Submit</DocumentActionForm> : null}
+              {canSubmit ? <PurchaseRequestSubmit requestId={request.id} requiresEditor={canEditRequest} action={submitPurchaseRequest.bind(null, request.id)} mobilePrimary>Submit</PurchaseRequestSubmit> : null}
               {canManagerReview ? blockingLineIssues.length ? <Button asChild className="w-full"><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <ConfirmActionForm action={managerApprovePurchaseRequest.bind(null, request.id)} label={<><CircleCheck className="h-4 w-4" aria-hidden="true" />Approve as Manager</>} title="Approve this PR as Manager?" description="This moves the request to Purchasing Review." pendingLabel="Approving..." mobilePrimary /> : null}
               {canAdminReview ? blockingLineIssues.length ? <Button asChild className="w-full"><a href="#pr-guided-issues"><AlertTriangle className="h-4 w-4" />Review {blockingLineIssues.length} item issue{blockingLineIssues.length === 1 ? "" : "s"}</a></Button> : <form action={adminApprovePurchaseRequest.bind(null, request.id)} className="space-y-3"><Field label="AutoCount PO Number" required><Input name="autocount_po_no" placeholder="Enter the number from AutoCount" required /></Field><p className="text-[11px] leading-4 text-muted-foreground">Required before Finance Review.</p><SubmitButton className="w-full justify-center" pendingLabel="Approving..."><ShoppingCart className="h-4 w-4" aria-hidden="true" />Send to Finance Review</SubmitButton></form> : null}
               {canFinanceReview ? <ConfirmActionForm action={financeApprovePurchaseRequest.bind(null, request.id)} label={<><BadgeCheck className="h-4 w-4" aria-hidden="true" />Approve as Finance</>} title="Approve and create the PO?" description={`Finance approval will create ${request.autocount_po_no ?? "the saved AutoCount PO"} and make it ready to send.`} pendingLabel="Approving..." mobilePrimary /> : null}
@@ -369,6 +369,7 @@ export default async function PurchaseRequestDetailPage({
               {canEditRequest && items && suppliers && supplierMappings && branches ? (
                 <>
                   <PurchaseRequestForm
+                    guardRequestId={request.id}
                     items={items}
                     suppliers={suppliers}
                     supplierMappings={supplierMappings}

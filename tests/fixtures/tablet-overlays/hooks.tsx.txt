@@ -1,0 +1,30 @@
+import { useSyncExternalStore } from "react";
+export function usePathname() {
+  return useSyncExternalStore((f) => {
+    window.addEventListener("popstate", f);
+    return () => window.removeEventListener("popstate", f);
+  }, () => location.pathname, () => "/fixture");
+}
+export function useSearchParams() {
+  return new URLSearchParams(location.search);
+}
+export function useRouter() {
+  return { push: (s) => {
+    history.pushState(null, "", s);
+    dispatchEvent(new PopStateEvent("popstate"));
+  }, replace: (s) => {
+    history.replaceState(null, "", s);
+    dispatchEvent(new PopStateEvent("popstate"));
+  }, refresh: () => {
+  } };
+}
+export function useParams() {
+  return {};
+}
+;
+export function useSelectedLayoutSegments() {
+  return [];
+}
+export default function Link({ prefetch, children, href, ...props }) {
+  return <a href={typeof href === "string" ? href : "/fixture"} {...props}>{children}</a>;
+}

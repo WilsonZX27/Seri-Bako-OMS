@@ -203,7 +203,10 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
     if (phoneOnly) return;
     const query = window.matchMedia("(max-width: 1279px)");
     const tabletQuery = window.matchMedia("(min-width: 640px) and (max-width: 1279px)");
-    const sync = () => setMobile(query.matches);
+    const sync = () => {
+      setMobile(query.matches);
+      if (!query.matches) setOpen(false);
+    };
     const syncTablet = () => setTablet(tabletQuery.matches);
     sync();
     syncTablet();

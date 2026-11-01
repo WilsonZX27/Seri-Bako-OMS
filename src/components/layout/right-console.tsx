@@ -86,6 +86,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       setContent: (owner: symbol, nextContent: ReactNode, hideMobileBar = false, hideDesktopConsole = false, nextMobileConsoleLabel = "More actions") => {
+        if (activeOwnerRef.current !== owner) setOpen(false);
         activeOwnerRef.current = owner;
         setContentState(nextContent);
         setMobileBarHidden(hideMobileBar);
@@ -94,6 +95,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
       },
       clearContent: (owner: symbol) => {
         if (activeOwnerRef.current !== owner) return;
+        setOpen(false);
         activeOwnerRef.current = null;
         setContentState(null);
         setMobileBarHidden(false);
@@ -106,6 +108,10 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!open) return;
+    const tablet = window.matchMedia("(min-width: 768px)");
+    const closeHiddenSheet = () => { if (tablet.matches) setOpen(false); };
+    tablet.addEventListener("change", closeHiddenSheet);
+    closeHiddenSheet();
     const dialog = dialogRef.current;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -139,6 +145,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
 
     document.addEventListener("keydown", onKeyDown);
     return () => {
+      tablet.removeEventListener("change", closeHiddenSheet);
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", onKeyDown);
     };
@@ -232,12 +239,13 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
 
 export function RightConsoleMount({ children, hideMobileBar = false, hideDesktopConsole = false, mobileConsoleLabel }: { children: ReactNode; hideMobileBar?: boolean; hideDesktopConsole?: boolean; mobileConsoleLabel?: string }) {
   const context = useContext(RightConsoleContext);
+  const owner = useRef(Symbol("right-console-mount")).current;
 
   useEffect(() => {
-    const owner = Symbol("right-console-mount");
     context?.setContent(owner, children, hideMobileBar, hideDesktopConsole, mobileConsoleLabel);
-    return () => context?.clearContent(owner);
-  }, [children, context, hideMobileBar, hideDesktopConsole, mobileConsoleLabel]);
+  }, [children, context, hideMobileBar, hideDesktopConsole, mobileConsoleLabel, owner]);
+
+  useEffect(() => () => context?.clearContent(owner), [context, owner]);
 
   return null;
 }

@@ -36,6 +36,6 @@ test("stale route cleanups cannot clear a newer right-console mount", () => {
   assert.match(source, /activeOwnerRef = useRef<symbol \| null>\(null\)/);
   assert.match(source, /setContent: \(owner: symbol, nextContent/);
   assert.match(source, /if \(activeOwnerRef\.current !== owner\) return;/);
-  assert.match(source, /const owner = Symbol\("right-console-mount"\)/);
+  assert.match(source, /const owner = useRef\(Symbol\("right-console-mount"\)\)\.current/);
   assert.match(source, /context\?\.clearContent\(owner\)/);
 });

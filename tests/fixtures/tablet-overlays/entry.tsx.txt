@@ -1,0 +1,17 @@
+import { Table } from "__OMS_ROOT__/src/components/ui/table";
+import { useState } from "react";
+import { createRoot } from "react-dom/client";
+import { RightConsoleProvider, RightConsoleMount } from "__OMS_ROOT__/src/components/layout/right-console";
+import { UnifiedListHeader } from "__OMS_ROOT__/src/components/common/UnifiedListHeader";
+import { MobileActivityAndFiles } from "__OMS_ROOT__/src/components/documents/mobile-document-surfaces";
+import { ModalShell } from "__OMS_ROOT__/src/components/ui/modal-shell";
+import { FilterBarMore } from "__OMS_ROOT__/src/components/ui/filter-bar";
+import { StockBalanceWorkspace } from "__OMS_ROOT__/src/components/stock-balance-workspace";
+function Fixture() {
+  const kind = new URLSearchParams(location.search).get("kind") || "";
+  const [show, setShow] = useState(true), [child, setChild] = useState(false);
+  const [consoleText, setConsoleText] = useState("");
+  return <div data-app-shell className="min-h-dvh xl:h-dvh xl:overflow-hidden"><div className="flex min-h-dvh xl:h-dvh"><div className="flex min-w-0 flex-1 flex-col xl:overflow-hidden"><RightConsoleProvider><div data-center-workspace className="flex min-h-0 min-w-0 flex-1 flex-col xl:overflow-hidden"><main id="main-content" className="min-h-0 flex-1 overflow-x-hidden pb-24 xl:overflow-y-auto"><h1>Actual shared component fixture</h1><button id="toggle-console" onClick={() => setShow((v) => !v)}>Toggle console owner</button>{show && kind !== "stock-basket-resize" ? <RightConsoleMount mobileConsoleLabel="Fixture actions"><p>Actual console actions</p><input aria-label="Fixture console input" value={consoleText} onChange={event=>setConsoleText(event.target.value)}/></RightConsoleMount> : null}<section id="query-fixture"><UnifiedListHeader resetHref="/fixture" autoSubmit={false}><input type="search" name="search" aria-label="Fixture search" /><label>Fixture status<select name="status"><option value="">All</option><option>Active</option></select></label></UnifiedListHeader></section><MobileActivityAndFiles><button id="open-nested" onClick={() => setChild(true)}>Open nested confirmation</button><ModalShell open={child} onClose={() => setChild(false)} titleId="nested-title"><h2 id="nested-title">Nested confirmation</h2><button id="close-nested" onClick={() => setChild(false)}>Cancel nested</button></ModalShell></MobileActivityAndFiles><FilterBarMore resetHref="/fixture"><input aria-label="Extra fixture filter" /></FilterBarMore>{kind === "stock-basket-resize" ? <StockBalanceWorkspace rows={[]} totalValue={0} filters={{}} branches={[]} totalRows={0} summaryTotal={0} totalPages={1} page={1} lowStock={0} negative={0} queryError={null} hasCreatePr={true} /> : null}<div style={{ height: 2600 }}>Synthetic long page</div><div id="wide-table"><Table stickyColumn="none" aria-label="Synthetic wide house table" style={{ width: 1800, minWidth: 1800 }}><tbody><tr><td>Horizontal scroll fixture</td><td>Last column</td></tr></tbody></Table></div><input aria-label="Last fixture input" /></main></div></RightConsoleProvider></div></div></div>;
+}
+;
+createRoot(document.getElementById("root")).render(<Fixture />);

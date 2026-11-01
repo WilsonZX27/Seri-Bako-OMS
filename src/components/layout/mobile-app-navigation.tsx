@@ -158,6 +158,7 @@ export function MobileAppNavigation({
       const touchTablet = touchPoints > 1 && shortestScreenEdge >= 600 && (desktopIpadUserAgent || coarsePointer);
       if (touchTablet) root.dataset.touchTablet = "true";
       else delete root.dataset.touchTablet;
+      if (!touchTablet && window.matchMedia("(min-width: 1280px)").matches) setMoreOpen(false);
     };
 
     updateTouchTablet();

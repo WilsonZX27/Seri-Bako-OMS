@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { RequestLineHeader, RequestLineRow } from "@/components/request-line-row";
 import { usePurchaseRequestGuidance } from "@/components/purchase-request-guidance";
-import { type FormEvent, useActionState, useEffect, useRef, useState } from "react";
-import { Building2, CalendarDays, ChevronDown, MapPin, MessageSquare, Minus, Plus, X } from "lucide-react";
+import { type FormEvent, type ReactNode, useActionState, useEffect, useId, useRef, useState } from "react";
+import { Building2, CalendarDays, ChevronDown, MapPin, MessageSquare, Minus, Plus, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ import { getToday } from "@/lib/utils";
 import { ItemCombobox, type ItemComboboxOption } from "@/components/item-combobox";
 import { Notice } from "@/components/ui/system-states";
 import { FormPendingBridge } from "@/components/ui/submit-button";
+import { purchaseRequestDraftSignature, purchaseRequestSubmitBlock } from "@/lib/procurement/purchase-request-draft";
 
 type ItemOption = ItemComboboxOption;
 type BranchOption = { id: string; branch_code: string; branch_name: string; status: string };
@@ -78,6 +79,7 @@ export function PurchaseRequestForm({
   initialUrgencyReason,
   initialProductionRisk,
   initialUpdatedAt,
+  guardRequestId,
   lockBranch = false,
   reserveMobileActionSpace = true,
   action,
@@ -96,10 +98,11 @@ export function PurchaseRequestForm({
   initialUrgencyReason?: string;
   initialProductionRisk?: boolean;
   initialUpdatedAt?: string;
+  guardRequestId?: string;
   lockBranch?: boolean;
   reserveMobileActionSpace?: boolean;
   canViewCommercial: boolean;
-  action: (formData: FormData) => Promise<void>;
+  action: (formData: FormData) => Promise<void | { error: string }>;
 }) {
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const resolvedInitialBranchId = initialBranchId ?? branches[0]?.id ?? "";
@@ -119,6 +122,12 @@ export function PurchaseRequestForm({
   const [contextResetNotice, setContextResetNotice] = useState("");
   const [commentLineKey, setCommentLineKey] = useState<number | null>(null);
   const [neededByDate, setNeededByDate] = useState(initialNeededByDate ?? "");
+  const [requestRemarks, setRequestRemarks] = useState(initialRemarks ?? "");
+  const [saveFailed, setSaveFailed] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const dirty = purchaseRequestDraftSignature({ branchId, supplierId: requestSupplierId, priority, neededByDate, remarks: requestRemarks, lines }) !== purchaseRequestDraftSignature({
+    branchId: resolvedInitialBranchId, supplierId: initialRows.find(line => line.supplierId)?.supplierId ?? "", priority: initialPriority ?? "normal", neededByDate: initialNeededByDate ?? "", remarks: initialRemarks ?? "", lines: initialRows.length ? initialRows : [createBlankLine(0)],
+  });
   const [detailsOpen, setDetailsOpen] = useState(!(resolvedInitialBranchId && initialNeededByDate));
   const firstItemInputRef = useRef<HTMLInputElement>(null);
   const nextKey = lines.reduce((max, line) => Math.max(max, line.key), 0) + 1;
@@ -176,6 +185,10 @@ export function PurchaseRequestForm({
   }
 
   function validateSubmission(event: FormEvent<HTMLFormElement>) {
+    if (guardRequestId && event.currentTarget.dataset.prOperation) {
+      event.preventDefault();
+      return;
+    }
     if (!branchId) {
       event.preventDefault();
       showValidationError("Choose the request branch.", { field: "branch" });
@@ -202,6 +215,10 @@ export function PurchaseRequestForm({
     if (hasRequestItem) {
       setValidationError("");
       setValidationTarget(null);
+      if (guardRequestId) {
+        event.currentTarget.dataset.prOperation = "save";
+        setSaveFailed(true);
+      }
       return;
     }
     event.preventDefault();
@@ -350,7 +367,15 @@ export function PurchaseRequestForm({
 
   return (
     <div className="min-w-0">
-        <form id="purchase-request-form" action={action} onSubmit={validateSubmission} noValidate className={`space-y-3 ${reserveMobileActionSpace ? "pb-36" : ""} md:pb-0`}><FormPendingBridge formId="purchase-request-form" />
+        <form ref={formRef} id="purchase-request-form" data-pr-request-id={guardRequestId} data-pr-dirty={guardRequestId ? String(dirty) : undefined} data-pr-save-failed={guardRequestId ? String(saveFailed) : undefined} action={async formData => {
+          const submittedForm = formRef.current;
+          try {
+            const result = await action(formData);
+            if (result?.error) { setValidationError(result.error); setDetailsOpen(true); }
+            else setSaveFailed(false);
+          }
+          finally { if (submittedForm?.dataset.prOperation === "save") delete submittedForm.dataset.prOperation; }
+        }} onSubmit={validateSubmission} noValidate className={`space-y-3 ${reserveMobileActionSpace ? "pb-36" : ""} md:pb-0`}><FormPendingBridge formId="purchase-request-form" />
           <input type="hidden" name="request_no" value="" />
           <input type="hidden" name="idempotency_key" value={idempotencyKey} />
           <input type="hidden" name="request_date" value={initialRequestDate ?? getToday()} />
@@ -390,7 +415,7 @@ export function PurchaseRequestForm({
             </Field>
             <Field label="Urgency"><UrgencySelect value={priority} onValueChange={setPriority} /></Field>
             <Field label="Remarks" className="sm:col-span-2 lg:col-span-4">
-              <Textarea className="min-h-[3.75rem] resize-y" rows={2} name="remarks" defaultValue={initialRemarks ?? ""} placeholder="Reason or instructions for this request" />
+              <Textarea className="min-h-[3.75rem] resize-y" rows={2} name="remarks" value={requestRemarks} onChange={event => setRequestRemarks(event.target.value)} placeholder="Reason or instructions for this request" />
             </Field>
             </div>
           </section>
@@ -616,4 +641,63 @@ export function PurchaseOrderForm({
         </form>
     </div>
   );
+}
+
+export function PurchaseRequestSubmit({ requestId, requiresEditor, action, children, mobilePrimary = false }: {
+  requestId: string;
+  requiresEditor: boolean;
+  action: (formData: FormData) => void | Promise<void>;
+  children: ReactNode;
+  mobilePrimary?: boolean;
+}) {
+  const hintId = useId();
+  const [block, setBlock] = useState(requiresEditor ? "Checking saved request changes…" : "");
+  const [pending, setPending] = useState(false);
+  const submitting = useRef(false);
+  const activeEditor = useRef<HTMLFormElement | null>(null);
+  const editor = () => document.getElementById("purchase-request-form") as HTMLFormElement | null;
+
+  useEffect(() => {
+    const sync = () => setBlock(requiresEditor ? purchaseRequestSubmitBlock(editor(), requestId) : "");
+    // The desktop console is mounted outside the editor's React subtree.
+    sync();
+    const observer = new MutationObserver(records => {
+      const editorChanged = records.some(record => {
+        if (record.type === "attributes") return (record.target as Element).id === "purchase-request-form";
+        return [...record.addedNodes, ...record.removedNodes].some(node => node instanceof Element && (node.id === "purchase-request-form" || node.querySelector("#purchase-request-form")));
+      });
+      if (editorChanged) sync();
+    });
+    observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["data-pr-dirty", "data-pr-save-failed", "data-pr-operation", "data-pr-request-id"] });
+    return () => observer.disconnect();
+  }, [requestId, requiresEditor]);
+
+  return <form data-pr-workflow-submit={requestId} data-mobile-primary-action={mobilePrimary || undefined} className="w-full space-y-1.5"
+    onSubmit={event => {
+      const currentEditor = requiresEditor ? editor() : null;
+      const reason = requiresEditor ? purchaseRequestSubmitBlock(currentEditor, requestId) : "";
+      if (submitting.current || reason) {
+        event.preventDefault();
+        if (reason) setBlock(reason);
+        return;
+      }
+      submitting.current = true;
+      activeEditor.current = currentEditor;
+      if (currentEditor) currentEditor.dataset.prOperation = "submit";
+      setPending(true);
+    }}
+    action={async formData => {
+      try { await action(formData); }
+      finally {
+        if (activeEditor.current?.dataset.prOperation === "submit") delete activeEditor.current.dataset.prOperation;
+        activeEditor.current = null;
+        submitting.current = false;
+        setPending(false);
+      }
+    }}>
+    <Button type="submit" className="w-full justify-center" disabled={pending || Boolean(block)} aria-busy={pending} aria-describedby={block ? hintId : undefined}>
+      <Send className="h-4 w-4" aria-hidden="true" />{pending ? "Submitting…" : children}
+    </Button>
+    {block ? <p id={hintId} role="status" className="text-xs text-muted-foreground">{block}</p> : null}
+  </form>;
 }

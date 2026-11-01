@@ -451,9 +451,8 @@ export async function updateDraftPurchaseRequest(id: string, formData: FormData)
     revalidateWorkspaceState(["/purchase-requests", `/purchase-requests/${requestId}`]);
     safeRedirectWithMessage(`/purchase-requests/${requestId}`, "success", message);
   } catch (error) {
-    revalidateWorkspaceState([`/purchase-requests/${id}`]);
     rethrowRedirect(error);
-    safeRedirectWithMessage(`/purchase-requests/${id}`, "error", formatActionError(error, "Could not update this draft purchase request."));
+    return { error: formatActionError(error, "Could not update this draft purchase request.") };
   }
 }
 

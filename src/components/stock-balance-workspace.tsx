@@ -148,6 +148,10 @@ export function StockBalanceWorkspace({
   const inBasket = useMemo(() => new Set(Object.keys(basket)), [basket]);
   useEffect(() => {
     if (!basketOpen) return;
+    const desktop = window.matchMedia("(min-width: 1280px)");
+    const closeHiddenBasket = () => { if (desktop.matches) setBasketOpen(false); };
+    desktop.addEventListener("change", closeHiddenBasket);
+    closeHiddenBasket();
     const root = document.documentElement;
     const previousOverflow = document.body.style.overflow;
     const previousFocus = document.activeElement as HTMLElement | null;
@@ -162,6 +166,7 @@ export function StockBalanceWorkspace({
     root.dataset.mobileSheetOpen = "true";
     document.body.style.overflow = "hidden";
     return () => {
+      desktop.removeEventListener("change", closeHiddenBasket);
       document.removeEventListener("keydown", onKeyDown);
       requestAnimationFrame(() => previousFocus?.focus());
       delete root.dataset.mobileSheetOpen;

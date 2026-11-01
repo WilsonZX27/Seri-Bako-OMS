@@ -1,3 +1,7 @@
+# v9.2.171 (Preview candidate) — Session recovery and touch-tablet scrolling
+
+Preserve169 AutoCount recovery,170 four-role Asset Settings and168 Asset Excel. Add verified-session recovery and scoped touch-tablet scroll fixes. No SQL, grants, payroll, performance or business-data changes. Real iOS/iPad acceptance remains pending.
+
 # v9.2.170 (Preview candidate) — Asset destination settings
 
 Preserve169 AutoCount atomic recovery and168 Asset Excel. Add reviewed four-role destination Settings with persistent tablet right panel, inactive destination filtering and mobile transfer timeline order. Uses installed378; no new SQL, payroll or performance changes.

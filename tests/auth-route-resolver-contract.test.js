@@ -74,7 +74,8 @@ test("completed password setup cannot return an active user to change-password",
 test("middleware preserves refreshed cookies and guards identical-path redirects", () => {
   const middleware = fs.readFileSync("src/lib/supabase/middleware.ts", "utf8");
   assert.match(middleware, /url\.pathname === request\.nextUrl\.pathname/);
-  assert.match(middleware, /response\.cookies\.getAll\(\)/);
+  assert.match(middleware, /withSessionCookies\(response, redirect\)/);
+  assert.match(fs.readFileSync("src/lib/http/session-response.ts", "utf8"), /response\.cookies\.getAll\(\)/);
 });
 
 test("the shared app layout resolves an expired profile before tenant permission RPCs", () => {

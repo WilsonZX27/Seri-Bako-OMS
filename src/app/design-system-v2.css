@@ -2293,11 +2293,32 @@ html[data-design-layer="v2"] :where([class~="bg-card"], [class~="overflow-hidden
   }
 }
 
+/* Touch-tablet document scrolling must also release the desktop shell's
+   fixed-height ancestors when a landscape viewport crosses xl. */
+html[data-touch-tablet="true"]:has([data-app-shell]),
+html[data-touch-tablet="true"]:has([data-app-shell]) body {
+  height: auto;
+  min-height: 100%;
+  overflow-y: visible;
+}
+
+html[data-touch-tablet="true"] [data-app-shell],
+html[data-touch-tablet="true"] [data-app-shell] > div {
+  height: auto;
+  min-height: 100dvh;
+  overflow: visible;
+}
+
+html[data-touch-tablet="true"] [data-app-shell] > div > div {
+  overflow: visible;
+}
+
 html[data-touch-tablet="true"] aside[data-app-sidebar] {
   display: none !important;
 }
 
-html[data-touch-tablet="true"] [data-mobile-app-nav] {
+html[data-touch-tablet="true"] [data-mobile-app-nav],
+html[data-touch-tablet="true"] [data-mobile-navigation-overlay] {
   display: block !important;
 }
 

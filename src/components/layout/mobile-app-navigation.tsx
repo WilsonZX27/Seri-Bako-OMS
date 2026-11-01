@@ -334,7 +334,7 @@ export function MobileAppNavigation({
       </nav>
 
       {moreOpen ? createPortal(
-        <div className="fixed inset-0 z-[var(--sb-z-dialog)] xl:hidden">
+        <div data-mobile-navigation-overlay className="fixed inset-0 z-[var(--sb-z-dialog)] xl:hidden">
           <button type="button" className="sb-dialog-backdrop absolute inset-0 h-full w-full" aria-label="Close navigation" onClick={() => setMoreOpen(false)} />
           <div
             ref={dialogRef}

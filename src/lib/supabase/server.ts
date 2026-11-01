@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { isMockMode } from "@/lib/mock-mode";
 import { requireSupabaseEnv } from "@/lib/supabase/env";
 import { limitedServerFetch } from "@/lib/supabase/server-fetch";
+import { readableSessionCookies } from "@/lib/supabase/session-cookies";
 import type { Database } from "@/types/database";
 
 export async function createClient() {
@@ -20,7 +21,7 @@ export async function createClient() {
       global: { fetch: limitedServerFetch },
       cookies: {
         getAll() {
-          return cookieStore.getAll();
+          return readableSessionCookies(cookieStore.getAll(), url);
         },
         setAll(cookiesToSet) {
           try {

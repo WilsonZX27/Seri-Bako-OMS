@@ -1,9 +1,12 @@
 import { sessionVerificationState } from "@/lib/http/session-result";
+import { buildLoginHref } from "@/lib/http/session-recovery";
+import { sessionUnavailableResponse, withSessionCookies } from "@/lib/http/session-response";
 import { todayInKualaLumpur } from "@/lib/business-date";
 import { type NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { isMockMode } from "@/lib/mock-mode";
 import { requireSupabaseEnv } from "@/lib/supabase/env";
+import { readableSessionCookies } from "@/lib/supabase/session-cookies";
 import { getRouteAllowedRoles, getRoutePermissionCodes } from "@/server/auth/route-permissions";
 import { resolveEffectivePermission } from "@/server/auth/permissions";
 import { getAuthLandingRoutes, resolveAuthRoute } from "@/server/auth/route-resolver";
@@ -15,8 +18,7 @@ function redirectWithCookies(request: NextRequest, response: NextResponse, desti
   const url = new URL(destination, request.url);
   if (url.pathname === request.nextUrl.pathname) return response;
   const redirect = NextResponse.redirect(url);
-  response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
-  return redirect;
+  return withSessionCookies(response, redirect);
 }
 
 export async function updateSession(request: NextRequest) {
@@ -40,7 +42,7 @@ export async function updateSession(request: NextRequest) {
     {
       cookies: {
         getAll() {
-          return request.cookies.getAll();
+          return readableSessionCookies(request.cookies.getAll(), url);
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
@@ -51,20 +53,20 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  const claimsResult = await supabase.auth.getClaims().catch(() => ({ data: null, error: { name: "AuthVerificationUnavailable" } }));
+  const claimsResult = await supabase.auth.getClaims().catch((error: unknown) => ({ data: null, error: error && typeof error === "object" ? error as { name?: string; status?: number; code?: string } : { name: "AuthVerificationUnavailable" } }));
   const { data: claimsData, error: claimsError } = claimsResult;
   if (!claimsData?.claims?.sub && sessionVerificationState(null, claimsError) === "unavailable") {
-    return NextResponse.json({ ok: false, message: "Session verification is temporarily unavailable. Please retry; this request was not processed." }, { status: 503 });
+    return sessionUnavailableResponse(request, response, "Session verification is temporarily unavailable. Please retry; this request was not processed.");
   }
   const authUserId = claimsData?.claims?.sub;
 
   const pathname = request.nextUrl.pathname;
   if (!authUserId) {
-    if (pathname.startsWith("/api/")) {
-      return NextResponse.json({ ok: false, message: "Your session expired. Sign in again, then retry; no OMS records were changed." }, { status: 401 });
+    if (pathname.startsWith("/api/") || !["GET", "HEAD"].includes(request.method)) {
+      return withSessionCookies(response, NextResponse.json({ ok: false, message: "Your session expired. Sign in again, then retry; no OMS records were changed." }, { status: 401 }));
     }
     const decision = resolveAuthRoute({ pathname, authenticated: false, staffStatus: null, mustChangePassword: false, routeProtected: false, routeAllowed: false, firstPermittedRoute: null });
-    return decision ? redirectWithCookies(request, response, decision.destination) : response;
+    return decision ? redirectWithCookies(request, response, decision.reason === "signed-out" ? buildLoginHref(pathname) : decision.destination) : response;
   }
 
   const { data: staff, error: staffError } = await supabase
@@ -74,9 +76,7 @@ export async function updateSession(request: NextRequest) {
     .maybeSingle();
 
   if (staffError) {
-    const unavailable = NextResponse.json({ ok: false, message: "Workspace profile verification is temporarily unavailable. Please retry; this request was not processed." }, { status: 503 });
-    response.cookies.getAll().forEach((cookie) => unavailable.cookies.set(cookie));
-    return unavailable;
+    return sessionUnavailableResponse(request, response, "Workspace profile verification is temporarily unavailable. Please retry; this request was not processed.");
   }
 
   const staffRecord = staff as unknown as {
@@ -129,7 +129,7 @@ export async function updateSession(request: NextRequest) {
     firstPermittedRoute,
   });
   if (decision && pathname.startsWith("/api/")) {
-    return NextResponse.json({ ok: false, message: permissionCodes && !routeAllowed ? "You do not have permission to use this operation." : "Your session is no longer active. Sign in again, then retry." }, { status: permissionCodes && !routeAllowed ? 403 : 401 });
+    return withSessionCookies(response, NextResponse.json({ ok: false, message: permissionCodes && !routeAllowed ? "You do not have permission to use this operation." : "Your session is no longer active. Sign in again, then retry." }, { status: permissionCodes && !routeAllowed ? 403 : 401 }));
   }
   return decision ? redirectWithCookies(request, response, decision.destination) : response;
 }

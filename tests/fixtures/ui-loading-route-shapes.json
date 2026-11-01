@@ -1,0 +1,502 @@
+[
+  {
+    "route": "/asset-management/assets/[id]",
+    "source": "src/app/(app)/asset-management/assets/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/asset-management/assets/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "detail",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/asset-management/assets/new",
+    "source": "src/app/(app)/asset-management/assets/new/page.tsx",
+    "loadingSource": "src/app/(app)/asset-management/assets/new/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/asset-management/import",
+    "source": "src/app/(app)/asset-management/import/page.tsx",
+    "loadingSource": "src/app/(app)/asset-management/import/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/asset-management/maintenance/[id]",
+    "source": "src/app/(app)/asset-management/maintenance/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/asset-management/maintenance/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "detail",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/asset-management/transfers/[id]",
+    "source": "src/app/(app)/asset-management/transfers/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/asset-management/transfers/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "detail",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/asset-management/transfers/new",
+    "source": "src/app/(app)/asset-management/transfers/new/page.tsx",
+    "loadingSource": "src/app/(app)/asset-management/transfers/new/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/branches/[id]",
+    "source": "src/app/(app)/branches/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/branches/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/branches/new",
+    "source": "src/app/(app)/branches/new/page.tsx",
+    "loadingSource": "src/app/(app)/branches/new/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/document-sequences/[id]",
+    "source": "src/app/(app)/document-sequences/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/document-sequences/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/document-sequences/new",
+    "source": "src/app/(app)/document-sequences/new/page.tsx",
+    "loadingSource": "src/app/(app)/document-sequences/new/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/documents/[id]",
+    "source": "src/app/(app)/documents/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/documents/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "detail",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/goods-receivings/[id]",
+    "source": "src/app/(app)/goods-receivings/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/goods-receivings/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "detail",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/goods-receivings/new",
+    "source": "src/app/(app)/goods-receivings/new/page.tsx",
+    "loadingSource": "src/app/(app)/goods-receivings/new/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/imports/[entity]",
+    "source": "src/app/(app)/imports/[entity]/page.tsx",
+    "loadingSource": "src/app/(app)/imports/[entity]/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/items/[id]",
+    "source": "src/app/(app)/items/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/items/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/items/new",
+    "source": "src/app/(app)/items/new/page.tsx",
+    "loadingSource": "src/app/(app)/items/new/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/opening-stock/import",
+    "source": "src/app/(app)/opening-stock/import/page.tsx",
+    "loadingSource": "src/app/(app)/opening-stock/import/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/outlet-daily-records/[id]",
+    "source": "src/app/(app)/outlet-daily-records/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/outlet-daily-records/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/outlet-daily-records/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "detail",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/outlet-daily-records/new",
+    "source": "src/app/(app)/outlet-daily-records/new/page.tsx",
+    "loadingSource": "src/app/(app)/outlet-daily-records/new/loading.tsx",
+    "beforeOwner": "src/app/(app)/outlet-daily-records/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/people/[id]",
+    "source": "src/app/(app)/people/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/people/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/people/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "detail",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/production/delivery-orders/[id]",
+    "source": "src/app/(app)/production/delivery-orders/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/production/delivery-orders/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "detail",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/production/jobs/[id]",
+    "source": "src/app/(app)/production/jobs/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/production/jobs/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/production/jobs/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "detail",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/production/jobs/new",
+    "source": "src/app/(app)/production/jobs/new/page.tsx",
+    "loadingSource": "src/app/(app)/production/jobs/new/loading.tsx",
+    "beforeOwner": "src/app/(app)/production/jobs/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/products/[id]",
+    "source": "src/app/(app)/products/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/products/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/products/new",
+    "source": "src/app/(app)/products/new/page.tsx",
+    "loadingSource": "src/app/(app)/products/new/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/purchase-orders/[id]",
+    "source": "src/app/(app)/purchase-orders/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/purchase-orders/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "detail",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/purchase-requests/new",
+    "source": "src/app/(app)/purchase-requests/new/page.tsx",
+    "loadingSource": "src/app/(app)/purchase-requests/new/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/purchase-returns/[id]",
+    "source": "src/app/(app)/purchase-returns/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/purchase-returns/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "detail",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/purchase-returns/new",
+    "source": "src/app/(app)/purchase-returns/new/page.tsx",
+    "loadingSource": "src/app/(app)/purchase-returns/new/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/recipes/[id]/edit",
+    "source": "src/app/(app)/recipes/[id]/edit/page.tsx",
+    "loadingSource": "src/app/(app)/recipes/[id]/edit/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/recipes/[id]",
+    "source": "src/app/(app)/recipes/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/recipes/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "detail",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/recipes/new",
+    "source": "src/app/(app)/recipes/new/page.tsx",
+    "loadingSource": "src/app/(app)/recipes/new/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/staffs/new",
+    "source": "src/app/(app)/staffs/new/page.tsx",
+    "loadingSource": "src/app/(app)/staffs/new/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/stock-counts/[id]",
+    "source": "src/app/(app)/stock-counts/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/stock-counts/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/stock-counts/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "detail",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/stock-transactions/[id]",
+    "source": "src/app/(app)/stock-transactions/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/stock-transactions/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "detail",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/stock-transactions/new",
+    "source": "src/app/(app)/stock-transactions/new/page.tsx",
+    "loadingSource": "src/app/(app)/stock-transactions/new/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/stock-transfers/[id]",
+    "source": "src/app/(app)/stock-transfers/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/stock-transfers/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "detail",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/stock-transfers/new",
+    "source": "src/app/(app)/stock-transfers/new/page.tsx",
+    "loadingSource": "src/app/(app)/stock-transfers/new/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/stock-wastage/[id]",
+    "source": "src/app/(app)/stock-wastage/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/stock-wastage/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "detail",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/stock-wastage/new",
+    "source": "src/app/(app)/stock-wastage/new/page.tsx",
+    "loadingSource": "src/app/(app)/stock-wastage/new/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/supplier-invoices/[id]",
+    "source": "src/app/(app)/supplier-invoices/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/supplier-invoices/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "detail",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/supplier-invoices/new",
+    "source": "src/app/(app)/supplier-invoices/new/page.tsx",
+    "loadingSource": "src/app/(app)/supplier-invoices/new/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/supplier-items/[id]",
+    "source": "src/app/(app)/supplier-items/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/supplier-items/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/supplier-items/new",
+    "source": "src/app/(app)/supplier-items/new/page.tsx",
+    "loadingSource": "src/app/(app)/supplier-items/new/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/suppliers/[id]",
+    "source": "src/app/(app)/suppliers/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/suppliers/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/uom-conversions/[id]",
+    "source": "src/app/(app)/uom-conversions/[id]/page.tsx",
+    "loadingSource": "src/app/(app)/uom-conversions/[id]/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/uom-conversions/new",
+    "source": "src/app/(app)/uom-conversions/new/page.tsx",
+    "loadingSource": "src/app/(app)/uom-conversions/new/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "form",
+    "reason": "Destination is a record/editor/import workspace after asynchronous data or params resolution; nearest loading boundary explicitly omits variant and therefore renders list geometry. Existing form/detail branches are available. Source contract DESIGN.md:665,717 requires destination geometry. This confirms wiring mismatch, not its visible frequency in production.",
+    "kind": "corrected-destination"
+  },
+  {
+    "route": "/asset-management/assets/[id]/attachments",
+    "source": "src/app/(app)/asset-management/assets/[id]/attachments/page.tsx",
+    "loadingSource": "src/app/(app)/asset-management/assets/[id]/attachments/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "list",
+    "reason": "Protect nested collection from new record parent fallback inheritance.",
+    "kind": "preserved-child-list"
+  },
+  {
+    "route": "/asset-management/assets/[id]/history",
+    "source": "src/app/(app)/asset-management/assets/[id]/history/page.tsx",
+    "loadingSource": "src/app/(app)/asset-management/assets/[id]/history/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "list",
+    "reason": "Protect nested collection from new record parent fallback inheritance.",
+    "kind": "preserved-child-list"
+  },
+  {
+    "route": "/asset-management/maintenance/[id]/attachments",
+    "source": "src/app/(app)/asset-management/maintenance/[id]/attachments/page.tsx",
+    "loadingSource": "src/app/(app)/asset-management/maintenance/[id]/attachments/loading.tsx",
+    "beforeOwner": "src/app/(app)/loading.tsx",
+    "beforeVariant": "list",
+    "afterVariant": "list",
+    "reason": "Protect nested collection from new record parent fallback inheritance.",
+    "kind": "preserved-child-list"
+  }
+]

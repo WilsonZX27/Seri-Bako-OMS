@@ -72,6 +72,21 @@ export async function getProducts(filters: ProductFilters = {}) {
   return filterProducts(requireReadRows(data, "Products"), filters);
 }
 
+/** Keep filtered reads separate: database row caps apply before local filtering. */
+export async function getProductsWorkspace(filters: ProductFilters = {}) {
+  const needsSummaryRead = Boolean(filters.search?.trim()
+    || (filters.status && filters.status !== "all")
+    || (filters.category && filters.category !== "all"));
+  const summaryPromise = needsSummaryRead ? getProducts() : null;
+  const [products, summary] = await Promise.all([getProducts(filters), summaryPromise]);
+  const allProducts = summary ?? products;
+  return {
+    products,
+    categories: Array.from(new Set(allProducts.map((product) => product.category))).sort(),
+    activeCount: allProducts.filter((product) => product.status === "active").length,
+  };
+}
+
 export async function getProductPackaging(productId: string) {
   if (isMockMode()) {
     return mockProductPackaging.filter((row) => row.product_id === productId);

@@ -27,7 +27,7 @@ export default async function ItemsPage({
 }) {
   const filters = await searchParams;
   const showRetired = filters.status === "retired";
-  const [itemsPage, retiredScopes, suppliers, permissions] = await Promise.all([getItemsWithStockPage(showRetired ? { ...filters, status: "all" } : filters), getRetiredBranchStockCountItems(), getSuppliersForSelect(), getPermissionMap(["items.create", "items.update", "items.manage", "stock_count.update"])]);
+  const [itemsPage, retiredScopes, suppliers, permissions] = await Promise.all([getItemsWithStockPage(showRetired ? { ...filters, status: "all" } : filters), showRetired ? getRetiredBranchStockCountItems() : Promise.resolve([]), getSuppliersForSelect(), getPermissionMap(["items.create", "items.update", "items.manage", "stock_count.update"])]);
   const canEditItems = Boolean(permissions["items.update"]);
   const lowStockCount = itemsPage.summary.low_stock;
   const filtered = hasActiveFilters(filters);

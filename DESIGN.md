@@ -1,3 +1,7 @@
+# v9.2.172 (Preview candidate) — Tablet overlay recovery and unsaved PR protection
+
+Preserve171 session recovery, Settings, AutoCount and Asset Excel. Close obsolete tablet overlays and release scroll locks on breakpoint or owner changes; keep same-owner input updates open. Block PR Submit until edits are saved, preserve inputs on failed saves, and require explicit submit after saving. No SQL, permission or production record changes. Physical iPad/WebKit and authenticated combined Preview acceptance remain pending; existing attention/Suspense hydration is not claimed fixed.
+
 # v9.2.171 (Preview candidate) — Session recovery and touch-tablet scrolling
 
 Preserve169 AutoCount recovery,170 four-role Asset Settings and168 Asset Excel. Add verified-session recovery and scoped touch-tablet scroll fixes. No SQL, grants, payroll, performance or business-data changes. Real iOS/iPad acceptance remains pending.

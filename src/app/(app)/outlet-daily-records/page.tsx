@@ -36,7 +36,7 @@ export default async function OutletDailyRecordsPage({ searchParams }: { searchP
   try {
     [data, options, canCreate, canExport, canViewSentGaps, history] = await Promise.all([
       getOutletDailyRecords(filters),
-      getOutletDailyFormOptions(),
+      getOutletDailyFormOptions(undefined, false),
       hasPermission("outlet_daily_record.create"),
       hasPermission("outlet_daily_record.view"),
       hasPermission("outlet_daily_record.view_all"),

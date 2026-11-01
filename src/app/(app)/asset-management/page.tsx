@@ -4,7 +4,7 @@ import { AssetTransferRows } from "@/components/asset-transfer-rows";
 import queryStyles from "./asset-query.module.css";
 import { MaintenanceReportDialog } from "@/components/maintenance-report-dialog";
 import { AssetMaintenanceDetailPanel } from "@/components/asset-maintenance-detail-panel";
-import { getAssetDetail, getAssetMaintenanceDetail } from "@/server/queries/assets";
+import { getAssetMaintenanceIdentity, getAssetMaintenanceDetail } from "@/server/queries/assets";
 import { PaginationControls } from "@/components/sortable-table";
 import { ConsoleActionLink } from "@/components/layout/console-action-link";
 import { AssetRegisterRows, AssetMaintenanceQueue, AssetDailyCheckLocations, AssetInspectionRows, AssetSectionHeading } from "@/components/asset-workspace-lists";
@@ -52,7 +52,7 @@ export default async function AssetManagementPage({ searchParams }: { searchPara
   const [canManage,canMaintain,canTransfer] = await Promise.all([hasPermission("assets.manage"),hasPermission("assets.maintenance"),hasPermission("assets.transfer")]);
   const selectedTicket=view==="maintenance" ? data.records.find(row=>row.id===params.ticket) ?? data.records[0] : null;
   const detail=selectedTicket ? await getAssetMaintenanceDetail(selectedTicket.id,1) : null;
-  const detailAsset=detail?.request.asset_id ? await getAssetDetail(detail.request.asset_id) : null;
+  const detailAsset=detail?.request.asset_id ? await getAssetMaintenanceIdentity(detail.request.asset_id) : null;
   const selection=Object.fromEntries(Object.entries(params).filter((entry):entry is [string,string]=>typeof entry[1]==="string"));
   const locations = new Map(data.locations.map(l => [l.id, l.display_name ?? l.source_name]));
   const assets = new Map(data.assets.map(a => [a.id, a]));

@@ -8,9 +8,9 @@ import { AssetAttachmentList } from "@/components/asset-attachment-list";
 import { AssetAttachmentForm } from "@/components/asset-attachment-form";
 import Link from "next/link";
 import { AssetMaintenanceUpdate } from "@/components/asset-maintenance-form";
-import { getAssetDetail, getAssetMaintenanceDetail } from "@/server/queries/assets";
+import { getAssetMaintenanceIdentity, getAssetMaintenanceDetail } from "@/server/queries/assets";
 
-export function AssetMaintenanceDetailPanel({data,asset,permissions,compact=false, hideUpdate=false}:{compact?:boolean;hideUpdate?:boolean;data:NonNullable<Awaited<ReturnType<typeof getAssetMaintenanceDetail>>>;asset:Awaited<ReturnType<typeof getAssetDetail>>;permissions:Record<string,boolean>}) {
+export function AssetMaintenanceDetailPanel({data,asset,permissions,compact=false, hideUpdate=false}:{compact?:boolean;hideUpdate?:boolean;data:NonNullable<Awaited<ReturnType<typeof getAssetMaintenanceDetail>>>;asset:Awaited<ReturnType<typeof getAssetMaintenanceIdentity>>;permissions:Record<string,boolean>}) {
  const request=data.request,id=request.id,location=data.location;
  return <div className={compact ? "sb-maintenance-detail min-w-0 space-y-3" : "min-w-0 space-y-3"}>
   <section className="sb-work-surface p-3"><header className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="text-base font-semibold">{asset?.asset.item_name ?? "Maintenance request"}</h2><p className="mt-0.5 text-xs text-muted-foreground">{asset?.asset.asset_code} · {location?.source_name ?? "Location not recorded"}</p></div>{request.asset_id ? <Link href={`/asset-management/assets/${request.asset_id}`} aria-label="Open asset" title="Open asset" className="inline-flex size-9 shrink-0 items-center justify-center rounded hover:bg-muted"><ArrowUpRight className="size-4" aria-hidden="true"/></Link>:null}</header>

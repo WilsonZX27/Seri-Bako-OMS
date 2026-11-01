@@ -217,6 +217,22 @@ export const getAssetWorkspace = cache(async (view: AssetView, page = 1, query =
   return { active: true, view, page, query, locations, overview, assets, holdings, records, total, filterOptions, maintenanceSummary };
 });
 
+export async function getAssetMaintenanceIdentity(id: string) {
+  const actor = await requireActiveTenantActor();
+  if (actor.roleCode === "kitchen") throw new Error("Kitchen staff may only access the assigned asset checklist.");
+  await requirePermission("assets.view");
+  if (isMockMode()) {
+    const asset = mockInspectionAssets.find((row) => row.id === id);
+    return asset ? { asset: { item_name: asset.item_name, asset_code: asset.asset_code } } : null;
+  }
+  const db = looseSupabase(await createClient());
+  const result = await db.rpc("get_asset_identity", { p_asset: id });
+  if (result.error) throw new Error(result.error.message);
+  if (!result.data) return null;
+  const asset = result.data as Asset;
+  return { asset: { item_name: asset.item_name, asset_code: asset.asset_code } };
+}
+
 export async function getAssetDetail(id: string) {
   const actor = await requireActiveTenantActor();
   if (actor.roleCode === "kitchen") throw new Error("Kitchen staff may only access the assigned asset checklist.");

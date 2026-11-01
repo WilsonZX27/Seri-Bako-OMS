@@ -15,6 +15,7 @@ export function WorkspaceGrid({
   rightRailClassName,
   hideMobileConsole = false,
   mobileRailSummary,
+  mobileRailPlacement = "before",
   mobileConsoleLabel,
   hideDesktopConsole = false,
   documentMode = false,
@@ -30,6 +31,7 @@ export function WorkspaceGrid({
   rightRailClassName?: string;
   hideMobileConsole?: boolean;
   mobileRailSummary?: string;
+  mobileRailPlacement?: "before" | "after";
   mobileConsoleLabel?: string;
   hideDesktopConsole?: boolean;
   documentMode?: boolean;
@@ -57,7 +59,7 @@ export function WorkspaceGrid({
       data-tablet-content={rightRail && effectiveTabletCanvas !== "full" ? "contained" : undefined}
       className={cn("sb-workspace-canvas min-h-0", rightRail && !hideMobileConsole && "xl:pb-3", className)}
     >
-      {rightRail && mobileRailSummary ? <details className="sb-work-surface mb-3 md:hidden"><summary className="flex min-h-11 cursor-pointer items-center justify-between gap-2 px-3 text-sm font-semibold">{mobileRailSummary}<ChevronDown className="size-4" aria-hidden="true" /></summary><div className="space-y-3 border-t p-3">{contextualRail}</div></details> : null}
+      {rightRail && mobileRailSummary && mobileRailPlacement === "before" ? <details className="sb-work-surface mb-3 md:hidden"><summary className="flex min-h-11 cursor-pointer items-center justify-between gap-2 px-3 text-sm font-semibold">{mobileRailSummary}<ChevronDown className="size-4" aria-hidden="true" /></summary><div className="space-y-3 border-t p-3">{contextualRail}</div></details> : null}
       {rightRail && !usesTabletSplit ? <details className="group mb-3 hidden rounded-[var(--sb-panel-radius)] border border-[var(--sb-border-soft)] bg-white md:block xl:hidden">
         <summary className="flex min-h-[var(--sb-control-height)] cursor-pointer list-none items-center justify-between gap-2 px-3 text-xs font-medium [&::-webkit-details-marker]:hidden">{mobileConsoleLabel ?? "More actions"}<ChevronDown aria-hidden="true" className="h-4 w-4 group-open:rotate-180" /></summary>
         <div className="grid gap-3 border-t border-[var(--sb-border-soft)] p-3">{contextualRail}</div>
@@ -80,6 +82,7 @@ export function WorkspaceGrid({
           <div className="min-w-0 space-y-3">{children}</div>
         </div>
       ) : <div className="min-w-0 space-y-3">{children}</div>}
+      {rightRail && mobileRailSummary && mobileRailPlacement === "after" ? <details className="sb-work-surface mb-3 md:hidden"><summary className="flex min-h-11 cursor-pointer items-center justify-between gap-2 px-3 text-sm font-semibold">{mobileRailSummary}<ChevronDown className="size-4" aria-hidden="true" /></summary><div className="space-y-3 border-t p-3">{contextualRail}</div></details> : null}
       {rightRail || hideDesktopConsole ? <RightConsoleMount hideMobileBar={hideMobileConsole} hideDesktopConsole={hideDesktopConsole || desktopRailPlacement === "content"} mobileConsoleLabel={mobileConsoleLabel}>{contextualRail}</RightConsoleMount> : null}
     </div>
   );

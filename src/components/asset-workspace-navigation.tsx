@@ -1,6 +1,6 @@
 "use client";
 
-import { Box, ChartNoAxesColumn, ClipboardCheck, Wrench, ArrowLeftRight } from "lucide-react";
+import { Box, ChartNoAxesColumn, ClipboardCheck, Wrench, ArrowLeftRight, Settings } from "lucide-react";
 import { WorkspaceTabs } from "@/components/ui/workspace-tabs";
 
 const tabs = [
@@ -11,9 +11,9 @@ const tabs = [
   { id: "transfers", label: "Transfers", icon: ArrowLeftRight },
 ];
 
-export function AssetWorkspaceNavigation({current, managementRole, canReport=false}: {current:string; managementRole:boolean; canReport?:boolean}) {
+export function AssetWorkspaceNavigation({current, managementRole, canReport=false, canSettings=false}: {current:string; managementRole:boolean; canReport?:boolean; canSettings?:boolean}) {
   const items = tabs.filter(tab => managementRole || (tab.id === "maintenance" && canReport) || !["overview","maintenance"].includes(tab.id));
   return <div data-asset-workspace-navigation>
-    <WorkspaceTabs onNavigate={(href) => window.location.assign(href)} label="Asset Management workspace" current={current} items={items.map(tab=>({...tab,href:`/asset-management?view=${tab.id}`}))}/>
+    <WorkspaceTabs onNavigate={(href) => window.location.assign(href)} label="Asset Management workspace" current={current} items={items.map(tab=>({...tab,href:`/asset-management?view=${tab.id}`})).concat(canSettings ? [{id:"settings",label:"Settings",icon:Settings,href:"/asset-management/settings"}] : [])}/>
   </div>;
 }

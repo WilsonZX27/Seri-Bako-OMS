@@ -1,4 +1,5 @@
 "use server";
+import { requireAssetDestinationManager } from "@/server/auth/asset-settings";
 import { assetFeatureCapabilities } from "@/server/queries/asset-feature-capabilities";
 import { revalidatePath } from "next/cache";
 import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
@@ -270,7 +271,27 @@ export async function registerAssetOtherLocation(_previous: AssetActionState, fo
     const db=looseSupabase(await createClient());
     const result=await db.rpc("register_asset_other_location",{p_name:name});
     if(result.error||!result.data)throw new Error(result.error?.message??"Location could not be added.");
+    const saved = await db.from("asset_locations").select("other_active").eq("company_id", actor.companyId).eq("id", result.data).maybeSingle();
+    if (saved.error || !saved.data) throw new Error("Destination may have been added. Reload Settings before retrying.");
+    if (saved.data.other_active === false) throw new Error("This destination already exists but is inactive. Reactivate it in Asset Settings.");
     revalidatePath("/asset-management/transfers/new");
+    revalidatePath("/asset-management/settings");
     return {ok:true,message:`${name} is available in the destination list.`};
   }catch(error){return {ok:false,message:error instanceof Error?error.message:"Location could not be added."};}
+}
+
+export async function updateAssetOtherLocation(_previous: AssetActionState, form: FormData): Promise<AssetActionState> {
+  try {
+    await requireAssetDestinationManager();
+    const id = uuid(form.get("location_id"));
+    const name = String(form.get("name") ?? "").trim();
+    const revision = Number(form.get("revision"));
+    const active = form.get("active");
+    if (name.length < 2 || name.length > 120 || !Number.isSafeInteger(revision) || revision < 0 || !["true", "false"].includes(String(active))) throw new Error("Check the location name and status, then try again.");
+    const db = looseSupabase(await createClient());
+    const result = await db.rpc("update_asset_other_location", { p_id: id, p_name: name, p_active: active === "true", p_revision: revision });
+    if (result.error || result.data === null) throw new Error(result.error?.message ?? "Destination was not saved.");
+    revalidatePath("/asset-management", "layout");
+    return { ok: true, message: "Destination saved." };
+  } catch (error) { return { ok: false, message: error instanceof Error ? error.message : "Destination could not be saved." }; }
 }

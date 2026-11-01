@@ -2,6 +2,7 @@ import { informationArchitecture } from "@/lib/information-architecture";
 
 const exactRoutePermissions: Record<string, string[]> = {
   "/asset-management/import": ["assets.manage"],
+  "/asset-management/settings": ["assets.view"],
   "/attendance/schedule": ["schedule.read"],
   "/people/ro": ["comp_time.read"],
   "/attendance/confirmations": ["dashboard.view"],
@@ -56,6 +57,7 @@ const exactRouteRoles: Record<string, readonly string[]> = {
   "/attendance/confirmations": ["super_admin", "people_operations", "finance", "manager", "purchasing", "chef", "outlet_supervisor", "outlet_staff"],
   "/attendance/payslips": ["super_admin", "people_operations", "finance", "manager", "purchasing", "chef", "kitchen", "outlet_supervisor", "outlet_staff"],
   "/attendance/my-schedule": ["kitchen"],
+  "/asset-management/settings": ["super_admin", "manager", "finance", "purchasing"],
   "/asset-management/assets": ["super_admin", "manager", "finance", "purchasing", "chef", "outlet_supervisor", "outlet_staff"],
   "/asset-management/maintenance": ["super_admin", "manager", "finance", "purchasing", "chef", "outlet_supervisor", "outlet_staff"],
   "/asset-management/transfers": ["super_admin", "manager", "finance", "purchasing", "chef", "outlet_supervisor", "outlet_staff"],

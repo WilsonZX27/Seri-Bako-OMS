@@ -1,4 +1,4 @@
-# v9.2.168 (preview candidate) — Owner asset file import
+# v9.2.168 (Preview candidate) — Owner asset file import
 
 Owner plus assets.manage entry for CSV/XLSX upload, row validation, confirmation and recoverable per-row registration. Existing asset IDs are never overwritten; blank IDs use the existing allocator with stable retry keys. Unknown quantities remain unknown. Formula cells rejected for assets. Results CSV records saved receipts; successful rows remain after later failure. No new SQL, grants, Settings, OT, mail or login changes.
 

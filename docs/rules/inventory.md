@@ -4,9 +4,10 @@ Updated 2026-11-02; baseline `738b8e5a110e158c2dfa217e23432c93b9df9f03`. Invento
 
 ## Conflicts and duplication to resolve
 
-- `docs/ROLE_PERMISSION_MATRIX.md` includes a seven-role historical summary and dated asset matrices; `src/lib/roles.ts` has nine codes. Current effective permissions and competing asset scopes need role-specific verification; the notice links to the new entry.
+- `docs/ROLE_PERMISSION_MATRIX.md` includes a seven-role historical summary and dated asset matrices; `src/lib/roles.ts` has nine codes. Code is observed inventory rather than authorization; intended roles, current effective permissions and competing asset scopes need role-specific verification; the notice links to the new entry.
 - `docs/v10/README.md` calls an older snapshot a candidate and defines historical release gates. Its baseline is historical, not the current Preview. Preserve the source and do not use its version as current deployment evidence.
 - `DESIGN.md`, `docs/DESIGN_SYSTEM.md`, `docs/ANNOTATION-DERIVED-UI-RULES.md`, and `docs/v10/DESIGN-CONTRACT.md` overlap as design history and contracts. Apply the latest scoped user decision and record actual contradictions before marking a specific old passage superseded.
+- `docs/ANNOTATION-DERIVED-UI-RULES.md` contains both Ready-to-post/finaliser and direct Posted statements. Scope and latest approved decision remain unresolved; neither is declared universally superseded. `AGENTS.md` 48px phone primary actions and UI documents’ 44px minimum touch targets have distinct scopes; apply the stricter scoped primary-action rule.
 - Product management and Daily code interpret dates differently; exact resolution remains open (see [contracts](contracts.md)). Historical OCR/invitation wording needs contextual review against the cancellation; do not infer authorization to reinstate either.
 - `AGENTS.md` had interface instructions but no general read/update/traceability lifecycle; it now links the index.
 

@@ -1,6 +1,6 @@
 # Fixed role, route, and Branch / Outlet matrix
 
-> Historical, dated sections below preserve their original evidence. The earlier seven-role summary is superseded as a complete role inventory by the nine-code inventory in [working contracts](rules/contracts.md); verify current effective permissions and scope before relying on any dated matrix. The former invitation wording does not authorize reviving cancelled email invitations.
+> Historical, dated sections below preserve their original evidence. The earlier seven-role summary is historical and incomplete for current review: `src/lib/roles.ts` lists nine codes, which is implementation evidence, not authorization for any role. Confirm intended roles and effective permissions against current approved requirements, grants and scope before relying on any dated matrix; see [working contracts](rules/contracts.md). The former invitation wording does not authorize reviving cancelled email invitations.
 
 ## Asset rework 2026-10-09 — prepared, not deployed
 

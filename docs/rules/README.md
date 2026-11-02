@@ -1,6 +1,6 @@
 # OMS rules index
 
-Updated 2026-11-02. Scope: all OMS changes. This index routes to existing sources; it does not grant access or certify implementation. Latest explicit user decisions for the same scope supersede older conflicting requirements. Security/tenant boundaries and higher-priority repository instructions still apply. Record uncertain conflicts instead of guessing. Historical release and audit documents describe their own date and environment, not current acceptance.
+Updated 2026-11-02. Scope: all OMS changes. This index routes to existing sources; it does not grant access or certify implementation. Latest explicit user decisions for the same scope supersede older conflicting requirements; record the original source, date and exact scope. Security/tenant boundaries and higher-priority repository instructions still apply. Source code and database state describe observed behavior, not by themselves approved requirements. When evidence conflicts or scope/date cannot be established, record the conflict and stop the affected decision rather than guessing. Historical release and audit documents describe their own date and environment, not current acceptance.
 
 | Change | Read before design or coding |
 | --- | --- |
@@ -15,3 +15,7 @@ Before changing behavior, identify the relevant requirement, actual implementati
 Evidence states are separate: **code changed**, **local tests**, **authenticated Preview**, **Production**, and **actual user acceptance**. Record exact revision, environment, roles, scopes, data/state, date and outcome for each; one state does not imply another. Preview 738b8e5a is a historical reference, not a claim of full acceptance.
 
 See the [baseline inventory and conflict review](inventory.md) for historical document boundaries.
+
+## Required change record
+
+Before editing, record the task and requirement source/date, applicable rule and scope, owning code and current observed behavior, role/company/branch, known conflicts, and intended verification. After editing, update the owning document and this traceability record with the decision, changed code, revision, evidence by environment, actual/expected results, and unresolved work. Place the record in the existing module handoff or QA ledger and link it from the owning rule when it changes; do not create a second competing policy. Read back the edited rules and links before reporting. If no business rule changed, record that assessment and the evidence location in the change report.

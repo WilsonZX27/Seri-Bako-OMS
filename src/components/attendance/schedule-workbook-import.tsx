@@ -163,8 +163,8 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
   }
 
   return <>
-    <section className="sb-work-surface flex flex-wrap items-center gap-3 p-3">
-      <div className="min-w-0 flex-1"><h2 className="text-sm font-semibold">Schedule workbook</h2><p className="mt-0.5 text-xs text-muted-foreground">Import Excel shifts into a draft.</p></div>
+    <section className="sb-work-surface grid grid-cols-2 items-center gap-3 p-3 sm:flex sm:flex-wrap">
+      <div className="col-span-2 min-w-0 sm:flex-1"><h2 className="text-sm font-semibold">Schedule workbook</h2><p className="mt-0.5 text-xs text-muted-foreground">Import Excel shifts into a draft.</p></div>
       <Button asChild size="sm" variant="outline"><a href={`/api/attendance/schedule/template?week=${encodeURIComponent(importWeek)}`}><Download className="h-4 w-4"/>Download template</a></Button>
       <Button size="sm" variant="outline" onClick={() => {
         if (document.querySelector('[data-schedule-planner][data-schedule-unsaved="true"]')) {

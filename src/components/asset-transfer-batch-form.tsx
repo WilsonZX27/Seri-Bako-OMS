@@ -24,8 +24,10 @@ const assetLineColumns = "grid-cols-[minmax(0,1fr)_4.5rem_5rem_3.25rem] lg:grid-
 
 export function AssetTransferBatchForm({ locations, choices, requestKey, today, canSubmit = false, canAddDestination = false, sourceIds = locations.map(location => location.id), initialAsset = "", initialSource = "", initialQuery = "" }: { locations: AssetLocation[]; choices: TransferAssetChoice[]; requestKey: string; today: string; canSubmit?: boolean; canAddDestination?: boolean; sourceIds?: string[]; initialAsset?: string; initialSource?: string; initialQuery?: string }) {
   const [state, action, pending] = useActionState(useAssetDraftAction("transfer-batch", requestAssetTransferBatch), { ok: false, message: "", requestId: undefined as string | undefined });
-  const initial: AssetTransferDraft = { from: initialSource, to: "", date: today, reason: "", query: initialQuery, selected: choices.some(choice => choice.id === initialAsset) ? { [initialAsset]: "1" } : {} };
+  const initial: AssetTransferDraft = { from: initialSource, to: "", date: today, reason: "", query: initialQuery, selected: choices.some(choice => choice.id === initialAsset) ? { [initialAsset]: "1" } : {}, requestKey };
   const [draft, setDraft, restored] = useAssetDraftState("transfer-batch", "single-page-v1", initial, validTransferDraft, state.ok);
+  // Older drafts keep their inputs and acquire a stable identity before retrying.
+  useEffect(() => { if (!draft.requestKey) setDraft(current => ({ ...current, requestKey })); }, [draft.requestKey, requestKey, setDraft]);
   const destinationDialogRequested = useRef(false);
   const [addingDestination, setAddingDestination] = useState(false);
   const publish = useAssetFeedback(), pathname = usePathname();
@@ -39,7 +41,7 @@ export function AssetTransferBatchForm({ locations, choices, requestKey, today, 
   useAssetFormGuard(!state.ok && Boolean(ids.length || draft.from || draft.to || draft.reason || draft.query || draft.date !== today));
   const submit = <Button form="asset-transfer-request" type="submit" className="h-12 w-full md:h-11 xl:h-9" disabled={pending || state.ok || !canSubmit || Boolean(error)}>{pending ? "Requesting…" : "Request transfer"}</Button>;
   return <><form id="asset-transfer-request" data-asset-entry-form action={action} className="min-w-0 space-y-3">
-    <input type="hidden" name="client_key" value={requestKey}/>
+    <input type="hidden" name="client_key" value={draft.requestKey ?? requestKey}/>
     {restored ? <p role="status" className="text-xs">Unsaved transfer inputs restored. Review before requesting.</p> : null}
     <fieldset disabled={pending || state.ok} className="min-w-0 space-y-3">
       <section className="sb-work-surface overflow-hidden" aria-labelledby="transfer-details">

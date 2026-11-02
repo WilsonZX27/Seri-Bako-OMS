@@ -2364,3 +2364,5 @@ The repair v2 proposal has passed isolated synthetic concurrency/idempotency/rec
 ### Production/attendance follow-up16 (local)
 
 RO Management owns pending correction decisions for the current authorised employee/filter page; existing balance/available RPCs and comp-time decision API remain authoritative. Attendance review retains reports, OT and staff-day comparisons but no longer requests the moved RO directory/ledger. Shared production reasons are deliberate local draft edits, applied only to required blanks and stored in the original per-line payload; this does not waive review or save a plan. The16 follow-up changes remain separate from the approved deployment of the previous commercial candidate.
+
+Local basket candidate: unnumbered `supabase/maintenance/basket_atomic.PROPOSED.sql`; not applied to Production. The old basket 375 filename was removed because Supplier 375 already occupies that history. Adds atomic receipts and actor-scoped response recovery; see docs/BASKET-ATOMIC-LOCAL.md.

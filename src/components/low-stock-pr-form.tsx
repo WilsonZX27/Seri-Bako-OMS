@@ -1,5 +1,7 @@
 "use client";
 
+import { prepareBasketSubmission } from "@/lib/procurement/basket-submission";
+
 import { getReplenishmentDecision } from "@/lib/replenishment-decision";
 import { Badge } from "@/components/ui/badge";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
@@ -86,23 +88,23 @@ export function LowStockPrForm({ items, branches, defaultBranchId, basketOwnerId
     const byKey = new Map(items.map((item) => [rowKey(item), item]));
     for (const item of retainedItems) {
       const key = rowKey(item);
-      if (selected[key] && !byKey.has(key)) byKey.set(key, item);
+      if ((selected[key] || picked[key]) && !byKey.has(key)) byKey.set(key, item);
     }
     return Array.from(byKey.values());
-  }, [items, retainedItems, selected]);
+  }, [items, retainedItems, selected, picked]);
   const visibleItems = useMemo(() => {
-    if (selectedBranchId === "all") return basketItems;
-    return basketItems.filter((item) => item.branch_id === selectedBranchId);
-  }, [basketItems, selectedBranchId]);
+    if (selectedBranchId === "all") return items;
+    return items.filter((item) => item.branch_id === selectedBranchId);
+  }, [items, selectedBranchId]);
   const [quantities, setQuantities] = useState<Record<string, string>>({});
   const [uoms, setUoms] = useState<Record<string, string>>({});
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const branchSelected = selectedBranchId !== "all";
   const basketReady = hydratedBasketKey === basketStorageKey;
 
-  const selectedCount = visibleItems.filter((item) => selected[rowKey(item)]).length;
+  const selectedCount = basketItems.filter((item) => item.branch_id === selectedBranchId && selected[rowKey(item)]).length;
   const selectedLabel = selectedCount ? `${selectedCount} selected` : "No items selected";
-  const selectedItems = useMemo(() => visibleItems.filter((item) => selected[rowKey(item)]), [selected, visibleItems]);
+  const selectedItems = useMemo(() => basketItems.filter((item) => item.branch_id === selectedBranchId && selected[rowKey(item)]), [selected, basketItems, selectedBranchId]);
   const allVisibleSelected = branchSelected && visibleItems.length > 0 && visibleItems.every((item) => picked[rowKey(item)]);
   const someVisibleSelected = branchSelected && visibleItems.some((item) => picked[rowKey(item)]);
   const selectAllDesktopRef = useRef<HTMLInputElement>(null);
@@ -126,19 +128,19 @@ export function LowStockPrForm({ items, branches, defaultBranchId, basketOwnerId
   const canCreatePr = selectedCount > 0 && selectedBranchId !== "all" && !hasMissingSupplier;
 
   useEffect(() => {
-    if (hydratedBasketKey !== basketStorageKey || !selectedItems.length) return;
+    if (hydratedBasketKey !== basketStorageKey || !basketItems.some(item => selected[rowKey(item)] || picked[rowKey(item)])) return;
     setRetainedItems((current) => {
       const byKey = new Map(current.map((item) => [rowKey(item), item]));
       let changed = false;
-      for (const item of selectedItems) {
-        if (!byKey.has(rowKey(item))) {
+      for (const item of basketItems.filter(item => selected[rowKey(item)] || picked[rowKey(item)])) {
+        if (byKey.get(rowKey(item)) !== item) {
           byKey.set(rowKey(item), item);
           changed = true;
         }
       }
       return changed ? Array.from(byKey.values()) : current;
     });
-  }, [basketStorageKey, hydratedBasketKey, selectedItems]);
+  }, [basketStorageKey, hydratedBasketKey, basketItems, selected, picked]);
 
   useEffect(() => {
     if (hydratedBasketKey === basketStorageKey) return;
@@ -178,13 +180,14 @@ export function LowStockPrForm({ items, branches, defaultBranchId, basketOwnerId
     if (hydratedBasketKey !== basketStorageKey || disabled) return;
     try {
       if (selectedBranchId === "all") {
-        window.localStorage.removeItem(basketStorageKey);
+        window.localStorage.removeItem(basketStorageKey); window.localStorage.removeItem(`${basketStorageKey}:submission`);
         return;
       }
       const lines = selectedItems.map((item) => ({
         item, qty: quantities[rowKey(item)] ?? String(item.suggested_reorder_qty),
         uom: uoms[rowKey(item)] ?? item.purchase_unit ?? item.base_unit ?? "PCS",
       }));
+      if (!lines.length) window.localStorage.removeItem(`${basketStorageKey}:submission`);
       window.localStorage.setItem(basketStorageKey, JSON.stringify({ branchId: selectedBranchId, lines }));
     } catch {
       // Selection remains usable until this page is refreshed.
@@ -230,7 +233,7 @@ export function LowStockPrForm({ items, branches, defaultBranchId, basketOwnerId
     setPicked(current => ({...current,...Object.fromEntries(visibleItems.map(item=>[rowKey(item),!allVisibleSelected]))}));
   }
   const decisionByKey = new Map(visibleItems.map(item=>[rowKey(item),getReplenishmentDecision({currentStock:item.current_stock,safetyStock:item.safety_stock,suggestedReorderQty:item.suggested_reorder_qty,stockStatus:item.stock_status,supplierId:item.supplier_id,supplierName:item.supplier_name,baseUnit:item.base_unit})]));
-  const pickedItems=visibleItems.filter(item=>picked[rowKey(item)]);
+  const pickedItems=basketItems.filter(item=>item.branch_id===selectedBranchId&&picked[rowKey(item)]);
   const basket=<>
     <ConsoleSection title="PR basket"><p className="text-xs text-muted-foreground" aria-live="polite">{selectedLabel}</p>
       <ul className="divide-y">{selectedItems.map(item=>{const key=rowKey(item);return <li key={key} className="flex items-start gap-2 py-3"><div className="min-w-0 flex-1"><p className="break-words text-xs font-semibold">{item.item_name}</p><p className="mt-1 text-xs text-muted-foreground">{quantities[key]??item.suggested_reorder_qty} {uoms[key]??item.purchase_unit??item.base_unit} · {item.supplier_name??"Supplier missing"}</p></div><Button type="button" variant="ghost" size="icon" aria-label={`Remove ${item.item_code} from basket`} onClick={()=>toggleItem(key)}><X className="size-4" aria-hidden="true"/></Button></li>;})}</ul>
@@ -249,9 +252,9 @@ export function LowStockPrForm({ items, branches, defaultBranchId, basketOwnerId
       </header>
       <p id="low-stock-branch-guidance" className="px-3 py-2 text-xs text-muted-foreground">{branchSelected?"Select items below. Changing the branch clears this basket.":"Choose one branch before selecting items."}</p>
       {disabled?<p role="status" className="p-3 text-xs text-muted-foreground">You have read-only access.</p>:null}
-      <form id="low-stock-pr-create" action={createPurchaseRequestsFromBasket}>
+      <form id="low-stock-pr-create" action={createPurchaseRequestsFromBasket} onSubmit={event => { if (!prepareBasketSubmission(event.currentTarget, basketStorageKey)) event.preventDefault(); }}>
         <input type="hidden" name="idempotency_key" value={idempotencyKey}/><input type="hidden" name="request_no" value=""/><input type="hidden" name="request_date" value={getToday()}/><input type="hidden" name="required_date" value=""/><input type="hidden" name="priority" value="normal"/><input type="hidden" name="branch_id" value={selectedBranchId==="all"?"":selectedBranchId}/><input type="hidden" name="supplier_groups" value={JSON.stringify(basketPayload)}/>
-        <div className="hidden overflow-x-auto md:block"><table className="w-full text-xs"><thead className="bg-[var(--sb-surface-muted)] text-left"><tr><th className="p-3"><input ref={selectAllDesktopRef} type="checkbox" aria-label="Select all visible low-stock items" checked={allVisibleSelected} onChange={toggleAllVisible} disabled={disabled||!branchSelected||!visibleItems.length}/></th><th className="p-3 font-medium">Item</th><th className="p-3 font-medium">Decision</th><th className="p-3 text-right font-medium">Current</th><th className="p-3 text-right font-medium">Safety</th><th className="p-3 text-right font-medium">Suggested</th><th className="p-3 font-medium">Qty for PR</th><th className="p-3 font-medium">UOM</th></tr></thead><tbody>{visibleItems.map(item=>{const key=rowKey(item);return <tr key={key} className="border-t border-[var(--sb-border-soft)]" data-low-stock-pr-line data-selected={picked[key]||selected[key]?"true":"false"}><td className="p-3"><input type="checkbox" aria-label={`Select ${item.item_code}`} checked={!!picked[key]} disabled={disabled||!branchSelected} onChange={()=>setPicked(current=>({...current,[key]:!current[key]}))}/></td><th scope="row" className="min-w-40 p-3 text-left font-medium">{item.item_name}<span className="mt-1 block text-xs font-normal text-muted-foreground">{item.item_code} · {item.supplier_name??"Supplier missing"}</span></th><td className="p-3"><Badge variant={decisionByKey.get(key)?.blocked?"danger":"secondary"} title={decisionByKey.get(key)?.reason} data-low-stock-decision={decisionByKey.get(key)?.decision}>{decisionByKey.get(key)?.label}</Badge></td><td className="p-3 text-right tabular-nums">{item.current_stock} {item.base_unit}</td><td className="p-3 text-right tabular-nums">{item.safety_stock}</td><td className="p-3 text-right tabular-nums">{item.suggested_reorder_qty}</td><td className="p-3"><QuantityStepper value={quantities[key]??String(item.suggested_reorder_qty)} label={`Quantity for ${item.item_name}`} uom={null} step={0.0001} buttonStep={1} density="dense" onChange={value=>setItemQty(key,value)}/></td><td className="p-3"><SelectControl ariaLabel={`Purchase UOM for ${item.item_name}`} value={uoms[key]??item.purchase_unit??item.base_unit??"PCS"} onValueChange={value=>setItemUom(key,value)} className="min-w-20" options={uomOptionsWithCurrent(item.purchase_unit||item.base_unit).map(unit=>({value:unit,label:unit}))}/></td></tr>;})}</tbody></table></div>
+        <div className="hidden overflow-x-auto md:block"><table className="w-full text-xs"><thead className="bg-[var(--sb-surface-muted)] text-left"><tr><th className="p-3"><input ref={selectAllDesktopRef} type="checkbox" aria-label="Select all visible low-stock items" checked={allVisibleSelected} onChange={toggleAllVisible} disabled={disabled||!branchSelected||!visibleItems.length}/></th><th className="p-3 font-medium">Item</th><th className="p-3 font-medium">Decision</th><th className="p-3 text-right font-medium">Current</th><th className="p-3 text-right font-medium">Safety</th><th className="p-3 text-right font-medium">Suggested</th><th className="p-3 font-medium">Qty for PR</th><th className="p-3 font-medium">UOM</th></tr></thead><tbody>{visibleItems.map(item=>{const key=rowKey(item);return <tr key={key} className="border-t border-[var(--sb-border-soft)]" data-low-stock-pr-line data-selected={picked[key]||selected[key]?"true":"false"}><td className="p-3"><input type="checkbox" aria-label={`Select ${item.item_code}`} checked={!!picked[key]} disabled={disabled||!branchSelected} onChange={()=>setPicked(current=>({...current,[key]:!current[key]}))}/></td><th scope="row" className="min-w-40 p-3 text-left font-medium">{item.item_name}<span className="mt-1 block text-xs font-normal text-muted-foreground">{item.item_code} · {item.supplier_name??"Supplier missing"}</span></th><td className="p-3"><Badge variant={decisionByKey.get(key)?.blocked?"danger":"secondary"} title={decisionByKey.get(key)?.reason} data-low-stock-decision={decisionByKey.get(key)?.decision}>{decisionByKey.get(key)?.label}</Badge></td><td className="p-3 text-right tabular-nums">{item.current_stock} {item.base_unit}</td><td className="p-3 text-right tabular-nums">{item.safety_stock}</td><td className="p-3 text-right tabular-nums">{item.suggested_reorder_qty}</td><td className="p-3"><QuantityStepper className="min-w-40" value={quantities[key]??String(item.suggested_reorder_qty)} label={`Quantity for ${item.item_name}`} uom={null} step={0.0001} buttonStep={1} density="dense" onChange={value=>setItemQty(key,value)}/></td><td className="p-3"><SelectControl ariaLabel={`Purchase UOM for ${item.item_name}`} value={uoms[key]??item.purchase_unit??item.base_unit??"PCS"} onValueChange={value=>setItemUom(key,value)} className="min-w-20" options={uomOptionsWithCurrent(item.purchase_unit||item.base_unit).map(unit=>({value:unit,label:unit}))}/></td></tr>;})}</tbody></table></div>
         <div className="divide-y md:hidden" data-low-stock-pr-lines><label className="flex min-h-11 items-center gap-3 px-3 text-xs"><input ref={selectAllMobileRef} type="checkbox" aria-label="Select all visible low-stock items" checked={allVisibleSelected} onChange={toggleAllVisible} disabled={disabled||!branchSelected||!visibleItems.length}/>Select all visible</label>{visibleItems.map(item=>{const key=rowKey(item);return <div key={key} className="space-y-3 p-3" data-low-stock-pr-line><label className="flex min-h-11 items-start gap-3 text-xs"><input type="checkbox" aria-label={`Select ${item.item_code}`} checked={!!picked[key]} disabled={disabled||!branchSelected} onChange={()=>setPicked(current=>({...current,[key]:!current[key]}))}/><span><strong>{item.item_name}</strong><span className="mt-1 block text-muted-foreground">{item.item_code} · {item.supplier_name??"Supplier missing"}</span></span></label><p className="text-xs text-muted-foreground">Current {item.current_stock} {item.base_unit} · Safety {item.safety_stock} · Suggested {item.suggested_reorder_qty}</p><p className="text-xs" data-low-stock-decision={decisionByKey.get(key)?.decision}><strong>{decisionByKey.get(key)?.label}</strong><span className="ml-2 text-muted-foreground">{decisionByKey.get(key)?.reason}</span></p><div className="grid grid-cols-2 items-center gap-2"><QuantityStepper className="w-full" label={`Quantity for ${item.item_name}`} value={quantities[key]??String(item.suggested_reorder_qty)} uom={null} step={0.0001} buttonStep={1} onChange={value=>setItemQty(key,value)}/><SelectControl ariaLabel={`Purchase UOM for ${item.item_name}`} value={uoms[key]??item.purchase_unit??item.base_unit??"PCS"} onValueChange={value=>setItemUom(key,value)} options={uomOptionsWithCurrent(item.purchase_unit||item.base_unit).map(unit=>({value:unit,label:unit}))}/></div></div>;})}</div>
         {!visibleItems.length?<p className="p-4 text-xs text-muted-foreground">No items match this branch.</p>:null}
       </form>

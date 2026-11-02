@@ -1219,9 +1219,17 @@ async function loadLowStockItems(filters: Filters = {}) {
     warnOptionalInventoryQuery("low stock items", error);
     throw new Error(`Low stock could not be loaded: ${error.message}`);
   }
+  const sourceRows = (fallbackData ?? data) as unknown as LowStockRow[];
+  const supplierIds = [...new Set(sourceRows.map(row => row.supplier_id).filter((id): id is string => Boolean(id)))];
+  const activeSupplierIds = new Set<string>();
+  for (let offset = 0; offset < supplierIds.length; offset += 100) {
+    const suppliers = await supabase.from("suppliers").select("id").in("id", supplierIds.slice(offset, offset + 100)).eq("status", "active").is("deleted_at", null);
+    if (suppliers.error || suppliers.data === null) throw new Error("Supplier availability could not be verified. Retry before preparing a request.");
+    for (const supplier of suppliers.data) activeSupplierIds.add(supplier.id);
+  }
   const search = filters.search?.trim().toLowerCase();
   const status = filters.status && filters.status !== "all" ? filters.status : null;
-  const rows = ((fallbackData ?? data) as unknown as LowStockRow[])
+  const rows = sourceRows.map(row => row.supplier_id && !activeSupplierIds.has(row.supplier_id) ? { ...row, supplier_id: null, supplier_name: null } : row)
     .filter((row) => search ? [row.item_code, row.item_name, row.branch_name, row.supplier_name].some((value) => String(value ?? "").toLowerCase().includes(search)) : true)
     .map((row) => {
       const current = Number(row.current_qty ?? row.current_stock ?? 0);

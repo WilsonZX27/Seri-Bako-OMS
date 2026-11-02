@@ -1,4 +1,6 @@
 "use client";
+
+import { prepareBasketSubmission } from "@/lib/procurement/basket-submission";
 import { containDialogTab, focusDialog } from "@/lib/dialog-focus";
 import { hasActiveFilters } from "@/lib/table-state";
 import { createPortal } from "react-dom";
@@ -126,7 +128,7 @@ export function StockBalanceWorkspace({
     if (!basketStorageReady) return;
     try {
       if (Object.keys(basket).length) window.localStorage.setItem(basketStorageKey, JSON.stringify(basket));
-      else window.localStorage.removeItem(basketStorageKey);
+      else { window.localStorage.removeItem(basketStorageKey); window.localStorage.removeItem(`${basketStorageKey}:submission`); }
     } catch {
       // Basket state remains usable for this session when storage is unavailable.
     }
@@ -234,7 +236,7 @@ export function StockBalanceWorkspace({
               </div>
             </ConsoleSection>
             <ConsoleSection title="PR basket">
-              <form action={createPurchaseRequestsFromBasket} className="space-y-3">
+              <form action={createPurchaseRequestsFromBasket} onSubmit={event => { if (!prepareBasketSubmission(event.currentTarget, basketStorageKey)) event.preventDefault(); }} className="space-y-3">
                 <input type="hidden" name="idempotency_key" value={idempotencyKey} />
                 <input type="hidden" name="request_no" value="" />
                 <input type="hidden" name="request_date" value={getToday()} />
@@ -412,7 +414,7 @@ export function StockBalanceWorkspace({
             <div className="min-w-0"><h2 className="text-base font-semibold text-[var(--sb-green-950)]">PR basket</h2><p className="text-xs text-[var(--sb-text-muted)]">{createBranchId ? branchNameById.get(createBranchId) ?? "Unknown location" : "Select location"} · {supplierGroups.length || 0} PR group{supplierGroups.length === 1 ? "" : "s"} · {basketRows.length} item{basketRows.length === 1 ? "" : "s"}</p></div>
             <Button type="button" variant="ghost" size="icon" onClick={() => setBasketOpen(false)} aria-label="Close PR basket"><X className="h-5 w-5" /></Button>
           </header>
-          <form action={createPurchaseRequestsFromBasket} className="flex min-h-0 flex-1 flex-col">
+          <form action={createPurchaseRequestsFromBasket} onSubmit={event => { if (!prepareBasketSubmission(event.currentTarget, basketStorageKey)) event.preventDefault(); }} className="flex min-h-0 flex-1 flex-col">
             <input type="hidden" name="idempotency_key" value={idempotencyKey} />
             <input type="hidden" name="request_no" value="" />
             <input type="hidden" name="request_date" value={getToday()} />

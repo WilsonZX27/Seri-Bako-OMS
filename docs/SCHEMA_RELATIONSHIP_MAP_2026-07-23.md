@@ -499,3 +499,5 @@ erDiagram
 ```
 
 Thirteen independent asset tables use company constraints. Location overrides use Kuala Lumpur dates; branches default daily, Event defaults inactive. The migration remains unapplied to Production. Permission checks and RLS restrict all operational access to the OMS company and accessible locations.
+
+Local basket candidate only: unnumbered `supabase/maintenance/basket_atomic.PROPOSED.sql`, outside automatic migrations. Supplier 375 already occupies that history; current integration records 380–382. Basket receipts are company-scoped backup data; exact schema/ACL and a unique migration number require separate production review. Not applied.

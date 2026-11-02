@@ -1,5 +1,5 @@
 export type TransferAssetChoice = { id: string; asset_code: string; item_name: string; holdings: Record<string, number> };
-export type AssetTransferDraft = { from: string; to: string; date: string; reason: string; query: string; selected: Record<string, string> };
+export type AssetTransferDraft = { from: string; to: string; date: string; reason: string; query: string; selected: Record<string, string>; requestKey?: string };
 export function toggleTransferAsset(selected: Record<string, string>, id: string) {
   const next = { ...selected };
   if (Object.hasOwn(next, id)) delete next[id];
@@ -26,6 +26,7 @@ export function transferDraftError(draft: AssetTransferDraft, choices: TransferA
 export function validTransferDraft(value: unknown): value is AssetTransferDraft {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   const row = value as AssetTransferDraft;
+  if (row.requestKey !== undefined && (typeof row.requestKey !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(row.requestKey))) return false;
   if (![row.from, row.to, row.date, row.reason, row.query].every(item => typeof item === "string" && item.length <= 4000) || !row.selected || typeof row.selected !== "object" || Array.isArray(row.selected)) return false;
   return Object.keys(row.selected).length <= 100 && Object.entries(row.selected).every(([id, quantity]) => /^[0-9a-f-]{36}$/i.test(id) && typeof quantity === "string" && quantity.length <= 32);
 }

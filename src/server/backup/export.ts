@@ -99,6 +99,7 @@ export const BACKUP_DATASETS: readonly BackupDataset[] = [
   { table: "recipe_write_requests", classification: "company_id filtered", column: "company_id" },
   { table: "recipe_lines", classification: "parent-company filtered", column: "recipe_id", parent: "recipes" },
   { table: "recipe_cost_snapshots", classification: "parent-company filtered", column: "recipe_id", parent: "recipes" },
+  { table: "purchase_request_basket_receipts", classification: "company_id filtered", column: "company_id" },
   { table: "purchase_requests", classification: "company_id filtered", column: "company_id" },
   { table: "purchase_request_lines", classification: "parent-company filtered", column: "purchase_request_id", parent: "purchase_requests" },
   { table: "purchase_request_stock_holds", classification: "parent-company filtered", column: "purchase_request_id", parent: "purchase_requests" },

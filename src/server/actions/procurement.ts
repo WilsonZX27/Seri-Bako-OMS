@@ -348,13 +348,6 @@ function parseStockBasketGroups(value: FormDataEntryValue | null) {
   }
 }
 
-function stockBasketGroupIdempotencyKey(basketKey: string, groupIndex: number) {
-  const compact = basketKey.replaceAll("-", "");
-  const suffix = (BigInt(`0x${compact.slice(-12)}`) + BigInt(groupIndex)) & BigInt("0xffffffffffff");
-  const derived = `${compact.slice(0, 20)}${suffix.toString(16).padStart(12, "0")}`;
-  return `${derived.slice(0, 8)}-${derived.slice(8, 12)}-${derived.slice(12, 16)}-${derived.slice(16, 20)}-${derived.slice(20)}`;
-}
-
 export async function createPurchaseRequestsFromBasket(formData: FormData) {
   await requirePermissionOrRedirect("purchase_request.create", "/stock-balance");
   try {
@@ -365,13 +358,7 @@ export async function createPurchaseRequestsFromBasket(formData: FormData) {
     const groups = parseStockBasketGroups(formData.get("supplier_groups"));
     const allLines = groups.flatMap((group) => group.lines.map((line) => ({ ...line, suggested_supplier_id: group.supplier_id, branch_id: branchId })));
     const sourcedLines = allLines.filter((line): line is typeof line & { suggested_supplier_id: string } => Boolean(line.suggested_supplier_id));
-    const [, , profile] = await Promise.all([
-      ensureActiveItems(allLines.map((line) => line.item_id), branchId, allLines.map(() => branchId)),
-      ensureBranchSupplierSelections(branchId, sourcedLines, true),
-      identity(),
-    ]);
-    const created: Array<{ id: string; request_no: string }> = [];
-    for (const [groupIndex, group] of groups.entries()) {
+    const payloads = groups.map((group) => {
       const lines = group.lines.map((line) => ({
         item_id: line.item_id,
         qty: line.qty,
@@ -394,9 +381,28 @@ export async function createPurchaseRequestsFromBasket(formData: FormData) {
         remarks: group.supplier_id ? `Created from stock basket for ${group.supplier_id}.` : "Created from stock basket; Purchasing supplier mapping required.",
         lines,
       });
-      const result = await createPurchaseRequestAggregate(payload, profile, stockBasketGroupIdempotencyKey(basketIdempotencyKey, groupIndex), "draft");
-      created.push({ id: result.id, request_no: result.request_no });
+      // Request date is assigned inside the transaction; keep retry identity independent of midnight.
+      return { ...payload, request_date: "" };
+    });
+    const supabase = await createClient();
+    const basketPayload = { branch_id: branchId, idempotency_key: basketIdempotencyKey, groups: payloads };
+    // Recover a committed response before mutable catalog checks can hide it.
+    const receipt = await looseSupabase(supabase).rpc("create_purchase_request_basket_atomic", {
+      p_payload: { ...basketPayload, receipt_only: true },
+    });
+    if (receipt.error) throw new Error(receipt.error.message);
+    let data = receipt.data;
+    if (data === null) {
+      await Promise.all([
+        ensureActiveItems(allLines.map((line) => line.item_id), branchId, allLines.map(() => branchId)),
+        ensureBranchSupplierSelections(branchId, sourcedLines, true),
+      ]);
+      const creation = await looseSupabase(supabase).rpc("create_purchase_request_basket_atomic", { p_payload: basketPayload });
+      if (creation.error) throw new Error(creation.error.message);
+      data = creation.data;
     }
+    const created = data as Array<{ id: string; request_no: string }>;
+    if (!Array.isArray(created) || created.length !== groups.length) throw new Error("Basket receipt could not be verified. Retry the same basket.");
     revalidateWorkspaceState(["/purchase-requests", "/stock-balance"]);
     safeRedirectWithMessage("/purchase-requests", "success", `Created ${created.length} sourcing-grouped draft PR${created.length === 1 ? "" : "s"}.`);
   } catch (error) {

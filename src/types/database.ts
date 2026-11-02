@@ -52,6 +52,7 @@ export type StockTransactionType =
 export type Database = {
   public: {
     Tables: {
+      purchase_request_basket_receipts: TableDefinition<{ company_id: string; actor_id: string; request_key: string; payload: Json; result: Json; created_at: string; }>;
       packaging_stores: TableDefinition<{id:string;company_id:string;name:string;created_at:string}>;
       packaging_store_balances: TableDefinition<{id:string;company_id:string;store_id:string;product_id:string;quantity:number;version:number;created_at:string}>;
       packaging_store_movements: TableDefinition<{id:string;company_id:string;store_id:string;product_id:string;kind:string;quantity:number;delta:number;balance_after:number;reason:string;created_by:string;created_at:string;client_key:string}>;

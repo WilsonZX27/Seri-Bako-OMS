@@ -18,7 +18,7 @@ function harness({pending=false,message='',ok=false,ready=true}={}){
   '@/components/ui/button':{Button:wrap('button')},'@/components/ui/input':{Input:wrap('input')},'@/components/ui/select-control':{SelectControl:require('./helpers/render-select-control.cjs')},'@/components/ui/system-states':{Notice:wrap('div')},'@/lib/asset-transfer-draft':model
  });
  const props={locations:[{id:source,source_name:'Synthetic source'},{id:to,source_name:'Synthetic destination'}],choices:[{id:one,asset_code:'SYN-1',item_name:'Synthetic mixer',holdings:{[source]:4}},{id:two,asset_code:'SYN-2',item_name:'Synthetic scale',holdings:{[source]:2}}],requestKey:'synthetic-key',today:'2026-10-24',canSubmit:ready};
- const tree=()=>AssetTransferBatchForm(props);
+ const tree=(overrides={})=>AssetTransferBatchForm({...props,...overrides});
  function nodes(node,match){if(!node)return[];if(Array.isArray(node))return node.flatMap(x=>nodes(x,match));if(!React.isValidElement(node))return[];return[...(match(node)?[node]:[]),...nodes(node.props.children,match)];}
  return {tree,nodes,focused,get draft(){return draft},picker:()=>nodes(tree(),n=>n.type===Picker)[0],change:(name,value)=>nodes(tree(),n=>n.props.name===name)[0].props.onChange({target:{value}}),html:()=>renderToStaticMarkup(tree())};
 }
@@ -38,6 +38,15 @@ test('shared multi-picker adds directly, retains details and quantities through 
 test('pending and uncertain outcomes keep the request, disable only pending edits and never display false success',()=>{
  const h=harness({pending:true,message:'Synthetic result not confirmed'});assert.equal(h.nodes(h.tree(),n=>n.type==='fieldset')[0].props.disabled,true);assert.match(h.html(),/role="alert"/);assert.doesNotMatch(h.html(),/Open transfer/);
  assert.doesNotMatch(harness({ok:true}).html(),/Open transfer/);
+});
+test('restored transfer inputs retain their original request identity when the route supplies a fresh key',()=>{
+ const h=harness();h.tree();h.change('reason','Retry the original transfer');h.picker().props.onSelect({id:one});h.change('quantity_'+one,'3');
+ const restored=h.tree({requestKey:two});
+ assert.equal(h.nodes(restored,n=>n.props.name==='client_key')[0].props.value,'synthetic-key');
+ assert.equal(h.draft.selected[one],'3');assert.equal(h.draft.reason,'Retry the original transfer');
+ const draft={...h.draft,requestKey:one};assert.equal(model.validTransferDraft(draft),true);
+ for(const requestKey of ['',null,12,'invalid-key'])assert.equal(model.validTransferDraft({...draft,requestKey}),false);
+ const {requestKey,...legacy}=draft;assert.equal(model.validTransferDraft(legacy),true);
 });
 test('draft validation retains selection across source changes but rejects missing holdings, bad dates, quantities and duplicate destinations',()=>{
  const choices=[{id:one,asset_code:'SYN-1',item_name:'Synthetic mixer',holdings:{[source]:4}}],locations=[{id:source},{id:to}];

@@ -1,3 +1,4 @@
+import { productAvailableOn } from "@/lib/production-planning/availability";
 import { insightRange, insightPeriod } from "@/lib/outlet-insight-period";
 import { readCompletePages } from "@/server/queries/read-complete-pages";
 import { isMockMode, mockBranches, mockProducts } from "@/lib/mock-mode";
@@ -261,7 +262,7 @@ export const getOutletDailyFormOptions = cache(async function getOutletDailyForm
       branches,
       products: sortProductsForDisplay((includeProducts ? mockProducts : []).filter((row) => {
         const seasonal = row as typeof row & { is_seasonal?: boolean; available_from?: string | null; available_until?: string | null };
-        return row.status === "active" && (!recordDate || !seasonal.is_seasonal || ((!seasonal.available_from || seasonal.available_from <= recordDate) && (!seasonal.available_until || seasonal.available_until >= recordDate)));
+        return row.status === "active" && (!recordDate || productAvailableOn(seasonal, recordDate));
       })),
       defaultBranchId: branches.length === 1 ? branches[0].id : undefined,
       defaultsByBranch: {},
@@ -280,7 +281,7 @@ export const getOutletDailyFormOptions = cache(async function getOutletDailyForm
   if (branchError) throw new Error(branchError.message);
   if (productError) throw new Error(productError.message);
   const activeBranches = requireReadRows(branches, "Outlet daily branch options");
-  const activeProducts = requireReadRows(products, "Outlet daily product options").filter(product => !recordDate || !product.is_seasonal || ((!product.available_from || product.available_from <= recordDate) && (!product.available_until || product.available_until >= recordDate)));
+  const activeProducts = requireReadRows(products, "Outlet daily product options").filter(product => !recordDate || productAvailableOn(product, recordDate));
   const profileDefaultBranchId = profile && "default_branch_id" in profile ? profile.default_branch_id : null;
   if (canViewAll) {
     const branchesForForm = activeBranches;

@@ -35,7 +35,7 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
   const detail = await detailOrNotFound(getOutletDailyRecord(id));
   const source = await Promise.all([
     Promise.resolve(detail),
-    getOutletDailyFormOptions(),
+    getOutletDailyFormOptions(detail.record.record_date),
     getPermissionMap(["outlet_daily_record.update", "outlet_daily_record.qty_sent", "outlet_daily_record.post", "outlet_daily_record.void"]),
     getOutletDailyActivity(id),
   ]).catch((error) => {
@@ -143,6 +143,6 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
     <OutletDailyDoSources recordId={record.id} companyId={record.company_id} managed={lines.some((line) => line.do_managed)} />
     <input form={formId} type="hidden" name="expected_revision" value={record.edit_revision} />
     <input form={formId} type="hidden" name="record_id" value={record.id} />
-    <OutletDailyRecordForm salesSettings={salesSettings} formId={formId} action={saveOutletDailyRecord} branches={options.branches} products={products} lines={lines} branchId={record.branch_id} recordDate={record.record_date} notes={record.notes} sales={{ pos_total_sales: record.pos_total_sales, sales_variance_reason: record.sales_variance_reason, breakdown: sales }} validationError={messages.error} locked={locked} canEditHeader={canEditOutletValues} canEditQtySent={canEditQtySent} canEditOutletValues={canEditOutletValues} />
+    <OutletDailyRecordForm salesSettings={salesSettings} formId={formId} action={saveOutletDailyRecord} branches={options.branches} products={products} lines={lines} branchId={record.branch_id} recordDate={record.record_date} recordStatus={record.status} notes={record.notes} sales={{ pos_total_sales: record.pos_total_sales, sales_variance_reason: record.sales_variance_reason, breakdown: sales }} validationError={messages.error} locked={locked} canEditHeader={canEditOutletValues} canEditQtySent={canEditQtySent} canEditOutletValues={canEditOutletValues} />
   </DocumentWorkspace>;
 }

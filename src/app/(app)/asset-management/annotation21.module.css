@@ -80,4 +80,4 @@
 
 .inspectionPanel { display: flex; flex-direction: column; overflow: hidden; max-height: min(28rem, 55dvh); }
 .inspectionPanel > :first-child { flex-shrink: 0; }
-@media(min-width:1024px) { .inspectionPanel { max-height: max(20rem, calc(100dvh - 24rem)); } }
+@media(min-width:1024px) { .inspectionPanel { contain: size; min-height: 12rem; max-height: none; } }

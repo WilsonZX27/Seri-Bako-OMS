@@ -1,0 +1,23 @@
+[
+  {
+    "status": 409,
+    "message": "An active OT claim already exists for this day. Refresh attendance to review its status.",
+    "inputPreserved": true
+  },
+  {
+    "status": 404,
+    "message": "Attendance service returned an unexpected response.",
+    "inputPreserved": true
+  },
+  {
+    "status": 503,
+    "message": "Service temporarily unavailable.",
+    "inputPreserved": true
+  },
+  {
+    "status": 200,
+    "refresh": true,
+    "visibleStatus": "Submitted",
+    "note": "synthetic server persisted flag; not database-backed UI"
+  }
+]

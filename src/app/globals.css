@@ -938,7 +938,7 @@ details[open] > summary::after { transform: rotate(225deg); }
   .production-sheet-print th, .production-sheet-print td { border: 0; border-bottom: 1px solid #d8e1dc; padding: 5px 4px; vertical-align: middle; white-space: normal; overflow-wrap: anywhere; font-size: 9px; text-align: right; }
   .production-sheet-print th { background: #eaf0ed !important; color: #164e3d; font-size: 8px; font-weight: bold; position: static !important; }
   .production-sheet-print :is(th,td):nth-child(-n+2) { text-align: left; }
-  .production-sheet-print tbody tr:nth-child(even) { background: #f6f8f7 !important; }
+
   .production-sheet-print .production-document-rotated-heading { vertical-align: bottom; text-align: center; padding: 8px 4px; }
   .production-sheet-print .production-document-rotated-heading span { display: inline-block; writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; overflow-wrap: normal; text-align: left; }
   .production-sheet-print thead { display: table-header-group; }

@@ -173,6 +173,7 @@ export function ActualAttendancePanel(props: Props) {
     value: "approve" | "reject",
     requiresWaiver = false,
   ) {
+    setMessage("");
     setDecision({ kind, id, decision: value, requiresWaiver });
     requestAnimationFrame(() => decisionDialog.current?.showModal());
   }
@@ -693,6 +694,7 @@ export function ActualAttendancePanel(props: Props) {
               className="rounded-[var(--sb-radius-control)] border px-3 py-2"
             />
           </label>
+          {message ? <p role="alert" className="rounded-[var(--sb-radius-control)] bg-rose-50 p-3 text-xs text-rose-800">{message}</p> : null}
           <div className="sticky bottom-0 z-10 -mx-4 flex justify-end gap-2 border-t border-border bg-white px-4 py-3 sm:-mx-5 sm:px-5">
             <Button
               type="button"

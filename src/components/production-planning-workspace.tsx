@@ -106,12 +106,12 @@ export function ProductionPlanningWorkspace(props:Props) {
   || (a.branchId?outlets.findIndex(o=>o.id===a.branchId)+1:0)-(b.branchId?outlets.findIndex(o=>o.id===b.branchId)+1:0));
  const gaps=checks.length+unavailableProducts.length;
 
- const altered=(a:Allocation)=>(a.suggested_qty!==null&&a.approved_qty!==a.suggested_qty)||(a.approved_qty!==null&&a.approved_qty<Math.max(a.minimum_qty??0,a.evidence.reductionFloor??0)+a.event_qty);
  const num=(value:number|null)=>value===null?"—":formatNumber(value);
  const allocationCell=(a:Allocation)=> <div className="space-y-1" data-allocation-cell>
-  <div className="flex items-center gap-1">{editable?<Input aria-label={`${products.find(p=>p.id===a.product_id)?.product_name} to ${outlets.find(o=>o.id===a.branch_id)?.branch_name}`} className="min-w-0 flex-1 text-right tabular-nums" type="number" min="0" step="1" inputMode="numeric" value={a.approved_qty??""} placeholder="Manual" onChange={e=>editAllocation(a.product_id,a.branch_id,"approved_qty",e.target.value)}/>:<span className="ml-auto tabular-nums">{num(a.approved_qty)}</span>}
+  <p className="flex items-center justify-between gap-1 text-xs text-muted-foreground"><span>Suggested</span><span className="tabular-nums">{num(a.suggested_qty)}</span></p>
+  <div className="flex items-center justify-between gap-1"><span className="text-xs text-muted-foreground">{editable?"Manual":"Quantity"}</span>{editable?<Input aria-label={`${products.find(p=>p.id===a.product_id)?.product_name} to ${outlets.find(o=>o.id===a.branch_id)?.branch_name}`} className="sb-planning-allocation-input shrink-0 text-right tabular-nums" type="number" min="0" step="1" inputMode="numeric" value={a.approved_qty??""} placeholder="—" onChange={e=>editAllocation(a.product_id,a.branch_id,"approved_qty",e.target.value)}/>:<span className="ml-auto tabular-nums">{num(a.approved_qty)}</span>}
   </div>
-  {altered(a)?<p className="text-xs text-muted-foreground">{a.suggested_qty===null?"Manual quantity":`Suggested ${num(a.suggested_qty)}`}{!working&&a.reason?` · ${a.reason}`:""}</p>:null}
+  {!working&&a.reason?<p className="text-xs text-muted-foreground">{a.reason}</p>:null}
   {a.evidence.carryover?.status==="confirmed"&&a.evidence.carryover.deducted>0?<p className="text-xs text-muted-foreground">Stock −{num(a.evidence.carryover.deducted)}</p>:null}
   {a.evidence.stockoutRisk?<p className="text-xs text-muted-foreground" title="Previous sales may be limited because this product sold out. Review the suggestion evidence.">Prior sell-out</p>:null}
   {a.event_qty>0?<p className="text-xs text-muted-foreground">Event +{num(a.event_qty)}</p>:null}

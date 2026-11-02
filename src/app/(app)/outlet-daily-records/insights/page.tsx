@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { OutstandingDailyRecords } from "@/components/outstanding-daily-records";
-import { insightPeriod, insightRange, insightDelta } from "@/lib/outlet-insight-period";
+import { insightPeriod, insightRange } from "@/lib/outlet-insight-period";
 import { addDays } from "@/lib/production-planning/forecast";
 import { ChartNoAxesCombined, Package, Store, ClipboardCheck, Search } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
@@ -9,6 +9,7 @@ import { ConsoleSection } from "@/components/layout/right-console";
 import { WorkspaceTabs } from "@/components/ui/workspace-tabs";
 import { OutletDailyWorkspaceNav } from "@/components/outlet-daily-workspace-nav";
 import { OutletDailyWastageOverview } from "@/components/outlet-daily-wastage-overview";
+import { OutletDailyInsightMetrics } from "@/components/outlet-daily-insight-metrics";
 import { OutletDailyWastageChart } from "@/components/outlet-daily-wastage-chart";
 import { OutletDailyCompletionMatrix } from "@/components/outlet-daily-completion-matrix";
 import { FilterBar } from "@/components/ui/filter-bar";
@@ -19,7 +20,7 @@ import { Notice } from "@/components/ui/system-states";
 import { getOutletDailyHistoricalContext, getOutletDailyDemandTrend, getOutletDailyCompletionMatrix, getOutletDailyFormOptions, getOutletDailyWastageCostSummary } from "@/server/queries/outlet-daily-records";
 import { hasPermission } from "@/server/auth/permissions";
 import { todayInKualaLumpur } from "@/lib/business-date";
-import { formatDateOnly, formatNumber } from "@/lib/utils";
+import { formatDateOnly } from "@/lib/utils";
 import { logServerError } from "@/server/observability/logger";
 
 export default async function OutletDailyInsightsPage({ searchParams }: { searchParams: Promise<Record<string,string|undefined>> }) {
@@ -57,7 +58,7 @@ export default async function OutletDailyInsightsPage({ searchParams }: { search
    <SelectControl name="branch" value={filters.branch??"all"} ariaLabel="Outlet" options={[{value:"all",label:"All outlets"},...options.branches.map(b=>({value:b.id,label:b.branch_name}))]}/>
   </FilterBar>
   <WorkspaceTabs className="sb-daily-insights-report-tabs" prefetchOnIntent label="Insight report" current={report} items={tabs}/>
-  {trend?<><dl className="sb-daily-insights-metrics sb-work-surface grid grid-cols-3 divide-x divide-[var(--sb-border-soft)] text-xs">{[{label:"Received",current:trend.summary.received,prior:previous?.summary.received,rate:false},{label:"Wastage",current:trend.summary.wastage,prior:previous?.summary.wastage,rate:false},{label:"Wastage rate",current:trend.summary.received>0?trend.summary.wastage/trend.summary.received*100:null,prior:previous&&previous.summary.received>0?previous.summary.wastage/previous.summary.received*100:null,rate:true}].map(metric=>{const current=trend.coverage.reliable_lines?metric.current:null;const prior=previous?.coverage.reliable_lines?metric.prior??null:null;const delta=insightDelta(current,prior);return <div key={metric.label} className="p-3"><dt className="text-muted-foreground">{metric.label}</dt><dd className="mt-1 text-base font-semibold tabular-nums">{current===null?"—":`${formatNumber(current)}${metric.rate?"%":""}`}</dd>{compare&&comparable?<><p className="mt-1 text-muted-foreground">Previous {prior===null?"—":`${formatNumber(prior)}${metric.rate?"%":""}`}</p><p className={`mt-1 tabular-nums ${metric.label!=="Received"&&delta?.absolute?delta.absolute>0?"text-[var(--sb-danger)]":"text-[var(--sb-success)]":"text-muted-foreground"}`}>{delta?`${delta.absolute>0?"+":""}${formatNumber(delta.absolute)}${metric.rate?" pp":delta.percent===null?" · no % baseline":` (${delta.percent>0?"+":""}${formatNumber(delta.percent)}%)`}`:"No comparable data"}</p></>:null}</div>;})}</dl>{compare&&!comparable&&previousResult[0]?.status!=="rejected"?<p className="text-xs text-muted-foreground">Comparison needs verified quantities in both periods.</p>:null}{compare?<p className="text-xs text-muted-foreground">{formatDateOnly(range.start)} - {formatDateOnly(end)} versus {formatDateOnly(range.previousStart)} - {formatDateOnly(range.previousEnd)}. {trend.coverage.completed<trend.coverage.expected||!previous||previous.coverage.completed<previous.coverage.expected?"Partial coverage: changes compare recorded totals, not a complete like-for-like period.":"Both periods have complete outlet-day coverage."}</p>:null}{compare&&previousResult[0]?.status==="rejected"?<Notice tone="warning" title="Comparison unavailable">The current period is shown. Reload to retry the previous period.</Notice>:null}</>:null}
+  {trend?<><OutletDailyInsightMetrics trend={trend} previous={previous} compare={compare}/>{compare&&!comparable&&previousResult[0]?.status!=="rejected"?<p className="text-xs text-muted-foreground">Comparison needs verified quantities in both periods.</p>:null}{compare?<p className="text-xs text-muted-foreground">{formatDateOnly(range.start)} - {formatDateOnly(end)} versus {formatDateOnly(range.previousStart)} - {formatDateOnly(range.previousEnd)}. {trend.coverage.completed<trend.coverage.expected||!previous||previous.coverage.completed<previous.coverage.expected?"Partial coverage: changes compare recorded totals, not a complete like-for-like period.":"Both periods have complete outlet-day coverage."}</p>:null}{compare&&previousResult[0]?.status==="rejected"?<Notice tone="warning" title="Comparison unavailable">The current period is shown. Reload to retry the previous period.</Notice>:null}</>:null}
   {loaded.status==="rejected"?<Notice tone="warning" title="Insight unavailable">Reload to retry.</Notice>:report==="completion"?<OutletDailyCompletionMatrix dates={completion?.dates??[]} rows={completion?.rows??[]} summary={completion?.summary??null} canCreate={canCreate}/>:report==="trend"?<OutletDailyWastageChart points={trend?.daily??[]} branch={filters.branch}/>:<OutletDailyWastageOverview previous={previous?{outlets:previous.outlets,top_wastage_products:previous.top_wastage_products}:null} trend={trend?{outlets:trend.outlets,top_wastage_products:trend.top_wastage_products}:null} view={report==="products"?"products":"outlets"}/>}
  </WorkspaceGrid></>;
 }

@@ -1,0 +1,38 @@
+[
+  {
+    "width": 390,
+    "selector": ".unified-list-filter-badge",
+    "dx": -0.0078125,
+    "dy": -0.1953125
+  },
+  {
+    "width": 390,
+    "selector": ".badge",
+    "dx": 0,
+    "dy": -0.5
+  },
+  {
+    "width": 820,
+    "selector": ".unified-list-filter-badge",
+    "dx": -0.0078125,
+    "dy": -0.1953125
+  },
+  {
+    "width": 820,
+    "selector": ".badge",
+    "dx": 0,
+    "dy": -0.5
+  },
+  {
+    "width": 1440,
+    "selector": ".unified-list-filter-badge",
+    "dx": 0,
+    "dy": 0
+  },
+  {
+    "width": 1440,
+    "selector": ".badge",
+    "dx": 0,
+    "dy": -0.5
+  }
+]

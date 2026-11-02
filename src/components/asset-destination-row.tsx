@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { Pencil, Power } from "lucide-react";
 import { useActionState, useCallback, useEffect, useState } from "react";
 import { updateAssetOtherLocation } from "@/server/actions/assets";
 import { Button } from "@/components/ui/button";
@@ -27,7 +28,7 @@ export function AssetDestinationRow({ row }: { row: AssetDestination }) {
   return <li className="flex min-w-0 flex-wrap items-center justify-between gap-3 py-4">
     {editing ? <DestinationEditor row={row} onDone={done} deactivate={deactivate}/> : <>
       <div className="min-w-0"><Link href={`/asset-management/locations/${row.id}`} className="break-words text-sm hover:underline [overflow-wrap:anywhere]" title="View assets and history">{row.source_name}</Link>{!row.other_active ? <span className="ml-2 text-xs text-muted-foreground">Inactive</span> : null}</div>
-      <div className="ml-auto flex shrink-0 items-center gap-2"><Button type="button" variant="outline" onClick={()=>{setDeactivate(false);setEditing(true);}}>Edit</Button><Button type="button" variant="ghost" className={row.other_active ? "text-[var(--sb-danger)]" : "text-[var(--sb-green-800)]"} onClick={()=>{setDeactivate(true);setEditing(true);}}>{row.other_active ? "Deactivate" : "Reactivate"}</Button></div>
+      <div className="ml-auto flex shrink-0 items-center gap-2"><Button type="button" variant="ghost" size="icon" aria-label={`Edit ${row.source_name}`} title="Edit" onClick={()=>{setDeactivate(false);setEditing(true);}}><Pencil className="h-4 w-4"/></Button><Button type="button" variant="ghost" size="icon" aria-label={`${row.other_active ? "Deactivate" : "Reactivate"} ${row.source_name}`} title={row.other_active ? "Deactivate" : "Reactivate"} className={row.other_active ? "text-[var(--sb-danger)]" : "text-[var(--sb-green-800)]"} onClick={()=>{setDeactivate(true);setEditing(true);}}><Power className="h-4 w-4"/></Button></div>
     </>}
   </li>;
 }

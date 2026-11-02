@@ -16,7 +16,7 @@ export function OutletDailyWastageChart({ points, branch, unavailable = false }:
   const inset = { top: 18, right: 18, bottom: 30, left: 54 };
   // Keep the scale stable at the business maximum. A 100% ceiling makes the
   // same rate comparable across outlets and avoids a small change looking like
-  // a large spike when the seven-day sample is low.
+  // a large spike when the selected sample is low.
   const maximum = 100;
   const totalReceived = points.reduce((sum, point) => sum + point.received, 0);
   const totalWastage = points.reduce((sum, point) => sum + point.wastage, 0);
@@ -43,9 +43,9 @@ export function OutletDailyWastageChart({ points, branch, unavailable = false }:
           <h2 id="outlet-wastage-trend-title" className="text-sm font-semibold">Period wastage rate</h2>
           <p className="text-xs text-muted-foreground">{branch && branch !== "all" ? "Selected outlet" : "All outlets combined"} · completed records only · rate = total wastage ÷ total received</p>
         </div>
-        <p className="text-xs text-muted-foreground">7-day rate <strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable ? "Unavailable" : totalReceived > 0 ? `${formatPercent(periodRate)}%` : "No receipts"}</strong></p>
+        <p className="text-xs text-muted-foreground">Selected period rate <strong className={unavailable ? "text-[var(--sb-warning)]" : "text-foreground"}>{unavailable ? "Unavailable" : totalReceived > 0 ? `${formatPercent(periodRate)}%` : "No receipts"}</strong></p>
       </div>
-      {unavailable ? <div className="px-4 py-8 text-center" role="status"><p className="text-sm font-medium">Wastage trend unavailable</p><p className="mt-1 text-xs text-muted-foreground">The daily record list remains current. Retry this page to load the selected 7-day insight.</p></div> : points.length ? (
+      {unavailable ? <div className="px-4 py-8 text-center" role="status"><p className="text-sm font-medium">Wastage trend unavailable</p><p className="mt-1 text-xs text-muted-foreground">The daily record list remains current. Retry this page to load the selected period insight.</p></div> : points.length ? (
       <div className="grid flex-1 items-stretch gap-3 p-2 pt-3 xl:grid-cols-[minmax(0,3fr)_minmax(18rem,2fr)] xl:p-3" data-outlet-wastage-layout>
         <div className="flex min-h-72 min-w-0 w-full flex-1 items-stretch xl:min-h-72" data-outlet-wastage-chart-panel>
           <InteractiveLineChart
@@ -59,9 +59,10 @@ export function OutletDailyWastageChart({ points, branch, unavailable = false }:
             ariaLabel={`Daily wastage percentage over ${points.length} recorded days`}
           />
           </div>
-          <div className="min-w-0 border-t border-[var(--sb-border-soft)] pt-2 text-xs lg:border-l lg:border-t-0 lg:pl-3 lg:pt-0">
+          <div className="flex min-h-0 min-w-0 flex-col border-t border-[var(--sb-border-soft)] pt-2 text-xs xl:border-l xl:border-t-0 xl:pl-3 xl:pt-0">
             <p className="font-medium text-primary">Daily data · {points.length} recorded day{points.length === 1 ? "" : "s"}</p>
-            <div className="mt-2 max-h-64 overflow-y-auto">
+            <div className="relative mt-2 min-h-0 flex-1">
+            <div className="max-h-80 overflow-y-auto xl:absolute xl:inset-0 xl:max-h-none" data-outlet-wastage-scroll>
               <div className="divide-y divide-[var(--sb-border-soft)] sm:hidden" role="list" aria-label="Daily wastage rate data" data-outlet-wastage-daily-list>
                 {points.map((point) => <div key={point.id} className="grid grid-cols-[5.75rem_minmax(0,1fr)] items-center gap-2 py-2 first:pt-0" role="listitem">
                   <Link className="inline-flex min-h-9 items-center font-semibold text-primary underline-offset-4 hover:underline" href={recordHref(point.name)}>{formatDateOnly(point.name)}</Link>
@@ -74,13 +75,14 @@ export function OutletDailyWastageChart({ points, branch, unavailable = false }:
               </div>
               <table className="hidden w-full text-left sm:table">
                 <caption className="sr-only">Daily wastage rate data</caption>
-                <thead><tr className="border-b text-muted-foreground"><th className="py-1.5 pr-3 font-medium">Date</th><th className="px-3 py-1.5 text-right font-medium">Received</th><th className="px-3 py-1.5 text-right font-medium">Wastage</th><th className="py-1.5 pl-3 text-right font-medium">Rate</th></tr></thead>
+                <thead className="sticky top-0 z-10 bg-[var(--sb-surface)]"><tr className="border-b text-muted-foreground"><th className="py-1.5 pr-3 font-medium">Date</th><th className="px-3 py-1.5 text-right font-medium">Received</th><th className="px-3 py-1.5 text-right font-medium">Wastage</th><th className="py-1.5 pl-3 text-right font-medium">Rate</th></tr></thead>
                 <tbody>{points.map((point) => <tr key={point.id} className="border-b border-[var(--sb-border-soft)]"><td className="py-1.5 pr-3"><Link className="text-primary underline-offset-4 hover:underline" href={recordHref(point.name)}>{formatDateOnly(point.name)}</Link></td><td className="px-3 py-1.5 text-right tabular-nums">{formatNumber(point.received)}</td><td className="px-3 py-1.5 text-right tabular-nums">{formatNumber(point.wastage)}</td><td className="py-1.5 pl-3 text-right tabular-nums">{formatPercent(point.wastage_percent)}%</td></tr>)}</tbody>
               </table>
             </div>
+            </div>
           </div>
         </div>
-      ) : <div className="px-4 py-8 text-center"><p className="text-sm font-medium">No completed records in these 7 days</p><p className="mt-1 text-xs text-muted-foreground">Choose another Calendar history date or complete an evening record.</p></div>}
+      ) : <div className="px-4 py-8 text-center"><p className="text-sm font-medium">No completed records in this period</p><p className="mt-1 text-xs text-muted-foreground">Choose another Calendar history date or complete an evening record.</p></div>}
     </section>
   );
 }

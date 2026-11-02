@@ -13,6 +13,8 @@ import { CalendarDays, ChevronDown, MapPin, Search, WalletCards } from "lucide-r
 
 import { salesChannelLabels, cardChannels, otherChannels, type SalesChannel } from "@/lib/outlet-sales-channels";
 
+import { omitEmptyDailyHistory } from "@/lib/outlet-daily-history";
+import { productAvailableOn } from "@/lib/production-planning/availability";
 import { dailyTracking, groupDailyProducts, type DailyTracking } from "@/lib/daily-product-tracking";
 
 type Branch = { id: string; branch_code: string; branch_name: string };
@@ -40,7 +42,7 @@ const EMPTY_LINES: Line[] = [];
 
 type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: string | null; breakdown?: Partial<Record<SalesChannel, number>> };
 
-  export function OutletDailyRecordForm({ formId, action, branches, products, lines = EMPTY_LINES, branchId, recordDate, notes, sales, validationError: serverValidationError, locked = false, canEditHeader = true, canEditQtySent = false, canEditOutletValues = true }: {
+  export function OutletDailyRecordForm({ formId, action, branches, products, lines = EMPTY_LINES, branchId, recordDate, recordStatus, notes, sales, validationError: serverValidationError, locked = false, canEditHeader = true, canEditQtySent = false, canEditOutletValues = true }: {
   formId: string;
   action: (formData: FormData) => Promise<void | { error: string }>;
   branches: Branch[];
@@ -48,6 +50,7 @@ type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: st
   lines?: Line[];
   branchId?: string;
   recordDate: string;
+  recordStatus?: string;
   notes?: string | null;
   sales?: SalesValues;
   defaultsByBranch?: Record<string, Record<string, DefaultLine>>;
@@ -77,8 +80,19 @@ type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: st
   const [selectedRecordDate, setSelectedRecordDate] = useState(recordDate);
   const [setupOpen, setSetupOpen] = useState(!(initialBranchId && recordDate));
   const lineByProduct = useMemo(() => new Map(lines.map((line) => [line.product_id, line])), [lines]);
-  const productGroups = useMemo(() => groupDailyProducts(products, (product) => dailyTracking(product, lineByProduct.get(product.id)?.daily_tracking)), [products, lineByProduct]);
-  const availableProductIds = useMemo(() => new Set(products.filter(product => product.status === "active" && (!product.is_seasonal || ((!product.available_from || product.available_from <= selectedRecordDate) && (!product.available_until || product.available_until >= selectedRecordDate)))).map(product => product.id)), [products, selectedRecordDate]);
+  // Keep the initial omission set stable so changing dates cannot unmount edited rows.
+  const [omittedHistoryIds] = useState(() => {
+    const omitted = new Set(products.filter(product =>
+      omitEmptyDailyHistory(lines.find(line => line.product_id === product.id), recordStatus,
+        product.status === "active" && productAvailableOn(product, recordDate), locked)
+    ).map(product => product.id));
+    // The existing RPC needs at least one line, including for remarks-only saves.
+    const hasRetainedLine = products.some(product => !omitted.has(product.id) &&
+      (lines.some(line => line.product_id === product.id) || product.status === "active" && productAvailableOn(product, recordDate)));
+    return hasRetainedLine ? omitted : new Set<string>();
+  });
+  const productGroups = useMemo(() => groupDailyProducts(products.filter(product => !omittedHistoryIds.has(product.id)), (product) => dailyTracking(product, lineByProduct.get(product.id)?.daily_tracking)), [products, lineByProduct, omittedHistoryIds]);
+  const availableProductIds = useMemo(() => new Set(products.filter(product => product.status === "active" && productAvailableOn(product, selectedRecordDate)).map(product => product.id)), [products, selectedRecordDate]);
   // Existing lines remain part of the record even after a season ends.
   const includedProductIds = new Set([...availableProductIds, ...lines.map(line => line.product_id)]);
   const normalizedSearch = productSearch.trim().toLowerCase();

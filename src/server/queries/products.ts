@@ -13,6 +13,7 @@ type ProductFilters = {
   sort?: string;
   dir?: string;
   page?: string;
+  includeOutsideSupplyPeriod?: boolean;
 };
 
 function compareValues(a: unknown, b: unknown, direction: string) {
@@ -41,7 +42,7 @@ function filterProducts<T extends { product_code: string; product_name: string; 
     const matchesCategory = category ? product.category === category : true;
     const withinSupplyPeriod = (!product.available_from || product.available_from <= today)
       && (!product.available_until || product.available_until >= today);
-    return matchesSearch && matchesStatus && matchesCategory && (status === "inactive" || withinSupplyPeriod);
+    return matchesSearch && matchesStatus && matchesCategory && (filters.includeOutsideSupplyPeriod || status === "inactive" || withinSupplyPeriod);
   });
   return sort ? filtered.sort((a, b) => compareValues(a[sort as keyof T], b[sort as keyof T], dir)) : sortProductsForDisplay(filtered);
 }
@@ -74,10 +75,11 @@ export async function getProducts(filters: ProductFilters = {}) {
 
 /** Keep filtered reads separate: database row caps apply before local filtering. */
 export async function getProductsWorkspace(filters: ProductFilters = {}) {
+  filters = {...filters, includeOutsideSupplyPeriod: true};
   const needsSummaryRead = Boolean(filters.search?.trim()
     || (filters.status && filters.status !== "all")
     || (filters.category && filters.category !== "all"));
-  const summaryPromise = needsSummaryRead ? getProducts() : null;
+  const summaryPromise = needsSummaryRead ? getProducts({includeOutsideSupplyPeriod:true}) : null;
   const [products, summary] = await Promise.all([getProducts(filters), summaryPromise]);
   const allProducts = summary ?? products;
   return {

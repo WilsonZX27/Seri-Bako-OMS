@@ -206,16 +206,18 @@ export async function getItemsWithStockPage(filters: ItemFilters = {}) {
   };
 }
 
-export async function getRetiredBranchStockCountItems() {
-  if (isMockMode()) return [];
+export async function getRetiredBranchStockCountItems(filters: ItemFilters = {}) {
+  if (isMockMode()) return { rows: [] as RetiredBranchStockCountItem[], totalRows: 0, page: 1, totalPages: 1 };
   const supabase = await createClient();
-  const { data, error } = await looseSupabase(supabase)
-    .from("branch_stock_count_items")
-    .select("id,item_id,branch_id,retirement_reason,retirement_note,last_physical_qty,retired_at,item:items(item_code,item_name,base_unit),branch:branches(branch_name)")
-    .eq("status", "retired")
-    .order("retired_at", { ascending: false });
-  if (error) throw new Error(error.message);
-  return (data ?? []) as RetiredBranchStockCountItem[];
+  const { data, error } = await looseSupabase(supabase).rpc("get_retired_items_workspace", { p_filters: filters });
+  if (error) throw new Error(`Retired items could not be loaded: ${error.message}`);
+  const payload = data as { rows?: RetiredBranchStockCountItem[]; total_rows?: number; page?: number; total_pages?: number } | null;
+  if (!payload || !Array.isArray(payload.rows) || typeof payload.total_rows !== "number" || !Number.isSafeInteger(payload.total_rows) || payload.total_rows < 0
+      || typeof payload.page !== "number" || !Number.isSafeInteger(payload.page) || payload.page < 1
+      || typeof payload.total_pages !== "number" || !Number.isSafeInteger(payload.total_pages) || payload.page > payload.total_pages) {
+    throw new Error("Retired items returned an incomplete page.");
+  }
+  return { rows: payload.rows, totalRows: payload.total_rows, page: payload.page, totalPages: payload.total_pages };
 }
 
 export async function getItem(id: string) {

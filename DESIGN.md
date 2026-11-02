@@ -1,3 +1,7 @@
+# Local follow-up — Retired Items query contract (not deployed)
+
+Retired view uses a separate RLS-scoped read-only RPC for search, primary supplier, safety-stock and visible-inventory filters, stable sorting, exact branch-item record count and 15-row pagination. Unknown/inaccessible inventory is never classified healthy. Ordinary Items and restore actions are unchanged. Requires separately reviewed SQL installation before any matching app release; production remains174.
+
 # v9.2.174 (Preview candidate) — Destination loading and catalog reads
 
 Preserve all173 features. Wire47 existing form/detail loading boundaries, retain3 nested list boundaries, and remove only the redundant Import result enclosure. Products without filters reuse one full read; filtered summary semantics remain unchanged. Ordinary Items skip unused retired reads. Items uses the existing form-owned status selector, matching Branches, to prevent competing router and form navigation from resetting the retired filter. No SQL, permissions, business writes, Supplier Items pagination or global performance claim. Authenticated Preview and physical iPad acceptance remain pending.

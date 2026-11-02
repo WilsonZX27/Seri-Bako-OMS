@@ -80,7 +80,7 @@ test('actual Items page skips only unused retired read, keeps summary, supplier 
   for (const status of [undefined, 'active', 'inactive', 'all', 'retired']) {
     let retiredCalls = 0, itemCalls = 0, supplierCalls = 0, permissionCalls = 0;
     const page = load('src/app/(app)/items/page.tsx', {
-      '@/server/queries/items': { getItemsWithStockPage: async f => { itemCalls++; assert.equal(f.status, status === 'retired' ? 'all' : status); return { summary: { active: 1, inactive: 1, low_stock: 0 }, rows: [], totalRows: 0 }; }, getRetiredBranchStockCountItems: async () => { retiredCalls++; return [{ id: 'retired', item_id: 'i', branch: null, item: null }]; } },
+      '@/server/queries/items': { getItemsWithStockPage: async f => { itemCalls++; assert.equal(f.status, status === 'retired' ? 'all' : status); return { summary: { active: 1, inactive: 1, low_stock: 0 }, rows: [], totalRows: 0 }; }, getRetiredBranchStockCountItems: async () => { retiredCalls++; return { rows: [{ id: 'retired', item_id: 'i', branch: null, item: null }], totalRows: 1, page: 1, totalPages: 1 }; } },
       '@/server/actions/items': { restoreBranchStockCountItem() {} }, '@/server/queries/common': { getSuppliersForSelect: async () => { supplierCalls++; return []; } },
       '@/server/auth/permissions': { getPermissionMap: async () => { permissionCalls++; return {}; } },
       '@/lib/utils': {}, '@/lib/table-state': { hasActiveFilters: () => false },
@@ -125,4 +125,38 @@ test("Items status selection has one query owner and retains retirement option",
   assert.doesNotMatch(source, /StatusTabs/);
   assert.match(source, /leadingFilter=\{<SelectControl[\s\S]*name="status"/);
   assert.match(source, /value: "retired", label: "Retired from counts"/);
+});
+
+// Actual page uses the RPC total, never the current page length.
+test('Items count follows view semantics across filters, pages and return navigation', async () => {
+  for (const status of ['all', 'retired', 'all', 'retired']) {
+    for (const search of ['', 'needle', 'no-match']) for (const pageNumber of ['1', '2', '999']) {
+      const expectedTotal = search === 'no-match' ? 0 : 826;
+      let headerProps;
+      const Header = () => null;
+      const page = load('src/app/(app)/items/page.tsx', {
+        '@/components/master-data-filters': { MasterDataFilters: Header },
+        '@/server/queries/items': {
+          getItemsWithStockPage: async () => ({ summary: { active: 826, inactive: 0, low_stock: 0 }, rows: [], totalRows: expectedTotal }),
+          getRetiredBranchStockCountItems: async f => { assert.equal(f.page, pageNumber); assert.equal(f.search, search); return { rows: Array.from({ length: search === 'no-match' ? 0 : 15 }, (_, i) => ({ id: String(i), item_id: String(i), branch: null, item: null })), totalRows: search === 'no-match' ? 0 : 1202, page: 1, totalPages: 81 }; },
+        },
+        '@/server/actions/items': { restoreBranchStockCountItem() {} },
+        '@/server/queries/common': { getSuppliersForSelect: async () => [] },
+        '@/server/auth/permissions': { getPermissionMap: async () => ({}) },
+        '@/lib/utils': {}, '@/lib/table-state': { hasActiveFilters: () => Boolean(search) },
+      }).default;
+      const tree = await page({ searchParams: Promise.resolve({ status, search, page: pageNumber }) });
+      function visit(node) {
+        if (Array.isArray(node)) return node.forEach(visit);
+        if (!node || typeof node !== 'object') return;
+        if (node.type === Header) headerProps = node.props;
+        visit(node.props?.children);
+      }
+      visit(tree);
+      assert.ok(headerProps);
+      assert.equal(headerProps.resultCount, status === 'retired' ? (search === 'no-match' ? 0 : 1202) : expectedTotal);
+      assert.equal(headerProps.search, search);
+      assert.equal(headerProps.resetHref, '/items');
+    }
+  }
 });

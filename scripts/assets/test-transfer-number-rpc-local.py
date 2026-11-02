@@ -33,7 +33,9 @@ def batch(key=None,actor=20,source=31,dest=32,assets=(40,41),qty=1):
  key=key or str(uuid.uuid4());lines=json.dumps([{'asset_id':id(a),'quantity':qty} for a in assets]);return f"select request_asset_transfer_batch('{id(source)}','{id(dest)}','Full RPC batch','{lines}'::jsonb,'{key}',null,date '2026-11-02');"
 # Baseline legacy transfer exists before number schema and stays unchanged.
 legacy=run(session()+single());run(f"update asset_transfers set source_id='LEGACY-42' where id='{legacy}'");before_history=run('select count(*) from asset_transfer_updates');
-proposal=pathlib.Path('docs/v10/proposals/asset-transfer-number-review-only.sql').read_text();hashes['number_sql']=hashlib.sha256(proposal.encode()).hexdigest();run(proposal.replace('rollback; -- installation','commit; -- installation'))
+proposal=pathlib.Path('sql-candidates/383_asset_transfer_numbers.INSTALL-CANDIDATE.sql').read_text();hashes['number_sql']=hashlib.sha256(proposal.encode()).hexdigest();run(proposal)
+assert run("select to_regclass('public.asset_transfer_numbers') is not null")=='t'
+assert run('select count(*) from asset_transfer_numbering_activation')=='0'
 assert run('select count(*) from asset_transfer_numbers')=='0'
 run(f"insert into document_sequences(company_id,document_type,prefix,padding,reset_frequency,status) values('{id(1)}','asset_transfer','AT',3,'never','inactive'),('{id(2)}','asset_transfer','AT',3,'never','active');")
 disabled=run(session()+single());assert run(f"select count(*) from asset_transfer_numbers where document_id='{disabled}'")=='0'

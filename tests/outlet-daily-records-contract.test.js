@@ -95,7 +95,7 @@ test("historical outlet records use the same product family order as new records
 });
 
 test("daily record groups retain the requested order without redundant field hints", () => {
-  assert.match(form, /groupDailyProducts\(products,/);
+  assert.match(form, /groupDailyProducts\(products\.filter\(product => !omittedHistoryIds\.has\(product\.id\)\),/);
   assert.match(read("src/lib/daily-product-tracking.ts"), /food_daily: "Foods \(Expiry: Daily\)", food_carryover: "Foods \(Expiry: Next day\)", beverage: "Beverage", packaging: "Packaging"/);
   assert.doesNotMatch(form, /Qty sent · qty receive/);
 });

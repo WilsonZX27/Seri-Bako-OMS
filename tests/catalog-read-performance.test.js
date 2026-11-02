@@ -45,9 +45,9 @@ function products(rows, cap = Infinity, failSummary = false, reorderProjection =
 }
 const fixture = n => Array.from({ length: n }, (_, i) => ({ id: `p${i}`, company_id: 'visible-only', product_code: `SC${i}`, product_name: `Product ${i}`, category: i % 2 ? 'B' : 'A', status: i % 3 ? 'active' : 'inactive', available_from: i % 7 ? null : '2026-12-01', available_until: i % 11 ? null : '2026-10-01', description: 'x'.repeat(150), selling_unit: 'PCS' }));
 for (const filters of [{}, { status: 'all', sort: 'product_name', dir: 'desc' }, { search: 'product 2' }, { category: 'B', sort: 'status' }, { status: 'inactive' }, { status: 'active', search: 'SC', category: 'A', dir: 'desc', sort: 'product_code' }, { status: 'invalid' }]) {
-  test(`workspace preserves original capped list and global metadata ${JSON.stringify(filters)}`, async () => {
+  test(`management workspace includes outside-season catalogue with consistent metadata ${JSON.stringify(filters)}`, async () => {
     const old = products(fixture(120), 37);
-    const [list, all] = await Promise.all([old.queries.getProducts(filters), old.queries.getProducts()]);
+    const [list, all] = await Promise.all([old.queries.getProducts({...filters,includeOutsideSupplyPeriod:true}), old.queries.getProducts({includeOutsideSupplyPeriod:true})]);
     const next = products(fixture(120), 37);
     const result = await next.queries.getProductsWorkspace(filters);
     assert.equal(JSON.stringify(result.products), JSON.stringify(list));
@@ -66,7 +66,7 @@ test('scale comparison: five samples per size, unchanged results and reduced que
   for (const n of [100, 1000, 10000]) for (const filters of [{}, { category: 'B' }]) {
     const samples = [];
     for (let i = 0; i < 5; i++) {
-      const old = products(fixture(n)); await Promise.all([old.queries.getProducts(filters), old.queries.getProducts()]);
+      const old = products(fixture(n)); await Promise.all([old.queries.getProducts({...filters,includeOutsideSupplyPeriod:true}), old.queries.getProducts({includeOutsideSupplyPeriod:true})]);
       const next = products(fixture(n)); await next.queries.getProductsWorkspace(filters);
       const before = old.calls.reduce((s, c) => s + c.bytes, 0), after = next.calls.reduce((s, c) => s + c.bytes, 0);
       assert.ok(filters.category ? after === before : after < before); assert.equal(next.calls.length, filters.category ? 2 : 1);

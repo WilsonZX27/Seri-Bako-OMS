@@ -218,7 +218,7 @@ test("outlet daily entry uses labelled quantity rows on phones and reveals wasta
   assert.match(source, /className="min-w-0 px-2 text-center tabular-nums"/);
   assert.match(source, /required=\{Number\(wastage \|\| 0\) > 0\}/);
   assert.match(source, /setReason\("unsold"\)/);
-  assert.match(source, /aria-label=\{`Add remarks for \$\{product\.product_name\}`\}/);
+  assert.match(source, /aria-label=\{`\$\{product\.product_name\} remarks`\}/);
   assert.match(page, />Confirm Qty Sent<\/SubmitButton>/);
   assert.doesNotMatch(page, />Confirm Received<\/SubmitButton>/);
   assert.match(design, /body:has\(\[data-mobile-document-action\]\) \[data-long-mobile-form\][\s\S]*padding-bottom: calc\(2rem \+ env\(safe-area-inset-bottom\)\)/);

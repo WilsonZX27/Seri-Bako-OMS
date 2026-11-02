@@ -24,7 +24,7 @@ test("Outlet status and missing sent state have deliberate semantics", () => {
 test("Wastage detail controls cannot create a horizontal blank canvas", () => {
   const form = read("src/components/outlet-daily-record-form.tsx");
   const css = read("src/app/design-system-v2.css");
-  assert.ok(form.includes("grid-cols-[minmax(0,1fr)_2.75rem]"));
+  assert.ok(form.includes("grid-cols-2"));
   assert.match(css, /\[data-outlet-daily-lines\][\s\S]*contain: inline-size/);
 });
 

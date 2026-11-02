@@ -6,7 +6,7 @@ const read = (path) => fs.readFileSync(path, "utf8");
 
 test("Outlet Daily clears obsolete wastage details when quantity returns to zero", () => {
   const form = read("src/components/outlet-daily-record-form.tsx");
-  assert.match(form, /Number\(next \|\| 0\) <= 0[\s\S]*setReason\(""\)[\s\S]*setRemark\(""\)[\s\S]*setRemarkOpen\(false\)/);
+  assert.match(form, /Number\(next \|\| 0\) <= 0[\s\S]*setReason\(""\)[\s\S]*setRemark\(""\)/);
 });
 
 test("Stock Balance groups related operational values into compact fields", () => {

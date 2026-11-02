@@ -1,3 +1,5 @@
+import {AssetImportWorkflow} from "@/components/asset-import-workflow";
+import {getAssetRegistration} from "@/server/queries/assets";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { ConsoleSection } from "@/components/layout/right-console";
 import { Button } from "@/components/ui/button";
@@ -15,16 +17,17 @@ import { PaginationControls } from "@/components/sortable-table";
 export default async function AssetSettingsPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   const actor = await requireAssetDestinationManager();
   const canCreate = actor.roleCode === "super_admin" && await hasPermission("assets.manage");
+  const registration = canCreate ? await getAssetRegistration() : null;
   const params = await searchParams;
   let data: Awaited<ReturnType<typeof getAssetOtherLocations>> | null = null;
   try { data = await getAssetOtherLocations(Number.parseInt(params.page ?? "1", 10)); } catch { /* Render unavailable, never a fabricated empty list. */ }
   return <><PageHeader title="Asset Management" description="Settings" />
     <WorkspaceGrid hideMobileConsole rightRail={<>
-      <ConsoleSection title="Asset actions" kind="action"><div className="grid gap-2">{canCreate ? <Button asChild><Link href="/asset-management/import">Import assets from Excel</Link></Button> : null}<Button asChild variant="outline"><Link href="/asset-management?view=assets">Asset register</Link></Button><Button asChild variant="outline"><Link href="/asset-management?view=transfers">Transfers</Link></Button></div></ConsoleSection>
+      <ConsoleSection title="Asset actions" kind="action"><div className="grid gap-2"><Button asChild variant="outline"><Link href="/asset-management?view=assets">Asset register</Link></Button><Button asChild variant="outline"><Link href="/asset-management?view=transfers">Transfers</Link></Button></div></ConsoleSection>
       <ConsoleSection title="Destination management"><p className="text-xs text-muted-foreground">Complete in-progress transfers and clear remaining assets before deactivating a destination.</p><p className="mt-2 text-xs text-muted-foreground">Existing records and history remain available.</p></ConsoleSection>
     </>}>
       <AssetWorkspaceNavigation current="settings" managementRole canSettings />
-      <div className="min-w-0 space-y-4">{canCreate ? <section className="sb-work-surface flex flex-wrap items-center justify-between gap-3 bg-white p-4"><div><h2 className="text-sm font-semibold">Asset import</h2><p className="mt-1 text-xs text-muted-foreground">Download the workbook, prepare your assets and review before saving.</p></div><Button asChild variant="outline"><Link href="/asset-management/import">Open import</Link></Button></section> : null}
+      <div className="min-w-0 space-y-4">{canCreate && registration?.active ? <details className="group sb-work-surface p-4"><summary className="flex min-h-11 cursor-pointer items-center text-sm font-semibold">Import assets from Excel<ChevronDown className="ml-auto size-4 group-open:rotate-180"/></summary><div className="mt-4 space-y-3"><AssetImportWorkflow embedded draftScope={`${actor.companyId}:${actor.staffId}`} locations={registration.locations} automaticId={registration.automaticId}/></div></details> : null}
         <section className="sb-work-surface min-w-0 overflow-hidden bg-white px-4 sm:px-5" aria-labelledby="destinations-title">
           <div className="pb-3 pt-5"><h2 id="destinations-title" className="text-sm font-semibold">Asset destinations</h2><p className="mt-1 text-xs text-muted-foreground">Manage hostels and storage locations. Deactivating a destination keeps its assets and history.</p></div>
           {!data ? <p role="alert" className="p-3 text-sm">Destinations could not be loaded. <Link className="underline" href="/asset-management/settings">Try again</Link></p> : <>

@@ -3388,7 +3388,7 @@ html[data-design-layer="v2"] .sb-purchase-request-table td:nth-child(7) { white-
   html[data-design-layer="v2"] form.sb-list-query-card.sb-low-stock-query > [data-query-control],
   html[data-design-layer="v2"] form.sb-list-query-card.sb-low-stock-query > .unified-list-desktop-actions { grid-column: auto !important; }
   html[data-design-layer="v2"] .sb-daily-product-line > label { display: flex; justify-content: flex-start; }
-  html[data-design-layer="v2"] .sb-daily-product-line input[type="number"] { max-width: 6rem; }
+  html[data-design-layer="v2"] .sb-daily-product-line input[type="number"] { max-width: none; }
   html[data-design-layer="v2"] .sb-daily-line-head > span:not(:first-child) { text-align: left; }
 }
 html[data-design-layer="v2"] .sb-purchase-request-table td:nth-child(7) [data-status],

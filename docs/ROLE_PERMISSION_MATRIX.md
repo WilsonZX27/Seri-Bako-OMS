@@ -1,5 +1,7 @@
 # Fixed role, route, and Branch / Outlet matrix
 
+> Historical, dated sections below preserve their original evidence. The earlier seven-role summary is superseded as a complete role inventory by the nine-code inventory in [working contracts](rules/contracts.md); verify current effective permissions and scope before relying on any dated matrix. The former invitation wording does not authorize reviving cancelled email invitations.
+
 ## Asset rework 2026-10-09 — prepared, not deployed
 
 Migration 339 and local route/query changes require company plus assigned-location authorization for non-Owner asset access, regardless of stale view_all grants. Only Super Admin, Manager and Outlet Supervisor access Overview and Maintenance management. Ordinary staff and kitchen use the independent location-scoped checklist summary and can record exceptions there. Managers and supervisors remain limited to assigned locations; Owner retains the company boundary. Imported raw master JSON and history require original-location access; unlocated legacy attachments follow that same provenance gate. Direct authenticated selection of assets.source_data is revoked; the checked identity RPC returns raw source fields only within that provenance scope. Source values remain unchanged. These restrictions are locally rehearsed, NOT live yet, and require actual hosted identity/storage checks before release.

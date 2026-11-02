@@ -7,3 +7,9 @@
 - For a shared-component fix, keep a regression check for the actual caller and responsive behavior. Include an unaffected caller or state when a change could spread beyond the reported issue.
 - Distinguish source checks, synthetic browser checks and authenticated Preview evidence. A passing build or a version number does not close a visual requirement.
 - Preserve annotation batch IDs and unresolved requirements. Record duplicate mappings without deleting their original sources.
+
+## Rule maintenance and evidence
+
+- Before changing behavior or design, read [docs/rules/README.md](docs/rules/README.md) and the linked rules for the affected modules, roles and scope; compare them with current code and record conflicts rather than assuming historical notes are current.
+- In the same change, update the owning rules, decision traceability and verification evidence; link and mark superseded passages without deleting historical requirements. Keep unresolved decisions explicit.
+- Report code changes, local testing, authenticated Preview, Production and actual user acceptance as separate states.

@@ -1,0 +1,23 @@
+# Cross-module working contracts
+
+Updated 2026-11-02. Source: user requirements relayed in the 2026-11-02 project handoff; code references below identify inspection starting points, not proof of compliance. Verification evidence and unresolved decisions are tracked in [acceptance](acceptance.md).
+
+## Roles and scope
+
+The detailed role/route and workflow matrix is [ROLE_PERMISSION_MATRIX](../ROLE_PERMISSION_MATRIX.md); its dated local and historical sections must not be read as proof of deployed grants. Nine role codes are listed in `src/lib/roles.ts`; effective access depends on current grants, company, branch and backend/RLS enforcement, not navigation. Compare Owner, Purchasing, Kitchen, Chef, Manager, Outlet Supervisor and Outlet Staff where applicable, plus other affected roles. Never infer an unverified permission from this index. For each module record read, create, edit, approve and export separately, including expected denials and scope. Asset-specific provenance and assigned-location checks require the relevant asset policy, not a generic Planning rule.
+
+## Products, availability and Daily
+
+Products is the management view of the complete catalogue, with status and availability understandable; Outlet Daily eligibility is evaluated for the **record date**, not implicitly today's date. Status, deletion, seasonal flag, date bounds and historical record retention are distinct concepts. Pages must not interpret contradictory season flag/date combinations differently without an explicit, consistent rule. Preserve existing historical records. Whether conflicting input is rejected, cleared or otherwise resolved, and treatment of empty historical rows, remain **pending business decision**; do not silently alter real product data.
+
+Known code discrepancy at Preview 738b8e5a: `src/server/queries/products.ts` filters dates against today; `src/server/queries/outlet-daily-records.ts` and `src/components/outlet-daily-record-form.tsx` only apply bounds when seasonal. `src/server/actions/products.ts` is a save-path starting point. A read-only investigation reported MC07 as nonseasonal with an October 1 cutoff; this is an observed conflict, not a validated new rule. Acceptance: compare the complete product set and individual reasons across management and Daily on dates before, on and after bounds, across actual authorized roles and scope, including historical rows and read-after-save.
+
+## Planning and data invariants
+
+For two kitchens in the same company, investigate missing products individually against product status, scope, route, date, batch configuration and existing plan; an unexplained configuration difference is not a business justification. Do not assume all differences are invalid: record the confirmed reason for each. `src/server/actions/production-planning.ts` and `src/lib/production-planning/` are starting points. Planning quantity integer constraints are specific to Planning; do not impose them on stock, purchasing or the rest of OMS. Planning optional fields and asset transfer/maintenance reasons are independent contracts. Verify saves and drafts by reading back persisted data, and distinguish a zero, missing value and unavailable data.
+
+Attendance must preserve raw punches while checking employee matching, multiple punches and missing-punch prompts. Scheduling requires employee/outlet matching and the relevant Chef, Supervisor and Manager steps. Asset imports, maintenance, checklist, transfer batches and existing notes require provenance and role checks. Inventory count/recovery and unit conversions, purchasing basket-to-PR/supplier/AutoCount, payroll export/permissions, and Settings imports require module-specific review; consult their existing specifications and current code rather than inventing missing policies. OCR and email invitations were cancelled in the latest handoff; do not revive them without a new decision.
+
+## UI boundaries
+
+For the affected Daily form, prefilled values use light italic styling and manually entered values normal styling; show wastage reason/comment directly. Do not add Checked or Details controls to that flow. Asset Import belongs inline in Settings, not a separate import page. These are scoped user decisions, not a ban on every use of those words or import routes elsewhere. Existing responsive tokens apply by device: phone primary actions 48px; tablet touch and compact desktop use existing tokens. Verify actual rendered desktop, tablet portrait/landscape and phone states, including long content, keyboard, focus and permissions. Passing tests or counting screenshots does not establish design acceptance; compare the real screen with the requested design and record differences.

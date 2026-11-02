@@ -10,7 +10,7 @@ create table public.outlet_sales_channel_settings_versions (
  primary key(company_id,revision)
 );
 alter table public.outlet_sales_channel_settings_versions enable row level security;
-revoke all on public.outlet_sales_channel_settings_versions from public,anon,authenticated;
+revoke all on public.outlet_sales_channel_settings_versions from public,anon,authenticated,service_role;
 create function public.get_outlet_sales_channel_settings() returns jsonb
 language plpgsql stable security definer set search_path=pg_catalog,public as $$
 declare company uuid:=public.current_staff_company_id(); result jsonb;
@@ -43,8 +43,8 @@ begin
  insert into public.outlet_sales_channel_settings_versions(company_id,revision,channels,created_by) values(company,version+1,canonical,actor);
  return version+1;
 end $$;
-revoke all on function public.get_outlet_sales_channel_settings() from public,anon;
-revoke all on function public.configure_outlet_sales_channel_settings(bigint,jsonb) from public,anon;
+revoke all on function public.get_outlet_sales_channel_settings() from public,anon,service_role;
+revoke all on function public.configure_outlet_sales_channel_settings(bigint,jsonb) from public,anon,service_role;
 grant execute on function public.get_outlet_sales_channel_settings(),public.configure_outlet_sales_channel_settings(bigint,jsonb) to authenticated;
 notify pgrst,'reload schema';
 commit;

@@ -18,7 +18,7 @@ begin
  return new;
 end $$;
 create trigger guard_outlet_sales_settings_snapshot before insert or update on public.outlet_daily_records for each row execute function public.guard_outlet_sales_settings_snapshot();
-revoke all on function public.guard_outlet_sales_settings_snapshot() from public,anon,authenticated;
+revoke all on function public.guard_outlet_sales_settings_snapshot() from public,anon,authenticated,service_role;
 create function public.get_outlet_sales_channel_settings_revision(p_revision bigint) returns jsonb
 language plpgsql stable security definer set search_path=pg_catalog,public as $$
 declare company uuid:=public.current_staff_company_id(); result jsonb;
@@ -49,7 +49,7 @@ begin
  -- SQL382 still owns record revision, permissions, quantities and all financial guards.
  return public.save_outlet_daily_record_checked(p_record_id,p_branch_id,p_record_date,p_notes,p_lines,p_target_status,p_expected_revision,p_include_sales,p_pos_total_sales,p_sales_breakdown,p_sales_variance_reason);
 end $$;
-revoke all on function public.get_outlet_sales_channel_settings_revision(bigint),public.save_outlet_daily_record_with_sales_channels(uuid,uuid,date,text,jsonb,text,bigint,boolean,numeric,jsonb,text,bigint) from public,anon;
+revoke all on function public.get_outlet_sales_channel_settings_revision(bigint),public.save_outlet_daily_record_with_sales_channels(uuid,uuid,date,text,jsonb,text,bigint,boolean,numeric,jsonb,text,bigint) from public,anon,service_role;
 grant execute on function public.get_outlet_sales_channel_settings_revision(bigint),public.save_outlet_daily_record_with_sales_channels(uuid,uuid,date,text,jsonb,text,bigint,boolean,numeric,jsonb,text,bigint) to authenticated;
 notify pgrst,'reload schema';
 commit;

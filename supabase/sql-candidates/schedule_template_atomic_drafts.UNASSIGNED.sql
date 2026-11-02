@@ -23,7 +23,7 @@ begin
  return tsrange(first_at,last_at,'[)');
 exception when others then raise exception using errcode='23514',message='Schedule interval unavailable or invalid.';
 end $$;
-revoke all on function public.schedule_assignment_work_span(public.shift_assignment_revisions) from public,anon,authenticated;
+revoke all on function public.schedule_assignment_work_span(public.shift_assignment_revisions) from public,anon,authenticated,service_role;
 
 create table public.schedule_assignment_interval_guards(
  assignment_id uuid primary key references public.shift_assignment_revisions(id) on delete cascade,
@@ -33,20 +33,20 @@ create table public.schedule_assignment_interval_guards(
  protected boolean not null default false
 );
 alter table public.schedule_assignment_interval_guards enable row level security;
-revoke all on table public.schedule_assignment_interval_guards from public,anon,authenticated;
+revoke all on table public.schedule_assignment_interval_guards from public,anon,authenticated,service_role;
 create table public.schedule_template_sources(assignment_id uuid primary key references public.shift_assignment_revisions(id) on delete cascade);
 alter table public.schedule_template_sources enable row level security;
-revoke all on table public.schedule_template_sources from public,anon,authenticated;
+revoke all on table public.schedule_template_sources from public,anon,authenticated,service_role;
 create table public.schedule_interval_serials(company_id uuid not null,staff_id uuid not null,version bigint not null default 0,primary key(company_id,staff_id));
 alter table public.schedule_interval_serials enable row level security;
-revoke all on table public.schedule_interval_serials from public,anon,authenticated;
+revoke all on table public.schedule_interval_serials from public,anon,authenticated,service_role;
 
 create table public.schedule_interval_guard_jobs(
  transaction_id bigint not null,company_id uuid not null,staff_id uuid not null,
  primary key(transaction_id,company_id,staff_id)
 );
 alter table public.schedule_interval_guard_jobs enable row level security;
-revoke all on table public.schedule_interval_guard_jobs from public,anon,authenticated;
+revoke all on table public.schedule_interval_guard_jobs from public,anon,authenticated,service_role;
 create function public.queue_schedule_assignment_interval_guard()
 returns trigger language plpgsql security definer set search_path=pg_catalog,public as $$
 begin
@@ -54,7 +54,7 @@ begin
  if tg_op<>'DELETE' then insert into public.schedule_interval_guard_jobs values(txid_current(),new.company_id,new.staff_id) on conflict do nothing; end if;
  return coalesce(new,old);
 end $$;
-revoke all on function public.queue_schedule_assignment_interval_guard() from public,anon,authenticated;
+revoke all on function public.queue_schedule_assignment_interval_guard() from public,anon,authenticated,service_role;
 create trigger schedule_assignment_interval_01_queue after insert or update or delete
  on public.shift_assignment_revisions for each row execute function public.queue_schedule_assignment_interval_guard();
 
@@ -79,7 +79,7 @@ begin
  delete from public.schedule_interval_guard_jobs where transaction_id=txid_current();
  return null;
 end $$;
-revoke all on function public.validate_schedule_assignment_intervals_deferred() from public,anon,authenticated;
+revoke all on function public.validate_schedule_assignment_intervals_deferred() from public,anon,authenticated,service_role;
 create constraint trigger schedule_assignment_interval_02_guard after insert or update or delete
  on public.shift_assignment_revisions deferrable initially deferred for each row
  execute function public.validate_schedule_assignment_intervals_deferred();
@@ -93,7 +93,7 @@ begin
  if found then insert into public.schedule_interval_guard_jobs values(txid_current(),a.company_id,a.staff_id) on conflict do nothing; end if;
  return coalesce(new,old);
 end $$;
-revoke all on function public.queue_schedule_template_source_guard() from public,anon,authenticated;
+revoke all on function public.queue_schedule_template_source_guard() from public,anon,authenticated,service_role;
 create trigger schedule_template_source_01_queue after insert or delete on public.schedule_template_sources
  for each row execute function public.queue_schedule_template_source_guard();
 create constraint trigger schedule_template_source_02_guard after insert or delete on public.schedule_template_sources
@@ -119,7 +119,7 @@ begin
  cross join lateral public.get_schedule_staff(b.id,null) person
  cross join generate_series(0,6) d(day) group by person.id,b.id;
 end $$;
-revoke all on function public.get_schedule_template_eligibility(date,uuid[]) from public,anon;
+revoke all on function public.get_schedule_template_eligibility(date,uuid[]) from public,anon,service_role;
 grant execute on function public.get_schedule_template_eligibility(date,uuid[]) to authenticated;
 
 create function public.import_schedule_template_drafts_atomic(
@@ -186,7 +186,7 @@ begin
  end if;
  return outcome;
 end $$;
-revoke all on function public.import_schedule_template_drafts_atomic(date,text,text,jsonb,integer,jsonb,text) from public,anon;
+revoke all on function public.import_schedule_template_drafts_atomic(date,text,text,jsonb,integer,jsonb,text) from public,anon,service_role;
 grant execute on function public.import_schedule_template_drafts_atomic(date,text,text,jsonb,integer,jsonb,text) to authenticated;
 
 create function public.schedule_template_import_capabilities() returns jsonb
@@ -199,7 +199,7 @@ language sql stable security invoker set search_path=pg_catalog,public as $$
   and to_regclass('public.schedule_template_sources') is not null and to_regclass('public.schedule_interval_serials') is not null,
  'explicit_membership',public.current_staff_id() is not null and public.has_permission('schedule.draft'))
 $$;
-revoke all on function public.schedule_template_import_capabilities() from public,anon;
+revoke all on function public.schedule_template_import_capabilities() from public,anon,service_role;
 grant execute on function public.schedule_template_import_capabilities() to authenticated;
 notify pgrst,'reload schema';
 commit;

@@ -7,3 +7,11 @@ Actual has_any_permission permits super_admin before deny overrides and permits 
 SECURITY DEFINER has explicit pg_catalog,public search_path and explicit EXECUTE revoke from public/anon/authenticated/service_role. No new grant or table. INSERT-only behavior has no historical backfill; skipped reversals remain a separate limitation. All actions this review were SELECT only.
 
 Integration fixed TypeScript property-code narrowing in OT API; initial final-types/build failure retained in logs, corrected run separate. Original failed live Reject/claim HTTP response remains unavailable; no root-cause claim.
+
+## Recipient compatibility delta — local only
+
+Applied author patch SHA256 `6c0a788f6df2493f2b2fe3855016961d5d90285c1c7eb3cc0af7304747fba634`. Full candidate SQL SHA256 `6ae1f8f5e3498de6da8c66af069e6fea69dc2aa38b01f5681101b46167a69733` supersedes the earlier hash above. It preserves the observed super-admin precedence, explicit allow without a role, ordinary deny and existing company boundary; removes the unsupported branch restriction and leaves explicitly addressed notices without branch_id. No role grant changes. Author's isolated seven-identity oracle comparison passed; this integration reuses that evidence, not a new production-role test.
+
+Repository vercel.json declares management-email and production-planning cron routes only. Vercel project read returned no cron details; external scheduler inventory is therefore NOT established. Earlier production database read found no relevant triggers and no cron.job. A fresh follow-up browser read was blocked before query entry by browser control unavailability; no query or SQL installation occurred. HOLD remains for external duplicate-source verification and separate explicit SQL approval.
+
+57fb Preview read-only check: exact deployment dpl_Yq5ou5TV6cETfHyz4iWd5ifAkPY8 is READY; Git SHA57fb68343756abba69ac301a0a3d280c04d6ede1. Same-IAB branch alias redirects /dashboard to /login?returnTo=%2Fdashboard and shows Operations v9.2.174. Existing two OMS tabs show idle-timeout. No authenticated business dataset or role flow was inspected on this deployment. Retained login: https://seri-bako-oms-official-git-codex-all-candidates-ee6214-seribako.vercel.app/login?returnTo=%2Fdashboard . No business mutation or production app promotion.

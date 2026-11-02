@@ -17,3 +17,5 @@ For each affected feature record: requirement/source; revision and environment; 
 Open decisions: exact season-flag/date conflict resolution; treatment of blank historical Daily rows; whether each kitchen product difference has an authorized business reason; complete role/scope matrix and actual account availability; Daily Ready-to-post versus direct Posted workflow scope and decision. Capture decision source and date before converting any of these into a definitive rule.
 
 Each result must explicitly distinguish code changed / local test / authenticated Preview / Production / actual user acceptance. A result missing evidence is pending, not passed.
+
+Roster template operational rollback: retain source provenance/guards and persisted drafts, approval events and receipts. Roll back the app and drain template import writers, then pause template entry RPC; resume the exact installed candidate without reinstalling CREATE TABLE. This preserves scoped conflict checks for old writers. Local 14-case evidence and remaining limits: [rollback rehearsal](../qa/roster-data-rollback-20261102.md). Full destructive uninstall is not approved or verified.

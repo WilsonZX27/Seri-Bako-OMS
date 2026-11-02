@@ -1,5 +1,9 @@
 "use client";
+import { PackagingWorkspaceTabs } from "@/components/outlet-packaging-workspace-nav";
 
+import type { ReactNode } from "react";
+import { PaginationControls } from "@/components/sortable-table";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -17,13 +21,17 @@ import type { getOutletPackagingReport } from "@/server/queries/outlet-packaging
 
 type Report = Awaited<ReturnType<typeof getOutletPackagingReport>>;
 
-export function OutletPackagingReport({ report, days: initialDays, canManageStores = false }: { report: Report; days: 7 | 30; canManageStores?:boolean }) {
+export function OutletPackagingReport({ report, days: initialDays, canManageStores = false, children }: { report: Report; days: 7 | 30; canManageStores?:boolean; children?: ReactNode }) {
+  const params = useSearchParams();
+  const totalPages = Math.max(1, Math.ceil(report.products.length / 10));
+  const page = Math.min(totalPages, Math.max(1, Math.floor(Number(params.get("page"))) || 1));
+  const visibleProducts = report.products.slice((page - 1) * 10, page * 10);
   const days = initialDays;
   const router = useRouter();
   const [periodPending, startPeriodTransition] = useTransition();
   const [requestedDays, setRequestedDays] = useState(initialDays);
-  const [outlet, setOutlet] = useState("all");
-  const [product, setProduct] = useState(report.products[0]?.code ?? "");
+  const [outlet, setOutlet] = useState(params.get("outlet") ?? "all");
+  const [product, setProduct] = useState(params.get("product") ?? report.products[0]?.code ?? "");
   const [measure,setMeasure]=useState<"usage"|"closing">("closing");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const changePeriod = (nextDays: 7 | 30) => {
@@ -48,7 +56,7 @@ export function OutletPackagingReport({ report, days: initialDays, canManageStor
 
   const rail = <>
     <ConsoleSection title="Packaging actions" kind="action">
-      {canManageStores ? <Link href="/outlet-packaging/stores" className={buttonVariants({variant:"outline",className:"w-full border-[var(--sb-text-muted)]"})}>Store balances and movements</Link> : null}
+      {canManageStores ? <Link href="/outlet-packaging/stores" className={buttonVariants({variant:"outline",className:"w-full border-[var(--sb-text-muted)]"})}>Settings · locations and stock</Link> : null}
       <Link href="/outlet-daily-records" className={buttonVariants({ variant: "secondary", className: "w-full" })}>Open Daily Records</Link>
     </ConsoleSection>
     <ConsoleSection title={selected ? "Selected day" : "Report coverage"} kind="status">
@@ -67,6 +75,7 @@ export function OutletPackagingReport({ report, days: initialDays, canManageStor
   </>;
   return <WorkspaceGrid tabletCanvas="wide" rightRail={rail} tabletRailMode="split" tabletRailBreakpoint="md">
   <div className="space-y-4" data-packaging-report>
+    <PackagingWorkspaceTabs canManage={canManageStores} />
     {/* Outlet/product are local state; only changePeriod owns server navigation. */}
     <FilterBar resetHref="/outlet-packaging" phoneMode="inline" tabletMode="inline" className="gap-3" onSubmit={(event) => event.preventDefault()}>
       <SelectControl ariaLabel="Outlet" className="w-full sm:w-64" value={outlet} onValueChange={selectedValue => { setOutlet(selectedValue); setSelectedDate(null); }} options={[({value: "all", label: "All outlets"}), ...(report.outlets.map((item) => ({value: String((item.id) ?? ""), label: String((item.name) ?? "")})))]}/>
@@ -75,13 +84,13 @@ export function OutletPackagingReport({ report, days: initialDays, canManageStor
     </FilterBar>
     <section className="grid grid-cols-2 divide-x border-y py-3" aria-label="Selected packaging summary"><div className="px-3"><span className="text-xs text-muted-foreground">Last counted balance</span><strong className="block text-2xl tabular-nums">{balances.length?formatNumber(balanceTotal):"—"} <span className="text-sm font-normal">{selectedProduct?.unit}</span></strong><p className="text-xs text-muted-foreground">{balances.length}/{count} outlets · dates may differ</p></div><div className="px-3"><span className="text-xs text-muted-foreground">{days}-day usage</span><strong className="block text-2xl tabular-nums">{periodPending?"Loading…":rows.length?rows.every(row=>row.usage!==null)?formatNumber(rows.reduce((n,r)=>n+(r.usage ?? 0),0)):"Unknown":"—"} <span className="text-sm font-normal">{selectedProduct?.unit}</span></strong><p className="text-xs text-muted-foreground">Completed records only</p></div></section>
     <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.2fr)]">
-    <section className="erp-surface overflow-hidden" aria-labelledby="packaging-stock-title">
+    <section className="sb-work-surface overflow-hidden" aria-labelledby="packaging-stock-title">
       <div className="flex flex-wrap items-baseline justify-between gap-2 border-b px-4 py-3">
         <h2 id="packaging-stock-title" className="text-sm font-semibold">Last counted balances</h2>
         <span className="text-xs text-muted-foreground">Counts: {countPeriod} · select an item</span>
       </div>
       <div className="divide-y">
-        {report.products.map((item) => {
+        {visibleProducts.map((item) => {
           const balances = latest.filter((row) => row.code === item.code && row.closing !== null);
           const total = balances.reduce((sum, row) => sum + (row.closing ?? 0), 0);
           return <div key={item.id} className={product===item.code ? "bg-[var(--sb-green-100)]" : ""}>
@@ -95,8 +104,9 @@ export function OutletPackagingReport({ report, days: initialDays, canManageStor
         })}
         {!report.products.length && <p className="p-6 text-sm text-muted-foreground">No packaging products in Daily Records yet.</p>}
       </div>
+      {totalPages > 1 ? <PaginationControls page={page} totalPages={totalPages} totalRows={report.products.length} searchParams={{days:String(days),outlet,product}} /> : null}
     </section>
-    <section className="erp-surface overflow-hidden" id="packaging-trend-panel" aria-labelledby="packaging-trend-title">
+    <section className="sb-work-surface overflow-hidden" id="packaging-trend-panel" aria-labelledby="packaging-trend-title">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
         <h2 id="packaging-trend-title" className="text-sm font-semibold">Daily trend</h2><div className="flex gap-1"><Button size="sm" variant={measure==="closing"?"secondary":"ghost"} aria-pressed={measure==="closing"} onClick={()=>{setMeasure("closing");setSelectedDate(null);}}>Balance</Button><Button size="sm" variant={measure==="usage"?"secondary":"ghost"} aria-pressed={measure==="usage"} onClick={()=>{setMeasure("usage");setSelectedDate(null);}}>Usage</Button></div>
       </div>
@@ -122,6 +132,7 @@ export function OutletPackagingReport({ report, days: initialDays, canManageStor
       </div>
     </section>
     </div>
+    {children}
   </div>
   </WorkspaceGrid>;
 }

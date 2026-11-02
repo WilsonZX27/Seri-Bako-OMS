@@ -156,3 +156,19 @@ test('stock from drafts, older dates, another tenant or unknown counts is never 
  const f=carryFixture();mutate(f);const p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-01');const a=p.allocations.find(a=>a.product_id==='p-0'&&a.branch_id==='outlet-0');assert.equal(a.approved_qty,8);assert.equal(a.evidence.carryover.status,'missing');assert.equal(a.evidence.carryover.deducted,0);
  }
 });
+
+test('explicit kitchen inclusion adds an unscheduled product and excludes configured products without crossing kitchens',async()=>{
+ const f=fixture();f.tables.production_outlet_forecasts=[{company_id:f.company,kitchen_id:f.kitchen,branch_id:'outlet-0',product_id:'p-0',weekday_qty:4,weekend_qty:4}];
+ f.tables.production_batch_rules=f.tables.production_batch_rules.filter(b=>b.product_id!=='p-39');
+ f.tables.production_planning_settings[0].included_product_ids=['p-39'];
+ const result=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');
+ assert.deepEqual(Array.from(result.product_lines,p=>p.product_id),['p-39']);assert.equal(result.allocations.length,10);
+ f.tables.production_planning_settings[0].included_product_ids=[];
+ assert.equal((await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03')).product_lines.length,0);
+});
+test('explicit selection respects supply periods and requires resolving an excluded confirmed event',async()=>{
+ const f=fixture();f.tables.production_planning_settings[0].included_product_ids=['p-0'];f.tables.products[0].available_from='2027-01-01';
+ assert.equal((await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03')).product_lines.length,0);
+ f.tables.production_planning_events.push({id:'e',company_id:f.company,kitchen_id:f.kitchen,confirmed:true,event_date:'2026-10-03',branch_id:null,lines:[{product_id:'p-1',qty:5}]});
+ await assert.rejects(buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03'),/excluded from planning/);
+});

@@ -18,9 +18,9 @@ test('ordinary manual quantities need no reason but incomplete outlet minimums i
 test('confirmed event quantities cannot be reduced even with an adjustment reason',()=>{
  assert.ok(messages([allocation({event_qty:20,reason:'Reduction'})],[production()]).some(m=>/full confirmed event/.test(m)));
 });
-test('minimum and reduction floor require a Manager reason even when suggestion and allocation match',()=>{
+test('planning adjustment reasons are optional even below guidance floors',()=>{
  for(const patch of [{minimum_qty:20},{evidence:{reductionFloor:20}}]){
-  assert.ok(messages([allocation(patch)],[production()]).some(m=>/Manager reason/.test(m)));
+  assert.equal(planReviewChecks([allocation(patch)],[production()]).length,0);
   assert.equal(planReviewChecks([allocation({...patch,reason:'Manager reviewed'})],[production()]).length,0);
  }
 });
@@ -28,15 +28,15 @@ test('unallocated output and allocation exceeding production have different acti
  assert.ok(messages([allocation()],[production({trays:2})]).some(m=>/remaining output/.test(m)));
  assert.ok(messages([allocation({approved_qty:32,reason:'Event increase'})],[production()]).some(m=>/exceeds production/.test(m)));
 });
-test('corporate quantities stay separate and kitchen retention requires a reason',()=>{
- let checks=messages([allocation()],[production({trays:3,event_qty:16,retained_qty:16})]);assert.deepEqual(checks,['Add the reason for keeping stock in the kitchen.']);
+test('corporate quantities stay separate and retention notes are optional',()=>{
+ let checks=messages([allocation()],[production({trays:3,event_qty:16,retained_qty:16})]);assert.deepEqual(checks,[]);
  assert.equal(planReviewChecks([allocation()],[production({trays:3,event_qty:16,retained_qty:16,reason:'Kitchen collection'})]).length,0);
 });
 test('missing yield and fractional trays identify different configuration and input problems',()=>{
  const checks=messages([allocation()],[production({yield_per_tray:null,trays:1.5})]);assert.equal(checks.length,2);assert.match(checks[0],/Settings/);assert.match(checks[1],/whole number/);
 });
 test('nonfinite, negative and excessive quantities cannot be ready for review',()=>{
- for(const qty of [-1,Infinity,NaN,1000001])assert.ok(planReviewChecks([allocation({approved_qty:qty})],[production()]).length>0);
+ for(const qty of [-1,1.5,Infinity,NaN,1000001])assert.ok(planReviewChecks([allocation({approved_qty:qty})],[production()]).length>0);
 });
 test('checks retain the correct product and outlet identity without company-wide averaging',()=>{
  const checks=planReviewChecks([allocation({branch_id:'b',approved_qty:null}),allocation()],[production()]);
@@ -46,10 +46,10 @@ test('checks retain the correct product and outlet identity without company-wide
 test('every actionable review gate belongs to exactly one named group without dropping detail',()=>{
  const checks=planReviewChecks([allocation({approved_qty:null,minimum_qty:null})],[production({yield_per_tray:null,trays:null,retained_qty:1})]);
  const groups=context.exports.REVIEW_CHECK_GROUPS;
- assert.equal(checks.length,5);
+ assert.equal(checks.length,4);
  assert.equal(groups.reduce((n,g)=>n+checks.filter(c=>c.category===g.category).length,0),checks.length);
  assert.equal(checks.filter(c=>c.category==='configuration').length,2);
  assert.equal(checks.filter(c=>c.category==='quantities').length,2);
- assert.equal(checks.filter(c=>c.category==='reasons').length,1);
+ assert.equal(checks.filter(c=>c.category==='reasons').length,0);
  assert.equal(planReviewChecks([allocation()],[production({trays:2})])[0].category,'balance');
 });

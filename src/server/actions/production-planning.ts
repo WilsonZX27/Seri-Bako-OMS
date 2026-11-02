@@ -20,7 +20,7 @@ async function run(operation: () => Promise<{ id?: string; message?: string }>):
     const result = await operation();
     revalidatePath("/production/planning"); revalidatePath("/outlet-daily-records"); revalidatePath("/outlet-daily-records/insights"); revalidatePath("/outlet-packaging"); revalidatePath("/production/delivery-orders"); revalidatePath("/outlet-daily-records/delivery-orders");
     return { ok: true, message: result.message ?? "Saved successfully.", ...result };
-  } catch (error) { return { ok: false, message: formatActionError(error, "Could not save. Reload and retry.") }; }
+  } catch (error) { return { ok: false, message: formatActionError(error, "Could not save. Your inputs are retained. Review the error before retrying.") }; }
 }
 async function manager() {
   const client = await createClient(); const db=looseSupabase(client);
@@ -40,7 +40,7 @@ export async function changePlan(planId: string, revision: number, action: strin
   return run(async () => { const {db,companyId}=await manager(); uuid.parse(planId); uuid.parse(key); z.number().int().positive().parse(revision);
     z.enum(["save","recalculate","submit","approve","return","revise"]).parse(action);
     let parsed: unknown=payload;
-    if (action==="save") parsed=z.object({ allocations:z.array(z.object({product_id:uuid,branch_id:uuid,approved_qty:quantity.nullable(),reason})).max(10000),product_lines:z.array(z.object({product_id:uuid,trays:quantity.int().nullable(),tray_mode:z.enum(["automatic","manual"]).nullable().optional(),retained_qty:quantity,reason})).max(500) }).parse(payload);
+    if (action==="save") parsed=z.object({ allocations:z.array(z.object({product_id:uuid,branch_id:uuid,approved_qty:quantity.int("Use whole numbers for allocation quantities.").nullable(),reason})).max(10000),product_lines:z.array(z.object({product_id:uuid,trays:quantity.int().nullable(),tray_mode:z.enum(["automatic","manual"]).nullable().optional(),retained_qty:quantity.int("Use whole numbers for kitchen quantities."),reason})).max(500) }).parse(payload);
     if (action==="return") parsed=z.object({reason:reason.min(1)}).parse(payload);
     if (action==="recalculate") {
       const p=await db.from("production_plans").select("kitchen_id,delivery_date").eq("id",planId).eq("company_id",companyId).single();
@@ -58,9 +58,10 @@ export async function confirmDispatch(planId: string, revision: number, payload:
 }
 export async function configurePlanning(payload: unknown) {
   return run(async () => { const {db}=await manager();
-    const parsed=z.object({as_of:date.optional(),forecasts:z.array(z.object({branch_id:uuid,product_id:uuid,weekday_qty:quantity.int().nullable(),weekend_qty:quantity.int().nullable(),source:z.string().max(250),expected_updated_at:z.string().datetime({offset:true}).nullable()})).max(10000).optional(),minimum_estimation:z.object({method:z.literal("lower_quartile_56_days"),floor:z.literal(1),as_of:date}).optional(),availability:z.array(z.object({product_id:uuid,available_from:date.nullable(),available_until:date.nullable(),expected_from:date.nullable(),expected_until:date.nullable()})).max(500).optional(),kitchen_id:uuid,enabled:z.boolean(),draft_time:z.literal("20:00"),buffer_percent:quantity.max(100),max_decrease_percent:quantity.max(100),recipients:z.array(z.email()).max(50),batches:z.array(z.object({product_id:uuid,yield_per_tray:quantity.positive(),forecast_basis:z.enum(["same_day","manual","on_order"]).default("manual")})).max(500),minimums:z.array(z.object({branch_id:uuid,product_id:uuid,minimum_qty:quantity})).max(10000)}).parse(payload);
+    const parsed=z.object({included_product_ids:z.array(uuid).max(500).optional(),expected_included_product_ids:z.array(uuid).max(500).nullable().optional(),as_of:date.optional(),forecasts:z.array(z.object({branch_id:uuid,product_id:uuid,weekday_qty:quantity.int().nullable(),weekend_qty:quantity.int().nullable(),source:z.string().max(250),expected_updated_at:z.string().datetime({offset:true}).nullable()})).max(10000).optional(),minimum_estimation:z.object({method:z.literal("lower_quartile_56_days"),floor:z.literal(1),as_of:date}).optional(),availability:z.array(z.object({product_id:uuid,available_from:date.nullable(),available_until:date.nullable(),expected_from:date.nullable(),expected_until:date.nullable()})).max(500).optional(),kitchen_id:uuid,enabled:z.boolean(),draft_time:z.literal("20:00"),buffer_percent:quantity.max(100),max_decrease_percent:quantity.max(100),recipients:z.array(z.email()).max(50),batches:z.array(z.object({product_id:uuid,yield_per_tray:quantity.positive(),forecast_basis:z.enum(["same_day","manual","on_order"]).default("manual")})).max(500),minimums:z.array(z.object({branch_id:uuid,product_id:uuid,minimum_qty:quantity})).max(10000)}).parse(payload);
     if(parsed.forecasts&&!parsed.as_of)throw new Error("Forecast date required.");
-    await rpc(db,parsed.forecasts?"configure_production_planning_with_forecasts":"configure_production_planning",{p_payload:parsed}); return {}; });
+    if(parsed.included_product_ids && !("expected_included_product_ids" in parsed))throw new Error("Reload Planning Settings before changing products.");
+    await rpc(db,parsed.included_product_ids?"configure_production_planning_menu":parsed.forecasts?"configure_production_planning_with_forecasts":"configure_production_planning",{p_payload:parsed}); return {}; });
 }
 export async function savePlanningEvent(payload: unknown) {
   return run(async () => { const {db}=await manager();

@@ -8,25 +8,20 @@ export function planReviewChecks(allocations: Allocation[], production: Producti
   const checks: PlanReviewCheck[] = [];
   for (const line of allocations) {
     const location = {productId: line.product_id, branchId: line.branch_id};
-    if (!validQuantity(line.approved_qty)) checks.push({...location, category: "quantities", message: "Enter a quantity; zero is valid."});
+    if (!validQuantity(line.approved_qty) || !Number.isInteger(line.approved_qty)) checks.push({...location, category: "quantities", message: "Enter a whole quantity; zero is valid."});
     if (!validQuantity(line.minimum_qty)) checks.push({...location, category: "configuration", message: "Confirm the outlet minimum in Settings, then recalculate."});
     if (!validQuantity(line.approved_qty)) continue;
     if (line.approved_qty < line.event_qty) checks.push({...location, category: "quantities", message: "Include the full confirmed event quantity."});
-    if (line.suggested_qty !== null && line.approved_qty !== line.suggested_qty && !line.reason.trim()) checks.push({...location, category: "reasons", message: "Add the quantity adjustment reason."});
-    else if (!line.reason.trim() && (line.approved_qty < (line.minimum_qty ?? 0) + line.event_qty || line.approved_qty < (line.evidence.reductionFloor ?? 0) + line.event_qty)) {
-      checks.push({...location, category: "reasons", message: "Add a Manager reason for reducing below the minimum or limit."});
-    }
+
   }
   for (const line of production) {
     const location = {productId: line.product_id};
     const yieldReady = validQuantity(line.yield_per_tray) && line.yield_per_tray > 0;
     const traysReady = validQuantity(line.trays) && Number.isInteger(line.trays);
-    const retentionReady = validQuantity(line.retained_qty);
+    const retentionReady = validQuantity(line.retained_qty) && Number.isInteger(line.retained_qty);
     if (!yieldReady) checks.push({...location, category: "configuration", message: "Set the tray yield in Settings, then recalculate."});
     if (!traysReady) checks.push({...location, category: "quantities", message: line.tray_mode==="automatic"?"Complete outlet quantities and tray yield to calculate production.":"Enter a whole number of trays; zero is valid."});
-    if(line.tray_mode==="manual"&&!line.reason.trim()) checks.push({...location,category:"reasons",message:"Add the manual production override reason."});
     if (!retentionReady) checks.push({...location, category: "quantities", message: "Enter a valid quantity to keep in the kitchen."});
-    if (line.retained_qty > 0 && !line.reason.trim()) checks.push({...location, category: "reasons", message: "Add the reason for keeping stock in the kitchen."});
     const destinations = allocations.filter(item => item.product_id === line.product_id);
     if (!yieldReady || !traysReady || !retentionReady || destinations.some(item => !validQuantity(item.approved_qty))) continue;
     const allocated = destinations.reduce((sum, item) => sum + item.approved_qty!, 0) + line.event_qty;

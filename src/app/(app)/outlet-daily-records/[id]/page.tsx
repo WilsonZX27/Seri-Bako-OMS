@@ -49,7 +49,7 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
   </>;
   const [{ record, lines, sales }, options, permissions, activities] = source;
   const productMap = new Map(options.products.map((product) => [product.id, product]));
-  for (const line of lines) if (line.product) productMap.set(line.product.id, { ...line.product, is_seasonal: false, available_from: null, available_until: null });
+  for (const line of lines) if (line.product) productMap.set(line.product.id, line.product);
   const products = sortProductsForDisplay([...productMap.values()]);
   const activityItems = activities.some((activity) => activity.activity_type === "created") ? activities : [
     ...activities,
@@ -102,7 +102,7 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
         : canEditOutletValues && record.status === "evening_completed"
         ? <SubmitButton form={formId} name="target_status" value="evening_completed" className="gap-2"><Save className="h-4 w-4" aria-hidden="true" />Save Changes</SubmitButton>
         : !canEditOutletValues && canEditQtySent
-          ? <SubmitButton form={formId} name="target_status" value={record.status}>Save Qty Sent</SubmitButton>
+          ? <SubmitButton form={formId} name="target_status" value={record.status === "draft" ? "morning_recorded" : record.status}>Save Qty Sent</SubmitButton>
           : null;
   const primaryAction = editPrimary;
   const secondaryActions = <>
@@ -139,6 +139,7 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
     {statusLocked ? <Card className="border-warning/40 bg-warning/10"><CardContent className="p-3 text-sm font-medium">{record.status === "reviewed" ? "Posted and locked — Outlet editing is unavailable." : "Void and locked — normal editing is unavailable."}</CardContent></Card> : null}
     <Card><CardContent className="sb-label-value-summary grid gap-3 p-3 xl:grid-cols-4"><div><p className="text-xs text-muted-foreground">Qty Sent</p><div className="text-right xl:text-left"><strong className={`tabular-nums ${record.total_sent === null ? "text-warning" : ""}`}>{record.total_sent === null ? "Pending" : formatNumber(record.total_sent)}</strong></div></div><div><p className="text-xs text-muted-foreground">Received</p><strong className={`tabular-nums ${record.total_received === null || record.received_zero_with_sent ? "text-warning" : ""}`}>{record.total_received === null ? `${record.received_pending_lines} line${record.received_pending_lines === 1 ? "" : "s"} pending` : record.received_zero_with_sent ? "0 · verify" : formatNumber(record.total_received)}</strong></div><div><p className="text-xs text-muted-foreground">Wastage</p><strong className="tabular-nums">{formatNumber(record.total_wastage)}</strong></div><div><p className="text-xs text-muted-foreground">Wastage %</p><strong className="tabular-nums">{record.wastage_percent === null ? record.received_pending_lines > 0 ? "Pending receipt" : "—" : `${formatNumber(record.wastage_percent)}%`}</strong></div>{record.void_reason ? <p className="col-span-full text-xs text-destructive">Void reason: {record.void_reason}</p> : null}</CardContent></Card>
     <OutletDailyDoSources recordId={record.id} companyId={record.company_id} managed={lines.some((line) => line.do_managed)} />
+    <input form={formId} type="hidden" name="expected_revision" value={record.edit_revision} />
     <input form={formId} type="hidden" name="record_id" value={record.id} />
     <OutletDailyRecordForm formId={formId} action={saveOutletDailyRecord} branches={options.branches} products={products} lines={lines} branchId={record.branch_id} recordDate={record.record_date} notes={record.notes} sales={{ pos_total_sales: record.pos_total_sales, sales_variance_reason: record.sales_variance_reason, breakdown: sales }} validationError={messages.error} locked={locked} canEditHeader={canEditOutletValues} canEditQtySent={canEditQtySent} canEditOutletValues={canEditOutletValues} />
   </DocumentWorkspace>;

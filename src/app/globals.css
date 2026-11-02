@@ -909,6 +909,7 @@ details[open] > summary::after { transform: rotate(225deg); }
 .do-print-table { min-width: 720px; }
 
 @media print {
+  html:has(.production-sheet-print), body:has(.production-sheet-print) { height: auto !important; overflow: visible !important; }
   @page { size: A4 portrait; margin: 12mm; }
   body:has(.production-sheet-print) [data-app-sidebar],
   body:has(.production-sheet-print) aside,
@@ -938,6 +939,8 @@ details[open] > summary::after { transform: rotate(225deg); }
   .production-sheet-print th { background: #eaf0ed !important; color: #164e3d; font-size: 8px; font-weight: bold; position: static !important; }
   .production-sheet-print :is(th,td):nth-child(-n+2) { text-align: left; }
   .production-sheet-print tbody tr:nth-child(even) { background: #f6f8f7 !important; }
+  .production-sheet-print .production-document-rotated-heading { vertical-align: bottom; text-align: center; padding: 8px 4px; }
+  .production-sheet-print .production-document-rotated-heading span { display: inline-block; writing-mode: vertical-rl; transform: rotate(180deg); white-space: nowrap; overflow-wrap: normal; text-align: left; }
   .production-sheet-print thead { display: table-header-group; }
   .production-sheet-print tr { break-inside: avoid; }
   .production-document-total { font-weight: bold; }

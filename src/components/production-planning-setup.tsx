@@ -1,6 +1,8 @@
 "use client";
 import { EmployeeForecastEditor, type ForecastDraft } from "@/components/production-planning-employee-forecasts";
 import type { EmployeeForecast } from "@/lib/production-planning/employee-forecast";
+import { PlanningMenuSelection } from "@/components/production-planning-menu-selection";
+import { defaultPlanningProducts } from "@/lib/production-planning/menu";
 import { ChevronDown } from "lucide-react";
 import { suppliedPlanningYield, type YieldRegion } from "@/lib/production-planning/tray-yields";
 import { isRiceBowl } from "@/lib/production-planning/minimum-estimate";
@@ -17,6 +19,8 @@ export function PlanningSetup({kitchens,kitchenId,date,outlets,products,config,b
  const [employeeValues,setEmployeeValues]=useState<Record<string,ForecastDraft>>(()=>Object.fromEntries(forecasts.map(f=>[`${f.branch_id}:${f.product_id}`,{weekday:f.weekday_qty===null?"":String(f.weekday_qty),weekend:f.weekend_qty===null?"":String(f.weekend_qty),source:f.source}])));
  const forecastPayload=Object.entries(employeeValues).filter(([key,v])=>v.weekday!==""||v.weekend!==""||forecasts.some(f=>`${f.branch_id}:${f.product_id}`===key)).map(([key,v])=>{const [branch_id,product_id]=key.split(":");return {branch_id,product_id,weekday_qty:v.weekday===""?null:Number(v.weekday),weekend_qty:v.weekend===""?null:Number(v.weekend),source:v.source,expected_updated_at:forecasts.find(f=>f.branch_id===branch_id&&f.product_id===product_id)?.updated_at??null};});
  const forecastsDirty=Object.entries(employeeValues).some(([key,v])=>{const f=forecasts.find(f=>`${f.branch_id}:${f.product_id}`===key);return v.weekday!==(f?.weekday_qty==null?"":String(f.weekday_qty))||v.weekend!==(f?.weekend_qty==null?"":String(f.weekend_qty));});
+ const [included,setIncluded]=useState<string[]>(()=>config.included_product_ids?.filter(id=>products.some(p=>p.id===id))??defaultPlanningProducts(products,batches,forecasts));
+ const inclusionDirty=included.slice().sort().join("|")!==(config.included_product_ids?.filter(id=>products.some(p=>p.id===id))??defaultPlanningProducts(products,batches,forecasts)).slice().sort().join("|");
  const [estimated,setEstimated]=useState(false);
  const [pending,start]=useTransition(); const [enabled,setEnabled]=useState(config.enabled); const [buffer,setBuffer]=useState(config.buffer_percent); const [decrease,setDecrease]=useState(config.max_decrease_percent);
  useEffect(()=>{if(mode==="settings")onBusyChange(pending);},[pending,onBusyChange,mode]);
@@ -26,13 +30,13 @@ export function PlanningSetup({kitchens,kitchenId,date,outlets,products,config,b
  const [availability,setAvailability]=useState(()=>Object.fromEntries(products.map(p=>[p.id,{available_from:p.available_from??null,available_until:p.available_until??null}])));
  useEffect(()=>{
   if(mode!=="settings")return;
-  const changed=forecastsDirty||enabled!==config.enabled||buffer!==config.buffer_percent||decrease!==config.max_decrease_percent
+  const changed=inclusionDirty||forecastsDirty||enabled!==config.enabled||buffer!==config.buffer_percent||decrease!==config.max_decrease_percent
    ||products.some(p=>String(yields[p.id]??"")!==String(batches.find(b=>b.product_id===p.id)?.yield_per_tray??"")
     ||String(basis[p.id]??"manual")!==String(batches.find(b=>b.product_id===p.id)?.forecast_basis??"manual")
     ||availability[p.id].available_from!==(p.available_from??null)||availability[p.id].available_until!==(p.available_until??null))
    ||outlets.some(o=>products.some(p=>String(mins[`${o.id}:${p.id}`]??"")!==String(minimums.find(m=>m.branch_id===o.id&&m.product_id===p.id)?.minimum_qty??"")));
   onDirtyChange(changed);
- },[mode,forecastsDirty,enabled,buffer,decrease,yields,basis,mins,availability,config,products,batches,minimums,outlets,onDirtyChange]);
+ },[mode,inclusionDirty,forecastsDirty,enabled,buffer,decrease,yields,basis,mins,availability,config,products,batches,minimums,outlets,onDirtyChange]);
  const [yieldRegion,setYieldRegion]=useState<YieldRegion>(/alma|penang/i.test(kitchens.find(k=>k.id===kitchenId)?.branch_name??"")?"penang":"kl");
  const supplied=products.flatMap(product=>{const value=suppliedPlanningYield(product,yieldRegion);return value===null?[]:[{id:product.id,value}];});
  const [yieldNotice,setYieldNotice]=useState("");
@@ -42,8 +46,9 @@ export function PlanningSetup({kitchens,kitchenId,date,outlets,products,config,b
  const [outlet,setOutlet]=useState(outlets[0]?.id??"");const [bulk,setBulk]=useState("");
  const bulkValid=bulk.trim()!==""&&Number.isFinite(Number(bulk))&&Number(bulk)>=0&&Boolean(outlet);
  const applyMinimum=()=>{if(bulkValid)setMins(old=>({...old,...Object.fromEntries(products.map(p=>[`${outlet}:${p.id}`,bulk]))}));};
- return <div className={"min-w-0"}>{mode==="settings"?<form id="production-planning-config" className="space-y-3" onSubmit={(e)=>{e.preventDefault();start(async()=>onResult(await configurePlanning({as_of:date,forecasts:forecastPayload,minimum_estimation:estimated?{method:"lower_quartile_56_days",floor:1,as_of:date}:undefined,availability:products.filter(p=>availability[p.id].available_from!==(p.available_from??null)||availability[p.id].available_until!==(p.available_until??null)).map(p=>({product_id:p.id,...availability[p.id],expected_from:p.available_from??null,expected_until:p.available_until??null})),kitchen_id:kitchenId,enabled,draft_time:"20:00",buffer_percent:Number(buffer),max_decrease_percent:Number(decrease),recipients:config.recipients,batches:products.filter((p)=>yields[p.id]?.trim()).map((p)=>({product_id:p.id,yield_per_tray:Number(yields[p.id]),forecast_basis:basis[p.id]??"manual"})),minimums:outlets.flatMap((o)=>products.filter((p)=>mins[`${o.id}:${p.id}`]?.trim()).map((p)=>({branch_id:o.id,product_id:p.id,minimum_qty:basis[p.id]==="on_order"?0:Number(mins[`${o.id}:${p.id}`])})))})));}}>
-  <EmployeeForecastEditor outlets={outlets} products={products} values={employeeValues} onChange={setEmployeeValues} disabled={pending}/>
+ return <div className={"min-w-0"}>{mode==="settings"?<form id="production-planning-config" className="space-y-3" onSubmit={(e)=>{e.preventDefault();start(async()=>onResult(await configurePlanning({...inclusionDirty?{included_product_ids:included,expected_included_product_ids:config.included_product_ids??null}:{},as_of:date,forecasts:forecastPayload,minimum_estimation:estimated?{method:"lower_quartile_56_days",floor:1,as_of:date}:undefined,availability:products.filter(p=>availability[p.id].available_from!==(p.available_from??null)||availability[p.id].available_until!==(p.available_until??null)).map(p=>({product_id:p.id,...availability[p.id],expected_from:p.available_from??null,expected_until:p.available_until??null})),kitchen_id:kitchenId,enabled,draft_time:"20:00",buffer_percent:Number(buffer),max_decrease_percent:Number(decrease),recipients:config.recipients,batches:products.filter((p)=>yields[p.id]?.trim()).map((p)=>({product_id:p.id,yield_per_tray:Number(yields[p.id]),forecast_basis:basis[p.id]??"manual"})),minimums:outlets.flatMap((o)=>products.filter((p)=>mins[`${o.id}:${p.id}`]?.trim()).map((p)=>({branch_id:o.id,product_id:p.id,minimum_qty:basis[p.id]==="on_order"?0:Number(mins[`${o.id}:${p.id}`])})))})));}}>
+  <PlanningMenuSelection products={products} included={included} onChange={setIncluded} disabled={pending}/>
+  <EmployeeForecastEditor outlets={outlets} products={products.filter(p=>included.includes(p.id)&&productAvailableOn(availability[p.id],date))} values={employeeValues} onChange={setEmployeeValues} disabled={pending}/>
   <details className="sb-work-surface p-4"><summary className="min-h-[var(--sb-control-height)] cursor-pointer text-sm font-semibold">Kitchen settings</summary><div className="mt-3 grid gap-3 sm:grid-cols-2"><label className="flex min-h-11 items-center gap-2 text-sm"><input type="checkbox" checked={enabled} onChange={(e)=>setEnabled(e.target.checked)}/>Generate next-day drafts automatically</label><p className="self-center text-xs text-muted-foreground">Draft schedule · from 20:00 Malaysia time</p><label className="grid gap-2 text-xs">Demand buffer %<Input type="number" min="0" max="100" value={buffer} onChange={(e)=>setBuffer(Number(e.target.value))}/></label><label className="grid gap-2 text-xs">Maximum automatic decrease %<Input type="number" min="0" max="100" value={decrease} onChange={(e)=>setDecrease(Number(e.target.value))}/></label></div>
   </details><section className="sb-work-surface p-4"><h2 className="mb-3 text-sm font-semibold">Production yields & outlet minimums</h2><div className="mb-3 grid items-end gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"><label className="grid min-w-0 gap-2 text-xs">Outlet<SelectControl value={outlet} onValueChange={setOutlet} ariaLabel="Minimum quantity outlet" options={outlets.map(o=>({value:o.id,label:o.branch_name}))}/></label><label className="grid gap-2 text-xs">Minimum for all products<Input type="number" min="0" value={bulk} onChange={(e)=>setBulk(e.target.value)} onKeyDown={(e)=>{if(e.key==="Enter"){e.preventDefault();applyMinimum();}}}/></label><Button type="button" variant="outline" disabled={!bulkValid} onClick={applyMinimum}>Apply minimum</Button></div>
 

@@ -1,12 +1,12 @@
 "use client";
-import { applySharedPlanningReason } from "@/lib/production-planning/shared-reason";
+import { decodePlanningDraft, encodePlanningDraft, planningDraftKey } from "@/lib/production-planning/draft";
 import { productAvailableOn } from "@/lib/production-planning/availability";
 import Link from "next/link";
 import { productionSheetFilename } from "@/lib/production-planning/production-sheet";
 import { ProductionPrintSheet } from "@/components/production-planning-print-sheet";
-import { ClipboardList, Settings2, CalendarDays, MapPin, Pencil, Save, RefreshCw, Send, Printer, Truck, Plus, Check, Undo2, GitBranch, Search, MessageSquare } from "lucide-react";
+import { ClipboardList, Settings2, CalendarDays, MapPin, Pencil, Save, RefreshCw, Send, Printer, Truck, Plus, Check, Undo2, GitBranch, Search } from "lucide-react";
 import { WorkspaceTabs } from "@/components/ui/workspace-tabs";
-import { useEffect, useId, useState, useTransition, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { FilterBar } from "@/components/ui/filter-bar";
@@ -35,7 +35,7 @@ export function PlanningDialog({ title, onClose, children, compact = false }: {t
   const titleId=useId();
   return <ModalShell open onClose={onClose} titleId={titleId} className={compact?"max-w-md":"max-w-5xl"}><div className="mb-4 flex items-center justify-between gap-3"><h2 id={titleId} className="min-w-0 flex-1 break-words text-base font-semibold">{title}</h2></div>{children}</ModalShell>;
 }
-type Props={ companyName?:string; view?:"plan"|"settings"|"events"; companyId:string; selectedPlanId?:string; date:string; kitchenId:string; kitchens:PlanningBranch[]; outlets:PlanningBranch[]; products:PlanningProduct[]; plans:Plan[]; orders:DeliveryOrder[]; config:PlanningConfig; batches:Record<string,unknown>[]; minimums:Record<string,unknown>[]; forecasts?:EmployeeForecast[]; events?:PlanningEvent[]; canManage:boolean };
+type Props={ actorId?:string; companyName?:string; view?:"plan"|"settings"|"events"; companyId:string; selectedPlanId?:string; date:string; kitchenId:string; kitchens:PlanningBranch[]; outlets:PlanningBranch[]; products:PlanningProduct[]; plans:Plan[]; orders:DeliveryOrder[]; config:PlanningConfig; batches:Record<string,unknown>[]; minimums:Record<string,unknown>[]; forecasts?:EmployeeForecast[]; events?:PlanningEvent[]; canManage:boolean };
 export function ProductionPlanningWorkspace(props:Props) {
  const {date,kitchenId,kitchens,outlets,products,plans,orders,canManage}=props;
  const view=props.view??"plan"; const [setupPending,setSetupPending]=useState(false);
@@ -50,7 +50,32 @@ export function ProductionPlanningWorkspace(props:Props) {
  const [checkFocus,setCheckFocus]=useState<{id:string;request:number}|null>(null);
  const [evidence,setEvidence]=useState<string|null>(null);
  const [dialog,setDialog]=useState<"review"|"dispatch"|null>(null); const [dirty,setDirty]=useState(false); const [returnReason,setReturnReason]=useState("");
- useEffect(()=>{setAllocations(plan?.allocations??[]);setProduction(plan?.product_lines??[]);setDirty(false);},[plan]);
+ const draftKey=plan&&props.actorId?planningDraftKey(props.companyId,props.actorId,plan.id):null;
+ const [recoveryMessage,setRecoveryMessage]=useState("");
+ const [recoveryReady,setRecoveryReady]=useState(false);
+ const [unrestoredDraft,setUnrestoredDraft]=useState<string|null>(null);
+ const dirtyRef=useRef(dirty); dirtyRef.current=dirty;
+ const serverRevision=useRef(plan?.revision);
+ useEffect(()=>{
+  if(!draftKey||!plan||!canManage||view!=="plan"){setRecoveryReady(true);return;}
+  let raw:string|null=null;
+  try { raw=sessionStorage.getItem(draftKey); if(raw){const restored=decodePlanningDraft(raw,plan);setAllocations(restored.allocations);setProduction(restored.production);setDirty(true);setRecoveryMessage("Unsaved quantities restored on this device. Review and save them to the system.");} }
+  catch(error){if(raw)setUnrestoredDraft(raw);setRecoveryMessage(error instanceof Error?error.message:"Local draft could not be restored. Keep this page open.");}
+  setRecoveryReady(true);
+  // The route remounts on company, kitchen, date, view or plan changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+ },[draftKey]);
+ useEffect(()=>{
+  if(serverRevision.current===plan?.revision)return;
+  if(dirtyRef.current){setRecoveryMessage("This plan changed elsewhere. Your inputs are retained; review the latest version before saving.");return;}
+  serverRevision.current=plan?.revision;setAllocations(plan?.allocations??[]);setProduction(plan?.product_lines??[]);
+ },[plan]);
+ useEffect(()=>{
+  if(!recoveryReady||unrestoredDraft||!draftKey||!dirty||view!=="plan"||!plan)return;
+  try{sessionStorage.setItem(draftKey,encodePlanningDraft(serverRevision.current??plan.revision,allocations,productionRows));}
+  catch{setRecoveryMessage("Device backup is unavailable. Keep this page open until Save changes succeeds.");}
+ },[recoveryReady,unrestoredDraft,draftKey,dirty,view,plan,allocations,productionRows]);
+ const clearDraft=()=>{if(draftKey){try{sessionStorage.removeItem(draftKey);}catch{setRecoveryMessage("Could not clear the device draft. Check the saved plan before restoring it again.");}}};
  useEffect(()=>{
   if(!dirty)return;
   const unload=(event:BeforeUnloadEvent)=>{event.preventDefault();event.returnValue="";};
@@ -58,10 +83,21 @@ export function ProductionPlanningWorkspace(props:Props) {
   window.addEventListener("beforeunload",unload);document.addEventListener("click",link,true);
   return ()=>{window.removeEventListener("beforeunload",unload);document.removeEventListener("click",link,true);};
  },[dirty]);
- const execute=(work:()=>Promise<PlanningActionResult>)=>startTransition(async()=>{const r=await work();setMessage(r);if(r.ok){setDialog(null);router.refresh();}});
+ // Reuse the request key after an uncertain response, but never for different inputs.
+ const saveAttempt=useRef<{signature:string;key:string}|null>(null);
+ const saveCurrent=()=>{
+  if(!plan)throw new Error("No plan selected.");
+  const payload={allocations,product_lines:production};
+  const signature=JSON.stringify({id:plan.id,revision:plan.revision,payload});
+  if(saveAttempt.current?.signature!==signature)saveAttempt.current={signature,key:crypto.randomUUID()};
+  return changePlan(plan.id,plan.revision,"save",payload,saveAttempt.current.key);
+ };
+ const execute=(work:()=>Promise<PlanningActionResult>,saving=false)=>startTransition(async()=>{try{const r=await work();setMessage(r);if(r.ok){if(saving){dirtyRef.current=false;setDirty(false);clearDraft();setRecoveryMessage("");}setDialog(null);router.refresh();}}catch{setMessage({ok:false,message:"Save result could not be confirmed. Your inputs are retained. Check the saved version before retrying."});}});
  const editAllocation=(productId:string,branchId:string,field:"approved_qty"|"reason",value:string)=>{setDirty(true);setAllocations((lines)=>lines.map((l)=>l.product_id===productId&&l.branch_id===branchId?{...l,[field]:field==="reason"?value:value===""?null:Number(value)}:l));};
  const editProduction=(productId:string,field:"trays"|"retained_qty"|"reason",value:string)=>{setDirty(true);setProduction((lines)=>lines.map((l)=>l.product_id===productId?{...l,[field]:field==="reason"?value:value===""?null:Number(value)}:l));};
  const working=plan?.status==="draft"&&canManage;
+ const draftConflict=dirty&&serverRevision.current!==plan?.revision;
+ const editable=working&&!pending&&recoveryReady&&!draftConflict&&!unrestoredDraft;
  const total=(id:string)=>allocations.filter(a=>a.product_id===id).reduce((sum,a)=>sum+Number(a.approved_qty??0),0)+(production.find(p=>p.product_id===id)?.event_qty??0);
  const unavailableProducts=plan?.status==="draft"?products.filter(p=>production.some(line=>line.product_id===p.id)&&!productAvailableOn(p,date)):[];
  const planProducts=plan?.status==="draft"?products.filter(p=>productAvailableOn(p,date)):products;
@@ -72,32 +108,28 @@ export function ProductionPlanningWorkspace(props:Props) {
 
  const altered=(a:Allocation)=>(a.suggested_qty!==null&&a.approved_qty!==a.suggested_qty)||(a.approved_qty!==null&&a.approved_qty<Math.max(a.minimum_qty??0,a.evidence.reductionFloor??0)+a.event_qty);
  const num=(value:number|null)=>value===null?"—":formatNumber(value);
- const [sharedReasonOpen,setSharedReasonOpen]=useState(false);
- const [sharedReason,setSharedReason]=useState("");
- const [allocationNote,setAllocationNote]=useState<{productId:string;branchId:string}|null>(null);
- const allocationNoteId=useId();
- const noteAllocation=allocations.find(a=>a.product_id===allocationNote?.productId&&a.branch_id===allocationNote?.branchId);
  const allocationCell=(a:Allocation)=> <div className="space-y-1" data-allocation-cell>
-  <div className="flex items-center gap-1">{working?<Input aria-label={`${products.find(p=>p.id===a.product_id)?.product_name} to ${outlets.find(o=>o.id===a.branch_id)?.branch_name}`} className="min-w-0 flex-1 text-right tabular-nums" type="number" min="0" step="0.01" value={a.approved_qty??""} placeholder="Manual" onChange={e=>editAllocation(a.product_id,a.branch_id,"approved_qty",e.target.value)}/>:<span className="ml-auto tabular-nums">{num(a.approved_qty)}</span>}
-  {altered(a)&&working?<Button type="button" variant="ghost" size="icon" className={`shrink-0 ${a.reason.trim()?"":"text-[var(--sb-warning)]"}`} aria-label={`Quantity reason for ${products.find(p=>p.id===a.product_id)?.product_name} at ${outlets.find(o=>o.id===a.branch_id)?.branch_name}`} title={a.reason.trim()?a.reason:"Add a reason for this quantity change"} onClick={()=>setAllocationNote({productId:a.product_id,branchId:a.branch_id})}><MessageSquare className="size-4" aria-hidden="true"/></Button>:null}</div>
+  <div className="flex items-center gap-1">{editable?<Input aria-label={`${products.find(p=>p.id===a.product_id)?.product_name} to ${outlets.find(o=>o.id===a.branch_id)?.branch_name}`} className="min-w-0 flex-1 text-right tabular-nums" type="number" min="0" step="1" inputMode="numeric" value={a.approved_qty??""} placeholder="Manual" onChange={e=>editAllocation(a.product_id,a.branch_id,"approved_qty",e.target.value)}/>:<span className="ml-auto tabular-nums">{num(a.approved_qty)}</span>}
+  </div>
   {altered(a)?<p className="text-xs text-muted-foreground">{a.suggested_qty===null?"Manual quantity":`Suggested ${num(a.suggested_qty)}`}{!working&&a.reason?` · ${a.reason}`:""}</p>:null}
   {a.evidence.carryover?.status==="confirmed"&&a.evidence.carryover.deducted>0?<p className="text-xs text-muted-foreground">Stock −{num(a.evidence.carryover.deducted)}</p>:null}
-  {a.evidence.stockoutRisk?<p className="text-xs text-[var(--sb-warning)]">Check sell-out</p>:null}
+  {a.evidence.stockoutRisk?<p className="text-xs text-muted-foreground" title="Previous sales may be limited because this product sold out. Review the suggestion evidence.">Prior sell-out</p>:null}
   {a.event_qty>0?<p className="text-xs text-muted-foreground">Event +{num(a.event_qty)}</p>:null}
  </div>;
  const rail=<div className="sb-planning-actions space-y-3">
   <ConsoleSection title="Actions"><div className="grid gap-2">{view!=="plan"?canManage?<Button data-mobile-primary-action form={view==="settings"?"production-planning-config":"production-planning-event"} type="submit" disabled={setupPending}><Check aria-hidden="true"/>{setupPending?"Saving…":view==="settings"?"Save settings":"Confirm event"}</Button>:null:<>
    {!plan&&canManage?<Button disabled={pending||!kitchenId} onClick={()=>execute(()=>generatePlan(kitchenId,date))}><Plus aria-hidden="true"/>{pending?"Generating…":"Generate draft"}</Button>:null}
-   {working?<><Button data-mobile-primary-action disabled={pending||!dirty} onClick={()=>execute(()=>changePlan(plan.id,plan.revision,"save",{allocations,product_lines:production},crypto.randomUUID()))}><Save aria-hidden="true"/>Save changes</Button><Button variant="outline" disabled={pending||dirty} onClick={()=>execute(()=>changePlan(plan.id,plan.revision,"recalculate",{},crypto.randomUUID()))}><RefreshCw aria-hidden="true"/>Recalculate suggestions</Button><Button disabled={pending||dirty||gaps>0} onClick={()=>setDialog("review")}><Send aria-hidden="true"/>Preview & submit</Button>{dirty?<p className="text-xs text-muted-foreground">Save changes before recalculating or submitting.</p>:gaps>0?<p className="text-xs text-muted-foreground">Complete the Plan checks before submitting.</p>:null}</>:null}
+   {working?<><Button data-mobile-primary-action disabled={pending||!dirty||draftConflict} onClick={()=>execute(saveCurrent,true)}><Save aria-hidden="true"/>Save changes</Button><Button variant="outline" disabled={pending||dirty} onClick={()=>execute(()=>changePlan(plan.id,plan.revision,"recalculate",{},crypto.randomUUID()))}><RefreshCw aria-hidden="true"/>Recalculate suggestions</Button><Button disabled={pending||dirty||gaps>0} onClick={()=>setDialog("review")}><Send aria-hidden="true"/>Preview & submit</Button>{dirty?<p className="text-xs text-muted-foreground">Save changes before recalculating or submitting.</p>:gaps>0?<p className="text-xs text-muted-foreground">Complete the Plan checks before submitting.</p>:null}</>:null}
    {plan?.status==="submitted"&&canManage?<><Button disabled={pending} onClick={()=>setDialog("review")}><Check aria-hidden="true"/>Review & release</Button><Input aria-label="Return reason" placeholder="Reason to return to draft" value={returnReason} onChange={(e)=>setReturnReason(e.target.value)}/><Button variant="outline" disabled={pending||!returnReason.trim()} onClick={()=>execute(()=>changePlan(plan.id,plan.revision,"return",{reason:returnReason},crypto.randomUUID()))}><Undo2 aria-hidden="true"/>Return to draft</Button></>:null}
    {plan?.status==="approved"&&canManage?<><Button disabled={pending} onClick={()=>setDialog("dispatch")}><Truck aria-hidden="true"/>Confirm actual dispatch</Button><Button variant="outline" disabled={pending||plans.some((p)=>["draft","submitted"].includes(p.status))} onClick={()=>execute(()=>changePlan(plan.id,plan.revision,"revise",{},crypto.randomUUID()))}><GitBranch aria-hidden="true"/>Create revised version</Button></>:null}
    {plan?<Button variant="outline" disabled={exporting} onClick={()=>void downloadSheet()}><Printer aria-hidden="true"/>{exporting?"Preparing PDF…":"Download production sheet"}</Button>:null}
   </>}</div></ConsoleSection>
   {view==="events"?<PlanningEvents compact events={props.events??[]} outlets={outlets} products={products}/>:null}
-  {view==="plan"?<PlanningReviewChecks onSharedReason={working?()=>setSharedReasonOpen(true):undefined} hasPlan={Boolean(plan)} dirty={dirty} checks={checks} products={products} outlets={outlets} date={date} kitchenId={kitchenId} onProduct={id=>setCheckFocus(previous=>({id,request:(previous?.request??0)+1}))}/>:null}
+  {view==="plan"?<PlanningReviewChecks hasPlan={Boolean(plan)} dirty={dirty} checks={checks} products={products} outlets={outlets} date={date} kitchenId={kitchenId} onProduct={id=>setCheckFocus(previous=>({id,request:(previous?.request??0)+1}))}/>:null}
  </div>;
  return <WorkspaceGrid className="sb-planning-workspace" rightRail={rail} tabletRailMode="split" tabletRailBreakpoint="md">
   <WorkspaceTabs className="sb-planning-workspace-tabs" prefetchOnIntent onNavigate={navigate} label="Production Planning workspace" current={view} items={[{id:"plan",label:"Plan",icon:ClipboardList},...(canManage?[{id:"events",label:"Events",icon:CalendarDays},{id:"settings",label:"Settings",icon:Settings2}]:[])].map(t=>({...t,href:`/production/planning?date=${date}&kitchen=${kitchenId}&view=${t.id}`}))}/>
+  {recoveryMessage?<Notice tone="warning" title="Draft recovery">{recoveryMessage}{unrestoredDraft?<div className="mt-2 flex flex-wrap gap-2"><Button variant="outline" onClick={()=>{const url=URL.createObjectURL(new Blob([unrestoredDraft],{type:"application/json"}));const link=document.createElement("a");link.href=url;link.download="unsaved-planning-draft.json";link.click();window.setTimeout(()=>URL.revokeObjectURL(url),60000);}}>Download retained draft</Button><Button variant="outline" onClick={()=>{clearDraft();setUnrestoredDraft(null);setRecoveryMessage("");}}>Discard device draft & use saved plan</Button></div>:null}</Notice>:null}
   {message?<Notice tone={message.ok?"success":"warning"} title={message.ok?"Plan updated":"Action needs attention"}>{message.message}</Notice>:null}
   <FilterBar key={`${date}:${kitchenId}:${plan?.id}`} resetHref={`/production/planning?view=${view}`} actions={<Button variant="secondary" type="submit"><Search aria-hidden="true"/>{view==="plan"?"View plan":view==="settings"?"View settings":"View events"}</Button>} onSubmit={event=>{event.preventDefault();const fields=new FormData(event.currentTarget);const nextDate=String(fields.get("date"));const nextKitchen=String(fields.get("kitchen"));const version=nextDate===date&&nextKitchen===kitchenId?fields.get("version"):null;navigate(`/production/planning?date=${nextDate}&kitchen=${nextKitchen}&view=${view}${version?`&version=${version}`:""}`);}}><label className="text-xs">Delivery date<Input name="date" type="date" defaultValue={date} required/></label><label className="text-xs">Kitchen<SelectControl name="kitchen" defaultValue={kitchenId} ariaLabel="Kitchen" options={kitchens.map(k=>({value:k.id,label:k.branch_name}))}/></label>{view==="plan"&&plans.length?<label className="text-xs">Version<SelectControl name="version" defaultValue={plan?.id} ariaLabel="Plan version" options={plans.map(p=>({value:p.id,label:`v${p.version} · ${p.status}`}))}/></label>:null}</FilterBar>
   {view==="plan"?<>
@@ -107,7 +139,7 @@ export function ProductionPlanningWorkspace(props:Props) {
     {unavailableProducts.length?<p className="border-b bg-amber-50 p-3 text-xs">{unavailableProducts.length} products are outside their supply period. Recalculate this draft to remove them before submitting.</p>:null}
     {plan.holidays.length?<p className="border-b bg-amber-50 p-3 text-xs text-amber-900">Public holiday: {plan.holidays.map((h)=>`${outlets.find((o)=>o.id===h.branch_id)?.branch_name??"Outlet"} · ${h.name}`).join("; ")}. Review demand; no automatic uplift.</p>:null}
     <PlanningSurplus allocations={allocations} production={production} products={planProducts}/>
-    <PlanningAllocationTable focusProduct={checkFocus} key={plan.id} products={planProducts} outlets={outlets} allocations={allocations} production={production} working={working} allocationCell={allocationCell} editProduction={editProduction} setTrayMode={(id,mode)=>{setDirty(true);setProduction(lines=>lines.map(line=>line.product_id===id?{...line,tray_mode:mode,trays:production.find(p=>p.product_id===id)?.trays??null}:line));}} onEvidence={setEvidence}/>
+    <PlanningAllocationTable focusProduct={checkFocus} key={plan.id} products={planProducts} outlets={outlets} allocations={allocations} production={production} working={editable} allocationCell={allocationCell} editProduction={editProduction} setTrayMode={(id,mode)=>{setDirty(true);setProduction(lines=>lines.map(line=>line.product_id===id?{...line,tray_mode:mode,trays:production.find(p=>p.product_id===id)?.trays??null}:line));}} onEvidence={setEvidence}/>
 
    </section>
    {plan.events.length?<section className="sb-work-surface p-3"><h2 className="text-sm font-semibold">Confirmed external orders & events</h2>{plan.events.map((e)=><p className="mt-2 text-sm" key={e.id}>{e.name} · {e.branch_id?outlets.find((o)=>o.id===e.branch_id)?.branch_name:e.demand_kind==="franchise_order"?"Franchise order":"Independent corporate event"} · {e.lines.map((l)=>`${products.find((p)=>p.id===l.product_id)?.product_code} × ${num(l.qty)}`).join(", ")}</p>)}</section>:null}
@@ -116,10 +148,9 @@ export function ProductionPlanningWorkspace(props:Props) {
   </>:<><PlanningSetup key={`${view}:${kitchenId}:${props.forecasts?.map(f=>f.updated_at).join("|")??""}`} {...props} mode={view} onBusyChange={setSetupPending} onDirtyChange={setDirty} onResult={r=>{setMessage(r);if(r.ok){setDirty(false);if(nextNavigation){const target=nextNavigation;setNextNavigation(null);router.push(target);}else router.refresh();}}}/>{view==="events"?<div className="lg:hidden"><PlanningEvents compact events={props.events??[]} outlets={outlets} products={products}/></div>:null}</>}
   {evidence&&plan?<PlanningDialog title={`${products.find((p)=>p.id===evidence)?.product_name} · suggestion evidence`} onClose={()=>setEvidence(null)}><PlanningEvidence planId={plan.id} productId={evidence} kitchenId={kitchenId} date={date} allocations={allocations} outlets={outlets} unit={products.find(p=>p.id===evidence)?.selling_unit??""}/></PlanningDialog>:null}
   {dialog==="review"&&plan?<PlanningDialog title={plan.status==="submitted"?"Review & release to kitchen":"Preview final allocation"} onClose={()=>setDialog(null)}><p className="mb-3 text-sm">{formatDateOnly(date)} · version {plan.version}. Production and allocation below will be locked on release.</p><div className="overflow-x-auto"><Table className="w-full text-sm"><TableHeader><TableRow><TableHead className="p-2 text-left">Product</TableHead><TableHead>Production</TableHead><TableHead>Allocated</TableHead><TableHead>Kitchen retains</TableHead></TableRow></TableHeader><TableBody>{production.map((l)=><TableRow key={l.product_id} className="border-t"><TableCell className="p-2">{products.find((p)=>p.id===l.product_id)?.product_name}</TableCell><TableCell>{l.trays} × {l.yield_per_tray} = {num((l.trays??0)*(l.yield_per_tray??0))}</TableCell><TableCell>{num(total(l.product_id))}</TableCell><TableCell>{num(l.retained_qty)}</TableCell></TableRow>)}</TableBody></Table></div>{outlets.map((o)=><details className="my-2 border p-3" key={o.id}><summary>{o.branch_name} · allocation preview</summary>{allocations.filter((a)=>a.branch_id===o.id).map((a)=><p className="mt-1 text-sm" key={a.product_id}>{products.find((p)=>p.id===a.product_id)?.product_name}: {num(a.approved_qty)}</p>)}</details>)}<Button className="mt-4" disabled={pending||gaps>0} onClick={()=>execute(()=>changePlan(plan.id,plan.revision,plan.status==="submitted"?"approve":"submit",{},crypto.randomUUID()))}><Send aria-hidden="true"/>{plan.status==="submitted"?"Approve & notify kitchen":"Submit for approval"}</Button></PlanningDialog>:null}
-  {nextNavigation?<PlanningDialog compact title="Unsaved changes" onClose={()=>setNextNavigation(null)}><p className="mb-3 text-sm">Save your changes before switching?</p><div data-action-count="3" className="sb-dialog-actions gap-2 [&_button]:min-w-0 [&_button]:whitespace-normal"><Button disabled={pending||setupPending} onClick={()=>startTransition(async()=>{if(view!=="plan"){const form=document.getElementById(view==="settings"?"production-planning-config":"production-planning-event");if(form instanceof HTMLFormElement)form.requestSubmit();return;}if(!plan)return;const result=await changePlan(plan.id,plan.revision,"save",{allocations,product_lines:production},crypto.randomUUID());setMessage(result);if(result.ok){const target=nextNavigation;setNextNavigation(null);setDirty(false);router.push(target);}})}>Save & switch</Button><Button variant="outline" disabled={pending||setupPending} onClick={()=>{const target=nextNavigation;setAllocations(plan?.allocations??[]);setProduction(plan?.product_lines??[]);setNextNavigation(null);setDirty(false);router.push(target);}}>Discard & switch</Button><Button variant="outline" disabled={pending||setupPending} onClick={()=>setNextNavigation(null)}>Cancel</Button></div></PlanningDialog>:null}
+  {nextNavigation?<PlanningDialog compact title="Unsaved changes" onClose={()=>setNextNavigation(null)}><p className="mb-3 text-sm">Save your changes before switching?</p><div data-action-count="3" className="sb-dialog-actions gap-2 [&_button]:min-w-0 [&_button]:whitespace-normal"><Button disabled={pending||setupPending} onClick={()=>startTransition(async()=>{if(view!=="plan"){const form=document.getElementById(view==="settings"?"production-planning-config":"production-planning-event");if(form instanceof HTMLFormElement)form.requestSubmit();return;}if(!plan||draftConflict)return;try{const result=await saveCurrent();setMessage(result);if(result.ok){const target=nextNavigation;dirtyRef.current=false;clearDraft();setNextNavigation(null);setDirty(false);router.push(target);}}catch{setMessage({ok:false,message:"Save result could not be confirmed. Your inputs are retained. Check the saved version before retrying."});}})}>Save & switch</Button><Button variant="outline" disabled={pending||setupPending} onClick={()=>{const target=nextNavigation;clearDraft();setAllocations(plan?.allocations??[]);setProduction(plan?.product_lines??[]);setNextNavigation(null);setDirty(false);router.push(target);}}>Discard & switch</Button><Button variant="outline" disabled={pending||setupPending} onClick={()=>setNextNavigation(null)}>Cancel</Button></div></PlanningDialog>:null}
   {dialog==="dispatch"&&plan?<DispatchDialog plan={plan} outlets={outlets} products={products} orders={orders} pending={pending} onClose={()=>setDialog(null)} onConfirm={(payload,key)=>execute(()=>confirmDispatch(plan.id,plan.revision,payload,key))}/>:null}
- {sharedReasonOpen?<PlanningDialog title="Reason for these changes" onClose={()=>setSharedReasonOpen(false)}><p className="mb-3 text-xs text-muted-foreground">Apply only to missing required reasons. Existing explanations and quantities stay unchanged.</p><ul className="mb-3 max-h-40 overflow-y-auto divide-y text-xs">{Array.from(new Set(checks.filter(c=>c.category==="reasons").map(c=>c.productId))).map(id=><li className="py-1" key={id}>{products.find(p=>p.id===id)?.product_name}</li>)}</ul><label className="grid gap-2 text-xs font-medium">Reason<Input value={sharedReason} onChange={e=>setSharedReason(e.target.value)}/></label><div className="mt-4 flex justify-end gap-2"><Button type="button" variant="outline" onClick={()=>setSharedReasonOpen(false)}>Cancel</Button><Button type="button" disabled={!sharedReason.trim()} onClick={()=>{const edited=applySharedPlanningReason(allocations,productionRows,sharedReason);setAllocations(edited.allocations);setProduction(edited.production);setDirty(true);setSharedReasonOpen(false);setSharedReason("");}}>Apply to missing reasons</Button></div></PlanningDialog>:null}
- {noteAllocation?<PlanningDialog title="Quantity change reason" onClose={()=>setAllocationNote(null)}><p className="mb-3 text-xs text-muted-foreground">{products.find(p=>p.id===noteAllocation.product_id)?.product_name} · {outlets.find(o=>o.id===noteAllocation.branch_id)?.branch_name}</p><label htmlFor={allocationNoteId} className="grid gap-2 text-xs font-medium">Reason<Input id={allocationNoteId} autoFocus value={noteAllocation.reason} onChange={e=>editAllocation(noteAllocation.product_id,noteAllocation.branch_id,"reason",e.target.value)}/></label><div className="mt-4 flex justify-end"><Button type="button" onClick={()=>setAllocationNote(null)}>Done</Button></div></PlanningDialog>:null}
+
  </WorkspaceGrid>;
 }
 function DispatchDialog({plan,outlets,products,orders,pending,onClose,onConfirm}:{plan:Plan;outlets:PlanningBranch[];products:PlanningProduct[];orders:DeliveryOrder[];pending:boolean;onClose:()=>void;onConfirm:(payload:unknown,key:string)=>void}) {

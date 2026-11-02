@@ -376,6 +376,7 @@ export type Database = {
       };
       outlet_daily_records: {
         Row: {
+          edit_revision: number;
           id: string;
           company_id: string;
           branch_id: string;
@@ -3108,6 +3109,10 @@ export type Database = {
       replace_branch_supply_routes: {
         Args: { p_branch_id: string; p_related_branch_ids?: string[] };
         Returns: void;
+      };
+      save_outlet_daily_record_checked: {
+        Args: { p_record_id: string | null; p_branch_id: string; p_record_date: string; p_notes: string | null; p_lines: Json; p_target_status: string; p_expected_revision: number | null; p_include_sales: boolean; p_pos_total_sales: number | null; p_sales_breakdown: Json; p_sales_variance_reason: string | null };
+        Returns: Json;
       };
       save_outlet_daily_record: {
         Args: {

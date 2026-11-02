@@ -10,7 +10,7 @@ function harness() {
  const mocks={'@/lib/form-pending-recovery':require('./helpers/load-source.cjs')()('src/lib/form-pending-recovery.ts'),'react':{useEffect:fn=>effects.push(fn),useState:initial=>[initial,value=>states.push(value)],useRef:value=>({current:value})},'react-dom':{useFormStatus:()=>({pending:insidePendingForm})},'react/jsx-runtime':require('react/jsx-runtime'),'next/navigation':{usePathname:()=>'/fixture',useSearchParams:()=>new URLSearchParams()},'lucide-react':{LoaderCircle:()=>null},'@/components/ui/button':{Button:()=>null}};
  const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/components/ui/submit-button.tsx','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports,document,window:new EventTarget(),CustomEvent,require:name=>{assert.ok(name in mocks,`unexpected import ${name}`);return mocks[name];}});
  exports.SubmitButton({form:'target-form',children:'Save'});const buttonCleanups=effects.splice(0).map(fn=>fn());states.length=0;
- return {states,bridge(formId,pending){insidePendingForm=pending;exports.FormPendingBridge({formId});return effects.pop()();},dispose(){buttonCleanups.forEach(fn=>fn?.());}};
+ return {states,settle(formId){document.dispatchEvent(new CustomEvent("sb:form-settled",{detail:{formId}}));},bridge(formId,pending){insidePendingForm=pending;exports.FormPendingBridge({formId});return effects.pop()();},dispose(){buttonCleanups.forEach(fn=>fn?.());}};
 }
 test('external pending button releases when its active form bridge unmounts',()=>{
  const h=harness();const unmount=h.bridge('target-form',true);
@@ -21,4 +21,10 @@ test('one form unmount cannot release another form, and completed bridge never c
  const h=harness();const other=h.bridge('other-form',true);assert.deepEqual(h.states,[]);other?.();assert.deepEqual(h.states,[]);
  const target=h.bridge('target-form',true);assert.deepEqual(h.states,[true]);target?.();assert.deepEqual(h.states,[true,false]);
  const idle=h.bridge('target-form',false);idle?.();assert.deepEqual(h.states,[true,false]);h.dispose();
+});
+
+test('cancelled external submission settles only its matching form without resetting inputs',()=>{
+ const h=harness();h.settle('other-form');assert.deepEqual(h.states,[]);
+ h.settle('target-form');assert.deepEqual(h.states,[false]);h.dispose();
+ h.settle('target-form');assert.deepEqual(h.states,[false]);
 });

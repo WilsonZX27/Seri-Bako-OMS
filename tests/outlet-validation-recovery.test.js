@@ -26,7 +26,7 @@ test('outlet RPC business rejection retains an in-place retry result', async () 
     '@/lib/supabase/server':{createClient:async()=>({from:()=>query,rpc:async()=>{calls++;return {error:{message:'Received must be independently confirmed, including zero.'}}}})}
   });
   const data=new FormData();
-  for (const [k,v] of Object.entries({record_id:'e2000000-0000-4000-8000-000000000005',branch_id:'e2000000-0000-4000-8000-000000000001',record_date:'2026-10-10',notes:'unsaved header',line_product_id:'e2000000-0000-4000-8000-000000000002',morning_received_qty:'',wastage_qty:'0',line_notes:'unsaved line'}))data.append(k,v);
+  for (const [k,v] of Object.entries({record_id:'e2000000-0000-4000-8000-000000000005',expected_revision:'0',branch_id:'e2000000-0000-4000-8000-000000000001',record_date:'2026-10-10',notes:'unsaved header',line_product_id:'e2000000-0000-4000-8000-000000000002',morning_received_qty:'',wastage_qty:'0',line_notes:'unsaved line'}))data.append(k,v);
   const result=await saveOutletDailyRecord(data);
   assert.match(result.error,/independently confirmed/);assert.equal(calls,1);assert.equal(redirects,0);assert.equal(data.get('notes'),'unsaved header');
 });
@@ -51,4 +51,17 @@ test('failed action settles pending UI without mutating hidden proxy selections'
   const source=fs.readFileSync('src/components/outlet-daily-record-form.tsx','utf8');
   assert.match(source,/name="branch_id" value=\{selectedBranchId\}/);
   assert.match(source,/name="wastage_reason" value=\{reason \|\| "unsold"\}/);
+});
+
+test('an existing record without an expected revision fails closed before RPC', async () => {
+  let calls=0;
+  const query={select(){return this},eq(){return this},maybeSingle:async()=>({data:{status:'draft',notes:null},error:null}),then(resolve){resolve({data:[],error:null})}};
+  const {saveOutletDailyRecord}=load('src/server/actions/outlet-daily-records.ts',{
+    '@/server/auth/permissions':{hasPermission:async()=>true},
+    '@/server/actions/error-handling':{rethrowRedirect(){},formatActionError:e=>e.message},
+    '@/lib/supabase/server':{createClient:async()=>({from:()=>query,rpc:async()=>{calls++;throw Error('must not write')}})}
+  });
+  const data=new FormData();
+  for(const [k,v] of Object.entries({record_id:'e2000000-0000-4000-8000-000000000005',branch_id:'e2000000-0000-4000-8000-000000000001',record_date:'2026-10-10',line_product_id:'e2000000-0000-4000-8000-000000000002',notes:'retained'}))data.append(k,v);
+  const result=await saveOutletDailyRecord(data);assert.match(result.error,/reloaded before saving/);assert.equal(calls,0);assert.equal(data.get('notes'),'retained');
 });

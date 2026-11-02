@@ -3,7 +3,7 @@ const compile=s=>ts.transpileModule(s,{compilerOptions:{target:ts.ScriptTarget.E
 const source=fs.readFileSync('src/app/(app)/outlet-packaging/page.tsx','utf8');const ast=ts.createSourceFile('page.tsx',source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);const reportNode=ast.statements.find(n=>ts.isFunctionDeclaration(n)&&n.name?.text==='Report');
 test('the actual server report reads only the selected period once and preserves client filter identity',async()=>{
  const calls=[];const context={exports:{},require, getOutletPackagingReport:async days=>{calls.push(days);return {rows:[]};},OutletPackagingReport:()=>null};vm.runInNewContext(compile(reportNode.getText(ast)),context);
- for(const days of [7,30]){const element=await context.Report({days});assert.equal(element.props.children[0].props.days,days);assert.equal(element.props.children[0].key,null);}
+ for(const days of [7,30]){const element=await context.Report({days});assert.equal(element.props.children.props.days,days);assert.equal(element.props.children.key,null);}
  assert.deepEqual(calls,[7,30]);
 });
 test('a failed period read offers the shared retry action and never renders unverified report data',async()=>{
@@ -11,9 +11,11 @@ test('a failed period read offers the shared retry action and never renders unve
  const element=await context.Report({days:30});const errorState=element.props.children;assert.equal(errorState.type,context.ErrorState);assert.equal(errorState.props.action.type,context.RetryButton);assert.equal(logged[0],failure);assert.ok(!errorState.props.description.includes('Database'));
 });
 const report={today:'2026-10-04',products:[{id:'p',code:'PKG1',name:'Box',unit:'PCS'}],outlets:[{id:'b',name:'A'}],rows:[{id:'r',date:'2026-10-01',code:'PKG1',branchId:'b',branch:'A',usage:0,closing:0,unit:'PCS'}],latest:[{id:'r',date:'2026-10-01',code:'PKG1',branchId:'b',branch:'A',closing:0,unit:'PCS'}]};
-function render(pending){const navigations=[];let period,filters;const context={exports:{},URL,window:{location:{href:'https://system.seribako.com.my/outlet-packaging?keep=1'}},require:n=>{
+function render(pending, query="", catalog=report){const navigations=[];const pagination=[];let period,filters;const context={exports:{},URL,window:{location:{href:'https://system.seribako.com.my/outlet-packaging?keep=1'}},require:n=>{
  if(n==='react')return {...React,useTransition:()=>[pending,work=>work()]};if(n==='react/jsx-runtime'||n==='lucide-react')return require(n);
- if(n==='next/navigation')return {useRouter:()=>({replace:(...args)=>navigations.push(args)})};if(n==='next/link')return {__esModule:true,default:p=>React.createElement('a',p,p.children)};
+ if(n.endsWith('/outlet-packaging-workspace-nav'))return {PackagingWorkspaceTabs:()=>null};
+ if(n.endsWith('/sortable-table'))return {PaginationControls:p=>{pagination.push(p);return null;}};
+ if(n==='next/navigation')return {useSearchParams:()=>new URLSearchParams(query),useRouter:()=>({replace:(...args)=>navigations.push(args)})};if(n==='next/link')return {__esModule:true,default:p=>React.createElement('a',p,p.children)};
  if(n.endsWith('/workspace-layout'))return {WorkspaceGrid:p=>React.createElement('main',null,p.children,p.rightRail)};
  if(n.endsWith('/right-console'))return {ConsoleSection:p=>React.createElement('section',null,p.children)};
  if(n.endsWith('/button'))return {buttonVariants:()=>'',Button:p=>React.createElement('button',p,p.children)};if(n.endsWith('/filter-bar'))return {FilterBar:p=>{filters=p;return React.createElement('div',null,p.children);}};
@@ -23,7 +25,7 @@ function render(pending){const navigations=[];let period,filters;const context={
  if(n.endsWith('/utils'))return {formatNumber:x=>String(x),formatDateOnly:x=>x};
  if(n.endsWith('/packaging-trend')){const model={exports:{},require:context.require};vm.runInNewContext(compile(fs.readFileSync('src/lib/packaging-trend.ts','utf8')),model);return model.exports;}
  if(n.endsWith('/business-date'))return {shiftBusinessDate:(date,offset)=>{const d=new Date(date+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+offset);return d.toISOString().slice(0,10);}};throw Error(n);
- }};vm.runInNewContext(compile(fs.readFileSync('src/components/outlet-packaging-report.tsx','utf8')),context);const html=renderToStaticMarkup(React.createElement(context.exports.OutletPackagingReport,{report,days:7}));return {html,period,navigations,filters};}
+ }};vm.runInNewContext(compile(fs.readFileSync('src/components/outlet-packaging-report.tsx','utf8')),context);const html=renderToStaticMarkup(React.createElement(context.exports.OutletPackagingReport,{report:catalog,days:7}));return {html,period,navigations,filters,pagination};}
 test('pending period loads hide stale totals, coverage and chart gaps while keeping genuine stock visible',()=>{
  const {html,period}=render(true);assert.equal(period.disabled,true);assert.equal(period['aria-busy'],true);assert.match(html,/Loading packaging trend/);assert.match(html,/Loading packaging report coverage/);assert.ok(!html.includes('data-chart'));assert.ok(!html.includes('1/7 days recorded'));assert.ok(!html.includes('Incomplete balance coverage'));assert.match(html,/0<span[^>]*>PCS/);
 });
@@ -33,4 +35,12 @@ test('loaded explicit zero usage is visible and period changes navigate once wit
 
 test('local packaging filters cancel the shared GET submit while period navigation retains its single owner',()=>{
  const {filters,period,navigations}=render(false);let prevented=false;filters.onSubmit({preventDefault(){prevented=true;}});assert.equal(prevented,true);assert.equal(navigations.length,0);period.onValueChange('30');assert.equal(navigations.length,1);
+});
+
+test('product pages are bounded and preserve local filters in shared navigation',()=>{
+ const catalog={...report,products:Array.from({length:23},(_,i)=>({id:`p${i}`,code:`C${i}`,name:`Box ${i}`,unit:'PCS'}))};
+ const second=render(false,'page=2&outlet=b&product=C12',catalog);
+ assert.equal((second.html.match(/aria-controls="packaging-trend-panel"/g)||[]).length,10);
+ assert.equal(second.pagination[0].page,2);assert.equal(second.pagination[0].totalPages,3);assert.equal(second.pagination[0].searchParams.outlet,'b');assert.equal(second.pagination[0].searchParams.product,'C12');
+ const last=render(false,'page=999',catalog);assert.equal(last.pagination[0].page,3);assert.equal((last.html.match(/aria-controls="packaging-trend-panel"/g)||[]).length,3);
 });

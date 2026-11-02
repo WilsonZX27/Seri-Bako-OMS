@@ -1,4 +1,6 @@
 "use client";
+import { Button } from "@/components/ui/button";
+import { buildForecastTemplate, matchForecastRows } from "@/lib/production-planning/menu";
 import { Input } from "@/components/ui/input";
 import { SelectControl } from "@/components/ui/select-control";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
@@ -16,11 +18,7 @@ export function EmployeeForecastEditor({outlets,products,values,onChange,disable
   const [notice,setNotice]=useState("");
   const [importError,setImportError]=useState("");
   const importReference=(text:string)=>{
-    const matches=parseForecastCsv(text).map(row=>{
-      const branches=outlets.filter(b=>b.branch_name===row.outlet),items=products.filter(p=>p.product_code===row.product_code);
-      if(branches.length!==1||items.length!==1)throw new Error(`Cannot uniquely match ${row.outlet} / ${row.product_code} to this kitchen. No values imported.`);
-      return {...row,key:`${branches[0].id}:${items[0].id}`};
-    });
+    const matches=matchForecastRows(parseForecastCsv(text),outlets,products);
     const next={...values};let count=0;
     for(const row of matches){
       const old=next[row.key]??{weekday:"",weekend:"",source:""};
@@ -37,6 +35,8 @@ export function EmployeeForecastEditor({outlets,products,values,onChange,disable
   return <section className="sb-work-surface p-4">
     <h2 className="text-sm font-semibold">Outlet forecasts</h2>
     <p className="mt-1 max-w-prose text-xs text-muted-foreground">Daily demand: blank = unknown; 0 = none.</p>
+    <Button className="mt-3" type="button" variant="outline" disabled={disabled||!outlets.length||!products.length||outlets.length*products.length>10000} onClick={()=>{const url=URL.createObjectURL(new Blob([buildForecastTemplate(outlets,products)],{type:"text/csv;charset=utf-8"}));const link=document.createElement("a");link.href=url;link.download="planning-forecasts.csv";link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}}>Download forecast template</Button>
+    <p className="mt-2 text-xs text-muted-foreground">Template uses this kitchen’s supplied outlets and selected products available on the chosen date. Save product selection before importing elsewhere. Maximum 10,000 rows.</p>
     <div className="my-3 grid min-w-0 grid-cols-1 items-end gap-3 sm:grid-cols-2">
       <label className="grid min-w-0 gap-2 text-xs">Forecast outlet<SelectControl value={outlet} onValueChange={setOutlet} ariaLabel="Employee forecast outlet" disabled={disabled} searchable options={outlets.map(b=>({value:b.id,label:b.branch_name}))}/></label>
       <label className="grid min-w-0 gap-2 text-xs">Import forecasts (.csv)<Input type="file" accept=".csv,text/csv" disabled={disabled} aria-label="Import employee forecasts CSV" onChange={async event=>{const file=event.target.files?.[0];event.target.value="";if(!file)return;setImportError("");setNotice("");try{if(file.size>1_000_000)throw new Error("Forecast CSV must be smaller than 1 MB.");importReference(await file.text());}catch(error){setImportError(error instanceof Error?error.message:"Could not read forecast CSV.");}}}/></label>

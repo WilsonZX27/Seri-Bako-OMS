@@ -160,12 +160,27 @@ function textContent(xml: string) {
   return xml.replace(/<[^>]+>/g, "").replaceAll("&amp;", "&").replaceAll("&lt;", "<").replaceAll("&gt;", ">").replaceAll("&quot;", '"').replaceAll("&apos;", "'");
 }
 
-export async function parseXlsx(file: File, options: { rejectFormulas?: boolean; maxExpandedBytes?: number } = {}) {
+export async function parseXlsx(file: File, options: { rejectFormulas?: boolean; maxExpandedBytes?: number; worksheetName?: string } = {}) {
   const files = await unzipText(file, options.maxExpandedBytes);
   // XLSX writers may use a namespace prefix for spreadsheet elements.
   for (const [name,xml] of files) if (name.endsWith(".xml")) files.set(name,xml.replace(/(<\/?)[A-Za-z_][\w.-]*:/g,"$1"));
   const shared = [...(files.get("xl/sharedStrings.xml") ?? "").matchAll(/<si[\s\S]*?<\/si>/g)].map((match) => textContent(match[0]));
-  const sheet = files.get("xl/worksheets/sheet1.xml");
+  let sheetPath = "xl/worksheets/sheet1.xml";
+  if (options.worksheetName) {
+    const workbook = new DOMParser().parseFromString(files.get("xl/workbook.xml") ?? "", "application/xml");
+    const sheets = Array.from(workbook.getElementsByTagName("sheet"));
+    const selected = sheets.filter(sheet => sheet.getAttribute("name") === options.worksheetName);
+    // Preserve legacy single-sheet files, but never treat a reference sheet as asset data.
+    if (!selected.length && sheets.length === 1 && !["Instructions", "Example", "Locations"].includes(sheets[0].getAttribute("name") ?? "")) selected.push(sheets[0]);
+    if (selected.length !== 1) throw new Error(`Use the workbook template with one ${options.worksheetName} tab. CSV files are also supported.`);
+    const relId = selected[0].getAttribute("r:id");
+    const rels = new DOMParser().parseFromString(files.get("xl/_rels/workbook.xml.rels") ?? "", "application/xml");
+    const rel = Array.from(rels.getElementsByTagName("Relationship")).find(r => r.getAttribute("Id") === relId);
+    const target = rel?.getAttribute("Target") ?? "";
+    if (!rel || rel.getAttribute("TargetMode") === "External" || target.includes("..") || !/^(?:\/xl\/|xl\/)?worksheets\/[^/]+\.xml$/.test(target)) throw new Error("The Assets tab could not be read. Download a fresh template.");
+    sheetPath = target.startsWith("/xl/") ? target.slice(1) : target.startsWith("xl/") ? target : `xl/${target}`;
+  }
+  const sheet = files.get(sheetPath);
   if (!sheet) throw new Error("The first worksheet could not be read.");
   if (options.rejectFormulas && /<f(?:\s|\/?>)/.test(sheet)) throw new Error("Replace formulas with values before importing assets.");
   const rows: string[][] = [];

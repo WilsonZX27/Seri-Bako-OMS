@@ -485,7 +485,7 @@ export async function getOutletDailyRecord(id: string) {
     db.from("outlet_daily_record_lines").select("*").eq("record_id", id),
     db.from("outlet_daily_sales_breakdowns").select("channel,amount").eq("record_id", id),
     db.from("branches").select("id,branch_name"),
-    db.from("products").select("id,product_code,product_name,category,daily_tracking,selling_unit,status,display_order"),
+    db.from("products").select("id,product_code,product_name,category,daily_tracking,selling_unit,status,display_order,is_seasonal,available_from,available_until"),
     db.from("staffs").select("id,full_name"),
   ]);
   if (error) throw new Error(error.message);

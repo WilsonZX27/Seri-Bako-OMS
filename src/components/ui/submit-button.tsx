@@ -48,15 +48,23 @@ export function SubmitButton({
         setSubmitted(false);
       }
     };
+    const settleForm = (event: Event) => {
+      const detail = (event as CustomEvent<{ formId?: string }>).detail;
+      if (!detail?.formId || detail.formId !== (formId ?? buttonRef.current?.form?.id)) return;
+      sawPending.current = false;
+      setSubmitted(false);
+    };
     const stopRecovery = listenForFormPendingRecovery(document, window,
       target => formId ? (target as HTMLFormElement | null)?.id === formId : target === buttonRef.current?.form,
       () => { sawPending.current = false; setSubmitted(false); });
     document.addEventListener("submit", markSubmitted, true);
     document.addEventListener("sb:form-pending", syncExternalPending);
+    document.addEventListener("sb:form-settled", settleForm);
     return () => {
       stopRecovery();
       document.removeEventListener("submit", markSubmitted, true);
       document.removeEventListener("sb:form-pending", syncExternalPending);
+      document.removeEventListener("sb:form-settled", settleForm);
     };
   }, [formId]);
 

@@ -61,16 +61,6 @@ function describeValidation(error: z.ZodError) {
   }).join("; ");
 }
 
-function isSalesReconciliationMigrationPending(error: { code?: string; message?: string } | null) {
-  if (!error) return false;
-  const message = error.message?.toLowerCase() ?? "";
-  return error.code === "PGRST202"
-    || error.code === "42883"
-    || error.code === "42P01"
-    || (message.includes("save_outlet_daily_record_v92") && (message.includes("schema cache") || message.includes("does not exist") || message.includes("could not find")))
-    || message.includes("outlet_daily_sales_breakdowns");
-}
-
 type DailyValueSnapshot = {
   qty_sent: number | null;
   received: number | null;
@@ -166,7 +156,7 @@ export async function saveOutletDailyRecord(formData: FormData) {
     const db = await createClient();
     const [beforeLines, beforeRecord] = recordId ? await Promise.all([
       db.from("outlet_daily_record_lines").select("product_id,qty_sent,morning_received_qty,morning_received_provided,evening_leftover_qty,wastage_qty,saleable_next_day_qty,usage_qty,sold_qty,wastage_reason,notes").eq("record_id", recordId),
-      db.from("outlet_daily_records").select("status,notes").eq("id", recordId).maybeSingle(),
+      db.from("outlet_daily_records").select("status,notes,updated_at").eq("id", recordId).maybeSingle(),
     ]) : [{ data: [], error: null }, { data: null, error: null }];
     if (beforeLines.error) throw new Error(beforeLines.error.message);
     if (beforeRecord.error) throw new Error(beforeRecord.error.message);
@@ -189,19 +179,21 @@ export async function saveOutletDailyRecord(formData: FormData) {
       p_target_status: payload.target_status,
       p_lines: payload.lines,
     };
-    let salesReconciliationUnavailable = payload.sales_unavailable;
-    let saveResult = !payload.sales_unavailable && (canUpdateOutletValues || !recordId)
-      ? await db.rpc("save_outlet_daily_record_v92", { ...baseArgs, p_pos_total_sales: payload.pos_total_sales, p_sales_breakdown: payload.sales_breakdown, p_sales_variance_reason: payload.sales_variance_reason })
-      : await db.rpc("save_outlet_daily_record", baseArgs);
-    if ((canUpdateOutletValues || !recordId) && isSalesReconciliationMigrationPending(saveResult.error)) {
-      // Keep the established daily-record workflow usable while a Preview or
-      // Production database is waiting for the sales migration. The operator
-      // is told that sales was not recorded; no entered sales value is silently
-      // represented as saved.
-      salesReconciliationUnavailable = true;
-      saveResult = await db.rpc("save_outlet_daily_record", baseArgs);
+    const includeSales = !payload.sales_unavailable && (canUpdateOutletValues || !recordId);
+    const revision = formData.get("expected_revision");
+    if (recordId && (typeof revision !== "string" || !/^\d+$/.test(revision) || !Number.isSafeInteger(Number(revision)))) {
+      return { error: "This record needs to be reloaded before saving. Your entries are still here; copy them before reloading." };
     }
-    const { data, error } = saveResult;
+    const { data: receipt, error } = await db.rpc("save_outlet_daily_record_checked", {
+      ...baseArgs,
+      p_expected_revision: recordId ? Number(revision) : null,
+      p_include_sales: includeSales,
+      p_pos_total_sales: payload.pos_total_sales,
+      p_sales_breakdown: payload.sales_breakdown,
+      p_sales_variance_reason: payload.sales_variance_reason,
+    });
+    const data = receipt && typeof receipt === "object" && !Array.isArray(receipt) && typeof receipt.record_id === "string" ? receipt.record_id : null;
+    const salesReconciliationUnavailable = payload.sales_unavailable || (includeSales && receipt && typeof receipt === "object" && !Array.isArray(receipt) && receipt.sales_saved !== true);
     if (error?.code === "23505" && !recordId) {
       // The unique active outlet-day index is the final authority. Two taps or
       // concurrent sessions can both pass the friendly preflight check; when

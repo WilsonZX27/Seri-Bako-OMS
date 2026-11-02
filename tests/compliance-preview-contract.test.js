@@ -42,9 +42,13 @@ test("sales reconciliation is database-derived and atomic with daily lines", () 
   assert.match(sql, /difference:=round\(p_pos_total_sales-channel_total,2\)/);
   assert.match(sql, /difference<>0.*sales difference/s);
   const action = read("src", "server", "actions", "outlet-daily-records.ts");
-  assert.match(action, /save_outlet_daily_record_v92/);
+  assert.match(action, /save_outlet_daily_record_checked/);
+  const checked = read("sql-candidates", "odr-annotations", "atomic-save.sql");
+  assert.match(checked, /saved:=public\.save_outlet_daily_record_v92/);
+  assert.match(checked, /for update/);
+  assert.match(checked, /p_expected_revision<>current_revision/);
   assert.match(action, /canUpdateOutletValues/);
-  assert.match(action, /isSalesReconciliationMigrationPending/);
+  assert.match(checked, /exception when undefined_table or undefined_function/);
   assert.match(action, /Sales reconciliation is temporarily unavailable and was not recorded/);
   assert.doesNotMatch(action, /completion was deferred/);
   assert.match(progressiveSql, /p_target_status='evening_completed'/);

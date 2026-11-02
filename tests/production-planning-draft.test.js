@@ -1,0 +1,11 @@
+const test=require('node:test');const assert=require('node:assert/strict');const fs=require('node:fs');const ts=require('typescript');const vm=require('node:vm');
+const context={exports:{},require};vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/lib/production-planning/draft.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,context);
+const {encodePlanningDraft,decodePlanningDraft,planningDraftKey}=context.exports;
+const a={product_id:'p',branch_id:'b',approved_qty:2,reason:'',evidence:{server:true},suggested_qty:1,minimum_qty:0,event_qty:0};
+const p={product_id:'p',trays:1,retained_qty:0,reason:'',tray_mode:'manual',yield_per_tray:2,event_qty:0,actual_qty:null};
+const plan={status:'draft',revision:1,allocations:[a],product_lines:[p]};
+test('draft round trip restores edits without trusting cached evidence',()=>{const raw=encodePlanningDraft(1,[{...a,approved_qty:3,evidence:{forged:true}}],[p]);const result=decodePlanningDraft(raw,plan);assert.equal(result.allocations[0].approved_qty,3);assert.equal(result.allocations[0].evidence.server,true);});
+test('draft scope separates company, actor and plan',()=>{const key=planningDraftKey('c','u','p');for(const args of [['d','u','p'],['c','v','p'],['c','u','q']])assert.notEqual(key,planningDraftKey(...args));});
+test('stale revision or released plan cannot restore into current state',()=>{const raw=encodePlanningDraft(1,[a],[p]);assert.throws(()=>decodePlanningDraft(raw,{...plan,revision:2}),/changed/);assert.throws(()=>decodePlanningDraft(raw,{...plan,status:'approved'}),/changed/);});
+test('duplicate, missing or foreign allocation keys cannot restore',()=>{for(const allocations of [[a,a],[],[{...a,branch_id:'foreign'}]])assert.throws(()=>decodePlanningDraft(encodePlanningDraft(1,allocations,[p]),plan),/contents changed/);});
+test('malformed and nonfinite draft values are rejected',()=>{assert.throws(()=>decodePlanningDraft('{',plan));assert.throws(()=>encodePlanningDraft(1,[{...a,approved_qty:Infinity}],[p]));});

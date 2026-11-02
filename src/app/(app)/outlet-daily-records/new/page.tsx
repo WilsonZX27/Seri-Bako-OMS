@@ -20,7 +20,7 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
   const today = getToday();
   const requestedDate = filters.date?.trim() ?? "";
   const recordDate = /^\d{4}-\d{2}-\d{2}$/.test(requestedDate) && requestedDate <= today ? requestedDate : today;
-  const [options, permissions] = await Promise.all([getOutletDailyFormOptions(recordDate), getPermissionMap(["outlet_daily_record.update", "outlet_daily_record.qty_sent"])]);
+  const [options, permissions] = await Promise.all([getOutletDailyFormOptions(), getPermissionMap(["outlet_daily_record.update", "outlet_daily_record.qty_sent"])]);
   const requestedBranchId = filters.branch_id?.trim() ?? "";
   const selectedBranchId = options.branches.some((branch) => branch.id === requestedBranchId)
     ? requestedBranchId

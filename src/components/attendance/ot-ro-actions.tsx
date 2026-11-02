@@ -10,6 +10,7 @@ import { SelectControl } from "@/components/ui/select-control";
 import { readJsonResponse } from "@/lib/http/read-json-response";
 
 type Claim = {
+  own_request?: boolean;
   id: string;
   status: string;
   candidate_minutes: number;
@@ -106,7 +107,7 @@ export function OtClaimAction({
     }
   }
   const actionable =
-    !disabled && ((!claim && canSubmit) || (claim?.status === "submitted" && canApprove));
+    !disabled && ((!claim && canSubmit) || (claim?.status === "submitted" && canApprove && !claim.own_request));
   return (
     <>
       <Button
@@ -114,7 +115,7 @@ export function OtClaimAction({
         variant="ghost"
         className="shrink-0 px-2 font-normal"
         aria-label={disabled ? "Attendance locked" : claim ? claim.status === "submitted" ? "Review OT" : `OT ${claim.status}` : "Claim OT"}
-        title={disabled ? "Attendance locked" : claim ? `OT ${claim.status}` : "Claim OT"}
+        title={claim?.own_request ? "Another authorised approver must review your request." : disabled ? "Attendance locked" : claim ? `OT ${claim.status}` : "Claim OT"}
         disabled={!actionable}
         onClick={() => dialog.current?.showModal()}
       >

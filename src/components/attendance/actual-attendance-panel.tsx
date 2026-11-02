@@ -377,6 +377,8 @@ export function ActualAttendancePanel(props: Props) {
                 <>
                   <Button
                     size="sm"
+                    disabled={row.own_request === true}
+                    title={row.own_request === true ? "Another authorised approver must review your request." : undefined}
                     variant="outline"
                     onClick={() =>
                       openDecision("comp", String(row.id), "approve")
@@ -386,6 +388,8 @@ export function ActualAttendancePanel(props: Props) {
                   </Button>
                   <Button
                     size="sm"
+                    disabled={row.own_request === true}
+                    title={row.own_request === true ? "Another authorised approver must review your request." : undefined}
                     variant="ghost"
                     onClick={() =>
                       openDecision("comp", String(row.id), "reject")

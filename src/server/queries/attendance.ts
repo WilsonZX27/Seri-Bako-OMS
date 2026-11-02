@@ -307,6 +307,7 @@ export async function getAttendanceCompPeople(weekStart: string, branchId?: stri
 
 export async function getAttendanceActuals(weekStart = malaysiaWeekStart(), branchId?: string, {includeComp = true}: {includeComp?:boolean} = {}) {
   if (!(await hasPermission("attendance.read"))) throw new Error("Missing permission: attendance.read");
+  const actor=await requireActiveTenantActor();
   const db=looseSupabase(await createClient());const end=new Date(`${weekStart}T00:00:00Z`);end.setUTCDate(end.getUTCDate()+6);const weekEnd=end.toISOString().slice(0,10);
   const byBranch = <T extends { eq: (column: string, value: string) => T }>(query: T) => branchId ? query.eq("branch_id", branchId) : query;
   const [weeks,reports,claims,reservations,locks]=await Promise.all([
@@ -336,7 +337,7 @@ export async function getAttendanceActuals(weekStart = malaysiaWeekStart(), bran
   if(ledger.error)throw ledger.error;
   const ledgerRows=(ledger.data??[]) as Array<Record<string,unknown>>;const balances:Record<string,number>=Object.fromEntries(compPeople.map(person=>[String(person.id),0]));
   for(const row of ledgerRows)if(row.status==="approved")balances[String(row.staff_id)]=(balances[String(row.staff_id)]??0)+Number(row.minutes??0);
-  return {compPeople,assignments:assignments.data??[],reports:reports.data??[],ledger:ledgerRows,balances,claims:claims.data??[],reservations:reservations.data??[],locks:locks.data??[]};
+  return {compPeople,assignments:assignments.data??[],reports:reports.data??[],ledger:ledgerRows.map(row=>({...row,own_request:row.submitted_by===actor.staffId})),balances,claims:(claims.data??[]).map((row:Record<string,unknown>)=>({...row,own_request:row.submitted_by===actor.staffId})),reservations:reservations.data??[],locks:locks.data??[]};
 }
 
 export async function getStaffCompTime(staffId:string){

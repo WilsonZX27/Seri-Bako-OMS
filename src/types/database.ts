@@ -378,6 +378,7 @@ export type Database = {
       outlet_daily_records: {
         Row: {
           edit_revision: number;
+          sales_channel_settings_revision: number;
           id: string;
           company_id: string;
           branch_id: string;
@@ -708,6 +709,12 @@ export type Database = {
         Row: { id: string; company_id: string; branch_id: string; compliance_type_id: string; is_required: boolean; waiver_reason: string | null; created_at: string; updated_at: string };
         Insert: { id?: string; company_id: string; branch_id: string; compliance_type_id: string; is_required?: boolean; waiver_reason?: string | null; created_at?: string; updated_at?: string };
         Update: Partial<Database["public"]["Tables"]["outlet_compliance_requirements"]["Insert"]>;
+        Relationships: [];
+      };
+      outlet_sales_channel_settings_versions: {
+        Row: { id: string; company_id: string; revision: number; channels: Json; created_by: string; created_at: string };
+        Insert: { id?: string; company_id: string; revision: number; channels: Json; created_by: string; created_at?: string };
+        Update: never;
         Relationships: [];
       };
       outlet_daily_sales_breakdowns: {
@@ -3129,6 +3136,13 @@ export type Database = {
       replace_branch_supply_routes: {
         Args: { p_branch_id: string; p_related_branch_ids?: string[] };
         Returns: void;
+      };
+      get_outlet_sales_channel_settings: { Args: Record<string, never>; Returns: Json };
+      configure_outlet_sales_channel_settings: { Args: { p_expected_revision: number; p_channels: Json }; Returns: number };
+      get_outlet_sales_channel_settings_revision: { Args: { p_revision: number }; Returns: Json };
+      save_outlet_daily_record_with_sales_channels: {
+        Args: { p_record_id: string | null; p_branch_id: string; p_record_date: string; p_notes: string | null; p_lines: Json; p_target_status: string; p_expected_revision: number | null; p_include_sales: boolean; p_pos_total_sales: number | null; p_sales_breakdown: Json; p_sales_variance_reason: string | null; p_channel_settings_revision: number };
+        Returns: Json;
       };
       save_outlet_daily_record_checked: {
         Args: { p_record_id: string | null; p_branch_id: string; p_record_date: string; p_notes: string | null; p_lines: Json; p_target_status: string; p_expected_revision: number | null; p_include_sales: boolean; p_pos_total_sales: number | null; p_sales_breakdown: Json; p_sales_variance_reason: string | null };

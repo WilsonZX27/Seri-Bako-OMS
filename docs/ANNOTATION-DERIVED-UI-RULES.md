@@ -1,5 +1,7 @@
 # Annotation-derived UI rules
 
+> Workflow review: the Ready-to-post rule below and the direct-Posted rule in §5 conflict if read as universal. Their current scope and later decision remain unverified; follow the [Daily workflow open decision](rules/contracts.md#daily-workflow-decision-still-open) before changing posting behavior. The newer Daily form-specific instruction removes its Details control only; general progressive disclosure elsewhere remains applicable.
+
 ## 2026-09-04 mobile closure rules
 
 - Loading replaces content, not application chrome. Keep the authenticated bottom navigation fixed and suppress stale route-specific actions while the next route resolves.

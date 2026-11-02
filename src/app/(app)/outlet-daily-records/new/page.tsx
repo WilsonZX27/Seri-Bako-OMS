@@ -1,3 +1,4 @@
+import { getOutletSalesChannelSettings } from "@/server/queries/outlet-sales-channel-settings";
 import { DocumentMoreOptions } from "@/components/documents/mobile-document-surfaces";
 import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { ActionErrorNotice } from "@/components/action-error-notice";
@@ -20,7 +21,7 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
   const today = getToday();
   const requestedDate = filters.date?.trim() ?? "";
   const recordDate = /^\d{4}-\d{2}-\d{2}$/.test(requestedDate) && requestedDate <= today ? requestedDate : today;
-  const [options, permissions] = await Promise.all([getOutletDailyFormOptions(), getPermissionMap(["outlet_daily_record.update", "outlet_daily_record.qty_sent"])]);
+  const [options, permissions, salesSettings] = await Promise.all([getOutletDailyFormOptions(), getPermissionMap(["outlet_daily_record.update", "outlet_daily_record.qty_sent"]), getOutletSalesChannelSettings()]);
   const requestedBranchId = filters.branch_id?.trim() ?? "";
   const selectedBranchId = options.branches.some((branch) => branch.id === requestedBranchId)
     ? requestedBranchId
@@ -69,6 +70,6 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
     tabletRailMode="split"
   >
     <ActionErrorNotice message={filters.error} />
-    <OutletDailyRecordForm formId={formId} action={saveOutletDailyRecord} branches={options.branches} products={options.products} branchId={selectedBranchId} recordDate={recordDate} defaultsByBranch={options.defaultsByBranch} validationError={filters.error} canEditQtySent={canEditQtySent} canEditOutletValues={canEnterOutlet} />
+    <OutletDailyRecordForm salesSettings={salesSettings} formId={formId} action={saveOutletDailyRecord} branches={options.branches} products={options.products} branchId={selectedBranchId} recordDate={recordDate} defaultsByBranch={options.defaultsByBranch} validationError={filters.error} canEditQtySent={canEditQtySent} canEditOutletValues={canEnterOutlet} />
   </DocumentWorkspace>;
 }

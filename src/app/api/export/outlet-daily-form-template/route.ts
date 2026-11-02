@@ -6,6 +6,9 @@ import { rowsToCsv } from "@/server/backup/export";
 import { getOutletDailyFormOptions } from "@/server/queries/outlet-daily-records";
 import { logServerError } from "@/server/observability/logger";
 import { buildOutletDailyRecordFormPdf } from "@/server/pdf/outlet-daily-record-form";
+import { z } from "zod";
+import { getOutletSalesChannelSettings } from "@/server/queries/outlet-sales-channel-settings";
+import { getOutletDailyRecord } from "@/server/queries/outlet-daily-records";
 import { getCompanyBranding } from "@/server/queries/common";
 
 export const dynamic = "force-dynamic";
@@ -16,16 +19,23 @@ export async function GET(request: Request) {
   }
 
   try {
-    const date = todayInKualaLumpur();
-    const { products } = await getOutletDailyFormOptions(date);
+    const url = new URL(request.url);
+    const requestedId = url.searchParams.get("record_id");
+    if (requestedId && !z.string().uuid().safeParse(requestedId).success) return NextResponse.json({ ok: false, message: "Invalid record identifier." }, { status: 400 });
+    const historical = requestedId ? await getOutletDailyRecord(requestedId) : null;
+    const date = historical?.record.record_date ?? todayInKualaLumpur();
+    const { products: currentProducts } = await getOutletDailyFormOptions(date);
+    const products = historical ? historical.lines.flatMap(line => line.product ? [{ ...line.product, daily_tracking: line.daily_tracking ?? line.product.daily_tracking }] : []) : currentProducts;
     const groups = groupDailyProducts<(typeof products)[number]>(products);
     if (new URL(request.url).searchParams.get("format") !== "csv") {
       const branding = await getCompanyBranding();
-      const pdf = await buildOutletDailyRecordFormPdf({ groups, companyName: branding.company_name, generatedDate: date });
+      const salesSettings = await getOutletSalesChannelSettings(historical ? historical.record.sales_channel_settings_revision ?? 0 : undefined);
+
+      const pdf = await buildOutletDailyRecordFormPdf({ groups, companyName: branding.company_name, generatedDate: todayInKualaLumpur(), salesSettings, salesAmounts: historical?.sales, recordDate: historical?.record.record_date });
       return new NextResponse(Buffer.from(pdf), {
         headers: {
           "Content-Type": "application/pdf",
-          "Content-Disposition": 'attachment; filename="outlet-daily-record-form-latest.pdf"',
+          "Content-Disposition": historical ? `attachment; filename="outlet-daily-record-form-${historical.record.record_date}.pdf"` : 'attachment; filename="outlet-daily-record-form-latest.pdf"',
           "Cache-Control": "private, no-store",
         },
       });
@@ -47,7 +57,7 @@ export async function GET(request: Request) {
     return new NextResponse(csv, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": 'attachment; filename="outlet-daily-record-form-latest.csv"',
+        "Content-Disposition": historical ? `attachment; filename="outlet-daily-record-form-${historical.record.record_date}.csv"` : 'attachment; filename="outlet-daily-record-form-latest.csv"',
         "Cache-Control": "private, no-store",
       },
     });

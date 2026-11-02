@@ -1,3 +1,4 @@
+import { getOutletSalesChannelSettings } from "@/server/queries/outlet-sales-channel-settings";
 import { DocumentMoreOptions } from "@/components/documents/mobile-document-surfaces";
 import { DocumentActionSection, DocumentSideSection, DocumentWorkspace } from "@/components/documents/document-workspace";
 import { ActionErrorNotice } from "@/components/action-error-notice";
@@ -48,6 +49,7 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
     </WorkspaceGrid>
   </>;
   const [{ record, lines, sales }, options, permissions, activities] = source;
+  const salesSettings = await getOutletSalesChannelSettings(record.sales_channel_settings_revision ?? 0);
   const productMap = new Map(options.products.map((product) => [product.id, product]));
   for (const line of lines) if (line.product) productMap.set(line.product.id, line.product);
   const products = sortProductsForDisplay([...productMap.values()]);
@@ -141,6 +143,6 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
     <OutletDailyDoSources recordId={record.id} companyId={record.company_id} managed={lines.some((line) => line.do_managed)} />
     <input form={formId} type="hidden" name="expected_revision" value={record.edit_revision} />
     <input form={formId} type="hidden" name="record_id" value={record.id} />
-    <OutletDailyRecordForm formId={formId} action={saveOutletDailyRecord} branches={options.branches} products={products} lines={lines} branchId={record.branch_id} recordDate={record.record_date} notes={record.notes} sales={{ pos_total_sales: record.pos_total_sales, sales_variance_reason: record.sales_variance_reason, breakdown: sales }} validationError={messages.error} locked={locked} canEditHeader={canEditOutletValues} canEditQtySent={canEditQtySent} canEditOutletValues={canEditOutletValues} />
+    <OutletDailyRecordForm salesSettings={salesSettings} formId={formId} action={saveOutletDailyRecord} branches={options.branches} products={products} lines={lines} branchId={record.branch_id} recordDate={record.record_date} notes={record.notes} sales={{ pos_total_sales: record.pos_total_sales, sales_variance_reason: record.sales_variance_reason, breakdown: sales }} validationError={messages.error} locked={locked} canEditHeader={canEditOutletValues} canEditQtySent={canEditQtySent} canEditOutletValues={canEditOutletValues} />
   </DocumentWorkspace>;
 }

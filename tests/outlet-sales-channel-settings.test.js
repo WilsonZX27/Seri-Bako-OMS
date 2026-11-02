@@ -1,0 +1,8 @@
+const test=require('node:test'),assert=require('node:assert/strict');
+const load=require('./helpers/load-source.cjs')();
+const settings=load('src/lib/outlet-sales-channel-settings.ts');
+test('display rename and reorder retain stable monetary keys',()=>{const original=settings.defaultSalesChannelSettings();const next={revision:0,channels:[...original.channels].reverse().map(x=>x.key==='visa'?{...x,label:'Card Visa'}:x)};assert.equal(settings.salesChannelSettingsSchema.parse(next).channels.find(x=>x.key==='visa').label,'Card Visa');assert.equal(JSON.stringify(next.channels.map(x=>x.key).sort()),JSON.stringify(original.channels.map(x=>x.key).sort()));});
+test('inactive existing amounts remain visible including invalid entered text',()=>{const config=settings.defaultSalesChannelSettings();config.channels.forEach(x=>x.active=false);assert.equal(JSON.stringify(settings.visibleSalesChannels(config,{visa:'12',master:0,debit:'bad'}).map(x=>x.key)),JSON.stringify(['visa','debit']));});
+test('custom money keys, duplicates and ambiguous active labels are rejected',()=>{for(const mutate of [c=>c[0].key='custom',c=>c[0].key=c[1].key,c=>c[0].label=c[1].label]){const config=settings.defaultSalesChannelSettings();mutate(config.channels);assert.equal(settings.salesChannelSettingsSchema.safeParse(config).success,false);}});
+
+test('reordering stays inside the existing sections shared by form and PDF',()=>{const config=settings.defaultSalesChannelSettings();config.channels.reverse();const ordered=Array.from(settings.orderedSalesChannels(config),x=>x.key);assert.equal(ordered[0],'voucher');assert.ok(ordered.indexOf('feedme_card')<ordered.indexOf('visa'));assert.ok(ordered.indexOf('visa')<ordered.indexOf('duitnow'));assert.equal(ordered.at(-1),'credit_card');});

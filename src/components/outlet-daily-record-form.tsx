@@ -13,6 +13,8 @@ import { CalendarDays, ChevronDown, MapPin, Search, WalletCards } from "lucide-r
 
 import { salesChannelLabels, cardChannels, otherChannels, type SalesChannel } from "@/lib/outlet-sales-channels";
 
+import { defaultSalesChannelSettings, visibleSalesChannels, type SalesChannelSettings } from "@/lib/outlet-sales-channel-settings";
+
 import { dailyTracking, groupDailyProducts, type DailyTracking } from "@/lib/daily-product-tracking";
 
 type Branch = { id: string; branch_code: string; branch_name: string };
@@ -40,7 +42,7 @@ const EMPTY_LINES: Line[] = [];
 
 type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: string | null; breakdown?: Partial<Record<SalesChannel, number>> };
 
-  export function OutletDailyRecordForm({ formId, action, branches, products, lines = EMPTY_LINES, branchId, recordDate, notes, sales, validationError: serverValidationError, locked = false, canEditHeader = true, canEditQtySent = false, canEditOutletValues = true }: {
+  export function OutletDailyRecordForm({ formId, action, branches, products, lines = EMPTY_LINES, branchId, recordDate, notes, sales, salesSettings, validationError: serverValidationError, locked = false, canEditHeader = true, canEditQtySent = false, canEditOutletValues = true }: {
   formId: string;
   action: (formData: FormData) => Promise<void | { error: string }>;
   branches: Branch[];
@@ -50,6 +52,7 @@ type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: st
   recordDate: string;
   notes?: string | null;
   sales?: SalesValues;
+  salesSettings?: SalesChannelSettings;
   defaultsByBranch?: Record<string, Record<string, DefaultLine>>;
   validationError?: string;
   locked?: boolean;
@@ -177,7 +180,8 @@ type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: st
         </div>
       </details>
 
-      <SalesReconciliation sales={sales} disabled={locked || !canEditOutletValues} />
+      <input type="hidden" name="sales_channel_settings_revision" value={salesSettings?.revision ?? 0} />
+      <SalesReconciliation settings={salesSettings} sales={sales} disabled={locked || !canEditOutletValues} />
 
       <section data-outlet-daily-lines className="erp-surface touch-pan-y overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b px-3 py-2"><h2 className="text-sm font-semibold">Daily Product Lines</h2><label className="relative block w-full min-w-0 sm:ml-auto sm:w-64"><span className="sr-only">Find product</span><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" /><Input className="pl-9" type="search" value={productSearch} onChange={(event) => setProductSearch(event.target.value)} placeholder="Find product" disabled={locked} /></label></div>
@@ -202,19 +206,24 @@ type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: st
 }
 
 
-function SalesReconciliation({ sales, disabled }: { sales?: SalesValues; disabled: boolean }) {
+function SalesReconciliation({ sales, disabled, settings = defaultSalesChannelSettings() }: { sales?: SalesValues; disabled: boolean; settings?: SalesChannelSettings }) {
   const [varianceReason, setVarianceReason] = useState(sales?.sales_variance_reason ?? "");
   const [posTotal, setPosTotal] = useState(String(sales?.pos_total_sales ?? ""));
   const [amounts, setAmounts] = useState(() => Object.fromEntries(Object.keys(salesChannelLabels).map((key) => [key, String(sales?.breakdown?.[key as keyof typeof salesChannelLabels] ?? 0)])) as Record<keyof typeof salesChannelLabels, string>);
+  const presented = visibleSalesChannels(settings, amounts);
+  const shown = new Set(presented.map(channel => channel.key));
+  const labels = Object.fromEntries(settings.channels.map(channel => [channel.key, channel.label]));
+  const ordered = (keys: SalesChannel[]) => presented.filter(channel => keys.includes(channel.key)).map(channel => channel.key);
   const hasPosTotal = posTotal.trim() !== "";
   const channelTotal = Object.values(amounts).reduce((sum, value) => sum + Math.round(Number(value || 0) * 100), 0) / 100;
   const difference = hasPosTotal ? (Math.round(Number(posTotal) * 100) - Math.round(channelTotal * 100)) / 100 : 0;
   return <section className="erp-surface overflow-hidden" aria-labelledby="sales-reconciliation-title">
     <div className="flex items-center gap-2 border-b px-3 py-3"><WalletCards className="h-4 w-4 text-[var(--sb-green-700)]" aria-hidden="true" /><h2 id="sales-reconciliation-title" className="text-sm font-semibold">Sales reconciliation</h2></div>
     <div className="p-3 space-y-3">
-      <div className="grid grid-cols-2 gap-2"><label className="grid min-w-0 gap-1 rounded-lg bg-[var(--sb-surface-muted)] p-2 text-xs font-semibold"><span>POS Total Sales (RM)</span><Input className="min-w-0 px-2 tabular-nums" aria-label="POS Total Sales (RM)" name="pos_total_sales" type="number" inputMode="decimal" min="0" step="0.01" value={posTotal} onChange={(event)=>setPosTotal(event.target.value)} disabled={disabled}/></label><label className="grid min-w-0 gap-1 rounded-lg bg-[var(--sb-surface-muted)] p-2 text-xs font-semibold"><span>Voucher (RM)</span><Input className="min-w-0 px-2 tabular-nums" aria-label="Voucher (RM)" name="sales_voucher" type="number" inputMode="decimal" min="0" step="0.01" value={amounts.voucher} onChange={(event)=>setAmounts(current=>({...current,voucher:event.target.value}))} disabled={disabled}/></label></div>
-      <div className="grid items-start gap-3 lg:grid-cols-2">{([{title:"Cards Payment",channels:cardChannels},{title:"Other",channels:otherChannels.filter(channel=>channel!=="voucher")}]).map(group=><details key={group.title} open className="rounded-lg border p-3"><summary className="cursor-pointer text-xs font-semibold">{group.title}</summary><div className="mt-3 space-y-2">{group.channels.map(channel=><label key={channel} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-center gap-3 text-xs"><span>{salesChannelLabels[channel]}</span><Input aria-label={`${salesChannelLabels[channel]} (RM)`} name={`sales_${channel}`} type="number" inputMode="decimal" min="0" step="0.01" value={amounts[channel]} onChange={(event)=>setAmounts(current=>({...current,[channel]:event.target.value}))} disabled={disabled}/></label>)}</div></details>)}</div>
-      {Number(sales?.breakdown?.credit_card ?? 0) > 0 ? <div className="rounded-lg border p-3 text-sm"><label className="grid grid-cols-2 items-center gap-3"><span>Credit Card (legacy)</span><Input aria-label="Credit Card legacy amount" name="sales_credit_card" type="number" min="0" step="0.01" value={amounts.credit_card} onChange={event=>setAmounts(current=>({...current,credit_card:event.target.value}))} disabled={disabled}/></label><p className="mt-2 text-xs text-muted-foreground">Historical aggregate. If you split it into card types, reduce this amount by the same total to avoid counting it twice.</p></div> : <input type="hidden" name="sales_credit_card" value="0"/>}
+      <div className="grid grid-cols-2 gap-2"><label className="grid min-w-0 gap-1 rounded-lg bg-[var(--sb-surface-muted)] p-2 text-xs font-semibold"><span>POS Total Sales (RM)</span><Input className="min-w-0 px-2 tabular-nums" aria-label="POS Total Sales (RM)" name="pos_total_sales" type="number" inputMode="decimal" min="0" step="0.01" value={posTotal} onChange={(event)=>setPosTotal(event.target.value)} disabled={disabled}/></label><label style={!shown.has("voucher") ? { display: "none" } : undefined} className="grid min-w-0 gap-1 rounded-lg bg-[var(--sb-surface-muted)] p-2 text-xs font-semibold"><span className="break-words">{labels.voucher} (RM)</span><Input className="min-w-0 px-2 tabular-nums" aria-label={`${labels.voucher} (RM)`} name="sales_voucher" type="number" inputMode="decimal" min="0" step="0.01" value={amounts.voucher} onChange={(event)=>setAmounts(current=>({...current,voucher:event.target.value}))} disabled={disabled}/></label></div>
+      <div className="grid items-start gap-3 lg:grid-cols-2">{([{title:"Cards Payment",channels:ordered(cardChannels)},{title:"Other",channels:ordered(otherChannels.filter(channel=>channel!=="voucher"))}]).map(group=><details key={group.title} open className="rounded-lg border p-3"><summary className="cursor-pointer text-xs font-semibold">{group.title}</summary><div className="mt-3 space-y-2">{group.channels.map(channel=><label key={channel} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-center gap-3 text-xs"><span className="break-words">{labels[channel]}</span><Input aria-label={`${labels[channel]} (RM)`} name={`sales_${channel}`} type="number" inputMode="decimal" min="0" step="0.01" value={amounts[channel]} onChange={(event)=>setAmounts(current=>({...current,[channel]:event.target.value}))} disabled={disabled}/></label>)}</div></details>)}</div>
+      {shown.has("credit_card") ? <div className="rounded-lg border p-3 text-sm"><label className="grid grid-cols-2 items-center gap-3"><span className="break-words">{labels.credit_card}</span><Input aria-label={`${labels.credit_card} (RM)`} name="sales_credit_card" type="number" min="0" step="0.01" value={amounts.credit_card} onChange={event=>setAmounts(current=>({...current,credit_card:event.target.value}))} disabled={disabled}/></label><p className="mt-2 text-xs text-muted-foreground">Historical aggregate. If you split it into card types, reduce this amount by the same total to avoid counting it twice.</p></div> : <input type="hidden" name="sales_credit_card" value="0"/>}
+      {settings.channels.filter(channel => !shown.has(channel.key) && channel.key !== "voucher" && channel.key !== "credit_card").map(channel => <input key={channel.key} type="hidden" name={`sales_${channel.key}`} value={amounts[channel.key]} />)}
     </div>
     <div className="border-t p-3">
       <dl className="grid grid-cols-2 gap-3 rounded-[var(--sb-radius-control)] bg-[var(--sb-surface-muted)] p-3 text-xs" aria-live="polite"><div><dt className="text-muted-foreground">Channel total</dt><dd className="font-semibold tabular-nums">RM {channelTotal.toFixed(2)}</dd></div><div><dt className="text-muted-foreground">Difference</dt><dd className={`font-semibold tabular-nums ${!hasPosTotal ? "text-muted-foreground" : difference ? "text-[var(--sb-warning)]" : "text-[var(--sb-success)]"}`}>{hasPosTotal ? `RM ${difference.toFixed(2)}` : "Sales pending"}</dd></div></dl>

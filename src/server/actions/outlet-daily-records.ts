@@ -184,10 +184,13 @@ export async function saveOutletDailyRecord(formData: FormData) {
     if (recordId && (typeof revision !== "string" || !/^\d+$/.test(revision) || !Number.isSafeInteger(Number(revision)))) {
       return { error: "This record needs to be reloaded before saving. Your entries are still here; copy them before reloading." };
     }
-    const { data: receipt, error } = await db.rpc("save_outlet_daily_record_checked", {
+    const channelRevision = Number(formData.get("sales_channel_settings_revision") ?? 0);
+    if (!Number.isSafeInteger(channelRevision) || channelRevision < 0) return { error: "Sales channel settings could not be verified. Your entries remain here." };
+    const { data: receipt, error } = await db.rpc("save_outlet_daily_record_with_sales_channels", {
       ...baseArgs,
       p_expected_revision: recordId ? Number(revision) : null,
       p_include_sales: includeSales,
+      p_channel_settings_revision: channelRevision,
       p_pos_total_sales: payload.pos_total_sales,
       p_sales_breakdown: payload.sales_breakdown,
       p_sales_variance_reason: payload.sales_variance_reason,
@@ -276,6 +279,7 @@ export async function saveOutletDailyRecord(formData: FormData) {
     safeRedirectWithMessage(`/outlet-daily-records/${data}`, salesReconciliationUnavailable ? "warning" : "success", successMessage);
   } catch (error) {
     rethrowRedirect(error);
+    if (error instanceof Error && error.message.includes("ODR_CHANNEL_SETTINGS_CONFLICT")) return { error: "Sales channel names or availability changed. Your entries remain here; compare the latest settings before reloading." };
     return { error: formatActionError(error, "Could not save this outlet daily record.") };
   }
 }

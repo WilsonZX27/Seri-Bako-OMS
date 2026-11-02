@@ -3,8 +3,9 @@ import path from "node:path";
 import { PDFDocument, PageSizes, rgb } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { createFont } from "fonteditor-core";
+import type { SalesChannel } from "@/lib/outlet-sales-channels";
 import type { DailyTracking } from "@/lib/daily-product-tracking";
-import { cardChannels, otherChannels, salesChannelLabels } from "@/lib/outlet-sales-channels";
+import { defaultSalesChannelSettings, visibleSalesChannels, type SalesChannelSettings } from "@/lib/outlet-sales-channel-settings";
 
 type ProductGroup = {
   tracking: DailyTracking;
@@ -12,15 +13,18 @@ type ProductGroup = {
   products: { product_code: string; product_name: string; selling_unit: string }[];
 };
 
-export async function buildOutletDailyRecordFormPdf({ groups, companyName, generatedDate }: {
+export async function buildOutletDailyRecordFormPdf({ groups, companyName, generatedDate, salesSettings = defaultSalesChannelSettings(), salesAmounts = {}, recordDate }: {
   groups: ProductGroup[];
   companyName: string;
   generatedDate: string;
+  salesSettings?: SalesChannelSettings;
+  salesAmounts?: Partial<Record<SalesChannel, number>>;
+  recordDate?: string;
 }) {
   const doc = await PDFDocument.create();
   doc.registerFontkit(fontkit);
   const bytes = await readFile(path.join(process.cwd(), "src/lib/attendance/fonts/NotoSansSC-Regular.ttf"));
-  const chars = new Set([...JSON.stringify({ groups, companyName }), ...Array.from({ length: 95 }, (_, i) => String.fromCharCode(i + 32))]);
+  const chars = new Set([...JSON.stringify({ groups, companyName, salesSettings }), ...Array.from({ length: 95 }, (_, i) => String.fromCharCode(i + 32))]);
   const subset = createFont(bytes, { type: "ttf", subset: [...chars].map((char) => char.codePointAt(0)!), compound2simple: true });
   const font = await doc.embedFont(subset.write({ type: "ttf" }) as Buffer);
   const widths = [24, 44, 170, 30, 44, 50, 56, 129];
@@ -58,7 +62,7 @@ export async function buildOutletDailyRecordFormPdf({ groups, companyName, gener
     y -= text(companyName, margin, y, 547, 12) + 8;
     y -= text("Outlet Daily Record Form", margin, y, 547, 15) + 10;
     text("Outlet: __________________________", margin, y, 285);
-    text("Record date: ____________________", 320, y, 250);
+    text(`Record date: ${recordDate ?? "____________________"}`, 320, y, 250);
     y -= 24;
   }
 
@@ -98,21 +102,25 @@ export async function buildOutletDailyRecordFormPdf({ groups, companyName, gener
   }
   if (!groups.length) y -= text("No active products available for this date.", margin, y, 547) + 12;
 
-  const channels = [...cardChannels, ...otherChannels.filter((channel) => channel !== "voucher")];
-  const salesHeight = 76 + Math.ceil(channels.length / 2) * 28;
+  const visible = visibleSalesChannels(salesSettings, salesAmounts);
+  const channels = visible.filter(channel => channel.key !== "voucher");
+  const voucher = visible.find(channel => channel.key === "voucher");
+  const topHeight = Math.max(28, voucher ? wrap(`${voucher.label}: ____________________`, 266).length * 12 + 12 : 28);
+  const rowHeights = Array.from({ length: Math.ceil(channels.length / 2) }, (_, index) => Math.max(28, ...channels.slice(index * 2, index * 2 + 2).map(channel => wrap(`${channel.label}: __________________`, 266).length * 12 + 12)));
+  const salesHeight = 48 + topHeight + rowHeights.reduce((sum, height) => sum + height, 0);
   if (y - salesHeight < bottom) startPage(true);
   y -= text("Sales reconciliation (RM)", margin, y, 547, 11) + 12;
   text("POS Total Sales: ______________", margin, y, 270);
-  text("Voucher: ____________________", 305, y, 266);
-  y -= 28;
+  if (voucher) text(`${voucher.label}: ____________________`, 305, y, 266);
+  y -= topHeight;
   channels.forEach((channel, index) => {
-    text(`${salesChannelLabels[channel]}: __________________`, index % 2 ? 305 : margin, y, 266);
-    if (index % 2 || index === channels.length - 1) y -= 28;
+    text(`${channel.label}: __________________`, index % 2 ? 305 : margin, y, 266);
+    if (index % 2 || index === channels.length - 1) y -= rowHeights[Math.floor(index / 2)];
   });
   text("Channel total: _________________", margin, y, 270);
   text("Difference: __________________", 305, y, 266);
 
-  doc.getPages().forEach((sheet, index) => sheet.drawText(`Current product form as of ${generatedDate} | Page ${index + 1} / ${doc.getPageCount()}`, { x: margin, y: 22, font, size: 8 }));
-  doc.setTitle("Outlet Daily Record Form - Latest");
+  doc.getPages().forEach((sheet, index) => sheet.drawText(`${recordDate ? `Record form for ${recordDate}` : `Current product form as of ${generatedDate}`} | Page ${index + 1} / ${doc.getPageCount()}`, { x: margin, y: 22, font, size: 8 }));
+  doc.setTitle(`Outlet Daily Record Form - ${recordDate ?? "Latest"}`);
   return doc.save();
 }

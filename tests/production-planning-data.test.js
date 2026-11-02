@@ -105,9 +105,9 @@ test('explicit no-stockout evidence allows capped waste reduction; unknown stock
  const f=fixture();f.tables.outlet_daily_record_lines.forEach(line=>{delete line.stockout;});
  const plan=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');assert.equal(plan.allocations[0].suggested_qty,100);
 });
-test('on-order products stay absent without orders and produce only confirmed demand when ordered',async()=>{
+test('on-order products stay visible with unknown quantities without orders and use confirmed demand when ordered',async()=>{
  const f=fixture();f.tables.production_batch_rules[0].forecast_basis='on_order';f.tables.production_batch_rules[0].yield_per_tray=1;
- let plan=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');assert.equal(plan.product_lines.some(line=>line.product_id==='p-0'),false);
+ let plan=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');assert.equal(plan.product_lines.some(line=>line.product_id==='p-0'),true);assert.ok(plan.allocations.filter(a=>a.product_id==='p-0').every(a=>a.suggested_qty===null));
  f.tables.production_planning_events.push({id:'event-order',company_id:f.company,kitchen_id:f.kitchen,branch_id:null,event_date:'2026-10-03',confirmed:true,name:'Order',lines:[{product_id:'p-0',qty:17}]});
  plan=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');assert.equal(plan.product_lines.find(line=>line.product_id==='p-0').trays,17);assert.ok(plan.allocations.filter(line=>line.product_id==='p-0').every(line=>line.suggested_qty===0));
 });
@@ -129,10 +129,10 @@ test('safe balancing stays inside low-waste capacity and snapshots additions sep
  assert.equal(a.reduce((s,a)=>s+a.approved_qty,0),1008);assert.equal(a.reduce((s,a)=>s+a.evidence.employee.extra,0),8);assert.ok(a.every(a=>a.approved_qty<=a.evidence.employee.capacity));assert.ok(a.every(a=>a.evidence.employee.quantity===100));assert.equal(p.product_lines[0].trays,63);
 });
 
-test('employee workflow excludes unscheduled catalogue products but retains confirmed orders',async()=>{
+test('employee workflow retains unscheduled catalogue products as unknown and confirmed orders',async()=>{
  const f=fixture();f.tables.production_outlet_forecasts=[{company_id:f.company,kitchen_id:f.kitchen,branch_id:'outlet-0',product_id:'p-0',weekday_qty:2,weekend_qty:4}];
  f.tables.production_batch_rules=f.tables.production_batch_rules.filter(p=>p.product_id!=='p-1');
- let p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');assert.equal(p.product_lines.some(p=>p.product_id==='p-1'),false);
+ let p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');assert.equal(p.product_lines.some(p=>p.product_id==='p-1'),true);assert.equal(p.allocations.find(a=>a.product_id==='p-1').suggested_qty,null);assert.equal(p.product_lines.find(a=>a.product_id==='p-1').yield_per_tray,null);
  f.tables.production_planning_events.push({id:'confirmed',company_id:f.company,kitchen_id:f.kitchen,branch_id:null,event_date:'2026-10-03',confirmed:true,name:'Confirmed order',lines:[{product_id:'p-1',qty:4}]});
  p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');assert.equal(p.product_lines.find(p=>p.product_id==='p-1').event_qty,4);
 });
@@ -171,4 +171,15 @@ test('explicit selection respects supply periods and requires resolving an exclu
  assert.equal((await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03')).product_lines.length,0);
  f.tables.production_planning_events.push({id:'e',company_id:f.company,kitchen_id:f.kitchen,confirmed:true,event_date:'2026-10-03',branch_id:null,lines:[{product_id:'p-1',qty:5}]});
  await assert.rejects(buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03'),/excluded from planning/);
+});
+
+test('two kitchens with the same available menu retain unconfigured items and preserve zero versus unknown',async()=>{
+ const f=fixture(),other='kitchen-2';f.tables.branches.push({id:other,company_id:f.company,branch_type:'central_kitchen',branch_name:'Other',status:'active',deleted_at:null});
+ f.tables.production_outlet_forecasts=[{company_id:f.company,kitchen_id:f.kitchen,branch_id:'outlet-0',product_id:'p-0',weekday_qty:0,weekend_qty:0}];
+ f.tables.production_batch_rules=f.tables.production_batch_rules.filter(b=>b.product_id!=='p-1');
+ const a=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03'),b=await buildPlanPayload(f.db,f.company,other,'2026-10-03');
+ assert.deepEqual(Array.from(a.product_lines,x=>x.product_id),Array.from(b.product_lines,x=>x.product_id));
+ assert.equal(a.allocations.find(x=>x.product_id==='p-0'&&x.branch_id==='outlet-0').evidence.employee.quantity,0);
+ assert.equal(a.allocations.find(x=>x.product_id==='p-1').suggested_qty,null);assert.equal(a.product_lines.find(x=>x.product_id==='p-1').yield_per_tray,null);
+ assert.equal(f.tables.production_plans?.length??0,0);
 });

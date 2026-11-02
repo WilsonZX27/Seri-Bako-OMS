@@ -42,7 +42,8 @@ test("sales reconciliation is database-derived and atomic with daily lines", () 
   assert.match(sql, /difference:=round\(p_pos_total_sales-channel_total,2\)/);
   assert.match(sql, /difference<>0.*sales difference/s);
   const action = read("src", "server", "actions", "outlet-daily-records.ts");
-  assert.match(action, /save_outlet_daily_record_checked/);
+  assert.match(action, /save_outlet_daily_record_with_sales_channels/);
+  assert.match(read("sql-candidates", "odr-sales-settings", "wiring.sql"), /return public\.save_outlet_daily_record_checked/);
   const checked = read("sql-candidates", "odr-annotations", "atomic-save.sql");
   assert.match(checked, /saved:=public\.save_outlet_daily_record_v92/);
   assert.match(checked, /for update/);

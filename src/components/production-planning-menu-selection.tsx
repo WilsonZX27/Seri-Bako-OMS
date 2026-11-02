@@ -12,7 +12,7 @@ export function PlanningMenuSelection({ products, included, onChange, disabled }
   const select=(ids:string[],checked:boolean)=>onChange(products.filter(p=>ids.includes(p.id)?checked:included.includes(p.id)).map(p=>p.id));
   return <section className="sb-work-surface p-4" aria-labelledby="planning-menu-title">
     <h2 id="planning-menu-title" className="text-sm font-semibold">Products in this kitchen’s plans</h2>
-    <p className="mt-1 text-xs text-muted-foreground">Save settings, then recalculate a draft to apply. Existing plans stay unchanged. Supply periods still apply; products set to “By order only” appear for confirmed orders. Excluding an event product requires reviewing that event.</p>
+    <p className="mt-1 text-xs text-muted-foreground">Save settings, then recalculate a draft to apply. Existing plans stay unchanged. Supply periods still apply; products set to “By order only” have unknown quantities until an order is confirmed. Excluding an event product requires reviewing that event.</p>
     <div className="my-3 flex flex-wrap items-center gap-2"><Input type="search" value={search} disabled={disabled} onChange={e=>setSearch(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")e.preventDefault();}} aria-label="Find planning menu product" placeholder="Find category or product" className="min-w-0 flex-1"/><span className="text-xs text-muted-foreground" role="status">{included.filter(id=>products.some(p=>p.id===id)).length} of {products.length} selected</span></div>
     {!visible.length?<p className="text-sm">No matching products.</p>:<div className="max-h-80 overflow-auto divide-y">{categories.map(category=>{
       const items=visible.filter(p=>p.category===category),count=items.filter(p=>included.includes(p.id)).length;

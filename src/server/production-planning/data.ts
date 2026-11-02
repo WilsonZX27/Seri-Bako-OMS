@@ -87,14 +87,10 @@ export async function buildPlanPayload(db: LooseSupabase, companyId: string, kit
   if(events.some(e=>e.lines.some(line=>!availableIds.has(line.product_id))))throw new Error("A confirmed event contains a product excluded from planning or outside its supply period. Review the event or Planning Settings before recalculating.");
   const allocations: Allocation[] = [];
   const product_lines: ProductionLine[] = [];
-  const employeePlanning=context.forecasts.some(f=>f.weekday_qty!==null||f.weekend_qty!==null);
   for (const product of context.products) {
     const batch = context.batches.find((b) => b.product_id === product.id);
-    // In the employee workflow, unscheduled catalogue items do not become unknown daily orders.
-    if(context.config.included_product_ids == null && employeePlanning&&!batch&&!context.forecasts.some(f=>f.product_id===product.id&&(f.weekday_qty!==null||f.weekend_qty!==null))
-      &&!events.some(e=>e.lines.some(l=>l.product_id===product.id)))continue;
     const onOrder=batch?.forecast_basis === "on_order";
-    if(onOrder&&!events.some(event=>event.lines.some(line=>line.product_id===product.id)))continue;
+    const hasOrder=events.some(event=>event.lines.some(line=>line.product_id===product.id));
     let demand = 0, manual = false;
     for (const branch of context.outlets) {
       const rule = context.minimums.find((m) => m.branch_id === branch.id && m.product_id === product.id);
@@ -104,9 +100,9 @@ export async function buildPlanPayload(db: LooseSupabase, companyId: string, kit
       const evidence = baseline !== undefined && baseline !== null && !onOrder
         ? recommendEmployeeQuantity(series.get(`${branch.id}:${product.id}`) ?? [],date,Number(baseline),minimum,Number(context.config.buffer_percent),Number(context.config.max_decrease_percent),batch?.forecast_basis === "same_day" && product.daily_tracking !== "food_carryover")
         : recommendQuantity(series.get(`${branch.id}:${product.id}`) ?? [], date, minimum, Number(context.config.buffer_percent), Number(context.config.max_decrease_percent));
-      if ((batch?.forecast_basis !== "same_day" || product.daily_tracking === "food_carryover") && !evidence.employee) { evidence.stockoutRisk = false; evidence.method = "manual"; evidence.suggested = null; evidence.weightedMovement = null; evidence.reductionFloor = null; evidence.manualReason = "Multi-day or unconfirmed shelf-life: daily receipts cannot establish demand. Manager quantity required."; }
+      if ((batch?.forecast_basis !== "same_day" || product.daily_tracking === "food_carryover") && !evidence.employee) { evidence.stockoutRisk = false; evidence.method = "manual"; evidence.suggested = null; evidence.weightedMovement = null; evidence.reductionFloor = null; evidence.manualReason = !batch ? "This outlet’s forecast and the kitchen batch yield are not configured. Enter quantities and set a yield before release." : "Multi-day or unconfirmed shelf-life: daily receipts cannot establish demand. Manager quantity required."; }
       const event_qty = events.filter((e) => e.branch_id === branch.id).reduce((sum,e) => sum+e.lines.filter((l) => l.product_id===product.id).reduce((s,l) => s+Number(l.qty),0),0);
-      if(onOrder){evidence.suggested=0;evidence.minimum=0;evidence.manualReason="By order only: confirmed orders determine the quantity.";}
+      if(onOrder){evidence.suggested=hasOrder?0:null;evidence.minimum=hasOrder?0:null;evidence.manualReason=hasOrder?"By order only: confirmed orders determine the quantity.":"By order only: no confirmed order. Enter a quantity if needed.";}
       if(product.daily_tracking === "food_carryover") {
         const records=priorRecords.filter(r=>r.branch_id===branch.id);
         const candidates=carryLines.filter(l=>records.some(r=>r.id===l.record_id)&&l.product_id===product.id);

@@ -14,8 +14,8 @@ test('unknown/ambiguous products or outlets and duplicate normalized matches rej
  assert.throws(()=>matchForecastRows([{...row,outlet:'Other kitchen'}],outlets,products),/Unknown or ambiguous outlet/);
  assert.throws(()=>matchForecastRows([row,row],outlets,products),/Duplicate/);
 });
-test('legacy defaults preserve batch/forecast inclusion and row limit prevents unusable templates',()=>{
- assert.deepEqual(Array.from(defaultPlanningProducts(products,[{product_id:'p'}],[{product_id:'p',weekday_qty:0,weekend_qty:null}])),['p']);
+test('default menu includes products independently of batch and forecast; row limit prevents unusable templates',()=>{
+ assert.deepEqual(Array.from(defaultPlanningProducts(products,[{product_id:'p'}],[{product_id:'p',weekday_qty:0,weekend_qty:null}])),['p','p2']);
  assert.deepEqual(Array.from(defaultPlanningProducts(products,[],[])),['p','p2']);
  assert.throws(()=>buildForecastTemplate(Array(5001).fill(outlets[0]),products),/10,000/);
 });

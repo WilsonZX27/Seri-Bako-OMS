@@ -19,7 +19,7 @@ test('only changing buffer preserves null legacy inclusion and its confirmed eve
  const payload=await submit({buffer:12});assert.equal(payload.buffer_percent,12);assert.equal('included_product_ids' in payload,false);assert.equal('expected_included_product_ids' in payload,false);
 });
 test('an intentional product change submits selection and prior null token',async()=>{
- const payload=await submit({selection:['p','event-only']});assert.deepEqual(Array.from(payload.included_product_ids),['p','event-only']);assert.equal(payload.expected_included_product_ids,null);
+ const payload=await submit({selection:['p']});assert.deepEqual(Array.from(payload.included_product_ids),['p']);assert.equal(payload.expected_included_product_ids,null);
 });
 test('unchanged explicit product set, regardless of order, keeps existing selection',async()=>{
  const payload=await submit({configIds:['event-only','p'],selection:['p','event-only']});assert.equal('included_product_ids' in payload,false);

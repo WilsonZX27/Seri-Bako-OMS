@@ -1,10 +1,7 @@
 import type { PlanningBranch, PlanningProduct } from "./types";
-import type { EmployeeForecast } from "./employee-forecast";
 
-/** Preserve the existing employee-workflow inclusion until a manager saves a selection. */
-export function defaultPlanningProducts(products: PlanningProduct[], batches: Record<string, unknown>[], forecasts: EmployeeForecast[]): string[] {
-  const employeePlanning = forecasts.some(f => f.weekday_qty !== null || f.weekend_qty !== null);
-  return products.filter(p => !employeePlanning || batches.some(b => b.product_id === p.id) || forecasts.some(f => f.product_id === p.id && (f.weekday_qty !== null || f.weekend_qty !== null))).map(p => p.id);
+export function defaultPlanningProducts(products: PlanningProduct[]): string[] {
+  return products.map(p => p.id);
 }
 
 export function spreadsheetText(value: string): string {

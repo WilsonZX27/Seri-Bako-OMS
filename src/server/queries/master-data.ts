@@ -27,6 +27,24 @@ function filterAndSort<T extends Record<string, unknown>>(rows: T[], filters: Fi
     .sort((a, b) => compareTableValues(a[sort], b[sort], dir));
 }
 
+function filterSupplierItems<T extends Record<string, unknown> & { id: string }>(rows: T[], filters: Filters) {
+  // Construct once per list, rather than once per sort comparison.
+  const collator = new Intl.Collator("en", { numeric: true, sensitivity: "base" });
+  const keys = ["supplier_name", "supplier_code", "supplier_group", "supplier_item_code", "supplier_item_name", "item_code", "item_name", "purchase_uom"];
+  const search = filters.search?.trim().toLowerCase();
+  const status = statusFilter(filters.status);
+  const supplier = statusFilter(filters.supplier);
+  const sort = filters.sort ?? "supplier_name";
+  const direction = filters.dir === "desc" ? -1 : 1;
+  return rows.filter(row => (!search || keys.some(key => String(row[key] ?? "").toLowerCase().includes(search)))
+    && (!status || row.status === status) && (!supplier || row.supplier_id === supplier))
+    .sort((a, b) => {
+      const left = a[sort], right = b[sort];
+      const result = typeof left === "number" && typeof right === "number" ? left - right : collator.compare(String(left ?? ""), String(right ?? ""));
+      return direction * result || collator.compare(a.id, b.id);
+    });
+}
+
 export async function getSupplierItems(filters: Filters = {}) {
   if (isMockMode()) {
     const rows = mockSupplierItems.map((row) => {
@@ -42,22 +60,60 @@ export async function getSupplierItems(filters: Filters = {}) {
         base_unit: item?.base_unit ?? "-",
       };
     });
-    return filterAndSort(rows, filters, ["supplier_name", "supplier_code", "supplier_group", "supplier_item_code", "supplier_item_name", "item_code", "item_name", "purchase_uom"]);
+    return filterSupplierItems(rows, filters);
   }
 
+  const { requireActiveTenantActor } = await import("@/server/auth/tenant-actor");
+  const actor = await requireActiveTenantActor();
   const supabase = await createClient();
-  const [{ data, error }, { data: suppliers, error: suppliersError }, { data: items, error: itemsError }] = await Promise.all([
-    supabase
-    .from("supplier_items")
-    .select("*")
-    .is("deleted_at", null)
-    .order("supplier_item_name", { ascending: true }),
-    supabase.from("suppliers").select("id, name, supplier_code, supplier_group"),
-    supabase.from("items").select("id, item_code, item_name, base_unit"),
+  type SupplierItem = Database["public"]["Tables"]["supplier_items"]["Row"];
+  const status = statusFilter(filters.status);
+  const supplier = statusFilter(filters.supplier);
+  if ((status && status !== "active" && status !== "inactive")
+    || (supplier && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(supplier))) return [];
+  async function readPages<T>(read: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>) {
+    const rows: T[] = [];
+    // Read all rows before joined-field search/sort; unpaged PostgREST reads are capped.
+    for (let offset = 0;; offset += 500) {
+      const result = await read(offset, offset + 499);
+      if (result.error || !result.data) throw new Error(result.error?.message ?? "Supplier items unavailable.");
+      rows.push(...result.data);
+      if (result.data.length < 500) break;
+    }
+    return rows;
+  }
+  const mappingRows = () => readPages((from, to) => {
+    let query = supabase.from("supplier_items").select("*")
+      .eq("company_id", actor.companyId).is("deleted_at", null);
+    if (status) query = query.eq("status", status as SupplierItem["status"]);
+    if (supplier) query = query.eq("supplier_id", supplier);
+    return query.order("supplier_item_name").order("id").range(from, to);
+  });
+  async function relatedRows<T>(ids: string[], read: (ids: string[]) => PromiseLike<{ data: T[] | null; error: { message: string } | null }>) {
+    const rows: T[] = [];
+    for (let offset = 0; offset < ids.length; offset += 400) {
+      const results = await Promise.all([0, 100, 200, 300].filter(n => offset + n < ids.length)
+        .map(n => read(ids.slice(offset + n, offset + n + 100))));
+      for (const result of results) {
+        if (result.error || !result.data) throw new Error(result.error?.message ?? "Supplier item references unavailable.");
+        rows.push(...result.data);
+      }
+    }
+    return rows;
+  }
+  const scoped = Boolean(status || supplier);
+  const dataPromise = mappingRows();
+  const [data, suppliers, items] = await Promise.all([
+    dataPromise,
+    scoped ? dataPromise.then(data => relatedRows([...new Set(data.map(row => row.supplier_id))], ids => supabase.from("suppliers")
+      .select("id, name, supplier_code, supplier_group").eq("company_id", actor.companyId).in("id", ids).order("id").range(0, 99)))
+      : readPages((from, to) => supabase.from("suppliers").select("id, name, supplier_code, supplier_group")
+        .eq("company_id", actor.companyId).order("id").range(from, to)),
+    scoped ? dataPromise.then(data => relatedRows([...new Set(data.map(row => row.item_id))], ids => supabase.from("items")
+      .select("id, item_code, item_name, base_unit").eq("company_id", actor.companyId).in("id", ids).order("id").range(0, 99)))
+      : readPages((from, to) => supabase.from("items").select("id, item_code, item_name, base_unit")
+        .eq("company_id", actor.companyId).order("id").range(from, to)),
   ]);
-  if (error) throw new Error(error.message);
-  if (suppliersError) throw new Error(suppliersError.message);
-  if (itemsError) throw new Error(itemsError.message);
   const supplierById = new Map((suppliers ?? []).map((supplier) => [supplier.id, supplier]));
   const itemById = new Map((items ?? []).map((item) => [item.id, item]));
   const rows = ((data ?? []) as Database["public"]["Tables"]["supplier_items"]["Row"][]).map((row) => ({
@@ -69,7 +125,7 @@ export async function getSupplierItems(filters: Filters = {}) {
     item_name: itemById.get(row.item_id)?.item_name ?? "-",
     base_unit: itemById.get(row.item_id)?.base_unit ?? "-",
   }));
-  return filterAndSort(rows, filters, ["supplier_name", "supplier_code", "supplier_group", "supplier_item_code", "supplier_item_name", "item_code", "item_name", "purchase_uom"]);
+  return filterSupplierItems(rows, filters);
 }
 
 export async function getSupplierItem(id: string) {

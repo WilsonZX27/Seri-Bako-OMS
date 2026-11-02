@@ -69,7 +69,7 @@ test("stock count form keeps a local recovery snapshot and reports server save s
   assert.doesNotMatch(detail, /mobileWorkflowTrailing/);
   assert.doesNotMatch(detail, /StockCountAutosaveStatus/);
   assert.match(detail, /mobilePrimaryAction = hasPrimaryAction/);
-  assert.match(detail, /label="Post count"/);
+  assert.match(detail, /label=\{postingLabel\}/);
   assert.match(actions, /autosaveStockCountDraft[\s\S]*updateStockCountDraftRecord\(id, formData, \{ revalidate: false \}\)/);
 });
 

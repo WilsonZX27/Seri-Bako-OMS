@@ -4,7 +4,7 @@ import { requirePermission } from "@/server/auth/permissions";
 import { getBranchesForSelect, getItemsForSelect } from "@/server/queries/common";
 import { createClient } from "@/lib/supabase/server";
 import { isMockMode } from "@/lib/mock-mode";
-import type { StockCountSeedLine } from "@/server/queries/stock-counts";
+import { getStockCountKgSetups, type StockCountSeedLine } from "@/server/queries/stock-counts";
 
 /** Read-only: selecting an extra line must not create a count or change branch scope. */
 export async function previewStockCountItem(branchId: string, itemId: string): Promise<{line?: StockCountSeedLine; error?: string}> {
@@ -25,6 +25,6 @@ export async function previewStockCountItem(branchId: string, itemId: string): P
       balance=Number(data?.current_qty ?? 0);
       if(!Number.isFinite(balance)) throw new Error("The starting balance is invalid. Try again.");
     }
-    return {line:{item_id:item.id,item_code:item.item_code,item_name:item.item_name,theoretical_qty:balance,physical_qty:null,prefill_source:"ledger_balance",uom:item.base_unit}};
+    return {line:{item_id:item.id,item_code:item.item_code,item_name:item.item_name,theoretical_qty:balance,physical_qty:null,prefill_source:"ledger_balance",uom:item.base_unit,kg_setup:(await getStockCountKgSetups()).get(item.id)}};
   } catch(error) { return {error:error instanceof Error ? error.message : "Could not load this item. Try again."}; }
 }

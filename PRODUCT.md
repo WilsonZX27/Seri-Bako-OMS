@@ -1,3 +1,5 @@
+> Local schedule-template SQL candidate, 2026-11-02: unnumbered at supabase/sql-candidates/schedule_template_atomic_drafts.UNASSIGNED.sql; NOT a migration authority or production-installation claim. Production380/381/382 are occupied per integration; allocation remains with integration. Scoped behavior and SQL bytes preserved.
+
 # Local follow-up — Retired Items query contract (not deployed)
 
 Retired view uses a separate RLS-scoped read-only RPC for search, primary supplier, safety-stock and visible-inventory filters, stable sorting, exact branch-item record count and 15-row pagination. Unknown/inaccessible inventory is never classified healthy. Ordinary Items and restore actions are unchanged. Requires separately reviewed SQL installation before any matching app release; production remains174.

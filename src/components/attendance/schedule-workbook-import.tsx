@@ -3,7 +3,7 @@
 import { requestDeadline } from "@/lib/http/request-deadline";
 
 import { useEffect, useRef, useState } from "react";
-import { FileSpreadsheet, Upload, X } from "lucide-react";
+import { Download, FileSpreadsheet, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SelectControl } from "@/components/ui/select-control";
 import {TimeSelect} from "@/components/attendance/time-select";
@@ -66,15 +66,25 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
     setOtReviews([]);setOtResolutions({});setRules({});setNamedShifts([]);setStep(1); setSource(files); setSheet(""); setBranchId(""); setDatesConfirmed(false);
     setBusy(true); setMessage("Checking the workbook against current OMS staff and outlets…"); setPreview(null);
     try {
-      const catalog = await requestDeadline(async signal => {
+      let catalog = await requestDeadline(async signal => {
         const response = await fetch(`/api/attendance/schedule/import-catalog?week=${encodeURIComponent(importWeek)}`, { signal });
         const value = await readJsonResponse<ScheduleImportCatalog & { ok?: boolean; message?: string }>(response, { unexpectedResponse: "The schedule catalog returned an unexpected response." });
         if (!response.ok) throw new Error(value.message ?? "The schedule catalog could not be loaded.");
         return value;
       }, 20_000, "The staff and outlet catalog is taking too long. Your workbook is retained; check again when the connection is ready.");
       if (requestId !== requestVersion.current) return;
+      let result = await parseScheduleWorkbooks(files, importWeek, catalog);
+      if (result.templateVersion === 1) {
+        catalog = await requestDeadline(async signal => {
+          const response = await fetch(`/api/attendance/schedule/template?catalog=1&week=${encodeURIComponent(importWeek)}`, { signal });
+          const current = await readJsonResponse<ScheduleImportCatalog & {message?:string}>(response, {unexpectedResponse:"Template access could not be verified."});
+          if (!response.ok) throw new Error(current.message ?? "Template access could not be verified.");
+          return current;
+        }, 20_000, "Template access could not be verified. Your file is retained; check again.");
+        result = await parseScheduleWorkbooks(files, importWeek, catalog);
+      }
+      if (requestId !== requestVersion.current) return;
       setCatalog(catalog);
-      const result = await parseScheduleWorkbooks(files, importWeek, catalog);
       if (requestId !== requestVersion.current) return;
       setSheetMappings(result.sheetBranches);setNamedShifts(result.namedShifts);const aiden=[...new Map(catalog.staff.filter(person=>person.name.trim().toLowerCase()==="aiden").map(person=>[person.id,person])).values()];setPolicyStaff(aiden.length===1?aiden[0].id:"");
       setOtReviews(result.otReviews);setPreview(result); setEmployeeMatches(result.employeeMatches);setShiftConflicts(result.shiftConflicts);setDestinationReviews(result.destinationReviews); setSheetNames(result.sheets); setMissingEndTimes(result.missingEndTimeSources);
@@ -88,7 +98,7 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
     setBusy(true); setMessage("Checking dates and assignments…");
     try {
       const fresh = await requestDeadline(async signal => {
-        const response = await fetch(`/api/attendance/schedule/import-catalog?week=${encodeURIComponent(targetWeek)}`, { signal });
+        const response = await fetch(`${catalog.template_memberships ? "/api/attendance/schedule/template?catalog=1&week=" : "/api/attendance/schedule/import-catalog?week="}${encodeURIComponent(targetWeek)}`, { signal });
         const value = await readJsonResponse<ScheduleImportCatalog & { message?: string }>(response, { unexpectedResponse: "The schedule catalog returned an unexpected response." });
         if (!response.ok) throw new Error(value.message ?? "The schedule catalog could not be loaded.");
         return value;
@@ -109,7 +119,7 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
     finally {if (requestId === requestVersion.current) setBusy(false);}
   }
   async function confirm() {
-    if (!preview || !selected.length || mutationPending.current) return;
+    if (!preview || !selected.length || mutationPending.current || preview.templateVersion === 1 && (preview.issues.length > 0 || catalog?.template_import_ready === false)) return;
     mutationPending.current = true;
     const requestId = ++requestVersion.current;
     setBusy(true);
@@ -118,7 +128,11 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
     try {
       const days=new Set(pending.flatMap(outlet=>outlet.assignments.map(assignment=>`${assignment.staff_id}:${assignment.work_date}`)));
       const result = await requestDeadline(async signal => {
-      const response=await fetch("/api/attendance/schedule",{signal,method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action:"import_drafts",reconcileDrafts:true,weekStart:preview.weekStart,fileName:preview.fileName,fileHash:preview.fileHash,outlets:pending.map(outlet=>({branch_id:outlet.branchId,assignments:outlet.assignments})),unresolvedCount:0,sourceMetadata:{source:"schedule_workbook_ui",parserVersion:12,otResolutions,files:preview.files,untimedDuties:preview.untimedDuties.filter(row=>pending.some(outlet=>outlet.branchId===row.branchId)),reusableRules:preview.reusableRules,expectedAssignments:(catalog?.current_assignments??[]).filter(row=>days.has(`${row.staff_id}:${row.work_date}`)).map(row=>row.id).sort(),sheetMappings,employeeMatches:preview.employeeMatches,assignmentSources:preview.assignmentSources,shiftSelections,destinationMappings,sourceIssues:preview.issues,sourceNotices:preview.notices,sourceNotes:preview.notes,excludedRows}})});
+      const templateForm = preview.templateVersion === 1 ? new FormData() : null;
+      if (templateForm) {
+        templateForm.set("file", source[0]); templateForm.set("week", preview.weekStart); templateForm.set("intent", "confirm"); templateForm.set("hash", preview.fileHash); templateForm.set("branches", JSON.stringify(pending.map(o => o.branchId))); templateForm.set("rows", JSON.stringify(pending.flatMap(o => o.assignments.map(a => rowKey(o.branchId, a.staff_id, a.work_date)))));
+      }
+      const response=preview.templateVersion === 1 ? await fetch("/api/attendance/schedule/template", { signal, method:"POST", body: templateForm ?? undefined }) : await fetch("/api/attendance/schedule",{signal,method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action:"import_drafts",reconcileDrafts:true,weekStart:preview.weekStart,fileName:preview.fileName,fileHash:preview.fileHash,outlets:pending.map(outlet=>({branch_id:outlet.branchId,assignments:outlet.assignments})),unresolvedCount:0,sourceMetadata:{source:"schedule_workbook_ui",parserVersion:12,otResolutions,files:preview.files,untimedDuties:preview.untimedDuties.filter(row=>pending.some(outlet=>outlet.branchId===row.branchId)),reusableRules:preview.reusableRules,expectedAssignments:(catalog?.current_assignments??[]).filter(row=>days.has(`${row.staff_id}:${row.work_date}`)).map(row=>row.id).sort(),sheetMappings,employeeMatches:preview.employeeMatches,assignmentSources:preview.assignmentSources,shiftSelections,destinationMappings,sourceIssues:preview.issues,sourceNotices:preview.notices,sourceNotes:preview.notes,excludedRows}})});
       const result=await readJsonResponse<{ok:boolean;message?:string;data?:{idempotent?:boolean}}>(response,{unexpectedResponse:"Import result is unconfirmed. Keep the same workbook and selection; check Recent imports before retrying.",invalidJson:"Import result is unconfirmed. Keep the same workbook and selection; check Recent imports before retrying."});
       if(!response.ok||!result.ok)throw new Error(result.message??"The batch was not imported. Check changes and try again.");
       return result;
@@ -151,6 +165,7 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
   return <>
     <section className="sb-work-surface flex flex-wrap items-center gap-3 p-3">
       <div className="min-w-0 flex-1"><h2 className="text-sm font-semibold">Schedule workbook</h2><p className="mt-0.5 text-xs text-muted-foreground">Import Excel shifts into a draft.</p></div>
+      <Button asChild size="sm" variant="outline"><a href={`/api/attendance/schedule/template?week=${encodeURIComponent(importWeek)}`}><Download className="h-4 w-4"/>Download template</a></Button>
       <Button size="sm" variant="outline" onClick={() => {
         if (document.querySelector('[data-schedule-planner][data-schedule-unsaved="true"]')) {
           setOpenError("Save your current schedule changes before importing a workbook.");
@@ -171,16 +186,17 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
               if (groups[key]) groups[key].count++; else groups[key] = {message:issue.message,count:1};
               return groups;
             }, {})).map((issue,index) => <li key={index} className="rounded-[var(--sb-radius-control)] bg-amber-50 p-2 text-xs text-amber-950">{issue.message}{issue.count > 1 ? ` (${issue.count} source items)` : ""}</li>)}</ul></section> : null}</section> : null}
+          {catalog?.template_import_message ? <p role="status" className="text-xs text-amber-900">{catalog.template_import_message}</p> : null}
           {message && !(preview?.issues.length && /source items? needs? review/.test(message)) ? <p role="status" className={"rounded-[var(--sb-radius-control)] border p-3 text-xs " + (message.startsWith("Import succeeded:") ? "border-emerald-300 bg-emerald-50 font-medium text-emerald-900" : "border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] text-[var(--sb-text)]")}>{message}</p> : null}
           <div className={step===1 ? "grid items-end gap-3 sm:grid-cols-2" : "hidden"}>
           <label className="grid gap-1 text-xs font-medium"><span>Workbooks (.xlsx) · choose up to 10</span><Input type="file" multiple accept=".xlsx" disabled={busy} onChange={(event) => void load(Array.from(event.currentTarget.files??[]))}/></label>
           <label className="grid gap-1 text-xs">Week starting (Monday)<Input type="date" value={importWeek} disabled={busy} onChange={event=>{setImportWeek(event.target.value);setDatesConfirmed(false);setSelectedOutlets([]);setPreview(null);}}/></label></div>
           <div hidden={step!==2} className="space-y-4">
           {source.length && catalog ? <section className="space-y-3">
-            <details className="sb-import-card space-y-3" open={Object.values(sheetMappings).some(value => !value)}>
+            {catalog.template_memberships ? <p className="text-xs text-muted-foreground">OMS template: Staff ID and Branch ID determine each row. Teaching and reference sheets are ignored. Correct source errors in the workbook and upload it again; names cannot remap employees.</p> : <details className="sb-import-card space-y-3" open={Object.values(sheetMappings).some(value => !value)}>
               <summary className="flex cursor-pointer items-center justify-between gap-3 text-sm font-semibold"><span className="min-w-0 flex-1">Sheet locations</span><span className="text-xs font-normal tabular-nums text-muted-foreground">{sheetNames.length}</span></summary>
               <div className="space-y-2">{sheetNames.map(name => <label key={name} className="grid min-w-0 items-center gap-2 text-xs sm:grid-cols-2"><span className="break-words">{name}</span><SelectControl ariaLabel={`Outlet for ${name}`} placeholder="Choose outlet" portalContainer={dialog.current} disabled={busy} value={sheetMappings[name] ?? ""} options={[...catalog.branches.map(branch => ({value:branch.id,label:branch.name})),{value:"skip",label:"Exclude this sheet"}]} onValueChange={value => {setSheetMappings(current => ({...current,[name]:value}));setEmployeeMatches([]);setEmployeeMappings({});setShiftSelections({});setShiftConflicts([]);setDestinationMappings({});setDestinationReviews([]);setSelectedOutlets([]);setPreview(null);}}/></label>)}</div>
-            </details>
+            </details>}
             {preview?.issues.some(issue => issue.reason === "date_context_required") || datesConfirmed ? <label className="flex items-start gap-2 text-xs"><input type="checkbox" disabled={busy} checked={datesConfirmed} onChange={event=>{setDatesConfirmed(event.target.checked);setPreview(null);}}/><span>These incomplete dates belong to the week starting {importWeek}.</span></label> : null}
             {missingEndTimes.length ? <fieldset className="space-y-2"><legend className="text-sm font-semibold">Confirm missing end times</legend><p className="text-xs text-muted-foreground">These cells contain only a start time. Set the end time for each start below, then check the sheet again. Each rule applies only to the named sheet. An earlier end time means the next day.</p><div className="grid gap-3 sm:grid-cols-3">{missingEndTimes.map(({key,sheet,start}) => <label key={key} className="grid gap-1 text-xs"><span>{sheet} · {start} · ends</span><Input type="time" disabled={busy} value={endTimes[key] ?? ""} onChange={event => {setEndTimes({...endTimes,[key]:event.target.value});setPreview(null);}}/></label>)}</div></fieldset> : null}
           </section> : null}
@@ -200,7 +216,7 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
               const changed = Object.prototype.hasOwnProperty.call(employeeMappings, match.key) && employeeMappings[match.key] !== match.staffId;
               return <div key={match.key} className="grid min-w-0 items-center gap-3 border-b border-[var(--sb-border-soft)] py-3 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_minmax(12rem,1fr)]">
                 <div className="min-w-0 break-words text-xs"><strong>{match.employee || "Unnamed row"}{match.staffCode ? ` · ID ${match.staffCode}` : ""}</strong><p className="mt-1 text-muted-foreground">{match.sheet} · row {match.row}</p><p className="mt-1">{changed ? "Selection changed. Preview again to check assignments." : match.reason}</p></div>
-                <SelectControl ariaLabel={`Employee for ${match.sheet} row ${match.row}`} className="self-center" portalContainer={dialog.current} searchable searchPlaceholder="Search employee or Staff ID" disabled={busy} placeholder="Choose employee" value={employeeMappings[match.key] ?? match.staffId ?? ""} options={people.map(person => ({value:person.id,label:`${person.name}${person.staff_code ? ` · ${person.staff_code}` : ""}`}))} onValueChange={value => {
+                <SelectControl ariaLabel={`Employee for ${match.sheet} row ${match.row}`} className="self-center" portalContainer={dialog.current} searchable searchPlaceholder="Search employee or Staff ID" disabled={busy || catalog?.template_memberships !== undefined} placeholder="Choose employee" value={employeeMappings[match.key] ?? match.staffId ?? ""} options={people.map(person => ({value:person.id,label:`${person.name}${person.staff_code ? ` · ${person.staff_code}` : ""}`}))} onValueChange={value => {
                   setEmployeeMappings(current => ({...current,[match.key]:value}));setShiftSelections({});setShiftConflicts([]);setDestinationMappings({});setDestinationReviews([]); setPreview(null); setMessage("Employee selection changed. Preview import again before saving.");
                 }}/>
               </div>;
@@ -223,7 +239,7 @@ export function ScheduleWorkbookImport({ weekStart, canDraft }: { weekStart: str
           </> : null}
           </div>
         </div>
-        <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--sb-border-soft)] p-4"><p className="basis-full text-xs text-muted-foreground">Unresolved days stay empty. Published and locked schedules are protected.</p>{step>1?<Button variant="outline" disabled={busy} onClick={()=>setStep(step===3?2:1)}>Back</Button>:<span/>}{step===1?<Button disabled={busy || !source.length || !catalog} onClick={async()=>{if(!preview)await recheck();setStep(2);}}>Continue to fix import</Button>:step===2?<div className="flex gap-2"><Button variant="outline" disabled={busy || !source.length} onClick={()=>void recheck()}>Check changes</Button><Button disabled={busy || !preview} onClick={()=>setStep(3)}>Review import</Button></div>:<Button disabled={busy || !pendingSelected.length} onClick={()=>void confirm()}><Upload className="h-4 w-4"/>{busy?"Importing…":`Import ${pendingSelected.length} draft outlets`}</Button>}</footer>
+        <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--sb-border-soft)] p-4"><p className="basis-full text-xs text-muted-foreground">{preview?.templateVersion ? "Correct all source errors before confirming. Only selected employee days become drafts; Manager publication remains separate." : "Unresolved days stay empty. Published and locked schedules are protected."}</p>{step>1?<Button variant="outline" disabled={busy} onClick={()=>setStep(step===3?2:1)}>Back</Button>:<span/>}{step===1?<Button disabled={busy || !source.length || !catalog} onClick={async()=>{if(!preview)await recheck();setStep(2);}}>Continue to fix import</Button>:step===2?<div className="flex gap-2"><Button variant="outline" disabled={busy || !source.length} onClick={()=>void recheck()}>Check changes</Button><Button disabled={busy || !preview} onClick={()=>setStep(3)}>Review import</Button></div>:<Button disabled={busy || !pendingSelected.length || Boolean(preview?.templateVersion && (preview.issues.length || catalog?.template_import_ready === false))} onClick={()=>void confirm()}><Upload className="h-4 w-4"/>{busy?"Importing…":`Import ${pendingSelected.length} draft outlets`}</Button>}</footer>
       </div>
     </dialog>
     <dialog ref={otDialog} aria-labelledby="import-ot-title" className="fixed left-1/2 top-1/2 m-0 max-h-[calc(100dvh-2rem)] w-[min(32rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-auto rounded-[var(--sb-panel-radius)] border-0 bg-white p-4 shadow-xl backdrop:bg-black/50">

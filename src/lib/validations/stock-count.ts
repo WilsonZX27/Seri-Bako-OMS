@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { stockCountWeightSetupSchema } from "@/lib/stock-count-kg";
 
 const FRACTIONAL_UOMS = new Set(["kg", "g", "l", "ml", "ltr", "liter", "litre"]);
 
@@ -13,6 +14,7 @@ export function stockCountHasAtMostFourDecimals(value: number) {
 }
 
 export const stockCountLineSchema = z.object({
+  weight_setup: stockCountWeightSetupSchema.nullable().optional(),
   item_id: z.string().uuid("Item is required"),
   // The server recalculates the theoretical quantity from the ledger. Keeping
   // this field bounded still prevents an oversized FormData payload before it

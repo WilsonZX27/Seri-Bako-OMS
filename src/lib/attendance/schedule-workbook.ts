@@ -5,6 +5,10 @@ export type ScheduleOtResolution = {kind:"shift"|"off"|"ro"|"separate";start?:st
 export type ScheduleOtReview = {key:string;sheet:string;employee:string;date:string;value:string;noteOnly:boolean;confirmed:boolean};
 const hasOt=(text:string)=>/(?:^|[^A-Z])OT(?:$|[^A-Z])/i.test(text);
 export type ScheduleImportCatalog = {
+  company_id?: string;
+  template_import_ready?: boolean;
+  template_import_message?: string;
+  template_memberships?: Array<{staff_id:string;branch_id:string}>;
   paid_emergency_leave?: boolean;
   import_rules?: Record<string, ScheduleImportRule>;
   fingerprint_exempt_staff?: string[];
@@ -40,6 +44,7 @@ export type ScheduleWorkbookIssue = {
 };
 
 export type ScheduleWorkbookPreview = {
+  templateVersion?: 1;
   fileName: string;
   fileHash: string;
   weekStart: string;
@@ -173,7 +178,19 @@ const decodeXml = (value: string) => value.replace(/<[^>]+>/g, "").replaceAll("&
 async function inflateRaw(bytes: Uint8Array) {
   const copy = new Uint8Array(bytes.byteLength);
   copy.set(bytes);
-  return new Uint8Array(await new Response(new Blob([copy.buffer]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer());
+  const reader = new Blob([copy.buffer]).stream().pipeThrough(new DecompressionStream("deflate-raw")).getReader();
+  const chunks: Uint8Array[] = []; let length = 0;
+  try {
+    while (true) {
+      const part = await reader.read(); if (part.done) break;
+      length += part.value.byteLength;
+      if (length > MAX_XML_BYTES) throw new Error("This workbook is too large to preview safely.");
+      chunks.push(part.value);
+    }
+  } catch (error) { await reader.cancel().catch(() => {}); throw error; }
+  const result = new Uint8Array(length); let offset = 0;
+  for (const chunk of chunks) { result.set(chunk, offset); offset += chunk.byteLength; }
+  return result;
 }
 
 async function unzip(bytes: Uint8Array) {
@@ -182,7 +199,7 @@ async function unzip(bytes: Uint8Array) {
   for (let index = bytes.length - 22; index >= 0; index -= 1) if (view.getUint32(index, true) === 0x06054b50) { eocd = index; break; }
   if (eocd < 0) throw new Error("This is not a valid XLSX workbook.");
   const files = new Map<string, string>(), decoder = new TextDecoder();
-  let expandedBytes = 0;
+  let expandedBytes = 0, actualExpandedBytes = 0;
   let cursor = view.getUint32(eocd + 16, true);
   for (let entry = 0; entry < view.getUint16(eocd + 10, true); entry += 1) {
     if (view.getUint32(cursor, true) !== 0x02014b50) break;
@@ -194,13 +211,24 @@ async function unzip(bytes: Uint8Array) {
     if (expandedSize > MAX_XML_BYTES || expandedBytes > MAX_TOTAL_XML_BYTES) throw new Error("This workbook is too large to preview safely.");
     const start = localOffset + 30 + view.getUint16(localOffset + 26, true) + view.getUint16(localOffset + 28, true);
     const compressed = bytes.slice(start, start + size), content = method === 0 ? compressed : method === 8 ? await inflateRaw(compressed) : null;
-    if (content) files.set(name, decoder.decode(content));
+    if (content) {
+      actualExpandedBytes += content.byteLength;
+      if (content.byteLength > MAX_XML_BYTES || actualExpandedBytes > MAX_TOTAL_XML_BYTES) throw new Error("This workbook is too large to preview safely.");
+      files.set(name, decoder.decode(content));
+    }
     cursor += 46 + nameLength + extraLength + commentLength;
   }
   return files;
 }
 
 function workbookSheets(files: Map<string, string>) {
+  // SpreadsheetML may use a namespace prefix, and XML attribute order is not
+  // significant (Excel/other editors can rewrite both on save).
+  files = new Map([...files].map(([name, xml]) => [name, xml.replace(/(<\/?)[A-Za-z_][\w.-]*:([A-Za-z_][\w.-]*)(?=[\s/>])/g, "$1$2")]));
+  const attribute = (xml: string, name: string) => {
+    const match = [...xml.matchAll(/([A-Za-z_][\w.:-]*)\s*=\s*(?:"([^"]*)"|'([^']*)')/g)].find(m => m[1] === name);
+    return match?.[2] ?? match?.[3] ?? "";
+  };
   const shared = [...(files.get("xl/sharedStrings.xml") ?? "").matchAll(/<si[\s\S]*?<\/si>/g)].map((match) => decodeXml(match[0]));
   const stylesXml = files.get("xl/styles.xml") ?? "";
   const colourKey = (attributes: string) => {
@@ -219,10 +247,12 @@ function workbookSheets(files: Map<string, string>) {
   const numberFormats = new Map([...stylesXml.matchAll(/<numFmt\s+([^>]+)\/?/g)].map(m => [Number(m[1].match(/numFmtId="(\d+)"/)?.[1]), decodeXml(m[1].match(/formatCode="([^"]+)"/)?.[1] ?? "")]));
   const styleNumberFormats = [...(stylesXml.match(/<cellXfs[^>]*>([\s\S]*?)<\/cellXfs>/)?.[1] ?? "").matchAll(/<xf\s+([^>]+)\/?/g)].map(m => numberFormats.get(Number(m[1].match(/numFmtId="(\d+)"/)?.[1])) ?? "");
   const styleFillKeys = [...(stylesXml.match(/<cellXfs[^>]*>([\s\S]*?)<\/cellXfs>/)?.[1] ?? "").matchAll(/<xf\s+([^>]+)\/?/g)].map((match) => fillKeys[Number(match[1].match(/fillId="(\d+)"/)?.[1] ?? 0)] ?? "");
-  const relationships = new Map([...((files.get("xl/_rels/workbook.xml.rels") ?? "").matchAll(/<Relationship[^>]*Id="([^"]+)"[^>]*Target="([^"]+)"[^>]*\/>/g))].map((match) => [match[1], `xl/${match[2].replace(/^\//, "").replace(/^xl\//, "")}`]));
+  const relationships = new Map([...((files.get("xl/_rels/workbook.xml.rels") ?? "").matchAll(/<Relationship\b([^>]*?)\/?\s*>/g))].map(match => [attribute(match[1], "Id"), `xl/${attribute(match[1], "Target").replace(/^\//, "").replace(/^xl\//, "")}`]));
   const workbook = files.get("xl/workbook.xml") ?? "";
-  return [...workbook.matchAll(/<sheet[^>]*name="([^"]+)"[^>]*(?:r:id|id)="([^"]+)"[^>]*\/>/g)].map((match) => {
-    const xml = files.get(relationships.get(match[2]) ?? "") ?? "", rows = new Map<number, Map<number, string | number>>(), identifiers = new Map<number, Map<number, string>>(), fills = new Map<number, Map<number, string>>(), fontColours = new Map<number, Map<number,string>>(), mergedRanges = new Map<string,string>(), mergedCells = new Map<string, readonly [number, number]>();
+  return [...workbook.matchAll(/<sheet\b([^>]*?)\/?\s*>/g)].map((match) => {
+    const sheetName = attribute(match[1], "name"), relationship = attribute(match[1], "r:id") || attribute(match[1], "id");
+    const xml = files.get(relationships.get(relationship) ?? "") ?? "", rows = new Map<number, Map<number, string | number>>(), identifiers = new Map<number, Map<number, string>>(), fills = new Map<number, Map<number, string>>(), fontColours = new Map<number, Map<number,string>>(), mergedRanges = new Map<string,string>(), mergedCells = new Map<string, readonly [number, number]>();
+    const formulaCells = new Set<string>();
     const hiddenRows = new Set<number>(), hiddenColumns = new Set<number>();
     for (const tag of xml.matchAll(/<row\b([^>]*)>/g)) if (/\bhidden="(?:1|true)"/.test(tag[1])) hiddenRows.add(Number(tag[1].match(/\br="(\d+)"/)?.[1]));
     for (const tag of xml.matchAll(/<col\b([^>]*)>/g)) if (/\bhidden="(?:1|true)"/.test(tag[1])) {
@@ -235,6 +265,7 @@ function workbookSheets(files: Map<string, string>) {
         const reference = cell[1].match(/\br="([A-Z]+\d+)"/)?.[1];
         if (!reference) continue;
         const type = cell[1].match(/\bt="([^"]+)"/)?.[1], body = cell[2] ?? "", raw = body.match(/<v[^>]*>([\s\S]*?)<\/v>/)?.[1] ?? body.match(/<t[^>]*>([\s\S]*?)<\/t>/)?.[1] ?? "";
+        if (/<f(?:\s|\/?>)/.test(body)) formulaCells.add(reference);
         const column = columnIndex(reference), styleIndex = Number(cell[1].match(/\bs="(\d+)"/)?.[1] ?? 0);
         row.set(column, type === "s" ? shared[Number(raw)] ?? "" : type === "inlineStr" || type === "str" ? decodeXml(raw) : raw === "" ? "" : Number.isFinite(Number(raw)) ? Number(raw) : decodeXml(raw));
         const format = styleNumberFormats[styleIndex];
@@ -252,7 +283,7 @@ function workbookSheets(files: Map<string, string>) {
       mergedRanges.set(`${startRow}:${startColumn}`,`${merged[1]}${merged[2]}:${merged[3]}${merged[4]}`);
       for (let row = startRow; row <= endRow; row += 1) for (let column = startColumn; column <= endColumn; column += 1) mergedCells.set(`${row}:${column}`, [startRow, startColumn]);
     }
-    return { name: decodeXml(match[1]), hidden: /\bstate="(?:hidden|veryHidden)"/.test(match[0]), rows, fills, fontColours, mergedRanges, mergedCells, identifiers, hiddenRows, hiddenColumns };
+    return { name: decodeXml(sheetName), hidden: /\bstate="(?:hidden|veryHidden)"/.test(match[0]), rows, fills, fontColours, mergedRanges, mergedCells, identifiers, hiddenRows, hiddenColumns, formulaCells };
   });
 }
 
@@ -287,6 +318,11 @@ export function scheduleOtResolutionError(decision?:ScheduleOtResolution,noteOnl
 }
 
 export type ScheduleWorkbookOptions = { otResolutions?:Record<string,ScheduleOtResolution>; rules?: Record<string,ScheduleImportRule>; sheet?: string; branchId?: string; sheetMappings?: Record<string, string>; confirmDateContext?: boolean; endTimes?: Record<string, string>; sheetEndTimes?: Record<string,string>; employeeMappings?: Record<string, string>; shiftSelections?: Record<string, string>; destinationMappings?: Record<string, string> };
+export async function readScheduleWorkbookSheets(file: File) {
+  if (file.size > MAX_WORKBOOK_BYTES) throw new Error("Workbook must be at most 10 MB.");
+  return workbookSheets(await unzip(new Uint8Array(await file.arrayBuffer())));
+}
+
 export async function parseScheduleWorkbook(file: File, weekStart: string, catalog: ScheduleImportCatalog, options: ScheduleWorkbookOptions = {}): Promise<ScheduleWorkbookPreview> {
   return parseScheduleWorkbooks([file],weekStart,catalog,options);
 }
@@ -303,7 +339,13 @@ export async function parseScheduleWorkbooks(inputFiles: File[], weekStart: stri
     const hash=[...new Uint8Array(digest)].map(v=>v.toString(16).padStart(2,"0")).join("");
     if(files.some(item=>item.hash===hash))continue;
     const profile=scheduleSourceProfile(file.name);files.push({name:file.name,hash,profile});
-    sheets.push(...workbookSheets(await unzip(bytes)).map(sheet=>({...sheet,originalName:sheet.name,name:inputFiles.length>1?`${file.name} ▸ ${sheet.name}`:sheet.name,profile,fileHash:hash})));
+    const decodedSheets = workbookSheets(await unzip(bytes));
+    if (decodedSheets.some(sheet => sheet.rows.get(1)?.get(0) === "OMS_SCHEDULE_TEMPLATE" || sheet.name === "Schedule" && sheet.rows.get(1)?.get(1) === "Employee (display only)")) {
+      if (inputFiles.length !== 1) throw new Error("Import an OMS template on its own, separately from older roster files.");
+      const { parseScheduleTemplate } = await import("./schedule-template");
+      return parseScheduleTemplate(file, weekStart, catalog, decodedSheets);
+    }
+    sheets.push(...decodedSheets.map(sheet=>({...sheet,originalName:sheet.name,name:inputFiles.length>1?`${file.name} ▸ ${sheet.name}`:sheet.name,profile,fileHash:hash})));
   }
   const fileName=files.map(file=>file.name).join(" + ").slice(0,255);
   const batchDigest=await crypto.subtle.digest("SHA-256",new Uint8Array([...files.map(file=>file.hash).sort().join(":")].map(c=>c.charCodeAt(0))));

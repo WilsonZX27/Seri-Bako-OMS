@@ -2,6 +2,8 @@
 
 import { ItemCombobox, type ItemComboboxOption } from "@/components/item-combobox";
 import { previewStockCountItem } from "@/server/actions/stock-count-item-preview";
+import { packagingKg, type StockCountKgSetup } from "@/lib/stock-count-kg";
+
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import type { FormEvent, ReactNode } from "react";
@@ -15,13 +17,15 @@ import { FormPendingBridge, SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import { TableActionMenuPortal } from "@/components/ui/table-action-menu-portal";
 import { StockCountLineRecovery } from "@/components/stock-count-line-recovery";
-import { formatDateOnly, getToday } from "@/lib/utils";
+import { formatDateOnly, formatNumber, getToday } from "@/lib/utils";
 import { formatStockCountQuantity as formatQuantity, stockCountQuantityInput as formatQuantityInput, stockCountInputStep } from "@/lib/stock-count-quantity";
+
 import { tryStockCountStorage } from "@/lib/stock-count-storage";
 import type { StockCountAutosaveResult, StockCountSaveResult } from "@/server/actions/stock-counts";
 
 type BranchOption = { id: string; branch_code: string; branch_name: string; status: string };
 type SeedLine = {
+  kg_setup?: StockCountKgSetup;
   line_id?: string;
   item_id: string;
   item_code: string;
@@ -35,7 +39,8 @@ type SeedLine = {
 };
 
 type RetirementReason = "used_up" | "wrong_or_duplicate_code" | "branch_no_longer_uses" | "other";
-type SeedLineInput = SeedLine & { physicalQty: string; remarks: string; initialPhysicalQty: string; adjusted: boolean; retireAfterCount: boolean; retirementReason: RetirementReason | ""; retirementNote: string };
+type WeightInputs = { unitsPerPurchase: string; kgPerUnit: string; packageDescription: string; weightEvidence: string };
+type SeedLineInput = SeedLine & WeightInputs & { physicalQty: string; remarks: string; initialPhysicalQty: string; adjusted: boolean; retireAfterCount: boolean; retirementReason: RetirementReason | ""; retirementNote: string };
 type AutosaveState = "idle" | "local" | "recovered" | "saving" | "saved" | "error";
 const EMPTY_ITEM_CATALOG: ItemComboboxOption[] = [];
 const STOCK_COUNT_SORT_KEY = "seri-bako:stock-count-sort";
@@ -46,7 +51,8 @@ type LocalDraftSnapshot = {
   branchId: string;
   countDate: string;
   remarks: string;
-  lines: Array<{ itemId: string; physicalQty: string; initialPhysicalQty?: string; remarks: string; addedLine?: SeedLine }>;
+  lines: Array<{ itemId: string; physicalQty: string; initialPhysicalQty?: string; remarks: string; addedLine?: SeedLine; weightInputs?: WeightInputs }>;
+
   savedLocallyAt: string;
 };
 
@@ -73,8 +79,9 @@ function quantityInputValue(value: number, uom: string) {
 }
 
 function makeEditableLine(line: SeedLine): SeedLineInput {
-  const physicalQty = line.physical_qty === null ? "" : quantityInputValue(line.physical_qty, line.uom);
-  return { ...line, physicalQty, initialPhysicalQty: physicalQty, remarks: line.remarks ?? "", adjusted: false, retireAfterCount: line.retirement?.status === "pending", retirementReason: line.retirement?.reason ?? "", retirementNote: line.retirement?.note ?? "" };
+  const measurement = line.kg_setup?.measurement;
+  const physicalQty = line.kg_setup ? (measurement ? String(measurement.counted_kg) : "") : line.physical_qty === null ? "" : quantityInputValue(line.physical_qty, line.uom);
+  return { ...line, unitsPerPurchase: measurement?.units_per_purchase == null ? "" : String(measurement.units_per_purchase), kgPerUnit: measurement?.kg_per_unit == null ? "" : String(measurement.kg_per_unit), packageDescription: measurement?.package_description ?? "", weightEvidence: measurement?.evidence ?? "", physicalQty, initialPhysicalQty: physicalQty, remarks: line.remarks ?? "", adjusted: false, retireAfterCount: line.retirement?.status === "pending", retirementReason: line.retirement?.reason ?? "", retirementNote: line.retirement?.note ?? "" };
 }
 
 function formatVariancePercent(percent: number | null) {
@@ -175,6 +182,15 @@ export function StockCountForm({
   activeBranchId.current = resolvedBranchId;
   const localStorageKey = `seri-bako:stock-count-draft:${draftId ?? `new:${resolvedBranchId}`}`;
 
+  function weightSetup(line: SeedLineInput) {
+    return line.kg_setup ? JSON.stringify({ units_per_purchase: line.unitsPerPurchase, kg_per_unit: line.kgPerUnit, package_description: line.packageDescription, evidence: line.weightEvidence }) : "null";
+  }
+
+  function updateWeight(itemId: string, field: keyof WeightInputs, value: string) {
+    markDirty();
+    setLines((current) => current.map((line) => line.item_id === itemId ? { ...line, [field]: value } : line));
+  }
+
   function markDirty() {
     hasUserEdited.current = true;
     const nextRevision = dirtyRevisionRef.current + 1;
@@ -245,11 +261,13 @@ export function StockCountForm({
         // When the server-side starting balance changed, do not turn an old
         // untouched prefill into a false user adjustment. Explicit edits are
         // preserved because they differ from the snapshot's original value.
+        if (line.kg_setup && !saved.weightInputs) return editable;
         const physicalQty = !isLegacySnapshot && saved.physicalQty === saved.initialPhysicalQty
           ? editable.physicalQty
           : saved.physicalQty;
         return {
           ...editable,
+          ...(saved.weightInputs ?? {}),
           physicalQty,
           remarks: saved.remarks,
           // Legacy snapshots did not record their original prefill, so there is
@@ -356,7 +374,8 @@ export function StockCountForm({
       branchId: resolvedBranchId,
       countDate,
       remarks: countRemarks,
-      lines: lines.map((line) => ({ itemId: line.item_id, physicalQty: line.physicalQty, initialPhysicalQty: line.initialPhysicalQty, remarks: line.remarks, addedLine: !seedLines.some(seed=>seed.item_id===line.item_id) ? {item_id:line.item_id,item_code:line.item_code,item_name:line.item_name,theoretical_qty:line.theoretical_qty,physical_qty:null,prefill_source:line.prefill_source,uom:line.uom} : undefined })),
+      lines: lines.map((line) => ({ itemId: line.item_id, physicalQty: line.physicalQty, initialPhysicalQty: line.initialPhysicalQty, remarks: line.remarks, weightInputs: line.kg_setup ? { unitsPerPurchase: line.unitsPerPurchase, kgPerUnit: line.kgPerUnit, packageDescription: line.packageDescription, weightEvidence: line.weightEvidence } : undefined, addedLine: !seedLines.some(seed=>seed.item_id===line.item_id) ? {item_id:line.item_id,item_code:line.item_code,item_name:line.item_name,theoretical_qty:line.theoretical_qty,physical_qty:null,prefill_source:line.prefill_source,uom:line.uom,kg_setup:line.kg_setup} : undefined })),
+
       savedLocallyAt: new Date().toISOString(),
     };
     const backup = tryStockCountStorage(() => window.localStorage.setItem(localStorageKey, JSON.stringify(snapshot)));
@@ -389,7 +408,7 @@ export function StockCountForm({
         branchId: resolvedBranchId,
         countDate,
         remarks: countRemarks,
-        lines: lines.map((line) => ({ itemId: line.item_id, physicalQty: line.physicalQty, initialPhysicalQty: line.initialPhysicalQty, remarks: line.remarks, addedLine: !seedLines.some(seed=>seed.item_id===line.item_id) ? {item_id:line.item_id,item_code:line.item_code,item_name:line.item_name,theoretical_qty:line.theoretical_qty,physical_qty:null,prefill_source:line.prefill_source,uom:line.uom} : undefined })),
+        lines: lines.map((line) => ({ itemId: line.item_id, physicalQty: line.physicalQty, initialPhysicalQty: line.initialPhysicalQty, remarks: line.remarks, weightInputs: line.kg_setup ? { unitsPerPurchase: line.unitsPerPurchase, kgPerUnit: line.kgPerUnit, packageDescription: line.packageDescription, weightEvidence: line.weightEvidence } : undefined, addedLine: !seedLines.some(seed=>seed.item_id===line.item_id) ? {item_id:line.item_id,item_code:line.item_code,item_name:line.item_name,theoretical_qty:line.theoretical_qty,physical_qty:null,prefill_source:line.prefill_source,uom:line.uom,kg_setup:line.kg_setup} : undefined })),
         savedLocallyAt: new Date().toISOString(),
       };
       tryStockCountStorage(() => window.localStorage.setItem(localStorageKey, JSON.stringify(snapshot)));
@@ -547,7 +566,7 @@ export function StockCountForm({
     setLines((current) => current.map((line) => {
       if (line.item_id !== itemId) return line;
       if (!line.physicalQty.trim()) return line;
-      const normalized = quantityInputValue(toNumber(line.physicalQty), line.uom);
+      const normalized = line.kg_setup ? line.physicalQty : quantityInputValue(toNumber(line.physicalQty), line.uom);
       return { ...line, physicalQty: normalized, adjusted: normalized !== line.initialPhysicalQty };
     }));
   }
@@ -556,13 +575,14 @@ export function StockCountForm({
     markDirty();
     setLines((current) => current.map((line) => {
       if (line.item_id !== itemId) return line;
-      const next = Math.max(0, toNumber(line.physicalQty) + (quantityStep(line.uom) * direction));
-      const physicalQty = quantityInputValue(Math.round(next * 10_000) / 10_000, line.uom);
+      const next = Math.max(0, toNumber(line.physicalQty) + (quantityStep(line.kg_setup ? "KG" : line.uom) * direction));
+      const physicalQty = line.kg_setup ? String(Math.round(next * 10000) / 10000) : quantityInputValue(Math.round(next * 10_000) / 10_000, line.uom);
+
       return { ...line, physicalQty, adjusted: physicalQty !== line.initialPhysicalQty };
     }));
   }
 
-  const adjustedCount = lines.filter((line) => line.adjusted).length;
+  const adjustedCount = lines.filter((line) => line.adjusted && !line.kg_setup).length;
   const needsPhysicalCount = lines.filter((line) => line.physicalQty.trim() === "").length;
   const completedCount = lines.length - needsPhysicalCount;
   const normalizedSearch = search.trim().toLowerCase();
@@ -692,7 +712,8 @@ export function StockCountForm({
                 <input name="line_id" value={line.line_id ?? ""} readOnly />
                 <input name="line_theoretical_qty" value={line.theoretical_qty} readOnly />
                 <input name="line_physical_qty" value={line.physicalQty} readOnly />
-                <input name="line_uom" value={line.uom} readOnly />
+                <input name="line_uom" value={line.kg_setup ? "KG" : line.uom} readOnly />
+                <input name="line_weight_setup" value={weightSetup(line)} readOnly />
                 <input name="line_remarks" value={line.remarks} readOnly />
                 <input name="line_item_code" value={line.item_code} readOnly />
                 <input name="line_retire_after_count" value={String(line.retireAfterCount)} readOnly />
@@ -713,18 +734,18 @@ export function StockCountForm({
                 const displayIndex = visibleIndex + 1;
                 const hasPhysical = line.physicalQty.trim() !== "";
                 const physical = hasPhysical ? toNumber(line.physicalQty) : 0;
-                const variance = physical - line.theoretical_qty;
+                const variance = line.kg_setup ? 0 : physical - line.theoretical_qty;
                 const percent = variancePercent(line.theoretical_qty, physical);
                 return (
                   <div
                     key={line.item_id}
                     data-stock-count-line
-                    className={`grid min-h-0 h-full grid-cols-[minmax(0,1fr)_auto] items-start gap-2 rounded-[var(--sb-control-radius)] border px-3 py-3 ${validationAttempted && !hasPhysical ? "border-destructive/50 bg-destructive/10" : line.adjusted ? "border-[var(--sb-border-soft)] bg-[var(--sb-green-100)]" : line.prefill_source === "unavailable" ? "border-[var(--sb-border-soft)] bg-[var(--sb-warning-bg)]" : "border-[var(--sb-border-soft)] bg-[var(--sb-surface)]"} lg:min-h-14 lg:items-center lg:gap-x-2 lg:gap-y-1.5 lg:rounded-none lg:border-x-0 lg:border-t-0 lg:px-4 lg:py-2 md:min-h-14 lg:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] lg:gap-4 xl:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]`}
+                    className={`grid min-h-0 ${line.kg_setup ? "h-auto" : "h-full"} grid-cols-[minmax(0,1fr)_auto] items-start gap-2 rounded-[var(--sb-control-radius)] border px-3 py-3 ${validationAttempted && !hasPhysical ? "border-destructive/50 bg-destructive/10" : line.adjusted ? "border-[var(--sb-border-soft)] bg-[var(--sb-green-100)]" : line.prefill_source === "unavailable" ? "border-[var(--sb-border-soft)] bg-[var(--sb-warning-bg)]" : "border-[var(--sb-border-soft)] bg-[var(--sb-surface)]"} lg:min-h-14 lg:items-center lg:gap-x-2 lg:gap-y-1.5 lg:rounded-none lg:border-x-0 lg:border-t-0 lg:px-4 lg:py-2 md:min-h-14 lg:grid-cols-[minmax(12rem,1fr)_5rem_minmax(14rem,17rem)] lg:gap-4 xl:grid-cols-[minmax(16rem,1fr)_5rem_minmax(16rem,18rem)]`}
                   >
                     <div className="order-1 col-span-2 flex min-w-0 items-start gap-2 lg:col-span-1">
                       <div className="flex w-7 shrink-0 flex-col items-center gap-0.5">
                         <span className="mt-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--sb-surface-muted)] px-1 text-[10px] font-semibold tabular-nums text-muted-foreground" aria-label={`Item ${displayIndex}`}>{displayIndex}</span>
-                        <TableActionMenuPortal label={`More options for ${line.item_name}`}>
+                        {!line.kg_setup ? <TableActionMenuPortal label={`More options for ${line.item_name}`}>
                           {lineRevisionAction && line.line_id ? <StockCountLineRecovery action={lineRevisionAction} line={{ id: line.line_id, item_id: line.item_id, physical_qty: toNumber(line.physicalQty), uom: line.uom }} items={itemCatalog} reviewMode={false} menuTrigger initialOpenMode={initialLineAction?.itemId === line.item_id ? initialLineAction.mode : undefined} /> : <>
                             <button type="button" role="menuitem" className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-left text-xs font-medium hover:bg-[var(--sb-surface-muted)]" onClick={() => continueInSavedDraft("replace", line.item_id)}><RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />Replace item</button>
                             <button type="button" role="menuitem" className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-left text-xs font-medium text-[var(--sb-danger)] hover:bg-[var(--sb-danger-bg)]" onClick={() => continueInSavedDraft("remove", line.item_id)}><Trash2 className="h-3.5 w-3.5" aria-hidden="true" />Remove from this count</button>
@@ -732,17 +753,18 @@ export function StockCountForm({
                           <button ref={retirementTriggerRef} type="button" role="menuitem" className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-left text-xs font-medium hover:bg-[var(--sb-surface-muted)]" onClick={() => line.retireAfterCount ? cancelRetirement(line.item_id) : openRetirement(line)}>
                             <Archive className="h-3.5 w-3.5" aria-hidden="true" />{line.retireAfterCount ? "Keep active" : "Retire after this count"}
                           </button>
-                        </TableActionMenuPortal>
+                        </TableActionMenuPortal> : null}
                       </div>
                       <div className="min-w-0">
                         <p className="break-words text-[13px] font-medium leading-tight text-slate-800">{line.item_name}</p>
                         <p className="min-w-0 break-all text-[10px] leading-3 tracking-[0.01em] text-muted-foreground sb-item-code" title={line.item_code ?? undefined}>{line.item_code}</p>
-                        <p className="mt-1 hidden text-[10px] leading-3 text-muted-foreground lg:block">{line.prefill_source === "unavailable" ? "No prior ledger balance · enter count" : `Starting balance · ${formatQuantity(line.theoretical_qty)} ${line.uom}`}</p>
+                        <p className="mt-1 hidden text-[10px] leading-3 text-muted-foreground lg:block">{line.kg_setup ? "KG count · historical balance needs review" : line.prefill_source === "unavailable" ? "No prior ledger balance · enter count" : `Starting balance · ${formatQuantity(line.theoretical_qty)} ${line.uom}`}</p>
+
                       </div>
                     </div>
 
                     <div className={`order-2 col-span-2 flex min-w-0 justify-end items-baseline gap-1 text-right text-xs font-medium lg:col-span-1 lg:block lg:justify-self-end ${variance < 0 ? "text-red-600" : variance > 0 ? "text-emerald-700" : "text-muted-foreground"}`}>
-                      {hasPhysical ? <><span className="block whitespace-nowrap">{variance > 0 ? "+" : ""}{formatQuantity(variance)}</span><span className="block text-[10px] font-normal">{formatVariancePercent(percent)}</span></> : <span className="font-normal">—</span>}
+                      {line.kg_setup ? <span className="text-xs font-normal">Pending review</span> : hasPhysical ? <><span className="block whitespace-nowrap">{variance > 0 ? "+" : ""}{formatQuantity(variance)}</span><span className="block text-[10px] font-normal">{formatVariancePercent(percent)}</span></> : <span className="font-normal">—</span>}
                     </div>
 
                     <div className="order-3 mt-auto col-span-2 grid min-w-0 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_3.5rem] items-center gap-2 lg:col-span-1 lg:justify-self-stretch">
@@ -753,7 +775,8 @@ export function StockCountForm({
                           name="line_physical_qty"
                           type="number"
                           min="0"
-                          step={stockCountInputStep(line.uom, line.physicalQty)}
+                          step={line.kg_setup ? 0.0001 : stockCountInputStep(line.uom, line.physicalQty)}
+
                           value={line.physicalQty}
                           onChange={(event) => updatePhysicalQty(line.item_id, event.target.value)}
                           onBlur={() => normalizePhysicalQty(line.item_id)}
@@ -766,14 +789,27 @@ export function StockCountForm({
                         />
                           <button type="button" className="flex h-10 w-10 shrink-0 items-center justify-center border-l border-[var(--sb-border)] text-[var(--sb-green-900)] hover:bg-[var(--sb-surface-muted)] active:bg-[var(--sb-green-100)]" onClick={() => adjustPhysicalQty(line.item_id, 1)} aria-label={`Increase physical quantity for ${line.item_name}`}><Plus className="h-4 w-4" /></button>
                         </div>
-                      <span className="truncate text-right lg:text-left text-[11px] text-muted-foreground" title={line.uom}>{line.uom}</span>
+                      <span className="truncate text-right lg:text-left text-[11px] text-muted-foreground" title={line.kg_setup ? "KG" : line.uom}>{line.kg_setup ? "KG" : line.uom}</span>
                       {validationAttempted && !hasPhysical ? <span id={`physical-error-${line.item_id}`} className="sr-only">Physical count required</span> : null}
                     </div>
+
+                    {line.kg_setup ? <fieldset className="order-4 col-span-2 space-y-2 rounded-md border border-[var(--sb-border)] bg-[var(--sb-surface-muted)] p-3 text-xs lg:col-span-3">
+                      <legend className="px-1 font-semibold">Packaging net weight · optional until confirmed</legend>
+                      <p>Purchase unit stays <strong>{line.kg_setup.purchase_uom}</strong>. Use the package label or measured net weight of an unopened pack; never use the remaining stock to infer a ratio.</p>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <label className="space-y-1"><span>Packs per 1 {line.kg_setup.purchase_uom}</span><Input type="number" min="1" max="1000000" step="1" value={line.unitsPerPurchase} onChange={(e) => updateWeight(line.item_id, "unitsPerPurchase", e.target.value)} aria-label={`Packs per purchase unit for ${line.item_name}`} placeholder="Leave blank if unknown" /></label>
+                        <label className="space-y-1"><span>Net KG per pack</span><Input type="number" min="0.0001" max="1000000" step="0.0001" value={line.kgPerUnit} onChange={(e) => updateWeight(line.item_id, "kgPerUnit", e.target.value)} aria-label={`Net KG per pack for ${line.item_name}`} placeholder="Leave blank if unknown" /></label>
+                        <label className="space-y-1"><span>Pack description</span><Input value={line.packageDescription} maxLength={200} onChange={(e) => updateWeight(line.item_id, "packageDescription", e.target.value)} aria-label={`Pack description for ${line.item_name}`} placeholder="Sealed pack size / brand" /></label>
+                        <label className="space-y-1"><span>Weight evidence</span><Input value={line.weightEvidence} maxLength={1000} onChange={(e) => updateWeight(line.item_id, "weightEvidence", e.target.value)} aria-label={`Weight evidence for ${line.item_name}`} placeholder="Label, or sealed-pack net weighing" /></label>
+                      </div>
+                      <p role="status">{packagingKg(line.unitsPerPurchase, line.kgPerUnit) === null ? "Awaiting conversion · KG can be saved as a draft." : `Recorded packaging: 1 ${line.kg_setup.purchase_uom} = ${formatNumber(packagingKg(line.unitsPerPurchase, line.kgPerUnit)!)} KG.`} This item needs a separate historical balance review even after packaging is known. Other verified items may post after explicit separation. No stock variance is calculated here.</p>
+                    </fieldset> : null}
 
                     <input type="hidden" name="line_item_id" value={line.item_id} />
                     <input type="hidden" name="line_id" value={line.line_id ?? ""} />
                     <input type="hidden" name="line_theoretical_qty" value={line.theoretical_qty} />
-                    <input type="hidden" name="line_uom" value={line.uom} />
+                    <input type="hidden" name="line_uom" value={line.kg_setup ? "KG" : line.uom} />
+                    <input type="hidden" name="line_weight_setup" value={weightSetup(line)} readOnly />
                     <input type="hidden" name="line_remarks" value={line.remarks} readOnly />
                     <input type="hidden" name="line_item_code" value={line.item_code} readOnly />
                     <input type="hidden" name="line_retire_after_count" value={String(line.retireAfterCount)} readOnly />

@@ -3,10 +3,10 @@ import path from "node:path";
 import { PDFDocument, rgb } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { createFont } from "fonteditor-core";
-import { reviewedFourPunchSeconds, type PeopleWorkbookSheet } from "./people-workbook";
+import { reviewedFourPunchSeconds, reviewedSixPunchSeconds, type PeopleWorkbookSheet } from "./people-workbook";
 
-const headings = ["Date", "Day", "Scheduled", "In", "Break out", "Break in", "Out", "Net work", "Approved OT", "Pending OT", "Short hours", "PPH", "Exceptions / event"];
-const widths = [54,26,70,36,42,42,36,53,57,55,55,30,238];
+const headings = ["Date", "Day", "Scheduled", "In", "Break out", "Break in", "Break 2 out", "Break 2 in", "Out", "Net work", "Approved OT", "Pending OT", "Short hours", "PPH", "Exceptions / event"];
+const widths = [54,26,70,36,42,42,40,40,36,53,57,55,55,30,158];
 export function attendancePdfDuration(seconds: number | null | undefined) {
   if (seconds == null || !Number.isFinite(seconds)) return "";
   const value = Math.max(0, Math.floor(seconds));
@@ -47,14 +47,14 @@ export async function buildPeoplePdf(sheets: PeopleWorkbookSheet[]) {
     const seen=new Set<string>();
     for(const day of [...sheet.days].sort((a,b)=>a.date.localeCompare(b.date))){
       if(seen.has(day.date))throw Error("Duplicate attendance date in PDF");seen.add(day.date);
-      const worked=reviewedFourPunchSeconds(day), valid=worked!=null;
+      const worked=day.punches?.length===6?reviewedSixPunchSeconds(day):reviewedFourPunchSeconds(day), valid=worked!=null;
       const pending=valid?day.pendingOvertimeSeconds:null;
       const remarks=[day.exceptions,day.event,(day.punches?.length??0)>4?`All punches: ${day.punches!.join(", ")}`:null,pending?"OT awaits People approval":null].filter(Boolean).join("; ");
-      const values=[day.date,day.day,day.paidEmergencyLeave?"EL":day.off?"OFF":`${day.scheduleStart??""}–${day.scheduleEnd??""}`,...Array.from({length:4},(_,i)=>day.punches?.[i]??""),attendancePdfDuration(worked),attendancePdfDuration(valid?day.overtimeSeconds:null),attendancePdfDuration(pending),attendancePdfDuration(day.paidEmergencyLeave?0:valid?day.shortHoursSeconds:null),"",remarks];
+      const values=[day.date,day.day,day.paidEmergencyLeave?"EL":day.off?"OFF":`${day.scheduleStart??""}–${day.scheduleEnd??""}`,day.punches?.[0]??"",day.punches?.[1]??"",day.punches?.[2]??"",day.punches?.length===6?day.punches[3]:"",day.punches?.length===6?day.punches[4]:"",day.punches?.length===6?day.punches[5]:day.punches?.length===4?day.punches[3]:"",attendancePdfDuration(worked),attendancePdfDuration(valid?day.overtimeSeconds:null),attendancePdfDuration(pending),attendancePdfDuration(day.paidEmergencyLeave?0:valid?day.shortHoursSeconds:null),"",remarks];
       const lines=values.map((value,i)=>wrap(value,widths[i]-6,7)),height=Math.max(29,...lines.map(ls=>ls.length*10+10));
       if(height>340)throw Error("Attendance note is too long for PDF; shorten the note or use XLSX.");
       if(y-height<75)newPage(true);
-      let x=24;values.forEach((_,i)=>{if(i===9 && pending)page.drawRectangle({x,y:y-height,width:widths[i],height,color:warning});for(const [n,line] of lines[i].entries())page.drawText(line,{x:x+3,y:y-12-n*10,size:7,font,color:ink});page.drawLine({start:{x,y:y-height},end:{x:x+widths[i],y:y-height},thickness:.4,color:rgb(.8,.84,.82)});x+=widths[i];});y-=height;
+      let x=24;values.forEach((_,i)=>{if(i===11 && pending)page.drawRectangle({x,y:y-height,width:widths[i],height,color:warning});for(const [n,line] of lines[i].entries())page.drawText(line,{x:x+3,y:y-12-n*10,size:7,font,color:ink});page.drawLine({start:{x,y:y-height},end:{x:x+widths[i],y:y-height},thickness:.4,color:rgb(.8,.84,.82)});x+=widths[i];});y-=height;
     }
   }
   doc.getPages().forEach((page,i)=>{

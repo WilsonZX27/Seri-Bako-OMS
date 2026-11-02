@@ -31,7 +31,7 @@ test("stock count uses direct plus/minus adjustments and protects discrete quant
   assert.match(form, /adjustPhysicalQty/);
   assert.match(form, /Decrease physical quantity/);
   assert.match(form, /Increase physical quantity/);
-  assert.match(form, /quantityStep\(line\.uom\)/);
+  assert.match(form, /quantityStep\(line\.kg_setup \? "KG" : line\.uom\)/);
   assert.match(validation, /stockCountAllowsFraction/);
   assert.match(validation, /quantities must be whole numbers/);
 });
@@ -55,7 +55,7 @@ test("tablet portrait keeps the count control below item context until the conte
   assert.match(form, /data-mobile-document-action[\s\S]*md:hidden/);
   assert.match(styles, /@media \(max-width: 767px\)[\s\S]*\[data-mobile-document-action\]\.sb-mobile-action-bar/);
   assert.match(form, />Variance</);
-  assert.match(form, /quantityStep\(line\.uom\)/);
+  assert.match(form, /quantityStep\(line\.kg_setup \? "KG" : line\.uom\)/);
   assert.doesNotMatch(form, /md:col-span-4 md:order-5 lg:col-span-1/);
 });
 

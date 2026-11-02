@@ -2287,6 +2287,21 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["inventory_daily_summary"]["Insert"]>;
         Relationships: [];
       };
+      stock_count_kg_items: TableDefinition<{
+        id: string; created_at: string; company_id: string; item_id: string;
+        count_uom: string; historical_review_required: boolean;
+      }>;
+      stock_count_kg_reviews: TableDefinition<{
+        id: string; created_at: string; line_id: string; company_id: string;
+        stock_count_id: string; item_id: string; original_line: Json;
+        review_status: string; separated_at: string | null; separated_by: string | null;
+      }>;
+      stock_count_kg_measurements: TableDefinition<{
+        id: string; company_id: string; stock_count_id: string; line_id: string; item_id: string;
+        version: number; counted_kg: number; purchase_uom: string; base_uom: string;
+        units_per_purchase: number | null; kg_per_unit: number | null;
+        package_description: string; evidence: string; recorded_by: string; recorded_at: string;
+      }>;
       branch_stock_count_items: TableDefinition<{
         branch_id: string; branch_note: string | null; company_id: string; created_at: string; created_by: string | null;
         id: string; item_id: string; last_action: string | null; last_action_at: string | null; last_action_by: string | null;
@@ -2443,6 +2458,10 @@ export type Database = {
       management_email_dispatches: TableDefinition<{ dedupe_key:string; company_id:string; staff_id:string; recipient_email:string; status:"claimed"|"sent"|"failed"; provider_id:string|null; error_message:string|null; created_at:string; sent_at:string|null }>;
       schedule_workbook_rules: TableDefinition<{id:string;company_id:string;rule_key:string;branch_id:string;rule_value:Json;confirmed_by:string;confirmed_at:string}>;
       staff_fingerprint_policies: TableDefinition<{id:string;company_id:string;staff_id:string;effective_from:string;requires_fingerprint:boolean;reason:string;confirmed_by:string;confirmed_at:string}>;
+      schedule_template_sources: TableDefinition<{assignment_id:string}>;
+      schedule_interval_serials: TableDefinition<{company_id:string;staff_id:string;version:number}>;
+      schedule_assignment_interval_guards: TableDefinition<{assignment_id:string;company_id:string;staff_id:string;work_span:string;protected:boolean}>;
+      schedule_interval_guard_jobs: TableDefinition<{transaction_id:number;company_id:string;staff_id:string}>;
       schedule_workbook_receipts: TableDefinition<{id:string;company_id:string;request_key:string;week_start:string;file_hash:string;source_metadata:Json;outcome:Json;imported_by:string;created_at:string}>;
       attendance_schedule_refresh: TableDefinition<{company_id:string;staff_id:string;work_date:string;branch_id:string;source_revision:number;source_hash:string;calculated_revision:number|null;status:"pending"|"running"|"ready"|"waiting_punches"|"failed"|"needs_review";error_code:string|null;updated_at:string}>;
       schedule_import_batches: TableDefinition<{ id:string; company_id:string; week_start:string; file_name:string; file_hash:string; status:"drafted"|"published"|"superseded"; outlet_count:number; assignment_count:number; unresolved_count:number; source_metadata:Json; imported_by:string; created_at:string }>;

@@ -1,3 +1,4 @@
+import type { StockCountKgSetup, StockCountKgMeasurement } from "@/lib/stock-count-kg";
 import { stockEnumSearch } from "@/lib/stock-enum-search";
 import { isMockMode, mockBranches, mockItems, mockProfile, mockStockCountLines, mockStockCounts } from "@/lib/mock-mode";
 import { createClient } from "@/lib/supabase/server";
@@ -19,6 +20,7 @@ export type StockCountRow = StockCount & {
   counted_by_name: string | null;
   line_count: number;
   high_variance_count: number;
+  pending_weight_reviews?: number;
 };
 
 export type StockCountLineRow = StockCountLine & {
@@ -41,6 +43,7 @@ export async function getStockCountVoidPreview(id: string) {
 }
 
 export type StockCountSeedLine = {
+  kg_setup?: StockCountKgSetup;
   item_id: string;
   item_code: string;
   item_name: string;
@@ -135,7 +138,8 @@ export async function getStockCounts(filters: Filters = {}) {
     throw new Error(`Stock count list is temporarily unavailable: ${error.message}`);
   }
   if (!data || count === null) throw new Error("Stock count list returned incomplete data.");
-  return databasePagination(data as StockCountRow[], count, filters.page);
+  const weightReviews = await getStockCountWeightReviews(data.map((row) => row.id));
+  return databasePagination((data as StockCountRow[]).map((row) => ({ ...row, pending_weight_reviews: weightReviews.filter((review) => review.stock_count_id === row.id).length })), count, filters.page);
 }
 
 export type StockCountVarianceInsightRow = Database["public"]["Functions"]["get_stock_count_variance_insight"]["Returns"][number];
@@ -304,6 +308,7 @@ export async function getStockCountSummary() {
       draft: rows.filter((row) => ["draft", "submitted", "reviewed", "approved"].includes(row.status)).length,
       posted: rows.filter((row) => row.status === "posted").length,
       cancelled: rows.filter((row) => row.status === "cancelled").length,
+      pending_weight_reviews: 0,
     };
   }
 
@@ -312,7 +317,21 @@ export async function getStockCountSummary() {
   if (error) throw new Error(error.message);
   const row = (Array.isArray(data) ? data[0] : data) as { total?: number; draft?: number; posted?: number; cancelled?: number } | null;
   if (!row || row.total == null || row.draft == null || row.posted == null || row.cancelled == null) throw new Error("Stock count summary returned incomplete data.");
-  return { total: Number(row.total), draft: Number(row.draft), posted: Number(row.posted), cancelled: Number(row.cancelled) };
+  const { count: pendingWeightReviews, error: weightError } = await supabase.from("stock_count_kg_reviews").select("line_id", { count: "exact", head: true }).eq("review_status", "pending");
+  if (weightError || pendingWeightReviews === null) throw new Error("Pending weight review total is unavailable.");
+  return { pending_weight_reviews: pendingWeightReviews, total: Number(row.total), draft: Number(row.draft), posted: Number(row.posted), cancelled: Number(row.cancelled) };
+}
+
+export async function getStockCountKgSetups(countId?: string): Promise<Map<string, StockCountKgSetup>> {
+  if (isMockMode()) return new Map();
+  const db = looseSupabase(await createClient());
+  const [config, readings] = await Promise.all([
+    db.from("stock_count_kg_items").select("item_id,items(purchase_unit)"),
+    countId ? db.from("stock_count_kg_latest").select("*").eq("stock_count_id", countId) : Promise.resolve({ data: [], error: null }),
+  ]);
+  if (config.error || readings.error) throw new Error("KG count setup could not be loaded. Retry before entering a count.");
+  const values = (readings.data ?? []) as Array<StockCountKgMeasurement & { item_id: string }>;
+  return new Map(((config.data ?? []) as Array<{ item_id: string; items: { purchase_unit: string } }>).map((row) => [row.item_id, { purchase_uom: row.items.purchase_unit, measurement: values.find((value) => value.item_id === row.item_id) ?? null }]));
 }
 
 export async function getStockCount(id: string) {
@@ -322,7 +341,7 @@ export async function getStockCount(id: string) {
     const lines = mockStockCountLines
       .filter((line) => line.stock_count_id === id)
       .sort((left, right) => Number((left as StockCountLine & { line_position?: number }).line_position ?? 0) - Number((right as StockCountLine & { line_position?: number }).line_position ?? 0))
-      .map((line) => ({ ...line, item: mockItems.find((item) => item.id === line.item_id), retirement: null }));
+      .map((line) => ({ ...line, item: mockItems.find((item) => item.id === line.item_id), retirement: null, kg_setup: undefined as StockCountKgSetup | undefined }));
     return { count: hydrateCount(count as StockCount, mockStockCountLines as StockCountLine[]), lines, revisions: [], revisionsAvailable: false, reconciliations: [] };
   }
   const supabase = await createClient();
@@ -343,6 +362,7 @@ export async function getStockCount(id: string) {
   if (linesError) throw new Error(linesError.message);
   if (!data) throw new StockCountNotFoundError();
   if (!lines) throw new Error("Stock Count detail returned incomplete line data.");
+  const kgSetups = await getStockCountKgSetups(id);
   const count = data as StockCount;
   const ownLines = lines as StockCountLine[];
   const itemIds = [...new Set(ownLines.map((line) => line.item_id).filter(Boolean))];
@@ -371,6 +391,7 @@ export async function getStockCount(id: string) {
     lines: ownLines.map((line) => ({
       ...line,
       item: itemById.get(line.item_id),
+      kg_setup: kgSetups.get(line.item_id),
       retirement: retirementRows.find((retirement) => retirement.stock_count_line_id === line.id) ?? null,
     })),
     revisions: revisionsError ? [] : revisions ?? [],
@@ -439,6 +460,7 @@ export async function getStockCountSeedLines(branchId?: string) {
     }
   }
 
+  const kgSetups = await getStockCountKgSetups();
   return balances.rows
     .filter((row) => (branchId ? row.branch_id === branchId : true))
     .map((row) => ({
@@ -457,5 +479,15 @@ export async function getStockCountSeedLines(branchId?: string) {
           ? ("ledger_balance" as const)
           : ("unavailable" as const),
       uom: row.base_unit,
+      kg_setup: kgSetups.get(row.item_id),
     })) satisfies StockCountSeedLine[];
+}
+
+export type StockCountWeightReview = { line_id: string; stock_count_id: string; item_id: string; separated_at: string; original_line: Record<string, unknown>; item: { item_code: string; item_name: string } };
+export async function getStockCountWeightReviews(countIds: string[]): Promise<StockCountWeightReview[]> {
+  if (!countIds.length || isMockMode()) return [];
+  const supabase = await createClient();
+  const { data, error } = await looseSupabase(supabase).from("stock_count_kg_reviews").select("line_id,stock_count_id,item_id,separated_at,original_line,item:items(item_code,item_name)").eq("review_status", "pending").in("stock_count_id", countIds).limit(50001);
+  if (error || !data || data.length > 50000) throw new Error("Pending weight reviews could not be loaded completely.");
+  return data as StockCountWeightReview[];
 }

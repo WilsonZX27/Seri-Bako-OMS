@@ -13,8 +13,8 @@ const {
 test("v9 UAT classifies every application page", () => {
   const routes = discoverRouteMatrix();
   assert.deepEqual(permittedRolesFor("/asset-management/settings"), ["superAdmin", "manager", "finance", "purchasing"]);
-  // Production153 plus the approved packaging store and named legacy asset-list alias.
-  assert.equal(routes.length, 135, "Route count changed. Classify the new or removed page deliberately.");
+  // Includes the approved ODR settings route from the annotation integration.
+  assert.equal(routes.length, 136, "Route count changed. Classify the new or removed page deliberately.");
   assert.deepEqual(permittedRolesFor("/asset-management/assets"), permittedRolesFor("/asset-management"));
   for (const route of ["/asset-management/assets", "/outlet-packaging/stores", "/people/ro", "/asset-management/maintenance/new", "/outlet-daily-records/insights", "/outlet-daily-records/delivery-orders"]) assert.ok(routes.some(entry=>entry.route===route), `${route} must be classified`);
   assert.equal(new Set(routes.map((entry) => entry.file)).size, routes.length);
@@ -200,3 +200,5 @@ test("self-service attendance pages are reachable by every active employee role 
   assert.deepEqual(permittedRolesFor("/attendance/confirmations"), roles.filter((role) => role !== "kitchen"));
   assert.deepEqual(permittedRolesFor("/attendance/payslips"), roles);
 });
+
+test('ODR settings has explicit view-only route authority matching its server guard',()=>{assert.deepEqual(permittedRolesFor('/outlet-daily-records/settings'),permittedRolesFor('/outlet-daily-records'));assert.match(fs.readFileSync('src/app/(app)/outlet-daily-records/settings/page.tsx','utf8'),/requirePermission\("outlet_daily_record.view"\)/);assert.match(fs.readFileSync('tests/e2e/v9-route-matrix.cjs','utf8'),/\["\/outlet-daily-records\/settings", OUTLET_DAILY\]/);});

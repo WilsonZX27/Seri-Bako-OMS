@@ -51,7 +51,7 @@ with zipfile.ZipFile(sys.argv[1]) as z:
      assert ref and int(re.search(r'\\d+$',ref)[0])==int(row.get('r')), ref
      refs.append(ref)
    assert len(refs)==len(set(refs))
-   assert root.find('s:dimension',ns).get('ref')=='A1:P'+str(max(row_numbers))
+   assert root.find('s:dimension',ns).get('ref')=='A1:R'+str(max(row_numbers))
 print('Saved package validation passed')
 `, workbookPath], { encoding: 'utf8' });
     assert.match(result, /Saved package validation passed/);

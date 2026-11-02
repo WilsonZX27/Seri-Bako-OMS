@@ -6,6 +6,8 @@ import { DocumentMoreOptions } from "@/components/documents/mobile-document-surf
 import { ConfirmActionForm } from "@/components/ui/confirm-action-form";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Card, CardContent } from "@/components/ui/card";
+import { weightPostingConfirmation } from "@/lib/stock-count-kg";
+import { StockCountWeightReviews } from "@/components/stock-count-weight-reviews";
 import { StockCountForm } from "@/components/stock-count-form";
 import { StockCountLineRecovery } from "@/components/stock-count-line-recovery";
 import { AddStockCountItemDialog } from "@/components/stock-count-scope-actions";
@@ -13,12 +15,13 @@ import { StockCountVoidDialog } from "@/components/stock-count-void-dialog";
 import { Button } from "@/components/ui/button";
 import { DangerConfirmForm } from "@/components/ui/danger-confirm-form";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatDateOnly } from "@/lib/utils";
-import { addItemToStockCount, autosaveStockCountDraft, cancelStockCount, postStockCount, resolveStockCountLineRevision, reviseStockCountLine, saveAndPostStockCount, updateStockCountDraft, voidStockCount } from "@/server/actions/stock-counts";
+import { formatDateOnly, formatNumber } from "@/lib/utils";
+import { saveAndPostVerifiedStockCount, saveStockCountWeightReview, addItemToStockCount, autosaveStockCountDraft, cancelStockCount, postStockCount, resolveStockCountLineRevision, reviseStockCountLine, saveAndPostStockCount, updateStockCountDraft, voidStockCount } from "@/server/actions/stock-counts";
+
 import { getPermissionMap } from "@/server/auth/permissions";
 import { getBranchesForSelect, getItemsForSelect } from "@/server/queries/common";
 import { getDocumentBundle } from "@/server/queries/documents";
-import { getStockCount, getStockCountVoidPreview } from "@/server/queries/stock-counts";
+import { getStockCount, getStockCountVoidPreview, getStockCountWeightReviews, getStockCountKgSetups } from "@/server/queries/stock-counts";
 import { StockCountNotFoundError } from "@/server/queries/stock-counts";
 import { notFound } from "next/navigation";
 
@@ -41,12 +44,17 @@ export default async function StockCountDetailPage({ params, searchParams }: { p
     getBranchesForSelect(),
     getItemsForSelect(),
   ]);
+  const [weightReviews, weightSetups] = await Promise.all([getStockCountWeightReviews([id]), getStockCountKgSetups(id)]);
   const pendingRevisions = revisions.filter((revision) => revision.status === "pending");
   const documentBundle = count.document_id ? await getDocumentBundle(count.document_id) : null;
-  const adjustedLines = lines.filter((line) => Number(line.variance_qty) !== 0);
+  const adjustedLines = lines.filter((line) => !(count.status !== "posted" && line.kg_setup) && Number(line.variance_qty) !== 0);
   const retiredLines = lines.filter((line) => line.retirement);
   const isLegacyPending = legacyPendingStatuses.has(count.status);
-  const canPost = (count.status === "draft" || isLegacyPending) && permissions["stock_count.post"] && pendingRevisions.length === 0;
+  const kgReviewLines = count.status !== "posted" ? lines.filter((line) => line.kg_setup) : [];
+  const kgReviewPending = kgReviewLines.length > 0;
+  const verifiedLineCount = lines.length - kgReviewLines.length;
+  const canSeparate = count.status === "draft" && permissions["stock_count.update"] && permissions["stock_count.post"] && kgReviewPending && verifiedLineCount > 0 && pendingRevisions.length === 0;
+  const canPost = (count.status === "draft" || isLegacyPending) && permissions["stock_count.post"] && pendingRevisions.length === 0 && (!kgReviewPending || canSeparate);
   const canEdit = count.status === "draft" && permissions["stock_count.update"];
   // Any count that has not posted inventory can still be safely removed from
   // active work. Posted counts are the immutable audit boundary.
@@ -73,8 +81,11 @@ export default async function StockCountDetailPage({ params, searchParams }: { p
     ? { mode: filters.open, itemId: filters.item_id } as const
     : null;
   const secondaryActions = cancelControl ? <div className="space-y-2">{cancelControl}</div> : null;
-  const postAction = canEdit ? saveAndPostStockCount.bind(null, count.id) : postStockCount.bind(null, count.id);
-  const confirmAction = canPost ? <ConfirmActionForm action={postAction} formId={canEdit ? formId : undefined} label="Confirm & Post Count" title="Post this stock count?" description={`${lines.filter((line) => line.variance_qty !== 0).length} adjusted lines will update the branch stock ledger. Your latest entries will be saved before posting. This cannot be undone.`} pendingLabel="Saving & posting..." mobilePrimary /> : null;
+  const postAction = canSeparate ? saveAndPostVerifiedStockCount.bind(null, count.id, kgReviewLines.map((line) => line.item_id)) : canEdit ? saveAndPostStockCount.bind(null, count.id) : postStockCount.bind(null, count.id);
+  const separationConfirmation = weightPostingConfirmation(verifiedLineCount, kgReviewLines.map((line) => line.item?.item_code ?? line.item_id));
+  const postingLabel = canSeparate ? separationConfirmation.label : "Confirm & Post Count";
+  const postingDescription = canSeparate ? separationConfirmation.description : `${adjustedLines.length} adjusted lines will update the branch stock ledger. Your latest entries will be saved before posting.`;
+  const confirmAction = canPost ? <ConfirmActionForm action={postAction} formId={canEdit ? formId : undefined} label={postingLabel} title={canSeparate ? "Post verified items and keep weight reviews open?" : "Post this stock count?"} description={postingDescription} pendingLabel="Saving & posting..." mobilePrimary /> : null;
   const voidControl = canVoid && voidPreview ? <StockCountVoidDialog action={voidStockCount.bind(null, count.id)} preview={voidPreview} /> : null;
   const mobilePrimaryAction = hasPrimaryAction ? <div>{confirmAction ?? (canEdit ? <SubmitButton form={formId} className="w-full" pendingLabel="Saving...">Save draft</SubmitButton> : voidControl)}</div> : null;
   const editableLines = lines.map((line) => ({
@@ -88,6 +99,7 @@ export default async function StockCountDetailPage({ params, searchParams }: { p
     uom: line.uom,
     remarks: line.remarks,
     retirement: line.retirement,
+    kg_setup: line.kg_setup,
   }));
   const reconciliationRows = reconciliations as Array<{ item_id: string; snapshot_balance: number; posting_balance: number; movement_qty: number; physical_qty: number; final_variance_qty: number }>;
 
@@ -96,7 +108,7 @@ export default async function StockCountDetailPage({ params, searchParams }: { p
       hideMobileHeader={canEdit}
       breadcrumbs={[{ label: "Inventory", href: "/inventory" }, { label: "Stock Counts", href: "/stock-counts" }, { label: count.count_no }]}
       documentNo={count.count_no}
-      title="Stock Count"
+      title={weightReviews.length ? "Stock Count · weight reviews pending" : "Stock Count"}
       status={count.status}
       branch={count.branch_name}
       workflowSteps={stockCountSteps}
@@ -109,7 +121,7 @@ export default async function StockCountDetailPage({ params, searchParams }: { p
           {hasPrimaryAction || canCancel ? <DocumentActionSection description={canVoid ? "Reversal preserves the original count and creates equal opposite ledger movements." : undefined}>
             {hasPrimaryAction ? (
               <DocumentActionBar>
-                {canPost ? <ConfirmActionForm action={postAction} formId={canEdit ? formId : undefined} label="Post count" title="Post this stock count?" description={`${lines.filter((line) => line.variance_qty !== 0).length} adjusted lines will update the branch stock ledger. Inventory movements made during counting will be reconciled automatically without changing the physical quantities.`} pendingLabel="Saving & posting..." /> : canEdit ? <SubmitButton form={formId} className="w-full" pendingLabel="Saving...">Save draft</SubmitButton> : voidControl}
+                {canPost ? <ConfirmActionForm action={postAction} formId={canEdit ? formId : undefined} label={postingLabel} title={canSeparate ? "Post verified items and keep weight reviews open?" : "Post this stock count?"} description={postingDescription} pendingLabel="Saving & posting..." /> : canEdit ? <SubmitButton form={formId} className="w-full" pendingLabel="Saving...">Save draft</SubmitButton> : voidControl}
                 {canCancel ? cancelControl : null}
               </DocumentActionBar>
             ) : null}
@@ -127,6 +139,8 @@ export default async function StockCountDetailPage({ params, searchParams }: { p
         </>
       }
     >
+      {kgReviewPending ? <section role="status" className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm"><p className="font-semibold">Measured KG · separate review required</p><p className="mt-1 text-xs">Save measured KG and any confirmed packaging net weight below. These items have historical counts entered in KG but labelled CTN. Their old quantities remain unchanged. Use the explicit verified-items confirmation to post other items and keep these weights in separate reviews. If only these items remain, save the draft. Packaging evidence does not resolve historical balances.</p></section> : null}
+      <StockCountWeightReviews reversed={count.status === "voided"} reviews={weightReviews.map((review) => ({ lineId: review.line_id, itemCode: review.item.item_code, itemName: review.item.item_name, measurement: weightSetups.get(review.item_id)?.measurement ?? null, action: permissions["stock_count.update"] ? saveStockCountWeightReview.bind(null, count.id, review.line_id) : undefined }))} />
       {reconciliationRows.length || retiredLines.length ? <div className="grid gap-3" data-stock-count-notices>
       {reconciliationRows.length ? <section className="rounded-[var(--sb-panel-radius)] border border-amber-200 bg-amber-50 p-3" role="status">
         <h2 className="text-sm font-semibold">Inventory changed during this count</h2>
@@ -179,17 +193,20 @@ export default async function StockCountDetailPage({ params, searchParams }: { p
               </TableHeader>
               <TableBody>
                 {lines.map((line) => {
-                  const high = Number(line.variance_qty) !== 0;
+                  const kgPending = count.status !== "posted" && Boolean(line.kg_setup);
+                  const measured = line.kg_setup?.measurement;
+                  const high = !kgPending && Number(line.variance_qty) !== 0;
                   return (
                     <TableRow key={line.id} className={high ? "bg-warning/10" : ""}>
                       <TableCell><p className="font-medium">{line.item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground sb-item-code" title={line.item?.item_code ?? undefined}>{line.item?.item_code}</p></TableCell>
-                      <TableCell className="text-right">{formatQuantity(line.theoretical_qty)}</TableCell>
-                      <TableCell className="text-right font-medium">{formatQuantity(line.physical_qty)}</TableCell>
-                      <TableCell className="text-right">{formatQuantity(line.variance_qty)}</TableCell>
-                      <TableCell className={`text-right ${high ? "font-semibold text-warning" : ""}`}>{formatQuantity(line.variance_percent)}%</TableCell>
-                      <TableCell>{line.uom}</TableCell>
+                      <TableCell className="text-right">{kgPending ? "Pending review" : formatQuantity(line.theoretical_qty)}</TableCell>
+                      <TableCell className="text-right font-medium">{kgPending ? measured ? formatNumber(measured.counted_kg) : "Not recorded" : formatQuantity(line.physical_qty)}</TableCell>
+                      <TableCell className="text-right">{kgPending ? "—" : formatQuantity(line.variance_qty)}</TableCell>
+                      <TableCell className={`text-right ${high ? "font-semibold text-warning" : ""}`}>{kgPending ? "—" : `${formatQuantity(line.variance_percent)}%`}</TableCell>
+                      <TableCell>{kgPending ? "KG" : line.uom}</TableCell>
+
                       <TableCell>{line.remarks ?? "-"}</TableCell>
-                      {isLegacyPending && permissions["stock_count.post"] && revisionsAvailable ? <TableCell><StockCountLineRecovery action={reviseStockCountLine.bind(null, count.id)} line={line} items={items} reviewMode /></TableCell> : null}
+                      {isLegacyPending && permissions["stock_count.post"] && revisionsAvailable ? <TableCell>{!kgPending ? <StockCountLineRecovery action={reviseStockCountLine.bind(null, count.id)} line={line} items={items} reviewMode /> : null}</TableCell> : null}
                     </TableRow>
                   );
                 })}
@@ -197,11 +214,14 @@ export default async function StockCountDetailPage({ params, searchParams }: { p
           </Table>
           <div className="divide-y xl:hidden" role="list" aria-label="Posted stock count lines" data-posted-stock-count-lines>
             {lines.map((line) => {
-              const high = Number(line.variance_qty) !== 0;
+              const kgPending = count.status !== "posted" && Boolean(line.kg_setup);
+                  const measured = line.kg_setup?.measurement;
+                  const high = !kgPending && Number(line.variance_qty) !== 0;
               return (
                 <article key={line.id} className={`space-y-3 py-4 first:pt-1 last:pb-1 ${high ? "bg-[var(--sb-warning-bg)] px-3" : ""}`} role="listitem">
-                  <div className="flex items-start justify-between gap-4"><div className="min-w-0"><h3 className="font-medium leading-snug">{line.item?.item_name ?? line.item_id}</h3><p className="mt-0.5 text-xs text-muted-foreground sb-item-code" title={line.item?.item_code ?? undefined}>{line.item?.item_code}</p></div><div className="flex shrink-0 items-start gap-2 text-right"><div><strong>{formatQuantity(line.physical_qty)} {line.uom}</strong><p className={`text-xs ${high ? "font-semibold text-[var(--sb-warning)]" : "text-muted-foreground"}`}>{formatQuantity(line.variance_qty)} · {formatQuantity(line.variance_percent)}%</p></div>{isLegacyPending && permissions["stock_count.post"] && revisionsAvailable ? <StockCountLineRecovery action={reviseStockCountLine.bind(null, count.id)} line={line} items={items} reviewMode /> : null}</div></div>
-                  <dl className="grid grid-cols-2 gap-4 rounded-md bg-secondary/35 p-3 text-xs"><div><dt className="text-muted-foreground">Starting balance</dt><dd className="mt-1 font-medium">{formatQuantity(line.theoretical_qty)} {line.uom}</dd></div><div><dt className="text-muted-foreground">Variance</dt><dd className="mt-1 font-medium">{formatQuantity(line.variance_qty)} {line.uom}</dd></div></dl>
+                  <div className="flex items-start justify-between gap-4"><div className="min-w-0"><h3 className="font-medium leading-snug">{line.item?.item_name ?? line.item_id}</h3><p className="mt-0.5 text-xs text-muted-foreground sb-item-code" title={line.item?.item_code ?? undefined}>{line.item?.item_code}</p></div><div className="flex shrink-0 items-start gap-2 text-right"><div><strong>{kgPending ? measured ? `${formatNumber(measured.counted_kg)} KG` : "KG not recorded" : `${formatQuantity(line.physical_qty)} ${line.uom}`}</strong><p className={`text-xs ${high ? "font-semibold text-[var(--sb-warning)]" : "text-muted-foreground"}`}>{kgPending ? "Pending review" : `${formatQuantity(line.variance_qty)} · ${formatQuantity(line.variance_percent)}%`}</p></div>{!kgPending && isLegacyPending && permissions["stock_count.post"] && revisionsAvailable ? <StockCountLineRecovery action={reviseStockCountLine.bind(null, count.id)} line={line} items={items} reviewMode /> : null}</div></div>
+                  <dl className="grid grid-cols-2 gap-4 rounded-md bg-secondary/35 p-3 text-xs"><div><dt className="text-muted-foreground">Starting balance</dt><dd className="mt-1 font-medium">{kgPending ? "Pending review" : `${formatQuantity(line.theoretical_qty)} ${line.uom}`}</dd></div><div><dt className="text-muted-foreground">Variance</dt><dd className="mt-1 font-medium">{kgPending ? "—" : `${formatQuantity(line.variance_qty)} ${line.uom}`}</dd></div></dl>
+
                   {line.remarks ? <p className="text-xs"><span className="text-muted-foreground">Remarks:</span> {line.remarks}</p> : null}
                 </article>
               );

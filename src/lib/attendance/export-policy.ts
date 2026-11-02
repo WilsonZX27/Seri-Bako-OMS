@@ -37,17 +37,18 @@ function rawPunches(row: ExportRow) {
 /** Preserve the four evidence points; never collapse a break to gross presence. */
 export function exportPunches(row: ExportRow) {
   const corrected = [row.actual_first_in, row.actual_break_out, row.actual_break_in, row.actual_last_out];
-  if (corrected.every(Boolean)) return corrected.map(String);
   const punches = rawPunches(row);
+  if (punches.length > 4) return punches;
+  if (corrected.every(Boolean)) return corrected.map(String);
   return punches.length ? punches : corrected.filter(Boolean).map(String);
 }
 
 export function exportWorkedSeconds(row: ExportRow) {
   const points = exportPunches(row).map(value => Date.parse(value));
   const statuses = Array.isArray(row.statuses) ? row.statuses.map(String) : [];
-  if (row.worked_seconds == null || points.length !== 4 || points.some((value,index) => !Number.isFinite(value) || (index > 0 && value <= points[index-1])) ||
+  if (row.worked_seconds == null || ![4,6].includes(points.length) || points.some((value,index) => !Number.isFinite(value) || (index > 0 && value <= points[index-1])) ||
     statuses.some(status => ["duplicate_punch", "impossible_ordering", "odd_punch_count", "system_inferred_break", "unexpected_punch_count"].includes(status))) return null;
-  return Math.floor((points[1]-points[0]+points[3]-points[2])/1000);
+  return Math.floor(points.reduce((total,value,index)=>index%2===1 ? total+value-points[index-1] : total,0)/1000);
 }
 
 export function exportShortHoursSeconds(row: ExportRow & { late_seconds?: unknown; early_leave_seconds?: unknown; scheduled_start?: unknown; scheduled_end?: unknown }) {
@@ -61,4 +62,13 @@ export function exportShortHoursSeconds(row: ExportRow & { late_seconds?: unknow
 export function exportExceptionLabels(row: ExportRow) {
   const statuses = Array.isArray(row.statuses) ? row.statuses.map(String) : [];
   return statuses.filter(status=>!["normal","unpaid_leave"].includes(status)).map((status) => STATUS_LABELS[status] ?? status.replaceAll("_", " ")).join(", ");
+}
+
+/** Only complete six-event evidence identifies a second break; never fill missing punches. */
+export function secondBreakPunches(row: ExportRow): [string | null, string | null] {
+  const punches = rawPunches(row);
+  if (punches.length !== 6 || punches.some(p => !Number.isFinite(Date.parse(p)))) return [null, null];
+  const ordered = [...punches].sort((a,b)=>Date.parse(a)-Date.parse(b));
+  if (new Set(ordered.map(Date.parse)).size !== 6) return [null,null];
+  return [ordered[3],ordered[4]];
 }

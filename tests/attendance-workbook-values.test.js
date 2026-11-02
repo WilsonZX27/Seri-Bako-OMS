@@ -29,3 +29,6 @@ test('salary/rates/PPH/allowance/passport and unknown object properties never en
 });
 
 test('work totals that conflict with four-punch evidence stay blank pending review',()=>{ const xml=sheet([{...day,workedSeconds:25000}]);assert.match(cell(xml,'I8'),/\/>$/); });
+
+test('six punches preserve both breaks and final checkout in separate typed columns',()=>{const six={...day,punches:['08:00','12:00','13:00','16:00','17:00','19:30'],workedSeconds:34200};const xml=sheet([six]);assert.match(cell(xml,'H8'),/<v>0.8125<\/v>/);assert.match(cell(xml,'Q8'),/<v>0.666666/);assert.match(cell(xml,'R8'),/<v>0.708333/);assert.match(xml,/Break 2 out/);assert.match(xml,/\$A\$1:\$R\$/);assert.match(cell(xml,'I8'),/<v>0.395833/);});
+test('four punches and missing evidence leave second break columns blank',()=>{for(const punches of [day.punches,['08:00','12:00','13:00','16:00','19:30'],[]]){const xml=sheet([{...day,punches}]);assert.doesNotMatch(cell(xml,'Q8')??'',/<v>/);assert.doesNotMatch(cell(xml,'R8')??'',/<v>/)}});

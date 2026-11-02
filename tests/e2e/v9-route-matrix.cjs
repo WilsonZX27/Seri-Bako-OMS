@@ -114,6 +114,7 @@ const accessAuthorities = [
   ["/supplier-invoices", ["superAdmin", "finance"]],
   ["/document-sequences", SEQUENCE_MANAGERS],
   ["/outlet-daily-records/delivery-orders", ["superAdmin", "manager", "chef", "outletSupervisor", "outlet"]],
+  ["/outlet-daily-records/settings", OUTLET_DAILY],
   ["/outlet-daily-records/insights", OUTLET_DAILY],
   ["/outlet-daily-records", OUTLET_DAILY],
   ["/outlet-packaging", ["superAdmin", "manager", "purchasing"]],

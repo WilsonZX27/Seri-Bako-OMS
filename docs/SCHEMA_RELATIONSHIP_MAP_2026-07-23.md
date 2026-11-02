@@ -1,3 +1,5 @@
+> Local schedule-template SQL candidate, 2026-11-02: unnumbered at supabase/sql-candidates/schedule_template_atomic_drafts.UNASSIGNED.sql; NOT a migration authority or production-installation claim. Production380/381/382 are occupied per integration; allocation remains with integration. Scoped behavior and SQL bytes preserved.
+
 > Repository inventory — 2026-10-31: forward-only migration 历史已到 `377`. Approved functions 376/377 were installed and their definitions and ACL verified on 2026-10-31. This does not imply every historical migration was replayed. The relationship map below is a 历史实库快照，不是当前 Production schema 证明.
 
 > Repository inventory — 2026-10-21: forward-only migration 历史已到 `374`. This is a source-file ceiling, not proof that migration 368 has been applied to Production. The relationship map below is a 历史实库快照，不是当前 Production schema 证明.

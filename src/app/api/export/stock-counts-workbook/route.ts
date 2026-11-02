@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { getStockCountKgSetups, getStockCountWeightReviews } from "@/server/queries/stock-counts";
+import { looseSupabase } from "@/lib/supabase/loose";
+import type { StockCountKgMeasurement } from "@/lib/stock-count-kg";
 import { createClient } from "@/lib/supabase/server";
 import { hasPermission } from "@/server/auth/permissions";
 import { logServerError } from "@/server/observability/logger";
@@ -166,6 +169,10 @@ export async function GET(request: Request) {
       : { data: [], error: null };
     if (itemsError) throw new Error(itemsError.message);
 
+    const [kgConfigs, weightReviews] = await Promise.all([getStockCountKgSetups(), getStockCountWeightReviews(countIds)]);
+    const kgReadings = countIds.length ? await looseSupabase(supabase).from("stock_count_kg_latest").select("*").in("stock_count_id", countIds).limit(MAX_STOCK_COUNT_LINES + 1) : { data: [], error: null };
+    if (kgReadings.error || (kgReadings.data?.length ?? 0) > MAX_STOCK_COUNT_LINES) throw new Error("KG measurements could not be exported completely.");
+    const kgByLine = new Map(((kgReadings.data ?? []) as Array<StockCountKgMeasurement & { stock_count_id: string; item_id: string }>).map((row) => [`${row.stock_count_id}:${row.item_id}`, row]));
     const countById = new Map((counts ?? []).map((count) => [count.id, count]));
     const itemById = new Map((items ?? []).map((item) => [item.id, item]));
     const staffById = new Map((staffs ?? []).map((staff) => [staff.id, staff.full_name]));
@@ -181,8 +188,17 @@ export async function GET(request: Request) {
       const rowsForDate = (linesByDate.get(date) ?? []).map((line) => {
         const count = countById.get(line.stock_count_id);
         const item = itemById.get(line.item_id);
-        return [item?.item_code ?? line.item_id, item?.item_name ?? line.item_id, line.uom, Number(line.theoretical_qty), Number(line.physical_qty), Number(line.variance_qty), Number(line.variance_percent) / 100, line.remarks ?? "", count?.count_no ?? "", count?.status ?? "", count?.counted_by ? staffById.get(count.counted_by) ?? count.counted_by : ""];
+        if (count?.status !== "posted" && kgConfigs.has(line.item_id)) {
+          const kg = kgByLine.get(`${line.stock_count_id}:${line.item_id}`);
+          return [item?.item_code ?? line.item_id, item?.item_name ?? line.item_id, "KG", "Pending historical review", kg?.counted_kg ?? "Not recorded", "", "", `${kg?.kg_per_unit == null ? "Conversion pending. " : "Packaging recorded. "}Historical balance review required. ${line.remarks ?? ""}`, count?.count_no ?? "", (weightReviews.some((review) => review.stock_count_id === count?.id) ? `${count?.status} verified items; weight reviews pending` : count?.status ?? ""), count?.counted_by ? staffById.get(count.counted_by) ?? count.counted_by : ""];
+        }
+        return [item?.item_code ?? line.item_id, item?.item_name ?? line.item_id, line.uom, Number(line.theoretical_qty), Number(line.physical_qty), Number(line.variance_qty), Number(line.variance_percent) / 100, line.remarks ?? "", count?.count_no ?? "", (weightReviews.some((review) => review.stock_count_id === count?.id) ? `${count?.status} verified items; weight reviews pending` : count?.status ?? ""), count?.counted_by ? staffById.get(count.counted_by) ?? count.counted_by : ""];
       });
+      for (const review of weightReviews.filter((review) => countById.get(review.stock_count_id)?.count_date === date)) {
+        const count = countById.get(review.stock_count_id);
+        const kg = kgByLine.get(`${review.stock_count_id}:${review.item_id}`);
+        rowsForDate.push([review.item.item_code, review.item.item_name, "KG", "Historical baseline pending", kg?.counted_kg ?? "Not recorded", "", "", "Separate weight review. No inventory posted. Packaging evidence does not resolve historical baseline.", count?.count_no ?? "", "WEIGHT REVIEW PENDING — NOT POSTED", count?.counted_by ? staffById.get(count.counted_by) ?? count.counted_by : ""]);
+      }
       return { name: worksheetName(date), path: `xl/worksheets/sheet${index + 1}.xml`, xml: worksheetXml(headers, rowsForDate) };
     });
     const workbookSheets = worksheets.map((sheet, index) => `<sheet name="${xmlEscape(sheet.name)}" sheetId="${index + 1}" r:id="rId${index + 1}"/>`).join("");

@@ -32,7 +32,7 @@ import { Button } from "@/components/ui/button";
 import { TableScrollRegion } from "@/components/ui/table-scroll-region";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { exportShortHoursSeconds } from "@/lib/attendance/export-policy";
+import { exportShortHoursSeconds, secondBreakPunches } from "@/lib/attendance/export-policy";
 import { durationLabel } from "@/lib/attendance/calculation";
 import { formatAttendanceTime } from "@/lib/attendance/time";
 import { getPermissionMap } from "@/server/auth/permissions";
@@ -408,8 +408,8 @@ export default async function AttendanceReviewPage({
             </span>
           </header>
           <TableScrollRegion label="Attendance results" className="hidden md:block">
-            <table id="attendance-review-results" className="w-full min-w-[52rem] table-fixed text-left text-xs leading-5 [&_td]:align-top [&_th]:align-top">
-              <colgroup><col className="w-32"/><col className="w-20"/><col className="w-24"/><col className="w-36"/><col className="w-24"/><col className="w-20"/><col className="w-24"/><col className="w-28"/></colgroup>
+            <table id="attendance-review-results" className="w-full min-w-[66rem] table-fixed text-left text-xs leading-5 [&_td]:align-top [&_th]:align-top">
+              <colgroup><col className="w-32"/><col className="w-20"/><col className="w-24"/><col className="w-36"/><col className="w-24"/><col className="w-24"/><col className="w-24"/><col className="w-20"/><col className="w-24"/><col className="w-28"/></colgroup>
               <thead className="sticky top-0 z-10 bg-[var(--sb-surface-muted)]">
                 <tr>
                   {[
@@ -417,6 +417,8 @@ export default async function AttendanceReviewPage({
                     "Punches",
                     "Clock in",
                     "Break",
+                    "Break 2 out",
+                    "Break 2 in",
                     "Clock out",
                     "Worked",
                     "RO / OT",
@@ -443,7 +445,7 @@ export default async function AttendanceReviewPage({
                     <Fragment key={String(row.id)}>
                       {newDay ? (
                         <tr className="border-t border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)]">
-                          <th colSpan={8} className="px-2 py-2 font-semibold">
+                          <th colSpan={10} className="px-2 py-2 font-semibold">
                             <span className="sticky left-3 inline-block">{dateHeading(row.work_date)}</span>
                           </th>
                         </tr>
@@ -477,6 +479,7 @@ export default async function AttendanceReviewPage({
                         <td className="px-2 py-3 tabular-nums">
                           {row.actual_break_out && row.actual_break_in ? <><span className="block whitespace-nowrap font-normal" title={`${time(row.actual_break_out)}–${time(row.actual_break_in)}`}>{formatAttendanceTime(String(row.actual_break_out)).toLowerCase()} - {formatAttendanceTime(String(row.actual_break_in)).toLowerCase()}</span><span className="block text-[11px] text-muted-foreground">{duration(row.break_seconds)}</span></> : duration(row.break_seconds)}
                         </td>
+                        {secondBreakPunches(row).map((p,i)=><td key={`break2-${i}`} className="px-2 py-3 tabular-nums whitespace-nowrap">{p ? formatAttendanceTime(p) : "—"}</td>)}
                         <td className="px-2 py-3 tabular-nums">
                           <strong className="block whitespace-nowrap" title={time(row.actual_last_out)}>{typeof row.actual_last_out === "string" ? formatAttendanceTime(row.actual_last_out) : "—"}</strong>
                           <span className="block whitespace-nowrap text-xs text-muted-foreground" title={time(row.scheduled_end)}>{typeof row.scheduled_end === "string" ? formatAttendanceTime(row.scheduled_end).toLowerCase() : "—"}</span>
@@ -563,6 +566,10 @@ export default async function AttendanceReviewPage({
                         <dt className="text-muted-foreground">Clock out</dt>
                         <dd>Actual: {time(row.actual_last_out)}</dd>
                         <dd className="text-muted-foreground">Scheduled: {time(row.scheduled_end)}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground">Break 2 out / in</dt>
+                        <dd>{secondBreakPunches(row).map(p=>p ? formatAttendanceTime(p) : "—").join(" / ")}</dd>
                       </div>
                       <div>
                         <dt className="text-muted-foreground">Break</dt>

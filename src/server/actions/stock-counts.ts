@@ -12,6 +12,7 @@ import { logServerWarning } from "@/server/observability/logger";
 import { getStockCountSeedLines } from "@/server/queries/stock-counts";
 import { looseSupabase } from "@/lib/supabase/loose";
 import { z } from "zod";
+import { stockCountWeightSetupSchema } from "@/lib/stock-count-kg";
 import { beginTrackedOperation, completeTrackedOperation } from "@/server/reliability/operations";
 import { recordSystemIncident } from "@/server/reliability/incidents";
 import { createOperationId } from "@/lib/reliability/operation-result";
@@ -37,6 +38,7 @@ function formatStockCountPostingError(error: unknown) {
     return `Stock moved for ${itemCode} ${itemName}: starting balance ${startingBalance}, current balance ${currentBalance}. Your physical count is saved; review this item before posting.`;
   }
 
+  if (normalized.includes("kg_count_review_required")) return "KG measurements are saved. Use Post verified items to retain these as separate pending weight reviews; their historical balance still needs an audited correction.";
   if (normalized.includes("missing permission: stock_count.post")) return "You do not have permission to confirm and post stock counts.";
   if (normalized.includes("only draft or legacy pending stock counts")) return "This stock count is no longer pending and cannot be posted.";
   if (normalized.includes("stock changed since this draft was created")) return "Stock changed after this count was started. Refresh the count and recount before posting.";
@@ -63,6 +65,7 @@ function extractStockCount(formData: FormData) {
   const theoretical = formData.getAll("line_theoretical_qty").map(String);
   const physical = formData.getAll("line_physical_qty").map(String);
   const uoms = formData.getAll("line_uom").map(String);
+  const weights = formData.getAll("line_weight_setup").map(String);
   const remarks = formData.getAll("line_remarks").map(String);
   if (!itemIds.length || theoretical.length !== itemIds.length || physical.length !== itemIds.length || uoms.length !== itemIds.length) {
     throw new Error("Stock Count lines are still loading. Wait for all quantities to appear, then try again.");
@@ -84,6 +87,7 @@ function extractStockCount(formData: FormData) {
         theoretical_qty: theoretical[index],
         physical_qty: physical[index],
         uom: uoms[index],
+        weight_setup: weights[index] ? JSON.parse(weights[index]) : null,
         remarks: remarks[index],
       }))
       .filter((line) => line.item_id),
@@ -140,9 +144,11 @@ async function createStockCountRecord(formData: FormData) {
   if (tracked.existing?.status === "succeeded" && priorResult?.id) return priorResult.id;
   const supabase = await createClient();
   const includesAddedItems = [...submittedIds].some(itemId=>!expectedIds.has(itemId));
-  const { data, error } = await looseSupabase(supabase).rpc(includesAddedItems ? "create_stock_count_with_added_items_atomic" : "create_stock_count_atomic", {
-    p_payload: { ...payload, idempotency_key: idempotencyKey },
-  });
+  const draftPayload = { ...payload, idempotency_key: idempotencyKey };
+  const { data, error } = payload.lines.some((line) => line.weight_setup)
+    ? await looseSupabase(supabase).rpc("save_stock_count_kg_draft", { p_stock_count_id: null, p_payload: draftPayload })
+    : await looseSupabase(supabase).rpc(includesAddedItems ? "create_stock_count_with_added_items_atomic" : "create_stock_count_atomic", { p_payload: draftPayload });
+
   if (error) {
     await completeTrackedOperation(tracked.operationId, { status: "failed", errorCode: classifyActionError(new Error(error.message)) });
     throw new Error(error.message);
@@ -172,13 +178,10 @@ async function updateStockCountDraftRecord(id: string, formData: FormData, optio
   }
   if (!isMockMode()) {
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc("update_stock_count_draft_atomic", {
-      p_stock_count_id: countId,
-      p_payload: {
-        remarks: payload.remarks,
-        lines: payload.lines.map((line, index) => ({ ...line, line_id: lineIds[index] })),
-      },
-    });
+    const draftPayload = { remarks: payload.remarks, lines: payload.lines.map((line, index) => ({ ...line, line_id: lineIds[index] })) };
+    const { data, error } = payload.lines.some((line) => line.weight_setup)
+      ? await looseSupabase(supabase).rpc("save_stock_count_kg_draft", { p_stock_count_id: countId, p_payload: draftPayload })
+      : await supabase.rpc("update_stock_count_draft_atomic", { p_stock_count_id: countId, p_payload: draftPayload });
     if (error) throw new Error(error.message);
     if (!(data as { id?: string } | null)?.id) throw new Error("Draft save did not return an identifier.");
     await syncRetirementRequests(countId, formData, new Map(payload.lines.map((line, index) => [line.item_id, lineIds[index]])));
@@ -472,5 +475,44 @@ export async function postStockCount(id: string) {
   } catch (error) {
     rethrowRedirect(error);
     safeRedirectWithMessage(`/stock-counts/${id}`, "error", formatStockCountPostingError(error));
+  }
+}
+
+export async function saveAndPostVerifiedStockCount(id: string, reviewItemIds: string[], formData: FormData) {
+  await requirePermissionOrRedirect("stock_count.post", `/stock-counts/${id}`);
+  await requirePermissionOrRedirect("stock_count.update", `/stock-counts/${id}`);
+  try {
+    const countId = stockCountIdSchema.parse(id);
+    const reviewIds = z.array(z.uuid()).min(1).max(500).parse(reviewItemIds);
+    if (isMockMode()) throw new Error("Mock mode cannot post inventory.");
+    const supabase = await createClient();
+    const { data: current, error: readError } = await supabase.from("stock_counts").select("status").eq("id", countId).single();
+    if (readError) throw new Error(readError.message);
+    if (current.status !== "posted") await updateStockCountDraftRecord(countId, formData);
+    const { error } = await looseSupabase(supabase).rpc("post_stock_count_verified_lines", { p_stock_count_id: countId, p_review_item_ids: reviewIds });
+    if (error) throw new Error(error.message);
+    revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`, "/inventory", "/stock-balance", "/stock-card", "/stock-transactions"]);
+    safeRedirectWithMessage(`/stock-counts/${countId}`, "success", `Verified inventory items posted. ${reviewIds.length} measured KG records remain separate and pending review; their stock was not adjusted.`);
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/stock-counts/${id}`, "error", formatActionError(error, "Verified items were not posted. The draft remains saved."));
+  }
+}
+
+export async function saveStockCountWeightReview(countId: string, lineId: string, formData: FormData) {
+  await requirePermissionOrRedirect("stock_count.update", `/stock-counts/${countId}`);
+  try {
+    stockCountIdSchema.parse(countId);
+    const id = stockCountIdSchema.parse(lineId);
+    const setup = stockCountWeightSetupSchema.parse(Object.fromEntries(["units_per_purchase", "kg_per_unit", "package_description", "evidence"].map((key) => [key, formData.get(key)])));
+    const weight = z.preprocess((value) => value === "" || value == null ? undefined : value, z.coerce.number().finite().min(0).max(1000000).refine((value) => Math.abs(value - Math.round(value * 10000) / 10000) < 1e-9, "Use at most four decimals")).parse(formData.get("counted_kg"));
+    const supabase = await createClient();
+    const { error } = await looseSupabase(supabase).rpc("save_stock_count_weight_review", { p_line_id: id, p_payload: { ...setup, counted_kg: weight } });
+    if (error) throw new Error(error.message);
+    revalidateWorkspaceState(["/stock-counts", `/stock-counts/${countId}`]);
+    safeRedirectWithMessage(`/stock-counts/${countId}`, "success", "Weight review evidence saved. No inventory changed; historical baseline review is still required.");
+  } catch (error) {
+    rethrowRedirect(error);
+    safeRedirectWithMessage(`/stock-counts/${countId}`, "error", formatActionError(error, "Weight review could not be saved."));
   }
 }

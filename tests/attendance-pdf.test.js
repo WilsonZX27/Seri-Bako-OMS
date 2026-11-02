@@ -11,3 +11,5 @@ test('PDF rejects oversized names and notes instead of drawing over report rows 
  await assert.rejects(pdf.buildPeoplePdf([{...sheet,days:[{...sheet.days[0],exceptions:'超长记录'.repeat(1000)}]}]),/note is too long/);
  await assert.rejects(pdf.buildPeoplePdf([{...sheet,days:[sheet.days[0],sheet.days[0]]}]),/Duplicate attendance date/);
 });
+
+test('six-event PDF and XLSX keep second break separate and preserve reviewed net work',async()=>{const day={...sheet.days[0],punches:['22:00','01:00','02:00','04:00','05:00','08:00'],workedSeconds:28800};assert.equal(workbook.reviewedSixPunchSeconds(day),28800);assert.equal(workbook.reviewedSixPunchSeconds({...day,punches:['22:00','01:00','02:00','04:00','04:00','08:00']}),null);const fixture={...sheet,period:{...sheet.period,start:day.date,end:day.date},days:[day]};fs.mkdirSync('handoff/six',{recursive:true});fs.writeFileSync('handoff/six/synthetic-six.xlsx',workbook.buildPeopleWorkbook([fixture]));const bytes=await pdf.buildPeoplePdf([fixture]);fs.writeFileSync('handoff/six/synthetic-six.pdf',bytes);assert.equal((await PDFDocument.load(bytes)).getPageCount(),1);});

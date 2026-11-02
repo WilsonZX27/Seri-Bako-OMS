@@ -27,6 +27,17 @@ export function reviewedFourPunchSeconds(day: PeopleWorkbookDay | undefined): nu
   return day.workedSeconds;
 }
 
+/** Six-event display validation only; never changes stored payroll results. */
+export function reviewedSixPunchSeconds(day: PeopleWorkbookDay | undefined): number | null {
+  if (day?.workedSeconds == null || day.punches?.length !== 6) return null;
+  const points = day.punches.map(clock);
+  if (points.some(p=>p==null)) return null;
+  const spans = points.slice(1).map((p,i)=>(p!-points[i]!+1)%1);
+  const net = spans.filter((_,i)=>i%2===0).reduce((a,b)=>a+b,0)*86400;
+  if (spans.some(s=>s<=0) || spans.reduce((a,b)=>a+b,0)>(points[5]!-points[0]!+1)%1+1e-9 || Math.abs(net-day.workedSeconds)>0.001) return null;
+  return day.workedSeconds;
+}
+
 export type PeopleWorkbookSheet = {
   name: string;
   employee: string;
@@ -47,7 +58,7 @@ export function buildZipArchive(files: Array<{ name: string; content: string | B
 // are live Excel formulas. No inferred payroll policy is embedded here.
 type Value = string | number | null | { formula: string; value: number | null };
 const DAY_SECONDS = 86400;
-const widths = Array(16).fill(16);
+const widths = Array(18).fill(16);
 const letter = (column: number) => String.fromCharCode(65 + column);
 function cell(value: Value, style: number, address: string) {
   const start = `<c r="${address}" s="${style}"`;
@@ -104,7 +115,7 @@ function generatedLabel(value?: string) {
 function sheetXml(sheet: PeopleWorkbookSheet) {
   const dates = sheetDates(sheet), byDate = new Map(sheet.days.map(day => [day.date, day]));
   const body: string[] = [], merges = ["A1:D1", "E1:H1", "I1:L1", "N1:P1", "B2:D2", "F2:H2", "J2:L2", "B3:D3", "F3:H3", "J3:L3", "N2:N3", "O2:P3", "A5:A6", "B5:B6", "C5:D5", "E5:H5", ...["I", "J", "K", "L", "M", "N", "O", "P"].map(column => `${column}5:${column}6`)];
-  const empty: Value[] = Array(16).fill(null);
+  const empty: Value[] = Array(18).fill(null);
   const month = new Intl.DateTimeFormat("en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${dates[0]}T00:00:00Z`)).toUpperCase();
   body.push(row(1, [month, null, null, null, sheet.employee, null, null, null, sheet.outlet, null, null, null, null, sheet.period?.draft === false ? "FINAL" : "DRAFT", null, null], 2, Math.max(32, Math.ceil(Math.max(sheet.employee.length, sheet.outlet.length) / 45) * 20), {12: 10, 13: 17}));
   body.push(row(2, ["Name:", sheet.employee, null, null, "Outlet:", sheet.outlet, null, null, "Period:", `${dates[0]} to ${dates.at(-1)!}`, null, null, null, "Generated on:", generatedLabel(sheet.period?.generatedAt), null], 1, Math.max(18, Math.ceil(Math.max(sheet.employee.length, sheet.outlet.length) / 45) * 15), {12:10,13:1,14:11}));
@@ -112,10 +123,10 @@ function sheetXml(sheet: PeopleWorkbookSheet) {
   // Attendance exports must not disclose passport/identity numbers.
   body.push(row(3, ["I/C | Passport:", null, null, null, "Staff code:", sheet.staffCode ?? "", null, null, "Employment:", (sheet.employmentType ?? "").replaceAll("_", " ").toUpperCase(), null, null, null, null, null, null], 1, 18, {12:10}));
   body.push(row(4, ["Approved OT only. 0:00 = no approved OT; blank = insufficient evidence / no result. Pending OT is listed under exceptions."], 10, 28));
-  merges.push("A4:P4");
-  body.push(row(5, ["Date", "Day", "WORKING TIME", null, "INFO AS PER FINGERPRINT PUNCH", null, null, null, "Total Working", "Approved OT", "Short Hours", "PPH\n(Triple Pay)", "Outstanding\nExceptions", "Normal /\nEvents", "Meal\nAllowance", "Remarks"], 12, 27, {12:13}));
+  merges.push("A4:R4", "Q5:Q6", "R5:R6");
+  body.push(row(5, ["Date", "Day", "WORKING TIME", null, "INFO AS PER FINGERPRINT PUNCH", null, null, null, "Total Working", "Approved OT", "Short Hours", "PPH\n(Triple Pay)", "Outstanding\nExceptions", "Normal /\nEvents", "Meal\nAllowance", "Remarks", "Break 2 out", "Break 2 in"], 12, 27, {12:13}));
   body.push(row(6, [null, null, "AM In", "PM Out", "Time In", "Time Out", "Time In", "Time Out", null, null, null, null, null, null, null, null], 3, 27, {12:13}));
-  body.push(row(7, empty, 16, 17, {12:4}));
+  body.push(row(7, empty, 16, 17, {12:4,16:6,17:6}));
   const numericRows: Array<Array<number | null>> = [];
   dates.forEach((iso, index) => {
     const day = byDate.get(iso), r = index + 8;
@@ -128,10 +139,10 @@ function sheetXml(sheet: PeopleWorkbookSheet) {
     // reviewed four-punch evidence. Incomplete evidence stays blank.
     const matchesSource = reviewedFourPunchSeconds(day) != null;
     const punchFormula = `IF(COUNT(E${r}:H${r})=4,IF(AND(MOD(F${r}-E${r},1)>0,MOD(G${r}-F${r},1)>0,MOD(H${r}-G${r},1)>0,MOD(F${r}-E${r},1)+MOD(G${r}-F${r},1)+MOD(H${r}-G${r},1)<=MOD(H${r}-E${r},1)+0.000000001),MOD(F${r}-E${r},1)+MOD(H${r}-G${r},1),""),"")`;
-    const totalWorking: Value = matchesSource ? {formula:punchFormula,value:worked} : null;
-    const values: Value[] = [serial(iso), new Intl.DateTimeFormat("en-MY", { weekday: "short", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`)), day?.paidEmergencyLeave ? "EL" : day?.off ? "OFF" : clock(day?.scheduleStart), day?.paidEmergencyLeave || day?.off ? null : clock(day?.scheduleEnd), ...Array.from({ length: 4 }, (_, i) => punches[i] ?? null), totalWorking, ot, short, null, issues, day?.event ?? (day?.off ? "OFF" : ""), null, punches.length > 4 ? `All punches: ${(day?.punches ?? []).join(", ")}` : ""];
+    const totalWorking: Value = matchesSource ? {formula:punchFormula,value:worked} : reviewedSixPunchSeconds(day) != null ? worked : null;
+    const values: Value[] = [serial(iso), new Intl.DateTimeFormat("en-MY", { weekday: "short", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`)), day?.paidEmergencyLeave ? "EL" : day?.off ? "OFF" : clock(day?.scheduleStart), day?.paidEmergencyLeave || day?.off ? null : clock(day?.scheduleEnd), ...Array.from({ length: 4 }, (_, i) => (i === 3 ? punches.length === 6 ? punches[5] : punches.length === 4 ? punches[3] : null : punches[i]) ?? null), totalWorking, ot, short, null, issues, day?.event ?? (day?.off ? "OFF" : ""), null, punches.length > 4 ? `All punches: ${(day?.punches ?? []).join(", ")}` : "", punches.length === 6 ? punches[3] : null, punches.length === 6 ? punches[4] : null];
     numericRows.push([ot, short, null]);
-    body.push(row(r, values, 16, Math.max(17, Math.ceil(issues.length / 14) * 14, punches.length > 4 ? 48 : 0), {0:5,2:day?.off?16:6,3:6,4:6,5:6,6:6,7:6,8:7,9:7,10:7,11:7,12:4}));
+    body.push(row(r, values, 16, Math.max(17, Math.ceil(issues.length / 14) * 14, punches.length > 4 ? 48 : 0), {0:5,2:day?.off?16:6,3:6,4:6,5:6,6:6,7:6,8:7,9:7,10:7,11:7,12:4,16:6,17:6}));
   });
   let next = dates.length + 8;
   body.push(row(next++, [], 10, 17));
@@ -163,7 +174,7 @@ function sheetXml(sheet: PeopleWorkbookSheet) {
   const signatures=[...empty]; ["Prepared By","Checked By","Verified By","Approved By"].forEach((value,index)=>signatures[index*4]=value);
   body.push(row(next++,signatures,3,19));
   body.push(row(next,empty,16,56));
-  const worksheetXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><dimension ref="A1:P${next}"/><sheetViews><sheetView workbookViewId="0" showGridLines="0"><pane ySplit="7" topLeftCell="A8" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="17"/><cols>${widths.map((width,i)=>`<col min="${i+1}" max="${i+1}" width="${width}" customWidth="1"/>`).join("")}</cols><sheetData>${body.join("")}</sheetData><mergeCells count="${merges.length}">${merges.map(ref=>`<mergeCell ref="${ref}"/>`).join("")}</mergeCells><printOptions horizontalCentered="1"/><pageMargins left="0.15" right="0.15" top="0.15" bottom="0.15" header="0" footer="0"/><pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToHeight="${dates.length<=7?1:0}"/></worksheet>`;
+  const worksheetXml=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><dimension ref="A1:R${next}"/><sheetViews><sheetView workbookViewId="0" showGridLines="0"><pane ySplit="7" topLeftCell="A8" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="17"/><cols>${widths.map((width,i)=>`<col min="${i+1}" max="${i+1}" width="${width}" customWidth="1"/>`).join("")}</cols><sheetData>${body.join("")}</sheetData><mergeCells count="${merges.length}">${merges.map(ref=>`<mergeCell ref="${ref}"/>`).join("")}</mergeCells><printOptions horizontalCentered="1"/><pageMargins left="0.15" right="0.15" top="0.15" bottom="0.15" header="0" footer="0"/><pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToHeight="${dates.length<=7?1:0}"/></worksheet>`;
   return {xml:worksheetXml,lastRow:next,signatureRow};
 }
 function stylesXml() {
@@ -185,7 +196,7 @@ export function buildPeopleWorkbook(sheets: PeopleWorkbookSheet[]) {
     { name: "_rels/.rels", content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/></Relationships>` },
     { name: "docProps/core.xml", content: core },
     { name: "docProps/app.xml", content: app },
-    { name: "xl/workbook.xml", content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><fileVersion appName="xl" lastEdited="7" lowestEdited="7" rupBuild="24526"/><workbookPr defaultThemeVersion="164011"/><bookViews><workbookView xWindow="0" yWindow="0" windowWidth="28800" windowHeight="17640"/></bookViews><sheets>${named.map((sheet, index) => `<sheet name="${xml(sheet.name)}" sheetId="${index + 1}" r:id="rId${index + 1}"/>`).join("")}</sheets><definedNames>${named.map((sheet,index) => `<definedName name="_xlnm.Print_Area" localSheetId="${index}">${xml("'" + sheet.name.replaceAll("'", "''") + "'!$A$1:$P$" + rendered[index].lastRow)}</definedName><definedName name="_xlnm.Print_Titles" localSheetId="${index}">${xml("'" + sheet.name.replaceAll("'", "''") + "'!$1:$7")}</definedName>`).join("")}</definedNames><calcPr calcId="191029" calcMode="auto" fullCalcOnLoad="1" forceFullCalc="1"/></workbook>` },
+    { name: "xl/workbook.xml", content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><fileVersion appName="xl" lastEdited="7" lowestEdited="7" rupBuild="24526"/><workbookPr defaultThemeVersion="164011"/><bookViews><workbookView xWindow="0" yWindow="0" windowWidth="28800" windowHeight="17640"/></bookViews><sheets>${named.map((sheet, index) => `<sheet name="${xml(sheet.name)}" sheetId="${index + 1}" r:id="rId${index + 1}"/>`).join("")}</sheets><definedNames>${named.map((sheet,index) => `<definedName name="_xlnm.Print_Area" localSheetId="${index}">${xml("'" + sheet.name.replaceAll("'", "''") + "'!$A$1:$R$" + rendered[index].lastRow)}</definedName><definedName name="_xlnm.Print_Titles" localSheetId="${index}">${xml("'" + sheet.name.replaceAll("'", "''") + "'!$1:$7")}</definedName>`).join("")}</definedNames><calcPr calcId="191029" calcMode="auto" fullCalcOnLoad="1" forceFullCalc="1"/></workbook>` },
     { name: "xl/_rels/workbook.xml.rels", content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${named.map((_, index) => `<Relationship Id="rId${index + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${index + 1}.xml"/>`).join("")}<Relationship Id="rId${named.length + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>` },
     { name: "xl/styles.xml", content: stylesXml() },
   ];

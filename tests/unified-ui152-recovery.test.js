@@ -36,7 +36,7 @@ test('import draft identity is separated by user, company and entity, ignoring o
 });
 test('workbook deadlines cover body parsing, block repeated posts and ignore stale reads',()=>{
  const source=fs.readFileSync('src/components/attendance/schedule-workbook-import.tsx','utf8');
- assert.equal((source.match(/await requestDeadline\(/g)||[]).length,4);assert.match(source,/mutationPending.current = true/);assert.match(source,/requestId !== requestVersion.current/);assert.match(source,/requestVersion.current\+\+/);assert.match(source,/60_000, "Import result is unconfirmed/);assert.match(source,/status:"unconfirmed"/);assert.doesNotMatch(source,/Retry the same selection/);
+ assert.equal((source.match(/await requestDeadline\(/g)||[]).length,5);assert.match(source,/mutationPending.current = true/);assert.match(source,/requestId !== requestVersion.current/);assert.match(source,/requestVersion.current\+\+/);assert.match(source,/60_000, "Import result is unconfirmed/);assert.match(source,/status:"unconfirmed"/);assert.doesNotMatch(source,/Retry the same selection/);
 });
 test('page jump owns its real input target and focus, and all audited callers reuse pagination',()=>{
  const pagination=fs.readFileSync('src/components/sortable-table.tsx','utf8');assert.match(pagination,/className="h-\[var\(--sb-control-height\)] min-w-\[var\(--sb-control-height\)] w-11/);assert.match(pagination,/focus-visible:outline-2/);

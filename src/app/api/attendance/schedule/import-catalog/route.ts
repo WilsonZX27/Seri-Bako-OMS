@@ -18,7 +18,7 @@ export async function GET(request: Request) {
   try {
     const week = weekSchema.safeParse(new URL(request.url).searchParams.get("week"));
     if (!week.success) return NextResponse.json({ ok: false, message: "A valid Monday week is required." }, { status: 400 });
-    await requireActiveTenantActor();
+    const actor = await requireActiveTenantActor();
     if (!(await hasPermission("schedule.draft"))) return NextResponse.json({ ok: false, message: "You do not have permission to prepare schedule imports." }, { status: 403 });
     const db = looseSupabase(await createClient());
     const branchResult = await db.rpc("get_schedule_branches");
@@ -82,6 +82,7 @@ export async function GET(request: Request) {
       paid_emergency_leave:await readPaidEmergencyLeaveCapability(db),
       import_rules:rules.data??{},fingerprint_exempt_staff:exemptions.data??[],can_manage_exemptions:owner.data===true,
       import_history:history.data ?? [],
+      company_id: actor.companyId,
       branches: branches.map((branch) => ({ id: branch.id, name: branch.branch_name, status: latest.get(branch.id)?.status ?? "not_started" })),
       staff: staff.map((person) => ({ ...person, home_branch_id: homeByStaff.get(person.id) ?? null, eligibility: eligibilityByStaff.get(person.id) ?? [] })),
       current_assignments: (assignmentResult.data ?? []).map((row: Record<string, unknown>) => ({ ...row, branch_id: branchForWeek.get(String(row.schedule_week_id)) })),

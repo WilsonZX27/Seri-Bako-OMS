@@ -1,3 +1,5 @@
+import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
+import { Person63RecoveryAction } from "@/components/attendance/person63-recovery-action";
 import { AttendanceFixedRepairAction } from "@/components/attendance/fixed-attendance-repair";
 import { AttendanceDetailDialog } from "@/components/attendance/attendance-detail-dialog";
 import { PaginationControls } from "@/components/sortable-table";
@@ -130,6 +132,8 @@ export default async function AttendanceReviewPage({
     report?: string;
   }>;
 }) {
+  const recoveryActor = process.env.OMS_PERSON63_RECOVERY === "fixed-25-v1" ? await requireActiveTenantActor() : null;
+  const showPerson63Recovery = recoveryActor?.companyId === "3b104582-f8cb-4a4d-867f-b99e5ffc6486" && recoveryActor.staffId === process.env.OMS_PERSON63_RECOVERY_ACTOR;
   const params = await searchParams;
   const mappingMode = params.mapping === "1";
   const importMode = params.import === "1";
@@ -253,6 +257,7 @@ export default async function AttendanceReviewPage({
         rightRail={
           <>
             <ConsoleSection title="Actions" kind="action">
+              {showPerson63Recovery && permissions["attendance.map"] && (permissions["attendance.import"] || permissions["attendance.adjust"]) ? <Person63RecoveryAction /> : null}
               {permissions["attendance.week.close"] ? (
                 <WeeklyCloseButton
                   weekStart={week}
@@ -273,7 +278,7 @@ export default async function AttendanceReviewPage({
               (permissions["attendance.import"] ||
                 permissions["attendance.adjust"]) ? (
                 <>
-<AttendanceRecalculateButton batchId={String(latest.id)} disabled={weekLocked} />
+<AttendanceRecalculateButton batchId={String(latest.id)} disabled={weekLocked || showPerson63Recovery} />
 <AttendanceFixedRepairAction batchId={String(latest.id)} weekStart={week} disabled={weekLocked} />
 </>
               ) : null}
@@ -281,7 +286,7 @@ export default async function AttendanceReviewPage({
                 <PeopleWorkbookExport branches={review.branches as {id:string;branch_name:string}[]} week={week} branchId={branch}/>
               ) : null}
             </ConsoleSection>
-            <ScheduleRefreshStatus week={week} branch={branch} canRefresh={Boolean(permissions["attendance.import"] || permissions["attendance.adjust"])} />
+            <ScheduleRefreshStatus week={week} branch={branch} canRefresh={!showPerson63Recovery && Boolean(permissions["attendance.import"] || permissions["attendance.adjust"])} />
             <ConsoleSection title="Week status" kind="status">
               <p className="font-semibold">{week}</p>
               <p>

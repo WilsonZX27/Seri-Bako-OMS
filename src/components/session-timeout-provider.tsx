@@ -48,7 +48,8 @@ export function SessionTimeoutProvider() {
     clearTimers();
     try {
       const supabase = createClient();
-      await supabase.auth.signOut();
+      // Idle expiry belongs to this login, not other active sessions for the user.
+      await supabase.auth.signOut({ scope: "local" });
     } finally {
       router.replace("/access-status?reason=idle-timeout");
     }

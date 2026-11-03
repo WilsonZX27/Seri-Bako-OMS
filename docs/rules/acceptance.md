@@ -23,3 +23,5 @@ Roster template operational rollback: retain source provenance/guards and persis
 RO/OT decisions must show recoverable server errors within their active dialog and preserve authorised API error messages. This is a local candidate; pending-approval notification, placement, badge alignment, live role acceptance and the reported original failure causes remain open. See [People diagnostics](../../handoff/people-new21/REPORT.md).
 
 Ordinary pending RO and submitted OT review notices: candidate INSERT-only delivery to same-company authorised active reviewers, excluding applicant; no historical backfill or external sending. Reversal-credit requests keep their existing path. Review scoped SQL and isolated recipient/concurrency evidence in the People diagnostics before installation; this is not production acceptance.
+
+Attendance matching candidates include undeleted active and invited staff under existing attendance.map/RLS scope; invited status does not mean absent punches. This is prevention only, not authorization to backfill mappings or recalculate historical results. See [minimal candidate evidence](../qa/attendance-invited-matching-20261103.md).

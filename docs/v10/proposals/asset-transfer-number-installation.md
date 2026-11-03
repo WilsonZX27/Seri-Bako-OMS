@@ -31,7 +31,7 @@ Installation is disabled even if an existing asset_transfer sequence is active: 
 
 A separately approved activation must establish BOTH conditions for the verified company:
 
-1. Review document_sequences type asset_transfer with prefix AT, padding3, reset_frequency never, a verified continuation next_number, active status and no deletion. Do not guess a company UUID or sequence continuation. Inspect existing source IDs/ledger first; existing AT-like source IDs are skipped case-insensitively during allocation. Leave other document types untouched.
+1. Review document_sequences type asset_transfer with an explicitly approved prefix (AT versus AST is pending), approved padding, reset_frequency never, a verified continuation next_number, active status and no deletion. Do not guess a company UUID or sequence continuation. Inspect existing source IDs/ledger first; existing AT-like source IDs are skipped case-insensitively during allocation. Leave other document types untouched.
 2. Explicitly set that company's asset_transfer_numbering_activation.enabled=true. Gate ownership/write permission remains with the separately approved SQL operation, not the user-facing API.
 
 Do not reset an existing counter or backfill historical records. Preserve generated numbers after rejection or completion. The current transfer API has rejection, not a new cancel/delete action; cancelling an uncommitted transaction leaves no request, number or counter change.
@@ -57,3 +57,16 @@ Open: exact installed-schema/ACL/ledger preflight; real authentication and full 
 Latest integration handoff9bf9d4e reports live read-only confirmation of ledger382 and batch-compatible tables/functions. This is supplied evidence, not a production operation by this task. Before actual installation, recheck383 remains free and match that target catalog to the recorded contract. Do not repeat380–382. Install AT schema candidate before deploying its matching app, verify empty activation/ledger and bounded ACLs, and record the assigned migration through the approved migration runner. The file does not itself edit the migration ledger. Enablement remains a separate company-specific approval; install performs no gate/sequence insertion, no activation or history backfill.
 
 The targeted full RPC test now executes the installation file verbatim, with no transaction-token substitution, then verifies committed schema from a separate database command and an empty gate. It performs local-only simulated enablement, concurrency and gate-off data-preserving rollback. Existing boundaries (normal deferred commit, UUID compatibility, no forced IMMEDIATE) still apply. Production installation/activation/push is not authorised by this artifact.
+
+
+## Preview UUID display follow-up (2026-11-03)
+
+Display rule: prefer the persisted document_no without rewriting its prefix; otherwise retain a readable legacy source_id. Missing/blank numbers and UUID-shaped legacy references display `Unnumbered`. UUID primary keys, URLs, searches and request payloads remain unchanged. This is an honest missing-number state, not completion of numbering. Do not generate client row numbers or imply a label has been persisted.
+
+AT versus AST remains undecided. Neither installation nor this display fix enables allocation or modifies historical records. Test fixtures containing AT/AST are examples, not a production configuration decision.
+
+Enablement requires separately approved company, prefix, padding and verified continuation, then company gate activation. Only transfers committed after enablement receive a number; one batch parent gets one number and its lines share it. Existing unnumbered records remain unnumbered. Deactivation preserves all assigned numbers and counters. Changing the prefix later must not rewrite issued numbers and requires another reviewed configuration decision.
+
+Historical backfill is NOT implemented or authorised. A separate proposal must enumerate eligible single transfers and batch parents per company (including explicit decisions for rejected/completed records), preserve readable legacy references and UUIDs, provide a stable ordering and exact dry-run mapping/count, check case-insensitive collisions, and coordinate with the same allocator lock/counter as concurrent new requests. It must be idempotent, preserve statuses/quantities/events, and state how far the counter advances. Backfill must not renumber existing ledger entries or allocate one number per batch line. Once identifiers are issued, prefer disabling future allocation over deleting mappings or reusing numbers. No automatic historical allocation is part of this candidate.
+
+Available saved integration evidence describes Preview520 and local-only combined57fb, with AT tables absent at the recorded preflight. That historical evidence cannot establish the current Preview revision or current gate state. Verify deployed revision and read-only schema/gate/ledger before attributing a particular Preview row to absent code, absent schema, gate OFF, or legacy data. This worker has not accessed a current authenticated Preview or production connection.

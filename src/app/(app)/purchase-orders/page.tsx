@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Pencil, Plus } from "lucide-react";
+import { CalendarDays, MapPin, Package, Pencil, Plus, Store } from "lucide-react";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { DataGridHint } from "@/components/ui/data-grid-hint";
 import { DocumentNumber } from "@/components/document-number";
@@ -140,11 +140,12 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
             <OperationalList ariaLabel="Purchase orders" showUntil="md">
               {orders?.rows.map((order) => <OperationalListRow
                 key={order.id}
+                fullWidthDetails
                 label={`Open ${order.po_no}`}
                 primary={<div><Link href={`/purchase-orders/${order.id}`} className="inline-flex min-h-9 items-center rounded-[var(--sb-radius-control)] font-medium text-[var(--sb-link)] underline-offset-4 hover:underline"><DocumentNumber value={order.po_no} /></Link>{order.expected_delivery_date ? <p className="text-[11px] font-normal text-[var(--sb-text-muted)]">Delivery {formatDateOnly(order.expected_delivery_date)}</p> : null}</div>}
                 status={<StatusBadge status={order.status} />}
-                secondary={<span>{order.branch_name ?? "No outlet"} · {order.supplier_name ?? "No supplier"} · {formatDateOnly(order.order_date)}{order.purchase_request_id && order.request_no ? <> · <Button asChild variant="ghost" size="sm" className="px-0 text-[11px] font-medium text-[var(--sb-link)] underline-offset-4 hover:underline"><Link href={`/purchase-requests/${order.purchase_request_id}`}>{order.request_no}</Link></Button></> : null}</span>}
-                meta={`${order.line_count} ${order.line_count === 1 ? "item" : "items"} · ${formatCurrency(order.order_total)}`}
+                secondary={<span className="sb-pr-phone-supplier-row"><span className="sb-pr-phone-supplier" title={order.supplier_name ?? undefined}><Store aria-hidden="true" /><span>{order.supplier_name ?? "No supplier"}</span></span><span className="sb-pr-phone-items"><Package aria-hidden="true" /><span>{order.line_count} {order.line_count === 1 ? "item" : "items"} · {formatCurrency(order.order_total)}</span></span></span>}
+                detail={<span className="space-y-1 block"><span className="sb-pr-phone-location-row"><span className="sb-pr-phone-location"><MapPin aria-hidden="true" /><span>{order.branch_name ?? "No outlet"}</span></span><time className="sb-pr-phone-byline-date" dateTime={order.order_date}><CalendarDays aria-hidden="true" /><span>{formatDateOnly(order.order_date)}</span></time></span>{order.purchase_request_id && order.request_no ? <Link href={`/purchase-requests/${order.purchase_request_id}`} className="inline-flex min-h-9 items-center text-[11px] font-medium text-[var(--sb-link)] underline-offset-4 hover:underline">{order.request_no}</Link> : null}</span>}
               />)}
               {!orders?.rows.length ? <EmptyState title={ordersResult.unavailable ? "Purchase order data unavailable" : filtered ? "No orders match these filters" : "No purchase orders yet"} description={emptyDescription} action={ordersResult.unavailable ? { href: "/purchase-orders", label: "Retry orders" } : filtered ? emptyStateAction : undefined} /> : null}
             </OperationalList>

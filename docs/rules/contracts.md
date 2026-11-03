@@ -37,3 +37,6 @@ The approved BAKIARAJ recovery is restricted to one missing mapping and25 fixed 
 The v2 candidate replaces global table locks with bounded row locks, adds a same-origin action restricted to the designated operator, and includes separately gated compensating restoration. During that operator's maintenance view, broad/automatic recalculation is disabled. Production default ACL and deferred confirmation triggers were inspected; installation remains unapproved/unperformed. See the linked v2 evidence and explicit runtime/Preview gates.
 
 - Person63 scoped compensation must recheck authorization expiry after waiting for input locks, immediately before its first write; expired waiting requests must preserve the recovery snapshot and receipt. Shared permission-row locking and actual signed-in/runtime acceptance gates remain applicable.
+
+## Four browser comments — 2026-11-03
+Attendance workspace tabs and confirmation empty-state links follow the same existing role/permission route contract as their destinations; an account-dropdown entry does not confer additional schedule or attendance rights. PO compact metadata reuses the PR/receiving row structure. Uniform list backgrounds remain the rule; old immutable Preview URLs do not acquire later fixes. Evidence and remaining visual acceptance: [four-comment record](../qa/four-browser-comments-20261103.md).

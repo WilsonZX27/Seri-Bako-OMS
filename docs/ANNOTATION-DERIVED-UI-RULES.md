@@ -113,3 +113,7 @@ Viewport-specific filter layout, dialog/sheet positioning and background scroll 
 ## 2026-11-04 — new annotation7–9, Low Stock
 
 Source reference: user message Sentinel_c100ade746488191a1db2721de076306, annotations7–9 as delegated. Separate below_qty/quantity_uom into their own labelled threshold card; query forms must preserve each other's active search/branch/status/threshold values. Phone replenishment rows show one supplier line, concise decision, labelled Current/Safety/Suggested metrics and quantity/UOM inputs. Preserve selection staging, branch authority, stored basket, permission/hydration gates and supplier-group PR creation. This supersedes the prior all-in-one Low Stock filter composition only. Existing historical annotation IDs are untouched. Original screenshot could not be retrieved through read_thread; do not claim pixel acceptance. See [QA and remaining acceptance](qa/low-stock-annotations-7-9-20261104.md).
+
+## Stock count annotations 2–6 — 2026-11-04 local candidate
+
+Keep pending weight-review explanations outside compact status tracks. Read-only Count Lines retains searchable original indices and bounded 15-row pages using shared pagination; draft input and inventory semantics stay unchanged. Evidence and unresolved original-image/authenticated checks: [stock count annotation record](qa/stock-count-annotations-20261104.md).

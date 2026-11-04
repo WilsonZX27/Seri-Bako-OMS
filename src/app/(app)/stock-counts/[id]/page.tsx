@@ -1,3 +1,7 @@
+import Link from "next/link";
+import { Input } from "@/components/ui/input";
+import { PaginationControls } from "@/components/sortable-table";
+import { stockCountLinePage } from "@/lib/stock-count-line-page";
 import { formatStockCountQuantity as formatQuantity } from "@/lib/stock-count-quantity";
 import { DocumentActionBar } from "@/components/document-action-bar";
 import { AttachmentPanel, CommentsPanel, DocumentTimeline, RevisionPanel } from "@/components/documents/document-panels";
@@ -48,6 +52,7 @@ export default async function StockCountDetailPage({ params, searchParams }: { p
   const pendingRevisions = revisions.filter((revision) => revision.status === "pending");
   const documentBundle = count.document_id ? await getDocumentBundle(count.document_id) : null;
   const adjustedLines = lines.filter((line) => !(count.status !== "posted" && line.kg_setup) && Number(line.variance_qty) !== 0);
+  const linePage = stockCountLinePage(lines, filters.line_search, filters.page);
   const retiredLines = lines.filter((line) => line.retirement);
   const isLegacyPending = legacyPendingStatuses.has(count.status);
   const kgReviewLines = count.status !== "posted" ? lines.filter((line) => line.kg_setup) : [];
@@ -177,11 +182,18 @@ export default async function StockCountDetailPage({ params, searchParams }: { p
 
       {!canEdit ? <Card>
         <CardContent className="p-5">
-          <h2 className="mb-3 text-sm font-semibold">Count Lines</h2>
+          <h2 id="count-lines" className="mb-3 text-sm font-semibold">Count Lines · {lines.length}</h2>
+          <form method="get" className="mb-3 flex flex-wrap items-center gap-2" aria-label="Find count line">
+            {Object.entries(filters).filter(([key, value]) => !["line_search", "page"].includes(key) && value).map(([key, value]) => <input key={key} type="hidden" name={key} value={value} />)}
+            <Input name="line_search" aria-label="Find item by name, code or index" placeholder="Find item by name, code or index" defaultValue={filters.line_search ?? ""} className="min-w-0 flex-1" />
+            <Button type="submit" variant="outline">Search</Button>
+            {filters.line_search ? <Button asChild variant="ghost"><Link href={`?${new URLSearchParams(Object.entries(filters).filter(([key, value]) => !["line_search", "page"].includes(key) && value) as [string, string][]).toString()}`}>Clear</Link></Button> : null}
+          </form>
+          {!linePage.totalRows ? <p className="py-4 text-sm text-muted-foreground">No count lines match this search.</p> : null}
           <Table mobileHidden aria-label="Posted stock count lines">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Item</TableHead>
+                  <TableHead className="w-12">#</TableHead><TableHead>Item</TableHead>
                   <TableHead className="text-right">Theoretical</TableHead>
                   <TableHead className="text-right">Physical</TableHead>
                   <TableHead className="text-right">Variance</TableHead>
@@ -192,13 +204,13 @@ export default async function StockCountDetailPage({ params, searchParams }: { p
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {lines.map((line) => {
+                {linePage.rows.map(({ line, index }) => {
                   const kgPending = count.status !== "posted" && Boolean(line.kg_setup);
                   const measured = line.kg_setup?.measurement;
                   const high = !kgPending && Number(line.variance_qty) !== 0;
                   return (
                     <TableRow key={line.id} className={high ? "bg-warning/10" : ""}>
-                      <TableCell><p className="font-medium">{line.item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground sb-item-code" title={line.item?.item_code ?? undefined}>{line.item?.item_code}</p></TableCell>
+                      <TableCell className="text-muted-foreground tabular-nums">{index}</TableCell><TableCell><p className="font-medium">{line.item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground sb-item-code" title={line.item?.item_code ?? undefined}>{line.item?.item_code}</p></TableCell>
                       <TableCell className="text-right">{kgPending ? "Pending review" : formatQuantity(line.theoretical_qty)}</TableCell>
                       <TableCell className="text-right font-medium">{kgPending ? measured ? formatNumber(measured.counted_kg) : "Not recorded" : formatQuantity(line.physical_qty)}</TableCell>
                       <TableCell className="text-right">{kgPending ? "—" : formatQuantity(line.variance_qty)}</TableCell>
@@ -213,20 +225,21 @@ export default async function StockCountDetailPage({ params, searchParams }: { p
               </TableBody>
           </Table>
           <div className="divide-y xl:hidden" role="list" aria-label="Posted stock count lines" data-posted-stock-count-lines>
-            {lines.map((line) => {
+            {linePage.rows.map(({ line, index }) => {
               const kgPending = count.status !== "posted" && Boolean(line.kg_setup);
                   const measured = line.kg_setup?.measurement;
                   const high = !kgPending && Number(line.variance_qty) !== 0;
               return (
-                <article key={line.id} className={`space-y-3 py-4 first:pt-1 last:pb-1 ${high ? "bg-[var(--sb-warning-bg)] px-3" : ""}`} role="listitem">
-                  <div className="flex items-start justify-between gap-4"><div className="min-w-0"><h3 className="font-medium leading-snug">{line.item?.item_name ?? line.item_id}</h3><p className="mt-0.5 text-xs text-muted-foreground sb-item-code" title={line.item?.item_code ?? undefined}>{line.item?.item_code}</p></div><div className="flex shrink-0 items-start gap-2 text-right"><div><strong>{kgPending ? measured ? `${formatNumber(measured.counted_kg)} KG` : "KG not recorded" : `${formatQuantity(line.physical_qty)} ${line.uom}`}</strong><p className={`text-xs ${high ? "font-semibold text-[var(--sb-warning)]" : "text-muted-foreground"}`}>{kgPending ? "Pending review" : `${formatQuantity(line.variance_qty)} · ${formatQuantity(line.variance_percent)}%`}</p></div>{!kgPending && isLegacyPending && permissions["stock_count.post"] && revisionsAvailable ? <StockCountLineRecovery action={reviseStockCountLine.bind(null, count.id)} line={line} items={items} reviewMode /> : null}</div></div>
-                  <dl className="grid grid-cols-2 gap-4 rounded-md bg-secondary/35 p-3 text-xs"><div><dt className="text-muted-foreground">Starting balance</dt><dd className="mt-1 font-medium">{kgPending ? "Pending review" : `${formatQuantity(line.theoretical_qty)} ${line.uom}`}</dd></div><div><dt className="text-muted-foreground">Variance</dt><dd className="mt-1 font-medium">{kgPending ? "—" : `${formatQuantity(line.variance_qty)} ${line.uom}`}</dd></div></dl>
+                <article key={line.id} className={`space-y-2 py-3 first:pt-1 last:pb-1 ${high ? "bg-[var(--sb-warning-bg)] px-3" : ""}`} role="listitem">
+                  <div className="flex items-start justify-between gap-4"><div className="min-w-0"><h3 className="text-sm font-medium leading-snug"><span className="mr-2 text-xs text-muted-foreground tabular-nums">#{index}</span>{line.item?.item_name ?? line.item_id}</h3><p className="mt-0.5 text-xs text-muted-foreground sb-item-code" title={line.item?.item_code ?? undefined}>{line.item?.item_code}</p></div><div className="flex shrink-0 items-start gap-2 text-right"><div><strong>{kgPending ? measured ? `${formatNumber(measured.counted_kg)} KG` : "KG not recorded" : `${formatQuantity(line.physical_qty)} ${line.uom}`}</strong><p className={`text-xs ${high ? "font-semibold text-[var(--sb-warning)]" : "text-muted-foreground"}`}>{kgPending ? "Pending review" : `${formatQuantity(line.variance_qty)} · ${formatQuantity(line.variance_percent)}%`}</p></div>{!kgPending && isLegacyPending && permissions["stock_count.post"] && revisionsAvailable ? <StockCountLineRecovery action={reviseStockCountLine.bind(null, count.id)} line={line} items={items} reviewMode /> : null}</div></div>
+                  <dl className="grid grid-cols-2 gap-2 text-xs"><div><dt className="text-muted-foreground">Starting balance</dt><dd className="mt-1 font-medium">{kgPending ? "Pending review" : `${formatQuantity(line.theoretical_qty)} ${line.uom}`}</dd></div><div><dt className="text-muted-foreground">Variance</dt><dd className="mt-1 font-medium">{kgPending ? "—" : `${formatQuantity(line.variance_qty)} ${line.uom}`}</dd></div></dl>
 
                   {line.remarks ? <p className="text-xs"><span className="text-muted-foreground">Remarks:</span> {line.remarks}</p> : null}
                 </article>
               );
             })}
           </div>
+          <PaginationControls page={linePage.page} totalPages={linePage.totalPages} totalRows={linePage.totalRows} searchParams={filters} />
         </CardContent>
       </Card> : null}
     </DocumentWorkspace>

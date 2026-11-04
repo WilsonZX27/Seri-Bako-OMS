@@ -1,0 +1,12 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const ts = require('typescript');
+const Module = require('node:module');
+const m = new Module(__filename, module);
+m._compile(ts.transpileModule(fs.readFileSync('src/lib/stock-count-line-page.ts','utf8'), {compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText, __filename);
+const {stockCountLinePage: page} = m.exports;
+const lines=Array.from({length:32},(_,i)=>({item_id:`id-${i}`,item:{item_code:`CODE-${i}`,item_name:i===19?'Special flour':'Ordinary rice'}}));
+test('bounded pages preserve original indices and source rows',()=>{const result=page(lines,'','2');assert.equal(result.rows.length,15);assert.equal(result.rows[0].index,16);assert.equal(result.rows[0].line,lines[15]);assert.equal(result.totalRows,32);assert.equal(lines.length,32);});
+test('search reaches items beyond first page and preserves their index',()=>{const result=page(lines,'SPECIAL FLOUR','99');assert.equal(result.page,1);assert.equal(result.rows[0].index,20);assert.equal(page(lines,'CODE-31').rows[0].index,32);});
+test('empty and malformed page inputs remain safe',()=>{assert.equal(page(lines,'missing').totalRows,0);for(const value of ['NaN','Infinity','2.5','-3','0'])assert.equal(page(lines,'',value).page,1);assert.equal(page(lines,'','999').page,3);assert.deepEqual(page([]).rows,[]);});

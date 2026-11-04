@@ -89,3 +89,7 @@ Daily desktop columns fit the actual central canvas; preserve the existing deskt
 ## Preview16501bb follow-up — 2026-11-04
 
 PO/GR supplier columns leave the numeric ending visible in the810px desktop canvas; smaller table canvases keep the house visible scrollbar. Dashboard roster approvals identify their branch using the existing scoped data. No workflow/query change. Source, screenshots and verification boundaries: [Preview audit follow-up](qa/preview-16501bb-audit-followup.md).
+
+## Second page-audit follow-up — 2026-11-04
+
+Linked GRN cards reflect the existing finance-closed display state used by the detail; raw stock posting state and transitions remain unchanged. Planning Delivery date retains an explicit accessible name through filter restructuring. Source and environment-specific evidence: [second page-audit fixes](qa/second-page-audit-fixes-20261104.md).

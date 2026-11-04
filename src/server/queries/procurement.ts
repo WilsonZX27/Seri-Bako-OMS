@@ -468,14 +468,14 @@ export async function getProcurementChainForRequest(requestId: string) {
   if (ordersError) throw new Error(ordersError.message);
   const orderIds = (orders ?? []).map((order) => order.id);
   const [{ data: receipts, error: receiptsError }, { data: invoices, error: invoicesError }] = await Promise.all([
-    orderIds.length ? supabase.from("goods_receivings").select("id, document_id, purchase_order_id, grn_no, status").in("purchase_order_id", orderIds).is("deleted_at", null).order("created_at") : Promise.resolve({ data: [], error: null }),
+    orderIds.length ? supabase.from("goods_receivings").select("id, document_id, purchase_order_id, grn_no, status, finance_closed_at").in("purchase_order_id", orderIds).is("deleted_at", null).order("created_at") : Promise.resolve({ data: [], error: null }),
     orderIds.length ? supabase.from("supplier_invoices").select("id, document_id, purchase_order_id, invoice_no, status").in("purchase_order_id", orderIds).is("deleted_at", null).order("created_at") : Promise.resolve({ data: [], error: null }),
   ]);
   if (receiptsError || invoicesError) throw new Error((receiptsError ?? invoicesError)!.message);
   const nodes: ProcurementChainNode[] = [
     { id: request.id, documentId: request.document_id, kind: "PR", number: request.request_no, status: request.status, href: `/purchase-requests/${request.id}` },
     ...(orders ?? []).map((order) => ({ id: order.id, documentId: order.document_id, kind: "PO" as const, number: order.po_no, status: order.status, href: `/purchase-orders/${order.id}` })),
-    ...(receipts ?? []).map((receipt) => ({ id: receipt.id, documentId: receipt.document_id, kind: "GRN" as const, number: receipt.grn_no, status: receipt.status, href: `/goods-receivings/${receipt.id}` })),
+    ...(receipts ?? []).map((receipt) => ({ id: receipt.id, documentId: receipt.document_id, kind: "GRN" as const, number: receipt.grn_no, status: receipt.finance_closed_at ? "closed" : receipt.status, href: `/goods-receivings/${receipt.id}` })),
     ...(invoices ?? []).map((invoice) => ({ id: invoice.id, documentId: invoice.document_id, kind: "Invoice" as const, number: invoice.invoice_no, status: invoice.status, href: `/supplier-invoices/${invoice.id}` })),
   ];
   const sourceByDocumentId = new Map(nodes.filter((node) => node.documentId).map((node) => [node.documentId!, node]));

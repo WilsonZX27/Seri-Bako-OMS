@@ -69,3 +69,5 @@ Asset registration Import from Excel is a shared secondary button-style link, vi
 
 ### Schedule workbook import result visibility
 The existing import result belongs in the non-scrolling dialog footer above actions. Keep actual saved counts, draft/publication wording, partial failures and unresolved source warnings intact. Long review content scrolls independently; the result must not cover controls on mobile or desktop. See [evidence](../../handoff/schedule-import-result-20261104/REPORT.md).
+
+Stock Count weight-review wording identifies excluded KG lines and unchanged inventory separately from the document status; never imply a Posted document is unposted. [Phone evidence](../qa/stock-count-annotations-20261104.md).

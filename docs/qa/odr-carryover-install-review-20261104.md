@@ -41,3 +41,17 @@ NOT ready for isolated installation into the shared Production DB: the old Produ
 Before execution: complete full-chain isolated checks, confirm compatible app rollout allowed, recheck hashes/ACL/ledger and prepare approved maintenance timing. Required specific approval covers the additive column, replacement private function, brief table lock and old-client carryover-save interruption. It does not authorize rewriting historical Usage, real test posting, broader grants or an unrelated app deployment. Existing Production deployment rejection cannot be bypassed by this SQL installation.
 
 After an approved execution: verify body/ACL/column/triggers, transaction data-invariant success, installed app commit and read-only UI. Do not create a real Daily submission merely to test. Any uncertain installation result requires read-only inspection before retry.
+
+## Compatibility revision — supersedes earlier candidate hashes and blanket old-client rejection
+
+Install SHA256 `a26df44e8bee1a8922a5d0045ff70e72572975b970ba53713144f6b88a3b62ff`; pause SHA256 `72a3760c87ddfc701e1c4b7a316c7250da08aecd59120c7807315434689932ba`. Neither installed.
+
+Old forms may save when submitted historical Usage matches the stored value. Their hidden wastage zero/empty reason/notes are replaced with stored values and independent confirmation. Any attempted Usage change fails explicitly and asks for the new form, rather than silently ignoring it. Old completion still cannot certify an unconfirmed wastage quantity. This allows compatible draft edits during a short SQL-before-app transition; it does not make the old interface suitable for new Wastage capture. Schedule app rollout promptly, avoid starting a shift's completion process mid-transition, and explain refresh requirements.
+
+`tests/fixtures/odr-carryover-full-chain.cjs` loads all six actual saving functions; their pre-change body MD5s equal the live read-only hashes above. It runs the sales-settings → checked-revision → sales → public save → tracking → original save chain, with original revision triggers and wastage validation. 28 assertions pass: creating/readback, historical Usage immunity, stale revision, subsequent negative-sales failure rolling back quantity/revision writes, old/new client transitions, blank confirmation/reason rejection, posted lock, identity/company/permission checks, daily-food/packaging/beverage unaffected, and safe pause preserving rows. Identity and permission helpers and tables are fictional. This verifies function guard composition, not complete production RLS or two simultaneous database connections.
+
+Additional wrapper checks: 19 pass. Docker daemon unavailable (local socket absent); PGlite supplied the isolated database. Actual concurrent lock-wait test remains unperformed; no production database operation used as a substitute. The 3s installation lock timeout remains.
+
+Shared-surface timing patch also applied locally with 71 related tests, TypeScript and targeted lint passing. Black blur flicker has no authenticated reproduction/acceptance evidence and is not closed. No deployment or production change performed.
+
+Current compatible tracking-function body MD5: `1d98b1a9716638553f2c2fbd2e302839`.

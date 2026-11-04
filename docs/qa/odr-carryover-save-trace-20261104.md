@@ -39,3 +39,5 @@ User confirmed: stop future Usage entry; preserve historical Usage read-only. Su
 - Once new waste exists, reverting to the old normalizer would zero it. Rollback must retain this DB guard and disable writes/use a compatible read-only app; do not restore the old SQL function.
 
 Local production-mode build passed (placeholder local Supabase configuration; no live data). A subsequent help-text correction clarifies food wastage versus packaging usage and beverage sales; rendered Preview remains pending.
+
+Compatibility/full-chain follow-up supersedes blanket old-client rejection: old Usage unchanged permits saving with stored wastage/notes preserved; changed Usage is rejected with refresh guidance. See [installation review](odr-carryover-install-review-20261104.md) for current hashes, 28 full-chain/19 wrapper assertions and concurrency limits.

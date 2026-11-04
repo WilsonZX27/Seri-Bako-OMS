@@ -5,7 +5,7 @@ set local lock_timeout='3s';
 set local statement_timeout='30s';
 do $guard$
 begin
- if not exists(select 1 from pg_proc where oid=to_regprocedure('public.save_outlet_daily_record_before_saleable_stock(uuid,uuid,date,text,jsonb,text)') and md5(prosrc)='85c808b214acd1ba9deba8ea78c79413') then
+ if not exists(select 1 from pg_proc where oid=to_regprocedure('public.save_outlet_daily_record_before_saleable_stock(uuid,uuid,date,text,jsonb,text)') and md5(prosrc)='1d98b1a9716638553f2c2fbd2e302839') then
   raise exception 'Installed carryover function differs; stop before pause.';
  end if;
 end $guard$;
@@ -27,7 +27,12 @@ begin
    if x->>'daily_tracking' is distinct from tracking then raise exception 'Daily record category changed. Reload before saving.'; end if;
    if tracking='food_carryover' then
     if not coalesce((x->>'carryover_wastage_entry')::boolean,false) then
-     raise exception 'Reload the updated Daily form before saving next-day products.';
+     if nullif(x->>'usage_qty','')::numeric is distinct from l.usage_qty then
+      raise exception 'Reload the updated Daily form: historical Usage is read only.';
+     end if;
+     -- Old forms cannot edit the new waste fields or erase existing notes.
+     x:=x||jsonb_build_object('wastage_qty',coalesce(l.wastage_qty,0),'wastage_reason',l.wastage_reason,
+       'wastage_provided',coalesce(l.carryover_wastage_provided,false),'notes',l.notes);
     end if;
     -- Historical Usage is immutable, including an explicit zero or NULL.
     x:=x||jsonb_build_object('usage_qty',l.usage_qty);

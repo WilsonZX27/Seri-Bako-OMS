@@ -24,6 +24,7 @@ const one='00000000-0000-0000-0000-000000000001',two='00000000-0000-0000-0000-00
 const input={product_id:one,daily_tracking:'food_carryover',carryover_wastage_entry:true,wastage_qty:2,wastage_reason:'damaged',wastage_provided:true,morning_received_provided:true,usage_qty:999,notes:'retain note'};
 const save=async(payload,status='draft')=>db.query(`select save_outlet_daily_record_before_saleable_stock('00000000-0000-0000-0000-000000000010','00000000-0000-0000-0000-000000000020','2026-11-02',null,$1::jsonb,$2)`,[JSON.stringify([payload]),status]);
 await save(input,'evening_completed');eq(await read(one),{usage_qty:'5',wastage_qty:'2',wastage_reason:'damaged',carryover_wastage_provided:true,notes:'retain note'});
+await save({...input,carryover_wastage_entry:false,usage_qty:5,wastage_qty:0,wastage_reason:null,notes:''});eq((await read(one)).wastage_qty,'2');eq((await read(one)).notes,'retain note');
 await save({...input,product_id:two,usage_qty:null});eq((await read(two)).usage_qty,null);
 await save({...input,wastage_qty:0,wastage_reason:null});eq((await read(one)).wastage_qty,'0');eq((await read(one)).carryover_wastage_provided,true);
 await save({...input,wastage_qty:0,wastage_reason:null,wastage_provided:false});eq((await read(one)).carryover_wastage_provided,false);

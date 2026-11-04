@@ -48,3 +48,5 @@ ODR Settings summary2026-11-04: display the saved active channel names and withi
 Asset Transfer format confirmed2026-11-04: AT-001, company-scoped persistent allocation for new transfers, no historical backfill or real activation implied. [Decision and verification](../v10/proposals/asset-transfer-at-format-20261104.md).
 ## RO / OT failure feedback — 2026-11-04 local correction
 RO decisions and OT claims must distinguish business conflicts (409), permission refusal (403), and service unavailability (503); never classify failures using fragments of displayed prose or expose SQL details. Existing approval eligibility/state rules remain authoritative and unchanged. [Local route evidence and remaining incident gap](../../handoff/people-ro-ot-20261104/REPORT.md).
+
+Planning saved-draft repair (2026-11-04): Add missing products is append-only and preserves existing product/allocation rows and state; new quantities remain unknown. Only current company/kitchen/date/explicit-menu eligible products are added; no forecast/batch membership gate. Existing recalculation is unchanged. See [local implementation and verification](../qa/planning-append-missing-20261104.md).

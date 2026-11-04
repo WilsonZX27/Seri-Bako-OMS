@@ -51,6 +51,16 @@ export async function changePlan(planId: string, revision: number, action: strin
     return action==="approve"?{...result,message:"Plan approved. Kitchen can view the released plan in OMS."}:result;
   });
 }
+/** Append eligible missing products with unknown quantities; never recalculate existing rows. */
+export async function appendMissingPlanProducts(planId: string, revision: number, key: string) {
+  return run(async () => {
+    const {db}=await manager(); uuid.parse(planId); uuid.parse(key); z.number().int().positive().parse(revision);
+    const result=await rpc(db,"append_missing_production_plan_products",{p_plan_id:planId,p_revision:revision,p_key:key}) as {id:string;added_products:number};
+    return {id:result.id,message:result.added_products>0
+      ? `Added ${result.added_products} missing products with blank quantities. Existing inputs are unchanged.`
+      : "No missing products. Existing inputs are unchanged."};
+  });
+}
 export async function confirmDispatch(planId: string, revision: number, payload: unknown, key: string) {
   return run(async () => { const {db}=await manager(); uuid.parse(planId); uuid.parse(key); z.number().int().positive().parse(revision);
     const parsed=z.object({destinations:z.array(destination).min(1).max(100),production:z.array(z.object({product_id:uuid,actual_qty:quantity,reason})).min(1).max(500)}).parse(payload);

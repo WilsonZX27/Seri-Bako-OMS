@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { WorkspaceGrid } from "@/components/layout/workspace-layout";
 import { ConsoleSection } from "@/components/layout/right-console";
 import type { Plan, PlanningBranch, PlanningProduct, PlanningConfig, DeliveryOrder, Allocation, PlanningEvent } from "@/lib/production-planning/types";
-import { generatePlan, changePlan, confirmDispatch, type PlanningActionResult } from "@/server/actions/production-planning";
+import { generatePlan, changePlan, appendMissingPlanProducts, confirmDispatch, type PlanningActionResult } from "@/server/actions/production-planning";
 import { PlanningEvidence } from "@/components/production-planning-evidence";
 import { PlanningEvents } from "@/components/production-planning-events";
 import { PlanningSetup } from "@/components/production-planning-setup";
@@ -85,6 +85,13 @@ export function ProductionPlanningWorkspace(props:Props) {
  },[dirty]);
  // Reuse the request key after an uncertain response, but never for different inputs.
  const saveAttempt=useRef<{signature:string;key:string}|null>(null);
+ const appendAttempt=useRef<{signature:string;key:string}|null>(null);
+ const appendMissing=()=>{
+  if(!plan)throw new Error("No plan selected.");
+  const signature=`${plan.id}:${plan.revision}`;
+  if(appendAttempt.current?.signature!==signature)appendAttempt.current={signature,key:crypto.randomUUID()};
+  return appendMissingPlanProducts(plan.id,plan.revision,appendAttempt.current.key);
+ };
  const saveCurrent=()=>{
   if(!plan)throw new Error("No plan selected.");
   const payload={allocations,product_lines:production};
@@ -119,7 +126,7 @@ export function ProductionPlanningWorkspace(props:Props) {
  const rail=<div className="sb-planning-actions space-y-3">
   <ConsoleSection title="Actions"><div className="grid gap-2">{view!=="plan"?canManage?<Button data-mobile-primary-action form={view==="settings"?"production-planning-config":"production-planning-event"} type="submit" disabled={setupPending}><Check aria-hidden="true"/>{setupPending?"Saving…":view==="settings"?"Save settings":"Confirm event"}</Button>:null:<>
    {!plan&&canManage?<Button disabled={pending||!kitchenId} onClick={()=>execute(()=>generatePlan(kitchenId,date))}><Plus aria-hidden="true"/>{pending?"Generating…":"Generate draft"}</Button>:null}
-   {working?<><Button data-mobile-primary-action disabled={pending||!dirty||draftConflict} onClick={()=>execute(saveCurrent,true)}><Save aria-hidden="true"/>Save changes</Button><Button variant="outline" disabled={pending||dirty} onClick={()=>execute(()=>changePlan(plan.id,plan.revision,"recalculate",{},crypto.randomUUID()))}><RefreshCw aria-hidden="true"/>Recalculate suggestions</Button><Button disabled={pending||dirty||gaps>0} onClick={()=>setDialog("review")}><Send aria-hidden="true"/>Preview & submit</Button>{dirty?<p className="text-xs text-muted-foreground">Save changes before recalculating or submitting.</p>:gaps>0?<p className="text-xs text-muted-foreground">Complete the Plan checks before submitting.</p>:null}</>:null}
+   {working?<><Button data-mobile-primary-action disabled={pending||!dirty||draftConflict} onClick={()=>execute(saveCurrent,true)}><Save aria-hidden="true"/>Save changes</Button><Button variant="outline" disabled={pending||dirty||!recoveryReady||!!unrestoredDraft} onClick={()=>execute(appendMissing)}>Add missing products</Button><Button variant="outline" disabled={pending||dirty} onClick={()=>execute(()=>changePlan(plan.id,plan.revision,"recalculate",{},crypto.randomUUID()))}><RefreshCw aria-hidden="true"/>Recalculate suggestions</Button><Button disabled={pending||dirty||gaps>0} onClick={()=>setDialog("review")}><Send aria-hidden="true"/>Preview & submit</Button>{dirty?<p className="text-xs text-muted-foreground">Save changes before recalculating or submitting.</p>:gaps>0?<p className="text-xs text-muted-foreground">Complete the Plan checks before submitting.</p>:null}</>:null}
    {plan?.status==="submitted"&&canManage?<><Button disabled={pending} onClick={()=>setDialog("review")}><Check aria-hidden="true"/>Review & release</Button><Input aria-label="Return reason" placeholder="Reason to return to draft" value={returnReason} onChange={(e)=>setReturnReason(e.target.value)}/><Button variant="outline" disabled={pending||!returnReason.trim()} onClick={()=>execute(()=>changePlan(plan.id,plan.revision,"return",{reason:returnReason},crypto.randomUUID()))}><Undo2 aria-hidden="true"/>Return to draft</Button></>:null}
    {plan?.status==="approved"&&canManage?<><Button disabled={pending} onClick={()=>setDialog("dispatch")}><Truck aria-hidden="true"/>Confirm actual dispatch</Button><Button variant="outline" disabled={pending||plans.some((p)=>["draft","submitted"].includes(p.status))} onClick={()=>execute(()=>changePlan(plan.id,plan.revision,"revise",{},crypto.randomUUID()))}><GitBranch aria-hidden="true"/>Create revised version</Button></>:null}
    {plan?<Button variant="outline" disabled={exporting} onClick={()=>void downloadSheet()}><Printer aria-hidden="true"/>{exporting?"Preparing PDF…":"Download production sheet"}</Button>:null}

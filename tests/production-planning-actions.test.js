@@ -9,7 +9,7 @@ const outlet = '10000000-0000-4000-8000-000000000003';
 const key = '10000000-0000-4000-8000-000000000004';
 function fixture({role = 'manager', rpcError = null, mail = {unavailable: true}, readDb=null} = {}) {
  const calls = [], invalidations = [];
- const db = {rpc: async (name, args) => { calls.push({name, args}); return {data: name === 'update_production_plan' ? {id: kitchen} : kitchen, error: rpcError}; }};
+ const db = {rpc: async (name, args) => { calls.push({name, args}); return {data: name === 'append_missing_production_plan_products' ? {id:kitchen,added_products:28} : name === 'update_production_plan' ? {id: kitchen} : kitchen, error: rpcError}; }};
  const shared = {
   'next/navigation': {redirect() {}},
   'next/dist/client/components/redirect-error': {isRedirectError: () => false},
@@ -103,3 +103,18 @@ test('history preview scopes the parent company, outlets, product and dates with
 });
 
 test('outlet staff cannot request minimum estimates or read planning history through setup',async()=>{const f=fixture({role:'outlet_staff'});const result=await f.actions.estimatePlanningMinimums(kitchen,'2026-10-13');assert.equal(result.ok,false);assert.ok(result.message.length>0);assert.equal(f.calls.length,0);});
+
+test('append-only action passes only locked identity/revision/key, never forecasts or quantities',async()=>{
+ const f=fixture();const result=await f.actions.appendMissingPlanProducts(kitchen,3,key);
+ assert.equal(result.ok,true);assert.match(result.message,/28 missing products with blank quantities/);
+ assert.equal(f.calls.length,1);assert.equal(f.calls[0].name,'append_missing_production_plan_products');
+ assert.deepEqual(JSON.parse(JSON.stringify(f.calls[0].args)),{p_plan_id:kitchen,p_revision:3,p_key:key});
+});
+test('append-only action rejects roles and invalid revision/keys before RPC',async()=>{
+ for(const role of ['staff','kitchen']){const f=fixture({role});assert.equal((await f.actions.appendMissingPlanProducts(kitchen,1,key)).ok,false);assert.equal(f.calls.length,0);}
+ for(const [revision,requestKey] of [[0,key],[1,'invalid']]){const f=fixture();assert.equal((await f.actions.appendMissingPlanProducts(kitchen,revision,requestKey)).ok,false);assert.equal(f.calls.length,0);}
+});
+test('append-only failure does not invalidate or report successful recovery',async()=>{
+ const f=fixture({rpcError:{message:'Plan changed. Reload before adding products.'}});
+ assert.equal((await f.actions.appendMissingPlanProducts(kitchen,1,key)).ok,false);assert.equal(f.invalidations.length,0);
+});

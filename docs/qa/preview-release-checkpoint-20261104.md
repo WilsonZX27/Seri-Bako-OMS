@@ -1,0 +1,9 @@
+# Preview release checkpoint2026-11-04
+
+Candidate f30b15eccd4bde68f254e066254c3b35a7747e2d pushed to codex/followup-integration-20261104;41 targeted tests and full build passed. Latest known Production baseline5fc88063c2d81f0b0ad68d560b69002f49789422 is historical evidence, not current live deployment verification. Diff117 files,+2552/-177, including source, tests, documents and SQL artifacts.
+
+Scope: session-local idle logout; planning append missing without rewriting existing inputs; AT numbering candidate; RO/OT error classification and self-review explanation; seasonal availability/history and receipt summaries; next-day Wastage/history-preserving save compatibility; shared surface timing; procurement/stock technical tables; Low Stock and Stock Count UI; asset import entry and schedule import result visibility. SQL artifacts in Git are not automatically installed. Summary and carryover installers have separate recorded installation evidence; AT activation must not be inferred from this push. Preserve dedicated pause/rollback rules instead of restoring the old carryover normalizer.
+
+New bounded read-only attempt: navigating existing fixed Preview alias to purchase-orders returned the login page; no PO/GR data was read this pass. Same tab retained for login. No inference about cause of session expiry or other browsers. Earlier authenticated readonly results remain documented in module records.
+
+Remaining: new f30 deployment READY unverified through previously403-blocked Vercel access; current live Production SHA not reverified; original workbook/week matching; actual Low Stock populated row; intermittent black blur; live save/import/post intentionally not exercised. Latest asset-entry/result-footer/KG-copy changes require new deployment acceptance. No Production release, bypass, or business writes.

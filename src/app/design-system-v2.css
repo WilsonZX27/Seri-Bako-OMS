@@ -2188,19 +2188,19 @@ html[data-design-layer="v2"] table[data-ui-table] > thead > tr > th {
   }
 
   html[data-design-layer="v2"] .sb-outlet-daily-table {
-    min-width: 50rem;
+    min-width: 0;
     table-layout: fixed;
   }
 
-  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(1) { width: 2.5rem; }
-  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(2) { width: 5rem; }
-  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(3) { width: 7.5rem; }
-  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(4) { width: 6.75rem; }
-  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(5) { width: 8rem; }
-  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(6) { width: 5rem; }
-  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(7) { width: 5.5rem; }
-  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(8) { width: 6rem; }
-  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(9) { width: 7rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(1) { width: 6%; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(2) { width: 12%; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(3) { width: 17%; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(4) { width: 8%; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(5) { width: 16%; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(6) { width: 9%; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(7) { width: 10%; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(8) { width: 9%; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table:has(th:nth-child(9)) :is(th, td):nth-child(9) { width: 13%; }
 
   html[data-design-layer="v2"] .sb-outlet-daily-table:not(:has(th:nth-child(9))) :is(th, td):nth-child(1) { width: 2.5rem; }
   html[data-design-layer="v2"] .sb-outlet-daily-table:not(:has(th:nth-child(9))) :is(th, td):nth-child(2) { width: 5.5rem; }
@@ -3311,10 +3311,10 @@ html[data-design-layer="v2"] .sb-repair-summary { grid-template-columns: minmax(
   }
 }
 
-/* A shared four-column measure keeps three- and four-field groups aligned. */
+/* Shared 72px quantity tracks keep three- and four-field groups aligned. */
 .sb-daily-line-head,
 .sb-daily-product-line {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 4.5rem));
 }
 .sb-daily-product-line input[type="number"] {
   width: 100%;
@@ -3325,7 +3325,7 @@ html[data-design-layer="v2"] .sb-repair-summary { grid-template-columns: minmax(
 @media (min-width: 1280px) {
   .sb-daily-line-head,
   .sb-daily-product-line {
-    grid-template-columns: minmax(180px, 2fr) repeat(4, minmax(72px, 1fr));
+    grid-template-columns: minmax(180px, 1fr) repeat(4, 4.5rem);
   }
   .sb-daily-line-three {
     grid-template-columns: minmax(160px, 1.4fr) repeat(3, 4.5rem) minmax(13rem, 2fr);
@@ -3438,3 +3438,12 @@ html[data-design-layer="v2"] .sb-mark-updates-read { padding: 0; border: 0; back
 @media(min-width:768px) and (max-width:1279px) {
   html[data-design-layer="v2"] form.sb-outlet-daily-filters .unified-list-row { grid-template-columns: minmax(0,14rem) minmax(0,14rem) auto minmax(max-content,1fr) !important; }
 }
+
+/* Keep nine Daily columns readable in the narrower desktop canvas. */
+@media (min-width: 1280px) and (max-width: 1439px) {
+  html[data-design-layer="v2"] .sb-outlet-daily-table :is(th, td) { padding-inline: .25rem; }
+  html[data-design-layer="v2"] .sb-outlet-daily-table th { white-space: normal; }
+
+}
+
+html[data-design-layer="v2"] .sb-outlet-daily-table td:nth-last-child(2) { overflow-wrap: anywhere; }

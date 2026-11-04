@@ -11,10 +11,10 @@ test('Daily carryover guidance belongs once to its group and each input referenc
  assert.match(form,/max="1000000" step="0.01" value=\{saleable\}/);
  assert.match(form,/disabled=\{locked \|\| !canEditOutletValues\}/);
 });
-test('Daily quantities share fluid four tracks and carryover does not wrap its fourth input',()=>{
+test('Daily quantities share fixed 72px four tracks and carryover does not wrap its fourth input',()=>{
  let tracks=false,width=false,height=false;
  css.walkRules(r=>r.walkDecls(d=>{
- if(r.selector==='.sb-daily-line-head,\n.sb-daily-product-line'&&r.parent.type==='root'&&d.prop==='grid-template-columns')tracks=d.value==='repeat(4, minmax(0, 1fr))';
+ if(r.selector==='.sb-daily-line-head,\n.sb-daily-product-line'&&r.parent.type==='root'&&d.prop==='grid-template-columns')tracks=d.value==='repeat(4, minmax(0, 4.5rem))';
  if(r.selector==='.sb-daily-product-line input[type="number"]'){if(d.prop==='width')width=d.value==='100%';if(d.prop==='min-height')height=d.value==='var(--sb-control-height)';}
  }));assert.ok(tracks);assert.ok(width);assert.ok(height);
  assert.match(form,/tracking === "food_carryover" \? <label className="min-w-0"/);
@@ -45,7 +45,7 @@ test('phone date styles target the visible DateInput wrapper rather than transpa
 test('Daily list uses actual last updater and bounded centered table content',()=>{
  assert.match(page,/<dt>Last updated by<\/dt>/);
  assert.match(page,/title=\{row.updated_by_name \?\? "Not recorded"\}/);
- assert.match(page,/line-clamp-2 break-words/);
+ assert.match(page,/<span className="break-words" title=\{row.branch_name\}/);
  assert.match(page,/flex justify-center text-center/);
 });
 
@@ -60,4 +60,25 @@ test('three-field quantity boxes and headings stay on the left grid tracks',()=>
   if(!/sb-daily-(product-line|line-head)/.test(rule.selector))return;
   rule.walkDecls('translate',decl=>assert.match(decl.value,/^(none|0(?:px)?(?: 0(?:px)?)?)$/,'Quantity boxes must not be shifted away from the product left edge'));
  });
+});
+
+
+test('Daily desktop columns fit the canvas without clipping long outlet identities',()=>{
+ let minWidth, widths=[];css.walkRules(rule=>{
+  if(rule.parent.params!=='(min-width: 1280px)')return;
+  if(rule.selector==='html[data-design-layer="v2"] .sb-outlet-daily-table')rule.walkDecls('min-width',d=>minWidth=d.value);
+  if(/sb-outlet-daily-table:has\(th:nth-child\(9\)\)/.test(rule.selector))rule.walkDecls('width',d=>widths.push(d.value));
+ });
+ assert.equal(minWidth,'0');assert.equal(widths.length,9);assert.equal(widths.reduce((sum,v)=>sum+parseFloat(v),0),100);assert.ok(widths.every(v=>v.endsWith('%')));
+ assert.doesNotMatch(page,/line-clamp-2|className="min-w-0 truncate" title=\{row.branch_name\}/);
+});
+
+test('shared checklist location rows retain complete names and date-scoped links',()=>{
+ const {compile,React,renderToStaticMarkup}=require('./helpers/render-workspaces.cjs');
+ const load=require('./helpers/load-source.cjs')();
+ const {AssetDailyCheckLocations}=compile('src/components/asset-workspace-lists.tsx',{'@/lib/asset-quantity-display':load('src/lib/asset-quantity-display.ts'),'@/components/ui/badge':compile('src/components/ui/badge.tsx'),'@/components/ui/table':{}});
+ const name='Kwan Kee Store @ Sunway Pyramid';
+ const html=renderToStaticMarkup(React.createElement(AssetDailyCheckLocations,{date:'2026-11-04',locations:[{id:'location',name,open:true,expected:35,checked:0,submitted:false}]}));
+ assert.match(html,/<strong class="[^"]*break-words[^"]*">Kwan Kee Store @ Sunway Pyramid<\/strong>/);
+ assert.doesNotMatch(html,/<strong[^>]*truncate/);assert.ok(html.includes('check=1&amp;date=2026-11-04'));assert.ok(html.includes('Not started'));
 });

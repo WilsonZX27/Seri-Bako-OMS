@@ -81,3 +81,7 @@ Before accepting an annotated fix, ask:
 ## New21 follow-up — 2026-11-02
 
 Latest user #1 supersedes historical alternating white/green row guidance: remove decorative zebra only; retain semantic status, warning and selection color. Checklist #16 desktop panels follow the location panel height, with a readable minimum and separately scrolling inspection body; smaller stacked layouts keep their own bounds. Stores #18 uses compact desktop quantity alongside reason, while tablet and phone retain readable responsive columns. Source, decisions and evidence: [new21 assets follow-up](qa/new21-assets-followup-20261102.md). No business-rule change; real Preview acceptance remains separate.
+
+## Authenticated page audit follow-up — 2026-11-04
+
+Daily desktop columns fit the actual central canvas; preserve the existing desktop table and compact breakpoint. Restore annotated72px quantity tracks while retaining existing touch heights and money-input geometry. Long Daily outlet and Asset checklist location names wrap so similarly prefixed locations remain distinguishable on touch screens. This supersedes two-line/ellipsis identification for these location rows only; updater compact summaries still retain their own contract. Source, tests and environment limits: [page audit correction](qa/page-audit-followup-20261104.md). No business-rule change or deployment.

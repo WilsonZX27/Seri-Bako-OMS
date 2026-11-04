@@ -105,3 +105,7 @@ Stock Balance proportional columns supersede its historical70rem minimum and9rem
 ## 2026-11-04 — technical table follow-up from Preview f2b2dc2
 
 Supersedes the historical Movement Ledger72rem/nth-child fixed tracks for this caller only. GR detail, Stock Card, Movement Ledger and Recipes retain every field with bounded percentage tracks, wrapped headings and visible narrow-canvas scrollbars. Ordinary desktop widths770/810px must expose the rightmost fields; long values wrap instead of being dropped. Phone operational rows and business/query/permission semantics remain unchanged. UOM description states only current management capability and removes speculative future receiving copy. Evidence and acceptance limits: [technical tables QA](qa/technical-table-followup-20261104.md). Historical annotation IDs and prior evidence remain intact.
+
+## 2026-11-04 — shared surface timing follow-up
+
+Viewport-specific filter layout, dialog/sheet positioning and background scroll lock, and RightConsoleMount ownership registration/cleanup must settle in React's layout phase before client-navigation/open paints. Preserve identical SSR/first hydration trees; do not read viewport in initial render. Keep focus containment, Escape and focus restoration. This supersedes post-paint timing in those shared owners only; no backdrop color/blur redesign. Source/lifecycle checks and the expired-Preview blocker are documented in [timing QA](qa/shared-surface-timing-20261104.md); the reported visual glitch still requires authenticated reproduction and changed-Preview acceptance.

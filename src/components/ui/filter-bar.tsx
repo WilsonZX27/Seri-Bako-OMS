@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { CSSProperties, MouseEvent, ReactNode, FormEventHandler } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { containDialogTab, focusDialog } from "@/lib/dialog-focus";
@@ -93,7 +93,7 @@ export function FilterBarMore({
     return () => document.removeEventListener("sb:close-filter-more", closeForSelect);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return;
     positionPanel();
     const panel = panelRef.current;

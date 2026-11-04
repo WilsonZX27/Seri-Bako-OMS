@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode, RefObject } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
@@ -30,7 +30,8 @@ export function ModalShell({
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
 
-  useEffect(() => {
+  // Apply focus and scroll geometry before the backdrop's first paint.
+  useLayoutEffect(() => {
     if (!open || !hydrated) return;
     const previousOverflow = document.body.style.overflow;
     const trigger = triggerRef?.current ?? (dialogRef.current?.contains(document.activeElement)

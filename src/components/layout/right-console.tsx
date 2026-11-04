@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { createPortal } from "react-dom";
 import { Ellipsis, PanelRight, Plus, X } from "lucide-react";
-import { Children, cloneElement, createContext, isValidElement, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
+import { Children, cloneElement, createContext, isValidElement, useContext, useEffect, useLayoutEffect, useId, useMemo, useRef, useState } from "react";
 import type { MouseEvent, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -106,7 +106,7 @@ export function RightConsoleProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return;
     const tablet = window.matchMedia("(min-width: 768px)");
     const closeHiddenSheet = () => { if (tablet.matches) setOpen(false); };
@@ -241,11 +241,12 @@ export function RightConsoleMount({ children, hideMobileBar = false, hideDesktop
   const context = useContext(RightConsoleContext);
   const owner = useRef(Symbol("right-console-mount")).current;
 
-  useEffect(() => {
+  // A route handoff must not paint a placeholder between its canvas and rail.
+  useLayoutEffect(() => {
     context?.setContent(owner, children, hideMobileBar, hideDesktopConsole, mobileConsoleLabel);
   }, [children, context, hideMobileBar, hideDesktopConsole, mobileConsoleLabel, owner]);
 
-  useEffect(() => () => context?.clearContent(owner), [context, owner]);
+  useLayoutEffect(() => () => context?.clearContent(owner), [context, owner]);
 
   return null;
 }

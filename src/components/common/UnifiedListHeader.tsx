@@ -7,6 +7,7 @@ import {
   cloneElement,
   isValidElement,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -189,7 +190,7 @@ function SearchControl({ child, value, onChange, shared = false }: { child: Reac
 
 export function UnifiedListHeader({ children, actions, onSubmit, resultCount, resultLabel, resetHref, filtered = false, activeCount = 0, className, phoneOnly = false, phoneMode = "drawer", tabletMode = "drawer", phonePrimary = "inline", compactPinnedFields = [], inlineFieldsShareQueryTracks = false, stableResponsive = false, showFilterLabel = false, autoSubmit = true, compactAutoSubmit = false }: HeaderProps) {
   // The first client render must match SSR exactly. Viewport detection belongs
-  // in the effect below; reading matchMedia in the state initializer rendered
+  // in the layout effect below; reading matchMedia in the state initializer rendered
   // different desktop/mobile trees and caused hydration recovery on every
   // phone-sized list route.
   const [mobile, setMobile] = useState(phoneOnly);
@@ -199,7 +200,7 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
   const mobileFormRef = useRef<HTMLFormElement>(null);
   const filterTriggerRef = useRef<HTMLButtonElement>(null);
   const filterDialogRef = useRef<HTMLFormElement>(null);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (phoneOnly) return;
     const query = window.matchMedia("(max-width: 1279px)");
     const tabletQuery = window.matchMedia("(min-width: 640px) and (max-width: 1279px)");
@@ -215,7 +216,7 @@ export function UnifiedListHeader({ children, actions, onSubmit, resultCount, re
     return () => { query.removeEventListener("change", sync); tabletQuery.removeEventListener("change", syncTablet); };
   }, [phoneOnly]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return;
 
     const previousOverflow = document.body.style.overflow;

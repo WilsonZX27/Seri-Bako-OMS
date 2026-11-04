@@ -66,3 +66,6 @@ User confirmed on 2026-11-04: Next-day food stops future Usage entry; historical
 RO self-review controls retain their existing disabled state. When the current actor submitted a pending correction, show the reason as visible row text and associate it with both buttons; do not rely on hover-only tooltips. This also applies to the attendance callers of ActualAttendancePanel. The reported Preview row’s submitter identity remains unverified. See [annotation1 checkpoint](../../handoff/people-ro-ot-20261104/ANNOTATION-1-CHECKPOINT.md).
 
 Asset registration Import from Excel is a shared secondary button-style link, visible above the form on phones; preserve Owner/assets.manage restrictions. No change to import processing. [2026-11-04 decision and evidence](../qa/asset-register-import-entry-20261104.md).
+
+### Schedule workbook import result visibility
+The existing import result belongs in the non-scrolling dialog footer above actions. Keep actual saved counts, draft/publication wording, partial failures and unresolved source warnings intact. Long review content scrolls independently; the result must not cover controls on mobile or desktop. See [evidence](../../handoff/schedule-import-result-20261104/REPORT.md).

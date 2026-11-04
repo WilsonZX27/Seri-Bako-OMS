@@ -1,6 +1,6 @@
 """Execute repository asset migrations/full transfer RPCs in a new synthetic local DB."""
-import concurrent.futures,hashlib,json,pathlib,subprocess,time,uuid
-container='oms-asset-link-local-20261030';db='at_full_'+uuid.uuid4().hex[:10];out=pathlib.Path('handoff/transfer-number');out.mkdir(exist_ok=True,parents=True)
+import os,concurrent.futures,hashlib,json,pathlib,subprocess,time,uuid
+container=os.environ.get('AT_TEST_CONTAINER','oms-asset-link-local-20261030');db='at_full_'+uuid.uuid4().hex[:10];out=pathlib.Path('handoff/transfer-number');out.mkdir(exist_ok=True,parents=True)
 base=['docker','exec','-i',container,'psql','-XqAt','-v','ON_ERROR_STOP=1','-U','postgres','-d',db]
 def run(s,ok=True):
  p=subprocess.run(base,input=s,text=True,capture_output=True)
@@ -42,7 +42,29 @@ disabled=run(session()+single());assert run(f"select count(*) from asset_transfe
 run(f"update document_sequences set status='active' where company_id='{id(1)}'")
 not_activated=run(session()+single(reason='Active sequence but no activation'))
 assert run(f"select count(*) from asset_transfer_numbers where document_id='{not_activated}'")=='0'
-run(f"insert into asset_transfer_numbering_activation(company_id,enabled) values('{id(1)}',true),('{id(2)}',true)")
+activation_path=pathlib.Path('sql-candidates/asset_transfer_AT001.ACTIVATION-CANDIDATE.sql')
+activation=activation_path.read_text();hashes[str(activation_path)]=hashlib.sha256(activation_path.read_bytes()).hexdigest()
+def activate(company,ok=True):return run("\\set target_company "+company+"\n"+activation,ok)
+legacy_snapshot=run("select jsonb_agg(to_jsonb(t) order by id)::text from asset_transfers t")
+activate(id(999),False)
+run(f"update document_sequences set prefix='AST' where company_id='{id(2)}'")
+activate(id(2),False)
+assert run('select count(*) from asset_transfer_numbering_activation')=='0'
+run(f"update document_sequences set prefix='AT',padding=5 where company_id='{id(2)}'")
+activate(id(2),False)
+run(f"update document_sequences set padding=3,reset_frequency='yearly' where company_id='{id(2)}'")
+activate(id(2),False)
+run(f"update document_sequences set reset_frequency='never',deleted_at=now() where company_id='{id(2)}'")
+activate(id(2),False)
+run(f"update document_sequences set deleted_at=null where company_id='{id(2)}';insert into document_sequence_periods(company_id,document_type,period_start,next_number) values('{id(2)}','asset_transfer','2026-01-01',8)")
+activate(id(2),False)
+assert run('select count(*) from asset_transfer_numbering_activation')=='0'
+run(f"delete from document_sequence_periods where company_id='{id(2)}';delete from document_sequences where company_id='{id(2)}'")
+activate(id(1));activate(id(2))
+assert run(f"select prefix||':'||padding||':'||reset_frequency from document_sequences where company_id='{id(2)}'")=='AT:3:never'
+assert run("select jsonb_agg(to_jsonb(t) order by id)::text from asset_transfers t")==legacy_snapshot
+assert run('select count(*) from asset_transfer_numbers')=='0'
+
 # Complete single idempotence: same request key returns same UUID and number; changed payload denied.
 key=str(uuid.uuid4());s=run(session()+single(key));n=run(f"select document_no from asset_transfer_numbers where document_id='{s}'");assert n=='AT-001';assert run(session()+single(key))==s;assert run(f"select document_no from asset_transfer_numbers where document_id='{s}'")==n
 run(session()+single(key,qty=2),False)
@@ -97,9 +119,14 @@ assert run("select has_table_privilege('authenticated','asset_transfer_numbers',
 assert run("select has_table_privilege('service_role','asset_transfer_numbers','SELECT') and not has_table_privilege('service_role','asset_transfer_numbers','INSERT,UPDATE,DELETE')")=='t'
 assert run("select has_function_privilege('authenticated','get_asset_transfer_numbers(uuid[])','EXECUTE') and not has_function_privilege('anon','get_asset_transfer_numbers(uuid[])','EXECUTE') and not has_function_privilege('service_role','get_asset_transfer_numbers(uuid[])','EXECUTE')")=='t'
 assert run("select count(*) from pg_trigger where tgname in ('assign_asset_transfer_number','assign_asset_transfer_batch_number') and tgdeferrable and tginitdeferred")=='2'
+# Reapplying activation never rewinds counters, renumbers history or changes transfers.
+snapshot=run("select jsonb_build_object('numbers',(select jsonb_agg(n order by document_id) from asset_transfer_numbers n),'transfers',(select jsonb_agg(t order by id) from asset_transfers t),'periods',(select jsonb_agg(p order by company_id,document_type,period_start) from document_sequence_periods p),'next',(select jsonb_agg(next_number order by company_id) from document_sequences))::text")
+activate(id(1))
+assert run("select jsonb_build_object('numbers',(select jsonb_agg(n order by document_id) from asset_transfer_numbers n),'transfers',(select jsonb_agg(t order by id) from asset_transfers t),'periods',(select jsonb_agg(p order by company_id,document_type,period_start) from document_sequence_periods p),'next',(select jsonb_agg(next_number order by company_id) from document_sequences))::text")==snapshot
+assert run("select bool_and(document_no ~ '^AT-[0-9]{3,}$') from asset_transfer_numbers")=='t'
 # Rollback is deactivation, retains history/numbers/counters and old RPC callers keep working.
 ledger=run('select count(*) from asset_transfer_numbers');history=run('select count(*) from asset_transfer_updates');run(f"update asset_transfer_numbering_activation set enabled=false where company_id='{id(1)}'")
 oldapp=run(session()+single(reason='Old app after deactivation'));assert run('select count(*) from asset_transfer_numbers')==ledger;assert run('select count(*) from asset_transfer_updates')==history;assert run(f"select count(*) from asset_transfers where id='{oldapp}'")=='1'
-checks=['default gate disabled even with active sequence','no historical backfill','single idempotency/payload mismatch','batch idempotency/payload mismatch','one number per multi-line batch','reject preserves history/number; cancel unsupported','batch then single same transaction','advance batch then single same transaction','approve/dispatch/receive quantity conservation','duplicate receipt denied','company/permission/unassigned source denied','failed batch atomic rollback','explicit outer rollback leaves no transfer/number/counter change','12 concurrent full single RPCs','6 concurrent same-key batch RPCs','single+batch lock ordering','RLS number/source/UUID search stable','deactivation keeps ledger/history and legacy RPC usable','explicit read-only auth/service ACL and auth-only read RPC','two initially-deferred constraint triggers']
+checks=['confirmed AT activation creates missing config; rejects unknown company, prefix, padding, reset, deleted config and periodic counters','activation replay preserves counters and all transfers/numbers','all issued numbers match AT minimum-three-digit format','default gate disabled even with active sequence','no historical backfill','single idempotency/payload mismatch','batch idempotency/payload mismatch','one number per multi-line batch','reject preserves history/number; cancel unsupported','batch then single same transaction','advance batch then single same transaction','approve/dispatch/receive quantity conservation','duplicate receipt denied','company/permission/unassigned source denied','failed batch atomic rollback','explicit outer rollback leaves no transfer/number/counter change','12 concurrent full single RPCs','6 concurrent same-key batch RPCs','single+batch lock ordering','RLS number/source/UUID search stable','deactivation keeps ledger/history and legacy RPC usable','explicit read-only auth/service ACL and auth-only read RPC','two initially-deferred constraint triggers']
 result={'passed':True,'database':db,'checks':checks,'source_hashes':hashes,'limits':['Repository337/339/357/376 plus reviewed batch proposal loaded verbatim; outer identity/catalog/permission helper fixtures, not real auth or production schema. No production connection.','No authenticated app browser, physical iPad or production-volume query-plan verification.']}
 (out/'full-rpc-results.json').write_text(json.dumps(result,indent=2));print(json.dumps(result))

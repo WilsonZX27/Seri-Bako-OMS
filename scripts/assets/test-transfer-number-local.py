@@ -1,6 +1,6 @@
 """Isolated PostgreSQL trigger/RLS/concurrency checks; synthetic schema/auth boundary only."""
-import concurrent.futures,json,pathlib,subprocess,uuid
-container='oms-asset-link-local-20261030'; db='at_number_'+uuid.uuid4().hex[:10]
+import os,concurrent.futures,json,pathlib,subprocess,uuid
+container=os.environ.get('AT_TEST_CONTAINER','oms-asset-link-local-20261030'); db='at_number_'+uuid.uuid4().hex[:10]
 out=pathlib.Path('handoff/transfer-number');out.mkdir(parents=True,exist_ok=True)
 def sql(s,ok=True):
  p=subprocess.run(['docker','exec','-i',container,'psql','-XqAt','-v','ON_ERROR_STOP=1','-U','postgres','-d',db],input=s,text=True,capture_output=True)

@@ -45,3 +45,4 @@ Planning empty states describe the viewer's visible workflow: non-managers are t
 Idle timeout is scoped to the current login session; it must not revoke other active logins. Same-origin activity coordination and the existing25/30-minute policy remain unchanged. Local regression and evidence boundary: [session isolation](../qa/session-timeout-isolation-20261103.md).
 
 ODR Settings summary2026-11-04: display the saved active channel names and within-section order using the existing tenant-scoped settings read; on failure show unavailable rather than canonical defaults. This is presentation of existing configuration, not new monetary mapping. [Source audit and evidence](../qa/odr-5fc-followup-20261104.md).
+Asset Transfer format confirmed2026-11-04: AT-001, company-scoped persistent allocation for new transfers, no historical backfill or real activation implied. [Decision and verification](../v10/proposals/asset-transfer-at-format-20261104.md).

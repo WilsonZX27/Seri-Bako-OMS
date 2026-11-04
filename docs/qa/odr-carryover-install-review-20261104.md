@@ -59,3 +59,15 @@ Current compatible tracking-function body MD5: `1d98b1a9716638553f2c2fbd2e302839
 ## Real concurrency completed
 
 The earlier missing-Docker/two-connection limitation is superseded by [real concurrency evidence](odr-carryover-concurrency-20261104.md): five real PostgreSQL two-connection scenarios passed, including checked and old direct RPCs, observed lock waits and rollback. Full candidate build passed. No installation/deployment performed; production RLS and browser acceptance remain distinct.
+
+## No-table installer revision after approval review rejection
+
+On2026-11-04 the live preflight matched the reviewed old body49714b7b99e0f96c28d8cfd66a2eda56, postgres owner, SECURITY DEFINER, search_path=public and postgres/service_role-only ACL; the new column was absent. Supabase warned about the temporary baseline table lacking RLS. Automatic approval review rejected Run without RLS; the warning was cancelled and no installation ran. User screenshot evidence had confirmed compatible Preview c8915d8 READY.
+
+The revised installer removes table creation entirely: counts and full-row digests are PL/pgSQL local variables inside one DO block, under the same ACCESS EXCLUSIVE lock. It changes no RLS policy/flag, grants, credentials, target, business function behavior or historical data. The installed function body remains1d98b1a9716638553f2c2fbd2e302839, so the existing pause script remains compatible. The3s lock and30s statement timeout and exact drift guard remain. Dynamic SQL is a fixed literal for the identical reviewed function definition, with no user input.
+
+New install SHA2564f8be3b88ad435b3024c4d852fc45eb20c3038ca217e7eb2b96b6df8e36dffcb supersedes the earlier a26df44 installer; pause SHA remains72a3760c87ddfc701e1c4b7a316c7250da08aecd59120c7807315434689932ba. This substantively eliminates the flagged table/RLS surface, not a renamed table or alternate execution channel.
+
+Local PGlite:19 wrapper assertions,28 full-chain assertions,13 installer assertions passed. Installer tests seed historical NULL/zero/nonzero, enable line-table RLS, verify ACL/RLS equality and all original row fields, and inject a data mutation to prove the invariant abort rolls back both data and added column. Six of13 installer assertions verify baseline function hashes. Existing real two-connection tests cover unchanged save-function behavior; the revised installer itself has not been rerun in real PostgreSQL or Production.
+
+Status: prepared locally, not installed. Existing conditional authorization covers the same additive field and function update, but any renewed platform warning or approval rejection must be respected and reviewed. No Run without RLS action will be retried.

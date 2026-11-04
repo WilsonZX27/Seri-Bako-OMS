@@ -1,0 +1,58 @@
+// Isolated fictional schema; actual save functions, fixture identity/permission helpers.
+const {PGlite}=require('@electric-sql/pglite');const fs=require('node:fs');const assert=require('node:assert/strict');
+(async()=>{const db=new PGlite();const root=process.argv[2];let checks=0;const eq=(a,b)=>{assert.deepEqual(a,b);checks++};const file=p=>fs.readFileSync(root+'/'+p,'utf8');
+const fn=(path,name)=>{const s=file(path),re=new RegExp('create (?:or replace )?function public\\.'+name+'\\(','i'),a=s.search(re);assert(a>=0,name);const end=s.indexOf('end $$;',a);assert(end>=0,name);return s.slice(a,end+7)};
+await db.exec(`
+create role anon;create role authenticated;create role service_role;
+create schema auth;create function auth.uid() returns uuid language sql as $$select nullif(current_setting('test.actor',true),'')::uuid$$;
+create type outlet_daily_record_status as enum('draft','morning_recorded','evening_completed','reviewed','void');
+create type outlet_daily_wastage_reason as enum('unsold','damaged','expired','quality_issue','staff_meal','other');
+create table staffs(id uuid primary key,auth_user_id uuid,company_id uuid,status text,deleted_at timestamptz);
+create table branches(id uuid primary key,company_id uuid,branch_type text,status text,deleted_at timestamptz);
+create table products(id uuid primary key,company_id uuid,product_name text,product_code text,category text,daily_tracking text,deleted_at timestamptz);
+create table branch_supply_routes(company_id uuid,source_branch_id uuid,destination_branch_id uuid,is_primary boolean,status text,effective_from date,effective_to date);
+create table outlet_daily_records(id uuid primary key default gen_random_uuid(),company_id uuid,branch_id uuid,source_branch_id uuid,record_date date,status outlet_daily_record_status,submitted_by uuid,notes text,created_by uuid,updated_by uuid,pos_total_sales numeric,sales_variance_reason text,sales_review_status text);
+create table outlet_daily_record_lines(id uuid default gen_random_uuid(),record_id uuid,product_id uuid,daily_tracking text,do_managed boolean default false,qty_sent numeric,qty_sent_estimated numeric,qty_sent_confirmed boolean,qty_sent_source text,morning_received_qty numeric,morning_received_provided boolean,evening_leftover_qty numeric,wastage_qty numeric,wastage_reason outlet_daily_wastage_reason,notes text,usage_qty numeric,sold_qty numeric,wastage_provided boolean default false,stockout boolean,stockout_time time,saleable_next_day_qty numeric,primary key(record_id,product_id));
+create table outlet_daily_sales_breakdowns(record_id uuid,channel text,amount numeric,unique(record_id,channel));
+create table outlet_sales_channel_settings_versions(company_id uuid,revision bigint,channels jsonb);
+create function current_staff_id() returns uuid language sql as $$select id from staffs where auth_user_id=auth.uid() and status='active'$$;
+create function current_staff_company_id() returns uuid language sql as $$select company_id from staffs where id=current_staff_id()$$;
+create function has_permission(p text) returns boolean language sql as $$select current_staff_id() is not null and (current_setting('test.permissions',true)='all' or p=any(string_to_array(current_setting('test.permissions',true),',')))$$;
+create function can_access_outlet_daily_branch(b uuid) returns boolean language sql as $$select exists(select 1 from branches where id=b and company_id=current_staff_company_id()) and coalesce(current_setting('test.branch_access',true),'yes')<>'no'$$;
+insert into staffs values('00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000100','active',null);
+insert into branches values('00000000-0000-0000-0000-000000000020','00000000-0000-0000-0000-000000000100','outlet','active',null);
+insert into products values('00000000-0000-0000-0000-000000000030','00000000-0000-0000-0000-000000000100','Fictional carryover','TEST-CARRY','food','food_carryover',null);
+set test.actor='00000000-0000-0000-0000-000000000001';set test.permissions='all';
+`);
+await db.exec(fn('supabase/migrations/321_outlet_daily_prior_stock_wastage.sql','save_outlet_daily_record_before_planning'));
+await db.exec(fn('supabase/migrations/321_outlet_daily_prior_stock_wastage.sql','validate_outlet_daily_wastage_reason'));
+await db.exec('create trigger validate_waste before insert or update of wastage_qty,wastage_reason on outlet_daily_record_lines for each row execute function validate_outlet_daily_wastage_reason()');
+await db.exec(fn('supabase/migrations/363_daily_product_tracking.sql','save_outlet_daily_record').replace('function public.save_outlet_daily_record(', 'function public.save_outlet_daily_record_before_saleable_stock('));
+await db.exec('revoke all on function save_outlet_daily_record_before_saleable_stock(uuid,uuid,date,text,jsonb,text) from public;grant execute on function save_outlet_daily_record_before_saleable_stock(uuid,uuid,date,text,jsonb,text) to service_role');
+await db.exec(fn('supabase/migrations/370_production_saleable_carryover.sql','save_outlet_daily_record'));
+await db.exec(fn('supabase/migrations/362_daily_payment_channels.sql','save_outlet_daily_record_v92'));
+await db.exec(file('sql-candidates/odr-annotations/atomic-save.sql'));await db.exec(file('sql-candidates/odr-sales-settings/wiring.sql'));
+const hashes={save_outlet_daily_record:'a78b07884b9089aecd6cd214279fe812',save_outlet_daily_record_before_planning:'0876499cf644ff62eaa523670ebcee7d',save_outlet_daily_record_before_saleable_stock:'49714b7b99e0f96c28d8cfd66a2eda56',save_outlet_daily_record_v92:'f668490e9a0cbb324ef8c0a387bcf666',save_outlet_daily_record_checked:'ca1b5d6975c6ad1c9302bb65240f401e',save_outlet_daily_record_with_sales_channels:'7bfd2e14bd4d0e3c30c032911215a4db'};
+for(const [name,hash] of Object.entries(hashes))eq((await db.query('select md5(prosrc) hash from pg_proc where proname=$1',[name])).rows[0].hash,hash);
+
+const install=file('sql-candidates/outlet_daily_carryover_wastage.REVIEW.sql');
+assert.doesNotMatch(install,/create\s+(?:temporary\s+)?table|\bgrant\b|\brevoke\b/i);
+await db.exec(`alter table outlet_daily_record_lines enable row level security;
+insert into outlet_daily_record_lines(record_id,product_id,daily_tracking,usage_qty,wastage_qty,notes)
+select gen_random_uuid(),gen_random_uuid(),'food_carryover',v,0,'historical note' from unnest(array[null,0,5]::numeric[]) v;`);
+const before=(await db.query("select jsonb_agg(to_jsonb(l) order by id) rows from outlet_daily_record_lines l")).rows[0].rows;
+const security=async()=>(await db.query("select proacl::text acl,proowner,prosecdef,proconfig,(select relrowsecurity from pg_class where oid='outlet_daily_record_lines'::regclass) rls from pg_proc where proname='save_outlet_daily_record_before_saleable_stock'")).rows[0];
+const oldSecurity=await security();
+const bad=install.replace(' select count(*),md5(coalesce(string_agg((to_jsonb(l)'," update outlet_daily_record_lines set usage_qty=99;\n select count(*),md5(coalesce(string_agg((to_jsonb(l)");
+await assert.rejects(()=>db.exec(bad),/Existing carryover business data changed/);checks++;
+await db.exec('rollback');
+eq((await db.query("select jsonb_agg(to_jsonb(l) order by id) rows from outlet_daily_record_lines l")).rows[0].rows,before);
+eq((await db.query("select count(*)::int n from information_schema.columns where table_name='outlet_daily_record_lines' and column_name='carryover_wastage_provided'")).rows[0].n,0);
+await db.exec(install);
+eq((await db.query("select jsonb_agg(to_jsonb(l)-'carryover_wastage_provided' order by id) rows from outlet_daily_record_lines l")).rows[0].rows,before);
+eq(await security(),oldSecurity);
+eq((await db.query("select md5(prosrc) hash from pg_proc where proname='save_outlet_daily_record_before_saleable_stock'")).rows[0].hash,'1d98b1a9716638553f2c2fbd2e302839');
+eq((await db.query("select count(*)::int n from outlet_daily_record_lines where carryover_wastage_provided is distinct from false")).rows[0].n,0);
+console.log(`${checks} no-table installation assertions passed (including six baseline hashes); historical NULL/zero/nonzero retained, injected mutation rolls back DDL and data, ACL/RLS unchanged.`);
+await db.close();
+})().catch(e=>{console.error(e);process.exit(1)});

@@ -19,3 +19,10 @@ Update #2: user chose historical-only Usage. Local UI/payload and guarded SQL ca
 
 ## Preview dependency notice
 Before publishing this combined candidate, both Daily form routes now perform a zero-row read of the additive carryover confirmation column. If unavailable and the form includes next-day food (including historical tracking), the form visibly states read-only Preview, locks inputs and prevents submission. The server action retains its independent pre-RPC guard. Three actual-component static-render assertions pass for missing/ready dependency and unaffected daily-only forms. No database installation is performed by this release; next-day Wastage saving remains unavailable until separately approved SQL. This notice is not a claim that all other application routes are read-only.
+
+## Integration checkpoint after be54e03
+The earlier full-chain verification gap is superseded by the carryover full-chain and concurrency evidence linked from the save trace/install review: 28 saving-chain assertions and five real two-connection scenarios passed. SQL remains uninstalled. User approval is conditional on confirmation that compatible Preview c8915d86 is READY; that condition remains unverified after Vercel list returned403. No alternate access or deployment attempted.
+
+Application c8915d86 was pushed to the existing followup Preview branch. Later local commits a1fdcc21 (asset import secondary action) and be54e03 (fixed import result footer) are not pushed. On be54e03,49 combined targeted tests passed and the complete Next.js build exited0. Logs: /tmp/oms-be54-integrated-tests.log and /tmp/oms-be54-build.log. No real business writes.
+
+Remaining: original workbook for #8; actual responsive/authenticated acceptance of this batch; the new batch-selection interaction is not established by source tests; black blur flicker remains unreproduced. Import result390/1366 and asset entry six-width checks are originating synthetic fixtures, not authenticated acceptance.

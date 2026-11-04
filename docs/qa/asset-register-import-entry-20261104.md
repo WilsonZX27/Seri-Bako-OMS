@@ -1,0 +1,13 @@
+# Asset registration import entry — 2026-11-04
+
+User requirement relayed by parent: at390px, Import from Excel above Registration details is an unsuitable plain underlined hyperlink; use a consistent secondary action, preserve function/permissions, no upload/data changes/deployment. Reference message Sentinel_9a187bfa60b88191af27742db47346ec was described by parent; original screenshot is not accessible here, so no exact screenshot-match acceptance claimed.
+
+Baseline cfa865c40877e57c2c174d0056d3da4a8756f59d; independent clone /tmp/oms-asset-import-entry-20261104. Applicable AGENTS, rules/contracts, PRODUCT/DESIGN and v10 design contract require shared controls, scoped sizes and separate local/live evidence. Source inspection found an inline underlined Link before PageHeader. Shared PageHeader secondary actions are hidden below640px by existing CSS, so using that slot would lose the reported phone entry.
+
+Route now uses shared Button asChild variant secondary, FileSpreadsheet decorative icon and WorkspaceCanvas alignment. It remains an anchor to /asset-management/import, in the same pre-form location. This route alone sets44px height belowxl; desktop retains shared control dimensions. No global CSS or shared component edits. Original super_admin visibility and assets.manage route guard unchanged; import destination still independently requires Owner and assets.manage. No business rule or permission change.
+
+Verification:2 actual-route render tests passed (one import anchor with existing shared button style; non-Owner omitted; assets.manage denial throws). Typecheck and scoped ESLint passed. Isolated Chromium using actual route, shared Button/WorkspaceCanvas/PageHeader and compiled global+v2 CSS passed320,389,390,391,820,1440: visible unique link, full text/no horizontal clipping, border/no underline,44px phone/tablet target and36px minimum desktop, keyboard focus and unchanged href. Visual inspection of390 capture confirms button. Registration form/query data are stubbed: this is synthetic action-layout evidence, not full-form or authenticated Preview acceptance. No live navigation/upload/save performed.
+
+Evidence in handoff/import-entry: width-check.cjs, width-results.json and width-<viewport>.png. No push/deployment or business writes. Parent should integrate and check the actual390px Preview page with its real form shell before claiming user acceptance.
+
+Integration on c8915d86: route/test patch applied unchanged; rules append merged manually because later rules had extended the file. Two route-render tests and TypeScript passed. Test harness CommonJS lint exception documented; scoped lint passed. Authenticated Preview and full-form visual acceptance remain pending. No deployment or data writes.

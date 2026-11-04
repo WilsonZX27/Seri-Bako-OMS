@@ -7,3 +7,11 @@ export function omitEmptyDailyHistory(line: Record<string, unknown> | undefined,
   if (["qty_sent", "morning_received_qty", "evening_leftover_qty", "wastage_qty", "qty_sent_estimated", "usage_qty", "sold_qty", "saleable_next_day_qty"].some(key => line[key] != null && line[key] !== 0)) return false;
   return ["wastage_reason", "notes", "stockout_time"].every(key => line[key] == null || String(line[key]).trim() === "");
 }
+
+// Collapse only the presentation of zero-value historical daily food rows.
+// Confirmation and provenance remain intact in the mounted form and stored record.
+export function collapseZeroDailyHistory(line: Record<string, unknown> | undefined, available: boolean) {
+  if (!line || available || line.daily_tracking !== "food_daily" || line.stockout === true) return false;
+  if (["qty_sent", "morning_received_qty", "evening_leftover_qty", "wastage_qty", "qty_sent_estimated", "usage_qty", "sold_qty", "saleable_next_day_qty"].some(key => line[key] != null && line[key] !== 0)) return false;
+  return ["wastage_reason", "notes", "stockout_time"].every(key => line[key] == null || String(line[key]).trim() === "");
+}

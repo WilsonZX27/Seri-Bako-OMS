@@ -29,3 +29,16 @@ test('actual history, explicit zeros, notes and missing catalogue remain authori
  assert.equal(c.calculate([real,empty]).received_pending_lines,1);
  assert.equal(c.calculate([real,empty],undefined,{...availability,date:'2026-10-01'}).received_pending_lines,1);
 });
+
+test('confirmed seasonal zeros collapse without dropping evidence or mounted inputs',()=>{
+ const {collapseZeroDailyHistory}=load('src/lib/outlet-daily-history.ts');
+ const zero={...empty,qty_sent_confirmed:true,morning_received_provided:true,wastage_provided:true};
+ assert.equal(collapseZeroDailyHistory(zero,false),true);
+ assert.equal(omitEmptyDailyHistory(zero,false),false);
+ for(const change of [{qty_sent:1},{notes:'checked'},{stockout:true},{wastage_reason:'other'}]) assert.equal(collapseZeroDailyHistory({...zero,...change},false),false);
+ assert.equal(collapseZeroDailyHistory(zero,true),false);
+ const form=fs.readFileSync('src/components/outlet-daily-record-form.tsx','utf8');
+ assert.match(form,/aria-expanded=\{showZeroHistory\}/);
+ assert.match(form,/showZeroHistory \|\| normalizedSearch.length > 0 \|\| !zeroHistoryIds.has/);
+ assert.match(form,/hiddenClass=\{matches \? "" : "hidden"\}/);
+});

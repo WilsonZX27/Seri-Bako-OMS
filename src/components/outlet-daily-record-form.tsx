@@ -15,7 +15,7 @@ import { salesChannelLabels, cardChannels, otherChannels, type SalesChannel } fr
 
 import { defaultSalesChannelSettings, visibleSalesChannels, type SalesChannelSettings } from "@/lib/outlet-sales-channel-settings";
 
-import { omitEmptyDailyHistory } from "@/lib/outlet-daily-history";
+import { collapseZeroDailyHistory, omitEmptyDailyHistory } from "@/lib/outlet-daily-history";
 import { productAvailableOn } from "@/lib/production-planning/availability";
 import { dailyTracking, groupDailyProducts, type DailyTracking } from "@/lib/daily-product-tracking";
 
@@ -94,6 +94,11 @@ type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: st
       (lines.some(line => line.product_id === product.id) || product.status === "active" && productAvailableOn(product, recordDate)));
     return hasRetainedLine ? omitted : new Set<string>();
   });
+  const [showZeroHistory, setShowZeroHistory] = useState(false);
+  const [zeroHistoryIds] = useState(() => new Set(products.filter(product =>
+    !omittedHistoryIds.has(product.id) && collapseZeroDailyHistory(lineByProduct.get(product.id),
+      product.status === "active" && productAvailableOn(product, recordDate))
+  ).map(product => product.id)));
   const productGroups = useMemo(() => groupDailyProducts(products.filter(product => !omittedHistoryIds.has(product.id)), (product) => dailyTracking(product, lineByProduct.get(product.id)?.daily_tracking)), [products, lineByProduct, omittedHistoryIds]);
   const availableProductIds = useMemo(() => new Set(products.filter(product => product.status === "active" && productAvailableOn(product, selectedRecordDate)).map(product => product.id)), [products, selectedRecordDate]);
   // Existing lines remain part of the record even after a season ends.
@@ -199,6 +204,7 @@ type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: st
 
       <section data-outlet-daily-lines className="erp-surface touch-pan-y overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b px-3 py-2"><h2 className="text-sm font-semibold">Daily Product Lines</h2><label className="relative block w-full min-w-0 sm:ml-auto sm:w-64"><span className="sr-only">Find product</span><Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" /><Input className="pl-9" type="search" value={productSearch} onChange={(event) => setProductSearch(event.target.value)} placeholder="Find product" disabled={locked} /></label></div>
+      {zeroHistoryIds.size > 0 ? <button type="button" aria-expanded={showZeroHistory} onClick={() => setShowZeroHistory(value => !value)} className="min-h-12 w-full border-b px-3 py-2 text-left text-xs text-muted-foreground">{showZeroHistory ? "Hide" : "Show"} out-of-season zero history ({zeroHistoryIds.size})</button> : null}
       <div className="divide-y">
         {productGroups.map(({ tracking, label, products: group }) => {
           const packaging = tracking === "packaging";
@@ -207,7 +213,7 @@ type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: st
             {group.some(product => product.daily_tracking === "food_carryover") ? <p id={`saleable-help-${tracking}`} className="border-b px-3 py-2 text-xs text-muted-foreground">Saleable tomorrow: count only stock fit to sell; exclude expired or damaged stock. This reduces tomorrow’s delivery.</p> : null}
             <div className={`sb-daily-line-head grid grid-cols-3 gap-2 border-b bg-white px-3 py-2 text-[11px] font-medium text-muted-foreground ${packaging || tracking === "beverage" || tracking === "food_carryover" ? "sb-daily-line-four" : "sb-daily-line-three"}`}><span className="hidden xl:block">Product</span>{packaging ? <><span>Qty sent</span><span>Qty received</span><span>Today usage</span><span>Balance</span></> : <><span>Qty Sent</span><span>Received</span><span>{tracking === "food_daily" ? "Wastage" : tracking === "beverage" ? "Qty Sold" : "Usage"}</span>{tracking !== "food_daily" ? <span className="whitespace-nowrap" title={tracking === "food_carryover" ? "Saleable tomorrow" : undefined}>{tracking === "beverage" ? "Balance" : "Tomorrow"}</span> : null}</>}</div>
             {group.map((product) => {
-          const matches = includedProductIds.has(product.id) && (!normalizedSearch || matchingProductIds.has(product.id));
+          const matches = includedProductIds.has(product.id) && (!normalizedSearch || matchingProductIds.has(product.id)) && (showZeroHistory || normalizedSearch.length > 0 || !zeroHistoryIds.has(product.id));
               return <DailyProductLine key={product.id} product={product} tracking={tracking} line={lineByProduct.get(product.id)} validationHint={validationProductId === product.id ? "Check the wastage quantity and reason." : undefined} hiddenClass={matches ? "" : "hidden"} locked={locked || !includedProductIds.has(product.id)} excluded={!includedProductIds.has(product.id)} seasonalHistory={!availableProductIds.has(product.id)} canEditQtySent={canEditQtySent} canEditOutletValues={canEditOutletValues} />;
             })}
           </div>;

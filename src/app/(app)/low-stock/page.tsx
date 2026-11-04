@@ -1,4 +1,6 @@
 import { uomOptionsWithCurrent } from "@/lib/uom";
+import { Button } from "@/components/ui/button";
+import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -42,9 +44,20 @@ export default async function LowStockPage({ searchParams }: { searchParams: Pro
       <Input name="search" defaultValue={filters.search??""} placeholder="Search item, branch, supplier"/>
       <SelectControl name="branch_id" defaultValue={filters.branch_id??"all"} ariaLabel="Branch" options={[{value:"all",label:"All branches"},...branches.map(branch=>({value:branch.id,label:branch.branch_name}))]}/>
       <SelectControl name="status" defaultValue={filters.status??"all"} ariaLabel="Stock status" options={[{value:"all",label:"All statuses"},{value:"low_stock",label:"Low Stock"},{value:"out_of_stock",label:"Out of Stock"}]}/>
-      <Input name="below_qty" type="number" min="0" step="any" defaultValue={filters.below_qty??""} placeholder="Quantity below" aria-label="Current quantity below"/>
-      <SelectControl name="quantity_uom" defaultValue={filters.quantity_uom??"KG"} ariaLabel="Threshold base UOM" options={uomOptionsWithCurrent(filters.quantity_uom??"KG").map(unit=>({value:unit,label:unit}))}/>
-    </UnifiedListHeader></div>
+      <input type="hidden" name="below_qty" value={filters.below_qty??""}/>
+      <input type="hidden" name="quantity_uom" value={filters.quantity_uom??"KG"}/>
+    </UnifiedListHeader>
+    <form method="get" action="/low-stock" className="sb-work-surface mt-3 p-3" aria-label="Quantity threshold">
+      <input type="hidden" name="search" value={filters.search??""}/>
+      <input type="hidden" name="branch_id" value={filters.branch_id??"all"}/>
+      <input type="hidden" name="status" value={filters.status??"all"}/>
+      <h2 className="mb-3 text-xs font-medium">Quantity threshold</h2>
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(5rem,.6fr)_auto] items-end gap-2 sm:max-w-lg">
+        <Field label="Current quantity below"><Input name="below_qty" type="number" min="0" step="any" defaultValue={filters.below_qty??""} placeholder="No limit" aria-label="Current quantity below"/></Field>
+        <Field label="Base UOM"><SelectControl name="quantity_uom" defaultValue={filters.quantity_uom??"KG"} ariaLabel="Threshold base UOM" options={uomOptionsWithCurrent(filters.quantity_uom??"KG").map(unit=>({value:unit,label:unit}))}/></Field>
+        <Button type="submit">Apply</Button>
+      </div>
+    </form></div>
     {unavailable?<p role="status" className="sb-work-surface m-3 p-3 text-sm">Stock data is unavailable. Retry before preparing a request.</p>:<LowStockPrForm items={items} branches={branches} defaultBranchId={filters.branch_id} basketOwnerId={actor.staffId} disabled={!canCreatePr} summary={summary}/>}
   </>;
 }

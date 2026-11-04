@@ -132,7 +132,7 @@ test("goods receiving detail replaces the ten-column phone table with a complete
   const source = read("src/app/(app)/goods-receivings/[id]/page.tsx");
   const browser = read("tests/e2e/goods-receiving-detail-responsive.spec.js");
 
-  assert.match(source, /<Table mobileHidden aria-label="Received items">/);
+  assert.match(source, /<Table[^>]*mobileHidden aria-label="Received items">/);
   assert.match(source, /data-goods-receiving-detail-lines/);
   assert.match(source, /role="list" aria-label="Received items"/);
   assert.match(source, />Received<\/p>/);
@@ -249,7 +249,7 @@ test("low-stock PR uses staged multiple selection, labelled phone inputs and one
   assert.match(source,/Choose one branch before selecting items/);
   assert.match(source,/disabled=\{disabled\|\|!branchSelected/);
   assert.match(source,/input\.indeterminate = someVisibleSelected && !allVisibleSelected/);
-  assert.match(source,/grid grid-cols-2 items-center/);
+  assert.match(source,/grid grid-cols-\[minmax\(0,1fr\)_minmax\(5rem,\.6fr\)\] items-end/);
   assert.match(source,/name="supplier_groups"/);
   assert.match(source,/hasMissingSupplier/);
 });

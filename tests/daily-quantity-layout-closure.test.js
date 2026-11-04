@@ -11,10 +11,10 @@ test('Daily carryover guidance belongs once to its group and each input referenc
  assert.match(form,/max="1000000" step="0.01" value=\{saleable\}/);
  assert.match(form,/disabled=\{locked \|\| !canEditOutletValues\}/);
 });
-test('Daily quantities share fixed 72px four tracks and carryover does not wrap its fourth input',()=>{
+test('Daily quantities share four equal responsive tracks and carryover does not wrap its fourth input',()=>{
  let tracks=false,width=false,height=false;
  css.walkRules(r=>r.walkDecls(d=>{
- if(r.selector==='.sb-daily-line-head,\n.sb-daily-product-line'&&r.parent.type==='root'&&d.prop==='grid-template-columns')tracks=d.value==='repeat(4, minmax(0, 4.5rem))';
+ if(r.selector==='.sb-daily-line-head,\n.sb-daily-product-line'&&r.parent.type==='root'&&d.prop==='grid-template-columns')tracks=d.value==='repeat(4, minmax(0, 1fr))';
  if(r.selector==='.sb-daily-product-line input[type="number"]'){if(d.prop==='width')width=d.value==='100%';if(d.prop==='min-height')height=d.value==='var(--sb-control-height)';}
  }));assert.ok(tracks);assert.ok(width);assert.ok(height);
  assert.match(form,/tracking === "food_carryover" \? <label className="min-w-0"/);

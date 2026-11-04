@@ -17,9 +17,10 @@ test("Outlet Daily aligns quantities and details in five desktop columns", () =>
   assert.match(form, /sb-daily-line-head/);
   assert.match(form, /sb-daily-product-line/);
   const css=read("src/app/design-system-v2.css");
-  assert.match(css, /grid-template-columns: minmax\(180px, 1fr\) repeat\(4, 4\.5rem\)/);
+  assert.match(css, /grid-template-columns: minmax\(0, 2fr\) repeat\(4, minmax\(0, 1fr\)\)/);
   assert.match(form, /tracking !== "food_daily" \? <span[^>]*>/);
-  assert.match(form, /xl:col-start-5 xl:col-span-1/);
+  assert.match(css, /@container \(min-width: 36rem\)/);
+  assert.match(css, /sb-daily-wastage-details \{ grid-column: 2 \/ -1;/);
   assert.doesNotMatch(form, />Sold out</);
   assert.match(form, /type="hidden" name="stockout"/);
 });

@@ -43,3 +43,5 @@ Attendance workspace tabs and confirmation empty-state links follow the same exi
 Planning empty states describe the viewer's visible workflow: non-managers are told no approved plan is available and to contact their Manager; they are not directed to generate drafts. Current production draft visibility remains manager-only as verified2026-11-03. Changing Chef draft visibility requires a separate explicit workflow decision; this copy fix does not change access.
 
 Idle timeout is scoped to the current login session; it must not revoke other active logins. Same-origin activity coordination and the existing25/30-minute policy remain unchanged. Local regression and evidence boundary: [session isolation](../qa/session-timeout-isolation-20261103.md).
+
+ODR Settings summary2026-11-04: display the saved active channel names and within-section order using the existing tenant-scoped settings read; on failure show unavailable rather than canonical defaults. This is presentation of existing configuration, not new monetary mapping. [Source audit and evidence](../qa/odr-5fc-followup-20261104.md).

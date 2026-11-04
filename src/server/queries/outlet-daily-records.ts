@@ -828,3 +828,10 @@ export async function getOutletDailyHistoricalContext() {
   if(!summary)throw new Error("Historical daily summary unavailable.");
   return {end,summary_date:historical.summaryDate,start:completion.dates[0],outlet_count:completion.rows.length,summary,gaps:completion.rows.map(row=>({...row,gaps:row.cells.filter(cell=>cell.status!=="reviewed")})).filter(row=>row.gaps.length>0)};
 }
+
+export const getCarryoverWastageReady = cache(async function getCarryoverWastageReady() {
+  if (isMockMode()) return false;
+  const db = await createClient();
+  const { error } = await db.from("outlet_daily_record_lines").select("carryover_wastage_provided").limit(0);
+  return !error;
+});

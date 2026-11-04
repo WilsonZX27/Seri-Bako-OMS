@@ -45,7 +45,7 @@ const EMPTY_LINES: Line[] = [];
 
 type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: string | null; breakdown?: Partial<Record<SalesChannel, number>> };
 
-  export function OutletDailyRecordForm({ formId, action, branches, products, lines = EMPTY_LINES, branchId, recordDate, notes, sales, salesSettings, validationError: serverValidationError, locked = false, canEditHeader = true, canEditQtySent = false, canEditOutletValues = true }: {
+  export function OutletDailyRecordForm({ formId, action, branches, products, lines = EMPTY_LINES, branchId, recordDate, notes, sales, salesSettings, validationError: serverValidationError, locked: requestedLocked = false, carryoverWastageReady = false, canEditHeader = true, canEditQtySent = false, canEditOutletValues = true }: {
   formId: string;
   action: (formData: FormData) => Promise<void | { error: string }>;
   branches: Branch[];
@@ -60,10 +60,13 @@ type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: st
   defaultsByBranch?: Record<string, Record<string, DefaultLine>>;
   validationError?: string;
   locked?: boolean;
+  carryoverWastageReady?: boolean;
   canEditHeader?: boolean;
   canEditQtySent?: boolean;
   canEditOutletValues?: boolean;
 }) {
+  const dependencyUnavailable = !carryoverWastageReady && products.some(product => dailyTracking(product, lines.find(line => line.product_id === product.id)?.daily_tracking) === "food_carryover");
+  const locked = requestedLocked || dependencyUnavailable;
   const [result, submitRecord] = useActionState(async (_previous: { error: string; values: Array<[string, string]>; attempt: number } | null, data: FormData) => {
     const response = await action(data);
     return response?.error ? { attempt: (_previous?.attempt ?? 0) + 1, error: response.error, values: Array.from(data.entries()).map(([name, value]) => [name, String(value)] as [string, string]) } : null;
@@ -154,6 +157,7 @@ type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: st
     const target = event.target;
     if (target instanceof HTMLInputElement || target instanceof HTMLSelectElement || target instanceof HTMLTextAreaElement) target.removeAttribute("aria-invalid");
   }} onSubmit={(event) => {
+    if (dependencyUnavailable) { event.preventDefault(); document.dispatchEvent(new CustomEvent("sb:form-settled", { detail: { formId } })); return; }
     // A new attempt supersedes the previous save receipt without remounting inputs.
     const currentUrl = new URL(window.location.href);
     if (currentUrl.searchParams.has("success")) {
@@ -185,7 +189,8 @@ type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: st
     visible.setAttribute("aria-invalid", "true");
     requestAnimationFrame(() => { visible.scrollIntoView({ block: "center", behavior: "smooth" }); visible.focus({ preventScroll: true }); });
   }}>
-      {formId ? <FormPendingBridge formId={formId} /> : null}
+      {dependencyUnavailable ? <p role="status" className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm">Read-only preview: next-day Wastage saving is not enabled yet. The database update is pending; this form cannot save changes.</p> : null}
+    {formId ? <FormPendingBridge formId={formId} /> : null}
       {result?.error ? <p role="alert" className="rounded border border-rose-500 p-3 text-sm text-rose-700">{result.error}</p> : null}
       {fieldError ? <p role="alert" className="rounded border border-rose-500 p-3 text-sm text-rose-700">{fieldError}</p> : null}
       <details data-outlet-daily-setup open={setupOpen} onToggle={(event) => setSetupOpen(event.currentTarget.open)} className="group erp-surface overflow-hidden">

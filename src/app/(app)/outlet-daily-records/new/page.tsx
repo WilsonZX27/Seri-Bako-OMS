@@ -6,7 +6,7 @@ import { OutletDailyRecordForm } from "@/components/outlet-daily-record-form";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { saveOutletDailyRecord } from "@/server/actions/outlet-daily-records";
 import { getPermissionMap } from "@/server/auth/permissions";
-import { getOutletDailyFormOptions } from "@/server/queries/outlet-daily-records";
+import { getCarryoverWastageReady, getOutletDailyFormOptions } from "@/server/queries/outlet-daily-records";
 import { getToday } from "@/lib/utils";
 import { CheckCircle2, Save, Send } from "lucide-react";
 const dailySteps = [
@@ -70,6 +70,6 @@ export default async function NewOutletDailyRecordPage({ searchParams }: { searc
     tabletRailMode="split"
   >
     <ActionErrorNotice message={filters.error} />
-    <OutletDailyRecordForm salesSettings={salesSettings} formId={formId} action={saveOutletDailyRecord} branches={options.branches} products={options.products} branchId={selectedBranchId} recordDate={recordDate} defaultsByBranch={options.defaultsByBranch} validationError={filters.error} canEditQtySent={canEditQtySent} canEditOutletValues={canEnterOutlet} />
+    <OutletDailyRecordForm carryoverWastageReady={await getCarryoverWastageReady()} salesSettings={salesSettings} formId={formId} action={saveOutletDailyRecord} branches={options.branches} products={options.products} branchId={selectedBranchId} recordDate={recordDate} defaultsByBranch={options.defaultsByBranch} validationError={filters.error} canEditQtySent={canEditQtySent} canEditOutletValues={canEnterOutlet} />
   </DocumentWorkspace>;
 }

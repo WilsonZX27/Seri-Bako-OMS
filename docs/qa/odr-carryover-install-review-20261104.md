@@ -71,3 +71,11 @@ New install SHA2564f8be3b88ad435b3024c4d852fc45eb20c3038ca217e7eb2b96b6df8e36dff
 Local PGlite:19 wrapper assertions,28 full-chain assertions,13 installer assertions passed. Installer tests seed historical NULL/zero/nonzero, enable line-table RLS, verify ACL/RLS equality and all original row fields, and inject a data mutation to prove the invariant abort rolls back both data and added column. Six of13 installer assertions verify baseline function hashes. Existing real two-connection tests cover unchanged save-function behavior; the revised installer itself has not been rerun in real PostgreSQL or Production.
 
 Status: prepared locally, not installed. Existing conditional authorization covers the same additive field and function update, but any renewed platform warning or approval rejection must be respected and reviewed. No Run without RLS action will be retried.
+
+## Production installation completed2026-11-04
+
+Following the relayed user approval and compatible Preview READY evidence, rechecked target nnvdsaftiwpqkekjfrgc mainPRODUCTION: old body49714b7b99e0f96c28d8cfd66a2eda56, expected postgres/service_role ACL, ownerpostgres, definertrue, search_pathpublic, column absent, line RLStrue. Submitted the no-table installer through the same Supabase SQL Editor normal Run action, without Run without RLS. Result: Success. No rows returned. Transaction includes the locked before/after full-row invariant, so successful commit establishes original carryover fields unchanged during installation.
+
+Readback: body1d98b1a9716638553f2c2fbd2e302839; ACL{postgres=X/postgres,service_role=X/postgres}; ownerpostgres; definertrue; search_pathpublic; RLStrue. New columnboolean NOT NULL DEFAULTfalse. Carryover1259 rows, historical UsageNULL77/zero824/nonzero358, new confirmationtrue0. No historical confirmation backfill, real save/post, app deployment or permission alteration. No migration ledger number allocated/inserted by this direct reviewed installer. Query evidence URL: https://supabase.com/dashboard/project/nnvdsaftiwpqkekjfrgc/sql/45b83539-a6a8-46a8-bab5-f4462ced3448 .
+
+The database dependency is installed; authenticated UI/save acceptance is a separate outstanding check. Earlier NOT INSTALLED statements document pre-install status and are superseded by this section. Pause artifact remains retained and unexecuted.

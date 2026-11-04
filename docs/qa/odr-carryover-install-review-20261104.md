@@ -55,3 +55,7 @@ Additional wrapper checks: 19 pass. Docker daemon unavailable (local socket abse
 Shared-surface timing patch also applied locally with 71 related tests, TypeScript and targeted lint passing. Black blur flicker has no authenticated reproduction/acceptance evidence and is not closed. No deployment or production change performed.
 
 Current compatible tracking-function body MD5: `1d98b1a9716638553f2c2fbd2e302839`.
+
+## Real concurrency completed
+
+The earlier missing-Docker/two-connection limitation is superseded by [real concurrency evidence](odr-carryover-concurrency-20261104.md): five real PostgreSQL two-connection scenarios passed, including checked and old direct RPCs, observed lock waits and rollback. Full candidate build passed. No installation/deployment performed; production RLS and browser acceptance remain distinct.

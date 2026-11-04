@@ -1,4 +1,8 @@
-const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),ts=require('typescript'),vm=require('node:vm');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import ts from 'typescript';
+import vm from 'node:vm';
 const moduleContext={exports:{}};
 vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/lib/production-planning/availability.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,moduleContext);
 const {productAvailabilityLabel:label,productAvailableOn:available}=moduleContext.exports;

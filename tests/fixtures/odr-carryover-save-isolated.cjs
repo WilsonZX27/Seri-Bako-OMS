@@ -4,7 +4,7 @@ const fs=require('node:fs');const assert=require('node:assert/strict');
 await db.exec(`
 create table products(id uuid primary key,daily_tracking text,category text);
 create table outlet_daily_records(id uuid primary key,branch_id uuid,record_date date,status text);
-create table outlet_daily_record_lines(record_id uuid,product_id uuid,daily_tracking text,do_managed boolean default false,qty_sent numeric default 0,usage_qty numeric,sold_qty numeric,evening_leftover_qty numeric default 0,wastage_qty numeric default 0,wastage_reason text,wastage_provided boolean default false,stockout boolean default false,stockout_time time,notes text,primary key(record_id,product_id));
+create table outlet_daily_record_lines(id bigserial,record_id uuid,product_id uuid,daily_tracking text,do_managed boolean default false,qty_sent numeric default 0,usage_qty numeric,sold_qty numeric,evening_leftover_qty numeric default 0,wastage_qty numeric default 0,wastage_reason text,wastage_provided boolean default false,stockout boolean default false,stockout_time time,notes text,primary key(record_id,product_id));
 create function has_permission(text) returns boolean language sql as $$ select coalesce(current_setting('test.can_edit',true),'on')='on' $$;
 create function save_outlet_daily_record_before_planning(rid uuid,b uuid,d date,n text,lines jsonb,status text) returns uuid language plpgsql as $$ declare x jsonb; begin
  if not has_permission('outlet_daily_record.update') then raise exception 'Denied by base'; end if;
@@ -18,7 +18,7 @@ insert into outlet_daily_record_lines(record_id,product_id,daily_tracking,usage_
 `);
 const root=process.argv[2],migration=fs.readFileSync(root+'/supabase/migrations/363_daily_product_tracking.sql','utf8');
 const start=migration.indexOf('create or replace function public.save_outlet_daily_record(');const old=migration.slice(start,migration.indexOf('end $$;',start)+7).replace('function public.save_outlet_daily_record(', 'function public.save_outlet_daily_record_before_saleable_stock(');
-await db.exec(old);await db.exec(fs.readFileSync(root+'/sql-candidates/outlet_daily_carryover_wastage.REVIEW.sql','utf8'));
+await db.exec(old);await db.exec("create role service_role; revoke all on function save_outlet_daily_record_before_saleable_stock(uuid,uuid,date,text,jsonb,text) from public; grant execute on function save_outlet_daily_record_before_saleable_stock(uuid,uuid,date,text,jsonb,text) to service_role;");await db.exec(fs.readFileSync(root+'/sql-candidates/outlet_daily_carryover_wastage.REVIEW.sql','utf8'));
 const read=async id=>(await db.query('select usage_qty,wastage_qty,wastage_reason,carryover_wastage_provided,notes from outlet_daily_record_lines where product_id=$1',[id])).rows[0];
 const one='00000000-0000-0000-0000-000000000001',two='00000000-0000-0000-0000-000000000002';
 const input={product_id:one,daily_tracking:'food_carryover',carryover_wastage_entry:true,wastage_qty:2,wastage_reason:'damaged',wastage_provided:true,morning_received_provided:true,usage_qty:999,notes:'retain note'};
@@ -32,5 +32,11 @@ await assert.rejects(()=>save({...input,wastage_provided:false},'evening_complet
 await db.exec("update outlet_daily_record_lines set usage_qty=0 where product_id='"+one+"'");await save(input);eq((await read(one)).usage_qty,'0');
 await db.exec("set test.can_edit='off'");before=await read(one);await assert.rejects(()=>save(input),/Denied by base/);checks++;eq(await read(one),before);await db.exec("set test.can_edit='on'");
 await db.exec("update outlet_daily_records set status='reviewed'");await assert.rejects(()=>save(input),/locked/);checks++;eq(await read(one),before);
+await db.exec("update outlet_daily_records set status='draft'");
+const beforePause=JSON.stringify((await db.query('select * from outlet_daily_record_lines order by id')).rows);
+await db.exec(fs.readFileSync(root+'/sql-candidates/outlet_daily_carryover_wastage.PAUSE.sql','utf8'));
+eq(JSON.stringify((await db.query('select * from outlet_daily_record_lines order by id')).rows),beforePause);
+await assert.rejects(()=>save(input),/temporarily paused/);checks++;
+eq(JSON.stringify((await db.query('select * from outlet_daily_record_lines order by id')).rows),beforePause);
 console.log(`${checks} isolated tracking-wrapper assertions passed (base authorization/locking stubbed; not full RPC/RLS acceptance)`);await db.close();
 })().catch(error=>{console.error(error);process.exit(1)});

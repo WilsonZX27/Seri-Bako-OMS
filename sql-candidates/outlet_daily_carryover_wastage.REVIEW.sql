@@ -1,9 +1,15 @@
 -- REVIEW ONLY: not installed. No historical Usage conversion or grants.
 -- Requires live catalog/body/ACL verification. Drift fails before changes.
 begin;
+set local lock_timeout='3s';
+set local statement_timeout='30s';
+lock table public.outlet_daily_record_lines in access exclusive mode;
+create temporary table carryover_install_baseline on commit drop as
+select count(*) as rows, md5(coalesce(string_agg(to_jsonb(l)::text,'|' order by id),'')) as digest
+from public.outlet_daily_record_lines l where daily_tracking='food_carryover';
 do $guard$
 begin
- if not exists(select 1 from pg_proc where oid=to_regprocedure('public.save_outlet_daily_record_before_saleable_stock(uuid,uuid,date,text,jsonb,text)') and md5(prosrc)='49714b7b99e0f96c28d8cfd66a2eda56' and prosecdef and proconfig=array['search_path=public']) then
+ if not exists(select 1 from pg_proc where oid=to_regprocedure('public.save_outlet_daily_record_before_saleable_stock(uuid,uuid,date,text,jsonb,text)') and md5(prosrc)='49714b7b99e0f96c28d8cfd66a2eda56' and prosecdef and proconfig=array['search_path=public'] and proowner='postgres'::regrole and proacl=array['postgres=X/postgres','service_role=X/postgres']::aclitem[]) then
   raise exception 'Tracking wrapper differs from reviewed migration 363; stop and review current body.';
  end if;
 end $guard$;
@@ -64,5 +70,13 @@ begin
  from public.products p where snapshot_line.record_id=rid and snapshot_line.product_id=p.id and snapshot_line.daily_tracking is null;
  return rid;
 end $$;
+do $invariant$
+begin
+ if exists(select 1 from carryover_install_baseline b cross join
+   (select count(*) as rows,md5(coalesce(string_agg((to_jsonb(l)-'carryover_wastage_provided')::text,'|' order by id),'')) as digest from public.outlet_daily_record_lines l where daily_tracking='food_carryover') a
+   where a.rows<>b.rows or a.digest<>b.digest) then
+  raise exception 'Existing carryover business data changed; installation rolled back.';
+ end if;
+end $invariant$;
 notify pgrst,'reload schema';
 commit;

@@ -1,7 +1,7 @@
 "use client";
 import { NativeDialog } from "@/components/ui/native-dialog";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Check, Clock3, FileUp, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,6 +48,7 @@ function minutes(value: unknown) {
 }
 
 export function ActualAttendancePanel(props: Props) {
+  const reviewReasonId = useId();
   const showReports = props.sections !== "comp";
   const showComp = props.sections !== "reports";
   const compPeople = [...new Map([
@@ -378,6 +379,7 @@ export function ActualAttendancePanel(props: Props) {
                   <Button
                     size="sm"
                     disabled={row.own_request === true}
+                    aria-describedby={row.own_request === true ? `${reviewReasonId}-${row.id}` : undefined}
                     title={row.own_request === true ? "Another authorised approver must review your request." : undefined}
                     variant="outline"
                     onClick={() =>
@@ -389,6 +391,7 @@ export function ActualAttendancePanel(props: Props) {
                   <Button
                     size="sm"
                     disabled={row.own_request === true}
+                    aria-describedby={row.own_request === true ? `${reviewReasonId}-${row.id}` : undefined}
                     title={row.own_request === true ? "Another authorised approver must review your request." : undefined}
                     variant="ghost"
                     onClick={() =>
@@ -399,6 +402,11 @@ export function ActualAttendancePanel(props: Props) {
                   </Button>
                 </>
               ) : null}</div>
+              {props.canApproveComp && row.status === "pending" && row.own_request === true ? (
+                <p id={`${reviewReasonId}-${row.id}`} className="text-xs text-muted-foreground sm:col-span-2">
+                  You submitted this request. Another authorised approver must review it.
+                </p>
+              ) : null}
             </div>
           ))}
           {!props.ledger.length ? <p className="p-3 text-xs text-muted-foreground">No RO corrections for these employees.</p> : null}

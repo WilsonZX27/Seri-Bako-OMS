@@ -44,7 +44,7 @@ const EMPTY_LINES: Line[] = [];
 
 type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: string | null; breakdown?: Partial<Record<SalesChannel, number>> };
 
-  export function OutletDailyRecordForm({ formId, action, branches, products, lines = EMPTY_LINES, branchId, recordDate, recordStatus, notes, sales, salesSettings, validationError: serverValidationError, locked = false, canEditHeader = true, canEditQtySent = false, canEditOutletValues = true }: {
+  export function OutletDailyRecordForm({ formId, action, branches, products, lines = EMPTY_LINES, branchId, recordDate, notes, sales, salesSettings, validationError: serverValidationError, locked = false, canEditHeader = true, canEditQtySent = false, canEditOutletValues = true }: {
   formId: string;
   action: (formData: FormData) => Promise<void | { error: string }>;
   branches: Branch[];
@@ -86,8 +86,8 @@ type SalesValues = { pos_total_sales?: number | null; sales_variance_reason?: st
   // Keep the initial omission set stable so changing dates cannot unmount edited rows.
   const [omittedHistoryIds] = useState(() => {
     const omitted = new Set(products.filter(product =>
-      omitEmptyDailyHistory(lines.find(line => line.product_id === product.id), recordStatus,
-        product.status === "active" && productAvailableOn(product, recordDate), locked)
+      omitEmptyDailyHistory(lines.find(line => line.product_id === product.id),
+        product.status === "active" && productAvailableOn(product, recordDate))
     ).map(product => product.id));
     // The existing RPC needs at least one line, including for remarks-only saves.
     const hasRetainedLine = products.some(product => !omitted.has(product.id) &&

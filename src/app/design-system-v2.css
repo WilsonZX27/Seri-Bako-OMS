@@ -2161,24 +2161,6 @@ html[data-design-layer="v2"] table[data-ui-table] > thead > tr > th {
     vertical-align: top;
   }
 
-  html[data-design-layer="v2"] .sb-stock-movement-ledger {
-    min-width: 72rem;
-    table-layout: fixed;
-  }
-
-  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(1) { width: 2.5rem; }
-  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(2) { width: 9rem; }
-  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(3) { width: 7rem; }
-  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(4) { width: 6.5rem; }
-  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(5) { width: 12rem; }
-  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(6) { width: 7.5rem; }
-  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(7),
-  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(8),
-  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(9) { width: 4rem; }
-  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(10) { width: 4rem; }
-  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(11) { width: 6.5rem; }
-  html[data-design-layer="v2"] .sb-stock-movement-ledger :is(th, td):nth-child(12) { width: 7rem; }
-
   html[data-design-layer="v2"] .sb-stock-movement-ledger td:nth-child(2),
   html[data-design-layer="v2"] .sb-stock-movement-ledger td:nth-child(5),
   html[data-design-layer="v2"] .sb-stock-movement-ledger td:nth-child(6) {
@@ -3446,3 +3428,9 @@ html[data-design-layer="v2"] .sb-mark-updates-read { padding: 0; border: 0; back
 }
 
 html[data-design-layer="v2"] .sb-outlet-daily-table td:nth-last-child(2) { overflow-wrap: anywhere; }
+
+/* Bounded technical tables: preserve every field and wrap headings at the actual workspace width. */
+html[data-design-layer="v2"] .sb-table-region > table:is(.sb-gr-detail-table,.sb-stock-card-table,.sb-stock-movement-ledger,.sb-recipes-table) { table-layout:fixed; min-width:46rem; }
+html[data-design-layer="v2"] .sb-table-region > table:is(.sb-stock-card-table,.sb-stock-movement-ledger,.sb-recipes-table) { min-width:50rem; }
+html[data-design-layer="v2"] table:is(.sb-gr-detail-table,.sb-stock-card-table,.sb-stock-movement-ledger,.sb-recipes-table) :is(th,td) { min-width:0; padding-inline:.25rem; white-space:normal; overflow-wrap:anywhere; }
+html[data-design-layer="v2"] table:is(.sb-gr-detail-table,.sb-stock-card-table,.sb-stock-movement-ledger,.sb-recipes-table) th > a { white-space:normal; }

@@ -79,7 +79,8 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
               <p className="mt-0.5 text-xs text-muted-foreground">Filtered net movement: {unavailable ? "Unavailable" : `${formatNumber(filteredNetMovement)} ${selectedItem?.base_unit ?? ""}`}</p>
             </div>
               {unavailable ? <div className="p-3"><Notice tone="error" title="Stock Card data is temporarily unavailable">The inventory movement service did not respond. Retry this page shortly; no data was changed.</Notice></div> : null}
-              <Table mobileHidden stickyColumn="first" aria-label="Stock movement history">
+              <Table scrollbar="auto" className="sb-stock-card-table" mobileHidden stickyColumn="first" aria-label="Stock movement history">
+                <colgroup>{[11, 10, 10, 8, 8, 7, 7, 9, 11, 11, 8].map((width, index) => <col key={index} style={{ width: `${width}%` }} />)}</colgroup>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Item</TableHead>

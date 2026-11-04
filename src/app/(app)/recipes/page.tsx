@@ -34,7 +34,8 @@ export default async function RecipesPage({ searchParams }: { searchParams: Prom
         <div className="space-y-3">
           <MasterDataFilters search={filters.search} status={filters.status} leadingFilter={<StatusTabs statuses={[{ value: "active", label: "Active" }, { value: "draft", label: "Draft" }, { value: "pending_approval", label: "Pending Approval" }, { value: "archived", label: "Archived" }]} activeStatus={filters.status} />} placeholder="Search recipe number, product code, or product" showStatus={false} resultCount={page.totalRows} filtered={filtered} resetHref="/recipes" />
           <div className="sb-list-content-card overflow-hidden">
-            <Table mobileHidden aria-label="Recipes" stickyColumn="second">
+            <Table scrollbar="auto" className="sb-recipes-table" mobileHidden aria-label="Recipes" stickyColumn="second">
+                <colgroup>{[5, 11, 10, 11, 7, 8, 9, 12, 9, 9, 9].map((width, index) => <col key={index} style={{ width: `${width}%` }} />)}</colgroup>
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-16 text-center">Action</TableHead>

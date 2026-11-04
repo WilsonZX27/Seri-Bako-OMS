@@ -144,13 +144,14 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
             {activeFilterChips.map((chip) => <span key={chip} className="max-w-full truncate">{chip}</span>)}
           </div> : null}
           <div className="sb-list-content-card overflow-hidden">
-            <Table className="sb-stock-movement-ledger" mobileHidden aria-label="Stock movement ledger" stickyColumn="second">
+            <Table scrollbar="auto" className="sb-stock-movement-ledger" mobileHidden aria-label="Stock movement ledger" stickyColumn="second">
+                <colgroup>{[5, 11, 10, 9, 8, 7, 9, 9, 9, 5, 9, 9].map((width, index) => <col key={index} style={{ width: `${width}%` }} />)}</colgroup>
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-16 text-center">Action</TableHead>
-                  <SortableHead label="Transaction No" column="transaction_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <SortableHead label="Date/time" column="transaction_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <SortableHead className="min-w-36" label="Type" column="transaction_type" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <SortableHead wrap label="Transaction No" column="transaction_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <SortableHead wrap label="Date/time" column="transaction_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
+                  <SortableHead wrap  label="Type" column="transaction_type" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead>Item</TableHead>
                   <TableHead>Branch</TableHead>
                   <TableHead className="text-right">In</TableHead>
@@ -169,7 +170,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
                     </TableCell>
                     <TableCell className="font-medium">{row.transaction_no}</TableCell>
                     <TableCell>{formatDateOnly(row.transaction_date)}</TableCell>
-                    <TableCell className="min-w-36"><Badge variant="secondary" className="max-w-full min-w-0 text-left leading-4" title={movementLabel(row.transaction_type)}><span className="truncate">{row.transaction_type === "stock_count_adjustment" ? "Count" : movementLabel(row.transaction_type)}</span></Badge></TableCell>
+                    <TableCell ><Badge variant="secondary" className="max-w-full min-w-0 text-left leading-4" title={movementLabel(row.transaction_type)}><span className="truncate">{row.transaction_type === "stock_count_adjustment" ? "Count" : movementLabel(row.transaction_type)}</span></Badge></TableCell>
                     <TableCell className="font-medium">{row.item_code}<p className="text-xs text-muted-foreground">{row.item_name}</p></TableCell>
                     <TableCell>{row.branch_name ?? "-"}</TableCell>
                     <TableCell className="text-right">{row.quantity_in ? formatNumber(row.quantity_in) : "-"}</TableCell>

@@ -25,7 +25,7 @@ export default async function UomConversionsPage({ searchParams }: { searchParam
 
   return (
     <>
-      <PageHeader title="UOM Conversions" description="Basic unit conversion factors used by recipes, supplier items, and future receiving." />
+      <PageHeader title="UOM Conversions" description="Manage base units and conversion factors." />
       <WorkspaceGrid rightRail={<ConsoleSection title="Actions"><Button asChild className="w-full" data-mobile-primary-action><Link href="/uom-conversions/new">New conversion</Link></Button></ConsoleSection>}>
         {filters.error || filters.success ? (
           <Card>

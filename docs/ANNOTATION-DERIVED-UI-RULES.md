@@ -101,3 +101,7 @@ Ordered Items keeps all ten semantic columns and full quantity/currency/comment 
 ## Catalogue / Stock Balance readability — 2026-11-04
 
 Stock Balance proportional columns supersede its historical70rem minimum and9rem/12rem code/name tracks; all nine fields remain present with visible scrolling on constrained canvases. Product catalogue copy describes current fields rather than future modules. No query/basket/business-rule change. [Source and evidence](qa/catalog-stock-readability-20261104.md).
+
+## 2026-11-04 — technical table follow-up from Preview f2b2dc2
+
+Supersedes the historical Movement Ledger72rem/nth-child fixed tracks for this caller only. GR detail, Stock Card, Movement Ledger and Recipes retain every field with bounded percentage tracks, wrapped headings and visible narrow-canvas scrollbars. Ordinary desktop widths770/810px must expose the rightmost fields; long values wrap instead of being dropped. Phone operational rows and business/query/permission semantics remain unchanged. UOM description states only current management capability and removes speculative future receiving copy. Evidence and acceptance limits: [technical tables QA](qa/technical-table-followup-20261104.md). Historical annotation IDs and prior evidence remain intact.

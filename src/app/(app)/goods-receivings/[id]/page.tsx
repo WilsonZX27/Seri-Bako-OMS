@@ -116,7 +116,8 @@ export default async function GoodsReceivingDetailPage({ params, searchParams }:
               </div>
               {receiving.status === "posted" ? <p className="mb-3 text-xs text-muted-foreground">Remaining is the order balance after this receipt. Later receipts appear on the purchase order.</p> : null}
               {receiving.status === "draft" && permissions["grn.post"] ? <GoodsReceivingDraftEditor action={postAction} lines={lines} /> : <>
-              <Table mobileHidden aria-label="Received items">
+              <Table scrollbar="auto" className="sb-gr-detail-table" mobileHidden aria-label="Received items">
+                <colgroup>{[16, 8, 10, 9, 8, 9, 6, 10, 12, 12].map((width, index) => <col key={index} style={{ width: `${width}%` }} />)}</colgroup>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Item</TableHead>

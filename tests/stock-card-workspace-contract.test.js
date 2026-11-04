@@ -13,7 +13,7 @@ test("stock card reuses the operational workspace, compact filter rail, and cont
   assert.match(source, /const resultCount = unavailable \? undefined : rows\.length/);
   assert.match(source, /<FilterBar resultCount=\{resultCount\} resetHref="\/stock-card" filtered=\{filtered\}>/);
   assert.match(source, /aria-label="Stock movement history"/);
-  assert.match(source, /<Table mobileHidden stickyColumn="first" aria-label="Stock movement history">/);
+  assert.match(source, /<Table[^>]*mobileHidden stickyColumn="first" aria-label="Stock movement history">/);
   assert.match(source, /<OperationalList ariaLabel="Stock movement history">/);
   assert.doesNotMatch(source, /<Card|<CardContent|overflow-x-auto/);
   assert.match(source, /Movement summary/);

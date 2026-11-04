@@ -110,14 +110,14 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
             </UnifiedListHeader>
           <div className="sb-list-content-card overflow-hidden" data-mobile-list-content-card>
           {orders?.rows.length ? <DataGridHint text="Pro-tip: Double-click any row to open the purchase order." /> : null}
-          <Table className="sb-procurement-table sb-purchase-orders-table !min-w-[51rem]" mobileHidden compactUntil="md" aria-label="Purchase orders" stickyColumn="second">
+          <Table className="sb-procurement-table sb-purchase-orders-table !min-w-[50rem]" scrollbar="auto" mobileHidden compactUntil="md" aria-label="Purchase orders" stickyColumn="second">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-10 text-center">Action</TableHead>
                   <SortableHead className="w-32 min-w-32" label="PO No" column="po_no" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <SortableHead className="w-28" wrap label="Date / Delivery" column="order_date" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead className="w-36 max-w-36">Request context</TableHead>
-                  <TableHead className="w-36">Supplier</TableHead>
+                  <TableHead className="w-32">Supplier</TableHead>
                   <SortableHead className="w-36" label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
                   <TableHead className="w-28 text-right">Order value</TableHead>
                 </TableRow>
@@ -129,7 +129,7 @@ export default async function PurchaseOrdersPage({ searchParams }: { searchParam
                     <TableCell className="w-32 min-w-32"><DocumentNumber value={order.po_no} size="sm" />{order.purchase_request_id && order.request_no ? <span className="mt-1 block text-[10px] italic text-muted-foreground"><Link href={`/purchase-requests/${order.purchase_request_id}`} className="text-[var(--sb-link)] underline-offset-4 hover:underline">{order.request_no}</Link></span> : null}</TableCell>
                     <TableCell className="w-32"><p>{formatDateOnly(order.order_date)}</p><p className="mt-1 text-xs text-muted-foreground">{formatDateOnly(order.expected_delivery_date, "—")}</p></TableCell>
                     <TableCell className="w-36 max-w-36"><p className="whitespace-normal break-words">{order.branch_name ?? "No outlet assigned"}</p><p className="mt-1 whitespace-normal break-words text-[11px] text-muted-foreground">{order.requested_by_name ? `${order.purchase_request_id ? "Submitted" : "Created"} by ${order.requested_by_name}` : "Creator unavailable"}</p></TableCell>
-                    <TableCell className="w-36 max-w-36"><span className="whitespace-normal break-words leading-4">{order.supplier_name ?? "-"}</span></TableCell>
+                    <TableCell className="w-32 max-w-32"><span className="whitespace-normal break-words leading-4">{order.supplier_name ?? "-"}</span></TableCell>
                     <TableCell className="w-36"><StatusBadge status={order.status} /></TableCell>
                     <TableCell className="w-28 text-right"><p>{order.line_count} {order.line_count === 1 ? "line" : "lines"}</p><p className="mt-1 text-[11px] text-muted-foreground">{formatCurrency(order.order_total)}</p></TableCell>
                   </DataGridRow>

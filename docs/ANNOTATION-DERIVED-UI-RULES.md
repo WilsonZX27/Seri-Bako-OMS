@@ -85,3 +85,7 @@ Latest user #1 supersedes historical alternating white/green row guidance: remov
 ## Authenticated page audit follow-up — 2026-11-04
 
 Daily desktop columns fit the actual central canvas; preserve the existing desktop table and compact breakpoint. Restore annotated72px quantity tracks while retaining existing touch heights and money-input geometry. Long Daily outlet and Asset checklist location names wrap so similarly prefixed locations remain distinguishable on touch screens. This supersedes two-line/ellipsis identification for these location rows only; updater compact summaries still retain their own contract. Source, tests and environment limits: [page audit correction](qa/page-audit-followup-20261104.md). No business-rule change or deployment.
+
+## Preview16501bb follow-up — 2026-11-04
+
+PO/GR supplier columns leave the numeric ending visible in the810px desktop canvas; smaller table canvases keep the house visible scrollbar. Dashboard roster approvals identify their branch using the existing scoped data. No workflow/query change. Source, screenshots and verification boundaries: [Preview audit follow-up](qa/preview-16501bb-audit-followup.md).

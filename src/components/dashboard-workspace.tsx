@@ -360,7 +360,7 @@ export function DashboardWorkspace({ summary }: { summary: DashboardSummary }) {
                     {isMaintenanceAction ? <span className="shrink-0 rounded-full bg-[var(--sb-surface-muted)] px-2 py-1 text-[10px] font-medium text-[var(--sb-text-muted)]">{row.maintenance_priority || "Normal"} priority</span> : <StatusBadge status={row.step.toLowerCase().replaceAll(" ", "_")} className="shrink-0" />}
                   </span>
                   {isScheduleAction
-                    ? <span className="text-[11px] font-medium text-[var(--sb-warning)]">Review and publish this outlet roster</span>
+                    ? <span className="text-[11px] font-medium text-[var(--sb-warning)]">{row.branch_name ?? "Outlet unavailable"} · Review and publish this outlet roster</span>
                     : isMaintenanceAction
                       ? <>
                           <span className="sb-pr-phone-supplier-row sb-repair-summary">

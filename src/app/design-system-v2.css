@@ -2722,7 +2722,7 @@ html[data-design-layer="v2"] [data-page-jump], html[data-design-layer="v2"] [dat
  html[data-design-layer="v2"]:has([data-mobile-create-fab]) #main-content { padding-bottom:calc(10rem + env(safe-area-inset-bottom)) !important; }
 }
 
-html[data-design-layer="v2"] .sb-table-region > table.sb-stock-balance-table { min-width:70rem; }
+html[data-design-layer="v2"] .sb-table-region > table.sb-stock-balance-table { min-width:50rem; }
 html[data-design-layer="v2"] table.sb-stock-balance-table > thead > tr > th { white-space:normal; overflow:visible; overflow-wrap:normal; }
 
 /* Transfer controls reserve space through the page, not inside the note card. */
@@ -2838,8 +2838,7 @@ html[data-design-layer="v2"] .unified-list-sheet-fields > :nth-last-child(1 of :
 .sb-basket-quantity > div > :is(button,input) { height:42px !important; min-height:42px !important; }
 
 html[data-design-layer="v2"] table.sb-stock-balance-table { table-layout:fixed; }
-html[data-design-layer="v2"] table.sb-stock-balance-table :is(th,td):nth-child(2) { width:9rem; max-width:9rem; }
-html[data-design-layer="v2"] table.sb-stock-balance-table :is(th,td):nth-child(3) { width:12rem; overflow-wrap:anywhere; }
+html[data-design-layer="v2"] table.sb-stock-balance-table td { overflow-wrap:anywhere; }
 
 /* Shared desktop query geometry: preserve query space before secondary controls. */
 @media (min-width: 1280px) {

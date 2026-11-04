@@ -97,3 +97,7 @@ Linked GRN cards reflect the existing finance-closed display state used by the d
 ## PO detail table — 2026-11-04
 
 Ordered Items keeps all ten semantic columns and full quantity/currency/comment content. Proportional columns fit the standard desktop canvas; smaller canvases retain visible bounded scrolling. Mobile cards and all calculations remain unchanged. [Source/evidence](qa/po-detail-layout-20261104.md).
+
+## Catalogue / Stock Balance readability — 2026-11-04
+
+Stock Balance proportional columns supersede its historical70rem minimum and9rem/12rem code/name tracks; all nine fields remain present with visible scrolling on constrained canvases. Product catalogue copy describes current fields rather than future modules. No query/basket/business-rule change. [Source and evidence](qa/catalog-stock-readability-20261104.md).

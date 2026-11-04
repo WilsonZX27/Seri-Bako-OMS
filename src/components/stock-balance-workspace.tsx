@@ -350,7 +350,8 @@ export function StockBalanceWorkspace({
             {Boolean(filters.search || filters.branch_id || filters.status || filters.supplier_id) ? <Button asChild variant="secondary" data-list-action="secondary"><Link href="/stock-balance" aria-label="Reset filters" title="Reset filters"><RotateCcw width={18} height={18} className="shrink-0" aria-hidden="true" /><span className="sr-only">Reset</span></Link></Button> : null}
           </FilterBar>
           <div className="sb-list-content-card overflow-hidden">
-          <Table mobileHidden className="sb-stock-balance-table" aria-label="Stock balances" stickyColumn="second">
+          <Table mobileHidden scrollbar="auto" className="sb-stock-balance-table [&_th]:px-1 [&_td]:px-1" aria-label="Stock balances" stickyColumn="second">
+            <colgroup>{[6, 12, 14, 8, 13, 10, 16, 9, 12].map((width, index) => <col key={index} style={{ width: `${width}%` }} />)}</colgroup>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12 text-center">Action</TableHead>

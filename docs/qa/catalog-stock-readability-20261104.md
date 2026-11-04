@@ -1,0 +1,13 @@
+# Catalogue copy and Stock Balance readability — 2026-11-04
+
+Source: Owner Preview16501bb screenshots28-stock-balance-1440/390 and30-products-1440/390. Current session later redirected to/login; this change does not require re-login. Independent08f2ba6 source archive; integration tree untouched.
+
+Confirmed: Stock Balance dedicated1120px minimum makes Avg Cost/Value, Last Movement and Status absent from initial810px canvas; Products says future recipe/production modules although these routes already exist.
+
+Scope: update only catalogue description; bound nine Stock Balance columns proportionally with50rem minimum, compact horizontal padding and visible house scrollbars. Remove conflicting dedicated code/name fixed tracks from the same CSS owner. Preserve mobile rows, actual row/basket actions, query/permission scopes, quantity/UOM/currency formatting and unknown states. No business-rule change. Verify actual shared table/row render in a synthetic fixture, realistic long names/units/status, large amounts and constrained canvas; include basket/ledger regression contracts. No authenticated-after or full-site acceptance claim.
+
+Validation completed:14 targeted/stock mobile/ledger contract tests passed; focused ESLint and TypeScript --noEmit passed. Actual Table and StockBalanceTableRows rendered with synthetic rows/inert router and buttons, representative header/shell, source CSS/Tailwind. Original1120px table in810px region; final810px table in810px region. All nine fields remain visible; RM1,234,567.89 single-line, long names wrap, sufficient/reorder/out-of-stock labels readable.650px constrained region retains800px minimum, thin scrollbar and tabIndex0; no document overflow. Screenshots saved and reopened: stock-fixed-local.png; before and narrow captures also preserved under worker preview-16501bb evidence. This is synthetic local geometry evidence, not hydrated Preview-after acceptance. Products copy verified by source diff only. Updated source still needs next Preview screenshots. Remaining review plan: remaining-page-audit-20261104.md and companion38-annotation/source-route CSVs.
+
+## Integration verification
+
+Applied cleanly on 08f2ba66a49b3ba45071c9f3390cab056301dfc7; MC07 labels and earlier layout fixes retained. New test imports converted to ES syntax without changing assertions. 40 targeted tests pass across stock layout/search/summary, basket identity/input, catalogue reads, MC07 and PO detail. Changed-file ESLint, TypeScript noEmit and whitespace checks pass. Retained author synthetic geometry evidence; no additional hosted visual verification, full build, deployment or real-data writes. Review inventories remain backlogs, not acceptance claims.

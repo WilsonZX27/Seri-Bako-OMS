@@ -31,7 +31,7 @@ export default async function ProductsPage({
     <>
       <PageHeader
         title="Products"
-        description="Finished goods master data for future recipe and production modules."
+        description="Finished goods, selling units and availability."
       />
       <WorkspaceGrid hideMobileConsole={!canCreate} rightRail={<>{canCreate || permissions["imports.run"] ? <ConsoleSection title="Actions"><div className="grid gap-2">{canCreate ? <ConsoleActionLink href="/products/new" kind="create" primary>New product</ConsoleActionLink> : null}{permissions["imports.run"] ? <ConsoleActionLink href="/imports/products" kind="import">Import products</ConsoleActionLink> : null}</div></ConsoleSection> : null}<ConsoleSection title="Product Summary"><dl className="grid gap-2 text-xs"><div className="flex justify-between"><dt className="text-muted-foreground">Matching</dt><dd className="font-semibold">{productsPage.totalRows}</dd></div><div className="flex justify-between"><dt className="text-muted-foreground">Active</dt><dd className="font-semibold">{activeCount}</dd></div></dl></ConsoleSection></>}>
         <div className="space-y-3">

@@ -10,4 +10,9 @@ for(const n of ['get_outlet_daily_today_summary','get_outlet_daily_completed_sum
 eq(JSON.stringify((await db.query('select * from outlet_daily_record_lines order by id')).rows),before);
 for(const set of ["notes='keep'","qty_sent=2","morning_received_provided=true","do_managed=true","wastage_qty=1"]){await db.exec('begin');await db.exec(`update outlet_daily_record_lines set ${set} where id='moon'`);eq((await get('get_outlet_daily_today_summary')).today_received_unavailable,set.includes('morning_received_provided')?0:1);await db.exec('rollback')}
 await db.exec("update products set available_until='2026-11-02' where id='moon'");eq((await get('get_outlet_daily_today_summary')).today_received_unavailable,1);
+await db.exec("update products set available_until='2026-10-01' where id='moon'");
+const preRollback=JSON.stringify((await db.query('select * from outlet_daily_record_lines order by id')).rows);
+await db.exec(fs.readFileSync(root+'/sql-candidates/outlet_daily_empty_history_summary.ROLLBACK.sql','utf8'));
+for(const n of ['get_outlet_daily_today_summary','get_outlet_daily_completed_summary'])eq((await get(n)).today_received_unavailable,1);
+eq(JSON.stringify((await db.query('select * from outlet_daily_record_lines order by id')).rows),preRollback);
 console.log(`${checks} isolated PostgreSQL assertions passed`);await db.close()})().catch(e=>{console.error(e);process.exit(1)});

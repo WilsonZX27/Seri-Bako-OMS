@@ -46,3 +46,5 @@ Idle timeout is scoped to the current login session; it must not revoke other ac
 
 ODR Settings summary2026-11-04: display the saved active channel names and within-section order using the existing tenant-scoped settings read; on failure show unavailable rather than canonical defaults. This is presentation of existing configuration, not new monetary mapping. [Source audit and evidence](../qa/odr-5fc-followup-20261104.md).
 Asset Transfer format confirmed2026-11-04: AT-001, company-scoped persistent allocation for new transfers, no historical backfill or real activation implied. [Decision and verification](../v10/proposals/asset-transfer-at-format-20261104.md).
+## RO / OT failure feedback — 2026-11-04 local correction
+RO decisions and OT claims must distinguish business conflicts (409), permission refusal (403), and service unavailability (503); never classify failures using fragments of displayed prose or expose SQL details. Existing approval eligibility/state rules remain authoritative and unchanged. [Local route evidence and remaining incident gap](../../handoff/people-ro-ot-20261104/REPORT.md).

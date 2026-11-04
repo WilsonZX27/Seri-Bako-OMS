@@ -1,0 +1,14 @@
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
+function harness(kind,error){
+ const calls=[],safe=require('./helpers/load-source.cjs')()('src/lib/attendance/safe-error.ts');
+ const mocks={'@/lib/attendance/safe-error':safe,'next/server':{NextResponse:{json:(body,o={})=>({body,status:o.status||200})}},zod:require('zod'),'@/lib/supabase/server':{createClient:async()=>({rpc:async(name,args)=>{calls.push({name,args});return {data:{status:kind==='comp-time'?'rejected':'submitted'},error}}})},'@/lib/supabase/loose':{looseSupabase:x=>x},'@/server/http/request-security':{rejectCrossSiteMutation:()=>null},'@/server/auth/tenant-actor':{requireActiveTenantActor:async()=>({})},'@/server/auth/permissions':{hasPermission:async()=>true},'@/server/observability/logger':{logServerError:()=>{}}};
+ const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(`src/app/api/attendance/${kind}/route.ts`,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{exports,require:n=>{if(!(n in mocks))throw Error(n);return mocks[n]}});
+ const id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';return {calls,run:()=>exports.POST({json:async()=>kind==='comp-time'?{action:'decide',transactionId:id,decision:'reject',comment:'Synthetic reason'}:{action:'submit',resultId:id,requestedMinutes:30,reason:'Synthetic OT'}})};
+}
+for(const kind of ['comp-time','ot-claims']){
+ test(`${kind}: successful command reaches correct RPC with reason`,async()=>{const h=harness(kind,null),r=await h.run();assert.equal(r.status,200);assert.equal(r.body.ok,true);assert.equal(h.calls.length,1);assert.equal(h.calls[0].name,kind==='comp-time'?'decide_comp_time_transaction':'submit_attendance_ot_claim');assert.equal(kind==='comp-time'?h.calls[0].args.p_decision:h.calls[0].args.p_requested_minutes,kind==='comp-time'?'reject':30)});
+ test(`${kind}: reason/state refusal is business409`,async()=>assert.equal((await harness(kind,{code:'P0001',message:'A rejection comment is required.'}).run()).status,409));
+ test(`${kind}: permission SQLSTATE403 without exposing details`,async()=>{const r=await harness(kind,{code:'42501',message:'PRIVATE schema',details:'OTHER STAFF'}).run();assert.equal(r.status,403);assert.doesNotMatch(JSON.stringify(r.body),/PRIVATE|OTHER/)});
+ for(const code of ['57014','08006','PGRST202'])test(`${kind}: ${code} is unavailable503, not business409`,async()=>{const r=await harness(kind,{code,message:'PRIVATE database details'}).run();assert.equal(r.status,503);assert.doesNotMatch(JSON.stringify(r.body),/PRIVATE/)});
+}
+test('OT duplicate stays409 with explicit safe guidance',async()=>{const r=await harness('ot-claims',{code:'23505',message:'duplicate key value violates unique constraint "attendance_ot_claim_one_active_day"'}).run();assert.equal(r.status,409);assert.match(r.body.message,/active OT claim already exists/)});

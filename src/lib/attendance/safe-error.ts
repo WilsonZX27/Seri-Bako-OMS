@@ -16,3 +16,12 @@ export function safeAttendanceError(error: unknown, fallback: string): string {
   if (message === "A submitter cannot approve their own entry.") return "You cannot review your own request. Another authorised approver must review it.";
   return typeof message === "string" && allowed.has(message) ? message : fallback;
 }
+
+/** Classify failures without exposing SQL text or relying on translated UI prose. */
+export function attendanceErrorStatus(error: unknown): number {
+  const row = typeof error === "object" && error !== null ? error as { code?: unknown; message?: unknown } : {};
+  if (row.code === "42501" || (typeof row.message === "string" && allowed.has(row.message) && row.message.endsWith("not authorised."))) return 403;
+  if (["57014", "55P03", "PGRST202", "PGRST205", "42883"].includes(String(row.code)) || String(row.code).startsWith("08")) return 503;
+  if (row.code === "P0001" || (typeof row.message === "string" && allowed.has(row.message))) return 409;
+  return 500;
+}

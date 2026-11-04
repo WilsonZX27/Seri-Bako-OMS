@@ -53,12 +53,12 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
           <Field label="Product status">
             <SelectControl name="status" defaultValue={value("status", product?.status ?? "active")} required ariaLabel={"Product status"} options={[({value: "active", label: "Active"}), ({value: "inactive", label: "Inactive"})]}/>
           </Field>
-          <Field label="Availability type">
-            <SelectControl name="is_seasonal" defaultValue={value("is_seasonal", product?.is_seasonal ? "true" : "false")} ariaLabel={"Availability type"} options={[({value: "false", label: "Year-round"}), ({value: "true", label: "Seasonal"})]}/>
+          <Field label="Seasonality">
+            <SelectControl name="is_seasonal" defaultValue={value("is_seasonal", product?.is_seasonal ? "true" : "false")} ariaLabel={"Seasonality"} options={[({value: "false", label: "Not seasonal"}), ({value: "true", label: "Seasonal"})]}/>
           </Field>
           <Field label="Available from"><Input name="available_from" type="date" defaultValue={value("available_from", product?.available_from ?? "")} /></Field>
           <Field label="Available until"><Input name="available_until" type="date" defaultValue={value("available_until", product?.available_until ?? "")} /></Field>
-          <p className="col-span-2 -mt-2 text-xs text-muted-foreground">Seasonal items with an end date stop appearing on new Outlet Daily Records after that date. Leave dates blank to keep the item available until you update its season.</p>
+          <p className="col-span-2 -mt-2 text-xs text-muted-foreground">Supply dates apply to new Daily Records and Planning even for non-seasonal products. Both dates are inclusive. Leave both blank for no date limit; existing records are retained.</p>
           <Field label="Display Order">
             <Input name="display_order" type="number" min="1" step="1" defaultValue={value("display_order", product?.display_order ?? 9999)} required />
           </Field>

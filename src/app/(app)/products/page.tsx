@@ -1,3 +1,4 @@
+import { productAvailabilityLabel } from "@/lib/production-planning/availability";
 import { Pencil } from "lucide-react";
 import { DataGridRow } from "@/components/ui/data-grid-row";
 import { Badge } from "@/components/ui/badge";
@@ -65,7 +66,7 @@ export default async function ProductsPage({
                     <TableCell className="font-medium">{product.product_name}</TableCell>
                     <TableCell>{product.category}</TableCell>
                     <TableCell>{normalizeUom(product.selling_unit)}</TableCell>
-                    <TableCell>{product.is_seasonal ? <span className="text-amber-700">Seasonal{product.available_until ? ` · until ${product.available_until}` : ""}</span> : <span className="text-muted-foreground">Year-round</span>}</TableCell>
+                    <TableCell><span className="text-muted-foreground">{productAvailabilityLabel(product)}</span></TableCell>
                     <TableCell>
                       <Badge variant={product.status === "active" ? "success" : "secondary"}>{product.status}</Badge>
                     </TableCell>
@@ -79,7 +80,7 @@ export default async function ProductsPage({
               </TableBody>
             </Table>
           <OperationalList ariaLabel="Products">
-            {productsPage.rows.map((product) => <OperationalListRow key={product.id} href={`/products/${product.id}`} label={`Open ${product.product_name}`} primary={product.product_name} status={<Badge variant={product.status === "active" ? "success" : "secondary"}>{product.status}</Badge>} secondary={`${product.product_code} · ${product.category}`} meta={normalizeUom(product.selling_unit)} />)}
+            {productsPage.rows.map((product) => <OperationalListRow key={product.id} href={`/products/${product.id}`} label={`Open ${product.product_name}`} primary={product.product_name} status={<Badge variant={product.status === "active" ? "success" : "secondary"}>{product.status}</Badge>} secondary={`${product.product_code} · ${product.category}`} meta={`${normalizeUom(product.selling_unit)} · ${productAvailabilityLabel(product)}`} />)}
             {!productsPage.rows.length ? <EmptyState title={filtered ? "No products match these filters" : "No products yet"} description={filtered ? "Reset the filters or widen the search." : "Products appear after finished goods are created or imported."} action={filtered ? emptyAction : undefined} /> : null}
           </OperationalList>
           <PaginationControls page={productsPage.page} totalPages={productsPage.totalPages} totalRows={productsPage.totalRows} searchParams={filters} />

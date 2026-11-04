@@ -129,10 +129,11 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
                 <h2 className="text-sm font-semibold">Ordered Items</h2>
                 <p className="text-sm font-semibold">{formatCurrency(total)}</p>
               </div>
-              <Table mobileHidden aria-label="Ordered items">
+              <Table className="sb-procurement-table [&_th]:px-1 [&_td]:px-1" style={{ tableLayout: "fixed", minWidth: "46rem" }} scrollbar="auto" mobileHidden aria-label="Ordered items">
+                <colgroup>{[3, 15, 8, 8, 10, 8, 6, 16, 10, 16].map((width, index) => <col key={index} style={{ width: `${width}%` }} />)}</colgroup>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-10">#</TableHead><TableHead>Item</TableHead>
+                      <TableHead className="px-1 text-center">#</TableHead><TableHead>Item</TableHead>
                       <TableHead className="text-right">Ordered</TableHead>
                       <TableHead className="text-right">Received</TableHead>
                       <TableHead className="text-right">Cancelled</TableHead>
@@ -148,15 +149,15 @@ export default async function PurchaseOrderDetailPage({ params }: { params: Prom
                       const item = itemById.get(line.item_id);
                       const pending = line.qty_ordered - line.qty_received - line.qty_cancelled;
                       return (
-                        <TableRow key={line.id}><TableCell className="text-xs tabular-nums text-muted-foreground">{index + 1}</TableCell>
-                          <TableCell><p className="font-medium">{item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground sb-item-code" title={item?.item_code ?? undefined}>{item?.item_code}</p></TableCell>
+                        <TableRow key={line.id}><TableCell className="px-1 text-center text-xs tabular-nums text-muted-foreground">{index + 1}</TableCell>
+                          <TableCell><p className="break-words font-medium">{item?.item_name ?? line.item_id}</p><p className="text-xs text-muted-foreground sb-item-code" title={item?.item_code ?? undefined}>{item?.item_code}</p></TableCell>
                           <TableCell className="text-right">{formatNumber(line.qty_ordered)}</TableCell>
                           <TableCell className="text-right">{formatNumber(line.qty_received)}</TableCell>
                           <TableCell className="text-right">{formatNumber(line.qty_cancelled)}</TableCell>
                           <TableCell className="text-right font-medium">{formatNumber(pending)}</TableCell>
                           <TableCell>{line.uom}</TableCell>
                           <TableCell className="text-right">{formatCurrency(line.unit_price)}</TableCell>
-                          <TableCell className="max-w-56 text-xs text-muted-foreground">{line.remarks || "—"}</TableCell>
+                          <TableCell className="break-words text-xs text-muted-foreground">{line.remarks || "—"}</TableCell>
                           <TableCell className="text-right">{formatCurrency(line.qty_ordered * line.unit_price)}</TableCell>
                         </TableRow>
                       );

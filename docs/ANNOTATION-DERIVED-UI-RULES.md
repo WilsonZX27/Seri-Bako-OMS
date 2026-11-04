@@ -93,3 +93,7 @@ PO/GR supplier columns leave the numeric ending visible in the810px desktop canv
 ## Second page-audit follow-up — 2026-11-04
 
 Linked GRN cards reflect the existing finance-closed display state used by the detail; raw stock posting state and transitions remain unchanged. Planning Delivery date retains an explicit accessible name through filter restructuring. Source and environment-specific evidence: [second page-audit fixes](qa/second-page-audit-fixes-20261104.md).
+
+## PO detail table — 2026-11-04
+
+Ordered Items keeps all ten semantic columns and full quantity/currency/comment content. Proportional columns fit the standard desktop canvas; smaller canvases retain visible bounded scrolling. Mobile cards and all calculations remain unchanged. [Source/evidence](qa/po-detail-layout-20261104.md).

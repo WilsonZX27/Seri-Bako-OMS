@@ -436,6 +436,7 @@ export type Database = {
           sold_qty?: number | null;
           do_managed: boolean;
           wastage_provided: boolean;
+          carryover_wastage_provided?: boolean;
           stockout: boolean;
           stockout_time: string | null;
           morning_received_qty: number;
@@ -461,6 +462,7 @@ export type Database = {
           sold_qty?: number | null;
           do_managed?: boolean;
           wastage_provided?: boolean;
+          carryover_wastage_provided?: boolean;
           stockout?: boolean;
           stockout_time?: string | null;
           morning_received_qty?: number;

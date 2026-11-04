@@ -56,3 +56,9 @@ MC07 display correction2026-11-04: saved supply dates must be visible regardless
 Daily empty-history presentation,2026-11-04: evidence-empty unavailable food_daily rows retain the same omission across save/status/lock transitions. Confirmed zeros, quantities, notes and provenance remain visible. This supersedes draft-only presentation, not historical persistence or completion rules. No record unlocking or data deletion; pending-count cause awaits actual record evidence. See [scope](../qa/odr-empty-seasonal-history-20261104.md).
 
 TRX screenshot follow-up2026-11-04: confirmed out-of-season zero-only daily-food historical rows are collapsed behind an explicit expandable history control, not omitted from payloads or deleted. Actual quantities/notes remain visible. Receipt summary exclusion still applies only to strictly unconfirmed empty history; confirmed zeros stay authoritative.
+
+## November 4 browser comments 13
+
+The new batch supersedes the earlier instruction to always show a blank Daily comment: show an editable comment only for Other, preserve existing remarks for other reasons. Daily numeric columns share panel-responsive tracks. Source, remaining carryover-wastage decision and evidence: [browser comments 13](../qa/browser-comments13-20261104.md).
+
+User confirmed on 2026-11-04: Next-day food stops future Usage entry; historical Usage remains read-only, without conversion to Wastage. New primary columns are Qty Sent, Received, Wastage, Tomorrow. The independent confirmation and compatibility requirements are in [carryover save trace](../qa/odr-carryover-save-trace-20261104.md). SQL is a local candidate, not installed.

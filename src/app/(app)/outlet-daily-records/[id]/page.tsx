@@ -117,7 +117,7 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
 
   const sidePanel = <>
     {primaryAction || hasSecondaryActions ? <DocumentActionSection moreOptions={hasSecondaryActions ? <div className="grid gap-2">{secondaryActions}</div> : undefined}>{primaryAction ?? <p className="text-xs text-muted-foreground">No primary action is available for this status.</p>}</DocumentActionSection> : null}
-    <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{nextStep}</p><p className="text-xs text-muted-foreground">Daily food wastage needs a reason. Usage and Qty Sold are recorded separately.</p></DocumentSideSection>
+    <DocumentSideSection title="Validation / Next Step"><p className="text-xs text-muted-foreground">{nextStep}</p><p className="text-xs text-muted-foreground">Food wastage needs a reason. Packaging usage and beverage sales are recorded separately.</p></DocumentSideSection>
     <DocumentSideSection title="Activity"><TimelineEventList events={activityItems.map((activity) => ({ id: activity.id, activity_type: activity.activity_type, message: activity.display_message, created_at: activity.created_at, created_by_name: activity.actor_name }))} /></DocumentSideSection>
   </>;
 

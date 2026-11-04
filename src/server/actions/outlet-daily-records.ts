@@ -29,6 +29,7 @@ const outletDailyLineSchema = z.object({
   sold_qty: quantitySchema.nullable(),
   daily_tracking: z.enum(["food_daily", "food_carryover", "beverage", "packaging"]),
   wastage_provided: z.boolean(),
+  carryover_wastage_entry: z.boolean(),
   stockout: z.boolean(),
   stockout_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/).nullable(),
   wastage_reason: z.enum(["unsold", "damaged", "expired", "quality_issue", "staff_meal", "other"]).nullable(),
@@ -95,6 +96,7 @@ function extractOutletDailyPayload(formData: FormData) {
   const usage = values(formData, "usage_qty");
   const sold = values(formData, "sold_qty");
   const tracking = values(formData, "daily_tracking");
+  const carryoverEntry = values(formData, "carryover_wastage_entry");
   const reasons = values(formData, "wastage_reason");
   const stockouts = values(formData, "stockout");
   const stockoutTimes = values(formData, "stockout_time");
@@ -129,6 +131,7 @@ function extractOutletDailyPayload(formData: FormData) {
       usage_qty: nullableText(usage[index]),
       sold_qty: nullableText(sold[index]),
       daily_tracking: tracking[index] ?? "food_daily",
+      carryover_wastage_entry: carryoverEntry[index] === "true",
       wastage_provided: wastage[index] != null && wastage[index].trim() !== "",
       stockout: stockouts[index] === "true",
       stockout_time: nullableText(stockoutTimes[index]),
@@ -154,6 +157,10 @@ export async function saveOutletDailyRecord(formData: FormData) {
   } else await requirePermissionOrRedirect("outlet_daily_record.create", "/outlet-daily-records/new");
   try {
     const db = await createClient();
+    if (payload.lines.some(line => line.daily_tracking === "food_carryover")) {
+      const { error } = await db.from("outlet_daily_record_lines").select("carryover_wastage_provided").limit(0);
+      if (error) return { error: "Next-day wastage saving is not available yet. Your entries have not been saved; please keep this page open." };
+    }
     const [beforeLines, beforeRecord] = recordId ? await Promise.all([
       db.from("outlet_daily_record_lines").select("product_id,qty_sent,morning_received_qty,morning_received_provided,evening_leftover_qty,wastage_qty,saleable_next_day_qty,usage_qty,sold_qty,wastage_reason,notes").eq("record_id", recordId),
       db.from("outlet_daily_records").select("status,notes,updated_at").eq("id", recordId).maybeSingle(),
@@ -234,7 +241,7 @@ export async function saveOutletDailyRecord(formData: FormData) {
         leftover: line.evening_leftover_qty,
         wastage: line.wastage_qty,
         saleable: canUpdateOutletValues || !recordId ? line.saleable_next_day_qty : stored?.saleable_next_day_qty ?? null,
-        usage: canUpdateOutletValues || !recordId ? line.usage_qty : stored?.usage_qty ?? null,
+        usage: line.daily_tracking === "food_carryover" ? stored?.usage_qty ?? null : canUpdateOutletValues || !recordId ? line.usage_qty : stored?.usage_qty ?? null,
         sold: canUpdateOutletValues || !recordId ? line.sold_qty : stored?.sold_qty ?? null,
         reason: line.wastage_reason,
         comment: line.notes,

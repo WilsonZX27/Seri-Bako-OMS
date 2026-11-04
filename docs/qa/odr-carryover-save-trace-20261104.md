@@ -24,3 +24,18 @@ Await user's choice whether future Usage entry remains required or historical-on
 A complete candidate requires independent carryover-wastage provenance, compatibility for old clients (do not turn their hidden default zero into a confirmed waste count), guarded replacement of the installed private tracking wrapper, matching UI/payload/query types, and atomic failure/permission/concurrency tests. The public wrapper chain, ACL and installed body must be read and compared before any installation. No SQL candidate has been installed or represented as ready by this trace.
 
 Do not release a Wastage editor while the old normalizer still discards it. Do not derive usage or sales from sent minus waste minus tomorrow: opening stock is not established by these fields.
+
+## User decision and local implementation
+
+User confirmed: stop future Usage entry; preserve historical Usage read-only. Supersedes the pending decision above.
+
+- Form now shows Qty Sent / Received / Wastage / Tomorrow; historical Usage is text only, including zero. Positive historical wastage remains visible; legacy zero is not silently certified as an independent waste count.
+- Candidate SQL adds independent carryover_wastage_provided and changes only the private tracking wrapper after checking its exact old body. No grants, public-wrapper changes, historical conversion, or business-row backfill.
+- Database ignores submitted carryover Usage and uses the existing row under the existing record lock; new rows retain NULL. Existing public/base authorization and posted protections remain delegated.
+- Old-client carryover edits fail before saving. New server action checks the additive column before RPC submission. Install atomically before deploying this app; failure leaves the current installed app unchanged.
+- Existing sums already use wastage_qty and preserve historical usage_qty separately. No inferred sales/usage or opening-stock arithmetic is introduced.
+- 14 isolated wrapper assertions passed; base authorization and locking are stubbed, so these are propagation/atomicity assertions, not real RLS or concurrency acceptance. 10 related regression tests, TypeScript and targeted lint passed.
+- SQL NOT installed. Live current private-function body/ACL drift check, full-chain RPC tests and authenticated visual/save verification remain release gates. Do not claim Production fixed.
+- Once new waste exists, reverting to the old normalizer would zero it. Rollback must retain this DB guard and disable writes/use a compatible read-only app; do not restore the old SQL function.
+
+Local production-mode build passed (placeholder local Supabase configuration; no live data). A subsequent help-text correction clarifies food wastage versus packaging usage and beverage sales; rendered Preview remains pending.

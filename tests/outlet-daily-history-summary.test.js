@@ -1,0 +1,31 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import ts from 'typescript';
+import vm from 'node:vm';
+const load = file => { const c={exports:{}}; vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,c); return c.exports; };
+const {omitEmptyDailyHistory}=load('src/lib/outlet-daily-history.ts');
+const {productAvailableOn}=load('src/lib/production-planning/availability.ts');
+const source=fs.readFileSync('src/server/queries/outlet-daily-records.ts','utf8');
+const body=source.slice(source.indexOf('const totals ='),source.indexOf('const shiftDate ='));
+const c={omitEmptyDailyHistory,productAvailableOn};
+vm.runInNewContext(ts.transpileModule(body+'; globalThis.calculate=totals;',{}).outputText,c);
+const empty={product_id:'moon',daily_tracking:'food_daily',qty_sent:0,qty_sent_source:'unavailable',morning_received_qty:0,morning_received_provided:false,qty_sent_estimated:null,wastage_qty:0,evening_leftover_qty:0};
+const real={...empty,product_id:'real',qty_sent:4,qty_sent_confirmed:true,morning_received_qty:4,morning_received_provided:true,wastage_qty:1};
+const availability={date:'2026-11-02',products:new Map([['moon',{status:'active',available_until:'2026-10-01'}]])};
+test('empty expired history does not add receipt pending before/after save or on posted read',()=>{
+ for(const status of ['draft','morning_recorded','evening_completed','reviewed']){
+  const rows=[real,{...empty,status}]; const before=JSON.stringify(rows); const result=c.calculate(rows,undefined,availability);
+  assert.equal(result.received_pending_lines,0);assert.equal(result.total_received,4);assert.equal(result.total_wastage,1);
+  assert.equal(result.qty_sent_state,'missing');assert.equal(JSON.stringify(rows),before);
+ }
+});
+test('actual history, explicit zeros, notes and missing catalogue remain authoritative',()=>{
+ for(const patch of [{morning_received_qty:2},{morning_received_provided:true},{qty_sent_confirmed:true},{notes:'keep'},{wastage_qty:1},{do_managed:true}]){
+  const row={...empty,...patch};assert.equal(omitEmptyDailyHistory(row,false),false);
+  const result=c.calculate([real,row],undefined,availability);
+  assert.equal(result.received_pending_lines,patch.morning_received_provided?0:1);
+ }
+ assert.equal(c.calculate([real,empty]).received_pending_lines,1);
+ assert.equal(c.calculate([real,empty],undefined,{...availability,date:'2026-10-01'}).received_pending_lines,1);
+});

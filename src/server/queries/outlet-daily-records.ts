@@ -1,3 +1,4 @@
+import { omitEmptyDailyHistory } from "@/lib/outlet-daily-history";
 import { productAvailableOn } from "@/lib/production-planning/availability";
 import { insightRange, insightPeriod } from "@/lib/outlet-insight-period";
 import { readCompletePages } from "@/server/queries/read-complete-pages";
@@ -116,8 +117,13 @@ export type OutletDailyWastageCostSummary = {
 
 const isPackagingCategory = (category: string | null | undefined) => category?.trim().toLowerCase() === "packaging";
 
-const totals = (lines: LineRow[], operationalProductIds?: Set<string>) => {
-  const operationalLines = (operationalProductIds ? lines.filter((line) => operationalProductIds.has(line.product_id)) : lines).filter(line => line.daily_tracking !== "packaging");
+type DailyAvailabilityProduct = { status: string; available_from?: string | null; available_until?: string | null };
+const totals = (lines: LineRow[], operationalProductIds?: Set<string>, availability?: { date: string; products: Map<string, DailyAvailabilityProduct> }) => {
+  const operationalLines = (operationalProductIds ? lines.filter((line) => operationalProductIds.has(line.product_id)) : lines).filter(line => line.daily_tracking !== "packaging").filter(line => {
+    const product = availability?.products.get(line.product_id);
+    // Unknown catalogue data stays pending; never infer that missing data is empty history.
+    return !product || !omitEmptyDailyHistory(line, product.status === "active" && productAvailableOn(product, availability!.date));
+  });
   const qtySentState = lines.length > 0 && lines.every((line) => line.qty_sent_source === "authorized_confirmed" || line.qty_sent_confirmed)
     ? "confirmed" as const
     : lines.some((line) => line.qty_sent_source === "authorized_draft")
@@ -329,7 +335,7 @@ async function hydrateRows(db: Awaited<ReturnType<typeof createClient>>, records
   if (branchesError) throw new Error(branchesError.message);
   if (!lines || !branches) throw new Error("Outlet daily record details returned no data.");
   const productIds = [...new Set(lines.map((line) => line.product_id))];
-  const { data: products, error: productsError } = productIds.length ? await db.from("products").select("id,category").in("id", productIds) : { data: [], error: null };
+  const { data: products, error: productsError } = productIds.length ? await db.from("products").select("id,category,status,available_from,available_until").in("id", productIds) : { data: [], error: null };
   if (productsError) throw new Error(productsError.message);
   const operationalProductIds = new Set((products ?? []).filter((product) => !isPackagingCategory(product.category)).map((product) => product.id));
   const branchNames = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
@@ -345,7 +351,7 @@ async function hydrateRows(db: Awaited<ReturnType<typeof createClient>>, records
     created_by_name: actorDisplayName(actorDisplayMap, record.created_by),
     submitted_by_name: record.submitted_by ? actorDisplayName(actorDisplayMap, record.submitted_by) : null,
     updated_by_name: record.updated_by ? actorDisplayName(actorDisplayMap, record.updated_by) : null,
-    ...totals(linesByRecord.get(record.id) ?? [], operationalProductIds),
+    ...totals(linesByRecord.get(record.id) ?? [], operationalProductIds, { date: record.record_date, products: new Map((products ?? []).map(product => [product.id, product])) }),
   }));
 }
 
@@ -508,7 +514,7 @@ export async function getOutletDailyRecord(id: string) {
       created_by_name: trustedStaffs.find((staff) => staff.id === typedRecord.created_by)?.full_name ?? null,
       updated_by_name: typedRecord.updated_by ? trustedStaffs.find((staff) => staff.id === typedRecord.updated_by)?.full_name ?? null : null,
       reviewed_by_name: trustedStaffs.find((staff) => staff.id === typedRecord.reviewed_by)?.full_name ?? null,
-      ...totals(typedLines),
+      ...totals(typedLines, undefined, { date: typedRecord.record_date, products: productMap }),
     },
     lines: typedLines
       .map((line) => ({ ...line, morning_received_provided: receivedValueIsTrusted(line), product: productMap.get(line.product_id) }))

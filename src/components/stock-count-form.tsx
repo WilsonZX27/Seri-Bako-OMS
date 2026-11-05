@@ -729,7 +729,7 @@ export function StockCountForm({
               <p className="text-xs text-right font-semibold">Variance</p>
               <p className="text-xs font-semibold">Count</p>
             </div>
-            <div className="grid grid-cols-2 gap-2 p-2 lg:block lg:divide-y lg:gap-0 lg:p-0">
+            <div className="grid grid-cols-1 gap-2 p-2 min-[390px]:grid-cols-2 lg:block lg:divide-y lg:gap-0 lg:p-0">
               {visibleLines.map((line, visibleIndex) => {
                 const displayIndex = visibleIndex + 1;
                 const hasPhysical = line.physicalQty.trim() !== "";

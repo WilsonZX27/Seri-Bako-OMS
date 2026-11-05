@@ -129,3 +129,7 @@ Actual Owner Production Demand Trend phone screenshot shows an SVG growing to671
 ## 2026-11-05 — phone asset names and locations
 
 The mobile asset register must wrap asset names and location names within its existing bounded tracks. Single-line ellipsis conceals identifiers needed to choose a record. Preserve asset codes, registered quantity semantics, permissions, detail links and desktop table behavior. This is a follow-up to long-name readability, not closure of registration or transfer annotations. See [QA](qa/asset-register-phone-names-20261105.md).
+
+## 2026-11-05 — narrow phone Stock Count draft
+
+Below390px use a single draft-item card column so decimal quantities remain readable between the existing touch controls. At390px and above retain the established two-column phone pattern; desktop rows remain unchanged. Preserve quantities, autosave and confirmation logic. Real before screenshot and limits: [QA](qa/stock-count-narrow-draft-20261105.md).

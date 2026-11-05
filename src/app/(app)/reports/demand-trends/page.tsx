@@ -1,3 +1,4 @@
+import { DAILY_UNIT_UNAVAILABLE } from "@/lib/daily-quantity-basis";
 import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { DemandTrendChart } from "@/components/reports/demand-trend-chart";
@@ -31,6 +32,8 @@ export default async function DemandTrendsPage({ searchParams }: { searchParams:
       <Card><CardContent className="p-5"><EmptyState title="Demand Trend Lite is unavailable" description="Try again shortly. Outlet records remain unchanged, and no incomplete trend is presented as an empty report." action={{ href: "/reports/demand-trends", label: "Retry report" }} /></CardContent></Card>
     </WorkspaceGrid>
   </>;
+  // Current catalogue units cannot establish historical quantities or product rankings.
+  const quantitiesAvailable = report.quantity_totals_available === true && !!report.quantity_unit && report.filters.product !== "all";
   const lowConfidence = report.coverage.confidence === "Low" || report.coverage.unavailable > 0 || report.coverage.reliable_lines === 0;
   return <>
     <PageHeader title="Demand Trend Lite" description="Outlet-record movement and wastage trends for operational review." />
@@ -40,6 +43,8 @@ export default async function DemandTrendsPage({ searchParams }: { searchParams:
     </>} tabletRailMode="split">
       <FilterBar resetHref="/reports/demand-trends" className="sb-list-filters--balanced"><SelectControl name="period" defaultValue={report.filters.period} ariaLabel="Reporting period" options={[({value: "7", label: "Last 7 days"}), ({value: "30", label: "Last 30 days"}), ({value: "month", label: "Current month"})]}/><SelectControl name="branch" defaultValue={report.filters.branch} ariaLabel="Outlet branch" options={[({value: "all", label: "All available outlets"}), ...(report.branches.map((branch) => ({value: String((branch.id) ?? ""), label: String((branch.branch_name) ?? "")})))]}/><FilterBarMore activeCount={Number(report.filters.product !== "all")} resetHref="/reports/demand-trends"><SelectControl name="product" defaultValue={report.filters.product} ariaLabel="Product" options={[({value: "all", label: "All products"}), ...(report.products.map((product) => ({value: String((product.id) ?? ""), label: String((product.product_name) ?? "")})))]}/></FilterBarMore><Button type="submit" variant="secondary">Filter</Button></FilterBar>
       {lowConfidence ? <Card className="border-warning/40 bg-warning/10"><CardContent className="flex gap-2 p-3 text-sm text-warning"><AlertTriangle className="h-4 w-4 shrink-0" />Use with caution: {report.coverage.incomplete} incomplete record(s), {report.coverage.unavailable} record(s) with unverified receiving, and {report.coverage.missing} missing outlet-day(s) are excluded from reliable totals. Estimated movement is not POS sales.</CardContent></Card> : null}
+      {quantitiesAvailable ? <>
+      <p className="text-xs text-muted-foreground">Quantities in {report.quantity_unit} · selected product only.</p>
       <MetricStrip items={[{ label: "Received", value: report.coverage.reliable_lines ? formatNumber(report.summary.received) : "Unavailable" }, { label: "Leftover", value: report.coverage.reliable_lines ? formatNumber(report.summary.leftover) : "Unavailable" }, { label: "Wastage", value: report.coverage.reliable_lines ? formatNumber(report.summary.wastage) : "Unavailable" }, { label: "Estimated movement", value: report.coverage.reliable_lines ? formatNumber(report.summary.movement) : "Unavailable" }, { label: "Wastage %", value: report.coverage.reliable_lines ? `${formatNumber(report.summary.wastage_percent)}%` : "Unavailable" }, { label: "Coverage", value: `${formatNumber(report.coverage.percent)}%` }]} className="lg:grid-cols-6" />
       <DemandTrendChart rows={report.daily} />
       <div className="grid gap-4 lg:grid-cols-2">
@@ -50,6 +55,7 @@ export default async function DemandTrendsPage({ searchParams }: { searchParams:
       <TrendTable title="Top Wastage Products" rows={report.top_wastage_products} empty="No wastage data is available for the current filters." collapsible />
       <TrendTable title="Outlet Comparison" rows={report.outlets} empty="No posted outlet records match the current filters." collapsible />
       <TrendTable title="Daily detail" rows={report.daily} empty="No daily trend data is available for the current filters." collapsible detailHref={(row) => outletDailyHref(row.id, report.filters)} />
+      </> : <Card><CardContent className="p-4"><h2 className="text-sm font-semibold">Quantity trends unavailable</h2><p className="mt-1 text-sm text-muted-foreground">{DAILY_UNIT_UNAVAILABLE} Select one product with verified historical units to view quantity trends. Coverage and filters remain available.</p></CardContent></Card>}
     </WorkspaceGrid>
   </>;
 }

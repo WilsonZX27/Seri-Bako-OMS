@@ -176,3 +176,9 @@ Purchase/Consumption activity panels label posted movement record counts explici
 - Stock Count reversal confirmation must show adjustment line count; never show summed inward/outward quantities across count items without a valid unit basis. Preserve fingerprint, idempotency, reason and acknowledgement gates.
 - Delivery summary quantities must remain separated by stored line UOM. Only normalized identical units may combine; unknown units/invalid quantities remain unavailable, while a confirmed zero keeps its unit. Voided orders are excluded.
 - This rule does not declare Daily Record/Insights cross-product totals dimensionally valid. Their unit provenance and derived rates require separate remediation and verification.
+
+### Legacy Daily consumers — 2026-11-05
+
+- Dashboard wastage trends must respect verified historical quantity basis; unavailable reads/units must remain null and explicitly unavailable, not be described as no records.
+- Demand Trends must retain filters/coverage while withholding quantity metrics, charts, tables and rankings without verified historical units and one selected product. Current catalogue unit is never historical evidence.
+- Production Variance must check historical unit basis for each product/outlet group; missing basis or zero received denominator requires manual review. Hide unsupported desktop/mobile quantities and rates, and never manufacture balanced/zero derived signal summaries. Preserve group identities and raw history.

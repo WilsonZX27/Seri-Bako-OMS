@@ -513,7 +513,7 @@ export async function getDashboardSummary() {
       planning: null,
       unavailable: { outlet: false, demand: true },
     } : null,
-    wastageTrend: wastageTrend ? wastageTrend.daily.map((row) => ({ date: row.name, rate: row.wastage_percent })) : null,
+    wastageTrend: wastageTrend?.quantity_totals_available && wastageTrend.quantity_unit ? wastageTrend.daily.map((row) => ({ date: row.name, rate: row.wastage_percent })) : null,
     productionSummary: needsProduction && !productionUnavailable ? {
       todayPosted: Number(coreSnapshot?.production_today_posted ?? 0),
       pendingApproval: Number(coreSnapshot?.production_pending_approval ?? 0),

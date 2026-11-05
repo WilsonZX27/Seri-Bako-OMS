@@ -663,7 +663,7 @@ function buildProductionDemandVariance(trend: Awaited<ReturnType<typeof getOutle
   const signal = ["all", "over_supplied", "under_supplied", "balanced", "review_manual"].includes(filters.signal ?? "") ? filters.signal ?? "all" : "all";
   const all_rows = trend.product_outlets.map((row) => {
     const leftover_percent = row.received > 0 ? (row.leftover / row.received) * 100 : 0;
-    const manual_review = trend.coverage.confidence === "Low" || row.low_sample;
+    const manual_review = !row.quantity_totals_available || !row.quantity_unit || row.received <= 0 || trend.coverage.confidence === "Low" || row.low_sample;
     const variance_signal = manual_review
       ? "review_manual"
       : leftover_percent >= 20 || row.wastage_percent >= 10
@@ -674,6 +674,7 @@ function buildProductionDemandVariance(trend: Awaited<ReturnType<typeof getOutle
     return { ...row, leftover_percent, variance_signal, manual_review };
   });
   const rows = all_rows.filter((row) => signal === "all" || row.variance_signal === signal);
+  const signalsAvailable = all_rows.length > 0 && all_rows.every(row => row.quantity_totals_available && !!row.quantity_unit && row.received > 0);
   return {
     ...trend,
     variance: {
@@ -681,10 +682,10 @@ function buildProductionDemandVariance(trend: Awaited<ReturnType<typeof getOutle
       all_rows,
       rows,
       summary: {
-        over_supplied: rows.filter((row) => row.variance_signal === "over_supplied").length,
-        under_supplied: rows.filter((row) => row.variance_signal === "under_supplied").length,
-        high_wastage: rows.filter((row) => row.wastage_percent >= 10).length,
-        low_confidence: trend.coverage.confidence === "Low" ? rows.length : 0,
+        over_supplied: signalsAvailable ? rows.filter((row) => row.variance_signal === "over_supplied").length : null,
+        under_supplied: signalsAvailable ? rows.filter((row) => row.variance_signal === "under_supplied").length : null,
+        high_wastage: signalsAvailable ? rows.filter((row) => row.wastage_percent >= 10).length : null,
+        low_confidence: rows.filter(row => row.manual_review).length,
       },
     },
   };
@@ -739,6 +740,7 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
   const outletsById = new Map<string, TrendTotals>();
   const daysByDate = new Map<string, TrendTotals>();
   const dayRecordIds = new Map<string, Set<string>>();
+  const productOutletLines = new Map<string, LineRow[]>();
   const productOutletsByKey = new Map<string, { product_id: string; branch_id: string; totals: TrendTotals; record_ids: Set<string> }>();
   const productRecordIds = new Map<string, Set<string>>();
   const outletRecordIds = new Map<string, Set<string>>();
@@ -757,6 +759,8 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
     const outletTotals = outletsById.get(record.branch_id) ?? emptyTrendTotals();
     addTrendLine(outletTotals, line); outletsById.set(record.branch_id, outletTotals);
     const productOutletKey = `${line.product_id}:${record.branch_id}`;
+    const groupLines = productOutletLines.get(productOutletKey) ?? [];
+    groupLines.push(line); productOutletLines.set(productOutletKey, groupLines);
     const productOutlet = productOutletsByKey.get(productOutletKey) ?? { product_id: line.product_id, branch_id: record.branch_id, totals: emptyTrendTotals(), record_ids: new Set<string>() };
     addTrendLine(productOutlet.totals, line); productOutlet.record_ids.add(line.record_id); productOutletsByKey.set(productOutletKey, productOutlet);
     const dayTotals = daysByDate.get(record.record_date) ?? emptyTrendTotals();
@@ -785,6 +789,8 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
     branch_id: row.branch_id,
     branch_name: branchNames.get(row.branch_id) ?? "Unknown outlet",
     ...row.totals,
+    quantity_totals_available: dailyQuantityBasis(productOutletLines.get(`${row.product_id}:${row.branch_id}`) ?? []).available,
+    quantity_unit: dailyQuantityBasis(productOutletLines.get(`${row.product_id}:${row.branch_id}`) ?? []).unit,
     wastage_percent: wastagePercent(row.totals),
     completed_records: row.record_ids.size,
     low_sample: row.record_ids.size < 3,

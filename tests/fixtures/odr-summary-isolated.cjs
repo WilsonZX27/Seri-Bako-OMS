@@ -9,6 +9,20 @@ await db.exec(fs.readFileSync(root+'/sql-candidates/outlet_daily_empty_history_s
 for(const n of ['get_outlet_daily_today_summary','get_outlet_daily_completed_summary']){const r=await get(n);eq(r.today_received_unavailable,0);eq(r.today_received,'4');eq(r.today_sent,null);eq(r.posted_today,1)}
 eq(JSON.stringify((await db.query('select * from outlet_daily_record_lines order by id')).rows),before);
 for(const set of ["notes='keep'","qty_sent=2","morning_received_provided=true","do_managed=true","wastage_qty=1"]){await db.exec('begin');await db.exec(`update outlet_daily_record_lines set ${set} where id='moon'`);eq((await get('get_outlet_daily_today_summary')).today_received_unavailable,set.includes('morning_received_provided')?0:1);await db.exec('rollback')}
+const ts=require(root+'/node_modules/typescript');const vm=require('node:vm');const helper={exports:{}};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync(root+'/src/lib/outlet-daily-history.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,helper);
+for(const field of ['notes','wastage_reason','stockout_time']){
+ for(const value of [null,'','   ','\t','\n','\r\n','\u00a0',' note ']){
+  await db.exec('begin');await db.query(`update outlet_daily_record_lines set ${field}=$1 where id='moon'`,[value]);
+  const line=(await db.query("select * from outlet_daily_record_lines where id='moon'")).rows[0];
+  for(const key of ['qty_sent','morning_received_qty','evening_leftover_qty','wastage_qty','qty_sent_estimated','usage_qty','sold_qty','saleable_next_day_qty']) if(line[key]!=null)line[key]=Number(line[key]);
+  const omitted=helper.exports.omitEmptyDailyHistory(line,false);
+  eq(omitted,value===null||/^ *$/.test(value));
+  for(const name of ['get_outlet_daily_today_summary','get_outlet_daily_completed_summary'])eq((await get(name)).today_received_unavailable,omitted?0:1);
+  eq((await db.query(`select ${field} as value from outlet_daily_record_lines where id='moon'`)).rows[0].value,value);
+  await db.exec('rollback');
+ }
+}
 await db.exec("update products set available_until='2026-11-02' where id='moon'");eq((await get('get_outlet_daily_today_summary')).today_received_unavailable,1);
 await db.exec("update products set available_until='2026-10-01' where id='moon'");
 const preRollback=JSON.stringify((await db.query('select * from outlet_daily_record_lines order by id')).rows);

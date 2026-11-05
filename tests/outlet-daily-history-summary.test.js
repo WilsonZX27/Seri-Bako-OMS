@@ -66,3 +66,16 @@ test('record-date boundaries preserve eligible zeros and exclude only unavailabl
   }
  }
 });
+
+test('SQL-compatible whitespace preserves historical evidence in omission and collapse',()=>{
+ const {collapseZeroDailyHistory}=load('src/lib/outlet-daily-history.ts');
+ for(const key of ['notes','wastage_reason','stockout_time']){
+  for(const value of [null,'','   ','\t','\n','\r\n','\u00a0',' note ']){
+   const line={...empty,[key]:value};const before=JSON.stringify(line);
+   const blank=value===null||/^ *$/.test(value);
+   assert.equal(omitEmptyDailyHistory(line,false),blank);
+   assert.equal(collapseZeroDailyHistory(line,false),blank);
+   assert.equal(JSON.stringify(line),before);
+  }
+ }
+});

@@ -133,3 +133,7 @@ The mobile asset register must wrap asset names and location names within its ex
 ## 2026-11-05 — narrow phone Stock Count draft
 
 Below390px use a single draft-item card column so decimal quantities remain readable between the existing touch controls. At390px and above retain the established two-column phone pattern; desktop rows remain unchanged. Preserve quantities, autosave and confirmation logic. Real before screenshot and limits: [QA](qa/stock-count-narrow-draft-20261105.md).
+
+## 2026-11-05 — compliance site identity
+
+Outlet compliance detail must retain its actual branch name on phones using the existing PageHeader showMobileIdentity contract. The generic shell module label cannot identify the site whose editable records are shown. No permission, form, record, or attachment change. Evidence and limits: [QA](qa/compliance-mobile-identity-20261105.md).

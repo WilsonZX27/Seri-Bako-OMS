@@ -1,0 +1,9 @@
+# Completion matrix outlet names — 2026-11-05
+
+Base72b3369. Actual authorized Owner Production,Daily Insights Completion,390×900,29Oct–4Nov. Fixed left column ellipsizes similarly prefixed Sunway Pyramid and Sunway Velocity to indistinguishable text. Actual before04-completion-matrix.png and05-completion-selected.png in production-audit-20261105-batch10.
+
+One-span change replaces truncate with whitespace-normal break-words. Existing9rem phone/12rem wider sticky tracks, bounded date scrollport, cell states/selection and query/data semantics unchanged. Selected Queensbay4Nov preview points to actual previously inspected record9f90b0e0-2cb1-4539-822c-f95848688d77.
+
+Focused lint and git diff --check pass. Existing matrix contract suite:6pass,1fail. Baseline component rerun also6pass,1fail (baseline-tests.log): query contract expects no outlet_daily_record_lines after getOutletDailyCompletionMatrix; current untouched source violates it. This is pre-existing in base, not fixed here because parent owns Daily query work. Do not claim all tests pass. Changed-version visual screenshot pending integration; original annotation pixel comparison unavailable. No data edits or saves.
+
+Integration investigation: the failing negative regex ran from getOutletDailyCompletionMatrix through EOF and matched the unrelated getCarryoverWastageReady capability probe at line 835 (select carryover_wastage_provided, limit 0). The matrix query itself selects only outlet_daily_records header fields within the requested date range. Scoped the negative assertion to the matrix function body, retaining the no-line-query requirement, and added full-name wrapping assertion. All seven matrix tests, component ESLint and TypeScript --noEmit --incremental false pass. No runtime query or business logic changed. Rendered after acceptance and Preview readiness remain pending.

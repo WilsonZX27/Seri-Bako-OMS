@@ -20,7 +20,10 @@ test("outlet completion matrix uses a bounded selected-period header query and p
   assert.match(component, /posted_attention: \{ label: "Attention", short: "!"/);
   assert.doesNotMatch(component, /Posted · Attention|short: "P!"/);
   assert.doesNotMatch(component, /label: "Reviewed"/);
-  assert.doesNotMatch(query, /getOutletDailyCompletionMatrix[\s\S]*outlet_daily_record_lines/);
+  // Scope this contract to the matrix query, not later unrelated capability checks.
+  const matrixQuery = query.match(/export async function getOutletDailyCompletionMatrix\([\s\S]*?\n}\n/);
+  assert.ok(matrixQuery, "completion query function must be present");
+  assert.doesNotMatch(matrixQuery[0], /outlet_daily_record_lines/);
 });
 
 test("outlet completion matrix previews before an explicit record open", () => {
@@ -58,6 +61,7 @@ test("matrix keeps a readable frozen outlet column while dates scroll horizontal
   assert.match(component, /className="sticky left-0 z-20[\s\S]*min-w-\[9rem\][\s\S]*sm:min-w-48/);
   assert.match(component, /<colgroup>[\s\S]*w-\[9rem\] sm:w-48/);
   assert.match(component, /<col key=\{date\} \/>/);
+  assert.match(component, /className="block whitespace-normal break-words">\{row.branch_name\}/);
   assert.match(component, /relative isolate block w-full max-w-full overflow-x-auto overscroll-x-contain/);
   assert.match(component, /w-full min-w-\[40rem\] table-fixed/);
   assert.doesNotMatch(component, /w-max min-w-\[40rem\]/);

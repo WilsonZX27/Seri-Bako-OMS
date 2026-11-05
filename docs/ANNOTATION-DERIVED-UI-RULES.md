@@ -121,3 +121,7 @@ Keep pending weight-review explanations outside compact status tracks. Read-only
 ## 2026-11-05 — Low Stock explanation at the safety boundary
 
 Actual Owner Production phone sample shows Current0/Safety0 with Below safety by0 KG. Phone explanations must distinguish a positive shortage, equality and inconsistent out-of-stock status; do not change getReplenishmentDecision, suggested quantities or purchasing data. Follow-up to annotations7–9, preserving original IDs. Evidence/limits: [QA](qa/low-stock-safety-copy-20261105.md).
+
+## 2026-11-05 — bounded shared line-chart frame
+
+Actual Owner Production Demand Trend phone screenshot shows an SVG growing to67176px (viewBox height67140) at390px viewport. The observer may update SVG drawing coordinates, but the rendered frame height must come from caller height/compact minimum, never the measured SVG intrinsic ratio. Preserve points, units, gaps, pointer/keyboard selection and preview semantics; check all shared callers. See [QA](qa/line-chart-height-20261105.md). This is geometry only, not a Daily/report-data change or broad no-flicker closure.

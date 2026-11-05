@@ -45,6 +45,8 @@ export function InteractiveLineChart({
   maximumFractionDigits = 1,
   onSelectPoint,
 }: InteractiveLineChartProps) {
+  // Keep observed SVG geometry independent of its own intrinsic aspect ratio.
+  const frameHeight = Math.max(height, compact ? 160 : 288);
   const stroke = tone === "danger" ? "var(--sb-danger)" : "var(--sb-green-700)";
   const previewId = useId();
   const chartRef = useRef<SVGSVGElement>(null);
@@ -128,7 +130,7 @@ export function InteractiveLineChart({
   }
 
   return (
-    <div className="relative h-full min-w-0 w-full" data-interactive-line-chart>
+    <div className="relative min-w-0 w-full" style={{ height: frameHeight }} data-interactive-line-chart>
       <svg
         ref={chartRef}
         className={`block h-full ${compact?"min-h-40":"min-h-72"} w-full touch-pan-y rounded-[var(--sb-radius-control)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-2`}

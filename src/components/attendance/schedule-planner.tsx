@@ -235,7 +235,11 @@ export function SchedulePlanner({
     [decisionMode, setDecisionMode] = useState<"approve" | "return" | "edit" | null>(null),
     [message, setMessage] = useState(
       people.length
-        ? "Choose an assignment, then select staff days."
+        ? week?.status === "published"
+          ? "Published schedule · read-only until an authorised correction is opened."
+          : week?.status === "locked"
+            ? "Locked schedule · read-only."
+            : "Choose an assignment, then select staff days."
         : "No schedulable employees are assigned here. Check the branch assignment and active Kitchen or Outlet role in Employees.",
     ),
     [actionFeedback, setActionFeedback] = useState<string | null>(null),

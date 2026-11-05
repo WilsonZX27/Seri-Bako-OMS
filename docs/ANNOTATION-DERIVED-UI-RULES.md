@@ -145,3 +145,7 @@ MobileTaskSheet triggers must retain full action names when sharing the phone fo
 ## 2026-11-05 — completion matrix outlet identities
 
 The sticky outlet column in Daily Insights Completion wraps full names within its existing9rem/12rem tracks, so similarly named Sunway locations remain distinguishable without hover. Preserve bounded horizontal date scrolling, cell labels,selection and record destinations. See [QA](qa/completion-matrix-names-20261105.md).
+
+## 2026-11-05 — published schedule initial guidance
+
+Published/locked schedule initial guidance must describe its read-only state rather than instructing assignment edits while controls are disabled. Preserve authorised correction entry,permissions and all schedule data. Evidence and limits: [QA](qa/schedule-readonly-copy-20261105.md).

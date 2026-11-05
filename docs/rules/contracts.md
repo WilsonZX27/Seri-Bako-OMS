@@ -125,3 +125,6 @@ Deduplicate in linear scans while preserving first occurrence, input order and i
 
 ### Planning history indexes (2026-11-05)
 Use invocation-local product/batch indexes only; preserve first-product identity, strict ID lookup, historical unit verification, source order, complete-record and event checks. Keep company/kitchen/outlet query scopes and saved-plan semantics. [Verification](../QA-PLANNING-HISTORY-INDEX-2026-11-05.md).
+
+### Receiving candidate index (2026-11-05)
+Group scoped PO lines locally, preserving original order, positive remaining-quantity predicate, decimal arithmetic, empty parents and all error checks. Do not interpret legacy cross-unit pending_qty as a validated total; keep the UI pending-line count. [Verification](../QA-RECEIVING-ORDER-INDEX-2026-11-05.md).

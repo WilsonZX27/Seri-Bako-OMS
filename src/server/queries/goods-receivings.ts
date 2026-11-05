@@ -290,8 +290,14 @@ export async function getEligiblePurchaseOrders() {
   if (suppliersError) throw new Error(suppliersError.message);
   if (!lines || !suppliers) throw new Error("Eligible purchase order related data returned no data.");
   const supplierById = new Map(suppliers.map((row) => [row.id, row.name]));
+  const linesByOrder = new Map<string, PurchaseOrderLine[]>();
+  for (const line of lines as PurchaseOrderLine[]) {
+    const orderLines = linesByOrder.get(line.purchase_order_id) ?? [];
+    orderLines.push(line);
+    linesByOrder.set(line.purchase_order_id, orderLines);
+  }
   return (data as PurchaseOrder[]).map((order) => {
-    const ownLines = (lines as PurchaseOrderLine[]).filter((line) => line.purchase_order_id === order.id);
+    const ownLines = linesByOrder.get(order.id) ?? [];
     const pendingLines = ownLines.filter((line) => line.qty_ordered - line.qty_received - line.qty_cancelled > 0);
     return {
       ...order,

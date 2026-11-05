@@ -119,3 +119,6 @@ Reuse catalogue maps only inside the scoped request; append to locally owned Sto
 
 ### Daily option concurrency (2026-11-05)
 Restricted staff assignment reads may overlap active branch/product options only after the actor and view-all permission checks. Preserve staff-ID filters, allowed/default/route branch union and failure propagation; view-all actors must still skip assignments. [Evidence](../QA-DAILY-OPTIONS-CONCURRENCY-2026-11-05.md).
+
+### Packaging report de-duplication (2026-11-05)
+Deduplicate in linear scans while preserving first occurrence, input order and idless rows. Keep conflicting-ID and duplicate-cohort failures, zero/missing distinctions, scoped RPC and request-only caching. [Verification](../QA-PACKAGING-LINEAR-SCAN-2026-11-05.md).

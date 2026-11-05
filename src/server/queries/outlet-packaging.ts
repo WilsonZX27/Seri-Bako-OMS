@@ -33,12 +33,14 @@ export const getOutletPackagingReport = cache(async function getOutletPackagingR
  const report=result.data as PackagingReport|null;
  if(!report||!Array.isArray(report.rows)||!Array.isArray(report.latest)||!Array.isArray(report.products)||!Array.isArray(report.outlets))throw new Error("Packaging report could not be verified.");
  const seen=new Map<string,PackagingUsageRow>(),cohorts=new Map<string,string>();
+ const rows: PackagingUsageRow[] = [];
  for(const row of report.rows) {
-   if(!row.id) continue;
+   if(!row.id) { rows.push(row); continue; }
    if(seen.has(row.id) && JSON.stringify(seen.get(row.id))!==JSON.stringify(row)) throw new Error("Conflicting packaging source rows.");
    const key=`${row.branchId}:${row.code}:${row.date}`;
    if(cohorts.has(key) && cohorts.get(key)!==row.id) throw new Error("Duplicate completed packaging records. Review the original records.");
+   if(!seen.has(row.id)) rows.push(row);
    seen.set(row.id,row);cohorts.set(key,row.id);
  }
- return {...report,rows:report.rows.filter((row,index,rows)=>!row.id || rows.findIndex(item=>item.id===row.id)===index)};
+ return {...report,rows};
 });

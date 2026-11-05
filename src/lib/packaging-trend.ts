@@ -3,7 +3,13 @@ import type { PackagingReport, PackagingUsageRow } from "@/server/queries/outlet
 
 /** Recorded balance as of each day, never a sum of changing daily-report cohorts. */
 export function packagingTrendPoints(report:PackagingReport,outlet:string,product:string,days:7|30,measure:"usage"|"closing") {
- const uniqueRows = report.rows.filter((row,index,rows)=>!row.id || rows.findIndex(item=>item.id===row.id)===index);
+ const seen = new Set<string>();
+ const uniqueRows = report.rows.filter(row => {
+  if (!row.id) return true;
+  if (seen.has(row.id)) return false;
+  seen.add(row.id);
+  return true;
+ });
  const start=shiftBusinessDate(report.today,1-days);
  const scope=(row:PackagingUsageRow)=>row.code===product&&(outlet==="all"||row.branchId===outlet);
  const count=outlet==="all"?report.outlets.length:1;

@@ -88,3 +88,5 @@ For next-day food, future Daily entry uses Wastage and Tomorrow; historical Usag
 Products and UOM compact lists opt into a visible, list-associated double-tap/double-click and keyboard Enter hint only when nonempty and the existing detail permission is present. Other OperationalList callers remain unchanged; full desktop tables do not show the compact hint. [Implementation evidence](../qa/product-uom-preview-20261105.md).
 
 320px procurement/inventory follow-up: document references must remain readable on phone; narrow linked-document cards become single-column below390px. Inventory phone axis range/dates use unscaled text while desktop SVG axes remain unchanged. See [local evidence and remaining live acceptance](../qa/product-uom-preview-20261105.md).
+
+Shared compact search below390px gives the text input a full row and keeps filter/search/result controls on the next row; retain existing390px+layout and44pxtouch targets. [Narrow attendance evidence](../qa/product-uom-preview-20261105.md).

@@ -71,10 +71,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                 <div className="flex justify-between"><span className="text-muted-foreground">Cancelled</span><strong>{summary.cancelled}</strong></div>
               </div>
               <div className="my-3 border-t" />
-              <div className="grid gap-2 text-xs">
-                <div className="flex justify-between"><span className="text-muted-foreground">Received Qty</span><strong>{formatNumber(summary.receivedTotal)}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Rejected Qty</span><strong>{formatNumber(summary.rejectedTotal)}</strong></div>
-              </div></> : <div role="status"><p className="text-xs font-semibold text-[var(--sb-warning)]">Unavailable</p><p className="mt-1 text-xs text-muted-foreground">The receiving queue remains current. Retry to load GRN totals.</p></div>}
+              <p className="text-xs text-muted-foreground">Open a receipt for received and rejected quantities by item and unit. Quantities across units are not combined.</p></> : <div role="status"><p className="text-xs font-semibold text-[var(--sb-warning)]">Unavailable</p><p className="mt-1 text-xs text-muted-foreground">The receiving queue remains current. Retry to load GRN totals.</p></div>}
             </ConsoleSection>
           </div>
         }
@@ -98,8 +95,8 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                   <TableHead className="w-24">Branch</TableHead>
                   <TableHead className="w-32">Supplier</TableHead>
                   <SortableHead className="w-36" label="Status" column="status" currentSort={filters.sort} currentDir={filters.dir} searchParams={filters} />
-                  <TableHead className="w-20 text-right">Received</TableHead>
-                  <TableHead className="w-20 text-right">Rejected</TableHead>
+                  <TableHead className="w-20 text-right">Lines</TableHead>
+                  <TableHead className="w-20 text-right">Quantities</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -111,8 +108,8 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                     <TableCell>{receiving.branch_name ?? "-"}</TableCell>
                     <TableCell className="w-32 max-w-32"><span className="whitespace-normal break-words leading-4">{receiving.supplier_name ?? "-"}</span></TableCell>
                     <TableCell className="min-w-36"><StatusBadge status={receiving.workflow_status} className="min-w-max" /></TableCell>
-                    <TableCell className="text-right">{formatNumber(receiving.received_total)}</TableCell>
-                    <TableCell className="text-right">{formatNumber(receiving.rejected_total)}</TableCell>
+                    <TableCell className="text-right">{formatNumber(receiving.line_count)}</TableCell>
+                    <TableCell className="text-right"><Link href={`/goods-receivings/${receiving.id}`} className="text-primary underline" aria-label={`View quantities for ${receiving.grn_no}`}>View details</Link></TableCell>
                   </DataGridRow>
                 ))}
                 {!receivings?.rows.length ? <TableRow><TableCell colSpan={8}><EmptyState title={!receivings ? "Goods receiving data unavailable" : filtered ? "No receivings match these filters" : "No goods receivings yet"} description={emptyDescription} action={emptyStateAction} /></TableCell></TableRow> : null}
@@ -126,7 +123,7 @@ export default async function GoodsReceivingsPage({ searchParams }: { searchPara
                 label={`Open ${receiving.grn_no}`}
                 primary={<DocumentNumber value={receiving.grn_no} />}
                 status={<StatusBadge status={receiving.workflow_status} />}
-                secondary={<span className="sb-pr-phone-supplier-row"><span className="sb-pr-phone-supplier" title={receiving.supplier_name ?? undefined}><Store aria-hidden="true"/><span>{receiving.supplier_name ?? "No supplier"}</span></span><span className="sb-pr-phone-items"><Package aria-hidden="true"/><span>{formatNumber(receiving.received_total)} in · {formatNumber(receiving.rejected_total)} rejected</span></span></span>}
+                secondary={<span className="sb-pr-phone-supplier-row"><span className="sb-pr-phone-supplier" title={receiving.supplier_name ?? undefined}><Store aria-hidden="true"/><span>{receiving.supplier_name ?? "No supplier"}</span></span><span className="sb-pr-phone-items"><Package aria-hidden="true"/><span>{formatNumber(receiving.line_count)} lines</span></span></span>}
                 detail={<span className="sb-pr-phone-location-row"><span className="sb-pr-phone-location"><MapPin aria-hidden="true"/><span>{receiving.branch_name ?? "No branch"}</span></span><span className="sb-pr-phone-byline"><span className="sb-pr-phone-byline-person"><FileText aria-hidden="true"/><span>{receiving.po_no ?? "No linked PO"}</span></span><time className="sb-pr-phone-byline-date" dateTime={receiving.received_date}><CalendarDays aria-hidden="true"/><span>{formatDateOnly(receiving.received_date)}</span></time></span></span>}
               />)}
               {!receivings?.rows.length ? <EmptyState title={!receivings ? "Goods receiving data unavailable" : filtered ? "No receivings match these filters" : "No goods receivings yet"} description={emptyDescription} action={!receivings || filtered ? emptyStateAction : undefined} /> : null}

@@ -90,3 +90,5 @@ Products and UOM compact lists opt into a visible, list-associated double-tap/do
 320px procurement/inventory follow-up: document references must remain readable on phone; narrow linked-document cards become single-column below390px. Inventory phone axis range/dates use unscaled text while desktop SVG axes remain unchanged. See [local evidence and remaining live acceptance](../qa/product-uom-preview-20261105.md).
 
 Shared compact search below390px gives the text input a full row and keeps filter/search/result controls on the next row; retain existing390px+layout and44pxtouch targets. [Narrow attendance evidence](../qa/product-uom-preview-20261105.md).
+
+Goods Receiving list and sidebar must not sum heterogeneous units. Show receipt line counts and direct users to item/unit-level received and rejected quantities; preserve detail values and backend compatibility. [Confirmed mixed-unit receipt and local guard](../qa/product-uom-preview-20261105.md).

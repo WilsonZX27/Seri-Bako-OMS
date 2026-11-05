@@ -135,24 +135,18 @@ export const getBranchSupplierMappingsForSelect = cache(async function getBranch
   if (mappingsError) throw new Error(mappingsError.message);
   if (!mappings) throw new Error("Branch supplier mappings returned no data.");
   const relationshipIds = [...new Set((mappings ?? []).map((row) => row.supplier_item_id))];
-  const { data: relationships, error: relationshipsError } = relationshipIds.length
-    ? await supabase.from("supplier_items").select("id, supplier_id, item_id, unit_cost, purchase_uom, conversion_to_base_uom, status").in("id", relationshipIds).eq("status", "active").is("deleted_at", null)
-    : { data: [], error: null };
+  const [{ data: relationships, error: relationshipsError }, { data: items, error: itemsError }, { data: branches, error: branchesError }] = await Promise.all([
+    relationshipIds.length
+      ? supabase.from("supplier_items").select("id, supplier_id, item_id, unit_cost, purchase_uom, conversion_to_base_uom, status").in("id", relationshipIds).eq("status", "active").is("deleted_at", null)
+      : Promise.resolve({ data: [], error: null }),
+    supabase.from("items").select("id, company_id, purchase_unit, base_unit, conversion_to_base_unit, supplier_id, cost, status").eq("status", "active").is("deleted_at", null),
+    supabase.from("branches").select("id, company_id, status").eq("status", "active").is("deleted_at", null),
+  ]);
   if (relationshipsError) throw new Error(relationshipsError.message);
   if (!relationships) throw new Error("Supplier item relationships returned no data.");
-  const supplierIds = [...new Set((relationships ?? []).map((row) => row.supplier_id))];
-  const { data: items, error: itemsError } = await supabase
-    .from("items")
-    .select("id, company_id, purchase_unit, base_unit, conversion_to_base_unit, supplier_id, cost, status")
-    .eq("status", "active")
-    .is("deleted_at", null);
+  const supplierIds = [...new Set(relationships.map((row) => row.supplier_id))];
   if (itemsError) throw new Error(itemsError.message);
   if (!items) throw new Error("Item supplier defaults returned no data.");
-  const { data: branches, error: branchesError } = await supabase
-    .from("branches")
-    .select("id, company_id, status")
-    .eq("status", "active")
-    .is("deleted_at", null);
   if (branchesError) throw new Error(branchesError.message);
   if (!branches) throw new Error("Branch supplier scopes returned no data.");
   const masterSupplierIds = items.map((item) => item.supplier_id).filter((id): id is string => Boolean(id));

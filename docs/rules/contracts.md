@@ -128,3 +128,6 @@ Use invocation-local product/batch indexes only; preserve first-product identity
 
 ### Receiving candidate index (2026-11-05)
 Group scoped PO lines locally, preserving original order, positive remaining-quantity predicate, decimal arithmetic, empty parents and all error checks. Do not interpret legacy cross-unit pending_qty as a validated total; keep the UI pending-line count. [Verification](../QA-RECEIVING-ORDER-INDEX-2026-11-05.md).
+
+### Supplier-option request scheduling (2026-11-05)
+Only independent relationship/item/branch reads may overlap after mappings validate. Preserve error priority, same-company defaults, authenticated RLS scope and no partial result on failure. Successful query count remains five; helper concurrency rises to at most three. [Verification](../QA-SUPPLIER-OPTION-READ-WAVES-2026-11-05.md).

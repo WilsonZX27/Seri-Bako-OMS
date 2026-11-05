@@ -117,3 +117,7 @@ Source reference: user message Sentinel_c100ade746488191a1db2721de076306, annota
 ## Stock count annotations 2–6 — 2026-11-04 local candidate
 
 Keep pending weight-review explanations outside compact status tracks. Read-only Count Lines retains searchable original indices and bounded 15-row pages using shared pagination; draft input and inventory semantics stay unchanged. Evidence and unresolved original-image/authenticated checks: [stock count annotation record](qa/stock-count-annotations-20261104.md).
+
+## 2026-11-05 — Low Stock explanation at the safety boundary
+
+Actual Owner Production phone sample shows Current0/Safety0 with Below safety by0 KG. Phone explanations must distinguish a positive shortage, equality and inconsistent out-of-stock status; do not change getReplenishmentDecision, suggested quantities or purchasing data. Follow-up to annotations7–9, preserving original IDs. Evidence/limits: [QA](qa/low-stock-safety-copy-20261105.md).

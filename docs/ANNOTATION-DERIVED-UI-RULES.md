@@ -125,3 +125,7 @@ Actual Owner Production phone sample shows Current0/Safety0 with Below safety by
 ## 2026-11-05 — bounded shared line-chart frame
 
 Actual Owner Production Demand Trend phone screenshot shows an SVG growing to67176px (viewBox height67140) at390px viewport. The observer may update SVG drawing coordinates, but the rendered frame height must come from caller height/compact minimum, never the measured SVG intrinsic ratio. Preserve points, units, gaps, pointer/keyboard selection and preview semantics; check all shared callers. See [QA](qa/line-chart-height-20261105.md). This is geometry only, not a Daily/report-data change or broad no-flicker closure.
+
+## 2026-11-05 — phone asset names and locations
+
+The mobile asset register must wrap asset names and location names within its existing bounded tracks. Single-line ellipsis conceals identifiers needed to choose a record. Preserve asset codes, registered quantity semantics, permissions, detail links and desktop table behavior. This is a follow-up to long-name readability, not closure of registration or transfer annotations. See [QA](qa/asset-register-phone-names-20261105.md).

@@ -131,3 +131,6 @@ Group scoped PO lines locally, preserving original order, positive remaining-qua
 
 ### Supplier-option request scheduling (2026-11-05)
 Only independent relationship/item/branch reads may overlap after mappings validate. Preserve error priority, same-company defaults, authenticated RLS scope and no partial result on failure. Successful query count remains five; helper concurrency rises to at most three. [Verification](../QA-SUPPLIER-OPTION-READ-WAVES-2026-11-05.md).
+
+### Inventory read diagnostics (2026-11-05)
+Log at most one sanitized state snapshot per workspace attempt under the existing observation flag (default enabled). No raw exceptions, request parameters, business values or identity fields; diagnostics must preserve original results/errors and not change timeout/retry/auth semantics. A fulfilled read may contain unavailable data, and a pending stage does not establish root cause. [Verification](../QA-INVENTORY-READ-DIAGNOSTICS-2026-11-05.md).

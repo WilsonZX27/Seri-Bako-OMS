@@ -17,6 +17,7 @@ export type LogContext = {
   p95Ms?: number;
   p99Ms?: number;
   maxMs?: number;
+  readStates?: Record<"summary" | "movement" | "permissions", { status: "pending" | "fulfilled" | "rejected"; durationMs?: number }>;
 };
 
 function redact(value: unknown): unknown {

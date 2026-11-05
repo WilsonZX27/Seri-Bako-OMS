@@ -11,6 +11,7 @@ const component=({children,rightRail})=>React.createElement(React.Fragment,null,
 async function render(purchases,canRead=true,activity={}){const exports={};const code=ts.transpileModule(fs.readFileSync('src/app/(app)/inventory/page.tsx','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText;vm.runInNewContext(code,{exports,require(name){
  if(name==='@/server/queries/inventory')return{getInventoryDashboard:async()=>({lowStockRows:[],topConsumedItems:[],topPurchasedItems:purchases,...activity}),getInventoryDailyMovement:async()=>({rows:[]})};
  if(name==='@/server/auth/permissions')return{getPermissionMap:async()=>({"stock_transactions.read":canRead})};
+ if(name==='@/server/observability/inventory-read')return{createInventoryReadDiagnostics:()=>({run:read=>read(),track:(_name,read)=>read()})};
  if(name==='@/lib/inventory-read-deadline')return{inventoryReadDeadline:p=>p};
  if(name==='@/lib/utils')return{formatNumber:String};
  if(name.startsWith('@/components/'))return new Proxy({},{get:()=>component});

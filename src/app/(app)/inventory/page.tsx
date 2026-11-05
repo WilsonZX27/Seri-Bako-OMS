@@ -1,3 +1,4 @@
+import { createInventoryReadDiagnostics } from "@/server/observability/inventory-read";
 import Link from "next/link";
 import { ArrowDownLeft, ArrowLeftRight, ArrowRight, ArrowUpRight, ClipboardCheck, PackageSearch, ReceiptText, TriangleAlert } from "lucide-react";
 import { ConsoleSection } from "@/components/layout/right-console";
@@ -26,11 +27,12 @@ const modules = [
 export default async function InventoryPage({ searchParams }: { searchParams: Promise<{ consumption?: string }> }) {
   const params = await searchParams;
   const period = params.consumption === "7d" || params.consumption === "month" ? params.consumption : "30d";
-  const [summary, movement, permissions] = await inventoryReadDeadline(Promise.all([
-    getInventoryDashboard(period),
-    getInventoryDailyMovement(period),
-    getPermissionMap([...modules.map((module) => module.permission), "goods_receiving.read"]),
-  ]));
+  const diagnostics = createInventoryReadDiagnostics();
+  const [summary, movement, permissions] = await diagnostics.run(() => inventoryReadDeadline(Promise.all([
+    diagnostics.track("summary", () => getInventoryDashboard(period)),
+    diagnostics.track("movement", () => getInventoryDailyMovement(period)),
+    diagnostics.track("permissions", () => getPermissionMap([...modules.map((module) => module.permission), "goods_receiving.read"])),
+  ])));
   const visibleModules = modules.filter((module) => permissions[module.permission]);
   const formatCounter = (counter: { value: number; unavailable?: boolean }) => counter.unavailable ? "Unavailable" : formatNumber(counter.value);
   const counters = [

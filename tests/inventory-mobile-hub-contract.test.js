@@ -27,5 +27,7 @@ test("inventory does not duplicate the global More navigation with an empty acti
 test("inventory analysis remains available below the mobile hub", () => {
   assert.match(source, /<h2 className="text-sm font-semibold">Low Stock<\/h2>/);
   assert.match(source, /<h2 className="text-sm font-semibold">Consumption<\/h2>/);
-  assert.match(source, /Top Purchased Items/);
+  assert.match(source, /Purchased items/);
+  assert.match(source, /Quantity totals are unavailable in this summary/);
+  assert.match(source, /Review purchase movements/);
 });

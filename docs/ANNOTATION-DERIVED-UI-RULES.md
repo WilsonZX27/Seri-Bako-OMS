@@ -161,3 +161,7 @@ Stock Card all-items history must not publish a combined quantity across KG,LITR
 ## 2026-11-05 — Movement Ledger identity and unit-safe page totals
 
 Ledger detail retains transaction number on phones via existing PageHeader identity contract. Ledger quantity summaries refer explicitly to the current page and require a selected item,with its base unit;all-item history never combines incompatible quantities. Currency valuation,rows,queries andposting remain unchanged. See [QA](qa/ledger-identity-unit-totals-20261105.md).
+
+## 2026-11-05 — inventory purchase summary quantity guard
+
+The existing purchase summary returns name and quantity without item identity or UOM and groups by name. Do not display those values as comparable quantity rankings or guess units from names. Keep the returned item names and a purchase-ledger review entry, explicitly state quantity totals unavailable until the summary has reliable per-item units. No query or record changes. See [QA](qa/inventory-purchase-unit-guard-20261105.md).

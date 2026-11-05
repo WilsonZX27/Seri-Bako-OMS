@@ -1,0 +1,13 @@
+# Inventory purchase summary unit guard — 2026-11-05
+
+Base dfd2563. Actual Owner Production Inventory phone390×900: Top Purchased Items lists quantities400/204/160/120/110 with no units. Screenshot02-inventory-top-items.png in production-audit-20261105-batch20. The activity chart above correctly counts posted entries; it is not changed.
+
+Source evidence: InventoryDashboardRpc.top_purchased_items contains only name/qty. Migration138 top_purchased sums quantity_in grouped by item_name, not immutable item identity/unit. Units cannot safely be recovered from names and cross-unit ranking has no reliable basis. Live DB function definition not independently inspected; this is repository source plus actual display evidence.
+
+UI mitigation: retain returned purchase names without unsupported numeric rankings, label quantity totals unavailable, offer purchase ledger GET link only with existing stock_transactions.read permission. No RPC, SQL migration, permissions, records or query change. Backend completeness remains open: return stable item identity and base unit, aggregate per item/unit and choose an explicit comparable ranking metric. The hidden/currently empty Consumption panel has a similar name/qty source contract and should be reviewed with actual nonempty data before claiming it accepted.
+
+12 checks pass:3 page SSR tests preserve names/review target, do not invent empty data, respect ledger permission;9 existing hub/dashboard contracts updated for truthful title. Focused ESLint and git diff --check pass. Changed browser visual acceptance pending integration. This is a mitigation, not complete unit-data remediation or original annotation closure.
+
+Integration investigation: getInventoryDashboard forwards summary.top_purchased_items unchanged; its RPC type contains only name/qty. Migration 138 groups by i.item_name, orders by summed quantity and limits to five before returning JSON. The lost item/unit grouping cannot be reconstructed safely in the caller, even by fetching a name-to-unit lookup. A complete correction requires a reviewed database function change returning item_id/code/base_unit with per-item aggregation, plus an explicit ranking metric (raw quantities across units remain incomparable). The current live definition was not verified and no SQL change is installed. Consumption has the analogous unresolved contract. This commit is the safe display guard only.
+
+Integration checks: all 12 SSR/hub/dashboard tests, focused page/new-test ESLint and TypeScript --noEmit --incremental false pass. No permission, query or data change. Hosted readiness and rendered after acceptance remain pending.

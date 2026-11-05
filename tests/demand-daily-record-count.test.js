@@ -1,6 +1,6 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),ts=require('typescript');
 const source=fs.readFileSync('src/server/queries/outlet-daily-records.ts','utf8')+'\nexport { buildDemandTrend };';
-const m={exports:{}};vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:m,exports:m.exports,require:n=>n==='react'?require('react'):{},console});
+const m={exports:{}};vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{module:m,exports:m.exports,require:n=>n==='react'?require('react'):n==='@/lib/daily-quantity-basis'?require('./helpers/load-source.cjs')()('src/lib/daily-quantity-basis.ts'):{},console});
 test('daily completed count deduplicates products, excludes incomplete records and respects product selection',()=>{
  const records=[{id:'a',record_date:'2026-10-14',branch_id:'b',status:'evening_completed'},{id:'b',record_date:'2026-10-14',branch_id:'c',status:'reviewed'},{id:'c',record_date:'2026-10-14',branch_id:'c',status:'draft'}];
  const line=(record_id,product_id)=>({record_id,product_id,morning_received_qty:100,morning_received_provided:true,evening_leftover_qty:20,wastage_qty:5});

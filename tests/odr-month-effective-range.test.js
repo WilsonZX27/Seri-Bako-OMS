@@ -10,19 +10,20 @@ const {OutletDailyInsightMetrics}=load('src/components/outlet-daily-insight-metr
 function compile(source,globals){const exports={};vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX}}).outputText,{exports,URLSearchParams,...globals});return exports;}
 function selectedSource(file,names){const text=fs.readFileSync(file,'utf8'),ast=ts.createSourceFile(file,text,ts.ScriptTarget.Latest,true);return ast.statements.filter(s=>names.includes(s.name?.text)||(ts.isVariableStatement(s)&&s.declarationList.declarations.some(d=>names.includes(d.name.text)))).map(s=>s.getFullText(ast)).join('\n');}
 
-test('month UI with period=7 drives30-day queries, prior30-day comparison, totals and all chart/table rows',async()=>{
+for(const verifiedSnapshot of [true,false])test('month UI keeps range and guards historical units: '+verifiedSnapshot,async()=>{
  const records=Array.from({length:62},(_,i)=>({id:`r${i}`,branch_id:'outlet',record_date:new Date(Date.UTC(2026,8,3+i)).toISOString().slice(0,10),status:'evening_completed'}));
- const lines=records.map(r=>({id:`l${r.id}`,record_id:r.id,product_id:'food',morning_received_qty:r.record_date<'2026-10-04'?50:100,morning_received_provided:true,evening_leftover_qty:0,wastage_qty:r.record_date<'2026-10-04'?5:20,daily_tracking:'food_daily'}));
+ const lines=records.map(r=>({id:`l${r.id}`,record_id:r.id,product_id:'food',morning_received_qty:r.record_date<'2026-10-04'?50:100,morning_received_provided:true,evening_leftover_qty:0,wastage_qty:r.record_date<'2026-10-04'?5:20,daily_tracking:'food_daily',quantity_unit_snapshot:'PCS',quantity_unit_verified:verifiedSnapshot}));
  const transport=[];
  const db={from(table){const predicates=[],trace={table};return {select(){return this},gte(k,v){trace.start=v;predicates.push(r=>r[k]>=v);return this},lte(k,v){trace.end=v;predicates.push(r=>r[k]<=v);return this},eq(k,v){predicates.push(r=>r[k]===v);return this},in(k,v){trace.ids=[...v];predicates.push(r=>v.includes(r[k]));return this},order(){return this},async range(from,to){const data=(table==='outlet_daily_records'?records:lines).filter(r=>predicates.every(p=>p(r)));transport.push(trace);return {data:data.slice(from,to+1),count:data.length,error:null};}};}};
  const options={branches:[{id:'outlet',branch_name:'Fixture outlet'}],products:[{id:'food',product_name:'Food',category:'Food'}]};
  const names=['getOutletDailyDemandTrend','buildDemandTrend','trendDateRange','receivedValueIsTrusted','isPackagingCategory','emptyTrendTotals','addTrendLine','wastagePercent'];
- const query=compile(selectedSource('src/server/queries/outlet-daily-records.ts',names),{...period,readCompletePages,getOutletDailyFormOptions:async()=>options,isMockMode:()=>false,createClient:async()=>db,hasPermission:async()=>true,todayInKualaLumpur:()=> '2026-11-02'});
+ const query=compile(selectedSource('src/server/queries/outlet-daily-records.ts',names),{...period,...load('src/lib/daily-quantity-basis.ts'),readCompletePages,getOutletDailyFormOptions:async()=>options,isMockMode:()=>false,createClient:async()=>db,hasPermission:async()=>true,todayInKualaLumpur:()=> '2026-11-02'});
  const calls=[];
  const sources={getOutletDailyFormOptions:async()=>options,getOutletDailyDemandTrend:async f=>{calls.push({...f});return query.getOutletDailyDemandTrend(f);},getOutletDailyHistoricalContext:async()=>null,getOutletDailyWastageCostSummary:async()=>{throw Error('No cost access in this fixture');}};
  const components={};const component=name=>components[name]??=(props=>React.createElement('div',{'data-component':name},props.children));
  const page=compile(fs.readFileSync('src/app/(app)/outlet-daily-records/insights/page.tsx','utf8'),{require(name){
   if(name==='react/jsx-runtime')return require(name);
+  if(name==='@/lib/daily-quantity-basis')return load('src/lib/daily-quantity-basis.ts');
   if(name==='@/lib/outlet-insight-period')return period;
   if(name==='@/lib/production-planning/forecast')return load('src/lib/production-planning/forecast.ts');
   if(name==='@/server/queries/outlet-daily-records')return sources;
@@ -41,6 +42,7 @@ test('month UI with period=7 drives30-day queries, prior30-day comparison, total
  for(const read of transport.filter(t=>t.table==='outlet_daily_record_lines'))assert.equal(read.ids.length,30);
  const found=[];function walk(n){if(!React.isValidElement(n))return;found.push(n);React.Children.forEach(n.props.children,walk);}walk(tree);
  const metrics=found.find(n=>n.type===OutletDailyInsightMetrics),chart=found.find(n=>n.type===OutletDailyWastageChart);
+ if(!verifiedSnapshot){assert.equal(metrics,undefined);assert.equal(chart,undefined);assert.match(renderToStaticMarkup(tree),/Historical units are unverified/);return;}
  assert.equal(metrics.props.trend.summary.received,3000);assert.equal(metrics.props.trend.summary.wastage,600);assert.equal(metrics.props.previous.summary.received,1500);assert.equal(metrics.props.previous.summary.wastage,150);
  assert.equal(metrics.props.trend.coverage.expected,30);assert.equal(metrics.props.previous.coverage.expected,30);
  assert.equal(chart.props.points,metrics.props.trend.daily);assert.equal(chart.props.points.length,30);assert.equal(chart.props.points[0].name,'2026-10-04');assert.equal(chart.props.points.at(-1).name,'2026-11-02');

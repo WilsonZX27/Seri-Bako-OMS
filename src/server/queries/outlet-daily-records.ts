@@ -1,3 +1,4 @@
+import { dailyQuantityBasis } from "@/lib/daily-quantity-basis";
 import { omitEmptyDailyHistory } from "@/lib/outlet-daily-history";
 import { productAvailableOn } from "@/lib/production-planning/availability";
 import { insightRange, insightPeriod } from "@/lib/outlet-insight-period";
@@ -16,7 +17,7 @@ import { cache } from "react";
 
 type Filters = Record<string, string | undefined>;
 type RecordRow = Database["public"]["Tables"]["outlet_daily_records"]["Row"];
-type LineRow = Database["public"]["Tables"]["outlet_daily_record_lines"]["Row"];
+type LineRow = Database["public"]["Tables"]["outlet_daily_record_lines"]["Row"] & { quantity_unit_snapshot?: string | null; quantity_unit_verified?: boolean };
 type TrendPeriod = "1" | "7" | "30" | "month";
 type TrendStatus = "all" | "evening_completed";
 type TrendTotals = { received: number; leftover: number; wastage: number; movement: number };
@@ -74,6 +75,7 @@ export async function getOutletDailyActivity(recordId: string) {
 }
 
 export type OutletDailyRecordRow = RecordRow & {
+  quantity_totals_available?: boolean;
   branch_name: string;
   created_by_name: string | null;
   submitted_by_name: string | null;
@@ -157,6 +159,7 @@ const totals = (lines: LineRow[], operationalProductIds?: Set<string>, availabil
   const totalLeftover = lines.reduce((sum, line) => sum + Number(line.evening_leftover_qty), 0);
   const totalWastage = operationalLines.reduce((sum, line) => sum + Number(line.wastage_qty), 0);
   return {
+    quantity_totals_available: dailyQuantityBasis(lines).available,
     total_sent: totalSent,
     total_received: totalReceived,
     received_state: receivedState,
@@ -790,6 +793,8 @@ function buildDemandTrend({ records, lines, branches, products, start, end, peri
   // operational list as "Unavailable", but exclude it from rate trends.
   const dailyRows = toRows(daysByDate, (id) => id).map((row) => ({ ...row, completed_records: dayRecordIds.get(row.id)?.size ?? 0 })).filter((row) => row.received > 0).sort((left, right) => left.name.localeCompare(right.name));
   return {
+    quantity_totals_available: dailyQuantityBasis(trendLines).available,
+    quantity_unit: dailyQuantityBasis(trendLines).unit,
     filters: { period, status, branch: branchId ?? "all", product: productId ?? "all", start, end },
     branches,
     products,

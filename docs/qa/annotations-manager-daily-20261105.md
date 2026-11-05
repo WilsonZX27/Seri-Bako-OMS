@@ -27,3 +27,7 @@ Verification pending; no Preview or Production acceptance claimed.
 Synthetic browser layout at 1440×900 / 430×932 used the actual owning Daily container CSS with fictional fields: ordinary-food reason occupies final desktop column; Other comment below; mobile and carryover details retain full row. This is not authenticated updated Preview visual acceptance. Attendance grid and weight copy still require updated Preview visual confirmation.
 
 Production untouched. RO SQL is review-only and not auto-installed; installation requires live preimage/ACL check and action-time permission-expansion confirmation. Packaging assignments pending exact names.
+
+## Packaging scope superseded by user — 2026-11-05
+
+User clarified all Managers and all independent stores within their company, including future stores. Earlier pending named-store assignment is superseded. No assignment table is required solely for this company-wide scope. Planned change must cover page entry, server workspace read/action, RPC ownership checks and RLS consistently; preserve active tenant identity, company boundary, movement version/idempotency and reason. No implementation or live grant claimed in this checkpoint. Action-time confirmation is still required for security-sensitive access expansion.

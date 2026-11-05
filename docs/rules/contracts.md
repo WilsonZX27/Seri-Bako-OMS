@@ -96,3 +96,7 @@ Goods Receiving list and sidebar must not sum heterogeneous units. Show receipt 
 ## 2026-11-05 Manager/Daily annotation batch
 
 User approves Manager RO decisions within authorised branches, retaining no self-review; supersedes the Manager RO denial in migration 274 only after scoped implementation. Daily morning-recorded entries with pending dispatch must retain an authorised save/confirm path. Shared Daily reason uses its spare desktop final column; remove redundant percentage suffix. [Scope and verification](../qa/annotations-manager-daily-20261105.md). No live permission change claimed.
+
+## Daily historical unit basis — 2026-11-05
+
+Daily list/detail/Insights must not render combined quantities or rates without a verified matching historical unit and food population. Catalogue units are not historical snapshots. Preserve line values, sales amounts and completion counts. [Local guard, compatibility limits and tests](../qa/daily-unit-summary-guard-20261105.md).

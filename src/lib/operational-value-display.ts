@@ -2,6 +2,7 @@ import { formatNumber, formatQuantity } from "@/lib/utils";
 
 export type OperationalValue = { value: string; detail?: string; warning?: boolean; title?: string };
 export type DailyMetricRow = {
+  quantity_totals_available?: boolean;
   total_received: number | null;
   received_pending_lines: number;
   received_zero_with_sent: boolean;
@@ -11,6 +12,7 @@ export type DailyMetricRow = {
 };
 
 export function receivedDisplay(row: DailyMetricRow): OperationalValue {
+  if (row.quantity_totals_available === false) return { value: "Unavailable", title: "Historical units are unverified" };
   if (row.total_received === null) return row.received_pending_lines > 0
     ? { value: "Pending", detail: `${row.received_pending_lines} line${row.received_pending_lines === 1 ? "" : "s"}`, warning: true, title: `${row.received_pending_lines} food line${row.received_pending_lines === 1 ? "" : "s"} still need a Received value` }
     : { value: "Unavailable", warning: true };
@@ -19,6 +21,7 @@ export function receivedDisplay(row: DailyMetricRow): OperationalValue {
 }
 
 export function wastageDisplay(row: DailyMetricRow): OperationalValue {
+  if (row.quantity_totals_available === false) return { value: "Unavailable", title: "Historical units are unverified" };
   return {
     value: formatQuantity(row.total_wastage),
     detail: !["evening_completed", "reviewed"].includes(row.status) ? "Not final"

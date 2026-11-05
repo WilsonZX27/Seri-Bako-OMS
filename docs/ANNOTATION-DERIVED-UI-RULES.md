@@ -149,3 +149,7 @@ The sticky outlet column in Daily Insights Completion wraps full names within it
 ## 2026-11-05 — published schedule initial guidance
 
 Published/locked schedule initial guidance must describe its read-only state rather than instructing assignment edits while controls are disabled. Preserve authorised correction entry,permissions and all schedule data. Evidence and limits: [QA](qa/schedule-readonly-copy-20261105.md).
+
+## 2026-11-05 — employee profile phone identity
+
+Employee detail uses existing PageHeader showMobileIdentity so the selected employee name stays visible under the generic Employees phone shell. Preserve all section permissions,personal fields,correction and account actions. Evidence/limits: [QA](qa/employee-mobile-identity-20261105.md).

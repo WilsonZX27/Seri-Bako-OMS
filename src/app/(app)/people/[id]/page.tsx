@@ -102,6 +102,7 @@ export default async function PeopleProfilePage({
     <>
       <PageHeader
         title={staff.full_name}
+        showMobileIdentity
         description="Employee profile, assignment, compliance and OMS account access."
         contentWidth="contained"
       />

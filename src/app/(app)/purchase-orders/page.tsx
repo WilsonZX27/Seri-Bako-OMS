@@ -51,11 +51,14 @@ async function loadOrders(filters: Record<string, string | undefined>) {
 
 export default async function PurchaseOrdersPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const [ordersResult, permissions, [summaryResult]] = await Promise.all([loadOrders(filters), getPermissionMap(["po.create"]), Promise.allSettled([getPurchaseOrderSummary()])]);
+  const exportContext = getPermissionMap(["po.create"]).then(async permissions => ({
+    permissions,
+    exportBranches: permissions["po.create"] ? await loadExportBranches() : [],
+  }));
+  const [ordersResult, { permissions, exportBranches }, [summaryResult]] = await Promise.all([loadOrders(filters), exportContext, Promise.allSettled([getPurchaseOrderSummary()])]);
   const orders = ordersResult.data;
   if (summaryResult.status === "rejected") logServerError(summaryResult.reason, { source: "page.purchaseOrders.summary" });
   const summary = summaryResult.status === "fulfilled" ? summaryResult.value : null;
-  const exportBranches = permissions["po.create"] ? await loadExportBranches() : [];
   const filtered = hasActiveFilters(filters);
   const emptyStateAction = filtered
     ? { href: "/purchase-orders", label: "Reset filters" }

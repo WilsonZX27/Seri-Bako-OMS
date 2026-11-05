@@ -202,14 +202,12 @@ export async function getPurchaseRequests(filters: Filters = {}) {
   if (!lines || (branchIds.length > 0 && !branches)) throw new Error("Purchase request related data returned no data.");
   const itemIds = [...new Set(lines.map((line) => line.item_id).filter((id): id is string => Boolean(id)))];
   const explicitSupplierIds = [...new Set(lines.map((line) => line.suggested_supplier_id).filter((id): id is string => Boolean(id)))];
-  const { data: itemDefaults, error: itemDefaultsError } = itemIds.length
-    ? await supabase.from("items").select("id, supplier_id").in("id", itemIds)
-    : { data: [], error: null };
+  const [{ data: itemDefaults, error: itemDefaultsError }, { data: branchMappings, error: branchMappingsError }] = await Promise.all([
+    itemIds.length ? supabase.from("items").select("id, supplier_id").in("id", itemIds) : Promise.resolve({ data: [], error: null }),
+    branchIds.length && itemIds.length ? supabase.from("branch_supplier_items").select("branch_id, item_id, supplier_item_id, is_preferred").in("branch_id", branchIds).in("item_id", itemIds).eq("status", "active").is("deleted_at", null) : Promise.resolve({ data: [], error: null }),
+  ]);
   if (itemDefaultsError) throw new Error(itemDefaultsError.message);
   if (!itemDefaults) throw new Error("Purchase request sourcing details returned no data.");
-  const { data: branchMappings, error: branchMappingsError } = branchIds.length && itemIds.length
-    ? await supabase.from("branch_supplier_items").select("branch_id, item_id, supplier_item_id, is_preferred").in("branch_id", branchIds).in("item_id", itemIds).eq("status", "active").is("deleted_at", null)
-    : { data: [], error: null };
   if (branchMappingsError) throw new Error(branchMappingsError.message);
   if (!branchMappings) throw new Error("Purchase request branch sourcing details returned no data.");
   const supplierItemIds = [...new Set(branchMappings.map((mapping) => mapping.supplier_item_id))];

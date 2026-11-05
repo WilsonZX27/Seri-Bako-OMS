@@ -110,3 +110,6 @@ New generation/recalculation must not infer quantities from unknown historical u
 
 ### Asset permission batching (2026-11-05)
 Asset workspace uses one existing permission-map RPC for report/manage/maintenance/transfer. Preserve active tenant actor checks, per-code results, server query/action authorization and redirects; do not cache grants across actors or companies. Source and harness verification: [asset permission performance](../QA-ASSET-PERMISSION-PERFORMANCE-2026-11-05.md). Hosted timing and installed SQL remain unverified.
+
+### Procurement read concurrency (2026-11-05)
+PR item defaults and branch supplier mappings may overlap only after scoped item/branch IDs are loaded; preserve every filter and error check. PO export branch loading must await `po.create` and retain actor scope, while unrelated list/summary reads may overlap. See [verification](../QA-PROCUREMENT-READ-CONCURRENCY-2026-11-05.md). Scheduling changes do not replace RLS or establish hosted speed improvements.

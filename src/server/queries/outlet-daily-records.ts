@@ -283,9 +283,10 @@ export const getOutletDailyFormOptions = cache(async function getOutletDailyForm
     hasPermission("outlet_daily_record.view_all"),
   ]);
   const productOptionsQuery = db.from("products").select("id,product_code,product_name,category,daily_tracking,selling_unit,status,display_order,is_seasonal,available_from,available_until").eq("status", "active");
-  const [{ data: branches, error: branchError }, { data: products, error: productError }] = await Promise.all([
+  const [{ data: branches, error: branchError }, { data: products, error: productError }, assignmentResult] = await Promise.all([
     db.from("branches").select("id,branch_code,branch_name,branch_type,status").eq("branch_type", "outlet").eq("status", "active").is("deleted_at", null).order("branch_name"),
     includeProducts ? productOptionsQuery : Promise.resolve({ data: [] as NonNullable<Awaited<typeof productOptionsQuery>["data"]>, error: null }),
+    canViewAll ? Promise.resolve({ data: [] as Array<{ branch_id: string }>, error: null }) : db.from("staff_branches").select("branch_id").eq("staff_id", profile?.id ?? ""),
   ]);
   if (branchError) throw new Error(branchError.message);
   if (productError) throw new Error(productError.message);
@@ -303,7 +304,7 @@ export const getOutletDailyFormOptions = cache(async function getOutletDailyForm
       defaultsByBranch: recordDate ? await getOutletDailyDefaults(db, branchesForForm.map((branch) => branch.id), recordDate) : {},
     };
   }
-  const { data: assignments, error } = await db.from("staff_branches").select("branch_id").eq("staff_id", profile?.id ?? "");
+  const { data: assignments, error } = assignmentResult;
   if (error) throw new Error(error.message);
   const trustedAssignments = requireReadRows(assignments, "Outlet daily staff assignments");
   const assignedBranchIds = [profileDefaultBranchId, ...trustedAssignments.map((row) => row.branch_id)].filter((value): value is string => Boolean(value));

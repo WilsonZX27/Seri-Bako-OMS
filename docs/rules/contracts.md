@@ -116,3 +116,6 @@ PR item defaults and branch supplier mappings may overlap only after scoped item
 
 ### Daily/inventory local allocation work (2026-11-05)
 Reuse catalogue maps only inside the scoped request; append to locally owned Stock Card groups without changing source rows, ordering, running-balance calculation or read limits. See [verification](../QA-DAILY-INVENTORY-ALLOCATION-PERFORMANCE-2026-11-05.md). No cross-actor caching or query-scope expansion.
+
+### Daily option concurrency (2026-11-05)
+Restricted staff assignment reads may overlap active branch/product options only after the actor and view-all permission checks. Preserve staff-ID filters, allowed/default/route branch union and failure propagation; view-all actors must still skip assignments. [Evidence](../QA-DAILY-OPTIONS-CONCURRENCY-2026-11-05.md).

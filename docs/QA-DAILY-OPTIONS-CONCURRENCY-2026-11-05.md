@@ -1,0 +1,9 @@
+# Daily form option read concurrency
+
+Base 8054b1f. No browser interaction, real data/configuration writes, SQL or deployment.
+
+After authenticated client/profile and view-all permission resolve, restricted-user staff assignments can be read alongside independent active branch/product options. Previously they waited for both option queries. All-outlet grants still skip assignment/route reads; includeProducts=false still skips the product read. Staff-ID predicate, assigned/default branch union, supply-route scope, active outlet filter, seasonal product filter, defaults and error priority remain unchanged. A failed independent branch/product read may now coexist with an already-started assignment read, but route/default reads never follow a failure. No cross-request caching added; existing client/RLS tenant boundary unchanged.
+
+Actual before/after source comparison used authorized synthetic data and a simulated delayed product read. Both performed four reads and produced byte-identical JSON. Before: assignments started after products ended. After: assignments started before products ended; routes still waited for assignment results. Evidence `/tmp/oms-daily-options-comparison.json`. This establishes a removed wait, not live speed, p95 or database cost. Query count is unchanged.
+
+32 regression tests passed, including exact actor filter, allowed branch union, all-outlet query skipping, product query skipping, permission failure before data queries, assignment failure before routes, historical/seasonal rules, tenant source contracts and prior performance paths. Full TypeScript and runtime lint checked separately; no full Next build in this local pass. CommonJS fixture lint uses no-require-imports disabled. Other inventory source dependencies (supplier relationships -> supplier names, item IDs -> hydrated metadata) are genuine; no broader query or cache change justified. Client re-render behavior was not profiled.

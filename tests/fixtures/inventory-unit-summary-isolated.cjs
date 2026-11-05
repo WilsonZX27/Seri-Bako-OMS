@@ -34,13 +34,31 @@ await db.exec('create or replace function public.get_inventory_dashboard_summary
 await db.exec('revoke all on function get_inventory_dashboard_summary(text) from public;grant execute on function get_inventory_dashboard_summary(text) to authenticated;');
 const metadata=async()=> (await db.query("select proacl::text,proowner,prosecdef,proconfig from pg_proc where oid='get_inventory_dashboard_summary(text)'::regprocedure")).rows;
 const aclBefore=await metadata();
+await db.exec("set role authenticated;set test.company='c1';set test.branch='b1';");
+const oldResult=(await db.query("select get_inventory_dashboard_summary('7d') as result")).rows[0].result;
+await db.exec('reset role');
 await db.exec(fs.readFileSync('sql-candidates/inventory_item_unit_summary.REVIEW.sql','utf8'));
 eq(await metadata(),aclBefore);
 await db.exec("revoke all on function get_inventory_dashboard_summary(text) from public;grant execute on function get_inventory_dashboard_summary(text) to authenticated;set role authenticated;set test.company='c1';set test.branch='b1';");
 const get=async()=> (await db.query("select get_inventory_dashboard_summary('7d') as result")).rows[0].result;
-let r=await get();eq(r.top_purchased_items.length,2);eq(r.top_purchased_items.map(x=>x.item_id),['a','b']);eq(r.top_purchased_items.map(x=>x.qty),[4,1000]);eq(r.top_purchased_items.map(x=>x.base_unit),['KG','LITRE']);eq(r.top_purchased_items[0].movement_count,5);eq(r.top_consumed_items.map(x=>x.qty),[1.5,7]);eq(r.top_consumed_items.map(x=>x.item_id),['a','b']);eq(r.top_purchased_items.map(x=>x.name),['Same name','Same name']);
-await db.exec("set test.branch='b2'");r=await get();eq(r.top_purchased_items.map(x=>x.qty),[9999]);eq(r.top_consumed_items,[]);
-await db.exec("set test.branch='b3'");r=await get();eq(r.top_purchased_items,[]);
+let r=await get();
+for(const [key,value] of Object.entries(oldResult)){
+ if(!['top_purchased_items','top_consumed_items'].includes(key))eq(r[key],value);
+}
+eq(r.top_purchased_items,[]);eq(r.top_consumed_items,[]);
+eq(r.activity_metric,'posted_movement_records');eq(r.quantity_summary_status,'historical_units_unverified');
+eq(r.purchased_activity.length,2);eq(r.purchased_activity.map(x=>x.item_id),['a','b']);
+eq(r.purchased_activity.map(x=>x.movement_count),[5,2]);
+eq(r.consumed_activity.map(x=>x.movement_count),[3,1]);
+eq(r.purchased_activity.map(x=>x.name),['Same name','Same name']);
+for(const entry of [...r.purchased_activity,...r.consumed_activity]){
+ eq(entry.historical_unit_status,'unverified');eq('qty' in entry,false);eq('base_unit' in entry,false);
+}
+const activityBefore=r.purchased_activity;
+await db.exec("reset role;update items set base_unit='PACK' where id='a';set role authenticated;");
+eq((await get()).purchased_activity,activityBefore);
+await db.exec("set test.branch='b2'");r=await get();eq(r.purchased_activity.map(x=>x.movement_count),[99]);eq(r.consumed_activity,[]);
+await db.exec("set test.branch='b3'");r=await get();eq(r.purchased_activity,[]);
 await db.exec("reset role");eq(JSON.stringify((await db.query('select * from inventory_daily_summary order by company_id,branch_id,item_id,transaction_date,transaction_type')).rows),before);
 eq((await db.query("select prosecdef from pg_proc where oid='get_inventory_dashboard_summary(text)'::regprocedure")).rows[0].prosecdef,false);
 eq((await db.query("select relrowsecurity from pg_class where oid='inventory_daily_summary'::regclass")).rows[0].relrowsecurity,true);

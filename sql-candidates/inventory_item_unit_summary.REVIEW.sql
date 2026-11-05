@@ -1,8 +1,7 @@
--- INSTALLATION HOLD: historical unit provenance is incomplete. Grouping prototype only.
--- Current items.base_unit MUST NOT be treated as verified historical UOM.
--- REVIEW ONLY: do not install without full live body/ACL baseline comparison.
--- Proposed ordering: movement count (not cross-unit quantity). Existing JSON name/qty retained.
--- No grants, policies, table writes, backfills or migration number.
+-- REVIEW ONLY: activity-frequency proposal; not installed.
+-- Legacy quantity arrays stay arrays but empty: do not feed counts into qty.
+-- No current UOM/quantity attached to uncertain historical records.
+-- No grants, policies, data writes or migration number.
 create or replace function public.get_inventory_dashboard_summary(p_period text default '30d')
 returns jsonb
 language sql
@@ -32,19 +31,21 @@ with params as (
   where d.transaction_date >= p.period_start
 ), top_purchased as (
   select i.id as item_id, i.item_code, i.item_name as name,
-    i.base_unit, sum(d.quantity_in) as qty, sum(d.movement_count) as movement_count
+    sum(d.movement_count) as movement_count,
+    'unverified'::text as historical_unit_status
   from daily_rows d
   join public.items i on i.id = d.item_id
   where d.transaction_type = 'purchase' and d.quantity_in > 0
-  group by i.id, i.item_code, i.item_name, i.base_unit
+  group by i.id, i.item_code, i.item_name
   order by movement_count desc, i.id asc limit 5
 ), top_consumed as (
   select i.id as item_id, i.item_code, i.item_name as name,
-    i.base_unit, sum(d.quantity_out) as qty, sum(d.movement_count) as movement_count
+    sum(d.movement_count) as movement_count,
+    'unverified'::text as historical_unit_status
   from daily_rows d
   join public.items i on i.id = d.item_id
   where d.transaction_type = 'production_usage' and d.quantity_out > 0
-  group by i.id, i.item_code, i.item_name, i.base_unit
+  group by i.id, i.item_code, i.item_name
   order by movement_count desc, i.id asc limit 5
 )
 select jsonb_build_object(
@@ -58,8 +59,12 @@ select jsonb_build_object(
   'pending_adjustments', coalesce((select count(*) from public.stock_counts sc join visible_branches vb on vb.id = sc.branch_id where sc.status in ('reviewed', 'approved') and sc.deleted_at is null), 0),
   'stock_count_due', coalesce((select count(*) from public.stock_counts sc join visible_branches vb on vb.id = sc.branch_id where sc.status in ('draft', 'submitted', 'reviewed', 'approved') and sc.deleted_at is null), 0),
   'recent_transactions', '[]'::jsonb,
-  'top_purchased_items', coalesce((select jsonb_agg(to_jsonb(top_purchased) order by top_purchased.movement_count desc, top_purchased.item_id) from top_purchased), '[]'::jsonb),
-  'top_consumed_items', coalesce((select jsonb_agg(to_jsonb(top_consumed) order by top_consumed.movement_count desc, top_consumed.item_id) from top_consumed), '[]'::jsonb),
+  'top_purchased_items', '[]'::jsonb,
+  'top_consumed_items', '[]'::jsonb,
+  'quantity_summary_status', 'historical_units_unverified',
+  'activity_metric', 'posted_movement_records',
+  'purchased_activity', coalesce((select jsonb_agg(to_jsonb(top_purchased) order by top_purchased.movement_count desc, top_purchased.item_id) from top_purchased), '[]'::jsonb),
+  'consumed_activity', coalesce((select jsonb_agg(to_jsonb(top_consumed) order by top_consumed.movement_count desc, top_consumed.item_id) from top_consumed), '[]'::jsonb),
   'low_stock_rows', coalesce((select jsonb_agg(to_jsonb(low_rows)) from (select * from visible_balances where status = 'active' and is_low_stock order by shortage_quantity desc, item_name asc limit 5) low_rows), '[]'::jsonb)
 );
 $$;

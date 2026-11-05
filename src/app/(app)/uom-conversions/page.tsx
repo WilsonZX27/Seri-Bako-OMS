@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getPermissionMap } from "@/server/auth/permissions";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,7 @@ import { ConsoleSection } from "@/components/layout/right-console";
 
 export default async function UomConversionsPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const filters = await searchParams;
-  const rows = await getUomConversions(filters);
+  const [rows, permissions] = await Promise.all([getUomConversions(filters), getPermissionMap(["uom_conversions.update"])]);
   const page = paginateRows(rows, filters.page);
   const filtered = Boolean(filters.search || (filters.status && filters.status !== "all"));
   const emptyState = <EmptyState title={filtered ? "No conversions match these filters" : "No UOM conversions yet"} description={filtered ? "Reset the filters or widen the search." : "Conversions appear here after a unit conversion is created."} action={filtered ? { href: "/uom-conversions", label: "Reset filters" } : undefined} />;
@@ -64,7 +65,7 @@ export default async function UomConversionsPage({ searchParams }: { searchParam
               </TableBody>
             </Table>
             </div>
-            <OperationalList ariaLabel="UOM conversions">
+            <OperationalList ariaLabel="UOM conversions" showOpenHint={Boolean(permissions["uom_conversions.update"]) && page.rows.length > 0}>
               {page.rows.map((row) => (
                 <OperationalListRow
                   key={row.id}

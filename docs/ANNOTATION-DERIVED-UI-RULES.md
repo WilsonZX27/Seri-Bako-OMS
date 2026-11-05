@@ -157,3 +157,7 @@ Employee detail uses existing PageHeader showMobileIdentity so the selected empl
 ## 2026-11-05 — Stock Card quantity totals require an item
 
 Stock Card all-items history must not publish a combined quantity across KG,LITRE,PACK,PCS or other item units. Show guidance instead of aggregate numbers until an item is selected;single-item net and movement-summary amounts include its base unit. Preserve ledger rows,filters,query and accounting data. See [QA](qa/stock-card-unit-totals-20261105.md).
+
+## 2026-11-05 — Movement Ledger identity and unit-safe page totals
+
+Ledger detail retains transaction number on phones via existing PageHeader identity contract. Ledger quantity summaries refer explicitly to the current page and require a selected item,with its base unit;all-item history never combines incompatible quantities. Currency valuation,rows,queries andposting remain unchanged. See [QA](qa/ledger-identity-unit-totals-20261105.md).

@@ -84,6 +84,7 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
   const balanceSummary = balanceSummaryResult.status === "fulfilled" ? balanceSummaryResult.value : null;
   const balanceUnavailable = balanceSummary === null;
   if (balanceSummaryResult.status === "rejected") logServerError(balanceSummaryResult.reason, { source: "page.stockTransactions.balanceSummary" });
+  const selectedItem = items.find((item) => item.id === filters.item_id);
   const inbound = ledger.rows.reduce((sum, row) => sum + Number(row.quantity_in), 0);
   const outbound = ledger.rows.reduce((sum, row) => sum + Number(row.quantity_out), 0);
   const ledgerUnavailable = "unavailable" in ledger && Boolean(ledger.unavailable);
@@ -116,8 +117,9 @@ export default async function StockTransactionsPage({ searchParams }: { searchPa
             <ConsoleSection title="Valuation">
               <div className="grid gap-2 text-xs">
                 <div className="flex justify-between"><span className="text-muted-foreground">Ledger rows</span><strong>{ledgerUnavailable ? "Unavailable" : ledger.totalRows}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Quantity in</span><strong>{ledgerUnavailable ? "Unavailable" : formatNumber(inbound)}</strong></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Quantity out</span><strong>{ledgerUnavailable ? "Unavailable" : formatNumber(outbound)}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Page quantity in</span><strong>{ledgerUnavailable ? "Unavailable" : selectedItem ? `${formatNumber(inbound)} ${selectedItem.base_unit}` : "—"}</strong></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Page quantity out</span><strong>{ledgerUnavailable ? "Unavailable" : selectedItem ? `${formatNumber(outbound)} ${selectedItem.base_unit}` : "—"}</strong></div>
+                {!selectedItem && !ledgerUnavailable ? <p className="text-xs text-muted-foreground">Select an item for page quantity totals; quantities across items are not combined.</p> : null}
                 <div className="flex justify-between"><span className="text-muted-foreground">Stock rows</span><strong>{balanceSummary ? balanceSummary.total : "Unavailable"}</strong></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Stock value</span><strong>{balanceSummary ? formatCurrency(balanceSummary.inventoryValue) : "Unavailable"}</strong></div>
               </div>

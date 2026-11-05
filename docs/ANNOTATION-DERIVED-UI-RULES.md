@@ -137,3 +137,7 @@ Below390px use a single draft-item card column so decimal quantities remain read
 ## 2026-11-05 — compliance site identity
 
 Outlet compliance detail must retain its actual branch name on phones using the existing PageHeader showMobileIdentity contract. The generic shell module label cannot identify the site whose editable records are shown. No permission, form, record, or attachment change. Evidence and limits: [QA](qa/compliance-mobile-identity-20261105.md).
+
+## 2026-11-05 — mobile document task label
+
+MobileTaskSheet triggers must retain full action names when sharing the phone footer with Files and More. Wrap task labels and allow touch-height growth rather than clipping long approval names; omit the redundant task chevron to preserve text space. Workflow and Files triggers retain their own appearance. No action, permission, focus or sheet behavior change. See [QA](qa/mobile-task-label-20261105.md).

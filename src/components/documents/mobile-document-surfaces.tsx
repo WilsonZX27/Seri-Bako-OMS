@@ -132,7 +132,7 @@ export function MobileActivityAndFiles({ children }: { children: ReactNode }) {
 }
 
 export function MobileTaskSheet({ label, children, primary = false }: { label: string; children: ReactNode; primary?: boolean }) {
-  return <MobileSheet label={label} title={label} triggerClassName={primary ? "border-[var(--sb-green-800)] bg-[var(--sb-green-800)] text-white hover:bg-[var(--sb-green-700)]" : undefined}>{children}</MobileSheet>;
+  return <MobileSheet label={<span className="min-w-0 whitespace-normal break-words text-left leading-tight">{label}</span>} title={label} trailingChevron={false} triggerClassName={cn("h-auto min-h-11 whitespace-normal py-2", primary && "border-[var(--sb-green-800)] bg-[var(--sb-green-800)] text-white hover:bg-[var(--sb-green-700)]")}>{children}</MobileSheet>;
 }
 
 export function DocumentMoreOptions({ children, defaultOpen = true, triggerClassName }: { children: ReactNode; defaultOpen?: boolean; triggerClassName?: string }) {

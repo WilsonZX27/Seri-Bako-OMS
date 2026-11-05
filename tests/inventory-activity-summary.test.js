@@ -1,0 +1,12 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import ts from 'typescript';
+const exports = {};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/lib/inventory-activity-summary.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{exports});
+const read=exports.readInventoryActivity;
+const row={item_id:'a',item_code:'A',name:'Same',movement_count:2,historical_unit_status:'unverified'};
+const payload=rows=>({activity_metric:'posted_movement_records',quantity_summary_status:'historical_units_unverified',purchased_activity:rows});
+test('old and malformed payloads stay unavailable, verified empty remains empty',()=>{assert.equal(read({},'purchased_activity'),null);assert.equal(read(payload([]),'purchased_activity').length,0);for(const bad of [null,{...row,movement_count:2.5},{...row,movement_count:-1},{...row,movement_count:'2'}, {...row,item_id:''}])assert.equal(read(payload([bad]),'purchased_activity'),null);assert.equal(read(payload([row,row]),'purchased_activity'),null);});
+test('safe activity never propagates historical quantities or current unit',()=>{const result=read(payload([{...row,qty:999,base_unit:'KG'}]),'purchased_activity');assert.equal(result[0].movement_count,2);assert.equal('qty' in result[0],false);assert.equal('base_unit' in result[0],false);});

@@ -1,3 +1,4 @@
+import { readInventoryActivity } from "@/lib/inventory-activity-summary";
 import { matchesStockThreshold } from "@/lib/low-stock-threshold";
 import { createClient } from "@/lib/supabase/server";
 import { shiftBusinessDate, todayInKualaLumpur } from "@/lib/business-date";
@@ -319,6 +320,8 @@ async function getInventoryDashboardFallback(supabase: Awaited<ReturnType<typeof
     recentTransactions,
     topPurchasedItems: [],
     topConsumedItems: [],
+    purchasedActivity: null,
+    consumedActivity: null,
     lowStockRows,
     inventoryUnavailable: unavailable.inventory,
     movementUnavailable: unavailable.movement,
@@ -993,6 +996,8 @@ export async function getInventoryDashboard(period: "7d" | "30d" | "month" = "30
       recentTransactions: transactions,
       topPurchasedItems: [],
       topConsumedItems: [],
+    purchasedActivity: null,
+    consumedActivity: null,
       lowStockRows: getMockLowStockItems().slice(0, 5).map((row) => ({
         ...row,
         autocount_code: null,
@@ -1053,6 +1058,8 @@ export async function getInventoryDashboard(period: "7d" | "30d" | "month" = "30
     })),
     topPurchasedItems: summary.top_purchased_items ?? [],
     topConsumedItems: summary.top_consumed_items ?? [],
+    purchasedActivity: readInventoryActivity(summary, "purchased_activity"),
+    consumedActivity: readInventoryActivity(summary, "consumed_activity"),
     lowStockRows: summary.low_stock_rows ?? [],
     inventoryUnavailable: false,
     movementUnavailable: false,

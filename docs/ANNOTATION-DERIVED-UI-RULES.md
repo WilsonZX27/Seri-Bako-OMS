@@ -165,3 +165,7 @@ Ledger detail retains transaction number on phones via existing PageHeader ident
 ## 2026-11-05 — inventory purchase summary quantity guard
 
 The existing purchase summary returns name and quantity without item identity or UOM and groups by name. Do not display those values as comparable quantity rankings or guess units from names. Keep the returned item names and a purchase-ledger review entry, explicitly state quantity totals unavailable until the summary has reliable per-item units. No query or record changes. See [QA](qa/inventory-purchase-unit-guard-20261105.md).
+
+## 2026-11-05 — inventory activity compatibility
+
+Purchase/Consumption activity panels label posted movement record counts explicitly, never quantities or invoice counts. Unsupported historical quantity/UOM payloads remain guarded. New validated activity arrays distinguish empty from unavailable; use item identity, not name, as row key. [Compatibility and readonly plan evidence](qa/inventory-unit-summary-design-20261105.md#compatible-ui-and-readonly-plan-review--2026-11-05). Local candidate only; database approval pending.

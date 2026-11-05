@@ -42,3 +42,27 @@ test('confirmed seasonal zeros collapse without dropping evidence or mounted inp
  assert.match(form,/showZeroHistory \|\| normalizedSearch.length > 0 \|\| !zeroHistoryIds.has/);
  assert.match(form,/hiddenClass=\{matches \? "" : "hidden"\}/);
 });
+
+test('every historical quantity and confirmation protects seasonal evidence without mutation',()=>{
+ const quantities=['qty_sent','morning_received_qty','evening_leftover_qty','wastage_qty','qty_sent_estimated','usage_qty','sold_qty','saleable_next_day_qty'];
+ for(const key of quantities){
+  for(const value of [null,0,0.25,2]){
+   const line={...empty,[key]:value};const before=JSON.stringify(line);
+   assert.equal(omitEmptyDailyHistory(line,false),value===null||value===0,`${key}=${value}`);
+   assert.equal(JSON.stringify(line),before);
+  }
+ }
+ for(const key of ['qty_sent_confirmed','morning_received_provided','wastage_provided','do_managed','stockout']){
+  assert.equal(omitEmptyDailyHistory({...empty,[key]:true},false),false,key);
+ }
+});
+
+test('record-date boundaries preserve eligible zeros and exclude only unavailable empty history',()=>{
+ for(const date of ['2026-09-30','2026-10-01','2026-10-02']){
+  for(const is_seasonal of [false,true]){
+   const product={status:'active',is_seasonal,available_from:'2026-10-01',available_until:'2026-10-01'};
+   const result=c.calculate([real,empty],undefined,{date,products:new Map([['moon',product]])});
+   assert.equal(result.received_pending_lines,date==='2026-10-01'?1:0,`${date}/${is_seasonal}`);
+  }
+ }
+});

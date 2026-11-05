@@ -67,6 +67,7 @@ export function InventoryDailyMovementChart({ points }: { points: InventoryDaily
         <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 bg-[var(--sb-green-700)]" />Inbound entries</span>
         <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 bg-[var(--sb-text-muted)]" />Outbound entries</span>
       </div>
+      <p className="mb-1 text-[11px] text-muted-foreground sm:hidden" data-inventory-mobile-scale>Scale: 0–{formatNumber(axisMaximum)} entries</p>
       <svg
         ref={chartRef}
         className="h-auto w-full touch-pan-y rounded-[var(--sb-radius-control)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sb-green-700)] focus-visible:ring-offset-2"
@@ -112,7 +113,7 @@ export function InventoryDailyMovementChart({ points }: { points: InventoryDaily
           const value = axisMaximum * (1 - ratio);
           return <g key={ratio} aria-hidden="true">
             <line x1={inset.left} x2={width - inset.right} y1={lineY} y2={lineY} stroke="var(--sb-border-soft)" />
-            {ratio === 0.5 && axisMaximum === 1 ? null : <text x={inset.left - 7} y={lineY + 4} textAnchor="end" fontSize="10" fill="var(--sb-text-muted)">{formatNumber(value)}</text>}
+            {ratio === 0.5 && axisMaximum === 1 ? null : <text className="hidden sm:block" x={inset.left - 7} y={lineY + 4} textAnchor="end" fontSize="10" fill="var(--sb-text-muted)">{formatNumber(value)}</text>}
           </g>;
         })}
         {points.map((point, index) => {
@@ -128,10 +129,14 @@ export function InventoryDailyMovementChart({ points }: { points: InventoryDaily
         })}
         <rect x={inset.left} y={inset.top} width={innerWidth} height={innerHeight} fill="transparent" data-chart-hit-area />
         {points.length ? <>
-          <text x={inset.left} y={height - 8} fontSize="10" fill="var(--sb-text-muted)">{formatDateOnly(points[0].transaction_date)}</text>
-          <text x={width - inset.right} y={height - 8} textAnchor="end" fontSize="10" fill="var(--sb-text-muted)">{formatDateOnly(points.at(-1)!.transaction_date)}</text>
+          <text className="hidden sm:block" x={inset.left} y={height - 8} fontSize="10" fill="var(--sb-text-muted)">{formatDateOnly(points[0].transaction_date)}</text>
+          <text className="hidden sm:block" x={width - inset.right} y={height - 8} textAnchor="end" fontSize="10" fill="var(--sb-text-muted)">{formatDateOnly(points.at(-1)!.transaction_date)}</text>
         </> : null}
       </svg>
+      <div className="flex justify-between gap-2 text-[11px] text-muted-foreground sm:hidden" data-inventory-mobile-dates>
+        <span>{formatDateOnly(points[0].transaction_date)}</span>
+        <span>{formatDateOnly(points.at(-1)!.transaction_date)}</span>
+      </div>
 
       <div id={descriptionId} role="region" aria-label="Selected inventory movement preview" className={`mt-2 min-h-[4.5rem] rounded-[var(--sb-radius-control)] border border-[var(--sb-border-soft)] bg-[var(--sb-surface-muted)] px-3 py-2 text-[11px] text-muted-foreground${activePoint ? "" : " flex items-center"}`} data-inventory-movement-preview aria-live="polite">
         {activePoint ? <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">

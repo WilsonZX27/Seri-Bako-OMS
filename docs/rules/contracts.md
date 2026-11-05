@@ -86,3 +86,5 @@ Inventory activity RPC installed 2026-11-05 after explicit conditional approval 
 For next-day food, future Daily entry uses Wastage and Tomorrow; historical Usage stays read-only. Product category help must reflect that approved decision. Products and UOM retain the established deliberate double-tap list gesture; authenticated Owner double-tap succeeded. [Evidence and limits](../qa/product-uom-preview-20261105.md).
 
 Products and UOM compact lists opt into a visible, list-associated double-tap/double-click and keyboard Enter hint only when nonempty and the existing detail permission is present. Other OperationalList callers remain unchanged; full desktop tables do not show the compact hint. [Implementation evidence](../qa/product-uom-preview-20261105.md).
+
+320px procurement/inventory follow-up: document references must remain readable on phone; narrow linked-document cards become single-column below390px. Inventory phone axis range/dates use unscaled text while desktop SVG axes remain unchanged. See [local evidence and remaining live acceptance](../qa/product-uom-preview-20261105.md).

@@ -113,3 +113,6 @@ Asset workspace uses one existing permission-map RPC for report/manage/maintenan
 
 ### Procurement read concurrency (2026-11-05)
 PR item defaults and branch supplier mappings may overlap only after scoped item/branch IDs are loaded; preserve every filter and error check. PO export branch loading must await `po.create` and retain actor scope, while unrelated list/summary reads may overlap. See [verification](../QA-PROCUREMENT-READ-CONCURRENCY-2026-11-05.md). Scheduling changes do not replace RLS or establish hosted speed improvements.
+
+### Daily/inventory local allocation work (2026-11-05)
+Reuse catalogue maps only inside the scoped request; append to locally owned Stock Card groups without changing source rows, ordering, running-balance calculation or read limits. See [verification](../QA-DAILY-INVENTORY-ALLOCATION-PERFORMANCE-2026-11-05.md). No cross-actor caching or query-scope expansion.

@@ -447,7 +447,11 @@ async function getStockCardFromBaseTables(
   const itemById = new Map((items ?? []).map((item) => [item.id, item]));
   const branchById = new Map((branches ?? []).map((branch) => [branch.id, branch.branch_name]));
   const linesByTransaction = new Map<string, typeof lines>();
-  for (const line of lines) linesByTransaction.set(line.stock_transaction_id, [...(linesByTransaction.get(line.stock_transaction_id) ?? []), line]);
+  for (const line of lines) {
+    const transactionLines = linesByTransaction.get(line.stock_transaction_id) ?? [];
+    transactionLines.push(line);
+    linesByTransaction.set(line.stock_transaction_id, transactionLines);
+  }
 
   const expanded = transactions.flatMap((transaction) => {
     const transactionLines = linesByTransaction.get(transaction.id) ?? [];

@@ -342,6 +342,7 @@ async function hydrateRows(db: Awaited<ReturnType<typeof createClient>>, records
   if (productsError) throw new Error(productsError.message);
   const operationalProductIds = new Set((products ?? []).filter((product) => !isPackagingCategory(product.category)).map((product) => product.id));
   const branchNames = new Map((branches ?? []).map((row) => [row.id, row.branch_name]));
+  const productsById = new Map((products ?? []).map(product => [product.id, product]));
   const linesByRecord = new Map<string, LineRow[]>();
   for (const line of (lines ?? []) as LineRow[]) {
     const recordLines = linesByRecord.get(line.record_id) ?? [];
@@ -354,7 +355,7 @@ async function hydrateRows(db: Awaited<ReturnType<typeof createClient>>, records
     created_by_name: actorDisplayName(actorDisplayMap, record.created_by),
     submitted_by_name: record.submitted_by ? actorDisplayName(actorDisplayMap, record.submitted_by) : null,
     updated_by_name: record.updated_by ? actorDisplayName(actorDisplayMap, record.updated_by) : null,
-    ...totals(linesByRecord.get(record.id) ?? [], operationalProductIds, { date: record.record_date, products: new Map((products ?? []).map(product => [product.id, product])) }),
+    ...totals(linesByRecord.get(record.id) ?? [], operationalProductIds, { date: record.record_date, products: productsById }),
   }));
 }
 

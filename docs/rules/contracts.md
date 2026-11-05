@@ -122,3 +122,6 @@ Restricted staff assignment reads may overlap active branch/product options only
 
 ### Packaging report de-duplication (2026-11-05)
 Deduplicate in linear scans while preserving first occurrence, input order and idless rows. Keep conflicting-ID and duplicate-cohort failures, zero/missing distinctions, scoped RPC and request-only caching. [Verification](../QA-PACKAGING-LINEAR-SCAN-2026-11-05.md).
+
+### Planning history indexes (2026-11-05)
+Use invocation-local product/batch indexes only; preserve first-product identity, strict ID lookup, historical unit verification, source order, complete-record and event checks. Keep company/kitchen/outlet query scopes and saved-plan semantics. [Verification](../QA-PLANNING-HISTORY-INDEX-2026-11-05.md).

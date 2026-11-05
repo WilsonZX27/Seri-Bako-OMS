@@ -53,7 +53,8 @@ export async function buildPlanPayload(db: LooseSupabase, companyId: string, kit
   // A manual-only plan cannot infer demand from receipts. Do not read eight weeks
   // of records merely to discard their inferred quantities. Mixed plans retain
   // the full food-record completeness check before any same-day recommendation.
-  const needsHistory = context.outlets.length > 0 && context.products.some(product => context.batches.some(batch => batch.product_id === product.id && batch.forecast_basis === "same_day"));
+  const sameDayProductIds = new Set(context.batches.filter(batch => batch.forecast_basis === "same_day").map(batch => batch.product_id));
+  const needsHistory = context.outlets.length > 0 && context.products.some(product => sameDayProductIds.has(product.id));
   const historyRecords = needsHistory ? await complete(() => db.from("outlet_daily_records").select("id,branch_id,record_date", { count: "exact" }).eq("company_id", companyId).in("branch_id", context.outlets.map(b => b.id)).gte("record_date", addDays(date, -56)).lt("record_date", date).in("status", ["evening_completed", "reviewed"])) : [];
   const recordMap = new Map(historyRecords.filter((r) => context.outlets.some((b) => b.id === r.branch_id)).map((r) => [String(r.id), r]));
   const ids = [...recordMap.keys()];
@@ -64,13 +65,15 @@ export async function buildPlanPayload(db: LooseSupabase, companyId: string, kit
     const results = await Promise.all(chunks.map(chunk => complete(() => db.from("outlet_daily_record_lines").select("*", { count: "exact" }).in("record_id", chunk))));
     for (const result of results) historyLines.push(...result);
   }
+  const historyProductsById = new Map<string, PlanningProduct>();
+  for (const product of context.products) if (!historyProductsById.has(product.id)) historyProductsById.set(product.id, product);
   const foodIds = new Set(context.products.map((p) => p.id));
   const incompleteRecords = new Set(historyLines.filter((l) => foodIds.has(String(l.product_id)) && (l.morning_received_provided !== true || l.wastage_provided !== true)).map((l) => String(l.record_id)));
   const series = new Map<string, HistoryPoint[]>();
   for (const line of historyLines) {
     const record = recordMap.get(String(line.record_id));
     if (!record) throw new Error("History changed during read. Retry generation.");
-    const product = context.products.find(p => p.id === line.product_id);
+    const product = historyProductsById.get(line.product_id as string);
     if (!product || !verifiedPlanningUnit(line, product.selling_unit)) continue;
     const dateValue = String(record.record_date);
     const specialEvent = context.events.some((e) => e.confirmed && e.event_date === dateValue && e.branch_id === record.branch_id && e.lines.some((l) => l.product_id === line.product_id));

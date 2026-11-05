@@ -1,3 +1,5 @@
+-- INSTALLATION HOLD: historical unit provenance is incomplete. Grouping prototype only.
+-- Current items.base_unit MUST NOT be treated as verified historical UOM.
 -- REVIEW ONLY: do not install without full live body/ACL baseline comparison.
 -- Proposed ordering: movement count (not cross-unit quantity). Existing JSON name/qty retained.
 -- No grants, policies, table writes, backfills or migration number.

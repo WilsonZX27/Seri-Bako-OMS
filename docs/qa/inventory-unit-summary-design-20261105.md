@@ -25,3 +25,21 @@ Run NODE_PATH=/private/tmp/oms-odr-summary-isolated/node_modules node tests/fixt
 5. Rollback requires reviewed saved previous function definition only, preserving ACL/RLS; retain UI guard so old name-only quantities are not displayed. No historical data rollback.
 
 No installation, deployment, Production setting change or business mutation performed.
+
+## Follow-up live unit provenance audit — 2026-11-05
+SELECT-only schema inspection confirms stock_transactions and stock_transaction_lines have unit_cost but no UOM/base-unit snapshot; inventory_daily_summary has no matching unit/conversion column. goods_receiving_lines has uom and conversion_to_base_uom_snapshot plus conversion provenance; stock_count_lines has uom. These document-specific fields do not establish the historical base unit of every ledger entry. A count-row UOM is also not inherently immutable: migration 333 explicitly corrected it.
+
+Seri Bako Malaysia live audit_logs (items, old/new base_unit differing, both snapshots present): zero. This is absence of recorded evidence, NOT proof units never changed. Live items noninternal triggers are set_items_updated_at and stock_balances_summary_item_refresh; no generic audit trigger appears. Repository updateItem accepts base_unit in payload and directly updates items after permission/company checks; it does not record before/after unit history or reject changes for previously posted items. This read-only investigation does not prove every other write path or policy allows changes.
+
+Live activity_logs contains TWO unit_label_corrected entries, metadata migration333, source explicit_user_confirmation_2026-10-05, after_unit KG. Migration333 documents CTN-to-KG as a confirmed label correction, quantities unchanged, and stores before configuration/digests. This evidence is specific to two items, not authority to re-label all history or assume every unit change was a harmless correction.
+
+### Revised recommendation / installation hold
+The REVIEW SQL from 2aefa5d is a grouping prototype, NOT installation-ready: joining current items.base_unit cannot certify historical unit meaning. Even grouping by current unit may combine different historical unit eras within one item. Keep quantity display guarded until provenance is resolved.
+
+Safe immediate presentation: show item identity and movement-record count only, explicitly label “Posted movement records”, order descending by record count then stable item ID. It is an activity-frequency list, not quantity, spend or unique document ranking. Same transaction may contain multiple movement rows; do not call the count invoices/deliveries. Alternative neutral default: alphabetical item code/name with no “Top” label. Neither implies cross-unit comparability.
+
+For unknown history, omit quantity total and label “Historical unit not verified”; current master unit may be shown separately as “Current item unit” without attaching it to old quantities. Do not infer unit from name, conversion factor 1, current master or absence of audit. Do not expose a sum spanning uncertain unit eras as meaningful.
+
+Complete future design: capture immutable posted base-unit identity/version with each movement; retain original document UOM/conversion and correction provenance; group by item ID plus verified unit/version. Existing data must remain unknown unless backed by a specific source/document or approved label-correction evidence. Never mass-backfill current master units. Add explicit before/after unit audit and protection against silently changing a posted item's base unit; such write-path/schema changes need separate scoped review and authorization. Current task makes none.
+
+No tests rerun for this documentation-only follow-up. Prior 15 isolated assertions prove grouping/scoping mechanics, NOT historical unit correctness. No Production data changed; no SQL installed or deployment performed.

@@ -100,3 +100,7 @@ User approves Manager RO decisions within authorised branches, retaining no self
 ## Daily historical unit basis — 2026-11-05
 
 Daily list/detail/Insights must not render combined quantities or rates without a verified matching historical unit and food population. Catalogue units are not historical snapshots. Preserve line values, sales amounts and completion counts. [Local guard, compatibility limits and tests](../qa/daily-unit-summary-guard-20261105.md).
+
+## Export / Planning historical unit attribution — 2026-11-05
+
+Current catalogue unit must be identified as current, not presented as proof of historical units. Preserve original export values and append provenance metadata for compatibility. Historical forecast changes require independently verified unit evidence and must not rewrite saved plans. [Implementation, design, tests and PDF gap](../qa/daily-export-planning-unit-design-20261105.md).

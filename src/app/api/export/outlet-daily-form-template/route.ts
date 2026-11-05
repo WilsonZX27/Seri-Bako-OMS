@@ -52,8 +52,9 @@ export async function GET(request: Request) {
       qty_sold: "",
       balance: "",
       wastage_details: "",
+      unit_basis: historical ? "Current catalogue; historical unit unverified" : "Current catalogue for new entry",
     })));
-    const csv = `\uFEFF${rows.length ? rowsToCsv(rows) : "category,product_code,product,unit,qty_sent,received,wastage,usage,qty_sold,balance,wastage_details"}`;
+    const csv = `\uFEFF${rows.length ? rowsToCsv(rows) : "category,product_code,product,unit,qty_sent,received,wastage,usage,qty_sold,balance,wastage_details,unit_basis"}`;
     return new NextResponse(csv, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",

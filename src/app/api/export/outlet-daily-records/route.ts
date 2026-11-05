@@ -108,6 +108,9 @@ export async function GET(request: Request) {
         submitted_by: record?.submitted_by ? staffNames.get(record.submitted_by) ?? "Unavailable" : "Draft",
         created_at: record?.created_at ?? null,
         updated_at: record?.updated_at ?? null,
+        selling_unit_basis: "Current catalogue; historical unit unverified",
+        historical_unit: null,
+        historical_unit_status: "unverified",
       };
     });
 

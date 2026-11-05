@@ -91,7 +91,7 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
   const voidAction = voidOutletDailyRecord.bind(null, record.id);
   const postAction = postOutletDailyRecord.bind(null, record.id);
 
-  const editPrimary = record.status === "draft" && canEditQtySent && !qtySentConfirmed
+  const editPrimary = ["draft", "morning_recorded"].includes(record.status) && canEditQtySent && !qtySentConfirmed
     ? <SubmitButton form={formId} name="target_status" value="morning_recorded" className="gap-2"><CheckCircle2 className="h-4 w-4" aria-hidden="true" />Confirm Qty Sent</SubmitButton>
     : canEditOutletValues && record.status === "draft"
       ? outletCanComplete
@@ -109,7 +109,7 @@ export default async function OutletDailyRecordDetailPage({ params, searchParams
   const primaryAction = editPrimary;
   const secondaryActions = <>
     {canEditOutletValues && record.status === "draft" && (canEditQtySent || outletCanComplete) ? <SubmitButton form={formId} name="target_status" value="draft" variant="outline"><Save className="h-4 w-4" aria-hidden="true" />Save progress</SubmitButton> : null}
-    {outletCanComplete && canEditOutletValues && record.status === "morning_recorded" ? <SubmitButton form={formId} name="target_status" value="morning_recorded" variant="outline">Save Changes</SubmitButton> : null}
+    {canEditOutletValues && record.status === "morning_recorded" ? <SubmitButton form={formId} name="target_status" value="morning_recorded" variant="outline">Save Changes</SubmitButton> : null}
     {canPost && canEditOutletValues && record.status === "evening_completed" ? <SubmitButton form={formId} name="target_status" value="evening_completed" variant="outline"><Save className="h-4 w-4" aria-hidden="true" />Save Changes</SubmitButton> : null}
     {canVoid ? <DestructiveActionDialog action={voidAction} label="Void Record" title="Void this outlet daily record?" description="The record will leave active operational totals but remain in the audit trail." pendingLabel="Voiding…"><Field label="Void reason" required><Input name="reason" required placeholder="Explain why this record is being voided" /></Field></DestructiveActionDialog> : null}
   </>;

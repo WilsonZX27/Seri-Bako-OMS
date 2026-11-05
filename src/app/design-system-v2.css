@@ -3316,6 +3316,11 @@ html[data-design-layer="v2"] .sb-repair-summary { grid-template-columns: minmax(
   .sb-daily-line-head > span:first-child { display: block; }
   .sb-daily-product-line > div:first-child { grid-column: 1; }
   .sb-daily-product-line > .sb-daily-wastage-details { grid-column: 2 / -1; }
+  .sb-daily-line-three > .sb-daily-wastage-details {
+    grid-column: 5;
+    grid-row: 1;
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 639px) {

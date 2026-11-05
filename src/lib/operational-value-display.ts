@@ -23,7 +23,7 @@ export function wastageDisplay(row: DailyMetricRow): OperationalValue {
     value: formatQuantity(row.total_wastage),
     detail: !["evening_completed", "reviewed"].includes(row.status) ? "Not final"
       : row.wastage_percent === null ? row.received_pending_lines > 0 ? "Pending receipt" : "—"
-      : `${new Intl.NumberFormat("en-MY", { maximumFractionDigits: 1 }).format(row.wastage_percent)}% rate`,
+      : `${new Intl.NumberFormat("en-MY", { maximumFractionDigits: 1 }).format(row.wastage_percent)}%`,
   };
 }
 

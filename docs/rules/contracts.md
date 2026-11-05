@@ -92,3 +92,7 @@ Products and UOM compact lists opt into a visible, list-associated double-tap/do
 Shared compact search below390px gives the text input a full row and keeps filter/search/result controls on the next row; retain existing390px+layout and44pxtouch targets. [Narrow attendance evidence](../qa/product-uom-preview-20261105.md).
 
 Goods Receiving list and sidebar must not sum heterogeneous units. Show receipt line counts and direct users to item/unit-level received and rejected quantities; preserve detail values and backend compatibility. [Confirmed mixed-unit receipt and local guard](../qa/product-uom-preview-20261105.md).
+
+## 2026-11-05 Manager/Daily annotation batch
+
+User approves Manager RO decisions within authorised branches, retaining no self-review; supersedes the Manager RO denial in migration 274 only after scoped implementation. Daily morning-recorded entries with pending dispatch must retain an authorised save/confirm path. Shared Daily reason uses its spare desktop final column; remove redundant percentage suffix. [Scope and verification](../qa/annotations-manager-daily-20261105.md). No live permission change claimed.

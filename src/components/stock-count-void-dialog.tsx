@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { ModalShell } from "@/components/ui/modal-shell";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
-import { formatStockCountQuantity as formatQuantity } from "@/lib/stock-count-quantity";
 
 export type StockCountVoidPreview = {
   fingerprint: string;
@@ -34,11 +33,10 @@ export function StockCountVoidDialog({ action, preview }: {
         <h2 id={titleId} className="flex items-center gap-2 text-base font-semibold text-[var(--sb-danger)]"><AlertTriangle className="h-4 w-4" />Void and reverse this Stock Count?</h2>
         <p className="mt-2 text-sm text-muted-foreground">The system will reverse every inventory adjustment created by this count with equal and opposite ledger movements.</p>
       </header>
-      <dl className="my-4 grid grid-cols-3 divide-x rounded-[var(--sb-control-radius)] border bg-[var(--sb-surface-muted)] py-3 text-center text-xs">
-        <div><dt className="text-muted-foreground">Lines</dt><dd className="mt-1 font-semibold tabular-nums">{preview.adjustment_line_count}</dd></div>
-        <div><dt className="text-muted-foreground">Qty in</dt><dd className="mt-1 font-semibold tabular-nums">{formatQuantity(preview.reverse_quantity_in)}</dd></div>
-        <div><dt className="text-muted-foreground">Qty out</dt><dd className="mt-1 font-semibold tabular-nums">{formatQuantity(preview.reverse_quantity_out)}</dd></div>
+      <dl className="my-4 rounded-[var(--sb-control-radius)] border bg-[var(--sb-surface-muted)] p-3 text-xs">
+        <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Adjustment lines to reverse</dt><dd className="font-semibold tabular-nums">{preview.adjustment_line_count}</dd></div>
       </dl>
+      <p className="mb-4 text-xs text-muted-foreground">Each line is reversed in its own unit. Review the original count lines for quantities; quantities across items are not combined.</p>
       <p className="mb-4 rounded-[var(--sb-control-radius)] border border-[var(--sb-danger)] bg-[var(--sb-danger-bg)] p-3 text-sm text-[var(--sb-danger)]">The original Stock Count, its movements, and the new reversal movements remain permanently in the audit trail.</p>
       <form action={action} className="space-y-4">
         <input type="hidden" name="expected_fingerprint" value={preview.fingerprint} />

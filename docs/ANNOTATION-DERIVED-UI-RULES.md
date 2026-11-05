@@ -169,3 +169,10 @@ The existing purchase summary returns name and quantity without item identity or
 ## 2026-11-05 — inventory activity compatibility
 
 Purchase/Consumption activity panels label posted movement record counts explicitly, never quantities or invoice counts. Unsupported historical quantity/UOM payloads remain guarded. New validated activity arrays distinguish empty from unavailable; use item identity, not name, as row key. [Compatibility and readonly plan evidence](qa/inventory-unit-summary-design-20261105.md#compatible-ui-and-readonly-plan-review--2026-11-05). Local candidate only; database approval pending.
+
+### Quantity aggregation follow-up — 2026-11-05
+
+- Goods Receiving PO options must show pending line counts, not a sum of pending quantities across PO items/UOMs. Per-line quantities and conversions remain authoritative.
+- Stock Count reversal confirmation must show adjustment line count; never show summed inward/outward quantities across count items without a valid unit basis. Preserve fingerprint, idempotency, reason and acknowledgement gates.
+- Delivery summary quantities must remain separated by stored line UOM. Only normalized identical units may combine; unknown units/invalid quantities remain unavailable, while a confirmed zero keeps its unit. Voided orders are excluded.
+- This rule does not declare Daily Record/Insights cross-product totals dimensionally valid. Their unit provenance and derived rates require separate remediation and verification.

@@ -1,0 +1,31 @@
+const {PGlite}=require('@electric-sql/pglite');
+const fs=require('node:fs'); const assert=require('node:assert/strict');
+(async()=>{const db=new PGlite(); let checks=0;
+await db.exec(`create table comp_time_transactions(id uuid,company_id uuid,branch_id uuid,staff_id uuid,submitted_by uuid,status text,minutes int,decided_by uuid,decided_at timestamptz,decision_comment text,updated_at timestamptz,reverses_ot_claim_id uuid);
+create table attendance_ot_claims(id uuid);create table staff_branches(staff_id uuid,branch_id uuid);create table branches(id uuid,company_id uuid);
+create function current_staff_id() returns uuid language sql as $$ select '00000000-0000-0000-0000-000000000001'::uuid $$;
+create function current_staff_company_id() returns uuid language sql as $$ select '00000000-0000-0000-0000-000000000010'::uuid $$;
+create function has_permission(text) returns boolean language sql as $$ select $1='comp_time.approve' and current_setting('test.permission')='yes' $$;
+create function current_staff_has_company_role(text[]) returns boolean language sql as $$ select current_setting('test.role')=any($1) $$;
+create function attestation_lock(uuid) returns void language sql as $$ select $$;
+create function get_comp_time_balance(uuid) returns int language sql as $$ select 0 $$;
+set test.role='manager';set test.permission='yes';
+insert into branches values('00000000-0000-0000-0000-000000000020',current_staff_company_id()),('00000000-0000-0000-0000-000000000021',current_staff_company_id());
+insert into staff_branches values(current_staff_id(),'00000000-0000-0000-0000-000000000020');`);
+const old=fs.readFileSync('supabase/migrations/265_attendance_actuals_and_comp_time.sql','utf8');const start=old.indexOf('create or replace function public.decide_comp_time_transaction(');const end=old.indexOf('\ncreate or replace function',start+10);
+await db.exec(old.slice(start,end).replace('public.decide_comp_time_transaction(', 'public.decide_comp_time_transaction_before_ot_reconciliation('));
+const candidate=fs.readFileSync('sql-candidates/manager_ro_scoped_review.REVIEW.sql','utf8');await db.exec(candidate.slice(candidate.indexOf('create or replace function'),candidate.indexOf('\ninsert into public.role_permissions')));
+const id='00000000-0000-0000-0000-000000000030';
+async function reset(branch='00000000-0000-0000-0000-000000000020',own=false){await db.exec('delete from comp_time_transactions');await db.query(`insert into comp_time_transactions(id,company_id,branch_id,staff_id,submitted_by,status,minutes) values($1,current_staff_company_id(),$2,current_staff_id(),$3,'pending',120)`,[id,branch,own?'00000000-0000-0000-0000-000000000001':'00000000-0000-0000-0000-000000000002']);}
+async function decide(decision='approve',comment=null){return db.query('select status from decide_comp_time_transaction($1,$2,$3)',[id,decision,comment]);}
+await reset();assert.equal((await decide()).rows[0].status,'approved');checks++;
+await reset();assert.equal((await decide('reject','not valid')).rows[0].status,'rejected');checks++;
+await reset();await assert.rejects(()=>decide('reject'),/comment/);checks++;
+await reset(undefined,true);await assert.rejects(()=>decide(),/own entry/);checks++;
+await reset('00000000-0000-0000-0000-000000000021');await assert.rejects(()=>decide(),/assigned outlet/);checks++;
+await reset(null);await assert.rejects(()=>decide(),/assigned outlet/);checks++;
+await reset();await db.exec("set test.permission='no'");await assert.rejects(()=>decide(),/not authorised/);checks++;
+await db.exec("set test.permission='yes';set test.role='super_admin'");await reset('00000000-0000-0000-0000-000000000021');assert.equal((await decide()).rows[0].status,'approved');checks++;
+await db.exec("set test.role='people_operations'");await reset(null);assert.equal((await decide()).rows[0].status,'approved');checks++;
+await db.exec("set test.role='manager'");await reset();await db.exec("update comp_time_transactions set company_id='00000000-0000-0000-0000-000000000099'");await assert.rejects(()=>decide(),/assigned outlet/);checks++;
+console.log(`${checks} isolated RO checks passed (fixture roles; no live grants or real decisions).`);await db.close();})().catch(e=>{console.error(e);process.exitCode=1});

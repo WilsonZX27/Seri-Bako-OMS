@@ -90,7 +90,7 @@ export function GoodsReceivingForm({
               <div id="goods-receiving-setup-fields" className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-3">
                 <Field label="Purchase Order" required className="col-span-2 lg:col-span-1">
                   <SelectControl value={selectedOrder?.id ?? ""} onValueChange={selectedValue => selectPo(selectedValue)} required ariaLabel={"Purchase Order"} options={[({value: "", label: "Select approved/sent PO"}), ...(purchaseOrders.map((order) => (
-                      ({value: String((order.id) ?? ""), label: [order.po_no, " - ", order.supplier_name ?? "Supplier", " - Pending ", formatNumber(order.pending_qty)].join("")})
+                      ({value: String((order.id) ?? ""), label: [order.po_no, " - ", order.supplier_name ?? "Supplier", " - Pending lines: ", formatNumber(order.pending_lines)].join("")})
                     )))]}/>
                 </Field>
                 <Field label="Received Date" required>

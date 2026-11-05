@@ -681,7 +681,7 @@ function RowActions({
   weekLocked: boolean;
 }) {
   return (
-    <div className="ml-auto flex w-max max-w-full flex-wrap items-center justify-end gap-1 [&_button]:font-normal">
+    <div className="ml-auto flex w-max max-w-full flex-wrap items-center justify-end gap-1 md:grid md:w-full md:grid-cols-2 md:justify-items-center [&_button]:font-normal">
       <Button asChild size="sm" variant="ghost" className="w-auto justify-start gap-2 bg-transparent px-2 font-normal hover:bg-[var(--sb-surface-muted)] focus-visible:bg-[var(--sb-surface-muted)]">
         <Link href={href} scroll={false} title="View attendance evidence and exceptions"><Eye className="h-4 w-4"/><span className="md:sr-only">View details</span></Link>
       </Button>

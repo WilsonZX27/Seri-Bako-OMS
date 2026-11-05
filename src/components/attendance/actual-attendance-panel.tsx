@@ -378,8 +378,8 @@ export function ActualAttendancePanel(props: Props) {
                 <>
                   <Button
                     size="sm"
-                    disabled={row.own_request === true}
-                    aria-describedby={row.own_request === true ? `${reviewReasonId}-${row.id}` : undefined}
+                    disabled={row.own_request === true || row.review_scope_denied === true}
+                    aria-describedby={row.own_request === true || row.review_scope_denied === true ? `${reviewReasonId}-${row.id}` : undefined}
                     title={row.own_request === true ? "Another authorised approver must review your request." : undefined}
                     variant="outline"
                     onClick={() =>
@@ -390,8 +390,8 @@ export function ActualAttendancePanel(props: Props) {
                   </Button>
                   <Button
                     size="sm"
-                    disabled={row.own_request === true}
-                    aria-describedby={row.own_request === true ? `${reviewReasonId}-${row.id}` : undefined}
+                    disabled={row.own_request === true || row.review_scope_denied === true}
+                    aria-describedby={row.own_request === true || row.review_scope_denied === true ? `${reviewReasonId}-${row.id}` : undefined}
                     title={row.own_request === true ? "Another authorised approver must review your request." : undefined}
                     variant="ghost"
                     onClick={() =>
@@ -402,9 +402,9 @@ export function ActualAttendancePanel(props: Props) {
                   </Button>
                 </>
               ) : null}</div>
-              {props.canApproveComp && row.status === "pending" && row.own_request === true ? (
+              {props.canApproveComp && row.status === "pending" && (row.own_request === true || row.review_scope_denied === true) ? (
                 <p id={`${reviewReasonId}-${row.id}`} className="text-xs text-muted-foreground sm:col-span-2">
-                  You submitted this request. Another authorised approver must review it.
+                  {row.own_request === true ? "You submitted this request. Another authorised approver must review it." : "This request is outside your assigned outlets. An authorised approver must review it."}
                 </p>
               ) : null}
             </div>

@@ -56,11 +56,11 @@ export async function getRoPendingCorrections(staffIds:string[], branchId?:strin
   const selected=branchId && branchId!=="all" ? branchId : null;
   if (selected && !scope.companyWideAccess && !scope.branchIds.includes(selected)) return {rows:[],total:0};
   const db=looseSupabase(await createClient());
-  let query=db.from("comp_time_transactions").select("id,staff_id,work_date,transaction_kind,minutes,reason,status,submitted_at,submitted_by,staffs!comp_time_transactions_staff_id_fkey(full_name,staff_code)",{count:"exact"}).eq("company_id",actor.companyId).in("staff_id",staffIds).eq("status","pending");
+  let query=db.from("comp_time_transactions").select("id,staff_id,branch_id,work_date,transaction_kind,minutes,reason,status,submitted_at,submitted_by,staffs!comp_time_transactions_staff_id_fkey(full_name,staff_code)",{count:"exact"}).eq("company_id",actor.companyId).in("staff_id",staffIds).eq("status","pending");
   if (selected) query=query.eq("branch_id",selected);
   else if (!scope.companyWideAccess) query=query.in("branch_id",scope.branchIds);
   const result=await query.order("submitted_at").order("id").limit(50);
   if(result.error) throw result.error;
   if(result.count==null) throw Error("RO correction count is unavailable.");
-  return {rows:(result.data??[]).map((row:Record<string,unknown>)=>({...row,own_request:row.submitted_by===actor.staffId})),total:result.count};
+  return {rows:(result.data??[]).map((row:Record<string,unknown>)=>({...row,own_request:row.submitted_by===actor.staffId,review_scope_denied:scope.roleCode==="manager" && !scope.branchIds.includes(String(row.branch_id))})),total:result.count};
 }

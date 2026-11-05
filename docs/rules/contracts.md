@@ -107,3 +107,6 @@ Current catalogue unit must be identified as current, not presented as proof of 
 
 ### Planning unit trust guard (2026-11-05)
 New generation/recalculation must not infer quantities from unknown historical units or unverified saved minimums/employee baselines. Require explicit matching snapshots; missing carryover requests manual quantity, never zero stock. Minimum estimation failure preserves existing draft settings. Existing saved plans remain unchanged. Historical blank PDF pages label current catalogue units as historically unverified. See [implementation and verification](../qa/daily-export-planning-unit-design-20261105.md). No snapshot schema/save-chain is installed by this guard; current automatic history suggestions remain unavailable.
+
+### Asset permission batching (2026-11-05)
+Asset workspace uses one existing permission-map RPC for report/manage/maintenance/transfer. Preserve active tenant actor checks, per-code results, server query/action authorization and redirects; do not cache grants across actors or companies. Source and harness verification: [asset permission performance](../QA-ASSET-PERMISSION-PERFORMANCE-2026-11-05.md). Hosted timing and installed SQL remain unverified.

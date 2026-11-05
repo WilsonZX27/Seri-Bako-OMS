@@ -12,7 +12,7 @@ import { AssetOperatingDayForm } from "@/components/asset-operating-day-form";
 import { canAccessAssetManagement } from "@/lib/asset-access";
 import { requireActiveTenantActor } from "@/server/auth/tenant-actor";
 import { redirect } from "next/navigation";
-import { hasPermission } from "@/server/auth/permissions";
+import { getPermissionMap } from "@/server/auth/permissions";
 import { todayInKualaLumpur } from "@/lib/business-date";
 import Link from "next/link";
 import { TriangleAlert, Box, ChartNoAxesColumn, ClipboardCheck, Wrench, ArrowLeftRight } from "lucide-react";
@@ -36,7 +36,11 @@ export default async function AssetManagementPage({ searchParams }: { searchPara
   const params = await searchParams;
   const actor = await requireActiveTenantActor();
   const managementRole = canAccessAssetManagement(actor.roleCode);
-  const canReport = await hasPermission("assets.report");
+  const permissions = await getPermissionMap(["assets.report", "assets.manage", "assets.maintenance", "assets.transfer"]);
+  const canReport = permissions["assets.report"];
+  const canManage = permissions["assets.manage"];
+  const canMaintain = permissions["assets.maintenance"];
+  const canTransfer = permissions["assets.transfer"];
   const availableTabs = actor.roleCode === "kitchen"
     ? tabs.filter(tab => tab.id === "checklist")
     : tabs.filter(tab => managementRole || (tab.id === "maintenance" && canReport) || !["overview", "maintenance"].includes(tab.id));
@@ -49,7 +53,6 @@ export default async function AssetManagementPage({ searchParams }: { searchPara
   const locationId = (params.location ?? "").slice(0, 36);
   const sort = params.sort === "name" ? "name" : "code";
   const data = await getAssetWorkspace(view, page, query, params.date, status, locationId, sort, (params.category ?? "").slice(0,80));
-  const [canManage,canMaintain,canTransfer] = await Promise.all([hasPermission("assets.manage"),hasPermission("assets.maintenance"),hasPermission("assets.transfer")]);
   const selectedTicket=view==="maintenance" ? data.records.find(row=>row.id===params.ticket) ?? data.records[0] : null;
   const detail=selectedTicket ? await getAssetMaintenanceDetail(selectedTicket.id,1) : null;
   const detailAsset=detail?.request.asset_id ? await getAssetMaintenanceIdentity(detail.request.asset_id) : null;

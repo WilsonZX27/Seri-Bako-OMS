@@ -48,7 +48,7 @@ export function ProductForm({ product, packaging = [], action, formId, showSubmi
           </Field>
           <Field label="Daily record category" className="col-span-2 sm:col-span-1">
             <SelectControl name="daily_tracking" defaultValue={value("daily_tracking", product ? dailyTracking(product) : "food_daily")} ariaLabel={"Daily record category"} options={[...(Object.entries(dailyTrackingLabels).map(([value,label])=>({value: String((value) ?? ""), label: String((label) ?? "")})))]}/>
-            <p className="mt-1 text-xs text-muted-foreground">Next day includes food kept for several days. Usage is recorded separately from wastage; this does not set a fixed expiry date.</p>
+            <p className="mt-1 text-xs text-muted-foreground">Next day includes food kept for several days. Enter Wastage and Tomorrow in Daily Records; historical Usage remains read-only. This does not set a fixed expiry date.</p>
           </Field>
           <Field label="Product status">
             <SelectControl name="status" defaultValue={value("status", product?.status ?? "active")} required ariaLabel={"Product status"} options={[({value: "active", label: "Active"}), ({value: "inactive", label: "Inactive"})]}/>

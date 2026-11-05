@@ -7,7 +7,9 @@ const source = fs.readFileSync("src/app/(app)/stock-card/page.tsx", "utf8");
 test("stock card does not expose zero-derived summaries when the read is unavailable", () => {
   assert.match(source, /const resultCount = unavailable \? undefined : rows\.length/);
   assert.match(source, /<FilterBar resultCount=\{resultCount\}/);
-  assert.match(source, /\{unavailable \? "Unavailable" : formatNumber\(value\)\}/);
+  assert.match(source, /\{unavailable \? "Unavailable" : selectedItem \?/);
+  assert.match(source, /Select an item to total quantities in its base unit/);
+  assert.match(source, /quantities across items are not combined/);
   assert.match(source, /Filtered net movement: \{unavailable \? "Unavailable"/);
   assert.match(source, /!rows\.length && !unavailable/);
 });

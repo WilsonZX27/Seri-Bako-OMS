@@ -153,3 +153,7 @@ Published/locked schedule initial guidance must describe its read-only state rat
 ## 2026-11-05 — employee profile phone identity
 
 Employee detail uses existing PageHeader showMobileIdentity so the selected employee name stays visible under the generic Employees phone shell. Preserve all section permissions,personal fields,correction and account actions. Evidence/limits: [QA](qa/employee-mobile-identity-20261105.md).
+
+## 2026-11-05 — Stock Card quantity totals require an item
+
+Stock Card all-items history must not publish a combined quantity across KG,LITRE,PACK,PCS or other item units. Show guidance instead of aggregate numbers until an item is selected;single-item net and movement-summary amounts include its base unit. Preserve ledger rows,filters,query and accounting data. See [QA](qa/stock-card-unit-totals-20261105.md).

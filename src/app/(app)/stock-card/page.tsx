@@ -46,11 +46,12 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
       <PageHeader title="Stock Card" description="Chronological stock movement history per item." />
       <WorkspaceGrid className="p-3 sm:p-4" rightRail={<section className="erp-surface overflow-hidden" aria-labelledby="stock-card-summary">
             <div className="border-b px-3 py-2.5"><h2 id="stock-card-summary" className="text-xs font-semibold">Movement summary</h2></div>
+            {!selectedItem && !unavailable ? <p className="border-b px-3 py-2 text-xs text-muted-foreground">Select an item to total quantities in its base unit.</p> : null}
             <div className="grid divide-y">
               {movementSummary.map(([label, value]) => (
                 <div key={label} className="flex min-w-0 items-center justify-between gap-3 px-3 py-2">
                   <p className="text-xs text-muted-foreground">{label}</p>
-                  <p className="mt-0.5 truncate font-mono text-xs font-semibold tabular-nums sm:text-sm">{unavailable ? "Unavailable" : formatNumber(value)}</p>
+                  <p className="mt-0.5 truncate font-mono text-xs font-semibold tabular-nums sm:text-sm">{unavailable ? "Unavailable" : selectedItem ? `${formatNumber(value)} ${selectedItem.base_unit}` : "—"}</p>
                 </div>
               ))}
             </div>
@@ -76,7 +77,7 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
           <section className="erp-surface overflow-hidden">
             <div className="border-b px-3 py-2.5">
               <h2 className="text-sm font-semibold">{selectedItem ? `${selectedItem.item_code} — ${selectedItem.item_name}` : "Stock Movement History"}</h2>
-              <p className="mt-0.5 text-xs text-muted-foreground">Filtered net movement: {unavailable ? "Unavailable" : `${formatNumber(filteredNetMovement)} ${selectedItem?.base_unit ?? ""}`}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Filtered net movement: {unavailable ? "Unavailable" : selectedItem ? `${formatNumber(filteredNetMovement)} ${selectedItem.base_unit}` : "Select an item; quantities across items are not combined."}</p>
             </div>
               {unavailable ? <div className="p-3"><Notice tone="error" title="Stock Card data is temporarily unavailable">The inventory movement service did not respond. Retry this page shortly; no data was changed.</Notice></div> : null}
               <Table scrollbar="auto" className="sb-stock-card-table" mobileHidden stickyColumn="first" aria-label="Stock movement history">
@@ -99,7 +100,7 @@ export default async function StockCardPage({ searchParams }: { searchParams: Pr
                 <TableBody>
                   {rows.map((row) => (
                     <TableRow key={row.stock_transaction_id}>
-                      <TableCell className="font-medium">{row.item_name}</TableCell>
+                      <TableCell className="font-medium">{row.item_name}<span className="block text-[11px] text-muted-foreground">{row.base_unit}</span></TableCell>
                       <TableCell>{formatDateOnly(row.transaction_date)}</TableCell>
                       <TableCell className="font-medium">{row.transaction_no}</TableCell>
                       <TableCell>{row.transaction_type.replaceAll("_", " ")}</TableCell>

@@ -120,6 +120,9 @@ export async function buildOutletDailyRecordFormPdf({ groups, companyName, gener
   text("Channel total: _________________", margin, y, 270);
   text("Difference: __________________", 305, y, 266);
 
+  doc.getPages().forEach(sheet => {
+    if (recordDate) sheet.drawText("Units shown are current catalogue units; historical units are unverified.", { x: margin, y: 32, font, size: 8 });
+  });
   doc.getPages().forEach((sheet, index) => sheet.drawText(`${recordDate ? `Record form for ${recordDate}` : `Current product form as of ${generatedDate}`} | Page ${index + 1} / ${doc.getPageCount()}`, { x: margin, y: 22, font, size: 8 }));
   doc.setTitle(`Outlet Daily Record Form - ${recordDate ?? "Latest"}`);
   return doc.save();

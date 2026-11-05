@@ -10,8 +10,8 @@ function fixture(){
  branch_supply_routes:outlets.map(o=>({id:'route-'+o.id,company_id:company,source_branch_id:kitchen,destination_branch_id:o.id,status:'active',is_primary:true,effective_from:'2020-01-01',effective_to:null})),
  production_planning_settings:[{kitchen_id:kitchen,company_id:company,enabled:false,draft_time:'20:00:00',buffer_percent:10,max_decrease_percent:10,recipients:[]}],
  production_batch_rules:products.map(p=>({kitchen_id:kitchen,company_id:company,product_id:p.id,yield_per_tray:16,forecast_basis:"same_day"})),
- production_outlet_minimums:outlets.flatMap(o=>products.map(p=>({kitchen_id:kitchen,company_id:company,branch_id:o.id,product_id:p.id,minimum_qty:0}))),production_planning_events:[],public_holiday_branches:[],public_holidays:[],outlet_daily_records:records,
- outlet_daily_record_lines:records.flatMap(r=>products.map(p=>({id:r.id+':'+p.id,record_id:r.id,product_id:p.id,morning_received_qty:100,morning_received_provided:true,evening_leftover_qty:0,wastage_qty:60,wastage_provided:true,stockout:false}))) };
+ production_outlet_minimums:outlets.flatMap(o=>products.map(p=>({kitchen_id:kitchen,company_id:company,branch_id:o.id,product_id:p.id,minimum_qty:0,quantity_unit_verified:true,quantity_unit_snapshot:'PCS'}))),production_planning_events:[],public_holiday_branches:[],public_holidays:[],outlet_daily_records:records,
+ outlet_daily_record_lines:records.flatMap(r=>products.map(p=>({id:r.id+':'+p.id,record_id:r.id,product_id:p.id,morning_received_qty:100,morning_received_provided:true,evening_leftover_qty:0,wastage_qty:60,wastage_provided:true,stockout:false,quantity_unit_verified:true,quantity_unit_snapshot:'PCS'}))) };
  let reads=0;const readTables=[];
  const db={from(table){let filters=[],from=0,to=Infinity,sorts=[];const q={select(){return q;},eq(k,v){filters.push(r=>r[k]===v);return q;},is(k,v){filters.push(r=>r[k]===v);return q;},in(k,v){filters.push(r=>v.includes(r[k]));return q;},gte(k,v){filters.push(r=>r[k]>=v);return q;},gt(k,v){filters.push(r=>r[k]>v);return q;},lte(k,v){filters.push(r=>r[k]<=v);return q;},lt(k,v){filters.push(r=>r[k]<v);return q;},order(k){sorts.push(k);return q;},range(a,b){from=a;to=b;return q;},limit(n){to=n-1;return q;},then(resolve){reads++;readTables.push(table);let rows=(tables[table]??[]).filter(r=>filters.every(f=>f(r)));rows.sort((a,b)=>{for(const k of sorts){const diff=String(a[k]).localeCompare(String(b[k]));if(diff)return diff;}return 0;});return Promise.resolve({data:rows.slice(from,Math.min(to+1,from+200)),count:rows.length,error:null}).then(resolve);}};return {select:()=>q};}};
  return {db,tables,readTables,reads:()=>reads,company,kitchen};
@@ -115,7 +115,7 @@ test('on-order products stay visible with unknown quantities without orders and 
 test('employee forecasts use day type, protect high-waste outlets and leave tray remainder unresolved',async()=>{
  const f=fixture();const dates=['2026-09-21','2026-09-22','2026-09-23','2026-09-24','2026-09-25','2026-09-28','2026-09-29','2026-09-30'];
  for(const r of f.tables.outlet_daily_records)r.record_date=dates[Number(r.id.split('-r-')[1])];
- f.tables.production_outlet_forecasts=f.tables.branches.filter(b=>b.branch_type==='outlet').map(b=>({company_id:f.company,kitchen_id:f.kitchen,branch_id:b.id,product_id:'p-0',weekday_qty:100,weekend_qty:5,updated_at:null,source:'Employee'}));
+ f.tables.production_outlet_forecasts=f.tables.branches.filter(b=>b.branch_type==='outlet').map(b=>({company_id:f.company,kitchen_id:f.kitchen,branch_id:b.id,product_id:'p-0',weekday_qty:100,weekend_qty:5,updated_at:null,source:'Employee',quantity_unit_verified:true,quantity_unit_snapshot:'PCS'}));
  const p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-01');const a=p.allocations.filter(a=>a.product_id==='p-0');
  assert.equal(a.length,10);assert.ok(a.every(a=>a.evidence.employee.historyDays===8));assert.ok(a.every(a=>a.approved_qty===90));assert.ok(a.every(a=>a.evidence.employee.extra===0));assert.equal(p.product_lines[0].trays,57);assert.equal(p.product_lines[0].retained_qty,0);
 });
@@ -124,7 +124,7 @@ test('safe balancing stays inside low-waste capacity and snapshots additions sep
  const f=fixture();const dates=['2026-09-21','2026-09-22','2026-09-23','2026-09-24','2026-09-25','2026-09-28','2026-09-29','2026-09-30'];
  for(const r of f.tables.outlet_daily_records)r.record_date=dates[Number(r.id.split('-r-')[1])];
  for(const l of f.tables.outlet_daily_record_lines)l.wastage_qty=10;
- f.tables.production_outlet_forecasts=f.tables.branches.filter(b=>b.branch_type==='outlet').map(b=>({company_id:f.company,kitchen_id:f.kitchen,branch_id:b.id,product_id:'p-0',weekday_qty:100,weekend_qty:5,updated_at:null,source:'Employee'}));
+ f.tables.production_outlet_forecasts=f.tables.branches.filter(b=>b.branch_type==='outlet').map(b=>({company_id:f.company,kitchen_id:f.kitchen,branch_id:b.id,product_id:'p-0',weekday_qty:100,weekend_qty:5,updated_at:null,source:'Employee',quantity_unit_verified:true,quantity_unit_snapshot:'PCS'}));
  const p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-01');const a=p.allocations.filter(a=>a.product_id==='p-0');
  assert.equal(a.reduce((s,a)=>s+a.approved_qty,0),1008);assert.equal(a.reduce((s,a)=>s+a.evidence.employee.extra,0),8);assert.ok(a.every(a=>a.approved_qty<=a.evidence.employee.capacity));assert.ok(a.every(a=>a.evidence.employee.quantity===100));assert.equal(p.product_lines[0].trays,63);
 });
@@ -139,21 +139,21 @@ test('employee workflow retains unscheduled catalogue products as unknown and co
 
 function carryFixture(){
  const f=fixture();f.tables.products[0].daily_tracking='food_carryover';
- f.tables.production_outlet_forecasts=['p-0','p-1'].flatMap(product_id=>f.tables.branches.filter(b=>b.branch_type==='outlet').map(b=>({company_id:f.company,kitchen_id:f.kitchen,branch_id:b.id,product_id,weekday_qty:8,weekend_qty:8})));
+ f.tables.production_outlet_forecasts=['p-0','p-1'].flatMap(product_id=>f.tables.branches.filter(b=>b.branch_type==='outlet').map(b=>({company_id:f.company,kitchen_id:f.kitchen,branch_id:b.id,product_id,weekday_qty:8,weekend_qty:8,quantity_unit_verified:true,quantity_unit_snapshot:'PCS'})));
  f.tables.outlet_daily_records.push({id:'prior-count',company_id:f.company,branch_id:'outlet-0',record_date:'2026-09-30',status:'reviewed'});
- for(const product_id of ['p-0','p-1'])f.tables.outlet_daily_record_lines.push({id:'prior-'+product_id,record_id:'prior-count',product_id,daily_tracking:'food_daily',saleable_next_day_qty:3,morning_received_qty:8,morning_received_provided:true,evening_leftover_qty:0,wastage_qty:0,wastage_provided:true,stockout:false});
+ for(const product_id of ['p-0','p-1'])f.tables.outlet_daily_record_lines.push({id:'prior-'+product_id,record_id:'prior-count',product_id,daily_tracking:'food_daily',saleable_next_day_qty:3,morning_received_qty:8,morning_received_provided:true,evening_leftover_qty:0,wastage_qty:0,wastage_provided:true,stockout:false,quantity_unit_verified:true,quantity_unit_snapshot:'PCS'});
  return f;
 }
 test('expiry classification deducts exact prior physical stock before trays, keeps events and never carries daily-expiry products',async()=>{
  const f=carryFixture();f.tables.production_planning_events.push({id:'count-event',company_id:f.company,kitchen_id:f.kitchen,branch_id:'outlet-0',event_date:'2026-10-01',confirmed:true,name:'Confirmed event',lines:[{product_id:'p-0',qty:2}]});
  const p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-01');
  const a=p.allocations.find(a=>a.product_id==='p-0'&&a.branch_id==='outlet-0');assert.equal(a.approved_qty,7);assert.equal(a.event_qty,2);assert.equal(a.evidence.carryover.deducted,3);assert.equal(a.evidence.employee.extra,0);
- assert.equal(p.allocations.filter(a=>a.product_id==='p-0').reduce((s,a)=>s+a.approved_qty,0),79);assert.equal(p.product_lines.find(p=>p.product_id==='p-0').trays,5);
+ assert.ok(p.allocations.filter(a=>a.product_id==='p-0'&&a.branch_id!=='outlet-0').every(a=>a.approved_qty===null));assert.equal(p.product_lines.find(p=>p.product_id==='p-0').trays,null);
  const daily=p.allocations.find(a=>a.product_id==='p-1'&&a.branch_id==='outlet-0');assert.equal(daily.evidence.carryover,undefined);assert.equal(daily.approved_qty,8);
 });
 test('stock from drafts, older dates, another tenant or unknown counts is never deducted',async()=>{
  for(const mutate of [f=>f.tables.outlet_daily_records.at(-1).status='draft',f=>f.tables.outlet_daily_records.at(-1).record_date='2026-09-29',f=>f.tables.outlet_daily_records.at(-1).company_id='other',f=>f.tables.outlet_daily_record_lines.find(l=>l.id==='prior-p-0').saleable_next_day_qty=null]){
- const f=carryFixture();mutate(f);const p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-01');const a=p.allocations.find(a=>a.product_id==='p-0'&&a.branch_id==='outlet-0');assert.equal(a.approved_qty,8);assert.equal(a.evidence.carryover.status,'missing');assert.equal(a.evidence.carryover.deducted,0);
+ const f=carryFixture();mutate(f);const p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-01');const a=p.allocations.find(a=>a.product_id==='p-0'&&a.branch_id==='outlet-0');assert.equal(a.approved_qty,null);assert.equal(a.evidence.carryover.status,'missing');assert.equal(a.evidence.carryover.deducted,0);
  }
 });
 
@@ -175,11 +175,27 @@ test('explicit selection respects supply periods and requires resolving an exclu
 
 test('two kitchens with the same available menu retain unconfigured items and preserve zero versus unknown',async()=>{
  const f=fixture(),other='kitchen-2';f.tables.branches.push({id:other,company_id:f.company,branch_type:'central_kitchen',branch_name:'Other',status:'active',deleted_at:null});
- f.tables.production_outlet_forecasts=[{company_id:f.company,kitchen_id:f.kitchen,branch_id:'outlet-0',product_id:'p-0',weekday_qty:0,weekend_qty:0}];
+ f.tables.production_outlet_forecasts=[{company_id:f.company,kitchen_id:f.kitchen,branch_id:'outlet-0',product_id:'p-0',weekday_qty:0,weekend_qty:0,quantity_unit_verified:true,quantity_unit_snapshot:'PCS'}];
  f.tables.production_batch_rules=f.tables.production_batch_rules.filter(b=>b.product_id!=='p-1');
  const a=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03'),b=await buildPlanPayload(f.db,f.company,other,'2026-10-03');
  assert.deepEqual(Array.from(a.product_lines,x=>x.product_id),Array.from(b.product_lines,x=>x.product_id));
  assert.equal(a.allocations.find(x=>x.product_id==='p-0'&&x.branch_id==='outlet-0').evidence.employee.quantity,0);
  assert.equal(a.allocations.find(x=>x.product_id==='p-1').suggested_qty,null);assert.equal(a.product_lines.find(x=>x.product_id==='p-1').yield_per_tray,null);
  assert.equal(f.tables.production_plans?.length??0,0);
+});
+
+for (const kind of ['history','minimum','employee','carryover']) test(`unverified ${kind} units cannot generate automatic quantities`,async()=>{
+ const f=kind==='carryover'?carryFixture():fixture();
+ if(kind==='history')f.tables.outlet_daily_record_lines.forEach(l=>delete l.quantity_unit_verified);
+ if(kind==='minimum')f.tables.production_outlet_minimums.forEach(l=>delete l.quantity_unit_verified);
+ if(kind==='employee')f.tables.production_outlet_forecasts=[{company_id:f.company,kitchen_id:f.kitchen,branch_id:'outlet-0',product_id:'p-0',weekday_qty:8,weekend_qty:8}];
+ if(kind==='carryover')f.tables.outlet_daily_record_lines.forEach(l=>l.quantity_unit_snapshot='KG');
+ const before=JSON.stringify(f.tables);
+ const p=await buildPlanPayload(f.db,f.company,f.kitchen,kind==='carryover'?'2026-10-01':'2026-10-03');
+ const a=p.allocations.find(a=>a.product_id==='p-0'&&a.branch_id==='outlet-0');
+ assert.equal(a.approved_qty,null);assert.match(a.evidence.manualReason,/verified matching unit/);assert.equal(JSON.stringify(f.tables),before);
+});
+test('changed historical unit cannot be relabelled using current catalogue',async()=>{
+ const f=fixture();f.tables.outlet_daily_record_lines.forEach(l=>l.quantity_unit_snapshot='KG');
+ const p=await buildPlanPayload(f.db,f.company,f.kitchen,'2026-10-03');assert.ok(p.allocations.every(a=>a.approved_qty===null));
 });

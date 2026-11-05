@@ -104,3 +104,6 @@ Daily list/detail/Insights must not render combined quantities or rates without 
 ## Export / Planning historical unit attribution — 2026-11-05
 
 Current catalogue unit must be identified as current, not presented as proof of historical units. Preserve original export values and append provenance metadata for compatibility. Historical forecast changes require independently verified unit evidence and must not rewrite saved plans. [Implementation, design, tests and PDF gap](../qa/daily-export-planning-unit-design-20261105.md).
+
+### Planning unit trust guard (2026-11-05)
+New generation/recalculation must not infer quantities from unknown historical units or unverified saved minimums/employee baselines. Require explicit matching snapshots; missing carryover requests manual quantity, never zero stock. Minimum estimation failure preserves existing draft settings. Existing saved plans remain unchanged. Historical blank PDF pages label current catalogue units as historically unverified. See [implementation and verification](../qa/daily-export-planning-unit-design-20261105.md). No snapshot schema/save-chain is installed by this guard; current automatic history suggestions remain unavailable.

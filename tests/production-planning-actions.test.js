@@ -24,7 +24,7 @@ function fixture({role = 'manager', rpcError = null, mail = {unavailable: true},
  }
  const errors = compile('src/server/actions/error-handling.ts', shared);
  const actions = compile('src/server/actions/production-planning.ts', {
-  ...shared, '@/lib/production-planning/minimum-estimate':compile('src/lib/production-planning/minimum-estimate.ts',{}), 'zod': require('zod'), 'next/cache': {revalidatePath: path => invalidations.push(path)},
+  ...shared, '@/lib/production-planning/unit-basis':compile('src/lib/production-planning/unit-basis.ts',{}), '@/lib/production-planning/minimum-estimate':compile('src/lib/production-planning/minimum-estimate.ts',{}), 'zod': require('zod'), 'next/cache': {revalidatePath: path => invalidations.push(path)},
   '@/lib/supabase/server': {createClient: async () => readDb??db}, '@/lib/supabase/loose': {looseSupabase: value => value},
   '@/server/queries/common': {getCurrentProfile: async () => ({company_id: kitchen, role_code: role})},
   '@/server/production-planning/data': {buildPlanPayload() {throw Error('Unexpected forecast');},async complete(factory){const result=await factory();if(result.error)throw Error(result.error.message);return result.data;}},

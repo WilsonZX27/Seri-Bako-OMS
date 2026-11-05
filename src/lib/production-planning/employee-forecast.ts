@@ -1,6 +1,6 @@
 import { addDays, type Forecast, type HistoryPoint } from "@/lib/production-planning/forecast";
 
-export type EmployeeForecast = {
+export type EmployeeForecast = { quantity_unit_verified?: boolean; quantity_unit_snapshot?: string;
   branch_id: string; product_id: string; weekday_qty: number | null;
   weekend_qty: number | null; updated_at: string | null; source: string;
 };
